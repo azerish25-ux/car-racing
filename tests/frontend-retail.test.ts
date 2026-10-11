@@ -48,6 +48,10 @@ describe('retail front end', () => {
       'Loading Vellamar Coast Circuit',
     );
     expect(loadingStage('Something new', 0.4)).toEqual({ title: 'Loading', fraction: 0.4 });
+    expect(loadingStage('100% · Scene ready…', 0.85)).toEqual({
+      title: 'Almost ready',
+      fraction: 0.9,
+    });
     expect(LOADING_TIPS.length).toBeGreaterThan(3);
   });
 

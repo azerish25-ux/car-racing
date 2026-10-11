@@ -26,6 +26,8 @@ export function loadingStage(raw: string, previous = 0): LoadingStage {
   const text = raw.replace(/…$/, '').trim();
   // Boot asset loading: "37% · Loading A07 start gantry". Assets are the first
   // 85 % of the boot bar; the final compile/draw finishes it.
+  if (/scene ready/i.test(text))
+    return { title: 'Almost ready', fraction: Math.max(previous, 0.9) };
   const percent = /^(\d{1,3})%\s*·\s*(.*)$/.exec(text);
   if (percent) {
     const label = percent[2];
