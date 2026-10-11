@@ -1309,6 +1309,11 @@ export class RacingRenderer {
     this.drawLedger.begin();
     this.gpuTimer.begin();
     const originalOverride = this.scene.overrideMaterial;
+    // World matrices were solved once above for this frame. Every pass below
+    // (shadow, mirror, probe, wet plane, scene) would otherwise re-walk and
+    // recompose the entire graph inside renderer.render(). Passes that move
+    // something (stages, probe and reflection cameras) update it themselves.
+    this.scene.matrixWorldAutoUpdate = false;
     try {
       if (studio) {
         const road = this.circuit.track.at(presented[o + F.S], { ...this.circuit.track.points[0] });
@@ -1447,6 +1452,7 @@ export class RacingRenderer {
     } finally {
       // BokehPass temporarily installs a depth override; restore even on GPU failure.
       this.scene.overrideMaterial = originalOverride;
+      this.scene.matrixWorldAutoUpdate = true;
       this.scenePresentation.restore();
       this.gpuTimer.end();
       this.drawLedger.end();
