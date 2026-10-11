@@ -4,7 +4,6 @@ import {
   CREW_PERFORMANCE,
   relaxedWrist,
 } from './crew-performance.ts';
-import { GRID_PRESENTATION_SECONDS } from '../core/grid-presentation.ts';
 import * as T from 'three';
 import { F, H, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../simulation/protocol.ts';
 import { WHEEL_POSITIONS } from '../simulation/vehicle.ts';
