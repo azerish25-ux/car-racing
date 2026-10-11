@@ -42,7 +42,7 @@ export const CANOPY_VOLUME = Object.freeze({
   /** Leaf blade roughness with the per-leaf normal atlas. */
   roughness: 0.72,
   /** Tiers (from LOD0) that carry the inner crown shell. */
-  shellLevels: 1,
+  shellLevels: 2,
   /** Inner shell: turn about the stem (radians) and radial / vertical scale. */
   shell: Object.freeze({ turn: 2.39996, radial: 0.66, vertical: 0.9 }),
 });
@@ -53,7 +53,8 @@ export const CANOPY_VOLUME = Object.freeze({
  * exported crowns are a single layer of cards around an empty core; real
  * crowns are leaf mass all the way in. The shell sits behind the outer cards
  * (so it is lit by the occlusion bake as interior foliage) and closes the gaps
- * that read as cards. Same material, same draw; triangles double on LOD0 only.
+ * that read as cards. Same material, same draw; leaf triangles double on the
+ * near and middle tiers (LOD0, LOD1).
  */
 export function withCanopyShell(geometry: T.BufferGeometry) {
   if (geometry.index) throw new Error('Canopy shell expects a non-indexed stream');
@@ -284,7 +285,7 @@ const SPECIES: readonly Species[] = [
     width: 150,
     cluster: 6,
     spacing: 22,
-    silver: 0.32,
+    silver: 0.2,
   },
   // broadleaf-mature: larger, deep summer green.
   {

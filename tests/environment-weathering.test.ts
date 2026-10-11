@@ -30,6 +30,12 @@ import {
 } from '../src/rendering/canopy-volume.ts';
 import { WeatherPresentation, tagWeatherSurface } from '../src/rendering/weather-presentation.ts';
 import { brandingMaterial } from '../src/rendering/studio/trackside-branding.ts';
+import {
+  BELT_TREES,
+  beltTreeStream,
+  coniferGeometry,
+  installBeltTrees,
+} from '../src/rendering/studio/belt-trees.ts';
 import { studioHookKeys, type StudioShader } from '../src/rendering/studio/shader-hooks.ts';
 
 function compile(material: T.Material) {
@@ -280,7 +286,9 @@ describe('composition with the in-game weather presentation', () => {
     installFacadeWeathering(facade, 'concrete', 'object', 0);
     const canopy = tagWeatherSurface(new T.MeshStandardMaterial(), 'foliage');
     installCanopyVolume(canopy);
-    materials.push(facade, canopy, brandingMaterial());
+    const belt = tagWeatherSurface(new T.MeshStandardMaterial(), 'foliage');
+    installBeltTrees(belt);
+    materials.push(facade, canopy, belt, brandingMaterial());
     for (const m of materials) {
       weather.installMaterial(m);
       const shader = compile(m);
@@ -288,5 +296,62 @@ describe('composition with the in-game weather presentation', () => {
       declaredOnce(shader.fragmentShader);
       expect(shader.fragmentShader).toContain('surfaceWet');
     }
+  });
+});
+
+describe('belt trees', () => {
+  it('packs far and near conifer tiers inside the unit crown box', () => {
+    const { geometry, far, near } = beltTreeStream();
+    expect(far.start).toBe(0);
+    expect(near.start).toBe(far.count);
+    expect(near.start + near.count).toBe(geometry.index!.count);
+    const position = geometry.getAttribute('position'),
+      shade = geometry.getAttribute('beltShade'),
+      box = geometry.boundingBox!.clone().expandByScalar(1e-6),
+      p = new T.Vector3();
+    expect(
+      new T.Box3(new T.Vector3(-0.7, -0.1, -0.7), new T.Vector3(0.7, 1.12, 0.7)).containsBox(
+        geometry.boundingBox!,
+      ),
+    ).toBe(true);
+    const forms = new Set<number>();
+    for (let i = 0; i < position.count; i++) {
+      expect(box.containsPoint(p.fromBufferAttribute(position, i))).toBe(true);
+      expect(shade.getX(i)).toBeGreaterThanOrEqual(0);
+      expect(shade.getX(i)).toBeLessThanOrEqual(1);
+      forms.add(shade.getY(i));
+    }
+    expect(forms).toEqual(new Set([1]));
+    // Triangle budget per tree: far tier lean, near tier bounded.
+    expect(far.count / 3).toBeLessThan(200);
+    expect(near.count / 3).toBeLessThan(450);
+  });
+  it('gives a conifer a cone of whorls narrowing up the leader', () => {
+    const { whorls, tips } = BELT_TREES.conifer.near;
+    const g = coniferGeometry(whorls, tips),
+      position = g.getAttribute('position'),
+      uv = g.getAttribute('beltUv'),
+      bands = Array.from({ length: 5 }, () => 0);
+    for (let i = 0; i < position.count; i++) {
+      const y = position.getY(i),
+        r = Math.hypot(position.getX(i), position.getZ(i));
+      if (y > 0.12) {
+        const band = Math.min(4, Math.floor(((y - 0.12) / 0.88) * 5));
+        bands[band] = Math.max(bands[band], r);
+      }
+      expect(uv.getY(i)).toBeGreaterThanOrEqual(0);
+      expect(uv.getY(i)).toBeLessThanOrEqual(1);
+    }
+    for (let b = 1; b < 5; b++) expect(bands[b]).toBeLessThan(bands[b - 1]);
+  });
+  it('carries analytic rim coverage before the alpha test', () => {
+    const material = new T.MeshStandardMaterial();
+    installBeltTrees(material);
+    const shader = compile(material);
+    expect(shader.vertexShader).toContain('vBeltUv = beltUv;');
+    expect(shader.fragmentShader).toContain('diffuseColor.a *= coverage');
+    expect(shader.fragmentShader.indexOf('diffuseColor.a *= coverage')).toBeLessThan(
+      shader.fragmentShader.indexOf('#include <alphatest_fragment>'),
+    );
   });
 });

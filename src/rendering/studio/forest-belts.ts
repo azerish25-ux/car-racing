@@ -1,17 +1,19 @@
 import * as T from 'three';
-import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { Track, trackPoint } from '../../simulation/track.ts';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import {
   foliageAtlas,
   installFoliageAtlas,
   treeGeometry,
   type TreePlacement,
 } from '../landscape.ts';
+import { foliageMipmaps } from '../foliage-mipmaps.ts';
 import { plantingClearance, treeSeed, type PlantingExclusion } from '../aurel-vegetation-plan.ts';
 import { serviceSitePlan, type ServiceSite } from '../venue-service-plan.ts';
 import { terrainFor } from '../terrain.ts';
 import { tagWeatherSurface } from '../weather-presentation.ts';
 import { installFoliageShading, installFoliageWind } from './foliage-shading.ts';
+import { beltTreeStream, installBeltTrees } from './belt-trees.ts';
 
 /**
  * Forest belts (D11 forest-vegetation).
@@ -28,11 +30,13 @@ import { installFoliageShading, installFoliageWind } from './foliage-shading.ts'
  * gate exclusions); belts additionally keep `near` metres from the nearest
  * boundary, so a hairpin's inside never gets trees on the run-off.
  *
- * Drawn as the treeline's three crossed crown cards with the procedural crown
- * atlas (conifer or broadleaf by aspect), one InstancedMesh per 240 m bucket,
- * `castShadow = false` (the far shadow map bakes them), `userData.fullCount`
- * for vegetation density. Canopy grade, translucency and wind (D11
- * foliage-shading) on colour, depth and distance materials.
+ * Broadleaf crowns are the treeline's crossed crown cards over the procedural
+ * atlas (coverage-preserving mips, alpha-to-coverage); conifers are solid
+ * tiered whorls (belt-trees.ts) with analytic rim coverage. One InstancedMesh
+ * per bucket and kind (240 m broadleaf, 480 m conifer), each with a near and
+ * a far tier, `castShadow = false` (the far shadow map bakes them),
+ * `userData.fullCount` for vegetation density. Canopy grade, translucency and
+ * wind (D11 foliage-shading) on colour, depth and distance materials.
  */
 export const FOREST_BELTS = Object.freeze({
   near: 30,
@@ -40,8 +44,10 @@ export const FOREST_BELTS = Object.freeze({
   /** Grid spacing of candidates, metres (along the boundary and outward). */
   spacing: 6.5,
   bucket: 240,
+  /** Conifer buckets are coarser: they are the minority and draw separately. */
+  coniferBucket: 480,
   /** Buckets nearer than this (metres from the camera to the bucket's bounds)
-   * draw the full clumped crown instead of three silhouette cards. */
+   * draw the near tier (more whorls and branch tips, a finer crown). */
   detail: 90,
   coniferShare: 0.4,
   conifer: Object.freeze({ min: 14, max: 28, aspect: [0.36, 0.5] as const }),
@@ -154,6 +160,89 @@ export function beltTint(tree: BeltTree, out = new T.Color()) {
     : out.setRGB(0.74 * b, 0.8 * b, 0.62 * b);
 }
 
+interface BeltKit {
+  name: string;
+  geometry: T.BufferGeometry;
+  far: { start: number; count: number };
+  near: { start: number; count: number };
+  material: T.Material;
+  depth: T.Material;
+  distance: T.Material;
+}
+/** Broadleaf crowns: the treeline's crossed crown cards (far) and the full
+ * clumped crown (near) over the procedural atlas, with coverage-preserving
+ * mips so minified leaves never fizz away into speckle. */
+function broadleafKit(): BeltKit {
+  const { distantLeafGeometry, leafGeometry, trunkGeometry } = treeGeometry();
+  trunkGeometry.dispose();
+  const geometry = mergeGeometries([distantLeafGeometry, leafGeometry], false);
+  if (!geometry) throw new Error('Unable to pack forest belt crowns');
+  const far = { start: 0, count: distantLeafGeometry.index!.count },
+    near = { start: far.count, count: leafGeometry.index!.count };
+  geometry.boundingBox = distantLeafGeometry.boundingBox!.clone().union(leafGeometry.boundingBox!);
+  geometry.boundingSphere = geometry.boundingBox.getBoundingSphere(new T.Sphere());
+  distantLeafGeometry.dispose();
+  leafGeometry.dispose();
+  const map = foliageAtlas();
+  if (typeof ImageData !== 'undefined' && map.image instanceof HTMLCanvasElement) {
+    map.mipmaps = foliageMipmaps(map.image, map.image.width, BELT_ALPHA_CUTOFF);
+    map.generateMipmaps = false;
+    map.minFilter = T.LinearMipmapLinearFilter;
+  }
+  const material = new T.MeshStandardMaterial({
+    map,
+    side: T.DoubleSide,
+    alphaTest: BELT_ALPHA_CUTOFF,
+    roughness: 1,
+  });
+  material.name = 'Forest belt foliage';
+  installFoliageAtlas(material);
+  // Multisampled targets resolve card edges by coverage, not a hard stair.
+  material.alphaToCoverage = true;
+  installFoliageShading(material);
+  installFoliageWind(material);
+  tagWeatherSurface(material, 'foliage');
+  const depth = new T.MeshDepthMaterial({
+    depthPacking: T.RGBADepthPacking,
+    map,
+    alphaTest: BELT_ALPHA_CUTOFF,
+    side: T.DoubleSide,
+  });
+  const distance = new T.MeshDistanceMaterial({
+    map,
+    alphaTest: BELT_ALPHA_CUTOFF,
+    side: T.DoubleSide,
+  });
+  for (const m of [depth, distance]) {
+    installFoliageAtlas(m);
+    installFoliageWind(m);
+  }
+  return { name: 'canopy', geometry, far, near, material, depth, distance };
+}
+/** Conifers: solid tiered whorls (belt-trees.ts), far and near tiers. */
+function coniferKit(): BeltKit {
+  const { geometry, far, near } = beltTreeStream();
+  // Whorl rims carry analytic coverage: alpha-to-coverage under MSAA, the
+  // same 0.5 cut without it. Double-sided: a notch shows the shaded interior.
+  const material = new T.MeshStandardMaterial({
+    vertexColors: true,
+    roughness: 0.92,
+    side: T.DoubleSide,
+    alphaTest: 0.5,
+    alphaToCoverage: true,
+  });
+  material.name = 'Forest belt conifers';
+  installBeltTrees(material);
+  installFoliageShading(material);
+  installFoliageWind(material);
+  tagWeatherSurface(material, 'foliage');
+  const depth = new T.MeshDepthMaterial({ depthPacking: T.RGBADepthPacking });
+  const distance = new T.MeshDistanceMaterial();
+  for (const m of [depth, distance]) installFoliageWind(m);
+  return { name: 'conifers', geometry, far, near, material, depth, distance };
+}
+const BELT_ALPHA_CUTOFF = 0.45;
+
 /** Build the belts into `group` (vegetationGroup). Returns the tree count. */
 export function buildForestBelts(
   track: Track,
@@ -163,50 +252,20 @@ export function buildForestBelts(
 ) {
   const trees = forestBeltPlan(track, services, extraExclusion);
   if (!trees.length) return 0;
-  const { distantLeafGeometry, leafGeometry, trunkGeometry } = treeGeometry();
-  trunkGeometry.dispose();
-  // One stream, two tiers: the three silhouette cards, then the full crown
-  // (silhouette plus twelve clump cards) for belts near the camera, where three
-  // crossed cards read as cut-outs. The tier is a draw range chosen per view.
-  const crowns = mergeGeometries([distantLeafGeometry, leafGeometry], false);
-  if (!crowns) throw new Error('Unable to pack forest belt crowns');
-  const far = { start: 0, count: distantLeafGeometry.index!.count },
-    near = { start: far.count, count: leafGeometry.index!.count };
-  crowns.boundingBox = distantLeafGeometry.boundingBox!.clone().union(leafGeometry.boundingBox!);
-  crowns.boundingSphere = crowns.boundingBox.getBoundingSphere(new T.Sphere());
-  distantLeafGeometry.dispose();
-  leafGeometry.dispose();
-  const foliage = new T.MeshStandardMaterial({
-    map: foliageAtlas(),
-    side: T.DoubleSide,
-    alphaTest: 0.45,
-    roughness: 1,
-  });
-  foliage.name = 'Forest belt foliage';
-  installFoliageAtlas(foliage);
-  // Multisampled targets resolve card edges by coverage, not a hard stair.
-  foliage.alphaToCoverage = true;
-  installFoliageShading(foliage);
-  installFoliageWind(foliage);
-  tagWeatherSurface(foliage, 'foliage');
-  const depth = new T.MeshDepthMaterial({
-    depthPacking: T.RGBADepthPacking,
-    map: foliage.map,
-    alphaTest: foliage.alphaTest,
-    side: T.DoubleSide,
-  });
-  const distance = new T.MeshDistanceMaterial({
-    map: foliage.map,
-    alphaTest: foliage.alphaTest,
-    side: T.DoubleSide,
-  });
-  for (const m of [depth, distance]) {
-    installFoliageAtlas(m);
-    installFoliageWind(m);
-  }
+  const broadleaf = trees.filter((t) => !t.conifer),
+    conifers = trees.filter((t) => t.conifer);
+  if (broadleaf.length) buildBuckets(broadleaf, group, broadleafKit(), FOREST_BELTS.bucket);
+  if (conifers.length) buildBuckets(conifers, group, coniferKit(), FOREST_BELTS.coniferBucket);
+  group.userData.forestBeltTrees = trees.length;
+  return trees.length;
+}
+/** One InstancedMesh per bucket; each picks its tier per view as a draw range
+ * over the kit's shared streams. */
+function buildBuckets(trees: readonly BeltTree[], group: T.Object3D, kit: BeltKit, size: number) {
+  const { geometry: crowns, far, near } = kit;
   const buckets = new Map<string, BeltTree[]>();
   for (const tree of trees) {
-    const key = `${Math.floor(tree.x / FOREST_BELTS.bucket)}:${Math.floor(tree.z / FOREST_BELTS.bucket)}`;
+    const key = `${Math.floor(tree.x / size)}:${Math.floor(tree.z / size)}`;
     const list = buckets.get(key);
     if (list) list.push(tree);
     else buckets.set(key, [tree]);
@@ -220,15 +279,15 @@ export function buildForestBelts(
     for (const [name, attribute] of Object.entries(crowns.attributes))
       geometry.setAttribute(name, attribute);
     geometry.setIndex(crowns.index);
-    geometry.boundingBox = crowns.boundingBox.clone();
-    geometry.boundingSphere = crowns.boundingSphere.clone();
+    geometry.boundingBox = crowns.boundingBox!.clone();
+    geometry.boundingSphere = crowns.boundingSphere!.clone();
     geometry.setDrawRange(far.start, far.count);
-    const mesh = new T.InstancedMesh(geometry, foliage, list.length);
-    mesh.name = `Forest belt canopy ${key}`;
+    const mesh = new T.InstancedMesh(geometry, kit.material, list.length);
+    mesh.name = `Forest belt ${kit.name} ${key}`;
     mesh.userData.fullCount = list.length;
     mesh.userData.forestBelt = true;
-    mesh.customDepthMaterial = depth;
-    mesh.customDistanceMaterial = distance;
+    mesh.customDepthMaterial = kit.depth;
+    mesh.customDistanceMaterial = kit.distance;
     mesh.castShadow = false;
     mesh.receiveShadow = true;
     list.forEach((tree, i) => {
@@ -252,6 +311,4 @@ export function buildForestBelts(
     };
     group.add(mesh);
   }
-  group.userData.forestBeltTrees = trees.length;
-  return trees.length;
 }

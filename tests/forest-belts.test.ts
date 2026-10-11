@@ -19,6 +19,7 @@ import {
 import { studioHookKeys, type StudioShader } from '../src/rendering/studio/shader-hooks.ts';
 import { studioUniforms } from '../src/rendering/studio/studio-frame.ts';
 import { inStandFootprint } from '../src/rendering/grandstand.ts';
+import { BELT_TREES_HOOK } from '../src/rendering/studio/belt-trees.ts';
 
 function shaderFor(id: 'standard' | 'depth'): StudioShader {
   const source = T.ShaderLib[id];
@@ -97,7 +98,8 @@ describe('forest belts', () => {
     expect(count).toBe(trees.length);
     const meshes = group.children as T.InstancedMesh[];
     expect(meshes.length).toBeGreaterThan(0);
-    expect(meshes.length).toBeLessThanOrEqual(40);
+    // One draw per bucket and kind: 240 m broadleaf, 480 m conifer buckets.
+    expect(meshes.length).toBeLessThanOrEqual(56);
     let total = 0;
     for (const mesh of meshes) {
       expect(mesh).toBeInstanceOf(T.InstancedMesh);
@@ -107,40 +109,55 @@ describe('forest belts', () => {
       total += mesh.count;
     }
     expect(total).toBe(trees.length);
-    const material = meshes[0].material as T.Material;
-    expect(studioHookKeys(material)).toEqual([FOLIAGE_SHADING_HOOK, FOLIAGE_WIND_HOOK]);
-    expect(studioHookKeys(meshes[0].customDepthMaterial!)).toEqual([FOLIAGE_WIND_HOOK]);
-    expect(studioHookKeys(meshes[0].customDistanceMaterial!)).toEqual([FOLIAGE_WIND_HOOK]);
-    expect(material.alphaToCoverage).toBe(true);
-    // Two tiers in one shared stream: silhouette cards far, clumped crowns near.
-    const mesh = meshes[0],
-      camera = new T.PerspectiveCamera();
-    mesh.updateMatrixWorld();
-    const far = { ...mesh.geometry.drawRange };
-    expect(far.start).toBe(0);
-    camera.position.copy(mesh.boundingSphere!.center);
-    mesh.onBeforeRender(
-      {} as T.WebGLRenderer,
-      {} as T.Scene,
-      camera,
-      mesh.geometry,
-      material,
-      {} as T.Group,
-    );
-    const near = { ...mesh.geometry.drawRange };
-    expect(near.start).toBe(far.count);
-    expect(near.count).toBeGreaterThan(far.count * 3);
-    camera.position.set(1e5, 0, 1e5);
-    mesh.onBeforeRender(
-      {} as T.WebGLRenderer,
-      {} as T.Scene,
-      camera,
-      mesh.geometry,
-      material,
-      {} as T.Group,
-    );
-    expect(mesh.geometry.drawRange).toEqual(far);
-    expect(meshes[1].geometry.index).toBe(mesh.geometry.index);
+    const broadleaf = meshes.filter((m) => m.name.startsWith('Forest belt canopy')),
+      conifers = meshes.filter((m) => m.name.startsWith('Forest belt conifers'));
+    expect(broadleaf.length + conifers.length).toBe(meshes.length);
+    expect(conifers.reduce((n, m) => n + m.count, 0)).toBe(trees.filter((t) => t.conifer).length);
+    const cards = broadleaf[0].material as T.MeshStandardMaterial;
+    expect(studioHookKeys(cards)).toEqual([FOLIAGE_SHADING_HOOK, FOLIAGE_WIND_HOOK]);
+    expect(studioHookKeys(broadleaf[0].customDepthMaterial!)).toEqual([FOLIAGE_WIND_HOOK]);
+    expect(cards.alphaToCoverage).toBe(true);
+    const solid = conifers[0].material as T.MeshStandardMaterial;
+    expect(studioHookKeys(solid)).toEqual([
+      BELT_TREES_HOOK,
+      FOLIAGE_SHADING_HOOK,
+      FOLIAGE_WIND_HOOK,
+    ]);
+    expect(solid.map).toBeNull();
+    expect(solid.alphaToCoverage).toBe(true);
+    expect(solid.side).toBe(T.DoubleSide);
+    // Two tiers in one shared stream per kind, chosen per view.
+    for (const kind of [broadleaf, conifers]) {
+      const mesh = kind[0],
+        material = mesh.material as T.Material,
+        camera = new T.PerspectiveCamera();
+      mesh.updateMatrixWorld();
+      const far = { ...mesh.geometry.drawRange };
+      expect(far.start).toBe(0);
+      camera.position.copy(mesh.boundingSphere!.center);
+      mesh.onBeforeRender(
+        {} as T.WebGLRenderer,
+        {} as T.Scene,
+        camera,
+        mesh.geometry,
+        material,
+        {} as T.Group,
+      );
+      const near = { ...mesh.geometry.drawRange };
+      expect(near.start).toBe(far.count);
+      expect(near.count).toBeGreaterThan(far.count * 1.5);
+      camera.position.set(1e5, 0, 1e5);
+      mesh.onBeforeRender(
+        {} as T.WebGLRenderer,
+        {} as T.Scene,
+        camera,
+        mesh.geometry,
+        material,
+        {} as T.Group,
+      );
+      expect(mesh.geometry.drawRange).toEqual(far);
+      if (kind.length > 1) expect(kind[1].geometry.index).toBe(mesh.geometry.index);
+    }
   });
 
   it('plants the coastal circuit too', () => {
