@@ -102,16 +102,17 @@ it('routes a full grid around car envelopes and leaves parked bodies fixed in wo
         }
     const view = new GridPresentationView();
     view.park(frame);
-    const matrices = view.root.children.map((m) =>
-      (m as T.InstancedMesh).instanceMatrix.array.slice(),
-    );
+    // Every instanced batch, including the umbrella/engineer cast group.
+    const batches: T.InstancedMesh[] = [];
+    view.root.traverse((o) => {
+      if (o instanceof T.InstancedMesh) batches.push(o);
+    });
+    const matrices = batches.map((m) => m.instanceMatrix.array.slice());
     const moved = frame.slice();
     moved[H.TIME] = 20;
     moved[carBase(0) + F.X] += 300;
     view.update(moved, new T.Vector3(), null);
-    expect(view.root.children.map((m) => (m as T.InstancedMesh).instanceMatrix.array)).toEqual(
-      matrices,
-    );
+    expect(batches.map((m) => m.instanceMatrix.array)).toEqual(matrices);
     expect(frame).toEqual(before);
     view.reset();
     expect(view.diagnostics().actors).toBe(0);

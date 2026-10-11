@@ -153,7 +153,11 @@ it('retains bounded authored hero topology, UVs and normalized four-influence sk
     '../src/rendering/grid-mechanic-asset.ts'
   );
   const g = gridMechanicGeometry();
-  expect(g.index!.count / 3).toBe(GRID_MECHANIC_ASSET.triangles.suit_near);
+  // The near kit is now the procedural human body (same skeleton and skin).
+  const { default: humanKit } = await import('../src/rendering/human-kit.json', {
+    with: { type: 'json' },
+  });
+  expect(g.index!.count / 3).toBe(humanKit.meshes.body_suit_0.triangles);
   expect(g.index!.count / 3).toBeLessThan(14000);
   expect(GRID_MECHANIC_ASSET.finalArtApproved).toBe(false);
   expect(g.getAttribute('uv').count).toBe(g.getAttribute('position').count);
@@ -164,7 +168,10 @@ it('retains bounded authored hero topology, UVs and normalized four-influence sk
     expect(weight.getX(i) + weight.getY(i) + weight.getZ(i) + weight.getW(i)).toBeCloseTo(1, 5);
     expect(joint.getX(i)).toBeLessThan(15);
     expect(joint.getY(i)).toBeLessThan(15);
-    expect(new T.Vector3().fromBufferAttribute(normal, i).length()).toBeCloseTo(1, 4);
+    // Normals are stored as normalised 8-bit components.
+    expect(Math.abs(new T.Vector3().fromBufferAttribute(normal, i).length() - 1)).toBeLessThan(
+      0.012,
+    );
   }
   g.dispose();
 });

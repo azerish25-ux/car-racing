@@ -115,7 +115,7 @@ vec3 crowdShape(vec3 p) {
 }
 vec3 crowdPivot() {
   vec3 p = crowdJoint > 2.5 ? vec3(.08,.565,0.) : vec3(.09,.50,crowdJoint < 1.5 ? -.165 : .165);
-  p += vec3(-.44,.54,0.) * spectatorStyle.z;
+  p += vec3(-.44,.50,0.) * spectatorStyle.z;
   return crowdShape(p);
 }
 `;
@@ -209,7 +209,7 @@ c=zone>3.5?mix(trousers,spectatorSkin,shorts):c;
 float cloth=1.-step(.5,skinMask);
 vCrowdCloth=cloth;
 // Seated-frame position of face skin for painted features.
-vCrowdFace=vec4(mix(position,standingPosition,spectatorStyle.z)-vec3(-.44,.54,0.)*spectatorStyle.z, step(2.5,crowdJoint)*step(.5,skinMask)*(1.-step(1.5,skinMask)));
+vCrowdFace=vec4(mix(position,standingPosition,spectatorStyle.z)-vec3(-.44,.50,0.)*spectatorStyle.z, step(2.5,crowdJoint)*step(.5,skinMask)*(1.-step(1.5,skinMask)));
 c=mix(c,spectatorSkin,step(.5,skinMask)*(1.-step(1.5,skinMask)));
 vec3 hair=mix(vec3(.012,.008,.006),vec3(.15,.078,.025),fract(spectatorPhase*1.31));
 hair=fract(spectatorPhase*9.7)>.85?vec3(.42,.3,.16):hair;

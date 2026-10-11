@@ -601,7 +601,7 @@ interface SpectatorBone {
 export const SPECTATOR_RIG = {
   shoulder: [0.165, 0.5, -0.09] as V3,
   head: [0, 0.565, -0.08] as V3,
-  standShift: [0.44, 0.54] as [number, number],
+  standShift: [0.44, 0.5] as [number, number],
 };
 
 function spectatorBones(side: number): SpectatorBone[] {
@@ -610,49 +610,49 @@ function spectatorBones(side: number): SpectatorBone[] {
     {
       name: 'pelvis',
       seat: [0, 0.11, -0.06],
-      stand: [0, 0.57, 0.35],
+      stand: [0, 0.53, 0.35],
       dirSeat: null,
       dirStand: null,
     },
     {
       name: 'chest',
       seat: [0, 0.24, -0.07],
-      stand: [0, 0.71, 0.35],
+      stand: [0, 0.67, 0.35],
       dirSeat: [0, 0.29, -0.02],
       dirStand: [0, 0.33, 0],
     },
     {
       name: 'head',
       seat: [0, 0.565, -0.08],
-      stand: [0, 1.105, 0.36],
+      stand: [0, 1.065, 0.36],
       dirSeat: null,
       dirStand: null,
     },
     {
       name: 'thigh',
       seat: [s * 0.085, 0.1, -0.05],
-      stand: [s * 0.085, 0.56, 0.36],
+      stand: [s * 0.085, 0.52, 0.36],
       dirSeat: [0.015 * s, 0.03, 0.41],
       dirStand: [0.015 * s, -0.41, 0.01],
     },
     {
       name: 'shin',
       seat: [s * 0.1, 0.13, 0.36],
-      stand: [s * 0.1, 0.15, 0.37],
+      stand: [s * 0.1, 0.11, 0.37],
       dirSeat: [0.01 * s, -0.4, 0.04],
       dirStand: [0.01 * s, -0.42, 0.01],
     },
     {
       name: 'foot',
-      seat: [s * 0.11, -0.27, 0.4],
-      stand: [s * 0.11, -0.27, 0.38],
+      seat: [s * 0.11, -0.23, 0.4],
+      stand: [s * 0.11, -0.23, 0.38],
       dirSeat: null,
       dirStand: null,
     },
     {
       name: 'arm',
       seat: [s * 0.165, 0.5, -0.09],
-      stand: [s * 0.165, 1.04, 0.35],
+      stand: [s * 0.165, 1.0, 0.35],
       dirSeat: [0, 0.29, -0.02],
       dirStand: [0, 0.33, 0],
     },
@@ -740,10 +740,10 @@ function spectatorField(variant: 'a' | 'b', out?: Float64Array, shell: 'body' | 
       fem ? 0.078 : 0.074,
       0.055,
     );
-    let shin = roundCone(ax, y, z, 0.1, 0.12, 0.36, 0.11, -0.26, 0.4, 0.052, 0.038);
+    let shin = roundCone(ax, y, z, 0.1, 0.12, 0.36, 0.11, -0.22, 0.4, 0.052, 0.038);
     shin = smin(shin, ellipsoid(ax, y, z, 0.1, 0.0, 0.34, 0.045, 0.08, 0.045), 0.03);
-    let foot = roundBox(ax, y, z, 0.11, -0.305, 0.44, 0.045, 0.035, 0.11, 0.03);
-    foot = smax(foot, -(y + 0.34), 0.004);
+    let foot = roundBox(ax, y, z, 0.11, -0.265, 0.44, 0.045, 0.035, 0.11, 0.03);
+    foot = smax(foot, -(y + 0.3), 0.004);
     let cap = 1;
     {
       let crown = ellipsoid(ax, hy, hz, 0, 0.038, -0.012, 0.083, 0.092, 0.106);

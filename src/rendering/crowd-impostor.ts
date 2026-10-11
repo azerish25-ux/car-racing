@@ -64,7 +64,7 @@ export function installCrowdImpostorShader(material: T.MeshStandardMaterial, ran
       p.x /= vSpectatorStyle.x;
       if (p.y > .1) p.y = .1 + (p.y-.1) / vSpectatorStyle.y;
       float stand = vSpectatorStyle.z;
-      float rise = stand * .54;
+      float rise = stand * .5;
       float head = personEllipse(p,vec2(0.,.665+rise),vec2(.08,.105));
       float torso = personEllipse(p,vec2(0.,.37+rise),vec2(.17,.21));
       float lap = personEllipse(p,vec2(0.,.12+rise*.9),vec2(.2,.08));
