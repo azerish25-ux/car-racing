@@ -48,6 +48,10 @@ export const SKY_CLOUDS = Object.freeze({
   panoramaWidth: 3072,
   panoramaHeight: 512,
   fieldSize: 2048,
+  /** Edge of the tileable 3D detail volume, voxels. */
+  detailSize: 64,
+  /** Tiling period of the 3D detail (turrets of 100-300 m), metres. */
+  detailPeriod: 1100,
   /** Tiling period of the cloud field, metres. */
   fieldPeriod: 24000,
   earthRadius: 6371000,
@@ -156,6 +160,77 @@ float cloudWorley(vec2 p, int period, uint seed) {
 }
 `;
 
+/** Tileable 3D detail for the cumulus turrets: inverted Worley F1 at 4, 8 and
+ * 16 cells per tile (weights 0.55, 0.3, 0.15), one R8 channel. Built once on
+ * the CPU (deterministic integer hash) the first time a panorama is baked. */
+export function cloudDetailVolume(size: number = SKY_CLOUDS.detailSize) {
+  if (!Number.isInteger(size) || size < 4) throw new Error('Invalid cloud detail size');
+  const data = new Uint8Array(size ** 3),
+    values = new Float32Array(size ** 3);
+  const hash = (x: number, y: number, z: number, seed: number) => {
+    let h = Math.imul(x, 0x8da6b343) ^ Math.imul(y, 0xd8163841) ^ Math.imul(z, 0xcb1ab31f) ^ seed;
+    h = Math.imul(h ^ (h >>> 15), 0x2c1b3c6d);
+    h = Math.imul(h ^ (h >>> 12), 0x297a2d39);
+    return ((h ^ (h >>> 15)) >>> 0) / 4294967296;
+  };
+  for (const [cells, weight, seed] of [
+    [4, 0.55, 11],
+    [8, 0.3, 23],
+    [16, 0.15, 37],
+  ] as const) {
+    // One feature point per cell, wrapped so the volume tiles.
+    const points = new Float32Array(cells ** 3 * 3);
+    for (let z = 0; z < cells; z++)
+      for (let y = 0; y < cells; y++)
+        for (let x = 0; x < cells; x++) {
+          const i = ((z * cells + y) * cells + x) * 3;
+          points[i] = x + hash(x, y, z, seed);
+          points[i + 1] = y + hash(x, y, z, seed + 1);
+          points[i + 2] = z + hash(x, y, z, seed + 2);
+        }
+    const scale = cells / size;
+    for (let z = 0; z < size; z++)
+      for (let y = 0; y < size; y++)
+        for (let x = 0; x < size; x++) {
+          const px = (x + 0.5) * scale,
+            py = (y + 0.5) * scale,
+            pz = (z + 0.5) * scale,
+            cx = Math.floor(px),
+            cy = Math.floor(py),
+            cz = Math.floor(pz);
+          let best = 9;
+          for (let dz = -1; dz <= 1; dz++)
+            for (let dy = -1; dy <= 1; dy++)
+              for (let dx = -1; dx <= 1; dx++) {
+                const gx = cx + dx,
+                  gy = cy + dy,
+                  gz = cz + dz,
+                  wx = ((gx % cells) + cells) % cells,
+                  wy = ((gy % cells) + cells) % cells,
+                  wz = ((gz % cells) + cells) % cells,
+                  i = ((wz * cells + wy) * cells + wx) * 3;
+                const ex = points[i] + (gx - wx) - px,
+                  ey = points[i + 1] + (gy - wy) - py,
+                  ez = points[i + 2] + (gz - wz) - pz,
+                  d = ex * ex + ey * ey + ez * ez;
+                if (d < best) best = d;
+              }
+          values[(z * size + y) * size + x] += weight * (1 - Math.min(1, Math.sqrt(best)));
+        }
+  }
+  for (let i = 0; i < values.length; i++) data[i] = Math.round(Math.min(1, values[i]) * 255);
+  const texture = new T.Data3DTexture(data, size, size, size);
+  texture.format = T.RedFormat;
+  texture.type = T.UnsignedByteType;
+  texture.minFilter = T.LinearFilter;
+  texture.magFilter = T.LinearFilter;
+  texture.wrapS = texture.wrapT = texture.wrapR = T.RepeatWrapping;
+  texture.unpackAlignment = 1;
+  texture.name = 'Sky cloud 3D detail';
+  texture.needsUpdate = true;
+  return texture;
+}
+
 /** Tiling cloud field. One period of the field spans SKY_CLOUDS.fieldPeriod
  * metres; R holds 2-3 km cumulus cells clustered by a broad Perlin term, G a
  * 150-300 m billow detail and B a broad, independent modulation. */
@@ -188,7 +263,9 @@ void main() {
 const PANORAMA_FRAGMENT = `precision highp float;
 precision highp int;
 precision highp sampler2D;
+precision highp sampler3D;
 uniform sampler2D cloudField;
+uniform sampler3D cloudDetail;
 uniform vec3 sunDirection;
 uniform float threshold;
 uniform float baseAltitude;
@@ -229,10 +306,13 @@ float density(vec3 p, bool detailed, out float column) {
     // erosion varies up the cloud like a 3D noise would. The fine octave
     // fades out with distance before a texel outgrows it (no aliased fringe).
     float fine = 1.0 - smoothstep(9000.0, 26000.0, length(p.xz));
-    float billow = 0.55 * texture(cloudField, xz * 1.3 + vec2(hf * 0.012, -hf * 0.008)).g +
-      0.45 * mix(0.62, texture(cloudField, mat2(0.6, 0.8, -0.8, 0.6) * xz * 2.3 +
-        vec2(-hf * 0.031, hf * 0.019)).g, fine);
-    top -= (0.62 - billow) * 0.52 * (0.35 + hf);
+    float billow = texture(cloudField, xz * 1.3 + vec2(hf * 0.012, -hf * 0.008)).g;
+    top -= (0.62 - billow) * 0.3 * (0.35 + hf);
+    // True 3D cauliflower: tileable Worley turrets (${SKY_CLOUDS.detailPeriod} m and a third
+    // of that), eroding the dome most toward its top and edges.
+    float turrets = 0.65 * texture(cloudDetail, p / ${SKY_CLOUDS.detailPeriod.toFixed(1)}).r +
+      0.35 * texture(cloudDetail, p / ${(SKY_CLOUDS.detailPeriod / 3).toFixed(1)} + 0.37).r;
+    top -= (0.58 - mix(0.58, turrets, fine)) * 0.5 * (0.3 + hf);
   }
   // Crisp cauliflower edges, a flat, slightly soft base.
   return smoothstep(0.0, 0.1, top) * smoothstep(0.0, 0.035, hf);
@@ -300,7 +380,8 @@ void main() {
     // Three-step self-shadow toward the sun, out to a kilometre: the shaded
     // flank and the base of a tall cumulus see the sun through its whole body.
     float unused;
-    float near = density(p + sunDirection * 90.0, false, unused);
+    // The nearest sample sees the turrets: crisp light and shade on them.
+    float near = density(p + sunDirection * 90.0, true, unused);
     float far = density(p + sunDirection * 380.0, false, unused);
     float farther = density(p + sunDirection * 950.0, false, unused);
     float depth = extinction * (near * 180.0 + far * 520.0 + farther * 650.0);
@@ -462,6 +543,7 @@ function preserve(renderer: T.WebGLRenderer) {
  * bin for a PMREM capture of that bin. */
 export class SkyClouds {
   private field: T.WebGLRenderTarget | null = null;
+  private detail: T.Data3DTexture | null = null;
   private readonly panoramas = new Map<string, T.WebGLRenderTarget>();
   private readonly empty: T.DataTexture;
   private readonly fieldMaterial = new T.RawShaderMaterial({
@@ -481,6 +563,7 @@ export class SkyClouds {
     fragmentShader: PANORAMA_FRAGMENT,
     uniforms: {
       cloudField: { value: null },
+      cloudDetail: { value: null },
       sunDirection: { value: new T.Vector3(0, 1, 0) },
       threshold: { value: 1 },
       baseAltitude: { value: 1400 },
@@ -573,6 +656,7 @@ export class SkyClouds {
     target.texture.name = `Sky cloud panorama ${key}`;
     const u = this.panoramaMaterial.uniforms;
     u.cloudField.value = this.field.texture;
+    u.cloudDetail.value = this.detail ??= cloudDetailVolume();
     (u.sunDirection.value as T.Vector3).copy(this.sunDirection(mode)).normalize();
     u.threshold.value = layer.threshold;
     u.baseAltitude.value = layer.baseAltitude;
@@ -586,6 +670,7 @@ export class SkyClouds {
       throw error;
     } finally {
       u.cloudField.value = null;
+      u.cloudDetail.value = null;
     }
     this.bakes++;
     this.panoramas.set(key, target);
@@ -662,7 +747,8 @@ export class SkyClouds {
       visible: { ...this.visible },
       bytes:
         this.panoramas.size * SKY_CLOUDS.panoramaWidth * SKY_CLOUDS.panoramaHeight * 8 +
-        (this.field ? SKY_CLOUDS.fieldSize ** 2 * 4 : 0),
+        (this.field ? SKY_CLOUDS.fieldSize ** 2 * 4 : 0) +
+        (this.detail ? SKY_CLOUDS.detailSize ** 3 : 0),
       stationary: false,
       drift: 'presented-time',
     };
@@ -675,6 +761,8 @@ export class SkyClouds {
     this.field = null;
     this.empty.dispose();
     this.fieldMaterial.dispose();
+    this.detail?.dispose();
+    this.detail = null;
     this.panoramaMaterial.dispose();
     this.quad.dispose();
     const u = this.uniforms;

@@ -14,6 +14,7 @@ import {
   SKY_CLOUD_SAMPLE,
   SKY_CLOUD_UNIFORMS,
   SkyClouds,
+  cloudDetailVolume,
   cloudDomeTerms,
   cloudLayer,
   cloudLightKey,
@@ -134,6 +135,33 @@ describe('cloud layer and coverage', () => {
     );
     expect(deck.every((v) => v > 0)).toBe(true);
     expect(SKY_CLOUD_LIGHTING).toContain('terms.r * cloudKey');
+  });
+});
+
+describe('3D cumulus detail', () => {
+  it('is a deterministic, tileable inverted-Worley volume in [0, 1]', () => {
+    const a = cloudDetailVolume(16),
+      b = cloudDetailVolume(16);
+    const data = a.image.data as Uint8Array;
+    expect(data).toEqual(b.image.data);
+    expect(a.format).toBe(T.RedFormat);
+    expect(a.wrapR).toBe(T.RepeatWrapping);
+    expect(Math.max(...data)).toBeGreaterThan(200);
+    expect(Math.min(...data)).toBeLessThan(110);
+    // Opposite faces are neighbours across the wrap: their mean step equals
+    // the mean step between interior neighbours (no seam).
+    const at = (x: number, y: number, z: number) => data[(z * 16 + y) * 16 + x];
+    let seam = 0,
+      inner = 0;
+    for (let z = 0; z < 16; z++)
+      for (let y = 0; y < 16; y++) {
+        seam += Math.abs(at(15, y, z) - at(0, y, z));
+        inner += Math.abs(at(8, y, z) - at(7, y, z));
+      }
+    expect(seam).toBeLessThan(1.6 * inner);
+    expect(() => cloudDetailVolume(2)).toThrow();
+    a.dispose();
+    b.dispose();
   });
 });
 
