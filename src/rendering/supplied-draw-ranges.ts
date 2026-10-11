@@ -2,16 +2,24 @@ import * as T from 'three';
 import { CompactIndexBuffers } from './compact-index-buffer.ts';
 import { RANGE_ONLY_SHADOW_HOOK } from './shadow-proxies.ts';
 
+/** One camera's compacted selection of one geometry, and the key of its
+ * owned index buffer. */
+interface Selection {
+  selected: Uint8Array;
+  compacted?: Uint32Array;
+  compactedCount?: number;
+  revision: number;
+}
 interface RangeBounds {
   index: T.BufferAttribute;
   position: T.BufferAttribute | T.InterleavedBufferAttribute;
   indexVersion: number;
   positionVersion: number;
   boxes: T.Box3[];
-  selected?: Uint8Array;
-  compacted?: Uint32Array;
-  compactedCount?: number;
-  revision: number;
+  /** Per camera: the main view, shadow, mirror and reflection cameras each
+   * keep their own selection, so alternating passes within a frame no longer
+   * re-select and re-upload the whole compacted stream for every pass. */
+  selections: WeakMap<T.Camera, Selection>;
 }
 const TRIANGLES_PER_BLOCK = 128;
 const BLOCK = TRIANGLES_PER_BLOCK * 3;
@@ -122,34 +130,41 @@ export class SuppliedDrawRanges {
         // indices in exactly the same order. No spatial reordering, simplification
         // or backface guess is made, including on transparent surface sheets.
         if (this.compact && last > first && typeof renderer.getContext === 'function') {
-          if (!b.selected) b.selected = new Uint8Array(b.boxes.length).fill(2);
+          let selection = b.selections.get(camera);
+          if (!selection) {
+            selection = { selected: new Uint8Array(b.boxes.length).fill(2), revision: 0 };
+            b.selections.set(camera, selection);
+          }
+          const selected = selection.selected;
           let changed = false,
             visibleCount = 0;
           for (let i = 0; i < b.boxes.length; i++) {
             const visible =
               i >= first && i <= last && this.frustum.intersectsBox(b.boxes[i]) ? 1 : 0;
-            if (b.selected[i] !== visible) changed = true;
-            b.selected[i] = visible;
+            if (selected[i] !== visible) changed = true;
+            selected[i] = visible;
             if (visible) visibleCount += Math.min(BLOCK, b.index.count - i * BLOCK);
           }
           if (visibleCount < hi - lo) {
-            if (!b.compacted) b.compacted = new Uint32Array(b.index.count);
-            if (changed || b.compactedCount !== visibleCount) {
+            if (!selection.compacted) selection.compacted = new Uint32Array(b.index.count);
+            if (changed || selection.compactedCount !== visibleCount) {
+              const compacted = selection.compacted,
+                source = b.index.array;
               let cursor = 0;
               for (let i = first; i <= last; i++) {
-                if (!b.selected[i]) continue;
+                if (!selected[i]) continue;
                 const end = Math.min((i + 1) * BLOCK, b.index.count);
-                for (let j = i * BLOCK; j < end; j++) b.compacted[cursor++] = b.index.getX(j);
+                for (let j = i * BLOCK; j < end; j++) compacted[cursor++] = source[j];
               }
-              b.compactedCount = visibleCount;
-              b.revision++;
+              selection.compactedCount = visibleCount;
+              selection.revision++;
             }
             const compacted = this.buffers.get(
               renderer.getContext(),
-              b,
-              b.compacted,
+              selection,
+              selection.compacted,
               visibleCount,
-              b.revision,
+              selection.revision,
             );
             if (compacted) {
               held = { geometry, index: geometry.index, start, count };
@@ -235,7 +250,7 @@ export class SuppliedDrawRanges {
       indexVersion: version(index),
       positionVersion: version(position),
       boxes,
-      revision: 0,
+      selections: new WeakMap(),
     });
   }
   diagnostics() {

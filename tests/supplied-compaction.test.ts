@@ -151,6 +151,40 @@ describe('exact ordered supplied index compaction', () => {
     expect(f.calls.createBuffer).toHaveBeenCalledTimes(1);
     f.ranges.dispose();
   });
+  it('keeps a separate selection per camera, so alternating passes do not re-upload', () => {
+    const f = fixture();
+    // A second view (e.g. a mirror) that sees a different set of blocks.
+    const other = new T.PerspectiveCamera(60, 1, 0.01, 100);
+    other.lookAt(0, 0, 5);
+    other.updateMatrixWorld(true);
+    const pass = (camera: T.Camera) => {
+      f.mesh.onBeforeRender(
+        f.renderer,
+        f.scene,
+        camera,
+        f.geometry,
+        f.material,
+        null as unknown as T.Group,
+      );
+      f.mesh.onAfterRender(
+        f.renderer,
+        f.scene,
+        camera,
+        f.geometry,
+        f.material,
+        null as unknown as T.Group,
+      );
+    };
+    for (let frame = 0; frame < 4; frame++) {
+      pass(f.camera);
+      pass(other);
+    }
+    // One upload per camera, not one per pass.
+    expect(f.calls.bufferSubData).toHaveBeenCalledTimes(2);
+    expect(f.calls.createBuffer).toHaveBeenCalledTimes(2);
+    f.ranges.dispose();
+    expect(f.calls.deleteBuffer).toHaveBeenCalledTimes(2);
+  });
   it('restores the source even when disposal interrupts a draw, and removes each buffer once', () => {
     const f = fixture(),
       index = f.geometry.index,
