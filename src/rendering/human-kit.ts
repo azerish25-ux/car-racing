@@ -225,7 +225,7 @@ HumanFace humanFace(vec3 hp, vec3 skin, vec3 hair, float person, float fem, floa
   // Skin roughness: a glossier T-zone (forehead, nose), softer cheeks.
   float tzone = max(smoothstep(.02, .0, abs(hp.x)) * step(-.03, hp.y) * step(hp.y, .07),
     smoothstep(.03, .01, abs(hp.y - .045)) * smoothstep(.05, .02, hq.x));
-  float rough = mix(.6, .44, tzone * front);
+  float rough = mix(.64, .5, tzone * front);
   // Anatomy tints: warm cheeks, nose tip and ears; shaded orbits under the
   // brow; a cooler jaw underside and a lighter brow ridge.
   float cheek = smoothstep(.012, -.012, humanEll(hq, vec3(.04, -.028, .062), vec3(.026, .022, .026)));
@@ -313,7 +313,7 @@ HumanFace humanFace(vec3 hp, vec3 skin, vec3 hair, float person, float fem, floa
   float blotch = humanNoise(hp * 160. + 7.) - .5;
   float skinMask = (1. - hairMask) * (1. - eyeMask);
   col *= 1. + blotch * .07 * skinMask * mid;
-  rough = clamp(rough + (blotch * .14 + pores * .08 * fine) * skinMask, .3, .8);
+  rough = clamp(rough + (blotch * .12 + pores * .08 * fine) * skinMask, .42, .82);
   f.bump = (pores * .00005 * fine + blotch * .0002 * mid) * skinMask
     + sin(strandPhase) * .000025 * hairMask * fine;
   f.col = col; f.rough = rough; f.hair = hairMask; f.eye = eyeMask; f.glint = glint; f.skin = skinMask;
