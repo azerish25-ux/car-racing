@@ -105,15 +105,15 @@ export function cloudLayer(cover: number) {
     baseAltitude: lerp(1400, 900, deck),
     thickness: lerp(1150, 1800, smooth01(c / 0.9)),
     /** Extinction per metre at density 1. */
-    extinction: lerp(0.018, 0.026, deck),
+    extinction: lerp(0.04, 0.026, deck),
     /** Peak optical depth of the cirrus sheet: fair-weather and broken skies
      * carry high ice cloud; a closing deck hides it. */
     cirrus: c <= 0 ? 0 : 0.26 * smooth01(c / 0.25) * (1 - smooth01((c - 0.55) / 0.35)),
   };
 }
 /** Field threshold per eighth of cover (index = bin), calibrated on the baked
- * panoramas so the cosine-weighted dome cover grows evenly: 0.15, 0.25, 0.38,
- * 0.52, 0.67, 0.89, 0.98 and 0.98 for bins 1-8 (CLOUD_DOME_MEANS). Bin 0 has none. */
+ * panoramas so the cosine-weighted dome cover grows evenly: 0.16, 0.26, 0.41,
+ * 0.56, 0.7, 0.91, 0.98 and 0.98 for bins 1-8 (CLOUD_DOME_MEANS). Bin 0 has none. */
 const CLOUD_THRESHOLDS = [0.574, 0.519, 0.48, 0.438, 0.402, 0.372, 0.312, 0.228, 0.083] as const;
 function tableAt(table: readonly number[], c: number) {
   const x = c * (table.length - 1),
@@ -301,14 +301,18 @@ void main() {
   float cells = max(max(v.x, v.y), max(v.z, v.w));
   // Weather-map variation: whole regions clear out while others crowd.
   float weather = 0.6 * cloudPerlin(p * 2.0 + 0.5, 2, 65u) + 0.4 * cloudPerlin(p * 5.0, 5, 66u);
-  float base = clamp((cells + 0.06 * (small - 0.5) + 0.04 * (tiny - 0.5)) * streets *
-    mix(0.86, 1.07, smoothstep(0.3, 0.72, weather)), 0.0, 1.0);
+  float scale = streets * mix(0.86, 1.07, smoothstep(0.3, 0.72, weather));
+  float base = clamp((cells + 0.06 * (small - 0.5) + 0.04 * (tiny - 0.5)) * scale, 0.0, 1.0);
   // The cell that owns this point (blended softly where cells meet): its
   // size (G, relative to the 4.8 km cluster cell) and its peak value (B),
   // from which the bake knows each cloud's real footprint radius.
   vec4 own = exp((v - cells) * 30.0);
   float ownSize = dot(own, vec4(1.0, 5.0 / 11.0, 5.0 / 23.0, 5.0 / 47.0)) / dot(own, vec4(1.0));
-  float ownPeak = dot(own, gain * vec4(bigCell.y, medCell.y, smallCell.y, tinyCell.y)) / dot(own, vec4(1.0));
+  // The peak carries the street and weather scaling of the footprint, so the
+  // bake's dome radius matches the footprint exactly (stored at 0.8 to stay
+  // within the 8-bit range).
+  float ownPeak = dot(own, gain * vec4(bigCell.y, medCell.y, smallCell.y, tinyCell.y)) /
+    dot(own, vec4(1.0)) * scale * 0.8;
   // Cirrus: fibrous streaks, gradient noise stretched 8:1 along the wind and
   // sheared by a broad warp, gathered into patches by a slow envelope.
   vec2 w = p + 0.06 * vec2(cloudPerlin(p * 4.0, 4, 51u), cloudPerlin(p * 4.0 + 0.5, 4, 52u));
@@ -360,7 +364,7 @@ float envelope(vec3 p) {
   float base = field.r * mix(0.97, 1.03, broad);
   if (base < threshold) return (base - threshold) * 2.0 - max(hf, -hf);
   float cell = field.g * ${(SKY_CLOUDS.fieldPeriod / 5).toFixed(1)};
-  float peak = max(field.b, threshold + 0.02);
+  float peak = max(field.b * 1.25, threshold + 0.02);
   float radius = max((1.0 - threshold / peak) * cell, 1.0);
   float u = 1.0 - clamp((base - threshold) / peak * cell, 0.0, radius) / radius;
   float height = min(mix(0.7, 1.15, broad) * radius, 0.95 * thickness) / thickness;
@@ -380,7 +384,7 @@ float density(vec3 p, bool detailed, out float column) {
   // an ellipsoidal dome 0.7-1.15 R high (humilis to mediocris; clusters cap
   // at the slab), flat on the condensation level.
   float cell = field.g * ${(SKY_CLOUDS.fieldPeriod / 5).toFixed(1)};
-  float peak = max(field.b, threshold + 0.02);
+  float peak = max(field.b * 1.25, threshold + 0.02);
   float radius = max((1.0 - threshold / peak) * cell, 1.0);
   float inset = clamp((base - threshold) / peak * cell, 0.0, radius);
   float u = 1.0 - inset / radius;
@@ -395,14 +399,15 @@ float density(vec3 p, bool detailed, out float column) {
     // True 3D cauliflower: tileable Worley turrets (${SKY_CLOUDS.detailPeriod} m and a third
     // of that), eroding the dome most toward its top and edges.
     // None at the condensation level: the base stays flat.
-    // Bulges scaled to the cloud itself (about a third of its radius, so
-    // every cumulus has a few towers of differing height whatever its size),
+    // Bulges scaled to the cloud's size class (its cell, constant across the
+    // cloud so the noise never stretches; a few towers per cloud at any size),
     // then the fixed ${(SKY_CLOUDS.detailPeriod / 3).toFixed(0)} m cauliflower octave.
     float far = 1.0 - smoothstep(30000.0, 60000.0, length(p.xz));
     // Explicit level of detail: a panorama texel spans about 0.12 degrees.
-    float footprint = length(p) * 0.0021;
+    // Nor finer than the 30 m march step (finer detail only aliases to grain).
+    float footprint = max(length(p) * 0.0021, 30.0);
     const float VOXELS = ${SKY_CLOUDS.detailSize.toFixed(1)};
-    float bulgeScale = radius * 2.4, cauliflowerScale = ${(SKY_CLOUDS.detailPeriod / 3).toFixed(1)};
+    float bulgeScale = max(cell * 0.45, 200.0), cauliflowerScale = ${(SKY_CLOUDS.detailPeriod / 3).toFixed(1)};
     float bulges = mix(0.58, textureLod(cloudDetail, p / bulgeScale + vec3(0.21, 0.0, 0.57),
       log2(max(1.0, footprint * VOXELS / bulgeScale))).r, far);
     float cauliflower = mix(0.58, textureLod(cloudDetail, p / cauliflowerScale + 0.37,
@@ -417,7 +422,7 @@ float density(vec3 p, bool detailed, out float column) {
   // distance: a crisper edge would only alias into a crunchy fringe.
   // Nor thinner than 45 m: the 30 m in-cloud step must resolve it.
   float texel = max(length(p) * 0.0021, 45.0) / thickness;
-  return smoothstep(0.0, max(0.02 + 0.08 * height, texel), top) * smoothstep(0.0, 0.03, hf);
+  return smoothstep(0.0, max(0.02 + 0.03 * height, texel), top) * smoothstep(0.0, 0.03, hf);
 }
 float phaseHG(float mu, float g) {
   float g2 = g * g;
@@ -552,13 +557,83 @@ vec3 skyCloudLight(vec4 terms) {
 }
 `;
 /** Sky-shader sampling of the bound panoramas (premultiplied terms, opacity);
- * rows are packed toward the horizon (v = (elevation / 90 degrees)^(2/3)). */
+ * rows are packed toward the horizon (v = (elevation / 90 degrees)^(2/3)).
+ *
+ * A panorama texel is about 0.12 degrees, so a 50 degree, 1600 px view
+ * magnifies it about four times. Bilinear sampling showed every texel as a
+ * stair-step and the bake's march noise as grain. Instead:
+ *
+ *  - a cubic B-spline (four bilinear taps per panorama, Sigg & Hadwiger 2005)
+ *    reconstructs smooth terms and filters the bake's residual grain;
+ *  - where the bake holds a hard silhouette (opacity rising steeply per texel)
+ *    and the panorama is magnified, the edge is rebuilt per pixel: the
+ *    smooth opacity is thresholded over about 1.5 pixels, the threshold
+ *    eroded by a sub-texel value noise fixed to the panorama (it drifts with
+ *    the clouds, never with the camera), and the premultiplied lighting is
+ *    rescaled to the new opacity. Soft haze, thin cirrus and minified
+ *    (distant or cube-captured) clouds keep the smooth reconstruction.
+ *
+ * Per sky pixel: 4 bilinear fetches (8 during a bin cross-fade) and a few
+ * ALU; no time source. */
 export const SKY_CLOUD_SAMPLE = `
+const vec2 CLOUD_SIZE = vec2(${SKY_CLOUDS.panoramaWidth.toFixed(1)}, ${SKY_CLOUDS.panoramaHeight.toFixed(1)});
+vec4 cloudCubicWeights(float v) {
+  vec4 n = vec4(1.0, 2.0, 3.0, 4.0) - v;
+  vec4 s = n * n * n;
+  float x = s.x, y = s.y - 4.0 * s.x, z = s.z - 4.0 * s.y + 6.0 * s.x;
+  return vec4(x, y, z, 6.0 - x - y - z) * (1.0 / 6.0);
+}
+vec4 cloudBSpline(sampler2D panorama, vec2 uv) {
+  vec2 p = uv * CLOUD_SIZE - 0.5;
+  vec2 f = fract(p);
+  p -= f;
+  vec4 xc = cloudCubicWeights(f.x), yc = cloudCubicWeights(f.y);
+  vec4 c = p.xxyy + vec2(-0.5, 1.5).xyxy;
+  vec4 s = vec4(xc.xz + xc.yw, yc.xz + yc.yw);
+  vec4 o = (c + vec4(xc.yw, yc.yw) / s) / CLOUD_SIZE.xxyy;
+  vec4 s0 = texture2D(panorama, o.xz), s1 = texture2D(panorama, o.yz),
+    s2 = texture2D(panorama, o.xw), s3 = texture2D(panorama, o.yw);
+  float sx = s.x / (s.x + s.y), sy = s.z / (s.z + s.w);
+  return mix(mix(s3, s2, sx), mix(s1, s0, sx), sy);
+}
+float cloudEdgeNoise(vec2 p) {
+  vec2 i = floor(p), f = fract(p);
+  f = f * f * (3.0 - 2.0 * f);
+  vec4 h = fract(sin(vec4(dot(i, vec2(127.1, 311.7)), dot(i + vec2(1.0, 0.0), vec2(127.1, 311.7)),
+    dot(i + vec2(0.0, 1.0), vec2(127.1, 311.7)), dot(i + 1.0, vec2(127.1, 311.7)))) * 43758.5453);
+  return mix(mix(h.x, h.y, f.x), mix(h.z, h.w, f.x), f.y);
+}
 vec4 skyCloudTerms(vec3 direction) {
   if (cloudReady < 0.5 || direction.y <= 0.0) return vec4(0.0);
   vec2 uv = vec2(atan(direction.z, direction.x) * 0.15915494 + 0.5 + cloudDrift,
     pow(asin(clamp(direction.y, 0.0, 1.0)) * 0.63661977, 0.6666667));
-  return mix(texture2D(cloudLow, uv), texture2D(cloudHigh, uv), cloudWeight);
+  // Each cover bin is shown crisp; the cross-fade between neighbouring bins
+  // is confined to the middle sixth of the step (a plain fade shows every
+  // cloud of only one bin as a translucent ghost), so ghosts exist only
+  // briefly while the recorded cover is actually changing. The lighting
+  // (PMREM, CPU dome means) still follows the cover continuously.
+  float fade = smoothstep(0.42, 0.58, cloudWeight);
+  vec4 terms = fade <= 0.0 ? cloudBSpline(cloudLow, uv)
+    : fade >= 1.0 ? cloudBSpline(cloudHigh, uv)
+    : mix(cloudBSpline(cloudLow, uv), cloudBSpline(cloudHigh, uv), fade);
+  vec2 texel = uv * CLOUD_SIZE;
+  // Screen pixels per panorama texel (the azimuth seam's derivative jump is
+  // removed by also measuring the half-turn-shifted coordinate).
+  vec2 perPixel = vec2(min(fwidth(texel.x), fwidth(fract(uv.x + 0.5) * CLOUD_SIZE.x)), fwidth(texel.y));
+  float magnified = smoothstep(1.2, 2.4, 1.0 / max(max(perPixel.x, perPixel.y), 1e-4));
+  float a = terms.a, da = fwidth(a);
+  // Opacity rise per texel: a hard baked silhouette, not haze or cirrus.
+  float hard = smoothstep(0.04, 0.1, da / max(max(perPixel.x, perPixel.y), 1e-4));
+  float amount = magnified * hard;
+  if (amount <= 0.0 || a <= 0.0) return terms;
+  // Erosion at 1.4 and 0.7 texels, fixed to the drifting panorama: a crisp,
+  // slightly bumpy rim instead of the bake's soft texel-scale ramp.
+  float n = 0.65 * cloudEdgeNoise(texel * 0.7) + 0.35 * cloudEdgeNoise(texel * 1.45 + 17.0);
+  float centre = 0.22 + (n - 0.5) * 0.1;
+  float width = max(da * 1.25, 0.05);
+  float edge = smoothstep(centre - width, centre + width, a);
+  vec4 sharp = vec4(terms.rgb * min(edge / max(a, 1e-3), 3.0), edge);
+  return mix(terms, sharp, amount);
 }
 `;
 
@@ -569,14 +644,14 @@ vec4 skyCloudTerms(vec3 direction) {
 export const CLOUD_DOME_MEANS: readonly (readonly [number, number, number, number, number])[] =
   Object.freeze([
     [0, 0, 0, 0, 0],
-    [0.1522, 0.0933, 0.0442, 0.0323, 0.0263],
-    [0.2536, 0.1599, 0.0558, 0.0525, 0.0439],
-    [0.3901, 0.2167, 0.0624, 0.0755, 0.0683],
-    [0.5344, 0.2627, 0.0606, 0.0974, 0.0948],
-    [0.6801, 0.2789, 0.0482, 0.1187, 0.1217],
-    [0.8963, 0.1555, 0.016, 0.1423, 0.1597],
-    [0.9826, 0.0167, 0.0002, 0.1379, 0.1673],
-    [0.984, 0.002, 0, 0.1229, 0.1505],
+    [0.1554, 0.0942, 0.04, 0.0305, 0.0279],
+    [0.2597, 0.1524, 0.0495, 0.0488, 0.047],
+    [0.4072, 0.2127, 0.0559, 0.0714, 0.0744],
+    [0.5626, 0.2585, 0.0526, 0.0941, 0.1034],
+    [0.7031, 0.2618, 0.0409, 0.1142, 0.1294],
+    [0.9057, 0.1208, 0.0136, 0.1376, 0.1639],
+    [0.9839, 0.012, 0.0001, 0.1359, 0.168],
+    [0.984, 0.0016, 0, 0.1216, 0.149],
   ] as const);
 /** Mean baked terms (premultiplied) of the dome at a cover, blended between
  * neighbouring bins exactly as the dome blends their panoramas. */

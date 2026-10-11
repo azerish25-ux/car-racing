@@ -187,6 +187,14 @@ describe('baked cumulus panorama', () => {
     );
     // Wind drift is an azimuthal offset in turns, set from presented time.
     expect(SKY_CLOUD_SAMPLE).toContain('+ 0.5 + cloudDrift');
+    // Bicubic B-spline reconstruction, a per-pixel silhouette where the bake
+    // is magnified, and a cross-fade confined to mid-step between bins.
+    expect(SKY_CLOUD_SAMPLE).toContain('cloudBSpline(cloudLow, uv)');
+    expect(SKY_CLOUD_SAMPLE).toContain('float fade = smoothstep(0.42, 0.58, cloudWeight);');
+    expect(SKY_CLOUD_SAMPLE).toContain(
+      'float edge = smoothstep(centre - width, centre + width, a);',
+    );
+    expect(SKY_CLOUD_SAMPLE).toMatch(/fwidth\(/);
     expect(uniforms.cloudDrift.value).toBe(0);
     expect(SKY_CLOUDS.driftPerSecond * 3600).toBeLessThan(0.5);
     sky.geometry.dispose();
