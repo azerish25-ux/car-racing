@@ -12,11 +12,14 @@ import type { SkyLight } from '../sky-light.ts';
  *
  *  1. A tiling 2D cloud field (once per session): the cumulus footprint (R),
  *     the owning cell's size (G) and peak (B), and cirrus fibres (A). The
- *     footprint is the brightest of four Worley scales (5 km clusters only
- *     where a broad field gathers them, 2 km cumulus, 1 km and 500 m
- *     fragments), modulated into partial cloud streets, so the sky has a few
- *     large merged clusters and many small clouds rather than one size. A
- *     64^3 Worley volume adds 3D turrets and frayed edges.
+ *     footprint is the brightest of four weighted-Worley scales (every cell
+ *     a random strength, so cells drop out and the rest come in all sizes:
+ *     5 km clusters where a broad field gathers them, 2 km cumulus, 1 km and
+ *     500 m fragments) over a domain-warped lattice, modulated by partial
+ *     cloud streets and a weather map that clears whole regions, so the sky
+ *     has no visible lattice or single cloud size. A 64^3 Worley volume
+ *     carves each cloud's top into bulges scaled to its own radius plus a
+ *     fixed 370 m cauliflower octave.
  *  2. Per (cover bin, sun direction), a 3072x768 HalfFloat panorama of the
  *     upper hemisphere, rows packed toward the horizon (elevation = v^1.5 x
  *     90 degrees): 0.07 degree rows at 5 degrees up, 0.18 overhead. Each
@@ -103,9 +106,9 @@ export function cloudLayer(cover: number) {
   };
 }
 /** Field threshold per eighth of cover (index = bin), calibrated on the baked
- * panoramas so the cosine-weighted dome cover grows evenly: 0.14, 0.24, 0.36,
- * 0.51, 0.66, 0.87, 0.98 and 0.98 for bins 1-8 (CLOUD_DOME_MEANS). Bin 0 has none. */
-const CLOUD_THRESHOLDS = [0.76, 0.715, 0.675, 0.632, 0.585, 0.545, 0.465, 0.343, 0.111] as const;
+ * panoramas so the cosine-weighted dome cover grows evenly: 0.15, 0.25, 0.38,
+ * 0.52, 0.67, 0.89, 0.98 and 0.98 for bins 1-8 (CLOUD_DOME_MEANS). Bin 0 has none. */
+const CLOUD_THRESHOLDS = [0.574, 0.519, 0.48, 0.438, 0.402, 0.372, 0.312, 0.228, 0.083] as const;
 function tableAt(table: readonly number[], c: number) {
   const x = c * (table.length - 1),
     i = Math.min(table.length - 2, Math.floor(x));
@@ -165,6 +168,25 @@ float cloudWorley(vec2 p, int period, uint seed) {
       d = min(d, dot(r, r));
     }
   return 1.0 - clamp(sqrt(d), 0.0, 1.0);
+}
+// Weighted inverted Worley: the brightest cell of amp * (1 - distance), with
+// a random amplitude per cell in [lo, 1]. Unlike plain Worley (exactly one
+// equal blob per cell, a regular lattice) many cells fall below any
+// threshold and the rest come in every size, irregularly spaced.
+// Returns (value, amplitude of the winning cell).
+vec2 cloudCells(vec2 p, int period, uint seed, float lo) {
+  ivec2 i = ivec2(floor(p));
+  vec2 f = fract(p);
+  vec2 best = vec2(0.0, lo);
+  for (int y = -1; y <= 1; y++)
+    for (int x = -1; x <= 1; x++) {
+      ivec2 c = i + ivec2(x, y);
+      vec2 r = vec2(x, y) + cloudRandom2(c, period, seed) - f;
+      float amp = mix(lo, 1.0, cloudRandom2(c, period, seed + 97u).x);
+      float value = amp * (1.0 - min(1.0, length(r)));
+      if (value > best.x) best = vec2(value, amp);
+    }
+  return best;
 }
 `;
 
@@ -259,18 +281,25 @@ void main() {
   // scales wins, so 5 km clusters (only where the broad field is high),
   // 2 km cumulus, 1 km and 500 m fragments each keep their own footprint; the
   // smaller scales also texture and merge the larger ones.
-  float big = cloudWorley(p * 5.0, 5, 14u), med = cloudWorley(p * 11.0, 11, 11u),
-    small = cloudWorley(p * 23.0, 23, 12u), tiny = cloudWorley(p * 47.0, 47, 13u);
+  // A periodic domain warp (1.4 km and 360 m) bends the cell lattice.
+  vec2 q = p + 0.06 * (vec2(cloudPerlin(p * 3.0 + 0.13, 3, 61u), cloudPerlin(p * 3.0 + 0.71, 3, 62u)) - 0.5) +
+    0.015 * (vec2(cloudPerlin(p * 9.0, 9, 63u), cloudPerlin(p * 9.0 + 0.37, 9, 64u)) - 0.5);
+  vec2 bigCell = cloudCells(q * 5.0, 5, 14u, 0.6), medCell = cloudCells(q * 11.0, 11, 11u, 0.55),
+    smallCell = cloudCells(q * 23.0, 23, 12u, 0.5), tinyCell = cloudCells(q * 47.0, 47, 13u, 0.5);
+  float big = bigCell.x, med = medCell.x, small = smallCell.x, tiny = tinyCell.x;
   vec4 gain = vec4(mix(0.5, 0.95, smoothstep(0.42, 0.78, clusters)), mix(0.72, 0.92, clusters), 0.85, 0.78);
   vec4 v = vec4(big, med, small, tiny) * gain;
   float cells = max(max(v.x, v.y), max(v.z, v.w));
-  float base = clamp((cells + 0.06 * (small - 0.5) + 0.04 * (tiny - 0.5)) * streets, 0.0, 1.0);
+  // Weather-map variation: whole regions clear out while others crowd.
+  float weather = 0.6 * cloudPerlin(p * 2.0 + 0.5, 2, 65u) + 0.4 * cloudPerlin(p * 5.0, 5, 66u);
+  float base = clamp((cells + 0.06 * (small - 0.5) + 0.04 * (tiny - 0.5)) * streets *
+    mix(0.86, 1.07, smoothstep(0.3, 0.72, weather)), 0.0, 1.0);
   // The cell that owns this point (blended softly where cells meet): its
   // size (G, relative to the 4.8 km cluster cell) and its peak value (B),
   // from which the bake knows each cloud's real footprint radius.
   vec4 own = exp((v - cells) * 30.0);
   float ownSize = dot(own, vec4(1.0, 5.0 / 11.0, 5.0 / 23.0, 5.0 / 47.0)) / dot(own, vec4(1.0));
-  float ownPeak = dot(own, gain) / dot(own, vec4(1.0));
+  float ownPeak = dot(own, gain * vec4(bigCell.y, medCell.y, smallCell.y, tinyCell.y)) / dot(own, vec4(1.0));
   // Cirrus: fibrous streaks, gradient noise stretched 8:1 along the wind and
   // sheared by a broad warp, gathered into patches by a slow envelope.
   vec2 w = p + 0.06 * vec2(cloudPerlin(p * 4.0, 4, 51u), cloudPerlin(p * 4.0 + 0.5, 4, 52u));
@@ -336,19 +365,23 @@ float density(vec3 p, bool detailed, out float column) {
   if (detailed) {
     // The fine 3D octaves fade out with distance before a texel outgrows
     // them (no aliased fringe).
-    float fine = 1.0 - smoothstep(9000.0, 26000.0, length(p.xz));
+    float fine = 1.0 - smoothstep(8000.0, 20000.0, length(p.xz));
     // True 3D cauliflower: tileable Worley turrets (${SKY_CLOUDS.detailPeriod} m and a third
     // of that), eroding the dome most toward its top and edges.
-    float turrets = 0.65 * texture(cloudDetail, p / ${SKY_CLOUDS.detailPeriod.toFixed(1)}).r +
-      0.35 * texture(cloudDetail, p / ${(SKY_CLOUDS.detailPeriod / 3).toFixed(1)} + 0.37).r;
     // None at the condensation level: the base stays flat.
-    top -= (0.58 - mix(0.58, turrets, fine)) * 0.55 * smoothstep(0.0, 0.3, hf) * (0.4 + 0.6 * hf);
-    // Fraying: near the silhouette a finer volume tears the edge into wisps.
-    float wisps = texture(cloudDetail, p / 230.0 + vec3(0.11, 0.53, 0.29)).r;
-    top -= (0.6 - mix(0.6, wisps, fine)) * 0.07 * (1.0 - smoothstep(0.0, 0.2, top));
+    // Bulges scaled to the cloud itself (about a third of its radius, so
+    // every cumulus has a few towers of differing height whatever its size),
+    // then the fixed ${(SKY_CLOUDS.detailPeriod / 3).toFixed(0)} m cauliflower octave.
+    float far = 1.0 - smoothstep(30000.0, 60000.0, length(p.xz));
+    float bulges = mix(0.58, texture(cloudDetail, p / (radius * 2.4) + vec3(0.21, 0.0, 0.57)).r, far);
+    float cauliflower = mix(0.58, texture(cloudDetail, p / ${(SKY_CLOUDS.detailPeriod / 3).toFixed(1)} + 0.37).r, fine);
+    float own = hf / max(height, 0.04);
+    float rising = smoothstep(0.0, 0.3, own) * (0.3 + 0.7 * min(own, 1.0));
+    top -= ((0.58 - bulges) * 2.4 + (0.58 - cauliflower) * 0.7) * height * rising;
   }
-  // Crisp cauliflower edges on a flat condensation level.
-  return smoothstep(0.0, 0.1, top) * smoothstep(0.0, 0.03, hf);
+  // Crisp cauliflower edges (a soft skin scaled to the cloud, 25-115 m) on
+  // a flat condensation level.
+  return smoothstep(0.0, 0.02 + 0.08 * height, top) * smoothstep(0.0, 0.03, hf);
 }
 float phaseHG(float mu, float g) {
   float g2 = g * g;
@@ -490,14 +523,14 @@ vec4 skyCloudTerms(vec3 direction) {
 export const CLOUD_DOME_MEANS: readonly (readonly [number, number, number, number, number])[] =
   Object.freeze([
     [0, 0, 0, 0, 0],
-    [0.1367, 0.1248, 0.0392, 0.0271, 0.0251],
-    [0.2362, 0.1688, 0.0519, 0.046, 0.0432],
-    [0.3591, 0.1983, 0.0595, 0.0671, 0.0654],
-    [0.5139, 0.2381, 0.0565, 0.0921, 0.0936],
-    [0.6559, 0.2529, 0.043, 0.1123, 0.1201],
-    [0.8676, 0.1105, 0.0109, 0.1359, 0.157],
-    [0.9828, 0.014, 0.0003, 0.1382, 0.1675],
-    [0.9847, 0.0017, 0, 0.1216, 0.1488],
+    [0.1479, 0.0913, 0.0407, 0.031, 0.0256],
+    [0.2475, 0.1577, 0.0518, 0.0507, 0.0429],
+    [0.3825, 0.2132, 0.0587, 0.0737, 0.0669],
+    [0.5244, 0.2564, 0.0572, 0.0953, 0.093],
+    [0.6685, 0.2714, 0.0452, 0.1161, 0.1196],
+    [0.8904, 0.1542, 0.0155, 0.1415, 0.1584],
+    [0.9832, 0.0171, 0.0003, 0.138, 0.1673],
+    [0.9847, 0.002, 0, 0.1231, 0.1506],
   ] as const);
 /** Mean baked terms (premultiplied) of the dome at a cover, blended between
  * neighbouring bins exactly as the dome blends their panoramas. */
