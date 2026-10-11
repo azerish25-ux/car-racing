@@ -255,13 +255,16 @@ export class GridCastView {
     if (distance >= route || time > GRID_PRESENTATION_SECONDS + 1) return;
     const walking = distance > 0;
     // Walk out sideways, past the car's flank, towards the pit wall side.
-    const awayYaw = side > 0 ? Math.PI / 2 : -Math.PI / 2;
+    // Face along the walked path (sideways, drifting rear/forward early on).
+    const u = Math.min(1, distance / 3);
+    const drift = (role ? 0.4 : -1.9) * ((6 * u * (1 - u)) / 3);
+    const awayYaw = Math.atan2(side, drift);
     const yaw =
       mark.yaw + Math.atan2(Math.sin(awayYaw - mark.yaw), Math.cos(awayYaw - mark.yaw)) * turn;
     this.actor.position.set(
       mark.x + side * distance,
       FLOOR,
-      mark.z + (role ? 0.4 : -0.4) * smooth(distance / 2),
+      mark.z + (role ? 0.4 : -1.9) * smooth(distance / 3),
     );
     this.actor.rotation.set(0, yaw, 0);
     this.actor.updateMatrix();

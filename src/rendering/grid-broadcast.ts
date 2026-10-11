@@ -124,13 +124,14 @@ export const GRID_SHOTS: readonly ShotDefinition[] = Object.freeze([
     start: 23.4,
     name: 'crew clearing track',
     caption: 'Clear the grid · crews to the pit wall',
+    // Tracks forward of the umbrella holders, who leave diagonally rearward.
     eye: [
-      [-6.4, 1.15, 3.2],
-      [-6.9, 1.2, -1.2],
+      [-6.4, 1.15, 4.4],
+      [-6.9, 1.2, 1.8],
     ],
     target: [
-      [-2.6, 0.35, 1.6],
-      [-4.2, 0.4, -2.4],
+      [-2.6, 0.35, 2.4],
+      [-4.4, 0.4, -1.2],
     ],
     focus: [-3.4, 0.4, 0],
     fov: [38, 36],
