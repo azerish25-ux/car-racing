@@ -368,10 +368,10 @@ function headField(wear: HeadWear, out?: HeadParts) {
     const ax = Math.abs(x);
     // Cranium, forehead, maxilla, cheekbones, cheeks, jaw and chin.
     let s = ellipsoid(ax, y, z, 0, 0.03, -0.01, 0.0745, 0.088, 0.093);
-    s = smin(s, ellipsoid(ax, y, z, 0, 0.032, 0.028, 0.066, 0.066, 0.066), 0.02);
+    s = smin(s, ellipsoid(ax, y, z, 0, 0.034, 0.024, 0.061, 0.066, 0.066), 0.02);
     s = smin(s, ellipsoid(ax, y, z, 0, -0.036, 0.038, 0.046, 0.062, 0.056), 0.025);
-    s = smin(s, ellipsoid(ax, y, z, 0.045, -0.002, 0.052, 0.022, 0.016, 0.028), 0.014);
-    s = smin(s, ellipsoid(ax, y, z, 0.03, -0.038, 0.054, 0.019, 0.022, 0.024), 0.018);
+    s = smin(s, ellipsoid(ax, y, z, 0.044, -0.004, 0.05, 0.024, 0.018, 0.028), 0.016);
+    s = smin(s, ellipsoid(ax, y, z, 0.032, -0.036, 0.055, 0.022, 0.024, 0.025), 0.02);
     s = smin(
       s,
       roundCone(ax, y, z, 0.052, -0.043, -0.016, 0.024, -0.098, 0.053, 0.015, 0.012),
@@ -383,7 +383,7 @@ function headField(wear: HeadWear, out?: HeadParts) {
     s = smin(s, ellipsoid(ax, y, z, 0, -0.118, 0.022, 0.012, 0.016, 0.012), 0.012);
     // Brow ridge, then eye sockets carved under it.
     s = smin(s, ellipsoid(ax, y, z, 0.03, 0.032, 0.079, 0.026, 0.0065, 0.009), 0.01);
-    s = ssub(s, ellipsoid(ax, y, z, 0.031, 0.0115, 0.096, 0.018, 0.0125, 0.015), 0.008);
+    s = ssub(s, ellipsoid(ax, y, z, 0.031, 0.0115, 0.097, 0.0185, 0.013, 0.018), 0.009);
     // Upper lids hood the eyeballs.
     s = smin(s, ellipsoid(ax, y, z, 0.031, 0.0205, 0.0815, 0.0152, 0.0058, 0.0105), 0.004);
     s = smin(s, ellipsoid(ax, y, z, 0.031, 0.0005, 0.0825, 0.014, 0.0035, 0.009), 0.004);
@@ -457,7 +457,8 @@ function headField(wear: HeadWear, out?: HeadParts) {
       out.headset = set;
       out.brow = brow;
     }
-    return Math.min(smin(s, hair, 0.004), eye, smin(s, brow, 0.0015), wearCap, set);
+    // Brows are painted (shader), not a raised band glued to the ridge.
+    return Math.min(smin(s, hair, 0.004), eye, wearCap, set);
   };
 }
 

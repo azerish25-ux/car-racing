@@ -6,7 +6,13 @@
  * The runtime only decodes quantised buffers; it never evaluates the sculpt. */
 import { createHash } from 'node:crypto';
 import { writeFileSync } from 'node:fs';
-import { sculptCrewBody, sculptHead, sculptHand, sculptSpectator, type SculptedMesh } from './lib/human-sculpt.ts';
+import {
+  sculptCrewBody,
+  sculptHead,
+  sculptHand,
+  sculptSpectator,
+  type SculptedMesh,
+} from './lib/human-sculpt.ts';
 
 const only = process.argv[2];
 const out: Record<string, unknown> = {};
