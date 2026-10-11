@@ -3905,7 +3905,7 @@ html[data-high-contrast='true'] .dash-main span {
   border-color: rgba(255, 255, 255, 0.4);
 }
 /* The tagline is a tall-screen flourish; setup options always come first. */
-@media (max-height: 999px) {
+@media (max-height: 1199px) {
   .menu-body h1,
   .menu-body .intro {
     display: none;
@@ -4137,4 +4137,10 @@ html[data-high-contrast='true'] .dash-main span {
 }
 .menu-hint kbd {
   background: rgba(0, 0, 0, 0.45);
+}
+@media (max-width: 1100px) {
+  .menu .session-form select {
+    font-size: 12px;
+    padding-left: 10px;
+  }
 }

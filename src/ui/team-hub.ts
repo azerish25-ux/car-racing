@@ -1,3 +1,4 @@
+import { developerMode } from './dev-mode.ts';
 import {
   capacity,
   DEPARTMENTS,
@@ -47,9 +48,8 @@ export function teamHub(team: TeamState, page: HubPage): string {
     content = `
     <div class="team-hero"><div><span class="eyebrow">TEAM PRINCIPAL / WEEK ${team.week}</span><h3>Build something<br>worth racing.</h3><p>${escapeHtml(team.briefing)}</p></div><div class="team-identity" style="--team-paint:${team.livery.primary};--team-accent:${team.livery.accent}"><strong>${String(team.livery.number).padStart(2, '0')}</strong><span>${escapeHtml(team.livery.sponsor)}</span><small>${driver.name.toUpperCase()}</small></div></div>
     <div class="team-stats"><div><small>AVAILABLE FUNDS</small><strong>${money(team.balance)}</strong></div><div><small>NEXT WEEK / NET</small><strong>${money(budget.net)}</strong></div><div><small>REPUTATION</small><strong>${team.reputation}<em> / 100</em></strong></div></div>
-    ${teamCalendar(team)}<section class="team-rival"><div><span class="eyebrow">LOCAL RIVALRY / ${team.rounds} CLASSIFIED ROUNDS</span><h4>${escapeHtml(team.livery.sponsor)} <b>${team.points}</b> <small>vs</small> MERIDIAN <b>${team.rivalPoints}</b></h4><p>Manual Grand Prix finishes against at least one opponent earn points and workshop income. AI demonstration and practice do not. Meridian is a simulated local rival, not an online player.</p></div><meter min="0" max="${Math.max(1, team.points + team.rivalPoints)}" value="${team.points}" aria-label="Your share of rivalry points"></meter></section>
-    <div class="team-actions">${button('ADVANCE ONE WEEK', 'team:week')}${button('EDIT LIVERY / PHOTO STUDIO', 'photo')}${button('100-IMAGE REFERENCE REVIEW', 'references')}</div>
-    <p class="team-footnote">Original single-circuit management loop. Fictional credits and drivers; not a replica of licensed My Team, a real financial model, or a multi-season campaign.</p>`;
+    ${teamCalendar(team)}<section class="team-rival"><div><span class="eyebrow">LOCAL RIVALRY / ${team.rounds} CLASSIFIED ROUNDS</span><h4>${escapeHtml(team.livery.sponsor)} <b>${team.points}</b> <small>vs</small> MERIDIAN <b>${team.rivalPoints}</b></h4><p>Grand Prix finishes against at least one opponent earn points and workshop income. Laps driven by the AI driver and practice sessions do not. Meridian is your AI rival team.</p></div><meter min="0" max="${Math.max(1, team.points + team.rivalPoints)}" value="${team.points}" aria-label="Your share of rivalry points"></meter></section>
+    <div class="team-actions">${button('ADVANCE ONE WEEK', 'team:week')}${button('EDIT LIVERY / PHOTO STUDIO', 'photo')}${developerMode() ? button('100-IMAGE REFERENCE REVIEW', 'references') : ''}</div>`;
   if (page === 'engineering')
     content = `<div class="team-heading"><h3>Make the next lap count.</h3><p>Studies unlock physics-backed setup presets, not invisible performance boosts. Only one study can run at a time. A staff of 16 or more engineers completes two research weeks per calendar week.</p></div><div class="team-cards">${RESEARCH.map(
       (study) => {

@@ -204,7 +204,7 @@ export class DecalEditor {
       )
       .join(
         '',
-      )}<div id="decalMap"></div><p class="photo-help">Drag a label on the UV guide, or focus it and use arrow keys (Shift: larger steps). Escape cancels a drag. Slots preview on the actual left or right body skin. Save livery to keep them. Original text only; no licensed sponsor logos or reference images.</p>`;
+      )}<div id="decalMap"></div><p class="photo-help">Drag a label on the UV guide, or focus it and use arrow keys (Shift: larger steps). Escape cancels a drag. Slots preview on the actual left or right body skin. Save livery to keep them.</p>`;
     this.preview();
   }
 }
