@@ -38,6 +38,10 @@ function drive(autoPlayer: boolean, laps: number) {
     const ghost = recorder.observe(frame, !autoPlayer);
     if (ghost) ghosts.push(ghost);
   }
+  // The loop can stop on an odd tick, before the crossing frame was sampled.
+  sim.writeFrame(frame);
+  const last = recorder.observe(frame, !autoPlayer);
+  if (last) ghosts.push(last);
   return { sim, ghosts, frames };
 }
 
@@ -105,6 +109,8 @@ describe('Time Trial ghost laps', () => {
     nan[GHOST_FIELDS * 4 + 3] = NaN;
     expect(validateGhost({ ...ghost, samples: nan }, 'aurel', length)).toBeNull();
     expect(validateGhost(null, 'aurel', length)).toBeNull();
-    expect(validateGhost({ ...ghost, samples: Array.from(ghost.samples) }, 'aurel', length)).toBeNull();
+    expect(
+      validateGhost({ ...ghost, samples: Array.from(ghost.samples) }, 'aurel', length),
+    ).toBeNull();
   });
 });
