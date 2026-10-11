@@ -98,7 +98,15 @@ it('uses the real skinned bodies and gloves through the whole sequence without c
   view.park(frame);
   view.update(frame, camera, null);
   expect(view.diagnostics().parked).toBe(true);
-  expect(view.diagnostics().actors).toBe(12);
+  // Race started: every crew member, umbrella holder and engineer has left
+  // the circuit; nothing of the pre-race cast is drawn on the grid.
+  expect(view.diagnostics().actors).toBe(0);
+  expect(view.diagnostics().cast.actors).toBe(0);
+  const drawn: number[] = [];
+  view.root.traverse((o) => {
+    if (o instanceof T.InstancedMesh) drawn.push(o.count);
+  });
+  expect(drawn.every((n) => n === 0)).toBe(true);
   view.reset();
   view.update(frame, camera, 12);
   const d = view.diagnostics();

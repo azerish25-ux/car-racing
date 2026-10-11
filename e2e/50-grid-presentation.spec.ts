@@ -79,7 +79,8 @@ test('pre-race performance holds physics, seeks actual crew poses and hands cont
   await expect.poll(async () => (await diag()).state).toBe('driving');
   await expect.poll(async () => (await diag()).frame?.[H.TIME] ?? 0).toBeGreaterThan(1);
   expect((await diag()).renderer?.gridPerformance?.parked).toBe(true);
-  expect((await diag()).renderer?.gridPerformance?.actors).toBeGreaterThan(0);
+  // The grid is clear once racing: the crews have gone to the garages.
+  expect((await diag()).renderer?.gridPerformance?.actors).toBe(0);
   await expect(page.locator('#gridPresentation')).toBeHidden();
   await page.keyboard.press('Escape');
   await expect.poll(async () => (await diag()).state).toBe('paused');

@@ -152,7 +152,6 @@ export class GridPresentationView {
   private readonly part = new T.Object3D();
   private readonly matrix = new T.Matrix4();
   private readonly hub = new T.Vector3();
-  private readonly parkCamera = new T.Vector3();
   private readonly hands = [new T.Vector3(), new T.Vector3()];
   private readonly wrists = [new T.Vector3(), new T.Vector3()];
   private readonly handRotations = [new T.Quaternion(), new T.Quaternion()];
@@ -246,6 +245,7 @@ export class GridPresentationView {
   }
   reset() {
     this.cast.hide();
+    this.heads.reset();
     this.parked = false;
     this.actors = 0;
     this.contacts.length = 0;
@@ -255,20 +255,14 @@ export class GridPresentationView {
       mesh.frustumCulled = false;
     }
   }
+  /** The race has started: as on a real grid, every mechanic, umbrella
+   * holder and engineer has left the circuit for the garages before the
+   * lights, so nothing of the pre-race cast is drawn while racing. `frame`
+   * is accepted for the existing call sites; no snapshot is written. */
   park(frame: Float32Array) {
-    this.update(
-      frame,
-      this.parkCamera.fromArray(frame, carBase(0) + F.X),
-      GRID_PRESENTATION_SECONDS,
-    );
+    void frame;
+    this.reset();
     this.parked = true;
-    // These transforms no longer animate. Conservative batch bounds let the
-    // renderer cull the parked cast behind the camera without timed popping.
-    for (const mesh of this.batches()) {
-      mesh.computeBoundingSphere();
-      if (mesh.boundingSphere) mesh.boundingSphere.radius += 2;
-      mesh.frustumCulled = true;
-    }
   }
   update(frame: Float32Array, camera: T.Vector3, time: number | null) {
     if (time === null && this.parked) return;

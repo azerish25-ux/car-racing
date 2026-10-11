@@ -77,13 +77,14 @@ it('poses every grid staff member reachably, with gloves on the posed wrists', (
       expect(cuff.distanceTo(wrist)).toBeLessThan(1e-4);
     }
   }
-  // The same race time gives the same bones; later times breathe.
+  // The same race time gives the same bones (idle breathing is covered by
+  // gridStaffPose above). Once the start sequence runs, the grid is empty.
   const before = data.slice(0, staff * CREW_BONES * 16);
   view.update(frame, camera);
   expect(data.slice(0, staff * CREW_BONES * 16)).toEqual(before);
   frame[H.TIME] += 0.5;
   view.update(frame, camera);
-  expect(data.slice(0, staff * CREW_BONES * 16)).not.toEqual(before);
+  expect(view.diagnostics().staff).toBe(0);
   view.root.traverse((o) => {
     if (o instanceof T.Mesh) {
       o.geometry.dispose();

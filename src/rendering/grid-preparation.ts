@@ -8,13 +8,15 @@ import { clamp } from '../core/math.ts';
 import { F, H, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../simulation/protocol.ts';
 import { WHEEL_POSITIONS } from '../simulation/vehicle.ts';
 
-/** Blankets clear before the first red light and staff before the second.
+/** Staff stand at the cars only while the grid is held (race clock at zero):
+ * as in real racing, nobody is on the grid once the start sequence runs.
+ * Blankets clear before the first red light.
  * Derived from race time, so pause/replay/seek cannot leave stale grid props.
  * These are presentation props, not a tire-temperature or grip override. */
 export function gridPreparation(time: number, phase: number, speed: number) {
   if (![time, phase, speed].every(Number.isFinite) || phase >= 2 || speed > 0.5 || time < 0)
     return { blankets: false, crew: false, withdrawal: 1 };
-  return { blankets: time < 0.85, crew: time < 1.8, withdrawal: clamp(time / 0.85, 0, 1) };
+  return { blankets: time < 0.85, crew: time <= 0, withdrawal: clamp(time / 0.85, 0, 1) };
 }
 /** Car-local height of the grid surface. */
 const CREW_FLOOR = -0.52;

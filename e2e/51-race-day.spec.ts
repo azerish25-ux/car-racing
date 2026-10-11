@@ -53,7 +53,8 @@ test('Race-Day V2: normal entry, immutable briefing, automatic clearance, race f
     .poll(async () => (await diag()).state, { timeout: 420000, intervals: [1500] })
     .toBe('driving');
   expect((await diag()).renderer?.gridPerformance?.parked).toBe(true);
-  expect((await diag()).renderer?.gridPerformance?.actors).toBeGreaterThan(0);
+  // The grid is clear once racing: the crews have gone to the garages.
+  expect((await diag()).renderer?.gridPerformance?.actors).toBe(0);
   await page.keyboard.press('g');
   await expect.poll(async () => (await diag()).frame?.[H.PHASE], { timeout: 60000 }).toBe(2);
   await capture(page, info, 'race-day-driving-hud.png');

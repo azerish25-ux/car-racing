@@ -160,9 +160,9 @@ describe('reference road guidance is bounded, physical-road-derived and read-onl
 describe('reference 047 grid preparation', () => {
   it.each([
     [0, true, true],
-    [0.84, true, true],
-    [0.85, false, true],
-    [1.79, false, true],
+    [0.01, true, false],
+    [0.84, true, false],
+    [0.85, false, false],
     [1.8, false, false],
   ] as const)('clears blankets and crew at race time %s', (time, blankets, crew) => {
     expect(gridPreparation(time, 1, 0)).toMatchObject({ blankets, crew });
