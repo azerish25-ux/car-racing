@@ -276,6 +276,8 @@ export class RacingRenderer {
   private gpuFrames: GpuFrameGate;
   private previousAnchor = new T.Vector3();
   private temporary = new T.Vector3();
+  private chaseBasis = new T.Quaternion();
+  private chaseEuler = new T.Euler();
   private eyeLocal = new T.Vector3();
   private reflectionMaterials: T.MeshStandardMaterial[][] = [];
   private reflectionFollow = -1;
@@ -1103,14 +1105,21 @@ export class RacingRenderer {
       } else {
         // Close, low chase framing: the car fills more of the lower centre and
         // the horizon sits nearer mid-frame, as in modern broadcast-style games.
+        // The rig follows heading and a bounded pitch but never roll, so a
+        // spinning or overturned car cannot swing the camera under the road.
+        const pitch = Math.asin(clamp(this.direction.y, -0.4, 0.4));
+        this.chaseBasis.setFromEuler(
+          this.chaseEuler.set(-pitch, Math.atan2(this.direction.x, this.direction.z), 0, 'YXZ'),
+        );
         this.desired
           .set(
             0,
             CHASE.height + speed * CHASE.heightPerMS,
             -CHASE.distance - speed * CHASE.distancePerMS,
           )
-          .applyQuaternion(car.root.quaternion)
+          .applyQuaternion(this.chaseBasis)
           .add(this.target);
+        this.direction.set(0, 0, 1).applyQuaternion(this.chaseBasis);
         this.gaze.copy(this.target).addScaledVector(this.direction, CHASE.lookAhead);
         this.gaze.y += CHASE.lookLift;
       }
