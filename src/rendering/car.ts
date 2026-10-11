@@ -45,7 +45,7 @@ import { setSuppliedLivery, suppliedLookdevReport } from './studio/supplied-look
 import { TireCarcass } from './tire-carcass.ts';
 import { anthraciteRimMaterial, wheelCoverMaterial } from './studio/wheel-blur.ts';
 import { wheelBlur } from './studio/tyre-letters.ts';
-import { bindTireSurface, tireWetAppearance } from './tire-finish.ts';
+import { bindTireSurface, tireHeatAppearance, tireWetAppearance } from './tire-finish.ts';
 import { wheelPhase, wheelTravel } from './wheel-pose.ts';
 import * as T from 'three';
 import { DriverRig } from './driver.ts';
@@ -714,6 +714,7 @@ export class FormulaCar {
         b[o + F.SPEED],
       );
       this.treads[i].surface.value.y = compoundIndex === 3 ? 1 : compoundIndex === 4 ? 2 : 0;
+      this.treads[i].heat.value = tireHeatAppearance(b[p + W.SURFACE_TEMP]);
     }
     let coverBlur = -Infinity;
     for (const tread of this.treads) coverBlur = Math.max(coverBlur, tread.side.value.x);
