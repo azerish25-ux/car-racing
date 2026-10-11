@@ -307,12 +307,14 @@ for (const viewport of [
     await settings.click();
     await expect(page.locator('[name=quality]')).toHaveValue('low');
     await page.getByRole('button', { name: 'Close settings', exact: true }).click();
+    // Player entries only: developer tools are absent without ?dev.
+    for (const name of ['REFERENCE REVIEW', 'SESSION 146 EVIDENCE'])
+      await expect(page.getByRole('button', { name, exact: true })).toHaveCount(0);
     for (const [name, action] of [
       ['CONTROLS', 'controls'],
+      ['CHAMPIONSHIP', 'championship'],
       ['TEAM HQ', 'team'],
       ['PHOTO / LIVERY', 'photo'],
-      ['REFERENCE REVIEW', 'references'],
-      ['SESSION 146 EVIDENCE', 'sessionReview'],
       ['DRIVING ACADEMY', 'academy'],
     ]) {
       await page.getByRole('button', { name, exact: true }).click();

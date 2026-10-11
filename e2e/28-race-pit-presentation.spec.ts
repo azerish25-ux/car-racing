@@ -66,7 +66,7 @@ async function start(
   // Use an explicit small Low workload on the software GPU for this one case;
   // wet full-lap and pit replay retain the default viewport and graphics.
   if (holdOnGrid) await page.setViewportSize({ width: 640, height: 400 });
-  await page.goto('/');
+  await page.goto('/?dev');
   await expect(page.locator('#menu')).toBeVisible({ timeout: 90000 });
   if (holdOnGrid) {
     await page
@@ -127,7 +127,7 @@ async function start(
 }
 async function auto(page: Page) {
   if ((await read(page)).state === 'paused')
-    await page.getByRole('button', { name: 'TOGGLE AI DEMONSTRATION', exact: true }).click();
+    await page.getByRole('button', { name: 'AI DRIVER', exact: true }).click();
   else await page.keyboard.press('g');
   await expect.poll(async () => (await read(page)).auto).toBe(true);
 }

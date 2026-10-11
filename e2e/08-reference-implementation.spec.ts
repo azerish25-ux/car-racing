@@ -2,7 +2,7 @@ import { test, expect, type Page } from '@playwright/test';
 import { H, F, carBase } from '../src/simulation/protocol.ts';
 const diag = (page: Page) => page.evaluate(() => window.apexDiagnostics());
 async function ready(page: Page) {
-  await page.goto('/');
+  await page.goto('/?dev');
   await expect(page.locator('#menu')).toBeVisible({ timeout: 90000 });
 }
 async function inspect(page: Page, id: number) {

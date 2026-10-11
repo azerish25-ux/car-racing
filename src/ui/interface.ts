@@ -22,6 +22,8 @@ import { engineeringReport } from './engineering.ts';
 import { flagLabel } from '../simulation/marshal.ts';
 import { presentationControls, bindPresentation, weatherReadout } from './presentation.ts';
 import { DeviceCalibrationPanel } from './device-calibration.ts';
+import { developerMode } from './dev-mode.ts';
+import { LOADING_TIPS, loadingStage } from './loading-copy.ts';
 import {
   BINDING_LABELS,
   keyName,
@@ -66,10 +68,28 @@ const HTML_ESCAPES: Record<string, string> = {
 };
 const escapeHtml = (text: string) => text.replace(/[&<>"']/g, (c) => HTML_ESCAPES[c]);
 /** Menu labels for each original circuit (lengths are asserted in tests). */
+/** Short track-conditions chip: air temperature and surface state. */
+export function conditions(ambientC: number, rainMmHr: number, meanWaterMm: number) {
+  if (![ambientC, rainMmHr, meanWaterMm].every(Number.isFinite)) return '—';
+  const surface =
+    rainMmHr > 0.01 ? 'RAIN' : meanWaterMm >= 0.04 ? 'WET' : meanWaterMm > 0.001 ? 'DAMP' : 'DRY';
+  return `${surface}<small>${Math.round(ambientC)}°C</small>`;
+}
+/** Player-facing session names (pause menu and loading screen). */
+export const SESSION_TITLES: Readonly<Record<SessionOptions['mode'], string>> = Object.freeze({
+  race: 'Grand Prix',
+  practice: 'Free Practice',
+  'time-trial': 'Time Trial',
+  qualifying: 'Qualifying',
+  endurance: 'Endurance',
+});
 export const CIRCUIT_MENU_LABELS: Readonly<Record<CircuitId, string>> = Object.freeze({
   aurel: 'Aurel Grand Circuit · 2.97 km',
   vellamar: 'Vellamar Coast Circuit · 4.00 km',
 });
+/** Player-facing circuit name, e.g. "Aurel Grand Circuit". */
+export const circuitTitle = (id: CircuitId) =>
+  (CIRCUIT_MENU_LABELS[id] ?? CIRCUIT_MENU_LABELS.aurel).split(' · ')[0];
 /** Fit any circuit into the 250×240 map. Aurel keeps its original centre and
  * 0.24 px/m scale (it already fits); larger circuits are centred and scaled. */
 export function minimapFrame(track: Track) {
@@ -139,7 +159,16 @@ export class Interface {
   private lastAnnounced = '';
   private deviceCalibration: DeviceCalibrationPanel | null = null;
   private bindingCapture: AbortController | null = null;
-  playerName = DRIVERS[0];
+  private driverName = DRIVERS[0];
+  /** The player's driver name (timing tower, results and paddock masthead). */
+  get playerName() {
+    return this.driverName;
+  }
+  set playerName(name: string) {
+    this.driverName = name;
+    const node = this.element?.querySelector('#menuDriver');
+    if (node) node.textContent = name.toUpperCase();
+  }
   /** Timing loops for the tower's race intervals, rebuilt per field/circuit. */
   private gaps: GapTimer | null = null;
   private gapPositions = new Float64Array(0);
@@ -153,28 +182,38 @@ export class Interface {
   options: SessionOptions = { ...DEFAULT_OPTIONS };
   /** Time Trial: saved personal best (0 when none) and the live ghost delta. */
   timeTrial: { best: number; delta: number | null } | null = null;
+  /** Developer tools and raw diagnostics are shown only with `?dev`. */
+  readonly developer = developerMode();
+  /** Latest presented frame, for the pause menu's session summary. */
+  private lastFrame: Float32Array | null = null;
+  private loadingProgress = 0;
+  private loadingTipIndex = 0;
   constructor(
     readonly element: HTMLElement,
     public track: Track,
     private callbacks: Callbacks,
   ) {
+    const DEV = this.developer;
     element.innerHTML = `
-  <div id="loading" class="loading"><div class="brand">APEX<span>FORMULA</span></div><p id="loadingText">Preparing circuit and car systems…</p><div class="loader"><i></i></div></div>
+  <div id="loading" class="loading" role="status" aria-live="polite" aria-busy="true"><div class="brand">APEX<span>FORMULA</span></div><p id="loadingSession" class="loading-session" hidden></p><div class="loading-progress"><div class="loading-row"><b id="loadingStage">Loading</b><span id="loadingPercent">0%</span></div><div class="loader" id="loadingBar" role="progressbar" aria-label="Loading progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i></div></div><p id="loadingText" class="loading-detail"${DEV ? '' : ' hidden'}>Preparing circuit and car systems…</p><p id="loadingTip" class="loading-tip"><b>TIP</b> ${LOADING_TIPS[0]}</p></div>
   <section id="menu" class="menu" hidden>
-   <header class="masthead"><div class="brand">APEX<span>FORMULA</span></div><span class="edition">ORIGINAL MOTORSPORT SIMULATION <b id="circuitEdition">01 / AUREL</b></span></header>
+   <header class="masthead"><div class="brand">APEX<span>FORMULA</span></div><span class="edition">DRIVER <b id="menuDriver">${escapeHtml(this.playerName.toUpperCase())}</b></span></header>
    <div class="menu-body" tabindex="0" role="region" aria-label="Race setup and tools"><div class="eyebrow"><i></i> <span id="circuitEyebrow">AUREL · GRAND CIRCUIT</span></div><h1>EVERY INPUT.<br>EVERY FORCE.</h1><p class="intro">Four contact patches. One racing line.<br>Find the limit between them.</p>
    <form id="sessionForm" class="session-form">
     <div class="form-row"><label>CIRCUIT<select id="circuit">${CIRCUIT_IDS.map((id) => `<option value="${id}">${CIRCUIT_MENU_LABELS[id]}</option>`).join('')}</select></label></div>
     <div class="form-row"><label>SESSION<select id="mode"><option value="race">Grand Prix</option><option value="practice">Free practice</option><option value="time-trial">Time trial · ghost</option><option value="qualifying">Race weekend · qualifying</option><option value="endurance">Endurance · mandatory stop</option></select></label><label>DISTANCE<select id="laps"><option value="1">1 lap · Sprint</option><option value="3" selected>3 laps · Standard</option><option value="5">5 laps</option><option value="10">10 laps</option><option value="15">15 laps · Endurance</option><option value="25">25 laps · Endurance</option></select></label></div>
     <div class="form-row"><label>WEATHER<select id="weather"><option value="clear">Clear / Dry</option><option value="changeable">Dry → Rain</option><option value="rain">Heavy rain</option></select></label><label>GRID<select id="opponents"><option value="0">Solo</option><option value="3">4 cars</option><option value="7" selected>8 cars</option><option value="11">12 cars</option></select></label></div>
-    <div class="form-row"><label>TIRES<select id="compound"><option value="soft">Soft</option><option value="medium" selected>Medium</option><option value="hard">Hard</option><option value="intermediate">Intermediate</option><option value="wet">Full wet</option></select></label><label>CONTROL<select id="assist"><option value="sport">Sport / ABS + TC</option><option value="raw">Unassisted</option></select></label></div>
+    <div class="form-row"><label>TYRES<select id="compound"><option value="soft">Soft</option><option value="medium" selected>Medium</option><option value="hard">Hard</option><option value="intermediate">Intermediate</option><option value="wet">Full wet</option></select></label><label>ASSISTS<select id="assist"><option value="sport">ABS + TC</option><option value="raw">Off</option></select></label></div>
     <div class="form-row"><label>START<select id="startSlot"><option value="pole" selected>Pole position</option><option value="midfield">Mid-field</option><option value="back">Back of the grid</option></select></label></div>
     <button class="primary enter" type="submit">ENTER CIRCUIT <span aria-hidden="true">↗</span></button>
     <button class="enter" type="submit" name="prepareGrid" value="yes">PREPARE GRID <span>START PAUSED</span></button>
-   </form><div class="menu-actions"><button data-action="settings">GARAGE & SETTINGS</button><button data-action="controls">CONTROLS</button><button data-action="championship">CHAMPIONSHIP</button><button data-action="team">TEAM HQ</button><button data-action="photo">PHOTO / LIVERY</button><button data-action="references">REFERENCE REVIEW</button><button data-action="sessionReview">SESSION 146 EVIDENCE</button><button data-action="academy">DRIVING ACADEMY</button></div>
-   <p class="menu-note">WASD / ARROWS TO DRIVE · GAMEPAD SUPPORTED<br>G TO WATCH THE AI DRIVE YOUR CAR</p></div>
+   </form><div class="menu-actions" role="group" aria-label="Paddock"><button data-action="settings">GARAGE & SETTINGS</button><button data-action="championship">CHAMPIONSHIP</button><button data-action="team">TEAM HQ</button><button data-action="academy">DRIVING ACADEMY</button><button data-action="photo">PHOTO / LIVERY</button><button data-action="controls">CONTROLS</button></div>${
+     DEV
+       ? '<div class="dev-tools" role="group" aria-label="Developer tools"><span>DEV</span><button data-action="references">REFERENCE REVIEW</button><button data-action="sessionReview">SESSION 146 EVIDENCE</button></div>'
+       : ''
+   }</div>
    <div class="car-label"><span>APX–01</span><b>FORMULA / HYBRID</b><div>770 KG DRY · 8 SPEED · 4 MJ ERS</div></div>
-   <footer class="menu-footer"><span><b id="circuitLength">${(track.length / 1000).toFixed(3)}</b> KM CIRCUIT</span><span><b>120</b> HZ SIMULATION</span><span><b>240</b> HZ TIRE SOLVE</span><span id="buildIdentity">ENGINEERING BUILD / 0.1</span></footer>
+   <footer class="menu-footer"><span><b id="circuitLength">${(track.length / 1000).toFixed(3)}</b> KM</span><span><b id="circuitTurns">${track.circuit.corners.length}</b> TURNS</span><span><b id="circuitDrs">${track.circuit.drsZones.length}</b> DRS ${track.circuit.drsZones.length === 1 ? 'ZONE' : 'ZONES'}</span><span class="menu-hint"><kbd>WASD</kbd> / <kbd>ARROWS</kbd> DRIVE · <kbd>G</kbd> AI DRIVER · GAMEPAD READY</span><span id="buildIdentity"${DEV ? '' : ' hidden'}>DEV BUILD</span></footer>
   </section>
   <section id="hud" class="hud" hidden>
    <div class="hud-top"><div class="brand small">APEX<span>LIVE</span></div><div class="position-badge" role="status" aria-label="Race position"><b id="positionBadge">P1</b><span id="positionField">/ 1</span></div><div class="session-status"><span id="lapLabel">LAP 1 / 3</span><b id="flag">GRID</b><span id="weatherLabel">24°C / DRY</span></div><button class="icon-button" data-action="pause" aria-label="Pause session">Ⅱ</button></div>
@@ -200,7 +239,7 @@ export class Interface {
     .map(([key, view]) => `<option value="${key}">${view.title}</option>`)
     .join(
       '',
-    )}</select></label><canvas id="graph" width="1100" height="590" role="img"></canvas><div class="telemetry-actions"><button data-action="compare">COMPARE LAPS</button><button data-action="csv">EXPORT CSV</button><span>SI UNITS · RECORDED SIMULATION STATE</span></div></dialog>
+    )}</select></label><canvas id="graph" width="1100" height="590" role="img"></canvas><div class="telemetry-actions"><button data-action="compare">COMPARE LAPS</button><button data-action="csv">EXPORT CSV</button><span>SI UNITS · RECORDED THIS SESSION</span></div></dialog>
   `;
     this.menu = this.get('menu');
     this.hud = this.get('hud');
@@ -305,12 +344,53 @@ export class Interface {
   get telemetryModal() {
     return this.get('telemetryModal') as HTMLDialogElement;
   }
+  /** Show the loading screen. Raw engineering messages become a player-facing
+   * stage title and a monotonic progress bar; the raw text is developer-only. */
   loading(text: string) {
+    const screen = this.get('loading');
+    if (screen.hidden) {
+      // A new load: restart the bar and show the next tip.
+      this.loadingProgress = 0;
+      this.loadingTipIndex = (this.loadingTipIndex + 1) % LOADING_TIPS.length;
+      this.get('loadingTip').innerHTML =
+        `<b>TIP</b> ${escapeHtml(LOADING_TIPS[this.loadingTipIndex])}`;
+    }
+    const stage = loadingStage(text, this.loadingProgress);
+    this.loadingProgress = Math.max(this.loadingProgress, stage.fraction);
+    const percent = Math.round(this.loadingProgress * 100);
+    this.setText('loadingStage', stage.title);
+    this.setText('loadingPercent', `${percent}%`);
+    const bar = this.get('loadingBar');
+    bar.style.setProperty('--progress', String(this.loadingProgress));
+    bar.setAttribute('aria-valuenow', String(percent));
+    bar.setAttribute('aria-valuetext', `${stage.title}, ${percent}%`);
     this.get('loadingText').textContent = text;
-    this.get('loading').hidden = false;
+    screen.hidden = false;
+    screen.setAttribute('aria-busy', 'true');
+  }
+  /** Session context line on the loading screen (null hides it). */
+  loadingSession(options: SessionOptions | null) {
+    const line = this.get('loadingSession');
+    line.hidden = !options;
+    if (!options) return;
+    const timed = options.mode === 'time-trial' || options.mode === 'practice';
+    const weather = { clear: 'Dry', changeable: 'Changeable', rain: 'Wet' }[options.weather];
+    line.textContent = [
+      SESSION_TITLES[options.mode],
+      circuitTitle(circuitDefinition(options.circuit).id),
+      options.mode === 'qualifying' || timed
+        ? ''
+        : `${options.laps} ${options.laps === 1 ? 'lap' : 'laps'}`,
+      options.mode === 'time-trial' ? '' : `${options.opponents + 1} cars`,
+      weather,
+    ]
+      .filter(Boolean)
+      .join('  ·  ');
   }
   ready() {
-    this.get('loading').hidden = true;
+    const screen = this.get('loading');
+    screen.hidden = true;
+    screen.setAttribute('aria-busy', 'false');
     this.menu.hidden = false;
   }
   toast(message: string) {
@@ -347,6 +427,7 @@ export class Interface {
     this.sectors?.observe(frame);
   }
   update(frame: Float32Array, renderer: RacingRenderer, auto: boolean, ers: number) {
+    this.lastFrame = frame;
     const proximity = nearbyTraffic(frame);
     for (const side of ['left', 'right'] as const) {
       const node = this.get(side === 'left' ? 'proximityLeft' : 'proximityRight');
@@ -560,9 +641,11 @@ export class Interface {
     const name = track.circuit.name;
     this.get('minimapCaption').textContent = name;
     this.get('circuitEyebrow').textContent = name.replace(' / ', ' · ');
-    this.get('circuitEdition').textContent =
-      `${String(CIRCUIT_IDS.indexOf(track.circuit.id) + 1).padStart(2, '0')} / ${track.circuit.short}`;
     this.get('circuitLength').textContent = (track.length / 1000).toFixed(3);
+    this.get('circuitTurns').textContent = String(track.circuit.corners.length);
+    const zones = track.circuit.drsZones.length;
+    this.get('circuitDrs').textContent = String(zones);
+    this.get('circuitDrs').nextSibling!.textContent = ` DRS ${zones === 1 ? 'ZONE' : 'ZONES'}`;
     (this.get('circuit') as HTMLSelectElement).value = track.circuit.id;
     this.mapFrame = minimapFrame(track);
   }
@@ -572,9 +655,44 @@ export class Interface {
   }
   gridPresentationAvailable = false;
   pause() {
+    const developer = this.developer
+      ? '<div class="dev-tools" role="group" aria-label="Developer tools"><span>DEV</span><button data-action="performance">PERFORMANCE CAPTURE</button><button data-action="visualReview">FULL-LAP VISUAL REVIEW</button><button data-action="sessionReview">SESSION 146 EVIDENCE</button></div>'
+      : '';
     this.modalContent(
-      `<span class="eyebrow">SESSION SUSPENDED</span><h2>Hold your line.</h2><p>Simulation and race time are paused.</p><div class="dialog-buttons"><button class="primary" data-action="resume">RESUME SESSION</button>${this.gridPresentationAvailable ? '<button data-action="gridPresentation">PRE-RACE PRESENTATION</button>' : ''}<button data-action="settings">GARAGE & SETTINGS</button><button data-action="camera">CHANGE CAMERA</button><button data-action="autopilot">TOGGLE AI DEMONSTRATION</button><button data-action="replay">WATCH REPLAY</button><button data-action="photo">PHOTO STUDIO</button><button data-action="academy">ACADEMY</button><button data-action="team">TEAM HQ</button><button data-action="performance">PERFORMANCE CAPTURE</button><button data-action="visualReview">FULL-LAP VISUAL REVIEW</button><button data-action="sessionReview">SESSION 146 EVIDENCE</button><button data-action="restart">RESTART SESSION</button><button data-action="menu">RETURN TO PADDOCK</button></div>`,
+      `<div class="pause-menu"><header class="pause-head"><span class="eyebrow">PAUSED</span><h2>${SESSION_TITLES[this.options.mode] ?? 'Session'}</h2><span class="pause-circuit">${escapeHtml(circuitTitle(this.track.circuit.id))}</span></header>${this.pauseSummary()}<div class="dialog-buttons pause-actions"><button class="primary" data-action="resume">RESUME SESSION</button>${this.gridPresentationAvailable ? '<button data-action="gridPresentation">PRE-RACE PRESENTATION</button>' : ''}<button data-action="restart">RESTART SESSION</button><button data-action="settings">GARAGE & SETTINGS</button><button data-action="menu">RETURN TO PADDOCK</button></div><div class="pause-more" role="group" aria-label="More options"><button data-action="camera">CHANGE CAMERA</button><button data-action="replay">WATCH REPLAY</button><button data-action="photo">PHOTO STUDIO</button><button data-action="autopilot">AI DRIVER</button><button data-action="academy">ACADEMY</button></div>${developer}</div>`,
     );
+  }
+  /** Compact session context for the pause menu: position, lap, gap, tyres, conditions. */
+  private pauseSummary() {
+    const frame = this.lastFrame;
+    if (!frame || !(frame[H.CARS] >= 1)) return '';
+    const o = carBase(0),
+      cars = Math.round(frame[H.CARS]);
+    let position = 1;
+    for (let id = 1; id < cars; id++)
+      if (frame[carBase(id) + F.RANK] < frame[o + F.RANK]) position++;
+    const racing = racingSession(this.options.mode);
+    const lap = escapeHtml(this.get('lapLabel').textContent ?? '')
+      .replace(/^(ENDURANCE|QUALIFYING|TIME TRIAL|PRACTICE) \/ /, '')
+      .replace(/^LAP (\d+) \/ (\d+)$/, '$1<small>/$2</small>')
+      .replace(/^LAP /, '');
+    const gap = this.element.querySelector('.tower-row.player small')?.textContent?.trim() || '—';
+    const compound = Object.keys(COMPOUNDS)[Math.round(frame[o + F.COMPOUND])] ?? 'medium';
+    let life = 0;
+    for (let i = 0; i < 4; i++) life += 1 - frame[o + WHEEL_BASE + i * WHEEL_STRIDE + W.WEAR];
+    const cells: [string, string][] = [
+      ['POSITION', cars > 1 ? `P${position}<small>/${cars}</small>` : 'SOLO'],
+      ['LAP', lap || '—'],
+      racing
+        ? ['INTERVAL', escapeHtml(position === 1 ? 'LEADER' : gap)]
+        : ['BEST LAP', lapTime(frame[o + F.BEST_LAP])],
+      [
+        'TYRES',
+        `<i class="tyre-dot" style="--tyre: var(--tyre-${compound})" title="${compound}">${compound[0].toUpperCase()}</i>${Math.round((100 * life) / 4)}<small>%</small>`,
+      ],
+      ['TRACK', conditions(frame[H.AMBIENT], frame[H.RAIN], frame[H.WATER])],
+    ];
+    return `<dl class="pause-summary">${cells.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl>`;
   }
   performance(status: string, machine: string, workload: string, exportable: boolean) {
     this.modalContent(
@@ -624,7 +742,7 @@ export class Interface {
         )
         .join(
           '',
-        )}<b>ESC</b><span>Pause / release mouse look</span><b>DOUBLE CLICK</b><span>Cockpit mouse look</span></div><p>Standard default: left stick, trigger pedals, shoulder shifts, Y camera, X energy, Start pause/resume. Garage settings remap or disable every action button. Custom wheels require explicit device selection and assignments; no Xbox layout is assumed. Native wheel force feedback is not implemented.</p><button class="primary" data-action="modalClose">UNDERSTOOD</button>`,
+        )}<b>ESC</b><span>Pause / release mouse look</span><b>DOUBLE CLICK</b><span>Cockpit mouse look</span></div><p>Gamepad: left stick steers, triggers for throttle and brake, shoulder buttons shift, Y changes camera, X cycles energy mode and Start pauses. Remap any control or set up a wheel in Garage &amp; Settings.</p><button class="primary" data-action="modalClose">UNDERSTOOD</button>`,
     );
   }
   modalContent(html: string) {
@@ -844,7 +962,7 @@ export class Interface {
       })
       .join('');
     this.modalContent(
-      `<span class="eyebrow">CHEQUERED FLAG / SESSION CLASSIFICATION</span><h2>${frame[carBase(0) + F.FINISH] > 0 ? 'Across the line.' : 'Session ended.'}</h2><p>Final classification by completed laps and penalty-adjusted time. DNF cars have no invented finish time.</p><table class="results"><thead><tr><th>POS</th><th>DRIVER</th><th>LAPS</th><th>TIME + PEN.</th><th>BEST LAP</th><th>PEN.</th></tr></thead><tbody>${rows}</tbody></table>${this.championshipNote ? `<p class="championship-note">${escapeHtml(this.championshipNote)}</p>` : ''}<div class="dialog-buttons inline"><button class="primary" data-action="replay">WATCH REPLAY</button><button data-action="telemetry">TELEMETRY</button>${this.championshipNote ? '<button data-action="championship">STANDINGS</button>' : ''}<button data-action="photo">PHOTO STUDIO</button><button data-action="academy">ACADEMY</button><button data-action="team">TEAM HQ</button><button data-action="restart">RACE AGAIN</button><button data-action="menu">PADDOCK</button></div>`,
+      `<span class="eyebrow">CHEQUERED FLAG / SESSION CLASSIFICATION</span><h2>${frame[carBase(0) + F.FINISH] > 0 ? 'Across the line.' : 'Session ended.'}</h2><p>Classified by laps completed, then race time including penalties.</p><table class="results"><thead><tr><th>POS</th><th>DRIVER</th><th>LAPS</th><th>TIME + PEN.</th><th>BEST LAP</th><th>PEN.</th></tr></thead><tbody>${rows}</tbody></table>${this.championshipNote ? `<p class="championship-note">${escapeHtml(this.championshipNote)}</p>` : ''}<div class="dialog-buttons inline"><button class="primary" data-action="replay">WATCH REPLAY</button><button data-action="telemetry">TELEMETRY</button>${this.championshipNote ? '<button data-action="championship">STANDINGS</button>' : ''}<button data-action="photo">PHOTO STUDIO</button><button data-action="academy">ACADEMY</button><button data-action="team">TEAM HQ</button><button data-action="restart">RACE AGAIN</button><button data-action="menu">PADDOCK</button></div>`,
     );
   }
   /** Qualifying classification: the fastest valid lap sets the race grid. */

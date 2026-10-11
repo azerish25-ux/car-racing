@@ -96,14 +96,14 @@ async function runCase(page: Page, c: Case) {
   if (c.weather === 'rain') await page.selectOption('#compound', 'wet');
   await page.getByRole('button', { name: 'PREPARE GRID START PAUSED', exact: true }).click();
   await page
-    .getByRole('button', { name: 'TOGGLE AI DEMONSTRATION', exact: true })
+    .getByRole('button', { name: 'AI DRIVER', exact: true })
     .waitFor({ state: 'visible', timeout: 600000 })
     .catch(async (e) => {
       await shot(page, join(dir, 'failure-grid.jpg'));
       throw e;
     });
   await waitFor(async () => (await diag(page)).workerPause.paused === true, 60000, 'grid');
-  await page.getByRole('button', { name: 'TOGGLE AI DEMONSTRATION', exact: true }).click();
+  await page.getByRole('button', { name: 'AI DRIVER', exact: true }).click();
   await waitFor(async () => (await diag(page)).auto === true, 10000, 'auto');
   if (c.lighting !== 'day') {
     // Software GL can stall for tens of seconds while night/sunset lighting

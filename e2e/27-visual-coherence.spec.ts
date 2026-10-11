@@ -120,7 +120,7 @@ test.describe('27H.5 ordinary application full-lap evidence', () => {
           await session.detach();
         }
       };
-      await page.goto('/');
+      await page.goto('/?dev');
       await expect(page.locator('#menu')).toBeVisible({ timeout: 90000 });
       await page.selectOption('#mode', 'practice');
       await page.selectOption('#opponents', '0');

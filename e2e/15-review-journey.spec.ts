@@ -5,7 +5,7 @@ import { createHash } from 'node:crypto';
 import { readPresentationReport } from '../src/rendering/presentation-review.ts';
 const diag = (page: Page) => page.evaluate(() => window.apexDiagnostics());
 async function ready(page: Page) {
-  await page.goto('/');
+  await page.goto('/?dev');
   await expect(page.locator('#menu')).toBeVisible({ timeout: 90000 });
   // Functional UI journey, not the high-fidelity visual acceptance suite.
   await page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true }).click();

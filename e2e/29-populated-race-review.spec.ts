@@ -78,7 +78,7 @@ for (const drive of drives)
     page.on('console', (m) => {
       if (m.type() === 'error') errors.push(m.text());
     });
-    await page.goto('/');
+    await page.goto('/?dev');
     await expect(page.locator('#menu')).toBeVisible({ timeout: 90000 });
     // Functional populated-race evidence on CI's software GPU. The original high-
     // fidelity full-lap suite remains unchanged; these files are not art approval.
@@ -135,7 +135,7 @@ for (const drive of drives)
       await expect
         .poll(async () => (await diag(page)).workerPause)
         .toMatchObject({ pending: false, paused: true });
-      await page.getByRole('button', { name: 'TOGGLE AI DEMONSTRATION', exact: true }).click();
+      await page.getByRole('button', { name: 'AI DRIVER', exact: true }).click();
       for (let i = 0; i < 4 && (await diag(page)).renderer?.camera !== drive.camera; i++) {
         await page.getByRole('button', { name: 'CHANGE CAMERA', exact: true }).click();
         await expect

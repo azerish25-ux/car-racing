@@ -7,7 +7,7 @@ test('performance capture exports real frames and a second dialog never reuses d
   test.setTimeout(240000);
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
-  await page.goto('/');
+  await page.goto('/?dev');
   await expect(page.locator('#loading')).toBeHidden({ timeout: 60000 });
   await page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true }).click();
   await page.locator('[name=quality]').selectOption('low');

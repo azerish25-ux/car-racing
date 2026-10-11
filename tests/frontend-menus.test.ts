@@ -57,12 +57,17 @@ describe('front-end showroom and speed tunnel', () => {
     expect(appended[0].textContent).toContain(`blur(${SPEED_TUNNEL.blurPx}px)`);
   });
 
-  it('styles the menu list as F1 25 pills and keeps every action button', () => {
+  it('styles the menu list as F1 25 pills with player actions only; dev tools stay behind ?dev', () => {
     const css = readFileSync('src/ui/style.css', 'utf8');
     expect(css).toContain('.menu-actions button:is(:hover, :focus-visible)');
     expect(css).toContain('--apex-flame: #fc4854;');
     const template = readFileSync('src/ui/interface.ts', 'utf8');
-    const actions = template.match(/<div class="menu-actions">(.*?)<\/div>/)![1];
-    expect(actions.match(/<button data-action=/g)).toHaveLength(8);
+    const actions = template.match(/<div class="menu-actions"[^>]*>(.*?)<\/div>/)![1];
+    expect(actions.match(/<button data-action=/g)).toHaveLength(6);
+    for (const dev of ['references', 'sessionReview', 'performance', 'visualReview'])
+      expect(actions).not.toContain(`data-action="${dev}"`);
+    // Developer tools are rendered only inside developer-mode branches.
+    expect(template).toMatch(/DEV\s*\?\s*'<div class="dev-tools"/);
+    expect(template).toMatch(/this\.developer\s*\?\s*'<div class="dev-tools"/);
   });
 });

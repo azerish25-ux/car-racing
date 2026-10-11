@@ -117,7 +117,8 @@ describe('five measured attempts, never manufactured progress', () => {
     expect(programmeHud(programme.progress(), false)).toContain('1/5');
     const html = drivingAcademy(programme.progress(), 'full', true);
     expect(html.match(/data-grade=/g)).toHaveLength(5);
-    expect(html).toContain('No online ranking');
+    expect(html).toContain('do not earn medals');
+    expect(html).not.toContain('REFERENCE REVIEW');
     expect(html).toContain('data-action="academy:start"');
   });
 });

@@ -477,6 +477,7 @@ export class GameApp {
     this.state = 'loading';
     this.ui.showMode('loading');
     this.ui.loading('Preparing grid, race timing and recording buffers…');
+    this.ui.loadingSession(options);
     this.input.setEnabled(false);
     this.audio.stop();
     try {

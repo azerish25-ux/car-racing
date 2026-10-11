@@ -31,7 +31,7 @@ export class DeviceCalibrationPanel {
   ) {
     this.draft = structuredClone(mapping);
     root.innerHTML = `<h3>Wheel and pedal calibration</h3>
-      <p class="small-note">Press a button on the device to expose it to the browser. Custom wheels require explicit selection. Choose axis numbers above, then capture actual endpoints. No native force feedback is claimed.</p>
+      <p class="small-note">Press any button on your wheel or pedals so the game can detect them, select the device, then capture each axis endpoint below.</p>
       <label>Active input device<select aria-label="Active input device"></select></label>
       <label class="check"><input type="checkbox" name="wheelSteering">Wheel steering: direct calibrated axis, without keyboard ramp</label>
       <label class="check"><input type="checkbox" name="manualClutch">Manual clutch (pedal or keyboard binding)</label>

@@ -8,7 +8,7 @@ test('actual race UI records source-bound session observations and never certifi
 }, info) => {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
-  await page.goto('/');
+  await page.goto('/?dev');
   await expect(page.locator('#menu')).toBeVisible({ timeout: 90000 });
   // This is a low-cost functional journey. High-fidelity GPU gates are separate.
   await page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true }).click();

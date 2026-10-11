@@ -35,7 +35,7 @@ test('compact race information stays live through a populated dusk drive, measur
       await cdp.detach();
     }
   };
-  await page.goto('/');
+  await page.goto('/?dev');
   await expect(page.locator('#menu')).toBeVisible({ timeout: 90000 });
   await page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true }).click();
   await page.locator('[name=quality]').selectOption('low');
@@ -49,7 +49,7 @@ test('compact race information stays live through a populated dusk drive, measur
   await expect
     .poll(async () => (await diag()).workerPause)
     .toMatchObject({ paused: true, pending: false });
-  await page.getByRole('button', { name: 'TOGGLE AI DEMONSTRATION', exact: true }).click();
+  await page.getByRole('button', { name: 'AI DRIVER', exact: true }).click();
   await expect.poll(async () => (await diag()).auto).toBe(true);
   await page.locator('#modal [data-action="academy"]').click();
   await page.locator('#modal [data-action="lighting:sunset"]').click();
