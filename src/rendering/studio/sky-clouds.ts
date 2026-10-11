@@ -112,8 +112,8 @@ export function cloudLayer(cover: number) {
   };
 }
 /** Field threshold per eighth of cover (index = bin), calibrated on the baked
- * panoramas so the cosine-weighted dome cover grows evenly: 0.16, 0.26, 0.41,
- * 0.56, 0.7, 0.91, 0.98 and 0.98 for bins 1-8 (CLOUD_DOME_MEANS). Bin 0 has none. */
+ * panoramas so the cosine-weighted dome cover grows evenly: 0.14, 0.24, 0.38,
+ * 0.52, 0.66, 0.88, 0.98 and 0.98 for bins 1-8 (CLOUD_DOME_MEANS). Bin 0 has none. */
 const CLOUD_THRESHOLDS = [0.574, 0.519, 0.48, 0.438, 0.402, 0.372, 0.312, 0.228, 0.083] as const;
 function tableAt(table: readonly number[], c: number) {
   const x = c * (table.length - 1),
@@ -337,6 +337,7 @@ uniform float thickness;
 uniform float extinction;
 uniform float cirrus;
 uniform float horizonGlow;
+uniform float fair;
 uniform vec2 resolution;
 in vec2 vUv;
 out vec4 cloudTerms;
@@ -415,6 +416,12 @@ float density(vec3 p, bool detailed, out float column) {
     float own = hf / max(height, 0.04);
     float rising = smoothstep(0.0, 0.3, own) * (0.3 + 0.7 * min(own, 1.0));
     top -= ((0.58 - bulges) * 2.4 + (0.58 - cauliflower) * 0.45) * height * rising;
+    // A ragged base outline: the same bulges, sampled flat (one pattern for
+    // the whole lower cloud), bite into the footprint near the base.
+    float baseScale = bulgeScale * 0.5;
+    float ragged = mix(0.58, textureLod(cloudDetail, vec3(p.x, 0.0, p.z) / baseScale + vec3(0.63, 0.41, 0.17),
+      log2(max(1.0, footprint * VOXELS / baseScale))).r, far);
+    top -= (0.58 - ragged) * 1.2 * height * (1.0 - rising);
   }
   // Crisp cauliflower edges (a soft skin scaled to the cloud, 25-115 m) on
   // a flat condensation level.
@@ -422,7 +429,7 @@ float density(vec3 p, bool detailed, out float column) {
   // distance: a crisper edge would only alias into a crunchy fringe.
   // Nor thinner than 45 m: the 30 m in-cloud step must resolve it.
   float texel = max(length(p) * 0.0021, 45.0) / thickness;
-  return smoothstep(0.0, max(0.02 + 0.03 * height, texel), top) * smoothstep(0.0, 0.03, hf);
+  return smoothstep(0.0, max(0.02 + 0.03 * height, texel), top) * smoothstep(0.0, 0.05, hf);
 }
 float phaseHG(float mu, float g) {
   float g2 = g * g;
@@ -506,18 +513,22 @@ void main() {
     float far = density(p + sunDirection * 380.0, false, unused);
     float farther = density(p + sunDirection * 950.0, false, unused);
     float depth = extinction * (near * 180.0 + far * 520.0 + farther * 650.0);
-    // Beer-Lambert with a multiple-scattering floor (no black cores).
-    float lit = max(exp(-depth), 0.24 * exp(-depth * 0.25));
-    // Powder (Schneider 2015): thin, sun-facing edges have had little depth
-    // to build up in-scattered light, so they read darker than the cloud's
-    // body when seen away from the sun; toward the sun the silver lining wins.
-    lit *= mix(1.0, 1.0 - exp(-2.0 * depth - 0.6), 0.35 * (0.5 - 0.5 * mu));
+    // Multiple scattering as three Beer-Lambert octaves (Wrenninge 2013): the
+    // light that diffuses through the cloud reaches deep into the shaded flank
+    // and the base, so shade falls off gradually over a large part of the
+    // cloud's height instead of switching to a dark base.
+    float lit = (exp(-depth) + 0.5 * exp(-0.35 * depth) + 0.25 * exp(-0.12 * depth)) / 1.75;
+    // Powder (Schneider 2015), mild: thin edges away from the sun a touch darker.
+    lit *= mix(1.0, 1.0 - exp(-2.0 * depth - 0.6), 0.2 * (0.5 - 0.5 * mu));
     // Skylight: tops see the whole dome, a base mostly the sunlit ground below;
     // a taller column above darkens its base (the low-contrast overcast rolls).
-    float shade = 1.0 - 0.42 * column * (1.0 - hf);
-    // Bases: dim, blue-grey (sky from the side, a little ground from below).
-    float ambient = (0.1 + 0.9 * pow(hf, 0.7)) * shade;
-    float bounce = 0.22 * pow(1.0 - hf, 2.0) * shade * glow;
+    float shade = 1.0 - mix(0.42, 0.4, fair) * column * (1.0 - hf);
+    // Fair-weather bases: a light-to-mid blue-grey (the sky from the side,
+    // multiply scattered dome light and the bright ground below), darker
+    // under tall columns than under small, thin clouds. A closing deck keeps
+    // its own dim, rolling base.
+    float ambient = (mix(0.1, 0.45, fair) + mix(0.9, 0.55, fair) * pow(hf, 0.7)) * shade;
+    float bounce = mix(0.22, 0.32, fair) * pow(1.0 - hf, 2.0) * shade * glow;
     float stepOpacity = 1.0 - exp(-extinction * d * advance);
     float w = transmittance * stepOpacity;
     sun += w * lit * phase;
@@ -644,14 +655,14 @@ vec4 skyCloudTerms(vec3 direction) {
 export const CLOUD_DOME_MEANS: readonly (readonly [number, number, number, number, number])[] =
   Object.freeze([
     [0, 0, 0, 0, 0],
-    [0.1554, 0.0942, 0.04, 0.0305, 0.0279],
-    [0.2597, 0.1524, 0.0495, 0.0488, 0.047],
-    [0.4072, 0.2127, 0.0559, 0.0714, 0.0744],
-    [0.5626, 0.2585, 0.0526, 0.0941, 0.1034],
-    [0.7031, 0.2618, 0.0409, 0.1142, 0.1294],
-    [0.9057, 0.1208, 0.0136, 0.1376, 0.1639],
-    [0.9839, 0.012, 0.0001, 0.1359, 0.168],
-    [0.984, 0.0016, 0, 0.1216, 0.149],
+    [0.1416, 0.094, 0.0433, 0.0682, 0.036],
+    [0.2396, 0.1568, 0.0559, 0.114, 0.0615],
+    [0.3765, 0.2239, 0.0644, 0.1756, 0.098],
+    [0.5249, 0.2824, 0.0652, 0.2366, 0.1361],
+    [0.6621, 0.3102, 0.0556, 0.2393, 0.1557],
+    [0.8827, 0.1985, 0.0214, 0.2083, 0.1755],
+    [0.9832, 0.0367, 0.0021, 0.1496, 0.1662],
+    [0.9838, 0.0123, 0.002, 0.1319, 0.1471],
   ] as const);
 /** Mean baked terms (premultiplied) of the dome at a cover, blended between
  * neighbouring bins exactly as the dome blends their panoramas. */
@@ -763,6 +774,7 @@ export class SkyClouds {
       extinction: { value: 0.02 },
       cirrus: { value: 0 },
       horizonGlow: { value: 0 },
+      fair: { value: 1 },
       resolution: {
         value: new T.Vector2(SKY_CLOUDS.panoramaWidth, SKY_CLOUDS.panoramaHeight),
       },
@@ -857,6 +869,7 @@ export class SkyClouds {
     u.extinction.value = layer.extinction;
     u.cirrus.value = layer.cirrus;
     u.horizonGlow.value = cloudLightKey(mode) === 'sunset' ? 1 : 0;
+    u.fair.value = 1 - smooth01((layer.cover - 0.45) / 0.45);
     try {
       this.draw(renderer, target, this.panoramaMaterial);
     } catch (error) {
