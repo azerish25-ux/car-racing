@@ -3,6 +3,7 @@ import type { SessionOptions } from '../simulation/config.ts';
 import { circuitDefinition } from '../simulation/circuits.ts';
 import { COMPOUNDS } from '../simulation/config.ts';
 import { weatherReadout } from './presentation.ts';
+import { circuitTitle } from './interface.ts';
 
 export function raceBriefing(options: SessionOptions, frame: Float32Array) {
   const o = carBase(0);
@@ -12,7 +13,7 @@ export function raceBriefing(options: SessionOptions, frame: Float32Array) {
   // Circuit names are authored constants; all other values are numeric or validated enums.
   return `<section id="raceBriefing" aria-label="Race-day briefing">
     <span class="eyebrow">RACE DAY / ${options.mode === 'endurance' ? 'ENDURANCE' : 'GRAND PRIX'}</span>
-    <h2>${circuit.name}</h2><p>Final briefing. The grid is formed; the race clock is held.</p>
+    <h2>${circuitTitle(circuit.id)}</h2><p>The grid is formed. Lights out when you are ready.</p>
     <dl class="race-briefing-grid">
       <div><dt>STARTING POSITION</dt><dd>P${options.grid ? options.grid.indexOf(0) + 1 : 1} <small>/ ${frame[H.CARS]}</small></dd></div>
       <div><dt>RACE DISTANCE</dt><dd>${options.laps} <small>LAPS</small></dd></div>
@@ -20,7 +21,7 @@ export function raceBriefing(options: SessionOptions, frame: Float32Array) {
       <div><dt>FUEL ON BOARD</dt><dd>${frame[o + F.FUEL].toFixed(1)} <small>KG</small></dd></div>
     </dl>
     <p class="briefing-weather">${weatherReadout(frame[H.AMBIENT], frame[H.RAIN], frame[H.WATER])}</p>
-    <p class="small-note">Your garage setup is applied. Return to the paddock to change tyres, conditions or setup before starting a new session.</p>
+    <p class="small-note">Your garage setup is fitted. To change tyres, weather or setup, return to the paddock.</p>
     <div class="dialog-buttons"><button class="primary" data-action="raceDayPrepare">WATCH GRID PREPARATION</button><button data-action="raceDaySkip">GO STRAIGHT TO LIGHTS</button><button data-action="menu">BACK TO PADDOCK</button></div>
     <label class="check"><input id="raceDayQuickStart" type="checkbox">Use Quick Start for future races</label>
   </section>`;
