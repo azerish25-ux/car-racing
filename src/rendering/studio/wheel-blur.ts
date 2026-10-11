@@ -1,4 +1,6 @@
 import * as T from 'three';
+import { configureSuppliedMaterial } from '../supplied-player-materials.ts';
+import { installSuppliedShaderWork } from '../supplied-shader-work.ts';
 import { chainShaderHook, injectAfter, injectDeclarations } from './shader-hooks.ts';
 
 /**
@@ -188,6 +190,15 @@ export function installSuppliedWheelBlur(spins: readonly T.Object3D[]): Supplied
         {
           const copy = material.clone();
           copy.name = `${material.name} | wheel ${wheel}`;
+          // Material.clone() copies visual parameters, not the original
+          // onBeforeCompile/onBeforeRender hooks. Reinstall them per wheel
+          // before chaining the UV blur so the twelve tyre-sidewall copies
+          // keep their independently switchable zero-alpha decal coverage
+          // and source-preserving shader optimizations.
+          if (copy instanceof T.MeshStandardMaterial) {
+            configureSuppliedMaterial(copy);
+            installSuppliedShaderWork(copy);
+          }
           const uniforms = {
             wheelCentre: { value: centre.clone() },
             wheelAxis: { value: axis.clone() },

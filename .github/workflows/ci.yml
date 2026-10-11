@@ -172,7 +172,9 @@ jobs:
     # run), so 10 min cancelled passing runs. Installing Playwright's system
     # packages usually takes under a minute but took 6 min on runs for 2383805
     # and 8cf27c2, which were cancelled at 15 min with the specs still running.
-    timeout-minutes: 20
+    # A full software-GPU wet review can exceed the former 20-minute job cap
+    # even when every scene and rendering assertion remains unchanged.
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

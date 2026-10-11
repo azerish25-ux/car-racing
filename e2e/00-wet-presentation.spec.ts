@@ -62,7 +62,10 @@ test('rain is directional geometry with fog, occlusion and near-plane safety', a
 test('wet race presentation survives moving frames and held chase, cockpit and trackside review', async ({
   page,
 }, info) => {
-  test.setTimeout(300000);
+  // Nineteen high-quality wet frames and three held production-camera reviews
+  // are GPU-limited on hosted SwiftShader. This is an evidence timeout, not a
+  // frame-time or performance acceptance threshold; retain every assertion.
+  test.setTimeout(900000);
   const bundled = await build({
     configFile: false,
     logLevel: 'error',
@@ -83,6 +86,7 @@ test('wet race presentation survives moving frames and held chase, cockpit and t
   page.on('pageerror', (e) => errors.push(e.message));
   page.on('console', (m) => {
     if (m.type() === 'error') errors.push(m.text());
+    if (m.text().startsWith('[wet-probe]')) console.info(m.text());
   });
   await page.setViewportSize({ width: 960, height: 540 });
   await page.setContent('<!doctype html><title>Phase 27 dynamic wet-race review</title>');

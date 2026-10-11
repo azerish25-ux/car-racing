@@ -148,6 +148,9 @@ export async function captureWetRace() {
     reflections: 'environment',
   });
   const captures: { view: string; image: string; draws: number; triangles: number }[] = [];
+  const start = performance.now();
+  const progress = (stage: string) =>
+    console.info('[wet-probe] ' + JSON.stringify({ stage, elapsedMs: performance.now() - start }));
   let frame = simulation.makeFrame(),
     sourceUnchanged = true;
   try {
@@ -156,6 +159,7 @@ export async function captureWetRace() {
       frame = simulation.makeFrame();
       const copy = frame.slice();
       renderer.draw(frame, frame, 1, 1 / 15, false);
+      if (display === 0 || display % 4 === 3 || display === 18) progress(`moving-${display + 1}/19`);
       sourceUnchanged &&= copy.every((v, i) => v === frame[i]);
       await new Promise((resolve) => setTimeout(resolve, 0));
     }
@@ -177,6 +181,7 @@ export async function captureWetRace() {
               draws: renderer.renderer.info.render.calls,
               triangles: renderer.renderer.info.render.triangles,
             });
+            progress(`held-${view}`);
             resolve();
           } catch (error) {
             reject(error);
