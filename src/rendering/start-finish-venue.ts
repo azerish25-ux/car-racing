@@ -67,6 +67,10 @@ export function raceBoardRows(frame: Float32Array) {
 }
 /** Two retained Aurel stand sites. All geometry is behind the existing barrier,
  * at the unchanged seat/aisle coordinates. No collision or simulation edits. */
+/** Within this range of the camera the race board repaints even when out of
+ * the main view: rear mirrors (far plane 280 m), the reflection probe and the
+ * wet-road reflection can all show it. */
+const BOARD_ALWAYS_REFRESH_M = 300;
 export class StartFinishVenue {
   readonly roots: T.Group[] = [];
   readonly shadowBounds: StaticInstanceShadowBounds[] = [];
@@ -82,9 +86,13 @@ export class StartFinishVenue {
     context: CanvasRenderingContext2D;
     texture: T.CanvasTexture;
     material: T.MeshStandardMaterial;
+    face: T.Mesh;
     last: number;
     updates: number;
   } | null = null;
+  private readonly boardSphere = new T.Sphere();
+  private readonly boardFrustum = new T.Frustum();
+  private readonly boardProjection = new T.Matrix4();
   constructor(readonly track: Track) {
     installVenueFinish(this.materials.stone, 'stone');
     for (const material of [this.materials.steel, this.materials.roof, this.materials.trim])
@@ -260,7 +268,7 @@ export class StartFinishVenue {
     face.rotation.y = Math.PI;
     root.add(face);
     sightlines.add(face);
-    this.board = { context, texture, material, last: NaN, updates: 0 };
+    this.board = { context, texture, material, face, last: NaN, updates: 0 };
     this.register(root, levels, 7, 'screen');
     root.userData.startFinish = {
       revision: 1,
@@ -290,6 +298,11 @@ export class StartFinishVenue {
     const key = Math.floor(frame[H.TIME] * 4);
     this.board.material.emissiveIntensity = night ? 0.45 : 0.7;
     if (key === this.board.last) return;
+    // Repainting is a 1024x512 canvas draw plus a 2 MB texture upload with
+    // mipmaps. Skip it while no view can show the face: outside the main
+    // frustum and beyond the mirror/probe range around the camera. The next
+    // frame that can show it repaints at once (its key is stale by then).
+    if (camera && !this.boardViewable(camera)) return;
     const rows = raceBoardRows(frame),
       c = this.board.context;
     c.fillStyle = '#0b151c';
@@ -324,6 +337,19 @@ export class StartFinishVenue {
     this.board.texture.needsUpdate = true;
     this.board.last = key;
     this.board.updates++;
+  }
+  private boardViewable(camera: T.PerspectiveCamera) {
+    const face = this.board!.face;
+    face.updateWorldMatrix(true, false);
+    this.boardSphere.center.setFromMatrixPosition(face.matrixWorld);
+    // Half the 8.2 x 4.24 m face diagonal, with margin.
+    this.boardSphere.radius = 5;
+    if (this.boardSphere.center.distanceTo(camera.position) < BOARD_ALWAYS_REFRESH_M) return true;
+    camera.updateMatrixWorld();
+    this.boardFrustum.setFromProjectionMatrix(
+      this.boardProjection.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse),
+    );
+    return this.boardFrustum.intersectsSphere(this.boardSphere);
   }
   diagnostics() {
     return {

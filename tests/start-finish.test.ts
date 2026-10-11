@@ -280,6 +280,46 @@ describe('Original Aurel start/finish kit', () => {
       dispose(scene);
     }
   });
+  it('repaints the race board only while a view can show it', () => {
+    const old = globalThis.document;
+    const context = { fillRect() {}, fillText() {} };
+    Object.defineProperty(globalThis, 'document', {
+      configurable: true,
+      value: { createElement: () => ({ getContext: () => context, width: 0, height: 0 }) },
+    });
+    const sim = new Simulation({ ...DEFAULT_OPTIONS, opponents: 2 }),
+      scene = new T.Group(),
+      venue = new StartFinishVenue(sim.track);
+    try {
+      venue.buildScreen(scene, new BroadcastSightlines());
+      scene.updateMatrixWorld(true);
+      const face = scene.getObjectByName('A18 live race-information face')!;
+      const board = face.getWorldPosition(new T.Vector3());
+      const camera = new T.PerspectiveCamera(50, 16 / 9, 0.1, 2000);
+      const frame = sim.makeFrame();
+      // Far away and looking away: no view shows the face, so no repaint.
+      camera.position.copy(board).add(new T.Vector3(900, 30, 0));
+      camera.lookAt(camera.position.clone().add(new T.Vector3(1, 0, 0)));
+      venue.update(frame, camera);
+      const count = venue.diagnostics().boardUpdates;
+      frame[H.TIME] += 1;
+      venue.update(frame, camera);
+      expect(venue.diagnostics().boardUpdates).toBe(count);
+      // A telephoto view of it from the same distance repaints at once.
+      camera.lookAt(board);
+      venue.update(frame, camera);
+      expect(venue.diagnostics().boardUpdates).toBe(count + 1);
+      // Mirror/probe range around the camera always repaints.
+      camera.position.copy(board).add(new T.Vector3(0, 0, 150));
+      camera.lookAt(camera.position.clone().add(new T.Vector3(0, 0, 1)));
+      frame[H.TIME] += 1;
+      venue.update(frame, camera);
+      expect(venue.diagnostics().boardUpdates).toBe(count + 2);
+    } finally {
+      Object.defineProperty(globalThis, 'document', { configurable: true, value: old });
+      dispose(scene);
+    }
+  });
   it('retains the live board canvas through texture-budget registration and quality changes', () => {
     const oldDocument = globalThis.document,
       oldCanvas = globalThis.HTMLCanvasElement;
