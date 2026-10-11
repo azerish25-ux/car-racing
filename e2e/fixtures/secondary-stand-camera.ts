@@ -18,7 +18,8 @@ export function secondaryStandCameraEvidence(camera: T.PerspectiveCamera, car: T
 }
 
 /** Independently measured placement, not a camera-name assertion. The normal
- * chase starts 5.7 m behind the car and must actually see its body centre. */
+ * chase starts 4.5 m behind the car (P5 retune) and must actually see its
+ * body centre. Allow 0.5 m for camera interpolation and turning. */
 export function requireSecondaryStandChaseCamera(evidence: {
   eye: readonly number[];
   bodyCentre: readonly number[];
@@ -27,7 +28,7 @@ export function requireSecondaryStandChaseCamera(evidence: {
     evidence.eye.length !== 3 ||
     evidence.bodyCentre.length !== 3 ||
     ![...evidence.eye, ...evidence.bodyCentre].every(Number.isFinite) ||
-    evidence.eye[2] >= -5 ||
+    evidence.eye[2] >= -4 ||
     evidence.eye[1] <= 1 ||
     Math.abs(evidence.bodyCentre[0]) >= 1 ||
     Math.abs(evidence.bodyCentre[1]) >= 1 ||

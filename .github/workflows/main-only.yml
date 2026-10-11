@@ -3,7 +3,9 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: [.github/workflows/main-only.yml]
+    paths:
+      - .github/workflows/main-only.yml
+      - .github/workflows/ci.yml
 permissions:
   contents: write
 concurrency:

@@ -77,13 +77,29 @@ export async function playerRenderBudget() {
   const skins: T.SkinnedMesh[] = [];
   const maps = new Set<T.Texture>(),
     decals = new Set<T.Material>(),
+    // Independent audit of which double-sided sheets are safe to discard at alpha=0.
+    // Depth-writing, alpha-test and special-blend sheets must remain unmodified.
+    eligibleDecals = new Set<T.Material>(),
     optimized = new Set<T.Material>();
   player.root.traverse((object) => {
     if (object instanceof T.SkinnedMesh) skins.push(object);
     if (!(object instanceof T.Mesh)) return;
     for (const m of Array.isArray(object.material) ? object.material : [object.material]) {
       if (suppliedShaderWorkControl(m)) optimized.add(m);
-      if (m.name.startsWith('Decal |') && m.transparent && m.side === T.DoubleSide) decals.add(m);
+      if (m.name.startsWith('Decal |') && m.transparent && m.side === T.DoubleSide) {
+        decals.add(m);
+        if (
+          m instanceof T.MeshStandardMaterial &&
+          m.blending === T.NormalBlending &&
+          !m.depthWrite &&
+          !m.stencilWrite &&
+          !m.alphaToCoverage &&
+          !m.alphaHash &&
+          m.alphaTest === 0 &&
+          !(m instanceof T.MeshPhysicalMaterial && m.transmission > 0)
+        )
+          eligibleDecals.add(m);
+      }
       for (const v of Object.values(m))
         if (v instanceof T.Texture && v.userData.suppliedPlayerTexture === true) maps.add(v);
     }
@@ -267,6 +283,7 @@ export async function playerRenderBudget() {
       shaderWorkMaterials: optimized.size,
       skinBounds: player.skinBounds.diagnostics(),
       decalMaterials: decals.size,
+      eligibleDecalMaterials: eligibleDecals.size,
       coverageMaterials: [...decals].filter((m) => suppliedDecalCoverageControl(m)).length,
       displayUnchanged: display.image === displayCanvas && display.image.width === 512,
       glError: gl.getError(),

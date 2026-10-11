@@ -177,12 +177,12 @@ export async function surveyAurelQuarry(lighting: 'day' | 'sunset' | 'night') {
     for (const station of [1150, 1230, 1330, 1410]) {
       cut(station, 55, true);
       kit.root.visible = false;
-      render();
+      // capture() already submits the measured production frame; do not
+      // immediately render the same camera/visibility twice on software GPUs.
       capture(`quarry-${station}-layer-off`);
       const before = pixels.slice(),
         beforeCalls = images.at(-1)!.calls;
       kit.root.visible = true;
-      render();
       capture(`quarry-${station}-authored`);
       let changedPixels = 0;
       for (let i = 0; i < pixels.length; i += 4)

@@ -84,8 +84,9 @@ jobs:
     runs-on: ubuntu-latest
     # Enumerate the full suite, balance long race cases, then verify the selected
     # IDs against Playwright itself. Every case belongs to exactly one partition;
-    # serial groups remain intact. Workers and all timeouts stay unchanged.
-    timeout-minutes: 45
+    # serial groups remain intact. Long Mesa shards previously reached the 45
+    # minute job cap mid-suite; retain all tests and per-test assertions.
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

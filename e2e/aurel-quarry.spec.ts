@@ -10,7 +10,10 @@ for (const lighting of ['day', 'sunset', 'night'] as const) {
   test(`A55-A60 ${lighting} full production landscape, cockpit and stable camera cycles`, async ({
     page,
   }, info) => {
-    test.setTimeout(600000);
+    // Night rain under hosted Mesa can outlast 10 minutes while completing the
+    // same 80 warmup + 40 measurement frames and physical traversal. This is a
+    // browser watchdog, not a graphics, coverage or physics-performance budget.
+    test.setTimeout(1200000);
     const built = await build({
       configFile: false,
       logLevel: 'error',

@@ -70,7 +70,12 @@ test('supplied player: actual surface-pass pixels and bounded restorable importe
   expect(report.skinBounds.meshes).toBe(61);
   expect(report.skinBounds.fallbacks).toBe(0);
   expect(report.decalMaterials).toBeGreaterThan(20);
-  expect(report.coverageMaterials).toBe(report.decalMaterials);
+  // Only normal-blended, non-depth-writing decals can safely skip zero-alpha
+  // fragments. Require optimization for every eligible material, never for
+  // unsafe sheets that would change depth or coverage semantics.
+  expect(report.eligibleDecalMaterials).toBeGreaterThan(20);
+  expect(report.coverageMaterials).toBe(report.eligibleDecalMaterials);
+  expect(report.decalMaterials - report.eligibleDecalMaterials).toBeGreaterThan(0);
   expect(report.mapsRestored).toBe(true);
   expect(report.sourcesRestored).toBe(true);
   expect(report.displayUnchanged).toBe(true);

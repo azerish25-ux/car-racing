@@ -46,6 +46,9 @@ test('27H.4 normal startup constructs the upgraded districts and retained event 
   if (!pausedEnvironment?.frontage)
     throw new Error('A21 frontage diagnostics are unavailable after practice entry');
 
+  if (!environment.garage?.overheadServices || !environment.garage.workshop)
+    throw new Error('A22 garage and attached service diagnostics are unavailable');
+
   // Entering the circuit moves the camera from the menu framing and therefore
   // legitimately changes A21's distance-based LODs. Keep every static asset
   // identity field strict while accepting only the documented dynamic counters.
@@ -54,6 +57,23 @@ test('27H.4 normal startup constructs the upgraded districts and retained event 
   expect(pausedEnvironment).toEqual({
     ...environment,
     startFinish: { ...environment.startFinish, boardUpdates: expect.any(Number) },
+    // The garage, overhead rig and workshop also select camera-dependent LODs.
+    // Preserve their source IDs, sockets and all other immutable identity data.
+    garage: {
+      ...environment.garage,
+      lod: expect.any(Number),
+      triangles: expect.any(Number),
+      overheadServices: {
+        ...environment.garage.overheadServices,
+        lod: expect.any(Number),
+        triangles: expect.any(Number),
+      },
+      workshop: {
+        ...environment.garage.workshop,
+        lod: expect.any(Number),
+        triangles: expect.any(Number),
+      },
+    },
     frontage: {
       ...environment.frontage,
       chunks: environment.frontage.chunks.map((chunk) => ({
@@ -64,6 +84,16 @@ test('27H.4 normal startup constructs the upgraded districts and retained event 
       triangles: expect.any(Number),
     },
   });
+  for (const asset of [
+    pausedEnvironment.garage,
+    pausedEnvironment.garage?.overheadServices,
+    pausedEnvironment.garage?.workshop,
+  ]) {
+    expect(Number.isInteger(asset?.lod)).toBe(true);
+    expect(asset?.lod).toBeGreaterThanOrEqual(0);
+    expect(asset?.lod).toBeLessThanOrEqual(2);
+    expect(asset?.triangles).toBeGreaterThan(0);
+  }
   expect(Number.isSafeInteger(pausedEnvironment.startFinish.boardUpdates)).toBe(true);
   expect(pausedEnvironment.startFinish.boardUpdates).toBeGreaterThanOrEqual(
     environment.startFinish.boardUpdates,

@@ -59,6 +59,10 @@ it('measures the actual translated/rotated car eye and visible body centre', () 
   expect(measured.eye[1]).toBeCloseTo(2);
   expect(measured.eye[2]).toBeCloseTo(-6);
   expect(() => requireSecondaryStandChaseCamera(measured)).not.toThrow();
+  // The current P5 production rig is 4.5 m behind the car, not the old 5.7 m.
+  expect(() =>
+    requireSecondaryStandChaseCamera({ eye: [0, 1.3, -4.5], bodyCentre: [0, 0, 0.5] }),
+  ).not.toThrow();
 });
 it('rejects the original inside-head chase witness and non-visible/non-finite views', () => {
   const good = { eye: [0, 2, -6], bodyCentre: [0, 0, 0.9] };
@@ -66,6 +70,7 @@ it('rejects the original inside-head chase witness and non-visible/non-finite vi
     { ...good, eye: [0, 1.1, 0] },
     { ...good, eye: [0, 0, -6] },
     { ...good, eye: [0, 2, 6] },
+    { ...good, eye: [0, 1.3, -3.5] },
     { ...good, eye: [0, 2, NaN] },
     { ...good, bodyCentre: [2, 0, 0.9] },
     { ...good, bodyCentre: [0, -2, 0.9] },
