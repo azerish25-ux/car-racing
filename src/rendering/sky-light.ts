@@ -85,11 +85,9 @@ export function skyAtmospheres(cover: number, mode: LightingMode) {
     lowLevel = Math.min(1, Math.floor(x)),
     weight = x - lowLevel,
     sun = skyLightDirection(mode);
-  return {
-    low: atmosphereSky(skyHaze(mode, lowLevel), sun),
-    high: atmosphereSky(skyHaze(mode, lowLevel + 1), sun),
-    weight,
-  };
+  const low = atmosphereSky(skyHaze(mode, lowLevel), sun);
+  // A whole level needs (and bakes) only that level.
+  return { low, high: weight > 0 ? atmosphereSky(skyHaze(mode, lowLevel + 1), sun) : low, weight };
 }
 /** Bake (and cache) every haze level of a lighting: a loading-screen task. */
 export function prewarmSky(mode: LightingMode) {

@@ -69,12 +69,14 @@ export function skyFogPalette(cover: number, mode: LightingMode) {
  * sky/ground colour bias and, under a deck, the extra wrap-around light of a
  * uniformly bright sky.
  * Exposure stays an authored camera decision. */
-export function daylightState(cloud: number, rain: number) {
+export function daylightState(cloud: number, rain: number, skyMode: LightingMode = 'day') {
   if (![cloud, rain].every(Number.isFinite)) throw new Error('Non-finite daylight state');
+  // `skyMode` only picks which baked sky the shared terms read (the golden
+  // hour must not bake the day sky); circuitLightState overrides the rest.
   const cover = clamp(cloud, 0, 1),
     precipitation = clamp(rain, 0, 60),
-    sky = skyLight(cover, 'day'),
-    fog = aerialFogColor(cover, precipitation, 'day', skyFogPalette(cover, 'day'));
+    sky = skyLight(cover, skyMode),
+    fog = aerialFogColor(cover, precipitation, skyMode, skyFogPalette(cover, skyMode));
   return {
     cover,
     sun: sky.sunIrradiance * (1 - 0.94 * cover ** 1.45),
@@ -110,8 +112,8 @@ export function circuitLightState(
   rain: number,
   value: boolean | LightingMode = false,
 ) {
-  const light = daylightState(cloud, rain);
   const mode = lightingMode(value);
+  const light = daylightState(cloud, rain, mode === 'sunset' ? 'sunset' : 'day');
   if (mode === 'sunset') {
     const sky = skyLight(light.cover, 'sunset');
     Object.assign(light, {

@@ -87,7 +87,7 @@ export function cloudLayer(cover: number) {
     extinction: lerp(0.018, 0.026, deck),
     /** Peak optical depth of the cirrus sheet: fair-weather and broken skies
      * carry high ice cloud; a closing deck hides it. */
-    cirrus: c <= 0 ? 0 : 0.4 * smooth01(c / 0.25) * (1 - smooth01((c - 0.55) / 0.35)),
+    cirrus: c <= 0 ? 0 : 0.26 * smooth01(c / 0.25) * (1 - smooth01((c - 0.55) / 0.35)),
   };
 }
 /** Field threshold per eighth of cover (index = bin), calibrated on the baked
