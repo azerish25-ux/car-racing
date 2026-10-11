@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as T from 'three';
 import { Track } from '../src/simulation/track.ts';
 import { downloadAuthoredAsset } from '../src/rendering/authored-download.ts';
@@ -28,6 +28,8 @@ import {
   installCanopyVolume,
   withCanopyShell,
 } from '../src/rendering/canopy-volume.ts';
+import { WeatherPresentation, tagWeatherSurface } from '../src/rendering/weather-presentation.ts';
+import { brandingMaterial } from '../src/rendering/studio/trackside-branding.ts';
 import { studioHookKeys, type StudioShader } from '../src/rendering/studio/shader-hooks.ts';
 
 function compile(material: T.Material) {
@@ -236,5 +238,55 @@ describe('canopy volume', () => {
     const shader = compile(material);
     expect(shader.fragmentShader).toContain('reflectedLight.indirectDiffuse *= vCanopy.x');
     expect(shader.vertexShader).toContain('mix( canopy, treeCanopy, treeVariant )');
+  });
+});
+
+describe('composition with the in-game weather presentation', () => {
+  /** Every global declaration (varyings, attributes, functions) appears once. */
+  function declaredOnce(source: string) {
+    const names = [
+      ...source.matchAll(/^\s*(?:varying|attribute)\s+\w+\s+(\w+)\s*;/gm),
+      ...source.matchAll(/^\s*(?:float|vec[234])\s+(\w+)\s*\(/gm),
+    ].map((m) => m[1]);
+    const repeated = names.filter((n, i) => names.indexOf(n) !== i);
+    expect(repeated).toEqual([]);
+  }
+  afterEach(() => vi.unstubAllGlobals());
+  it('declares nothing twice once dampness is layered over every new hook', () => {
+    // The vinyl atlas is drawn, not loaded: accept every 2D call.
+    const context = new Proxy({} as Record<string, unknown>, {
+      get: (target, key: string) =>
+        key in target
+          ? target[key]
+          : key.startsWith('create') || key === 'measureText'
+            ? () => ({ addColorStop() {}, width: 10 })
+            : () => undefined,
+      set: (target, key: string, value) => ((target[key] = value), true),
+    });
+    vi.stubGlobal('document', {
+      createElement: () => ({ width: 0, height: 0, getContext: () => context }),
+    });
+    const weather = new WeatherPresentation();
+    const materials: T.MeshStandardMaterial[] = [];
+    for (const kind of ['concrete', 'galvanised', 'plastic'] as const) {
+      const m = tagWeatherSurface(
+        new T.MeshStandardMaterial(),
+        kind === 'plastic' ? 'paint' : 'metal',
+      );
+      installTracksideWeathering(m, kind);
+      materials.push(m);
+    }
+    const facade = tagWeatherSurface(new T.MeshStandardMaterial(), 'concrete');
+    installFacadeWeathering(facade, 'concrete', 'object', 0);
+    const canopy = tagWeatherSurface(new T.MeshStandardMaterial(), 'foliage');
+    installCanopyVolume(canopy);
+    materials.push(facade, canopy, brandingMaterial());
+    for (const m of materials) {
+      weather.installMaterial(m);
+      const shader = compile(m);
+      declaredOnce(shader.vertexShader);
+      declaredOnce(shader.fragmentShader);
+      expect(shader.fragmentShader).toContain('surfaceWet');
+    }
   });
 });

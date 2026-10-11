@@ -130,25 +130,25 @@ float twRubberMarks( float along0, float height, float wear ) {
 	return smoothstep( 0.0, 0.55, rubber );
 }`;
 const COMMON = /* glsl */ `
-varying vec4 vWeather;
-varying vec3 vWeatherWorld;
+varying vec4 vTwMarks;
+varying vec3 vTwWorld;
 ${TRACKSIDE_NOISE_GLSL}
 ${TRACKSIDE_RUBBER_GLSL}`;
 const VERTEX_COMMON = /* glsl */ `
 attribute vec4 weathering;
-varying vec4 vWeather;
-varying vec3 vWeatherWorld;`;
+varying vec4 vTwMarks;
+varying vec3 vTwWorld;`;
 const VERTEX = /* glsl */ `
-vWeather = weathering;
-vWeatherWorld = ( modelMatrix * vec4( transformed, 1.0 ) ).xyz;`;
+vTwMarks = weathering;
+vTwWorld = ( modelMatrix * vec4( transformed, 1.0 ) ).xyz;`;
 
 /** Shared marks: foot dirt and splash, tyre rubber on the track face, and
  * rain streaks below the top. Declares tw* terms read by the later blocks. */
 const MARKS = /* glsl */ `
-float twAlong = vWeather.x, twHeight = vWeather.y, twFace = vWeather.z;
+float twAlong = vTwMarks.x, twHeight = vTwMarks.y, twFace = vTwMarks.z;
 vec2 twSt = vec2( twAlong, twHeight );
 // Foot dirt: a wavering tide line, grass and grit splash just above it.
-float twWear = vWeather.w;
+float twWear = vTwMarks.w;
 float twTide = ${TRACKSIDE_WEATHERING.dirt.height.toFixed(3)} * ( 0.55 + 0.9 * twFiltered( vec2( twAlong * 0.9, 3.7 ) ) );
 float twDirt = 1.0 - smoothstep( twTide * 0.35, twTide, twHeight );
 float twSplash = twDots( twSt * vec2( 34.0, 38.0 ), 0.22, 0.3 ) * twDetail( twSt * 34.0 ) * ( 1.0 - smoothstep( twTide, twTide * 2.4, twHeight ) );
@@ -161,7 +161,7 @@ float twRun = twHash( vec2( floor( twAlong * 11.0 ), 5.0 ) );
 // Each column runs down from the top for its own length.
 float twStreak = smoothstep( 0.55, 0.8, twColumn ) * smoothstep( 0.3, 0.9, twRun ) * twDetail( vec2( twAlong * 11.0, 0.0 ) );
 float twModule = twHash( vec2( floor( twAlong / ${TRACKSIDE_WEATHERING.module.toFixed(2)} ), sign( twFace ) + 3.0 ) );
-float twMottle = twFiltered( twSt * vec2( 0.9, 1.6 ) + vWeatherWorld.xz * 0.05 ) * 0.65 + twFiltered( twSt * 6.1 ) * 0.35;
+float twMottle = twFiltered( twSt * vec2( 0.9, 1.6 ) + vTwWorld.xz * 0.05 ) * 0.65 + twFiltered( twSt * 6.1 ) * 0.35;
 `;
 
 const ALBEDO: Record<WeatheringKind, string> = {
@@ -170,7 +170,7 @@ const ALBEDO: Record<WeatheringKind, string> = {
 	diffuseColor.rgb *= 0.86 * ( 0.9 + 0.17 * twModule ) * ( 0.88 + 0.24 * twMottle );
 	diffuseColor.rgb *= mix( vec3( 1.0 ), vec3( 1.03, 1.0, 0.95 ), twModule );
 	// Pores and blowholes in the face.
-	float pores = twDots( twSt * 75.0 + vWeatherWorld.xz * 7.0, 0.1, 0.26 ) * twDetail( twSt * 75.0 );
+	float pores = twDots( twSt * 75.0 + vTwWorld.xz * 7.0, 0.1, 0.26 ) * twDetail( twSt * 75.0 );
 	diffuseColor.rgb *= 1.0 - 0.3 * pores;
 	// Streaks fade toward the foot; lime bloom pale, grime dark.
 	float run = twStreak * ( 0.45 + 0.55 * smoothstep( 0.0, 0.7, twHeight ) );
@@ -180,7 +180,7 @@ const ALBEDO: Record<WeatheringKind, string> = {
 }`,
   galvanised: /* glsl */ `{
 	// Zinc spangle: centimetre crystals, each its own brightness.
-	vec2 spangleCell = floor( twSt * 38.0 + vWeatherWorld.xz * 11.0 );
+	vec2 spangleCell = floor( twSt * 38.0 + vTwWorld.xz * 11.0 );
 	float spangle = ( twHash( spangleCell ) - 0.5 ) * twDetail( twSt * 38.0 );
 	// Weathered zinc: dull grey-white oxide patches over the bright coat.
 	float oxide = smoothstep( 0.42, 0.78, twMottle * 0.7 + twModule * 0.3 );
