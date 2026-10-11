@@ -176,8 +176,8 @@ describe('current-view detail and deterministic presentation', () => {
         sky: {
           material: {
             uniforms: {
-              turbidity: { value: 0 },
               cloudCover: { value: 0 },
+              cloudDrift: { value: 0 },
               skyRadiance: { value: 0 },
               nightAmount: { value: 0 },
               sunsetAmount: { value: 0 },

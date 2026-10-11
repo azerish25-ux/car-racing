@@ -155,6 +155,10 @@ describe('baked cumulus panorama', () => {
     expect(SKY_CLOUD_SAMPLE).toContain(
       'if (cloudReady < 0.5 || direction.y <= 0.0) return vec4(0.0);',
     );
+    // Wind drift is an azimuthal offset in turns, set from presented time.
+    expect(SKY_CLOUD_SAMPLE).toContain('+ 0.5 + cloudDrift');
+    expect(uniforms.cloudDrift.value).toBe(0);
+    expect(SKY_CLOUDS.driftPerSecond * 3600).toBeLessThan(0.5);
     sky.geometry.dispose();
     sky.material.dispose();
   });
@@ -202,7 +206,11 @@ describe('baked cumulus panorama', () => {
     // Sunset: one new bake for its own sun; the field is reused.
     clouds.prepare(renderer, 0.12, 'sunset');
     expect(state.draws.map((d) => d.material).slice(2)).toEqual(['Sky cloud panorama bake']);
-    expect(clouds.diagnostics()).toMatchObject({ bakes: 2, fieldBakes: 1, stationary: true });
+    expect(clouds.diagnostics()).toMatchObject({
+      bakes: 2,
+      fieldBakes: 1,
+      drift: 'presented-time',
+    });
     clouds.dispose();
     expect(uniforms.cloudReady.value).toBe(0);
   });

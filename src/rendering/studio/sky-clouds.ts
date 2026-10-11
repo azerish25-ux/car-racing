@@ -40,7 +40,9 @@ import type { SkyLight } from '../sky-light.ts';
  *
  * Determinism: the bake is a pure function of the bin and the sun direction
  * (integer-hash noise, fixed seeds, a per-texel interleaved-gradient offset);
- * no time, no randomness. The clouds are stationary.
+ * no randomness. The dome drifts slowly about the zenith with presented
+ * simulation time (`cloudDrift`), so pause, replay and photo hold it; the
+ * bake itself never changes with time.
  */
 export const SKY_CLOUDS = Object.freeze({
   panoramaWidth: 3072,
@@ -56,6 +58,10 @@ export const SKY_CLOUDS = Object.freeze({
   maxDistance: 80000,
   /** Distance at which a cloud keeps 1/e of its contrast against the horizon. */
   hazeDistance: 32000,
+  /** Wind drift of the cloud dome: one turn about the zenith per 3 hours of
+   * presented simulation time (about 0.03 degrees a second: a cumulus 5 km
+   * away drifts sideways at 3 m/s, a 30 km one at 17 m/s). */
+  driftPerSecond: 1 / 10800,
   /** Cirrus sheet altitude, metres. */
   cirrusAltitude: 8500,
   /** Cached panoramas (12 MB each); two cover bins of the current lighting plus one spare. */
@@ -336,6 +342,7 @@ uniform sampler2D cloudLow;
 uniform sampler2D cloudHigh;
 uniform float cloudWeight;
 uniform float cloudReady;
+uniform float cloudDrift;
 uniform vec3 cloudKey;
 uniform vec3 cloudAmbient;
 uniform vec3 cloudBounce;
@@ -351,7 +358,7 @@ vec3 skyCloudLight(vec4 terms) {
 export const SKY_CLOUD_SAMPLE = `
 vec4 skyCloudTerms(vec3 direction) {
   if (cloudReady < 0.5 || direction.y <= 0.0) return vec4(0.0);
-  vec2 uv = vec2(atan(direction.z, direction.x) * 0.15915494 + 0.5,
+  vec2 uv = vec2(atan(direction.z, direction.x) * 0.15915494 + 0.5 + cloudDrift,
     sqrt(asin(clamp(direction.y, 0.0, 1.0)) * 0.63661977));
   return mix(texture2D(cloudLow, uv), texture2D(cloudHigh, uv), cloudWeight);
 }
@@ -405,6 +412,8 @@ export interface SkyCloudUniforms {
   cloudHigh: T.IUniform<T.Texture | null>;
   cloudWeight: T.IUniform<number>;
   cloudReady: T.IUniform<number>;
+  /** Azimuthal drift of the panoramas in turns (presented time, not wall clock). */
+  cloudDrift: T.IUniform<number>;
   cloudKey: T.IUniform<T.Vector3>;
   cloudAmbient: T.IUniform<T.Vector3>;
   cloudBounce: T.IUniform<T.Vector3>;
@@ -416,6 +425,7 @@ export function createSkyCloudUniforms(): SkyCloudUniforms {
     cloudHigh: { value: null },
     cloudWeight: { value: 0 },
     cloudReady: { value: 0 },
+    cloudDrift: { value: 0 },
     cloudKey: { value: new T.Vector3() },
     cloudAmbient: { value: new T.Vector3() },
     cloudBounce: { value: new T.Vector3() },
@@ -653,7 +663,8 @@ export class SkyClouds {
       bytes:
         this.panoramas.size * SKY_CLOUDS.panoramaWidth * SKY_CLOUDS.panoramaHeight * 8 +
         (this.field ? SKY_CLOUDS.fieldSize ** 2 * 4 : 0),
-      stationary: true,
+      stationary: false,
+      drift: 'presented-time',
     };
   }
   dispose() {

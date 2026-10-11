@@ -83,7 +83,7 @@ import {
   type LightingMode,
 } from './daylight.ts';
 import { prewarmSky } from './sky-light.ts';
-import { SkyClouds } from './studio/sky-clouds.ts';
+import { SKY_CLOUDS, SkyClouds } from './studio/sky-clouds.ts';
 import { EngineeringView } from './engineering-view.ts';
 import type { EngineeringSample } from '../workers/diagnostics.ts';
 import * as T from 'three';
@@ -1011,6 +1011,9 @@ export class RacingRenderer {
     this.sky.material.uniforms.nightAmount.value = illumination === 'night' ? 1 : 0;
     this.sky.material.uniforms.sunsetAmount.value = illumination === 'sunset' ? 1 : 0;
     this.sky.material.uniforms.sunPosition.value.copy(lightingDirection(illumination));
+    // Clouds drift with presented simulation time: held by pause and replay.
+    this.sky.material.uniforms.cloudDrift.value =
+      (presented[H.TIME] * SKY_CLOUDS.driftPerSecond) % 1;
     this.target.copy(car.root.position);
     this.direction.set(0, 0, 1).applyQuaternion(car.root.quaternion);
     if (pregame) {
