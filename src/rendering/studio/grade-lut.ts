@@ -36,8 +36,10 @@ export interface GradeLutShape {
 }
 export const GRADE_LUT_SHAPES: Readonly<Record<GradeLutProfile, Readonly<GradeLutShape>>> =
   Object.freeze({
-    day: { sky: 1.1, skyValue: 0.97, foliage: 0.08, saturation: 1, shadowCool: 0.006 },
-    sunset: { sky: 1.06, skyValue: 0.98, foliage: 0.1, saturation: 1, shadowCool: 0.01 },
+    // The physical sky (atmosphere.ts) is already as deep as a real one; the
+    // former 1.1 rescue of the washed-out analytic dome now over-cooks it.
+    day: { sky: 1.03, skyValue: 0.99, foliage: 0.08, saturation: 1, shadowCool: 0.006 },
+    sunset: { sky: 1.03, skyValue: 0.99, foliage: 0.1, saturation: 1, shadowCool: 0.01 },
     night: { sky: 1.02, skyValue: 1, foliage: 0.12, saturation: 0.95, shadowCool: 0.008 },
     studio: { sky: 1, skyValue: 1, foliage: 0, saturation: 1, shadowCool: 0 },
     wet: { sky: 1.02, skyValue: 1, foliage: 0.12, saturation: 0.92, shadowCool: 0.008 },

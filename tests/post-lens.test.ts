@@ -45,13 +45,15 @@ describe('grade LUT', () => {
     }
   });
 
-  it('deepens the sky, pulls foliage to olive and keeps saturated hues within 5 degrees', () => {
-    // A clear-sky blue gains saturation and leans no further than the cap.
+  it('touches the sky lightly, pulls foliage to olive and keeps saturated hues within 5 degrees', () => {
+    // The physical sky is already deep: a clear-sky blue gains only a touch
+    // of saturation and leans no further than the cap.
     const sky = [0.55, 0.72, 0.9] as const;
     const [hIn, sIn] = rgbToHsv(...sky);
     const [hOut, sOut, vOut] = rgbToHsv(...gradeLutColor('day', ...sky));
-    expect(sOut).toBeGreaterThan(sIn * 1.05);
-    expect(vOut).toBeLessThan(0.9);
+    expect(sOut).toBeGreaterThan(sIn);
+    expect(sOut).toBeLessThan(sIn * 1.05);
+    expect(vOut).toBeLessThanOrEqual(0.9);
     expect(hueDelta(hOut, hIn)).toBeLessThanOrEqual(GRADE_LUT_MAX_HUE_SHIFT + 1e-9);
     // Lime grass loses about 8 % of its saturation on the day profile.
     const grass = [0.36, 0.55, 0.18] as const;
