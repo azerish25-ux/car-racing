@@ -312,7 +312,7 @@ void main() {
     lit *= mix(1.0, 1.0 - exp(-2.0 * depth - 0.6), 0.35 * (0.5 - 0.5 * mu));
     // Skylight: tops see the whole dome, a base mostly the sunlit ground below;
     // a taller column above darkens its base (the low-contrast overcast rolls).
-    float shade = 1.0 - 0.2 * column * (1.0 - hf);
+    float shade = 1.0 - 0.42 * column * (1.0 - hf);
     float ambient = (0.16 + 0.84 * pow(hf, 0.65)) * shade;
     float bounce = 0.4 * pow(1.0 - hf, 1.5) * shade;
     float stepOpacity = 1.0 - exp(-extinction * d * advance);

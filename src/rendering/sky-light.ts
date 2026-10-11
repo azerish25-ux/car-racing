@@ -57,8 +57,8 @@ export const SKY_LIGHT = Object.freeze({
   groundTint: Object.freeze([1, 0.95, 0.82] as const),
   /** Deck base (the clouds' ambient term) and the dome behind a closing deck,
    * as fractions of the irradiance above the deck: a blue-grey, darker base. */
-  deckAmbient: Object.freeze([0.38, 0.44, 0.55] as const),
-  deckBackground: Object.freeze([0.112, 0.122, 0.14] as const),
+  deckAmbient: Object.freeze([0.4, 0.44, 0.5] as const),
+  deckBackground: Object.freeze([0.116, 0.122, 0.132] as const),
 });
 
 function smooth(a: number, b: number, x: number) {
@@ -173,7 +173,9 @@ export function skyLight(cloud: number, mode: LightingMode): SkyLight {
     );
   const peak = Math.max(...sunT, 1e-6);
   const visible = skySunVisibility(cover),
-    deck = smooth(0.45, 1, cover);
+    deck = smooth(0.45, 1, cover),
+    // A full deck is a thick nimbostratus: it passes less of the light above.
+    thick = 1 - 0.35 * smooth(0.8, 1, cover);
   const sunAtCloud = scale(cloudT, irradiance);
   // Irradiance on top of the cloud layer: the sun plus the dome above it.
   const above = sunAtCloud.map((c, k) => c * elevation + Math.PI * dome[k]);
@@ -182,7 +184,7 @@ export function skyLight(cloud: number, mode: LightingMode): SkyLight {
   const cloudAmbient = [0, 1, 2].map((k) =>
     lerp(
       dome[k] * SKY_LIGHT.cloudDome + sunAtCloud[k] * SKY_LIGHT.cloudMultiple,
-      aboveLuma * SKY_LIGHT.deckAmbient[k] * lerp(1, above[k] / aboveLuma, 0.5),
+      aboveLuma * SKY_LIGHT.deckAmbient[k] * lerp(1, above[k] / aboveLuma, 0.5) * thick,
       deck,
     ),
   ) as Rgb;
@@ -217,7 +219,8 @@ export function skyLight(cloud: number, mode: LightingMode): SkyLight {
         SKY_LIGHT.groundTint[k],
     ) as Rgb,
     deck: [0, 1, 2].map(
-      (k) => aboveLuma * SKY_LIGHT.deckBackground[k] * lerp(1, above[k] / aboveLuma, 0.5),
+      (k) =>
+        aboveLuma * SKY_LIGHT.deckBackground[k] * lerp(1, above[k] / aboveLuma, 0.5) * thick,
     ) as Rgb,
     horizonAntiSun: horizon((115 * Math.PI) / 180),
     horizonSunSide: horizon(0),
