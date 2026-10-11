@@ -339,7 +339,7 @@ add('crowd clothing wetness keeps skin masks and shelter coherent through every 
     assert.equal(shader.uniforms.aurelSurfaceWeather, field.surface);
     assert.match(shader.fragmentShader, /aurelSurfaceWeather.x \* 0.137500/);
     if (level < 3) {
-      assert.match(shader.vertexShader, /vCrowdCloth=cloth/);
+      assert.match(shader.vertexShader, /vCrowdCloth = 1\. - step\(\.5, skinMask\)/);
       assert.match(shader.fragmentShader, /clamp\(vCrowdCloth,0\.,1\.\)/);
       // No extra vertex attribute: the retained packed skin mask is reused.
       assert.doesNotMatch(shader.vertexShader, /attribute float.*[Cc]loth/);

@@ -1,5 +1,5 @@
 {
-  "sourceSHA256": "4d97a042bd7597f59a65f0d5cd01ba6a4831fa91a6d3a150c3bda80dc81ae1a5",
+  "sourceSHA256": "d318527dac9867aa9cb2cf7a9387ef209c2335e6f4fdf20ea7d4d23cff9b9d63",
   "scenario": {
     "seed": 4417,
     "cars": 10,
@@ -11,7 +11,7 @@
       "compound": "wet",
       "passed": true,
       "failures": [],
-      "simulatedSeconds": 172.675,
+      "simulatedSeconds": 167,
       "zeroImpact": true,
       "cars": [
         {
@@ -100,7 +100,7 @@
       "compound": "medium",
       "passed": true,
       "failures": [],
-      "simulatedSeconds": 234.05,
+      "simulatedSeconds": 240.93333333333334,
       "zeroImpact": true,
       "cars": [
         {

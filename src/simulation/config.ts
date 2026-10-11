@@ -91,7 +91,7 @@ export const VEHICLE = {
   inertia: [510, 1220, 1080] as const,
   restLength: 0.25,
   /** Height above the contact patch where tread forces enter the chassis (m). */
-  linkCentreHeight: 0.34,
+  linkCentreHeight: 0.26,
   travel: 0.17,
   maxSteer: 0.38,
   finalDrive: 3.7,
