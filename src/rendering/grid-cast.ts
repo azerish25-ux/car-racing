@@ -28,6 +28,8 @@ export const GRID_CAST_MARKS = Object.freeze([
   { role: 'engineer', x: 1.32, z: 0.35, yaw: -Math.PI / 2 - 0.35 },
 ] as const);
 export const GRID_CAST_LEAVE = 21;
+/** Finger-grip socket of the crew hand mesh (same as the grid glove grip). */
+const GRIP = new T.Vector3(0, 0.034, 0.041);
 const WALK_SPEED = 1.15;
 
 const smooth = (t: number) => {
@@ -124,6 +126,8 @@ export class GridCastView {
   private readonly wrists = [new T.Vector3(), new T.Vector3()];
   private readonly feet = [new T.Vector3(), new T.Vector3()];
   private readonly tone = new T.Color();
+  private readonly grips = [new T.Vector3(), new T.Vector3()];
+  private readonly axis = new T.Vector3();
   private readonly gloveBind = [-1, 1].map((sign) =>
     new T.Quaternion()
       .setFromAxisAngle(new T.Vector3(1, 0, 0), Math.PI)
@@ -158,7 +162,7 @@ export class GridCastView {
     this.hands = [true, false].map(
       (left) =>
         new T.InstancedMesh(
-          crewHandGeometry(1, left).deleteAttribute('color'),
+          crewHandGeometry(1, left, true).deleteAttribute('color'),
           new T.MeshStandardMaterial({ roughness: 0.55 }),
           CAPACITY,
         ),
@@ -271,8 +275,8 @@ export class GridCastView {
     const breathe = Math.sin(time * 1.6 + person) * 0.004;
     if (mark.role === 'umbrella') {
       // Both hands on the pole in front of the chest, umbrella over the cockpit.
-      this.wrists[0].set(0.03, 1.13 + breathe, 0.25);
-      this.wrists[1].set(0.06, 1.3 + breathe, 0.24);
+      this.wrists[0].set(0.02, 1.07 + breathe, 0.2);
+      this.wrists[1].set(0.05, 1.27 + breathe, walking ? 0.22 : 0.27);
     } else if (!walking) {
       this.wrists[0].set(-0.12, 1.03 + breathe, 0.27);
       this.wrists[1].set(0.12, 1.03 + breathe, 0.27);
@@ -327,14 +331,17 @@ export class GridCastView {
         .negate()
         .add(this.pose.joints[h === 0 ? 5 : 8]);
       this.part.updateMatrix();
+      // The fist's grip socket, in the actor frame (the pole runs through it).
+      this.grips[h].copy(GRIP).applyMatrix4(this.part.matrix);
       this.matrix.multiplyMatrices(this.actor.matrix, this.part.matrix);
       this.put(this.hands[h], this.matrix, this.tone);
     }
     if (mark.role === 'umbrella') {
-      // Pole through both fists, canopy tipped towards the cockpit.
-      this.part.position.copy(this.pose.joints[5]).lerp(this.pose.joints[8], 0.5);
-      this.part.position.y -= 0.05;
-      this.part.quaternion.setFromEuler(new T.Euler(walking ? 0.05 : 0.22, 0, 0));
+      // The pole runs through both fists' grip sockets (lower fist at the
+      // grip), so its lean towards the cockpit comes from the hands.
+      this.axis.subVectors(this.grips[1], this.grips[0]).normalize();
+      this.part.quaternion.setFromUnitVectors(this.part.up, this.axis);
+      this.part.position.copy(this.grips[0]).addScaledVector(this.axis, -0.02);
       this.part.updateMatrix();
       this.matrix.multiplyMatrices(this.actor.matrix, this.part.matrix);
       this.put(this.canopy[0], this.matrix, crewTeamColour(id));

@@ -492,9 +492,11 @@ export function sculptHead(wear: HeadWear, cell: number, triangles: number): Scu
 /** Gloved right hand in the crew glove frame: fingers along +Y, palm facing
  * +Z, thumb on -X, the cuff centre at (0, -0.067, -0.008). Relaxed grip with
  * individually curled, jointed fingers (mirrored at runtime for the left). */
-function handField(x: number, y: number, z: number) {
-  // Cuff (slightly flared gauntlet) and the back of the hand / palm.
-  let d = roundCone(x, y, z, 0, -0.085, -0.008, 0, -0.035, -0.004, 0.031, 0.027);
+function handField(x: number, y: number, z: number, bare = false) {
+  // Cuff (slightly flared gauntlet) or a bare wrist, then the back of the hand / palm.
+  let d = bare
+    ? roundCone(x, y, z, 0, -0.078, -0.008, 0, -0.035, -0.004, 0.021, 0.024)
+    : roundCone(x, y, z, 0, -0.085, -0.008, 0, -0.035, -0.004, 0.031, 0.027);
   d = smin(d, roundBox(x, y, z, 0.002, -0.004, 0.0, 0.034, 0.04, 0.0105, 0.012), 0.014);
   d = smin(d, ellipsoid(x, y, z, -0.022, -0.022, 0.012, 0.02, 0.026, 0.014), 0.01); // thenar
   // Fingers: index (thumb side) to little finger.
@@ -545,8 +547,14 @@ function handField(x: number, y: number, z: number) {
   return d;
 }
 
-export function sculptHand(cell: number, triangles: number): SculptedMesh {
-  return polygonise(handField, [-0.075, -0.13, -0.05], [0.055, 0.12, 0.085], cell, triangles);
+export function sculptHand(cell: number, triangles: number, bare = false): SculptedMesh {
+  return polygonise(
+    (x, y, z) => handField(x, y, z, bare),
+    [-0.075, -0.13, -0.05],
+    [0.055, 0.12, 0.085],
+    cell,
+    triangles,
+  );
 }
 
 /* ------------------------------------------------------------------------ */

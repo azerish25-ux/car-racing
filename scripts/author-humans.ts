@@ -106,7 +106,10 @@ for (const wear of ['bare', 'cap', 'headset', 'cap-headset'] as const)
 [
   [0.0024, 1400],
   [0.0045, 420],
-].forEach(([cell, tris], lod) => jobs.push([`hand_${lod}`, () => sculptHand(cell, tris)]));
+].forEach(([cell, tris], lod) => {
+  jobs.push([`hand_${lod}`, () => sculptHand(cell, tris)]);
+  jobs.push([`handbare_${lod}`, () => sculptHand(cell, tris, true)]);
+});
 for (const variant of ['a', 'b'] as const)
   [
     [0.0095, 2080],

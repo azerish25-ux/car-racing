@@ -124,8 +124,8 @@ export function humanHeadGeometry(wear: HeadWear, lod: HumanLod) {
   return humanKitGeometry(`head_${wear}_${lod}` as HumanKitMesh);
 }
 /** Gloved hand in the crew glove frame; the left hand is real mirrored topology. */
-export function crewHandGeometry(lod: 0 | 1, left = false) {
-  const g = humanKitGeometry(`hand_${lod}` as HumanKitMesh);
+export function crewHandGeometry(lod: 0 | 1, left = false, bare = false) {
+  const g = humanKitGeometry(`${bare ? 'handbare' : 'hand'}_${lod}` as HumanKitMesh);
   const p = g.getAttribute('position'),
     c = g.getAttribute('color');
   const uv = new Float32Array(p.count * 2);
