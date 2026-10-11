@@ -883,10 +883,14 @@ export class GameApp {
       }
       a = this.replayA;
       b = this.replayB;
-      const seek = this.ui.get('replaySeek') as HTMLInputElement;
-      seek.max = String(this.replay.duration);
-      seek.min = String(this.replayFloor());
-      seek.value = String(this.replayTime);
+      // Attribute writes mutate the DOM even when unchanged; write only changes.
+      const seek = this.ui.get('replaySeek') as HTMLInputElement,
+        seekMax = String(this.replay.duration),
+        seekMin = String(this.replayFloor()),
+        seekValue = String(this.replayTime);
+      if (seek.max !== seekMax) seek.max = seekMax;
+      if (seek.min !== seekMin) seek.min = seekMin;
+      if (seek.value !== seekValue) seek.value = seekValue;
       this.ui.setText(
         'replayTime',
         `${shortTime(this.replayTime)} / ${shortTime(this.replay.duration)}`,
