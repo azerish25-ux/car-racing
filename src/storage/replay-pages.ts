@@ -1,5 +1,5 @@
 import { CAR_STRIDE, HEADER, F, H, carBase, PROTOCOL_VERSION } from '../simulation/protocol.ts';
-import { clamp } from '../core/math.ts';
+import { allFinite, clamp } from '../core/math.ts';
 
 export interface SurfaceRecord {
   time: number;
@@ -95,8 +95,11 @@ function hashWords(
   start = 0,
   end = words.length,
 ) {
-  for (let i = start; i < end; i++) hash = Math.imul(hash ^ words[i], 0x01000193) >>> 0;
-  return hash;
+  // Same FNV-1a words: XOR reads its operands as int32, so the running value
+  // can stay int32 (unboxed) and become unsigned once at the end.
+  let h = hash | 0;
+  for (let i = start; i < end; i++) h = Math.imul(h ^ words[i], 0x01000193);
+  return h >>> 0;
 }
 interface PageMeta {
   start: number;
@@ -162,7 +165,7 @@ export class SessionReplay {
     if (
       !(frame instanceof Float32Array) ||
       frame.length !== this.stride ||
-      !frame.every(Number.isFinite) ||
+      !allFinite(frame) ||
       frame[H.CARS] !== this.cars ||
       frame[H.TIME] < 0 ||
       frame[H.TIME] < this.lastTime
@@ -202,11 +205,11 @@ export class SessionReplay {
       (marbles !== undefined &&
         (!(marbles instanceof Float32Array) ||
           marbles.length !== water.length ||
-          !marbles.every(Number.isFinite))) ||
+          !allFinite(marbles))) ||
       !Number.isFinite(time) ||
       time < 0 ||
-      !water.every(Number.isFinite) ||
-      !rubber.every(Number.isFinite)
+      !allFinite(water) ||
+      !allFinite(rubber)
     ) {
       this.fail('Invalid replay surface');
       return;

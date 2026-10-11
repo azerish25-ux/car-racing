@@ -56,7 +56,7 @@ import { installWetDetail } from './studio/wet-detail.ts';
 import { kerbHeight } from '../simulation/contact.ts';
 import { Track, CELL_ROWS, CELL_COLS, trackPoint } from '../simulation/track.ts';
 import { H } from '../simulation/protocol.ts';
-import { clamp } from '../core/math.ts';
+import { allFinite, clamp } from '../core/math.ts';
 import { buildTracksideBranding, type BrandingBuild } from './studio/trackside-branding.ts';
 import { installKerbFinish, installRunoffFinish, kerbUsage } from './studio/kerb-runoff-finish.ts';
 import { installCarGrounding } from './studio/car-grounding.ts';
@@ -658,9 +658,9 @@ export class CircuitScene {
       water.length !== count ||
       rubber.length !== count ||
       marbles.length !== count ||
-      !water.every(Number.isFinite) ||
-      !rubber.every(Number.isFinite) ||
-      !marbles.every(Number.isFinite)
+      !allFinite(water) ||
+      !allFinite(rubber) ||
+      !allFinite(marbles)
     )
       throw new Error('Invalid rendered track surface');
     for (let i = 0; i < water.length; i++) {

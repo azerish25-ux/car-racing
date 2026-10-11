@@ -1,6 +1,7 @@
 import * as T from 'three';
 import { CompactIndexBuffers } from './compact-index-buffer.ts';
 import { RANGE_ONLY_SHADOW_HOOK } from './shadow-proxies.ts';
+import { allFinite } from '../core/math.ts';
 
 /** One camera's compacted selection of one geometry, and the key of its
  * owned index buffer. */
@@ -111,14 +112,16 @@ export class SuppliedDrawRanges {
         this.matrix
           .multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse)
           .multiply(mesh.matrixWorld);
-        if (!this.matrix.elements.every(Number.isFinite) || this.matrix.determinant() === 0) return;
+        if (!allFinite(this.matrix.elements) || this.matrix.determinant() === 0) return;
         this.frustum.setFromProjectionMatrix(this.matrix, camera.coordinateSystem);
-        if (
-          this.frustum.planes.some(
-            (p) => ![p.normal.x, p.normal.y, p.normal.z, p.constant].every(Number.isFinite),
+        for (const p of this.frustum.planes)
+          if (
+            !Number.isFinite(p.normal.x) ||
+            !Number.isFinite(p.normal.y) ||
+            !Number.isFinite(p.normal.z) ||
+            !Number.isFinite(p.constant)
           )
-        )
-          return;
+            return;
         let first = 0,
           last = b.boxes.length - 1;
         while (first <= last && !this.frustum.intersectsBox(b.boxes[first])) first++;

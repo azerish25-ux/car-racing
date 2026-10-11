@@ -2,6 +2,12 @@
 export const G = 9.80665,
   TAU = Math.PI * 2;
 export const clamp = (x: number, a: number, b: number) => Math.max(a, Math.min(b, x));
+/** `values.every(Number.isFinite)` without boxing every element of a typed
+ * array into a heap number: hot validation of frames and surface grids. */
+export function allFinite(values: ArrayLike<number>) {
+  for (let i = 0; i < values.length; i++) if (!Number.isFinite(values[i])) return false;
+  return true;
+}
 export const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 export const mod = (x: number, n: number) => ((x % n) + n) % n;
 export const smooth = (a: number, b: number, x: number) => {
