@@ -44,6 +44,12 @@ import type { SkyLight } from '../sky-light.ts';
  * the lit ground below, all read from the physical atmosphere (sky-light.ts), so the visible dome and every PMREM capture of a bin share one
  * bake and one colour model.
  *
+ * The march takes coarse steps through clear air, testing the undetailed
+ * envelope with a one-step margin (so a grazing chord through a dome top is
+ * never stepped over), then 30 m steps through cloud; the 3D detail is
+ * mipmapped and sampled at the level of each texel's footprint. Edges are
+ * integrated, not dithered.
+ *
  * Cost: one draw for the field (first use) and one per panorama bake, paid only
  * when a bin or lighting direction is first needed (load, weather bin change);
  * a frame that reuses cached panoramas draws nothing. The sky shader replaces
@@ -252,8 +258,11 @@ export function cloudDetailVolume(size: number = SKY_CLOUDS.detailSize) {
   const texture = new T.Data3DTexture(data, size, size, size);
   texture.format = T.RedFormat;
   texture.type = T.UnsignedByteType;
-  texture.minFilter = T.LinearFilter;
+  // Mipmapped: the bake samples it at an explicit level matched to each
+  // panorama texel's footprint (no sub-texel speckle on distant clouds).
+  texture.minFilter = T.LinearMipmapLinearFilter;
   texture.magFilter = T.LinearFilter;
+  texture.generateMipmaps = true;
   texture.wrapS = texture.wrapT = texture.wrapR = T.RepeatWrapping;
   texture.unpackAlignment = 1;
   texture.name = 'Sky cloud 3D detail';
@@ -340,6 +349,23 @@ float shellDistance(float dy, float h) {
 float altitude(vec3 p) { return length(p + vec3(0.0, EARTH, 0.0)) - EARTH; }
 // Cloud density at world point p (camera at the origin), 0..1; column is the
 // local column height (0..1) for the skylight that reaches the base.
+// Signed height (slab units) of point p below the undetailed cloud surface:
+// positive inside. Detail only carves the surface away, so a coarse step
+// that finds no cloud within its own length of the surface can skip.
+float envelope(vec3 p) {
+  float hf = (altitude(p) - baseAltitude) / thickness;
+  vec2 xz = p.xz / PERIOD;
+  vec4 field = texture(cloudField, xz);
+  float broad = texture(cloudField, mat2(0.8, -0.6, 0.6, 0.8) * xz * 0.37 + vec2(0.31, 0.67)).r;
+  float base = field.r * mix(0.97, 1.03, broad);
+  if (base < threshold) return (base - threshold) * 2.0 - max(hf, -hf);
+  float cell = field.g * ${(SKY_CLOUDS.fieldPeriod / 5).toFixed(1)};
+  float peak = max(field.b, threshold + 0.02);
+  float radius = max((1.0 - threshold / peak) * cell, 1.0);
+  float u = 1.0 - clamp((base - threshold) / peak * cell, 0.0, radius) / radius;
+  float height = min(mix(0.7, 1.15, broad) * radius, 0.95 * thickness) / thickness;
+  return min(sqrt(max(0.0, 1.0 - u * u)) * height - hf, hf);
+}
 float density(vec3 p, bool detailed, out float column) {
   column = 0.0;
   float hf = (altitude(p) - baseAltitude) / thickness;
@@ -373,15 +399,25 @@ float density(vec3 p, bool detailed, out float column) {
     // every cumulus has a few towers of differing height whatever its size),
     // then the fixed ${(SKY_CLOUDS.detailPeriod / 3).toFixed(0)} m cauliflower octave.
     float far = 1.0 - smoothstep(30000.0, 60000.0, length(p.xz));
-    float bulges = mix(0.58, texture(cloudDetail, p / (radius * 2.4) + vec3(0.21, 0.0, 0.57)).r, far);
-    float cauliflower = mix(0.58, texture(cloudDetail, p / ${(SKY_CLOUDS.detailPeriod / 3).toFixed(1)} + 0.37).r, fine);
+    // Explicit level of detail: a panorama texel spans about 0.12 degrees.
+    float footprint = length(p) * 0.0021;
+    const float VOXELS = ${SKY_CLOUDS.detailSize.toFixed(1)};
+    float bulgeScale = radius * 2.4, cauliflowerScale = ${(SKY_CLOUDS.detailPeriod / 3).toFixed(1)};
+    float bulges = mix(0.58, textureLod(cloudDetail, p / bulgeScale + vec3(0.21, 0.0, 0.57),
+      log2(max(1.0, footprint * VOXELS / bulgeScale))).r, far);
+    float cauliflower = mix(0.58, textureLod(cloudDetail, p / cauliflowerScale + 0.37,
+      log2(max(1.0, footprint * VOXELS / cauliflowerScale))).r, fine);
     float own = hf / max(height, 0.04);
     float rising = smoothstep(0.0, 0.3, own) * (0.3 + 0.7 * min(own, 1.0));
-    top -= ((0.58 - bulges) * 2.4 + (0.58 - cauliflower) * 0.7) * height * rising;
+    top -= ((0.58 - bulges) * 2.4 + (0.58 - cauliflower) * 0.45) * height * rising;
   }
   // Crisp cauliflower edges (a soft skin scaled to the cloud, 25-115 m) on
   // a flat condensation level.
-  return smoothstep(0.0, 0.02 + 0.08 * height, top) * smoothstep(0.0, 0.03, hf);
+  // Never sharper than a panorama texel (about 0.12 degrees) at this
+  // distance: a crisper edge would only alias into a crunchy fringe.
+  // Nor thinner than 45 m: the 30 m in-cloud step must resolve it.
+  float texel = max(length(p) * 0.0021, 45.0) / thickness;
+  return smoothstep(0.0, max(0.02 + 0.08 * height, texel), top) * smoothstep(0.0, 0.03, hf);
 }
 float phaseHG(float mu, float g) {
   float g2 = g * g;
@@ -428,22 +464,32 @@ void main() {
   // so silhouettes are crisp and the lighting shows no step contours.
   float t = enter + jitter * dt * 0.35, stepLength = dt;
   int outside = 0;
-  for (int i = 0; i < ${SKY_CLOUDS.maxSteps + 64}; i++) {
+  // Fine-marched up to here: a re-entry never steps back over it twice.
+  float marched = enter;
+  for (int i = 0; i < ${SKY_CLOUDS.maxSteps + 192}; i++) {
     if (t >= leave || transmittance < 0.015) break;
     vec3 p = dir * t;
     float column;
+    // Coarse steps test the undetailed envelope (detail only carves it
+    // away), so a thin carved edge is never stepped over: no stippled fringe.
+    if (stepLength == dt && envelope(p) < -dt / thickness) {
+      t += dt;
+      continue;
+    }
     float d = density(p, true, column);
-    if (d > 0.001 && stepLength == dt) {
-      stepLength = dt * 0.25;
-      t = max(enter, t - dt * 0.875);
+    if (stepLength == dt) {
+      // In cloud: at most 30 m, so the skin is integrated, not dithered.
+      stepLength = min(dt * 0.25, 30.0);
+      t = max(marched, t - dt * 0.875);
       outside = 0;
       continue;
     }
     float advance = stepLength;
     t += advance;
+    marched = t;
     if (stepLength < dt) {
       outside = d > 0.001 ? 0 : outside + 1;
-      if (outside >= 6) stepLength = dt;
+      if (outside >= 12) stepLength = dt;
     }
     if (d <= 0.001) continue;
     float hf = (altitude(p) - baseAltitude) / thickness;
@@ -523,14 +569,14 @@ vec4 skyCloudTerms(vec3 direction) {
 export const CLOUD_DOME_MEANS: readonly (readonly [number, number, number, number, number])[] =
   Object.freeze([
     [0, 0, 0, 0, 0],
-    [0.1479, 0.0913, 0.0407, 0.031, 0.0256],
-    [0.2475, 0.1577, 0.0518, 0.0507, 0.0429],
-    [0.3825, 0.2132, 0.0587, 0.0737, 0.0669],
-    [0.5244, 0.2564, 0.0572, 0.0953, 0.093],
-    [0.6685, 0.2714, 0.0452, 0.1161, 0.1196],
-    [0.8904, 0.1542, 0.0155, 0.1415, 0.1584],
-    [0.9832, 0.0171, 0.0003, 0.138, 0.1673],
-    [0.9847, 0.002, 0, 0.1231, 0.1506],
+    [0.1522, 0.0933, 0.0442, 0.0323, 0.0263],
+    [0.2536, 0.1599, 0.0558, 0.0525, 0.0439],
+    [0.3901, 0.2167, 0.0624, 0.0755, 0.0683],
+    [0.5344, 0.2627, 0.0606, 0.0974, 0.0948],
+    [0.6801, 0.2789, 0.0482, 0.1187, 0.1217],
+    [0.8963, 0.1555, 0.016, 0.1423, 0.1597],
+    [0.9826, 0.0167, 0.0002, 0.1379, 0.1673],
+    [0.984, 0.002, 0, 0.1229, 0.1505],
   ] as const);
 /** Mean baked terms (premultiplied) of the dome at a cover, blended between
  * neighbouring bins exactly as the dome blends their panoramas. */
