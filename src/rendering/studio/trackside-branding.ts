@@ -95,7 +95,7 @@ export function brandingMaterial() {
     metalness: 0,
   });
   material.name = 'Trackside sponsor vinyl';
-  chainShaderHook(material, 'trackside-vinyl-v1', (shader) => {
+  chainShaderHook(material, 'trackside-vinyl-v2', (shader) => {
     useStudioUniforms(shader, ['studioTime'], 'fragment');
     injectDeclarations(
       shader,
@@ -112,7 +112,19 @@ export function brandingMaterial() {
     injectDeclarations(
       shader,
       'common',
-      'varying vec4 vBrandPanel;\nvarying float vBrandLed;\nvarying vec2 vBrandUv;',
+      `varying vec4 vBrandPanel;\nvarying float vBrandLed;\nvarying vec2 vBrandUv;\nfloat vinylWear = 0.0;
+float apexVinylHash( vec2 p ) {
+	vec3 p3 = fract( vec3( p.xyx ) * 0.1031 );
+	p3 += dot( p3, p3.yzx + 33.33 );
+	return fract( ( p3.x + p3.y ) * p3.z );
+}
+float apexVinylNoise( vec2 p ) {
+	float footprint = max( length( dFdx( p ) ), length( dFdy( p ) ) );
+	vec2 i = floor( p ), f = fract( p ), u = f * f * ( 3.0 - 2.0 * f );
+	float n = mix( mix( apexVinylHash( i ), apexVinylHash( i + vec2( 1.0, 0.0 ) ), u.x ),
+		mix( apexVinylHash( i + vec2( 0.0, 1.0 ) ), apexVinylHash( i + vec2( 1.0, 1.0 ) ), u.x ), u.y );
+	return mix( 0.5, n, 1.0 - smoothstep( 0.35, 1.25, footprint ) );
+}`,
       'fragment',
     );
     injectAfter(
@@ -126,7 +138,28 @@ export function brandingMaterial() {
 	vec2 atlasUv = vBrandPanel.xy + cell * vBrandPanel.zw;
 	vec4 board = textureGrad( map, atlasUv, dFdx( boardUv ) * vBrandPanel.zw, dFdy( boardUv ) * vBrandPanel.zw );
 	diffuseColor = vec4( diffuse, opacity ) * board;
+	// Weathered vinyl (printed boards are not decals): module joints every
+	// ${VINYL.module} m, a little sun fade, road grime splashed up the lower
+	// third with a broken edge, and wrinkle sheen. LED boards stay clean.
+	float alongM = vBrandUv.x * ${BOARD_METRES.toFixed(3)};
+	float jointM = abs( fract( alongM / ${VINYL.module.toFixed(1)} + 0.5 ) - 0.5 ) * ${VINYL.module.toFixed(1)};
+	float jointPx = max( fwidth( alongM ), 1e-4 );
+	float joint = clamp( ( 0.006 - jointM ) / jointPx + 0.5, 0.0, 1.0 ) * ( 1.0 - smoothstep( 0.006, 0.03, jointPx ) );
+	float clean = 1.0 - vBrandLed;
+	float grimeN = apexVinylNoise( vec2( alongM * 1.7, vBrandUv.y * 7.0 ) );
+	float grime = ( 1.0 - smoothstep( 0.0, 0.34, vBrandUv.y + ( grimeN - 0.5 ) * 0.18 ) ) * clean;
+	float vinylLuma = dot( diffuseColor.rgb, vec3( 0.2126, 0.7152, 0.0722 ) );
+	diffuseColor.rgb = mix( diffuseColor.rgb, vec3( vinylLuma ), 0.07 * clean );
+	diffuseColor.rgb = mix( diffuseColor.rgb, diffuseColor.rgb * vec3( 0.55, 0.5, 0.45 ), grime * 0.45 );
+	diffuseColor.rgb *= 1.0 - 0.55 * joint;
+	vinylWear = apexVinylNoise( vec2( alongM * 2.3, vBrandUv.y * 3.1 ) + 7.7 ) - 0.5;
 }`,
+      'fragment',
+    );
+    injectAfter(
+      shader,
+      'roughnessmap_fragment',
+      'roughnessFactor = clamp( roughnessFactor + 0.16 * vinylWear, 0.0, 1.0 );',
       'fragment',
     );
     injectAfter(
