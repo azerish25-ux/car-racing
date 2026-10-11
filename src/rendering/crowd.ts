@@ -1,20 +1,21 @@
-import { audienceAtlas, audienceGeometry } from './start-finish-assets.ts';
+import { audienceAtlas } from './start-finish-assets.ts';
+import { spectatorKitGeometry } from './human-kit.ts';
 import { installAudienceActions } from './audience-actions.ts';
 import { detailDistance } from './view-detail.ts';
 import { tagWeatherSurface } from './weather-presentation.ts';
 import * as T from 'three';
-import { peopleGeometry, PEOPLE_ASSET } from './people-asset.ts';
+import { PEOPLE_ASSET } from './people-asset.ts';
 import { clamp } from '../core/math.ts';
 import { crowdResponse } from './crowd-response.ts';
 import { installCrowdImpostorShader, spectatorImpostorGeometry } from './crowd-impostor.ts';
 
 export type CrowdDetail = 0 | 1 | 2 | 3;
 
-/** Authored seated/standing correspondence from the retained Blender scene.
- * The existing seat plan and grounded boot soles are kept at every level. */
-export function spectatorGeometry(detail: Exclude<CrowdDetail, 3>) {
+/** Procedural spectators (sculpted seated body with a standing
+ * correspondence, two builds). The seat plan is unchanged at every level. */
+export function spectatorGeometry(detail: Exclude<CrowdDetail, 3>, variant: 'a' | 'b' = 'a') {
   if (![0, 1, 2].includes(detail)) throw new Error('Invalid crowd detail');
-  const geometry = peopleGeometry(`spectator_${detail}`);
+  const geometry = spectatorKitGeometry(variant, detail);
   const standing = geometry.getAttribute('standingPosition');
   const point = new T.Vector3();
   for (let i = 0; i < standing.count; i++)
@@ -113,8 +114,8 @@ vec3 crowdShape(vec3 p) {
   return p;
 }
 vec3 crowdPivot() {
-  vec3 p = crowdJoint > 2.5 ? vec3(0.,.50,0.) : vec3(0.,.43,crowdJoint < 1.5 ? -.142 : .142);
-  p += vec3(-.255,.53,0.) * spectatorStyle.z;
+  vec3 p = crowdJoint > 2.5 ? vec3(.08,.565,0.) : vec3(.09,.50,crowdJoint < 1.5 ? -.165 : .165);
+  p += vec3(-.44,.54,0.) * spectatorStyle.z;
   return crowdShape(p);
 }
 `;
@@ -167,21 +168,35 @@ objectNormal = crowdTurn() * normalize(objectNormal);`,
       shader.vertexShader = shader.vertexShader.replace(
         '#include <color_vertex>',
         `#include <color_vertex>
-float style=fract(spectatorPhase*3.47);
-float torsoPanel=step(.35,position.y)*step(position.y,.40)*(1.-step(.5,crowdJoint));
-float sleevePanel=step(.5,crowdJoint)*(1.-step(2.5,crowdJoint))*step(.31,position.y);
+// Garment zones baked in color.r: 0 top, 1 trousers, 2 shoes, 3 forearm, 4 shin.
+float zone=floor(color.r*4.+.5);
+#ifdef USE_INSTANCING_COLOR
+vec3 top=instanceColor.rgb;
+#else
+vec3 top=vec3(.5);
+#endif
+float h2=fract(spectatorPhase*5.31), h3=fract(spectatorPhase*7.13), h4=fract(spectatorPhase*2.19);
+vec3 trousers=h2<.45?vec3(.075,.1,.17):h2<.7?vec3(.028,.028,.032):h2<.85?vec3(.3,.26,.17):vec3(.16,.16,.17);
+vec3 shoes=h3<.45?vec3(.62,.62,.6):vec3(.04,.04,.045);
+float shortSleeve=step(h4,.6);
+float shorts=step(h3,.22);
+vec3 c=top;
+c=zone>.5&&zone<1.5?trousers:c;
+c=zone>1.5&&zone<2.5?shoes:c;
+c=zone>2.5&&zone<3.5?mix(top,spectatorSkin,shortSleeve):c;
+c=zone>3.5?mix(trousers,spectatorSkin,shorts):c;
 float cloth=1.-step(.5,skinMask);
 vCrowdCloth=cloth;
-vColor.rgb=mix(vColor.rgb,vColor.rgb*.4,cloth*torsoPanel*step(.34,style));
-vColor.rgb=mix(vColor.rgb,vec3(.74,.72,.64),cloth*sleevePanel*step(.68,style));
-vColor.rgb = mix(vColor.rgb, spectatorSkin, clamp(skinMask,0.0,1.0));
-vec3 hair = mix(vec3(0.012,0.008,0.006), vec3(0.15,0.078,0.025),fract(spectatorPhase*1.31));
-vColor.rgb = mix(vColor.rgb,hair,step(1.5,skinMask));`,
+c=mix(c,spectatorSkin,step(.5,skinMask)*(1.-step(1.5,skinMask)));
+vec3 hair=mix(vec3(.012,.008,.006),vec3(.15,.078,.025),fract(spectatorPhase*1.31));
+hair=fract(spectatorPhase*9.7)>.85?vec3(.42,.3,.16):hair;
+c=mix(c,hair,step(1.5,skinMask));
+c=crowdAccessory>1.5?vec3(.02,.02,.025):crowdAccessory>.5?top*.7:c;
+vColor.rgb=c;`,
       );
     }
   };
-  material.customProgramCacheKey = () =>
-    `apex-authored-crowd-v7-clothing-${colour ? 'colour' : 'depth'}`;
+  material.customProgramCacheKey = () => `apex-procedural-crowd-v8-${colour ? 'colour' : 'depth'}`;
 }
 
 export function crowdDetail(distance: number, previous: CrowdDetail): CrowdDetail {
@@ -267,9 +282,10 @@ export class CrowdCluster {
       const geometry =
         level === 3
           ? spectatorImpostorGeometry()
-          : authoredFamily !== undefined && level < 2
-            ? audienceGeometry(level as 0 | 1, authoredFamily)
-            : spectatorGeometry(level);
+          : spectatorGeometry(
+              level,
+              (authoredFamily ?? Math.floor(seed / 7)) % 2 === 0 ? 'a' : 'b',
+            );
       geometry.setAttribute('spectatorPhase', phases);
       geometry.setAttribute('spectatorSkin', skins);
       geometry.setAttribute('spectatorStyle', styles);
@@ -292,7 +308,7 @@ export class CrowdCluster {
       people.computeBoundingSphere();
       // Raised forearms move by at most 32 cm; the card may rotate about its
       // seat. Keep both in the culling volume without changing seat transforms.
-      const guard = 0.44;
+      const guard = 0.6;
       people.boundingBox!.expandByScalar(guard);
       people.boundingSphere!.radius += guard;
       levels.push(people);

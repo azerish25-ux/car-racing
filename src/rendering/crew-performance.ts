@@ -2,6 +2,7 @@ import * as T from 'three';
 import data from './crew-performance.geometry.json' with { type: 'json' };
 import manifest from './crew-performance.manifest.json' with { type: 'json' };
 import type { CrewPoseStyle } from './crew-pose.ts';
+import { crewBodyGeometry, crewHandGeometry } from './human-kit.ts';
 
 export const CREW_PERFORMANCE = Object.freeze({ ...manifest });
 export type CrewMesh = keyof typeof data.meshes;
@@ -11,6 +12,18 @@ let verified = false;
 /** The exact Blender-exported kit is shared by grid and pit service. Legacy
  * spectators, marshals and supplied driver remain on their retained assets. */
 export function crewPerformanceGeometry(role: CrewMesh, left = false) {
+  // Bodies and gloves are the procedural human kit (sculpted anatomy on the
+  // same skeleton); the authored helmet and the evaluated actions remain.
+  if (role === 'suit_near' || role === 'suit_mid' || role === 'glove') {
+    if (left && role !== 'glove') throw new Error('Only glove topology has a left-hand variant');
+    const g =
+      role === 'glove'
+        ? crewHandGeometry(0, left)
+        : crewBodyGeometry('suit', role === 'suit_near' ? 0 : 1);
+    g.name = `A41/A42 ${role}${left ? ' left' : ''}`;
+    g.userData = { ...g.userData, authoredRole: role, finalArtApproved: false };
+    return g;
+  }
   if (!verified) {
     for (const [name, mesh] of Object.entries(data.meshes)) {
       const n = mesh.position.length / 3;
@@ -59,16 +72,7 @@ export function crewPerformanceGeometry(role: CrewMesh, left = false) {
   ] as const)
     g.setAttribute(key, new T.Float32BufferAttribute(values, size));
   g.setIndex(mesh.index);
-  if (left) {
-    if (role !== 'glove') throw new Error('Only glove topology has a left-hand variant');
-    g.scale(-1, 1, 1);
-    const index = g.index!;
-    for (let i = 0; i < index.count; i += 3) {
-      const b = index.getX(i + 1);
-      index.setX(i + 1, index.getX(i + 2));
-      index.setX(i + 2, b);
-    }
-  }
+  if (left) throw new Error('Only glove topology has a left-hand variant');
   g.name = `A41/A42 ${role}${left ? ' left' : ''}`;
   g.userData = {
     sourceSHA256: manifest.runtimeSHA256,

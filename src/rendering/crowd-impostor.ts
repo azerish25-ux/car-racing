@@ -3,7 +3,7 @@ import * as T from 'three';
 /** Original analytic seated-person card, not a photograph or licensed atlas.
  * Only used beyond the geometric LODs, where a person occupies a few pixels. */
 export function spectatorImpostorGeometry() {
-  const geometry = new T.PlaneGeometry(0.66, 1.72).translate(0, 0.53, 0);
+  const geometry = new T.PlaneGeometry(0.7, 1.8).translate(0, 0.5, 0);
   geometry.computeBoundingBox();
   geometry.computeBoundingSphere();
   return geometry;
@@ -64,20 +64,20 @@ export function installCrowdImpostorShader(material: T.MeshStandardMaterial, ran
       p.x /= vSpectatorStyle.x;
       if (p.y > .1) p.y = .1 + (p.y-.1) / vSpectatorStyle.y;
       float stand = vSpectatorStyle.z;
-      float rise = stand * .53;
-      float head = personEllipse(p,vec2(0.,.615+rise),vec2(.086,.106));
-      float torso = personEllipse(p,vec2(0.,.32+rise),vec2(.163,.228));
-      float lap = personEllipse(p,vec2(0.,.085+rise),vec2(.215,.083));
-      float leftLeg = personEllipse(p,vec2(-.105,-.095+stand*.2),vec2(.068,.19+stand*.2));
-      float rightLeg = personEllipse(p,vec2(.105,-.095+stand*.2),vec2(.068,.19+stand*.2));
+      float rise = stand * .54;
+      float head = personEllipse(p,vec2(0.,.665+rise),vec2(.08,.105));
+      float torso = personEllipse(p,vec2(0.,.37+rise),vec2(.17,.21));
+      float lap = personEllipse(p,vec2(0.,.12+rise*.9),vec2(.2,.08));
+      float leftLeg = personEllipse(p,vec2(-.1,-.1+stand*.22),vec2(.06,.24+stand*.22));
+      float rightLeg = personEllipse(p,vec2(.1,-.1+stand*.22),vec2(.06,.24+stand*.22));
       float shape = min(head,min(torso,min(lap,min(leftLeg,rightLeg))));
       float aa = max(fwidth(shape),.0001);
       diffuseColor.a *= 1.-smoothstep(-aa,aa,shape);
       float headMask = 1.-smoothstep(-aa,aa,head);
       diffuseColor.rgb = mix(diffuseColor.rgb, vSkin, headMask);
-      float scalp = headMask * smoothstep(.66+rise,.69+rise,p.y);
+      float scalp = headMask * smoothstep(.71+rise,.74+rise,p.y);
       diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.025,.018,.012),scalp);
-      if(p.y < .15+rise) diffuseColor.rgb *= vec3(.22,.25,.28);`,
+      if(p.y < .17+rise) diffuseColor.rgb *= vec3(.22,.25,.28);`,
     );
     shader.fragmentShader = shader.fragmentShader.replace(
       '#include <alphatest_fragment>',
@@ -86,5 +86,5 @@ export function installCrowdImpostorShader(material: T.MeshStandardMaterial, ran
       #include <alphatest_fragment>`,
     );
   };
-  material.customProgramCacheKey = () => 'apex-authored-impostor-v3-standing';
+  material.customProgramCacheKey = () => 'apex-procedural-impostor-v4-standing';
 }

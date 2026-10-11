@@ -6,7 +6,7 @@ import {
   gridStaffPose,
 } from '../src/rendering/grid-preparation.ts';
 import { CUFF } from '../src/rendering/pit-crew.ts';
-import { CREW_BONES } from '../src/rendering/people-asset.ts';
+import { CREW_BONES, CREW_REST } from '../src/rendering/people-asset.ts';
 import { DEFAULT_OPTIONS } from '../src/simulation/config.ts';
 import { H, carBase } from '../src/simulation/protocol.ts';
 import { Simulation } from '../src/simulation/world.ts';
@@ -55,22 +55,25 @@ it('poses every grid staff member reachably, with gloves on the posed wrists', (
   const meshes = view.root.children.filter(
     (o): o is T.InstancedMesh => o instanceof T.InstancedMesh,
   );
-  const [, , bodies, helmets, left, right] = meshes;
-  expect([helmets.count, left.count, right.count]).toEqual([staff, staff, staff]);
+  const [, , bodies, ...rest] = meshes;
+  const heads = rest.filter((m) => m.geometry.getAttribute('headPerson'));
+  const [left, right] = rest.filter((m) => !m.geometry.getAttribute('headPerson'));
+  const headCount = heads.reduce((n, m) => n + m.count, 0);
+  expect([headCount, left.count, right.count]).toEqual([staff, staff, staff]);
   // Each glove's cuff lands on its wrist joint: the bone matrices place the
   // rest wrist where the glove expects it.
   const glove = new T.Matrix4(),
     body = new T.Matrix4(),
     bone = new T.Matrix4();
   const data = (view as unknown as { boneData: Float32Array }).boneData;
-  const rest = [new T.Vector3(-0.245, 0.73, 0), new T.Vector3(0.245, 0.73, 0)];
+  const wristRest = [CREW_REST[5], CREW_REST[8]];
   for (let i = 0; i < staff; i++) {
     bodies.getMatrixAt(i, body);
     for (const [hand, mesh] of [left, right].entries()) {
       mesh.getMatrixAt(i, glove);
       const cuff = CUFF.clone().applyMatrix4(glove);
       bone.fromArray(data, (i * CREW_BONES + (hand === 0 ? 5 : 8)) * 16);
-      const wrist = rest[hand].clone().applyMatrix4(bone).applyMatrix4(body);
+      const wrist = wristRest[hand].clone().applyMatrix4(bone).applyMatrix4(body);
       expect(cuff.distanceTo(wrist)).toBeLessThan(1e-4);
     }
   }

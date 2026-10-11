@@ -165,7 +165,7 @@ describe('authored suit regions and shadow agreement', () => {
       expect(s.vertexShader.includes('vCrewRegion =')).toBe(colour);
       expect(s.fragmentShader).not.toContain('suitEmissive');
       if (colour) {
-        expect(s.fragmentShader).toContain('fwidth(suitP)');
+        expect(s.fragmentShader).toContain('crewFoldHeight(vCrewPattern');
         expect(s.fragmentShader).toContain('#include <lights_fragment_begin>');
         expect(s.vertexShader).toContain('vCrewPattern = position;');
       }

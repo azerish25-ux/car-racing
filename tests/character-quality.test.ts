@@ -116,8 +116,8 @@ describe('Driver and service-character construction', () => {
       -0.1599999964237213, 0.014999999664723873, -0.47999998927116394,
     ]);
     expect(CREW_REST).toHaveLength(15);
-    expect(CREW_REST[4].toArray()).toEqual([-0.245, 1.07, 0]);
-    expect(CREW_REST[7].toArray()).toEqual([0.245, 1.07, 0]);
+    expect(CREW_REST[4].toArray()).toEqual([-0.21, 1.09, 0]);
+    expect(CREW_REST[7].toArray()).toEqual([0.21, 1.09, 0]);
     expect(people.triangles.crew_high).toBeLessThan(6000);
     expect(people.triangles.crew_mid).toBeLessThan(2500);
     expect(people.triangles.crew_mid).toBeLessThan(people.triangles.crew_high * 0.5);

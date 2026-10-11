@@ -12,7 +12,7 @@ import { loadMarshalPosts } from './marshal-posts.ts';
 import { loadStartGantry } from './start-gantry.ts';
 import { loadRivalLevels, type RivalLevels } from './a61-rival.ts';
 import { GridPresentationView } from './grid-presentation-view.ts';
-import { gridPresentationCamera } from './grid-mechanic-motion.ts';
+import { gridBroadcastShot, gridShot } from './grid-broadcast.ts';
 import { cockpitEye, cockpitDirection, cockpitFov, tcamFov } from './cockpit-framing.ts';
 import { loadPitJacks } from './a32-pit-jacks.ts';
 import { measurePitJackFits } from './a32-jack-contact.ts';
@@ -180,6 +180,10 @@ export class RacingRenderer {
   readonly gridPerformance = new GridPresentationView();
   gridPresentationTime: number | null = null;
   gridReducedMotion = false;
+  /** Live pre-race broadcast shot (camera, lens and lower-third caption). */
+  readonly gridShot = gridShot();
+  private readonly gridFocus = new T.Vector3();
+  private gridShotIndex = -1;
   gridPrepared = false;
   readonly photoStage = new PhotoStage();
   private headquarters: HeadquartersStage | null = null;
@@ -1017,14 +1021,18 @@ export class RacingRenderer {
     this.target.copy(car.root.position);
     this.direction.set(0, 0, 1).applyQuaternion(car.root.quaternion);
     if (pregame) {
-      this.camera.fov = gridPresentationCamera(
+      const shot = gridBroadcastShot(
         this.gridPresentationTime!,
         this.gridReducedMotion,
-        this.desired,
-        this.gaze,
+        this.gridShot,
       );
-      this.desired.applyQuaternion(car.root.quaternion).add(car.root.position);
-      this.gaze.applyQuaternion(car.root.quaternion).add(car.root.position);
+      // Hard cut between shots: no motion-blur smear across the edit.
+      if (shot.index !== this.gridShotIndex) this.motionBlur.reset();
+      this.gridShotIndex = shot.index;
+      this.camera.fov = shot.fov;
+      this.desired.copy(shot.eye).applyQuaternion(car.root.quaternion).add(car.root.position);
+      this.gaze.copy(shot.target).applyQuaternion(car.root.quaternion).add(car.root.position);
+      this.gridFocus.copy(shot.focus).applyQuaternion(car.root.quaternion).add(car.root.position);
     } else if (this.photo?.view === 'orbit') {
       const offset = photoOffset(this.photo);
       // Read actual articulated world transforms after this snapshot's car update.
@@ -1367,7 +1375,10 @@ export class RacingRenderer {
       this.motionBlur.setStrength(this.graphics.motionBlur, !this.photo && !menu);
       this.motionBlur.prepareFrame(presented, this.camera, this.follow, cameraMode, replay);
       // D29/D30: depth of field on the subject car (showroom, broadcast telephoto).
-      const lens = subjectLens(menu, !!this.photo, cameraMode, this.camera.fov);
+      const lens =
+        pregame && this.gridShot.maxblur > 0
+          ? this.gridShot
+          : subjectLens(menu, !!this.photo, cameraMode, this.camera.fov);
       if (lens) {
         this.photoFocus ??= new DepthOfFieldPass(
           this.camera,
@@ -1376,7 +1387,13 @@ export class RacingRenderer {
         );
         if (!this.composer.passes.includes(this.photoFocus))
           this.composer.insertPass(this.photoFocus, 1);
-        focusOnSubject(this.photoFocus, this.camera, this.target, lens, this.temporary);
+        focusOnSubject(
+          this.photoFocus,
+          this.camera,
+          pregame ? this.gridFocus : this.target,
+          lens,
+          this.temporary,
+        );
       } else if (this.photoFocus && !this.photo?.depthOfField) this.photoFocus.enabled = false;
       if (this.photoFocus?.enabled && this.photo) {
         // Optical-axis depth, rather than Euclidean distance, matches the depth shader.

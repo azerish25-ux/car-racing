@@ -902,6 +902,7 @@ export class GameApp {
       this.gridClock.advance(wallDelta, !document.hidden);
       this.renderer.gridPresentationTime = this.gridClock.time;
       this.gridPanel?.update(this.gridClock);
+      this.gridPanel?.caption(this.renderer.gridShot.caption, this.track.circuit.name);
     }
     this.presentGhost(a, b, alpha);
     const scPhase = b[H.SC_PHASE];

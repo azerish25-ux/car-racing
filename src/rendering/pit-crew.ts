@@ -402,6 +402,25 @@ export class PitCrewView {
       this.footwork.feet,
       performance.sampler.style,
     );
+    // Human-length arms: when a handle is beyond reach, sink into the knees
+    // (shoulders follow the pelvis) rather than stretching or detaching a hand.
+    const missed = () =>
+      Math.max(
+        this.pose.endpoint(4, CREW_REST[5], this.local).distanceTo(this.wrists[0]),
+        this.pose.endpoint(7, CREW_REST[8], this.local).distanceTo(this.wrists[1]),
+      );
+    for (let k = 0; k < 12 && missed() > 1e-6; k++) {
+      posedHip -= 0.02;
+      this.pose.set(
+        this.actor.matrix,
+        posedHip,
+        lean,
+        this.wrists,
+        spread,
+        this.footwork.feet,
+        performance.sampler.style,
+      );
+    }
     this.pose.write(this.boneData, this.actorSlot);
     const cloth = this.cloth[detail];
     this.slots[detail].setX(cloth.count, this.actorSlot++);

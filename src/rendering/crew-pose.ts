@@ -1,5 +1,12 @@
 import * as T from 'three';
-import { crewSuitFragment, crewSuitVertex, CREW_SUIT_VARYINGS } from './crew-suit.ts';
+import {
+  crewFoldFragment,
+  crewSuitFragment,
+  crewSuitVertex,
+  crewTintVertex,
+  CREW_SUIT_VARYINGS,
+} from './crew-suit.ts';
+import { HUMAN_TONE_GLSL, skinWrapLighting } from './human-kit.ts';
 import { clamp } from '../core/math.ts';
 import { CREW_BONES, CREW_REST } from './people-asset.ts';
 
@@ -8,8 +15,8 @@ const DOWN = new T.Vector3(0, -1, 0);
 const X = new T.Vector3(1, 0, 0);
 const armPole = [new T.Vector3(-0.8, -0.25, -0.3), new T.Vector3(0.8, -0.25, -0.3)];
 const legPole = new T.Vector3(0, 0, 1);
-export const CREW_UPPER_ARM = 0.36;
-export const CREW_FOREARM = 0.34;
+export const CREW_UPPER_ARM = 0.33;
+export const CREW_FOREARM = 0.3;
 export const CREW_THIGH = 0.42;
 export const CREW_SHIN = Math.hypot(0.405, 0.035);
 
@@ -180,13 +187,15 @@ export class CrewPose {
   }
 }
 
-/** GPU instance skinning: four texels per bone, one 60-texel row per actor. Two
- * normalized influences remain supported; the refined kit uses up to four. */
+/** GPU instance skinning: four texels per bone, one 60-texel row per actor.
+ * Up to four normalised influences (the procedural bodies use all four).
+ * `kit` selects the garment cut resolved by the colour shader. */
 export function installCrewSkin(
   material: T.Material,
   bones: T.DataTexture,
   rows: number,
   colour: boolean,
+  kit: 'polo' | 'suit' = 'suit',
 ) {
   material.onBeforeCompile = (shader) => {
     for (const hook of ['void main() {', '#include <begin_vertex>'])
@@ -223,7 +232,20 @@ mat4 crewBone(float joint) {
       `vec3 transformed = (crewTransform * vec4(position,1.)).xyz;${colour ? crewSuitVertex : ''}`,
     );
     if (colour) {
-      shader.fragmentShader = CREW_SUIT_VARYINGS + '\n' + shader.fragmentShader;
+      if (!shader.vertexShader.includes('#include <color_vertex>'))
+        throw new Error('Crew suit tint hook missing');
+      shader.vertexShader = shader.vertexShader.replace(
+        '#include <color_vertex>',
+        '#include <color_vertex>\n' + crewTintVertex,
+      );
+      shader.fragmentShader =
+        CREW_SUIT_VARYINGS +
+        (kit === 'polo' ? '#define CREW_POLO\n' : '') +
+        'float crewSkinMask = 0.;\n' +
+        HUMAN_TONE_GLSL +
+        crewFoldFragment +
+        shader.fragmentShader;
+      shader.fragmentShader = skinWrapLighting(shader.fragmentShader, 'crewSkinMask');
       if (!shader.fragmentShader.includes('#include <color_fragment>'))
         throw new Error('Crew suit colour hook missing');
       shader.fragmentShader = shader.fragmentShader.replace(
@@ -231,14 +253,30 @@ mat4 crewBone(float joint) {
         '#include <color_fragment>\n' + crewSuitFragment,
       );
       shader.fragmentShader = shader.fragmentShader.replace(
+        '#include <normal_fragment_maps>',
+        `#include <normal_fragment_maps>
+{
+  // Derivative bump: garment creases from the bind-space fold field.
+  float crewH = crewFoldHeight(vCrewPattern, max(0., 1. - vCrewRegion.x - vCrewRegion.y), vCrewRegion.y, vCrewRegion.x) * (1. - crewSkinMask);
+  vec3 crewDx = dFdx(-vViewPosition), crewDy = dFdy(-vViewPosition);
+  float crewHx = dFdx(crewH), crewHy = dFdy(crewH);
+  vec3 crewR1 = cross(crewDy, normal), crewR2 = cross(normal, crewDx);
+  float crewDet = dot(crewDx, crewR1);
+  vec3 crewGrad = sign(crewDet) * (crewHx * crewR1 + crewHy * crewR2);
+  normal = normalize(abs(crewDet) * normal - crewGrad * 1.0);
+}`,
+      );
+      shader.fragmentShader = shader.fragmentShader.replace(
         '#include <roughnessmap_fragment>',
         `#include <roughnessmap_fragment>
 float weave = vCrewPattern.y * 220.;
 float resolved = 1. - smoothstep(.5,2.,fwidth(weave));
-roughnessFactor = mix(.58,.88+sin(weave)*resolved*.035,vCrewCloth);`,
+float crewNeutral = 1. - smoothstep(.2, .3, vCrewCloth);
+roughnessFactor = mix(.86+sin(weave)*resolved*.035, .42, crewNeutral);
+roughnessFactor = mix(roughnessFactor, .5, crewSkinMask);`,
       );
     }
   };
-  material.customProgramCacheKey = () => `aurel-authored-instance-skin-v3-four-weight-${colour}`;
+  material.customProgramCacheKey = () => `aurel-procedural-instance-skin-v4-${kit}-${colour}`;
   return material;
 }

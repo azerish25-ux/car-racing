@@ -11,6 +11,7 @@ import {
 } from '../src/rendering/venue-lighting.ts';
 import { Track, trackPoint } from '../src/simulation/track.ts';
 import { F, H, HEADER, CAR_STRIDE, carBase } from '../src/simulation/protocol.ts';
+import humanKit from '../src/rendering/human-kit.json' with { type: 'json' };
 
 function snapshot(cars = 2) {
   const frame = new Float32Array(HEADER + cars * CAR_STRIDE);
@@ -113,7 +114,17 @@ describe('Presentation continuation: distant spectators', () => {
       material,
     );
     try {
-      expect(crowd.levels.map((m) => m.geometry.index!.count / 3)).toEqual([2296, 1328, 638, 2]);
+      // Procedural spectators: near/mid/far sculpt budgets, then a two-triangle card.
+      const budgets = crowd.levels.map((m) => m.geometry.index!.count / 3);
+      expect(budgets).toEqual([
+        humanKit.meshes.spectator_a_0.triangles,
+        humanKit.meshes.spectator_a_1.triangles,
+        humanKit.meshes.spectator_a_2.triangles,
+        2,
+      ]);
+      expect(budgets[0]).toBeLessThan(2600);
+      expect(budgets[1]).toBeLessThan(budgets[0] * 0.6);
+      expect(budgets[2]).toBeLessThan(budgets[1] * 0.5);
       for (const mesh of crowd.levels) {
         expect(mesh.instanceMatrix).toBe(crowd.levels[0].instanceMatrix);
         expect(mesh.instanceColor).toBe(crowd.levels[0].instanceColor);

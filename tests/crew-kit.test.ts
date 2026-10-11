@@ -12,6 +12,8 @@ it('dresses each crew in its team kit with a dark secondary yoke and trousers', 
     );
   expect(crewTeamColour(3)).toBe(crewTeamColour(3));
   expect(crewTeamColour(-1).getHex()).toBe(crewTeamColour(0).getHex());
-  expect(crewSuitFragment).toContain('diffuseColor.rgb * .3,');
-  expect(crewSuitFragment).toContain('diffuseColor.rgb *= mix(1., .42, suitLeg * suitCloth);');
+  // Team colour comes from the instance tint, never applied to skin/boots.
+  expect(crewSuitFragment).toContain('suitCol = mix(suitCol, suitTeam * .32, suitYoke * .9);');
+  expect(crewSuitFragment).toContain('suitCol *= mix(1., .42, suitLeg);');
+  expect(crewSuitFragment).toContain('mix(suitCol, humanSkinTone(vCrewPerson), crewSkinMask)');
 });

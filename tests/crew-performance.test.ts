@@ -11,7 +11,8 @@ import {
 } from '../src/rendering/crew-performance.ts';
 import source from '../src/rendering/crew-performance.geometry.json' with { type: 'json' };
 import { CREW_REST } from '../src/rendering/people-asset.ts';
-import { CrewPose } from '../src/rendering/crew-pose.ts';
+import { CrewPose, CREW_FOREARM, CREW_UPPER_ARM } from '../src/rendering/crew-pose.ts';
+import humanKit from '../src/rendering/human-kit.json' with { type: 'json' };
 import { GridPresentationView } from '../src/rendering/grid-presentation-view.ts';
 import { PitCrewView } from '../src/rendering/pit-crew.ts';
 import { Simulation } from '../src/simulation/world.ts';
@@ -39,7 +40,13 @@ it('binds the shared kit and all fourteen editable actions to the source and exc
   expect(model.animations).toHaveLength(14);
   expect(model.skins[0].joints).toHaveLength(15);
   expect(readFileSync('scripts/crew-performance.blend').length).toBeGreaterThan(100000);
-  expect(source.rest).toEqual(CREW_REST.map((v) => v.toArray()));
+  // The authored hips, legs and head are kept; the arms use the
+  // human-proportioned shoulder and segment lengths of the procedural bodies.
+  for (const i of [0, 1, 2, 9, 10, 11, 12, 13, 14])
+    expect(source.rest[i]).toEqual(CREW_REST[i].toArray());
+  for (const i of [3, 4, 5, 6, 7, 8]) expect(Math.abs(CREW_REST[i].x)).toBeCloseTo(0.21, 6);
+  expect(CREW_REST[3].y - CREW_REST[4].y).toBeCloseTo(CREW_UPPER_ARM, 6);
+  expect(CREW_REST[4].y - CREW_REST[5].y).toBeCloseTo(CREW_FOREARM, 6);
   expect(CREW_PERFORMANCE.finalArtApproved).toBe(false);
 });
 
@@ -75,7 +82,7 @@ it('uses the evaluated Blender action poses, matching actual GLB playback rather
         const index = skeleton.bones.findIndex((b) => b.name === source.bones[i]);
         expect(index).toBeGreaterThanOrEqual(0);
         matrix.multiplyMatrices(skeleton.bones[index].matrixWorld, skeleton.boneInverses[index]);
-        point.copy(CREW_REST[i]).applyMatrix4(matrix);
+        point.fromArray(source.rest[i]).applyMatrix4(matrix);
         rotation.setFromRotationMatrix(matrix).normalize();
         expect(point.distanceTo(sampler.joints[i]), `${name}/${t}/${i}`).toBeLessThan(0.00008);
         expect(rotation.angleTo(sampler.rotations[i]), `${name}/${t}/${i}`).toBeLessThan(0.0002);
@@ -94,23 +101,35 @@ it('keeps geometry owned, UV-complete, four-weight normalized, and properly mirr
   for (const name of Object.keys(source.meshes) as (keyof typeof source.meshes)[]) {
     const a = crewPerformanceGeometry(name),
       b = crewPerformanceGeometry(name);
-    expect(a.index!.count / 3).toBe(CREW_PERFORMANCE.triangles[name]);
+    // Bodies and gloves are the procedural human kit; the helmet is authored.
+    const procedural = {
+      suit_near: 'body_suit_0',
+      suit_mid: 'body_suit_1',
+      glove: 'hand_0',
+    } as const;
+    expect(a.index!.count / 3).toBe(
+      name === 'helmet'
+        ? CREW_PERFORMANCE.triangles[name]
+        : humanKit.meshes[procedural[name]].triangles,
+    );
     expect(a.attributes.position.array).not.toBe(b.attributes.position.array);
     expect(a.attributes.uv.count).toBe(a.attributes.position.count);
     const weight = a.attributes.crewWeight;
-    for (let i = 0; i < weight.count; i++) {
+    if (name === 'glove' || name === 'helmet') expect(weight === undefined).toBe(name === 'glove');
+    for (let i = 0; weight && i < weight.count; i++) {
       let sum = 0;
       for (let j = 0; j < 4; j++) sum += weight.getComponent(i, j);
       expect(sum).toBeCloseTo(1, 5);
-      expect(new T.Vector3().fromBufferAttribute(a.attributes.normal, i).length()).toBeCloseTo(
-        1,
-        4,
-      );
+      // Procedural normals are stored as normalised 8-bit components.
+      expect(
+        Math.abs(new T.Vector3().fromBufferAttribute(a.attributes.normal, i).length() - 1),
+      ).toBeLessThan(name === 'helmet' ? 1e-4 : 0.012);
     }
     a.dispose();
     b.dispose();
   }
-  expect(source.meshes.suit_near.weights.some((v, i) => i % 4 === 2 && v > 0)).toBe(true);
+  const near = crewPerformanceGeometry('suit_near').attributes.crewWeight;
+  expect(Array.from({ length: near.count }, (_, i) => near.getZ(i)).some((v) => v > 0)).toBe(true);
   const right = crewPerformanceGeometry('glove'),
     left = crewPerformanceGeometry('glove', true);
   for (let i = 0; i < right.index!.count; i += 3) {
@@ -157,20 +176,24 @@ it('retargets authored shoulder and pelvis motion to the same hands, feet and ri
     expect(rig.endpoint(7, CREW_REST[8]).distanceTo(hands[1])).toBeLessThan(1e-8);
     expect(rig.endpoint(11, CREW_REST[11]).distanceTo(feet[0])).toBeLessThan(1e-8);
     expect(rig.endpoint(14, CREW_REST[14]).distanceTo(feet[1])).toBeLessThan(1e-8);
-    expect(rig.joints[4].distanceTo(rig.joints[3])).toBeCloseTo(0.36, 7);
-    expect(rig.joints[5].distanceTo(rig.joints[4])).toBeCloseTo(0.34, 7);
+    expect(rig.joints[4].distanceTo(rig.joints[3])).toBeCloseTo(CREW_UPPER_ARM, 7);
+    expect(rig.joints[5].distanceTo(rig.joints[4])).toBeCloseTo(CREW_FOREARM, 7);
   }
 });
 
-it('uses the same refined near/mid kit and shaders in grid preparation and live pit service', () => {
+it('uses the same procedural human kit and skeleton in grid preparation and live pit service', () => {
   const grid = new GridPresentationView(),
     pit = new PitCrewView();
-  for (let i = 0; i < 5; i++) {
+  // Grid crews wear the polo cut with real heads; pit crews the overall and
+  // helmet. Both are the same baked kit on the same skeleton and bone atlas.
+  for (let i = 0; i < 2; i++) {
     const a = grid.root.children[i] as T.InstancedMesh,
       b = pit.root.children[i] as T.InstancedMesh;
-    expect(a.geometry.userData.sourceSHA256).toBe(CREW_PERFORMANCE.runtimeSHA256);
-    expect(b.geometry.userData.sourceSHA256).toBe(CREW_PERFORMANCE.runtimeSHA256);
-    expect(a.geometry.attributes.position.array).toEqual(b.geometry.attributes.position.array);
+    expect(a.geometry.userData.sourceSha256).toBe(humanKit.sha256);
+    expect(b.geometry.userData.sourceSha256).toBe(humanKit.sha256);
+    expect(a.geometry.userData.authoredRole).toBe(`body_polo_${i}`);
+    expect(b.geometry.userData.authoredRole).toBe(i === 0 ? 'suit_near' : 'suit_mid');
+    expect(a.geometry.attributes.crewJoint.count).toBe(a.geometry.attributes.position.count);
   }
   const sim = new Simulation({ ...DEFAULT_OPTIONS, opponents: 11 });
   const frame = sim.makeFrame(),

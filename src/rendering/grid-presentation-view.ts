@@ -5,12 +5,16 @@ import {
 } from './crew-performance.ts';
 import { GRID_PRESENTATION_SECONDS } from '../core/grid-presentation.ts';
 import * as T from 'three';
-import { gridMechanicGeometry } from './grid-mechanic-asset.ts';
 import { F, H, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../simulation/protocol.ts';
 import { WHEEL_POSITIONS } from '../simulation/vehicle.ts';
 import { CREW_BONES } from './people-asset.ts';
 import { CrewPose, installCrewSkin } from './crew-pose.ts';
-import { installCrewHelmetFinish, crewTeamColour } from './crew-geometry.ts';
+import { crewTeamColour } from './crew-geometry.ts';
+import { crewBodyGeometry, HumanHeadBatches, type HeadWear } from './human-kit.ts';
+import { GridCastView } from './grid-cast.ts';
+
+/** Grid crews: headsets on most, team caps on many. */
+export const GRID_HEADWEAR: readonly HeadWear[] = ['cap-headset', 'headset', 'cap', 'cap-headset'];
 import { CUFF } from './pit-crew.ts';
 export const GRID_GLOVE_GRIP = new T.Vector3(0, 0.034, 0.041);
 import { gridBlanketPoint, gridMechanicMotion, poseGridMechanic } from './grid-mechanic-motion.ts';
@@ -132,7 +136,8 @@ export class GridPresentationView {
   private readonly slots = [0, 1].map(() =>
     new T.InstancedBufferAttribute(new Float32Array(ACTORS), 1).setUsage(T.DynamicDrawUsage),
   );
-  private readonly helmets: T.InstancedMesh;
+  private readonly heads: HumanHeadBatches;
+  readonly cast = new GridCastView();
   private readonly gloves: [T.InstancedMesh, T.InstancedMesh];
   private readonly blankets: T.InstancedMesh;
   private readonly folds = new T.InstancedBufferAttribute(new Float32Array(ACTORS), 1).setUsage(
@@ -174,8 +179,9 @@ export class GridPresentationView {
     this.bones.minFilter = this.bones.magFilter = T.NearestFilter;
     this.bones.name = 'Grid presentation bone atlas';
     this.bones.needsUpdate = true;
-    this.cloth = (['suit_near', 'suit_mid'] as const).map((role, i) => {
-      const geometry = i === 0 ? gridMechanicGeometry() : crewPerformanceGeometry(role);
+    this.cloth = ([0, 1] as const).map((lod, i) => {
+      // Grid crews wear the team polo with bare forearms, caps and headsets.
+      const geometry = crewBodyGeometry('polo', lod);
       geometry.setAttribute('crewSlot', this.slots[i]);
       const material = new T.MeshStandardMaterial({
         color: 0xffffff,
@@ -183,7 +189,7 @@ export class GridPresentationView {
         roughness: 0.88,
       });
       material.userData.weatherSurface = 'fabric';
-      installCrewSkin(material, this.bones, ACTORS, true);
+      installCrewSkin(material, this.bones, ACTORS, true, 'polo');
       const mesh = new T.InstancedMesh(geometry, material, ACTORS);
       mesh.instanceColor = new T.InstancedBufferAttribute(new Float32Array(ACTORS * 3).fill(1), 3);
       const depth = new T.MeshDepthMaterial({ depthPacking: T.RGBADepthPacking });
@@ -200,8 +206,7 @@ export class GridPresentationView {
         new T.MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness }),
         ACTORS,
       );
-    this.helmets = batch(crewPerformanceGeometry('helmet'), 0.35);
-    installCrewHelmetFinish(this.helmets.material as T.MeshStandardMaterial);
+    this.heads = new HumanHeadBatches(ACTORS, GRID_HEADWEAR, [0, 1], 'Grid crew heads');
     this.gloves = [
       batch(crewPerformanceGeometry('glove', true), 0.82),
       batch(crewPerformanceGeometry('glove'), 0.82),
@@ -221,7 +226,9 @@ export class GridPresentationView {
     installGridBlanket(distance, false);
     this.blankets.customDepthMaterial = depth;
     this.blankets.customDistanceMaterial = distance;
-    this.root.add(...this.cloth, this.helmets, ...this.gloves, this.blankets);
+    this.root.add(...this.cloth, ...this.heads.meshes, ...this.gloves, this.blankets);
+    // Umbrella holders and engineers share the presentation clock.
+    this.root.add(this.cast.root);
     for (const mesh of this.batches()) {
       mesh.count = 0;
       mesh.frustumCulled = false;
@@ -230,13 +237,14 @@ export class GridPresentationView {
     }
   }
   private batches() {
-    return [...this.cloth, this.helmets, ...this.gloves, this.blankets];
+    return [...this.cloth, ...this.heads.meshes, ...this.gloves, this.blankets];
   }
   private put(mesh: T.InstancedMesh, local: T.Matrix4) {
     this.matrix.multiplyMatrices(this.car.matrix, local);
     mesh.setMatrixAt(mesh.count++, this.matrix);
   }
   reset() {
+    this.cast.hide();
     this.parked = false;
     this.actors = 0;
     this.contacts.length = 0;
@@ -264,6 +272,7 @@ export class GridPresentationView {
   update(frame: Float32Array, camera: T.Vector3, time: number | null) {
     if (time === null && this.parked) return;
     this.parked = false;
+    this.cast.update(frame, camera, time);
     for (const mesh of this.batches()) {
       mesh.count = 0;
       mesh.frustumCulled = false;
@@ -374,7 +383,14 @@ export class GridPresentationView {
         this.part.scale.set(1, 1, 1);
         this.part.updateMatrix();
         this.matrix.multiplyMatrices(this.actor.matrix, this.part.matrix);
-        this.put(this.helmets, this.matrix);
+        this.matrix.premultiply(this.car.matrix);
+        this.heads.put(
+          this.matrix,
+          this.actors,
+          crewTeamColour(id),
+          tier,
+          (id * 4 + wheel) % GRID_HEADWEAR.length,
+        );
         let gripError = 0;
         for (let hand = 0; hand < 2; hand++) {
           const wrist = this.pose.joints[hand === 0 ? 5 : 8];
@@ -401,6 +417,7 @@ export class GridPresentationView {
       }
     }
     for (const mesh of this.batches()) mesh.instanceMatrix.needsUpdate = true;
+    this.heads.finish();
     for (const mesh of this.cloth) mesh.instanceColor!.needsUpdate = true;
     for (const slots of this.slots) slots.needsUpdate = true;
     this.bones.needsUpdate = true;
@@ -423,9 +440,11 @@ export class GridPresentationView {
       highDetail: this.cloth[0].count,
       blankets: this.blankets.count,
       contacts: this.contacts.map((c) => ({ ...c })),
+      cast: this.cast.diagnostics(),
     };
   }
   dispose() {
+    this.cast.dispose();
     this.bones.dispose();
   }
 }

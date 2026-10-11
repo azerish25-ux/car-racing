@@ -1,5 +1,6 @@
-import { crewTeamColour, installCrewHelmetFinish } from './crew-geometry.ts';
-import { CREW_BONES, CREW_REST, leftCrewGloveGeometry, peopleGeometry } from './people-asset.ts';
+import { crewTeamColour } from './crew-geometry.ts';
+import { crewBodyGeometry, crewHandGeometry, HumanHeadBatches } from './human-kit.ts';
+import { CREW_BONES, CREW_REST } from './people-asset.ts';
 import { CrewPose, installCrewSkin } from './crew-pose.ts';
 import { CUFF } from './pit-crew.ts';
 import * as T from 'three';
@@ -25,8 +26,8 @@ export const GRID_STANCES = Object.freeze([
   {
     name: 'relaxed',
     hands: [
-      [-0.21, 0.79, 0.07],
-      [0.21, 0.79, 0.07],
+      [-0.215, 0.815, 0.05],
+      [0.215, 0.815, 0.05],
     ],
   },
   {
@@ -40,7 +41,7 @@ export const GRID_STANCES = Object.freeze([
     name: 'hand on hip',
     hands: [
       [-0.31, 0.97, 0.02],
-      [0.21, 0.79, 0.07],
+      [0.215, 0.815, 0.05],
     ],
   },
   {
@@ -104,7 +105,7 @@ export class GridPreparationView {
   readonly blankets: T.InstancedMesh;
   readonly straps: T.InstancedMesh;
   private bodies: T.InstancedMesh;
-  private helmets: T.InstancedMesh;
+  private heads: HumanHeadBatches;
   private gloves: readonly [T.InstancedMesh, T.InstancedMesh];
   private transform = new T.Object3D();
   private car = new T.Object3D();
@@ -129,6 +130,7 @@ export class GridPreparationView {
   private readonly rotation = new T.Quaternion();
   private readonly head = new T.Quaternion();
   private readonly offset = new T.Vector3();
+  private readonly teamColour = new T.Color();
   private readonly reach: boolean[] = [];
   private readonly stances: number[] = [];
   constructor() {
@@ -150,11 +152,11 @@ export class GridPreparationView {
     this.bones.name = 'Aurel grid staff bones';
     this.bones.needsUpdate = true;
     this.slots.setUsage(T.DynamicDrawUsage);
-    const body = peopleGeometry('crew_mid');
+    const body = crewBodyGeometry('polo', 1);
     body.setAttribute('crewSlot', this.slots);
     const kit = new T.MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness: 0.9 });
     kit.userData.weatherSurface = 'fabric';
-    installCrewSkin(kit, this.bones, STAFF, true);
+    installCrewSkin(kit, this.bones, STAFF, true, 'polo');
     this.bodies = new T.InstancedMesh(body, kit, STAFF);
     // Allocated up front so the instancing-colour shader variant never changes.
     this.bodies.instanceColor = new T.InstancedBufferAttribute(
@@ -167,25 +169,19 @@ export class GridPreparationView {
     const distance = new T.MeshDistanceMaterial();
     installCrewSkin(distance, this.bones, STAFF, false);
     this.bodies.customDistanceMaterial = distance;
-    const helmet = new T.MeshStandardMaterial({
-      color: 0xffffff,
-      vertexColors: true,
-      roughness: 0.35,
-    });
-    installCrewHelmetFinish(helmet);
-    this.helmets = new T.InstancedMesh(peopleGeometry('helmet'), helmet, STAFF);
+    this.heads = new HumanHeadBatches(STAFF, ['cap-headset', 'headset'], [1], 'Grid staff heads');
     const glove = new T.MeshStandardMaterial({
       color: 0xffffff,
       vertexColors: true,
       roughness: 0.85,
     });
     this.gloves = [
-      new T.InstancedMesh(leftCrewGloveGeometry(), glove, STAFF),
-      new T.InstancedMesh(peopleGeometry('glove'), glove, STAFF),
+      new T.InstancedMesh(crewHandGeometry(1, true), glove, STAFF),
+      new T.InstancedMesh(crewHandGeometry(1), glove, STAFF),
     ];
     this.root.name = 'Grid tire blankets and preparation staff · reference 047';
-    this.root.add(this.blankets, this.straps, this.bodies, this.helmets, ...this.gloves);
-    for (const mesh of [this.blankets, this.straps, this.bodies, this.helmets, ...this.gloves]) {
+    this.root.add(this.blankets, this.straps, this.bodies, ...this.heads.meshes, ...this.gloves);
+    for (const mesh of [this.blankets, this.straps, this.bodies, ...this.gloves]) {
       mesh.count = 0;
       mesh.frustumCulled = false;
       mesh.castShadow = true;
@@ -237,7 +233,18 @@ export class GridPreparationView {
     this.transform.quaternion.copy(this.pose.rotations[2]).multiply(this.head);
     this.transform.scale.set(1, 1, 1);
     this.transform.updateMatrix();
-    this.put(this.helmets, this.matrix.multiplyMatrices(this.actor.matrix, this.transform.matrix));
+    this.matrix
+      .multiplyMatrices(this.actor.matrix, this.transform.matrix)
+      .premultiply(this.car.matrix);
+    this.heads.put(
+      this.matrix,
+      slot,
+      this.bodies.instanceColor
+        ? this.teamColour.fromBufferAttribute(this.bodies.instanceColor as T.BufferAttribute, slot)
+        : this.teamColour,
+      0,
+      person,
+    );
     // Gloves continue the forearm, palms towards the body, cuffs on the wrists.
     for (let i = 0; i < 2; i++) {
       const elbow = this.pose.joints[i === 0 ? 4 : 7],
@@ -258,7 +265,8 @@ export class GridPreparationView {
     }
   }
   update(frame: Float32Array, camera: T.Vector3, enabled = true) {
-    const meshes = [this.blankets, this.straps, this.bodies, this.helmets, ...this.gloves];
+    const meshes = [this.blankets, this.straps, this.bodies, ...this.gloves];
+    this.heads.reset();
     for (const mesh of meshes) mesh.count = 0;
     for (let id = 0; enabled && id < Math.min(12, frame[H.CARS]); id++) {
       const o = carBase(id);
@@ -293,6 +301,7 @@ export class GridPreparationView {
     }
     for (const mesh of meshes) mesh.instanceMatrix.needsUpdate = true;
     this.bodies.instanceColor!.needsUpdate = true;
+    this.heads.finish();
     if (this.bodies.count) {
       this.slots.needsUpdate = true;
       this.bones.needsUpdate = true;
