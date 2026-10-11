@@ -673,7 +673,81 @@ const enum SP {
   Count,
 }
 
-function spectatorField(variant: 'a' | 'b', out?: Float64Array, shell: 'body' | 'arms' = 'body') {
+export type SpectatorArmPose = 'rest' | 'crossed' | 'drink';
+
+/** Upper arm, forearm and hand of one side (s = -1 left, +1 right) in a pose. */
+function spectatorArm(
+  pose: SpectatorArmPose,
+  s: number,
+  sh: number,
+  x: number,
+  y: number,
+  z: number,
+): [number, number] {
+  let arm = ellipsoid(x * s, y, z, sh + 0.005, 0.475, -0.09, 0.05, 0.07, 0.055);
+  const elbow: V3 =
+    pose === 'crossed'
+      ? [sh + 0.02, 0.29, -0.03]
+      : [sh + 0.03, pose === 'drink' && s > 0 ? 0.27 : 0.26, -0.04];
+  arm = smin(
+    arm,
+    roundCone(x * s, y, z, sh + 0.01, 0.48, -0.09, elbow[0], elbow[1], elbow[2], 0.045, 0.036),
+    0.02,
+  );
+  let wrist: V3, tip: V3;
+  if (pose === 'crossed') {
+    // Forearms folded across the stomach, the right one over the left.
+    const over = s > 0 ? 0.022 : 0;
+    wrist = [-0.075, 0.325 + over * 0.4, 0.085 + over];
+    tip = [-0.135, 0.33 + over * 0.4, 0.06 + over];
+  } else if (pose === 'drink' && s > 0) {
+    // Right forearm raised, a cup held at chest height.
+    wrist = [0.105, 0.37, 0.15];
+    tip = [0.095, 0.405, 0.19];
+  } else {
+    wrist = [0.125, 0.198, 0.19];
+    tip = [0.115, 0.19, 0.285];
+  }
+  arm = smin(
+    arm,
+    roundCone(
+      x * s,
+      y,
+      z,
+      elbow[0],
+      elbow[1],
+      elbow[2],
+      wrist[0],
+      wrist[1],
+      wrist[2],
+      0.037,
+      0.026,
+    ),
+    0.02,
+  );
+  // Hand: palm and fingers as a tapered, flattened capsule from the wrist.
+  const hand = smin(
+    roundCone(x * s, y, z, wrist[0], wrist[1], wrist[2], tip[0], tip[1], tip[2], 0.024, 0.017),
+    sphere(
+      x * s,
+      y,
+      z,
+      wrist[0] + (tip[0] - wrist[0]) * 0.45,
+      wrist[1] + (tip[1] - wrist[1]) * 0.45,
+      wrist[2] + (tip[2] - wrist[2]) * 0.45,
+      0.026,
+    ),
+    0.01,
+  );
+  return [arm, hand];
+}
+
+function spectatorField(
+  variant: 'a' | 'b',
+  out?: Float64Array,
+  shell: 'body' | 'arms' = 'body',
+  pose: SpectatorArmPose = 'rest',
+) {
   const fem = variant === 'b';
   const sh = fem ? 0.152 : 0.168; // shoulder half-width
   return (x: number, y: number, z: number) => {
@@ -708,24 +782,11 @@ function spectatorField(variant: 'a' | 'b', out?: Float64Array, shell: 'body' | 
       hair = smin(hair, ellipsoid(ax, hy, hz, 0, -0.06, -0.06, 0.07, 0.09, 0.05), 0.03);
       hair = smin(hair, roundCone(x, hy, hz, 0, 0.0, -0.1, 0, -0.16, -0.12, 0.03, 0.018), 0.02);
     }
-    // Arms: shoulder -> elbow at the side -> forearm forward -> hand on thigh.
-    let arm = ellipsoid(ax, y, z, sh + 0.005, 0.475, -0.09, 0.05, 0.07, 0.055);
-    arm = smin(
-      arm,
-      roundCone(ax, y, z, sh + 0.01, 0.48, -0.09, sh + 0.03, 0.26, -0.04, 0.045, 0.036),
-      0.02,
-    );
-    arm = smin(
-      arm,
-      roundCone(ax, y, z, sh + 0.03, 0.26, -0.04, 0.125, 0.205, 0.19, 0.037, 0.026),
-      0.02,
-    );
-    let hand = roundBox(ax, y, z, 0.115, 0.2, 0.25, 0.03, 0.011, 0.05, 0.01);
-    hand = smin(
-      hand,
-      roundCone(ax, y, z, 0.09, 0.205, 0.22, 0.082, 0.195, 0.25, 0.01, 0.009),
-      0.008,
-    );
+    // Arms (separate shells per pose): shoulder, elbow, forearm, hand.
+    const [armL, handL] = spectatorArm(pose, -1, sh, x, y, z);
+    const [armR, handR] = spectatorArm(pose, 1, sh, x, y, z);
+    const arm = Math.min(armL, armR),
+      hand = Math.min(handL, handR);
     // Legs: thighs on the seat, shins down, shoes on the tread.
     const thigh = roundCone(
       ax,
@@ -791,17 +852,40 @@ function spectatorCapField(x: number, y: number, z: number) {
   );
   return Math.min(crown, brim);
 }
+function spectatorCupField(x: number, y: number, z: number) {
+  // A paper cup held upright in the resting right hand, on the thigh.
+  const cup = roundCone(x, y, z, 0.105, 0.205, 0.255, 0.105, 0.31, 0.255, 0.029, 0.035);
+  return smax(cup, y - 0.302, 0.003);
+}
 function spectatorPhoneField(x: number, y: number, z: number) {
   return roundBox(x, y, z, 0.11, 0.228, 0.25, 0.034, 0.0045, 0.07, 0.004);
 }
 
-export function sculptSpectator(variant: 'a' | 'b', cell: number, triangles: number): SculptedMesh {
+/** Shell order in a spectator mesh; the index is the crowd accessory code. */
+export const SPECTATOR_SHELLS = [
+  'body',
+  'cap',
+  'phone',
+  'arms-rest',
+  'arms-crossed',
+  'arms-drink',
+  'cup',
+] as const;
+
+export function sculptSpectator(
+  variant: 'a' | 'b',
+  cell: number,
+  triangles: number,
+  poses = true,
+): SculptedMesh {
   const field = spectatorField(variant);
   const parts = new Float64Array(SP.Count);
-  const probe = spectatorField(variant, parts);
+  const probes = (['rest', 'rest', 'rest', 'rest', 'crossed', 'drink', 'rest'] as const).map(
+    (pose) => spectatorField(variant, parts, 'body', pose),
+  );
   // Faces and hands keep detail; the seat-hidden back gives it up first.
   const importance = (_x: number, y: number, z: number) =>
-    y > 0.55 && z > -0.02 ? 3 : y > 0.15 && z > 0.15 ? 1.8 : 1;
+    y > 0.55 && z > -0.04 ? 6 : y > 0.55 ? 2.5 : y > 0.15 && z > 0.15 ? 1.8 : 1;
   const bodyMesh = polygonise(
     field,
     [-0.3, -0.36, -0.22],
@@ -810,13 +894,25 @@ export function sculptSpectator(variant: 'a' | 'b', cell: number, triangles: num
     Math.round(triangles * 0.74),
     importance,
   );
-  const armMesh = polygonise(
-    spectatorField(variant, undefined, 'arms'),
-    [-0.26, 0.14, -0.2],
-    [0.26, 0.58, 0.34],
-    Math.min(cell, 0.014),
-    Math.round(triangles * 0.26),
-  );
+  const armShell = (pose: SpectatorArmPose, share: number) =>
+    polygonise(
+      spectatorField(variant, undefined, 'arms', pose),
+      [-0.26, 0.14, -0.2],
+      [0.26, 0.58, 0.34],
+      Math.min(cell, 0.014),
+      Math.round(triangles * share),
+    );
+  const empty: SculptedMesh = {
+    positions: new Float32Array(0),
+    normals: new Float32Array(0),
+    indices: new Uint32Array(0),
+  };
+  const armRest = armShell('rest', 0.24);
+  const armCrossed = poses ? armShell('crossed', 0.18) : empty;
+  const armDrink = empty; // retained slot: the drink is held in the resting hand
+  const cupMesh = poses
+    ? polygonise(spectatorCupField, [0.05, 0.16, 0.2], [0.16, 0.33, 0.31], 0.006, 60)
+    : empty;
   const capMesh = polygonise(
     spectatorCapField,
     [-0.11, 0.66, -0.19],
@@ -831,7 +927,7 @@ export function sculptSpectator(variant: 'a' | 'b', cell: number, triangles: num
     0.004,
     48,
   );
-  const parts3 = [bodyMesh, capMesh, phoneMesh, armMesh];
+  const parts3 = [bodyMesh, capMesh, phoneMesh, armRest, armCrossed, armDrink, cupMesh];
   const counts = parts3.map((m) => m.positions.length / 3);
   const mesh: SculptedMesh = {
     positions: new Float32Array(counts.reduce((a, b) => a + b, 0) * 3),
@@ -885,7 +981,7 @@ export function sculptSpectator(variant: 'a' | 'b', cell: number, triangles: num
     const x = mesh.positions[i * 3],
       y = mesh.positions[i * 3 + 1],
       z = mesh.positions[i * 3 + 2];
-    probe(x, y, z);
+    probes[origin[i]](x, y, z);
     const sideIndex = x < 0 ? 0 : 1;
     const bones = boneSets[sideIndex],
       rots = rotations[sideIndex];
@@ -924,19 +1020,24 @@ export function sculptSpectator(variant: 'a' | 'b', cell: number, triangles: num
     // Tags: crowd joint (0 body, 1 left arm, 2 right arm, 3 head), skin mask
     // (0 cloth, 1 skin, 2 hair), accessory (0 none, 1 cap, 2 phone).
     const headPart = Math.min(parts[SP.Head], parts[SP.Hair]);
-    const isArm = origin[i] >= 2;
+    // Shells: 0 body, 1 cap, 2 phone, 3-5 arm poses, 6 cup (= accessory code).
+    const isArm = origin[i] >= 3 && origin[i] <= 5;
     const isHead = origin[i] === 1 || (origin[i] === 0 && headPart < parts[SP.Torso] && y > 0.56);
-    const joint = isHead ? 3 : isArm ? (x < 0 ? 1 : 2) : 0;
-    const accessory = origin[i] === 1 || origin[i] === 2 ? origin[i] : 0;
-    const skin = accessory
-      ? 0
-      : isHead && parts[SP.Hair] < parts[SP.Head] - 0.0008
-        ? 2
-        : isHead ||
-            (parts[SP.Hand] < parts[SP.Arm] && isArm) ||
-            (y > 0.53 && parts[SP.Torso] < 0.02 && Math.abs(x) < 0.06 && z > -0.11)
-          ? 1
-          : 0;
+    const joint = isHead ? 3 : origin[i] === 2 || origin[i] === 6 ? 2 : isArm ? (x < 0 ? 1 : 2) : 0;
+    const accessory = origin[i];
+    const skin = isArm
+      ? parts[SP.Hand] < parts[SP.Arm]
+        ? 1
+        : 0
+      : accessory
+        ? 0
+        : isHead && parts[SP.Hair] < parts[SP.Head] - 0.0008
+          ? 2
+          : isHead ||
+              (parts[SP.Hand] < parts[SP.Arm] && isArm) ||
+              (y > 0.53 && parts[SP.Torso] < 0.02 && Math.abs(x) < 0.06 && z > -0.11)
+            ? 1
+            : 0;
     tags.set([joint, skin, accessory], i * 3);
     // Garment zones: 0 top, 1 trousers, 2 shoes, 3 forearm (sleeve or skin), 4 shin (trouser or skin).
     zone[i] = isArm

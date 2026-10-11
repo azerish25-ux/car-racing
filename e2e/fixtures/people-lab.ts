@@ -204,7 +204,7 @@ export function crowdLab(
     colors: T.Color[] = [];
   const palette = [0xc0282d, 0x1b2a5e, 0xf2f2f2, 0x2e7d4f, 0xe08a1e, 0x222222, 0x5b8fd6, 0xd8c84a];
   const dummy = new T.Object3D();
-  const seatMaterial = new T.MeshStandardMaterial({ color: 0x8b3431, roughness: 0.7 });
+  const seatMaterial = new T.MeshStandardMaterial({ color: 0x6a2b28, roughness: 0.46 });
   const concrete = new T.MeshStandardMaterial({ color: 0x8c8b86, roughness: 0.95 });
   for (let row = 0; row < 4; row++) {
     const step = new T.Mesh(new T.BoxGeometry(0.98, 0.49, 6.5), concrete);

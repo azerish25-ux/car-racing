@@ -164,7 +164,7 @@ describe('Original Aurel start/finish kit', () => {
       expect(complex.diagnostics().stands).toBe(2);
       expect(clusters.length).toBeGreaterThan(10);
       const mat = clusters[0].levels[0].material as T.Material;
-      expect(mat.customProgramCacheKey()).toContain('audience-authored-v1');
+      expect(mat.customProgramCacheKey()).toContain('audience-authored-v2');
       expect(
         new StartFinishVenue(
           new Simulation({ ...DEFAULT_OPTIONS, circuit: 'vellamar' }).track,

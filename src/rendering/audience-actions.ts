@@ -22,6 +22,7 @@ vec4 audienceQuat(float action,float sampleFrame) {
  return normalize(mix(a,b* (dot(a,b)<0.?-1.:1.),u));
 }
 mat3 audienceTurn() {
+ if (crowdJoint>.5&&crowdJoint<2.5&&crowdCrossed()>.5) return mat3(1.);
  float t=mod(audienceTime+spectatorPhase*.63661977236,4.)*30.;
  vec4 idle=audienceQuat(0.,t);
  float action=spectatorStyle.w>.82?3.:(fract(spectatorPhase*4.13)>.45?2.:1.);
@@ -48,5 +49,5 @@ mat3 audienceTurn() {
       .replace('crowdTurn() * (shaped', 'audienceTurn() * (shaped')
       .replace('crowdTurn() * normalize(objectNormal)', 'audienceTurn() * normalize(objectNormal)');
   };
-  material.customProgramCacheKey = () => key() + '|audience-authored-v1';
+  material.customProgramCacheKey = () => key() + '|audience-authored-v2';
 }

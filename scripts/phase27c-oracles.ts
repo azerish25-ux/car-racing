@@ -105,8 +105,9 @@ export function verifyCrowdContract() {
     try { finiteGeometry(g); assert(g.boundingBox!.min.y >= -0.300001); return g.getIndex()!.count / 3; }
     finally { g.dispose(); }
   });
-  // Procedural spectators at (or below) the previous authored budgets.
-  assert(counts[0] <= 2296 && counts[1] <= 1328 && counts[2] <= 638);
+  // Procedural spectators: the near level carries two arm poses and a cup
+  // (unselected shells collapse per seat); mid/far stay near the old budgets.
+  assert(counts[0] <= 3000 && counts[1] <= 1450 && counts[2] <= 638);
   assert(counts[1] < counts[0] * 0.6 && counts[2] < counts[1] * 0.5);
   const matrices = Array.from({ length: 128 }, (_, i) => new T.Matrix4().makeTranslation((i % 8) * 0.98, 0, Math.floor(i / 8) * 0.65));
   const colours = matrices.map(() => new T.Color(0x428675)), material = new T.MeshStandardMaterial();

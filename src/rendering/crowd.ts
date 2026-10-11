@@ -90,7 +90,10 @@ varying float vCrowdAccessory;
 uniform vec2 crowdClock;
 uniform float crowdMotion;
 uniform vec2 crowdReaction;
+// Per-seat arm pose: about a third sit with their arms folded (no gestures).
+float crowdCrossed() { return step(.66, fract(spectatorPhase * 6.71)); }
 mat3 crowdTurn() {
+  if (crowdJoint > .5 && crowdJoint < 2.5 && crowdCrossed() > .5) return mat3(1.);
   float wave = (sin(crowdClock.x + spectatorPhase) * 0.7
     + sin(crowdClock.y + spectatorPhase * 1.73) * 0.3) * crowdMotion;
   float angle = crowdJoint > 2.5 ? wave * 0.075 : wave * 0.035;
@@ -134,15 +137,23 @@ export function installCrowdShader(material: T.Material, uniforms: CrowdUniforms
       'varying float vCrowdRank;\n' +
       deform +
       (colour
-        ? 'attribute vec3 spectatorSkin; varying float vCrowdCloth; varying vec4 vCrowdFace;\n'
+        ? 'attribute vec3 spectatorSkin; varying float vCrowdCloth; varying vec4 vCrowdBind; varying vec4 vCrowdTop; varying vec3 vCrowdSkinTone; varying vec2 vCrowdTags;\n'
         : '') +
       shader.vertexShader;
     shader.vertexShader = shader.vertexShader.replace(
       '#include <begin_vertex>',
       `vCrowdRank = min(.9999999, spectatorPhase / 6.28318530718);
-vCrowdAccessory = crowdAccessory < .5 ? 1. : crowdAccessory < 1.5 ? step(.55,spectatorStyle.w) : step(.82,spectatorStyle.w);
+// Shells: 0 body, 1 cap, 2 phone, 3 resting arms, 4 folded arms, 6 cup.
+float crowdArmsFolded = crowdCrossed();
+float crowdPhone = step(.82, spectatorStyle.w) * (1. - crowdArmsFolded);
+float crowdCup = step(fract(spectatorPhase * 4.37), .22) * (1. - crowdArmsFolded) * (1. - crowdPhone);
+vCrowdAccessory = crowdAccessory < .5 ? 1. : crowdAccessory < 1.5 ? step(.55,spectatorStyle.w)
+  : crowdAccessory < 2.5 ? crowdPhone : crowdAccessory < 3.5 ? 1. - crowdArmsFolded
+  : crowdAccessory < 4.5 ? crowdArmsFolded : crowdAccessory < 5.5 ? 0. : crowdCup;
 vec3 shaped = crowdShape(mix(position,standingPosition,spectatorStyle.z));
-vec3 transformed = crowdTurn() * (shaped - crowdPivot()) + crowdPivot();`,
+vec3 transformed = crowdTurn() * (shaped - crowdPivot()) + crowdPivot();
+// Unselected shells collapse to a point: no fragments, no shadow.
+if (vCrowdAccessory < .5) transformed = crowdPivot();`,
     );
     shader.vertexShader = shader.vertexShader.replace(
       '#include <beginnormal_vertex>',
@@ -165,23 +176,94 @@ objectNormal = crowdTurn() * normalize(objectNormal);`,
     );
     if (colour) {
       shader.fragmentShader =
-        'varying float vCrowdCloth; varying vec4 vCrowdFace;\n' + shader.fragmentShader;
-      // Painted features on the face (seated head frame, facing -X): eyes,
-      // brows and mouth, resolved per fragment so they stay crisp.
+        'varying float vCrowdCloth; varying vec4 vCrowdBind; varying vec4 vCrowdTop; varying vec3 vCrowdSkinTone; varying vec2 vCrowdTags;\n' +
+        shader.fragmentShader;
+      // Clothing, skin, hair and printed details are resolved per fragment in
+      // the seated bind frame (facing -X, lateral Z): seams stay crisp at
+      // every LOD and pose, with no vertex-colour smearing across triangles.
       shader.fragmentShader = shader.fragmentShader.replace(
         '#include <color_fragment>',
         `#include <color_fragment>
-if (vCrowdFace.w > .5) {
-  vec3 f = vCrowdFace.xyz - vec3(.06,.665,0.);
-  float front = smoothstep(.02,-.04,f.x);
-  vec2 e = vec2((abs(f.z)-.031)/.0085,(f.y-.011)/.0045);
-  float eye = (1.-smoothstep(.7,1.,length(e))) * front;
-  vec2 b = vec2((abs(f.z)-.03)/.016,(f.y-.03)/.0032);
-  float brow = (1.-smoothstep(.6,1.,length(b))) * front;
-  vec2 m = vec2(f.z/.018,(f.y+.056)/.0028);
-  float mouth = (1.-smoothstep(.6,1.,length(m))) * front;
-  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.03,.025,.02), max(eye*.85, brow*.6));
-  diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb*vec3(.62,.42,.4), mouth);
+{
+  vec3 p = vCrowdBind.xyz;
+  float joint = vCrowdBind.w;
+  float ph = vCrowdTop.w;
+  vec3 top = vCrowdTop.rgb;
+  vec3 skin = vCrowdSkinTone;
+  float h2 = fract(ph*5.31), h3 = fract(ph*7.13), h4 = fract(ph*2.19), h5 = fract(ph*11.7), h6 = fract(ph*3.91), h7 = fract(ph*13.3), h8 = fract(ph*17.9);
+  vec3 trousers = h2<.42 ? vec3(.06,.085,.15) : h2<.66 ? vec3(.022,.022,.026) : h2<.82 ? vec3(.26,.22,.15) : h2<.92 ? vec3(.14,.14,.15) : vec3(.55,.53,.48);
+  vec3 shoes = h3<.45 ? vec3(.6,.6,.58) : h3<.75 ? vec3(.035,.035,.04) : vec3(.3,.2,.12);
+  float shortSleeve = step(h4,.62), shorts = step(h3,.2);
+  // Arms are separate shells (joint exactly 1 or 2, away from the neck);
+  // body/head boundary triangles interpolate 0..3 and split at 1.5.
+  bool arm = vCrowdTags.y > 2.5 && vCrowdTags.y < 5.5;
+  bool head = !arm && vCrowdTags.y < 1.5 && joint > 1.5;
+  vec3 c = top;
+  float sk = 0.;
+  if (arm) {
+    // Hands beyond the wrist; bare forearms below a short sleeve's hem.
+    float hand = step(.5, vCrowdTags.x);
+    float bare = shortSleeve * step(p.y, .385) * step(p.x, .02);
+    sk = max(hand, bare);
+    // Raglan two-tone sleeves on some shirts.
+    c = mix(top, top*.35 + vec3(.02), step(.7, h6) * step(.385, p.y));
+  } else if (head) {
+    sk = 1.;
+  } else {
+    // Torso / legs: waistband, thighs forward, shins, socks and shoes.
+    float legs = max(step(p.y, .19), step(p.x, -.1) * step(p.y, .25));
+    c = mix(c, trousers, legs);
+    float shin = step(p.y, .075) * step(p.x, -.22);
+    sk = shorts * shin * step(-.2, p.y);
+    c = mix(c, shoes, step(p.y, -.205) * step(p.x, -.2));
+    // Neck above a collar line that dips at the front.
+    float collar = .532 + .3 * (p.x - .085);
+    sk = max(sk, step(collar, p.y));
+    // Team shirts: printed chest crest/sponsor, a horizontal band on others.
+    float front = step(p.x, -.005) * (1. - legs);
+    // A roundel crest on the left chest and a sponsor wordmark bar beneath.
+    vec2 cp = vec2(p.z + .045, p.y - .415);
+    float crest = (1. - smoothstep(.014, .017, length(cp))) * front * step(h5, .55);
+    float word = step(abs(p.y - .388), .004) * step(abs(p.z + .045), .024) * front * step(h5, .55);
+    float lumTop = dot(top, vec3(.3,.59,.11));
+    vec3 ink = lumTop > .25 ? vec3(.03) : vec3(.85);
+    c = mix(c, ink, max(crest * (1. - .6 * (1. - smoothstep(.006, .008, length(cp)))), word));
+    float band = step(abs(p.y - .33), .022) * (1. - legs) * step(.78, h7);
+    c = mix(c, lumTop > .25 ? top*.25 : vec3(.8,.78,.7), band);
+  }
+  vec3 hairCol = mix(vec3(.012,.008,.006), vec3(.15,.078,.025), fract(ph*1.31));
+  hairCol = fract(ph*9.7) > .85 ? vec3(.42,.3,.16) : fract(ph*9.7) > .8 ? vec3(.3,.3,.29) : hairCol;
+  c = mix(c, skin, sk);
+  if (head) {
+    // Head frame: crew-head axes (x lateral, y up, z forward) about the head centre.
+    vec3 hp = vec3(p.z, p.y - .665, .06 - p.x);
+    vec3 hq = vec3(abs(hp.x), hp.y, hp.z);
+    float frontLine = .066 - .008 * cos(hp.x * 40.) + .03 * smoothstep(.03,-.03,hp.z);
+    float back = smoothstep(-.07,.04,hp.z);
+    float hairline = back * frontLine + (1. - back) * -.045;
+    hairline += hq.x > .06 ? .032 * smoothstep(.06,.08,hq.x) * smoothstep(.03,-.03,hp.z) : 0.;
+    float hairMask = max(smoothstep(hairline - .002, hairline + .002, hp.y), step(1.5, vCrowdTags.x));
+    c = mix(c, hairCol, hairMask);
+    float face = (1. - hairMask) * smoothstep(.02, .06, hp.z);
+    vec2 e = vec2((hq.x-.031)/.0085,(hp.y-.011)/.0045);
+    float eye = (1.-smoothstep(.7,1.,length(e))) * face;
+    vec2 b = vec2((hq.x-.03)/.016,(hp.y-.03)/.0032);
+    float brow = (1.-smoothstep(.6,1.,length(b))) * face;
+    vec2 m = vec2(hp.x/.018,(hp.y+.056)/.0028);
+    float mouth = (1.-smoothstep(.6,1.,length(m))) * face;
+    c = mix(c, hairCol*.6 + vec3(.01), max(eye*.85, brow*.6));
+    c = mix(c, c*vec3(.66,.46,.44), mouth);
+    // Sunglasses on some faces (dark, with a frame across the brow line).
+    vec2 lens = vec2((hq.x - .031) / .0175, (hp.y - .012) / .0115);
+    float shades = step(h8, .22) * face * max(1. - smoothstep(.85, 1., length(lens)),
+      step(hq.x, .014) * step(abs(hp.y - .017), .0018));
+    c = mix(c, vec3(.012, .014, .016), shades);
+  }
+  // Separate accessory shells: caps in a team tint, phones dark.
+  if (vCrowdTags.y > 5.5) c = mix(vec3(.9,.89,.86), vec3(.7,.08,.06), step(abs(p.y - .26), .018));
+  else if (vCrowdTags.y > 1.5 && vCrowdTags.y < 2.5) c = vec3(.02,.02,.025);
+  else if (vCrowdTags.y > .5 && vCrowdTags.y < 1.5) c = top*.7;
+  diffuseColor.rgb = c;
 }`,
       );
       if (!shader.vertexShader.includes('#include <color_vertex>'))
@@ -189,37 +271,21 @@ if (vCrowdFace.w > .5) {
       shader.vertexShader = shader.vertexShader.replace(
         '#include <color_vertex>',
         `#include <color_vertex>
-// Garment zones baked in color.r: 0 top, 1 trousers, 2 shoes, 3 forearm, 4 shin.
-float zone=floor(color.r*4.+.5);
 #ifdef USE_INSTANCING_COLOR
-vec3 top=instanceColor.rgb;
+vCrowdTop = vec4(instanceColor.rgb, spectatorPhase);
 #else
-vec3 top=vec3(.5);
+vCrowdTop = vec4(vec3(.5), spectatorPhase);
 #endif
-float h2=fract(spectatorPhase*5.31), h3=fract(spectatorPhase*7.13), h4=fract(spectatorPhase*2.19);
-vec3 trousers=h2<.45?vec3(.075,.1,.17):h2<.7?vec3(.028,.028,.032):h2<.85?vec3(.3,.26,.17):vec3(.16,.16,.17);
-vec3 shoes=h3<.45?vec3(.62,.62,.6):vec3(.04,.04,.045);
-float shortSleeve=step(h4,.6);
-float shorts=step(h3,.22);
-vec3 c=top;
-c=zone>.5&&zone<1.5?trousers:c;
-c=zone>1.5&&zone<2.5?shoes:c;
-c=zone>2.5&&zone<3.5?mix(top,spectatorSkin,shortSleeve):c;
-c=zone>3.5?mix(trousers,spectatorSkin,shorts):c;
-float cloth=1.-step(.5,skinMask);
-vCrowdCloth=cloth;
-// Seated-frame position of face skin for painted features.
-vCrowdFace=vec4(mix(position,standingPosition,spectatorStyle.z)-vec3(-.44,.50,0.)*spectatorStyle.z, step(2.5,crowdJoint)*step(.5,skinMask)*(1.-step(1.5,skinMask)));
-c=mix(c,spectatorSkin,step(.5,skinMask)*(1.-step(1.5,skinMask)));
-vec3 hair=mix(vec3(.012,.008,.006),vec3(.15,.078,.025),fract(spectatorPhase*1.31));
-hair=fract(spectatorPhase*9.7)>.85?vec3(.42,.3,.16):hair;
-c=mix(c,hair,step(1.5,skinMask));
-c=crowdAccessory>1.5?vec3(.02,.02,.025):crowdAccessory>.5?top*.7:c;
-vColor.rgb=c;`,
+vCrowdSkinTone = spectatorSkin;
+// Seated bind position (the standing body is a deformation of it).
+vCrowdBind = vec4(position, crowdJoint);
+vCrowdTags = vec2(skinMask, crowdAccessory);
+vCrowdCloth = 1. - step(.5, skinMask);
+vColor.rgb = vec3(1.);`,
       );
     }
   };
-  material.customProgramCacheKey = () => `apex-procedural-crowd-v9-${colour ? 'colour' : 'depth'}`;
+  material.customProgramCacheKey = () => `apex-procedural-crowd-v11-${colour ? 'colour' : 'depth'}`;
 }
 
 export function crowdDetail(distance: number, previous: CrowdDetail): CrowdDetail {
@@ -261,7 +327,7 @@ export class CrowdCluster {
       skin = new Float32Array(matrices.length * 3),
       style = new Float32Array(matrices.length * 4);
     const frontRow = Math.min(...matrices.map((m) => m.elements[13]));
-    const skinPalette = [0xc58a66, 0x86583f, 0xe5b58e, 0x573b2f, 0xac7654].map(
+    const skinPalette = [0xe3b9a2, 0xc99a7e, 0xa97559, 0x84573f, 0x5c3c2c, 0x3d2a20, 0xd4a68a].map(
       (c) => new T.Color(c),
     );
     for (let i = 0; i < matrices.length; i++) {

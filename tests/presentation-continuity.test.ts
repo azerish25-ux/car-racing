@@ -122,7 +122,7 @@ describe('Presentation continuation: distant spectators', () => {
         humanKit.meshes.spectator_a_2.triangles,
         2,
       ]);
-      expect(budgets[0]).toBeLessThan(2600);
+      expect(budgets[0]).toBeLessThan(3000);
       expect(budgets[1]).toBeLessThan(budgets[0] * 0.6);
       expect(budgets[2]).toBeLessThan(budgets[1] * 0.5);
       for (const mesh of crowd.levels) {

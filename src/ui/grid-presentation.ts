@@ -25,7 +25,10 @@ const BROADCAST_STYLE = `
 .grid-presentation.broadcast .grid-presentation-footer{align-self:flex-end;max-width:520px;text-align:right;}
 .grid-presentation.broadcast .grid-presentation-actions{justify-content:flex-end;}
 .grid-presentation.broadcast .grid-presentation-actions button{min-height:36px;padding:7px 12px;font-size:12px;}
-.grid-presentation.broadcast small{font-size:10px;opacity:.7;}
+.grid-presentation.broadcast .grid-timeline{opacity:0;margin:6px 0;font-size:9px;letter-spacing:.14em;transition:opacity .25s;}
+.grid-presentation.broadcast .grid-presentation-footer:hover .grid-timeline,.grid-presentation.broadcast .grid-timeline:focus-within{opacity:1;}
+.grid-presentation.broadcast .grid-presentation-actions{opacity:.55;transition:opacity .25s;}
+.grid-presentation.broadcast .grid-presentation-footer:hover .grid-presentation-actions,.grid-presentation.broadcast .grid-presentation-actions:focus-within{opacity:1;}
 @media (prefers-reduced-motion: reduce){.grid-lower-third{transition:none;}}
 `;
 
@@ -49,8 +52,7 @@ export class GridPresentationPanel {
     this.root.innerHTML = `<header><div class="grid-event"><span class="eyebrow">LIVE</span><h1 id="gridEventTitle"></h1><p id="gridEventBrief"></p></div>
       <div class="grid-stage" role="status" aria-live="polite"><span class="eyebrow">CREW PREPARATION</span><h2 id="gridStage"></h2><p id="gridStageDetail"></p></div></header>
       <div class="grid-presentation-footer"><label class="grid-timeline">PRESENTATION POSITION <input id="gridPresentationSeek" type="range" min="0" max="${GRID_PRESENTATION_SECONDS}" step=".1" value="0" aria-label="Grid presentation position"></label>
-      <div class="grid-presentation-actions"><button type="button" id="gridPresentationPlay" class="primary">PLAY PREPARATION</button><button type="button" id="gridPresentationStart">SKIP TO START LIGHTS</button><button type="button" id="gridPresentationBack">BACK TO GRID MENU</button></div>
-      <small>Race simulation is held. This presentation does not change tyre temperature, fuel, or grip.</small></div>`;
+      <div class="grid-presentation-actions"><button type="button" id="gridPresentationPlay" class="primary">PLAY PREPARATION</button><button type="button" id="gridPresentationStart">SKIP TO START LIGHTS</button><button type="button" id="gridPresentationBack">BACK TO GRID MENU</button></div></div>`;
     if (!document.getElementById('gridBroadcastStyle')) {
       const style = document.createElement('style');
       style.id = 'gridBroadcastStyle';

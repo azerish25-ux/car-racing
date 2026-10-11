@@ -69,7 +69,7 @@ export function standMaterials() {
     steel: new T.MeshStandardMaterial({ color: 0x454e51, metalness: 0.72, roughness: 0.45 }),
     roof: new T.MeshStandardMaterial({ color: 0xc6c9c7, metalness: 0.42, roughness: 0.58 }),
     underside: new T.MeshStandardMaterial({ color: 0x606963, roughness: 0.9 }),
-    seats: new T.MeshStandardMaterial({ color: 0xffffff, roughness: 0.58 }),
+    seats: new T.MeshStandardMaterial({ color: 0xffffff, roughness: 0.46 }),
     people: new T.MeshStandardMaterial({ color: 0xffffff, roughness: 1 }),
     sign: unprintedBack(
       new T.MeshStandardMaterial({
@@ -207,7 +207,8 @@ export function buildGrandstand(
   ];
   const seatGeometry = mergeGeometries(seatParts, false)!;
   seatParts.forEach((g) => g.dispose());
-  const seatPalette = [0xa33c35, 0x8b3431, 0xe0dcd0, 0x394e53];
+  // Weathered stadium plastic: oxblood, slate, grey and navy blocks, not toy red.
+  const seatPalette = [0x6a2b28, 0x34414b, 0x7f8589, 0x26313b];
   // D21: shirts from CROWD_PALETTE (half team kits, half neutrals) in 75 % cohorts.
   for (let row = 0; row < rows; row++)
     for (let col = 0; col < columns; col++) {

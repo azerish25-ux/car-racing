@@ -112,11 +112,11 @@ for (const wear of ['bare', 'cap', 'headset', 'cap-headset'] as const)
 });
 for (const variant of ['a', 'b'] as const)
   [
-    [0.0095, 2080],
-    [0.016, 1180],
+    [0.0085, 2200],
+    [0.016, 1050],
     [0.028, 545],
   ].forEach(([cell, tris], lod) =>
-    jobs.push([`spectator_${variant}_${lod}`, () => sculptSpectator(variant, cell, tris)]),
+    jobs.push([`spectator_${variant}_${lod}`, () => sculptSpectator(variant, cell, tris, lod < 2)]),
   );
 
 for (const [name, job] of jobs) {

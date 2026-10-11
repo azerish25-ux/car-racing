@@ -87,7 +87,8 @@ describe('procedural human kit', () => {
       }
       expect([...joints].sort()).toEqual([0, 1, 2, 3]);
       expect([...skins].sort()).toEqual([0, 1, 2]);
-      expect([...accessories].sort()).toEqual([0, 1, 2]);
+      // Body, cap, phone, resting arms, folded arms and a cup (code 5 retired).
+      expect([...accessories].sort()).toEqual([0, 1, 2, 3, 4, 6]);
       // Standing correspondence rises in front of the seat.
       const standing = g.getAttribute('standingPosition');
       let top = -Infinity;
