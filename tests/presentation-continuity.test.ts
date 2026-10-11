@@ -122,7 +122,11 @@ describe('Presentation continuation: distant spectators', () => {
         humanKit.meshes.spectator_a_2.triangles,
         2,
       ]);
-      expect(budgets[0]).toBeLessThan(3000);
+      // The close sculpt carries faces and hands (and is only used inside
+      // ~50 visual metres); the mid and far budgets are unchanged.
+      expect(budgets[0]).toBeLessThan(7000);
+      expect(budgets[1]).toBeLessThanOrEqual(1408);
+      expect(budgets[2]).toBeLessThanOrEqual(624);
       expect(budgets[1]).toBeLessThan(budgets[0] * 0.6);
       expect(budgets[2]).toBeLessThan(budgets[1] * 0.5);
       for (const mesh of crowd.levels) {
@@ -155,7 +159,8 @@ describe('Presentation continuation: distant spectators', () => {
   it('partitions every transition into exactly one visible representation per spectator', () => {
     const ranges = Array.from({ length: 4 }, () => new T.Vector2());
     for (const distance of [
-      0, 91, 92, 96, 100, 104, 108, 218, 222, 230, 238, 242, 419, 420, 430, 450, 470, 480, 1000,
+      0, 45, 46, 50, 52, 55, 58, 91, 108, 218, 222, 230, 238, 242, 419, 420, 430, 450, 470, 480,
+      1000,
     ]) {
       crowdLodRanges(distance, ranges);
       expect(ranges.filter((r) => r.x < r.y).length).toBeLessThanOrEqual(2);

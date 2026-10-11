@@ -1,3 +1,4 @@
+import { stadiumSeatGeometry, type SeatTier } from './stadium-seat.ts';
 import * as T from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { SceneryPassDetail } from './scenery-pass-detail.ts';
@@ -24,7 +25,13 @@ export function secondaryStandTier(distance: number, previous?: SecondaryTier): 
  * changes; no geometry is created, disposed or uploaded during a camera cut. */
 export function packSecondaryStandRole(role: SecondaryRole, mirror = false) {
   if (!SECONDARY_ROLES.includes(role)) throw new Error('Invalid A12 mesh role');
-  const input = SECONDARY_TIERS.map((tier) => secondaryStandGeometry(`${role}_${tier}`, mirror));
+  // Seats are the shared moulded stadium shell (three tiers), not the
+  // authored box seat; every other role keeps its authored geometry.
+  const input = SECONDARY_TIERS.map((tier, i) =>
+    role === 'seat' && !mirror
+      ? stadiumSeatGeometry(i as SeatTier)
+      : secondaryStandGeometry(`${role}_${tier}`, mirror),
+  );
   return packLevels(input, `${role}${mirror ? ' / mirrored' : ''}`);
 }
 

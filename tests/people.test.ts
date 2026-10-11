@@ -14,7 +14,8 @@ import {
 import manifest from '../src/rendering/aurel-people.manifest.json' with { type: 'json' };
 import { CrewPose, CREW_UPPER_ARM, CREW_FOREARM } from '../src/rendering/crew-pose.ts';
 import { PitCrewView } from '../src/rendering/pit-crew.ts';
-import { CrowdCluster, spectatorVariation } from '../src/rendering/crowd.ts';
+import { CrowdCluster, SPECTATOR_HEAD_SCALE, spectatorVariation } from '../src/rendering/crowd.ts';
+import { SPECTATOR_HEAD_SCALE as SCULPT_HEAD_SCALE } from '../scripts/lib/human-sculpt.ts';
 import { Simulation } from '../src/simulation/world.ts';
 import { DEFAULT_OPTIONS } from '../src/simulation/config.ts';
 import {
@@ -488,6 +489,33 @@ describe('27H.3 authored crowd cohorts', () => {
         }
       }
       expect(c.levels[3].castShadow).toBe(false);
+    } finally {
+      release(c.root);
+      material.dispose();
+    }
+  });
+  it('paints spectator faces, hairlines, folds and contact shading analytically', () => {
+    const material = new T.MeshStandardMaterial(),
+      c = new CrowdCluster([new T.Matrix4()], [new T.Color()], 17, material);
+    try {
+      for (const level of c.levels.slice(0, 3)) {
+        const shader = shaderFor(level.material as T.Material, 'standard');
+        // The crew head's analytic face at the sculpt's head scale.
+        expect(SPECTATOR_HEAD_SCALE).toBe(SCULPT_HEAD_SCALE);
+        expect(shader.fragmentShader).toContain('HumanFace face = humanFace(hp');
+        expect(shader.fragmentShader).toContain(`/ ${SPECTATOR_HEAD_SCALE.toFixed(2)}`);
+        // No hair edge from a per-vertex tag (those step along triangles).
+        expect(shader.fragmentShader).not.toContain('step(1.5, vCrowdTags.x)');
+        // Fabric folds / skin relief perturb the normal; baked AO is applied.
+        expect(shader.fragmentShader).toContain(
+          'humanBumpNormal(-vViewPosition, normal, crowdBump',
+        );
+        expect(shader.fragmentShader).toContain(
+          'reflectedLight.indirectDiffuse *= vCrowdSurface.x',
+        );
+        expect(shader.vertexShader).toContain('attribute vec3 crowdSurface');
+        expect(level.geometry.getAttribute('crowdSurface')).toBeDefined();
+      }
     } finally {
       release(c.root);
       material.dispose();

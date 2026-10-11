@@ -20,10 +20,16 @@ import {
 import { crewTeamColour } from '../../src/rendering/crew-geometry.ts';
 import { CUFF } from '../../src/rendering/pit-crew.ts';
 import { CrowdCluster } from '../../src/rendering/crowd.ts';
+import { standMaterials } from '../../src/rendering/grandstand.ts';
+import { venueGeometry } from '../../src/rendering/start-finish-assets.ts';
+import { installStadiumSeat, stadiumSeatGeometry } from '../../src/rendering/stadium-seat.ts';
 import { GridPresentationView } from '../../src/rendering/grid-presentation-view.ts';
 import { Simulation } from '../../src/simulation/world.ts';
 import { DEFAULT_OPTIONS } from '../../src/simulation/config.ts';
 import { F, carBase } from '../../src/simulation/protocol.ts';
+import { FormulaCar } from '../../src/rendering/car.ts';
+import { loadRivalLevels } from '../../src/rendering/a61-rival.ts';
+import { loadDriverAsset } from '../../src/rendering/driver-asset.ts';
 
 export interface LabShot {
   name: string;
@@ -181,7 +187,13 @@ export function peopleLab(
  * crowd cluster (shader deformation, LOD selection, actions). */
 export function crowdLab(
   shots: LabShot[],
-  options: { time?: number; reaction?: number; family?: number } = {},
+  options: {
+    time?: number;
+    reaction?: number;
+    family?: number;
+    seat?: 'seat_near' | 'seat_mid' | 'seat_far' | 0 | 1 | 2;
+    empty?: boolean;
+  } = {},
 ) {
   const width = 1000,
     height = 700;
@@ -208,7 +220,11 @@ export function crowdLab(
     colors: T.Color[] = [];
   const palette = [0xc0282d, 0x1b2a5e, 0xf2f2f2, 0x2e7d4f, 0xe08a1e, 0x222222, 0x5b8fd6, 0xd8c84a];
   const dummy = new T.Object3D();
-  const seatMaterial = new T.MeshStandardMaterial({ color: 0x6a2b28, roughness: 0.46 });
+  // Production stand seats (hero start/finish seat shell and stand material).
+  const seatMaterial = installStadiumSeat(standMaterials().seats);
+  const seatMatrices: T.Matrix4[] = [],
+    seatColors: T.Color[] = [];
+  const seatPalette = [0x6a2b28, 0x34414b, 0x7f8589, 0x26313b];
   const concrete = new T.MeshStandardMaterial({ color: 0x8c8b86, roughness: 0.95 });
   for (let row = 0; row < 4; row++) {
     const step = new T.Mesh(new T.BoxGeometry(0.98, 0.49, 6.5), concrete);
@@ -218,19 +234,28 @@ export function crowdLab(
     for (let col = 0; col < 9; col++) {
       dummy.position.set(1.55 + row * 0.98, row * 0.49 + 0.5, (col - 4) * 0.65);
       dummy.updateMatrix();
-      const seat = new T.Mesh(new T.BoxGeometry(0.4, 0.06, 0.39), seatMaterial);
-      seat.position.copy(dummy.position);
-      const back = new T.Mesh(new T.BoxGeometry(0.055, 0.4, 0.4), seatMaterial);
-      back.position.copy(dummy.position).add(new T.Vector3(0.185, 0.2, 0));
-      seat.castShadow = back.castShadow = true;
-      scene.add(seat, back);
+      seatMatrices.push(dummy.matrix.clone());
+      seatColors.push(new T.Color(seatPalette[Math.floor((col + row * 2) / 12) % 4]));
       matrices.push(dummy.matrix.clone());
       colors.push(new T.Color(palette[(row * 9 + col * 5) % palette.length]));
     }
   }
-  const material = new T.MeshStandardMaterial({ roughness: 0.85 });
+  const seats = new T.InstancedMesh(
+    typeof options.seat === 'string'
+      ? venueGeometry(options.seat)
+      : stadiumSeatGeometry(options.seat ?? 0),
+    seatMaterial,
+    seatMatrices.length,
+  );
+  seatMatrices.forEach((m, i) => {
+    seats.setMatrixAt(i, m);
+    seats.setColorAt(i, seatColors[i]);
+  });
+  seats.castShadow = seats.receiveShadow = true;
+  scene.add(seats);
+  const material = standMaterials().people;
   const cluster = new CrowdCluster(matrices, colors, 911, material, options.family);
-  scene.add(cluster.root);
+  if (!options.empty) scene.add(cluster.root);
   const camera = new T.PerspectiveCamera(40, width / height, 0.05, 200);
   const images: Record<string, string> = {};
   for (const shot of shots) {
@@ -312,5 +337,92 @@ export function castLab(shots: LabShot[], options: { time?: number } = {}) {
   const info = { ...view.diagnostics(), contacts: undefined };
   renderer.dispose();
   renderer.domElement.remove();
+  return { images, info };
+}
+
+/** A rival (procedural, team-kit) car with its articulated driver and team
+ * helmet under an outdoor sky probe, for close helmet/driver review. Shots
+ * are in the car's local frame (x right, y up, +z forward). */
+export async function driverLab(
+  shots: LabShot[],
+  options: { id?: number; lod?: 0 | 1 | 2; cutaway?: boolean } = {},
+) {
+  const width = 1000,
+    height = 700;
+  const renderer = new T.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+  renderer.setPixelRatio(1);
+  renderer.setSize(width, height);
+  renderer.outputColorSpace = T.SRGBColorSpace;
+  renderer.toneMapping = T.ACESFilmicToneMapping;
+  renderer.shadowMap.enabled = true;
+  document.body.append(renderer.domElement);
+  const scene = new T.Scene();
+  // Outdoor probe: a blue zenith, a bright hazy horizon and a dark ground.
+  const sky = new T.Scene();
+  const dome = new T.Mesh(
+    new T.SphereGeometry(50, 32, 16),
+    new T.ShaderMaterial({
+      side: T.BackSide,
+      vertexShader:
+        'varying vec3 d; void main(){ d = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.); }',
+      fragmentShader:
+        'varying vec3 d; void main(){ float y = d.y; vec3 c = y > 0. ? mix(vec3(1.1,1.15,1.2), vec3(.25,.45,.9), pow(y,.6)) : mix(vec3(.5,.48,.45), vec3(.12,.12,.11), pow(-y,.5)); gl_FragColor = vec4(c,1.); }',
+    }),
+  );
+  sky.add(dome);
+  const pmrem = new T.PMREMGenerator(renderer);
+  scene.environment = pmrem.fromScene(sky, 0).texture;
+  scene.background = new T.Color(0x9bb7d4);
+  const [rivals, driver] = await Promise.all([loadRivalLevels(), loadDriverAsset()]);
+  const id = options.id ?? 3;
+  const sim = new Simulation({ ...DEFAULT_OPTIONS, opponents: Math.max(1, id) });
+  const frame = sim.makeFrame();
+  const o = carBase(id);
+  const car = new FormulaCar(id, undefined, driver, undefined, rivals);
+  car.update(frame, frame, o, 1, 0, 5, false);
+  car.setLod(options.lod === 1 ? 60 : options.lod === 2 ? 200 : 0, 'high', false);
+  scene.add(car.root);
+  if (options.cutaway) {
+    // Only the driver, helmet and wheel: proportions without the bodywork.
+    const keep = new Set<T.Object3D>();
+    for (const root of [car.driver.root, car.helmet, car.steering])
+      root.traverse((o) => keep.add(o));
+    car.root.traverse((o) => {
+      if (o instanceof T.Mesh && !keep.has(o)) o.visible = false;
+    });
+  }
+  car.root.updateMatrixWorld(true);
+  const sun = new T.DirectionalLight(0xfff1dc, 3);
+  sun.position.copy(car.root.localToWorld(new T.Vector3(-3, 6, 2)));
+  sun.target = car.root;
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(2048, 2048);
+  sun.shadow.camera.left = sun.shadow.camera.bottom = -3;
+  sun.shadow.camera.right = sun.shadow.camera.top = 3;
+  scene.add(sun, new T.HemisphereLight(0xc8dcff, 0x5a5048, 0.6));
+  const floor = new T.Mesh(
+    new T.PlaneGeometry(60, 60),
+    new T.MeshStandardMaterial({ color: 0x45484b, roughness: 0.9 }),
+  );
+  floor.rotation.x = -Math.PI / 2;
+  floor.position.copy(car.root.localToWorld(new T.Vector3(0, -0.52, 0)));
+  floor.receiveShadow = true;
+  scene.add(floor);
+  const camera = new T.PerspectiveCamera(40, width / height, 0.02, 300);
+  const images: Record<string, string> = {};
+  for (const shot of shots) {
+    camera.fov = shot.fov;
+    camera.updateProjectionMatrix();
+    camera.position.copy(car.root.localToWorld(new T.Vector3(...shot.eye)));
+    camera.up.set(0, 1, 0);
+    camera.lookAt(car.root.localToWorld(new T.Vector3(...shot.target)));
+    renderer.render(scene, camera);
+    images[shot.name] = renderer.domElement.toDataURL('image/png');
+  }
+  const info = { triangles: renderer.info.render.triangles, calls: renderer.info.render.calls };
+  renderer.dispose();
+  renderer.domElement.remove();
+  rivals.forEach((r) => r.dispose());
+  driver.dispose();
   return { images, info };
 }

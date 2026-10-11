@@ -11,9 +11,9 @@ import { AUREL_VENUE, venuePlan, type StandSpec } from './venue-plan.ts';
 import { installVenueFinish } from './venue-materials.ts';
 import type { BroadcastSightlines } from './broadcast-sightlines.ts';
 import { CrowdCluster } from './crowd.ts';
+import { installStadiumSeat, stadiumSeatGeometry } from './stadium-seat.ts';
 import { grassApronOffset } from './ground-profile.ts';
 import * as T from 'three';
-import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { Track, trackPoint } from '../simulation/track.ts';
 import { clamp, Random } from '../core/math.ts';
 import { box, mesh, rod, label, unprintedBack } from './geometry.ts';
@@ -69,7 +69,7 @@ export function standMaterials() {
     steel: new T.MeshStandardMaterial({ color: 0x454e51, metalness: 0.72, roughness: 0.45 }),
     roof: new T.MeshStandardMaterial({ color: 0xc6c9c7, metalness: 0.42, roughness: 0.58 }),
     underside: new T.MeshStandardMaterial({ color: 0x606963, roughness: 0.9 }),
-    seats: new T.MeshStandardMaterial({ color: 0xffffff, roughness: 0.46 }),
+    seats: installStadiumSeat(new T.MeshStandardMaterial({ color: 0xffffff, roughness: 0.46 })),
     people: new T.MeshStandardMaterial({ color: 0xffffff, roughness: 1 }),
     sign: unprintedBack(
       new T.MeshStandardMaterial({
@@ -201,12 +201,9 @@ export function buildGrandstand(
     bodyColors: T.Color[] = [];
   const dummy = new T.Object3D(),
     random = new Random(821 + Math.round(site.s));
-  const seatParts = [
-    new T.BoxGeometry(0.4, 0.06, 0.39).translate(0, 0, 0),
-    new T.BoxGeometry(0.055, 0.4, 0.4).translate(0.185, 0.2, 0),
-  ];
-  const seatGeometry = mergeGeometries(seatParts, false)!;
-  seatParts.forEach((g) => g.dispose());
+  // Moulded plastic shells on pedestals (the compact far tier: these generic
+  // stands have no per-camera detail switching).
+  const seatGeometry = stadiumSeatGeometry(2);
   // Weathered stadium plastic: oxblood, slate, grey and navy blocks, not toy red.
   const seatPalette = [0x6a2b28, 0x34414b, 0x7f8589, 0x26313b];
   // D21: shirts from CROWD_PALETTE (half team kits, half neutrals) in 75 % cohorts.

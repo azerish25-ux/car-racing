@@ -285,6 +285,8 @@ export interface SculptedMesh {
   standingNormal?: Float32Array;
   tags?: Uint8Array;
   zone?: Uint8Array;
+  /** Spectators: baked ambient occlusion, arm coordinate and build, 0..255. */
+  surface?: Uint8Array;
 }
 
 /** Decimate to a budget, then put every vertex back on the zero set and use
@@ -455,7 +457,10 @@ interface HeadParts {
   brow: number;
 }
 
-function headField(wear: HeadWear, out?: HeadParts) {
+/** `soft`: hair thickness ramps in above the hairline instead of ending in a
+ * ledge, so a low-budget (spectator) mesh has no stair-stepped hair edge; the
+ * shader paints the hairline analytically on the continuous surface. */
+function headField(wear: HeadWear, out?: HeadParts, soft = false) {
   const cap = wear === 'cap' || wear === 'cap-headset';
   const headset = wear === 'headset' || wear === 'cap-headset' || wear === 'fem-headset';
   const fem = wear.startsWith('fem');
@@ -497,9 +502,12 @@ function headField(wear: HeadWear, out?: HeadParts) {
     // Brow ridge, then eye sockets carved under it.
     // Soft orbital hollows (no separate brow-ridge volume: it reads as a crease).
     s = ssub(s, ellipsoid(ax, y, z, 0.031, 0.0105, 0.099, 0.019, 0.013, 0.017), 0.016);
-    // Upper lids hood the eyeballs.
-    s = smin(s, ellipsoid(ax, y, z, 0.031, 0.0205, 0.0815, 0.0152, 0.0058, 0.0105), 0.004);
-    s = smin(s, ellipsoid(ax, y, z, 0.031, 0.0005, 0.0825, 0.014, 0.0035, 0.009), 0.004);
+    // Upper lids hood the eyeballs. A coarse (soft) mesh cannot resolve the
+    // lid margins, so it keeps a smooth socket and the lids are painted.
+    if (!soft) {
+      s = smin(s, ellipsoid(ax, y, z, 0.031, 0.0205, 0.0815, 0.0152, 0.0058, 0.0105), 0.004);
+      s = smin(s, ellipsoid(ax, y, z, 0.031, 0.0005, 0.0825, 0.014, 0.0035, 0.009), 0.004);
+    } else s = smin(s, ellipsoid(ax, y, z, 0.031, 0.0125, 0.079, 0.016, 0.011, 0.01), 0.008);
     // Nose: bridge, tip, alae and nostrils.
     s = smin(
       s,
@@ -532,7 +540,7 @@ function headField(wear: HeadWear, out?: HeadParts) {
     );
     s = smin(s, lips, 0.006);
     s = ssub(s, roundBox(ax, y, z, 0, -0.0556, 0.098, 0.0195, 0.0008, 0.012, 0.0007), 0.002);
-    const eye = sphere(ax, y, z, 0.031, 0.0105, 0.0765, 0.0122);
+    const eye = sphere(ax, y, z, 0.031, 0.0105, soft ? 0.0745 : 0.0765, 0.0122);
     // Brows: a thin raised band on the brow ridge.
     const brow = roundCone(ax, y, z, 0.014, 0.029, 0.0955, 0.05, 0.031, 0.083, 0.0042, 0.003);
     // Hair: a close crop over the cranium above an irregular hairline.
@@ -543,7 +551,9 @@ function headField(wear: HeadWear, out?: HeadParts) {
       0.0028 +
       0.0045 * smoothstep(0.0, 0.1, y) +
       0.0015 * smoothstep(0.02, 0.09, z) * smoothstep(0.05, 0.1, y);
-    let hair = smax(s - thick, hl - y, 0.002);
+    let hair = soft
+      ? s - thick * smoothstep(hl - 0.002, hl + 0.014, y)
+      : smax(s - thick, hl - y, 0.002);
     if (fem) {
       // Longer hair swept back over the crown with volume at the sides and a
       // ponytail falling from a gathered tie at the back of the head.
@@ -552,7 +562,10 @@ function headField(wear: HeadWear, out?: HeadParts) {
         0.06 - 0.02 * smoothstep(0.01, 0.06, x + 0.012) + 0.04 * smoothstep(0.045, 0.0, z);
       const sideDrop = -0.07 * smoothstep(0.045, 0.07, ax) * smoothstep(0.06, 0.02, z);
       const line = Math.min(front, front + sideDrop);
-      let mass = smax(s - 0.008 - 0.006 * smoothstep(-0.07, 0.05, y), line - y, 0.004);
+      const massThick = 0.008 + 0.006 * smoothstep(-0.07, 0.05, y);
+      let mass = soft
+        ? s - massThick * smoothstep(line - 0.003, line + 0.016, y)
+        : smax(s - massThick, line - y, 0.004);
       // Soft outward fall below the ears.
       mass = smin(
         mass,
@@ -797,26 +810,16 @@ const enum SP {
 }
 
 export type SpectatorArmPose = 'rest' | 'crossed' | 'drink';
+/** Spectator heads are the crew head sculpt at this scale (shared with the
+ * crowd shader's analytic face frame). */
+export const SPECTATOR_HEAD_SCALE = 0.96;
 
-/** Upper arm, forearm and hand of one side (s = -1 left, +1 right) in a pose. */
-function spectatorArm(
-  pose: SpectatorArmPose,
-  s: number,
-  sh: number,
-  x: number,
-  y: number,
-  z: number,
-): [number, number] {
-  let arm = ellipsoid(x * s, y, z, sh + 0.005, 0.475, -0.09, 0.05, 0.07, 0.055);
+/** Shoulder, elbow, wrist and fingertip of one side (s = -1 left, +1 right). */
+function spectatorArmJoints(pose: SpectatorArmPose, s: number, sh: number): V3[] {
   const elbow: V3 =
     pose === 'crossed'
       ? [sh + 0.02, 0.29, -0.03]
       : [sh + 0.03, pose === 'drink' && s > 0 ? 0.27 : 0.26, -0.04];
-  arm = smin(
-    arm,
-    roundCone(x * s, y, z, sh + 0.01, 0.48, -0.09, elbow[0], elbow[1], elbow[2], 0.045, 0.036),
-    0.02,
-  );
   let wrist: V3, tip: V3;
   if (pose === 'crossed') {
     // Forearms folded across the stomach, the right one over the left.
@@ -831,36 +834,94 @@ function spectatorArm(
     wrist = [0.125, 0.198, 0.19];
     tip = [0.115, 0.19, 0.285];
   }
+  // Mirrored into the side's frame (x * s).
+  return [[sh + 0.01, 0.48, -0.09], elbow, wrist, tip].map(([x, y, z]) => [x * s, y, z] as V3);
+}
+
+/** Normalised position along an arm (0 shoulder, .5 elbow, .9 wrist, 1
+ * fingertip) of a point, from its nearest point on either arm's bone
+ * polyline (folded forearms cross the midline). */
+function armCoordinate(arms: readonly (readonly V3[])[], x: number, y: number, z: number) {
+  const marks = [0, 0.5, 0.9, 1];
+  let best = Infinity,
+    t = 0;
+  for (let k = 0; k < 6; k++) {
+    const joints = arms[k < 3 ? 0 : 1],
+      j = k % 3;
+    const [ax, ay, az] = joints[j],
+      [bx, by, bz] = joints[j + 1];
+    const dx = bx - ax,
+      dy = by - ay,
+      dz = bz - az;
+    const u = Math.max(
+      0,
+      Math.min(1, ((x - ax) * dx + (y - ay) * dy + (z - az) * dz) / (dx * dx + dy * dy + dz * dz)),
+    );
+    const d = Math.hypot(x - ax - dx * u, y - ay - dy * u, z - az - dz * u);
+    if (d < best) {
+      best = d;
+      t = marks[j] + (marks[j + 1] - marks[j]) * u;
+    }
+  }
+  return t;
+}
+
+/** Upper arm, forearm and hand of one side (s = -1 left, +1 right) in a pose. */
+function spectatorArm(
+  pose: SpectatorArmPose,
+  s: number,
+  sh: number,
+  x: number,
+  y: number,
+  z: number,
+): [number, number] {
+  const [, elbow, wrist, tip] = spectatorArmJoints(pose, 1, sh);
+  const px = x * s;
+  // Deltoid, then a tapering upper arm with a slight biceps swell.
+  let arm = ellipsoid(px, y, z, sh + 0.005, 0.475, -0.09, 0.05, 0.07, 0.055);
   arm = smin(
     arm,
-    roundCone(
-      x * s,
-      y,
-      z,
-      elbow[0],
-      elbow[1],
-      elbow[2],
-      wrist[0],
-      wrist[1],
-      wrist[2],
-      0.037,
-      0.026,
-    ),
+    roundCone(px, y, z, sh + 0.01, 0.48, -0.09, elbow[0], elbow[1], elbow[2], 0.045, 0.036),
     0.02,
   );
-  // Hand: palm and fingers as a tapered, flattened capsule from the wrist.
-  const hand = smin(
-    roundCone(x * s, y, z, wrist[0], wrist[1], wrist[2], tip[0], tip[1], tip[2], 0.024, 0.017),
-    sphere(
-      x * s,
+  arm = smin(
+    arm,
+    roundCone(px, y, z, elbow[0], elbow[1], elbow[2], wrist[0], wrist[1], wrist[2], 0.037, 0.026),
+    0.02,
+  );
+  // Hand: a flattened palm block from the wrist, a thumb and curled fingers,
+  // instead of a single capsule (reads as a hand at close range).
+  const ux = tip[0] - wrist[0],
+    uy = tip[1] - wrist[1],
+    uz = tip[2] - wrist[2];
+  const at = (k: number): V3 => [wrist[0] + ux * k, wrist[1] + uy * k, wrist[2] + uz * k];
+  const palmA = at(0.12),
+    palmB = at(0.62),
+    fingersA = at(0.62),
+    fingersB = at(1.0);
+  let hand = roundCone(px, y, z, ...palmA, ...palmB, 0.021, 0.022);
+  hand = smin(hand, roundCone(px, y, z, ...wrist, ...palmA, 0.022, 0.021), 0.008);
+  hand = smin(
+    hand,
+    roundCone(px, y, z, ...fingersA, fingersB[0], fingersB[1] - 0.008, fingersB[2], 0.018, 0.012),
+    0.01,
+  );
+  // Thumb on the inner side (toward the body centre line).
+  const thumbBase = at(0.3);
+  hand = smin(
+    hand,
+    roundCone(
+      px,
       y,
       z,
-      wrist[0] + (tip[0] - wrist[0]) * 0.45,
-      wrist[1] + (tip[1] - wrist[1]) * 0.45,
-      wrist[2] + (tip[2] - wrist[2]) * 0.45,
-      0.026,
+      ...thumbBase,
+      thumbBase[0] - 0.03,
+      thumbBase[1] + 0.006,
+      thumbBase[2] + 0.03,
+      0.011,
+      0.0085,
     ),
-    0.01,
+    0.008,
   );
   return [arm, hand];
 }
@@ -873,6 +934,8 @@ function spectatorField(
 ) {
   const fem = variant === 'b';
   const sh = fem ? 0.152 : 0.168; // shoulder half-width
+  const headParts: HeadParts = { skin: 1, hair: 1, eye: 1, lips: 1, cap: 1, headset: 1, brow: 1 };
+  const headSample = headField(fem ? 'fem-bare' : 'bare', headParts, true);
   return (x: number, y: number, z: number) => {
     const ax = Math.abs(x);
     // Torso (reclined slightly against the seat back), hips on the seat.
@@ -886,25 +949,14 @@ function spectatorField(
       0.04,
     );
     torso = smin(torso, roundCone(x, y, z, 0, 0.47, -0.095, 0, 0.6, -0.085, 0.05, 0.045), 0.03); // neck
-    // Head on the neck (centre 0.665), with a sculpted face.
+    // Head on the neck (centre 0.665): the crew head sculpt (skull, orbital
+    // hollows, lidded eyes, nose, lips, jaw, carved ears) at spectator scale,
+    // with ledge-free hair so the hairline is painted, never stair-stepped.
     const hy = y - 0.665,
       hz = z + 0.06;
-    let head = ellipsoid(ax, hy, hz, 0, 0.03, -0.014, 0.074, 0.088, 0.097);
-    head = smin(head, ellipsoid(ax, hy, hz, 0, -0.034, 0.036, 0.05, 0.064, 0.058), 0.025);
-    head = smin(
-      head,
-      roundCone(ax, hy, hz, 0.052, -0.043, -0.016, 0.024, -0.098, 0.053, 0.015, 0.012),
-      0.02,
-    );
-    head = smin(head, roundCone(ax, hy, hz, 0, 0.02, 0.09, 0, -0.022, 0.106, 0.008, 0.011), 0.008);
-    head = smin(head, ellipsoid(ax, hy, hz, 0.077, 0.002, -0.01, 0.011, 0.03, 0.02), 0.006);
-    head = ssub(head, ellipsoid(ax, hy, hz, 0.031, 0.011, 0.096, 0.018, 0.012, 0.015), 0.008);
-    // Hair: crop (a) or longer hair to the shoulders with a ponytail (b).
-    let hair = smax(head - (fem ? 0.009 : 0.006), headHairline(x, hy, hz) - hy, 0.003);
-    if (fem) {
-      hair = smin(hair, ellipsoid(ax, hy, hz, 0, -0.06, -0.06, 0.07, 0.09, 0.05), 0.03);
-      hair = smin(hair, roundCone(x, hy, hz, 0, 0.0, -0.1, 0, -0.16, -0.12, 0.03, 0.018), 0.02);
-    }
+    headSample(x / SPECTATOR_HEAD_SCALE, hy / SPECTATOR_HEAD_SCALE, hz / SPECTATOR_HEAD_SCALE);
+    const head = Math.min(headParts.skin, headParts.eye) * SPECTATOR_HEAD_SCALE;
+    const hair = headParts.hair * SPECTATOR_HEAD_SCALE;
     // Arms (separate shells per pose): shoulder, elbow, forearm, hand.
     const [armL, handL] = spectatorArm(pose, -1, sh, x, y, z);
     const [armR, handR] = spectatorArm(pose, 1, sh, x, y, z);
@@ -962,10 +1014,12 @@ function spectatorField(
 }
 
 /** Separate accessory shells (shown per spectator by the crowd shader). */
-function spectatorCapField(x: number, y: number, z: number) {
-  const ax = Math.abs(x),
-    hy = y - 0.665,
-    hz = z + 0.06;
+function spectatorCapField(x: number, y: number, z: number, fem = false) {
+  // Sized over the hair: a fuller crown over the longer (b) hair mass.
+  const k = fem ? 1.08 : 1.02;
+  const ax = Math.abs(x) / k,
+    hy = (y - 0.665) / k,
+    hz = (z + 0.06) / k;
   let crown = ellipsoid(ax, hy, hz, 0, 0.04, -0.012, 0.086, 0.095, 0.109);
   crown = smax(crown, 0.026 + 0.02 * smoothstep(0.0, -0.08, hz) - hy, 0.004);
   const brim = smax(
@@ -973,7 +1027,7 @@ function spectatorCapField(x: number, y: number, z: number) {
     0.06 - hz,
     0.004,
   );
-  return Math.min(crown, brim);
+  return Math.min(crown, brim) * k;
 }
 function spectatorCupField(x: number, y: number, z: number) {
   // A paper cup held upright in the resting right hand, on the thigh.
@@ -995,11 +1049,40 @@ export const SPECTATOR_SHELLS = [
   'cup',
 ] as const;
 
+/** Seat pan, seat back and the tread under a seated spectator (design frame),
+ * used only as an occluder when baking ambient occlusion. */
+function spectatorSeatField(x: number, y: number, z: number) {
+  const pan = roundBox(x, y, z, 0, -0.012, 0.0, 0.21, 0.014, 0.2, 0.01);
+  const back = roundBox(x, y, z, 0, 0.2, -0.228, 0.2, 0.2, 0.02, 0.012);
+  return Math.min(pan, back, y + 0.3);
+}
+
+/** Ambient occlusion from the signed-distance field (Quilez): the fraction of
+ * a short normal ray that is closer to some surface than its own length. */
+function fieldOcclusion(
+  field: Field,
+  x: number,
+  y: number,
+  z: number,
+  nx: number,
+  ny: number,
+  nz: number,
+) {
+  let occ = 0;
+  for (let i = 1; i <= 6; i++) {
+    const h = 0.011 * i;
+    const d = field(x + nx * h, y + ny * h, z + nz * h);
+    occ += Math.max(0, h - d) / h / 6;
+  }
+  return Math.max(0.22, Math.min(1, 1 - 1.7 * occ));
+}
+
 export function sculptSpectator(
   variant: 'a' | 'b',
   cell: number,
   triangles: number,
   poses = true,
+  faceWeight = 6,
 ): SculptedMesh {
   const field = spectatorField(variant);
   const parts = new Float64Array(SP.Count);
@@ -1008,7 +1091,7 @@ export function sculptSpectator(
   );
   // Faces and hands keep detail; the seat-hidden back gives it up first.
   const importance = (_x: number, y: number, z: number) =>
-    y > 0.55 && z > -0.04 ? 6 : y > 0.55 ? 2.5 : y > 0.15 && z > 0.15 ? 1.8 : 1;
+    y > 0.55 && z > -0.04 ? faceWeight : y > 0.55 ? 2.5 : y > 0.15 && z > 0.15 ? 1.8 : 1;
   const bodyMesh = polygonise(
     field,
     [-0.3, -0.36, -0.22],
@@ -1017,14 +1100,21 @@ export function sculptSpectator(
     Math.round(triangles * 0.74),
     importance,
   );
-  const armShell = (pose: SpectatorArmPose, share: number) =>
-    polygonise(
+  const sh = variant === 'b' ? 0.152 : 0.168;
+  const armShell = (pose: SpectatorArmPose, share: number) => {
+    // Hands keep their triangles (fingers and thumb read at close range).
+    const joints = [spectatorArmJoints(pose, -1, sh), spectatorArmJoints(pose, 1, sh)];
+    const handImportance = (x: number, y: number, z: number) =>
+      armCoordinate(joints, x, y, z) > 0.86 ? 3 : 1;
+    return polygonise(
       spectatorField(variant, undefined, 'arms', pose),
       [-0.26, 0.14, -0.2],
       [0.26, 0.58, 0.34],
       Math.min(cell, 0.014),
       Math.round(triangles * share),
+      handImportance,
     );
+  };
   const empty: SculptedMesh = {
     positions: new Float32Array(0),
     normals: new Float32Array(0),
@@ -1037,9 +1127,9 @@ export function sculptSpectator(
     ? polygonise(spectatorCupField, [0.05, 0.16, 0.2], [0.16, 0.33, 0.31], 0.006, 60)
     : empty;
   const capMesh = polygonise(
-    spectatorCapField,
-    [-0.11, 0.66, -0.19],
-    [0.11, 0.79, 0.15],
+    (x, y, z) => spectatorCapField(x, y, z, variant === 'b'),
+    [-0.12, 0.66, -0.2],
+    [0.12, 0.83, 0.17],
     Math.min(cell, 0.012),
     Math.round(triangles * 0.08),
   );
@@ -1179,6 +1269,41 @@ export function sculptSpectator(
                 ? 3
                 : 0;
   }
+  // Baked surface data: SDF ambient occlusion against the body, the resting
+  // (or folded) arms and the seat; the arm coordinate for sleeves and hands;
+  // the build (for the painted hair line).
+  const surface = new Uint8Array(n * 3);
+  {
+    const arms = (['rest', 'crossed'] as const).map((pose) =>
+      spectatorField(variant, undefined, 'arms', pose),
+    );
+    const armJoints = (['rest', 'crossed'] as const).map((pose) => [
+      spectatorArmJoints(pose, -1, sh),
+      spectatorArmJoints(pose, 1, sh),
+    ]);
+    const occluders = arms.map(
+      (armField) => (x: number, y: number, z: number) =>
+        Math.min(field(x, y, z), armField(x, y, z), spectatorSeatField(x, y, z)),
+    );
+    const bodyOnly = (x: number, y: number, z: number) =>
+      Math.min(field(x, y, z), spectatorSeatField(x, y, z));
+    for (let i = 0; i < n; i++) {
+      const x = mesh.positions[i * 3],
+        y = mesh.positions[i * 3 + 1],
+        z = mesh.positions[i * 3 + 2];
+      const nx = mesh.normals[i * 3],
+        ny = mesh.normals[i * 3 + 1],
+        nz = mesh.normals[i * 3 + 2];
+      const pose = origin[i] === 4 ? 1 : 0;
+      // Resting arms shade the body only half as much: a third of the crowd
+      // folds them instead.
+      let ao = fieldOcclusion(occluders[pose], x, y, z, nx, ny, nz);
+      if (origin[i] === 0) ao = (ao + fieldOcclusion(bodyOnly, x, y, z, nx, ny, nz)) / 2;
+      const isArm = origin[i] >= 3 && origin[i] <= 5;
+      const t = isArm ? armCoordinate(armJoints[pose], x, y, z) : 0;
+      surface.set([Math.round(ao * 255), Math.round(t * 255), variant === 'b' ? 255 : 0], i * 3);
+    }
+  }
   // Standing normals from the standing surface itself.
   const sn = new Float32Array(n * 3);
   const idx = mesh.indices;
@@ -1218,5 +1343,14 @@ export function sculptSpectator(
     normals.set([-mesh.normals[i * 3 + 2], mesh.normals[i * 3 + 1], mesh.normals[i * 3]], i * 3);
   }
   // The frame change is a proper rotation (det +1): winding is preserved.
-  return { positions, normals, indices: mesh.indices, standing, standingNormal: sn, tags, zone };
+  return {
+    positions,
+    normals,
+    indices: mesh.indices,
+    standing,
+    standingNormal: sn,
+    tags,
+    zone,
+    surface,
+  };
 }

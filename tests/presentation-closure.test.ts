@@ -111,17 +111,17 @@ describe('Phase 27 graphics closure', () => {
 
 it('hands off crowd levels without double-drawing or dropping a spectator and restores exact rewind weights', () => {
   const ranges = [new T.Vector2(), new T.Vector2(), new T.Vector2(), new T.Vector2()];
-  for (const distance of [0, 91, 92, 96, 100, 104, 108, 150, 218, 222, 230, 238, 242, 420, 430, 450, 470, 480, 600]) {
+  for (const distance of [0, 45, 46, 50, 52, 55, 58, 100, 150, 218, 222, 230, 238, 242, 420, 430, 450, 470, 480, 600]) {
     crowdLodRanges(distance, ranges);
     const count = ranges.filter((r) => r.y > r.x).length;
-    expect(count).toBe(distance > 92 && distance < 108 || distance > 218 && distance < 242 || distance > 420 && distance < 480 ? 2 : 1);
+    expect(count).toBe(distance > 46 && distance < 58 || distance > 218 && distance < 242 || distance > 420 && distance < 480 ? 2 : 1);
     for (let i = 0; i < 1024; i++) {
       const rank = i / 1024;
       expect(ranges.filter((r) => rank >= r.x && rank < r.y)).toHaveLength(1);
     }
   }
-  crowdLodRanges(99.2, ranges); const before = ranges.map((r) => r.toArray());
-  crowdLodRanges(240, ranges); crowdLodRanges(99.2, ranges);
+  crowdLodRanges(53.2, ranges); const before = ranges.map((r) => r.toArray());
+  crowdLodRanges(240, ranges); crowdLodRanges(53.2, ranges);
   expect(ranges.map((r) => r.toArray())).toEqual(before);
   for (const distance of [NaN, Infinity, -1]) expect(() => crowdLodRanges(distance, ranges)).toThrow();
 });

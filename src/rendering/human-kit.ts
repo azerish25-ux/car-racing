@@ -33,6 +33,7 @@ interface PackedMesh {
   standingMax?: number[];
   tags?: string;
   zone?: string;
+  surface?: string;
 }
 
 function bytes(text: string) {
@@ -99,6 +100,12 @@ export function humanKitGeometry(name: HumanKitMesh): T.BufferGeometry {
   }
   if (data.tags)
     g.setAttribute('crowdPerson', new T.BufferAttribute(Float32Array.from(bytes(data.tags)), 3));
+  if (data.surface) {
+    const surface = bytes(data.surface);
+    if (surface.length !== n * 3) throw new Error('Invalid human kit surface');
+    // Baked ambient occlusion, arm coordinate (0 shoulder .. 1 fingertip), build.
+    g.setAttribute('crowdSurface', new T.BufferAttribute(surface, 3, true));
+  }
   // White albedo: kit, skin and hair colours are resolved in the shaders.
   g.setAttribute('color', new T.BufferAttribute(new Float32Array(n * 3).fill(1), 3));
   g.name = `Procedural ${name}`;
@@ -186,6 +193,143 @@ vec3 humanHairTone(float id) {
 }
 `;
 
+/** Shared analytic face (GLSL, needs HUMAN_TONE_GLSL): skin anatomy tints,
+ * lips, brows, stubble, eyes with a wet catchlight, lashes and a feathered
+ * hairline, plus skin micro-relief (a bump height in metres) and roughness
+ * breakup so faces are not waxy. `hp` is the crew head frame (x lateral, y up,
+ * z forward, metres about the head joint); `px` the pixel footprint in metres
+ * (computed by the caller in uniform control flow, used to fade detail);
+ * `wispy` lets a painted (ledge-free) hairline wander a little. */
+export const HUMAN_FACE_GLSL = `
+struct HumanFace { vec3 col; float rough; float hair; float eye; float glint; float bump; float skin; };
+float humanEll(vec3 p, vec3 c, vec3 r) { vec3 q = (p - c) / r; return (length(q) - 1.) * min(r.x, min(r.y, r.z)); }
+float humanSeg(vec3 p, vec3 a, vec3 b) { vec3 pa = p - a, ba = b - a; return length(pa - ba * clamp(dot(pa, ba) / dot(ba, ba), 0., 1.)); }
+float humanNoise(vec3 p) {
+  vec3 i = floor(p), f = fract(p);
+  f = f * f * (3. - 2. * f);
+  float n = dot(i, vec3(1., 57., 113.));
+  vec4 a = fract(sin(vec4(n, n + 1., n + 57., n + 58.)) * 43758.5453);
+  vec4 b = fract(sin(vec4(n + 113., n + 114., n + 170., n + 171.)) * 43758.5453);
+  vec4 m = mix(a, b, f.z);
+  vec2 e = mix(m.xz, m.yw, f.x);
+  return mix(e.x, e.y, f.y);
+}
+HumanFace humanFace(vec3 hp, vec3 skin, vec3 hair, float person, float fem, float px, float wispy) {
+  HumanFace f;
+  vec3 hq = vec3(abs(hp.x), hp.y, hp.z);
+  vec3 col = skin;
+  float front = smoothstep(.06, .09, hp.z);
+  // Fine detail fades out before it can alias (px: metres per pixel).
+  float fine = 1. - smoothstep(.0006, .0025, px);
+  float mid = 1. - smoothstep(.0025, .008, px);
+  // Skin roughness: a glossier T-zone (forehead, nose), softer cheeks.
+  float tzone = max(smoothstep(.02, .0, abs(hp.x)) * step(-.03, hp.y) * step(hp.y, .07),
+    smoothstep(.03, .01, abs(hp.y - .045)) * smoothstep(.05, .02, hq.x));
+  float rough = mix(.6, .44, tzone * front);
+  // Anatomy tints: warm cheeks, nose tip and ears; shaded orbits under the
+  // brow; a cooler jaw underside and a lighter brow ridge.
+  float cheek = smoothstep(.012, -.012, humanEll(hq, vec3(.04, -.028, .062), vec3(.026, .022, .026)));
+  col *= mix(vec3(1.), vec3(1.07, .93, .91), cheek);
+  float nose = smoothstep(.012, .0, length(hq - vec3(0., -.024, .104)) - .012);
+  col *= mix(vec3(1.), vec3(1.07, .92, .9), nose);
+  float ear = smoothstep(.066, .076, hq.x) * smoothstep(.04, .02, abs(hp.y)) * smoothstep(.03, .0, abs(hp.z + .008));
+  col *= mix(vec3(1.), vec3(1.08, .9, .88), ear);
+  float orbit = smoothstep(.008, -.006, humanEll(hq, vec3(.031, .006, .086), vec3(.021, .015, .02)));
+  col *= mix(vec3(1.), vec3(.86, .8, .82), orbit * .3);
+  float ridge = smoothstep(.006, -.004, humanEll(hq, vec3(.03, .03, .088), vec3(.024, .006, .014)));
+  col *= mix(vec3(1.), vec3(1.05, 1.03, 1.), ridge);
+  col *= mix(vec3(1.), vec3(.9, .9, .93), smoothstep(-.07, -.1, hp.y) * step(.04, hp.z) * .6);
+  col *= mix(vec3(1.), vec3(.86, .82, .84), smoothstep(.006, .0, abs(hq.x - .0)) * smoothstep(.004, .0, abs(hp.y + .041)) * front);
+  // Lips and the mouth line.
+  float lip = min(humanEll(hq, vec3(0., -.0505, .0862), vec3(.0195, .0052, .009)), humanEll(hq, vec3(0., -.0605, .084), vec3(.0175, .006, .0092)));
+  float lipMask = smoothstep(.0012, -.0006, lip) * step(.08, hp.z);
+  col = mix(col, skin * mix(vec3(.86, .64, .6), vec3(.8, .5, .5), fem), lipMask);
+  rough = mix(rough, .38, lipMask);
+  float mouthLine = (1. - smoothstep(.0009, .0022, abs(hp.y + .0556))) * smoothstep(.0205, .017, hq.x) * step(.08, hp.z);
+  col = mix(col, skin * vec3(.28, .16, .15), mouthLine);
+  // Brows follow the ridge; stubble on some men.
+  float brow = humanSeg(hq, vec3(.014, .0295, .0965), vec3(.05, .0315, .084));
+  float browArch = brow - .0012 * sin(clamp((hq.x - .014) / .036, 0., 1.) * 3.1416) + .0006 * fem;
+  float browMask = smoothstep(mix(.0032, .0028, fem), mix(.0018, .0016, fem), browArch) * step(.07, hp.z);
+  browMask *= mix(1., .7 + .3 * humanNoise(hp * vec3(1400., 300., 300.)), fine);
+  col = mix(col, mix(col, hair, mix(.55, .65, fem)), browMask);
+  float jaw = smoothstep(-.035, -.065, hp.y) * smoothstep(.0, .05, hp.z) * (1. - smoothstep(.095, .125, -hp.y)) * (1. - smoothstep(.04, .06, hq.x) * .5);
+  float stubble = (1. - fem) * step(humanHash(person + 9.1), .4) * jaw * (1. - smoothstep(.0013, -.0006, lip));
+  col = mix(col, col * mix(vec3(1.), hair * 3. + .55, .22), stubble);
+  // Eyes: sclera, iris, pupil and a wet corneal catchlight (upper outer).
+  vec3 eyeC = vec3(.031, .0105, .0765);
+  vec3 ed = hq - eyeC;
+  // The visible eye is the almond between the lid margins (the lids cover
+  // the rest of the eyeball), so it never reads as a staring white disc.
+  float lidU = (hq.x - .031) / .016;
+  float upperLid = .0152 + .0022 * (1. - lidU * lidU);
+  float lowerLid = .0052 - .0012 * (1. - lidU * lidU);
+  float eyeMask = step(length(ed), .0128) * step(.079, hp.z)
+    * smoothstep(upperLid + .0005, upperLid - .0005, hp.y) * smoothstep(lowerLid - .0005, lowerLid + .0005, hp.y);
+  vec3 en = normalize(ed);
+  vec3 iris = mix(vec3(.1, .055, .025), vec3(.12, .2, .26), step(.7, humanHash(person + 2.3)));
+  vec3 sclera = vec3(.36, .33, .31) * mix(.5, 1., smoothstep(.55, .1, en.y)) * mix(.8, 1., smoothstep(.3, .7, en.z));
+  float irisRing = smoothstep(.84, .86, en.z);
+  // Seen from further away the eye reads as a shaded almond, not a white disc.
+  sclera *= mix(1., .55, smoothstep(.0008, .002, px));
+  vec3 eyeCol = mix(sclera, iris * mix(.6, 1., smoothstep(.97, .9, en.z)), irisRing);
+  eyeCol = mix(eyeCol, vec3(.008), smoothstep(.968, .975, en.z));
+  // The same key-light direction in both eyes (true x, not mirrored).
+  vec2 glintAt = vec2(-.24, .3);
+  float glint = (1. - smoothstep(.07, .13, length(vec2(en.x * sign(hp.x), en.y) - glintAt))) * eyeMask * irisRing;
+  col = mix(col, eyeCol, eyeMask);
+  rough = mix(rough, .05, eyeMask);
+  // Lash line along the upper lid and a soft lower-lid shadow.
+  float lidX = smoothstep(.047, .043, hq.x) * smoothstep(.015, .019, hq.x) * step(.075, hp.z);
+  float lash = lidX * (1. - smoothstep(.0012, .0026, abs(hp.y - (.0155 + .002 * (1. - pow((hq.x - .031) / .016, 2.))))));
+  float lower = lidX * (1. - smoothstep(.001, .003, abs(hp.y - .0045))) * .14;
+  lash = min(1., lash * mix(1., 1.4, fem));
+  col = mix(col, vec3(.02, .015, .012), max(lash * .85 * (1. - eyeMask), lower));
+  // Hair: a feathered, slightly irregular hairline (density thins over a few
+  // millimetres, never a hard polygon edge), darker toward the roots.
+  float frontLine = .066 - .008 * cos(hp.x * 40.) + .03 * smoothstep(.03, -.03, hp.z);
+  float back = smoothstep(-.07, .04, hp.z);
+  float hairline = back * frontLine + (1. - back) * -.045;
+  hairline += .032 * smoothstep(.06, .08, hq.x) * smoothstep(.03, -.03, hp.z);
+  float earOval = length(vec2(hp.y / .042, (hp.z + .008) / .03));
+  hairline = max(hairline, mix(-1., hp.y + .004 * (1. - earOval) + .002, step(.06, hq.x) * step(earOval, 1.)));
+  float femFront = .06 - .02 * smoothstep(.01, .06, hp.x + .012) + .04 * smoothstep(.045, 0., hp.z);
+  float femLine = min(femFront, femFront - .07 * smoothstep(.045, .07, hq.x) * smoothstep(.06, .02, hp.z));
+  hairline = mix(hairline, femLine, fem);
+  float wisp = humanNoise(hp * 140.) - .5;
+  hairline += wisp * .0025 * mid * wispy;
+  float feather = mix(.0025, max(.0045, px * 1.5), wispy);
+  float hairMask = smoothstep(hairline - .0012, hairline + feather, hp.y);
+  float femBack = smoothstep(-.084, -.092, hp.z) * smoothstep(.054, .046, hq.x) * smoothstep(-.17, -.15, hp.y);
+  float femSide = smoothstep(.064, .07, hq.x) * smoothstep(.024, .016, hp.y) * smoothstep(-.094, -.086, hp.y) * smoothstep(.044, .036, hp.z);
+  hairMask = max(hairMask, fem * max(femBack, femSide));
+  float strandPhase = dot(hp, vec3(2600., 900., 3800.)) + 3. * humanNoise(hp * vec3(90., 400., 90.));
+  float strands = .93 + .07 * sin(strandPhase) * fine;
+  vec3 hairCol = hair * strands * mix(.72, 1., smoothstep(hairline, hairline + .02, hp.y));
+  col = mix(col, hairCol, hairMask);
+  rough = mix(rough, .58, hairMask);
+  // Micro-relief: pores and fine creases (bump, metres) and roughness breakup.
+  float pores = humanNoise(hp * 1100.) - .5;
+  float blotch = humanNoise(hp * 160. + 7.) - .5;
+  float skinMask = (1. - hairMask) * (1. - eyeMask);
+  col *= 1. + blotch * .07 * skinMask * mid;
+  rough = clamp(rough + (blotch * .14 + pores * .08 * fine) * skinMask, .3, .8);
+  f.bump = (pores * .00005 * fine + blotch * .0002 * mid) * skinMask
+    + sin(strandPhase) * .000025 * hairMask * fine;
+  f.col = col; f.rough = rough; f.hair = hairMask; f.eye = eyeMask; f.glint = glint; f.skin = skinMask;
+  return f;
+}
+// Mikkelsen surface-gradient bump with unnormalised screen derivatives: the
+// height is in the same units (metres) as the view-space position.
+vec3 humanBumpNormal(vec3 surfPos, vec3 n, float h, float faceDirection) {
+  vec3 dpx = dFdx(surfPos), dpy = dFdy(surfPos);
+  vec3 r1 = cross(dpy, n), r2 = cross(n, dpx);
+  float det = dot(dpx, r1) * faceDirection;
+  vec3 grad = sign(det) * (dFdx(h) * r1 + dFdy(h) * r2);
+  return normalize(abs(det) * n - grad);
+}
+`;
+
 /** CPU mirror of GLSL humanSkinTone (linear RGB), for bare hands. */
 export function humanSkinToneRGB(id: number, out = new T.Color()) {
   const h = ((((id * 0.6180339887 + 0.37) % 1) + 1) % 1) * 5;
@@ -249,9 +393,9 @@ vHeadTeam = vec3(.1,.12,.2);
       (cap ? '#define HEAD_CAP\n' : '') +
       (set ? '#define HEAD_SET\n' : '') +
       (fem ? '#define HEAD_FEM\n' : '') +
-      `varying float vHeadPerson;\nvarying vec3 vHeadLocal;\nvarying vec3 vHeadTeam;\nfloat vHeadSkin;\n${HUMAN_TONE_GLSL}
-float headSeg(vec3 p, vec3 a, vec3 b) { vec3 pa = p - a, ba = b - a; return length(pa - ba * clamp(dot(pa, ba) / dot(ba, ba), 0., 1.)); }
-float headEll(vec3 p, vec3 c, vec3 r) { vec3 q = (p - c) / r; return (length(q) - 1.) * min(r.x, min(r.y, r.z)); }
+      `varying float vHeadPerson;\nvarying vec3 vHeadLocal;\nvarying vec3 vHeadTeam;\nfloat vHeadSkin;\nfloat headBump;\nfloat headGlint;\nfloat headPx;\n${HUMAN_TONE_GLSL}${HUMAN_FACE_GLSL}
+float headSeg(vec3 p, vec3 a, vec3 b) { return humanSeg(p, a, b); }
+float headEll(vec3 p, vec3 c, vec3 r) { return humanEll(p, c, r); }
 ` +
       shader.fragmentShader;
     shader.fragmentShader = skinWrapLighting(shader.fragmentShader, 'vHeadSkin');
@@ -260,80 +404,19 @@ float headEll(vec3 p, vec3 c, vec3 r) { vec3 q = (p - c) / r; return (length(q) 
         '#include <color_fragment>',
         `#include <color_fragment>
 vec3 hp = vHeadLocal; vec3 hq = vec3(abs(hp.x), hp.y, hp.z);
+headPx = length(fwidth(vHeadLocal));
 vec3 skin = humanSkinTone(vHeadPerson);
-vec3 col = skin;
-// Skin roughness: a glossier T-zone (forehead, nose), softer cheeks.
-float tzone = max(smoothstep(.02, .0, abs(hp.x)) * step(-.03, hp.y) * step(hp.y, .07),
-  smoothstep(.03, .01, abs(hp.y - .045)) * smoothstep(.05, .02, hq.x));
-float rough = mix(.6, .44, tzone * smoothstep(.06, .09, hp.z));
-vHeadSkin = 1.;
-// Subtle anatomy tints: warmer cheeks, nose and ears, cooler jaw shadow.
-col *= mix(vec3(1.), vec3(1.05,.95,.93), smoothstep(.02,-.01,headEll(hq, vec3(.038,-.03,.06), vec3(.025,.022,.025))));
-col *= mix(vec3(1.), vec3(1.06,.92,.9), smoothstep(.012,.0,length(hq - vec3(0.,-.024,.104)) - .012));
-col *= mix(vec3(1.), vec3(.9,.9,.93), smoothstep(-.07,-.1,hp.y) * step(.04,hp.z) * 0.6);
-// Lips.
-float lip = min(headEll(hq, vec3(0.,-.0505,.0862), vec3(.0195,.0052,.009)), headEll(hq, vec3(0.,-.0605,.084), vec3(.0175,.006,.0092)));
-float lipMask = smoothstep(.0012,-.0006,lip) * step(.08, hp.z);
-#ifdef HEAD_FEM
-col = mix(col, skin * vec3(.8,.5,.5), lipMask);
-#else
-col = mix(col, skin * vec3(.86,.64,.6), lipMask);
-#endif
-rough = mix(rough, .4, lipMask);
-float mouthLine = (1. - smoothstep(.0009, .0022, abs(hp.y + .0556))) * smoothstep(.0205, .017, hq.x) * step(.08, hp.z);
-col = mix(col, skin * vec3(.28, .16, .15), mouthLine);
-// Brows (follow the ridge), with stubble on darker-haired people.
 vec3 hair = humanHairTone(vHeadPerson);
-float brow = headSeg(hq, vec3(.014,.0295,.0965), vec3(.05,.0315,.084));
-float browArch = brow - .0012 * sin(clamp((hq.x - .014) / .036, 0., 1.) * 3.1416);
 #ifdef HEAD_FEM
-col = mix(col, mix(col, hair, .65), smoothstep(.0028,.0016,browArch + .0006) * step(.07,hp.z));
+HumanFace face = humanFace(hp, skin, hair, vHeadPerson, 1., headPx, 0.);
 #else
-col = mix(col, mix(col, hair, .55), smoothstep(.0032,.0018,browArch) * step(.07,hp.z));
+HumanFace face = humanFace(hp, skin, hair, vHeadPerson, 0., headPx, 0.);
 #endif
-float jaw = smoothstep(-.035,-.065,hp.y) * smoothstep(.0,.05,hp.z) * (1. - smoothstep(.095,.125,-hp.y)) * (1. - smoothstep(.04,.06,hq.x) * .5);
-#ifndef HEAD_FEM
-col = mix(col, col * mix(vec3(1.), hair * 3. + .55, .22), jaw * step(humanHash(vHeadPerson + 9.1), .4) * (1.-smoothstep(.0013,-.0006,lip)));
-#endif
-// Eyes: sclera, iris, pupil, a wet highlight via low roughness.
-vec3 eyeC = vec3(.031,.0105,.0765);
-vec3 ed = hq - eyeC;
-float eye = step(length(ed), .0128) * step(.079, hp.z);
-vec3 en = normalize(ed);
-vec3 iris = mix(vec3(.1,.055,.025), vec3(.12,.2,.26), step(.7, humanHash(vHeadPerson + 2.3)));
-// Sclera is never paper white: shaded by the upper lid, warmer at the corners.
-vec3 sclera = vec3(.42,.39,.37) * mix(.5, 1., smoothstep(.55, .1, en.y)) * mix(.8, 1., smoothstep(.3, .7, en.z));
-vec3 eyeCol = mix(sclera, iris * mix(.6, 1., smoothstep(.97, .9, en.z)), smoothstep(.84,.86,en.z));
-eyeCol = mix(eyeCol, vec3(.008), smoothstep(.968,.975,en.z));
-col = mix(col, eyeCol, eye);
-rough = mix(rough, .06, eye);
-// Lash line along the upper lid and a soft lower-lid shadow.
-float lidX = smoothstep(.047, .043, hq.x) * smoothstep(.015, .019, hq.x) * step(.075, hp.z);
-float lash = lidX * (1. - smoothstep(.0012, .0026, abs(hp.y - (.0155 + .002 * (1. - pow((hq.x - .031) / .016, 2.))))));
-float lower = lidX * (1. - smoothstep(.001, .003, abs(hp.y - .0045))) * .12;
-#ifdef HEAD_FEM
-lash = min(1., lash * 1.4);
-#endif
-col = mix(col, vec3(.02, .015, .012), max(lash * .85 * (1. - eye), lower));
-// Hair: close crop above an irregular hairline, darker at the parting.
-float frontLine = .066 - .008 * cos(hp.x * 40.) + .03 * smoothstep(.03,-.03,hp.z);
-float back = smoothstep(-.07,.04,hp.z);
-float hairline = back * frontLine + (1. - back) * -.045;
-hairline += hq.x > .06 ? .032 * smoothstep(.06,.08,hq.x) * smoothstep(.03,-.03,hp.z) : 0.;
-float earOval = length(vec2(hp.y / .042, (hp.z + .008) / .03));
-if (hq.x > .06 && earOval < 1.) hairline = max(hairline, hp.y + .004 * (1. - earOval) + .002);
-float hairMask = smoothstep(hairline - .0015, hairline + .0025, hp.y);
-#ifdef HEAD_FEM
-float femFront = .06 - .02 * smoothstep(.01, .06, hp.x + .012) + .04 * smoothstep(.045, 0., hp.z);
-float femLine = min(femFront, femFront - .07 * smoothstep(.045, .07, hq.x) * smoothstep(.06, .02, hp.z));
-hairMask = max(smoothstep(femLine - .0015, femLine + .002, hp.y), step(hp.z, -.088) * step(hq.x, .05) * step(-.16, hp.y));
-hairMask = max(hairMask, step(.068, hq.x) * step(hp.y, .02) * step(-.09, hp.y) * step(hp.z, .04));
-#endif
-float strandPhase = dot(hp, vec3(900., 300., 1300.));
-float strands = .88 + .12 * sin(strandPhase) * (1. - smoothstep(.6, 2., fwidth(strandPhase)));
-col = mix(col, hair * strands, hairMask);
-rough = mix(rough, .62, hairMask);
-vHeadSkin = (1. - hairMask) * (1. - eye);
+vec3 col = face.col;
+float rough = face.rough;
+headBump = face.bump;
+headGlint = face.glint;
+vHeadSkin = face.skin;
 #ifdef HEAD_CAP
 float capMask = step(.026 + .02 * smoothstep(.0,-.08,hp.z) - .0015, hp.y) * step(-.005, headEll(hp, vec3(0.,.038,-.012), vec3(.0795,.0885,.1025)));
 float brimMask = step(.07, hp.z) * step(hp.y, .042) * step(.024, hp.y);
@@ -344,6 +427,7 @@ capCol = mix(capCol, vec3(.8), logo * .85);
 col = mix(col, capCol, capMask);
 rough = mix(rough, .82, capMask);
 vHeadSkin *= 1. - capMask;
+headBump *= 1. - capMask;
 #endif
 #ifdef HEAD_SET
 float cups = step(.079, hq.x) * step(length(hp.yz - vec2(0.,-.01)), .036);
@@ -354,15 +438,24 @@ vec3 setCol = mix(vec3(.025), vHeadTeam * .8, step(.0985, hq.x) * cups);
 col = mix(col, setCol, setMask);
 rough = mix(rough, .38, setMask);
 vHeadSkin *= 1. - setMask;
+headBump *= 1. - setMask;
 #endif
 diffuseColor.rgb = col;`,
       )
       .replace(
         '#include <roughnessmap_fragment>',
         '#include <roughnessmap_fragment>\nroughnessFactor = rough;',
+      )
+      .replace(
+        '#include <normal_fragment_maps>',
+        '#include <normal_fragment_maps>\nnormal = humanBumpNormal(-vViewPosition, normal, headBump, faceDirection);',
+      )
+      .replace(
+        '#include <emissivemap_fragment>',
+        '#include <emissivemap_fragment>\ntotalEmissiveRadiance += vec3(.22) * headGlint;',
       );
   };
-  material.customProgramCacheKey = () => `human-head-v2-${wear}`;
+  material.customProgramCacheKey = () => `human-head-v3-${wear}`;
   return material;
 }
 

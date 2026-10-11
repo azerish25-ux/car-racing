@@ -82,6 +82,7 @@ function pack(name: string, mesh: SculptedMesh, extra: Record<string, unknown> =
   }
   if (mesh.tags) entry.tags = b64(mesh.tags);
   if (mesh.zone) entry.zone = b64(mesh.zone);
+  if (mesh.surface) entry.surface = b64(mesh.surface);
   out[name] = entry;
   console.log(name, n, 'vertices', mesh.indices.length / 3, 'triangles');
 }
@@ -117,13 +118,18 @@ for (const wear of ['bare', 'cap', 'headset', 'cap-headset', 'fem-bare', 'fem-he
   jobs.push([`hand_${lod}`, () => sculptHand(cell, tris)]);
   jobs.push([`handbare_${lod}`, () => sculptHand(cell, tris, true)]);
 });
+// Close-up spectators (LOD0) spend their larger budget on faces and hands;
+// LOD1/LOD2 budgets are unchanged.
 for (const variant of ['a', 'b'] as const)
   [
-    [0.0085, 2200],
-    [0.016, 1050],
-    [0.028, 545],
-  ].forEach(([cell, tris], lod) =>
-    jobs.push([`spectator_${variant}_${lod}`, () => sculptSpectator(variant, cell, tris, lod < 2)]),
+    [0.0055, 5200, 14],
+    [0.016, 1050, 6],
+    [0.028, 545, 6],
+  ].forEach(([cell, tris, face], lod) =>
+    jobs.push([
+      `spectator_${variant}_${lod}`,
+      () => sculptSpectator(variant, cell, tris, lod < 2, face),
+    ]),
   );
 
 for (const [name, job] of jobs) {

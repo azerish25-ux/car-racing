@@ -4,6 +4,7 @@ import { AUREL_VENUE, type StandSpec } from './venue-plan.ts';
 import type { BroadcastSightlines } from './broadcast-sightlines.ts';
 import { StaticInstanceShadowBounds } from './static-instance-shadow-bounds.ts';
 import { installVenueFinish } from './venue-materials.ts';
+import { installStadiumSeat } from './stadium-seat.ts';
 import { SECONDARY_STAND_ASSET, type SecondaryRole } from './secondary-grandstand-assets.ts';
 import {
   packSecondaryStandCirculation,
@@ -30,7 +31,7 @@ function makeMaterials() {
     steel: new T.MeshStandardMaterial({ color: 0x334b52, roughness: 0.43, metalness: 0.65 }),
     roof: new T.MeshStandardMaterial({ color: 0xbfc6c5, roughness: 0.52, metalness: 0.4 }),
     trim: new T.MeshStandardMaterial({ color: 0x12606b, roughness: 0.5, metalness: 0.15 }),
-    seat: new T.MeshStandardMaterial({ color: 0xffffff, roughness: 0.58 }),
+    seat: installStadiumSeat(new T.MeshStandardMaterial({ color: 0xffffff, roughness: 0.58 })),
   };
   installVenueFinish(materials.stone, 'stone');
   for (const material of [materials.steel, materials.roof, materials.trim])

@@ -1,5 +1,10 @@
 import { audienceAtlas } from './start-finish-assets.ts';
-import { spectatorKitGeometry } from './human-kit.ts';
+import {
+  HUMAN_FACE_GLSL,
+  HUMAN_TONE_GLSL,
+  skinWrapLighting,
+  spectatorKitGeometry,
+} from './human-kit.ts';
 import { installAudienceActions } from './audience-actions.ts';
 import { detailDistance } from './view-detail.ts';
 import { tagWeatherSurface } from './weather-presentation.ts';
@@ -7,6 +12,10 @@ import * as T from 'three';
 import { PEOPLE_ASSET } from './people-asset.ts';
 import { clamp } from '../core/math.ts';
 import { crowdResponse } from './crowd-response.ts';
+
+/** Spectator heads are the crew head sculpt at this scale (see
+ * scripts/lib/human-sculpt.ts); the shader's face frame divides it out. */
+export const SPECTATOR_HEAD_SCALE = 0.96;
 import { installCrowdImpostorShader, spectatorImpostorGeometry } from './crowd-impostor.ts';
 
 export type CrowdDetail = 0 | 1 | 2 | 3;
@@ -62,8 +71,11 @@ export function crowdLodRanges(distance: number, out: readonly T.Vector2[]) {
     const t = clamp((distance - start) / (end - start), 0, 1);
     return t * t * (3 - 2 * t);
   };
-  if (distance < 108) {
-    const weight = smooth(92, 108);
+  // The close sculpt (faces, hands, fold detail) only where a face spans
+  // enough pixels to show it; beyond ~50 visual metres the mid sculpt is
+  // indistinguishable and several times cheaper per spectator.
+  if (distance < 58) {
+    const weight = smooth(46, 58);
     out[0].set(weight, 1);
     out[1].set(0, weight);
   } else if (distance < 242) {
@@ -137,7 +149,7 @@ export function installCrowdShader(material: T.Material, uniforms: CrowdUniforms
       'varying float vCrowdRank;\n' +
       deform +
       (colour
-        ? 'attribute vec3 spectatorSkin; varying float vCrowdCloth; varying vec4 vCrowdBind; varying vec4 vCrowdTop; varying vec3 vCrowdSkinTone; varying vec2 vCrowdTags;\n'
+        ? 'attribute vec3 spectatorSkin; attribute vec3 crowdSurface; varying float vCrowdCloth; varying vec4 vCrowdBind; varying vec4 vCrowdTop; varying vec3 vCrowdSkinTone; varying vec2 vCrowdTags; varying vec3 vCrowdSurface;\n'
         : '') +
       shader.vertexShader;
     shader.vertexShader = shader.vertexShader.replace(
@@ -176,11 +188,17 @@ objectNormal = crowdTurn() * normalize(objectNormal);`,
     );
     if (colour) {
       shader.fragmentShader =
-        'varying float vCrowdCloth; varying vec4 vCrowdBind; varying vec4 vCrowdTop; varying vec3 vCrowdSkinTone; varying vec2 vCrowdTags;\n' +
+        'varying float vCrowdCloth; varying vec4 vCrowdBind; varying vec4 vCrowdTop; varying vec3 vCrowdSkinTone; varying vec2 vCrowdTags; varying vec3 vCrowdSurface;\n' +
+        'float crowdSkinLight; float crowdBump; float crowdRough; float crowdGlint;\n' +
+        HUMAN_TONE_GLSL +
+        HUMAN_FACE_GLSL +
         shader.fragmentShader;
+      // Soft wrapped terminator on skin only (faces, necks, hands).
+      shader.fragmentShader = skinWrapLighting(shader.fragmentShader, 'crowdSkinLight');
       // Clothing, skin, hair and printed details are resolved per fragment in
       // the seated bind frame (facing -X, lateral Z): seams stay crisp at
       // every LOD and pose, with no vertex-colour smearing across triangles.
+      // Faces share the crew head's analytic face (crew head frame, scaled).
       shader.fragmentShader = shader.fragmentShader.replace(
         '#include <color_fragment>',
         `#include <color_fragment>
@@ -190,6 +208,11 @@ objectNormal = crowdTurn() * normalize(objectNormal);`,
   float ph = vCrowdTop.w;
   vec3 top = vCrowdTop.rgb;
   vec3 skin = vCrowdSkinTone;
+  // Derivatives first, in uniform control flow (pixel footprint in metres).
+  float px = length(fwidth(p));
+  float armT = vCrowdSurface.y;
+  float tw = max(fwidth(armT), 1e-4);
+  float aa = max(px, 1e-4);
   float h2 = fract(ph*5.31), h3 = fract(ph*7.13), h4 = fract(ph*2.19), h5 = fract(ph*11.7), h6 = fract(ph*3.91), h7 = fract(ph*13.3), h8 = fract(ph*17.9);
   vec3 trousers = h2<.42 ? vec3(.06,.085,.15) : h2<.66 ? vec3(.022,.022,.026) : h2<.82 ? vec3(.26,.22,.15) : h2<.92 ? vec3(.14,.14,.15) : vec3(.55,.53,.48);
   vec3 shoes = h3<.45 ? vec3(.6,.6,.58) : h3<.75 ? vec3(.035,.035,.04) : vec3(.3,.2,.12);
@@ -200,25 +223,40 @@ objectNormal = crowdTurn() * normalize(objectNormal);`,
   bool head = !arm && vCrowdTags.y < 1.5 && joint > 1.5;
   vec3 c = top;
   float sk = 0.;
+  float rough = .8 + .1 * h5;
+  float bump = 0.;
+  // Fabric folds fade before they could alias.
+  float folds = 1. - smoothstep(.004, .012, px);
+  crowdGlint = 0.;
   if (arm) {
-    // Hands beyond the wrist; bare forearms below a short sleeve's hem.
-    float hand = step(.5, vCrowdTags.x);
-    float bare = shortSleeve * step(p.y, .385) * step(p.x, .02);
+    // Hands beyond the cuff (baked arm coordinate: .5 elbow, .9 wrist);
+    // short sleeves end square across the upper arm, not on a world plane.
+    float hand = smoothstep(.872, .872 + tw, armT);
+    float bare = shortSleeve * smoothstep(.3, .3 + tw, armT);
     sk = max(hand, bare);
-    // Raglan two-tone sleeves on some shirts.
-    c = mix(top, top*.35 + vec3(.02), step(.7, h6) * step(.385, p.y));
+    // Two-tone (raglan) sleeves on some shirts.
+    c = mix(top, top*.35 + vec3(.02), step(.7, h6));
+    // Bunching at the elbow crease and the cuff; a turned hem on short sleeves.
+    float elbow = smoothstep(.36, .44, armT) * smoothstep(.66, .56, armT);
+    bump += .0014 * sin(armT * 120. + p.y * 30.) * elbow;
+    bump += .0009 * sin(armT * 260.) * smoothstep(.78, .84, armT) * (1. - shortSleeve);
+    bump -= .0012 * smoothstep(.27, .3, armT) * (1. - bare) * shortSleeve;
+    bump *= folds * (1. - sk);
   } else if (head) {
     sk = 1.;
   } else {
     // Torso / legs: waistband, thighs forward, shins, socks and shoes.
-    float legs = max(step(p.y, .19), step(p.x, -.1) * step(p.y, .25));
+    float legs = max(smoothstep(.19 + aa, .19 - aa, p.y), step(p.x, -.1) * step(p.y, .25));
     c = mix(c, trousers, legs);
+    rough = mix(rough, .86, legs);
     float shin = step(p.y, .075) * step(p.x, -.22);
     sk = shorts * shin * step(-.2, p.y);
-    c = mix(c, shoes, step(p.y, -.205) * step(p.x, -.2));
+    float shoe = step(p.y, -.205) * step(p.x, -.2);
+    c = mix(c, shoes, shoe);
+    rough = mix(rough, .5, shoe);
     // Neck above a collar line that dips at the front.
     float collar = .532 + .3 * (p.x - .085);
-    sk = max(sk, step(collar, p.y));
+    sk = max(sk, smoothstep(collar - aa, collar + aa, p.y));
     // Team shirts: printed chest crest/sponsor, a horizontal band on others.
     float front = step(p.x, -.005) * (1. - legs);
     // A roundel crest on the left chest and a sponsor wordmark bar beneath.
@@ -228,44 +266,86 @@ objectNormal = crowdTurn() * normalize(objectNormal);`,
     float lumTop = dot(top, vec3(.3,.59,.11));
     vec3 ink = lumTop > .25 ? vec3(.03) : vec3(.85);
     c = mix(c, ink, max(crest * (1. - .6 * (1. - smoothstep(.006, .008, length(cp)))), word));
+    rough = mix(rough, .55, max(crest, word));
     float band = step(abs(p.y - .33), .022) * (1. - legs) * step(.78, h7);
     c = mix(c, lumTop > .25 ? top*.25 : vec3(.8,.78,.7), band);
+    // Seated drape: soft horizontal folds across the stomach, creases where
+    // the thighs meet the hips, gathering behind the knees and at the hems.
+    float belly = smoothstep(.13, .17, p.y) * smoothstep(.32, .26, p.y) * smoothstep(-.02, -.08, p.x);
+    bump += .0016 * sin(p.y * 105. + 3. * sin(p.z * 21. + ph)) * belly;
+    float lap = smoothstep(.1, .14, p.y) * smoothstep(.26, .2, p.y) * smoothstep(.0, -.06, p.x) * smoothstep(-.24, -.14, p.x);
+    bump += .0013 * sin(p.z * 70. + p.x * 45. + ph) * lap;
+    // Creases fanning from the knee up the top of the thigh.
+    float knee = smoothstep(-.42, -.34, p.x) * smoothstep(-.2, -.3, p.x) * smoothstep(.1, .17, p.y);
+    bump += .001 * sin(p.z * 60. + (p.x + .3) * 25. * sign(p.z) + ph) * knee;
+    float hem = smoothstep(-.12, -.16, p.y) * smoothstep(-.21, -.18, p.y) * step(p.x, -.2);
+    bump += .0011 * sin(p.y * 220. + p.z * 30.) * hem;
+    // Shoulder-to-chest drag lines on the shirt.
+    float chest = smoothstep(.3, .36, p.y) * smoothstep(.52, .46, p.y) * (1. - legs);
+    bump += .0007 * sin(p.z * 48. + p.y * 30. + ph) * chest;
+    bump *= folds * (1. - sk) * (1. - shoe);
   }
   vec3 hairCol = mix(vec3(.012,.008,.006), vec3(.15,.078,.025), fract(ph*1.31));
   hairCol = fract(ph*9.7) > .85 ? vec3(.42,.3,.16) : fract(ph*9.7) > .8 ? vec3(.3,.3,.29) : hairCol;
-  c = mix(c, skin, sk);
+  // Skin: subtle warmth and blotch on necks and hands too, never flat paint.
+  vec3 skinCol = skin * (1. + (humanNoise(p * 140. + ph) - .5) * .08 * folds);
+  c = mix(c, skinCol, sk);
+  rough = mix(rough, .55, sk);
+  crowdSkinLight = sk;
   if (head) {
-    // Head frame: crew-head axes (x lateral, y up, z forward) about the head centre.
-    vec3 hp = vec3(p.z, p.y - .665, .06 - p.x);
+    // Crew head frame (x lateral, y up, z forward) about the head centre, at
+    // the spectator head scale (scripts/lib/human-sculpt.ts).
+    vec3 hp = vec3(p.z, p.y - .665, .06 - p.x) / ${SPECTATOR_HEAD_SCALE.toFixed(2)};
+    float fem = step(.5, vCrowdSurface.z);
+    HumanFace face = humanFace(hp, skin, hairCol, ph * 7.31, fem, px / ${SPECTATOR_HEAD_SCALE.toFixed(2)}, 1.);
+    c = face.col;
+    rough = face.rough;
+    bump = face.bump;
+    crowdGlint = face.glint;
+    crowdSkinLight = face.skin;
     vec3 hq = vec3(abs(hp.x), hp.y, hp.z);
-    float frontLine = .066 - .008 * cos(hp.x * 40.) + .03 * smoothstep(.03,-.03,hp.z);
-    float back = smoothstep(-.07,.04,hp.z);
-    float hairline = back * frontLine + (1. - back) * -.045;
-    hairline += hq.x > .06 ? .032 * smoothstep(.06,.08,hq.x) * smoothstep(.03,-.03,hp.z) : 0.;
-    float hairMask = max(smoothstep(hairline - .002, hairline + .002, hp.y), step(1.5, vCrowdTags.x));
-    c = mix(c, hairCol, hairMask);
-    float face = (1. - hairMask) * smoothstep(.02, .06, hp.z);
-    vec2 e = vec2((hq.x-.031)/.0085,(hp.y-.011)/.0045);
-    float eye = (1.-smoothstep(.7,1.,length(e))) * face;
-    vec2 b = vec2((hq.x-.03)/.016,(hp.y-.03)/.0032);
-    float brow = (1.-smoothstep(.6,1.,length(b))) * face;
-    vec2 m = vec2(hp.x/.018,(hp.y+.056)/.0028);
-    float mouth = (1.-smoothstep(.6,1.,length(m))) * face;
-    c = mix(c, hairCol*.6 + vec3(.01), max(eye*.85, brow*.6));
-    c = mix(c, c*vec3(.66,.46,.44), mouth);
+    float faceSide = (1. - face.hair) * smoothstep(.02, .06, hp.z);
     // Sunglasses on some faces (dark, with a frame across the brow line).
-    vec2 lens = vec2((hq.x - .031) / .0175, (hp.y - .012) / .0115);
-    float shades = step(h8, .22) * face * max(1. - smoothstep(.85, 1., length(lens)),
-      step(hq.x, .014) * step(abs(hp.y - .017), .0018));
+    vec2 lens = vec2((hq.x - .031) / .021, (hp.y - .011) / .014);
+    float shades = step(h8, .22) * faceSide * max(1. - smoothstep(.85, 1., length(lens)),
+      step(hq.x, .012) * step(abs(hp.y - .018), .0018));
     c = mix(c, vec3(.012, .014, .016), shades);
+    rough = mix(rough, .12, shades);
+    crowdGlint *= 1. - shades;
+    crowdSkinLight *= 1. - shades;
   }
   // Separate accessory shells: caps in a team tint, phones dark.
-  if (vCrowdTags.y > 5.5) c = mix(vec3(.9,.89,.86), vec3(.7,.08,.06), step(abs(p.y - .26), .018));
-  else if (vCrowdTags.y > 1.5 && vCrowdTags.y < 2.5) c = vec3(.02,.02,.025);
-  else if (vCrowdTags.y > .5 && vCrowdTags.y < 1.5) c = top*.7;
+  if (vCrowdTags.y > 5.5) { c = mix(vec3(.9,.89,.86), vec3(.7,.08,.06), step(abs(p.y - .26), .018)); rough = .45; bump = 0.; crowdSkinLight = 0.; }
+  else if (vCrowdTags.y > 1.5 && vCrowdTags.y < 2.5) { c = vec3(.02,.02,.025); rough = .22; bump = 0.; crowdSkinLight = 0.; }
+  else if (vCrowdTags.y > .5 && vCrowdTags.y < 1.5) { c = top*.7; rough = .72; bump = 0.; crowdSkinLight = 0.; }
+  crowdRough = rough;
+  crowdBump = bump;
   diffuseColor.rgb = c;
 }`,
       );
+      shader.fragmentShader = shader.fragmentShader
+        .replace(
+          '#include <roughnessmap_fragment>',
+          '#include <roughnessmap_fragment>\nroughnessFactor = crowdRough;',
+        )
+        .replace(
+          '#include <normal_fragment_maps>',
+          '#include <normal_fragment_maps>\nnormal = humanBumpNormal(-vViewPosition, normal, crowdBump, faceDirection);',
+        )
+        .replace(
+          '#include <emissivemap_fragment>',
+          '#include <emissivemap_fragment>\ntotalEmissiveRadiance += vec3(.22) * crowdGlint;',
+        )
+        // Baked contact occlusion (armpits, lap, seat back, neck under the
+        // jaw) darkens the ambient/sky and reflection terms, and a little of
+        // the direct light, as an aoMap would.
+        .replace(
+          '#include <aomap_fragment>',
+          `#include <aomap_fragment>
+reflectedLight.indirectDiffuse *= vCrowdSurface.x;
+reflectedLight.indirectSpecular *= vCrowdSurface.x;
+reflectedLight.directDiffuse *= mix(1., vCrowdSurface.x, .35);`,
+        );
       if (!shader.vertexShader.includes('#include <color_vertex>'))
         throw new Error('Crowd shader colour hook missing');
       shader.vertexShader = shader.vertexShader.replace(
@@ -280,21 +360,22 @@ vCrowdSkinTone = spectatorSkin;
 // Seated bind position (the standing body is a deformation of it).
 vCrowdBind = vec4(position, crowdJoint);
 vCrowdTags = vec2(skinMask, crowdAccessory);
+vCrowdSurface = crowdSurface;
 vCrowdCloth = 1. - step(.5, skinMask);
 vColor.rgb = vec3(1.);`,
       );
     }
   };
-  material.customProgramCacheKey = () => `apex-procedural-crowd-v11-${colour ? 'colour' : 'depth'}`;
+  material.customProgramCacheKey = () => `apex-procedural-crowd-v12-${colour ? 'colour' : 'depth'}`;
 }
 
 export function crowdDetail(distance: number, previous: CrowdDetail): CrowdDetail {
   if (!Number.isFinite(distance) || distance < 0) throw new Error('Invalid crowd distance');
-  if (previous === 0 && distance < 108) return 0;
-  if (previous === 1 && distance > 92 && distance < 242) return 1;
+  if (previous === 0 && distance < 58) return 0;
+  if (previous === 1 && distance > 46 && distance < 242) return 1;
   if (previous === 2 && distance > 218 && distance < 480) return 2;
   if (previous === 3 && distance > 420) return 3;
-  return distance < 100 ? 0 : distance < 230 ? 1 : distance < 450 ? 2 : 3;
+  return distance < 52 ? 0 : distance < 230 ? 1 : distance < 450 ? 2 : 3;
 }
 
 /** A spatially culled cluster shares all instance storage across its levels.

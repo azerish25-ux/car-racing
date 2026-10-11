@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { stadiumSeatGeometry, type SeatTier } from './stadium-seat.ts';
 import { StaticInstanceShadowBounds } from './static-instance-shadow-bounds.ts';
 import { Track, trackPoint } from '../simulation/track.ts';
 import { F, H, HEADER, CAR_STRIDE, carBase } from '../simulation/protocol.ts';
@@ -107,8 +108,9 @@ export class StartFinishVenue {
     mat: T.Material,
     matrices: readonly T.Matrix4[],
     mirror = false,
+    geometry = venueGeometry(name, mirror),
   ) {
-    const mesh = new T.InstancedMesh(venueGeometry(name, mirror), mat, matrices.length);
+    const mesh = new T.InstancedMesh(geometry, mat, matrices.length);
     matrices.forEach((m, i) => mesh.setMatrixAt(i, m));
     mesh.castShadow = mesh.receiveShadow = true;
     mesh.computeBoundingBox();
@@ -213,10 +215,19 @@ export class StartFinishVenue {
     const owner = new T.Group();
     owner.name = `A13 seats ${site.s}m`;
     root.add(owner);
-    const levels = TIERS.map((tier) => {
+    // Moulded plastic stadium shells on pedestals replace the authored
+    // stool-like seat; same tiers, transforms, colours and shadow bounds.
+    const levels = TIERS.map((tier, i) => {
       const group = new T.Group();
       owner.add(group);
-      const seats = this.batch(group, `seat_${tier}`, material, matrices);
+      const seats = this.batch(
+        group,
+        `seat_${tier}`,
+        material,
+        matrices,
+        false,
+        stadiumSeatGeometry(i as SeatTier),
+      );
       colors.forEach((c, i) => seats.setColorAt(i, c));
       return group;
     });

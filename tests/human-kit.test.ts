@@ -97,6 +97,54 @@ describe('procedural human kit', () => {
       g.dispose();
     }
   });
+  it('bakes spectator occlusion, arm coordinates and build at every LOD without changing far budgets', () => {
+    expect(kit.meshes.spectator_a_1.triangles).toBeLessThanOrEqual(1408);
+    expect(kit.meshes.spectator_a_2.triangles).toBeLessThanOrEqual(624);
+    // The close sculpt spends its budget on faces: far more head triangles.
+    for (const v of ['a', 'b'] as const) {
+      const heads = [0, 1].map((lod) => {
+        const g = spectatorKitGeometry(v, lod as 0 | 1);
+        const tags = g.getAttribute('crowdPerson'),
+          index = g.index!;
+        let n = 0;
+        for (let f = 0; f < index.count; f += 3)
+          if (tags.getX(index.getX(f)) === 3 && tags.getZ(index.getX(f)) === 0) n++;
+        g.dispose();
+        return n;
+      });
+      expect(heads[0]).toBeGreaterThan(heads[1] * 4);
+      for (const lod of [0, 1, 2] as const) {
+        const g = spectatorKitGeometry(v, lod);
+        const surface = g.getAttribute('crowdSurface'),
+          tags = g.getAttribute('crowdPerson');
+        expect(surface.itemSize).toBe(3);
+        expect(surface.normalized).toBe(true);
+        const ao: number[] = [];
+        let hands = 0,
+          pastCuff = 0;
+        for (let i = 0; i < surface.count; i++) {
+          ao.push(surface.getX(i));
+          // Build flag: the longer-haired (b) build only.
+          expect(surface.getZ(i)).toBe(v === 'b' ? 1 : 0);
+          const accessory = tags.getZ(i);
+          const t = surface.getY(i);
+          if (accessory === 3 || accessory === 4) {
+            // Hands (skin-tagged arm vertices) sit past the cuff.
+            if (tags.getY(i) === 1) {
+              hands++;
+              if (t > 0.8) pastCuff++;
+            }
+          } else expect(t).toBe(0);
+        }
+        expect(pastCuff / hands).toBeGreaterThan(0.95);
+        ao.sort((a, b) => a - b);
+        expect(ao[0]).toBeGreaterThanOrEqual(0.2);
+        expect(ao[0]).toBeLessThan(0.7); // contact creases are darkened
+        expect(ao[Math.floor(ao.length / 2)]).toBeGreaterThan(0.75); // open surfaces are not
+        g.dispose();
+      }
+    }
+  });
   it('mirrors the gloved hand with reversed winding and matches GPU skin tones', () => {
     const right = crewHandGeometry(0),
       left = crewHandGeometry(0, true);

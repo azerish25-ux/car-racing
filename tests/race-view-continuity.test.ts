@@ -49,13 +49,14 @@ describe('current-view detail and deterministic presentation', () => {
     try {
       crowd.update(1, camera, 0, f);
       expect(crowd.levels.map((m) => m.visible)).toEqual([false, false, false, true]);
-      crowd.update(1, camera, 0, f, 8);
+      // A 4 degree telephoto brings 600 m inside the close-sculpt handoff (~38 visual m).
+      crowd.update(1, camera, 0, f, 4);
       expect(crowd.levels.map((m) => m.visible)).toEqual([true, false, false, false]);
       expect(crowd.uniforms.crowdReaction.value.toArray()).toEqual([0, 0]);
       const selected = crowd.lodRanges.map((r) => r.toArray());
       for (let i = 0; i < 12; i++) {
         crowd.update(2, camera, 50, f, 58);
-        crowd.update(1, camera, 0, f, 8);
+        crowd.update(1, camera, 0, f, 4);
         expect(crowd.lodRanges.map((r) => r.toArray())).toEqual(selected);
         crowd.levels.forEach((m, j) => {
           expect(m.instanceMatrix).toBe(matrices[j]);
