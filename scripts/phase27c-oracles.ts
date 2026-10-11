@@ -133,7 +133,7 @@ export function verifyCrowdContract() {
         assert.equal(a.lodRanges.filter((range) => rank >= range.x && rank < range.y).length, 1);
       }
     }
-    assert.equal(crowdDetail(105, 0), 0); assert.equal(crowdDetail(95, 1), 1);
+    assert.equal(crowdDetail(55, 0), 0); assert.equal(crowdDetail(50, 1), 1);
     assert.equal(crowdDetail(235, 1), 1); assert.equal(crowdDetail(220, 2), 2);
     assert.throws(() => crowdDetail(NaN, 0));
     return { triangles: counts, phaseCount: 128, boundedInstances: matrices.length,
