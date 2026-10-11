@@ -535,6 +535,10 @@ export class Effects {
     }
     this.rain.upload(rainFirst - contact, rainLast - contact);
     this.spray.upload(contactFirst, contactLast);
+    // Submit each pool only up to its last live particle (none when empty).
+    this.geometry.setDrawRange(0, contactLast + 1);
+    this.spray.drawUpTo(contactLast + 1);
+    this.rain.drawUpTo(rainLast < 0 ? 0 : rainLast - contact + 1);
   }
   /** The selected emitter's live, nontransparent pool entries. This does not
    * imply they are in the camera frustum or visible through occluding geometry. */
@@ -604,5 +608,8 @@ export class Effects {
     markAll(this.geometry.getAttribute('opacity') as T.BufferAttribute);
     this.rain.clear();
     this.spray.clear();
+    this.geometry.setDrawRange(0, 0);
+    this.spray.drawUpTo(0);
+    this.rain.drawUpTo(0);
   }
 }

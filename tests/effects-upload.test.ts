@@ -33,6 +33,15 @@ it('uploads nothing for an idle particle pool and only the live span of a busy o
   const idle = versions();
   for (let i = 1; i < 10; i++) effects.update(frame(i * 0.016, 0), 0.016);
   expect(versions()).toEqual(idle);
+  // An empty pool submits no particle draw.
+  const spray = effects.group.getObjectByName('Lit wheel-water spray clouds') as T.Mesh<
+    T.InstancedBufferGeometry,
+    T.Material
+  >;
+  const rain = effects.group.children[1] as T.Mesh<T.InstancedBufferGeometry, T.Material>;
+  expect((effects.group.children[0] as T.Points).geometry.drawRange.count).toBe(0);
+  expect(spray.geometry.instanceCount).toBe(0);
+  expect(rain.geometry.instanceCount).toBe(0);
   // Real marble pickup: births mark only the items they touched.
   effects.update(frame(0.2, 0.05), 0.016);
   const points = effects.group.children[0] as T.Points;
@@ -42,6 +51,11 @@ it('uploads nothing for an idle particle pool and only the live span of a busy o
   const touched = opacity.updateRanges.reduce((n, r) => n + r.count, 0);
   expect(touched).toBeGreaterThan(0);
   expect(touched).toBeLessThan(EFFECT_CAPACITY.contact);
+  // Live particles stay inside the submitted span.
+  const live = points.geometry.drawRange.count;
+  expect(live).toBeGreaterThan(0);
+  expect(spray.geometry.instanceCount).toBe(live);
+  for (let i = live; i < EFFECT_CAPACITY.contact; i++) expect(opacity.array[i]).toBe(0);
   // clear() zeroes the whole pool and must re-send all of it, even after a
   // partial mark in the same frame.
   effects.clear();

@@ -119,6 +119,12 @@ export class RainStreaks {
       this.material.uniforms.nearPlane.value = 'near' in camera ? camera.near : 0.1;
     };
   }
+  /** Draw pool items `0..count - 1`. Items past the last live particle are
+   * transparent (culled in the vertex stage), so this changes no pixel; an
+   * empty pool submits no draw at all. */
+  drawUpTo(count: number) {
+    this.geometry.instanceCount = count;
+  }
   /** Upload pool items `first..last` (inclusive); the whole pool by default. */
   upload(first = 0, last = this.geometry.instanceCount - 1) {
     for (const name of ['center', 'velocity', 'opacity'])
