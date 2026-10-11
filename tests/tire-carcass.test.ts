@@ -84,3 +84,66 @@ it('puncture changes rubber but preserves bead radius; replay rewinds are histor
     dispose();
   }
 });
+it.each([0, 0.83, 2.9, -4.4])(
+  'the allocation-free deformation is bit-identical to the reference at phase %f',
+  (phase) => {
+    const { tire, meshes, original, dispose } = fixture();
+    try {
+      const radius = 0.334,
+        load = 6500,
+        pressure = 150;
+      tire.update(phase, radius, load, pressure);
+      const BEAD = 0.245,
+        NOMINAL = 0.335,
+        deflection = tireDeflection(radius, load, pressure),
+        free = radius + deflection,
+        sn = Math.sin(phase),
+        cs = Math.cos(phase);
+      meshes.forEach((m, n) => {
+        // Reference: the per-vertex formula and three's computeVertexNormals.
+        const reference = new T.BufferGeometry();
+        reference.setIndex(m.geometry.index);
+        const p = new Float32Array(original[n].length);
+        for (let i = 0; i < p.length / 3; i++) {
+          const x = original[n][3 * i],
+            y = original[n][3 * i + 1],
+            z = original[n][3 * i + 2],
+            radial = Math.hypot(y, z),
+            weight = Math.min(1, Math.max(0, (radial - BEAD) / (NOMINAL - BEAD))),
+            scale = 1 + ((free - NOMINAL) * weight) / Math.max(BEAD, radial),
+            rollingY = (y * cs - z * sn) * scale,
+            rollingZ = (y * sn + z * cs) * scale,
+            bottom = Math.max(rollingY, -radius),
+            bulge = Math.max(0, -rollingY / Math.max(0.01, free)) ** 4 * weight * deflection * 0.35;
+          p[3 * i] = x + Math.sign(x) * bulge;
+          p[3 * i + 1] = bottom * cs + rollingZ * sn;
+          p[3 * i + 2] = -bottom * sn + rollingZ * cs;
+        }
+        reference.setAttribute('position', new T.BufferAttribute(p, 3));
+        reference.computeVertexNormals();
+        expect(Array.from(m.geometry.getAttribute('position').array)).toEqual(Array.from(p));
+        // Seam vertices are re-averaged afterwards; every other normal is three's.
+        const keyOf = (i: number) =>
+          `${Math.round(original[n][i * 3] * 1e6)},${Math.round(original[n][i * 3 + 1] * 1e6)},${Math.round(original[n][i * 3 + 2] * 1e6)}`;
+        const shared = new Map<string, number>();
+        for (let i = 0; i < p.length / 3; i++)
+          shared.set(keyOf(i), (shared.get(keyOf(i)) ?? 0) + 1);
+        const normal = m.geometry.getAttribute('normal'),
+          expected = reference.getAttribute('normal');
+        let compared = 0;
+        for (let i = 0; i < p.length / 3; i++) {
+          if (shared.get(keyOf(i))! > 1) continue;
+          expect([normal.getX(i), normal.getY(i), normal.getZ(i)]).toEqual([
+            expected.getX(i),
+            expected.getY(i),
+            expected.getZ(i),
+          ]);
+          compared++;
+        }
+        expect(compared).toBeGreaterThan(0);
+      });
+    } finally {
+      dispose();
+    }
+  },
+);

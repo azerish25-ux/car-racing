@@ -24,6 +24,13 @@ interface Surface {
   positions: T.BufferAttribute;
   original: Float32Array;
   seams: number[][];
+  /** Per-vertex constants of the undeformed carcass: crown weight and the
+   * radial denominator, so a frame only evaluates the pose-dependent terms. */
+  weight: Float64Array;
+  denominator: Float64Array;
+  /** Plain float position/normal arrays and the triangle list, when the
+   * attributes allow direct array access (else three's generic path). */
+  direct: { position: Float32Array; normal: Float32Array; index: ArrayLike<number> | null } | null;
 }
 export class TireCarcass {
   readonly root = new T.Group();
@@ -65,12 +72,35 @@ export class TireCarcass {
         if (existing) existing.push(i);
         else groups.set(key, [i]);
       }
-      (geometry.getAttribute('normal') as T.BufferAttribute).setUsage(T.DynamicDrawUsage);
+      const normals = geometry.getAttribute('normal') as T.BufferAttribute;
+      normals.setUsage(T.DynamicDrawUsage);
+      const weight = new Float64Array(positions.count),
+        denominator = new Float64Array(positions.count);
+      for (let i = 0; i < positions.count; i++) {
+        const radial = Math.hypot(original[i * 3 + 1], original[i * 3 + 2]);
+        weight[i] = clamp((radial - BEAD) / (NOMINAL - BEAD), 0, 1);
+        denominator[i] = Math.max(BEAD, radial);
+      }
+      const plain = (a: T.BufferAttribute | T.InterleavedBufferAttribute | undefined) =>
+        a instanceof T.BufferAttribute &&
+        a.array instanceof Float32Array &&
+        a.itemSize === 3 &&
+        !a.normalized;
       this.surfaces.push({
         geometry,
         positions,
         original,
         seams: [...groups.values()].filter((g) => g.length > 1),
+        weight,
+        denominator,
+        direct:
+          plain(positions) && plain(normals)
+            ? {
+                position: positions.array as Float32Array,
+                normal: normals.array as Float32Array,
+                index: geometry.index ? geometry.index.array : null,
+              }
+            : null,
       });
       // Conservative immutable bounds cover every permitted crown/sidewall pose.
       geometry.boundingBox = new T.Box3(
@@ -102,29 +132,34 @@ export class TireCarcass {
     const sn = Math.sin(phase),
       cs = Math.cos(phase),
       free = radius + deflection;
-    for (const { geometry, positions, original, seams } of this.surfaces) {
+    for (const surface of this.surfaces) {
+      const { geometry, positions, original, seams, direct } = surface;
+      const weights = surface.weight,
+        denominators = surface.denominator;
       for (let i = 0; i < positions.count; i++) {
         const x = original[3 * i],
           y = original[3 * i + 1],
           z = original[3 * i + 2],
-          radial = Math.hypot(y, z),
-          weight = clamp((radial - BEAD) / (NOMINAL - BEAD), 0, 1),
-          scale = 1 + ((free - NOMINAL) * weight) / Math.max(BEAD, radial),
+          weight = weights[i],
+          scale = 1 + ((free - NOMINAL) * weight) / denominators[i],
           rollingY = (y * cs - z * sn) * scale,
           rollingZ = (y * sn + z * cs) * scale,
           bottom = Math.max(rollingY, -radius),
           bulge = Math.max(0, -rollingY / Math.max(0.01, free)) ** 4 * weight * deflection * 0.35;
         // Deform in the non-spinning axle frame, then return to mesh space.
         // The contact patch stays below the axle while the UVs rotate with it.
-        positions.setXYZ(
-          i,
-          x + Math.sign(x) * bulge,
-          bottom * cs + rollingZ * sn,
-          -bottom * sn + rollingZ * cs,
-        );
+        const px = x + Math.sign(x) * bulge,
+          py = bottom * cs + rollingZ * sn,
+          pz = -bottom * sn + rollingZ * cs;
+        if (direct) {
+          direct.position[3 * i] = px;
+          direct.position[3 * i + 1] = py;
+          direct.position[3 * i + 2] = pz;
+        } else positions.setXYZ(i, px, py, pz);
       }
       positions.needsUpdate = true;
-      geometry.computeVertexNormals();
+      if (direct) vertexNormals(direct.position, direct.normal, direct.index);
+      else geometry.computeVertexNormals();
       const normals = geometry.getAttribute('normal') as T.BufferAttribute;
       for (const seam of seams) {
         let x = 0,
@@ -140,5 +175,66 @@ export class TireCarcass {
       }
       normals.needsUpdate = true;
     }
+  }
+}
+
+/** BufferGeometry.computeVertexNormals on plain float arrays, without its
+ * per-call vectors and accessor calls. The arithmetic and its float32 rounding
+ * are the same: each triangle's (C - B) x (A - B) accumulates into the stored
+ * normals, which are then scaled by the reciprocal of their length. */
+function vertexNormals(p: Float32Array, n: Float32Array, index: ArrayLike<number> | null) {
+  n.fill(0);
+  const triangles = index ? index.length : p.length / 3;
+  for (let i = 0; i < triangles; i += 3) {
+    const a = 3 * (index ? index[i] : i),
+      b = 3 * (index ? index[i + 1] : i + 1),
+      c = 3 * (index ? index[i + 2] : i + 2);
+    const bx = p[b],
+      by = p[b + 1],
+      bz = p[b + 2];
+    const cbx = p[c] - bx,
+      cby = p[c + 1] - by,
+      cbz = p[c + 2] - bz,
+      abx = p[a] - bx,
+      aby = p[a + 1] - by,
+      abz = p[a + 2] - bz;
+    const x = cby * abz - cbz * aby,
+      y = cbz * abx - cbx * abz,
+      z = cbx * aby - cby * abx;
+    if (index) {
+      // Read all three before writing, as three does: a repeated vertex in a
+      // degenerate triangle receives the face term once.
+      const ax = n[a] + x,
+        ay = n[a + 1] + y,
+        az = n[a + 2] + z,
+        bx2 = n[b] + x,
+        by2 = n[b + 1] + y,
+        bz2 = n[b + 2] + z,
+        cx = n[c] + x,
+        cy = n[c + 1] + y,
+        cz = n[c + 2] + z;
+      n[a] = ax;
+      n[a + 1] = ay;
+      n[a + 2] = az;
+      n[b] = bx2;
+      n[b + 1] = by2;
+      n[b + 2] = bz2;
+      n[c] = cx;
+      n[c + 1] = cy;
+      n[c + 2] = cz;
+    } else {
+      n[a] = n[b] = n[c] = x;
+      n[a + 1] = n[b + 1] = n[c + 1] = y;
+      n[a + 2] = n[b + 2] = n[c + 2] = z;
+    }
+  }
+  for (let i = 0; i < n.length; i += 3) {
+    const x = n[i],
+      y = n[i + 1],
+      z = n[i + 2],
+      inverse = 1 / (Math.sqrt(x * x + y * y + z * z) || 1);
+    n[i] = x * inverse;
+    n[i + 1] = y * inverse;
+    n[i + 2] = z * inverse;
   }
 }
