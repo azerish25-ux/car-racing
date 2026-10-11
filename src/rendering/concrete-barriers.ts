@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { downloadAuthoredAsset } from './authored-download.ts';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import manifest from './concrete-barriers.manifest.json' with { type: 'json' };
@@ -6,6 +7,12 @@ import { Track, trackPoint } from '../simulation/track.ts';
 import { clamp } from '../core/math.ts';
 import { detailDistance } from './view-detail.ts';
 import { tagWeatherSurface } from './weather-presentation.ts';
+import {
+  WEATHERING_ATTRIBUTE,
+  installTracksideWeathering,
+  rubberWear,
+  weatheringStream,
+} from './trackside-weathering.ts';
 import type { Quality } from './options.ts';
 
 export const CONCRETE_BARRIERS = manifest;
@@ -146,6 +153,7 @@ export class ConcreteBarrierKit {
       }
     this.material = material!;
     tagWeatherSurface(this.material, 'concrete');
+    installTracksideWeathering(this.material, 'concrete');
   }
   conform(track: Track, start: number, end: number, side: number, variant: Variant, level: number) {
     if (
@@ -159,6 +167,23 @@ export class ConcreteBarrierKit {
     if (!template) throw new Error('Invalid A01 variant or LOD');
     const g = template.clone(),
       position = g.getAttribute('position');
+    // Barrier-space coordinates for weathering (template +x faces `side`).
+    g.setAttribute(
+      WEATHERING_ATTRIBUTE,
+      new T.BufferAttribute(
+        weatheringStream(
+          position,
+          g.getAttribute('normal'),
+          start,
+          end,
+          manifest.span,
+          side,
+          false,
+          rubberWear(track, (start + end) / 2),
+        ),
+        4,
+      ),
+    );
     const a = track.at(start, trackPoint()),
       b = track.at(end, trackPoint()),
       la = side * track.boundary(start, side),
@@ -289,46 +314,24 @@ export async function loadConcreteBarriers(
   url?: string,
   fetcher: typeof fetch = fetch,
 ) {
-  const controller = new AbortController(),
-    timeout = setTimeout(() => controller.abort(), 60000),
-    poll = setInterval(() => {
-      if (cancelled()) controller.abort();
-    }, 50);
   let asset: ConcreteBarrierKit | undefined;
   try {
-    if (cancelled()) throw aborted();
-    const response = await fetcher(
-      url ?? new URL(`./${manifest.url}?v=${manifest.sha256.slice(0, 16)}`, document.baseURI).href,
-      { signal: controller.signal },
-    );
-    if (!response.ok || !response.body)
-      throw new Error(`Unable to load A01 barriers (${response.status})`);
-    const reader = response.body.getReader(),
-      bytes = new Uint8Array(manifest.bytes);
-    let size = 0;
-    try {
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        if (cancelled() || controller.signal.aborted) throw aborted();
-        if (size + value.length > bytes.length) throw new Error('A01 download exceeds byte budget');
-        bytes.set(value, size);
-        size += value.length;
-      }
-    } finally {
-      await reader.cancel();
-      reader.releaseLock();
-    }
-    if (size !== bytes.length) throw new Error('Truncated A01 download');
-    if (cancelled() || controller.signal.aborted) throw aborted();
+    const bytes = await downloadAuthoredAsset({
+      label: 'A01',
+      title: 'A01 barriers',
+      bytes: manifest.bytes,
+      url:
+        url ??
+        new URL(`./${manifest.url}?v=${manifest.sha256.slice(0, 16)}`, document.baseURI).href,
+      cancelled,
+      fetcher,
+      aborted,
+    });
     asset = await decodeConcreteBarriers(bytes);
-    if (cancelled() || controller.signal.aborted) throw aborted();
+    if (cancelled()) throw aborted();
     return asset;
   } catch (error) {
     asset?.dispose();
     throw error;
-  } finally {
-    clearTimeout(timeout);
-    clearInterval(poll);
   }
 }

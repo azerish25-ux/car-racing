@@ -1,6 +1,7 @@
 import { installGlazing } from './studio/glazing.ts';
 import * as T from 'three';
 import { PERIODIC_COVERAGE_GLSL } from './periodic-coverage.ts';
+import { installFacadeWeathering } from './facade-weathering.ts';
 
 export type VenueFinish = 'stone' | 'timber' | 'metal' | 'paving';
 const FINISH_ID: Record<VenueFinish, number> = { stone: 0, timber: 1, metal: 2, paving: 3 };
@@ -76,10 +77,14 @@ export function installVenueFinish(material: T.MeshStandardMaterial, finish: Ven
           float vertical = apexStripeCoverage(grid.x, footprint.x, .014);
           // Once a pixel spans rows, phase-average both brick offsets instead
           // of differentiating the discontinuous stagger or erasing the joints.
-          ${finish === 'stone' || finish === 'paving' ? `
+          ${
+            finish === 'stone' || finish === 'paving'
+              ? `
           float otherRow = apexStripeCoverage(grid.x + .5, footprint.x, .014);
           vertical = mix(vertical, (vertical + otherRow) * .5, smoothstep(.25, 1., footprint.y));
-          ` : ''}
+          `
+              : ''
+          }
           seam = 1. - (1. - horizontal) * (1. - vertical);
           return vec2(1.+mottling-seam*.14, mottling*.4+seam*.06);
         }`,
@@ -95,6 +100,8 @@ export function installVenueFinish(material: T.MeshStandardMaterial, finish: Ven
   };
   material.customProgramCacheKey = () =>
     `${previousKey}:aurel-metric-finish-v1:coverage-v2:${FINISH_ID[finish]}`;
+  // Run-off streaks and panel-to-panel grime on walls (floors stay as laid).
+  if (finish !== 'paving') installFacadeWeathering(material, finish, 'world');
   return material;
 }
 

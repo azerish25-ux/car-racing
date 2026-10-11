@@ -1,6 +1,7 @@
 import * as T from 'three';
 import { Track, trackPoint } from '../simulation/track.ts';
 import { clamp } from '../core/math.ts';
+import { WEATHERING_ATTRIBUTE, rubberWear, weatheringStream } from './trackside-weathering.ts';
 
 /** Shared metre-space display conformance; no simulation geometry is changed. */
 export function conformTracksideGeometry(
@@ -26,6 +27,24 @@ export function conformTracksideGeometry(
     b = track.at(end, trackPoint()),
     la = side * track.boundary(start, side),
     lb = side * track.boundary(end, side);
+  // Barrier-space coordinates for weathering, from the template (+x is away
+  // from the track on both sides of this mirrored conform).
+  g.setAttribute(
+    WEATHERING_ATTRIBUTE,
+    new T.BufferAttribute(
+      weatheringStream(
+        p,
+        g.getAttribute('normal'),
+        start,
+        end,
+        span,
+        1,
+        reverse,
+        rubberWear(track, (start + end) / 2),
+      ),
+      4,
+    ),
+  );
   for (let i = 0; i < p.count; i++) {
     const x = p.getX(i) * side,
       y = p.getY(i),

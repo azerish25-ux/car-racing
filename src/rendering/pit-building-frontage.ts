@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { downloadAuthoredAsset } from './authored-download.ts';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import manifest from './pit-building-frontage.manifest.json' with { type: 'json' };
 import { pitBuildingLayout, PIT_BUILDING_LIMITS } from './pit-building-layout.ts';
@@ -7,6 +8,7 @@ import { pitBuildingLayout, PIT_BUILDING_LIMITS } from './pit-building-layout.ts
 export const A21_BAY_TOLERANCE = Object.freeze({ position: 0.12, yaw: 0.02 });
 import { detailDistance } from './view-detail.ts';
 import { tagWeatherSurface } from './weather-presentation.ts';
+import { installFacadeWeathering, type FacadeKind } from './facade-weathering.ts';
 import { Track, trackPoint } from '../simulation/track.ts';
 import type { BroadcastSightlines } from './broadcast-sightlines.ts';
 import type { Quality } from './options.ts';
@@ -122,6 +124,15 @@ function free(root: T.Object3D) {
   });
 }
 
+/** Facade weathering per A21 material (glazing, interior and lamps stay clean). */
+const A21_FACADES: Readonly<Record<string, FacadeKind>> = Object.freeze({
+  A21_ArchitecturalConcrete: 'concrete',
+  A21_CeramicCladding: 'cladding',
+  A21_AnodizedSteel: 'metal',
+  A21_BrushedAlloy: 'metal',
+  A21_TeamEnamel: 'paint',
+  A21_RoofMembrane: 'paint',
+});
 export class PitBuildingFrontage {
   readonly chunks: {
     id: ChunkId;
@@ -176,6 +187,10 @@ export class PitBuildingFrontage {
         else if (m.name === 'A21_AnodizedSteel' || m.name === 'A21_BrushedAlloy')
           tagWeatherSurface(m, 'metal');
         else if (m.name === 'A21_TeamEnamel') tagWeatherSurface(m, 'paint');
+        // Seasons of rain run-off, grime and pit-lane splash. Chunk-local
+        // coordinates: the pit-lane floor is y = 0 in every chunk.
+        const facade = A21_FACADES[m.name];
+        if (facade) installFacadeWeathering(m, facade, 'object', 0);
       }
     });
     root.name = 'Aurel Race Operations frontage / A21';
@@ -322,46 +337,24 @@ export async function loadPitBuildingFrontage(
   url?: string,
   fetcher: typeof fetch = fetch,
 ) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 60000);
-  const poll = setInterval(() => {
-    if (cancelled()) controller.abort();
-  }, 50);
   let asset: PitBuildingFrontage | undefined;
   try {
-    if (cancelled()) throw aborted();
-    const response = await fetcher(
-      url ?? new URL(`./${manifest.url}?v=${manifest.sha256.slice(0, 16)}`, document.baseURI).href,
-      { signal: controller.signal },
-    );
-    if (!response.ok || !response.body)
-      throw new Error(`Unable to load A21 frontage (${response.status})`);
-    const reader = response.body.getReader(),
-      bytes = new Uint8Array(manifest.bytes);
-    let size = 0;
-    try {
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        if (cancelled() || controller.signal.aborted) throw aborted();
-        if (size + value.length > bytes.length) throw new Error('A21 download exceeds byte budget');
-        bytes.set(value, size);
-        size += value.length;
-      }
-    } finally {
-      await reader.cancel();
-      reader.releaseLock();
-    }
-    if (size !== bytes.length) throw new Error('Truncated A21 download');
-    if (cancelled() || controller.signal.aborted) throw aborted();
+    const bytes = await downloadAuthoredAsset({
+      label: 'A21',
+      title: 'A21 frontage',
+      bytes: manifest.bytes,
+      url:
+        url ??
+        new URL(`./${manifest.url}?v=${manifest.sha256.slice(0, 16)}`, document.baseURI).href,
+      cancelled,
+      fetcher,
+      aborted,
+    });
     asset = await decodePitBuilding(bytes);
-    if (cancelled() || controller.signal.aborted) throw aborted();
+    if (cancelled()) throw aborted();
     return asset;
   } catch (error) {
     asset?.dispose();
     throw error;
-  } finally {
-    clearTimeout(timeout);
-    clearInterval(poll);
   }
 }

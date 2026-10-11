@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { downloadAuthoredAsset } from './authored-download.ts';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import manifest from './steel-guardrails.manifest.json' with { type: 'json' };
@@ -6,6 +7,7 @@ import { Track } from '../simulation/track.ts';
 import { conformTracksideGeometry } from './trackside-module-conformance.ts';
 import { concreteBarrierLod } from './concrete-barriers.ts';
 import { tagWeatherSurface } from './weather-presentation.ts';
+import { installTracksideWeathering } from './trackside-weathering.ts';
 import type { Quality } from './options.ts';
 export const STEEL_GUARDRAILS = manifest;
 export const GUARDRAIL_RANGES = Object.freeze([
@@ -162,6 +164,8 @@ export class SteelGuardrailKit {
               throw new Error('Non-finite A02 geometry');
           parts.push({ geometry, material: o.material });
           tagWeatherSurface(o.material, o.material.name.includes('reflector') ? 'paint' : 'metal');
+          if (!o.material.name.includes('reflector'))
+            installTracksideWeathering(o.material, 'galvanised');
         });
         if (parts.length !== manifest.draws[variant][level])
           throw new Error('A02 draw budget mismatch');
@@ -302,46 +306,24 @@ export async function loadSteelGuardrails(
   url?: string,
   fetcher: typeof fetch = fetch,
 ) {
-  const controller = new AbortController(),
-    timeout = setTimeout(() => controller.abort(), 60000),
-    poll = setInterval(() => {
-      if (cancelled()) controller.abort();
-    }, 50);
   let asset: SteelGuardrailKit | undefined;
   try {
-    if (cancelled()) throw aborted();
-    const response = await fetcher(
-      url ?? new URL(`./${manifest.url}?v=${manifest.sha256.slice(0, 16)}`, document.baseURI).href,
-      { signal: controller.signal },
-    );
-    if (!response.ok || !response.body)
-      throw new Error(`Unable to load A02 guardrails (${response.status})`);
-    const bytes = new Uint8Array(manifest.bytes),
-      reader = response.body.getReader();
-    let size = 0;
-    try {
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        if (cancelled() || controller.signal.aborted) throw aborted();
-        if (size + value.length > bytes.length) throw new Error('A02 download exceeds byte budget');
-        bytes.set(value, size);
-        size += value.length;
-      }
-    } finally {
-      await reader.cancel();
-      reader.releaseLock();
-    }
-    if (size !== bytes.length) throw new Error('Truncated A02 download');
-    if (cancelled() || controller.signal.aborted) throw aborted();
+    const bytes = await downloadAuthoredAsset({
+      label: 'A02',
+      title: 'A02 guardrails',
+      bytes: manifest.bytes,
+      url:
+        url ??
+        new URL(`./${manifest.url}?v=${manifest.sha256.slice(0, 16)}`, document.baseURI).href,
+      cancelled,
+      fetcher,
+      aborted,
+    });
     asset = await decodeSteelGuardrails(bytes);
-    if (cancelled() || controller.signal.aborted) throw aborted();
+    if (cancelled()) throw aborted();
     return asset;
   } catch (error) {
     asset?.dispose();
     throw error;
-  } finally {
-    clearTimeout(timeout);
-    clearInterval(poll);
   }
 }
