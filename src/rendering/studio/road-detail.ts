@@ -33,11 +33,12 @@ import { chainShaderHook, injectAfter, injectBefore, injectDeclarations } from '
 export const ASPHALT_DETAIL = Object.freeze({
   /** Distance band over which the chip tile converges to its mean, metres. */
   microFade: [15, 40] as const,
-  /** Near-field chip contrast gain over the byte-limited texels (1 = as authored). */
-  microContrast: 1.6,
+  /** Near-field chip contrast gain over the texels (1 = as authored). The
+   * chip tile now spans binder voids to polished chips, so only a light lift. */
+  microContrast: 1.15,
   /** Meso tile size, metres; albedo, roughness and relief gains per unit field. */
   mesoTile: 4.5,
-  mesoTone: 0.55,
+  mesoTone: 0.4,
   mesoRoughness: 0.12,
   /** Relief of the meso field, metres per unit (about +-0.6 mm at one sigma). */
   mesoRelief: 0.0035,

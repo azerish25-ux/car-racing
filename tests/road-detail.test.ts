@@ -187,7 +187,11 @@ describe('asphalt detail shader', () => {
     expect(f).toContain('texture2D(roughnessMap, apexMesoUv).r');
     expect(f).toContain(`vAsphaltWorld * ${(1 / ASPHALT_DETAIL.mesoTile).toFixed(5)}`);
     // Order: fade after the map sample, frame tilt before the normal map.
-    expect(f.indexOf('apexMicro * 1.6')).toBeGreaterThan(f.indexOf('#include <map_fragment>'));
+    // TEST-UPDATE (env realism): the chip tile now spans dark voids to polished
+    // chips in its own bytes, so the near-field lift is the configured gain.
+    expect(f.indexOf(`apexMicro * ${ASPHALT_DETAIL.microContrast.toFixed(5)}`)).toBeGreaterThan(
+      f.indexOf('#include <map_fragment>'),
+    );
     expect(f.indexOf('tbn[2] = apexTilted')).toBeLessThan(
       f.indexOf('#include <normal_fragment_maps>'),
     );

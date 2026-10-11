@@ -5,6 +5,9 @@ import {
   GRASS_MOW_CONTRAST,
   GRASS_MOW_METRES,
   GRASS_TINT,
+  TURF,
+  TURF_COMMON_GLSL,
+  TURF_GLSL,
 } from './studio/grass-gravel-finish.ts';
 
 export type CircuitFinish = 'asphalt' | 'grass' | 'terrain' | 'concrete' | 'paint' | 'kerb';
@@ -29,6 +32,7 @@ export function finishDetailWeight(footprint: number) {
 // water, marbles or physical bumps. Those remain owned by the simulation grid.
 const noise = `
 ${PERIODIC_COVERAGE_GLSL}
+${TURF_COMMON_GLSL}
 varying vec3 vFinishWorld;
 varying vec2 vFinishMetres;
 float finishHash(vec2 p) { return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
@@ -65,6 +69,7 @@ const finishes: Record<CircuitFinish, string> = {
     // with 25 m and 90 m regional variation and dry patches below.
     diffuseColor.rgb *= vec3(${GRASS_TINT.map((v) => v.toFixed(3)).join(',')});
     ${GRASS_DETAIL_GLSL}
+    ${TURF_GLSL}
     // Regional soil/moisture variation, not high-contrast camouflage patches.
     float broad=finishFilteredNoise(vFinishWorld.xz*.018);
     float patches=finishFilteredNoise(vFinishWorld.xz*.48);
@@ -84,6 +89,19 @@ const finishes: Record<CircuitFinish, string> = {
     float mowBand=smoothstep(-mowAA,mowAA,mowTri);
     float mowResolved=(1.0-smoothstep(.25,.9,mowAA))*(1.0-smoothstep(26.0,38.0,abs(vFinishMetres.x)));
     diffuseColor.rgb *= mix(1.0,mix(${(1 - GRASS_MOW_CONTRAST).toFixed(3)},${(1 + GRASS_MOW_CONTRAST).toFixed(3)},mowBand),mowResolved);
+    // The mower lays alternate bands' blades along and against the lap. The
+    // lap direction is dWorld/dLap from screen derivatives (constant per
+    // triangle); a band leaning away from the camera reads light, toward it dark.
+    {
+      vec3 mowWx=dFdx(vFinishWorld), mowWy=dFdy(vFinishWorld);
+      vec2 mowMx=dFdx(vFinishMetres), mowMy=dFdy(vFinishMetres);
+      float mowDet=mowMx.x*mowMy.y-mowMx.y*mowMy.x;
+      vec3 mowAlong=abs(mowDet)>1e-14?(mowWy*mowMx.x-mowWx*mowMy.x)/mowDet:vec3(0.0);
+      float mowAlongLength=length(mowAlong.xz);
+      vec3 mowView=normalize(cameraPosition-vFinishWorld);
+      float mowLean=mowAlongLength>1e-4?dot(mowAlong.xz/mowAlongLength,mowView.xz):0.0;
+      diffuseColor.rgb *= 1.0-${TURF.lean.toFixed(3)}*mowLean*(mowBand*2.0-1.0)*mowResolved;
+    }
   `,
   terrain: `
     // Distant landform shading from the world normal and elevation: lush
@@ -95,6 +113,7 @@ const finishes: Record<CircuitFinish, string> = {
     float elevation=vFinishWorld.y;
     // D19: the same olive turf tint as the apron, so their seam disappears.
     diffuseColor.rgb *= vec3(${GRASS_TINT.map((v) => v.toFixed(3)).join(',')});
+    ${TURF_GLSL}
     diffuseColor.rgb *= .9+.18*tBroad;
     float dryLand=smoothstep(14.0,95.0,elevation+(tBroad-.5)*40.0);
     diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*vec3(1.22,1.05,.72),dryLand*.8);
@@ -170,7 +189,7 @@ export function installCircuitFinish(material: T.MeshStandardMaterial, kind: Cir
       .replace('#include <map_fragment>', '#include <map_fragment>\n' + finishes[kind]);
   };
   material.customProgramCacheKey = () =>
-    `${baseKey}:circuit-finish-v2-filtered:periodic-joints-v1:${kind}${kind === 'asphalt' ? ':binder-p4-v3' : ''}${kind === 'grass' ? ':regional-soil-v1:mown-v1:olive-d19-v1' : kind === 'terrain' ? ':landform-v1:olive-d19-v1' : ''}`;
+    `${baseKey}:circuit-finish-v2-filtered:periodic-joints-v1:${kind}${kind === 'asphalt' ? ':binder-p4-v3' : ''}${kind === 'grass' ? ':regional-soil-v1:mown-v1:olive-d19-v1:turf-v1' : kind === 'terrain' ? ':landform-v1:olive-d19-v1:turf-v1' : ''}`;
   material.name = `Original ${kind} construction finish`;
 }
 

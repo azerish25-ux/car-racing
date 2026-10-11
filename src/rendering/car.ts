@@ -19,6 +19,7 @@ import {
 import {
   installPaintFinish,
   installPaintObservation,
+  installRaceGrime,
   setPaintObservation,
 } from './paint-finish.ts';
 import {
@@ -200,6 +201,8 @@ export class FormulaCar {
       flankLivery(this.paint, -1, id),
       flankLivery(this.paint, 1, id),
     ];
+    // Brake dust, rubber spray and a dirtier rear end on raced bodywork.
+    for (const material of [this.paint, ...flankMaterials]) installRaceGrime(material);
     for (const sign of [-1, 1]) {
       const livery = flankMaterials[sign < 0 ? 0 : 1];
       this.reflectivePaint.push(livery);

@@ -29,6 +29,66 @@ export const GRASS_DETAIL_GLSL = /* glsl */ `
     diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*vec3(1.16,1.06,.78),dryPatch*.6);
 `;
 
+/**
+ * Turf micro-structure (real cut grass instead of a tinted plane):
+ *  - leaf colour clumps 0.1-0.3 m across, yellower and bluer leaves;
+ *  - tufts 1.5-3 cm with dark shaded gaps between lit leaf tips;
+ *  - sparse clover/weed patches, darker and bluer;
+ *  - mowing stripes that depend on the view: a band whose blades lean away
+ *    from the camera shows their lit, waxy upper faces (light), a band that
+ *    leans toward it shows the shaded undersides (dark). The lean follows the
+ *    lap direction recovered from screen derivatives, alternating per band;
+ *  - grazing-angle leaf sheen (more blade sides, less soil, toward the horizon).
+ * Every layer converges to its mean before one pixel covers a feature, and is
+ * world-space, so it is stable in motion. Zero textures and draw calls.
+ */
+export const TURF = Object.freeze({
+  /** Albedo range of the colour clumps (cool, warm). */
+  clumpCool: Object.freeze([0.9, 0.97, 1.08] as const),
+  clumpWarm: Object.freeze([1.09, 1.03, 0.9] as const),
+  /** Tuft contrast (albedo 1 +- tuft/2). */
+  tuft: 0.42,
+  /** Clover share and its tint. */
+  clover: 0.72,
+  cloverTint: Object.freeze([0.8, 0.93, 0.86] as const),
+  /** View-dependent mowing-stripe lean contrast. */
+  lean: 0.09,
+  sheen: 0.16,
+});
+const t3 = (v: readonly number[]) => `vec3(${v.map((x) => x.toFixed(3)).join(',')})`;
+/** Helpers for the finish's common section (hash precise at lap coordinates). */
+export const TURF_COMMON_GLSL = /* glsl */ `
+float turfHash(vec2 p) {
+  vec3 p3 = fract(vec3(p.xyx) * .1031);
+  p3 += dot(p3, p3.yzx + 33.33);
+  return fract((p3.x + p3.y) * p3.z);
+}
+float turfNoise(vec2 p) {
+  vec2 i = floor(p), f = fract(p), u = f * f * (3. - 2. * f);
+  return mix(mix(turfHash(i), turfHash(i + vec2(1., 0.)), u.x),
+    mix(turfHash(i + vec2(0., 1.)), turfHash(i + vec2(1., 1.)), u.x), u.y);
+}
+float turfFiltered(vec2 p) {
+  float footprint = max(length(dFdx(p)), length(dFdy(p)));
+  return mix(.5, turfNoise(p), 1. - smoothstep(.3, 1.1, footprint));
+}
+`;
+/** Leaf colour, tufts and clover (apron and terrain alike, so they meet seamlessly). */
+export const TURF_GLSL = /* glsl */ `{
+    vec2 tw = vFinishWorld.xz;
+    float tClump = turfFiltered(tw * 3.1 + vec2(13.1, 7.3)) * .6 + turfFiltered(tw * 9.7 + vec2(3.7, 21.1)) * .4;
+    diffuseColor.rgb *= mix(${t3(TURF.clumpCool)}, ${t3(TURF.clumpWarm)}, tClump);
+    float tTuft = turfFiltered(tw * 31.0) * .55 + turfFiltered(tw * 67.0 + vec2(5.1, 2.3)) * .45;
+    diffuseColor.rgb *= 1. + ${TURF.tuft.toFixed(3)} * (tTuft - .5) * 2.;
+    float tClover = smoothstep(${TURF.clover.toFixed(3)}, ${(TURF.clover + 0.08).toFixed(3)}, turfFiltered(tw * 2.3 + vec2(41., 9.)));
+    diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * ${t3(TURF.cloverTint)}, tClover * .7);
+    // Grazing sheen: blade sides and the sky in their cuticle wax.
+    vec3 tView = normalize(cameraPosition - vFinishWorld);
+    float tGraze = pow(1. - clamp(tView.y, 0., 1.), 4.);
+    float tLuma = dot(diffuseColor.rgb, vec3(.2126, .7152, .0722));
+    diffuseColor.rgb = mix(diffuseColor.rgb, tLuma * vec3(1., 1.05, 1.08), tGraze * ${TURF.sheen.toFixed(3)});
+}`;
+
 export const GRAVEL = Object.freeze({
   color: 0xb9a98a,
   cellsPerMetre: 50,

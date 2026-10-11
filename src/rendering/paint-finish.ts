@@ -226,3 +226,77 @@ export function installPaintFlakes(material: MeshPhysicalMaterial, flake: number
     if (peel > 0) injectAfter(shader, 'clearcoat_normal_fragment_maps', peelGlsl(peel), 'fragment');
   });
 }
+
+/** Race grime (presentation only, object space, zero uniforms): a film of
+ * brake dust and rubber that rises from the floor line with a broken edge,
+ * spray streaks along the flanks behind the front wheels, and a dirtier rear
+ * end behind the tyres. It darkens and dulls the paint; every streak and speck
+ * converges to its mean before one pixel spans it. Car frame: x across,
+ * y up (paint shells span -0.35 to 0.71 m), z forward (axles at +1.82 and -1.62 m). */
+export const RACE_GRIME = Object.freeze({
+  /** Linear grime colour: warm brake-dust grey-brown. */
+  colour: Object.freeze([0.06, 0.052, 0.045] as const),
+  /** Floor-line film: full below `floor`, gone above `floor + rise`. */
+  floor: -0.27,
+  rise: 0.25,
+  /** Darkening of the film, the wheel wake and the rear. */
+  film: 0.45,
+  wake: 0.38,
+  rear: 0.32,
+  /** Roughness added under full grime. */
+  roughness: 0.16,
+});
+const grimeV3 = (v: readonly number[]) => `vec3(${v.map((x) => x.toFixed(4)).join(', ')})`;
+const GRIME_COMMON = `#ifndef APEX_RACE_GRIME_DECLARED
+#define APEX_RACE_GRIME_DECLARED
+float apexGrimeHash(vec2 p) {
+  vec3 p3 = fract(vec3(p.xyx) * .1031);
+  p3 += dot(p3, p3.yzx + 33.33);
+  return fract((p3.x + p3.y) * p3.z);
+}
+float apexGrimeNoise(vec2 p) {
+  float footprint = max(length(dFdx(p)), length(dFdy(p)));
+  vec2 i = floor(p), f = fract(p), u = f * f * (3. - 2. * f);
+  float n = mix(mix(apexGrimeHash(i), apexGrimeHash(i + vec2(1., 0.)), u.x),
+    mix(apexGrimeHash(i + vec2(0., 1.)), apexGrimeHash(i + vec2(1., 1.)), u.x), u.y);
+  return mix(.5, n, 1. - smoothstep(.35, 1.2, footprint));
+}
+float apexRaceGrime = 0.;
+#endif`;
+const GRIME_COLOUR = `{
+  vec3 gp = vPaintPosition;
+  float gBreak = apexGrimeNoise(gp.xz * vec2(7.0, 2.3)) * .6 + apexGrimeNoise(gp.zy * vec2(23.0, 31.0)) * .4;
+  float gFilm = 1. - smoothstep(${RACE_GRIME.floor.toFixed(3)}, ${(RACE_GRIME.floor + RACE_GRIME.rise).toFixed(3)}, gp.y + (gBreak - .5) * .12);
+  // Spray behind each front tyre, along the sidepod flank and floor edge.
+  float gSide = smoothstep(.36, .58, abs(gp.x));
+  float gWakeZ = smoothstep(1.55, 1.15, gp.z) * smoothstep(-.9, .4, gp.z);
+  float gStreak = apexGrimeNoise(vec2(gp.y * 46., gp.z * 2.6 + gp.x * 3.)) ;
+  float gWake = gSide * gWakeZ * (1. - smoothstep(-.06, .22, gp.y)) * smoothstep(.42, .78, gStreak);
+  // Behind the rear tyres: diffuser, crash structure, lower endplates.
+  float gRear = smoothstep(-1.72, -2.05, gp.z) * (1. - smoothstep(-.05, .35, gp.y)) * (.55 + .45 * gBreak);
+  apexRaceGrime = clamp(gFilm * ${RACE_GRIME.film.toFixed(3)} + gWake * ${RACE_GRIME.wake.toFixed(3)} + gRear * ${RACE_GRIME.rear.toFixed(3)}, 0., .6);
+  diffuseColor.rgb = mix(diffuseColor.rgb, ${grimeV3(RACE_GRIME.colour)}, apexRaceGrime);
+}`;
+export const RACE_GRIME_HOOK = 'race-grime-v1';
+/** Chain race grime onto a car paint material (after its finish and livery). */
+export function installRaceGrime(material: MeshPhysicalMaterial) {
+  installPaintFinish(material);
+  return chainShaderHook(material, RACE_GRIME_HOOK, (shader) => {
+    injectDeclarations(shader, 'common', GRIME_COMMON, 'fragment');
+    injectAfter(shader, 'color_fragment', GRIME_COLOUR, 'fragment');
+    injectAfter(
+      shader,
+      'roughnessmap_fragment',
+      `roughnessFactor = min(1., roughnessFactor + ${RACE_GRIME.roughness.toFixed(3)} * apexRaceGrime / .6);`,
+      'fragment',
+    );
+    injectAfter(
+      shader,
+      'lights_physical_fragment',
+      `#ifdef USE_CLEARCOAT
+        material.clearcoatRoughness = min(1., material.clearcoatRoughness + .12 * apexRaceGrime);
+      #endif`,
+      'fragment',
+    );
+  });
+}

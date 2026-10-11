@@ -49,9 +49,43 @@ const v3 = (hex: number) => {
 };
 const f = (v: number) => v.toFixed(4);
 
+/** Landform micro-relief: four octaves of value noise with analytic
+ * gradients (cell metres, relief metres), so 17 m terrain cells gain ridges,
+ * gullies and spurs without screen-derivative blocks. Each octave fades out
+ * before a pixel spans a third of its cell; steep ground is sculpted harder.
+ * The same field darkens moist gullies and dries the spurs. */
+export const LANDFORM = Object.freeze({
+  octaves: Object.freeze([
+    [95, 7.5],
+    [41, 3.2],
+    [17, 1.3],
+    [7, 0.45],
+  ] as const),
+  steepGain: 1.8,
+  tone: 0.2,
+});
+const LANDFORM_GLSL = LANDFORM.octaves
+  .map(
+    ([cell, relief], i) => `
+	{
+		float w = 1.0 - smoothstep( 0.12, 0.33, landFootprint / ${f(cell)} );
+		vec3 n = apexLandNoised( vFinishWorld.xz / ${f(cell)} + vec2( ${f(i * 17.31)}, ${f(i * 7.77)} ) );
+		apexLandGrad += n.yz * ${f(relief / cell)} * w;
+		landTone += ( n.x - 0.5 ) * w * ${f(1 / (i + 1))};
+	}`,
+  )
+  .join('');
+
 const FINISH = /* glsl */ `{
 	// D17 far landscape: canopy carpet, strata rock, dry south meadows.
 	float slope = 1.0 - clamp( normalize( vFinishNormal ).y, 0.0, 1.0 );
+	// Landform relief and its moisture tone (see LANDFORM).
+	float landFootprint = max( length( fwidth( vFinishWorld.xz ) ), 1e-3 );
+	float landTone = 0.0;
+	apexLandGrad = vec2( 0.0 );
+	${LANDFORM_GLSL}
+	apexLandGrad *= 1.0 + ${f(LANDFORM.steepGain)} * smoothstep( 0.15, 0.5, slope );
+	diffuseColor.rgb *= 1.0 + ${f(LANDFORM.tone)} * landTone;
 	float far = smoothstep( ${f(FAR.forestFrom)}, ${f(FAR.forestFull)}, vTrackDistance );
 	float glade = smoothstep( 0.28, 0.42, finishFilteredNoise( vFinishWorld.xz * 0.0021 + vec2( 7.3, 1.9 ) ) );
 	float flatEnough = 1.0 - smoothstep( ${f(FAR.maxForestSlope - 0.1)}, ${f(FAR.maxForestSlope)}, slope );
@@ -87,7 +121,21 @@ export function installTerrainFinish(material: T.Material) {
     injectDeclarations(
       shader,
       'common',
-      `varying float vTrackDistance;\nfloat apexCanopy = 0.0;\nfloat apexCanopyHeight = 0.0;
+      `varying float vTrackDistance;\nfloat apexCanopy = 0.0;\nfloat apexCanopyHeight = 0.0;\nvec2 apexLandGrad = vec2( 0.0 );
+float apexLandHash( vec2 p ) {
+	vec3 p3 = fract( vec3( p.xyx ) * 0.1031 );
+	p3 += dot( p3, p3.yzx + 33.33 );
+	return fract( ( p3.x + p3.y ) * p3.z );
+}
+// Value noise and its gradient (x: value, yz: d/dp).
+vec3 apexLandNoised( vec2 p ) {
+	vec2 i = floor( p ), q = fract( p );
+	vec2 u = q * q * ( 3.0 - 2.0 * q ), du = 6.0 * q * ( 1.0 - q );
+	float a = apexLandHash( i ), b = apexLandHash( i + vec2( 1.0, 0.0 ) );
+	float c = apexLandHash( i + vec2( 0.0, 1.0 ) ), d = apexLandHash( i + vec2( 1.0, 1.0 ) );
+	float k1 = b - a, k2 = c - a, k4 = a - b - c + d;
+	return vec3( a + k1 * u.x + k2 * u.y + k4 * u.x * u.y, du * vec2( k1 + k4 * u.y, k2 + k4 * u.x ) );
+}
 vec3 apexTerrainRelief( vec3 n, float h ) {
 	vec3 sx = dFdx( - vViewPosition ), sy = dFdy( - vViewPosition );
 	vec3 r1 = cross( sy, n ), r2 = cross( n, sx );
@@ -102,7 +150,9 @@ vec3 apexTerrainRelief( vec3 n, float h ) {
     injectAfter(
       shader,
       'normal_fragment_maps',
-      'if ( apexCanopy > 0.0 ) normal = apexTerrainRelief( normal, apexCanopyHeight );',
+      `if ( apexCanopy > 0.0 ) normal = apexTerrainRelief( normal, apexCanopyHeight );
+// Landform relief: tilt by the world-space height gradient (analytic, stable).
+normal = normalize( normal - mat3( viewMatrix ) * vec3( apexLandGrad.x, 0.0, apexLandGrad.y ) );`,
       'fragment',
     );
   });

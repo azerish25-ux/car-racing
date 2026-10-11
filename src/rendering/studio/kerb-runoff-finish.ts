@@ -179,8 +179,20 @@ export function installRunoffFinish(material: T.MeshStandardMaterial) {
 		float u = ( e - ${f(RUNOFF.band[0])} ) / ${f(RUNOFF.band[1] - RUNOFF.band[0])};
 		float chevPhase = vFinishMetres.y / ${f(RUNOFF.chevronPitch)} + abs( u - .5 ) * .6;
 		float chevron = apexStripeCoverage( chevPhase, fwidth( chevPhase ), .07 ) * band;
-		surface = mix( base, bandColour * ( .92 + .14 * grain ), band * .92 );
-		surface = mix( surface, vec3( .82 ), chevron * .85 );
+		// Road paint is rolled onto the asphalt: the chips carry it, the voids
+		// between them stay darker, so the aggregate reads through the colour.
+		float paintTex = clamp( tex, .8, 1.16 );
+		surface = mix( base, bandColour * ( .92 + .14 * grain ) * paintTex, band * .92 );
+		surface = mix( surface, vec3( .82 ) * paintTex, chevron * .85 );
+		// Rubber laid by cars running wide: dark arcs along the lap that start
+		// at the kerb and fade across the run-off, in sparse corner groups.
+		float wideRun = smoothstep( .55, .78, finishFilteredNoise( vec2( vFinishMetres.y * .045, 3.7 ) ) );
+		float arc = smoothstep( .52, .7, finishFilteredNoise( vec2( e * 3.2 + vFinishMetres.y * .02, vFinishMetres.y * .11 ) ) );
+		float runMarks = wideRun * arc * ( 1.0 - smoothstep( ${f(RUNOFF.from + 0.3)}, ${f(RUNOFF.to - 0.3)}, e ) );
+		surface = mix( surface, vec3( .045, .043, .041 ), runMarks * .42 );
+		// Fine grit and dust swept off the grass onto the painted surface.
+		float grit = finishFilteredNoise( vFinishWorld.xz * 23.0 );
+		surface *= .93 + .14 * grit;
 	}
 	// Worn soil where the run-off meets the kerb and the grass.
 	float seam = max( 1.0 - smoothstep( 0.0, ${f(RUNOFF.seam)}, abs( e - ${f(RUNOFF.from)} - .1 ) ),

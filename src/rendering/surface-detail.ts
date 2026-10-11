@@ -52,19 +52,37 @@ export function surfacePixels(kind: SurfaceKind, size = 512, seed = 1887) {
         field((x / size) * 53, (y / size) * 53, 53) * 0.15 -
         0.5;
       if (aggregate) aggregate.sample((x + 0.5) / size, (y + 0.5) / size, stone);
+      // Open-graded voids: dark pockets in the binder between chips, a few
+      // millimetres across, where the mastic never filled the stone skeleton.
+      const pore = aggregate
+        ? (1 - stone[0]) *
+          clamp(
+            (field((x / size) * 61, (y / size) * 61, 61) * 0.55 +
+              field((x / size) * 37, (y / size) * 37, 37) * 0.45 -
+              0.5) *
+              4.5,
+            0,
+            1,
+          )
+        : 0;
       const h = clamp(
         aggregate
-          ? 0.2 + stone[1] * 0.54 + (grain - 0.5) * 0.035 + broad * 0.04
+          ? 0.2 + stone[1] * 0.54 + (grain - 0.5) * 0.035 + broad * 0.04 - pore * 0.16
           : 0.4 + grain * 0.4 + broad * 0.08,
         0,
         1,
       );
       height[at] = Math.round(h * 255);
-      // Darker binder between lighter chips. The byte span stays inside the
-      // dry-nonmetal guard (red 88-119); the near-field shader restores the
-      // chip contrast that mip filtering and the byte budget compress.
+      // Dark bituminous mastic between light, traffic-polished chips of mixed
+      // mineralogy, and darker open voids. The byte span stays inside the
+      // dry-nonmetal guard (red 50-120); the near-field shader converges the
+      // chip contrast to the tile mean with distance.
       const variation = aggregate
-        ? stone[0] * 18 - 14 + (stone[2] - 0.5) * stone[0] * 9 + (grain - 0.5) * 5 + broad * 3
+        ? Math.min(
+            13,
+            (1 - stone[0]) * (-22 + (grain - 0.5) * 6 + broad * 4 - pore * 11) +
+              stone[0] * (-8 + stone[2] * 22 + (grain - 0.5) * 5 + broad * 3),
+          )
         : kind === 'grass'
           ? (grain - 0.5) * 44 + broad * 10
           : kind === 'gravel'
@@ -124,12 +142,14 @@ export function asphaltMesoPixels(size = 512, seed = 1887) {
   const random = new Random((seed ^ ASPHALT_TEXELS.mesoSeed) >>> 0 || 1);
   const octaves = (
     [
-      [5, 0.1],
-      [11, 0.16],
-      [23, 0.22],
+      // Weighted toward centimetre segregation: broad decimetre clouds read
+      // as mottled concrete rather than laid asphalt.
+      [5, 0.05],
+      [11, 0.08],
+      [23, 0.15],
       [47, 0.22],
-      [97, 0.18],
-      [193, 0.12],
+      [97, 0.24],
+      [193, 0.2],
     ] as const
   ).map(([period, amplitude]) => ({ period, amplitude, at: periodicLattice(random, period) }));
   const field = new Float32Array(size * size);
