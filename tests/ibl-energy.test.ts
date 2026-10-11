@@ -34,6 +34,7 @@ import {
   circuitLightColors,
 } from '../src/rendering/lighting-coherence.ts';
 import { installWetRoad } from '../src/rendering/materials.ts';
+import { skyLight } from '../src/rendering/sky-light.ts';
 import { WET_REFLECTION_GLSL } from '../src/rendering/wet-reflection.ts';
 
 function compile(material: T.Material, kind: 'physical' | 'standard' = 'physical') {
@@ -66,11 +67,13 @@ describe('D03 producer lighting decisions (P1-P3)', () => {
   it('splits the day light into sun, sky IBL and a minor hemisphere term', () => {
     for (const cover of [0, 0.12, 0.5, 1]) {
       const day = daylightState(cover, 0);
-      expect(day.sun).toBeCloseTo(3.9 * (1 - 0.94 * cover ** 1.45), 12);
-      expect(day.fill).toBeCloseTo(0.14 + 0.3 * cover, 12);
-      expect(day.environment).toBeCloseTo(0.42 + 0.08 * cover, 12);
-      // Overcast is all sky light: the diffuse IBL rises with cover.
-      expect(day.environment).toBeGreaterThanOrEqual(daylightState(0, 0).environment);
+      // The key is the sun through this cover's atmosphere, dimmed by cloud.
+      expect(day.sun).toBeCloseTo(skyLight(cover, 'day').sunIrradiance * (1 - 0.94 * cover ** 1.45), 12);
+      expect(day.fill).toBeCloseTo(0.06 + 0.2 * cover, 12);
+      // The PMREM is the physical dome: diffuse sky light at its true share.
+      expect(day.environment).toBe(1);
+      // Overcast is all sky light: the wrap-around fill rises with cover.
+      expect(day.fill).toBeGreaterThanOrEqual(daylightState(0, 0).fill);
       // Specular IBL is normalised to the visible dome.
       expect(day.environment * specularIBLGain(day.environment)).toBeCloseTo(1, 12);
       const sunset = circuitLightState(cover, 0, 'sunset');
@@ -81,22 +84,26 @@ describe('D03 producer lighting decisions (P1-P3)', () => {
     expect(specularIBLGain(night.environment)).toBe(IBL_ENERGY.maxSpecularGain);
     expect(night.environment * specularIBLGain(night.environment)).toBeLessThan(0.3);
   });
-  it('uses the P1-P3 palette: #fff0dc key, #8fb6ea / #4a4237 hemisphere, #ffb26b sunset key', () => {
+  it('takes the key and hemisphere colours from the physical sky, #4a4237 ground', () => {
     const clear = circuitLightColors(0, 'day');
-    expect(clear.sun.getHex()).toBe(0xfff0dc);
-    expect(clear.sky.getHex()).toBe(0x8fb6ea);
+    // Midday key: a warm white (~5000 K) straight from the transmittance.
+    expect(clear.sun.r).toBe(1);
+    expect(clear.sun.b / clear.sun.r).toBeGreaterThan(0.7);
+    expect(clear.sun.b / clear.sun.r).toBeLessThan(0.85);
+    expect(clear.sun.toArray()).toEqual(skyLight(0, 'day').sunColor);
+    expect(clear.sky.b).toBeGreaterThan(clear.sky.r);
     expect(clear.ground.getHex()).toBe(0x4a4237);
-    expect(circuitLightColors(0, 'sunset').sun.getHex()).toBe(0xffb26b);
-    // P2 violet-blue dusk skylight: blue well above red, green just above red
-    // (a magenta fill would turn the orange-lit asphalt mauve).
+    // Golden hour: a deep gold key, a neutral-cool dusk fill (never magenta).
+    const gold = circuitLightColors(0, 'sunset').sun;
+    expect(gold.b / gold.r).toBeLessThan(0.35);
+    expect(gold.g / gold.r).toBeGreaterThan(0.5);
+    expect(gold.g / gold.r).toBeLessThan(0.75);
     const dusk = circuitLightColors(0, 'sunset').sky;
-    expect(dusk.getHex()).toBe(0xa4b4ee);
-    expect(dusk.b).toBeGreaterThan(2 * dusk.r);
-    expect(dusk.g).toBeGreaterThan(dusk.r);
-    expect(dusk.g).toBeLessThan(1.4 * dusk.r);
+    expect(dusk.b).toBeGreaterThanOrEqual(dusk.r * 0.95);
+    expect(dusk.g).toBeGreaterThan(0.9 * dusk.r);
     for (const cover of [0, 0.5, 1]) {
       const dusk = circuitLightState(cover, 0, 'sunset');
-      expect(dusk.fill).toBeCloseTo(0.45 + 0.1 * cover, 12);
+      expect(dusk.fill).toBeCloseTo(0.05 + 0.12 * cover, 12);
       // The ~10 degree key dominates what faces it: key / fill >= 6 when clear.
       if (cover === 0) expect(dusk.sun / dusk.fill).toBeGreaterThanOrEqual(6);
     }
@@ -284,7 +291,7 @@ describe('PMREM ground hemisphere', () => {
     const luma = (c: number[]) => 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
     const clear = radiance(0.12, 'day');
     const sky = skyCosineRadiance(0.12, 'day');
-    expect(luma(clear)).toBeLessThan(0.5 * luma(sky.toArray()));
+    expect(luma(clear)).toBeLessThan(0.6 * luma(sky.toArray()));
     expect(luma(clear)).toBeGreaterThan(0.1);
     // Neutral-warm asphalt, not a blue sky continuation.
     expect(clear[2] / clear[0]).toBeLessThan(1);
@@ -293,14 +300,17 @@ describe('PMREM ground hemisphere', () => {
     const s = SKY_IRRADIANCE_SATURATION.day,
       l = 0.2126 * sky.r + 0.7152 * sky.g + 0.0722 * sky.b;
     const balanced = (l + (sky.b - l) * s) / (l + (sky.r - l) * s);
-    // The cloud-free dome; the clear preset's baked cumulus whiten it a little.
+    // The cloud-free physical dome is about B/R 3 (bright, whitish horizon and
+    // aureole included); the clear preset's sunlit cumulus whiten it further.
     const cloudless = skyCosineRadiance(0, 'day');
-    expect(cloudless.b / cloudless.r).toBeGreaterThan(4);
-    expect(sky.b / sky.r).toBeGreaterThan(3);
-    expect(balanced).toBeGreaterThan(1.6);
+    expect(cloudless.b / cloudless.r).toBeGreaterThan(2.5);
+    expect(cloudless.b / cloudless.r).toBeLessThan(3.6);
+    expect(sky.b / sky.r).toBeGreaterThan(1.3);
+    expect(balanced).toBeGreaterThan(1.2);
     expect(balanced).toBeLessThan(2.6);
     expect(sky.b).toBeGreaterThan(sky.r);
-    expect(luma(radiance(1, 'day'))).toBeLessThan(0.4 * luma(clear));
+    // A closed deck passes 20-50 % of the clear-day global light.
+    expect(luma(radiance(1, 'day'))).toBeLessThan(0.5 * luma(clear));
     expect(luma(radiance(0.12, 'sunset'))).toBeLessThan(luma(clear));
     expect(luma(radiance(0.12, 'night'))).toBeLessThan(luma(radiance(0.12, 'sunset')));
     for (const c of [0, 0.5, 1]) expect(radiance(c, 'day').every(Number.isFinite)).toBe(true);

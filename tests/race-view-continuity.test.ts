@@ -179,7 +179,6 @@ describe('current-view detail and deterministic presentation', () => {
               turbidity: { value: 0 },
               cloudCover: { value: 0 },
               skyRadiance: { value: 0 },
-              skyLinearGain: { value: 0 },
               nightAmount: { value: 0 },
               sunsetAmount: { value: 0 },
               sunPosition: { value: new T.Vector3() },

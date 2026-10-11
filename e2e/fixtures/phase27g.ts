@@ -110,7 +110,6 @@ export function skyModes() {
     sky.material.uniforms.nightAmount.value = mode === 'night' ? 1 : 0;
     sky.material.uniforms.sunPosition.value.copy(lightingDirection(mode));
     sky.material.uniforms.skyRadiance.value = light.skyRadiance;
-    sky.material.uniforms.turbidity.value = light.turbidity;
     renderer.toneMappingExposure = light.exposure;
     env.update(renderer, scene, cover, mode);
     renderer.setRenderTarget(target);

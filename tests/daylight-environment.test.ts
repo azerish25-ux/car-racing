@@ -9,6 +9,7 @@ import {
   groundLightState,
 } from '../src/rendering/daylight.ts';
 import { groundIrradiance } from '../src/rendering/studio/ibl-energy.ts';
+import { skyLight } from '../src/rendering/sky-light.ts';
 import { installWetRoad, installStableSurfaceBump } from '../src/rendering/materials.ts';
 
 afterEach(() => vi.restoreAllMocks());
@@ -23,10 +24,12 @@ it('interpolates bounded sky bins, restores live uniforms and disposes replaced 
   const render = vi.spyOn(T.PMREMGenerator.prototype, 'fromScene').mockImplementation((scene) => {
     const material = (scene.children[0] as Sky).material;
     samples.push(material.uniforms.cloudCover.value);
+    // Each capture binds its own bin's physical sky (sky view and scale).
     expect(material.uniforms.skyRadiance.value).toBeCloseTo(
-      0.28 + material.uniforms.cloudCover.value * 0.2,
+      skyLight(material.uniforms.cloudCover.value, 'day').skyScale,
       8,
     );
+    expect(material.uniforms.sunDiscAmount.value).toBe(0);
     const target = new T.WebGLRenderTarget(8, 8);
     outputs.push(target);
     return target;
@@ -51,7 +54,9 @@ it('interpolates bounded sky bins, restores live uniforms and disposes replaced 
   expect(environment.diagnostics().retainedTargets).toBe(4);
   expect(sky.material.uniforms.cloudCover.value).toBe(0.37);
   expect(sky.material.uniforms.turbidity.value).toBe(4.65);
-  expect(sky.material.uniforms.skyRadiance.value).toBe(0.394);
+  // The visible dome is bound to the last presented cover, not to a capture.
+  expect(sky.material.uniforms.skyRadiance.value).toBe(skyLight(0.36, 'day').skyScale);
+  expect(sky.material.uniforms.sunDiscAmount.value).toBe(1);
   expect(generatorDispose).toHaveBeenCalledTimes(6);
   const lastDispose = vi.spyOn(outputs[5], 'dispose');
   environment.dispose();
@@ -79,7 +84,7 @@ it('does not publish a failed sky capture, lose the previous texture or poison i
   expect(dispose).not.toHaveBeenCalled();
   expect(environment.captures).toBe(1);
   expect(sky.material.uniforms.cloudCover.value).toBe(0);
-  expect(sky.material.uniforms.skyRadiance.value).toBe(0.28);
+  expect(sky.material.uniforms.skyRadiance.value).toBe(skyLight(0, 'day').skyScale);
   expect(environment.update(renderer, scene, 0)).toBe(false);
   expect(generatorDispose).toHaveBeenCalledTimes(2);
   expect(() => environment.update(renderer, scene, NaN)).toThrow('Non-finite');

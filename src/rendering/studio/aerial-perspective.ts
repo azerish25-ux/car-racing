@@ -69,35 +69,62 @@ export function aerialSunVisibility(cover: number) {
   return 1 - smooth(0.35, 0.9, cover);
 }
 
+/** The sky's own haze colours (linear) that replace the authored constants:
+ * the clear horizon away from and toward the sun, and the overcast deck. The
+ * renderer passes the physical sky's (daylight.ts skyFogPalette), so distant
+ * terrain dissolves into exactly the horizon the dome shows. */
+export interface AerialPalette {
+  antiSun: readonly number[];
+  sunSide: readonly number[];
+  overcast: readonly number[];
+}
 /** Anti-sun fog colour (linear) for a weather and lighting: the scene fog
- * colour (`daylightState` fogRed/Green/Blue). */
-export function aerialFogColor(cover: number, rain: number, mode: LightingMode) {
+ * colour (`daylightState` fogRed/Green/Blue). Rain darkens the overcast grey
+ * by the authored rain/overcast and storm/overcast ratios. */
+export function aerialFogColor(
+  cover: number,
+  rain: number,
+  mode: LightingMode,
+  palette?: AerialPalette,
+) {
   if (![cover, rain].every(Number.isFinite)) throw new Error('Invalid aerial perspective state');
   const c = AERIAL_PERSPECTIVE.colors,
     deck = smooth(0.3, 1, cover),
     wet = Math.min(1, Math.max(0, rain) / 24),
     storm = smooth(24, 60, rain);
-  const base = mode === 'sunset' ? c.sunsetAntiSun : mode === 'night' ? c.night : c.dayAntiSun;
+  const base =
+    mode === 'night'
+      ? c.night
+      : (palette?.antiSun ?? (mode === 'sunset' ? c.sunsetAntiSun : c.dayAntiSun));
+  const grey = palette?.overcast ?? c.overcast;
   return [0, 1, 2].map((k) => {
     if (mode === 'night') return lerp(base[k], base[k] * 1.25, deck);
-    const overcast = lerp(base[k], mode === 'sunset' ? base[k] * 1.1 : c.overcast[k], deck);
-    if (mode === 'sunset') return overcast;
-    return lerp(lerp(overcast, c.rain[k], wet), c.storm[k], storm);
+    const overcastK = palette ? grey[k] : mode === 'sunset' ? base[k] * 1.1 : grey[k];
+    const overcast = lerp(base[k], overcastK, deck);
+    if (mode === 'sunset' && !palette) return overcast;
+    const rainK = grey[k] * (c.rain[k] / c.overcast[k]),
+      stormK = grey[k] * (c.storm[k] / c.overcast[k]);
+    return lerp(lerp(overcast, rainK, wet), stormK, storm);
   }) as [number, number, number];
 }
 
 /** Sun-side glow added to the fog colour (linear): sun side minus anti-sun,
  * faded with cover; none at night. */
-export function aerialSunGlow(cover: number, mode: LightingMode, out = new T.Vector3()) {
+export function aerialSunGlow(
+  cover: number,
+  mode: LightingMode,
+  out = new T.Vector3(),
+  palette?: AerialPalette,
+) {
   const c = AERIAL_PERSPECTIVE.colors,
     visible = aerialSunVisibility(cover);
   if (mode === 'night') return out.set(0, 0, 0);
-  const sun = mode === 'sunset' ? c.sunsetSunSide : c.daySunSide,
-    anti = mode === 'sunset' ? c.sunsetAntiSun : c.dayAntiSun;
+  const sun = palette?.sunSide ?? (mode === 'sunset' ? c.sunsetSunSide : c.daySunSide),
+    anti = palette?.antiSun ?? (mode === 'sunset' ? c.sunsetAntiSun : c.dayAntiSun);
   return out.set(
-    (sun[0] - anti[0]) * visible,
-    (sun[1] - anti[1]) * visible,
-    (sun[2] - anti[2]) * visible,
+    Math.max(0, sun[0] - anti[0]) * visible,
+    Math.max(0, sun[1] - anti[1]) * visible,
+    Math.max(0, sun[2] - anti[2]) * visible,
   );
 }
 
@@ -123,8 +150,9 @@ export function setAerialPerspective(
   cover: number,
   mode: LightingMode,
   uniforms: AerialUniforms = aerialUniforms,
+  palette?: AerialPalette,
 ) {
-  aerialSunGlow(cover, mode, uniforms.apexAerialSunGlow.value);
+  aerialSunGlow(cover, mode, uniforms.apexAerialSunGlow.value, palette);
 }
 
 /** Mean of exp(-(y - y0) / H) along a sightline from height `from` rising by

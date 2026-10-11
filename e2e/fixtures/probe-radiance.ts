@@ -21,7 +21,6 @@ export function probeRadianceGPU() {
   scene.environmentIntensity = light.environment;
   sky.material.uniforms.cloudCover.value = 1;
   sky.material.uniforms.nightAmount.value = 1;
-  sky.material.uniforms.turbidity.value = light.turbidity;
   sky.material.uniforms.skyRadiance.value = light.skyRadiance;
   const environment = new SkyEnvironment(sky);
   environment.update(renderer, scene, 1, 'night');

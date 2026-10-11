@@ -80,9 +80,9 @@ import {
   SUN_OFFSET,
   lightingDirection,
   lightingMode,
-  skyLinearGain,
   type LightingMode,
 } from './daylight.ts';
+import { prewarmSky } from './sky-light.ts';
 import { SkyClouds } from './studio/sky-clouds.ts';
 import { EngineeringView } from './engineering-view.ts';
 import type { EngineeringSample } from '../workers/diagnostics.ts';
@@ -392,6 +392,8 @@ export class RacingRenderer {
       this.venueLighting.registerSightlines(this.circuit.sightlines),
     );
     this.circuit.construction.add('Environment lighting', 1, () => {
+      // Bake every haze level of the physical sky behind the loading screen.
+      prewarmSky(this.lighting);
       this.environment.update(this.renderer, this.scene, 0);
     });
     // Bind after every static venue task and spatial batching; early binding
@@ -1004,16 +1006,11 @@ export class RacingRenderer {
     const fog = this.scene.fog as T.FogExp2;
     fog.density = daylight.fogDensity;
     fog.color.setRGB(daylight.fogRed, daylight.fogGreen, daylight.fogBlue);
-    this.sky.material.uniforms.turbidity.value = daylight.turbidity;
     this.sky.material.uniforms.cloudCover.value = daylight.cover;
     this.sky.material.uniforms.skyRadiance.value = daylight.skyRadiance;
     this.sky.material.uniforms.nightAmount.value = illumination === 'night' ? 1 : 0;
     this.sky.material.uniforms.sunsetAmount.value = illumination === 'sunset' ? 1 : 0;
     this.sky.material.uniforms.sunPosition.value.copy(lightingDirection(illumination));
-    this.sky.material.uniforms.skyLinearGain.value = skyLinearGain(
-      lightingDirection(illumination),
-      daylight.turbidity,
-    );
     this.target.copy(car.root.position);
     this.direction.set(0, 0, 1).applyQuaternion(car.root.quaternion);
     if (pregame) {

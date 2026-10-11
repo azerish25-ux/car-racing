@@ -6,6 +6,7 @@ import {
   circuitLightState,
   configureSky,
   daylightState,
+  skyFogPalette,
 } from '../src/rendering/daylight.ts';
 import { LocalAtmosphere } from '../src/rendering/local-atmosphere.ts';
 import {
@@ -80,11 +81,18 @@ describe('P12 aerial perspective', () => {
     storm.forEach((x, k) => expect(x).toBeCloseTo(c.storm[k], 10));
     const sat = (x: number[]) => (Math.max(...x) - Math.min(...x)) / Math.max(...x);
     expect(sat(overcast)).toBeLessThan(0.5 * sat([...c.dayAntiSun]));
-    // The renderer's scene fog colour is the anti-sun haze.
+    // The renderer's scene fog colour is the physical sky's own anti-sun
+    // horizon, so distant terrain dissolves into the horizon the dome shows.
     const day = daylightState(0, 0);
-    expect([day.fogRed, day.fogGreen, day.fogBlue]).toEqual([...c.dayAntiSun]);
+    expect([day.fogRed, day.fogGreen, day.fogBlue]).toEqual(skyFogPalette(0, 'day').antiSun);
+    expect(day.fogBlue).toBeGreaterThan(day.fogRed);
     const dusk = circuitLightState(0, 0, 'sunset');
-    expect([dusk.fogRed, dusk.fogGreen, dusk.fogBlue]).toEqual([...c.sunsetAntiSun]);
+    expect([dusk.fogRed, dusk.fogGreen, dusk.fogBlue]).toEqual(skyFogPalette(0, 'sunset').antiSun);
+    // Under the deck the haze is the deck's grey, darkened by rain.
+    const deck = skyFogPalette(1, 'day').overcast,
+      wet = daylightState(1, 24);
+    expect(wet.fogGreen).toBeCloseTo(deck[1] * (c.rain[1] / c.overcast[1]), 10);
+    expect(sat([wet.fogRed, wet.fogGreen, wet.fogBlue])).toBeLessThan(0.3);
     const night = circuitLightState(0, 0, 'night');
     expect([night.fogRed, night.fogGreen, night.fogBlue]).toEqual([...c.night]);
     // Sun side: warm white by day, orange at dusk, none at night or overcast.
@@ -172,8 +180,11 @@ describe('P12 aerial perspective', () => {
     try {
       environment.update(renderer, new T.Scene(), 0, 'sunset');
       expect(aerialUniforms.apexAerialSunGlow.value.toArray()).toEqual(
-        aerialSunGlow(0, 'sunset').toArray(),
+        aerialSunGlow(0, 'sunset', new T.Vector3(), skyFogPalette(0, 'sunset')).toArray(),
       );
+      // The physical dusk sky glows warm toward the sun.
+      const glow = aerialUniforms.apexAerialSunGlow.value;
+      expect(glow.x).toBeGreaterThan(glow.z);
       // A held frame (no PMREM work) still writes the same state.
       environment.update(renderer, new T.Scene(), 0, 'sunset');
       environment.update(renderer, new T.Scene(), 1, 'day');

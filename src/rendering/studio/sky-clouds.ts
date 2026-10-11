@@ -1,6 +1,7 @@
 import * as T from 'three';
 import { FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
 import type { LightingMode } from '../daylight.ts';
+import type { SkyLight } from '../sky-light.ts';
 
 /**
  * Sky clouds (D07): a baked cumulus panorama per cloud-cover bin.
@@ -11,19 +12,25 @@ import type { LightingMode } from '../daylight.ts';
  *
  *  1. A tiling 2D cloud field (once per session): Perlin-Worley cumulus cells
  *     (R), a fine Worley billow detail (G) and a broad modulation (B).
- *  2. Per (cover bin, sun direction), a 2048x512 HalfFloat equirect panorama of
- *     the upper hemisphere. Each texel marches its view ray through a cloud
+ *  2. Per (cover bin, sun direction), a 3072x512 HalfFloat panorama of the
+ *     upper hemisphere, rows packed toward the horizon (v = sqrt(elevation /
+ *     90 degrees)) where a racing camera sees the clouds: a 0.09 degree texel
+ *     at 5 degrees up, where the former linear rows were 0.18 degrees. Each texel marches its view ray through a cloud
  *     slab over a curved earth: columns rise from one flat base altitude and
  *     narrow with height, so bases are flat and tops billow; two samples toward
  *     the sun give the self-shadow (with a multiple-scattering floor), and a
- *     two-lobe phase function gives the silver lining near the sun. Distant
- *     clouds fade into the horizon haze.
+ *     two-lobe phase function gives the silver lining near the sun, and a
+ *     powder term (Schneider 2015) darkens the thin, sun-facing edges of
+ *     the cauliflower when seen away from the sun. Above the cumulus, a thin
+ *     cirrus sheet at 8.5 km (stretched fibrous noise in the field's alpha)
+ *     catches the sun with a strong forward lobe. Distant clouds fade into
+ *     the horizon haze.
  *
  * The panorama stores lighting terms, not colours: R = sun-scattered light
  * (phase and self-shadow included), G = skylight from above, B = light
  * bounced up from the sunlit ground (bases), A = opacity; all premultiplied. The
- * sky shader colours them for day, golden hour, overcast or night from its
- * own uniforms, so the visible dome and every PMREM capture of a bin share one
+ * sky shader colours them with the sun at the cloud layer, the dome above and
+ * the lit ground below, all read from the physical atmosphere (sky-light.ts), so the visible dome and every PMREM capture of a bin share one
  * bake and one colour model.
  *
  * Cost: one draw for the field (first use) and one per panorama bake, paid only
@@ -36,9 +43,9 @@ import type { LightingMode } from '../daylight.ts';
  * no time, no randomness. The clouds are stationary.
  */
 export const SKY_CLOUDS = Object.freeze({
-  panoramaWidth: 2048,
+  panoramaWidth: 3072,
   panoramaHeight: 512,
-  fieldSize: 1024,
+  fieldSize: 2048,
   /** Tiling period of the cloud field, metres. */
   fieldPeriod: 24000,
   earthRadius: 6371000,
@@ -49,7 +56,9 @@ export const SKY_CLOUDS = Object.freeze({
   maxDistance: 80000,
   /** Distance at which a cloud keeps 1/e of its contrast against the horizon. */
   hazeDistance: 32000,
-  /** Cached panoramas (8 MB each); two cover bins of the current lighting plus one spare. */
+  /** Cirrus sheet altitude, metres. */
+  cirrusAltitude: 8500,
+  /** Cached panoramas (12 MB each); two cover bins of the current lighting plus one spare. */
   cacheSize: 3,
 });
 
@@ -70,6 +79,9 @@ export function cloudLayer(cover: number) {
     thickness: lerp(1150, 1800, smooth01(c / 0.9)),
     /** Extinction per metre at density 1. */
     extinction: lerp(0.018, 0.026, deck),
+    /** Peak optical depth of the cirrus sheet: fair-weather and broken skies
+     * carry high ice cloud; a closing deck hides it. */
+    cirrus: c <= 0 ? 0 : 0.4 * smooth01(c / 0.25) * (1 - smooth01((c - 0.55) / 0.35)),
   };
 }
 /** Field threshold per eighth of cover (index = bin), calibrated on the baked
@@ -156,7 +168,14 @@ void main() {
   float detail = 0.55 * cloudWorley(p * 80.0, 80, 31u) + 0.3 * cloudWorley(p * 160.0, 160, 32u) +
     0.15 * cloudPerlin(p * 120.0, 120, 33u);
   float broad = cloudPerlin(p * 2.0, 2, 41u) * 0.6 + cloudPerlin(p * 5.0, 5, 42u) * 0.4;
-  fieldColor = vec4(base, detail, broad, 1.0);
+  // Cirrus: fibrous streaks, gradient noise stretched 8:1 along the wind and
+  // sheared by a broad warp, gathered into patches by a slow envelope.
+  vec2 w = p + 0.06 * vec2(cloudPerlin(p * 4.0, 4, 51u), cloudPerlin(p * 4.0 + 0.5, 4, 52u));
+  float fibres = 0.6 * cloudPerlin(vec2(w.x * 5.0, w.y * 30.0), 5, 53u) +
+    0.4 * cloudPerlin(vec2(w.x * 10.0, w.y * 60.0), 10, 54u);
+  float patches = cloudPerlin(p * 2.0 + 0.25, 2, 56u);
+  float cirrus = smoothstep(0.5, 0.85, fibres) * smoothstep(0.5, 0.8, patches);
+  fieldColor = vec4(base, detail, broad, cirrus);
 }`;
 
 /** Equirect upper hemisphere: u = atan(z, x) / 2pi + 0.5, v = elevation / 90 deg. */
@@ -169,6 +188,7 @@ uniform float threshold;
 uniform float baseAltitude;
 uniform float thickness;
 uniform float extinction;
+uniform float cirrus;
 uniform vec2 resolution;
 in vec2 vUv;
 out vec4 cloudTerms;
@@ -177,6 +197,7 @@ const float EARTH = ${SKY_CLOUDS.earthRadius.toFixed(1)};
 const float PERIOD = ${SKY_CLOUDS.fieldPeriod.toFixed(1)};
 const float MAX_DISTANCE = ${SKY_CLOUDS.maxDistance.toFixed(1)};
 const float HAZE = ${SKY_CLOUDS.hazeDistance.toFixed(1)};
+const float CIRRUS = ${SKY_CLOUDS.cirrusAltitude.toFixed(1)};
 float shellDistance(float dy, float h) {
   float b = EARTH * dy;
   return -b + sqrt(b * b + 2.0 * EARTH * h + h * h);
@@ -199,12 +220,16 @@ float density(vec3 p, bool detailed, out float column) {
   float top = shape - pow(hf, 1.7);
   if (detailed) {
     // Billows: the detail is sampled with a height-dependent offset, so the
-    // erosion varies up the cloud like a 3D noise would.
+    // erosion varies up the cloud like a 3D noise would. The fine octave
+    // fades out with distance before a texel outgrows it (no aliased fringe).
+    float fine = 1.0 - smoothstep(9000.0, 26000.0, length(p.xz));
     float billow = 0.55 * texture(cloudField, xz * 1.3 + vec2(hf * 0.012, -hf * 0.008)).g +
-      0.45 * texture(cloudField, mat2(0.6, 0.8, -0.8, 0.6) * xz * 2.3 + vec2(-hf * 0.031, hf * 0.019)).g;
-    top -= (0.62 - billow) * 0.42 * (0.35 + hf);
+      0.45 * mix(0.62, texture(cloudField, mat2(0.6, 0.8, -0.8, 0.6) * xz * 2.3 +
+        vec2(-hf * 0.031, hf * 0.019)).g, fine);
+    top -= (0.62 - billow) * 0.52 * (0.35 + hf);
   }
-  return smoothstep(0.0, 0.14, top) * smoothstep(0.0, 0.045, hf);
+  // Crisp cauliflower edges, a flat, slightly soft base.
+  return smoothstep(0.0, 0.1, top) * smoothstep(0.0, 0.035, hf);
 }
 float phaseHG(float mu, float g) {
   float g2 = g * g;
@@ -212,17 +237,32 @@ float phaseHG(float mu, float g) {
 }
 void main() {
   float az = (vUv.x - 0.5) * 2.0 * PI;
-  float el = vUv.y * 0.5 * PI;
+  float el = vUv.y * vUv.y * 0.5 * PI;
   vec3 dir = vec3(cos(el) * cos(az), sin(el), cos(el) * sin(az));
+  float mu = dot(dir, sunDirection);
+  // Cirrus sheet: a thin ice layer far above the cumulus, sampled once where
+  // the view ray crosses it. Ice crystals scatter strongly forward (g 0.75)
+  // with a weak back lobe; the sheet is optically thin, so it is lit almost
+  // only by the key and the dome, and fades into the haze toward the horizon.
+  vec4 high = vec4(0.0);
+  if (cirrus > 0.0) {
+    float tc = shellDistance(dir.y, CIRRUS);
+    vec2 cp = (dir.xz * tc) / (PERIOD * 2.5) + vec2(0.17, 0.41);
+    float fibre = texture(cloudField, mat2(0.93, -0.37, 0.37, 0.93) * cp).a;
+    float depth = cirrus * fibre;
+    // Fades out well above the horizon, where the sheet's texels would alias.
+    float a = (1.0 - exp(-depth)) * smoothstep(0.05, 0.3, dir.y);
+    float ice = mix(phaseHG(mu, 0.75), phaseHG(mu, -0.2), 0.25);
+    high = vec4(a * min(ice, 6.0) * 0.9, a * 0.85, a * 0.2, a);
+  }
   float enter = shellDistance(dir.y, baseAltitude);
   float leave = min(shellDistance(dir.y, baseAltitude + thickness), MAX_DISTANCE);
-  if (enter >= leave) { cloudTerms = vec4(0.0); return; }
+  if (enter >= leave) { cloudTerms = high; return; }
   float span = leave - enter;
   float dt = span / clamp(span / 160.0, ${SKY_CLOUDS.minSteps}.0, ${SKY_CLOUDS.maxSteps}.0);
   // Interleaved gradient noise: a fixed per-texel offset hides step banding.
   vec2 pixel = floor(vUv * resolution);
   float jitter = fract(52.9829189 * fract(dot(pixel, vec2(0.06711056, 0.00583715))));
-  float mu = dot(dir, sunDirection);
   // Forward lobe (silver lining) + a weak back lobe, relative to isotropic;
   // capped so a cloud beside the sun glows without a bloom-blown core.
   float phase = min(mix(phaseHG(mu, 0.68), phaseHG(mu, -0.18), 0.32), 4.5);
@@ -251,13 +291,19 @@ void main() {
     }
     if (d <= 0.001) continue;
     float hf = (altitude(p) - baseAltitude) / thickness;
-    // Two-step self-shadow toward the sun.
+    // Three-step self-shadow toward the sun, out to a kilometre: the shaded
+    // flank and the base of a tall cumulus see the sun through its whole body.
     float unused;
     float near = density(p + sunDirection * 90.0, false, unused);
     float far = density(p + sunDirection * 380.0, false, unused);
-    float depth = extinction * (near * 180.0 + far * 520.0);
+    float farther = density(p + sunDirection * 950.0, false, unused);
+    float depth = extinction * (near * 180.0 + far * 520.0 + farther * 650.0);
     // Beer-Lambert with a multiple-scattering floor (no black cores).
-    float lit = max(exp(-depth), 0.32 * exp(-depth * 0.22));
+    float lit = max(exp(-depth), 0.24 * exp(-depth * 0.25));
+    // Powder (Schneider 2015): thin, sun-facing edges have had little depth
+    // to build up in-scattered light, so they read darker than the cloud's
+    // body when seen away from the sun; toward the sun the silver lining wins.
+    lit *= mix(1.0, 1.0 - exp(-2.0 * depth - 0.6), 0.35 * (0.5 - 0.5 * mu));
     // Skylight: tops see the whole dome, a base mostly the sunlit ground below;
     // a taller column above darkens its base (the low-contrast overcast rolls).
     float shade = 1.0 - 0.2 * column * (1.0 - hf);
@@ -273,62 +319,40 @@ void main() {
     transmittance *= 1.0 - stepOpacity;
   }
   float opacity = 1.0 - transmittance;
-  if (weight <= 0.0) { cloudTerms = vec4(0.0); return; }
+  if (weight <= 0.0) { cloudTerms = high; return; }
   meanT /= weight;
   // Aerial perspective: distant clouds lose contrast against the horizon haze.
   float haze = exp(-pow(meanT / HAZE, 1.6));
-  cloudTerms = vec4(sun, sky, ground, opacity) * haze;
+  // The cirrus shows through whatever the cumulus leaves.
+  cloudTerms = vec4(sun, sky, ground, opacity) * haze + high * (1.0 - opacity * haze);
 }`;
 
-/** How the sky shader lights the baked terms, in sky-shader units (before
- * skyRadiance). Calibrated through ACES at day exposure and the day grade to
- * ART_BIBLE_A section 2.2: sunlit tops #f6f7f8 (just under clip), shaded bases
- * #9aa6b4-#aab4c0, overcast #cfd3d6-#e8eaea. */
-export const SKY_CLOUD_LIGHT = Object.freeze({
-  keyGain: 6.0,
-  skyGain: 3.0,
-  dayKey: Object.freeze([0.96, 0.98, 1.0] as const),
-  sunsetKey: Object.freeze([1.0, 0.5, 0.22] as const),
-  daySky: Object.freeze([0.46, 0.6, 0.9] as const),
-  sunsetSky: Object.freeze([0.26, 0.24, 0.42] as const),
-  /** Sunlit ground seen by cloud bases (dry verges and asphalt, warm). */
-  groundBounce: Object.freeze([0.62, 0.58, 0.5] as const),
-  /** Deck base under overcast (sky term about 0.34 there). */
-  overcastSky: Object.freeze([1.15, 1.34, 1.66] as const),
-  /** The dome behind a closing deck: the deck's own diffuse grey. */
-  overcastHaze: Object.freeze([0.4, 0.46, 0.57] as const),
-});
-const vec3 = (c: readonly number[]) => `vec3(${c.map((v) => v.toFixed(4)).join(',')})`;
-/** Sky-shader declarations (configureSky). */
+/** Sky-shader declarations (configureSky). The three term colours are the
+ * scene-unit light of the bound weather and lighting (sky-light.ts): the key
+ * at the cloud layer, the in-cloud ambient (dome and multiple scattering, or
+ * a deck's transmitted light) and the bounce from the lit ground. */
 export const SKY_CLOUD_UNIFORMS = `
 uniform sampler2D cloudLow;
 uniform sampler2D cloudHigh;
 uniform float cloudWeight;
 uniform float cloudReady;
-uniform float cloudKeyGain;
-uniform float cloudSkyGain;
+uniform vec3 cloudKey;
+uniform vec3 cloudAmbient;
+uniform vec3 cloudBounce;
 `;
-/** Colours the baked terms for the bound lighting and cover: the sun term by
- * the key (hidden toward overcast), the sky term by the dome (grey under a
- * closed deck). Expects cloudCover and sunsetAmount. */
+/** Lights the baked terms with the bound colours. */
 export const SKY_CLOUD_LIGHTING = `
-const vec3 skyOvercastHaze=${vec3(SKY_CLOUD_LIGHT.overcastHaze)};
 vec3 skyCloudLight(vec4 terms) {
-  float sunVisible = 1.0 - 0.9 * smoothstep(0.35, 0.95, cloudCover);
-  vec3 key = mix(${vec3(SKY_CLOUD_LIGHT.dayKey)}, ${vec3(SKY_CLOUD_LIGHT.sunsetKey)}, sunsetAmount);
-  vec3 dome = mix(mix(${vec3(SKY_CLOUD_LIGHT.daySky)}, ${vec3(SKY_CLOUD_LIGHT.sunsetSky)}, sunsetAmount),
-    ${vec3(SKY_CLOUD_LIGHT.overcastSky)}, smoothstep(0.45, 1.0, cloudCover));
-  // Ground bounce follows the sun on the ground; under a deck it is the sky's.
-  vec3 bounce = ${vec3(SKY_CLOUD_LIGHT.groundBounce)} * mix(key * sunVisible, dome, 0.35);
-  return terms.r * key * cloudKeyGain * sunVisible + (terms.g * dome + terms.b * bounce) * cloudSkyGain;
+  return terms.r * cloudKey + terms.g * cloudAmbient + terms.b * cloudBounce;
 }
 `;
-/** Sky-shader sampling of the bound panoramas (premultiplied terms, opacity). */
+/** Sky-shader sampling of the bound panoramas (premultiplied terms, opacity);
+ * rows are packed toward the horizon (v = sqrt(elevation / 90 degrees)). */
 export const SKY_CLOUD_SAMPLE = `
 vec4 skyCloudTerms(vec3 direction) {
   if (cloudReady < 0.5 || direction.y <= 0.0) return vec4(0.0);
   vec2 uv = vec2(atan(direction.z, direction.x) * 0.15915494 + 0.5,
-    asin(clamp(direction.y, 0.0, 1.0)) * 0.63661977);
+    sqrt(asin(clamp(direction.y, 0.0, 1.0)) * 0.63661977));
   return mix(texture2D(cloudLow, uv), texture2D(cloudHigh, uv), cloudWeight);
 }
 `;
@@ -361,25 +385,18 @@ export function cloudDomeTerms(cover: number, mode: LightingMode) {
   const at = (k: number) => lerp(a[k], b[k], w);
   return { opacity: at(0), sun: at(mode === 'sunset' ? 2 : 1), sky: at(3), ground: at(4) };
 }
-/** CPU mirror of SKY_CLOUD_LIGHTING (sky-shader units): the radiance of
- * premultiplied terms for a cover and sunset amount. */
+/** CPU mirror of SKY_CLOUD_LIGHTING: the scene radiance of premultiplied
+ * terms under a sky light (sky-light.ts `skyLight`). */
 export function skyCloudLight(
   terms: { sun: number; sky: number; ground: number },
-  cover: number,
-  sunset: number,
+  light: Pick<SkyLight, 'cloudKey' | 'cloudAmbient' | 'cloudBounce'>,
   out: number[] = [0, 0, 0],
 ) {
-  const L = SKY_CLOUD_LIGHT;
-  const sunVisible = 1 - 0.9 * smooth01((cover - 0.35) / 0.6),
-    deck = smooth01((cover - 0.45) / 0.55);
-  for (let k = 0; k < 3; k++) {
-    const key = lerp(L.dayKey[k], L.sunsetKey[k], sunset),
-      dome = lerp(lerp(L.daySky[k], L.sunsetSky[k], sunset), L.overcastSky[k], deck),
-      bounce = L.groundBounce[k] * lerp(key * sunVisible, dome, 0.35);
+  for (let k = 0; k < 3; k++)
     out[k] =
-      terms.sun * key * L.keyGain * sunVisible +
-      (terms.sky * dome + terms.ground * bounce) * L.skyGain;
-  }
+      terms.sun * light.cloudKey[k] +
+      terms.sky * light.cloudAmbient[k] +
+      terms.ground * light.cloudBounce[k];
   return out;
 }
 
@@ -388,8 +405,9 @@ export interface SkyCloudUniforms {
   cloudHigh: T.IUniform<T.Texture | null>;
   cloudWeight: T.IUniform<number>;
   cloudReady: T.IUniform<number>;
-  cloudKeyGain: T.IUniform<number>;
-  cloudSkyGain: T.IUniform<number>;
+  cloudKey: T.IUniform<T.Vector3>;
+  cloudAmbient: T.IUniform<T.Vector3>;
+  cloudBounce: T.IUniform<T.Vector3>;
 }
 /** Fresh, unbound uniforms (no panorama: the dome shows no baked clouds). */
 export function createSkyCloudUniforms(): SkyCloudUniforms {
@@ -398,8 +416,9 @@ export function createSkyCloudUniforms(): SkyCloudUniforms {
     cloudHigh: { value: null },
     cloudWeight: { value: 0 },
     cloudReady: { value: 0 },
-    cloudKeyGain: { value: SKY_CLOUD_LIGHT.keyGain },
-    cloudSkyGain: { value: SKY_CLOUD_LIGHT.skyGain },
+    cloudKey: { value: new T.Vector3() },
+    cloudAmbient: { value: new T.Vector3() },
+    cloudBounce: { value: new T.Vector3() },
   };
 }
 
@@ -457,6 +476,7 @@ export class SkyClouds {
       baseAltitude: { value: 1400 },
       thickness: { value: 800 },
       extinction: { value: 0.02 },
+      cirrus: { value: 0 },
       resolution: {
         value: new T.Vector2(SKY_CLOUDS.panoramaWidth, SKY_CLOUDS.panoramaHeight),
       },
@@ -548,6 +568,7 @@ export class SkyClouds {
     u.baseAltitude.value = layer.baseAltitude;
     u.thickness.value = layer.thickness;
     u.extinction.value = layer.extinction;
+    u.cirrus.value = layer.cirrus;
     try {
       this.draw(renderer, target, this.panoramaMaterial);
     } catch (error) {

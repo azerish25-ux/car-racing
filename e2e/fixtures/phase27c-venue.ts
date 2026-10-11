@@ -148,7 +148,6 @@ class VenueSurvey {
     this.fill.intensity = light.fill;
     this.scene.environmentIntensity = light.environment;
     this.renderer.toneMappingExposure = light.exposure;
-    this.sky.material.uniforms.turbidity.value = light.turbidity;
     this.sky.material.uniforms.cloudCover.value = light.cover;
     this.sky.material.uniforms.skyRadiance.value = light.skyRadiance;
     this.sky.visible = true;

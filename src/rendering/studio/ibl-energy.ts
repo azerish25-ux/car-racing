@@ -56,13 +56,13 @@ export const IBL_ENERGY = Object.freeze({
   /** Width of the sky-to-ground blend below the horizon, degrees. */
   horizonBlendDegrees: 2,
 });
-/** Chroma kept in the diffuse IBL irradiance, by lighting. Day 0.4 brings the
- * clear dome's B/R from about 5 to 1.9, mid-range for measured skylight: the
- * calibrated track asphalt reads warm-neutral in sun (B/R ~0.9) and the car's
- * open shadow stays sky blue (B/R ~1.7). The sunset dome (B/R 2.2, violet
- * shadows wanted) and the night dome are not over-saturated. */
+/** Chroma kept in the diffuse IBL irradiance, by lighting. The physical clear
+ * dome (atmosphere.ts) irradiates at about B/R 3 including its white horizon
+ * and aureole; day 0.75 brings that to about 2.4, the blue end of measured
+ * clear skylight (1.6-2.5): open shadows stay sky blue, sunlit asphalt warm
+ * neutral. The sunset and night domes are not over-saturated. */
 export const SKY_IRRADIANCE_SATURATION: Readonly<Record<LightingMode, number>> = Object.freeze({
-  day: 0.4,
+  day: 0.75,
   sunset: 1,
   night: 1,
 });

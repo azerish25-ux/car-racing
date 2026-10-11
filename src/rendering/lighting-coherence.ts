@@ -1,25 +1,27 @@
 import * as T from 'three';
 import type { LightingMode } from './daylight.ts';
 import { clamp } from '../core/math.ts';
+import { skyLight } from './sky-light.ts';
 
-// Hex inputs are decoded once into Three's linear working colour space.
-const direct = {
-  // 5600-5800 K midday key: sunlit asphalt reads warm-neutral (B/R 0.88-0.95).
-  day: new T.Color(0xfff0dc),
-  // Golden hour key (ART_BIBLE_A §1.2: #ffb26b-#ffc58e).
-  sunset: new T.Color(0xffb26b),
+// Day and golden-hour keys are the sun through the physical atmosphere
+// (sky-light.ts): about 5000 K at the 52 degree day sun, deep gold at the
+// 10 degree golden-hour sun, both normalised to a peak channel of 1. The
+// hemisphere is the minor part of the fill; the sky IBL (environment) carries
+// most of it, so shadows take the colour of the sky. Its sky colour is the
+// clear dome's own mean, desaturated halfway (it stands for bounce too).
+const night = {
   // Metal-halide floodlight white, only slightly cool.
-  night: new T.Color(0xe2e9f6),
+  direct: new T.Color(0xe2e9f6),
+  diffuse: new T.Color(0x9eaec8),
 };
-// The hemisphere is the minor, art-directed part of the fill; the sky IBL
-// (environment) carries most of it, so shadows take the colour of the sky.
-const diffuse = {
-  day: new T.Color(0x8fb6ea),
-  // Violet-blue dusk skylight (P2: shaded asphalt #2e3550-#3a4660). Green stays
-  // above red: added to the orange key, a magenta fill turns lit asphalt mauve.
-  sunset: new T.Color(0xa4b4ee),
-  night: new T.Color(0x9eaec8),
-};
+function physicalKey(mode: 'day' | 'sunset', out: { sun: T.Color; sky: T.Color }) {
+  const light = skyLight(0, mode);
+  out.sun.setRGB(...light.sunColor);
+  const m = light.skyMean,
+    peak = Math.max(...m),
+    y = (0.2126 * m[0] + 0.7152 * m[1] + 0.0722 * m[2]) / peak;
+  out.sky.setRGB(...(m.map((c) => (c / peak + y) * 0.5) as [number, number, number]));
+}
 // Warm bounce from asphalt and verges.
 const ground = {
   day: new T.Color(0x4a4237),
@@ -47,15 +49,19 @@ export function circuitLightColors(
   if (!Number.isFinite(cloud)) throw new Error('Invalid lighting coverage');
   const mode = checkedMode(value);
   const cover = clamp(cloud, 0, 1);
-  out.sun.copy(direct[mode]).lerp(cloudDirect, mode === 'night' ? cover * 0.12 : cover * 0.88);
-  out.sky.copy(diffuse[mode]).lerp(cloudSky, mode === 'night' ? cover * 0.08 : cover * 0.64);
+  if (mode === 'night') {
+    out.sun.copy(night.direct);
+    out.sky.copy(night.diffuse);
+  } else physicalKey(mode, out);
+  out.sun.lerp(cloudDirect, mode === 'night' ? cover * 0.12 : cover * 0.88);
+  out.sky.lerp(cloudSky, mode === 'night' ? cover * 0.08 : cover * 0.64);
   out.ground.copy(ground[mode]);
   return out;
 }
 
 /** Every car/person/environment shader receives the same actual lights. Heavy
  * overcast attenuates sunset warmth instead of retaining an orange key light
- * below grey clouds. This is an authored palette, not calibrated photometry. */
+ * below grey clouds: light through a deck is diffuse and grey. */
 export function applyCircuitLightPalette(
   sun: T.DirectionalLight,
   hemisphere: T.HemisphereLight,

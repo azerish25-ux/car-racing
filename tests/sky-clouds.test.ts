@@ -10,7 +10,6 @@ import {
 import {
   CLOUD_DOME_MEANS,
   SKY_CLOUDS,
-  SKY_CLOUD_LIGHT,
   SKY_CLOUD_LIGHTING,
   SKY_CLOUD_SAMPLE,
   SKY_CLOUD_UNIFORMS,
@@ -21,6 +20,7 @@ import {
   createSkyCloudUniforms,
   skyCloudLight,
 } from '../src/rendering/studio/sky-clouds.ts';
+import { skyLight } from '../src/rendering/sky-light.ts';
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -122,17 +122,18 @@ describe('cloud layer and coverage', () => {
   });
   it('lights clouds white by day, warm at dusk and grey under a closed deck', () => {
     const terms = { sun: 0.5, sky: 0.3, ground: 0.1 };
-    const day = skyCloudLight(terms, 0.12, 0),
-      dusk = skyCloudLight(terms, 0.12, 1),
-      deck = skyCloudLight(terms, 1, 0);
-    expect(Math.max(...day) / Math.min(...day)).toBeLessThan(1.2);
+    const day = skyCloudLight(terms, skyLight(0.12, 'day')),
+      dusk = skyCloudLight(terms, skyLight(0.12, 'sunset')),
+      deck = skyCloudLight(terms, skyLight(1, 'day'));
+    expect(Math.max(...day) / Math.min(...day)).toBeLessThan(1.35);
     expect(dusk[0] / dusk[2]).toBeGreaterThan(1.8);
     // The sun is hidden by a closed deck; the sky term carries it.
-    expect(skyCloudLight({ sun: 1, sky: 0, ground: 0 }, 1, 0)[1]).toBeLessThan(
-      0.15 * skyCloudLight({ sun: 1, sky: 0, ground: 0 }, 0.12, 0)[1],
+    const key = { sun: 1, sky: 0, ground: 0 };
+    expect(skyCloudLight(key, skyLight(1, 'day'))[1]).toBeLessThan(
+      0.15 * skyCloudLight(key, skyLight(0.12, 'day'))[1],
     );
     expect(deck.every((v) => v > 0)).toBe(true);
-    expect(SKY_CLOUD_LIGHTING).toContain('cloudKeyGain * sunVisible');
+    expect(SKY_CLOUD_LIGHTING).toContain('terms.r * cloudKey');
   });
 });
 
@@ -143,13 +144,14 @@ describe('baked cumulus panorama', () => {
     const { fragmentShader, uniforms } = sky.material;
     expect(fragmentShader).toContain(SKY_CLOUD_UNIFORMS);
     expect(fragmentShader).toContain(SKY_CLOUD_SAMPLE);
-    expect(fragmentShader).toContain('retColor=retColor*(1.0-cover)+skyCloudLight(clouds);');
+    expect(fragmentShader).toContain('radiance = radiance * (1.0 - cover) + skyCloudLight(clouds);');
     // The value-noise smudges are gone; nothing animates by wall clock.
     expect(fragmentShader).not.toContain('skyNoise');
     expect(fragmentShader).not.toMatch(/\btime\b/i);
     expect(uniforms.cloudReady.value).toBe(0);
     expect(uniforms.cloudLow.value).toBeNull();
-    expect(uniforms.cloudKeyGain.value).toBe(SKY_CLOUD_LIGHT.keyGain);
+    // Bound to the clear day sky's key by configureSky.
+    expect(uniforms.cloudKey.value.toArray()).toEqual(skyLight(0, 'day').cloudKey);
     expect(SKY_CLOUD_SAMPLE).toContain(
       'if (cloudReady < 0.5 || direction.y <= 0.0) return vec4(0.0);',
     );
@@ -266,7 +268,7 @@ describe('baked cumulus panorama', () => {
       high: unknown;
       weight: number;
       ready: number;
-      luminance: number;
+      disc: number;
     }[] = [];
     vi.spyOn(T.PMREMGenerator.prototype, 'fromScene').mockImplementation((scene) => {
       const u = (scene.children[0] as Sky).material.uniforms;
@@ -276,7 +278,7 @@ describe('baked cumulus panorama', () => {
         high: u.cloudHigh.value,
         weight: u.cloudWeight.value,
         ready: u.cloudReady.value,
-        luminance: u.skyGradeLuminance.value,
+        disc: u.sunDiscAmount.value,
       });
       return new T.WebGLRenderTarget(8, 8);
     });
@@ -291,10 +293,10 @@ describe('baked cumulus panorama', () => {
       expect(s.high).toBe(s.low);
       expect(s.weight).toBe(0);
       expect(s.ready).toBe(1);
-      // The scene's sky light keeps the ungraded luminance (SKY_GRADE).
-      expect(s.luminance).toBe(0);
+      // The capture holds sky only: the directional light carries the sun.
+      expect(s.disc).toBe(0);
     }
-    expect(sky.material.uniforms.skyGradeLuminance.value).toBe(1);
+    expect(sky.material.uniforms.sunDiscAmount.value).toBe(1);
     // The visible dome blends the same two panoramas.
     const u = sky.material.uniforms;
     expect(u.cloudLow.value).toBe(clouds.cached(2, 'day'));
