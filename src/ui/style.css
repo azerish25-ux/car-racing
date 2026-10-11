@@ -4144,3 +4144,13 @@ html[data-high-contrast='true'] .dash-main span {
     padding-left: 10px;
   }
 }
+dialog .error-detail {
+  margin: -6px 0 22px;
+  padding: 8px 10px;
+  border-left: 2px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.04);
+  font-family: var(--font-data);
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.5);
+}

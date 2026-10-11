@@ -1015,7 +1015,7 @@ export class Interface {
   error(error: string) {
     this.get('loading').hidden = true;
     this.modalContent(
-      '<span class="eyebrow">SYSTEM NOTICE</span><h2>Session stopped.</h2><p id="errorMessage"></p><button class="primary" data-action="reload">RELOAD APPLICATION</button>',
+      '<span class="eyebrow">SOMETHING WENT WRONG</span><h2>Session stopped.</h2><p>The session could not continue. Reload to return to the paddock. If this keeps happening, lower the render quality in Garage &amp; Settings.</p><p id="errorMessage" class="error-detail"></p><button class="primary" data-action="reload">RELOAD GAME</button>',
     );
     document.getElementById('errorMessage')!.textContent = error;
   }
