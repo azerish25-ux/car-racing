@@ -89,7 +89,7 @@ suitCol = mix(suitCol, vec3(.05), suitZip * .8);
 vec3 suitBoot = mix(vec3(.035, .033, .032), vec3(.11, .105, .1), step(suitP.y, .022));
 suitCol = mix(suitCol, suitBoot, suitNeutral * step(suitP.y, .18));
 // Belt with a buckle.
-float suitBelt = suitNeutral * step(.18, suitP.y);
+float suitBelt = (1. - smoothstep(.0165, .0185, abs(suitP.y - .985))) * (1. - step(.5, suitSleeve));
 suitCol = mix(suitCol, mix(vec3(.025), vec3(.45, .42, .36), step(suitAx, .018) * step(.05, suitP.z)), suitBelt);
 suitCol = mix(suitCol, humanSkinTone(vCrewPerson), crewSkinMask);
 diffuseColor.rgb *= suitCol;

@@ -8,7 +8,6 @@ import {
   sphere,
   ssub,
   surfaceNets,
-  torusY,
   type Field,
 } from './sdf-mesher.ts';
 import { decimate } from './mesh-decimate.ts';
@@ -53,7 +52,7 @@ const enum Part {
 export const POLO_SLEEVE_HEM = 1.235;
 export const BELT_HEIGHT = 0.985;
 
-function bodyField(kit: CrewKit, parts?: Float64Array) {
+function bodyField(kit: CrewKit, parts?: Float64Array, shell: 'all' | 'body' | 'arms' = 'all') {
   const suit = kit === 'suit';
   return (x: number, y: number, z: number) => {
     const ax = Math.abs(x);
@@ -82,7 +81,15 @@ function bodyField(kit: CrewKit, parts?: Float64Array) {
       smoothstep(0.99, 1.04, y) *
       (1 - smoothstep(1.08, 1.16, y));
     // Belt / waistband ridge.
-    trunk = smin(trunk, torusY(x, y, z, 0, BELT_HEIGHT, 0.0, 0.128, 0.011, 1.07, 0.78), 0.01);
+    // Belt: a flat band (rounded box section) hugging the waist, not a rope.
+    {
+      const r = Math.hypot(x / 1.07, z / 0.78) - 0.128;
+      const band =
+        Math.hypot(Math.max(Math.abs(y - BELT_HEIGHT) - 0.012, 0), Math.max(r, 0)) +
+        Math.min(Math.max(Math.abs(y - BELT_HEIGHT) - 0.012, r), 0) -
+        0.006;
+      trunk = smin(trunk, band, 0.006);
+    }
     // --- Neck with a collar.
     let neck = roundCone(x, y, z, 0, 1.4, -0.018, 0, 1.565, 0.004, 0.058, 0.05);
     // Collar: a short folded band standing around the neck base, lower at
@@ -179,10 +186,15 @@ function bodyField(kit: CrewKit, parts?: Float64Array) {
       parts[Part.Shin] = shin;
       parts[Part.Boot] = boot;
     }
+    const arm = smin(upper, fore, 0.025);
+    // The lower arm is its own closed shell: a hand hanging beside the hip
+    // can never be polygonised into the hip (a bridge that tears when the
+    // arm moves). It overlaps a slightly smaller shoulder stub of the body
+    // inside the sleeve, so the shoulder still blends into the torso.
+    if (shell === 'arms') return smax(arm, y - 1.31, 0.03);
     let d = smin(trunk, neck, 0.03);
-    // Arms join only at the shoulder; below the armpit they hang free.
     const armBlend = 0.035 * smoothstep(1.26, 1.36, y);
-    d = smin(d, smin(upper, fore, 0.025), armBlend);
+    d = smin(d, shell === 'body' ? smax(arm + 0.002, 1.22 - y, 0.01) : arm, armBlend);
     const legs = smin(smin(thigh, shin, 0.03), boot, 0.02);
     d = smin(d, legs, 0.045 * smoothstep(0.66, 0.8, y));
     return d;
@@ -265,14 +277,30 @@ export function sculptCrewBody(kit: CrewKit, cell: number, triangles: number): S
   const probe = bodyField(kit, parts);
   // Keep detail where people look: face-adjacent neck/collar, hands, boots.
   const importance = (x: number, y: number) => (y > 1.36 ? 3 : y < 0.2 ? 1.6 : 1);
-  const mesh = polygonise(
-    bodyField(kit),
+  const bodyMesh = polygonise(
+    bodyField(kit, undefined, 'body'),
     [-0.36, -0.02, -0.2],
     [0.36, 1.6, 0.27],
     cell,
-    triangles,
+    Math.round(triangles * 0.8),
     importance,
   );
+  const armMesh = polygonise(
+    bodyField(kit, undefined, 'arms'),
+    [-0.3, 0.74, -0.1],
+    [0.3, 1.36, 0.1],
+    cell,
+    Math.round(triangles * 0.2),
+  );
+  const bodyCount = bodyMesh.positions.length / 3;
+  const mesh: SculptedMesh = {
+    positions: new Float32Array([...bodyMesh.positions, ...armMesh.positions]),
+    normals: new Float32Array([...bodyMesh.normals, ...armMesh.normals]),
+    indices: Uint32Array.from([
+      ...bodyMesh.indices,
+      ...Array.from(armMesh.indices, (i) => i + bodyCount),
+    ]),
+  };
   const n = mesh.positions.length / 3;
   const joints = new Uint8Array(n * 4),
     weights = new Float32Array(n * 4),
@@ -297,10 +325,8 @@ export function sculptCrewBody(kit: CrewKit, cell: number, triangles: number): S
     const d = Array.from(parts);
     if (y < 1.28) {
       // Below the shoulder an arm never shares weights with the hip or ribs
-      // it hangs beside: the nearer structure takes the vertex outright.
-      const arm = Math.min(d[Part.Upper], d[Part.Fore]);
-      const rest = Math.min(d[Part.Trunk], d[Part.Neck], d[Part.Thigh], d[Part.Shin], d[Part.Boot]);
-      if (arm < rest)
+      // it hangs beside: the arm shell is all arm, the body all body.
+      if (i >= bodyCount)
         for (const k of [Part.Trunk, Part.Neck, Part.Thigh, Part.Shin, Part.Boot]) d[k] = 1;
       else d[Part.Upper] = d[Part.Fore] = 1;
     }
@@ -328,10 +354,9 @@ export function sculptCrewBody(kit: CrewKit, cell: number, triangles: number): S
     // Material classes: 1 tinted kit, 0.5 skin, 0 neutral (boots, belt).
     const isBoot =
       y < 0.17 && parts[Part.Boot] < Math.min(parts[Part.Shin], parts[Part.Thigh]) + 0.002;
-    const belt = Math.abs(y - BELT_HEIGHT) < 0.014 && parts[Part.Trunk] < 0.01;
-    const armVertex =
-      Math.min(parts[Part.Upper], parts[Part.Fore]) <
-      Math.min(parts[Part.Trunk], parts[Part.Thigh]);
+    // The belt colour is analytic in the kit shader (crisp at every LOD).
+    const belt = false;
+    const armVertex = i >= bodyCount;
     const skinForearm = kit === 'polo' && y < POLO_SLEEVE_HEM - 0.004 && y > 0.76 && armVertex;
     const skinNeck = Math.hypot(x, z + 0.008) < 0.066 && y > 1.476 - 0.32 * z;
     cloth[i] = skinForearm || skinNeck ? 0.5 : isBoot || belt ? 0 : 1;
