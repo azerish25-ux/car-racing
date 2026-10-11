@@ -4,20 +4,29 @@ import {
   circuitLightState,
   daylightState,
   lightingDirection,
+  skyCosineRadiance,
   SUNSET_OFFSET,
 } from '../src/rendering/daylight.ts';
 import { applyCircuitLightPalette } from '../src/rendering/lighting-coherence.ts';
+import { skyLight } from '../src/rendering/sky-light.ts';
 
 describe('shared dusk skylight balance', () => {
   it('lifts indirect readability without changing the key, camera exposure, sky or fog', () => {
     for (const cover of [0, 0.12, 0.5, 0.9, 1]) {
       const a = circuitLightState(cover, 14, 'sunset');
-      expect(a.fill).toBeGreaterThan(0.27 + cover * 0.2);
+      // The physical golden-hour sky lights the shade: its PMREM at full
+      // share plus a small fill, and the camera opens up for the low sun.
+      expect(a.environment).toBe(1);
+      expect(a.fill).toBeGreaterThan(0);
       expect(a.fill).toBeLessThanOrEqual(0.6);
-      expect(a.environment).toBeGreaterThanOrEqual(0.24 - cover * 0.06);
-      expect(a.sun).toBe(3.6 * (1 - cover * 0.88));
-      expect(a.exposure).toBe(1.03 - cover * 0.03);
-      expect(a.skyRadiance).toBe(0.26 + cover * 0.12);
+      expect(a.sun).toBe(skyLight(cover, 'sunset').sunIrradiance * (1 - cover * 0.88));
+      expect(a.exposure).toBe(1.62 - cover * 0.2);
+      expect(a.skyRadiance).toBe(skyLight(cover, 'sunset').skyScale);
+      // Readable shade: exposed indirect irradiance on open ground stays at
+      // least what the authored dusk fill gave (about 0.6).
+      const dome = skyCosineRadiance(cover, 'sunset'),
+        indirect = Math.PI * (0.2126 * dome.r + 0.7152 * dome.g + 0.0722 * dome.b) + a.fill;
+      expect(indirect * a.exposure).toBeGreaterThan(0.55);
       expect(a.fogDensity).toBe(daylightState(cover, 14).fogDensity * 1.18);
       expect(lightingDirection('sunset')).toBe(SUNSET_OFFSET);
       expect(circuitLightState(cover, 14, 'day')).toEqual(daylightState(cover, 14));

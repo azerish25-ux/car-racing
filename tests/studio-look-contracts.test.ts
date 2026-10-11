@@ -11,6 +11,7 @@ import {
   circuitLightState,
   daylightState,
 } from '../src/rendering/daylight.ts';
+import { skyLight } from '../src/rendering/sky-light.ts';
 import { COMPOUNDS, LIVERIES } from '../src/simulation/config.ts';
 import { KERB } from '../src/rendering/studio/kerb-runoff-finish.ts';
 import { bloomStrength } from '../src/rendering/studio/lens-effects.ts';
@@ -45,9 +46,14 @@ describe('studio look contracts', () => {
   it('P3: diffuse environment, hemisphere and sun follow cover', () => {
     for (const cover of [0, 0.5, 1]) {
       const light = daylightState(cover, 0);
-      expect(light.environment).toBeCloseTo(0.42 + 0.08 * cover, 10);
-      expect(light.fill).toBeCloseTo(0.14 + 0.3 * cover, 10);
-      expect(light.sun).toBeCloseTo(3.9 * (1 - 0.94 * cover ** 1.45), 10);
+      // The PMREM is the physical dome at full share; the fill rises with
+      // cover; the key is the sun through the atmosphere, dimmed by cloud.
+      expect(light.environment).toBe(1);
+      expect(light.fill).toBeCloseTo(0.06 + 0.2 * cover, 10);
+      expect(light.sun).toBeCloseTo(
+        skyLight(cover, 'day').sunIrradiance * (1 - 0.94 * cover ** 1.45),
+        10,
+      );
     }
   });
 
