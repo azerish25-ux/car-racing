@@ -133,7 +133,9 @@ export function installCrowdShader(material: T.Material, uniforms: CrowdUniforms
     shader.vertexShader =
       'varying float vCrowdRank;\n' +
       deform +
-      (colour ? 'attribute vec3 spectatorSkin; varying float vCrowdCloth;\n' : '') +
+      (colour
+        ? 'attribute vec3 spectatorSkin; varying float vCrowdCloth; varying vec4 vCrowdFace;\n'
+        : '') +
       shader.vertexShader;
     shader.vertexShader = shader.vertexShader.replace(
       '#include <begin_vertex>',
@@ -162,7 +164,26 @@ objectNormal = crowdTurn() * normalize(objectNormal);`,
       '#include <alphatest_fragment>\nif (vCrowdRank < crowdLodRange.x || vCrowdRank >= crowdLodRange.y || vCrowdAccessory < .5) discard;',
     );
     if (colour) {
-      shader.fragmentShader = 'varying float vCrowdCloth;\n' + shader.fragmentShader;
+      shader.fragmentShader =
+        'varying float vCrowdCloth; varying vec4 vCrowdFace;\n' + shader.fragmentShader;
+      // Painted features on the face (seated head frame, facing -X): eyes,
+      // brows and mouth, resolved per fragment so they stay crisp.
+      shader.fragmentShader = shader.fragmentShader.replace(
+        '#include <color_fragment>',
+        `#include <color_fragment>
+if (vCrowdFace.w > .5) {
+  vec3 f = vCrowdFace.xyz - vec3(.06,.665,0.);
+  float front = smoothstep(.02,-.04,f.x);
+  vec2 e = vec2((abs(f.z)-.031)/.0085,(f.y-.011)/.0045);
+  float eye = (1.-smoothstep(.7,1.,length(e))) * front;
+  vec2 b = vec2((abs(f.z)-.03)/.016,(f.y-.03)/.0032);
+  float brow = (1.-smoothstep(.6,1.,length(b))) * front;
+  vec2 m = vec2(f.z/.018,(f.y+.056)/.0028);
+  float mouth = (1.-smoothstep(.6,1.,length(m))) * front;
+  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.03,.025,.02), max(eye*.85, brow*.6));
+  diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb*vec3(.62,.42,.4), mouth);
+}`,
+      );
       if (!shader.vertexShader.includes('#include <color_vertex>'))
         throw new Error('Crowd shader colour hook missing');
       shader.vertexShader = shader.vertexShader.replace(
@@ -187,6 +208,8 @@ c=zone>2.5&&zone<3.5?mix(top,spectatorSkin,shortSleeve):c;
 c=zone>3.5?mix(trousers,spectatorSkin,shorts):c;
 float cloth=1.-step(.5,skinMask);
 vCrowdCloth=cloth;
+// Seated-frame position of face skin for painted features.
+vCrowdFace=vec4(mix(position,standingPosition,spectatorStyle.z)-vec3(-.44,.54,0.)*spectatorStyle.z, step(2.5,crowdJoint)*step(.5,skinMask)*(1.-step(1.5,skinMask)));
 c=mix(c,spectatorSkin,step(.5,skinMask)*(1.-step(1.5,skinMask)));
 vec3 hair=mix(vec3(.012,.008,.006),vec3(.15,.078,.025),fract(spectatorPhase*1.31));
 hair=fract(spectatorPhase*9.7)>.85?vec3(.42,.3,.16):hair;
@@ -196,7 +219,7 @@ vColor.rgb=c;`,
       );
     }
   };
-  material.customProgramCacheKey = () => `apex-procedural-crowd-v8-${colour ? 'colour' : 'depth'}`;
+  material.customProgramCacheKey = () => `apex-procedural-crowd-v9-${colour ? 'colour' : 'depth'}`;
 }
 
 export function crowdDetail(distance: number, previous: CrowdDetail): CrowdDetail {
