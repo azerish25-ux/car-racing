@@ -208,7 +208,9 @@ describe('D06 team liveries', () => {
     expect(coat).toBeInstanceOf(T.MeshPhysicalMaterial);
     expect(coat.color.getHexString()).toBe('0e1012');
     expect([coat.roughness, coat.clearcoat, coat.clearcoatRoughness]).toEqual([0.36, 0.85, 0.07]);
-    expect(coat.customProgramCacheKey()).toBe('apex-metre-carbon-v4-twill-coat');
+    // TEST-UPDATE (env realism): tows carry an anisotropic sheen, warp/weft per twill cell.
+    expect(coat.customProgramCacheKey()).toBe('apex-metre-carbon-v5-tow-sheen-coat');
+    expect(coat.anisotropy).toBeGreaterThan(0);
     const s = compile(coat);
     expect(s.fragmentShader).toContain('#define CARBON_WEAVE 0.180');
     expect(s.fragmentShader).toContain('normal = normalize(normal - 0.06 * carbonResolved');
@@ -217,7 +219,7 @@ describe('D06 team liveries', () => {
     );
     const satin = carbonMaterial('satin');
     expect([satin.roughness, satin.clearcoat]).toEqual([CARBON_FINISHES.satin.roughness, 0]);
-    expect(satin.customProgramCacheKey()).toBe('apex-metre-carbon-v4-twill-satin');
+    expect(satin.customProgramCacheKey()).toBe('apex-metre-carbon-v5-tow-sheen-satin');
     expect(compile(satin).fragmentShader).toContain('#define CARBON_WEAVE 0.080');
   });
 });

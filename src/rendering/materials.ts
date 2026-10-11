@@ -35,6 +35,8 @@ export const CARBON_FINISHES = Object.freeze({
     weave: 0.08,
   }),
 });
+/** Peak anisotropy of a resolved carbon tow's base lobe. */
+export const CARBON_TOW_SHEEN = 0.55;
 export function carbonMaterial(finish: keyof typeof CARBON_FINISHES = 'lacquered') {
   const f = CARBON_FINISHES[finish];
   const material = new MeshPhysicalMaterial({
@@ -45,6 +47,8 @@ export function carbonMaterial(finish: keyof typeof CARBON_FINISHES = 'lacquered
     clearcoatRoughness: f.clearcoatRoughness,
     specularIntensity: f.specularIntensity,
   });
+  // Enables the anisotropic base lobe; the shader drives it per tow.
+  material.anisotropy = CARBON_TOW_SHEEN;
   material.onBeforeCompile = (shader) => {
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', '#include <common>\nvarying vec2 vCarbonUv;')
@@ -64,10 +68,32 @@ export function carbonMaterial(finish: keyof typeof CARBON_FINISHES = 'lacquered
       .replace(
         '#include <normal_fragment_maps>',
         '#include <normal_fragment_maps>\n' + carbonNormal,
+      )
+      .replace(
+        '#include <lights_physical_fragment>',
+        `#include <lights_physical_fragment>
+        #ifdef USE_ANISOTROPY
+          // Tow sheen: the base lobe stretches along each bundle's fibres,
+          // alternating warp/weft per twill cell, so the weave flips light to
+          // dark as the view moves. Unresolved weave falls back to isotropic.
+          material.anisotropy = 0.0;
+          if (carbonLength > 0.000001 && carbonResolved > 0.0) {
+            vec3 towT = carbonTangent - normal * dot(normal, carbonTangent);
+            vec3 towB = cross(normal, towT);
+            vec3 tow = normalize(mix(towT, towB, twillWarp) + 1e-6);
+            material.anisotropy = ${CARBON_TOW_SHEEN.toFixed(3)} * carbonResolved;
+            material.alphaT = mix(pow2(material.roughness), 1.0, pow2(material.anisotropy));
+            material.anisotropyT = tow;
+            material.anisotropyB = cross(normal, tow);
+          }
+          if (material.anisotropy == 0.0) material.alphaT = pow2(material.roughness);
+        #endif`,
       );
   };
   material.customProgramCacheKey = () =>
-    finish === 'lacquered' ? 'apex-metre-carbon-v4-twill-coat' : 'apex-metre-carbon-v4-twill-satin';
+    finish === 'lacquered'
+      ? 'apex-metre-carbon-v5-tow-sheen-coat'
+      : 'apex-metre-carbon-v5-tow-sheen-satin';
   material.userData.carbonFinish = finish;
   return material;
 }
