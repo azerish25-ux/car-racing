@@ -5,6 +5,7 @@ import { F, H, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../simulation/protoc
 import { renderWind } from '../simulation/weather.ts';
 import { RainStreaks } from './rain-streaks.ts';
 import { SprayClouds } from './spray-clouds.ts';
+import { markAll, markItems } from './attribute-ranges.ts';
 import { precipitationLighting } from './precipitation-light.ts';
 
 // Eight to twelve cars in heavy rain sustain several thousand live spray puffs
@@ -243,8 +244,7 @@ export class Effects {
     } else if (kind === PARTICLE_KIND.SPRAY) {
       this.life[i] = this.maxLife[i] =
         SPRAY_PLUME.life[0] + r.next() * (SPRAY_PLUME.life[1] - SPRAY_PLUME.life[0]);
-      this.sizes[i] =
-        SPRAY_PLUME.size[0] + r.next() * (SPRAY_PLUME.size[1] - SPRAY_PLUME.size[0]);
+      this.sizes[i] = SPRAY_PLUME.size[0] + r.next() * (SPRAY_PLUME.size[1] - SPRAY_PLUME.size[0]);
       this.gravity[i] = -0.35;
     } else if (kind === PARTICLE_KIND.MARBLE) {
       this.life[i] = this.maxLife[i] = 0.3 + r.next() * 0.15;
@@ -415,7 +415,9 @@ export class Effects {
             // Deterministic slot phase, not an extra random draw: the diffuser
             // share is taken from the same measured rear-tyre birth count.
             const plume =
-              spray && wheel >= 2 && ((this.spawned[PARTICLE_KIND.SPRAY] * 0.618034) % 1) < DIFFUSER_PLUME_SHARE;
+              spray &&
+              wheel >= 2 &&
+              (this.spawned[PARTICLE_KIND.SPRAY] * 0.618034) % 1 < DIFFUSER_PLUME_SHARE;
             this.v
               .set(
                 plume ? (wheel % 2 === 0 ? -0.18 : 0.18) : wheel % 2 === 0 ? -0.83 : 0.83,
@@ -467,10 +469,25 @@ export class Effects {
         );
     } else if (emit) this.rainEmission = 0;
     const entrainment = -Math.expm1(-dt * 0.65);
+    // Only live particles change (a dead one already holds zero opacity, set
+    // in the step it expired or by clear()). Track the changed span of each
+    // pool so an idle pool uploads nothing and a busy one only its live span.
+    const contact: number = EFFECT_CAPACITY.contact;
+    let contactFirst = contact,
+      contactLast = -1,
+      rainFirst = this.count,
+      rainLast = -1;
     for (let i = 0; i < this.count; i++) {
       if (this.life[i] <= 0) {
         this.alpha[i] = 0;
         continue;
+      }
+      if (i < contact) {
+        if (i < contactFirst) contactFirst = i;
+        contactLast = i;
+      } else {
+        if (i < rainFirst) rainFirst = i;
+        rainLast = i;
       }
       this.life[i] -= dt;
       const p = i * 3;
@@ -511,10 +528,13 @@ export class Effects {
         else if (this.kind[i] === PARTICLE_KIND.DUST) this.sizes[i] += dt * 0.6;
       }
     }
-    for (const attr of ['position', 'size', 'color', 'opacity', 'solid', 'kind'])
-      this.geometry.getAttribute(attr).needsUpdate = true;
-    this.rain.upload();
-    this.spray.upload();
+    for (const attr of ['position', 'size', 'color', 'opacity', 'solid', 'kind']) {
+      const attribute = this.geometry.getAttribute(attr) as T.BufferAttribute;
+      markItems(attribute, contactFirst, contactLast);
+      markItems(attribute, rainFirst, rainLast);
+    }
+    this.rain.upload(rainFirst - contact, rainLast - contact);
+    this.spray.upload(contactFirst, contactLast);
   }
   /** The selected emitter's live, nontransparent pool entries. This does not
    * imply they are in the camera frustum or visible through occluding geometry. */
@@ -581,7 +601,7 @@ export class Effects {
     this.marblePrevious.fill(NaN);
     this.marbleTime = -Infinity;
     // A paused/replay-seek frame may have dt=0 and never enter update().
-    this.geometry.getAttribute('opacity').needsUpdate = true;
+    markAll(this.geometry.getAttribute('opacity') as T.BufferAttribute);
     this.rain.clear();
     this.spray.clear();
   }

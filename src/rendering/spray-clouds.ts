@@ -1,6 +1,7 @@
 import { precipitationLighting } from './precipitation-light.ts';
 import { RearSignalField } from './rear-signal.ts';
 import * as T from 'three';
+import { markAll, markItems } from './attribute-ranges.ts';
 
 /** One instanced draw over Effects' existing contact pool for every soft
  * volume: wheel-water spray, tyre smoke and off-track dust. This changes only
@@ -197,12 +198,13 @@ export class SprayClouds {
       this.material.uniforms.nearPlane.value = 'near' in camera ? camera.near : 0.1;
     };
   }
-  upload() {
+  /** Upload pool items `first..last` (inclusive); the whole pool by default. */
+  upload(first = 0, last = this.geometry.instanceCount - 1) {
     for (const name of ['center', 'velocity', 'size', 'opacity', 'kind', 'floor'])
-      this.geometry.getAttribute(name).needsUpdate = true;
+      markItems(this.geometry.getAttribute(name) as T.BufferAttribute, first, last);
   }
   clear() {
     this.signals.count.value = 0;
-    this.geometry.getAttribute('opacity').needsUpdate = true;
+    markAll(this.geometry.getAttribute('opacity') as T.BufferAttribute);
   }
 }

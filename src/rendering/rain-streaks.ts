@@ -1,5 +1,6 @@
 import { precipitationLighting } from './precipitation-light.ts';
 import * as T from 'three';
+import { markAll, markItems } from './attribute-ranges.ts';
 
 /** Bounded, velocity-aligned rain, independent of the GPU's point-size limit.
  * Arrays are views of Effects' existing pool; this owns no extra particle state.
@@ -118,12 +119,13 @@ export class RainStreaks {
       this.material.uniforms.nearPlane.value = 'near' in camera ? camera.near : 0.1;
     };
   }
-  upload() {
+  /** Upload pool items `first..last` (inclusive); the whole pool by default. */
+  upload(first = 0, last = this.geometry.instanceCount - 1) {
     for (const name of ['center', 'velocity', 'opacity'])
-      this.geometry.getAttribute(name).needsUpdate = true;
+      markItems(this.geometry.getAttribute(name) as T.BufferAttribute, first, last);
   }
   clear() {
     // Effects zeroes the shared opacity view; upload even on a paused seek.
-    this.geometry.getAttribute('opacity').needsUpdate = true;
+    markAll(this.geometry.getAttribute('opacity') as T.BufferAttribute);
   }
 }

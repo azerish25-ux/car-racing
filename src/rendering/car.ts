@@ -712,12 +712,19 @@ export class FormulaCar {
       );
       this.treads[i].surface.value.y = compoundIndex === 3 ? 1 : compoundIndex === 4 ? 2 : 0;
     }
-    this.coverBlur.value = Math.max(...this.treads.map((tread) => tread.side.value.x));
+    let coverBlur = -Infinity;
+    for (const tread of this.treads) coverBlur = Math.max(coverBlur, tread.side.value.x);
+    this.coverBlur.value = coverBlur;
     // Reduced representations a mirror may show (never more detailed than the
     // main view's) stay posed and damaged like the car.
     for (let level = Math.max(1, this.lodLevel); level <= this.reduced.length; level++)
       this.poseReduced(this.reduced[level - 1], a, b, o, t);
-    if (this.lodLevel > 0) return;
+    // The shared suspension instances keep the last posed representation's
+    // links; solve them once for it instead of once per representation.
+    if (this.lodLevel > 0) {
+      this.updateSuspension(this.reduced[this.reduced.length - 1].wheels);
+      return;
+    }
     this.poseDetailed(a, b, o, t, time, cockpit);
   }
   /** Show the representation for `level` without changing the chosen LOD:
@@ -749,7 +756,6 @@ export class FormulaCar {
     reduced.front.scale.x = 0.35 + 0.65 * b[o + F.FRONT_HEALTH];
     reduced.front.rotation.z = (1 - b[o + F.FRONT_HEALTH]) * 0.12;
     reduced.rear.rotation.z = (1 - b[o + F.REAR_HEALTH]) * 0.09;
-    this.updateSuspension(reduced.wheels);
   }
   private poseDetailed(
     a: Float32Array,
