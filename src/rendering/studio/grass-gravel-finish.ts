@@ -9,9 +9,10 @@ import { chainShaderHook, injectAfter, injectDeclarations } from './shader-hooks
  * the saturated #4e6e2d), mown in 4 m bands at ±6 %, with ±12 % regional
  * variation at 25 m and 90 m and sparse dry patches.
  *
- * Gravel (#b9a98a): Voronoi pebbles at 50 cells per metre with dark cavities
- * between them and raked furrows every 0.3 m along the lap, all filtered to
- * their mean before a pixel spans a pebble. World-space and lap-space, so
+ * Gravel (#b9a98a): Voronoi pebbles at 50 cells per metre of mixed mineral
+ * tone, a sparser class of larger stones, dark cavities, dusty and damp
+ * patches and faint wavering rake lines (0.3 m), all filtered to their mean
+ * before a pixel spans a feature. World-space and lap-space, so
  * stable in motion; 0 draw calls.
  */
 // KPI 9 iteration: the rendered turf read #6d7937 at saturation 0.54 (target
@@ -98,28 +99,56 @@ export const GRAVEL = Object.freeze({
 
 const f = (v: number) => v.toFixed(4);
 const GRAVEL_GLSL = /* glsl */ `{
-	// D19 gravel: Voronoi pebbles, dark cavities, raked furrows along the lap.
+	// D19 gravel: rounded river stones of mixed mineralogy in two size classes,
+	// dark voids between them, decimetre-to-metre dusty/damp patches and
+	// irregular, faint rake lines (the old regular furrows read as corrugated
+	// card at race-camera angles). Every layer converges to its mean before a
+	// pixel spans its feature.
 	vec2 p = vGravelWorld.xz * ${f(GRAVEL.cellsPerMetre)};
 	vec2 cell = floor( p ), local = fract( p );
-	float nearest = 8.0, second = 8.0, shade = 0.5;
+	float nearest = 8.0, second = 8.0;
+	vec2 pick = vec2( 0.5 );
 	for ( int j = -1; j <= 1; j ++ )
 		for ( int i = -1; i <= 1; i ++ ) {
 			vec2 o = vec2( float( i ), float( j ) );
 			vec2 h = fract( sin( vec2( dot( cell + o, vec2( 127.1, 311.7 ) ), dot( cell + o, vec2( 269.5, 183.3 ) ) ) ) * 43758.5453 );
 			float d = length( o + h - local );
-			if ( d < nearest ) { second = nearest; nearest = d; shade = h.x; }
+			if ( d < nearest ) { second = nearest; nearest = d; pick = h; }
 			else if ( d < second ) second = d;
 		}
 	float edge = second - nearest;
 	float footprint = max( length( dFdx( p ) ), length( dFdy( p ) ) );
 	float resolve = 1.0 - smoothstep( 0.35, 1.2, footprint );
-	float cavity = mix( 0.82, 1.0 - ${f(GRAVEL.cavity)} * ( 1.0 - smoothstep( 0.0, 0.18, edge ) ), resolve );
-	float stone = mix( 1.0, 0.82 + 0.36 * shade, resolve );
-	float furrowPhase = vGravelMetres.x / ${f(GRAVEL.furrowMetres)};
+	// Larger stones (one class up) break the uniform pebble carpet.
+	vec2 q = p * 0.37 + vec2( 17.3, 5.1 );
+	vec2 qc = floor( q ), ql = fract( q );
+	float qNear = 8.0; float qPick = 0.5;
+	for ( int j = -1; j <= 1; j ++ )
+		for ( int i = -1; i <= 1; i ++ ) {
+			vec2 o = vec2( float( i ), float( j ) );
+			vec2 h = fract( sin( vec2( dot( qc + o, vec2( 41.3, 289.1 ) ), dot( qc + o, vec2( 157.9, 73.7 ) ) ) ) * 43758.5453 );
+			float d = length( o + h - ql );
+			if ( d < qNear ) { qNear = d; qPick = h.x; }
+		}
+	float qResolve = 1.0 - smoothstep( 0.35, 1.2, footprint * 0.37 );
+	float bigStone = ( 1.0 - smoothstep( 0.28, 0.36, qNear ) ) * step( 0.55, qPick ) * qResolve;
+	float cavity = mix( 0.8, 1.0 - ${f(GRAVEL.cavity)} * ( 1.0 - smoothstep( 0.0, 0.2, edge ) ), resolve );
+	// Mineral tone per stone: limestone, sandstone, darker basalt.
+	vec3 mineral = pick.x < 0.18 ? vec3( 0.62, 0.62, 0.64 ) : pick.x < 0.32 ? vec3( 0.78, 0.66, 0.52 ) : vec3( 1.0 );
+	vec3 stone = mix( vec3( 1.0 ), mineral * ( 0.84 + 0.32 * pick.y ), resolve );
+	stone *= mix( 1.0, 0.9 + 0.25 * qPick, bigStone );
+	// Patches: dust thrown up by cars (lighter), damp hollows (darker).
+	float patchA = apexGravelNoise( vGravelWorld.xz * 0.55 + vec2( 3.1, 7.4 ) );
+	float patchB = apexGravelNoise( vGravelWorld.xz * 2.3 + vec2( 9.2, 1.3 ) );
+	float patches = 0.86 + 0.2 * patchA + 0.1 * patchB;
+	// Faint rake lines, wavering and broken, not a regular corrugation.
+	float furrowPhase = vGravelMetres.x / ${f(GRAVEL.furrowMetres)} + ( apexGravelNoise( vGravelWorld.xz * 0.9 ) - 0.5 ) * 1.6;
 	float furrowAA = fwidth( furrowPhase );
-	float furrow = mix( 0.5, 0.5 + 0.5 * cos( furrowPhase * 6.2831853 ), 1.0 - smoothstep( 0.3, 1.0, furrowAA ) );
-	diffuseColor.rgb = gravelColour * cavity * stone * ( 0.9 + 0.12 * furrow );
-	gravelRelief = ( 1.0 - furrow ) * 0.012 * ( 1.0 - smoothstep( 0.3, 1.0, furrowAA ) );
+	float furrowResolved = ( 1.0 - smoothstep( 0.15, 0.5, furrowAA ) ) * smoothstep( 0.35, 0.7, patchB );
+	float furrow = 0.5 + 0.5 * cos( furrowPhase * 6.2831853 ) * furrowResolved;
+	diffuseColor.rgb = gravelColour * cavity * stone * patches * ( 0.97 + 0.05 * furrow );
+	// Relief: stone domes where resolved, a whisper of rake.
+	gravelRelief = ( 1.0 - nearest * nearest ) * 0.003 * resolve * resolve + ( 1.0 - furrow ) * 0.002 * furrowResolved;
 }`;
 
 export const GRAVEL_HOOK = 'gravel-finish-v1';
@@ -145,6 +174,18 @@ export function installGravelFinish(material: T.MeshStandardMaterial) {
       shader,
       'common',
       `varying vec3 vGravelWorld;\nvarying vec2 vGravelMetres;\nuniform vec3 gravelColour;\nfloat gravelRelief = 0.0;
+float apexGravelHash( vec2 p ) {
+	vec3 p3 = fract( vec3( p.xyx ) * 0.1031 );
+	p3 += dot( p3, p3.yzx + 33.33 );
+	return fract( ( p3.x + p3.y ) * p3.z );
+}
+float apexGravelNoise( vec2 p ) {
+	float footprint = max( length( dFdx( p ) ), length( dFdy( p ) ) );
+	vec2 i = floor( p ), f = fract( p ), u = f * f * ( 3.0 - 2.0 * f );
+	float n = mix( mix( apexGravelHash( i ), apexGravelHash( i + vec2( 1.0, 0.0 ) ), u.x ),
+		mix( apexGravelHash( i + vec2( 0.0, 1.0 ) ), apexGravelHash( i + vec2( 1.0, 1.0 ) ), u.x ), u.y );
+	return mix( 0.5, n, 1.0 - smoothstep( 0.35, 1.25, footprint ) );
+}
 vec3 apexGravelRelief( vec3 n, float h ) {
 	vec3 sx = dFdx( - vViewPosition ), sy = dFdy( - vViewPosition );
 	vec3 r1 = cross( sy, n ), r2 = cross( n, sx );
