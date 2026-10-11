@@ -772,6 +772,8 @@ export class GameApp {
     }
   }
   private observeSession() {
+    // Evidence tooling costs nothing per frame until it is armed.
+    if (!this.sessionReview.active) return;
     this.sessionReview.observe(performance.now(), {
       state: this.state,
       sessionId: this.sessionId,
@@ -1026,15 +1028,23 @@ export class GameApp {
       { active: this.state === 'replay', ...this.renderer.broadcastShot },
       shown[H.TIME],
     );
-    const programmeText = programmeHud(this.programme.progress(), this.state === 'replay');
-    this.ui.get('programmeHud').hidden = !programmeText;
+    // Write HUD nodes only when their content changes: an unchanged write still
+    // costs a DOM mutation, and progress() copies every attempt.
+    const programmeText = this.programme.running
+      ? programmeHud(this.programme.progress(), this.state === 'replay')
+      : '';
+    const programmeNode = this.ui.get('programmeHud');
+    if (programmeNode.hidden !== !programmeText) programmeNode.hidden = !programmeText;
     this.ui.setText('programmeHud', programmeText);
     const guide = this.renderer.guide;
-    this.ui.get('guideReadout').hidden = guide.mesh.count === 0 || this.state === 'photo';
-    this.ui.setText(
-      'guideReadout',
-      `ADVISORY · ${guide.cue.toUpperCase()} · ${Math.round(guide.targetSpeed * 3.6)} KM/H`,
-    );
+    const guideNode = this.ui.get('guideReadout');
+    const guideHidden = guide.mesh.count === 0 || this.state === 'photo';
+    if (guideNode.hidden !== guideHidden) guideNode.hidden = guideHidden;
+    if (!guideHidden || guideNode.textContent === '')
+      this.ui.setText(
+        'guideReadout',
+        `ADVISORY · ${guide.cue.toUpperCase()} · ${Math.round(guide.targetSpeed * 3.6)} KM/H`,
+      );
     this.audio.update(
       this.renderer.presented.value,
       this.renderer.mode === 'cockpit',

@@ -104,6 +104,10 @@ export class PracticeProgramme {
       ? 'Programme complete. Review the five measured attempts in the Academy.'
       : `${grade.toUpperCase()} · ${reason}`;
   }
+  /** Cheap per-frame check; progress() copies every attempt. */
+  get running() {
+    return this.active;
+  }
   progress(): PracticeProgress {
     return {
       active: this.active,
