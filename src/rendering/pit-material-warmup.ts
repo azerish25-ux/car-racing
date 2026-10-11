@@ -130,8 +130,9 @@ export async function warmPitMaterials(options: PitMaterialWarmup): Promise<numb
       }
       const deadline = performance.now() + 45000;
       while (!cancelled() && !ready()) {
-        if (performance.now() >= deadline)
-          throw new Error('Pit material warmup GPU did not complete');
+        // Warmup only moves shader/upload cost off the race. A slow GPU
+        // continues into the session rather than failing it.
+        if (performance.now() >= deadline) break;
         await yieldFrame();
       }
     }

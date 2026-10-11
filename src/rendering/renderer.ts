@@ -658,8 +658,8 @@ export class RacingRenderer {
   async waitForPreparedFrame(cancelled: () => boolean, yieldFrame: () => Promise<void>) {
     const deadline = performance.now() + 45000;
     while (!cancelled() && !this.gpuFrames.ready()) {
-      if (performance.now() >= deadline)
-        throw new Error('Presentation warmup GPU did not complete');
+      // A slow GPU starts the session late rather than failing it.
+      if (performance.now() >= deadline) return;
       await yieldFrame();
     }
   }
