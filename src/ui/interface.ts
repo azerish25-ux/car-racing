@@ -146,6 +146,13 @@ interface Callbacks {
   importSetup: (file: File) => void;
   previewAudio?: (settings: DrivingAudioSettings) => void;
 }
+/** DOM writes only when the value changed: unchanged writes still dirty layout. */
+function writeText(e: Element, value: string) {
+  if (e.textContent !== value) e.textContent = value;
+}
+function writeWidth(e: HTMLElement, value: string) {
+  if (e.style.width !== value) e.style.width = value;
+}
 export class Interface {
   readonly menu: HTMLElement;
   readonly hud: HTMLElement;
@@ -411,8 +418,7 @@ export class Interface {
     this.element.dataset.mode = mode;
   }
   setText(id: string, value: string) {
-    const e = this.get(id);
-    if (e.textContent !== value) e.textContent = value;
+    writeText(this.get(id), value);
   }
   private observeGaps(frame: Float32Array) {
     const cars = frame[H.CARS];
@@ -487,9 +493,9 @@ export class Interface {
     this.setText('battery', `${Math.round(frame[o + F.BATTERY] / 4e4)}%`);
     this.setText('fuel', `${frame[o + F.FUEL].toFixed(1)} KG`);
     updateRaceDayHud(this.hud, frame);
-    this.get('brakeBar').style.width = `${frame[o + F.BRAKE] * 100}%`;
-    this.get('throttleBar').style.width = `${frame[o + F.THROTTLE] * 100}%`;
-    this.get('batteryBar').style.width = `${frame[o + F.BATTERY] / 4e4}%`;
+    writeWidth(this.get('brakeBar'), `${(frame[o + F.BRAKE] * 100).toFixed(1)}%`);
+    writeWidth(this.get('throttleBar'), `${(frame[o + F.THROTTLE] * 100).toFixed(1)}%`);
+    writeWidth(this.get('batteryBar'), `${(frame[o + F.BATTERY] / 4e4).toFixed(1)}%`);
     const ersMode = ['HARVEST', 'BALANCED', 'ATTACK'][ers] ?? 'BALANCED';
     this.setText('ersMode', ersMode);
     this.get('ersMode').dataset.mode = ersMode;
@@ -514,10 +520,12 @@ export class Interface {
     Array.from(this.get('tires').children).forEach((e, i) => {
       const p = o + WHEEL_BASE + i * WHEEL_STRIDE,
         temp = frame[p + W.CARCASS_TEMP];
-      e.querySelector('b')!.textContent = `${Math.round(temp)}°`;
-      e.querySelector('span')!.textContent = `${Math.round(100 * (1 - frame[p + W.WEAR]))}%`;
-      e.querySelector('small')!.textContent = `${Math.round(frame[p + W.DISC_TEMP])}° BRAKE`;
-      (e as HTMLElement).style.setProperty('--tire', tyreBand(temp));
+      writeText(e.querySelector('b')!, `${Math.round(temp)}°`);
+      writeText(e.querySelector('span')!, `${Math.round(100 * (1 - frame[p + W.WEAR]))}%`);
+      writeText(e.querySelector('small')!, `${Math.round(frame[p + W.DISC_TEMP])}° BRAKE`);
+      const band = tyreBand(temp);
+      if ((e as HTMLElement).style.getPropertyValue('--tire') !== band)
+        (e as HTMLElement).style.setProperty('--tire', band);
     });
     this.get('startSequence').hidden = frame[H.PHASE] !== 1;
     Array.from(this.get('lights').children).forEach((e, i) =>
