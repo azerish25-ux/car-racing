@@ -116,10 +116,11 @@ describe('supplied player source and runtime contract', () => {
   });
   it('maps neutral and both locks to a deterministic, bounded authored IK pose', () => {
     expect(steeringSample(0, 2)).toBe(1);
-    expect(steeringSample(10, 2)).toBe(0);
-    expect(steeringSample(-10, 2)).toBe(2);
-    expect(steeringSample(0.1, 2)).toBeLessThan(1);
-    expect(steeringSample(-0.1, 2)).toBeGreaterThan(1);
+    // Positive (left) steering samples the left-lock end of the clip.
+    expect(steeringSample(10, 2)).toBe(2);
+    expect(steeringSample(-10, 2)).toBe(0);
+    expect(steeringSample(0.1, 2)).toBeGreaterThan(1);
+    expect(steeringSample(-0.1, 2)).toBeLessThan(1);
     expect(() => steeringSample(NaN, 2)).toThrow();
     expect(() => steeringSample(0, 0)).toThrow();
   });
@@ -183,7 +184,8 @@ function fixture() {
   const steering = add('steering');
   const clips = [
     new T.AnimationClip(manifest.steeringClip, 2, [
-      new T.NumberKeyframeTrack('steering.rotation[z]', [0, 2], [-0.6, 0.6]),
+      // Like the authored clip: right lock first (left side raised), then left lock.
+      new T.NumberKeyframeTrack('steering.rotation[z]', [0, 2], [0.6, -0.6]),
     ]),
   ];
   const player = new SuppliedPlayer(root, clips, new T.CanvasTexture({} as HTMLCanvasElement));

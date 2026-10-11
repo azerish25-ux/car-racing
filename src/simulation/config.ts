@@ -90,6 +90,8 @@ export const VEHICLE = {
   track: 1.66,
   inertia: [510, 1220, 1080] as const,
   restLength: 0.25,
+  /** Height above the contact patch where tread forces enter the chassis (m). */
+  linkCentreHeight: 0.34,
   travel: 0.17,
   maxSteer: 0.38,
   finalDrive: 3.7,
@@ -195,7 +197,11 @@ export function validateOptions(v: unknown): SessionOptions {
       o.mode === 'endurance'
         ? o.mode
         : 'race',
-    laps: clamp(Math.round(Number(o.laps) || 3), 1, o.mode === 'endurance' ? ENDURANCE_MAX_LAPS : 10),
+    laps: clamp(
+      Math.round(Number(o.laps) || 3),
+      1,
+      o.mode === 'endurance' ? ENDURANCE_MAX_LAPS : 10,
+    ),
     opponents,
     ...(grid ? { grid } : {}),
     weather: o.weather === 'rain' || o.weather === 'changeable' ? o.weather : 'clear',

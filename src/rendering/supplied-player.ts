@@ -192,8 +192,10 @@ function release(root: T.Object3D) {
 export function steeringSample(steering: number, duration: number) {
   if (!Number.isFinite(steering) || !Number.isFinite(duration) || duration <= 0)
     throw new Error('Invalid supplied driver steering sample');
+  // The authored clip runs from the right lock (-35 degrees, driver's left hand
+  // raised) to the left lock (+35 degrees). Positive steering is a left turn.
   const normalized = clamp(
-    (-steering * 2.2) / T.MathUtils.degToRad(manifest.steeringDegrees),
+    (steering * 2.2) / T.MathUtils.degToRad(manifest.steeringDegrees),
     -1,
     1,
   );
@@ -494,8 +496,10 @@ export class SuppliedPlayer {
       return bone ? this.root.worldToLocal(bone.getWorldPosition(new T.Vector3())).toArray() : null;
     };
     return {
+      // Rotation about the car's +Z (nose) axis, as the procedural wheel: a
+      // left turn is negative.
       wheelRadians:
-        ((this.action.time / this.action.getClip().duration) * 2 - 1) *
+        (1 - (this.action.time / this.action.getClip().duration) * 2) *
         T.MathUtils.degToRad(manifest.steeringDegrees),
       arms: ['L', 'R'].map((side) => ({
         side,

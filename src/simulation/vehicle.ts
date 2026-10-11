@@ -112,6 +112,8 @@ export class Vehicle {
   drsFlap = 0;
   /** Seconds left of the ERS overtake boost. */
   overtakeClock = 0;
+  /** Seconds spent overturned (on its side or roof) and nearly stationary. */
+  upsetClock = 0;
   private force = new Vec3();
   private point = new Vec3();
   private localPoint = new Vec3();
@@ -365,12 +367,18 @@ export class Vehicle {
       );
       generatorWorkW += regen * Math.abs(t.omega);
       const rolling = Math.tanh(long * 2) * (s.resistance + (t.punctured ? 0.13 : 0)) * t.load;
+      // Wheel load acts at the patch. Tread forces reach the sprung mass through
+      // the suspension links, i.e. at the roll/pitch centre above the patch;
+      // applying them at ground level overstated the overturning moment so a
+      // full-lock corner rolled the car over before the tyres could slide.
+      this.force.copy(s.normal).scale(t.load);
+      b.apply(this.force, this.contactPoints[i]);
       this.force
-        .copy(s.normal)
-        .scale(t.load)
+        .set(0, 0, 0)
         .addScaled(basis.forward, t.fx - rolling)
         .addScaled(basis.lateral, t.fy);
-      b.apply(this.force, this.contactPoints[i]);
+      this.point.copy(this.contactPoints[i]).addScaled(this.up, VEHICLE.linkCentreHeight);
+      b.apply(this.force, this.point);
       track.interact(
         s.cell,
         t.load,
@@ -465,6 +473,25 @@ export class Vehicle {
     this.gVert = this.localAccel.y / G;
     this.impact = Math.max(0, this.impact - dt * 2);
     if (b.position.y < this.surface.height - 4) this.retired = true;
+  }
+  /** Marshal recovery: an overturned, almost stationary car cannot drive
+   * itself out, so after a short hold it is righted on the nearest part of the
+   * circuit, wheels down and at rest. Returns true when it was recovered. */
+  recoverIfUpset(dt: number, track: Track) {
+    if (this.retired || this.up.y > 0.35 || this.speed > 8) {
+      this.upsetClock = 0;
+      return false;
+    }
+    this.upsetClock += dt;
+    if (this.upsetClock < 1.5) return false;
+    const p = this.trackPosition;
+    track.nearest(this.body.position.x, this.body.position.z, p);
+    const half = Math.max(0, p.width - 1.2);
+    this.place(track, p.s, clamp(this.lateral, -half, half));
+    for (const t of this.tires) t.omega = 0;
+    this.up.set(0, 1, 0);
+    this.upsetClock = 0;
+    return true;
   }
   floorClearance(track: Track, z: number) {
     this.body.orientation

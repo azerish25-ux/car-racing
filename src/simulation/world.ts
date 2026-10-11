@@ -140,6 +140,7 @@ export class Simulation {
       for (const c of this.cars) c.step(dt * 0.5, this.track);
       this.collisions.solve(this.cars, this.track);
     }
+    for (const c of this.cars) c.recoverIfUpset(dt, this.track);
     for (const c of this.cars) updatePit(c, this.track, dt, this.cars);
     this.track.evolve(dt, Math.max(0, this.race.time - this.race.greenAt));
     this.race.step(dt);
