@@ -31,27 +31,36 @@ export class RearSignalField {
       throw new Error('Invalid rear-signal frame');
     for (let id = 0; id < cars; id++) {
       const o = carBase(id);
-      const values = [
-        frame[o + F.X],
-        frame[o + F.Y],
-        frame[o + F.Z],
-        frame[o + F.QX],
-        frame[o + F.QY],
-        frame[o + F.QZ],
-        frame[o + F.QW],
-        frame[o + F.BRAKE],
-      ];
-      if (!values.every(Number.isFinite)) throw new Error('Non-finite rear-signal pose');
-      this.q.set(values[3], values[4], values[5], values[6]);
+      const x = frame[o + F.X],
+        y = frame[o + F.Y],
+        z = frame[o + F.Z],
+        qx = frame[o + F.QX],
+        qy = frame[o + F.QY],
+        qz = frame[o + F.QZ],
+        qw = frame[o + F.QW],
+        brake = frame[o + F.BRAKE];
+      // No per-car array per frame: the pose is checked field by field.
+      if (
+        !Number.isFinite(x) ||
+        !Number.isFinite(y) ||
+        !Number.isFinite(z) ||
+        !Number.isFinite(qx) ||
+        !Number.isFinite(qy) ||
+        !Number.isFinite(qz) ||
+        !Number.isFinite(qw) ||
+        !Number.isFinite(brake)
+      )
+        throw new Error('Non-finite rear-signal pose');
+      this.q.set(qx, qy, qz, qw);
       if (Math.abs(this.q.lengthSq() - 1) > 0.02)
         throw new Error('Invalid rear-signal orientation');
       this.q.normalize();
       this.p.set(0, -0.23, -2.28).applyQuaternion(this.q);
       this.positions[id].set(
-        values[0] + this.p.x,
-        values[1] + this.p.y,
-        values[2] + this.p.z,
-        rearSignalIntensity(values[7], frame[H.TIME]),
+        x + this.p.x,
+        y + this.p.y,
+        z + this.p.z,
+        rearSignalIntensity(brake, frame[H.TIME]),
       );
       this.directions[id].set(0, 0, -1).applyQuaternion(this.q);
     }
