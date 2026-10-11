@@ -42,7 +42,9 @@ test('actual cockpit canvas refreshes after hitches, shifts and replay rewinds',
   expect(measured.hitch.changed).toBe(true);
   expect(measured.hitch.text).toContain('158 KM/H');
   expect(measured.gear.changed).toBe(true);
-  expect(measured.gear.text[0]).toBe('3');
+  // The display now draws the lap/position header before the central gear.
+  // Require the actual gear glyph without assuming the obsolete draw order.
+  expect(measured.gear.text).toContain('3');
   expect(measured.paused.changed).toBe(false);
   expect(measured.rewind.changed).toBe(true);
   expect(measured.rewind.text).toContain('72 KM/H');

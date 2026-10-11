@@ -53,6 +53,9 @@ for (const wet of [false, true]) {
   test(`A36 full production garage survey, ${wet ? 'wet day and night' : 'dry day and sunset'}`, async ({
     page,
   }, info) => {
+    // Ten production garage captures under wet/day/night software rendering
+    // can exceed Playwright's generic five-minute watchdog.
+    test.setTimeout(900000);
     const bundled = await build({
       configFile: false,
       logLevel: 'error',

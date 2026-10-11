@@ -124,6 +124,27 @@ describe('P12 aerial perspective', () => {
     expect(AERIAL_PERSPECTIVE_PARS).not.toMatch(/\btime\b/i);
     m.dispose();
   });
+  it('composes nested scene fog installers on a shared spectator material exactly once', () => {
+    const oldScene = new LocalAtmosphere(new Track());
+    const currentScene = new LocalAtmosphere(new Track());
+    const material = new T.MeshStandardMaterial({ name: 'Spectator team flags' });
+    oldScene.installMaterial(material);
+    currentScene.installMaterial(material);
+    const shader = {
+      uniforms: {},
+      vertexShader: '#include <fog_pars_vertex>\n#include <fog_vertex>',
+      fragmentShader: '#include <fog_pars_fragment>\n#include <fog_fragment>',
+    } as unknown as T.WebGLProgramParametersWithUniforms;
+    material.onBeforeCompile(shader, {} as T.WebGLRenderer);
+    expect(shader.vertexShader.match(/varying vec3 vApexFogWorld;/g)).toHaveLength(1);
+    expect(shader.fragmentShader.match(/varying vec3 vApexFogWorld;/g)).toHaveLength(1);
+    expect(shader.vertexShader.match(/vec4 apexFogPosition =/g)).toHaveLength(1);
+    expect(shader.fragmentShader.match(/float apexLocalDensity\\(/g)).toHaveLength(1);
+    expect(shader.fragmentShader.match(/float apexPocketIntegral\\(/g)).toHaveLength(1);
+    expect(shader.uniforms.apexLocalSigma).toBe(currentScene.sigma);
+    expect(shader.uniforms.apexFogVolumes).toBeDefined();
+    material.dispose();
+  });
   it('follows the presented cover and lighting through the sky environment', () => {
     setAerialPerspective(0, 'day');
     const sky = new Sky();

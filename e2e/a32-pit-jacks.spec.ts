@@ -53,6 +53,10 @@ for (const lighting of ['day', 'sunset', 'night'] as const) {
   test(`A32 actual car contact and moving service render in ${lighting}`, async ({
     page,
   }, info) => {
+    // Nine full production captures and the physical service traversal exceed
+    // the default five-minute test watchdog on hosted Mesa. All rendering,
+    // mechanics and GPU acceptance checks remain strict.
+    test.setTimeout(900000);
     const sim = new Simulation({
       ...DEFAULT_OPTIONS,
       mode: 'practice',

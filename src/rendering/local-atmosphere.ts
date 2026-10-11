@@ -199,6 +199,12 @@ export class LocalAtmosphere {
       shader.uniforms.apexFogHeights = this.heights;
       shader.uniforms.apexFogFloors = this.floors;
       useAerialUniforms(shader);
+      // Shared authored materials can be installed into two production scenes.
+      // The previous scene's hook has already supplied the GLSL declarations;
+      // never inject them twice, but bind the current scene's uniforms above.
+      // The old double-injection broke Spectator team flags with GLSL
+      // redefinitions of vApexFogWorld, apexFogPosition and local fog helpers.
+      if (shader.vertexShader.includes('varying vec3 vApexFogWorld;')) return;
       shader.vertexShader = shader.vertexShader
         .replace(
           '#include <fog_pars_vertex>',
