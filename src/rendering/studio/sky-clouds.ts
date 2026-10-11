@@ -10,14 +10,22 @@ import type { SkyLight } from '../sky-light.ts';
  * evaluated twice per sky pixel; it read as grey smudges. Clouds are now a
  * small volumetric bake:
  *
- *  1. A tiling 2D cloud field (once per session): Perlin-Worley cumulus cells
- *     (R), a fine Worley billow detail (G) and a broad modulation (B).
- *  2. Per (cover bin, sun direction), a 3072x512 HalfFloat panorama of the
- *     upper hemisphere, rows packed toward the horizon (v = sqrt(elevation /
- *     90 degrees)) where a racing camera sees the clouds: a 0.09 degree texel
- *     at 5 degrees up, where the former linear rows were 0.18 degrees. Each texel marches its view ray through a cloud
- *     slab over a curved earth: columns rise from one flat base altitude and
- *     narrow with height, so bases are flat and tops billow; two samples toward
+ *  1. A tiling 2D cloud field (once per session): the cumulus footprint (R),
+ *     the owning cell's size (G) and peak (B), and cirrus fibres (A). The
+ *     footprint is the brightest of four Worley scales (5 km clusters only
+ *     where a broad field gathers them, 2 km cumulus, 1 km and 500 m
+ *     fragments), modulated into partial cloud streets, so the sky has a few
+ *     large merged clusters and many small clouds rather than one size. A
+ *     64^3 Worley volume adds 3D turrets and frayed edges.
+ *  2. Per (cover bin, sun direction), a 3072x768 HalfFloat panorama of the
+ *     upper hemisphere, rows packed toward the horizon (elevation = v^1.5 x
+ *     90 degrees): 0.07 degree rows at 5 degrees up, 0.18 overhead. Each
+ *     texel marches its view ray through the layer out to 120 km, so clouds
+ *     shrink and crowd through perspective into a hazy horizon bank, and
+ *     overhead ones are large. Each texel marches its view ray through a cloud
+ *     slab over a curved earth: every cloud is an ellipsoidal dome on a flat
+ *     condensation level, 0.7-1.15 times as high as its real footprint radius
+ *     (from the field's owner size and peak), its top carved into turrets; two samples toward
  *     the sun give the self-shadow (with a multiple-scattering floor), and a
  *     two-lobe phase function gives the silver lining near the sun, and a
  *     powder term (Schneider 2015) darkens the thin, sun-facing edges of
@@ -46,7 +54,7 @@ import type { SkyLight } from '../sky-light.ts';
  */
 export const SKY_CLOUDS = Object.freeze({
   panoramaWidth: 3072,
-  panoramaHeight: 512,
+  panoramaHeight: 768,
   fieldSize: 2048,
   /** Edge of the tileable 3D detail volume, voxels. */
   detailSize: 64,
@@ -57,18 +65,18 @@ export const SKY_CLOUDS = Object.freeze({
   earthRadius: 6371000,
   /** Primary march steps per panorama texel (more on long, low rays). */
   minSteps: 24,
-  maxSteps: 48,
+  maxSteps: 64,
   /** Rays end at this distance; clouds fade into haze before it. */
-  maxDistance: 80000,
+  maxDistance: 120000,
   /** Distance at which a cloud keeps 1/e of its contrast against the horizon. */
-  hazeDistance: 32000,
+  hazeDistance: 60000,
   /** Wind drift of the cloud dome: one turn about the zenith per 3 hours of
    * presented simulation time (about 0.03 degrees a second: a cumulus 5 km
    * away drifts sideways at 3 m/s, a 30 km one at 17 m/s). */
   driftPerSecond: 1 / 10800,
   /** Cirrus sheet altitude, metres. */
   cirrusAltitude: 8500,
-  /** Cached panoramas (12 MB each); two cover bins of the current lighting plus one spare. */
+  /** Cached panoramas (19 MB each); two cover bins of the current lighting plus one spare. */
   cacheSize: 3,
 });
 
@@ -95,9 +103,9 @@ export function cloudLayer(cover: number) {
   };
 }
 /** Field threshold per eighth of cover (index = bin), calibrated on the baked
- * panoramas so the visible cloud fraction 10-30 degrees up grows evenly: about
- * 0.25, 0.4, 0.55, 0.7, 0.82, 0.92, 0.98 and 1 for bins 1-8. Bin 0 has none. */
-const CLOUD_THRESHOLDS = [0.66, 0.61, 0.565, 0.52, 0.47, 0.425, 0.34, 0.22, 0.08] as const;
+ * panoramas so the cosine-weighted dome cover grows evenly: 0.14, 0.24, 0.36,
+ * 0.51, 0.66, 0.87, 0.98 and 0.98 for bins 1-8 (CLOUD_DOME_MEANS). Bin 0 has none. */
+const CLOUD_THRESHOLDS = [0.76, 0.715, 0.675, 0.632, 0.585, 0.545, 0.465, 0.343, 0.111] as const;
 function tableAt(table: readonly number[], c: number) {
   const x = c * (table.length - 1),
     i = Math.min(table.length - 2, Math.floor(x));
@@ -232,8 +240,8 @@ export function cloudDetailVolume(size: number = SKY_CLOUDS.detailSize) {
 }
 
 /** Tiling cloud field. One period of the field spans SKY_CLOUDS.fieldPeriod
- * metres; R holds 2-3 km cumulus cells clustered by a broad Perlin term, G a
- * 150-300 m billow detail and B a broad, independent modulation. */
+ * metres; R holds the footprint, G and B the owning cell's size (relative to
+ * the 4.8 km cluster cell) and peak value, A the cirrus fibres. */
 const FIELD_FRAGMENT = `precision highp float;
 precision highp int;
 in vec2 vUv;
@@ -241,14 +249,28 @@ out vec4 fieldColor;
 ${NOISE_GLSL}
 void main() {
   vec2 p = vUv;
-  float cells = 0.58 * cloudWorley(p * 10.0, 10, 11u) + 0.27 * cloudWorley(p * 21.0, 21, 12u) +
-    0.15 * cloudWorley(p * 43.0, 43, 13u);
   float clusters = 0.65 * cloudPerlin(p * 3.0, 3, 21u) + 0.35 * cloudPerlin(p * 7.0, 7, 22u);
-  // Perlin-Worley: billowed cells, grouped and thinned by the broad term.
-  float base = clamp(cells * mix(0.55, 1.12, clusters) + 0.08 * (clusters - 0.5), 0.0, 1.0);
-  float detail = 0.55 * cloudWorley(p * 80.0, 80, 31u) + 0.3 * cloudWorley(p * 160.0, 160, 32u) +
-    0.15 * cloudPerlin(p * 120.0, 120, 33u);
-  float broad = cloudPerlin(p * 2.0, 2, 41u) * 0.6 + cloudPerlin(p * 5.0, 5, 42u) * 0.4;
+  // Cloud streets: rolls along the wind (field x), 3 km apart, wandering, and
+  // only where the broad pattern organises them.
+  float wander = cloudPerlin(p * 4.0 + 0.7, 4, 23u);
+  float streets = mix(1.0, 0.82 + 0.3 * (0.5 + 0.5 * sin(6.2831853 * (p.y * 8.0 + 0.6 * wander))),
+    smoothstep(0.45, 0.7, cloudPerlin(p * 2.0 + 0.3, 2, 24u)));
+  // A size distribution, not one cell size: the brightest of four Worley
+  // scales wins, so 5 km clusters (only where the broad field is high),
+  // 2 km cumulus, 1 km and 500 m fragments each keep their own footprint; the
+  // smaller scales also texture and merge the larger ones.
+  float big = cloudWorley(p * 5.0, 5, 14u), med = cloudWorley(p * 11.0, 11, 11u),
+    small = cloudWorley(p * 23.0, 23, 12u), tiny = cloudWorley(p * 47.0, 47, 13u);
+  vec4 gain = vec4(mix(0.5, 0.95, smoothstep(0.42, 0.78, clusters)), mix(0.72, 0.92, clusters), 0.85, 0.78);
+  vec4 v = vec4(big, med, small, tiny) * gain;
+  float cells = max(max(v.x, v.y), max(v.z, v.w));
+  float base = clamp((cells + 0.06 * (small - 0.5) + 0.04 * (tiny - 0.5)) * streets, 0.0, 1.0);
+  // The cell that owns this point (blended softly where cells meet): its
+  // size (G, relative to the 4.8 km cluster cell) and its peak value (B),
+  // from which the bake knows each cloud's real footprint radius.
+  vec4 own = exp((v - cells) * 30.0);
+  float ownSize = dot(own, vec4(1.0, 5.0 / 11.0, 5.0 / 23.0, 5.0 / 47.0)) / dot(own, vec4(1.0));
+  float ownPeak = dot(own, gain) / dot(own, vec4(1.0));
   // Cirrus: fibrous streaks, gradient noise stretched 8:1 along the wind and
   // sheared by a broad warp, gathered into patches by a slow envelope.
   vec2 w = p + 0.06 * vec2(cloudPerlin(p * 4.0, 4, 51u), cloudPerlin(p * 4.0 + 0.5, 4, 52u));
@@ -256,7 +278,7 @@ void main() {
     0.4 * cloudPerlin(vec2(w.x * 10.0, w.y * 60.0), 10, 54u);
   float patches = cloudPerlin(p * 2.0 + 0.25, 2, 56u);
   float cirrus = smoothstep(0.5, 0.85, fibres) * smoothstep(0.5, 0.8, patches);
-  fieldColor = vec4(base, detail, broad, cirrus);
+  fieldColor = vec4(base, ownSize, ownPeak, cirrus);
 }`;
 
 /** Equirect upper hemisphere: u = atan(z, x) / 2pi + 0.5, v = elevation / 90 deg. */
@@ -272,6 +294,7 @@ uniform float baseAltitude;
 uniform float thickness;
 uniform float extinction;
 uniform float cirrus;
+uniform float horizonGlow;
 uniform vec2 resolution;
 in vec2 vUv;
 out vec4 cloudTerms;
@@ -294,28 +317,38 @@ float density(vec3 p, bool detailed, out float column) {
   if (hf <= 0.0 || hf >= 1.0) return 0.0;
   vec2 xz = p.xz / PERIOD;
   vec4 field = texture(cloudField, xz);
-  // An independent, rotated and rescaled view of the broad term breaks the tiling.
-  float broad = texture(cloudField, mat2(0.8, -0.6, 0.6, 0.8) * xz * 0.37 + vec2(0.31, 0.67)).b;
-  float base = field.r * mix(0.86, 1.1, broad);
-  float shape = (base - threshold) / max(1.0 - threshold, 0.05);
-  column = clamp(shape, 0.0, 1.0);
-  // Columns narrow with height: domed tops on a flat base.
-  float top = shape - pow(hf, 1.7);
+  // An independent, rotated and rescaled view breaks the 24 km tiling.
+  float broad = texture(cloudField, mat2(0.8, -0.6, 0.6, 0.8) * xz * 0.37 + vec2(0.31, 0.67)).r;
+  float base = field.r * mix(0.97, 1.03, broad);
+  // Real geometry from the owning cell: footprint radius R and the inset x
+  // of this point from the footprint's edge, in metres. A cumulus rises as
+  // an ellipsoidal dome 0.7-1.15 R high (humilis to mediocris; clusters cap
+  // at the slab), flat on the condensation level.
+  float cell = field.g * ${(SKY_CLOUDS.fieldPeriod / 5).toFixed(1)};
+  float peak = max(field.b, threshold + 0.02);
+  float radius = max((1.0 - threshold / peak) * cell, 1.0);
+  float inset = clamp((base - threshold) / peak * cell, 0.0, radius);
+  float u = 1.0 - inset / radius;
+  float dome = sqrt(max(0.0, 1.0 - u * u));
+  float height = min(mix(0.7, 1.15, broad) * radius, 0.95 * thickness) / thickness;
+  column = dome * height / 0.95;
+  float top = base < threshold ? (base - threshold) * 4.0 - hf : dome * height - hf;
   if (detailed) {
-    // Billows: the detail is sampled with a height-dependent offset, so the
-    // erosion varies up the cloud like a 3D noise would. The fine octave
-    // fades out with distance before a texel outgrows it (no aliased fringe).
+    // The fine 3D octaves fade out with distance before a texel outgrows
+    // them (no aliased fringe).
     float fine = 1.0 - smoothstep(9000.0, 26000.0, length(p.xz));
-    float billow = texture(cloudField, xz * 1.3 + vec2(hf * 0.012, -hf * 0.008)).g;
-    top -= (0.62 - billow) * 0.3 * (0.35 + hf);
     // True 3D cauliflower: tileable Worley turrets (${SKY_CLOUDS.detailPeriod} m and a third
     // of that), eroding the dome most toward its top and edges.
     float turrets = 0.65 * texture(cloudDetail, p / ${SKY_CLOUDS.detailPeriod.toFixed(1)}).r +
       0.35 * texture(cloudDetail, p / ${(SKY_CLOUDS.detailPeriod / 3).toFixed(1)} + 0.37).r;
-    top -= (0.58 - mix(0.58, turrets, fine)) * 0.5 * (0.3 + hf);
+    // None at the condensation level: the base stays flat.
+    top -= (0.58 - mix(0.58, turrets, fine)) * 0.55 * smoothstep(0.0, 0.3, hf) * (0.4 + 0.6 * hf);
+    // Fraying: near the silhouette a finer volume tears the edge into wisps.
+    float wisps = texture(cloudDetail, p / 230.0 + vec3(0.11, 0.53, 0.29)).r;
+    top -= (0.6 - mix(0.6, wisps, fine)) * 0.07 * (1.0 - smoothstep(0.0, 0.2, top));
   }
-  // Crisp cauliflower edges, a flat, slightly soft base.
-  return smoothstep(0.0, 0.1, top) * smoothstep(0.0, 0.035, hf);
+  // Crisp cauliflower edges on a flat condensation level.
+  return smoothstep(0.0, 0.1, top) * smoothstep(0.0, 0.03, hf);
 }
 float phaseHG(float mu, float g) {
   float g2 = g * g;
@@ -323,7 +356,7 @@ float phaseHG(float mu, float g) {
 }
 void main() {
   float az = (vUv.x - 0.5) * 2.0 * PI;
-  float el = vUv.y * vUv.y * 0.5 * PI;
+  float el = pow(vUv.y, 1.5) * 0.5 * PI;
   vec3 dir = vec3(cos(el) * cos(az), sin(el), cos(el) * sin(az));
   float mu = dot(dir, sunDirection);
   // Cirrus sheet: a thin ice layer far above the cumulus, sampled once where
@@ -349,9 +382,13 @@ void main() {
   // Interleaved gradient noise: a fixed per-texel offset hides step banding.
   vec2 pixel = floor(vUv * resolution);
   float jitter = fract(52.9829189 * fract(dot(pixel, vec2(0.06711056, 0.00583715))));
-  // Forward lobe (silver lining) + a weak back lobe, relative to isotropic;
-  // capped so a cloud beside the sun glows without a bloom-blown core.
-  float phase = min(mix(phaseHG(mu, 0.68), phaseHG(mu, -0.18), 0.32), 4.5);
+  // Droplet phase function as three lobes relative to isotropic: a sharp
+  // forward peak (the silver lining of edges in front of the sun), a broad
+  // forward lobe and a weak back lobe; capped so the core never blows out.
+  float phase = min(0.45 * phaseHG(mu, 0.85) + 0.3 * phaseHG(mu, 0.45) + 0.25 * phaseHG(mu, -0.2), 9.0);
+  // Golden hour: bases toward the sun see the glowing horizon beneath them.
+  vec2 hs = normalize(sunDirection.xz + 1e-6), hd = normalize(dir.xz + 1e-6);
+  float glow = 1.0 + horizonGlow * 3.0 * pow(max(0.0, dot(hs, hd)), 3.0);
   float transmittance = 1.0, sun = 0.0, sky = 0.0, ground = 0.0, meanT = 0.0, weight = 0.0;
   // Coarse steps through empty air. On reaching cloud, step back and march at
   // a quarter step for as long as the ray stays in cloud (plus a short margin),
@@ -394,8 +431,9 @@ void main() {
     // Skylight: tops see the whole dome, a base mostly the sunlit ground below;
     // a taller column above darkens its base (the low-contrast overcast rolls).
     float shade = 1.0 - 0.42 * column * (1.0 - hf);
-    float ambient = (0.16 + 0.84 * pow(hf, 0.65)) * shade;
-    float bounce = 0.4 * pow(1.0 - hf, 1.5) * shade;
+    // Bases: dim, blue-grey (sky from the side, a little ground from below).
+    float ambient = (0.1 + 0.9 * pow(hf, 0.7)) * shade;
+    float bounce = 0.22 * pow(1.0 - hf, 2.0) * shade * glow;
     float stepOpacity = 1.0 - exp(-extinction * d * advance);
     float w = transmittance * stepOpacity;
     sun += w * lit * phase;
@@ -435,31 +473,31 @@ vec3 skyCloudLight(vec4 terms) {
 }
 `;
 /** Sky-shader sampling of the bound panoramas (premultiplied terms, opacity);
- * rows are packed toward the horizon (v = sqrt(elevation / 90 degrees)). */
+ * rows are packed toward the horizon (v = (elevation / 90 degrees)^(2/3)). */
 export const SKY_CLOUD_SAMPLE = `
 vec4 skyCloudTerms(vec3 direction) {
   if (cloudReady < 0.5 || direction.y <= 0.0) return vec4(0.0);
   vec2 uv = vec2(atan(direction.z, direction.x) * 0.15915494 + 0.5 + cloudDrift,
-    sqrt(asin(clamp(direction.y, 0.0, 1.0)) * 0.63661977));
+    pow(asin(clamp(direction.y, 0.0, 1.0)) * 0.63661977, 0.6666667));
   return mix(texture2D(cloudLow, uv), texture2D(cloudHigh, uv), cloudWeight);
 }
 `;
 
 /** Cosine-weighted means of the baked terms over the upper hemisphere, per
  * cover bin (index): [opacity, sun (day sun), sun (sunset sun), sky, ground].
- * Measured on the GPU bakes (scratch lab, 128 rows x 512 azimuths); the CPU
+ * Measured on the GPU bakes (every second row, every fourth azimuth); the CPU
  * dome model (`skyCosineRadiance`) uses them for the PMREM ground's skylight. */
 export const CLOUD_DOME_MEANS: readonly (readonly [number, number, number, number, number])[] =
   Object.freeze([
     [0, 0, 0, 0, 0],
-    [0.1445, 0.0745, 0.0363, 0.0467, 0.0481],
-    [0.242, 0.092, 0.0489, 0.0755, 0.0813],
-    [0.3658, 0.1082, 0.0606, 0.1097, 0.1245],
-    [0.5263, 0.1299, 0.0656, 0.1507, 0.1817],
-    [0.6778, 0.1326, 0.0613, 0.1847, 0.2375],
-    [0.9181, 0.0665, 0.0289, 0.2302, 0.3272],
-    [0.9744, 0.0117, 0.0076, 0.2276, 0.3451],
-    [0.9759, 0.009, 0.0061, 0.2221, 0.339],
+    [0.1367, 0.1248, 0.0392, 0.0271, 0.0251],
+    [0.2362, 0.1688, 0.0519, 0.046, 0.0432],
+    [0.3591, 0.1983, 0.0595, 0.0671, 0.0654],
+    [0.5139, 0.2381, 0.0565, 0.0921, 0.0936],
+    [0.6559, 0.2529, 0.043, 0.1123, 0.1201],
+    [0.8676, 0.1105, 0.0109, 0.1359, 0.157],
+    [0.9828, 0.014, 0.0003, 0.1382, 0.1675],
+    [0.9847, 0.0017, 0, 0.1216, 0.1488],
   ] as const);
 /** Mean baked terms (premultiplied) of the dome at a cover, blended between
  * neighbouring bins exactly as the dome blends their panoramas. */
@@ -570,6 +608,7 @@ export class SkyClouds {
       thickness: { value: 800 },
       extinction: { value: 0.02 },
       cirrus: { value: 0 },
+      horizonGlow: { value: 0 },
       resolution: {
         value: new T.Vector2(SKY_CLOUDS.panoramaWidth, SKY_CLOUDS.panoramaHeight),
       },
@@ -663,6 +702,7 @@ export class SkyClouds {
     u.thickness.value = layer.thickness;
     u.extinction.value = layer.extinction;
     u.cirrus.value = layer.cirrus;
+    u.horizonGlow.value = cloudLightKey(mode) === 'sunset' ? 1 : 0;
     try {
       this.draw(renderer, target, this.panoramaMaterial);
     } catch (error) {
@@ -734,6 +774,11 @@ export class SkyClouds {
       u.cloudWeight.value = previous.weight;
       u.cloudReady.value = previous.ready;
     };
+  }
+  /** The baked cloud field (null before the first panorama bake): the
+   * footprint the scene's cloud shadows sample (cloud-shadow.ts). */
+  get fieldTexture() {
+    return this.field?.texture ?? null;
   }
   /** The baked panorama texture of a bin if cached (diagnostics, lookdev). */
   cached(bin: number, mode: LightingMode) {

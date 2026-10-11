@@ -172,7 +172,9 @@ describe('baked cumulus panorama', () => {
     const { fragmentShader, uniforms } = sky.material;
     expect(fragmentShader).toContain(SKY_CLOUD_UNIFORMS);
     expect(fragmentShader).toContain(SKY_CLOUD_SAMPLE);
-    expect(fragmentShader).toContain('radiance = radiance * (1.0 - cover) + skyCloudLight(clouds);');
+    expect(fragmentShader).toContain(
+      'radiance = radiance * (1.0 - cover) + skyCloudLight(clouds);',
+    );
     // The value-noise smudges are gone; nothing animates by wall clock.
     expect(fragmentShader).not.toContain('skyNoise');
     expect(fragmentShader).not.toMatch(/\btime\b/i);

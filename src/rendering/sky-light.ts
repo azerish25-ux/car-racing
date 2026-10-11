@@ -1,5 +1,11 @@
 import * as T from 'three';
-import { ATMOSPHERE, atmosphereSky, luminance, type AtmosphereSky, type Rgb } from './atmosphere.ts';
+import {
+  ATMOSPHERE,
+  atmosphereSky,
+  luminance,
+  type AtmosphereSky,
+  type Rgb,
+} from './atmosphere.ts';
 
 /** One world-space sun direction for the visible disk, illumination and shadows.
  * Day: about 52 degrees of elevation, the short shadows tucked under the car of
@@ -55,6 +61,8 @@ export const SKY_LIGHT = Object.freeze({
   cloudMultiple: 0.032,
   cloudBounce: 0.12,
   groundTint: Object.freeze([1, 0.95, 0.82] as const),
+  /** Share of the sun-side horizon radiance that lights golden-hour bases. */
+  horizonGlow: 0.09,
   /** Deck base (the clouds' ambient term) and the dome behind a closing deck,
    * as fractions of the irradiance above the deck: a blue-grey, darker base. */
   deckAmbient: Object.freeze([0.4, 0.44, 0.5] as const),
@@ -196,6 +204,7 @@ export function skyLight(cloud: number, mode: LightingMode): SkyLight {
       skyScale,
     );
   };
+  const horizonSun = horizon(0);
   const disc = (Math.PI * ATMOSPHERE.sunAngularRadius ** 2) ** -1 * irradiance;
   const sunDisc = scale(sunT, disc);
   const discPeak = Math.max(...sunDisc);
@@ -210,18 +219,21 @@ export function skyLight(cloud: number, mode: LightingMode): SkyLight {
       discPeak > SKY_LIGHT.maxSunDisc ? scale(sunDisc, SKY_LIGHT.maxSunDisc / discPeak) : sunDisc,
     cloudKey: scale(sunAtCloud, SKY_LIGHT.cloudKey * visible),
     cloudAmbient,
+    // Bases see the lit ground; at the golden hour those toward the sun also
+    // see the glowing horizon beneath them (the bake weights the bounce term
+    // toward the sun's azimuth for sunset panoramas).
     cloudBounce: [0, 1, 2].map(
       (k) =>
         (groundSun[k] * visible + Math.PI * skyMean[k]) *
-        SKY_LIGHT.cloudBounce *
-        SKY_LIGHT.groundTint[k],
+          SKY_LIGHT.cloudBounce *
+          SKY_LIGHT.groundTint[k] +
+        (mode === 'sunset' ? horizonSun[k] * SKY_LIGHT.horizonGlow * visible : 0),
     ) as Rgb,
     deck: [0, 1, 2].map(
-      (k) =>
-        aboveLuma * SKY_LIGHT.deckBackground[k] * lerp(1, above[k] / aboveLuma, 0.5) * thick,
+      (k) => aboveLuma * SKY_LIGHT.deckBackground[k] * lerp(1, above[k] / aboveLuma, 0.5) * thick,
     ) as Rgb,
     horizonAntiSun: horizon((115 * Math.PI) / 180),
-    horizonSunSide: horizon(0),
+    horizonSunSide: horizonSun,
   };
   if (lightCache.size > 256) lightCache.clear();
   lightCache.set(key, light);

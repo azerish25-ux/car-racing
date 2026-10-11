@@ -7,6 +7,7 @@ import {
   AERIAL_PERSPECTIVE_PARS,
   useAerialUniforms,
 } from './studio/aerial-perspective.ts';
+import { cloudShadowUniforms, injectCloudShadow } from './studio/cloud-shadow.ts';
 
 export interface FogPocket {
   x: number;
@@ -199,12 +200,15 @@ export class LocalAtmosphere {
       shader.uniforms.apexFogHeights = this.heights;
       shader.uniforms.apexFogFloors = this.floors;
       useAerialUniforms(shader);
+      Object.assign(shader.uniforms, cloudShadowUniforms);
       // Shared authored materials can be installed into two production scenes.
       // The previous scene's hook has already supplied the GLSL declarations;
       // never inject them twice, but bind the current scene's uniforms above.
       // The old double-injection broke Spectator team flags with GLSL
       // redefinitions of vApexFogWorld, apexFogPosition and local fog helpers.
       if (shader.vertexShader.includes('varying vec3 vApexFogWorld;')) return;
+      // Cloud shadows on the sun's light (studio/cloud-shadow.ts).
+      if (!particle) injectCloudShadow(shader);
       shader.vertexShader = shader.vertexShader
         .replace(
           '#include <fog_pars_vertex>',
@@ -315,7 +319,7 @@ export class LocalAtmosphere {
       key +
       '|apex-local-atmosphere-v4-vector-quadrature:' +
       position +
-      '|apex-aerial-perspective-v1';
+      '|apex-aerial-perspective-v1|apex-cloud-shadow-v1';
     material.needsUpdate = true;
   }
   diagnostics() {

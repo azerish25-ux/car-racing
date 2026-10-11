@@ -20,7 +20,7 @@ describe('shared dusk skylight balance', () => {
       expect(a.fill).toBeGreaterThan(0);
       expect(a.fill).toBeLessThanOrEqual(0.6);
       expect(a.sun).toBe(skyLight(cover, 'sunset').sunIrradiance * (1 - cover * 0.88));
-      expect(a.exposure).toBe(1.62 - cover * 0.2);
+      expect(a.exposure).toBe(1.62 + cover * 0.1);
       expect(a.skyRadiance).toBe(skyLight(cover, 'sunset').skyScale);
       // Readable shade: exposed indirect irradiance on open ground stays at
       // least what the authored dusk fill gave (about 0.6).

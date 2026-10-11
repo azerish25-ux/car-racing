@@ -68,7 +68,10 @@ describe('D03 producer lighting decisions (P1-P3)', () => {
     for (const cover of [0, 0.12, 0.5, 1]) {
       const day = daylightState(cover, 0);
       // The key is the sun through this cover's atmosphere, dimmed by cloud.
-      expect(day.sun).toBeCloseTo(skyLight(cover, 'day').sunIrradiance * (1 - 0.94 * cover ** 1.45), 12);
+      expect(day.sun).toBeCloseTo(
+        skyLight(cover, 'day').sunIrradiance * (1 - 0.94 * cover ** 1.45),
+        12,
+      );
       expect(day.fill).toBeCloseTo(0.06 + 0.2 * cover, 12);
       // The PMREM is the physical dome: diffuse sky light at its true share.
       expect(day.environment).toBe(1);
@@ -103,7 +106,7 @@ describe('D03 producer lighting decisions (P1-P3)', () => {
     expect(dusk.g).toBeGreaterThan(0.9 * dusk.r);
     for (const cover of [0, 0.5, 1]) {
       const dusk = circuitLightState(cover, 0, 'sunset');
-      expect(dusk.fill).toBeCloseTo(0.05 + 0.12 * cover, 12);
+      expect(dusk.fill).toBeCloseTo(0.09 + 0.12 * cover, 12);
       // The ~10 degree key dominates what faces it: key / fill >= 6 when clear.
       if (cover === 0) expect(dusk.sun / dusk.fill).toBeGreaterThanOrEqual(6);
     }

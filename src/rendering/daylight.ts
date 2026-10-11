@@ -15,6 +15,7 @@ import {
   type LightingMode,
 } from './sky-light.ts';
 import { aerialFogColor, setAerialPerspective } from './studio/aerial-perspective.ts';
+import { setCloudShadow } from './studio/cloud-shadow.ts';
 import {
   SKY_CLOUD_LIGHTING,
   SKY_CLOUD_SAMPLE,
@@ -120,11 +121,12 @@ export function circuitLightState(
       // P2 golden hour: the 10 degree sun through 5.6 air masses of hazy air
       // (about 1.9, deep gold), dimmed by the cloud in front of it.
       sun: sky.sunIrradiance * (1 - light.cover * 0.88),
-      fill: 0.05 + light.cover * 0.12,
+      fill: 0.09 + light.cover * 0.12,
       environment: 1,
       // A camera opens up about 0.8 EV for the golden hour: the low sun puts
-      // half the noon light on what faces it and far less on the ground.
-      exposure: 1.62 - light.cover * 0.2,
+      // half the noon light on what faces it and far less on the ground; a
+      // little more again under a dusk deck.
+      exposure: 1.62 + light.cover * 0.1,
       haze: lerp(SKY_LIGHT.haze.sunset[0], SKY_LIGHT.haze.sunset[2], light.cover),
       skyRadiance: sky.skyScale,
       fogDensity: light.fogDensity * 1.18,
@@ -598,6 +600,14 @@ export class SkyEnvironment {
       mode,
       undefined,
       mode === 'night' ? undefined : skyFogPalette(plan.cover, mode),
+    );
+    // The same field shades the circuit, drifting with the dome's clouds.
+    setCloudShadow(
+      this.clouds?.fieldTexture ?? null,
+      plan.cover,
+      mode,
+      lightingDirection(mode),
+      (this.sky.material.uniforms.cloudDrift?.value as number | undefined) ?? 0,
     );
     this.probeRefreshNeeded = false;
     if (plan.cover === this.cover && mode === this.mode && size === this.size) return false;
