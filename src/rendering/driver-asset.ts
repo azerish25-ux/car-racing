@@ -195,6 +195,10 @@ export class DriverAsset {
     if (this.disposed) throw new Error('Authored driver already disposed');
     const root = clone(this.prototype) as T.Group;
     const material = fabric.clone();
+    // Material.copy() does not carry shader hooks: keep the team-kit recolour
+    // (and any other chained edit) so the authored suit wears the team colours.
+    material.onBeforeCompile = fabric.onBeforeCompile;
+    material.customProgramCacheKey = fabric.customProgramCacheKey;
     material.name = 'Blender-authored woven suit panels';
     material.color.set(0xffffff);
     material.vertexColors = true;

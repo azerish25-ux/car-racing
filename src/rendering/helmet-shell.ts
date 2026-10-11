@@ -170,3 +170,90 @@ export function helmetShell() {
   g.computeBoundingSphere();
   return g;
 }
+
+/** Eye-port visor outline at a shield angle: full height across the front,
+ * narrowing to the pivot arms at the sides (not a constant-height band). */
+export const VISOR_PHI = Object.freeze([0.095, Math.PI - 0.095] as const);
+export function visorBounds(phi: number) {
+  const a = Math.min(1, Math.abs(phi - Math.PI / 2) / (Math.PI / 2 - VISOR_PHI[0]));
+  const half = T.MathUtils.lerp(0.038, 0.0105, T.MathUtils.smoothstep(a, 0.5, 0.96));
+  // Slightly lower brow at the temples, as a real eye port is.
+  const centre = 0.005 - 0.004 * T.MathUtils.smoothstep(a, 0.3, 0.7);
+  return [centre - half, centre + half] as const;
+}
+
+/** Conformal visor shield following `visorBounds`; UV u across, v up. */
+export function visorGeometry(offset = 0.003, rows = 8, columns = 32) {
+  const positions: number[] = [],
+    uvs: number[] = [],
+    indices: number[] = [],
+    point = new T.Vector3();
+  for (let i = 0; i <= rows; i++)
+    for (let j = 0; j <= columns; j++) {
+      const phi = T.MathUtils.lerp(VISOR_PHI[0], VISOR_PHI[1], j / columns);
+      const [y0, y1] = visorBounds(phi);
+      helmetPoint(T.MathUtils.lerp(y0, y1, i / rows), phi, offset, point);
+      positions.push(point.x, point.y, point.z);
+      uvs.push(j / columns, i / rows);
+      if (i < rows && j < columns) {
+        const a = i * (columns + 1) + j,
+          b = a + columns + 1;
+        indices.push(a, a + 1, b, a + 1, b + 1, b);
+      }
+    }
+  const g = new T.BufferGeometry();
+  g.setAttribute('position', new T.Float32BufferAttribute(positions, 3));
+  g.setAttribute('uv', new T.Float32BufferAttribute(uvs, 2));
+  g.setIndex(indices);
+  g.computeVertexNormals();
+  g.computeBoundingBox();
+  g.computeBoundingSphere();
+  return g;
+}
+
+/** Rear crown spoiler: a ramp rising off the shell toward a trailing lip,
+ * closed by end plates. Each thin panel is a smooth grid present on both
+ * faces (separate vertices per face). */
+export function helmetSpoilerGeometry(columns = 12, rows = 4) {
+  const positions: number[] = [],
+    uvs: number[] = [],
+    indices: number[] = [];
+  const p = new T.Vector3();
+  const half = 0.5,
+    yLead = 0.122,
+    yTrail = 0.094,
+    lift = 0.0095;
+  const rear = (Math.PI * 3) / 2;
+  const sheet = (nu: number, nv: number, at: (u: number, v: number) => T.Vector3) => {
+    for (const flip of [false, true]) {
+      const base = positions.length / 3;
+      for (let i = 0; i <= nv; i++)
+        for (let j = 0; j <= nu; j++) {
+          at(j / nu, i / nv);
+          positions.push(p.x, p.y, p.z);
+          uvs.push(j / nu, i / nv);
+        }
+      for (let i = 0; i < nv; i++)
+        for (let j = 0; j < nu; j++) {
+          const a = base + i * (nu + 1) + j,
+            b = a + nu + 1;
+          if (flip) indices.push(a, b, a + 1, a + 1, b, b + 1);
+          else indices.push(a, a + 1, b, a + 1, b + 1, b);
+        }
+    }
+  };
+  const ramp = (v: number) => lift * v ** 1.3;
+  const y = (v: number) => T.MathUtils.lerp(yLead, yTrail, v);
+  sheet(columns, rows, (u, v) => helmetPoint(y(v), rear - half + 2 * half * u, ramp(v), p));
+  sheet(columns, 1, (u, v) => helmetPoint(yTrail, rear - half + 2 * half * u, lift * (1 - v), p));
+  for (const f of [rear - half, rear + half])
+    sheet(rows, 1, (u, v) => helmetPoint(y(u), f, ramp(u) * (1 - v), p));
+  const g = new T.BufferGeometry();
+  g.setAttribute('position', new T.Float32BufferAttribute(positions, 3));
+  g.setAttribute('uv', new T.Float32BufferAttribute(uvs, 2));
+  g.setIndex(indices);
+  g.computeVertexNormals();
+  g.computeBoundingBox();
+  g.computeBoundingSphere();
+  return g;
+}

@@ -1,4 +1,4 @@
-import { addSeatedRestraints } from './driver-restraints.ts';
+import { addSeatedRestraints, HANS_ANCHOR } from './driver-restraints.ts';
 import { tailoredSleeve } from './driver-tailoring.ts';
 import { fingerGripCurve } from './wheel-grip.ts';
 import { bodySurface, bodySurfacePatch } from './car-surfaces.ts';
@@ -291,6 +291,60 @@ export function harnessRibbon(points: readonly T.Vector3[], width: number) {
   return g;
 }
 
+/** A short, slightly tapered stand-up collar (open tube with a rolled top). */
+export function standUpCollarGeometry() {
+  const points = [
+    new T.Vector2(0.079, 0),
+    new T.Vector2(0.0775, 0.012),
+    new T.Vector2(0.0755, 0.03),
+    new T.Vector2(0.0748, 0.037),
+    new T.Vector2(0.0725, 0.0395),
+    new T.Vector2(0.0705, 0.036),
+  ];
+  const g = new T.LatheGeometry(points, 32);
+  // Front opening is lower than the back (the collar follows the neckline).
+  const p = g.getAttribute('position');
+  for (let i = 0; i < p.count; i++) {
+    const front = Math.max(0, p.getZ(i) / 0.079);
+    p.setY(i, p.getY(i) * (1 - 0.35 * front * front));
+  }
+  g.computeVertexNormals();
+  return g;
+}
+
+/** The HANS upright: a rounded, slightly reclined carbon plate behind the neck,
+ * standing on the collar yoke, with the tether anchors at its top corners. */
+export function hansUprightGeometry() {
+  const w = HANS_ANCHOR.x + 0.012,
+    top = HANS_ANCHOR.y + 0.01,
+    bottom = 0.1,
+    r = 0.016;
+  const shape = new T.Shape();
+  shape.moveTo(-w + r, bottom);
+  shape.lineTo(w - r, bottom);
+  shape.quadraticCurveTo(w, bottom, w, bottom + r);
+  shape.lineTo(w * 0.86, top - r);
+  shape.quadraticCurveTo(w * 0.86, top, w * 0.86 - r, top);
+  shape.lineTo(-w * 0.86 + r, top);
+  shape.quadraticCurveTo(-w * 0.86, top, -w * 0.86, top - r);
+  shape.lineTo(-w, bottom + r);
+  shape.quadraticCurveTo(-w, bottom, -w + r, bottom);
+  const g = new T.ExtrudeGeometry(shape, {
+    depth: 0.005,
+    bevelEnabled: true,
+    bevelThickness: 0.0025,
+    bevelSize: 0.0025,
+    bevelSegments: 2,
+    curveSegments: 6,
+  });
+  // Recline it 12 degrees about its base, behind the neck.
+  g.translate(0, 0, -0.005);
+  g.translate(0, -bottom, 0);
+  g.rotateX(-0.21);
+  g.translate(0, bottom, HANS_ANCHOR.z - 0.008);
+  return g;
+}
+
 export function buildDriverTorso(parent: T.Group, m: Materials, includeSuit = true) {
   const torso = sculptedLoft(
     [
@@ -319,8 +373,18 @@ export function buildDriverTorso(parent: T.Group, m: Materials, includeSuit = tr
   );
   neckGeometry.rotateX(-Math.PI / 2);
   mesh(parent, neckGeometry, m.panel);
-  const collar = mesh(parent, new T.TorusGeometry(0.071, 0.008, 8, 32), m.suit, 0, 0.094, -0.417);
-  collar.rotation.x = Math.PI / 2 - 0.17;
+  // Fire-suit stand-up collar (team kit) with a contrasting trim and its
+  // closure tab, rising to just under the helmet rim.
+  const collar = mesh(parent, standUpCollarGeometry(), m.suit, 0, 0.088, -0.417);
+  collar.rotation.x = -0.17;
+  const trim = mesh(parent, new T.TorusGeometry(0.0745, 0.0032, 6, 32), m.panel, 0, 0.088, -0.417);
+  trim.rotation.x = Math.PI / 2 - 0.17;
+  trim.position.add(new T.Vector3(0, 0.038, 0).applyAxisAngle(new T.Vector3(1, 0, 0), -0.17));
+  const tab = mesh(parent, new T.BoxGeometry(0.03, 0.024, 0.005), m.panel, 0, 0.102, -0.336);
+  tab.rotation.x = -0.17;
+  // HANS: a moulded carbon collar on the shoulders and a raised back upright
+  // behind the helmet; the helmet tethers anchor at the upright's corners.
+  mesh(parent, hansUprightGeometry(), m.grip);
   // Moulded neck restraint: a flat laminated yoke, not an inflatable-looking
   // cylindrical collar. Its two wings sit beneath the shoulder webbing.
   const yokePath = new T.CatmullRomCurve3(

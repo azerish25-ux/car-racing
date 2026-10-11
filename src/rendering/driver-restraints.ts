@@ -3,6 +3,9 @@ import manifest from './apx01-driver.manifest.json' with { type: 'json' };
 import { mesh, mergeStatic, rod } from './geometry.ts';
 import { helmetPoint } from './helmet-shell.ts';
 
+/** Car-local anchor of each helmet tether on the HANS upright (x by side). */
+export const HANS_ANCHOR = Object.freeze({ x: 0.04, y: 0.168, z: -0.49 });
+
 /** Shared Blender torso envelope, including its low-amplitude compression folds.
  * Harness edges are projected individually; a flat strip intersects curved ribs. */
 export function seatedTorsoFront(x: number, y: number) {
@@ -282,7 +285,7 @@ export class HelmetTethers {
       const p = strap.geometry.getAttribute('position');
       for (let row = 0; row < 9; row++) {
         const t = row / 8;
-        this.position.set(side * 0.083, 0.116, -0.48).lerp(this.end, t);
+        this.position.set(side * HANS_ANCHOR.x, HANS_ANCHOR.y, HANS_ANCHOR.z).lerp(this.end, t);
         this.position.y -= 0.003 * Math.sin(Math.PI * t);
         p.setXYZ(row * 2, this.position.x - 0.0035, this.position.y, this.position.z);
         p.setXYZ(row * 2 + 1, this.position.x + 0.0035, this.position.y, this.position.z);

@@ -1,6 +1,17 @@
-import { teamHelmetMaterial, visorMaterial, type DriverDesign } from './studio/helmet-livery.ts';
+import {
+  rivalVisorMaterial,
+  teamHelmetMaterial,
+  type DriverDesign,
+} from './studio/helmet-livery.ts';
 import { helmetTetherPost } from './driver-restraints.ts';
-import { helmetShell, helmetPatch, helmetPoint } from './helmet-shell.ts';
+import {
+  helmetShell,
+  helmetPatch,
+  helmetPoint,
+  helmetSpoilerGeometry,
+  visorBounds,
+  visorGeometry,
+} from './helmet-shell.ts';
 import * as T from 'three';
 import { bodySurface, POD_SECTIONS, POD_UNDERCUT, POD_FLATTEN } from './car-surfaces.ts';
 import { sculptedLoft } from './bodywork.ts';
@@ -102,9 +113,13 @@ export function buildHelmet(parent: T.Group, m: MechanicalMaterials, design?: Dr
   parent.position.set(0, 0.17, -0.4);
   const shellGeometry = helmetShell();
   if (design) {
-    // D16: the team's own helmet and an iridescent visor.
-    mesh(parent, shellGeometry, teamHelmetMaterial(design).material, 0, 0.12, 0.02);
-    buildHelmetDetail(parent, m, visorMaterial());
+    // D16: the team's own helmet (with its rear crown spoiler in the same
+    // paint submission) and a smoked, sky-reflecting visor with tear-offs.
+    // The shell is merged into the helmet group: its livery frame is offset.
+    const paint = teamHelmetMaterial(design, new T.Vector3(0, 0.12, 0.02)).material;
+    mesh(parent, shellGeometry, paint, 0, 0.12, 0.02);
+    mesh(parent, helmetSpoilerGeometry(), paint, 0, 0.12, 0.02);
+    buildHelmetDetail(parent, m, rivalVisorMaterial(), true);
     return;
   }
   const helmetPaint = m.paint.clone();
@@ -147,24 +162,42 @@ export function buildHelmet(parent: T.Group, m: MechanicalMaterials, design?: Dr
   );
 }
 /** Visor, gaskets, hinges and tether sockets around a helmet shell. */
-function buildHelmetDetail(parent: T.Group, m: MechanicalMaterials, visorMaterial: T.Material) {
+function buildHelmetDetail(
+  parent: T.Group,
+  m: MechanicalMaterials,
+  visorMaterial: T.Material,
+  eyePort = false,
+) {
   // Raised brow and a tapered visor follow the same shell rather than a
   // circular band. Gaskets remain separated by only millimetres at the cheeks.
+  // A team helmet's shield follows the eye-port outline (full height at the
+  // front, narrowing to the pivot arms) and its gaskets follow both edges.
   mesh(
     parent,
-    helmetPatch(-0.033, 0.043, 0.095, Math.PI - 0.095, 0.003),
+    eyePort ? visorGeometry(0.003) : helmetPatch(-0.033, 0.043, 0.095, Math.PI - 0.095, 0.003),
     visorMaterial,
     0,
     0.12,
     0.02,
   );
-  for (const y of [-0.033, 0.043]) {
-    const points = Array.from({ length: 33 }, (_, j) =>
-      helmetPoint(y, 0.095 + (j / 32) * (Math.PI - 0.19), 0.0038).add(new T.Vector3(0, 0.12, 0.02)),
-    );
+  for (const edge of [0, 1]) {
+    const points = Array.from({ length: 33 }, (_, j) => {
+      const phi = 0.095 + (j / 32) * (Math.PI - 0.19);
+      const y = eyePort ? visorBounds(phi)[edge] : edge ? 0.043 : -0.033;
+      return helmetPoint(y, phi, 0.0038).add(new T.Vector3(0, 0.12, 0.02));
+    });
     mesh(parent, new T.TubeGeometry(new T.CatmullRomCurve3(points), 32, 0.0018, 6, false), m.dark);
   }
-  mesh(parent, helmetPatch(0.046, 0.053, 0.1, Math.PI - 0.1, 0.0012, 2, 32), m.dark, 0, 0.12, 0.02);
+  // A team helmet paints its brow strip; the plain helmet keeps a raised seal.
+  if (!eyePort)
+    mesh(
+      parent,
+      helmetPatch(0.046, 0.053, 0.1, Math.PI - 0.1, 0.0012, 2, 32),
+      m.dark,
+      0,
+      0.12,
+      0.02,
+    );
   for (const side of [-1, 1]) {
     const hinge = mesh(
       parent,

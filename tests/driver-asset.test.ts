@@ -9,6 +9,7 @@ import {
 } from '../src/rendering/driver-asset.ts';
 import { DriverRig } from '../src/rendering/driver.ts';
 import manifest from '../src/rendering/apx01-driver.manifest.json';
+import { studioHookKeys } from '../src/rendering/studio/shader-hooks.ts';
 
 const bytes = new Uint8Array(readFileSync('src/rendering/apx01-driver.glb.gz'));
 const raw = new Uint8Array(gunzipSync(bytes));
@@ -235,5 +236,15 @@ describe('Blender-authored coupled driver', () => {
     asset.dispose();
     clean(a, wa);
     clean(b, wb);
+  });
+  it('dresses the authored suit in the team kit (the recolour hook survives instancing)', async () => {
+    const asset = await DriverAsset.decode(bytes),
+      w = wheel(),
+      rig = new DriverRig(w, asset, { primary: 0x1b2a8e, secondary: 0x101418, accent: 0xf2d24a });
+    const suit = rig.skin!.sleeves[0].material as T.Material;
+    expect(studioHookKeys(suit)).toContain('team-suit-v1');
+    expect(suit.customProgramCacheKey()).toContain('team-suit-v1');
+    asset.dispose();
+    clean(rig, w);
   });
 });

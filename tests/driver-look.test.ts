@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest';
 import * as T from 'three';
 import {
   HELMET,
+  RIVAL_VISOR,
   VISOR,
+  rivalVisorMaterial,
   hueDegrees,
   installSuitRecolour,
   teamHelmetMaterial,
@@ -11,6 +13,15 @@ import {
 import { applySuppliedCharacterLookdev } from '../src/rendering/studio/supplied-character-lookdev.ts';
 import { driverMaterials } from '../src/rendering/driver-materials.ts';
 import { HEAD_ROLL_GAIN } from '../src/rendering/driver.ts';
+import { hansUprightGeometry, standUpCollarGeometry } from '../src/rendering/driver-anatomy.ts';
+import { HANS_ANCHOR } from '../src/rendering/driver-restraints.ts';
+import {
+  VISOR_PHI,
+  helmetPoint,
+  helmetSpoilerGeometry,
+  visorBounds,
+  visorGeometry,
+} from '../src/rendering/helmet-shell.ts';
 import { studioHookKeys, type StudioShader } from '../src/rendering/studio/shader-hooks.ts';
 
 const compile = (m: T.Material, id: 'standard' | 'physical' = 'physical') => {
@@ -31,10 +42,67 @@ describe('team helmet and visor', () => {
     expect(material.clearcoat).toBe(1);
     expect(material.clearcoatRoughness).toBe(0.03);
     expect(uniforms.helmetPrimary.value.getHex()).toBe(new T.Color(design.primary).getHex());
-    expect(studioHookKeys(material)).toEqual(['team-helmet-v1']);
+    expect(studioHookKeys(material)).toEqual(['team-helmet-v2']);
     const f = compile(material).fragmentShader;
     expect(f).toContain('D16 team helmet');
     expect(f.indexOf('D16 team helmet')).toBeGreaterThan(f.indexOf('#include <color_fragment>'));
+  });
+
+  it('paints crown ring, side sweep, pinstripes, brow strip and chin in the shell frame', () => {
+    const origin = new T.Vector3(0, 0.12, 0.02);
+    const { material, uniforms } = teamHelmetMaterial(design, origin);
+    // The merged helmet group offsets the shell: livery is resolved about it.
+    expect(uniforms.helmetOrigin.value.toArray()).toEqual(origin.toArray());
+    const shader = compile(material);
+    expect(shader.vertexShader).toContain('vHelmetLocal = position - helmetOrigin;');
+    for (const zone of ['Crown ring', 'Side sweep', 'Dark brow strip', 'Chin-bar intake slots'])
+      expect(shader.fragmentShader).toContain(zone);
+  });
+
+  it('gives procedural helmets a smoked, sky-reflecting visor with tear-off films', () => {
+    const visor = rivalVisorMaterial();
+    expect(visor.color.getHex()).toBe(RIVAL_VISOR.color);
+    expect(visor.iridescence).toBeLessThan(0.5);
+    expect(visor.clearcoat).toBe(1);
+    expect(visor.envMapIntensity).toBeGreaterThan(2);
+    expect(studioHookKeys(visor)).toEqual(['rival-visor-v1']);
+    const f = compile(visor).fragmentShader;
+    expect(f).toContain('Tear-off film edges');
+    expect(f).toContain('Pull tabs');
+    // The supplied driver keeps its own visor look.
+    expect(VISOR.color).not.toBe(RIVAL_VISOR.color);
+  });
+
+  it('shapes the eye port, crown spoiler, collar and HANS around the helmet', () => {
+    // Full-height eye port at the front, narrowing to the pivot arms.
+    const [frontLow, frontHigh] = visorBounds(Math.PI / 2);
+    const [sideLow, sideHigh] = visorBounds(VISOR_PHI[0]);
+    expect(frontHigh - frontLow).toBeCloseTo(0.076, 3);
+    expect(sideHigh - sideLow).toBeLessThan(0.025);
+    const visor = visorGeometry();
+    expect(visor.getAttribute('uv').count).toBe(visor.getAttribute('position').count);
+    // The spoiler sits on the rear crown, within a centimetre of the shell.
+    const spoiler = helmetSpoilerGeometry();
+    const box = spoiler.boundingBox!;
+    expect(box.max.z).toBeLessThan(-0.05);
+    expect(box.min.y).toBeGreaterThan(0.09);
+    const p = spoiler.getAttribute('position'),
+      q = new T.Vector3();
+    for (let i = 0; i < p.count; i++) {
+      q.fromBufferAttribute(p, i);
+      const shell = helmetPoint(q.y, Math.atan2(q.z, -q.x));
+      expect(Math.hypot(q.x, q.z) - Math.hypot(shell.x, shell.z)).toBeLessThan(0.0115);
+    }
+    // HANS upright stands behind the neck; tethers anchor at its top corners.
+    const hans = hansUprightGeometry();
+    hans.computeBoundingBox();
+    expect(hans.boundingBox!.max.z).toBeLessThan(-0.46);
+    expect(hans.boundingBox!.max.y).toBeGreaterThan(HANS_ANCHOR.y);
+    expect(hans.boundingBox!.max.x).toBeGreaterThan(HANS_ANCHOR.x);
+    const collar = standUpCollarGeometry();
+    collar.computeBoundingBox();
+    expect(collar.boundingBox!.max.y).toBeGreaterThan(0.035);
+    for (const g of [visor, spoiler, hans, collar]) g.dispose();
   });
 
   it('gives the visor a dark iridescent film and a strong environment response', () => {
