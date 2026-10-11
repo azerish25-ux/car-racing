@@ -589,14 +589,25 @@ export class GameApp {
       this.accept(message.buffer);
     };
     const ready = new Promise<void>((resolve) => (this.readyResolve = resolve));
-    this.initTimeout = window.setTimeout(() => {
-      if (this.state === 'loading')
+    // Count only time the main thread was free to receive the worker's first
+    // snapshot: shader compilation on a slow GPU can block it for longer than
+    // the worker needs, which is not a worker failure.
+    let waited = 0,
+      checked = performance.now();
+    const checkWorker = () => {
+      if (generation !== this.generation || this.state !== 'loading' || !this.readyResolve) return;
+      const now = performance.now();
+      waited += Math.min(now - checked, 6000);
+      checked = now;
+      if (waited < 45000) this.initTimeout = window.setTimeout(checkWorker, 5000);
+      else
         this.fail(
           new Error(
             'Physics worker did not initialize. Check that module workers are supported by the browser.',
           ),
         );
-    }, 45000);
+    };
+    this.initTimeout = window.setTimeout(checkWorker, 5000);
     this.post({ type: 'init', options: this.options });
     this.post({ type: 'engineering', enabled: this.renderer?.debug ?? false });
     await ready;
