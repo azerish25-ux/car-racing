@@ -173,7 +173,7 @@ describe('sponsor vinyl rubber', () => {
     const track = new Track();
     const modules = vinylModules(track, () => false).slice(0, 12);
     const w = vinylGeometry(track, modules).getAttribute('brandWeather');
-    const heights = new Set(VINYL.profile.map(([, h]) => h));
+    const heights = new Set<number>(VINYL.profile.map(([, h]) => h));
     for (let i = 0; i < w.count; i++) {
       expect(heights.has(Number(w.getY(i).toFixed(3)))).toBe(true);
       expect(w.getZ(i)).toBeGreaterThanOrEqual(0);
