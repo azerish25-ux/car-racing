@@ -111,6 +111,36 @@ describe('forest belts', () => {
     expect(studioHookKeys(material)).toEqual([FOLIAGE_SHADING_HOOK, FOLIAGE_WIND_HOOK]);
     expect(studioHookKeys(meshes[0].customDepthMaterial!)).toEqual([FOLIAGE_WIND_HOOK]);
     expect(studioHookKeys(meshes[0].customDistanceMaterial!)).toEqual([FOLIAGE_WIND_HOOK]);
+    expect(material.alphaToCoverage).toBe(true);
+    // Two tiers in one shared stream: silhouette cards far, clumped crowns near.
+    const mesh = meshes[0],
+      camera = new T.PerspectiveCamera();
+    mesh.updateMatrixWorld();
+    const far = { ...mesh.geometry.drawRange };
+    expect(far.start).toBe(0);
+    camera.position.copy(mesh.boundingSphere!.center);
+    mesh.onBeforeRender(
+      {} as T.WebGLRenderer,
+      {} as T.Scene,
+      camera,
+      mesh.geometry,
+      material,
+      {} as T.Group,
+    );
+    const near = { ...mesh.geometry.drawRange };
+    expect(near.start).toBe(far.count);
+    expect(near.count).toBeGreaterThan(far.count * 3);
+    camera.position.set(1e5, 0, 1e5);
+    mesh.onBeforeRender(
+      {} as T.WebGLRenderer,
+      {} as T.Scene,
+      camera,
+      mesh.geometry,
+      material,
+      {} as T.Group,
+    );
+    expect(mesh.geometry.drawRange).toEqual(far);
+    expect(meshes[1].geometry.index).toBe(mesh.geometry.index);
   });
 
   it('plants the coastal circuit too', () => {

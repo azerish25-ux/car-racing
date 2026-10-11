@@ -1,5 +1,6 @@
 import { SceneryPassDetail } from './scenery-pass-detail.ts';
 import * as T from 'three';
+import { downloadAuthoredAsset } from './authored-download.ts';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import manifest from './aurel-vegetation.manifest.json' with { type: 'json' };
@@ -15,6 +16,13 @@ import {
 import { serviceSitePlan, type ServiceSite } from './venue-service-plan.ts';
 import { cameraDetailDistance } from './camera-detail.ts';
 import { installCanopyNormals } from './canopy-normals.ts';
+import {
+  CANOPY_VOLUME,
+  bakeCanopyVolume,
+  canopyLeafAtlas,
+  installCanopyVolume,
+  withCanopyShell,
+} from './canopy-volume.ts';
 import { installFoliageShading, installFoliageWind } from './studio/foliage-shading.ts';
 import { tagWeatherSurface } from './weather-presentation.ts';
 import type { Quality } from './options.ts';
@@ -231,7 +239,28 @@ export class AurelVegetationKit {
     // D11: canopy grade, leaf translucency and wind (also on the shadow materials).
     installFoliageShading(foliage);
     installFoliageWind(foliage);
+    // Crown occlusion, clumps and rim back-scatter over the baked crown normals.
+    installCanopyVolume(foliage);
     tagWeatherSurface(foliage, 'foliage');
+    // Original leaf-cluster atlas and per-leaf normals replace the flat sprays
+    // (same tile layout and UVs). Without a DOM (unit tests) the export stays.
+    const atlas = foliage.map ? canopyLeafAtlas(foliage.map.image?.width || 1024) : null;
+    if (atlas && foliage.map) {
+      const exported = foliage.map.image as unknown;
+      foliage.map.image = atlas.color;
+      foliage.map.needsUpdate = true;
+      if (typeof ImageBitmap !== 'undefined' && exported instanceof ImageBitmap) exported.close();
+      const normalMap = new T.CanvasTexture(atlas.normal);
+      normalMap.flipY = false;
+      normalMap.colorSpace = T.NoColorSpace;
+      normalMap.anisotropy = 8;
+      foliage.normalMap = normalMap;
+      foliage.normalScale.set(1, 1);
+      foliage.roughness = CANOPY_VOLUME.roughness;
+    }
+    // Multisampled targets resolve leaf edges by coverage instead of a hard
+    // alpha-test stair; without MSAA this is the same 0.45 cut.
+    foliage.alphaToCoverage = true;
     this.depth = new T.MeshDepthMaterial({
       depthPacking: T.RGBADepthPacking,
       map: foliage.map,
@@ -286,7 +315,8 @@ export class AurelVegetationKit {
                     throw new Error('A51-A54 geometry outside declared crown');
                   // Triangle-order packing supports distinct vertex indexing in the
                   // two exports. The selector is binary, never interpolated.
-                  const count = g.index.count;
+                  const shell = part === 'LEAVES' && level < CANOPY_VOLUME.shellLevels,
+                    count = g.index.count * (shell ? 2 : 1);
                   if (variant === family[0]) ranges.push({ start, count });
                   else if (count !== ranges[level].count)
                     throw new Error('A51-A54 paired topology budget mismatch');
@@ -294,7 +324,9 @@ export class AurelVegetationKit {
                   g.scale(1 / d.width, 1 / d.height, 1 / d.width);
                   const expanded = g.toNonIndexed();
                   g.dispose();
-                  levels[level] = expanded;
+                  // Near tier: an inner shell of the same cards fills the crown.
+                  levels[level] = shell ? withCanopyShell(expanded) : expanded;
+                  if (shell) expanded.dispose();
                   material = node.material;
                 }
                 const geometry = mergeGeometries(levels, false);
@@ -307,6 +339,24 @@ export class AurelVegetationKit {
             if (!material) throw new Error('Missing paired tree material');
             const geometry = packed[0],
               alternate = packed[1];
+            if (part === 'LEAVES') {
+              // Crown normals, occlusion, rim and clumps, per variant stream.
+              const seed = TREE_FAMILIES.indexOf(family) * 2;
+              const own = bakeCanopyVolume(
+                geometry.getAttribute('position'),
+                geometry.getAttribute('normal'),
+                ranges,
+                seed,
+              );
+              const other = bakeCanopyVolume(
+                alternate.getAttribute('position'),
+                alternate.getAttribute('normal'),
+                ranges,
+                seed + 1,
+              );
+              geometry.setAttribute('canopy', new T.BufferAttribute(own, 3));
+              geometry.setAttribute('treeCanopy', new T.BufferAttribute(other, 3));
+            }
             geometry.setAttribute('treePosition', alternate.getAttribute('position'));
             geometry.setAttribute('treeNormal', alternate.getAttribute('normal'));
             geometry.setAttribute('treeUv', alternate.getAttribute('uv'));
@@ -533,53 +583,30 @@ export async function decodeAurelVegetation(
     throw error;
   }
 }
+const aborted = () => new DOMException('A51-A54 loading cancelled', 'AbortError');
 export async function loadAurelVegetation(
   cancelled: () => boolean = () => false,
   url?: string,
   fetcher: typeof fetch = fetch,
 ) {
-  const controller = new AbortController(),
-    aborted = () => new DOMException('A51-A54 loading cancelled', 'AbortError'),
-    timeout = setTimeout(() => controller.abort(), 60000),
-    poll = setInterval(() => {
-      if (cancelled()) controller.abort();
-    }, 50);
   let asset: AurelVegetationKit | undefined;
   try {
-    if (cancelled()) throw aborted();
-    const response = await fetcher(
-      url ?? new URL(`./${manifest.url}?v=${manifest.sha256.slice(0, 16)}`, document.baseURI).href,
-      { signal: controller.signal },
-    );
-    if (!response.ok || !response.body)
-      throw new Error(`Unable to load A51-A54 vegetation (${response.status})`);
-    const bytes = new Uint8Array(manifest.bytes),
-      reader = response.body.getReader();
-    let size = 0;
-    try {
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        if (cancelled() || controller.signal.aborted) throw aborted();
-        if (size + value.length > bytes.length)
-          throw new Error('A51-A54 download exceeds byte budget');
-        bytes.set(value, size);
-        size += value.length;
-      }
-    } finally {
-      await reader.cancel();
-      reader.releaseLock();
-    }
-    if (size !== bytes.length) throw new Error('Truncated A51-A54 download');
-    if (cancelled() || controller.signal.aborted) throw aborted();
+    const bytes = await downloadAuthoredAsset({
+      label: 'A51-A54',
+      title: 'A51-A54 vegetation',
+      bytes: manifest.bytes,
+      url:
+        url ??
+        new URL(`./${manifest.url}?v=${manifest.sha256.slice(0, 16)}`, document.baseURI).href,
+      cancelled,
+      fetcher,
+      aborted,
+    });
     asset = await decodeAurelVegetation(bytes);
-    if (cancelled() || controller.signal.aborted) throw aborted();
+    if (cancelled()) throw aborted();
     return asset;
   } catch (error) {
     asset?.dispose();
     throw error;
-  } finally {
-    clearTimeout(timeout);
-    clearInterval(poll);
   }
 }

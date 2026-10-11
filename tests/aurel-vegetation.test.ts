@@ -21,6 +21,7 @@ import {
   treeSeed,
 } from '../src/rendering/aurel-vegetation-plan.ts';
 import { alphaCoverage, preserveCoverage } from '../src/rendering/foliage-mipmaps.ts';
+import { CANOPY_VOLUME } from '../src/rendering/canopy-volume.ts';
 import { Track, trackPoint } from '../src/simulation/track.ts';
 import { VELLAMAR } from '../src/simulation/circuits.ts';
 import { vegetationPlan, grovePlan } from '../src/rendering/landscape.ts';
@@ -98,10 +99,25 @@ describe('A51-A54 original asset library', () => {
             expect(part.material.map!.userData.foliageAlphaCutoff).toBe(0.45);
           }
         }
+        // The near tier adds an inner crown shell: every exported leaf card
+        // twice on LOD0 (bark unchanged); the far tiers are the exported ones.
+        const leaves = parts.find((p) => p.foliage)!;
         for (let level = 0; level < 3; level++)
           expect(parts.reduce((n, p) => n + p.ranges[level].count / 3, 0)).toBe(
-            M.triangles[variant][level],
+            M.triangles[variant][level] +
+              (level < CANOPY_VOLUME.shellLevels ? leaves.ranges[level].count / 6 : 0),
           );
+        // Baked crown occlusion, rim and clump streams for both paired forms.
+        for (const name of ['canopy', 'treeCanopy']) {
+          const canopy = leaves.geometry.getAttribute(name);
+          expect(canopy.itemSize).toBe(3);
+          expect(canopy.count).toBe(leaves.geometry.getAttribute('position').count);
+          for (let i = 0; i < canopy.count; i++) {
+            expect(canopy.getX(i)).toBeGreaterThanOrEqual(CANOPY_VOLUME.aoFloor * 0.74 - 1e-6);
+            expect(canopy.getX(i)).toBeLessThanOrEqual(1);
+            expect(Math.abs(canopy.getZ(i))).toBeLessThanOrEqual(1);
+          }
+        }
       }
     } finally {
       kit.dispose();

@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { Track, trackPoint } from '../../simulation/track.ts';
 import {
   foliageAtlas,
@@ -39,6 +40,9 @@ export const FOREST_BELTS = Object.freeze({
   /** Grid spacing of candidates, metres (along the boundary and outward). */
   spacing: 6.5,
   bucket: 240,
+  /** Buckets nearer than this (metres from the camera to the bucket's bounds)
+   * draw the full clumped crown instead of three silhouette cards. */
+  detail: 90,
   coniferShare: 0.4,
   conifer: Object.freeze({ min: 14, max: 28, aspect: [0.36, 0.5] as const }),
   broadleaf: Object.freeze({ min: 15, max: 25, aspect: [0.95, 1.05] as const }),
@@ -160,8 +164,18 @@ export function buildForestBelts(
   const trees = forestBeltPlan(track, services, extraExclusion);
   if (!trees.length) return 0;
   const { distantLeafGeometry, leafGeometry, trunkGeometry } = treeGeometry();
-  leafGeometry.dispose();
   trunkGeometry.dispose();
+  // One stream, two tiers: the three silhouette cards, then the full crown
+  // (silhouette plus twelve clump cards) for belts near the camera, where three
+  // crossed cards read as cut-outs. The tier is a draw range chosen per view.
+  const crowns = mergeGeometries([distantLeafGeometry, leafGeometry], false);
+  if (!crowns) throw new Error('Unable to pack forest belt crowns');
+  const far = { start: 0, count: distantLeafGeometry.index!.count },
+    near = { start: far.count, count: leafGeometry.index!.count };
+  crowns.boundingBox = distantLeafGeometry.boundingBox!.clone().union(leafGeometry.boundingBox!);
+  crowns.boundingSphere = crowns.boundingBox.getBoundingSphere(new T.Sphere());
+  distantLeafGeometry.dispose();
+  leafGeometry.dispose();
   const foliage = new T.MeshStandardMaterial({
     map: foliageAtlas(),
     side: T.DoubleSide,
@@ -170,6 +184,8 @@ export function buildForestBelts(
   });
   foliage.name = 'Forest belt foliage';
   installFoliageAtlas(foliage);
+  // Multisampled targets resolve card edges by coverage, not a hard stair.
+  foliage.alphaToCoverage = true;
   installFoliageShading(foliage);
   installFoliageWind(foliage);
   tagWeatherSurface(foliage, 'foliage');
@@ -198,7 +214,16 @@ export function buildForestBelts(
   const transform = new T.Object3D(),
     color = new T.Color();
   for (const [key, list] of buckets) {
-    const mesh = new T.InstancedMesh(distantLeafGeometry, foliage, list.length);
+    // Each bucket owns a wrapper over the shared streams, so its draw range is
+    // its own; the attributes and index are shared.
+    const geometry = new T.BufferGeometry();
+    for (const [name, attribute] of Object.entries(crowns.attributes))
+      geometry.setAttribute(name, attribute);
+    geometry.setIndex(crowns.index);
+    geometry.boundingBox = crowns.boundingBox.clone();
+    geometry.boundingSphere = crowns.boundingSphere.clone();
+    geometry.setDrawRange(far.start, far.count);
+    const mesh = new T.InstancedMesh(geometry, foliage, list.length);
     mesh.name = `Forest belt canopy ${key}`;
     mesh.userData.fullCount = list.length;
     mesh.userData.forestBelt = true;
@@ -216,6 +241,15 @@ export function buildForestBelts(
     });
     mesh.computeBoundingBox();
     mesh.computeBoundingSphere();
+    const sphere = mesh.boundingSphere!.clone(),
+      centre = new T.Vector3(),
+      eye = new T.Vector3();
+    mesh.onBeforeRender = (_renderer, _scene, camera) => {
+      centre.copy(sphere.center).applyMatrix4(mesh.matrixWorld);
+      const gap = camera.getWorldPosition(eye).distanceTo(centre) - sphere.radius,
+        tier = gap < FOREST_BELTS.detail ? near : far;
+      geometry.setDrawRange(tier.start, tier.count);
+    };
     group.add(mesh);
   }
   group.userData.forestBeltTrees = trees.length;
