@@ -139,19 +139,20 @@ export const GRID_SHOTS: readonly ShotDefinition[] = Object.freeze([
   },
   {
     start: 30.6,
-    name: 'pit wall wide',
+    name: 'high wide behind the grid',
     caption: 'Grid clear · formation lap next',
-    // High on the pit-wall side, clear of the start gantry and its banner.
+    // High behind the grid (the mirror of the opening crane), clear of the
+    // start gantry, banners and grandstand roofs, looking down the cleared grid.
     eye: [
-      [-15, 8.5, 9],
-      [-13.5, 7.2, 3],
+      [10.5, 12.5, -31],
+      [8.2, 9.6, -23],
     ],
     target: [
-      [0, -0.2, -10],
-      [0, -0.2, -12],
+      [0, -0.5, 9],
+      [0, -0.5, 6],
     ],
     focus: [0, 0.3, 0],
-    fov: [30, 27],
+    fov: [36, 33],
     aperture: 0,
     maxblur: 0,
   },
