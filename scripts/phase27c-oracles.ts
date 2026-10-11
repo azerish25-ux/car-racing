@@ -106,8 +106,9 @@ export function verifyCrowdContract() {
     finally { g.dispose(); }
   });
   // Procedural spectators: the near level carries two arm poses and a cup
-  // (unselected shells collapse per seat); mid/far stay near the old budgets.
-  assert(counts[0] <= 3000 && counts[1] <= 1450 && counts[2] <= 638);
+  // (unselected shells collapse per seat) and the sculpted head and hands; it is
+  // drawn only inside half the old switch distance. Mid/far keep the old budgets.
+  assert(counts[0] <= 6600 && counts[1] <= 1450 && counts[2] <= 638);
   assert(counts[1] < counts[0] * 0.6 && counts[2] < counts[1] * 0.5);
   const matrices = Array.from({ length: 128 }, (_, i) => new T.Matrix4().makeTranslation((i % 8) * 0.98, 0, Math.floor(i / 8) * 0.65));
   const colours = matrices.map(() => new T.Color(0x428675)), material = new T.MeshStandardMaterial();
