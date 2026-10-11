@@ -172,13 +172,17 @@
   }
   #hud[data-f1] .f1-tower-lap {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     justify-content: center;
     gap: calc(0.6 * var(--u));
     height: calc(3.6 * var(--u));
-    padding-top: calc(0.55 * var(--u));
+    padding: 0;
+    line-height: 1;
     background: rgba(255, 255, 255, 0.035);
     white-space: nowrap;
+  }
+  #hud[data-f1] .f1-tower-lap > * {
+    line-height: 1;
   }
   #hud[data-f1] .f1-tower-lap small {
     font-size: calc(2 * var(--u));
