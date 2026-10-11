@@ -48,8 +48,9 @@ export const GRID_SHOTS: readonly ShotDefinition[] = Object.freeze([
       [0, 0, 4],
     ],
     fov: [40, 36],
-    aperture: 0.00025,
-    maxblur: 0.004,
+    // Wide shots are deep focus: a blurred wide reads as a miniature.
+    aperture: 0,
+    maxblur: 0,
   },
   {
     start: 4.2,
@@ -150,8 +151,8 @@ export const GRID_SHOTS: readonly ShotDefinition[] = Object.freeze([
     ],
     focus: [0, 0.3, 0],
     fov: [30, 27],
-    aperture: 0.0002,
-    maxblur: 0.003,
+    aperture: 0,
+    maxblur: 0,
   },
 ]);
 
