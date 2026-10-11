@@ -193,6 +193,25 @@ vec3 humanHairTone(float id) {
 }
 `;
 
+/** Mid-face lift of the head sculpt (scripts/lib/human-sculpt.ts
+ * HEAD_MIDFACE_LIFT), mirrored by the analytic face frame. */
+export const HEAD_MIDFACE_LIFT = 0.005;
+
+/** Per-person head shape variation (GLSL): face width, nose projection and
+ * jaw width from a person hash, as an offset in the crew head frame. Painted
+ * features keep using the undeformed position. */
+export const HEAD_VARIATION_GLSL = `
+vec3 humanHeadVariation(vec3 p, float person) {
+  float hw = fract(sin(person * 91.7 + 1.3) * 43758.5453) - .5;
+  float hn = fract(sin(person * 37.1 + 7.9) * 43758.5453) - .5;
+  float hj = fract(sin(person * 13.3 + 4.1) * 43758.5453) - .5;
+  float faceZone = smoothstep(-.02, .04, p.z) * (1. - smoothstep(.02, .09, p.y)) * smoothstep(-.11, -.07, p.y);
+  float jaw = (1. - smoothstep(-.085, -.03, p.y)) * smoothstep(-.03, .03, p.z) * smoothstep(-.15, -.11, p.y);
+  float nose = exp(-dot(p - vec3(0., -.012, .1), p - vec3(0., -.012, .1)) / (.016 * .016));
+  return vec3(p.x * (.07 * hw * faceZone + .12 * hj * jaw), 0., .007 * hn * nose);
+}
+`;
+
 /** Shared analytic face (GLSL, needs HUMAN_TONE_GLSL): skin anatomy tints,
  * lips, brows, stubble, eyes with a wet catchlight, lashes and a feathered
  * hairline, plus skin micro-relief (a bump height in metres) and roughness
@@ -216,6 +235,8 @@ float humanNoise(vec3 p) {
 }
 HumanFace humanFace(vec3 hp, vec3 skin, vec3 hair, float person, float fem, float px, float wispy) {
   HumanFace f;
+  // The sculpt's shortened mid-face (scripts/lib/human-sculpt.ts midfaceLift).
+  hp.y -= ${HEAD_MIDFACE_LIFT} * (1. - smoothstep(-.03, .012, hp.y)) * smoothstep(-.16, -.12, hp.y);
   vec3 hq = vec3(abs(hp.x), hp.y, hp.z);
   vec3 col = skin;
   float front = smoothstep(.06, .09, hp.z);
@@ -235,7 +256,8 @@ HumanFace humanFace(vec3 hp, vec3 skin, vec3 hair, float person, float fem, floa
   float ear = smoothstep(.066, .076, hq.x) * smoothstep(.04, .02, abs(hp.y)) * smoothstep(.03, .0, abs(hp.z + .008));
   col *= mix(vec3(1.), vec3(1.08, .9, .88), ear);
   float orbit = smoothstep(.008, -.006, humanEll(hq, vec3(.031, .006, .086), vec3(.021, .015, .02)));
-  col *= mix(vec3(1.), vec3(.86, .8, .82), orbit * .3);
+  // Only a faint warm-grey shadow in the socket, never a dark ring.
+  col *= mix(vec3(1.), vec3(.93, .89, .9), orbit * .25);
   float ridge = smoothstep(.006, -.004, humanEll(hq, vec3(.03, .03, .088), vec3(.024, .006, .014)));
   col *= mix(vec3(1.), vec3(1.05, 1.03, 1.), ridge);
   col *= mix(vec3(1.), vec3(.9, .9, .93), smoothstep(-.07, -.1, hp.y) * step(.04, hp.z) * .6);
@@ -262,13 +284,15 @@ HumanFace humanFace(vec3 hp, vec3 skin, vec3 hair, float person, float fem, floa
   // The visible eye is the almond between the lid margins (the lids cover
   // the rest of the eyeball), so it never reads as a staring white disc.
   float lidU = (hq.x - .031) / .016;
-  float upperLid = .0152 + .0022 * (1. - lidU * lidU);
-  float lowerLid = .0052 - .0012 * (1. - lidU * lidU);
+  // Relaxed lids: the upper lid covers the top of the iris, the lower lid
+  // just meets its bottom edge.
+  float upperLid = .0138 + .0018 * (1. - lidU * lidU);
+  float lowerLid = .0058 - .0014 * (1. - lidU * lidU);
   float eyeMask = step(length(ed), .0128) * step(.079, hp.z)
     * smoothstep(upperLid + .0005, upperLid - .0005, hp.y) * smoothstep(lowerLid - .0005, lowerLid + .0005, hp.y);
   vec3 en = normalize(ed);
   vec3 iris = mix(vec3(.1, .055, .025), vec3(.12, .2, .26), step(.7, humanHash(person + 2.3)));
-  vec3 sclera = vec3(.36, .33, .31) * mix(.5, 1., smoothstep(.55, .1, en.y)) * mix(.8, 1., smoothstep(.3, .7, en.z));
+  vec3 sclera = vec3(.3, .275, .26) * mix(.45, 1., smoothstep(.45, .0, en.y)) * mix(.8, 1., smoothstep(.3, .7, en.z));
   float irisRing = smoothstep(.84, .86, en.z);
   // Seen from further away the eye reads as a shaded almond, not a white disc.
   sclera *= mix(1., .55, smoothstep(.0008, .002, px));
@@ -280,9 +304,10 @@ HumanFace humanFace(vec3 hp, vec3 skin, vec3 hair, float person, float fem, floa
   col = mix(col, eyeCol, eyeMask);
   rough = mix(rough, .05, eyeMask);
   // Lash line along the upper lid and a soft lower-lid shadow.
-  float lidX = smoothstep(.047, .043, hq.x) * smoothstep(.015, .019, hq.x) * step(.075, hp.z);
-  float lash = lidX * (1. - smoothstep(.0012, .0026, abs(hp.y - (.0155 + .002 * (1. - pow((hq.x - .031) / .016, 2.))))));
-  float lower = lidX * (1. - smoothstep(.001, .003, abs(hp.y - .0045))) * .14;
+  float lidX = smoothstep(.0465, .0435, hq.x) * smoothstep(.0155, .0185, hq.x) * step(.075, hp.z);
+  // The lash line sits on the upper lid margin.
+  float lash = lidX * (1. - smoothstep(.0007, .0016, abs(hp.y - upperLid - .0004)));
+  float lower = lidX * (1. - smoothstep(.0008, .002, abs(hp.y - lowerLid + .0003))) * .05;
   lash = min(1., lash * mix(1., 1.4, fem));
   col = mix(col, vec3(.02, .015, .012), max(lash * .85 * (1. - eyeMask), lower));
   // Hair: a feathered, slightly irregular hairline (density thins over a few
@@ -379,10 +404,12 @@ export function installHumanHead(material: T.MeshStandardMaterial, wear: HeadWea
   material.onBeforeCompile = (shader) => {
     shader.vertexShader =
       'attribute float headPerson;\nvarying float vHeadPerson;\nvarying vec3 vHeadLocal;\nvarying vec3 vHeadTeam;\n' +
+      HEAD_VARIATION_GLSL +
       shader.vertexShader.replace(
         '#include <begin_vertex>',
         `#include <begin_vertex>
 vHeadLocal = position; vHeadPerson = headPerson;
+transformed += humanHeadVariation(position, headPerson);
 #ifdef USE_INSTANCING_COLOR
 vHeadTeam = instanceColor.rgb;
 #else
@@ -455,7 +482,7 @@ diffuseColor.rgb = col;`,
         '#include <emissivemap_fragment>\ntotalEmissiveRadiance += vec3(.22) * headGlint;',
       );
   };
-  material.customProgramCacheKey = () => `human-head-v3-${wear}`;
+  material.customProgramCacheKey = () => `human-head-v4-${wear}`;
   return material;
 }
 

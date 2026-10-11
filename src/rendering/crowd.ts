@@ -1,5 +1,6 @@
 import { audienceAtlas } from './start-finish-assets.ts';
 import {
+  HEAD_VARIATION_GLSL,
   HUMAN_FACE_GLSL,
   HUMAN_TONE_GLSL,
   skinWrapLighting,
@@ -90,6 +91,7 @@ export function crowdLodRanges(distance: number, out: readonly T.Vector2[]) {
   return out;
 }
 const deform = `
+${HEAD_VARIATION_GLSL}
 attribute vec3 crowdPerson;
 #define crowdJoint crowdPerson.x
 #define skinMask crowdPerson.y
@@ -162,7 +164,14 @@ float crowdCup = step(fract(spectatorPhase * 4.37), .22) * (1. - crowdArmsFolded
 vCrowdAccessory = crowdAccessory < .5 ? 1. : crowdAccessory < 1.5 ? step(.55,spectatorStyle.w)
   : crowdAccessory < 2.5 ? crowdPhone : crowdAccessory < 3.5 ? 1. - crowdArmsFolded
   : crowdAccessory < 4.5 ? crowdArmsFolded : crowdAccessory < 5.5 ? 0. : crowdCup;
-vec3 shaped = crowdShape(mix(position,standingPosition,spectatorStyle.z));
+vec3 crowdBody = mix(position,standingPosition,spectatorStyle.z);
+// Per-person face width, nose and jaw (head vertices; the standing head is
+// a translation of the seated one, so the offset applies to both).
+if (crowdJoint > 2.5) {
+  vec3 faceOffset = humanHeadVariation(vec3(position.z, position.y - .665, .06 - position.x) / ${SPECTATOR_HEAD_SCALE.toFixed(2)}, spectatorPhase * 7.31) * ${SPECTATOR_HEAD_SCALE.toFixed(2)};
+  crowdBody += vec3(-faceOffset.z, faceOffset.y, faceOffset.x);
+}
+vec3 shaped = crowdShape(crowdBody);
 vec3 transformed = crowdTurn() * (shaped - crowdPivot()) + crowdPivot();
 // Unselected shells collapse to a point: no fragments, no shadow.
 if (vCrowdAccessory < .5) transformed = crowdPivot();`,
@@ -189,7 +198,7 @@ objectNormal = crowdTurn() * normalize(objectNormal);`,
     if (colour) {
       shader.fragmentShader =
         'varying float vCrowdCloth; varying vec4 vCrowdBind; varying vec4 vCrowdTop; varying vec3 vCrowdSkinTone; varying vec2 vCrowdTags; varying vec3 vCrowdSurface;\n' +
-        'float crowdSkinLight; float crowdBump; float crowdRough; float crowdGlint;\n' +
+        'float crowdSkinLight; float crowdBump; float crowdRough; float crowdGlint; float crowdAo;\n' +
         HUMAN_TONE_GLSL +
         HUMAN_FACE_GLSL +
         shader.fragmentShader;
@@ -320,6 +329,8 @@ objectNormal = crowdTurn() * normalize(objectNormal);`,
   else if (vCrowdTags.y > .5 && vCrowdTags.y < 1.5) { c = top*.7; rough = .72; bump = 0.; crowdSkinLight = 0.; }
   crowdRough = rough;
   crowdBump = bump;
+  // Faces keep only a little of the baked occlusion (no dark eye sockets).
+  crowdAo = head ? mix(1., vCrowdSurface.x, .4) : vCrowdSurface.x;
   diffuseColor.rgb = c;
 }`,
       );
@@ -342,9 +353,9 @@ objectNormal = crowdTurn() * normalize(objectNormal);`,
         .replace(
           '#include <aomap_fragment>',
           `#include <aomap_fragment>
-reflectedLight.indirectDiffuse *= vCrowdSurface.x;
-reflectedLight.indirectSpecular *= vCrowdSurface.x;
-reflectedLight.directDiffuse *= mix(1., vCrowdSurface.x, .35);`,
+reflectedLight.indirectDiffuse *= crowdAo;
+reflectedLight.indirectSpecular *= crowdAo;
+reflectedLight.directDiffuse *= mix(1., crowdAo, .35);`,
         );
       if (!shader.vertexShader.includes('#include <color_vertex>'))
         throw new Error('Crowd shader colour hook missing');
@@ -366,7 +377,7 @@ vColor.rgb = vec3(1.);`,
       );
     }
   };
-  material.customProgramCacheKey = () => `apex-procedural-crowd-v12-${colour ? 'colour' : 'depth'}`;
+  material.customProgramCacheKey = () => `apex-procedural-crowd-v13-${colour ? 'colour' : 'depth'}`;
 }
 
 export function crowdDetail(distance: number, previous: CrowdDetail): CrowdDetail {

@@ -15,7 +15,11 @@ import manifest from '../src/rendering/aurel-people.manifest.json' with { type: 
 import { CrewPose, CREW_UPPER_ARM, CREW_FOREARM } from '../src/rendering/crew-pose.ts';
 import { PitCrewView } from '../src/rendering/pit-crew.ts';
 import { CrowdCluster, SPECTATOR_HEAD_SCALE, spectatorVariation } from '../src/rendering/crowd.ts';
-import { SPECTATOR_HEAD_SCALE as SCULPT_HEAD_SCALE } from '../scripts/lib/human-sculpt.ts';
+import {
+  HEAD_MIDFACE_LIFT as SCULPT_MIDFACE_LIFT,
+  SPECTATOR_HEAD_SCALE as SCULPT_HEAD_SCALE,
+} from '../scripts/lib/human-sculpt.ts';
+import { HEAD_MIDFACE_LIFT } from '../src/rendering/human-kit.ts';
 import { Simulation } from '../src/simulation/world.ts';
 import { DEFAULT_OPTIONS } from '../src/simulation/config.ts';
 import {
@@ -502,6 +506,10 @@ describe('27H.3 authored crowd cohorts', () => {
         const shader = shaderFor(level.material as T.Material, 'standard');
         // The crew head's analytic face at the sculpt's head scale.
         expect(SPECTATOR_HEAD_SCALE).toBe(SCULPT_HEAD_SCALE);
+        // Shortened mid-face shared by sculpt and shader; per-person face shape.
+        expect(HEAD_MIDFACE_LIFT).toBe(SCULPT_MIDFACE_LIFT);
+        expect(shader.fragmentShader).toContain(`hp.y -= ${HEAD_MIDFACE_LIFT} *`);
+        expect(shader.vertexShader).toContain('humanHeadVariation(vec3(position.z');
         expect(shader.fragmentShader).toContain('HumanFace face = humanFace(hp');
         expect(shader.fragmentShader).toContain(`/ ${SPECTATOR_HEAD_SCALE.toFixed(2)}`);
         // No hair edge from a per-vertex tag (those step along triangles).
@@ -510,9 +518,7 @@ describe('27H.3 authored crowd cohorts', () => {
         expect(shader.fragmentShader).toContain(
           'humanBumpNormal(-vViewPosition, normal, crowdBump',
         );
-        expect(shader.fragmentShader).toContain(
-          'reflectedLight.indirectDiffuse *= vCrowdSurface.x',
-        );
+        expect(shader.fragmentShader).toContain('reflectedLight.indirectDiffuse *= crowdAo');
         expect(shader.vertexShader).toContain('attribute vec3 crowdSurface');
         expect(level.geometry.getAttribute('crowdSurface')).toBeDefined();
       }
