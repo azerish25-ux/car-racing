@@ -11,6 +11,14 @@ import {
 import { treadMaterial } from '../src/rendering/tire-finish.ts';
 import { studioHookKeys, type StudioShader } from '../src/rendering/studio/shader-hooks.ts';
 import { BRANDS } from '../src/rendering/studio/brand-atlas.ts';
+import {
+  configureSuppliedMaterial,
+  suppliedDecalCoverageControl,
+} from '../src/rendering/supplied-player-materials.ts';
+import {
+  installSuppliedShaderWork,
+  suppliedShaderWorkControl,
+} from '../src/rendering/supplied-shader-work.ts';
 
 const compile = (m: T.Material, id: 'standard' | 'physical' = 'standard') => {
   const source = T.ShaderLib[id];
@@ -89,6 +97,52 @@ describe('wheel covers and rims', () => {
     expect(shader.fragmentShader).toContain(
       `${WHEEL_LOOK.lipRadius.toFixed(4)}, length( vWheelLocal.yz )`,
     );
+  });
+
+  it('reinstalls source shader and zero-alpha coverage hooks on cloned tyre decals', () => {
+    const decal = new T.MeshPhysicalMaterial({
+      transparent: true,
+      depthWrite: false,
+      side: T.DoubleSide,
+      map: new T.Texture(),
+    });
+    decal.name = 'Decal | tyre_pzero';
+    configureSuppliedMaterial(decal);
+    installSuppliedShaderWork(decal);
+    const sourceCoverage = suppliedDecalCoverageControl(decal);
+    expect(sourceCoverage).not.toBeNull();
+    const geometry = new T.BoxGeometry();
+    const spins = Array.from({ length: 4 }, () => {
+      const spin = new T.Group();
+      spin.add(new T.Mesh(geometry, decal));
+      return spin;
+    });
+    const result = installSuppliedWheelBlur(spins);
+    expect(result.materials.map((copies) => copies.length)).toEqual([1, 1, 1, 1]);
+    const controls = spins.map((spin, i) => {
+      const copy = (spin.children[0] as T.Mesh).material as T.MeshPhysicalMaterial;
+      expect(copy).not.toBe(decal);
+      expect(copy.map).toBe(decal.map);
+      expect(copy.forceSinglePass).toBe(true);
+      const coverage = suppliedDecalCoverageControl(copy);
+      expect(coverage).not.toBeNull();
+      expect(coverage).not.toBe(sourceCoverage);
+      expect(suppliedShaderWorkControl(copy)).not.toBeNull();
+      const shader = compile(copy, 'physical');
+      expect(shader.uniforms.apexDiscardEmptyDecal).toBe(coverage);
+      expect(shader.uniforms.apexShaderWork).toBe(suppliedShaderWorkControl(copy));
+      expect(shader.uniforms.wheelBlurAmount).toBe(result.blur[i]);
+      expect(shader.fragmentShader).toContain('diffuseColor.a == 0.0');
+      expect(shader.fragmentShader).toContain('if ( wheelBlurAmount > 0.01 )');
+      return coverage!;
+    });
+    expect(new Set(controls).size).toBe(4);
+    controls[0].value = false;
+    expect(controls.slice(1).every((control) => control.value)).toBe(true);
+    expect(sourceCoverage!.value).toBe(true);
+    for (const spin of spins) ((spin.children[0] as T.Mesh).material as T.Material).dispose();
+    geometry.dispose();
+    decal.dispose();
   });
 
   it('gives each supplied wheel its own blurred copies of the tyre art, in its own axle frame', () => {
