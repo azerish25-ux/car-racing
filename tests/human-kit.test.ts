@@ -38,7 +38,7 @@ describe('procedural human kit', () => {
     }
   });
   it('skins bodies to the shared skeleton with four normalised influences', () => {
-    for (const style of ['polo', 'suit'] as const)
+    for (const style of ['polo', 'polof', 'suit'] as const)
       for (const lod of [0, 1, 2] as const) {
         const g = crewBodyGeometry(style, lod);
         const joints = g.getAttribute('crewJoint'),
@@ -70,7 +70,7 @@ describe('procedural human kit', () => {
       expect(tris(`body_${style}_1`)).toBeLessThan(tris(`body_${style}_0`) * 0.4);
       expect(tris(`body_${style}_2`)).toBeLessThan(tris(`body_${style}_1`) * 0.4);
     }
-    for (const wear of ['bare', 'cap', 'headset', 'cap-headset']) {
+    for (const wear of ['bare', 'cap', 'headset', 'cap-headset', 'fem-bare', 'fem-headset']) {
       expect(tris(`head_${wear}_0`)).toBeLessThanOrEqual(5200);
       expect(tris(`head_${wear}_2`)).toBeLessThan(600);
     }

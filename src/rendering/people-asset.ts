@@ -11,16 +11,16 @@ export const PEOPLE_ASSET = Object.freeze({
 export const CREW_BONES = 15;
 /** Human-proportioned rest skeleton (1.75 m adult): the authored hip, knee,
  * ankle and head joints, with anatomically placed shoulders (biacromial
- * ~0.42 m) and arm segments (upper arm 0.33 m, forearm 0.30 m: the reach the
- * pit-stop tasks need). The
+ * ~0.42 m) and arm segments (upper arm 0.34 m, forearm 0.27 m; pit-stop handles
+ * beyond that reach are met by crouching). The
  * procedural bodies in human-kit.json are sculpted and weighted around it. */
 const ARM_REST: Record<number, [number, number, number]> = {
   3: [-0.21, 1.42, 0],
-  4: [-0.21, 1.09, 0],
-  5: [-0.21, 0.79, 0],
+  4: [-0.21, 1.08, 0],
+  5: [-0.21, 0.81, 0],
   6: [0.21, 1.42, 0],
-  7: [0.21, 1.09, 0],
-  8: [0.21, 0.79, 0],
+  7: [0.21, 1.08, 0],
+  8: [0.21, 0.81, 0],
 };
 export const CREW_REST = source.rest.map(
   (p, i) => new T.Vector3(...(ARM_REST[i] ?? (p as [number, number, number]))),

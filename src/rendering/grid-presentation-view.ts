@@ -2,6 +2,7 @@ import {
   crewPerformanceGeometry,
   CrewPerformanceSampler,
   CREW_PERFORMANCE,
+  relaxedWrist,
 } from './crew-performance.ts';
 import { GRID_PRESENTATION_SECONDS } from '../core/grid-presentation.ts';
 import * as T from 'three';
@@ -325,9 +326,11 @@ export class GridPresentationView {
           );
           this.feet[hand].copy(m.feet[hand]).applyMatrix4(this.actor.matrix);
           if (m.grip < 1) {
-            const idle = this.part.position
-              .copy(this.performance.joints[hand === 0 ? 5 : 8])
-              .applyMatrix4(this.actor.matrix);
+            const idle = relaxedWrist(
+              this.performance.joints,
+              hand as 0 | 1,
+              this.part.position,
+            ).applyMatrix4(this.actor.matrix);
             this.hands[hand].lerp(idle, 1 - m.grip);
           }
         }

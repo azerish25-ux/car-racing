@@ -5,7 +5,11 @@ import * as T from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { CrewPose, installCrewSkin } from '../../src/rendering/crew-pose.ts';
 import { CREW_BONES } from '../../src/rendering/people-asset.ts';
-import { CrewPerformanceSampler, type CrewAction } from '../../src/rendering/crew-performance.ts';
+import {
+  CrewPerformanceSampler,
+  relaxedWrist,
+  type CrewAction,
+} from '../../src/rendering/crew-performance.ts';
 import {
   crewBodyGeometry,
   crewHandGeometry,
@@ -31,7 +35,7 @@ export interface LabShot {
 export function peopleLab(
   shots: LabShot[],
   options: {
-    kit?: 'polo' | 'suit';
+    kit?: 'polo' | 'suit' | 'polof';
     lod?: 0 | 1 | 2;
     action?: CrewAction;
     time?: number;
@@ -85,7 +89,7 @@ export function peopleLab(
   );
   body.setAttribute('crewSlot', slots);
   const kitMaterial = new T.MeshStandardMaterial({ vertexColors: true });
-  installCrewSkin(kitMaterial, bones, count, true, kit);
+  installCrewSkin(kitMaterial, bones, count, true, kit === 'polof' ? 'polo' : kit);
   const bodies = new T.InstancedMesh(body, kitMaterial, count);
   const depth = new T.MeshDepthMaterial({ depthPacking: T.RGBADepthPacking });
   installCrewSkin(depth, bones, count, false);
@@ -129,7 +133,7 @@ export function peopleLab(
     actor.rotation.set(0, (i - (count - 1) / 2) * -0.35, 0);
     actor.updateMatrix();
     for (let h = 0; h < 2; h++) {
-      wrists[h].copy(sampler.joints[h ? 8 : 5]).applyMatrix4(actor.matrix);
+      relaxedWrist(sampler.joints, h as 0 | 1, wrists[h]).applyMatrix4(actor.matrix);
       feet[h].copy(sampler.joints[h ? 14 : 11]).applyMatrix4(actor.matrix);
     }
     pose.set(actor.matrix, sampler.joints[0].y, 0, wrists, 0.15, feet, sampler.style);

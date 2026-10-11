@@ -52,27 +52,73 @@ const enum Part {
 export const POLO_SLEEVE_HEM = 1.235;
 export const BELT_HEIGHT = 0.985;
 
-function bodyField(kit: CrewKit, parts?: Float64Array, shell: 'all' | 'body' | 'arms' = 'all') {
+function bodyField(
+  kit: CrewKit,
+  parts?: Float64Array,
+  shell: 'all' | 'body' | 'arms' = 'all',
+  fem = false,
+) {
   const suit = kit === 'suit';
   return (x: number, y: number, z: number) => {
     const ax = Math.abs(x);
-    // --- Trunk: pelvis, waist, ribcage, chest, back, shoulder girdle.
-    let trunk = ellipsoid(ax, y, z, 0, 0.91, -0.008, 0.142, 0.115, 0.104);
-    trunk = smin(trunk, ellipsoid(ax, y, z, 0.062, 0.858, -0.046, 0.076, 0.094, 0.072), 0.035);
-    trunk = smin(trunk, ellipsoid(ax, y, z, 0, 1.035, 0.004, 0.132, 0.125, 0.096), 0.06);
-    trunk = smin(trunk, ellipsoid(ax, y, z, 0, 1.215, -0.006, 0.146, 0.175, 0.104), 0.06);
-    trunk = smin(trunk, ellipsoid(ax, y, z, 0.064, 1.29, 0.038, 0.078, 0.064, 0.06), 0.035);
-    trunk = smin(trunk, ellipsoid(ax, y, z, 0.07, 1.3, -0.05, 0.076, 0.105, 0.054), 0.04);
+    // --- Trunk: pelvis, waist, ribcage, lats (V-taper), chest, back, shoulder girdle.
+    let trunk = ellipsoid(
+      ax,
+      y,
+      z,
+      0,
+      0.91,
+      -0.008,
+      fem ? 0.156 : 0.142,
+      0.117,
+      fem ? 0.108 : 0.104,
+    );
     trunk = smin(
       trunk,
-      roundCone(ax, y, z, 0, 1.412, -0.02, 0.172, 1.4, -0.008, 0.062, 0.05),
+      ellipsoid(
+        ax,
+        y,
+        z,
+        fem ? 0.068 : 0.062,
+        0.858,
+        -0.048,
+        fem ? 0.084 : 0.076,
+        0.098,
+        fem ? 0.08 : 0.072,
+      ),
+      0.035,
+    );
+    trunk = smin(
+      trunk,
+      ellipsoid(ax, y, z, 0, 1.035, 0.004, fem ? 0.116 : 0.127, 0.125, 0.094),
+      0.06,
+    );
+    trunk = smin(
+      trunk,
+      ellipsoid(ax, y, z, 0, 1.215, -0.006, fem ? 0.136 : 0.15, 0.175, fem ? 0.1 : 0.106),
+      0.06,
+    );
+    trunk = smin(
+      trunk,
+      ellipsoid(ax, y, z, fem ? 0.085 : 0.098, 1.205, -0.036, fem ? 0.055 : 0.068, 0.13, 0.064),
+      0.04,
+    );
+    trunk = fem
+      ? smin(trunk, ellipsoid(ax, y, z, 0.058, 1.27, 0.05, 0.064, 0.062, 0.058), 0.03)
+      : smin(trunk, ellipsoid(ax, y, z, 0.066, 1.29, 0.04, 0.082, 0.064, 0.06), 0.035);
+    trunk = smin(trunk, ellipsoid(ax, y, z, 0.07, 1.3, -0.05, 0.078, 0.105, 0.056), 0.04);
+    trunk = smin(
+      trunk,
+      roundCone(ax, y, z, 0, 1.415, -0.02, fem ? 0.168 : 0.186, 1.407, -0.008, 0.064, 0.052),
       0.05,
     );
     trunk = smin(
       trunk,
-      roundCone(ax, y, z, 0.045, 1.47, -0.028, 0.16, 1.43, -0.014, 0.032, 0.04),
+      roundCone(ax, y, z, 0.045, 1.468, -0.028, fem ? 0.16 : 0.172, 1.44, -0.014, 0.033, 0.043),
       0.035,
     );
+    // The shirt drapes a little fuller over the lower back.
+    if (!suit) trunk = smin(trunk, ellipsoid(ax, y, z, 0, 1.06, -0.03, 0.12, 0.09, 0.085), 0.03);
     // Shirt blousing over the belt and a few soft horizontal folds.
     const angle = Math.atan2(x, z);
     trunk -=
@@ -110,46 +156,64 @@ function bodyField(kit: CrewKit, parts?: Float64Array, shell: 'all' | 'body' | '
     );
     neck = smin(neck, collar, 0.008);
     // --- Arms (deltoid, upper arm, elbow, forearm to the wrist).
-    let upper = ellipsoid(ax, y, z, 0.196, 1.383, 0.0, 0.05, 0.078, 0.056);
+    const g = fem ? 0.88 : 1; // limb girth
+    let upper = ellipsoid(ax, y, z, fem ? 0.195 : 0.205, 1.385, 0.0, 0.056 * g, 0.082, 0.06 * g);
     upper = smin(
       upper,
-      roundCone(ax, y, z, 0.205, 1.39, 0, 0.21, 1.095, 0.004, 0.043, 0.035),
+      roundCone(ax, y, z, 0.208, 1.39, 0, 0.21, 1.085, 0.004, 0.047 * g, 0.039 * g),
       0.03,
     );
-    // Short polo sleeve, or a long fire-suit sleeve with an elbow crease.
+    // Short polo sleeve (cut fuller than the arm), or a long overall sleeve.
     if (!suit) {
-      const sleeve = smax(
-        roundCone(ax, y, z, 0.199, 1.4, 0, 0.212, 1.23, 0.002, 0.055, 0.049),
+      let sleeve = smax(
+        roundCone(ax, y, z, 0.202, 1.405, 0, 0.214, 1.23, 0.002, 0.061 * g, 0.056 * g),
         POLO_SLEEVE_HEM - y,
         0.004,
       );
+      // Soft drag folds from the armpit down the sleeve.
+      sleeve -=
+        0.0025 *
+        Math.sin(Math.atan2(z, x - Math.sign(x) * 0.21) * 3 + y * 60) *
+        smoothstep(1.24, 1.3, y);
       upper = smin(upper, sleeve, 0.012);
     } else {
       upper = smin(
         upper,
-        roundCone(ax, y, z, 0.199, 1.4, 0, 0.212, 1.09, 0.004, 0.052, 0.043),
+        roundCone(ax, y, z, 0.203, 1.4, 0, 0.212, 1.08, 0.004, 0.056 * g, 0.047 * g),
         0.02,
       );
     }
-    let fore = ellipsoid(ax, y, z, 0.21, 1.0, 0.006, 0.039, 0.085, 0.039);
+    let fore = ellipsoid(ax, y, z, 0.21, 1.0, 0.006, 0.043 * g, 0.085, 0.042 * g);
     fore = smin(
       fore,
-      roundCone(ax, y, z, 0.21, 1.095, 0.002, 0.21, 0.805, 0.012, 0.036, 0.023),
+      roundCone(ax, y, z, 0.21, 1.085, 0.002, 0.21, 0.825, 0.012, 0.039 * g, 0.025 * g),
       0.03,
     );
-    fore = smin(fore, ellipsoid(ax, y, z, 0.21, 0.815, 0.012, 0.019, 0.028, 0.026), 0.012);
+    fore = smin(fore, ellipsoid(ax, y, z, 0.21, 0.835, 0.012, 0.02 * g, 0.028, 0.027 * g), 0.012);
     if (suit) {
       fore = smin(
         fore,
-        roundCone(ax, y, z, 0.21, 1.09, 0.003, 0.21, 0.82, 0.01, 0.043, 0.032),
+        roundCone(ax, y, z, 0.21, 1.08, 0.003, 0.21, 0.835, 0.01, 0.046, 0.034),
         0.02,
       );
       // Gathered cuff and elbow creases.
       fore -=
-        0.0025 * Math.sin(y * 150) * smoothstep(1.0, 1.06, y) * (1 - smoothstep(1.1, 1.13, y));
+        0.0025 * Math.sin(y * 150) * smoothstep(0.99, 1.05, y) * (1 - smoothstep(1.09, 1.12, y));
     }
     // --- Legs in work trousers (loose) to the boot collar.
-    const thigh = roundCone(ax, y, z, 0.088, 0.87, 0.0, 0.093, 0.47, 0.012, 0.079, 0.058);
+    const thigh = roundCone(
+      ax,
+      y,
+      z,
+      0.088,
+      0.87,
+      0.0,
+      0.093,
+      0.47,
+      0.012,
+      fem ? 0.083 : 0.079,
+      0.058,
+    );
     let shin = ellipsoid(ax, y, z, 0.093, 0.462, 0.018, 0.058, 0.068, 0.06);
     shin = smin(
       shin,
@@ -272,13 +336,18 @@ export function polygonise(
 }
 
 /** Skinned crew body for the shared 15-bone instance skeleton. */
-export function sculptCrewBody(kit: CrewKit, cell: number, triangles: number): SculptedMesh {
+export function sculptCrewBody(
+  kit: CrewKit,
+  cell: number,
+  triangles: number,
+  fem = false,
+): SculptedMesh {
   const parts = new Float64Array(Part.Count);
-  const probe = bodyField(kit, parts);
+  const probe = bodyField(kit, parts, 'all', fem);
   // Keep detail where people look: face-adjacent neck/collar, hands, boots.
   const importance = (x: number, y: number) => (y > 1.36 ? 3 : y < 0.2 ? 1.6 : 1);
   const bodyMesh = polygonise(
-    bodyField(kit, undefined, 'body'),
+    bodyField(kit, undefined, 'body', fem),
     [-0.36, -0.02, -0.2],
     [0.36, 1.6, 0.27],
     cell,
@@ -286,7 +355,7 @@ export function sculptCrewBody(kit: CrewKit, cell: number, triangles: number): S
     importance,
   );
   const armMesh = polygonise(
-    bodyField(kit, undefined, 'arms'),
+    bodyField(kit, undefined, 'arms', fem),
     [-0.3, 0.74, -0.1],
     [0.3, 1.36, 0.1],
     cell,
@@ -374,7 +443,7 @@ export const HEAD_ZONE = {
   headset: 5,
   brow: 6,
 } as const;
-export type HeadWear = 'bare' | 'cap' | 'headset' | 'cap-headset';
+export type HeadWear = 'bare' | 'cap' | 'headset' | 'cap-headset' | 'fem-bare' | 'fem-headset';
 
 interface HeadParts {
   skin: number;
@@ -388,43 +457,78 @@ interface HeadParts {
 
 function headField(wear: HeadWear, out?: HeadParts) {
   const cap = wear === 'cap' || wear === 'cap-headset';
-  const headset = wear === 'headset' || wear === 'cap-headset';
+  const headset = wear === 'headset' || wear === 'cap-headset' || wear === 'fem-headset';
+  const fem = wear.startsWith('fem');
   return (x: number, y: number, z: number) => {
     const ax = Math.abs(x);
     // Cranium, forehead, maxilla, cheekbones, cheeks, jaw and chin.
-    let s = ellipsoid(ax, y, z, 0, 0.03, -0.01, 0.0745, 0.088, 0.093);
+    let s = ellipsoid(
+      ax,
+      y,
+      z,
+      0,
+      0.03,
+      -0.01,
+      fem ? 0.071 : 0.0745,
+      fem ? 0.086 : 0.088,
+      fem ? 0.09 : 0.093,
+    );
     s = smin(s, ellipsoid(ax, y, z, 0, 0.034, 0.024, 0.061, 0.066, 0.066), 0.02);
     s = smin(s, ellipsoid(ax, y, z, 0, -0.036, 0.038, 0.046, 0.062, 0.056), 0.025);
-    s = smin(s, ellipsoid(ax, y, z, 0.044, -0.004, 0.05, 0.024, 0.018, 0.028), 0.016);
+    s = smin(s, ellipsoid(ax, y, z, fem ? 0.042 : 0.044, -0.004, 0.05, 0.024, 0.018, 0.028), 0.016);
     s = smin(s, ellipsoid(ax, y, z, 0.032, -0.036, 0.055, 0.022, 0.024, 0.025), 0.02);
     s = smin(
       s,
-      roundCone(ax, y, z, 0.052, -0.043, -0.016, 0.024, -0.098, 0.053, 0.015, 0.012),
+      fem
+        ? roundCone(ax, y, z, 0.043, -0.04, -0.018, 0.018, -0.09, 0.048, 0.012, 0.01)
+        : roundCone(ax, y, z, 0.052, -0.043, -0.016, 0.024, -0.098, 0.053, 0.015, 0.012),
       0.02,
     );
-    s = smin(s, ellipsoid(ax, y, z, 0, -0.102, 0.066, 0.022, 0.018, 0.02), 0.018);
+    s = smin(
+      s,
+      fem
+        ? ellipsoid(ax, y, z, 0, -0.098, 0.062, 0.018, 0.016, 0.018)
+        : ellipsoid(ax, y, z, 0, -0.102, 0.066, 0.022, 0.018, 0.02),
+      0.018,
+    );
     // Neck into the collar, with the larynx.
     s = smin(s, roundCone(ax, y, z, 0, -0.07, -0.026, 0, -0.17, -0.03, 0.05, 0.054), 0.014);
-    s = smin(s, ellipsoid(ax, y, z, 0, -0.118, 0.022, 0.012, 0.016, 0.012), 0.012);
+    if (!fem) s = smin(s, ellipsoid(ax, y, z, 0, -0.118, 0.022, 0.012, 0.016, 0.012), 0.012);
     // Brow ridge, then eye sockets carved under it.
-    s = smin(s, ellipsoid(ax, y, z, 0.03, 0.032, 0.079, 0.026, 0.0065, 0.009), 0.01);
-    s = ssub(s, ellipsoid(ax, y, z, 0.031, 0.0115, 0.097, 0.0185, 0.013, 0.018), 0.009);
+    // Soft orbital hollows (no separate brow-ridge volume: it reads as a crease).
+    s = ssub(s, ellipsoid(ax, y, z, 0.031, 0.0105, 0.099, 0.019, 0.013, 0.017), 0.016);
     // Upper lids hood the eyeballs.
     s = smin(s, ellipsoid(ax, y, z, 0.031, 0.0205, 0.0815, 0.0152, 0.0058, 0.0105), 0.004);
     s = smin(s, ellipsoid(ax, y, z, 0.031, 0.0005, 0.0825, 0.014, 0.0035, 0.009), 0.004);
     // Nose: bridge, tip, alae and nostrils.
-    s = smin(s, roundCone(ax, y, z, 0, 0.022, 0.09, 0, -0.021, 0.108, 0.0072, 0.0098), 0.008);
-    s = smin(s, sphere(ax, y, z, 0, -0.023, 0.1045, 0.0118), 0.006);
+    s = smin(
+      s,
+      roundCone(
+        ax,
+        y,
+        z,
+        0,
+        0.022,
+        0.09,
+        0,
+        -0.021,
+        fem ? 0.104 : 0.108,
+        0.0068,
+        fem ? 0.0085 : 0.0098,
+      ),
+      0.008,
+    );
+    s = smin(s, sphere(ax, y, z, 0, -0.023, fem ? 0.1005 : 0.1045, fem ? 0.0105 : 0.0118), 0.006);
     s = smin(s, ellipsoid(ax, y, z, 0.0118, -0.029, 0.0965, 0.0088, 0.0074, 0.0088), 0.005);
     s = ssub(s, ellipsoid(ax, y, z, 0.0072, -0.0355, 0.1015, 0.0042, 0.0028, 0.0048), 0.002);
     // Ears with a carved concha.
-    let ear = ellipsoid(ax, y, z, 0.077, 0.002, -0.01, 0.0105, 0.031, 0.02);
+    let ear = ellipsoid(ax, y, z, 0.075, 0.002, -0.01, 0.0095, fem ? 0.026 : 0.029, 0.018);
     ear = ssub(ear, ellipsoid(ax, y, z, 0.083, -0.002, -0.006, 0.0055, 0.016, 0.011), 0.003);
     s = smin(s, ear, 0.006);
     // Lips and the mouth line.
     const lips = Math.min(
-      ellipsoid(ax, y, z, 0, -0.0505, 0.0868, 0.0195, 0.0046, 0.0082),
-      ellipsoid(ax, y, z, 0, -0.0608, 0.0846, 0.0172, 0.0054, 0.0084),
+      ellipsoid(ax, y, z, 0, -0.0505, 0.0862, 0.0185, fem ? 0.0048 : 0.004, 0.0076),
+      ellipsoid(ax, y, z, 0, -0.0605, 0.084, 0.0165, fem ? 0.0056 : 0.0048, 0.008),
     );
     s = smin(s, lips, 0.006);
     s = ssub(s, roundBox(ax, y, z, 0, -0.0556, 0.098, 0.0195, 0.0008, 0.012, 0.0007), 0.002);
@@ -439,7 +543,26 @@ function headField(wear: HeadWear, out?: HeadParts) {
       0.0028 +
       0.0045 * smoothstep(0.0, 0.1, y) +
       0.0015 * smoothstep(0.02, 0.09, z) * smoothstep(0.05, 0.1, y);
-    const hair = smax(s - thick, hl - y, 0.002);
+    let hair = smax(s - thick, hl - y, 0.002);
+    if (fem) {
+      // Longer hair swept back over the crown with volume at the sides and a
+      // ponytail falling from a gathered tie at the back of the head.
+      // Side-parted, falling over the ears to the jaw line at the sides.
+      const front =
+        0.06 - 0.02 * smoothstep(0.01, 0.06, x + 0.012) + 0.04 * smoothstep(0.045, 0.0, z);
+      const sideDrop = -0.07 * smoothstep(0.045, 0.07, ax) * smoothstep(0.06, 0.02, z);
+      const line = Math.min(front, front + sideDrop);
+      let mass = smax(s - 0.008 - 0.006 * smoothstep(-0.07, 0.05, y), line - y, 0.004);
+      // Soft outward fall below the ears.
+      mass = smin(
+        mass,
+        smax(ellipsoid(ax, y, z, 0.068, -0.04, -0.02, 0.024, 0.05, 0.05), 0.04 - z, 0.01),
+        0.012,
+      );
+      hair = smin(hair, mass, 0.006);
+      hair = smin(hair, ellipsoid(ax, y, z, 0, 0.02, -0.105, 0.03, 0.028, 0.024), 0.012);
+      hair = smin(hair, roundCone(x, y, z, 0, 0.005, -0.12, 0, -0.14, -0.112, 0.022, 0.012), 0.012);
+    }
     let wearCap = 1;
     if (cap) {
       let crown = ellipsoid(ax, y, z, 0, 0.038, -0.012, 0.083, 0.092, 0.106);

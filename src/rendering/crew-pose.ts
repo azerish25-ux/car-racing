@@ -15,8 +15,8 @@ const DOWN = new T.Vector3(0, -1, 0);
 const X = new T.Vector3(1, 0, 0);
 const armPole = [new T.Vector3(-0.8, -0.25, -0.3), new T.Vector3(0.8, -0.25, -0.3)];
 const legPole = new T.Vector3(0, 0, 1);
-export const CREW_UPPER_ARM = 0.33;
-export const CREW_FOREARM = 0.3;
+export const CREW_UPPER_ARM = 0.34;
+export const CREW_FOREARM = 0.27;
 export const CREW_THIGH = 0.42;
 export const CREW_SHIN = Math.hypot(0.405, 0.035);
 
@@ -273,7 +273,7 @@ float weave = vCrewPattern.y * 220.;
 float resolved = 1. - smoothstep(.5,2.,fwidth(weave));
 float crewNeutral = 1. - smoothstep(.2, .3, vCrewCloth);
 roughnessFactor = mix(.86+sin(weave)*resolved*.035, .42, crewNeutral);
-roughnessFactor = mix(roughnessFactor, .5, crewSkinMask);`,
+roughnessFactor = mix(roughnessFactor, .58, crewSkinMask);`,
       );
     }
   };

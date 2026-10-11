@@ -11,8 +11,8 @@ export const HUMAN_KIT = Object.freeze({
   sha256: kit.sha256,
   procedural: true,
 });
-export type CrewKitStyle = 'polo' | 'suit';
-export type HeadWear = 'bare' | 'cap' | 'headset' | 'cap-headset';
+export type CrewKitStyle = 'polo' | 'suit' | 'polof';
+export type HeadWear = 'bare' | 'cap' | 'headset' | 'cap-headset' | 'fem-bare' | 'fem-headset';
 export type HumanLod = 0 | 1 | 2;
 export type HumanKitMesh = keyof typeof kit.meshes;
 
@@ -171,13 +171,13 @@ float humanHash(float n) { return fract(sin(n * 12.9898 + 4.1414) * 43758.5453);
 vec3 humanSkinTone(float id) {
   // Low-discrepancy (golden-ratio) selection: exact in float32 and in JS,
   // so separately drawn hands match the face (see humanSkinToneRGB).
-  float h = fract(id * 0.6180339887 + 0.37);
-  vec3 a = vec3(0.80, 0.56, 0.45);
-  vec3 b = vec3(0.66, 0.43, 0.32);
-  vec3 c = vec3(0.45, 0.28, 0.19);
-  vec3 d = vec3(0.25, 0.15, 0.10);
-  vec3 tone = h < .4 ? mix(a, b, h / .4) : h < .8 ? mix(b, c, (h - .4) / .4) : mix(c, d, (h - .8) / .2);
-  return tone * tone;
+  // Measured-looking sRGB skin albedos (not saturated orange), linearised.
+  float h = fract(id * 0.6180339887 + 0.37) * 5.;
+  vec3 s0 = vec3(.91,.76,.67), s1 = vec3(.83,.64,.53), s2 = vec3(.70,.51,.39);
+  vec3 s3 = vec3(.55,.38,.28), s4 = vec3(.38,.26,.19), s5 = vec3(.25,.17,.13);
+  vec3 tone = h < 1. ? mix(s0, s1, h) : h < 2. ? mix(s1, s2, h - 1.) : h < 3. ? mix(s2, s3, h - 2.)
+    : h < 4. ? mix(s3, s4, h - 3.) : mix(s4, s5, h - 4.);
+  return pow(tone, vec3(2.2));
 }
 vec3 humanHairTone(float id) {
   float h = humanHash(id + 5.17);
@@ -188,19 +188,19 @@ vec3 humanHairTone(float id) {
 
 /** CPU mirror of GLSL humanSkinTone (linear RGB), for bare hands. */
 export function humanSkinToneRGB(id: number, out = new T.Color()) {
-  const h = (((id * 0.6180339887 + 0.37) % 1) + 1) % 1;
-  const a = [0.8, 0.56, 0.45],
-    b = [0.66, 0.43, 0.32],
-    c = [0.45, 0.28, 0.19],
-    d = [0.25, 0.15, 0.1];
-  const mix = (p: number[], q: number[], t: number) => p.map((v, i) => v + (q[i] - v) * t);
-  const tone =
-    h < 0.4
-      ? mix(a, b, h / 0.4)
-      : h < 0.8
-        ? mix(b, c, (h - 0.4) / 0.4)
-        : mix(c, d, (h - 0.8) / 0.2);
-  return out.setRGB(tone[0] ** 2, tone[1] ** 2, tone[2] ** 2, T.LinearSRGBColorSpace);
+  const h = ((((id * 0.6180339887 + 0.37) % 1) + 1) % 1) * 5;
+  const stops = [
+    [0.91, 0.76, 0.67],
+    [0.83, 0.64, 0.53],
+    [0.7, 0.51, 0.39],
+    [0.55, 0.38, 0.28],
+    [0.38, 0.26, 0.19],
+    [0.25, 0.17, 0.13],
+  ];
+  const k = Math.min(4, Math.floor(h)),
+    t = h - k;
+  const tone = stops[k].map((v, i) => v + (stops[k + 1][i] - v) * t);
+  return out.setRGB(tone[0] ** 2.2, tone[1] ** 2.2, tone[2] ** 2.2, T.LinearSRGBColorSpace);
 }
 
 /** Skin wrap lighting: a soft terminator with warm scattered light instead of
@@ -214,7 +214,7 @@ export function skinWrapLighting(fragmentShader: string, mask: string) {
     target,
     `{
       float skinNL = dot( geometryNormal, directLight.direction );
-      vec3 skinWrap = vec3( saturate( ( skinNL + .45 ) / 1.45 ), saturate( ( skinNL + .3 ) / 1.3 ), saturate( ( skinNL + .25 ) / 1.25 ) );
+      vec3 skinWrap = vec3( saturate( ( skinNL + .3 ) / 1.3 ), saturate( ( skinNL + .18 ) / 1.18 ), saturate( ( skinNL + .14 ) / 1.14 ) );
       skinWrap *= skinWrap;
       vec3 skinIrradiance = mix( irradiance, skinWrap * directLight.color, ${mask} );
       reflectedLight.directDiffuse += skinIrradiance * BRDF_Lambert( material.diffuseColor );
@@ -229,7 +229,8 @@ export function skinWrapLighting(fragmentShader: string, mask: string) {
  * instance colour (team colour for the cap and headset accents). */
 export function installHumanHead(material: T.MeshStandardMaterial, wear: HeadWear) {
   const cap = wear === 'cap' || wear === 'cap-headset';
-  const set = wear === 'headset' || wear === 'cap-headset';
+  const set = wear === 'headset' || wear === 'cap-headset' || wear === 'fem-headset';
+  const fem = wear.startsWith('fem');
   material.vertexColors = false;
   material.onBeforeCompile = (shader) => {
     shader.vertexShader =
@@ -247,6 +248,7 @@ vHeadTeam = vec3(.1,.12,.2);
     shader.fragmentShader =
       (cap ? '#define HEAD_CAP\n' : '') +
       (set ? '#define HEAD_SET\n' : '') +
+      (fem ? '#define HEAD_FEM\n' : '') +
       `varying float vHeadPerson;\nvarying vec3 vHeadLocal;\nvarying vec3 vHeadTeam;\nfloat vHeadSkin;\n${HUMAN_TONE_GLSL}
 float headSeg(vec3 p, vec3 a, vec3 b) { vec3 pa = p - a, ba = b - a; return length(pa - ba * clamp(dot(pa, ba) / dot(ba, ba), 0., 1.)); }
 float headEll(vec3 p, vec3 c, vec3 r) { vec3 q = (p - c) / r; return (length(q) - 1.) * min(r.x, min(r.y, r.z)); }
@@ -260,32 +262,59 @@ float headEll(vec3 p, vec3 c, vec3 r) { vec3 q = (p - c) / r; return (length(q) 
 vec3 hp = vHeadLocal; vec3 hq = vec3(abs(hp.x), hp.y, hp.z);
 vec3 skin = humanSkinTone(vHeadPerson);
 vec3 col = skin;
-float rough = .52;
+// Skin roughness: a glossier T-zone (forehead, nose), softer cheeks.
+float tzone = max(smoothstep(.02, .0, abs(hp.x)) * step(-.03, hp.y) * step(hp.y, .07),
+  smoothstep(.03, .01, abs(hp.y - .045)) * smoothstep(.05, .02, hq.x));
+float rough = mix(.6, .44, tzone * smoothstep(.06, .09, hp.z));
 vHeadSkin = 1.;
 // Subtle anatomy tints: warmer cheeks, nose and ears, cooler jaw shadow.
 col *= mix(vec3(1.), vec3(1.05,.95,.93), smoothstep(.02,-.01,headEll(hq, vec3(.038,-.03,.06), vec3(.025,.022,.025))));
 col *= mix(vec3(1.), vec3(1.06,.92,.9), smoothstep(.012,.0,length(hq - vec3(0.,-.024,.104)) - .012));
 col *= mix(vec3(1.), vec3(.9,.9,.93), smoothstep(-.07,-.1,hp.y) * step(.04,hp.z) * 0.6);
 // Lips.
-float lip = min(headEll(hq, vec3(0.,-.0505,.0868), vec3(.0205,.0058,.0095)), headEll(hq, vec3(0.,-.0608,.0846), vec3(.0182,.0066,.0097)));
-col = mix(col, skin * vec3(.82,.55,.52), smoothstep(.0012,-.0006,lip) * step(.085, hp.z));
+float lip = min(headEll(hq, vec3(0.,-.0505,.0862), vec3(.0195,.0052,.009)), headEll(hq, vec3(0.,-.0605,.084), vec3(.0175,.006,.0092)));
+float lipMask = smoothstep(.0012,-.0006,lip) * step(.08, hp.z);
+#ifdef HEAD_FEM
+col = mix(col, skin * vec3(.8,.5,.5), lipMask);
+#else
+col = mix(col, skin * vec3(.86,.64,.6), lipMask);
+#endif
+rough = mix(rough, .4, lipMask);
+float mouthLine = (1. - smoothstep(.0009, .0022, abs(hp.y + .0556))) * smoothstep(.0205, .017, hq.x) * step(.08, hp.z);
+col = mix(col, skin * vec3(.28, .16, .15), mouthLine);
 // Brows (follow the ridge), with stubble on darker-haired people.
 vec3 hair = humanHairTone(vHeadPerson);
 float brow = headSeg(hq, vec3(.014,.0295,.0965), vec3(.05,.0315,.084));
 float browArch = brow - .0012 * sin(clamp((hq.x - .014) / .036, 0., 1.) * 3.1416);
-col = mix(col, mix(col, hair, .7), smoothstep(.0036,.0022,browArch) * step(.07,hp.z));
+#ifdef HEAD_FEM
+col = mix(col, mix(col, hair, .65), smoothstep(.0028,.0016,browArch + .0006) * step(.07,hp.z));
+#else
+col = mix(col, mix(col, hair, .55), smoothstep(.0032,.0018,browArch) * step(.07,hp.z));
+#endif
 float jaw = smoothstep(-.035,-.065,hp.y) * smoothstep(.0,.05,hp.z) * (1. - smoothstep(.095,.125,-hp.y)) * (1. - smoothstep(.04,.06,hq.x) * .5);
+#ifndef HEAD_FEM
 col = mix(col, col * mix(vec3(1.), hair * 3. + .55, .22), jaw * step(humanHash(vHeadPerson + 9.1), .4) * (1.-smoothstep(.0013,-.0006,lip)));
+#endif
 // Eyes: sclera, iris, pupil, a wet highlight via low roughness.
 vec3 eyeC = vec3(.031,.0105,.0765);
 vec3 ed = hq - eyeC;
 float eye = step(length(ed), .0128) * step(.079, hp.z);
 vec3 en = normalize(ed);
 vec3 iris = mix(vec3(.1,.055,.025), vec3(.12,.2,.26), step(.7, humanHash(vHeadPerson + 2.3)));
-vec3 eyeCol = mix(vec3(.5,.47,.45), iris, smoothstep(.87,.885,en.z));
-eyeCol = mix(eyeCol, vec3(.01), smoothstep(.972,.978,en.z));
+// Sclera is never paper white: shaded by the upper lid, warmer at the corners.
+vec3 sclera = vec3(.42,.39,.37) * mix(.5, 1., smoothstep(.55, .1, en.y)) * mix(.8, 1., smoothstep(.3, .7, en.z));
+vec3 eyeCol = mix(sclera, iris * mix(.6, 1., smoothstep(.97, .9, en.z)), smoothstep(.84,.86,en.z));
+eyeCol = mix(eyeCol, vec3(.008), smoothstep(.968,.975,en.z));
 col = mix(col, eyeCol, eye);
-rough = mix(rough, .08, eye);
+rough = mix(rough, .06, eye);
+// Lash line along the upper lid and a soft lower-lid shadow.
+float lidX = smoothstep(.047, .043, hq.x) * smoothstep(.015, .019, hq.x) * step(.075, hp.z);
+float lash = lidX * (1. - smoothstep(.0012, .0026, abs(hp.y - (.0155 + .002 * (1. - pow((hq.x - .031) / .016, 2.))))));
+float lower = lidX * (1. - smoothstep(.001, .003, abs(hp.y - .0045))) * .12;
+#ifdef HEAD_FEM
+lash = min(1., lash * 1.4);
+#endif
+col = mix(col, vec3(.02, .015, .012), max(lash * .85 * (1. - eye), lower));
 // Hair: close crop above an irregular hairline, darker at the parting.
 float frontLine = .066 - .008 * cos(hp.x * 40.) + .03 * smoothstep(.03,-.03,hp.z);
 float back = smoothstep(-.07,.04,hp.z);
@@ -294,6 +323,12 @@ hairline += hq.x > .06 ? .032 * smoothstep(.06,.08,hq.x) * smoothstep(.03,-.03,h
 float earOval = length(vec2(hp.y / .042, (hp.z + .008) / .03));
 if (hq.x > .06 && earOval < 1.) hairline = max(hairline, hp.y + .004 * (1. - earOval) + .002);
 float hairMask = smoothstep(hairline - .0015, hairline + .0025, hp.y);
+#ifdef HEAD_FEM
+float femFront = .06 - .02 * smoothstep(.01, .06, hp.x + .012) + .04 * smoothstep(.045, 0., hp.z);
+float femLine = min(femFront, femFront - .07 * smoothstep(.045, .07, hq.x) * smoothstep(.06, .02, hp.z));
+hairMask = max(smoothstep(femLine - .0015, femLine + .002, hp.y), step(hp.z, -.088) * step(hq.x, .05) * step(-.16, hp.y));
+hairMask = max(hairMask, step(.068, hq.x) * step(hp.y, .02) * step(-.09, hp.y) * step(hp.z, .04));
+#endif
 float strandPhase = dot(hp, vec3(900., 300., 1300.));
 float strands = .88 + .12 * sin(strandPhase) * (1. - smoothstep(.6, 2., fwidth(strandPhase)));
 col = mix(col, hair * strands, hairMask);
@@ -327,7 +362,7 @@ diffuseColor.rgb = col;`,
         '#include <roughnessmap_fragment>\nroughnessFactor = rough;',
       );
   };
-  material.customProgramCacheKey = () => `human-head-v1-${wear}`;
+  material.customProgramCacheKey = () => `human-head-v2-${wear}`;
   return material;
 }
 
@@ -338,6 +373,9 @@ diffuseColor.rgb = col;`,
 export class HumanHeadBatches {
   readonly meshes: T.InstancedMesh[] = [];
   private readonly people: T.InstancedBufferAttribute[] = [];
+  /** Heads are drawn at 94 %: an eight-head-tall figure on the crew skeleton. */
+  private readonly scale = new T.Matrix4().makeScale(0.94, 0.94, 0.94);
+  private readonly scaled = new T.Matrix4();
   constructor(
     readonly capacity: number,
     readonly wears: readonly HeadWear[],
@@ -377,7 +415,7 @@ export class HumanHeadBatches {
     if (!mesh || mesh.count >= this.capacity) throw new Error('Head batch capacity exceeded');
     this.people[k].setX(mesh.count, person);
     mesh.setColorAt(mesh.count, team);
-    mesh.setMatrixAt(mesh.count++, world);
+    mesh.setMatrixAt(mesh.count++, this.scaled.multiplyMatrices(world, this.scale));
   }
   finish() {
     this.meshes.forEach((mesh, i) => {

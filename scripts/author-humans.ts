@@ -87,6 +87,13 @@ function pack(name: string, mesh: SculptedMesh, extra: Record<string, unknown> =
 }
 
 const jobs: [string, () => SculptedMesh][] = [];
+[
+  [0.0085, 9000],
+  [0.015, 3000],
+  [0.028, 1000],
+].forEach(([cell, tris], lod) =>
+  jobs.push([`body_polof_${lod}`, () => sculptCrewBody('polo', cell, tris, true)]),
+);
 for (const kit of ['polo', 'suit'] as const)
   [
     [0.0085, 9000],
@@ -95,7 +102,7 @@ for (const kit of ['polo', 'suit'] as const)
   ].forEach(([cell, tris], lod) =>
     jobs.push([`body_${kit}_${lod}`, () => sculptCrewBody(kit, cell, tris)]),
   );
-for (const wear of ['bare', 'cap', 'headset', 'cap-headset'] as const)
+for (const wear of ['bare', 'cap', 'headset', 'cap-headset', 'fem-bare', 'fem-headset'] as const)
   [
     [0.0026, 5200],
     [0.0045, 1700],

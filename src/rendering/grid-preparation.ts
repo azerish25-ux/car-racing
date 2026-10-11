@@ -26,8 +26,8 @@ export const GRID_STANCES = Object.freeze([
   {
     name: 'relaxed',
     hands: [
-      [-0.215, 0.815, 0.05],
-      [0.215, 0.815, 0.05],
+      [-0.235, 0.86, 0.09],
+      [0.235, 0.86, 0.09],
     ],
   },
   {
@@ -41,7 +41,7 @@ export const GRID_STANCES = Object.freeze([
     name: 'hand on hip',
     hands: [
       [-0.31, 0.97, 0.02],
-      [0.215, 0.815, 0.05],
+      [0.235, 0.86, 0.09],
     ],
   },
   {

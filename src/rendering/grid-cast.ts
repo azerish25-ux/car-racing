@@ -3,7 +3,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { GRID_PRESENTATION_SECONDS } from '../core/grid-presentation.ts';
 import { F, H, carBase } from '../simulation/protocol.ts';
 import { crewTeamColour } from './crew-geometry.ts';
-import { CrewPerformanceSampler } from './crew-performance.ts';
+import { CrewPerformanceSampler, relaxedWrist } from './crew-performance.ts';
 import { CrewPose, installCrewSkin } from './crew-pose.ts';
 import {
   crewBodyGeometry,
@@ -103,12 +103,13 @@ export class GridCastView {
     T.FloatType,
   );
   private readonly bodies: T.InstancedMesh[];
-  private readonly slots = [0, 1].map(() =>
+  /** Body batches: [male near, male mid, female near, female mid]. */
+  private readonly slots = [0, 1, 2, 3].map(() =>
     new T.InstancedBufferAttribute(new Float32Array(CAPACITY), 1).setUsage(T.DynamicDrawUsage),
   );
   private readonly heads = new HumanHeadBatches(
     CAPACITY,
-    ['bare', 'headset', 'cap'],
+    ['bare', 'headset', 'cap', 'fem-bare', 'fem-headset'],
     [0, 1],
     'Grid cast heads',
   );
@@ -139,9 +140,9 @@ export class GridCastView {
     this.bones.generateMipmaps = false;
     this.bones.minFilter = this.bones.magFilter = T.NearestFilter;
     this.bones.needsUpdate = true;
-    this.bodies = ([0, 1] as const).map((lod) => {
-      const g = crewBodyGeometry('polo', lod);
-      g.setAttribute('crewSlot', this.slots[lod]);
+    this.bodies = ([0, 1, 2, 3] as const).map((batch) => {
+      const g = crewBodyGeometry(batch < 2 ? 'polo' : 'polof', (batch % 2) as 0 | 1);
+      g.setAttribute('crewSlot', this.slots[batch]);
       const material = new T.MeshStandardMaterial({ vertexColors: true, roughness: 0.88 });
       material.userData.weatherSurface = 'fabric';
       installCrewSkin(material, this.bones, CAPACITY, true, 'polo');
@@ -284,7 +285,7 @@ export class GridCastView {
       this.wrists[0].set(-0.12, 1.03 + breathe, 0.27);
       this.wrists[1].set(0.12, 1.03 + breathe, 0.27);
     } else {
-      this.wrists[0].copy(s.joints[5]);
+      relaxedWrist(s.joints, 0, this.wrists[0]);
       this.wrists[1].set(0.1, 1.0, 0.22);
     }
     for (let h = 0; h < 2; h++) this.wrists[h].applyMatrix4(this.actor.matrix);
@@ -301,8 +302,11 @@ export class GridCastView {
     const slot = this.actors++;
     this.pose.write(this.boneData, slot);
     const lod = id === 0 ? 0 : 1;
-    const body = this.bodies[lod];
-    this.slots[lod].setX(body.count, slot);
+    // Mixed grid staff: many engineers and umbrella holders are women.
+    const female = (id * 0.618 + role * 0.37 + 0.2) % 1 < (mark.role === 'umbrella' ? 0.55 : 0.4);
+    const batch = lod + (female ? 2 : 0);
+    const body = this.bodies[batch];
+    this.slots[batch].setX(body.count, slot);
     this.put(body, this.actor.matrix, crewTeamColour(id));
     // Head: looking at the cockpit while idle, ahead while walking.
     this.part.position.copy(this.pose.joints[2]);
@@ -323,7 +327,7 @@ export class GridCastView {
       slot,
       crewTeamColour(id),
       lod,
-      mark.role === 'umbrella' ? (id % 2 ? 2 : 0) : 1,
+      female ? (mark.role === 'umbrella' ? 3 : 4) : mark.role === 'umbrella' ? (id % 2 ? 2 : 0) : 1,
     );
     humanSkinToneRGB(slot, this.tone);
     for (let h = 0; h < 2; h++) {

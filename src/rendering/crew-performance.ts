@@ -1,7 +1,7 @@
 import * as T from 'three';
 import data from './crew-performance.geometry.json' with { type: 'json' };
 import manifest from './crew-performance.manifest.json' with { type: 'json' };
-import type { CrewPoseStyle } from './crew-pose.ts';
+import { CREW_FOREARM, CREW_UPPER_ARM, type CrewPoseStyle } from './crew-pose.ts';
 import { crewBodyGeometry, crewHandGeometry } from './human-kit.ts';
 
 export const CREW_PERFORMANCE = Object.freeze({ ...manifest });
@@ -82,6 +82,27 @@ export function crewPerformanceGeometry(role: CrewMesh, left = false) {
   g.computeBoundingBox();
   g.computeBoundingSphere();
   return g;
+}
+
+/** The authored actions were keyed for a longer (0.70 m) arm. Hand targets
+ * taken from them are pulled towards the shoulder so the human-length arm
+ * hangs relaxed, elbow softly bent, instead of locking straight. */
+export function relaxedWrist(
+  joints: readonly T.Vector3[],
+  side: 0 | 1,
+  out: T.Vector3,
+  reach = CREW_UPPER_ARM + CREW_FOREARM,
+) {
+  const shoulder = joints[side ? 6 : 3],
+    wrist = joints[side ? 8 : 5];
+  out.copy(wrist).sub(shoulder);
+  const length = out.length();
+  // 0.70 m authored arm -> at most 94 % of the human reach.
+  const target = Math.min(length * (reach / 0.7), reach * 0.965);
+  if (length > 1e-6) out.multiplyScalar(target / length);
+  // A little outward and forward carry, like a relaxed stance.
+  out.z += 0.035;
+  return out.add(shoulder);
 }
 
 const smooth = (value: number) => {
