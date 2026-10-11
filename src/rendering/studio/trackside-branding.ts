@@ -1,4 +1,9 @@
 import * as T from 'three';
+import {
+  TRACKSIDE_NOISE_GLSL,
+  TRACKSIDE_RUBBER_GLSL,
+  rubberWear,
+} from '../trackside-weathering.ts';
 import { Track, trackPoint } from '../../simulation/track.ts';
 import { clamp } from '../../core/math.ts';
 import { reflectInWetRoad } from '../wet-reflection.ts';
@@ -95,24 +100,26 @@ export function brandingMaterial() {
     metalness: 0,
   });
   material.name = 'Trackside sponsor vinyl';
-  chainShaderHook(material, 'trackside-vinyl-v2', (shader) => {
+  chainShaderHook(material, 'trackside-vinyl-v3', (shader) => {
     useStudioUniforms(shader, ['studioTime'], 'fragment');
     injectDeclarations(
       shader,
       'common',
-      'attribute vec4 brandPanel;\nattribute float brandLed;\nvarying vec4 vBrandPanel;\nvarying float vBrandLed;\nvarying vec2 vBrandUv;',
+      'attribute vec4 brandPanel;\nattribute float brandLed;\nattribute vec3 brandWeather;\nvarying vec4 vBrandPanel;\nvarying float vBrandLed;\nvarying vec2 vBrandUv;\nvarying vec3 vBrandWeather;',
       'vertex',
     );
     injectAfter(
       shader,
       'uv_vertex',
-      'vBrandPanel = brandPanel;\nvBrandLed = brandLed;\nvBrandUv = uv;',
+      'vBrandPanel = brandPanel;\nvBrandLed = brandLed;\nvBrandUv = uv;\nvBrandWeather = brandWeather;',
       'vertex',
     );
     injectDeclarations(
       shader,
       'common',
-      `varying vec4 vBrandPanel;\nvarying float vBrandLed;\nvarying vec2 vBrandUv;\nfloat vinylWear = 0.0;
+      `varying vec4 vBrandPanel;\nvarying float vBrandLed;\nvarying vec2 vBrandUv;\nvarying vec3 vBrandWeather;\nfloat vinylWear = 0.0, vinylRubber = 0.0;
+${TRACKSIDE_NOISE_GLSL}
+${TRACKSIDE_RUBBER_GLSL}
 float apexVinylHash( vec2 p ) {
 	vec3 p3 = fract( vec3( p.xyx ) * 0.1031 );
 	p3 += dot( p3, p3.yzx + 33.33 );
@@ -153,13 +160,17 @@ float apexVinylNoise( vec2 p ) {
 	diffuseColor.rgb = mix( diffuseColor.rgb, diffuseColor.rgb * vec3( 0.55, 0.5, 0.45 ), grime * 0.45 );
 	diffuseColor.rgb *= 1.0 - 0.55 * joint;
 	vinylWear = apexVinylNoise( vec2( alongM * 2.3, vBrandUv.y * 3.1 ) + 7.7 ) - 0.5;
+	// Tyre rubber from cars that touched the wall, as on the bare concrete
+	// (station, height above the foot, corner-exit wear per vertex).
+	vinylRubber = twRubberMarks( vBrandWeather.x, vBrandWeather.y, vBrandWeather.z ) * clean;
+	diffuseColor.rgb = mix( diffuseColor.rgb, vec3( 0.03, 0.03, 0.032 ), vinylRubber * 0.82 );
 }`,
       'fragment',
     );
     injectAfter(
       shader,
       'roughnessmap_fragment',
-      'roughnessFactor = clamp( roughnessFactor + 0.16 * vinylWear, 0.0, 1.0 );',
+      'roughnessFactor = mix( clamp( roughnessFactor + 0.16 * vinylWear, 0.0, 1.0 ), 0.6, vinylRubber );',
       'fragment',
     );
     injectAfter(
@@ -206,6 +217,7 @@ export function vinylGeometry(
     uv: number[] = [],
     panel: number[] = [],
     led: number[] = [],
+    weather: number[] = [],
     index: number[] = [];
   const rows = VINYL.profile;
   const lengths = [0];
@@ -215,7 +227,8 @@ export function vinylGeometry(
     );
   const total = lengths[lengths.length - 1];
   for (const { span, a, b } of modules) {
-    const base = position.length / 3;
+    const base = position.length / 3,
+      wear = rubberWear(track, (a + b) / 2);
     for (const s of [a, b])
       rows.forEach(([inward, height], r) => {
         const p = barrierPoint(track, s, span.side, inward, height);
@@ -225,6 +238,7 @@ export function vinylGeometry(
         uv.push(along, lengths[r] / total);
         panel.push(span.panel.u, span.panel.v, span.panel.du, span.panel.dv);
         led.push(span.led ? 1 : 0);
+        weather.push(s, height, wear);
       });
     const n = rows.length;
     for (let r = 0; r < n - 1; r++) {
@@ -242,6 +256,7 @@ export function vinylGeometry(
   g.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
   g.setAttribute('brandPanel', new T.Float32BufferAttribute(panel, 4));
   g.setAttribute('brandLed', new T.Float32BufferAttribute(led, 1));
+  g.setAttribute('brandWeather', new T.Float32BufferAttribute(weather, 3));
   g.setIndex(index);
   g.computeVertexNormals();
   g.computeBoundingBox();
@@ -272,6 +287,14 @@ export function bridgeGeometry(track: Track, s: number, brand: Panel, post = pla
       ),
     );
     g.setAttribute('brandLed', new T.Float32BufferAttribute(new Array(count).fill(0), 1));
+    // Out of reach of any tyre: no rubber on bridges.
+    g.setAttribute(
+      'brandWeather',
+      new T.Float32BufferAttribute(
+        new Array(count).fill(0).flatMap(() => [0, -10, 0]),
+        3,
+      ),
+    );
     return g;
   };
   for (const side of [-1, 1]) {
@@ -299,6 +322,7 @@ function mergeAll(parts: T.BufferGeometry[]) {
     uv: number[] = [],
     panel: number[] = [],
     led: number[] = [],
+    weather: number[] = [],
     index: number[] = [];
   for (const g of parts) {
     const base = position.length / 3;
@@ -307,6 +331,7 @@ function mergeAll(parts: T.BufferGeometry[]) {
     uv.push(...(g.getAttribute('uv').array as Float32Array));
     panel.push(...(g.getAttribute('brandPanel').array as Float32Array));
     led.push(...(g.getAttribute('brandLed').array as Float32Array));
+    weather.push(...(g.getAttribute('brandWeather').array as Float32Array));
     for (const i of g.index!.array as ArrayLike<number> as number[]) index.push(base + i);
     g.dispose();
   }
@@ -316,6 +341,7 @@ function mergeAll(parts: T.BufferGeometry[]) {
   g.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
   g.setAttribute('brandPanel', new T.Float32BufferAttribute(panel, 4));
   g.setAttribute('brandLed', new T.Float32BufferAttribute(led, 1));
+  g.setAttribute('brandWeather', new T.Float32BufferAttribute(weather, 3));
   g.setIndex(index);
   return g;
 }

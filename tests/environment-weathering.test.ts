@@ -9,6 +9,13 @@ import {
   rubberWear,
   weatheringStream,
 } from '../src/rendering/trackside-weathering.ts';
+import {
+  VINYL,
+  bridgeGeometry,
+  vinylGeometry,
+  vinylModules,
+} from '../src/rendering/studio/trackside-branding.ts';
+import { plainPanel } from '../src/rendering/studio/branding-plan.ts';
 import { conformTracksideGeometry } from '../src/rendering/trackside-module-conformance.ts';
 import {
   FACADE_WEATHERING_HOOK,
@@ -71,6 +78,13 @@ describe('authored asset download', () => {
     await expect(
       download(streamed([new Uint8Array(4)], 300) as typeof fetch, 8, 100),
     ).rejects.toThrow('stalled');
+  });
+  it('calls the fetcher unbound, as window.fetch requires', async () => {
+    const fetcher = function (this: unknown) {
+      if (this !== undefined && this !== globalThis) throw new TypeError('Illegal invocation');
+      return Promise.resolve(new Response(new Uint8Array(8)));
+    };
+    expect((await download(fetcher as typeof fetch)).length).toBe(8);
   });
   it('names an SPA/HTML fallback instead of reporting a truncated download', async () => {
     const html = async () =>
@@ -142,13 +156,29 @@ describe('trackside weathering', () => {
       expect(studioHookKeys(material)).toEqual([`${TRACKSIDE_WEATHERING_HOOK}-${kind}-v1`]);
       const shader = compile(material);
       expect(shader.vertexShader).toContain('attribute vec4 weathering;');
-      expect(shader.fragmentShader).toContain('float twRubber');
-      expect(shader.fragmentShader.indexOf('float twRubber')).toBeGreaterThan(
+      expect(shader.fragmentShader).toContain('float twRubber = ');
+      expect(shader.fragmentShader.indexOf('float twRubber = ')).toBeGreaterThan(
         shader.fragmentShader.indexOf('#include <map_fragment>'),
       );
       expect(shader.fragmentShader).toContain('roughnessFactor = ');
       expect(shader.fragmentShader.includes('metalnessFactor *=')).toBe(kind === 'galvanised');
     }
+  });
+});
+
+describe('sponsor vinyl rubber', () => {
+  it('carries station, profile height and wear; bridges sit out of reach', () => {
+    const track = new Track();
+    const modules = vinylModules(track, () => false).slice(0, 12);
+    const w = vinylGeometry(track, modules).getAttribute('brandWeather');
+    const heights = new Set(VINYL.profile.map(([, h]) => h));
+    for (let i = 0; i < w.count; i++) {
+      expect(heights.has(Number(w.getY(i).toFixed(3)))).toBe(true);
+      expect(w.getZ(i)).toBeGreaterThanOrEqual(0);
+      expect(w.getZ(i)).toBeLessThanOrEqual(1);
+    }
+    const bridge = bridgeGeometry(track, 100, plainPanel('black')).getAttribute('brandWeather');
+    for (let i = 0; i < bridge.count; i++) expect(bridge.getY(i)).toBe(-10);
   });
 });
 

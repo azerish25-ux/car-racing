@@ -57,7 +57,9 @@ export async function downloadAuthoredAsset(o: AuthoredDownload) {
   try {
     let response: Response;
     try {
-      response = await o.fetcher(o.url, { signal: controller.signal });
+      // Called unbound: `fetch` throws "Illegal invocation" with any other receiver.
+      const fetcher = o.fetcher;
+      response = await fetcher(o.url, { signal: controller.signal });
     } catch (error) {
       throw failure(error);
     }

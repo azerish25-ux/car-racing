@@ -74,9 +74,9 @@ export function weatheringStream(
   return out;
 }
 
-const COMMON = /* glsl */ `
-varying vec4 vWeather;
-varying vec3 vWeatherWorld;
+/** Hash, value noise and footprint-filtered noise shared by the weathering
+ * shaders (and the sponsor vinyl's rubber marks). */
+export const TRACKSIDE_NOISE_GLSL = /* glsl */ `
 float twHash( vec2 p ) { p = fract( p * vec2( 123.34, 456.21 ) ); p += dot( p, p + 45.32 ); return fract( p.x * p.y ); }
 float twNoise( vec2 p ) {
 	vec2 i = floor( p ), f = fract( p ); f = f * f * ( 3.0 - 2.0 * f );
@@ -100,6 +100,40 @@ float twDetail( vec2 p ) {
 	return 1.0 - smoothstep( 0.4, 1.2, footprint );
 }
 `;
+
+/** Tyre rubber at wheel height: sparse smears of varying length, striated
+ * along the direction of travel, denser where wear (corner exits) is high,
+ * over a faint continuous scuff haze. 0..1. Uniform control flow throughout
+ * (the filtered noise takes screen derivatives). */
+export const TRACKSIDE_RUBBER_GLSL = /* glsl */ `
+float twRubberMarks( float along0, float height, float wear ) {
+	float rubber = 0.0;
+	for ( int layer = 0; layer < 2; layer ++ ) {
+		float cellLength = ${TRACKSIDE_WEATHERING.rubber.cell.toFixed(2)} * ( layer == 0 ? 1.0 : 1.73 );
+		float along = along0 + float( layer ) * 2.31;
+		float cell = floor( along / cellLength );
+		float h0 = twHash( vec2( cell, 17.0 + float( layer ) ) ), h1 = twHash( vec2( cell, 41.0 ) ), h2 = twHash( vec2( cell, 73.0 + float( layer ) ) );
+		float share = mix( ${TRACKSIDE_WEATHERING.rubber.share[0].toFixed(3)}, ${TRACKSIDE_WEATHERING.rubber.share[1].toFixed(3)}, wear );
+		float present = step( h0, share );
+		float local = along - cell * cellLength;
+		float len = cellLength * ( 0.18 + 0.7 * h1 );
+		float begin = ( cellLength - len ) * h2;
+		float ends = smoothstep( begin, begin + len * 0.25, local ) * ( 1.0 - smoothstep( begin + len * 0.55, begin + len, local ) );
+		float centre = mix( ${TRACKSIDE_WEATHERING.rubber.low.toFixed(3)} + 0.1, ${TRACKSIDE_WEATHERING.rubber.high.toFixed(3)} - 0.1, h1 * 0.6 + h2 * 0.4 );
+		float halfHeight = 0.07 + 0.13 * min( 1.0, h0 / max( share, 1e-3 ) );
+		float band = 1.0 - smoothstep( halfHeight * 0.4, halfHeight, abs( height - centre + ( local - begin ) * 0.012 * ( h2 - 0.5 ) ) );
+		float striae = mix( 0.3, 1.0, twFiltered( vec2( along * 0.7, height * 46.0 ) ) ) * smoothstep( 0.2, 0.55, twFiltered( vec2( along * 2.3, height * 9.0 ) + h1 * 13.0 ) );
+		rubber = max( rubber, present * ends * band * striae * ( 0.55 + 0.45 * h1 ) );
+	}
+	float haze = wear * 0.22 * smoothstep( 0.35, 0.75, twFiltered( vec2( along0 * 0.35, 2.0 ) ) ) * ( 1.0 - smoothstep( 0.0, 0.2, abs( height - 0.34 ) ) );
+	rubber = max( rubber, haze * mix( 0.6, 1.0, twFiltered( vec2( along0 * 1.3, height * 30.0 ) ) ) );
+	return smoothstep( 0.0, 0.55, rubber );
+}`;
+const COMMON = /* glsl */ `
+varying vec4 vWeather;
+varying vec3 vWeatherWorld;
+${TRACKSIDE_NOISE_GLSL}
+${TRACKSIDE_RUBBER_GLSL}`;
 const VERTEX_COMMON = /* glsl */ `
 attribute vec4 weathering;
 varying vec4 vWeather;
@@ -119,30 +153,8 @@ float twTide = ${TRACKSIDE_WEATHERING.dirt.height.toFixed(3)} * ( 0.55 + 0.9 * t
 float twDirt = 1.0 - smoothstep( twTide * 0.35, twTide, twHeight );
 float twSplash = twDots( twSt * vec2( 34.0, 38.0 ), 0.22, 0.3 ) * twDetail( twSt * 34.0 ) * ( 1.0 - smoothstep( twTide, twTide * 2.4, twHeight ) );
 twDirt = clamp( twDirt + twSplash * 0.6, 0.0, 1.0 );
-// Tyre rubber, only on faces toward the track: sparse smears of varying
-// length at wheel height, striated along the direction of travel.
-float twRubber = 0.0;
-for ( int layer = 0; layer < 2; layer ++ ) {
-	float cellLength = ${TRACKSIDE_WEATHERING.rubber.cell.toFixed(2)} * ( layer == 0 ? 1.0 : 1.73 );
-	float along = twAlong + float( layer ) * 2.31;
-	float cell = floor( along / cellLength );
-	float h0 = twHash( vec2( cell, 17.0 + float( layer ) ) ), h1 = twHash( vec2( cell, 41.0 ) ), h2 = twHash( vec2( cell, 73.0 + float( layer ) ) );
-	float share = mix( ${TRACKSIDE_WEATHERING.rubber.share[0].toFixed(3)}, ${TRACKSIDE_WEATHERING.rubber.share[1].toFixed(3)}, vWeather.w );
-	if ( h0 > share ) continue;
-	float local = along - cell * cellLength;
-	float len = cellLength * ( 0.18 + 0.7 * h1 );
-	float begin = ( cellLength - len ) * h2;
-	float ends = smoothstep( begin, begin + len * 0.25, local ) * ( 1.0 - smoothstep( begin + len * 0.55, begin + len, local ) );
-	float centre = mix( ${TRACKSIDE_WEATHERING.rubber.low.toFixed(3)} + 0.1, ${TRACKSIDE_WEATHERING.rubber.high.toFixed(3)} - 0.1, h1 * 0.6 + h2 * 0.4 );
-	float halfHeight = 0.07 + 0.13 * h0 / share;
-	float band = 1.0 - smoothstep( halfHeight * 0.4, halfHeight, abs( twHeight - centre + ( local - begin ) * 0.012 * ( h2 - 0.5 ) ) );
-	float striae = mix( 0.3, 1.0, twFiltered( vec2( along * 0.7, twHeight * 46.0 ) ) ) * smoothstep( 0.2, 0.55, twFiltered( vec2( along * 2.3, twHeight * 9.0 ) + h1 * 13.0 ) );
-	twRubber = max( twRubber, ends * band * striae * ( 0.55 + 0.45 * h1 ) );
-}
-// A faint, continuous scuff haze at wheel height where cars touch often.
-float twHaze = twWear * 0.22 * smoothstep( 0.35, 0.75, twFiltered( vec2( twAlong * 0.35, 2.0 ) ) ) * ( 1.0 - smoothstep( 0.0, 0.2, abs( twHeight - 0.34 ) ) );
-twRubber = max( twRubber, twHaze * mix( 0.6, 1.0, twFiltered( vec2( twAlong * 1.3, twHeight * 30.0 ) ) ) );
-twRubber = smoothstep( 0.0, 0.55, twRubber ) * smoothstep( 0.2, 0.55, twFace );
+// Tyre rubber, only on faces toward the track.
+float twRubber = twRubberMarks( twAlong, twHeight, twWear ) * smoothstep( 0.2, 0.55, twFace );
 // Rain: dark run-off streaks hanging from the top edge.
 float twColumn = twFiltered( vec2( twAlong * 11.0, twHeight * 0.45 ) );
 float twRun = twHash( vec2( floor( twAlong * 11.0 ), 5.0 ) );
