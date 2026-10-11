@@ -90,7 +90,7 @@ export function installKerbFinish(material: T.MeshStandardMaterial) {
     injectDeclarations(
       shader,
       'common',
-      `varying float vKerbStyle;\nvarying float vKerbUsage;\nvarying float vKerbAcross;\nfloat kerbWear;\n${RELIEF}`,
+      `varying float vKerbStyle;\nvarying float vKerbUsage;\nvarying float vKerbAcross;\nfloat kerbWear;\nvec3 kerbPaint;\n${RELIEF}`,
       'fragment',
     );
     injectAfter(
@@ -108,11 +108,21 @@ export function installKerbFinish(material: T.MeshStandardMaterial) {
 	float trackSide = 1.0 - smoothstep( .18, .42, across );
 	float grime = finishFilteredNoise( vFinishWorld.xz * vec2( 3.1, 0.8 ) );
 	kerbWear = clamp( vKerbUsage * trackSide * ( .55 + .6 * grime ), 0.0, 1.0 );
+	// Rolled paint over cast concrete: fine grit, and chips through to the
+	// grey concrete where tyres strike the kerb, plus dust in the grooves.
+	float grit = finishFilteredNoise( vFinishWorld.xz * 41.0 );
+	paint *= .9 + .2 * grit;
+	float chip = smoothstep( .74, .84, finishFilteredNoise( vFinishWorld.xz * 9.0 + vec2( 3.3, 1.7 ) ) * .7 + grit * .3 );
+	paint = mix( paint, vec3( .32, .31, .29 ) * ( .85 + .3 * grit ), chip * ( .25 + .6 * vKerbUsage ) );
 	paint = mix( paint, ${v3(KERB.rubber)}, kerbWear * .78 );
+	kerbPaint = paint;
 	diffuseColor.rgb = paint;
 }`,
       'fragment',
     );
+    // The ribbon's legacy 3 m vertex colours must not tint the painted stripes
+    // (they turned alternate white stripes salmon): restore the paint after them.
+    injectAfter(shader, 'color_fragment', 'diffuseColor.rgb = kerbPaint;', 'fragment');
     injectAfter(
       shader,
       'roughnessmap_fragment',
