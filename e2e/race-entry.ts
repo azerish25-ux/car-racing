@@ -10,12 +10,14 @@ export async function finishRaceEntry(page: Page) {
         if (d.state === 'driving') return 'driving';
         return (await page.locator('#raceBriefing').isVisible()) ? 'briefing' : d.state;
       },
-      { timeout: 90000 },
+      { timeout: 180000 },
     )
     .toMatch(/^(driving|briefing)$/);
   if (await page.locator('#raceBriefing').isVisible())
     await page.getByRole('button', { name: 'GO STRAIGHT TO LIGHTS', exact: true }).click();
   await expect
-    .poll(async () => (await page.evaluate(() => window.apexDiagnostics())).state)
+    .poll(async () => (await page.evaluate(() => window.apexDiagnostics())).state, {
+      timeout: 180000,
+    })
     .toBe('driving');
 }

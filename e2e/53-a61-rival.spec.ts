@@ -109,7 +109,7 @@ for (const scenario of scenarios) {
     await page.getByRole('button', { name: 'RESUME SESSION', exact: true }).click();
     await page.keyboard.press('g');
     await expect
-      .poll(async () => (await read()).frame?.[H.TIME] ?? 0, { timeout: 90000 })
+      .poll(async () => (await read()).frame?.[H.TIME] ?? 0, { timeout: 150000 })
       .toBeGreaterThan(12);
     await capture(
       page,

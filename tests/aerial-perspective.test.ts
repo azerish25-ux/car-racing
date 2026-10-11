@@ -139,8 +139,8 @@ describe('P12 aerial perspective', () => {
     expect(shader.vertexShader.match(/varying vec3 vApexFogWorld;/g)).toHaveLength(1);
     expect(shader.fragmentShader.match(/varying vec3 vApexFogWorld;/g)).toHaveLength(1);
     expect(shader.vertexShader.match(/vec4 apexFogPosition =/g)).toHaveLength(1);
-    expect(shader.fragmentShader.match(/float apexLocalDensity\\(/g)).toHaveLength(1);
-    expect(shader.fragmentShader.match(/float apexPocketIntegral\\(/g)).toHaveLength(1);
+    expect(shader.fragmentShader.match(/float apexLocalDensity\(/g)).toHaveLength(1);
+    expect(shader.fragmentShader.match(/float apexPocketIntegral\(/g)).toHaveLength(1);
     expect(shader.uniforms.apexLocalSigma).toBe(currentScene.sigma);
     expect(shader.uniforms.apexFogVolumes).toBeDefined();
     material.dispose();
