@@ -45,6 +45,7 @@ export async function sceneryShadowBudget(lighting: 'day' | 'sunset' | 'night') 
     if (code !== gl.NO_ERROR) glErrorStages.push({ stage, code });
   };
   captureGlError('construction');
+  const drawErrors: { code: number; camera: string; object: string; material: string }[] = [];
   const originalDraw = renderer.renderBufferDirect;
   const rows = new Map<
     string,
@@ -54,6 +55,16 @@ export async function sceneryShadowBudget(lighting: 'day' | 'sunset' | 'night') 
     const beforeCalls = renderer.info.render.calls;
     const beforeTriangles = renderer.info.render.triangles;
     originalDraw.call(this, camera, scene, geometry, material, object, group);
+    // WebGL errors are sticky. Observe them immediately after individual draws
+    // to identify the first offending mesh instead of the later screenshot.
+    const drawCode = gl.getError();
+    if (drawCode !== gl.NO_ERROR && drawErrors.length < 12)
+      drawErrors.push({
+        code: drawCode,
+        camera: camera.type,
+        object: object.name || object.type,
+        material: material.name || material.type,
+      });
     if (!(material instanceof T.MeshDepthMaterial || material instanceof T.MeshDistanceMaterial))
       return;
     const names: string[] = [];
@@ -162,8 +173,9 @@ export async function sceneryShadowBudget(lighting: 'day' | 'sunset' | 'night') 
       passes: stats.drawBreakdown,
       shadows,
       sourceUnchanged: frame.every((v, i) => Object.is(v, original[i])),
-      glError: glErrorStages[0]?.code ?? gl.getError(),
+      glError: drawErrors[0]?.code ?? glErrorStages[0]?.code ?? gl.getError(),
       glErrorStages,
+      drawErrors,
       contextLost: gl.isContextLost(),
     };
   } finally {
