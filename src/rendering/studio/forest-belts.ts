@@ -7,7 +7,6 @@ import {
   treeGeometry,
   type TreePlacement,
 } from '../landscape.ts';
-import { foliageMipmaps } from '../foliage-mipmaps.ts';
 import { plantingClearance, treeSeed, type PlantingExclusion } from '../aurel-vegetation-plan.ts';
 import { serviceSitePlan, type ServiceSite } from '../venue-service-plan.ts';
 import { terrainFor } from '../terrain.ts';
@@ -183,12 +182,10 @@ function broadleafKit(): BeltKit {
   geometry.boundingSphere = geometry.boundingBox.getBoundingSphere(new T.Sphere());
   distantLeafGeometry.dispose();
   leafGeometry.dispose();
+  // Let WebGL generate the shared colour/depth mip chain. A custom Canvas
+  // mip upload was introduced immediately before depth-pass INVALID_OPERATION
+  // errors began, so use the previously proven texture allocation path.
   const map = foliageAtlas();
-  if (typeof ImageData !== 'undefined' && map.image instanceof HTMLCanvasElement) {
-    map.mipmaps = foliageMipmaps(map.image, map.image.width, BELT_ALPHA_CUTOFF);
-    map.generateMipmaps = false;
-    map.minFilter = T.LinearMipmapLinearFilter;
-  }
   const material = new T.MeshStandardMaterial({
     map,
     side: T.DoubleSide,
