@@ -35,6 +35,16 @@ export async function sceneryShadowBudget(lighting: 'day' | 'sunset' | 'night') 
   );
   if (!view) throw new Error('Production renderer unavailable');
   const renderer = view.renderer;
+  // Read-and-clear at each phase so a WebGL INVALID_OPERATION is attributed
+  // to the phase that issued it instead of mislabeled as a final readback.
+  // This is test-only instrumentation and never accepts an erroneous frame.
+  const gl = renderer.getContext();
+  const glErrorStages: { stage: string; code: number }[] = [];
+  const captureGlError = (stage: string) => {
+    const code = gl.getError();
+    if (code !== gl.NO_ERROR) glErrorStages.push({ stage, code });
+  };
+  captureGlError('construction');
   const originalDraw = renderer.renderBufferDirect;
   const rows = new Map<
     string,
@@ -66,9 +76,11 @@ export async function sceneryShadowBudget(lighting: 'day' | 'sunset' | 'night') 
     view.lighting = lighting;
     view.mode = 'cockpit';
     view.draw(frame, frame, 1, 1 / 60);
+    captureGlError('complete-cockpit-frame');
     const stats = view.stats();
     const shadows = [...rows.values()].sort((a, b) => b.triangles - a.triangles);
     const image = canvas.toDataURL('image/png');
+    captureGlError('display-capture');
     renderer.renderBufferDirect = originalDraw;
     // Compare the actual near shadow texture under an identical frozen scene.
     // These additional controls are NOT the first-frame budget measurement above.
@@ -107,7 +119,9 @@ export async function sceneryShadowBudget(lighting: 'day' | 'sunset' | 'night') 
         // shadowMap.render directly outside it leaves that internal state null.
         // No simulation step or presentation update occurs between the controls.
         renderer.render(view.scene, view.camera);
+        captureGlError(enabled ? 'cropped-shadow-render' : 'uncropped-shadow-render');
         renderer.readRenderTargetPixels(target, 0, 0, target.width, target.height, pixels);
+        captureGlError(enabled ? 'cropped-shadow-readback' : 'uncropped-shadow-readback');
         return measured;
       } finally {
         renderer.shadowMap.render = shadowDraw;
@@ -148,8 +162,9 @@ export async function sceneryShadowBudget(lighting: 'day' | 'sunset' | 'night') 
       passes: stats.drawBreakdown,
       shadows,
       sourceUnchanged: frame.every((v, i) => Object.is(v, original[i])),
-      glError: renderer.getContext().getError(),
-      contextLost: renderer.getContext().isContextLost(),
+      glError: glErrorStages[0]?.code ?? gl.getError(),
+      glErrorStages,
+      contextLost: gl.isContextLost(),
     };
   } finally {
     renderer.renderBufferDirect = originalDraw;

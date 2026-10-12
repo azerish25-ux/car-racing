@@ -56,7 +56,9 @@ export function capturePhase27Crowd() {
       return { distance, image, activeLevels: crowd.levels.filter((m) => m.visible).length,
         ranges: crowd.lodRanges.map((range) => range.toArray()) };
     };
-    const blend = handoff(100), far = handoff(300), returnBlend = handoff(100);
+    // The close-sculpt handoff moved to 46–58 visual metres. Observe its actual
+    // overlap at the centre of that band, not 100m where only mid LOD is active.
+    const blend = handoff(52), far = handoff(300), returnBlend = handoff(52);
     return { captures, handoff: { activeLevels: blend.activeLevels, farLevels: far.activeLevels,
       rewindExact: blend.image === returnBlend.image, ranges: blend.ranges }, glError: renderer.getContext().getError(), pauseExact: first === pause,
       rewindExact: first === rewind, visibleMovement: first !== moved, memoryBefore, memoryAfter,
