@@ -65,6 +65,7 @@ for (const lighting of ['day', 'sunset', 'night'] as const) {
         passes: report.passes,
         shadowEquivalence: report.shadowEquivalence,
         glErrorStages: report.glErrorStages,
+        drawErrors: report.drawErrors,
         largestShadowSubmissions: report.shadows.slice(0, 12),
       }),
     );
