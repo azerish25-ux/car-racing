@@ -10,7 +10,9 @@ for (const lighting of ['day', 'sunset', 'night'] as const) {
   test(`A51-A54 ${lighting} full production landscape, cockpit and stable camera cycles`, async ({
     page,
   }, info) => {
-    test.setTimeout(600000);
+    // Keep the complete production evidence workload (including night rain);
+    // this is a browser watchdog, not an application FPS allowance.
+    test.setTimeout(1200000);
     const built = await build({
       configFile: false,
       logLevel: 'error',

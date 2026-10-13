@@ -48,7 +48,7 @@ export function requireInfrastructureRenderBudget(
   if (!reference) throw new Error(`Unknown baseline lighting: ${lighting}`);
   // Integer arithmetic makes the inclusive 2% boundary explicit and testable.
   if (sample.calls * 100 > reference.calls * 102)
-    throw new Error('Complete cockpit draw calls exceed the matched baseline by more than 2%');
+    throw new Error(`Complete cockpit draw calls exceed the matched baseline by more than 2% (${lighting}: ${sample.calls} versus ${reference.calls}; limit ${Math.floor(reference.calls * 1.02)})`);
   if (sample.triangles * 100 > reference.triangles * 102)
-    throw new Error('Complete cockpit triangles exceed the matched baseline by more than 2%');
+    throw new Error(`Complete cockpit triangles exceed the matched baseline by more than 2% (${lighting}: ${sample.triangles} versus ${reference.triangles}; limit ${Math.floor(reference.triangles * 1.02)})`);
 }

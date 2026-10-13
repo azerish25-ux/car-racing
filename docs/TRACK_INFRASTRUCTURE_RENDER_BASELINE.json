@@ -1,6 +1,6 @@
 {
-  "sourceCommit": "1e21a41 + D32 performance-budget (the re-pin commit)",
-  "evidenceRun": "e2e/scenery-shadow-budget.spec.ts, SwiftShader, studio re-pin (D32)",
+  "sourceCommit": "402b4afca154e35f446cef4099d27ba74e83b512 (artwork-aware complete-frame re-pin)",
+  "evidenceRun": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/38187646154 (2026-10-12, Mesa, all three lighting captures)",
   "workload": {
     "cars": 12,
     "simulationSeed": 1887,
@@ -14,11 +14,11 @@
     "camera": "cockpit",
     "renderer": "complete production draw including mirrors, shadows and compositor"
   },
-  "evidenceBoundary": "These measured frames are not approval of the failed original test. Its direct-scene ceiling was incorrectly applied to a multi-pass cockpit frame. All direct-scene ceilings remain unchanged; a new complete-frame regression budget permits at most 2% additional calls and triangles.",
+  "evidenceBoundary": "Measured first COMPLETE cockpit frame with 12 cars, same seed/time, medium 1280x720. The new 2026-10-11 sculpted spectators and moulded venue seats intentionally add submitted triangles; this is a documented material increase in rendering work, NOT a performance optimization or hardware FPS acceptance. Preserve the strict direct-scene 1,800-call limit, compositor 1,800-call limit, shadow-equivalence and all GL correctness tests, and retain the 2% guard against this newly measured workload. See CI_FAILURE_TRIAGE_2026-10-13.md for the before/after regressions.",
   "lighting": {
     "day": {
-      "calls": 2355,
-      "triangles": 11358110,
+      "calls": 2351,
+      "triangles": 14715455,
       "drawBreakdown": {
         "environment": {
           "calls": 35,
@@ -30,19 +30,19 @@
         },
         "mirrors": {
           "calls": 1048,
-          "triangles": 3036083
+          "triangles": 4117927
         },
         "wet": {
           "calls": 0,
           "triangles": 0
         },
         "shadow": {
-          "calls": 477,
-          "triangles": 3835240
+          "calls": 484,
+          "triangles": 5202776
         },
         "composer": {
-          "calls": 795,
-          "triangles": 4486400
+          "calls": 784,
+          "triangles": 5394365
         },
         "other": {
           "calls": 0,
@@ -51,8 +51,8 @@
       }
     },
     "sunset": {
-      "calls": 3266,
-      "triangles": 13767736,
+      "calls": 3267,
+      "triangles": 19231637,
       "drawBreakdown": {
         "environment": {
           "calls": 72,
@@ -64,19 +64,19 @@
         },
         "mirrors": {
           "calls": 1048,
-          "triangles": 3036083
+          "triangles": 4117927
         },
         "wet": {
           "calls": 0,
           "triangles": 0
         },
         "shadow": {
-          "calls": 1351,
-          "triangles": 6237374
+          "calls": 1363,
+          "triangles": 9711466
         },
         "composer": {
-          "calls": 795,
-          "triangles": 4486400
+          "calls": 784,
+          "triangles": 5394365
         },
         "other": {
           "calls": 0,
@@ -85,8 +85,8 @@
       }
     },
     "night": {
-      "calls": 3573,
-      "triangles": 14293296,
+      "calls": 3593,
+      "triangles": 18273912,
       "drawBreakdown": {
         "environment": {
           "calls": 73,
@@ -97,20 +97,20 @@
           "triangles": 0
         },
         "mirrors": {
-          "calls": 1322,
-          "triangles": 3680770
+          "calls": 1326,
+          "triangles": 4704918
         },
         "wet": {
           "calls": 0,
           "triangles": 0
         },
         "shadow": {
-          "calls": 1408,
-          "triangles": 6189759
+          "calls": 1421,
+          "triangles": 8647531
         },
         "composer": {
-          "calls": 770,
-          "triangles": 4414887
+          "calls": 773,
+          "triangles": 4913583
         },
         "other": {
           "calls": 0,
@@ -138,5 +138,45 @@
     },
     "cap": "programme cap +8 % calls over the previous pin (day <= 2533, sunset <= 3427, night <= 3734); composer < 1800",
     "note": "Same workload (seed 1887, 8 s, 12 cars, Medium 1280x720 cockpit). The 2 % complete-frame gate now applies to these values. Triangle growth includes workload drift: since the race-rules change the player is ~128 m further along at 8 s, so 3 more authored crowd clusters (147k triangles each) enter the view."
+  },
+  "artworkRepin": {
+    "observedAt": "2026-10-12T00:35:00Z",
+    "reason": "More detailed close-range spectators and moulded stadium seats landed after the prior D32 pin; reference runs were still comparing against the older art.",
+    "authoredChangesCommit": "358fc2be7410a1ba112ca4d7fdc48a79f03b5187",
+    "measuredSourceCommit": "402b4afca154e35f446cef4099d27ba74e83b512",
+    "legacyCompleteFrame": {
+      "day": {
+        "calls": 2355,
+        "triangles": 11358110
+      },
+      "sunset": {
+        "calls": 3266,
+        "triangles": 13767736
+      },
+      "night": {
+        "calls": 3573,
+        "triangles": 14293296
+      }
+    },
+    "currentCompleteFrame": {
+      "day": {
+        "calls": 2351,
+        "triangles": 14715455
+      },
+      "sunset": {
+        "calls": 3267,
+        "triangles": 19231637
+      },
+      "night": {
+        "calls": 3593,
+        "triangles": 18273912
+      }
+    },
+    "triangleGrowthPercent": {
+      "day": 29.56,
+      "sunset": 39.69,
+      "night": 27.85
+    },
+    "note": "Not a claim that the cost increase is performant or optimized. These observed values are an explicit graphics tradeoff; a later art/LOD/shadow optimization must measure a new baseline rather than silently enlarge a ceiling."
   }
 }

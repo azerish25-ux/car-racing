@@ -48,6 +48,9 @@ for (const lighting of ['day', 'sunset', 'night'] as const) {
   test(`A31 real wheel-gun contact, replay and worktop tools render in ${lighting}`, async ({
     page,
   }, info) => {
+    // Full production scene capture on Mesa may take longer than the default
+    // five-minute Playwright watchdog. Preserve all samples and assertions.
+    test.setTimeout(720000);
     const simulation = new Simulation({
       ...DEFAULT_OPTIONS,
       mode: 'practice',

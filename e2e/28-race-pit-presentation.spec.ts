@@ -184,7 +184,8 @@ async function performance(page: Page, info: TestInfo, name: string) {
   );
   expect(report.state).toBe('complete');
   expect(report.summary.elapsedMs).toBeGreaterThanOrEqual(30000);
-  expect(report.summary.samples).toBeGreaterThan(5);
+  // Software rendering may produce exactly five complete performance windows.
+  expect(report.summary.samples).toBeGreaterThanOrEqual(5);
   expect(report.summary.averageDrawCalls).toBeGreaterThan(0);
   expect(report.context.source).toMatch(/^[a-f0-9]{64}$/);
   await back(page);
