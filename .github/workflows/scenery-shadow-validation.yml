@@ -4,6 +4,8 @@ on:
   push:
     branches: [main]
     paths:
+      - 'scripts/infrastructure-render-budget.ts'
+      - 'docs/TRACK_INFRASTRUCTURE_RENDER_BASELINE.json'
       - 'src/rendering/**'
       - 'e2e/scenery-shadow-budget.spec.ts'
       - 'e2e/fixtures/scenery-shadow-budget.ts'

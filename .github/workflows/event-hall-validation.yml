@@ -4,6 +4,8 @@ on:
   push:
     branches: [main]
     paths:
+      - scripts/infrastructure-render-budget.ts
+      - docs/TRACK_INFRASTRUCTURE_RENDER_BASELINE.json
       - src/rendering/event-hall*
       - src/rendering/venue-landmark.ts
       - src/rendering/venue-lighting.ts
