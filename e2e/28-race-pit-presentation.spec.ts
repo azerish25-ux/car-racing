@@ -409,6 +409,24 @@ test('27H.6 populated pit journey: approach, real service, exit and complete rep
   const afterExit = await read(page);
   expect(afterExit.frame?.[H.CARS]).toBe(8);
   expect(afterExit.frame?.[carBase(0) + F.RETIRED]).toBe(0);
+  // A pit-exit observation is not the end of the recorded replay: the last
+  // service-playback check needs another 5.5 s after service began. Let the
+  // unmodified worker drive and record beyond that point before pausing.
+  // Previously the recording stopped ~0.18 s short of the asserted timestamp,
+  // so replay naturally reached its end and could never advance further.
+  const pitExitTime = afterExit.frame![H.TIME];
+  await expect
+    .poll(
+      async () => {
+        const d = await read(page);
+        if (errors.length) throw new Error(errors.join('\n'));
+        if (d.frame?.[carBase(0) + F.RETIRED] !== 0)
+          throw new Error('Player retired before post-pit replay evidence');
+        return d.frame?.[H.TIME] ?? -Infinity;
+      },
+      { timeout: 90000, intervals: [250, 500] },
+    )
+    .toBeGreaterThan(pitExitTime + 1);
   const report = await sessionReport(page, info, 'pit');
   const phaseColumn = report.columns.indexOf('player_pit_phase'),
     timeColumn = report.columns.indexOf('simulation_time');
@@ -515,14 +533,31 @@ test('27H.6 populated pit journey: approach, real service, exit and complete rep
     body: JSON.stringify(teamSurvey),
     contentType: 'application/json',
   });
+  // The recording must actually contain the desired post-service timestamp.
+  // This is a data-coverage gate, not a relaxed playback assertion. Failing
+  // here produces a useful explanation instead of waiting 120 s at EOF.
+  const recorded = await read(page);
+  const requiredEnd = serviceStart + 5.5;
+  expect(
+    recorded.replayStart + recorded.replaySeconds,
+    'Recorded session ends before the post-service playback checkpoint',
+  ).toBeGreaterThan(requiredEnd + 0.1);
   await seek(page, serviceStart - 0.2 - startTime);
   await page.locator('#replayPlay').click();
   await expect
-    .poll(async () => (await read(page)).renderer!.pitState.time, {
-      timeout: 120000,
-      intervals: [500],
-    })
-    .toBeGreaterThan(serviceStart + 5.5);
+    .poll(
+      async () => {
+        const state = await read(page);
+        const replayedTime = state.renderer!.pitState.time;
+        if (!state.replayPlaying && replayedTime <= requiredEnd)
+          throw new Error(
+            `Replay stopped at ${replayedTime}s before recorded service checkpoint ${requiredEnd}s`,
+          );
+        return replayedTime;
+      },
+      { timeout: 120000, intervals: [500] },
+    )
+    .toBeGreaterThan(requiredEnd);
   await page.locator('#replayPlay').click();
   expect((await read(page)).replayPlaying).toBe(false);
   const rewind = await seek(page, removalTime - startTime);
