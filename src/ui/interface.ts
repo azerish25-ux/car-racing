@@ -42,11 +42,13 @@ import {
   SETUP_LIMITS,
   racingSession,
   startingGrid,
+  validateOptions,
   VEHICLE,
   type SessionOptions,
   type Setup,
   type StartSlot,
 } from '../simulation/config.ts';
+import { rulesetFor, sessionIncompatibilities } from '../simulation/events.ts';
 import { F, H, W, WHEEL_BASE, WHEEL_STRIDE, WHEEL_NAMES, carBase } from '../simulation/protocol.ts';
 import { type Track } from '../simulation/track.ts';
 import { CIRCUIT_IDS, circuitDefinition, type CircuitId } from '../simulation/circuits.ts';
@@ -153,6 +155,31 @@ function writeText(e: Element, value: string) {
 function writeWidth(e: HTMLElement, value: string) {
   if (e.style.width !== value) e.style.width = value;
 }
+/** Per-entry vehicles and the ruleset a MACHINE choice implies (WP22). */
+export function machineOptions(
+  options: SessionOptions,
+  machine: string,
+): Pick<SessionOptions, 'vehicles' | 'ruleset' | 'compound'> {
+  if (machine !== 'tc1' && machine !== 'mixed') return { compound: options.compound };
+  const count = options.opponents + 1;
+  const vehicles = Array.from({ length: count }, (_, i) =>
+    machine === 'mixed' ? (i % 2 ? 'apx01' : 'tc1') : 'tc1',
+  );
+  const ruleset =
+    machine === 'mixed'
+      ? options.mode === 'race' || options.mode === 'practice'
+        ? 'open-exhibition'
+        : undefined
+      : options.mode === 'race'
+        ? 'touring-sprint'
+        : undefined;
+  // Touring tyres are a single slick construction plus a wet.
+  const compound =
+    machine === 'tc1' && options.mode === 'race' && options.compound !== 'wet'
+      ? 'medium'
+      : options.compound;
+  return { vehicles, ...(ruleset ? { ruleset } : {}), compound };
+}
 export class Interface {
   readonly menu: HTMLElement;
   readonly hud: HTMLElement;
@@ -211,7 +238,8 @@ export class Interface {
     <div class="form-row"><label>SESSION<select id="mode"><option value="race">Grand Prix</option><option value="practice">Free practice</option><option value="time-trial">Time trial · ghost</option><option value="qualifying">Race weekend · qualifying</option><option value="endurance">Endurance · mandatory stop</option></select></label><label>DISTANCE<select id="laps"><option value="1">1 lap · Sprint</option><option value="3" selected>3 laps · Standard</option><option value="5">5 laps</option><option value="10">10 laps</option><option value="15">15 laps · Endurance</option><option value="25">25 laps · Endurance</option></select></label></div>
     <div class="form-row"><label>WEATHER<select id="weather"><option value="clear">Clear / Dry</option><option value="changeable">Dry → Rain</option><option value="rain">Heavy rain</option></select></label><label>GRID<select id="opponents"><option value="0">Solo</option><option value="3">4 cars</option><option value="7" selected>8 cars</option><option value="11">12 cars</option></select></label></div>
     <div class="form-row"><label>TYRES<select id="compound"><option value="soft">Soft</option><option value="medium" selected>Medium</option><option value="hard">Hard</option><option value="intermediate">Intermediate</option><option value="wet">Full wet</option></select></label><label>ASSISTS<select id="assist"><option value="sport">ABS + TC</option><option value="raw">Off</option></select></label></div>
-    <div class="form-row"><label>START<select id="startSlot"><option value="pole" selected>Pole position</option><option value="midfield">Mid-field</option><option value="back">Back of the grid</option></select></label></div>
+    <div class="form-row"><label>START<select id="startSlot"><option value="pole" selected>Pole position</option><option value="midfield">Mid-field</option><option value="back">Back of the grid</option></select></label><label>MACHINE<select id="vehicle"><option value="apx01" selected>APX-01 Formula</option><option value="tc1">TC-1 Touring · front drive</option><option value="mixed">Mixed exhibition · Formula + Touring</option></select></label></div>
+    <p class="session-rules" id="sessionRules" aria-live="polite"></p>
     <button class="primary enter" type="submit">ENTER CIRCUIT <span aria-hidden="true">↗</span></button>
     <button class="enter" type="submit" name="prepareGrid" value="yes">PREPARE GRID <span>START PAUSED</span></button>
    </form><div class="menu-actions" role="group" aria-label="Paddock"><button data-action="settings">GARAGE & SETTINGS</button><button data-action="championship">CHAMPIONSHIP</button><button data-action="team">TEAM HQ</button><button data-action="academy">DRIVING ACADEMY</button><button data-action="photo">PHOTO / LIVERY</button><button data-action="controls">CONTROLS</button></div>${
@@ -310,10 +338,35 @@ export class Interface {
         const grid = startingGrid(this.options.opponents + 1, select('startSlot') as StartSlot);
         if (grid) this.options.grid = grid;
       }
+      Object.assign(this.options, machineOptions(this.options, select('vehicle')));
+      // Reject incompatible machine/ruleset/tyre combinations with reasons.
+      const problems = sessionIncompatibilities(validateOptions(this.options));
+      if (problems.length) {
+        this.get('sessionRules').textContent = `Cannot start: ${problems.join('; ')}.`;
+        return;
+      }
       // Preparation is presentation/session control, not a physics option or save.
       const submitter = (e as SubmitEvent).submitter as HTMLButtonElement | null;
       this.callbacks.start(this.options, submitter?.name === 'prepareGrid');
     });
+    const describeRules = () => {
+      const select = (id: string) => (this.get(id) as HTMLSelectElement).value;
+      const options = validateOptions({
+        ...DEFAULT_OPTIONS,
+        mode: select('mode') as SessionOptions['mode'],
+        opponents: Number(select('opponents')),
+        compound: select('compound') as SessionOptions['compound'],
+      });
+      const resolved = { ...options, ...machineOptions(options, select('vehicle')) };
+      const rules = rulesetFor(resolved),
+        problems = sessionIncompatibilities(validateOptions(resolved));
+      this.get('sessionRules').textContent = problems.length
+        ? `Unavailable: ${problems.join('; ')}.`
+        : `${rules.name}: ${rules.tires.mandatoryCompoundChange ? 'two dry compounds required' : 'no mandatory stop'} · DRS ${rules.drs ? 'on' : 'off'} · ${rules.points.length ? 'points scored' : 'no points'}.`;
+    };
+    for (const id of ['mode', 'vehicle', 'compound', 'opponents'])
+      this.get(id).addEventListener('change', describeRules);
+    describeRules();
     this.get('weather').addEventListener('change', () => {
       if ((this.get('weather') as HTMLSelectElement).value === 'rain')
         (this.get('compound') as HTMLSelectElement).value = 'wet';

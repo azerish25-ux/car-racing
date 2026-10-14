@@ -130,6 +130,7 @@ import { AudioViewTracker } from '../audio/spatial.ts';
 import { Track, trackPoint } from '../simulation/track.ts';
 import { CAR_STRIDE, F, H, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../simulation/protocol.ts';
 import { clamp } from '../core/math.ts';
+import { TouringShells } from './touring-shell.ts';
 export type CameraMode = 'chase' | 'cockpit' | 'pod' | 'trackside';
 /** Chase rig in metres, m/s and vertical-FOV degrees. */
 // P5 retuned to its own target (KPI 10 iteration): 1.65 m / 4.9 m framed the
@@ -165,6 +166,7 @@ export class RacingRenderer {
   readonly audioView = new AudioViewTracker();
   readonly effects = new Effects();
   readonly presented = new PresentedFrame();
+  readonly touringShells = new TouringShells();
   readonly studioFrame = new StudioFrame();
   /** Time Trial ghost, built on first use; posed from setGhost() each frame. */
   private ghost: GhostCar | null = null;
@@ -335,7 +337,7 @@ export class RacingRenderer {
       this.photoStage.root,
       this.venueLighting.root,
     );
-    this.scene.add(this.debris.mesh, this.pitCrew.root);
+    this.scene.add(this.debris.mesh, this.pitCrew.root, this.touringShells.root);
     this.textures.register(this.pitCrew.root);
     this.renderer.info.autoReset = false;
     this.renderer.setOpaqueSort(frontToBackOpaque);
@@ -1225,6 +1227,8 @@ export class RacingRenderer {
       );
       this.cars[id].update(a, b, base, alpha, dt, time, false);
     }
+    // Non-Formula definitions are drawn by their own (provisional) bodies.
+    this.touringShells.update(b, this.cars);
     this.ghost?.update(
       this.ghostActive && !replay && !menu && !this.photo ? this.ghostPose : null,
       this.camera,

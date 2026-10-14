@@ -225,6 +225,13 @@ h1 {
   gap: 16px;
   margin-bottom: 13px;
 }
+.session-rules {
+  margin: -4px 0 12px;
+  min-height: 1.4em;
+  font-size: 12px;
+  line-height: 1.4;
+  opacity: 0.82;
+}
 .primary {
   background: var(--accent);
   border-color: var(--accent);
