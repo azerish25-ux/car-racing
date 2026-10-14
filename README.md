@@ -1,3 +1,16 @@
+## Production master plan response
+
+Per-entry vehicle definitions (APX-01 Formula and an original front-drive
+TC-1 touring car), composable rulesets and events (including timed
+endurance), venue-owned pit/grid geometry, layer-aware 3-D track progress and
+a directed route graph, recorded-session identity and versioned record
+categories, content validation, the F01 replay/GPU-gate fix, race radio with
+captions, accessibility switches, rumble, an EVENTS hub, and isolated
+prototypes for motorcycles, deformable dirt, magnetic loops, moving surfaces,
+scoring, joker stages, creator import and an authoritative-server workload.
+Status (nothing is claimed beyond "integrated" without hardware or player
+evidence), decisions, risks and protocols: [docs/production](docs/production/README.md).
+
 ## A12 secondary grandstands
 
 Aurel's six retained secondary stands now use an original modular Blender/GLB

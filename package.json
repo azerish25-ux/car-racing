@@ -21,6 +21,7 @@
     "validate:content": "node --experimental-transform-types scripts/validate-content.ts",
     "test:vehicles": "node --experimental-transform-types scripts/vehicle-calibration.ts",
     "test:server": "node --experimental-transform-types scripts/server-prototype.ts",
+    "test:long-session": "node --expose-gc --experimental-transform-types scripts/long-session.ts",
     "test:dynamics": "node --experimental-transform-types scripts/dynamics-benchmark.ts",
     "test:race-control": "node --experimental-transform-types scripts/marshal-integration.ts",
     "test:performance": "node --experimental-transform-types scripts/performance-compare.ts",
