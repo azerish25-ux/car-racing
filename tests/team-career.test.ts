@@ -1,3 +1,4 @@
+import { foundingBriefing } from '../src/storage/team-career.ts';
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_SETUP } from '../src/simulation/config.ts';
 import {
@@ -156,5 +157,14 @@ describe('persistent original team transactions', () => {
     team.ledger[0].label = '<script>bad</script>';
     expect(teamHub(team, 'overview')).not.toContain('<img');
     expect(teamHub(team, 'finance')).not.toContain('<script>');
+  });
+});
+
+describe('F11 data-driven onboarding text', () => {
+  it('names every registered circuit instead of a stale count', () => {
+    expect(foundingBriefing()).toBe(
+      'A new team. 2 circuits: Aurel and Vellamar. Earn your first classified finish.',
+    );
+    expect(foundingBriefing(['AUREL'])).toMatch(/One circuit: Aurel\./);
   });
 });

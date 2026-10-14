@@ -1,3 +1,4 @@
+import { CIRCUITS, CIRCUIT_IDS } from '../simulation/circuits.ts';
 import { DEFAULT_SETUP, validateSetup, type Setup } from '../simulation/config.ts';
 import { DEFAULT_LIVERY, validateLivery, type Livery } from './livery.ts';
 export const DEPARTMENTS = ['engineering', 'operations', 'commercial'] as const;
@@ -87,6 +88,16 @@ export interface TeamState {
   livery: Livery;
   briefing: string;
 }
+/** Onboarding text is derived from the content registry (F11), so it cannot
+ * drift behind the circuits that actually exist. */
+export function foundingBriefing(
+  circuits: readonly string[] = CIRCUIT_IDS.map((id) => CIRCUITS[id].short),
+) {
+  const names = circuits.map((n) => n.charAt(0) + n.slice(1).toLowerCase());
+  const list =
+    names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names.at(-1)}` : (names[0] ?? '');
+  return `A new team. ${names.length === 1 ? 'One circuit' : `${names.length} circuits`}: ${list}. Earn your first classified finish.`;
+}
 export function newTeam(): TeamState {
   return {
     version: 1,
@@ -103,7 +114,7 @@ export function newTeam(): TeamState {
     ledger: [{ week: 1, label: 'Founding budget', amount: 160000 }],
     paidSessions: [],
     livery: { ...DEFAULT_LIVERY },
-    briefing: 'A new team. One circuit. Earn your first classified finish at Aurel.',
+    briefing: foundingBriefing(),
   };
 }
 function integer(v: unknown, fallback: number, min: number, max: number) {
