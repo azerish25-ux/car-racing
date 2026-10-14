@@ -1,3 +1,4 @@
+import { DEFAULT_SETTINGS, validateSettings } from '../src/storage/data.ts';
 import { describe, expect, it } from 'vitest';
 import { RadioArbiter, URGENCY, type RadioMessage } from '../src/core/radio.ts';
 import { CAR_STRIDE, F, H, HEADER, carBase } from '../src/simulation/protocol.ts';
@@ -61,5 +62,21 @@ describe('§20.4 radio arbitration', () => {
     const shown = radio.observe(penalty, 5);
     expect(shown?.speaker).toBe('RACE CONTROL');
     expect(shown?.text).toMatch(/\+5 s.*avoid more/);
+  });
+});
+
+describe('§21.5 communication and motion accessibility settings', () => {
+  it('defaults captions and engineer radio on, reduced motion off, and keeps older saves valid', () => {
+    expect(DEFAULT_SETTINGS).toMatchObject({
+      captions: true,
+      engineerRadio: true,
+      reducedMotion: false,
+    });
+    const old = validateSettings({ version: 6 });
+    expect(old).toMatchObject({ captions: true, engineerRadio: true, reducedMotion: false });
+    expect(validateSettings({ version: 6, captions: false, reducedMotion: true })).toMatchObject({
+      captions: false,
+      reducedMotion: true,
+    });
   });
 });

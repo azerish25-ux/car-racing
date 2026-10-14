@@ -32,7 +32,7 @@ export class RadioArbiter {
   private readonly lastSent = new Map<string, number>();
   private previous: Float32Array | null = null;
   constructor(
-    private readonly options: RadioOptions = { engineer: true },
+    readonly options: RadioOptions = { engineer: true },
     private readonly cooldown = 20,
   ) {}
   reset() {

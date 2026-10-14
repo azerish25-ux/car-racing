@@ -167,6 +167,8 @@ export class RacingRenderer {
   readonly effects = new Effects();
   readonly presented = new PresentedFrame();
   readonly touringShells = new TouringShells();
+  /** Accessibility master switch: no motion blur (camera vibration is set by the app). */
+  reducedMotion = false;
   readonly studioFrame = new StudioFrame();
   /** Time Trial ghost, built on first use; posed from setGhost() each frame. */
   private ghost: GhostCar | null = null;
@@ -1388,7 +1390,10 @@ export class RacingRenderer {
         !menu && !studio && (presented[H.WATER] > 0.02 || wetReflection) ? 1 : 0,
       );
       this.drawLedger.mark('other');
-      this.motionBlur.setStrength(this.graphics.motionBlur, !this.photo && !menu);
+      this.motionBlur.setStrength(
+        this.reducedMotion ? 0 : this.graphics.motionBlur,
+        !this.photo && !menu,
+      );
       this.motionBlur.prepareFrame(presented, this.camera, this.follow, cameraMode, replay);
       // D29/D30: depth of field on the subject car (showroom, broadcast telephoto).
       const lens =

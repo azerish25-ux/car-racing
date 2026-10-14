@@ -4161,3 +4161,10 @@ dialog .error-detail {
   line-height: 1.5;
   color: rgba(255, 255, 255, 0.5);
 }
+/* Accessibility: the in-game reduced-motion switch matches the OS preference. */
+:root[data-reduced-motion='true'] *,
+:root[data-reduced-motion='true'] *::before,
+:root[data-reduced-motion='true'] *::after {
+  animation-duration: 0s !important;
+  transition-duration: 0s !important;
+}

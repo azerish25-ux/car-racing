@@ -381,7 +381,7 @@ export class GameApp {
     );
     if (!this.renderer || this.disposed || this.errorStopped) return false;
     this.renderer.setQuality(this.settings.quality, this.settings.graphics);
-    this.renderer.shake = this.settings.shake;
+    this.applyMotion(this.renderer, this.settings);
     this.renderer.colorblind = this.settings.colorblind;
     this.renderer.setLivery(this.team.livery);
     if (!this.liveSky.active && liveSkyPreferred()) this.liveSky.start(storedObserver());
@@ -400,6 +400,16 @@ export class GameApp {
     this.renderer = null;
     this.track = new Track('clear', false, undefined, circuitDefinition(id));
     return this.buildRenderer(this.canvas);
+  }
+  /** Reduced motion removes camera vibration and motion blur (§21.5). */
+  private applyMotion(renderer: RacingRenderer, settings: Settings) {
+    renderer.shake = settings.reducedMotion ? 0 : settings.shake;
+    renderer.reducedMotion = settings.reducedMotion;
+    document.documentElement.dataset.reducedMotion = String(settings.reducedMotion);
+  }
+  private applyCommunication(settings: Settings) {
+    this.radio.options.engineer = settings.engineerRadio;
+    this.radioCaption.enabled = settings.captions;
   }
   private async boot(canvas: HTMLCanvasElement) {
     try {
@@ -440,6 +450,7 @@ export class GameApp {
     document.documentElement.style.setProperty('--ui-scale', String(this.settings.uiScale));
     document.documentElement.dataset.colorblind = String(this.settings.colorblind);
     document.documentElement.dataset.highContrast = String(this.settings.highContrast);
+    this.applyCommunication(this.settings);
     const preview = menuPreview(this.track);
     this.current = preview;
     this.previous = preview;
@@ -1077,7 +1088,7 @@ export class GameApp {
       this.mediaView = new TeamMediaView(
         this.ui.get('modalContent').querySelector<HTMLElement>('#teamMediaMount')!,
         this.team,
-        matchMedia('(prefers-reduced-motion: reduce)').matches,
+        this.settings.reducedMotion || matchMedia('(prefers-reduced-motion: reduce)').matches,
       );
     } catch (error) {
       this.ui.modalContent(
@@ -1285,7 +1296,8 @@ export class GameApp {
     if (automatic) this.gridClock.play();
     this.renderer.gridPresentationTime = 0;
     this.renderer.gridPrepared = false;
-    this.renderer.gridReducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    this.renderer.gridReducedMotion =
+      this.settings.reducedMotion || matchMedia('(prefers-reduced-motion: reduce)').matches;
     this.renderer.reset();
     this.gridPanel ??= new GridPresentationPanel(this.ui.element, {
       toggle: () => {
@@ -2225,7 +2237,7 @@ export class GameApp {
           this.ui.applyBindings(settings.bindings);
           this.renderedState = null;
           if (renderer) {
-            renderer.shake = settings.shake;
+            this.applyMotion(renderer, settings);
             renderer.colorblind = settings.colorblind;
           }
           this.audio.volume = settings.volume;
@@ -2233,6 +2245,7 @@ export class GameApp {
           document.documentElement.style.setProperty('--ui-scale', String(settings.uiScale));
           document.documentElement.dataset.colorblind = String(settings.colorblind);
           document.documentElement.dataset.highContrast = String(settings.highContrast);
+          this.applyCommunication(settings);
         },
         save: () => this.store.write('settings', settings),
       });

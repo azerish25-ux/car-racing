@@ -51,6 +51,11 @@ export interface Settings {
   graphics: GraphicsOptions;
   colorblind: boolean;
   highContrast: boolean;
+  /** Race-radio captions (D085) and engineer chatter; race control always shows. */
+  captions: boolean;
+  engineerRadio: boolean;
+  /** Master reduced-motion switch: no camera vibration or motion blur. */
+  reducedMotion: boolean;
   /** Skip race-day briefing/preparation on ordinary race entry. */
   quickStart: boolean;
   quality: Quality;
@@ -67,6 +72,9 @@ export const DEFAULT_SETTINGS: Settings = {
   graphics: graphicsPreset('medium'),
   colorblind: false,
   highContrast: false,
+  captions: true,
+  engineerRadio: true,
+  reducedMotion: false,
   quickStart: false,
   quality: 'medium',
   volume: 0.45,
@@ -113,6 +121,9 @@ export function validateSettings(v: unknown): Settings {
     graphics: validateGraphics(version >= 4 ? p.graphics : undefined, quality),
     colorblind: p.colorblind === true,
     highContrast: p.highContrast === true,
+    captions: p.captions !== false,
+    engineerRadio: p.engineerRadio !== false,
+    reducedMotion: p.reducedMotion === true,
     quickStart: p.quickStart === true,
     quality,
     volume: finite(p.volume, 0.45, 0, 1),
