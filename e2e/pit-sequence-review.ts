@@ -180,7 +180,8 @@ export async function verifyRecordedPitSequence(page: Page, info: TestInfo, erro
   const recorded = await diagnostics(page);
   expect(approachTime).toBeGreaterThanOrEqual(recorded.replayStart);
   expect(recorded.replayStart + recorded.replaySeconds).toBeGreaterThan(exit.time + 0.5);
-  await page.locator('#replaySpeed').selectOption('0.25');
+  const [speed] = await page.locator('#replaySpeed').selectOption({ label: '¼×' });
+  expect(Number(speed)).toBe(0.25);
   await seek(page, approachTime - recorded.replayStart);
   await screenshot(page, info, 'pit-replay-approach.png');
   const sequence = new PitSequence();
