@@ -88,6 +88,8 @@ import {
 } from './storage/data.ts';
 import { TelemetryExport } from './storage/telemetry-export.ts';
 import { SessionReplay } from './storage/replay-pages.ts';
+import { RadioArbiter } from './core/radio.ts';
+import { RadioCaption } from './ui/radio-caption.ts';
 import { TelemetryRecorder } from './storage/recorders.ts';
 import { clamp } from './core/math.ts';
 import {
@@ -191,6 +193,8 @@ export class GameApp {
   private overtakePress = false;
   private replayHud!: ReplayHud;
   private readonly replayDirector = new ReplayDirector();
+  private readonly radio = new RadioArbiter();
+  private radioCaption: RadioCaption;
   /** D31 flashback: used this session, choosing a point, waiting for the worker. */
   private flashbacks = 0;
   private flashbackMode = false;
@@ -264,6 +268,7 @@ export class GameApp {
       importSetup: (file) => void this.importSetup(file),
     });
     this.replayHud = new ReplayHud(element);
+    this.radioCaption = new RadioCaption(element);
     this.flashbackPanel = new FlashbackPanel(this.ui.get('replayBar'));
     const identity = this.ui.get('buildIdentity');
     identity.textContent = __APEX_SOURCE_COMMIT__
@@ -487,6 +492,8 @@ export class GameApp {
     this.frozenPhoto = null;
     this.captureRequested = false;
     this.sessionId = crypto.randomUUID();
+    this.radio.reset();
+    this.radioCaption.show(null);
     this.usedDemonstration = false;
     this.ui.closeModal();
     this.ui.telemetryModal.close();
@@ -798,11 +805,13 @@ export class GameApp {
     this.current = next;
     this.receivedAt = performance.now();
     if (this.state === 'driving') {
+      this.radioCaption.show(this.radio.observe(next, this.options.laps));
       this.programme.observe(next);
       this.observeTimeTrial(next);
       this.observeSession();
       if (next[H.PHASE] === 3) this.finish(next);
     }
+    if (this.state !== 'driving' && this.state !== 'paused') this.radioCaption.show(null);
     if (this.readyResolve) {
       this.readyResolve();
       this.readyResolve = null;
