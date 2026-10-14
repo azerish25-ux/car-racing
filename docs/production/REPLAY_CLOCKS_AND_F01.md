@@ -56,11 +56,15 @@ Timeout increases were rejected (masterplan §24.7).
 
 **Fixes.**
 
-* The gate releases an unrefreshed fence after `max(1 s, 4 × smoothed completion latency)`, capped at
-  10 s. Latency is learned only from continuously polled completions (a fence first looked at after
-  an idle period is not a sample) and widened on expiry, so a genuinely slow GPU converges without a
-  backlog. Unit regressions: `tests/gpu-frame-gate.test.ts` (never-refreshed fence; slow GPU; idle
-  observation).
+* After `max(1 s, 4 × smoothed completion latency)` (capped at 10 s) the gate **drains** with
+  `gl.finish()` and proceeds. A drain returns at once when only the status was stale and otherwise
+  waits for the real outstanding work, so at most one frame is ever in flight. Latency is learned
+  only from continuously polled completions and from drains that actually waited. Two intermediate
+  designs were rejected on evidence: a fixed 500 ms release, and an adaptive release that submitted
+  another frame — both let a software GPU queue work (a camera change then took over 60 s to
+  present; `completed` stalled while `submitted` grew). Unit regressions:
+  `tests/gpu-frame-gate.test.ts` (never-refreshed fence; slow GPU never two frames in flight; stale
+  drain is not a latency sample; idle observation).
 * The director follows the player's pit visit, else a rival stationary in service, before battles
   (`pitSubject`, `tests/replay-photo.test.ts`).
 * Independent replay-clock regression without rendering: `tests/replay-clock.test.ts` (advance,
