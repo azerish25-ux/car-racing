@@ -40,9 +40,9 @@ describe('bounded asynchronous GPU frame submissions', () => {
     gate.submittedFrame();
     state.wait = gl.TIMEOUT_EXPIRED;
     // A held replay submits nothing else; the status poll never changes.
-    for (let ms = 1; ms <= 600; ms++) {
+    for (let ms = 1; ms <= 1200; ms++) {
       clock.now = ms;
-      expect(gate.ready()).toBe(ms >= 500);
+      expect(gate.ready()).toBe(ms >= 1000);
       if (gate.diagnostics().expiredFences) break;
     }
     expect(gate.diagnostics()).toMatchObject({ pending: false, expiredFences: 1 });
@@ -52,6 +52,25 @@ describe('bounded asynchronous GPU frame submissions', () => {
     clock.now += 100;
     expect(gate.ready()).toBe(false);
   });
+  it('scales the release bound with a slow GPU so it never builds a backlog', () => {
+    const { gate, gl, state, clock } = fixture();
+    // Three frames that genuinely take 2 s each on a software GPU.
+    for (let i = 0; i < 3; i++) {
+      gate.submittedFrame();
+      state.wait = gl.TIMEOUT_EXPIRED;
+      clock.now += 2000;
+      state.wait = gl.CONDITION_SATISFIED;
+      expect(gate.ready()).toBe(true);
+    }
+    expect(gate.waitBoundMs).toBeCloseTo(8000, 6);
+    gate.submittedFrame();
+    state.wait = gl.TIMEOUT_EXPIRED;
+    clock.now += 5000;
+    expect(gate.ready()).toBe(false);
+    clock.now += 3001;
+    expect(gate.ready()).toBe(true);
+    expect(gate.diagnostics().expiredFences).toBe(1);
+  });
   it('permits the first frame and flushes a completion fence after its passes', () => {
     const { gate, gl, state } = fixture();
     expect(gate.ready()).toBe(true);
@@ -60,7 +79,7 @@ describe('bounded asynchronous GPU frame submissions', () => {
     expect(state.fences).toEqual([[gl.SYNC_GPU_COMMANDS_COMPLETE, 0]]);
     expect(state.flushes).toBe(1);
     expect(gate.diagnostics()).toEqual({
-      pending: true, submitted: 1, completed: 0, deferredCallbacks: 0, expiredFences: 0,
+      pending: true, submitted: 1, completed: 0, deferredCallbacks: 0, expiredFences: 0, latencyMs: 0,
     });
   });
 

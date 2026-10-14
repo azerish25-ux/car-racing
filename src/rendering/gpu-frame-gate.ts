@@ -7,8 +7,10 @@
  * itself withholds every draw (a held or seeking replay submits nothing
  * else), a zero-timeout poll can report TIMEOUT_EXPIRED indefinitely. That
  * deadlocked replay: playback and seeks waited forever for a fence nothing
- * would refresh. After `maxWaitMs` the fence is released and the frame
- * proceeds, so at most one extra submission per interval can be queued.
+ * would refresh. A fence is therefore released once it has waited both
+ * `minWaitMs` and four times the measured completion latency of recent
+ * frames: a deadlocked status cannot hold presentation forever, while a slow
+ * GPU that genuinely completes its frames is still never given a backlog.
  */
 export class GpuFrameGate {
   private fence: WebGLSync | null = null;
@@ -18,12 +20,18 @@ export class GpuFrameGate {
   private deferred = 0;
   private expired = 0;
   private fencedAt = 0;
+  /** Smoothed submit-to-observed-completion latency (ms); 0 until measured. */
+  private latency = 0;
 
   constructor(
     private readonly gl: WebGL2RenderingContext,
     private readonly now: () => number = () => performance.now(),
-    readonly maxWaitMs = 500,
+    readonly minWaitMs = 1000,
   ) {}
+  /** Current release bound for an unrefreshed fence (ms). */
+  get waitBoundMs() {
+    return Math.max(this.minWaitMs, 4 * this.latency);
+  }
 
   ready(): boolean {
     const gl = this.gl;
@@ -36,7 +44,7 @@ export class GpuFrameGate {
     if (!this.fence) return true;
     const result = gl.clientWaitSync(this.fence, 0, 0);
     if (result === gl.TIMEOUT_EXPIRED) {
-      if (this.now() - this.fencedAt < this.maxWaitMs) {
+      if (this.now() - this.fencedAt < this.waitBoundMs) {
         this.deferred++;
         return false;
       }
@@ -48,6 +56,8 @@ export class GpuFrameGate {
       this.release();
       throw new Error('Unable to check GPU frame completion');
     }
+    const elapsed = this.now() - this.fencedAt;
+    this.latency = this.latency ? this.latency * 0.8 + elapsed * 0.2 : elapsed;
     this.release();
     this.completed = this.submitted;
     return true;
@@ -82,6 +92,7 @@ export class GpuFrameGate {
       deferredCallbacks: this.deferred,
       /** Fences released by the time bound instead of observed completion. */
       expiredFences: this.expired,
+      latencyMs: this.latency,
     };
   }
 
