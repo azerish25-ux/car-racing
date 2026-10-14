@@ -30,10 +30,28 @@ function fixture() {
     deleteSync: (fence: WebGLSync) => state.deleted.push(fence),
     flush: () => state.flushes++,
   } as unknown as WebGL2RenderingContext;
-  return { gate: new GpuFrameGate(gl), gl, state };
+  const clock = { now: 0 };
+  return { gate: new GpuFrameGate(gl, () => clock.now), gl, state, clock };
 }
 
 describe('bounded asynchronous GPU frame submissions', () => {
+  it('never deadlocks on a fence whose status is not refreshed (F01)', () => {
+    const { gate, gl, state, clock } = fixture();
+    gate.submittedFrame();
+    state.wait = gl.TIMEOUT_EXPIRED;
+    // A held replay submits nothing else; the status poll never changes.
+    for (let ms = 1; ms <= 600; ms++) {
+      clock.now = ms;
+      expect(gate.ready()).toBe(ms >= 500);
+      if (gate.diagnostics().expiredFences) break;
+    }
+    expect(gate.diagnostics()).toMatchObject({ pending: false, expiredFences: 1 });
+    expect(state.deleted).toHaveLength(1);
+    // A fence that completes within the bound is still awaited normally.
+    gate.submittedFrame();
+    clock.now += 100;
+    expect(gate.ready()).toBe(false);
+  });
   it('permits the first frame and flushes a completion fence after its passes', () => {
     const { gate, gl, state } = fixture();
     expect(gate.ready()).toBe(true);
@@ -42,7 +60,7 @@ describe('bounded asynchronous GPU frame submissions', () => {
     expect(state.fences).toEqual([[gl.SYNC_GPU_COMMANDS_COMPLETE, 0]]);
     expect(state.flushes).toBe(1);
     expect(gate.diagnostics()).toEqual({
-      pending: true, submitted: 1, completed: 0, deferredCallbacks: 0,
+      pending: true, submitted: 1, completed: 0, deferredCallbacks: 0, expiredFences: 0,
     });
   });
 
