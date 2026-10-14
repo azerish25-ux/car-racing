@@ -49,21 +49,14 @@ import {
 import { F, H, carBase } from './simulation/protocol.ts';
 import { safetyCarPose } from './rendering/studio/safety-car.ts';
 import { RacingRenderer } from './rendering/renderer.ts';
-import { Interface, lapTime, shortTime } from './ui/interface.ts';
+import { Interface, shortTime } from './ui/interface.ts';
+import { ghostPose } from './core/ghost-lap.ts';
 import { selectedPitCompound } from './ui/race-day-hud.ts';
 import { ReplayDirector, ReplayHud } from './ui/replay-hud.ts';
 import { FlashbackPanel, flashbackAllowed } from './ui/flashback.ts';
 import { FLASHBACK } from './core/flashback.ts';
-import { insertLeaderboard, leaderboardKey } from './storage/leaderboard.ts';
-import { recordCategory } from './core/session-identity.ts';
-import {
-  GhostPlayer,
-  GhostRecorder,
-  ghostKey,
-  ghostPose,
-  validateGhost,
-  type GhostLap,
-} from './core/ghost-lap.ts';
+import { TimeTrialRecords } from './session/time-trial-records.ts';
+import { ReplayClock } from './session/replay-clock.ts';
 import {
   CHAMPIONSHIP_KEY,
   complete,
@@ -149,9 +142,11 @@ export class GameApp {
   private audio = new RacingAudio();
   private store = new SaveStore();
   /** Time Trial: records the player's laps and plays the saved PB as a ghost. */
-  private ghostRecorder: GhostRecorder | null = null;
-  private ghostPlayer: GhostPlayer | null = null;
-  private readonly ghostPoseScratch = ghostPose();
+  private readonly records = new TimeTrialRecords({
+    store: this.store,
+    toast: (message) => this.ui.toast(message),
+    playerName: () => this.ui.playerName,
+  });
   /** Saved championship, and the calendar round the current weekend belongs to. */
   private championship: Championship | null = null;
   private championshipRound = -1;
@@ -214,12 +209,9 @@ export class GameApp {
   private telemetry: TelemetryRecorder | null = null;
   private replayA: Float32Array | null = null;
   private replayB: Float32Array | null = null;
-  private replayTime = 0;
-  private replayRate = 1;
-  private replayPlaying = true;
+  private readonly replayClock = new ReplayClock();
   /** Replay-clock witness (F01): callbacks that could not advance playback. */
   private replayStall = { buffering: 0, gpuDeferred: 0, lastBufferedTarget: -1 };
-  private replaySeekPending = false;
   private replayReturn: State = 'paused';
   private comparison = false;
   private liveSurface: {
@@ -251,7 +243,7 @@ export class GameApp {
         this.seekReplay(value);
       },
       replaySpeed: (value) => {
-        if (Number.isFinite(value)) this.replayRate = clamp(value, 0.25, 2);
+        this.replayClock.setRate(value);
       },
       previewAudio: (settings) => {
         void this.audio
@@ -690,108 +682,17 @@ export class GameApp {
   }
   /** Load this circuit's saved personal-best ghost for a Time Trial session. */
   private async prepareTimeTrial(generation: number) {
-    this.ghostRecorder = null;
-    this.ghostPlayer = null;
     this.ui.timeTrial = null;
     this.renderer?.setGhost(null);
-    if (this.options.mode !== 'time-trial') return;
-    const circuit = this.track.circuit.id,
-      length = this.track.length;
-    const category = recordCategory(this.options);
-    this.ghostRecorder = new GhostRecorder({
-      circuit,
-      trackLength: length,
-      assist: this.options.assist,
-      compound: this.options.compound,
-      weather: this.options.weather,
-      vehicle: category.vehicle,
-    });
-    let saved: GhostLap | null = null;
-    try {
-      saved = validateGhost(
-        await this.store.read(ghostKey(circuit, category.vehicle)),
-        circuit,
-        length,
-        category,
-      );
-    } catch (error) {
-      this.ui.toast(`Saved ghost unavailable: ${String(error)}`);
-    }
-    if (generation !== this.generation) return;
-    this.ghostPlayer = saved ? new GhostPlayer(saved) : null;
-    this.ui.timeTrial = { best: saved?.lapTime ?? 0, delta: null };
-    this.ui.toast(
-      saved
-        ? `TIME TRIAL · PERSONAL BEST ${lapTime(saved.lapTime)} · GHOST LOADED`
-        : 'TIME TRIAL · SET A VALID LAP TO SAVE YOUR GHOST',
-    );
-  }
-  /** Offer each completed lap; keep it only if it beats the saved ghost. */
-  private observeTimeTrial(frame: Float32Array) {
-    if (!this.ghostRecorder) return;
-    const lap = this.ghostRecorder.observe(frame, !this.auto);
-    const trial = this.ui.timeTrial;
-    if (trial) {
-      const o = carBase(0),
-        running = frame[o + F.LAP_TIME] > 0 && frame[o + F.IN_PIT] === 0;
-      trial.delta =
-        this.ghostPlayer && running
-          ? this.ghostPlayer.delta(frame[o + F.S], frame[o + F.LAP_TIME])
-          : null;
-    }
-    if (lap) this.recordLeaderboard(lap.circuit, lap.lapTime);
-    if (!lap || (this.ghostPlayer && lap.lapTime >= this.ghostPlayer.lap.lapTime)) return;
-    const improvement = this.ghostPlayer ? this.ghostPlayer.lap.lapTime - lap.lapTime : 0;
-    this.ghostPlayer = new GhostPlayer(lap);
-    if (trial) trial.best = lap.lapTime;
-    const circuit = lap.circuit;
-    void this.store
-      .write(ghostKey(circuit, lap.vehicle), lap)
-      .then(() =>
-        this.ui.toast(
-          `PERSONAL BEST ${lapTime(lap.lapTime)}${improvement > 0 ? ` · −${improvement.toFixed(3)} S` : ''} · GHOST SAVED`,
-        ),
-      )
-      .catch((error) => this.ui.toast(`Ghost not saved: ${String(error)}`));
-  }
-  /** D31: every valid time-trial lap enters the circuit's local top ten. */
-  private recordLeaderboard(circuit: string, time: number) {
-    const category = recordCategory(this.options);
-    const key = leaderboardKey(circuit, category.vehicle, category.physics);
-    const entry = {
-      lapTime: time,
-      driver: this.ui.playerName,
-      assist: this.options.assist,
-      compound: this.options.compound,
-      weather: this.options.weather,
-      session: this.sessionId,
-    };
-    void this.store
-      .read(key)
-      .then((stored) => {
-        const { board, rank } = insertLeaderboard(stored, entry);
-        if (!rank) return;
-        return this.store
-          .write(key, board)
-          .then(() => this.ui.toast(`P${rank} ON THE LOCAL LEADERBOARD · ${lapTime(time)}`));
-      })
-      .catch((error) => this.ui.toast(`Leaderboard not saved: ${String(error)}`));
+    await this.records.prepare(this.options, this.track, () => generation === this.generation);
+    if (generation === this.generation) this.ui.timeTrial = this.records.trial;
   }
   /** Pose the ghost at the presented lap time (same interpolation as the car). */
   private presentGhost(a: Float32Array, b: Float32Array, alpha: number) {
     if (!this.renderer) return;
-    const player = this.ghostPlayer;
-    if (!player || (this.state !== 'driving' && this.state !== 'paused')) {
-      this.renderer.setGhost(null);
-      return;
-    }
-    const o = carBase(0),
-      from = a[o + F.LAP_TIME],
-      to = b[o + F.LAP_TIME];
-    // A lap reset between snapshots starts the ghost again at the line.
-    const time = to >= from ? from + (to - from) * alpha : to;
-    const shown = time > 0 && b[o + F.IN_PIT] === 0 && player.poseAt(time, this.ghostPoseScratch);
-    this.renderer.setGhost(shown ? this.ghostPoseScratch : null);
+    this.renderer.setGhost(
+      this.state === 'driving' || this.state === 'paused' ? this.records.ghostAt(a, b, alpha) : null,
+    );
   }
   private accept(buffer: ArrayBuffer) {
     const next = new Float32Array(buffer);
@@ -807,7 +708,7 @@ export class GameApp {
     if (this.state === 'driving') {
       this.radioCaption.show(this.radio.observe(next, this.options.laps));
       this.programme.observe(next);
-      this.observeTimeTrial(next);
+      this.records.observe(next, !this.auto, this.options, this.sessionId);
       this.observeSession();
       if (next[H.PHASE] === 3) this.finish(next);
     }
@@ -873,8 +774,8 @@ export class GameApp {
     if (
       this.state === 'replay' &&
       !shouldDrawReplay({
-        playing: this.replayPlaying,
-        seekPending: this.replaySeekPending,
+        playing: this.replayClock.playing,
+        seekPending: this.replayClock.seekPending,
         covered: this.ui.telemetryModal.open || this.ui.modal.open,
         invalidated: this.renderedState !== this.state,
       })
@@ -909,17 +810,11 @@ export class GameApp {
       b = this.current,
       alpha = clamp((time - this.receivedAt) / Math.max(8, (b[H.TIME] - a[H.TIME]) * 1000), 0, 1);
     if (this.state === 'replay' && this.replay && this.replayA && this.replayB) {
-      const targetTime =
-        this.replayPlaying &&
-        !this.replaySeekPending &&
-        !this.ui.telemetryModal.open &&
-        !this.ui.modal.open &&
-        !document.hidden
-          ? Math.min(
-              this.replay.duration,
-              this.replayTime + Math.min(wallDelta, 0.5) * this.replayRate,
-            )
-          : this.replayTime;
+      const targetTime = this.replayClock.target(
+        wallDelta,
+        this.replay.duration,
+        !this.ui.telemetryModal.open && !this.ui.modal.open && !document.hidden,
+      );
       const fraction = this.replay.sample(targetTime, this.replayA, this.replayB);
       if (fraction === null) {
         this.replayStall.buffering++;
@@ -928,9 +823,7 @@ export class GameApp {
         this.audio.stop();
         return;
       }
-      this.replayTime = targetTime;
-      this.replaySeekPending = false;
-      if (this.replayTime >= this.replay.duration) this.replayPlaying = false;
+      this.replayClock.presented(targetTime, this.replay.duration);
       alpha = fraction;
       const surface = this.replay.surfaceState;
       if (surface.water.length && surface.time !== this.appliedReplaySurfaceTime) {
@@ -943,15 +836,15 @@ export class GameApp {
       const seek = this.ui.get('replaySeek') as HTMLInputElement,
         seekMax = String(this.replay.duration),
         seekMin = String(this.replayFloor()),
-        seekValue = String(this.replayTime);
+        seekValue = String(this.replayClock.position);
       if (seek.max !== seekMax) seek.max = seekMax;
       if (seek.min !== seekMin) seek.min = seekMin;
       if (seek.value !== seekValue) seek.value = seekValue;
       this.ui.setText(
         'replayTime',
-        `${shortTime(this.replayTime)} / ${shortTime(this.replay.duration)}`,
+        `${shortTime(this.replayClock.position)} / ${shortTime(this.replay.duration)}`,
       );
-      this.ui.setText('replayPlay', this.replayPlaying ? 'PAUSE' : 'PLAY');
+      this.ui.setText('replayPlay', this.replayClock.playing ? 'PAUSE' : 'PLAY');
     }
     if (this.state === 'photo' && this.frozenPhoto) {
       a = this.frozenPhoto;
@@ -1112,7 +1005,7 @@ export class GameApp {
       !this.ui.telemetryModal.open &&
         !this.ui.modal.open &&
         !document.hidden &&
-        (this.state === 'driving' || (this.state === 'replay' && this.replayPlaying)),
+        (this.state === 'driving' || (this.state === 'replay' && this.replayClock.playing)),
       this.renderer.audioView.value,
       this.state === 'driving' && !this.auto,
     );
@@ -1149,17 +1042,16 @@ export class GameApp {
     this.referenceSession.interrupt('Playback suspended.');
     if (this.state === 'driving') this.pause();
     else if (this.state === 'replay') {
-      this.replayPlaying = false;
+      this.replayClock.playing = false;
       this.audio.stop();
       this.ui.setText('replayPlay', 'PLAY');
     }
   }
   private seekReplay(value: number) {
     if (this.state !== 'replay' || !this.replay || !Number.isFinite(value)) return;
-    this.replayTime = clamp(value, this.replayFloor(), this.replay.duration);
     // Draw the requested position once before advancing, including after an
     // asynchronous page read. A seek is not a catch-up interval for effects.
-    this.replaySeekPending = true;
+    this.replayClock.seek(value, this.replayFloor(), this.replay.duration);
     this.renderer?.reset();
     this.audio.stop();
   }
@@ -1338,7 +1230,7 @@ export class GameApp {
     if (this.state === 'paused') this.ui.pause();
     else if (this.state === 'results' && this.current) this.ui.results(this.current);
     else if (this.state === 'replay') {
-      this.replayPlaying = false;
+      this.replayClock.playing = false;
       this.input.setEnabled(true);
       this.ui.setText('replayPlay', 'PLAY');
     }
@@ -1516,7 +1408,7 @@ export class GameApp {
     this.ui.telemetryModal.close();
     this.state = 'replay';
     this.appliedReplaySurfaceTime = -Infinity;
-    this.replayPlaying = true;
+    this.replayClock.playing = true;
     this.seekReplay(0);
     // Set the real range before exposing the controls. The first GPU frame
     // may be deferred; the HTML default max=1 would clamp early seeks.
@@ -1549,7 +1441,7 @@ export class GameApp {
     this.enterReplay();
     if ((this.state as State) !== 'replay') return;
     this.flashbackMode = true;
-    this.replayPlaying = false;
+    this.replayClock.playing = false;
     this.seekReplay(this.replay.duration);
     this.flashbackPanel.show(true, FLASHBACK.perRace - this.flashbacks);
   }
@@ -1586,7 +1478,7 @@ export class GameApp {
       this.flashbackMode = false;
       this.flashbackPanel.show(false);
     }
-    this.replayPlaying = false;
+    this.replayClock.playing = false;
     this.audio.stop();
     this.state = this.replayReturn === 'results' ? 'results' : 'paused';
     if (this.liveSurface)
@@ -1716,7 +1608,7 @@ export class GameApp {
           this.ui.closeModal();
           if (this.state === 'paused') this.resume();
           else if (this.state === 'replay') {
-            this.replayPlaying = true;
+            this.replayClock.playing = true;
             this.input.setEnabled(true);
           } else
             this.ui.toast(
@@ -1994,9 +1886,10 @@ export class GameApp {
         break;
       case 'replayPlay':
         if (this.state !== 'replay') break;
-        if (this.replay && this.replayTime >= this.replay.duration) this.seekReplay(0);
-        this.replayPlaying = !this.replayPlaying;
-        if (!this.replayPlaying) this.audio.stop();
+        if (this.replay && this.replayClock.position >= this.replay.duration)
+          this.seekReplay(0);
+        this.replayClock.playing = !this.replayClock.playing;
+        if (!this.replayClock.playing) this.audio.stop();
         break;
       case 'telemetry':
         if (this.ui.telemetryModal.open) break;
@@ -2469,7 +2362,7 @@ export class GameApp {
       },
       auto: this.auto,
       timeTrial: {
-        ghostLap: this.ghostPlayer?.lap.lapTime ?? 0,
+        ghostLap: this.records.player?.lap.lapTime ?? 0,
         ghostVisible: this.renderer?.ghostVisible() ?? false,
         delta: this.ui.timeTrial?.delta ?? null,
       },
@@ -2482,9 +2375,9 @@ export class GameApp {
       replaySamples: this.replay?.count ?? 0,
       replayResidentBytes: this.replay?.bytes ?? 0,
       replayError: this.replay?.error ?? null,
-      replayPosition: this.replayTime,
-      replayPlaying: this.replayPlaying,
-      replaySeekPending: this.replaySeekPending,
+      replayPosition: this.replayClock.position,
+      replayPlaying: this.replayClock.playing,
+      replaySeekPending: this.replayClock.seekPending,
       replayStall: { ...this.replayStall },
       replayPages: this.replay?.diagnostics() ?? null,
       replaySurfaceTime: this.replay?.surfaceState.time ?? -1,
