@@ -268,6 +268,19 @@ export interface RaceReward {
   demonstration: boolean;
   penalties: number;
 }
+/** The visible calculation behind a race payment (masterplan §12.3):
+ * completion, improvement over the field and clean racing, not only wins. */
+export function rewardIncome(result: Pick<RaceReward, 'position' | 'cars' | 'penalties'>) {
+  const lines = [
+    { label: 'Classified finish', amount: 9000 },
+    {
+      label: `Cars beaten (${result.cars - result.position} × 1,500)`,
+      amount: (result.cars - result.position) * 1500,
+    },
+    { label: 'Clean race (no penalties)', amount: result.penalties === 0 ? 2000 : 0 },
+  ];
+  return { lines, total: lines.reduce((sum, line) => sum + line.amount, 0) };
+}
 export function rewardRace(current: TeamState, result: RaceReward): TeamState {
   if (!result.classified || result.demonstration || current.paidSessions.includes(result.session))
     return current;
@@ -293,11 +306,7 @@ export function rewardRace(current: TeamState, result: RaceReward): TeamState {
   next.reputation = Math.min(100, next.reputation + (result.position <= 3 ? 4 : 2));
   next.paidSessions.push(result.session);
   next.paidSessions = next.paidSessions.slice(-100);
-  book(
-    next,
-    `Round ${next.rounds}: P${result.position} classified`,
-    9000 + (result.cars - result.position) * 1500 + (result.penalties === 0 ? 2000 : 0),
-  );
+  book(next, `Round ${next.rounds}: P${result.position} classified`, rewardIncome(result).total);
   next.briefing = `Round ${next.rounds}: P${result.position}. ${result.penalties === 0 ? 'A clean result. The workshop can build on this.' : 'Points on the board, but race-control penalties cost us. Review the telemetry.'} ${next.points >= next.rivalPoints ? 'We are matching or leading Meridian in the local rivalry.' : 'Meridian still leads the local rivalry.'}`;
   return next;
 }

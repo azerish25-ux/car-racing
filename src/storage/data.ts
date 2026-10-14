@@ -186,6 +186,40 @@ export class SaveStore {
       r.onerror = () => reject(r.error);
     });
   }
+  /** Keep the previous value as `key:backup` and write the new one in the
+   * same transaction: an interrupted save leaves either the old pair or the
+   * new pair, never a half-written profile without a recovery copy. */
+  async writeWithBackup(key: string, value: unknown) {
+    const db = await this.open();
+    return new Promise<void>((resolve, reject) => {
+      const tx = db.transaction('saved', 'readwrite'),
+        store = tx.objectStore('saved'),
+        previous = store.get(key);
+      previous.onsuccess = () => {
+        if (previous.result !== undefined) store.put(previous.result, backupKey(key));
+        store.put(value, key);
+      };
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+      tx.onabort = () => reject(tx.error ?? new Error('Save aborted'));
+    });
+  }
+  /** Read `key`, falling back to its backup when the primary is unusable. */
+  async readRecovered<T>(key: string, validate: (value: unknown) => T | null) {
+    const primary = await this.read(key);
+    const needsBackup = (() => {
+      try {
+        return primary === undefined || validate(primary) === null;
+      } catch {
+        return true;
+      }
+    })();
+    return recoverSave(
+      primary,
+      needsBackup ? await this.read(backupKey(key)) : undefined,
+      validate,
+    );
+  }
   async write(key: string, value: unknown) {
     const db = await this.open();
     return new Promise<void>((resolve, reject) => {
@@ -197,6 +231,29 @@ export class SaveStore {
     });
   }
 }
+/** Choose a usable save (WP24 / D099): the primary when it validates, else
+ * the backup written before the last overwrite. `validate` may throw or
+ * return null for unusable data. Never invents progress. */
+export function recoverSave<T>(
+  primary: unknown,
+  backup: unknown,
+  validate: (value: unknown) => T | null,
+): { value: T | null; recovered: boolean; reason: string | null } {
+  const attempt = (value: unknown): [T | null, string | null] => {
+    if (value === undefined || value === null) return [null, 'missing'];
+    try {
+      const result = validate(value);
+      return result === null ? [null, 'invalid'] : [result, null];
+    } catch (error) {
+      return [null, error instanceof Error ? error.message : String(error)];
+    }
+  };
+  const [main, reason] = attempt(primary);
+  if (main !== null) return { value: main, recovered: false, reason: null };
+  const [old] = attempt(backup);
+  return { value: old, recovered: old !== null, reason: primary === undefined ? null : reason };
+}
+export const backupKey = (key: string) => `${key}:backup`;
 export function downloadBlob(data: Blob, name: string) {
   const url = URL.createObjectURL(data),
     a = document.createElement('a');

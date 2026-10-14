@@ -1,3 +1,5 @@
+import { recoverSave } from '../src/storage/data.ts';
+import { rewardIncome } from '../src/storage/team-career.ts';
 import { foundingBriefing } from '../src/storage/team-career.ts';
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_SETUP } from '../src/simulation/config.ts';
@@ -166,5 +168,40 @@ describe('F11 data-driven onboarding text', () => {
       'A new team. 2 circuits: Aurel and Vellamar. Earn your first classified finish.',
     );
     expect(foundingBriefing(['AUREL'])).toMatch(/One circuit: Aurel\./);
+  });
+});
+
+describe('WP23/WP24 transparent rewards and save recovery', () => {
+  it('shows the calculation that sums to the booked income', () => {
+    const income = rewardIncome({ position: 3, cars: 8, penalties: 0 });
+    expect(income.total).toBe(9000 + 5 * 1500 + 2000);
+    expect(income.lines.map((l) => l.amount)).toEqual([9000, 7500, 2000]);
+  });
+  it('falls back to the backup for a corrupt primary, never inventing progress', () => {
+    const validate = (v: unknown) =>
+      v && typeof v === 'object' && 'week' in v ? (v as { week: number }) : null;
+    expect(recoverSave({ week: 4 }, { week: 3 }, validate)).toEqual({
+      value: { week: 4 },
+      recovered: false,
+      reason: null,
+    });
+    expect(recoverSave('garbage', { week: 3 }, validate)).toMatchObject({
+      value: { week: 3 },
+      recovered: true,
+      reason: 'invalid',
+    });
+    const throwing = () => {
+      throw new Error('bad version');
+    };
+    expect(recoverSave({ week: 4 }, undefined, throwing)).toMatchObject({
+      value: null,
+      recovered: false,
+      reason: 'bad version',
+    });
+    expect(recoverSave(undefined, undefined, validate)).toEqual({
+      value: null,
+      recovered: false,
+      reason: null,
+    });
   });
 });
