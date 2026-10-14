@@ -63,7 +63,9 @@ describe('front-end showroom and speed tunnel', () => {
     expect(css).toContain('--apex-flame: #fc4854;');
     const template = readFileSync('src/ui/interface.ts', 'utf8');
     const actions = template.match(/<div class="menu-actions"[^>]*>(.*?)<\/div>/)![1];
-    expect(actions.match(/<button data-action=/g)).toHaveLength(6);
+    // Player actions only, including the EVENTS hub (masterplan §21.4).
+    expect(actions.match(/<button data-action=/g)).toHaveLength(7);
+    expect(actions).toContain('data-action="events"');
     for (const dev of ['references', 'sessionReview', 'performance', 'visualReview'])
       expect(actions).not.toContain(`data-action="${dev}"`);
     // Developer tools are rendered only inside developer-mode branches.

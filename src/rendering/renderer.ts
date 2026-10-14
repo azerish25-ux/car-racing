@@ -1234,7 +1234,7 @@ export class RacingRenderer {
       this.cars[id].update(a, b, base, alpha, dt, time, false);
     }
     // Non-Formula definitions are drawn by their own (provisional) bodies.
-    this.touringShells.update(b, this.cars);
+    this.touringShells?.update(b, this.cars);
     this.ghost?.update(
       this.ghostActive && !replay && !menu && !this.photo ? this.ghostPose : null,
       this.camera,
