@@ -45,7 +45,10 @@ export class SafetyCarDirector {
   deployments = 0;
   private obstructed = 0;
   private clear = 0;
-  constructor(readonly length: number) {}
+  constructor(
+    readonly length: number,
+    private readonly pitEntry: number = SAFETY_CAR.pitEntry,
+  ) {}
   get neutralised() {
     return this.phase !== SC_PHASE.NONE;
   }
@@ -93,7 +96,7 @@ export class SafetyCarDirector {
           ? Math.min(target, this.speed + SAFETY_CAR.accel * dt)
           : Math.max(target, this.speed - SAFETY_CAR.braking * dt);
       const last = this.s,
-        entry = length - SAFETY_CAR.pitEntry;
+        entry = length - this.pitEntry;
       this.s = mod(this.s + this.speed * dt, length);
       const travel = mod(this.s - last, length);
       if (this.phase === SC_PHASE.IN_THIS_LAP && mod(entry - last, length) <= travel) {

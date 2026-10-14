@@ -718,10 +718,10 @@ export class CircuitScene {
           );
           panel.rotation.y = -Math.PI / 2;
         }
-        const boxS = 102 + i * 7,
+        const boxS = this.track.boxS(i),
           mark = this.track.at(boxS, trackPoint());
         const painting = new T.Group();
-        painting.position.copy(this.at(boxS, 24.1, 0.016));
+        painting.position.copy(this.at(boxS, this.track.boxLateral(), 0.016));
         painting.rotation.y = Math.atan2(mark.tx, mark.tz);
         this.props.add(painting);
         const yellow = new T.MeshBasicMaterial({ color: 0xe7c969 });

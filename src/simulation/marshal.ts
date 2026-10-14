@@ -1,5 +1,6 @@
 import { mod } from '../core/math.ts';
 import type { Vehicle } from './vehicle.ts';
+import { STANDARD_PIT, type PitLaneDefinition } from './circuits.ts';
 
 /** Original session rules, not a claim of FIA regulation compliance. Distances
  * are metres, speeds m/s and time seconds. A yellow zone extends around an
@@ -33,9 +34,13 @@ interface Incident {
   severity: number;
   clearedFor: number;
 }
-export function pitSpeedZone(s: number, length: number): boolean {
+export function pitSpeedZone(
+  s: number,
+  length: number,
+  pit: Pick<PitLaneDefinition, 'limitBefore' | 'limitAfter'> = STANDARD_PIT,
+): boolean {
   const station = mod(s, length);
-  return station > length - 160 || station < 220;
+  return station > length - pit.limitBefore || station < pit.limitAfter;
 }
 export function yellowFlag(flag: number): boolean {
   return flag === FLAG.YELLOW || flag === FLAG.DOUBLE_YELLOW;
@@ -69,6 +74,7 @@ export class MarshalControl {
     readonly length: number,
     readonly count: number,
     private readonly penalize: (car: number, seconds: number, code: string) => void,
+    private readonly pit: PitLaneDefinition = STANDARD_PIT,
   ) {
     if (
       !Number.isFinite(length) ||
@@ -198,7 +204,7 @@ export class MarshalControl {
         this.pitClock[id] = 0;
         this.pitPenalized[id] = 0;
       } else if (
-        pitSpeedZone(car.s, this.length) &&
+        pitSpeedZone(car.s, this.length, this.pit) &&
         car.speed > MARSHAL.pitSpeed + MARSHAL.pitTolerance
       ) {
         this.pitClock[id] += dt;

@@ -114,10 +114,7 @@ export class CollisionSolver {
             .rotate(this.corner.set(side * 0.94, 0, end * 2.5), this.corner)
             .add(a.body.position);
           const lateral = track.nearest(this.corner.x, this.corner.z, trackPos);
-          const boundary =
-            lateral < 0
-              ? trackPos.width + 11
-              : Math.max(trackPos.width + 11, track.pitOffset(trackPos.s) + 5);
+          const boundary = track.boundaryAt(trackPos, Math.sign(lateral));
           const penetration = Math.abs(lateral) - boundary;
           if (penetration > deepest) {
             deepest = penetration;

@@ -9,7 +9,7 @@ import {
   advanceWater,
   type WeatherKeyframe,
 } from './weather.ts';
-import { AUREL, type CircuitDefinition } from './circuits.ts';
+import { AUREL, STANDARD_PIT, type CircuitDefinition, type PitLaneDefinition } from './circuits.ts';
 export const TRACK_NAME = AUREL.name,
   CELL_ROWS = 512,
   CELL_COLS = 7;
@@ -93,6 +93,8 @@ export class Track {
   readonly drainage = new Float32Array(CELL_ROWS * CELL_COLS);
   readonly hash = new Map<string, number[]>();
   readonly length: number;
+  /** Venue pit lane/grid data (WP10). */
+  readonly pit: PitLaneDefinition;
   private contactMesh: TrackContactMesh | null = null;
   cast(origin: Vec3, down: Vec3, maximum: number, out: SurfaceSample) {
     this.contactMesh ??= new TrackContactMesh(this);
@@ -113,6 +115,7 @@ export class Track {
     readonly circuit: CircuitDefinition = AUREL,
   ) {
     const DESIGN = circuit.design;
+    this.pit = circuit.pit ?? STANDARD_PIT;
     this.weather = new WeatherTimeline(keyframes);
     this.weather.sample(0, this);
     const count = 1536;
@@ -275,26 +278,63 @@ export class Track {
     this.at(bestS, out);
     return (x - out.x) * out.nx + (z - out.z) * out.nz;
   }
+  /** Signed lateral position of the pit-lane centre (0 away from the lane). */
   pitOffset(s: number) {
+    const p = this.pit;
     s = mod(s, this.length);
-    if (s > this.length - 220) return 22 * smooth(this.length - 220, this.length - 100, s);
-    if (s < 215) return 22;
-    if (s < 330) return 22 * (1 - smooth(215, 330, s));
-    return 0;
+    let unsigned = 0;
+    if (s > this.length - p.divergeStart)
+      unsigned = p.offset * smooth(this.length - p.divergeStart, this.length - p.divergeEnd, s);
+    else if (s < p.mergeStart) unsigned = p.offset;
+    else if (s < p.mergeEnd) unsigned = p.offset * (1 - smooth(p.mergeStart, p.mergeEnd, s));
+    return p.side * unsigned;
+  }
+  /** Lateral distance from the centreline toward the pit side (positive on it). */
+  pitSideLateral(lateral: number) {
+    return this.pit.side * lateral;
   }
   boundary(s: number, side: number) {
     const p = this.at(s, trackPoint());
-    return side < 0 ? p.width + 11 : Math.max(p.width + 11, this.pitOffset(s) + 5);
+    return side !== this.pit.side
+      ? p.width + 11
+      : Math.max(p.width + 11, Math.abs(this.pitOffset(s)) + 5);
+  }
+  /** Barrier distance at an already-resolved track point (no allocation). */
+  boundaryAt(p: TrackPoint, side: number) {
+    return side !== this.pit.side
+      ? p.width + 11
+      : Math.max(p.width + 11, Math.abs(this.pitOffset(p.s)) + 5);
   }
   isPitSection(s: number) {
-    return s > this.length - 190 || s < 300;
+    return s > this.length - this.pit.sectionBefore || s < this.pit.sectionAfter;
+  }
+  /** Pit-lane speed-limited zone (lap metres, wraps through the line). */
+  pitSpeedZone(s: number) {
+    const station = mod(s, this.length);
+    return station > this.length - this.pit.limitBefore || station < this.pit.limitAfter;
+  }
+  /** Lap distance of car `id`'s garage box. */
+  boxS(id: number) {
+    return this.pit.firstBox + id * this.pit.boxSpacing;
+  }
+  /** Signed lateral of the garage boxes. */
+  boxLateral() {
+    return this.pit.side * this.pit.boxLateral;
+  }
+  /** Lap distance where the pit-entry commitment line is crossed. */
+  pitEntryS() {
+    return this.length - this.pit.entry;
+  }
+  /** Is a pit lane with service at `s` and lateral `l`? (shared by contact and render). */
+  inPitLane(s: number, l: number) {
+    const offset = this.pitOffset(s);
+    return this.isPitSection(s) && Math.abs(offset) > 3 && Math.abs(l - offset) < 3.6;
   }
   sample(x: number, z: number, out: SurfaceSample): SurfaceSample {
     const p = this.queryPoint,
       l = this.nearest(x, z, p),
       a = Math.abs(l),
-      pitOffset = this.pitOffset(p.s),
-      pit = this.isPitSection(p.s) && pitOffset > 3 && Math.abs(l - pitOffset) < 3.6;
+      pit = this.inPitLane(p.s, l);
     let surface: number = SURFACE.ASPHALT,
       grip = 1,
       resistance = 0.015,

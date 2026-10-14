@@ -199,7 +199,7 @@ export class DriverBrain {
       this.ers = 1;
       this.decision = this.tireCare > 0.2 ? 'TIRE MANAGEMENT' : 'BALANCED';
     }
-    if (!car.inPit && !car.finishTime && !car.retired && car.s < track.length - 250) {
+    if (!car.inPit && !car.finishTime && !car.retired && car.s < track.length - track.pit.exitBefore) {
       const compound = car.tires[0].compound;
       const wrongWet = water > 0.18 && compound !== 'intermediate' && compound !== 'wet';
       const wrongDry = water < 0.05 && (compound === 'intermediate' || compound === 'wet');

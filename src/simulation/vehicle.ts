@@ -1,6 +1,6 @@
 import { RoadContactFrame } from './road-contact.ts';
 import { SkidContact, SKID_CONTACT } from './skid-contact.ts';
-import { MARSHAL, pitSpeedZone } from './marshal.ts';
+import { MARSHAL } from './marshal.ts';
 import { FrictionClutch } from './clutch.ts';
 import { DebrisPool } from './damage.ts';
 import { approach, clamp, G, lerp, Vec3 } from '../core/math.ts';
@@ -198,7 +198,7 @@ export class Vehicle {
     this.throttle = clamp(this.input.throttle, 0, 1);
     this.brake = clamp(this.input.brake, 0, 1);
     // The automatic limiter reduces requested power, never clamps body velocity.
-    if (this.inPit && pitSpeedZone(this.s, track.length))
+    if (this.inPit && track.pitSpeedZone(this.s))
       this.throttle *= clamp((MARSHAL.pitSpeed - this.speed) / 0.8, 0, 1);
     if (this.retired) {
       this.throttle = 0;

@@ -179,8 +179,11 @@ export class RaceDirector {
     this.greenAt = 5.6 + new Random(options.seed).next() * 0.9;
     this.laps = cars.map((c) => new LapTracker(track.length, c.s));
     this.order = cars.map((c) => c.id);
-    this.control = new MarshalControl(track.length, cars.length, (car, seconds, code) =>
-      this.penalize(car, seconds, code),
+    this.control = new MarshalControl(
+      track.length,
+      cars.length,
+      (car, seconds, code) => this.penalize(car, seconds, code),
+      track.pit,
     );
     this.drs = new DrsControl(
       track.circuit.drsZones,
@@ -188,7 +191,7 @@ export class RaceDirector {
       cars.length,
       cars.map((c) => c.s),
     );
-    this.safetyCar = new SafetyCarDirector(track.length);
+    this.safetyCar = new SafetyCarDirector(track.length, track.pit.entry);
     this.sectorStatus = new Uint8Array(cars.length * 3);
     this.stintStart = new Int32Array(cars.length);
     this.bestSector = new Float64Array(cars.length * 3);
@@ -419,11 +422,11 @@ export function updatePit(
   dt: number,
   traffic: readonly Vehicle[] = [],
 ) {
-  const box = 102 + car.id * 7;
-  const entry = track.length - 210;
+  const box = track.boxS(car.id);
+  const entry = track.pitEntryS();
   const crossedEntry = car.pitLastS < entry && car.s >= entry && car.s - car.pitLastS < 15;
   car.pitLastS = car.s;
-  if (car.pitRequested && !car.inPit && crossedEntry && car.lateral > 1.5) {
+  if (car.pitRequested && !car.inPit && crossedEntry && track.pitSideLateral(car.lateral) > 1.5) {
     car.inPit = true;
     car.pitPhase = 1;
   }
@@ -431,7 +434,7 @@ export function updatePit(
   if (
     car.pitPhase === 1 &&
     Math.abs(car.s - box) < 2.4 &&
-    Math.abs(car.lateral - 24.1) < 1.9 &&
+    Math.abs(car.lateral - track.boxLateral()) < 1.9 &&
     car.speed < 0.35
   ) {
     car.pitPhase = 2;
@@ -453,7 +456,11 @@ export function updatePit(
       car.pitRequested = false;
     }
   }
-  if (car.pitPhase === 6 && car.s > 330 && car.s < track.length - 250) {
+  if (
+    car.pitPhase === 6 &&
+    car.s > track.pit.exitAfter &&
+    car.s < track.length - track.pit.exitBefore
+  ) {
     car.inPit = false;
     car.pitPhase = 0;
   }

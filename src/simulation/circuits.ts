@@ -38,7 +38,70 @@ export interface CircuitDefinition {
   /** DRS zones by lap distance (m): the 1.0 s gap is judged at `detect`, the
    * flap may open from `start` to `end` (zones may wrap through the line). */
   drsZones: readonly DrsZone[];
+  /** Pit lane and grid; STANDARD_PIT when absent. */
+  pit?: PitLaneDefinition;
 }
+/** Venue-owned pit lane, grid and service geometry (WP10 / F06). Distances
+ * are lap metres measured from the start line (the lane straddles it), the
+ * lateral offset is unsigned and `side` selects the road edge: +1 is the
+ * +lateral (right-hand) side used by Aurel and Vellamar, -1 the left. Every
+ * pit, AI, collision and contact formula reads these values instead of
+ * literal constants, so a new venue needs data, not new global formulas. */
+export interface PitLaneDefinition {
+  side: 1 | -1;
+  /** Lane centre distance from the circuit centreline (m). */
+  offset: number;
+  /** The lane leaves the circuit between length-divergeStart and length-divergeEnd. */
+  divergeStart: number;
+  divergeEnd: number;
+  /** ... and rejoins between mergeStart and mergeEnd after the line. */
+  mergeStart: number;
+  mergeEnd: number;
+  /** Pit surface section: from length-sectionBefore to sectionAfter. */
+  sectionBefore: number;
+  sectionAfter: number;
+  /** Speed-limited zone: from length-limitBefore to limitAfter. */
+  limitBefore: number;
+  limitAfter: number;
+  /** Commitment line, length-entry (m). */
+  entry: number;
+  /** Garage box i is at firstBox + i * boxSpacing, boxLateral from centre. */
+  firstBox: number;
+  boxSpacing: number;
+  boxLateral: number;
+  /** Release hold line and end of the swept merge corridor. */
+  holdLine: number;
+  /** Released cars leave pit state between exitAfter and length-exitBefore. */
+  exitAfter: number;
+  exitBefore: number;
+  /** Grid: first slot length-gridStart, rows gridRow apart, columns ±gridColumn. */
+  gridStart: number;
+  gridRow: number;
+  gridColumn: number;
+}
+/** Aurel's validated paddock template; every value is the former literal. */
+export const STANDARD_PIT: PitLaneDefinition = Object.freeze({
+  side: 1,
+  offset: 22,
+  divergeStart: 220,
+  divergeEnd: 100,
+  mergeStart: 215,
+  mergeEnd: 330,
+  sectionBefore: 190,
+  sectionAfter: 300,
+  limitBefore: 160,
+  limitAfter: 220,
+  entry: 210,
+  firstBox: 102,
+  boxSpacing: 7,
+  boxLateral: 24.1,
+  holdLine: 268,
+  exitAfter: 330,
+  exitBefore: 250,
+  gridStart: 32,
+  gridRow: 10,
+  gridColumn: 2.2,
+});
 export interface DrsZone {
   detect: number;
   start: number;

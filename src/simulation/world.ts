@@ -1,4 +1,4 @@
-import { circuitDefinition } from './circuits.ts';
+import { circuitDefinition, type CircuitDefinition } from './circuits.ts';
 import { K, SKID_BASE } from './protocol.ts';
 import { clamp } from '../core/math.ts';
 import { AIDriver } from './ai.ts';
@@ -44,13 +44,15 @@ export class Simulation {
   tick = 0;
   autoPlayer = false;
 
-  constructor(options: SessionOptions) {
+  /** `venue` overrides the registry circuit for validated development venues
+   * (e.g. the left-pit and route-graph test courses); players use `circuit`. */
+  constructor(options: SessionOptions, venue?: CircuitDefinition) {
     this.options = validateOptions(options);
     this.track = new Track(
       this.options.weather,
       false,
       undefined,
-      circuitDefinition(this.options.circuit),
+      venue ?? circuitDefinition(this.options.circuit),
     );
     const count = this.options.opponents + 1,
       grid = this.options.grid,
@@ -61,10 +63,15 @@ export class Simulation {
     this.cars = Array.from({ length: count }, (_, i) => {
       const c = new Vehicle(i, this.options.compound, this.options.setup, this.options.assist);
       const slot = grid ? grid.indexOf(i) : i;
+      const paddock = this.track.pit;
       if (this.options.mode === 'qualifying')
-        c.place(this.track, length - 32 - (slot + 1) * spacing, 0);
+        c.place(this.track, length - paddock.gridStart - (slot + 1) * spacing, 0);
       else
-        c.place(this.track, length - 32 - Math.floor(slot / 2) * 10, slot % 2 === 0 ? -2.2 : 2.2);
+        c.place(
+          this.track,
+          length - paddock.gridStart - Math.floor(slot / 2) * paddock.gridRow,
+          slot % 2 === 0 ? -paddock.gridColumn : paddock.gridColumn,
+        );
       return c;
     });
     this.ai = this.cars.map((c) => new AIDriver(c, 0.92 + (c.id % 4) * 0.014, this.options.seed));

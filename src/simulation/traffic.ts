@@ -58,6 +58,9 @@ export class TrafficPlanner {
     // Lateral shift of a line-relative path between here and distance `s`.
     // The pit approach is an absolute corridor and does not follow the line.
     const shiftAt = (s: number) => (approachingPit ? 0 : line(s) - lineOffset);
+    // Pit-lane centre used by queued/released cars (venue data, signed side).
+    const pitLaneAt = (s: number) =>
+      track.pitOffset(s) * ((track.pit.offset - 1.5) / track.pit.offset);
     // A new tactical purpose (pit entry or an early defensive choice) may
     // release the previous lane commitment; the swept safety tests still apply.
     if (Math.abs(preferredOffset - this.preferred) > 0.5) this.holdUntil = 0;
@@ -124,8 +127,8 @@ export class TrafficPlanner {
           const ours = approach(closest, candidate, 1.6 * t) + shiftAt(car.s + car.speed * t);
           const theirs = other.inPit
             ? other.pitPhase === 6
-              ? track.pitOffset(other.s + other.speed * t) * (20.5 / 22)
-              : Math.max(6, track.pitOffset(other.s + other.speed * t) * (20.5 / 22))
+              ? pitLaneAt(other.s + other.speed * t)
+              : track.pit.side * Math.max(6, track.pit.side * pitLaneAt(other.s + other.speed * t))
             : other.lateral +
               line(other.s + other.speed * t) -
               theirLine +

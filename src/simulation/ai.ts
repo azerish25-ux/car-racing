@@ -162,11 +162,14 @@ export class AIDriver {
       this.strategyClock = 0;
       command.ers = this.brain.ers;
     }
-    const entryGap = mod(track.length - 210 - c.s, track.length);
+    const pitLane = track.pit,
+      entryLane = pitLane.side * 6;
+    const entryGap = mod(track.pitEntryS() - c.s, track.length);
     // Once preparation starts, slower speed must not shrink its lookahead and
     // cancel the lane change. Only crossing/missing the entry ends this intent.
     if (!c.pitRequested || c.inPit || entryGap > track.length - 20) this.preparingPit = false;
-    else if (entryGap < pitPreparationDistance(c.speed, c.lateral)) this.preparingPit = true;
+    else if (entryGap < pitPreparationDistance(c.speed, c.lateral, entryLane))
+      this.preparingPit = true;
     const preparingPit = this.preparingPit;
     const line = racingLineFor(track);
     // In the wet a driver keeps off the painted edges and kerbs and leaves
@@ -190,7 +193,7 @@ export class AIDriver {
         8.5 * grip,
         this.personality,
         yellowFlag(race.control.flags[c.id]) || race.control.neutralised > 0,
-        preparingPit ? 6 : this.brain.preferredLine(c, cars, track, race) || lineAt(c.s),
+        preparingPit ? entryLane : this.brain.preferredLine(c, cars, track, race) || lineAt(c.s),
         preparingPit,
         lineAt,
       );
@@ -200,7 +203,7 @@ export class AIDriver {
     }
     if (!c.inPit) c.pitYielding = false;
     const pit = c.inPit,
-      box = 102 + c.id * 7,
+      box = track.boxS(c.id),
       boxGap = mod(box - c.s, track.length);
     // On track the car follows the racing line; a passing or defending lane is
     // a tactical distance from that line, changed at a finite lateral rate.
@@ -294,7 +297,13 @@ export class AIDriver {
         Math.sqrt(14 * 14 + 2 * braking * 0.85 * Math.max(0, entryGap - 30)),
       );
     if (preparingPit) {
-      const yielding = pitApproachTrafficSpeed(c, cars, track, this.desiredOffset);
+      const yielding = pitApproachTrafficSpeed(
+        c,
+        cars,
+        track,
+        this.desiredOffset,
+        track.pit.side * 6,
+      );
       if (yielding < desired) {
         desired = yielding;
         this.decision = 'YIELD FOR PIT APPROACH';
@@ -309,16 +318,20 @@ export class AIDriver {
     }
     if (pit) {
       desired = Math.min(desired, 21.1);
-      if (c.s > track.length - 225 || (c.s > 210 && c.s < 335))
+      // Slow corridor: just inside the entry line and through the exit merge.
+      if (
+        c.s > track.length - (track.pit.entry + 15) ||
+        (c.s > track.pit.limitAfter - 10 && c.s < track.pit.mergeEnd + 5)
+      )
         desired = Math.min(desired, 9 + 5 * grip);
-      const distance = mod(102 + c.id * 7 - c.s, track.length);
+      const distance = mod(track.boxS(c.id) - c.s, track.length);
       if (c.pitPhase === 1 && distance < 125)
         desired = Math.min(desired, stoppingTarget(distance - 1.8, Math.max(1.1, 4.5 * grip)));
       if (c.pitPhase >= 2 && c.pitPhase <= 5) desired = 0;
       this.decision = 'PIT SERVICE';
       c.pitYielding = pitMergeConflict(c, cars, track);
       if (c.pitYielding) {
-        desired = Math.min(desired, pitYieldSpeed(c, true, braking));
+        desired = Math.min(desired, pitYieldSpeed(c, true, braking, track.pit.holdLine));
         this.decision = 'YIELD AT PIT EXIT';
       }
       for (const other of cars) {
@@ -412,7 +425,7 @@ export class AIDriver {
   private pitLine(track: Track, s: number) {
     const base = track.pitOffset(s),
       c = this.car,
-      box = 102 + c.id * 7,
+      box = track.boxS(c.id),
       gap = mod(box - s, track.length);
     const service =
       c.pitPhase >= 2 && c.pitPhase <= 5
@@ -422,7 +435,9 @@ export class AIDriver {
             ? 1
             : clamp((55 - gap) / 45, 0, 1)
           : 0;
-    const offset = base + (-1.5 + service * 3.6) * clamp(base / 22, 0, 1);
-    return s > track.length - 235 ? Math.max(6, offset) : offset;
+    const side = track.pit.side,
+      offset =
+        base + side * (-1.5 + service * 3.6) * clamp(Math.abs(base) / track.pit.offset, 0, 1);
+    return s > track.length - (track.pit.entry + 25) ? side * Math.max(6, side * offset) : offset;
   }
 }
