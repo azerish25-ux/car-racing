@@ -497,6 +497,22 @@ export class CrowdCluster {
     }
     this.levels = levels;
   }
+  /** Shadow pass: while only the close sculpt is shown, the mid sculpt
+   * (about 4.7x fewer triangles, same transforms and audience actions)
+   * casts for every instance; its handoff range is widened for that pass. */
+  shadowSubstitute() {
+    const range = this.lodRanges[1],
+      saved = new T.Vector2();
+    return {
+      fine: this.levels[0],
+      coarse: this.levels[1],
+      begin: () => {
+        saved.copy(range);
+        range.set(Math.min(this.lodRanges[0].x, range.x), Math.max(this.lodRanges[0].y, range.y));
+      },
+      end: () => range.copy(saved),
+    };
+  }
   update(
     time: number,
     camera: T.Vector3,

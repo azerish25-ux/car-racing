@@ -268,6 +268,17 @@ function groupKey(frame: T.Object3D, mesh: T.Mesh) {
  *
  * Casters stay hidden except inside the shadow pass (see `install`), so they
  * never cost a draw in any camera view. */
+export interface ShadowSubstitute {
+  fine: T.Object3D;
+  coarse: T.Object3D;
+  /** Prepare/restore the coarse tier for drawing every instance of `fine`. */
+  begin?: () => void;
+  end?: () => void;
+}
+function visibleChain(object: T.Object3D) {
+  for (let o: T.Object3D | null = object; o; o = o.parent) if (!o.visible) return false;
+  return true;
+}
 export class ShadowProxies {
   private readonly casters: Caster[] = [];
   private readonly vertexPool = new Pool<VertexSet>();
@@ -394,15 +405,44 @@ export class ShadowProxies {
     caster.built = sources.map((s) => s.geometry);
   }
   /** Run `render` with every caster shown (shadow passes and the shadow census). */
+  /** Shadow-pass LOD substitution (F03 / WP06): pairs of [fine, coarse]
+   * representations sharing instance transforms. While `fine` is the visible
+   * tier, the shadow pass draws `coarse` instead; camera views are untouched
+   * because their draw lists are built before shadows render. Used for crowd
+   * and seat tiers whose sub-centimetre detail is far below shadow texels. */
+  shadowSubstitutes: () => readonly ShadowSubstitute[] = () => [];
+  /** Pairs substituted in the most recent shadow pass (diagnostics). */
+  substitutedPairs = 0;
   withCasters<R>(render: () => R): R {
     for (const caster of this.casters) {
       this.sync(caster);
       caster.mesh.visible = true;
     }
+    const muted: T.Object3D[] = [],
+      shown: ShadowSubstitute[] = [];
+    for (const pair of this.shadowSubstitutes()) {
+      const { fine, coarse } = pair;
+      if (!fine.visible || coarse.visible || !visibleChain(fine)) continue;
+      fine.traverse((o) => {
+        if (o.castShadow) {
+          o.castShadow = false;
+          muted.push(o);
+        }
+      });
+      coarse.visible = true;
+      pair.begin?.();
+      shown.push(pair);
+    }
+    this.substitutedPairs = shown.length;
     try {
       return render();
     } finally {
       for (const caster of this.casters) caster.mesh.visible = false;
+      for (const o of muted) o.castShadow = true;
+      for (const pair of shown) {
+        pair.coarse.visible = false;
+        pair.end?.();
+      }
     }
   }
   /** Show the casters only while `renderer` renders shadow maps. WebGLRenderer

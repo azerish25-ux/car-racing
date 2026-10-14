@@ -349,6 +349,10 @@ export class RacingRenderer {
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = T.PCFSoftShadowMap;
     this.shadowProxies.install(this.renderer);
+    this.shadowProxies.shadowSubstitutes = () => [
+      ...this.circuit.crowdClusters.map((c) => c.shadowSubstitute()),
+      ...this.circuit.startFinish.shadowSubstitutes(),
+    ];
     this.reflection.mirrorDetail = {
       before: (camera, height) => this.showMirrorDetail(camera, height),
       after: () => this.restoreMirrorDetail(),

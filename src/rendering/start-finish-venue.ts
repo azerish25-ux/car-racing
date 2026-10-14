@@ -120,6 +120,12 @@ export class StartFinishVenue {
     root.add(mesh);
     return mesh;
   }
+  /** Near/next seat tiers for shadow-pass substitution (see ShadowProxies). */
+  shadowSubstitutes() {
+    return this.details
+      .filter((d) => d.kind === 'seats' && d.levels.length > 1)
+      .map((d) => ({ fine: d.levels[0], coarse: d.levels[1] }));
+  }
   private register(root: T.Group, levels: T.Group[], radius: number, kind: string) {
     root.updateWorldMatrix(true, false);
     this.details.push({
