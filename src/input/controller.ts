@@ -120,6 +120,14 @@ export class InputController {
     this.buttons.poll(pad, this.settings.mapping, allowed, this.action);
     return generation === this.generation;
   }
+  /** The selected gamepad, for output-only cues such as rumble. */
+  activePad(): Gamepad | null {
+    try {
+      return selectDevice(navigator.getGamepads?.() ?? [], this.settings.mapping.device);
+    } catch {
+      return null;
+    }
+  }
   /** Paused/replay UI may poll a small action allowlist without ever reading or
    * publishing drive axes. Suppressed buttons are still observed, not delayed. */
   pollActions(allowed: ActionContext | readonly ButtonAction[]) {

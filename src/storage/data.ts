@@ -17,6 +17,7 @@ import {
   type DeviceSelection,
 } from '../input/calibration.ts';
 import { clamp } from '../core/math.ts';
+import { DEFAULT_RUMBLE, validateRumble, type RumbleSettings } from '../input/rumble.ts';
 import { DEFAULT_SETUP, validateSetup, type Setup } from '../simulation/config.ts';
 import {
   graphicsPreset,
@@ -61,6 +62,8 @@ export interface Settings {
   quality: Quality;
   volume: number;
   drivingAudio: DrivingAudioSettings;
+  /** Gamepad rumble channel strengths (D088). */
+  rumble: RumbleSettings;
   shake: number;
   uiScale: number;
   mapping: InputMapping;
@@ -79,6 +82,7 @@ export const DEFAULT_SETTINGS: Settings = {
   quality: 'medium',
   volume: 0.45,
   drivingAudio: { ...DEFAULT_DRIVING_AUDIO },
+  rumble: { ...DEFAULT_RUMBLE },
   shake: 0.35,
   uiScale: 1,
   mapping: {
@@ -128,6 +132,7 @@ export function validateSettings(v: unknown): Settings {
     quality,
     volume: finite(p.volume, 0.45, 0, 1),
     drivingAudio: validateDrivingAudio(p.drivingAudio),
+    rumble: validateRumble(p.rumble),
     shake: finite(p.shake, 0.35, 0, 1),
     uiScale: finite(p.uiScale, 1, 0.8, 1.35),
     setup: validateSetup(p.setup ?? DEFAULT_SETUP),

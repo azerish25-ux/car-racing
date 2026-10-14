@@ -974,6 +974,8 @@ export class Interface {
       next.highContrast = (form.elements.namedItem('highContrast') as HTMLInputElement).checked;
       for (const key of ['captions', 'engineerRadio', 'reducedMotion'] as const)
         next[key] = (form.elements.namedItem(key) as HTMLInputElement).checked;
+      for (const key of ['traction', 'impact', 'engine'] as const)
+        next.rumble[key] = Number(value(`rumble_${key}`));
       next.quickStart = (form.elements.namedItem('quickStart') as HTMLInputElement).checked;
       for (const key of ['volume', 'shake', 'uiScale'] as const) next[key] = Number(value(key));
       for (const key of Object.keys(DEFAULT_SETUP) as (keyof Setup)[])

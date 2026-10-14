@@ -82,6 +82,7 @@ import {
 import { TelemetryExport } from './storage/telemetry-export.ts';
 import { SessionReplay } from './storage/replay-pages.ts';
 import { RadioArbiter } from './core/radio.ts';
+import { Rumble, rumbleFrom } from './input/rumble.ts';
 import { EVENTS, eventSession } from './simulation/events.ts';
 import { eventHub } from './ui/event-cards.ts';
 import { RadioCaption } from './ui/radio-caption.ts';
@@ -191,6 +192,7 @@ export class GameApp {
   private replayHud!: ReplayHud;
   private readonly replayDirector = new ReplayDirector();
   private readonly radio = new RadioArbiter();
+  private readonly rumble = new Rumble();
   private radioCaption: RadioCaption;
   /** D31 flashback: used this session, choosing a point, waiting for the worker. */
   private flashbacks = 0;
@@ -720,12 +722,18 @@ export class GameApp {
     this.receivedAt = performance.now();
     if (this.state === 'driving') {
       this.radioCaption.show(this.radio.observe(next, this.options.laps));
+      this.rumble.update(
+        this.input.activePad(),
+        rumbleFrom(next, this.settings.rumble),
+        performance.now(),
+      );
       this.programme.observe(next);
       this.records.observe(next, !this.auto, this.options, this.sessionId);
       this.observeSession();
       if (next[H.PHASE] === 3) this.finish(next);
     }
     if (this.state !== 'driving' && this.state !== 'paused') this.radioCaption.show(null);
+    if (this.state !== 'driving') this.rumble.stop(this.input.activePad());
     if (this.readyResolve) {
       this.readyResolve();
       this.readyResolve = null;
