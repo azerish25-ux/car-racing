@@ -19,6 +19,8 @@ export const R = {
   OVERTAKE: 4,
   SECTOR_STATUS: 5,
   DRS_FLAP: 6,
+  /** Vehicle definition index (vehicles.ts VEHICLE_IDS); 0 is the Formula APX-01. */
+  VEHICLE: 7,
 } as const;
 // +Z is the nose, +Y up and +X the driver's left; negative-X hubs are right-side wheels.
 export const WHEEL_NAMES = ['FR', 'FL', 'RR', 'RL'] as const;

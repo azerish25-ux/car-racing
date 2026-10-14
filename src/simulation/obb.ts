@@ -5,7 +5,7 @@ import type { RigidBody } from './rigid.ts';
  * not just yaw. Wheels and wings remain a fidelity boundary of this proxy. */
 export class ChassisBox {
   readonly axes = [new Vec3(), new Vec3(), new Vec3()];
-  readonly half = [0.94, 0.38, 2.5];
+  half: readonly number[] = [0.94, 0.38, 2.5];
   readonly center = new Vec3();
   minX = 0;
   maxX = 0;

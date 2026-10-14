@@ -29,8 +29,19 @@ export interface Tire {
   surface: number;
   energy: number;
   radius: number;
+  /** Unworn rolling radius and wheel inertia of the vehicle it is fitted to. */
+  nominalRadius: number;
+  inertia: number;
+  /** Tyre-family grip relative to the Formula slick construction (1). */
+  gripScale: number;
 }
-export function makeTire(compound: Compound, pressure = 155): Tire {
+export function makeTire(
+  compound: Compound,
+  pressure = 155,
+  nominalRadius: number = VEHICLE.wheelRadius,
+  inertia: number = VEHICLE.wheelInertia,
+  gripScale = 1,
+): Tire {
   const temp = COMPOUNDS[compound].ideal - 5;
   return {
     compound,
@@ -58,7 +69,10 @@ export function makeTire(compound: Compound, pressure = 155): Tire {
     water: 0,
     surface: 0,
     energy: 0,
-    radius: VEHICLE.wheelRadius,
+    radius: nominalRadius,
+    nominalRadius,
+    inertia,
+    gripScale,
   };
 }
 export function magic(x: number, stiffness: number, shape = 1.35, curvature = 0.15) {
@@ -91,6 +105,7 @@ export function peakGrip(t: Tire, load: number, s: SurfaceSample, speed: number)
     pressurePenalty = 1 - 0.12 * ((t.pressure - 165) / 65) ** 2;
   return (
     c.mu *
+    t.gripScale *
     loadRatio ** -0.105 *
     s.grip *
     temperatureGrip(t.compound, t.carcassTemp) *
@@ -133,9 +148,9 @@ export function solveTire(
   t.water = surface.water;
   t.surface = surface.surface;
   if (t.wear >= 0.999) t.punctured = true;
-  t.radius = VEHICLE.wheelRadius * (t.punctured ? 0.77 : 1 - 0.06 * smooth(0.97, 1, t.wear));
+  t.radius = t.nominalRadius * (t.punctured ? 0.77 : 1 - 0.06 * smooth(0.97, 1, t.wear));
   const r = t.radius,
-    I = VEHICLE.wheelInertia,
+    I = t.inertia,
     old = t.omega,
     regularization = Math.max(2.5, Math.abs(vLong));
   t.angle = Math.atan2(vLat, Math.hypot(vLong, 3));

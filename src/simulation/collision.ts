@@ -90,7 +90,10 @@ export class CollisionSolver {
     const { n, point, trackPos } = this;
     while (this.boxes.length < cars.length) this.boxes.push(new ChassisBox());
     if (this.order.length !== cars.length) this.order = cars.map((_, i) => i);
-    for (let i = 0; i < cars.length; i++) this.boxes[i].update(cars[i].body);
+    for (let i = 0; i < cars.length; i++) {
+      this.boxes[i].half = cars[i].definition.halfExtents;
+      this.boxes[i].update(cars[i].body);
+    }
     // Sweep-and-prune broad phase; stable ID tie-break makes ordering repeatable.
     this.order.sort((a, b) => this.boxes[a].minX - this.boxes[b].minX || a - b);
     for (let k = 0; k < cars.length; k++) {
@@ -111,7 +114,14 @@ export class CollisionSolver {
       for (let side = -1; side <= 1; side += 2)
         for (let end = -1; end <= 1; end += 2) {
           a.body.orientation
-            .rotate(this.corner.set(side * 0.94, 0, end * 2.5), this.corner)
+            .rotate(
+              this.corner.set(
+                side * a.definition.halfExtents[0],
+                0,
+                end * a.definition.halfExtents[2],
+              ),
+              this.corner,
+            )
             .add(a.body.position);
           const lateral = track.nearest(this.corner.x, this.corner.z, trackPos);
           const boundary = track.boundaryAt(trackPos, Math.sign(lateral));

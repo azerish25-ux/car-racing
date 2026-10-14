@@ -9,7 +9,6 @@ import {
   alternateDryCompound,
   mandatoryStopSatisfied,
   racingSession,
-  VEHICLE,
   type Compound,
   type Controls,
   type SessionOptions,
@@ -33,6 +32,7 @@ import {
 import { PHASE, RaceDirector, updatePit } from './race.ts';
 import { Track } from './track.ts';
 import { Vehicle } from './vehicle.ts';
+import { vehicleDefinition, vehicleIndex } from './vehicles.ts';
 const COMPOUND_IDS = Object.keys(COMPOUNDS);
 export class Simulation {
   readonly options: SessionOptions;
@@ -61,7 +61,13 @@ export class Simulation {
     // out-lap and clear track; a race uses the staggered grid in `grid` order.
     const spacing = Math.min(420, (length - 400) / count);
     this.cars = Array.from({ length: count }, (_, i) => {
-      const c = new Vehicle(i, this.options.compound, this.options.setup, this.options.assist);
+      const c = new Vehicle(
+        i,
+        this.options.compound,
+        this.options.setup,
+        this.options.assist,
+        vehicleDefinition(this.options.vehicles?.[i]),
+      );
       const slot = grid ? grid.indexOf(i) : i;
       const paddock = this.track.pit;
       if (this.options.mode === 'qualifying')
@@ -99,8 +105,9 @@ export class Simulation {
     if (input.drs === true) car.drsRequest = true;
     if (
       input.overtake === true &&
+      car.definition.hybrid &&
       car.overtakeClock <= 0 &&
-      car.battery >= VEHICLE.maxBatteryJ * OVERTAKE.minBattery
+      car.battery >= car.spec.maxBatteryJ * OVERTAKE.minBattery
     )
       car.overtakeClock = OVERTAKE.seconds;
   }
@@ -242,7 +249,7 @@ export class Simulation {
       out[r + R.OVERTAKE] = c.overtakeClock;
       out[r + R.SECTOR_STATUS] = status[id * 3] + 4 * status[id * 3 + 1] + 16 * status[id * 3 + 2];
       out[r + R.DRS_FLAP] = c.drsFlap;
-      out[r + 7] = 0;
+      out[r + R.VEHICLE] = vehicleIndex(c.definition.id);
       const k = o + SKID_BASE,
         skid = c.skid;
       out[k + K.CONTACTS] = skid.contacts;

@@ -1,0 +1,141 @@
+{
+  "fixture": "Production Vehicle per definition on isolated analytic runway/skidpad",
+  "timesteps": [
+    0.004166666666666667,
+    0.008333333333333333
+  ],
+  "vehicles": {
+    "apx01": {
+      "name": "APX-01 FORMULA",
+      "version": 1,
+      "comparison": [
+        {
+          "metric": "accel0to100",
+          "measured": 2.5875000000000234,
+          "coarseDt": 2.583333333333327,
+          "band": [
+            2.3,
+            3.2
+          ],
+          "within": true,
+          "timestepDrift": 0.0016103059581436096
+        },
+        {
+          "metric": "topSpeed",
+          "measured": 319.7853279663731,
+          "coarseDt": 318.1482563948936,
+          "band": [
+            320,
+            360
+          ],
+          "within": false,
+          "timestepDrift": 0.005119282932366424
+        },
+        {
+          "metric": "braking100Distance",
+          "measured": 18.963516416066287,
+          "coarseDt": 18.74268521878352,
+          "band": [
+            15,
+            32
+          ],
+          "within": true,
+          "timestepDrift": 0.0116450552965838
+        },
+        {
+          "metric": "lateral80G",
+          "measured": 1.9718585707418792,
+          "coarseDt": 1.9715494040154342,
+          "band": [
+            1.8,
+            3.2
+          ],
+          "within": true,
+          "timestepDrift": 0.00015678950358425972
+        }
+      ],
+      "lateralEnvelopeFit": {
+        "base": 15.533166001520389,
+        "aero": 0.006739717483352847
+      },
+      "aiEnvelope": {
+        "lateralBase": 15.95,
+        "lateralAero": 0.00548,
+        "brakingBase": 19.9,
+        "brakingAero": 0.0056,
+        "lateralMargin": 0.72,
+        "slowLateralMargin": 0.62,
+        "brakingMargin": 0.55,
+        "topSpeed": 92,
+        "referenceMu": 1.82,
+        "downforceReference": 794
+      }
+    },
+    "tc1": {
+      "name": "TC-1 TOURING",
+      "version": 1,
+      "comparison": [
+        {
+          "metric": "accel0to100",
+          "measured": 5.133333333333362,
+          "coarseDt": 5.400000000000058,
+          "band": [
+            4.8,
+            7.5
+          ],
+          "within": true,
+          "timestepDrift": 0.05194805194805736
+        },
+        {
+          "metric": "topSpeed",
+          "measured": 231.86216847731546,
+          "coarseDt": 230.48571633077944,
+          "band": [
+            205,
+            255
+          ],
+          "within": true,
+          "timestepDrift": 0.005936510279255374
+        },
+        {
+          "metric": "braking100Distance",
+          "measured": 28.7960795300262,
+          "coarseDt": 28.715308659279977,
+          "band": [
+            26,
+            42
+          ],
+          "within": true,
+          "timestepDrift": 0.002804925950492789
+        },
+        {
+          "metric": "lateral80G",
+          "measured": 1.301455985618497,
+          "coarseDt": 1.301667358666163,
+          "band": [
+            1,
+            1.45
+          ],
+          "within": true,
+          "timestepDrift": 0.00016241275156560797
+        }
+      ],
+      "lateralEnvelopeFit": {
+        "base": 12.720655284432206,
+        "aero": 0.00010557581702963582
+      },
+      "aiEnvelope": {
+        "lateralBase": 12.7,
+        "lateralAero": 0,
+        "brakingBase": 13.4,
+        "brakingAero": 0,
+        "lateralMargin": 0.74,
+        "slowLateralMargin": 0.66,
+        "brakingMargin": 0.6,
+        "topSpeed": 66,
+        "referenceMu": 1.82,
+        "downforceReference": 0
+      }
+    }
+  }
+}

@@ -1,5 +1,6 @@
 import { circuitDefinition, type CircuitId } from './circuits.ts';
 import { clamp } from '../core/math.ts';
+import { FORMULA_APX01, VEHICLES } from './vehicles.ts';
 export type Compound = 'soft' | 'medium' | 'hard' | 'intermediate' | 'wet';
 export type WeatherPreset = 'clear' | 'changeable' | 'rain';
 export type Assist = 'sport' | 'raw';
@@ -82,37 +83,8 @@ export const COMPOUNDS: Record<
   intermediate: { mu: 1.57, ideal: 70, lifeJ: 30e6, waterTolerance: 1.2, color: 0x2bb04a },
   wet: { mu: 1.43, ideal: 60, lifeJ: 25e6, waterTolerance: 3.2, color: 0x0a6fd0 },
 };
-export const VEHICLE = {
-  dryMass: 770,
-  wheelRadius: 0.335,
-  wheelInertia: 1.8,
-  wheelbase: 3.44,
-  track: 1.66,
-  inertia: [510, 1220, 1080] as const,
-  restLength: 0.25,
-  /** Height above the contact patch where tread forces enter the chassis (m). */
-  linkCentreHeight: 0.26,
-  travel: 0.17,
-  maxSteer: 0.38,
-  finalDrive: 3.7,
-  gearRatios: [-3.1, 0, 3.3, 2.8, 2.35, 2.02, 1.78, 1.59, 1.44, 1.31],
-  idleRPM: 4200,
-  shiftRPM: 12300,
-  limiterRPM: 13700,
-  maxBatteryJ: 4e6,
-  motorPowerW: 100000,
-  regenPowerW: 70000,
-  brakeTorque: 13200,
-  airDensity: 1.225,
-  torqueCurve: [
-    [4000, 360],
-    [6500, 460],
-    [9000, 510],
-    [11000, 490],
-    [12500, 450],
-    [13700, 360],
-  ] as const,
-};
+/** The Formula APX-01 specification (vehicles.ts owns every definition). */
+export const VEHICLE = FORMULA_APX01.spec;
 export interface SessionOptions {
   /** Original circuit; Aurel when absent (older saves and callers). */
   circuit?: CircuitId;
@@ -125,6 +97,9 @@ export interface SessionOptions {
   opponents: number;
   /** Starting order as car ids, pole first. Absent: car order (player on pole). */
   grid?: number[];
+  /** Per-entry vehicle definition ids (index = car id). Absent: every entrant
+   * runs the Formula APX-01 (older saves and callers). WP08. */
+  vehicles?: string[];
   weather: WeatherPreset;
   assist: Assist;
   compound: Compound;
@@ -182,12 +157,19 @@ function validGrid(value: unknown, cars: number): number[] | null {
   }
   return [...value];
 }
+/** One known vehicle id per entrant; anything else is ignored (all Formula). */
+function validVehicles(value: unknown, cars: number): string[] | null {
+  if (!Array.isArray(value) || value.length !== cars) return null;
+  for (const id of value) if (typeof id !== 'string' || !Object.hasOwn(VEHICLES, id)) return null;
+  return [...value];
+}
 export function validateOptions(v: unknown): SessionOptions {
   if (!v || typeof v !== 'object') throw new Error('Invalid session options');
   const o = v as Partial<SessionOptions>;
   const opponents =
     o.mode === 'time-trial' ? 0 : clamp(Math.round(Number(o.opponents) || 0), 0, 11);
   const grid = validGrid(o.grid, opponents + 1);
+  const vehicles = validVehicles(o.vehicles, opponents + 1);
   return {
     circuit: circuitDefinition(o.circuit).id,
     mode:
@@ -204,6 +186,7 @@ export function validateOptions(v: unknown): SessionOptions {
     ),
     opponents,
     ...(grid ? { grid } : {}),
+    ...(vehicles ? { vehicles } : {}),
     weather: o.weather === 'rain' || o.weather === 'changeable' ? o.weather : 'clear',
     assist: o.assist === 'raw' ? 'raw' : 'sport',
     compound: o.compound && Object.hasOwn(COMPOUNDS, o.compound) ? o.compound : 'medium',

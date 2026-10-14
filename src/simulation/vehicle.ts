@@ -6,10 +6,10 @@ import { DebrisPool } from './damage.ts';
 import { approach, clamp, G, lerp, Vec3 } from '../core/math.ts';
 import { aero, type AeroForces } from './aero.ts';
 import { DRS, OVERTAKE } from './drs.ts';
+import { FORMULA_APX01, setupFor, type VehicleDefinition, type VehicleSpec } from './vehicles.ts';
 import {
   controls,
   DEFAULT_SETUP,
-  VEHICLE,
   type Assist,
   type Compound,
   type Controls,
@@ -18,14 +18,10 @@ import {
 import { RigidBody } from './rigid.ts';
 import { brakeEfficiency, makeTire, solveTire, type Tire } from './tire.ts';
 import { surfaceSample, trackPoint, type Track } from './track.ts';
-export const WHEEL_POSITIONS = [
-  [-0.83, 0.05, 1.82],
-  [0.83, 0.05, 1.82],
-  [-0.83, 0.05, -1.62],
-  [0.83, 0.05, -1.62],
-] as const;
-export function engineTorque(rpm: number) {
-  const curve = VEHICLE.torqueCurve;
+/** The Formula car's wheel centres (renderer/tests); entrants use their definition. */
+export const WHEEL_POSITIONS = FORMULA_APX01.wheelPositions;
+export function engineTorque(rpm: number, spec: VehicleSpec = FORMULA_APX01.spec) {
+  const curve = spec.torqueCurve;
   if (rpm <= curve[0][0]) return curve[0][1];
   for (let i = 1; i < curve.length; i++)
     if (rpm <= curve[i][0])
@@ -40,12 +36,12 @@ export class Vehicle {
   readonly body = new RigidBody();
   readonly input: Controls = controls();
   readonly tires: Tire[];
-  readonly contacts = WHEEL_POSITIONS.map(() => surfaceSample());
-  readonly contactPoints = WHEEL_POSITIONS.map(() => new Vec3());
-  readonly hubs = WHEEL_POSITIONS.map(() => new Vec3());
-  readonly origins = WHEEL_POSITIONS.map(() => new Vec3());
-  readonly pointVelocities = WHEEL_POSITIONS.map(() => new Vec3());
-  readonly contactFrames = WHEEL_POSITIONS.map(() => new RoadContactFrame());
+  readonly contacts = [0, 1, 2, 3].map(() => surfaceSample());
+  readonly contactPoints = [0, 1, 2, 3].map(() => new Vec3());
+  readonly hubs = [0, 1, 2, 3].map(() => new Vec3());
+  readonly origins = [0, 1, 2, 3].map(() => new Vec3());
+  readonly pointVelocities = [0, 1, 2, 3].map(() => new Vec3());
+  readonly contactFrames = [0, 1, 2, 3].map(() => new RoadContactFrame());
   readonly skid = new SkidContact();
   readonly normalLoads = new Float64Array(4);
   /** Actual angles used by the tire solve, retained for telemetry and presentation. */
@@ -58,9 +54,14 @@ export class Vehicle {
   readonly setup: Setup;
   readonly trackPosition = trackPoint();
   fuel = 24;
-  battery = VEHICLE.maxBatteryJ * 0.8;
-  rpm = VEHICLE.idleRPM;
-  readonly clutch = new FrictionClutch();
+  readonly spec: VehicleSpec;
+  readonly wheelPositions: VehicleDefinition['wheelPositions'];
+  battery: number;
+  rpm: number;
+  readonly clutch: FrictionClutch;
+  /** Driven wheel pair (rear for rwd, front for fwd). */
+  private readonly drivenLeft: number;
+  private readonly drivenRight: number;
   engineOutputTorque = 0;
   gear = 1;
   shiftClock = 0;
@@ -127,10 +128,27 @@ export class Vehicle {
     compound: Compound = 'medium',
     setup: Setup = DEFAULT_SETUP,
     readonly assist: Assist = 'sport',
+    readonly definition: VehicleDefinition = FORMULA_APX01,
   ) {
-    this.setup = { ...setup };
-    this.tires = WHEEL_POSITIONS.map((_, i) =>
-      makeTire(compound, i < 2 ? setup.frontPressure : setup.rearPressure),
+    const spec = (this.spec = definition.spec);
+    this.wheelPositions = definition.wheelPositions;
+    this.setup =
+      definition === FORMULA_APX01 ? { ...setup } : setupFor(definition, setup, DEFAULT_SETUP);
+    this.battery = spec.maxBatteryJ * 0.8;
+    this.rpm = spec.idleRPM;
+    this.clutch = new FrictionClutch(spec.idleRPM, spec.wheelInertia);
+    this.body.inertia.set(spec.inertia[0], spec.inertia[1], spec.inertia[2]);
+    this.body.mass = spec.dryMass + this.fuel;
+    this.drivenLeft = definition.drivetrain === 'fwd' ? 0 : 2;
+    this.drivenRight = this.drivenLeft + 1;
+    this.tires = [0, 1, 2, 3].map((i) =>
+      makeTire(
+        compound,
+        i < 2 ? this.setup.frontPressure : this.setup.rearPressure,
+        spec.wheelRadius,
+        spec.wheelInertia,
+        definition.tireGrip,
+      ),
     );
     this.compoundsUsed.add(compound);
     this.updateWheelAlignment();
@@ -152,16 +170,24 @@ export class Vehicle {
       this.tires[i] = makeTire(
         compound,
         i < 2 ? this.setup.frontPressure : this.setup.rearPressure,
+        this.spec.wheelRadius,
+        this.spec.wheelInertia,
+        this.definition.tireGrip,
       );
   }
   shift(direction: number) {
     if (this.shiftClock > 0) return;
-    const next = clamp(this.gear + Math.sign(direction), -1, 8),
-      ratio = VEHICLE.gearRatios[next + 1] * VEHICLE.finalDrive,
+    const spec = this.spec,
+      next = clamp(this.gear + Math.sign(direction), -1, spec.gearRatios.length - 2),
+      ratio = spec.gearRatios[next + 1] * spec.finalDrive,
       predicted = Math.abs(
-        ((this.tires[2].omega + this.tires[3].omega) * 0.5 * ratio * 60) / (Math.PI * 2),
+        ((this.tires[this.drivenLeft].omega + this.tires[this.drivenRight].omega) *
+          0.5 *
+          ratio *
+          60) /
+          (Math.PI * 2),
       );
-    if (predicted > VEHICLE.limiterRPM || (next < 0 && this.speed > 2)) return;
+    if (predicted > spec.limiterRPM || (next < 0 && this.speed > 2)) return;
     this.gear = next;
     this.shiftClock = 0.09;
   }
@@ -172,8 +198,8 @@ export class Vehicle {
         ackermann =
           i < 2
             ? Math.atan(
-                (VEHICLE.wheelbase * Math.tan(this.steer)) /
-                  (VEHICLE.wheelbase - WHEEL_POSITIONS[i][0] * Math.tan(this.steer)),
+                (this.spec.wheelbase * Math.tan(this.steer)) /
+                  (this.spec.wheelbase - this.wheelPositions[i][0] * Math.tan(this.steer)),
               )
             : 0;
       this.wheelSteering[i] = ackermann + toe + this.cornerDamage[i] * 0.07 * side;
@@ -181,8 +207,9 @@ export class Vehicle {
     }
   }
   step(dt: number, track: Track) {
-    const b = this.body;
-    b.mass = VEHICLE.dryMass + this.fuel - this.lostMass;
+    const b = this.body,
+      spec = this.spec;
+    b.mass = spec.dryMass + this.fuel - this.lostMass;
     this.debris.step(dt, track);
     b.clear();
     b.force.y = -b.mass * G;
@@ -194,7 +221,7 @@ export class Vehicle {
     this.lateral = track.nearest(b.position.x, b.position.z, this.trackPosition);
     this.s = this.trackPosition.s;
     const speedSteer = this.assist === 'sport' ? 1 / (1 + this.speed * 0.018) : 1;
-    this.steer = approach(this.steer, this.input.steer * VEHICLE.maxSteer * speedSteer, 1.6 * dt);
+    this.steer = approach(this.steer, this.input.steer * spec.maxSteer * speedSteer, 1.6 * dt);
     this.throttle = clamp(this.input.throttle, 0, 1);
     this.brake = clamp(this.input.brake, 0, 1);
     // The automatic limiter reduces requested power, never clamps body velocity.
@@ -216,26 +243,27 @@ export class Vehicle {
       this.autoShift = false;
     }
     this.shiftClock = Math.max(0, this.shiftClock - dt);
-    const signedRearOmega = (this.tires[2].omega + this.tires[3].omega) * 0.5;
+    // Driven-axle speed (the name is historical: rear for the rwd Formula car).
+    const signedRearOmega =
+      (this.tires[this.drivenLeft].omega + this.tires[this.drivenRight].omega) * 0.5;
     const rearOmega = Math.abs(signedRearOmega);
     this.rpm = Math.max(0, (this.clutch.engineOmega * 30) / Math.PI);
     if (this.autoShift && this.gear > 0 && !this.input.manualClutch) {
       // Wheel-coupled RPM excludes free-revving launch slip from shift decisions.
       const coupledRPM =
-        (rearOmega * Math.abs(VEHICLE.gearRatios[this.gear + 1] * VEHICLE.finalDrive) * 30) /
-        Math.PI;
-      if (coupledRPM > VEHICLE.shiftRPM && this.gear < 8) this.shift(1);
-      else if (coupledRPM < 6900 && this.gear > 1) this.shift(-1);
+        (rearOmega * Math.abs(spec.gearRatios[this.gear + 1] * spec.finalDrive) * 30) / Math.PI;
+      if (coupledRPM > spec.shiftRPM && this.gear < spec.gearRatios.length - 2) this.shift(1);
+      else if (coupledRPM < spec.downshiftRPM && this.gear > 1) this.shift(-1);
     }
-    const ratio = VEHICLE.gearRatios[this.gear + 1] * VEHICLE.finalDrive;
+    const ratio = spec.gearRatios[this.gear + 1] * spec.finalDrive;
     const shaft = Math.max(0, this.clutch.engineOmega);
     const frictionTorque = 12 + shaft * 0.04;
     // Powered idle governor prevents unintended restart/stabilization without
     // fuel. It supplies real shaft torque rather than clamping engine RPM.
     const idleTorque =
-      this.fuel > 0 ? clamp(((VEHICLE.idleRPM * Math.PI) / 30 - shaft) * 3, 0, 180) : 0;
-    let ice = this.fuel > 0 ? engineTorque(this.rpm) * this.throttle + idleTorque : 0;
-    if (this.shiftClock > 0 || this.rpm > VEHICLE.limiterRPM) ice = 0;
+      this.fuel > 0 ? clamp(((spec.idleRPM * Math.PI) / 30 - shaft) * 3, 0, 180) : 0;
+    let ice = this.fuel > 0 ? engineTorque(this.rpm, spec) * this.throttle + idleTorque : 0;
+    if (this.shiftClock > 0 || this.rpm > spec.limiterRPM) ice = 0;
     const deploy =
       this.overtakeClock > 0
         ? OVERTAKE.deploy
@@ -245,10 +273,11 @@ export class Vehicle {
             ? 0.55
             : 0;
     this.overtakeClock = Math.max(0, this.overtakeClock - dt);
+    if (!this.definition.drs) this.drsOpen = false;
     this.drsFlap = clamp(this.drsFlap + (this.drsOpen ? dt : -dt) / DRS.travel, 0, 1);
     const motorPower =
       this.gear > 0 && this.brake < 0.05 && this.shiftClock === 0 && shaft > 100
-        ? Math.min(VEHICLE.motorPowerW * deploy * this.throttle, (this.battery * 0.94) / dt)
+        ? Math.min(spec.motorPowerW * deploy * this.throttle, (this.battery * 0.94) / dt)
         : 0;
     const motor = motorPower / Math.max(shaft, 100);
     const drag = Math.min(
@@ -263,7 +292,7 @@ export class Vehicle {
       !this.input.manualClutch &&
       this.throttle < 0.02 &&
       (this.speed < 3 ||
-        (this.brake > 0.02 && signedRearOmega * ratio < ((VEHICLE.idleRPM * Math.PI) / 30) * 0.9));
+        (this.brake > 0.02 && signedRearOmega * ratio < ((spec.idleRPM * Math.PI) / 30) * 0.9));
     const wheelTorque = this.clutch.step(
       dt,
       ice + motor - drag,
@@ -280,17 +309,21 @@ export class Vehicle {
       0,
       this.fuel - ((ice * shaft) / (0.43 * 43e6) + (this.fuel > 0 ? 0.00045 : 0)) * dt,
     );
-    const rearFriction = VEHICLE.brakeTorque * (1 - this.setup.brakeBias) * this.brake * 0.5,
+    const rearFriction = spec.brakeTorque * (1 - this.setup.brakeBias) * this.brake * 0.5,
       regenPower = Math.min(
-        VEHICLE.regenPowerW * this.brake,
-        (VEHICLE.maxBatteryJ - this.battery) / dt,
+        spec.regenPowerW * this.brake,
+        (spec.maxBatteryJ - this.battery) / dt,
         rearFriction * 2 * rearOmega * 0.65,
       ),
       regenTorque = regenPower / Math.max(2 * rearOmega, 10),
       diff = this.input.throttle > 0.08 ? this.setup.diffPower : this.setup.diffCoast,
-      locking = clamp((this.tires[3].omega - this.tires[2].omega) * diff * 55, -1050, 1050);
+      locking = clamp(
+        (this.tires[this.drivenRight].omega - this.tires[this.drivenLeft].omega) * diff * 55,
+        -1050,
+        1050,
+      );
     for (let i = 0; i < 4; i++) {
-      const pos = WHEEL_POSITIONS[i],
+      const pos = this.wheelPositions[i],
         t = this.tires[i],
         origin = this.origins[i],
         hub = this.hubs[i],
@@ -300,7 +333,7 @@ export class Vehicle {
       const distance = track.cast(origin, this.down, 1.5, s);
       if (!Number.isFinite(distance)) track.sample(origin.x, origin.z, s);
       const rest =
-          VEHICLE.restLength + (i < 2 ? this.setup.frontRide - 0.065 : this.setup.rearRide - 0.075),
+          spec.restLength + (i < 2 ? this.setup.frontRide - 0.065 : this.setup.rearRide - 0.075),
         length =
           distance -
           (t.radius - t.flatSpot * 0.002 * (1 + Math.cos(t.rotation))) /
@@ -340,7 +373,7 @@ export class Vehicle {
       const long = this.pointVelocities[i].dot(basis.forward),
         lat = this.pointVelocities[i].dot(basis.lateral),
         total =
-          VEHICLE.brakeTorque *
+          spec.brakeTorque *
           (i < 2 ? this.setup.brakeBias : 1 - this.setup.brakeBias) *
           this.brake *
           0.5;
@@ -350,7 +383,11 @@ export class Vehicle {
       const friction =
         Math.max(0, total - (i >= 2 ? regenTorque : 0)) * brakeEfficiency(t.discTemp) * release;
       const driven =
-          i === 2 ? wheelTorque * 0.5 + locking : i === 3 ? wheelTorque * 0.5 - locking : 0,
+          i === this.drivenLeft
+            ? wheelTorque * 0.5 + locking
+            : i === this.drivenRight
+              ? wheelTorque * 0.5 - locking
+              : 0,
         regen = i >= 2 ? regenTorque * release : 0;
       const previousPickup = t.marblePickup;
       solveTire(
@@ -377,7 +414,7 @@ export class Vehicle {
         .set(0, 0, 0)
         .addScaled(basis.forward, t.fx - rolling)
         .addScaled(basis.lateral, t.fy);
-      this.point.copy(this.contactPoints[i]).addScaled(this.up, VEHICLE.linkCentreHeight);
+      this.point.copy(this.contactPoints[i]).addScaled(this.up, spec.linkCentreHeight);
       b.apply(this.force, this.point);
       track.interact(
         s.cell,
@@ -392,7 +429,7 @@ export class Vehicle {
     // Actual generator work is limited by the requested power and battery
     // headroom, even if angular speed changed during the implicit wheel solve.
     const recovered = Math.min(
-      VEHICLE.maxBatteryJ - this.battery,
+      spec.maxBatteryJ - this.battery,
       regenPower * 0.78 * dt,
       generatorWorkW * 0.78 * dt,
     );
@@ -404,8 +441,9 @@ export class Vehicle {
     const airspeed = this.relativeAir.length();
     // Clearance is measured at actual floor stations, including chassis pitch
     // and local road elevation/bank. CG height alone misses nose dive and rake.
-    const frontHeight = this.floorClearance(track, 1.7);
-    const rearHeight = this.floorClearance(track, -1.6);
+    const bodyAero = this.definition.aero;
+    const frontHeight = this.floorClearance(track, bodyAero.frontZ);
+    const rearHeight = this.floorClearance(track, bodyAero.rearZ);
     this.frontRideHeight = frontHeight;
     this.rearRideHeight = rearHeight;
     aero(
@@ -420,12 +458,14 @@ export class Vehicle {
       Math.atan2(this.localVelocity.x, Math.abs(this.localVelocity.z) + 1),
       this.aero,
       this.drsFlap,
+      this.definition === FORMULA_APX01 ? undefined : bodyAero,
+      spec.wheelbase,
     );
     this.force.copy(this.up).scale(-this.aero.front);
-    b.orientation.rotate(this.localPoint.set(0, 0, 1.7), this.point).add(b.position);
+    b.orientation.rotate(this.localPoint.set(0, 0, bodyAero.frontZ), this.point).add(b.position);
     b.apply(this.force, this.point);
     this.force.copy(this.up).scale(-this.aero.rear);
-    b.orientation.rotate(this.localPoint.set(0, 0, -1.6), this.point).add(b.position);
+    b.orientation.rotate(this.localPoint.set(0, 0, bodyAero.rearZ), this.point).add(b.position);
     b.apply(this.force, this.point);
     this.force.copy(this.up).scale(-this.aero.floor);
     b.apply(this.force, b.position);
@@ -445,9 +485,10 @@ export class Vehicle {
     if (this.jackHeight > 0) {
       // Four feet provide a finite support polygon. Tangential Coulomb contact
       // stops the raised chassis sliding on sloped asphalt without fixing pose.
-      for (const z of [-1.4, 1.5])
-        for (const x of [-0.38, 0.38]) {
-          b.orientation.rotate(this.localPoint.set(x, -0.43, z), this.point).add(b.position);
+      const st = this.definition.stations;
+      for (const z of st.jackZ)
+        for (const x of [-st.jackX, st.jackX]) {
+          b.orientation.rotate(this.localPoint.set(x, st.floorY, z), this.point).add(b.position);
           track.sample(this.point.x, this.point.z, this.surface);
           const penetration = this.surface.height + this.jackHeight - this.point.y;
           if (penetration > 0) {
@@ -495,7 +536,7 @@ export class Vehicle {
   }
   floorClearance(track: Track, z: number) {
     this.body.orientation
-      .rotate(this.localPoint.set(0, -0.43, z), this.point)
+      .rotate(this.localPoint.set(0, this.definition.stations.floorY, z), this.point)
       .add(this.body.position);
     track.sample(this.point.x, this.point.z, this.surface);
     return (this.point.y - this.surface.height) * this.surface.normal.y;
@@ -506,12 +547,13 @@ export class Vehicle {
     this.body.orientation.inverseRotate(this.localPoint, this.localPoint);
     const local = this.localPoint;
     const loss = clamp(energy / 150000, 0, 1);
-    if (local.z > 1.35) this.frontHealth = Math.max(0, this.frontHealth - loss);
-    else if (local.z < -1.35) this.rearHealth = Math.max(0, this.rearHealth - loss * 0.7);
+    const st = this.definition.stations;
+    if (local.z > st.damageZ) this.frontHealth = Math.max(0, this.frontHealth - loss);
+    else if (local.z < -st.damageZ) this.rearHealth = Math.max(0, this.rearHealth - loss * 0.7);
     else this.sidepodHealth = Math.max(0, this.sidepodHealth - loss * 0.8);
     if (local.y < -0.2) this.floorHealth = Math.max(0.1, this.floorHealth - loss * 0.5);
     for (let i = 0; i < 4; i++) {
-      const wheel = WHEEL_POSITIONS[i];
+      const wheel = this.wheelPositions[i];
       if (Math.hypot(local.x - wheel[0], local.z - wheel[2]) < 0.85) {
         this.cornerDamage[i] = clamp(this.cornerDamage[i] + energy / 90000, 0, 1);
         if (energy > 45000) this.tires[i].punctured = true;
@@ -520,13 +562,13 @@ export class Vehicle {
     this.suspensionDamage = Math.max(...this.cornerDamage);
     this.impact = Math.max(this.impact, Math.min(1, energy / 30000));
     // Wing detachment transfers its inherited momentum into a physical fragment.
-    if (this.frontHealth < 0.08 && !this.frontDetached) this.detach(1, 2.5, 4.5);
-    if (this.rearHealth < 0.08 && !this.rearDetached) this.detach(2, -2.1, 6);
+    if (this.frontHealth < 0.08 && !this.frontDetached) this.detach(1, ...st.frontElement);
+    if (this.rearHealth < 0.08 && !this.rearDetached) this.detach(2, ...st.rearElement);
   }
   repairFrontWing(dt: number) {
     this.frontHealth = Math.min(1, this.frontHealth + dt * 0.3);
     if (this.frontDetached && this.frontHealth > 0.08) {
-      this.lostMass = Math.max(0, this.lostMass - 4.5);
+      this.lostMass = Math.max(0, this.lostMass - this.definition.stations.frontElement[1]);
       this.frontDetached = false;
     }
   }
@@ -542,7 +584,16 @@ export class Vehicle {
   }
   damage(energy: number, front: boolean) {
     this.body.orientation
-      .rotate(this.point.set(0, 0, front ? 2.5 : -2.1), this.point)
+      .rotate(
+        this.point.set(
+          0,
+          0,
+          front
+            ? this.definition.stations.frontElement[0]
+            : this.definition.stations.rearElement[0],
+        ),
+        this.point,
+      )
       .add(this.body.position);
     this.impactAt(energy, this.point);
   }

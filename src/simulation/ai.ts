@@ -9,7 +9,8 @@ import {
 } from './pit-safety.ts';
 import { peakGrip } from './tire.ts';
 import { approach, clamp, G, mod, Vec3 } from '../core/math.ts';
-import { VEHICLE, racingSession } from './config.ts';
+import { racingSession } from './config.ts';
+import { FORMULA_APX01, type CapabilityEnvelope } from './vehicles.ts';
 import { PHASE, type RaceDirector } from './race.ts';
 import { trackPoint, type Track } from './track.ts';
 import { RACING_LINE, racingLineFor } from './racing-line.ts';
@@ -21,25 +22,15 @@ import type { Vehicle } from './vehicle.ts';
  * as base + aero·v² in m/s². Margins leave room for line error, kerbs, traffic
  * and the finite pedal controller. They are targets for normal pedals and
  * steering only: no grip, force or pose is ever added. */
-export const AI_ENVELOPE = Object.freeze({
-  lateralBase: 15.95,
-  lateralAero: 0.00548,
-  brakingBase: 19.9,
-  brakingAero: 0.0056,
-  /** Fast corners (above ~180 km/h). */
-  lateralMargin: 0.72,
-  /** Slow corners (below ~70 km/h): tight hairpins, crests and exits on power
-   * leave the line-following controller less room. */
-  slowLateralMargin: 0.62,
-  brakingMargin: 0.55,
-});
+/** lateralMargin: fast corners (above ~180 km/h); slowLateralMargin: slow
+ * corners (below ~70 km/h) where hairpins, crests and exits on power leave the
+ * line-following controller less room. Each vehicle definition carries its
+ * own envelope (WP19); this is the Formula car's. */
+export const AI_ENVELOPE: CapabilityEnvelope = FORMULA_APX01.ai;
 /** Lateral margin by corner speed (m/s), blended between the two limits. */
-export function lateralMarginAt(speed: number) {
+export function lateralMarginAt(speed: number, env: CapabilityEnvelope = AI_ENVELOPE) {
   const t = clamp((speed - 20) / 30, 0, 1);
-  return (
-    AI_ENVELOPE.slowLateralMargin +
-    (AI_ENVELOPE.lateralMargin - AI_ENVELOPE.slowLateralMargin) * t * t * (3 - 2 * t)
-  );
+  return env.slowLateralMargin + (env.lateralMargin - env.slowLateralMargin) * t * t * (3 - 2 * t);
 }
 export const ENVELOPE_STEP = 12;
 export const ENVELOPE_SAMPLES = 21;
@@ -52,32 +43,36 @@ export function envelopeProfile(
   corners: ArrayLike<number>,
   grip: number,
   aero: number,
+  env: CapabilityEnvelope = AI_ENVELOPE,
 ) {
   const n = corners.length;
   let v = Math.min(corners[n - 1], 400);
   for (let i = n - 2; i >= 0; i--) {
     const lateralLimit =
-      (AI_ENVELOPE.lateralBase + AI_ENVELOPE.lateralAero * aero * v * v) *
-      grip *
-      lateralMarginAt(v);
+      (env.lateralBase + env.lateralAero * aero * v * v) * grip * lateralMarginAt(v, env);
     const usage = Math.min(1, (v * v * curvatures[i + 1]) / Math.max(1e-6, lateralLimit));
     const braking =
-      (AI_ENVELOPE.brakingBase + AI_ENVELOPE.brakingAero * aero * v * v) *
+      (env.brakingBase + env.brakingAero * aero * v * v) *
       grip *
-      AI_ENVELOPE.brakingMargin *
+      env.brakingMargin *
       Math.sqrt(Math.max(0, 1 - usage * usage));
     v = Math.min(corners[i], Math.sqrt(v * v + 2 * Math.max(0.5, braking) * ENVELOPE_STEP));
   }
   return v;
 }
 /** Highest steady speed on curvature κ: v²κ = a0 + k·v². */
-export function envelopeCornerSpeed(curvature: number, grip: number, aero: number) {
+export function envelopeCornerSpeed(
+  curvature: number,
+  grip: number,
+  aero: number,
+  env: CapabilityEnvelope = AI_ENVELOPE,
+) {
   // Solve with the fast margin, then once more with the margin at that speed.
   let speed = Infinity;
-  for (const margin of [AI_ENVELOPE.lateralMargin, 0]) {
-    const m = margin || lateralMarginAt(speed);
-    const a0 = AI_ENVELOPE.lateralBase * grip * m,
-      k = AI_ENVELOPE.lateralAero * aero * grip * m,
+  for (const margin of [env.lateralMargin, 0]) {
+    const m = margin || lateralMarginAt(speed, env);
+    const a0 = env.lateralBase * grip * m,
+      k = env.lateralAero * aero * grip * m,
       denominator = Math.abs(curvature) - k;
     speed = denominator <= 1e-7 ? Infinity : Math.sqrt(a0 / denominator);
     if (!Number.isFinite(speed)) return speed;
@@ -92,10 +87,13 @@ export function envelopeBrakingSpeed(
   grip: number,
   aero: number,
   margin = AI_ENVELOPE.brakingMargin,
+  env: CapabilityEnvelope = AI_ENVELOPE,
 ) {
   if (!Number.isFinite(target)) return Infinity;
-  const b0 = AI_ENVELOPE.brakingBase * grip * margin,
-    kb = AI_ENVELOPE.brakingAero * aero * grip * margin;
+  const b0 = env.brakingBase * grip * margin,
+    kb = env.brakingAero * aero * grip * margin;
+  // Classes without downforce: the exponential form divides by zero (§13.5).
+  if (kb < 1e-12) return Math.sqrt(target * target + 2 * b0 * Math.max(0, distance));
   return Math.sqrt(
     (target * target + b0 / kb) * Math.exp(2 * kb * Math.max(0, distance)) - b0 / kb,
   );
@@ -238,14 +236,15 @@ export class AIDriver {
     );
     c.body.orientation.inverseRotate(this.delta, this.local);
     const purePursuit = Math.atan2(
-        2 * VEHICLE.wheelbase * this.local.x,
+        2 * c.spec.wheelbase * this.local.x,
         Math.max(10, this.local.x * this.local.x + this.local.z * this.local.z),
       ),
       speedSteer = c.assist === 'sport' ? 1 / (1 + c.speed * 0.018) : 1;
-    command.steer = clamp(purePursuit / (VEHICLE.maxSteer * speedSteer), -1, 1);
-    let desired = 92 * this.skill;
+    command.steer = clamp(purePursuit / (c.spec.maxSteer * speedSteer), -1, 1);
+    const env = c.definition.ai;
+    let desired = env.topSpeed * this.skill;
     const grip = clamp(
-        peakGrip(c.tires[0], 2500, c.contacts[0], Math.max(c.speed, 38)) / 1.82,
+        peakGrip(c.tires[0], 2500, c.contacts[0], Math.max(c.speed, 38)) / env.referenceMu,
         0.1,
         1,
       ),
@@ -255,8 +254,10 @@ export class AIDriver {
     // Following in another car's wake costs downforce (about 30% of it at full
     // overlap, from the aero model's front/rear/floor wake losses).
     const aero =
-      ((0.45 + 0.55 * Math.min(c.frontHealth, c.floorHealth)) * 794 * (1 - 0.3 * c.wake)) /
-      (VEHICLE.dryMass + c.fuel);
+      ((0.45 + 0.55 * Math.min(c.frontHealth, c.floorHealth)) *
+        env.downforceReference *
+        (1 - 0.3 * c.wake)) /
+      (c.spec.dryMass + c.fuel);
     // Off the racing line (passing or defending lanes) there is less room to
     // run wide, so the envelope keeps a larger reserve there.
     // Standing water also costs the rear axle grip under trail braking (it
@@ -286,9 +287,12 @@ export class AIDriver {
         curvature = k / (1 - k * this.tactical);
       }
       this.curvatures[i] = Math.abs(curvature);
-      this.corners[i] = envelopeCornerSpeed(curvature, laneGrip, aero) * this.skill;
+      this.corners[i] = envelopeCornerSpeed(curvature, laneGrip, aero, env) * this.skill;
     }
-    desired = Math.min(desired, envelopeProfile(this.curvatures, this.corners, laneGrip, aero));
+    desired = Math.min(
+      desired,
+      envelopeProfile(this.curvatures, this.corners, laneGrip, aero, env),
+    );
     if (!c.inPit) desired = Math.min(desired * this.brain.pace, this.trafficSpeed);
     if (c.finishTime) desired = Math.min(desired, 38);
     if (preparingPit)
@@ -369,7 +373,7 @@ export class AIDriver {
     const lateralUsage = Math.min(
       1,
       (Math.abs(c.gLat) * G) /
-        ((AI_ENVELOPE.lateralBase + AI_ENVELOPE.lateralAero * aero * c.speed * c.speed) * grip),
+        ((env.lateralBase + env.lateralAero * aero * c.speed * c.speed) * grip),
     );
     command.throttle = Math.min(
       command.throttle,
