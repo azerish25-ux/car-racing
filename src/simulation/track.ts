@@ -15,6 +15,9 @@ export const TRACK_NAME = AUREL.name,
   CELL_COLS = 7;
 // Coverage-index conversion shared by tire pickup and road-cell depletion.
 export const MARBLE_CELL_CAPACITY = 100;
+/** Vertical separation (m) beyond which a centreline belongs to another road
+ * layer (overpass/underpass). A car is at most ~1.5 m above its road. */
+export const ROUTE_LAYER_GAP = 4;
 export const SURFACE = { ASPHALT: 0, PAINT: 1, KERB: 2, GRASS: 3, GRAVEL: 4, PIT: 5 } as const;
 export interface TrackPoint {
   s: number;
@@ -256,10 +259,18 @@ export class Track {
     out.curvature = lerp(a.curvature, b.curvature, t);
     return out;
   }
-  nearest(x: number, z: number, out: TrackPoint): number {
+  /** Nearest centreline station. With a height `y` (WP11 / F05) a segment
+   * more than ROUTE_LAYER_GAP above or below is a different road layer: it is
+   * used only when no segment of the queried layer is a candidate, so driving
+   * across or beneath a bridge keeps the road it is actually on. Without
+   * stacked roads every candidate is in-layer and the result is unchanged. */
+  nearest(x: number, z: number, out: TrackPoint, y?: number): number {
     const candidates = this.hash.get(`${Math.floor(x / 32)},${Math.floor(z / 32)}`);
     let best = Infinity,
-      bestS = 0;
+      bestS = 0,
+      other = Infinity,
+      otherS = 0;
+    const layered = y !== undefined && Number.isFinite(y);
     const scan = (i: number) => {
       const a = this.points[i],
         b = this.points[i + 1],
@@ -267,6 +278,13 @@ export class Track {
         dz = b.z - a.z,
         t = clamp(((x - a.x) * dx + (z - a.z) * dz) / (dx * dx + dz * dz), 0, 1),
         d = (x - a.x - dx * t) ** 2 + (z - a.z - dz * t) ** 2;
+      if (layered && Math.abs((y as number) - lerp(a.y, b.y, t)) > ROUTE_LAYER_GAP) {
+        if (d < other) {
+          other = d;
+          otherS = lerp(a.s, b.s, t);
+        }
+        return;
+      }
       if (d < best) {
         best = d;
         bestS = lerp(a.s, b.s, t);
@@ -275,6 +293,7 @@ export class Track {
     if (candidates) {
       for (const i of candidates) scan(i);
     } else for (let i = 0; i < this.points.length - 1; i++) scan(i);
+    if (best === Infinity && other < Infinity) bestS = otherS;
     this.at(bestS, out);
     return (x - out.x) * out.nx + (z - out.z) * out.nz;
   }
@@ -330,9 +349,9 @@ export class Track {
     const offset = this.pitOffset(s);
     return this.isPitSection(s) && Math.abs(offset) > 3 && Math.abs(l - offset) < 3.6;
   }
-  sample(x: number, z: number, out: SurfaceSample): SurfaceSample {
+  sample(x: number, z: number, out: SurfaceSample, y?: number): SurfaceSample {
     const p = this.queryPoint,
-      l = this.nearest(x, z, p),
+      l = this.nearest(x, z, p, y),
       a = Math.abs(l),
       pit = this.inPitLane(p.s, l);
     let surface: number = SURFACE.ASPHALT,

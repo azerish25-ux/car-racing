@@ -218,7 +218,7 @@ export class Vehicle {
     b.orientation.rotate(this.axis.set(0, 1, 0), this.up);
     this.speed = b.velocity.length();
     this.bottomEnergy = 0;
-    this.lateral = track.nearest(b.position.x, b.position.z, this.trackPosition);
+    this.lateral = track.nearest(b.position.x, b.position.z, this.trackPosition, b.position.y);
     this.s = this.trackPosition.s;
     const speedSteer = this.assist === 'sport' ? 1 / (1 + this.speed * 0.018) : 1;
     this.steer = approach(this.steer, this.input.steer * spec.maxSteer * speedSteer, 1.6 * dt);
@@ -331,7 +331,7 @@ export class Vehicle {
       b.orientation.rotate(this.localPoint.set(pos[0], pos[1], pos[2]), origin).add(b.position);
       this.down.copy(this.up).scale(-1);
       const distance = track.cast(origin, this.down, 1.5, s);
-      if (!Number.isFinite(distance)) track.sample(origin.x, origin.z, s);
+      if (!Number.isFinite(distance)) track.sample(origin.x, origin.z, s, origin.y);
       const rest =
           spec.restLength + (i < 2 ? this.setup.frontRide - 0.065 : this.setup.rearRide - 0.075),
         length =
@@ -470,7 +470,7 @@ export class Vehicle {
     this.force.copy(this.up).scale(-this.aero.floor);
     b.apply(this.force, b.position);
     if (airspeed > 0.01) b.force.addScaled(this.relativeAir, -this.aero.drag / airspeed);
-    track.sample(b.position.x, b.position.z, this.surface);
+    track.sample(b.position.x, b.position.z, this.surface, b.position.y);
     this.bottomEnergy = this.skid.apply(b, track, dt);
     // Abrasion cannot repair a floor already damaged below the wear limit.
     this.floorHealth = Math.max(
@@ -489,7 +489,7 @@ export class Vehicle {
       for (const z of st.jackZ)
         for (const x of [-st.jackX, st.jackX]) {
           b.orientation.rotate(this.localPoint.set(x, st.floorY, z), this.point).add(b.position);
-          track.sample(this.point.x, this.point.z, this.surface);
+          track.sample(this.point.x, this.point.z, this.surface, this.point.y);
           const penetration = this.surface.height + this.jackHeight - this.point.y;
           if (penetration > 0) {
             b.pointVelocity(this.point, this.force);
@@ -526,7 +526,7 @@ export class Vehicle {
     this.upsetClock += dt;
     if (this.upsetClock < 1.5) return false;
     const p = this.trackPosition;
-    track.nearest(this.body.position.x, this.body.position.z, p);
+    track.nearest(this.body.position.x, this.body.position.z, p, this.body.position.y);
     const half = Math.max(0, p.width - 1.2);
     this.place(track, p.s, clamp(this.lateral, -half, half));
     for (const t of this.tires) t.omega = 0;
@@ -538,7 +538,7 @@ export class Vehicle {
     this.body.orientation
       .rotate(this.localPoint.set(0, this.definition.stations.floorY, z), this.point)
       .add(this.body.position);
-    track.sample(this.point.x, this.point.z, this.surface);
+    track.sample(this.point.x, this.point.z, this.surface, this.point.y);
     return (this.point.y - this.surface.height) * this.surface.normal.y;
   }
   impactAt(energy: number, point: Vec3) {

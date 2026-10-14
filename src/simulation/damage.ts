@@ -50,7 +50,7 @@ export class DebrisPool {
       p.velocity.scale(Math.exp((-0.08 * p.velocity.length() * dt) / Math.max(1, p.mass)));
       p.position.addScaled(p.velocity, dt);
       p.rotation += p.spin * dt;
-      track.sample(p.position.x, p.position.z, this.surface);
+      track.sample(p.position.x, p.position.z, this.surface, p.position.y);
       if (p.position.y < this.surface.height + 0.025) {
         p.position.y = this.surface.height + 0.025;
         const normalSpeed = p.velocity.dot(this.surface.normal);

@@ -123,7 +123,7 @@ export class CollisionSolver {
               this.corner,
             )
             .add(a.body.position);
-          const lateral = track.nearest(this.corner.x, this.corner.z, trackPos);
+          const lateral = track.nearest(this.corner.x, this.corner.z, trackPos, this.corner.y);
           const boundary = track.boundaryAt(trackPos, Math.sign(lateral));
           const penetration = Math.abs(lateral) - boundary;
           if (penetration > deepest) {

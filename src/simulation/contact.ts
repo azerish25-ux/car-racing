@@ -83,7 +83,7 @@ export class TrackContactMesh {
   }
   cast(origin: Vec3, down: Vec3, maximum: number, surface: SurfaceSample) {
     if (!this.bvh.raycast(origin, down, maximum, this.hit)) return Infinity;
-    this.track.sample(this.hit.point.x, this.hit.point.z, surface);
+    this.track.sample(this.hit.point.x, this.hit.point.z, surface, this.hit.point.y);
     surface.height = this.hit.point.y;
     surface.normal.copy(this.hit.normal);
     return this.hit.distance;
