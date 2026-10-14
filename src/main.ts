@@ -82,6 +82,8 @@ import {
 import { TelemetryExport } from './storage/telemetry-export.ts';
 import { SessionReplay } from './storage/replay-pages.ts';
 import { RadioArbiter } from './core/radio.ts';
+import { EVENTS, eventSession } from './simulation/events.ts';
+import { eventHub } from './ui/event-cards.ts';
 import { RadioCaption } from './ui/radio-caption.ts';
 import { TelemetryRecorder } from './storage/recorders.ts';
 import { clamp } from './core/math.ts';
@@ -1606,6 +1608,20 @@ export class GameApp {
       else if (name === 'deviceLost') this.ui.toast(this.input.deviceStatus);
       return;
     }
+    if (name.startsWith('event:') && this.state === 'menu') {
+      const event = EVENTS[Number(name.slice(6))];
+      if (!event) return;
+      try {
+        const options = eventSession(event, { ...DEFAULT_OPTIONS, setup: this.settings.setup });
+        this.ui.closeModal();
+        this.championshipRound = -1;
+        this.ui.championshipNote = '';
+        void this.start(options).catch((e) => this.fail(e));
+      } catch (error) {
+        this.ui.toast(error instanceof Error ? error.message : String(error));
+      }
+      return;
+    }
     if (name.startsWith('eventReview:')) {
       const [, command, rawId] = name.split(':');
       try {
@@ -1738,6 +1754,10 @@ export class GameApp {
         break;
       case 'team':
         this.openTeam();
+        break;
+      case 'events':
+        if (this.state !== 'menu') break;
+        this.ui.modalContent(eventHub(EVENTS));
         break;
       case 'championship':
         if (this.state === 'loading') break;

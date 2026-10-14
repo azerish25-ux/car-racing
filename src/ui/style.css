@@ -4168,3 +4168,22 @@ dialog .error-detail {
   animation-duration: 0s !important;
   transition-duration: 0s !important;
 }
+.event-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 16px;
+}
+.event-card {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  padding: 14px 16px;
+}
+.event-card dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  margin: 10px 0 14px;
+  font-size: 13px;
+}
+.event-card dt {
+  opacity: 0.7;
+}
