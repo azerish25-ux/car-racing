@@ -1,7 +1,7 @@
 import * as T from 'three';
 import { FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
 import type { LightingMode } from '../daylight.ts';
-import type { SkyLight } from '../sky-light.ts';
+import { skySunKey, type SkyLight } from '../sky-light.ts';
 
 /**
  * Sky clouds (D07): a baked cumulus panorama per cloud-cover bin.
@@ -716,9 +716,10 @@ export function createSkyCloudUniforms(): SkyCloudUniforms {
   };
 }
 
-/** Panoramas are shared by lightings with one sun direction (day and night). */
+/** Panoramas are shared by lightings with one sun direction (day and night,
+ * unless a LIVE sun has re-aimed the day key: sky-light.ts skySunKey). */
 export function cloudLightKey(mode: LightingMode) {
-  return mode === 'sunset' ? 'sunset' : 'day';
+  return mode === 'night' ? 'day' : `${mode}${skySunKey()}`;
 }
 
 type Uniforms = Record<string, T.IUniform>;
@@ -868,7 +869,7 @@ export class SkyClouds {
     u.thickness.value = layer.thickness;
     u.extinction.value = layer.extinction;
     u.cirrus.value = layer.cirrus;
-    u.horizonGlow.value = cloudLightKey(mode) === 'sunset' ? 1 : 0;
+    u.horizonGlow.value = mode === 'sunset' ? 1 : 0;
     u.fair.value = 1 - smooth01((layer.cover - 0.45) / 0.45);
     try {
       this.draw(renderer, target, this.panoramaMaterial);

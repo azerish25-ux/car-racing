@@ -77,8 +77,28 @@ function lerp(a: number, b: number, t: number) {
   return a + (b - a) * t;
 }
 
+/** LIVE sky: the real sun replaces the day and golden-hour presets' key
+ * (sky-ephemeris.ts). Night keeps the floodlights' fixed aggregate. Every
+ * change bumps `epoch`, which the sun-dependent caches carry in their keys. */
+const live = { sun: null as T.Vector3 | null, epoch: 0 };
+/** Aim the day/golden-hour sun (null restores the presets). Returns whether
+ * the direction changed. */
+export function setSkySun(direction: T.Vector3 | null) {
+  if (direction && ![direction.x, direction.y, direction.z].every(Number.isFinite))
+    throw new Error('Invalid live sun direction');
+  if (direction === null ? live.sun === null : live.sun?.equals(direction)) return false;
+  live.sun = direction ? Object.freeze(direction.clone()) : null;
+  live.epoch++;
+  lightCache.clear();
+  return true;
+}
+/** Identity of the current day/golden-hour sun: '' for the presets. */
+export function skySunKey() {
+  return live.sun ? `@${live.epoch}` : '';
+}
 /** The sun direction of a lighting (night keeps the day sun as its moon). */
 export function skyLightDirection(mode: LightingMode) {
+  if (live.sun && mode !== 'night') return live.sun;
   return mode === 'sunset' ? SUNSET_OFFSET : SUN_OFFSET;
 }
 /** Haze of a lighting at a cover level index (0, 1, 2 = cover 0, 0.5, 1). */
@@ -159,7 +179,7 @@ export function skyLight(cloud: number, mode: LightingMode): SkyLight {
   if (mode !== 'day' && mode !== 'sunset' && mode !== 'night')
     throw new Error('Invalid circuit lighting mode');
   const cover = Math.min(1, Math.max(0, cloud));
-  const key = `${mode}:${cover}`;
+  const key = `${mode}${skySunKey()}:${cover}`;
   const cached = lightCache.get(key);
   if (cached) return cached;
   const { low, high, weight } = skyAtmospheres(cover, mode);

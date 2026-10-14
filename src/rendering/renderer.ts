@@ -78,11 +78,12 @@ import {
   shadowAnchor,
   SkyEnvironment,
   SUN_OFFSET,
+  bindSkyCelestial,
   lightingDirection,
   lightingMode,
   type LightingMode,
 } from './daylight.ts';
-import { prewarmSky } from './sky-light.ts';
+import { prewarmSky, skySunKey } from './sky-light.ts';
 import { SKY_CLOUDS, SkyClouds } from './studio/sky-clouds.ts';
 import { EngineeringView } from './engineering-view.ts';
 import type { EngineeringSample } from '../workers/diagnostics.ts';
@@ -273,7 +274,8 @@ export class RacingRenderer {
   /** Static sun shadow map of the whole circuit, beyond the car-following one. */
   private farShadow = new FarShadow();
   private farShadowBounds = new T.Box3();
-  private farShadowBaked: LightingMode | null = null;
+  /** Lighting (and LIVE sun key) the far shadow was baked for. */
+  private farShadowBaked: string | null = null;
   /** Inputs of the baked far map besides the lighting: size and planting. */
   private farShadowInputs = '';
   private gpuTimer: GpuTimer;
@@ -1015,6 +1017,8 @@ export class RacingRenderer {
     this.sky.material.uniforms.nightAmount.value = illumination === 'night' ? 1 : 0;
     this.sky.material.uniforms.sunsetAmount.value = illumination === 'sunset' ? 1 : 0;
     this.sky.material.uniforms.sunPosition.value.copy(lightingDirection(illumination));
+    // Moon, stars and twilight: the live ephemeris or the preset's fixed sky.
+    bindSkyCelestial(this.sky.material, illumination);
     // Clouds drift with presented simulation time: held by pause and replay.
     this.sky.material.uniforms.cloudDrift.value =
       (presented[H.TIME] * SKY_CLOUDS.driftPerSecond) % 1;
@@ -1345,7 +1349,10 @@ export class RacingRenderer {
       this.circuit.wetReflection.suspend();
       // Include weather-driven environment captures in real GPU/draw metrics.
       this.drawLedger.mark('environment');
-      if (this.circuit.construction.ready && this.farShadowBaked !== illumination)
+      if (
+        this.circuit.construction.ready &&
+        this.farShadowBaked !== `${illumination}${skySunKey()}`
+      )
         this.bakeFarShadow(illumination);
       this.environment.update(this.renderer, this.scene, daylight.cover, illumination);
       let wheelWater = 0;
@@ -1522,7 +1529,7 @@ export class RacingRenderer {
       farCasters,
       sun: this.sun,
     });
-    this.farShadowBaked = illumination;
+    this.farShadowBaked = `${illumination}${skySunKey()}`;
   }
   /** A rival 30 m behind fills a few dozen pixels of a 512 x 192 mirror, yet
    * the main view's LOD drew it at full detail (93 draws) in every pass. Each

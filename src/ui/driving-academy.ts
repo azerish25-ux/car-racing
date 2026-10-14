@@ -1,4 +1,5 @@
 import type { LightingMode } from '../rendering/daylight.ts';
+import type { Observer } from '../rendering/sky-ephemeris.ts';
 import type { GuideMode } from '../rendering/driving-guide.ts';
 import type { PracticeProgress } from '../simulation/practice-programme.ts';
 import { escapeHtml } from './team-hub.ts';
@@ -13,10 +14,16 @@ export function drivingAcademy(
   guide: GuideMode,
   night: boolean,
   illumination: LightingMode = night ? 'night' : 'day',
+  live: Observer | null = null,
 ) {
+  const where = live
+    ? live.source === 'timezone'
+      ? 'your time zone (allow location access for your exact sky)'
+      : `${Math.abs(live.latitude).toFixed(1)}°${live.latitude >= 0 ? 'N' : 'S'} ${Math.abs(live.longitude).toFixed(1)}°${live.longitude >= 0 ? 'E' : 'W'}`
+    : '';
   return `<section class="driving-academy"><header><div><span class="eyebrow">DRIVING ACADEMY</span><h2>Find your repeatable lap.</h2></div><button data-action="modalClose">CLOSE</button></header>
   <p>Five timed laps. Your first clean lap sets the target: match or beat it for gold, stay within 2% for silver or within 5% for bronze.</p>
-  <div class="academy-controls"><fieldset><legend>ON-TRACK GUIDANCE</legend>${(['off', 'corners', 'full'] as const).map((mode) => `<button data-action="guide:${mode}" aria-pressed="${guide === mode}">${mode.toUpperCase()}</button>`).join('')}<p>Chevrons on the road mark suggested braking zones and ease off for yellow flags and wet track. Always race the cars around you.</p></fieldset><fieldset><legend>CIRCUIT LIGHTING</legend><button data-action="lighting:day" aria-pressed="${illumination === 'day'}">DAY</button><button data-action="lighting:sunset" aria-pressed="${illumination === 'sunset'}">SUNSET</button><button data-action="lighting:night" aria-pressed="${night}">NIGHT</button><p>Race at midday, under a low sunset or beneath the floodlights. Lighting is visual only and never changes grip or weather.</p></fieldset></div>
+  <div class="academy-controls"><fieldset><legend>ON-TRACK GUIDANCE</legend>${(['off', 'corners', 'full'] as const).map((mode) => `<button data-action="guide:${mode}" aria-pressed="${guide === mode}">${mode.toUpperCase()}</button>`).join('')}<p>Chevrons on the road mark suggested braking zones and ease off for yellow flags and wet track. Always race the cars around you.</p></fieldset><fieldset><legend>CIRCUIT LIGHTING</legend><button data-action="lighting:live" aria-pressed="${!!live}">LIVE</button><button data-action="lighting:day" aria-pressed="${!live && illumination === 'day'}">DAY</button><button data-action="lighting:sunset" aria-pressed="${!live && illumination === 'sunset'}">SUNSET</button><button data-action="lighting:night" aria-pressed="${!live && night}">NIGHT</button><p>Race at midday, under a low sunset or beneath the floodlights, or LIVE: the real sun, moon and stars over your location, changing with your clock${live ? ` (now ${escapeHtml(where)}, ${illumination === 'sunset' ? 'golden hour' : illumination})` : ''}. Lighting is visual only and never changes grip or weather.</p></fieldset></div>
   <p class="academy-warning">Side arrows warn of cars alongside. A larger arrow means you are overlapping.</p>
   <div class="academy-score"><span>${progress.finished ? 'COMPLETE' : progress.active ? 'IN PROGRESS' : 'READY TO START'}</span><strong>${progress.attempts.length} / 5</strong><label>LOCKED TARGET <b>${programmeTime(progress.target)}</b></label></div>
   <ol class="academy-attempts">${Array.from({ length: 5 }, (_, index) => {

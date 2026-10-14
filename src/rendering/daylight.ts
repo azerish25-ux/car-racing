@@ -11,9 +11,12 @@ import {
   skyAtmospheres,
   skyDeckAmount,
   skyLight,
+  skyLightDirection,
+  skySunKey,
   skyVeil,
   type LightingMode,
 } from './sky-light.ts';
+import { BRIGHT_STARS, liveCelestial, presetCelestial, starVector } from './sky-ephemeris.ts';
 import { aerialFogColor, setAerialPerspective } from './studio/aerial-perspective.ts';
 import { setCloudShadow } from './studio/cloud-shadow.ts';
 import {
@@ -41,15 +44,23 @@ export function lightingMode(value: boolean | LightingMode): LightingMode {
   throw new Error('Invalid circuit lighting mode');
 }
 export function lightingDirection(mode: boolean | LightingMode) {
-  return lightingMode(mode) === 'sunset' ? SUNSET_OFFSET : SUN_OFFSET;
+  return skyLightDirection(lightingMode(mode));
 }
 function basis(direction: T.Vector3) {
   const forward = direction.clone().normalize(),
     right = new T.Vector3(0, 1, 0).cross(forward).normalize();
   return { forward, right, up: forward.clone().cross(right).normalize() };
 }
-const dayBasis = basis(SUN_OFFSET),
-  sunsetBasis = basis(SUNSET_OFFSET);
+const presetBases = { day: basis(SUN_OFFSET), sunset: basis(SUNSET_OFFSET) };
+let liveBasis = { key: '', value: presetBases.day };
+/** The fixed light-space basis of a lighting's sun (re-derived only when a
+ * LIVE sun re-aims). */
+function lightBasis(mode: LightingMode) {
+  const key = skySunKey();
+  if (!key || mode === 'night') return mode === 'sunset' ? presetBases.sunset : presetBases.day;
+  if (liveBasis.key !== key) liveBasis = { key, value: basis(skyLightDirection(mode)) };
+  return liveBasis.value;
+}
 
 /** Haze colours of the aerial perspective, read from the sky the camera sees:
  * the clear horizon away from and toward the sun, and the deck's own grey. */
@@ -175,11 +186,7 @@ export function shadowAnchor(
     halfExtent <= 0
   )
     throw new Error('Invalid shadow grid');
-  const {
-    forward: lightForward,
-    right: lightRight,
-    up: lightUp,
-  } = lightingMode(mode) === 'sunset' ? sunsetBasis : dayBasis;
+  const { forward: lightForward, right: lightRight, up: lightUp } = lightBasis(lightingMode(mode));
   const texel = (2 * halfExtent) / size;
   const x = target.dot(lightRight),
     y = target.dot(lightUp),
@@ -205,6 +212,221 @@ export const SKY_DOME = Object.freeze({
   sunAngularRadius: ATMOSPHERE.sunAngularRadius,
 });
 const vec3 = (c: readonly number[]) => `vec3(${c.map((v) => v.toFixed(4)).join(',')})`;
+
+/**
+ * The celestial sky (sky-ephemeris.ts): moon, stars, Milky Way and twilight,
+ * on the visible dome only (cube captures keep the measured night dome).
+ *
+ *  - Moon: a 0.26 degree disc shaded by the true sun with Lommel-Seeliger
+ *    reflectance (the flat, limb-bright full moon of the real thing; the
+ *    terminator and phase follow the actual sun), the major maria and Tycho at
+ *    their places with lunar north toward the celestial pole, earthshine on
+ *    the dark limb near new moon and a forward-scattering aureole. It is
+ *    reddened and dimmed by the same air-mass extinction as the stars, and
+ *    in a LIVE daylight sky it shows as the pale daytime moon.
+ *  - Stars: the catalogue's brightest stars and asterisms at their J2000
+ *    places, then two procedural layers to magnitude 8 with the observed
+ *    magnitude distribution (N ~ 10^0.45m), B-V colours, denser toward the
+ *    galactic plane; each a one-pixel Gaussian whose peak follows its
+ *    magnitude, extinguished and scintillating with air mass.
+ *  - Milky Way: brightness in galactic coordinates, a bulge toward
+ *    Sagittarius, clumped star clouds and the dark Great Rift.
+ *  - Twilight (LIVE only): horizon glow toward the set sun, the blue
+ *    upper sky, the Belt of Venus and the earth's shadow opposite, fading by
+ *    about 0.45 magnitude per degree of solar depression.
+ */
+export const CELESTIAL = Object.freeze({
+  moonAngularRadius: 0.004536,
+  /** Normal albedo of the lunar disc. */
+  moonAlbedo: 0.13,
+  /** Floodlit-venue night exposure suits the track, not the sky: the moon is
+   * lifted to how the dark-adapted eye sees it. */
+  nightMoonGain: 6,
+  /** Peak radiance of a magnitude 0 star, scene units. */
+  starZeroPoint: 0.9,
+  /** Optical depth per air mass (Rayleigh and clear-night aerosol, R G B). */
+  extinction: Object.freeze([0.08, 0.14, 0.27] as const),
+  milkyWay: 0.008,
+});
+const CELESTIAL_GLSL = `
+uniform vec3 moonDirection;
+uniform vec3 trueSunDirection;
+uniform vec3 moonRadiance;
+uniform float moonAmount;
+uniform float starAmount;
+uniform float twilightAmount;
+uniform mat3 worldToCelestial;
+uniform vec4 brightStars[${BRIGHT_STARS.length}];
+uniform float brightStarColours[${BRIGHT_STARS.length}];
+vec3 celestialHash(vec3 p3) {
+  p3 = fract(p3 * vec3(.1031, .1030, .0973));
+  p3 += dot(p3, p3.yxz + 33.33);
+  return fract((p3.xxy + p3.yxx) * p3.zyx);
+}
+float celestialNoise(vec3 p) {
+  vec3 i = floor(p), f = fract(p);
+  f = f * f * (3.0 - 2.0 * f);
+  return mix(
+    mix(mix(celestialHash(i).x, celestialHash(i + vec3(1, 0, 0)).x, f.x),
+        mix(celestialHash(i + vec3(0, 1, 0)).x, celestialHash(i + vec3(1, 1, 0)).x, f.x), f.y),
+    mix(mix(celestialHash(i + vec3(0, 0, 1)).x, celestialHash(i + vec3(1, 0, 1)).x, f.x),
+        mix(celestialHash(i + vec3(0, 1, 1)).x, celestialHash(i + vec3(1, 1, 1)).x, f.x), f.y),
+    f.z);
+}
+float celestialFbm(vec3 p) {
+  float sum = 0.0, amplitude = 0.5;
+  for (int i = 0; i < 4; i++) {
+    sum += amplitude * celestialNoise(p);
+    p = p * 2.03 + 17.1;
+    amplitude *= 0.5;
+  }
+  return sum / 0.9375;
+}
+// Kasten & Young (1989) relative air mass for a sine of elevation.
+float celestialAirMass(float sinElevation) {
+  float h = degrees(asin(clamp(sinElevation, 0.0, 1.0)));
+  return 1.0 / (sinElevation + 0.50572 * pow(h + 6.07995, -1.6364));
+}
+vec3 celestialExtinction(float sinElevation) {
+  return exp(-${vec3(CELESTIAL.extinction)} * celestialAirMass(max(sinElevation, 0.0)));
+}
+// B-V colour index to a luminance-normalised star colour (Ballesteros 2012).
+vec3 starColour(float bv) {
+  float kelvin = 4600.0 * (1.0 / (0.92 * bv + 1.7) + 1.0 / (0.92 * bv + 0.62));
+  float x = clamp((kelvin - 3000.0) / 9000.0, 0.0, 1.0);
+  vec3 c = mix(vec3(1.0, 0.6, 0.34), vec3(1.0, 0.93, 0.86), smoothstep(0.0, 0.3, x));
+  c = mix(c, vec3(0.66, 0.77, 1.0), smoothstep(0.3, 1.0, x));
+  return c / dot(c, vec3(0.2126, 0.7152, 0.0722));
+}
+vec3 starPoint(vec3 cel, vec3 star, float magnitude, float bv, float pixel, float twinkle) {
+  // Chord length squared from the difference (1 - dot loses the precision a
+  // sub-milliradian point needs in 32-bit floats).
+  vec3 offset = cel - star;
+  float d2 = dot(offset, offset);
+  float sigma = 0.62 * pixel;
+  return starColour(bv) * (${CELESTIAL.starZeroPoint.toFixed(3)} * exp2(-1.3288 * magnitude) * twinkle) *
+    exp(-d2 / (2.0 * sigma * sigma));
+}
+// Galactic (l, b) of an equatorial direction (J2000 rotation).
+vec2 galactic(vec3 cel) {
+  vec3 g = vec3(dot(vec3(-0.0548756, -0.8734371, -0.4838350), cel),
+                dot(vec3(0.4941094, -0.4448296, 0.7469822), cel),
+                dot(vec3(-0.8676661, -0.1980764, 0.4559838), cel));
+  return vec2(atan(g.y, g.x), asin(clamp(g.z, -1.0, 1.0)));
+}
+vec3 milkyWay(vec3 cel) {
+  vec2 lb = galactic(cel);
+  float bulge = exp(-lb.x * lb.x / 0.5);
+  float width = 0.1 + 0.13 * bulge;
+  float band = exp(-lb.y * lb.y / (width * width)) * (0.32 + 0.68 * bulge);
+  float clumps = celestialFbm(cel * 9.0);
+  float lane = exp(-pow((lb.y + 0.012) / (0.03 + 0.035 * bulge), 2.0)) *
+    smoothstep(-0.7, -0.3, lb.x) * (1.0 - smoothstep(1.2, 1.6, lb.x)) *
+    smoothstep(0.32, 0.7, celestialFbm(cel * 14.0 + 3.1));
+  float light = band * (0.45 + 1.1 * clumps * clumps) * (1.0 - 0.8 * lane);
+  return light * mix(vec3(0.84, 0.88, 1.0), vec3(1.0, 0.87, 0.7), bulge);
+}
+vec3 proceduralStars(vec3 cel, float pixel, float scale, float density, float faintest, float twinkleRate) {
+  vec3 p = cel * scale, cell = floor(p);
+  vec3 h = celestialHash(cell);
+  vec2 lb = galactic(cel);
+  float plane = exp(-lb.y * lb.y / 0.06) * (0.6 + 0.4 * exp(-lb.x * lb.x / 0.6));
+  if (h.x > density * (0.55 + 1.6 * plane)) return vec3(0.0);
+  vec3 star = normalize(cell + 0.15 + 0.7 * celestialHash(cell + 71.3)) * scale;
+  vec3 local = star - cell;
+  if (any(lessThan(local, vec3(0.08))) || any(greaterThan(local, vec3(0.92)))) return vec3(0.0);
+  float magnitude = max(faintest - 6.0, faintest + 2.2 * log(max(h.y, 1e-4)) / log(10.0));
+  float bv = -0.25 + 1.8 * pow(h.z, 1.5);
+  float twinkle = 1.0 + twinkleRate * sin(cloudDrift * 2.0e5 * (0.7 + 0.6 * h.y) + 6.2832 * h.z);
+  return starPoint(cel, star / scale, magnitude, bv, pixel, twinkle);
+}
+vec3 starField(vec3 cel, float pixel, float scintillation) {
+  vec3 light = vec3(0.0);
+  for (int i = 0; i < ${BRIGHT_STARS.length}; i++) {
+    vec4 s = brightStars[i];
+    if (dot(cel, s.xyz) < 0.99995) continue;
+    float twinkle = 1.0 + scintillation * sin(cloudDrift * 2.0e5 * (0.8 + 0.03 * float(i)) + float(i));
+    light += starPoint(cel, s.xyz, s.w, brightStarColours[i], pixel, twinkle);
+  }
+  light += proceduralStars(cel, pixel, 40.0, 0.32, 6.4, scintillation);
+  light += proceduralStars(cel, pixel, 110.0, 0.22, 8.0, scintillation);
+  return light;
+}
+float mare(vec2 p, vec2 centre, vec2 radius) {
+  vec2 d = (p - centre) / radius;
+  return exp(-dot(d, d));
+}
+// Disc albedo, sky-projected (x west on the sky, y lunar north): the maria
+// as one irregular, domain-warped field that merges like the real basins,
+// bright highlands, and the young ray craters.
+vec3 moonAlbedo(vec2 p) {
+  vec2 q = p + 0.09 * vec2(celestialFbm(vec3(p * 3.0, 1.0)), celestialFbm(vec3(p * 3.0, 7.0))) - 0.045;
+  float field =
+    1.0 * mare(q, vec2(-0.27, 0.52), vec2(0.27, 0.22)) +   // Imbrium
+    0.9 * mare(q, vec2(0.22, 0.43), vec2(0.15, 0.14)) +    // Serenitatis
+    0.95 * mare(q, vec2(0.42, 0.14), vec2(0.2, 0.17)) +    // Tranquillitatis
+    1.0 * mare(q, vec2(0.73, 0.31), vec2(0.1, 0.085)) +    // Crisium
+    0.8 * mare(q, vec2(0.6, -0.14), vec2(0.11, 0.17)) +    // Fecunditatis
+    0.75 * mare(q, vec2(0.38, -0.3), vec2(0.09, 0.08)) +   // Nectaris
+    0.9 * mare(q, vec2(-0.62, 0.18), vec2(0.24, 0.42)) +   // Procellarum
+    0.75 * mare(q, vec2(-0.42, -0.12), vec2(0.2, 0.18)) +  // Procellarum south, Cognitum
+    0.75 * mare(q, vec2(-0.16, -0.36), vec2(0.15, 0.1)) +  // Nubium
+    0.75 * mare(q, vec2(-0.55, -0.38), vec2(0.09, 0.085)) + // Humorum
+    0.7 * mare(q, vec2(-0.08, 0.2), vec2(0.13, 0.08)) +    // Vaporum, Insularum
+    0.65 * mare(q, vec2(-0.05, 0.74), vec2(0.38, 0.06));   // Frigoris
+  float mask = smoothstep(0.38, 0.72, field + 0.32 * (celestialFbm(vec3(p * 6.0, 3.0)) - 0.5));
+  float highland = 0.9 + 0.22 * celestialFbm(vec3(p * 13.0, 2.3));
+  float albedo = mix(highland, 0.56 + 0.1 * celestialFbm(vec3(p * 9.0, 5.0)), mask);
+  // Ray craters: Tycho, Copernicus, Kepler, Aristarchus.
+  vec2 tycho = p - vec2(-0.08, -0.72);
+  albedo += 0.45 * smoothstep(0.04, 0.0, length(tycho));
+  albedo += 0.12 * smoothstep(0.72, 0.95, celestialNoise(vec3(atan(tycho.y, tycho.x) * 11.0, 0.0, 4.0))) *
+    smoothstep(1.0, 0.05, length(tycho));
+  albedo += 0.3 * smoothstep(0.035, 0.0, distance(p, vec2(-0.27, 0.27)));
+  albedo += 0.25 * smoothstep(0.025, 0.0, distance(p, vec2(-0.55, 0.2)));
+  albedo += 0.5 * smoothstep(0.022, 0.0, distance(p, vec2(-0.7, 0.4)));
+  // Highlands a neutral warm grey, maria faintly bluer.
+  return clamp(albedo, 0.3, 1.5) * mix(vec3(1.0, 0.97, 0.92), vec3(0.92, 0.95, 1.0), mask);
+}
+vec3 moonLight(vec3 direction, float moonCos, float pixel) {
+  float radius = ${CELESTIAL.moonAngularRadius.toFixed(6)};
+  vec3 north = vec3(worldToCelestial[0][2], worldToCelestial[1][2], worldToCelestial[2][2]);
+  vec3 up = north - moonDirection * dot(north, moonDirection);
+  up = dot(up, up) > 1e-8 ? normalize(up) : vec3(0.0, 1.0, 0.0);
+  vec3 west = cross(moonDirection, up);
+  vec2 p = vec2(dot(direction, west), dot(direction, up)) / sin(radius);
+  float rho = length(p);
+  vec3 extinction = celestialExtinction(moonDirection.y) * step(0.0, direction.y);
+  // Forward-scattering aureole round the disc.
+  float illumination = 0.5 - 0.5 * dot(trueSunDirection, moonDirection);
+  vec3 light = moonRadiance * extinction * illumination * 1.2e-6 /
+    max(1.00002 - moonCos, 2e-5) * vec3(1.0, 0.97, 0.92) * smoothstep(1.0, 1.15, rho);
+  if (rho > 1.2) return light;
+  float z = sqrt(max(0.0, 1.0 - min(rho * rho, 1.0)));
+  vec3 normal = west * p.x + up * p.y - moonDirection * z;
+  float mu0 = dot(normal, trueSunDirection);
+  float lit = mu0 > 0.0 ? 2.0 * mu0 / (mu0 + z + 1e-4) : 0.0;
+  float earthshine = 0.004 * smoothstep(-0.3, 1.0, dot(trueSunDirection, moonDirection));
+  float edge = pixel / sin(radius);
+  float disc = 1.0 - smoothstep(1.0 - edge, 1.0 + edge, rho);
+  return mix(light, moonRadiance * extinction * moonAlbedo(p) * (lit + earthshine), disc);
+}
+vec3 twilightGlow(vec3 direction) {
+  float depression = -degrees(asin(clamp(trueSunDirection.y, -1.0, 1.0)));
+  float fade = exp(-0.4 * max(depression, 0.0));
+  if (fade < 1e-4) return vec3(0.0);
+  float elevation = asin(clamp(direction.y, 0.0, 1.0));
+  vec2 h = direction.xz, s = trueSunDirection.xz;
+  float sunSide = 0.5 + 0.5 * dot(h, s) / max(length(h) * length(s), 1e-5);
+  float early = exp(-max(depression, 0.0) / 2.5);
+  vec3 c = vec3(1.0, 0.42, 0.16) * 1.6 * exp(-elevation / 0.09) * pow(sunSide, 4.0);
+  c += vec3(1.0, 0.75, 0.45) * 0.6 * exp(-elevation / 0.25) * pow(sunSide, 6.0);
+  c += vec3(0.16, 0.27, 0.62) * (0.4 + 0.6 * exp(-elevation / 0.7)) * (0.65 + 0.35 * sunSide);
+  c += vec3(0.85, 0.5, 0.62) * 0.35 * exp(-pow((elevation - 0.09) / 0.06, 2.0)) * pow(1.0 - sunSide, 3.0) * early;
+  c *= 1.0 - 0.45 * exp(-elevation / 0.05) * pow(1.0 - sunSide, 3.0) * early;
+  return c * 0.12 * fade;
+}
+`;
 const SKY_FRAGMENT = `
 varying vec3 vWorldPosition;
 varying vec3 vSunDirection;
@@ -219,7 +441,7 @@ uniform float cloudCover;
 uniform float probeSkyIntensity;
 uniform float nightAmount;
 uniform float sunsetAmount;
-${SKY_CLOUD_UNIFORMS}${SKY_CLOUD_SAMPLE}${SKY_CLOUD_LIGHTING}${SKY_GROUND_UNIFORMS}
+${SKY_CLOUD_UNIFORMS}${SKY_CLOUD_SAMPLE}${SKY_CLOUD_LIGHTING}${SKY_GROUND_UNIFORMS}${CELESTIAL_GLSL}
 const float SKY_PI = 3.141592653589793;
 const vec2 SKY_VIEW_SIZE = vec2(${SKY_DOME.size[0].toFixed(1)}, ${SKY_DOME.size[1].toFixed(1)});
 // Sky view: u = azimuth from the sun / pi, v = sqrt(elevation / 90 degrees);
@@ -249,6 +471,12 @@ void main() {
   // specular highlight; a 6e3 disc would only add fireflies to rough lobes.
   float sunCos = dot(direction, vSunDirection);
   float discEdge = max(fwidth(sunCos), 1e-7);
+  // Angular size of a pixel (radians), for the moon's edge and star points.
+  float pixelAngle = max(length(fwidth(direction)), 1e-6);
+  float moonCos = dot(direction, moonDirection);
+  vec3 moon = vec3(0.0);
+  if (moonAmount > 0.0 && sunDiscAmount > 0.0 && moonCos > 0.9986)
+    moon = moonLight(direction, moonCos, pixelAngle) * moonAmount * sunDiscAmount;
   float discCos = cos(${SKY_DOME.sunAngularRadius.toFixed(6)});
   float disc = smoothstep(discCos - discEdge, discCos + discEdge, sunCos);
   if (disc > 0.0 && sunDiscAmount > 0.0) {
@@ -261,22 +489,39 @@ void main() {
   // lining; over the sun disc too.
   vec4 clouds = skyCloudTerms(direction);
   float cover = clouds.a;
+  // The moon lies behind the air's in-scatter (added) and behind the deck.
+  radiance += moon * (1.0 - deck);
   radiance = radiance * (1.0 - cover) + skyCloudLight(clouds);
   if (nightAmount > 0.5) {
-    // D28: a near-black floodlit-venue night (#06090d-#0b0d14), not blue. An
-    // authored fictional night sky, not an astronomical moon model.
+    // D28: a near-black floodlit-venue night (#06090d-#0b0d14), not blue,
+    // with the real night sky over it: stars, Milky Way, moon and, in a LIVE
+    // sky, the twilight of the actual sun below the horizon.
     float elevation = max(0.0, direction.y);
     float horizon = pow(1.0 - clamp(elevation, 0.0, 1.0), 3.0);
     vec3 nightSky = mix(vec3(.0085, .0115, .0175), vec3(.012, .014, .02), horizon);
-    float moonCos = sunCos;
-    float moonEdge = max(fwidth(moonCos), .0000007);
-    float moon = smoothstep(.999989 - moonEdge, .999989 + moonEdge, moonCos);
-    float halo = pow(max(0.0, moonCos), 96.0) * .012;
-    nightSky += vec3(.43, .46, .48) * (moon + halo) * (1.0 - cover);
+    // Faint green airglow ten degrees up; warm venue glow on the horizon.
+    nightSky += vec3(.0003, .0009, .0002) * exp(-pow((elevation - .17) / .12, 2.0));
+    nightSky += vec3(.004, .003, .002) * pow(1.0 - elevation, 10.0);
+    if (sunDiscAmount > 0.0 && direction.y > 0.0) {
+      nightSky += twilightGlow(direction) * twilightAmount;
+      // Moonlight scattered by the air: a faint blue dome under a bright moon.
+      nightSky += vec3(.22, .33, .6) * .004 * moonAmount *
+        (0.5 - 0.5 * dot(trueSunDirection, moonDirection)) * sqrt(max(0.0, moonDirection.y));
+      if (starAmount > 0.0) {
+        vec3 cel = normalize(worldToCelestial * direction);
+        float airMass = celestialAirMass(direction.y);
+        float scintillation = 0.12 + 0.35 * clamp((airMass - 1.0) / 6.0, 0.0, 1.0);
+        vec3 stars = starField(cel, pixelAngle, scintillation) +
+          milkyWay(cel) * ${CELESTIAL.milkyWay.toFixed(4)};
+        nightSky += stars * celestialExtinction(direction.y) * starAmount *
+          (1.0 - 0.85 * cloudCover);
+      }
+    }
+    nightSky += moon * (1.0 - 0.85 * cloudCover);
     // Moonlit tops from the same bake's sun (moon) term per unit opacity.
     float moonLit = clouds.r / max(clouds.a, 0.02);
     vec3 nightCloud = mix(vec3(.0075, .0092, .0135), vec3(.02, .022, .027),
-      clamp(.25 + .3 * moonLit + .35 * max(0.0, moonCos), 0.0, 1.0));
+      clamp(.25 + .3 * moonLit + .35 * max(0.0, moonCos) * moonAmount, 0.0, 1.0));
     nightSky = mix(nightSky, nightCloud, cover);
     // Unresolved cloud veils the stars and moon and catches the venue glow.
     nightSky = mix(nightSky, vec3(.014, .016, .021), cloudCover * .45 * (1.0 - cover));
@@ -320,7 +565,23 @@ export function configureSky(sky: Sky) {
   u.groundAmount = { value: 0 };
   u.groundAlbedo = { value: new T.Vector3(...IBL_ENERGY.groundAlbedo) };
   u.groundIrradiance = { value: new T.Vector3() };
+  // Moon, stars and twilight (bindSkyCelestial).
+  u.moonDirection = { value: new T.Vector3(0, 1, 0) };
+  u.trueSunDirection = { value: new T.Vector3(0, 1, 0) };
+  u.moonRadiance = { value: new T.Vector3() };
+  u.moonAmount = { value: 0 };
+  u.starAmount = { value: 0 };
+  u.twilightAmount = { value: 0 };
+  u.worldToCelestial = { value: new T.Matrix3() };
+  u.brightStars = {
+    value: BRIGHT_STARS.map(([ra, dec, magnitude]) => {
+      const v = starVector(ra, dec);
+      return new T.Vector4(v.x, v.y, v.z, magnitude);
+    }),
+  };
+  u.brightStarColours = { value: BRIGHT_STARS.map(([, , , bv]) => bv) };
   u.sunPosition.value.copy(SUN_OFFSET);
+  bindSkyCelestial(material, 'day');
   bindSkyAtmosphere(material, 0, 'day');
   material.fragmentShader = SKY_FRAGMENT;
   material.needsUpdate = true;
@@ -344,6 +605,30 @@ export function bindSkyAtmosphere(material: T.ShaderMaterial, cloud: number, mod
     (u.cloudBounce.value as T.Vector3).fromArray(light.cloudBounce);
   }
   return light;
+}
+const presetSky = presetCelestial(SUN_OFFSET);
+/** Bind the moon, stars and twilight of a lighting: the LIVE ephemeris when
+ * one is set (sky-ephemeris.ts), else the preset's fixed sky (night only: a
+ * waxing gibbous moon where the day key stands, no moon in preset daylight,
+ * whose sun is not the real one). */
+export function bindSkyCelestial(material: T.ShaderMaterial, value: boolean | LightingMode) {
+  const u = material.uniforms,
+    mode = lightingMode(value),
+    live = liveCelestial(),
+    night = mode === 'night';
+  if (!u.moonDirection) return;
+  const sky = live ?? presetSky;
+  (u.moonDirection.value as T.Vector3).copy(sky.moon);
+  (u.trueSunDirection.value as T.Vector3).copy(sky.sun);
+  (u.worldToCelestial.value as T.Matrix3).copy(sky.worldToCelestial);
+  const depression = live ? -live.sunAltitude : 90;
+  u.moonAmount.value = live ? (sky.moon.y > -0.01 ? 1 : 0) : night ? 1 : 0;
+  // Stars come out from the end of civil twilight to nautical darkness.
+  u.starAmount.value = night ? clamp((depression - 4) / 10, 0, 1) : 0;
+  u.twilightAmount.value = night && live ? 1 : 0;
+  // Full-moon disc radiance: the sun's irradiance reflected at the normal albedo.
+  const radiance = (ATMOSPHERE.sceneIrradiance * CELESTIAL.moonAlbedo) / Math.PI;
+  (u.moonRadiance.value as T.Vector3).setScalar(radiance * (night ? CELESTIAL.nightMoonGain : 1));
 }
 const SKY_BINDING = [
   'skyViewLow',
@@ -450,6 +735,7 @@ export class SkyEnvironment {
   private cached = new Map<number, T.WebGLRenderTarget>();
   private cover = NaN;
   private mode: LightingMode = 'day';
+  private sunKey = '';
   private size: number = SKY_PMREM_SIZE.standard;
   /** High tier: capture at SKY_PMREM_SIZE.high (the renderer's setQuality). */
   highDetail = false;
@@ -610,8 +896,17 @@ export class SkyEnvironment {
       (this.sky.material.uniforms.cloudDrift?.value as number | undefined) ?? 0,
     );
     this.probeRefreshNeeded = false;
-    if (plan.cover === this.cover && mode === this.mode && size === this.size) return false;
+    const sunKey = skySunKey();
+    if (
+      plan.cover === this.cover &&
+      mode === this.mode &&
+      sunKey === this.sunKey &&
+      size === this.size
+    )
+      return false;
     const resized = size !== this.size;
+    // A re-aimed LIVE sun recaptures like a lighting change.
+    const relit = mode !== this.mode || sunKey !== this.sunKey;
     const candidates = new Map<number, T.WebGLRenderTarget>();
     const created: T.WebGLRenderTarget[] = [];
     // A new atlas layout needs new blend outputs. The published texture may be
@@ -624,7 +919,7 @@ export class SkyEnvironment {
     let texture: T.Texture;
     try {
       for (const bin of new Set([plan.lower, plan.upper])) {
-        let target = mode === this.mode && !resized ? this.cached.get(bin) : undefined;
+        let target = !relit && !resized ? this.cached.get(bin) : undefined;
         if (!target) {
           target = this.capture(renderer, bin, mode, size);
           created.push(target);
@@ -653,10 +948,7 @@ export class SkyEnvironment {
     // while fractional-cloud atlas outputs alternate. Hard changes invalidate
     // immediately, including when the simulation is paused.
     const hardChange =
-      !Number.isFinite(this.cover) ||
-      mode !== this.mode ||
-      resized ||
-      Math.abs(plan.cover - this.cover) > 0.25;
+      !Number.isFinite(this.cover) || relit || resized || Math.abs(plan.cover - this.cover) > 0.25;
     if (hardChange) this.epoch = {};
     texture.userData.aurelSkyEpoch = this.epoch;
     scene.environment = texture;
@@ -667,6 +959,7 @@ export class SkyEnvironment {
     this.probeRefreshNeeded = hardChange;
     this.cover = plan.cover;
     this.mode = mode;
+    this.sunKey = sunKey;
     this.size = size;
     this.cached = candidates;
     for (const [bin, target] of retired) if (candidates.get(bin) !== target) target.dispose();
@@ -712,7 +1005,7 @@ const domeCache = new Map<string, T.Color>();
 export function skyCosineRadiance(cloud: number, value: boolean | LightingMode = false) {
   const mode = lightingMode(value),
     cover = clamp(cloud, 0, 1);
-  const key = `${mode}:${cover}`;
+  const key = `${mode}${skySunKey()}:${cover}`;
   const cached = domeCache.get(key);
   if (cached) return cached.clone();
   const light = skyLight(cover, mode),

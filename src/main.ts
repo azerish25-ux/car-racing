@@ -109,6 +109,8 @@ import { referenceReview, bindReferenceReview } from './ui/reference-review.ts';
 import { REFERENCES } from './ui/reference-catalogue.ts';
 import { referenceRoute } from './ui/reference-routes.ts';
 import { drivingAcademy, academyConfirmation, programmeHud } from './ui/driving-academy.ts';
+import { LiveSky, liveSkyPreferred, setLiveSkyPreferred } from './rendering/live-sky.ts';
+import { requestObserver, storedObserver } from './rendering/sky-ephemeris.ts';
 import { PracticeProgramme } from './simulation/practice-programme.ts';
 import type { GuideMode } from './rendering/driving-guide.ts';
 type State = 'menu' | 'loading' | 'driving' | 'paused' | 'results' | 'replay' | 'photo' | 'pregame';
@@ -136,6 +138,9 @@ export class GameApp {
   private captureRequested = false;
   private capturingPhoto = false;
   private renderer: RacingRenderer | null = null;
+  /** LIVE lighting: the real sky over the player's location. */
+  private liveSky = new LiveSky();
+  private liveSkyChecked = -Infinity;
   private input: InputController;
   private audio = new RacingAudio();
   private store = new SaveStore();
@@ -378,6 +383,8 @@ export class GameApp {
     this.renderer.shake = this.settings.shake;
     this.renderer.colorblind = this.settings.colorblind;
     this.renderer.setLivery(this.team.livery);
+    if (!this.liveSky.active && liveSkyPreferred()) this.liveSky.start(storedObserver());
+    if (this.liveSky.active) this.renderer.lighting = this.liveSky.update() ?? 'day';
     this.audio.configureDriving(this.track, this.settings.drivingAudio);
     this.ui.setTrack(this.track);
     return true;
@@ -799,6 +806,13 @@ export class GameApp {
   private frame = (time: number) => {
     this.timer = requestAnimationFrame(this.frame);
     this.observeSession();
+    // LIVE sky: the moon and stars move every few seconds; the lighting
+    // follows the real sun across sunrise and sunset.
+    if (this.liveSky.active && this.renderer && time - this.liveSkyChecked >= 5000) {
+      this.liveSkyChecked = time;
+      const lighting = this.liveSky.update();
+      if (lighting && lighting !== this.renderer.lighting) this.renderer.lighting = lighting;
+    }
     if (
       this.errorStopped ||
       this.state === 'loading' ||
@@ -1553,6 +1567,7 @@ export class GameApp {
         this.renderer?.guide.mode ?? 'off',
         this.renderer?.night ?? false,
         this.renderer?.lighting ?? 'day',
+        this.liveSky.observer,
       ),
     );
   }
@@ -1701,8 +1716,30 @@ export class GameApp {
       }
       return;
     }
+    if (name === 'lighting:live') {
+      if (this.renderer) {
+        this.performanceCapture.interrupt('Circuit lighting changed');
+        this.interruptReview('Circuit lighting changed');
+        setLiveSkyPreferred(true);
+        // The device position may need the player's permission; until it
+        // answers, the stored fix or the time zone stands in.
+        this.renderer.lighting = this.liveSky.start(storedObserver());
+        this.renderer.reset();
+        this.openAcademy();
+        void requestObserver().then((observer) => {
+          if (!this.renderer || !this.liveSky.active || observer.source === 'timezone') return;
+          this.renderer.lighting = this.liveSky.start(observer);
+          // Refresh the academy's location line if it is still on screen.
+          if (document.querySelector('.driving-academy [data-action="lighting:live"]'))
+            this.openAcademy();
+        });
+      }
+      return;
+    }
     if (name === 'lighting:day' || name === 'lighting:sunset' || name === 'lighting:night') {
       if (this.renderer) {
+        setLiveSkyPreferred(false);
+        this.liveSky.stop();
         this.performanceCapture.interrupt('Circuit lighting changed');
         this.interruptReview('Circuit lighting changed');
         this.renderer.lighting =
