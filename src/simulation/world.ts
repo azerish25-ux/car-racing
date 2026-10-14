@@ -82,10 +82,15 @@ export class Simulation {
     });
     this.ai = this.cars.map((c) => new AIDriver(c, 0.92 + (c.id % 4) * 0.014, this.options.seed));
     this.race = new RaceDirector(this.cars, this.track, this.options);
-    if (this.options.mode === 'endurance')
+    if (this.options.mode === 'endurance') {
       // Enough fuel for the distance plus a margin: real mass, no refuelling.
-      for (const c of this.cars)
-        c.fuel = Math.max(c.fuel, this.options.laps * (length / 1000) * 0.37 + 4);
+      // A timed race budgets laps at a conservative 55 m/s average.
+      const laps =
+        this.race.ruleset.classification === 'timed'
+          ? Math.ceil(((this.options.durationSeconds ?? 0) * 55) / length) + 1
+          : this.options.laps;
+      for (const c of this.cars) c.fuel = Math.max(c.fuel, laps * (length / 1000) * 0.37 + 4);
+    }
     if (!racingSession(this.options.mode)) {
       this.race.phase = PHASE.RACING;
       this.race.time = this.race.greenAt;
@@ -124,7 +129,8 @@ export class Simulation {
         ? 'wet'
         : this.track.meanWater() > 0.3
           ? 'intermediate'
-          : this.options.mode === 'endurance' && !mandatoryStopSatisfied(c.compoundsUsed)
+          : this.race.ruleset.tires.mandatoryCompoundChange &&
+              !mandatoryStopSatisfied(c.compoundsUsed)
             ? alternateDryCompound(c.tires[0].compound)
             : 'medium';
   }

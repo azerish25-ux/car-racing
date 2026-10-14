@@ -1,6 +1,7 @@
 import { circuitDefinition, type CircuitId } from './circuits.ts';
 import { clamp } from '../core/math.ts';
 import { FORMULA_APX01, VEHICLES } from './vehicles.ts';
+import { RULESETS, TIMED_LIMITS } from './events.ts';
 export type Compound = 'soft' | 'medium' | 'hard' | 'intermediate' | 'wet';
 export type WeatherPreset = 'clear' | 'changeable' | 'rain';
 export type Assist = 'sport' | 'raw';
@@ -100,6 +101,10 @@ export interface SessionOptions {
   /** Per-entry vehicle definition ids (index = car id). Absent: every entrant
    * runs the Formula APX-01 (older saves and callers). WP08. */
   vehicles?: string[];
+  /** Sporting ruleset id (events.ts); absent: the ruleset the mode implies. */
+  ruleset?: string;
+  /** Timed classification length in seconds (timed rulesets only). */
+  durationSeconds?: number;
   weather: WeatherPreset;
   assist: Assist;
   compound: Compound;
@@ -187,6 +192,18 @@ export function validateOptions(v: unknown): SessionOptions {
     opponents,
     ...(grid ? { grid } : {}),
     ...(vehicles ? { vehicles } : {}),
+    ...(typeof o.ruleset === 'string' && Object.hasOwn(RULESETS, o.ruleset)
+      ? { ruleset: o.ruleset }
+      : {}),
+    ...(Number.isFinite(o.durationSeconds)
+      ? {
+          durationSeconds: clamp(
+            Math.round(o.durationSeconds as number),
+            TIMED_LIMITS.min,
+            TIMED_LIMITS.max,
+          ),
+        }
+      : {}),
     weather: o.weather === 'rain' || o.weather === 'changeable' ? o.weather : 'clear',
     assist: o.assist === 'raw' ? 'raw' : 'sport',
     compound: o.compound && Object.hasOwn(COMPOUNDS, o.compound) ? o.compound : 'medium',

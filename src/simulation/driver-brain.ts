@@ -207,7 +207,7 @@ export class DriverBrain {
       // set by the driver's tyre management (kinder drivers stop later).
       const lap = race.laps[car.id];
       const mandatory =
-        race.options.mode === 'endurance' &&
+        race.ruleset.tires.mandatoryCompoundChange &&
         !mandatoryStopSatisfied(car.compoundsUsed) &&
         lap.completed >= plannedStopLap(race.options.laps, traits.tireManagement) &&
         lap.completed < race.options.laps - 1;
@@ -224,7 +224,8 @@ export class DriverBrain {
             ? 'wet'
             : water > 0.16
               ? 'intermediate'
-              : race.options.mode === 'endurance' && !mandatoryStopSatisfied(car.compoundsUsed)
+              : race.ruleset.tires.mandatoryCompoundChange &&
+                  !mandatoryStopSatisfied(car.compoundsUsed)
                 ? alternateDryCompound(compound)
                 : 'medium';
         this.decision = mandatory ? 'STRATEGY / MANDATORY STOP' : 'STRATEGY / PIT';

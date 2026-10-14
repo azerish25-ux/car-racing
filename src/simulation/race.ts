@@ -4,8 +4,8 @@ import { DrsControl } from './drs.ts';
 import { SC_PHASE, SafetyCarDirector } from './safety-car.ts';
 import { safePitRelease } from './pit-safety.ts';
 import { mod, Random } from '../core/math.ts';
+import { rulesetFor, type RulesetDefinition } from './events.ts';
 import {
-  MANDATORY_STOP_PENALTY_SECONDS,
   QUALIFYING_TIMED_LAPS,
   mandatoryStopSatisfied,
   racingSession,
@@ -171,11 +171,14 @@ export class RaceDirector {
   flag: 'GREEN' | 'YELLOW' | 'CHEQUERED' = 'GREEN';
   message = 'SYSTEMS READY';
   private nextMessage = 0;
+  /** Sporting rules for this session (WP09); legacy modes imply theirs. */
+  readonly ruleset: RulesetDefinition;
   constructor(
     readonly cars: Vehicle[],
     readonly track: Track,
     readonly options: SessionOptions,
   ) {
+    this.ruleset = rulesetFor(options);
     this.greenAt = 5.6 + new Random(options.seed).next() * 0.9;
     this.laps = cars.map((c) => new LapTracker(track.length, c.s));
     this.order = cars.map((c) => c.id);
@@ -212,7 +215,8 @@ export class RaceDirector {
     let leaderLaps = 0;
     for (const lap of this.laps) leaderLaps = Math.max(leaderLaps, lap.completed);
     this.drs.update(dt, this.raceTime, this.cars, {
-      racing,
+      // DRS exists only where the ruleset permits it.
+      racing: racing && this.ruleset.drs,
       leaderLaps,
       water: this.track.meanWater(),
       neutralised: this.safetyCar.neutralised,
@@ -344,9 +348,19 @@ export class RaceDirector {
       // Resolve the first finisher by interpolated crossing time, not array order.
       if (this.finishStartedAt < 0) {
         let earliest = Infinity;
-        for (const lap of this.laps)
-          if (lap.crossedFinish && lap.completed >= this.options.laps)
-            earliest = Math.min(earliest, lap.lastCrossingTime);
+        if (this.ruleset.classification === 'timed') {
+          // Timed: the leader's first crossing after the clock expires.
+          const leader = this.laps[this.order[0]];
+          if (
+            leader.crossedFinish &&
+            this.raceTime >= (this.options.durationSeconds ?? Infinity) &&
+            !this.cars[this.order[0]].retired
+          )
+            earliest = leader.lastCrossingTime;
+        } else
+          for (const lap of this.laps)
+            if (lap.crossedFinish && lap.completed >= this.options.laps)
+              earliest = Math.min(earliest, lap.lastCrossingTime);
         if (Number.isFinite(earliest)) this.finishStartedAt = earliest;
       }
       if (this.finishStartedAt >= 0) {
@@ -361,8 +375,11 @@ export class RaceDirector {
           ) {
             car.finishTime = lap.lastCrossingTime + lap.penalty;
             // Endurance: finishing without the mandatory stop costs time.
-            if (this.options.mode === 'endurance' && !mandatoryStopSatisfied(car.compoundsUsed))
-              this.penalize(i, MANDATORY_STOP_PENALTY_SECONDS, 'MANDATORY_STOP');
+            if (
+              this.ruleset.tires.mandatoryCompoundChange &&
+              !mandatoryStopSatisfied(car.compoundsUsed)
+            )
+              this.penalize(i, this.ruleset.tires.penaltySeconds, 'MANDATORY_STOP');
           }
           else if (!car.finishTime && this.raceTime - this.finishStartedAt >= FINISH_GRACE_SECONDS)
             car.retired = true; // Explicit DNF, never a manufactured finishing time.
@@ -408,7 +425,7 @@ export class RaceDirector {
           ? 'PIT LANE · 80 KM/H'
           : this.laps[0].outsideEpisode
             ? 'TRACK LIMITS · LAP INVALID'
-            : this.options.mode === 'endurance' &&
+            : this.ruleset.tires.mandatoryCompoundChange &&
                 !mandatoryStopSatisfied(this.cars[0].compoundsUsed) &&
                 this.options.laps - this.laps[0].completed <= 3
               ? 'MANDATORY STOP OUTSTANDING · +30 S AT THE FLAG'
