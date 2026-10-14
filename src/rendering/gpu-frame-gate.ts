@@ -22,15 +22,18 @@ export class GpuFrameGate {
   private fencedAt = 0;
   /** Smoothed submit-to-observed-completion latency (ms); 0 until measured. */
   private latency = 0;
+  /** Time of the previous poll of the current fence (or its submission). */
+  private polledAt = 0;
 
   constructor(
     private readonly gl: WebGL2RenderingContext,
     private readonly now: () => number = () => performance.now(),
     readonly minWaitMs = 1000,
+    readonly maxWaitMs = 10000,
   ) {}
   /** Current release bound for an unrefreshed fence (ms). */
   get waitBoundMs() {
-    return Math.max(this.minWaitMs, 4 * this.latency);
+    return Math.min(this.maxWaitMs, Math.max(this.minWaitMs, 4 * this.latency));
   }
 
   ready(): boolean {
@@ -42,13 +45,21 @@ export class GpuFrameGate {
       return false;
     }
     if (!this.fence) return true;
-    const result = gl.clientWaitSync(this.fence, 0, 0);
+    const result = gl.clientWaitSync(this.fence, 0, 0),
+      now = this.now(),
+      // A completion is a latency sample only if it was polled continuously;
+      // a fence first looked at after an idle period says nothing about GPU speed.
+      continuous = now - this.polledAt < 250;
+    this.polledAt = now;
     if (result === gl.TIMEOUT_EXPIRED) {
-      if (this.now() - this.fencedAt < this.waitBoundMs) {
+      if (now - this.fencedAt < this.waitBoundMs) {
         this.deferred++;
         return false;
       }
       this.expired++;
+      // An expiry is also evidence of a slow GPU: widen the bound (doubling,
+      // capped), so a genuinely slow device converges instead of queueing.
+      this.latency = Math.min(this.maxWaitMs, Math.max(this.latency * 2, this.waitBoundMs / 2));
       this.release();
       return true;
     }
@@ -56,8 +67,10 @@ export class GpuFrameGate {
       this.release();
       throw new Error('Unable to check GPU frame completion');
     }
-    const elapsed = this.now() - this.fencedAt;
-    this.latency = this.latency ? this.latency * 0.8 + elapsed * 0.2 : elapsed;
+    if (continuous) {
+      const elapsed = now - this.fencedAt;
+      this.latency = this.latency ? this.latency * 0.8 + elapsed * 0.2 : elapsed;
+    }
     this.release();
     this.completed = this.submitted;
     return true;
@@ -77,7 +90,7 @@ export class GpuFrameGate {
     this.release();
     this.fence = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
     if (!this.fence) throw new Error('Unable to allocate GPU frame fence');
-    this.fencedAt = this.now();
+    this.fencedAt = this.polledAt = this.now();
     this.submitted++;
     // Nonblocking submission is required so later zero-timeout polls can
     // observe completion even when no additional draw is sent to the driver.

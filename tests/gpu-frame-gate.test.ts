@@ -54,22 +54,45 @@ describe('bounded asynchronous GPU frame submissions', () => {
   });
   it('scales the release bound with a slow GPU so it never builds a backlog', () => {
     const { gate, gl, state, clock } = fixture();
-    // Three frames that genuinely take 2 s each on a software GPU.
-    for (let i = 0; i < 3; i++) {
+    // Frames that genuinely take 2 s each, polled every 16 ms. The first may
+    // expire at the 1 s floor; the bound then converges above the frame time.
+    let released = 0;
+    for (let i = 0; i < 6; i++) {
       gate.submittedFrame();
-      state.wait = gl.TIMEOUT_EXPIRED;
-      clock.now += 2000;
-      state.wait = gl.CONDITION_SATISFIED;
-      expect(gate.ready()).toBe(true);
+      let done = false;
+      for (let t = 16; t <= 2000 && !done; t += 16) {
+        clock.now += 16;
+        state.wait = t >= 2000 ? gl.CONDITION_SATISFIED : gl.TIMEOUT_EXPIRED;
+        done = gate.ready();
+        if (done && t < 2000) released++;
+      }
+      if (!done) {
+        clock.now += 16;
+        expect(gate.ready()).toBe(true);
+      }
     }
-    expect(gate.waitBoundMs).toBeCloseTo(8000, 6);
+    expect(released).toBeLessThanOrEqual(2);
+    expect(gate.waitBoundMs).toBeGreaterThan(4000);
+    // A deadlocked fence is still released within the 10 s ceiling.
+    const expired = gate.diagnostics().expiredFences;
     gate.submittedFrame();
     state.wait = gl.TIMEOUT_EXPIRED;
-    clock.now += 5000;
+    clock.now += 2100;
     expect(gate.ready()).toBe(false);
-    clock.now += 3001;
+    clock.now += 8000;
     expect(gate.ready()).toBe(true);
-    expect(gate.diagnostics().expiredFences).toBe(1);
+    expect(gate.diagnostics().expiredFences).toBe(expired + 1);
+  });
+  it('ignores completions first observed after an idle period and caps the bound', () => {
+    const { gate, gl, state, clock } = fixture();
+    gate.submittedFrame();
+    // Held replay: nothing polls for a minute, then the fence is seen done.
+    clock.now += 60000;
+    state.wait = gl.CONDITION_SATISFIED;
+    expect(gate.ready()).toBe(true);
+    expect(gate.diagnostics().latencyMs).toBe(0);
+    expect(gate.waitBoundMs).toBe(1000);
+    expect(gate.maxWaitMs).toBe(10000);
   });
   it('permits the first frame and flushes a completion fence after its passes', () => {
     const { gate, gl, state } = fixture();
@@ -79,7 +102,12 @@ describe('bounded asynchronous GPU frame submissions', () => {
     expect(state.fences).toEqual([[gl.SYNC_GPU_COMMANDS_COMPLETE, 0]]);
     expect(state.flushes).toBe(1);
     expect(gate.diagnostics()).toEqual({
-      pending: true, submitted: 1, completed: 0, deferredCallbacks: 0, expiredFences: 0, latencyMs: 0,
+      pending: true,
+      submitted: 1,
+      completed: 0,
+      deferredCallbacks: 0,
+      expiredFences: 0,
+      latencyMs: 0,
     });
   });
 
