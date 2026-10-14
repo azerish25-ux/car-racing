@@ -18,8 +18,9 @@ export const REPLAY_HUD = Object.freeze({
 
 /** Broadcast replay director: on the trackside cameras the followed car is
  * re-chosen at every shot boundary (shots last 3-6 s of replay time, from a
- * fixed hash, so a seek lands on the same shot), preferring the closest
- * battle (under `battleGap` s to the car ahead), else the player. */
+ * fixed hash, so a seek lands on the same shot), preferring a pit visit
+ * (pitSubject), then the closest battle (under `battleGap` s to the car
+ * ahead), else the player. */
 export const REPLAY_DIRECTOR = Object.freeze({ minShot: 3, maxShot: 6, battleGap: 1.0 });
 const shotHash = (i: number) => {
   let h = Math.imul(i + 1, 0x9e3779b1);
@@ -61,6 +62,18 @@ export function closestBattle(frame: Float32Array, length: number) {
   }
   return best;
 }
+/** Race events outrank battles (masterplan §17.9): the player's own pit
+ * visit, else a rival stationary in service, else -1. A replay of a stop must
+ * show that stop, not a battle elsewhere on the lap. */
+export function pitSubject(frame: Float32Array) {
+  if (frame[carBase(0) + F.IN_PIT]) return 0;
+  const cars = Math.round(frame[H.CARS]);
+  for (let id = 1; id < cars; id++) {
+    const phase = frame[carBase(id) + F.PIT_PHASE];
+    if (frame[carBase(id) + F.IN_PIT] && phase >= 2 && phase <= 5) return id;
+  }
+  return -1;
+}
 export class ReplayDirector {
   private shot = -1;
   private chosen = 0;
@@ -69,7 +82,8 @@ export class ReplayDirector {
     const shot = replayShot(time).index;
     if (shot !== this.shot) {
       this.shot = shot;
-      const battle = closestBattle(frame, length);
+      const event = pitSubject(frame);
+      const battle = event >= 0 ? event : closestBattle(frame, length);
       this.chosen = battle >= 0 ? battle : 0;
     }
     return this.chosen;

@@ -12,6 +12,7 @@ import {
   REPLAY_HUD,
   ReplayDirector,
   closestBattle,
+  pitSubject,
   lowerThird,
   replayShot,
 } from '../src/ui/replay-hud.ts';
@@ -137,5 +138,21 @@ describe('replay director', () => {
     // Within the shot the choice holds even when the battle ends.
     expect(director.follow(spread, 0.2, L)).toBe(2);
     expect(director.follow(spread, replayShot(0).length + 0.01, L)).toBe(0);
+  });
+  it('shows a pit visit before any battle: the player first, else a rival in service', () => {
+    const L = 3000;
+    const battle = frameWith([
+      { s: 300, rank: 3, speed: 60 },
+      { s: 500, rank: 1, speed: 60 },
+      { s: 470, rank: 2, speed: 60 },
+    ]);
+    expect(pitSubject(battle)).toBe(-1);
+    battle[carBase(1) + F.IN_PIT] = 1;
+    battle[carBase(1) + F.PIT_PHASE] = 3;
+    expect(pitSubject(battle)).toBe(1);
+    battle[carBase(0) + F.IN_PIT] = 1;
+    battle[carBase(0) + F.PIT_PHASE] = 1;
+    expect(pitSubject(battle)).toBe(0);
+    expect(new ReplayDirector().follow(battle, 0.1, L)).toBe(0);
   });
 });

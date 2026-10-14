@@ -55,6 +55,7 @@ import { ReplayDirector, ReplayHud } from './ui/replay-hud.ts';
 import { FlashbackPanel, flashbackAllowed } from './ui/flashback.ts';
 import { FLASHBACK } from './core/flashback.ts';
 import { insertLeaderboard, leaderboardKey } from './storage/leaderboard.ts';
+import { recordCategory } from './core/session-identity.ts';
 import {
   GhostPlayer,
   GhostRecorder,
@@ -94,6 +95,7 @@ import {
   driverProfile,
   newTeam,
   researchSetup,
+  rewardIncome,
   rewardRace,
   validateTeam,
   type TeamAction,
@@ -211,6 +213,8 @@ export class GameApp {
   private replayTime = 0;
   private replayRate = 1;
   private replayPlaying = true;
+  /** Replay-clock witness (F01): callbacks that could not advance playback. */
+  private replayStall = { buffering: 0, gpuDeferred: 0, lastBufferedTarget: -1 };
   private replaySeekPending = false;
   private replayReturn: State = 'paused';
   private comparison = false;
@@ -408,15 +412,22 @@ export class GameApp {
       this.ui.toast(`Local preferences unavailable: ${e instanceof Error ? e.message : String(e)}`);
     }
     try {
-      const saved = await this.store.read('team:v1');
-      if (saved) this.team = validateTeam(saved);
+      const saved = await this.store.readRecovered('team:v1', (v) =>
+        v && typeof v === 'object' ? validateTeam(v) : null,
+      );
+      if (saved.value) this.team = saved.value;
+      if (saved.recovered)
+        this.ui.toast(`Team save was unreadable (${saved.reason}); restored the previous copy.`);
     } catch (e) {
       this.ui.toast(
         `Team save unavailable: ${e instanceof Error ? e.message : String(e)}. Starting a temporary team.`,
       );
     }
     try {
-      this.championship = validateChampionship(await this.store.read(CHAMPIONSHIP_KEY));
+      const saved = await this.store.readRecovered(CHAMPIONSHIP_KEY, validateChampionship);
+      this.championship = saved.value;
+      if (saved.recovered)
+        this.ui.toast(`Championship save was unreadable; restored the previous copy.`);
     } catch (e) {
       this.ui.toast(`Championship save unavailable: ${e instanceof Error ? e.message : String(e)}`);
     }
@@ -679,16 +690,23 @@ export class GameApp {
     if (this.options.mode !== 'time-trial') return;
     const circuit = this.track.circuit.id,
       length = this.track.length;
+    const category = recordCategory(this.options);
     this.ghostRecorder = new GhostRecorder({
       circuit,
       trackLength: length,
       assist: this.options.assist,
       compound: this.options.compound,
       weather: this.options.weather,
+      vehicle: category.vehicle,
     });
     let saved: GhostLap | null = null;
     try {
-      saved = validateGhost(await this.store.read(ghostKey(circuit)), circuit, length);
+      saved = validateGhost(
+        await this.store.read(ghostKey(circuit, category.vehicle)),
+        circuit,
+        length,
+        category,
+      );
     } catch (error) {
       this.ui.toast(`Saved ghost unavailable: ${String(error)}`);
     }
@@ -721,7 +739,7 @@ export class GameApp {
     if (trial) trial.best = lap.lapTime;
     const circuit = lap.circuit;
     void this.store
-      .write(ghostKey(circuit), lap)
+      .write(ghostKey(circuit, lap.vehicle), lap)
       .then(() =>
         this.ui.toast(
           `PERSONAL BEST ${lapTime(lap.lapTime)}${improvement > 0 ? ` · −${improvement.toFixed(3)} S` : ''} · GHOST SAVED`,
@@ -731,7 +749,8 @@ export class GameApp {
   }
   /** D31: every valid time-trial lap enters the circuit's local top ten. */
   private recordLeaderboard(circuit: string, time: number) {
-    const key = leaderboardKey(circuit);
+    const category = recordCategory(this.options);
+    const key = leaderboardKey(circuit, category.vehicle, category.physics);
     const entry = {
       lapTime: time,
       driver: this.ui.playerName,
@@ -858,6 +877,7 @@ export class GameApp {
     // refresh the wall clock so closing a dialog cannot catch up hidden time.
     try {
       if (!this.renderer.canSubmitFrame()) {
+        if (this.state === 'replay') this.replayStall.gpuDeferred++;
         this.previousTime = previousTime;
         return;
       }
@@ -893,6 +913,8 @@ export class GameApp {
           : this.replayTime;
       const fraction = this.replay.sample(targetTime, this.replayA, this.replayB);
       if (fraction === null) {
+        this.replayStall.buffering++;
+        this.replayStall.lastBufferedTarget = targetTime;
         this.ui.setText('replayTime', this.replay.error ?? 'BUFFERING RECORDED LAP…');
         this.audio.stop();
         return;
@@ -1136,7 +1158,7 @@ export class GameApp {
     if (this.teamBusy) throw new Error('A team transaction is already saving.');
     this.teamBusy = true;
     try {
-      await this.store.write('team:v1', next);
+      await this.store.writeWithBackup('team:v1', next);
       this.team = next;
       this.renderer?.setLivery(next.livery);
       this.ui.playerName = driverProfile(next).name;
@@ -1163,7 +1185,7 @@ export class GameApp {
     }
   }
   private async saveChampionship(next: Championship) {
-    await this.store.write(CHAMPIONSHIP_KEY, next);
+    await this.store.writeWithBackup(CHAMPIONSHIP_KEY, next);
     this.championship = next;
   }
   /** Qualifying for the next calendar round, with the championship field. */
@@ -1442,7 +1464,19 @@ export class GameApp {
       });
       if (next !== this.team)
         void this.saveTeam(next)
-          .then(() => this.ui.toast('Classified result added to your Team HQ.'))
+          .then(() => {
+            const income = rewardIncome({
+              position: Math.round(frame[carBase(0) + F.RANK]),
+              cars: Math.round(frame[H.CARS]),
+              penalties: frame[carBase(0) + F.PENALTY],
+            });
+            this.ui.toast(
+              `Team HQ +${income.total.toLocaleString()}: ${income.lines
+                .filter((line) => line.amount)
+                .map((line) => `${line.label} ${line.amount.toLocaleString()}`)
+                .join(' · ')}`,
+            );
+          })
           .catch((error) => this.ui.toast(`Race income not saved: ${String(error)}`));
     }
     const best = frame[carBase(0) + F.BEST_LAP];
@@ -2442,6 +2476,8 @@ export class GameApp {
       replayPosition: this.replayTime,
       replayPlaying: this.replayPlaying,
       replaySeekPending: this.replaySeekPending,
+      replayStall: { ...this.replayStall },
+      replayPages: this.replay?.diagnostics() ?? null,
       replaySurfaceTime: this.replay?.surfaceState.time ?? -1,
       telemetryOpen: this.ui.telemetryModal.open,
       recordingWarnings: [...this.recordingWarnings],

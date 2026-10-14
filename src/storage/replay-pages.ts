@@ -523,6 +523,18 @@ export class SessionReplay {
   get error() {
     return this.failure;
   }
+  /** Page-residency witness for replay-clock diagnosis (F01): which pages are
+   * resident, pending or failed, and how many sealed pages exist. */
+  diagnostics() {
+    return {
+      currentPage: this.current.id,
+      sealedPages: this.metadata.length,
+      cached: [...this.cache.keys()],
+      pending: [...this.pendingReads.keys()],
+      failed: [...this.failedReads],
+      writing: [...this.writing],
+    };
+  }
   get bytes() {
     return (
       this.current.frames.byteLength +

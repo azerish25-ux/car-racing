@@ -219,7 +219,14 @@ async function seek(page: Page, seconds: number) {
     element.dispatchEvent(new Event('input', { bubbles: true }));
     return target;
   }, seconds);
-  await expect.poll(async () => (await read(page)).replaySeekPending).toBe(false);
+  try {
+    await expect.poll(async () => (await read(page)).replaySeekPending).toBe(false);
+  } catch (error) {
+    const d = await read(page);
+    throw new Error(
+      `Seek to ${requested}s never presented: state=${d.state} stall=${JSON.stringify(d.replayStall)} pages=${JSON.stringify(d.replayPages)} gpu=${JSON.stringify(d.renderer?.gpuFrameQueue)} error=${d.replayError} telemetry=${d.telemetryOpen}\n${String(error)}`,
+    );
+  }
   await expect.poll(async () => (await read(page)).replayPosition).toBe(requested);
   // The range can acknowledge before a GPU-deferred frame is submitted. Observe
   // the decoded/presented replay, not the still-paused live worker's d.frame.
@@ -443,6 +450,9 @@ test('27H.6 populated pit journey: approach, real service, exit and complete rep
   await replay(page);
   const startTime = (await read(page)).replayStart;
   const anchor = await seek(page, anchorTime - startTime);
+  console.log(
+    `[replay-clock] anchor=${anchorTime} start=${startTime} removalRows=${removal.length} first=${removal[0][timeColumn]} last=${removal.at(-1)![timeColumn]} pitState=${JSON.stringify(anchor.renderer?.pitState)} pages=${JSON.stringify(anchor.replayPages)} stall=${JSON.stringify(anchor.replayStall)} frameTick=${anchor.frame?.[H.TICK]}`,
+  );
   expect(anchor.renderer?.pitState.phase).toBe(3);
   const removalTime = recordedPitMoment(anchor.renderer!.pitState, 'removal'),
     installTime = recordedPitMoment(anchor.renderer!.pitState, 'installation');
@@ -553,6 +563,12 @@ test('27H.6 populated pit journey: approach, real service, exit and complete rep
           throw new Error(
             `Replay stopped at ${replayedTime}s before recorded service checkpoint ${requiredEnd}s`,
           );
+        // Replay-clock witness: report page residency instead of an opaque timeout.
+        if (state.replayPages?.failed.length)
+          throw new Error(`Replay page read failed: ${JSON.stringify(state.replayPages)}`);
+        console.log(
+          `[replay-clock] t=${replayedTime} pos=${state.replayPosition} stall=${JSON.stringify(state.replayStall)} pages=${JSON.stringify(state.replayPages)}`,
+        );
         return replayedTime;
       },
       { timeout: 120000, intervals: [500] },
