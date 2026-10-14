@@ -89,7 +89,7 @@ Last reviewed against source: branch `claude/peaceful-einstein-dedc7t`, commits 
 | WP23 | integrated (partial) | Idempotent, explained rewards; one result identity across championship/team open. |
 | WP24 | integrated (partial) | Backup-on-write and recovery; corruption/quota/termination suite on hardware open. |
 | WP25 | absent | Academy per vehicle family. |
-| WP26 | absent | Distinct sound families (TC-1 currently uses the shared engine voice). |
+| WP26 | integrated | Powertrain sound families (`src/audio/sound-profiles.ts`): firing order, harmonic emphasis, rev range, induction, transmission and electric-motor briefs for 13 families; engine voices and the player power-unit layer follow the recorded vehicle (`tests/sound-profiles.test.ts`). APX-01 output is unchanged; TC-1 has its own four-cylinder turbo voice. Listening review open. |
 | WP27 | research | Capture-suite definition in `CONTENT_PIPELINE.md`; art director approval open. |
 | WP28 | absent | Temporal clarity work needs the capture suite. |
 | WP29 | absent | First new venue through the pipeline. |

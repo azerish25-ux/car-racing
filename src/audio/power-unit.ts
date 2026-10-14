@@ -1,5 +1,6 @@
 import { F, carBase } from '../simulation/protocol.ts';
 import { clamp, Random } from '../core/math.ts';
+import { frameCharacter, type EngineCharacter } from './sound-profiles.ts';
 
 /** Turbo-hybrid power-unit character layered over the harmonic engine bands:
  * turbocharger whistle, straight-cut transmission whine, overrun crackle and a
@@ -17,6 +18,9 @@ export interface PowerUnitMix {
   crackleRate: number;
   /** +1 upshift, -1 downshift, 0 none since the previous sample. */
   shift: number;
+  /** Electric motor/inverter whine (electric families only). */
+  motorHz: number;
+  motor: number;
 }
 
 /** Reference points (documented, not fitted to any recording):
@@ -42,13 +46,18 @@ export const newPowerUnitMix = (): PowerUnitMix => ({
   whine: 0,
   crackleRate: 0,
   shift: 0,
+  motorHz: 0,
+  motor: 0,
 });
 
+/** The character defaults to the recorded vehicle of `car`; APX-01 values
+ * equal POWER_UNIT. */
 export function powerUnitMix(
   frame: Float32Array,
   car: number,
   previousGear: number,
   out: PowerUnitMix,
+  character: EngineCharacter = frameCharacter(frame, car),
 ): PowerUnitMix {
   const o = carBase(car);
   const rpm = frame[o + F.RPM],
@@ -58,22 +67,32 @@ export function powerUnitMix(
     gear = frame[o + F.GEAR];
   if (![rpm, torque, throttle, speed, gear].every(Number.isFinite))
     throw new Error('Invalid power-unit audio state');
-  const load = clamp(Math.max(0, torque) / POWER_UNIT.maxTorqueNm, 0, 1);
-  const boost = clamp(load * clamp((rpm - 4000) / 8000, 0, 1), 0, 1);
-  out.turboHz = POWER_UNIT.turboMinHz + POWER_UNIT.turboSpanHz * boost;
-  out.turbo = POWER_UNIT.turboGain * boost;
+  const p = character.profile,
+    limiter = character.limiterRPM;
+  const load = clamp(Math.max(0, torque) / character.loadTorque, 0, 1);
+  const boost = p.turbo
+    ? clamp(load * clamp((rpm - p.turbo.fromRPM) / (limiter * (8000 / 13700)), 0, 1), 0, 1)
+    : 0;
+  out.turboHz = p.turbo ? p.turbo.minHz + p.turbo.spanHz * boost : 0;
+  out.turbo = p.turbo ? p.turbo.gain * boost : 0;
   const road = Math.max(0, speed);
-  out.whineHz = road * POWER_UNIT.whineHzPerMS;
-  out.whine = gear > 0 ? POWER_UNIT.whineGain * clamp(road / 80, 0, 1) * (0.35 + 0.65 * load) : 0;
+  out.whineHz = road * p.whineHzPerMS;
+  out.whine = gear > 0 ? p.whineGain * clamp(road / 80, 0, 1) * (0.35 + 0.65 * load) : 0;
+  const crackleRpm = p.crackleFraction * limiter;
   const overrun =
-    throttle < 0.08 && rpm > POWER_UNIT.crackleRpm && road > 15 && gear > 0
-      ? clamp((rpm - POWER_UNIT.crackleRpm) / 4500, 0, 1)
+    throttle < 0.08 && rpm > crackleRpm && road > 15 && gear > 0
+      ? clamp((rpm - crackleRpm) / (limiter * (4500 / 13700)), 0, 1)
       : 0;
-  out.crackleRate = POWER_UNIT.crackleMaxRate * overrun;
+  out.crackleRate = p.crackleMaxRate * overrun;
   out.shift =
     Number.isFinite(previousGear) && previousGear > 0 && gear > 0 && gear !== previousGear
       ? Math.sign(gear - previousGear)
       : 0;
+  out.motorHz = road * p.motorHzPerMS;
+  out.motor =
+    p.motorGain *
+    clamp(road / 60, 0, 1) *
+    (0.3 + 0.7 * clamp(Math.abs(torque) / character.loadTorque, 0, 1));
   return out;
 }
 
@@ -85,6 +104,8 @@ export class PowerUnitAudio {
   private turboGain: GainNode;
   private whine: OscillatorNode;
   private whineGain: GainNode;
+  private motor: OscillatorNode;
+  private motorGain: GainNode;
   private burst: AudioBuffer;
   private burstFilter: BiquadFilterNode;
   private burstGain: GainNode;
@@ -110,13 +131,17 @@ export class PowerUnitAudio {
     this.whineGain = context.createGain();
     this.whineGain.gain.value = 0;
     this.whine.connect(this.whineGain).connect(this.output);
+    this.motor = context.createOscillator();
+    this.motor.type = 'sawtooth';
+    this.motorGain = context.createGain();
+    this.motorGain.gain.value = 0;
+    this.motor.connect(this.motorGain).connect(this.output);
     // One short, seeded decaying noise impulse reused for crackle and shift cracks.
     const length = Math.ceil(context.sampleRate * 0.03);
     this.burst = context.createBuffer(1, length, context.sampleRate);
     const data = this.burst.getChannelData(0),
       noise = new Random(4471);
-    for (let i = 0; i < length; i++)
-      data[i] = (noise.next() * 2 - 1) * Math.exp((-6 * i) / length);
+    for (let i = 0; i < length; i++) data[i] = (noise.next() * 2 - 1) * Math.exp((-6 * i) / length);
     this.burstFilter = context.createBiquadFilter();
     this.burstFilter.type = 'bandpass';
     this.burstFilter.frequency.value = 1900;
@@ -126,6 +151,7 @@ export class PowerUnitAudio {
     this.burstFilter.connect(this.burstGain).connect(this.output);
     this.turbo.start();
     this.whine.start();
+    this.motor.start();
   }
   private pop(time: number, gain: number, hz: number) {
     const source = this.context.createBufferSource();
@@ -149,16 +175,22 @@ export class PowerUnitAudio {
     this.lastTime = time;
     const interior = cockpit ? 1 : 0.6;
     this.output.gain.setTargetAtTime(clamp(level, 0, 1) * interior, time, 0.04);
-    this.turbo.frequency.setTargetAtTime(m.turboHz, time, 0.08);
+    this.turbo.frequency.setTargetAtTime(Math.max(20, m.turboHz), time, 0.08);
     this.turboGain.gain.setTargetAtTime(m.turbo, time, 0.12);
     this.whine.frequency.setTargetAtTime(Math.max(20, m.whineHz), time, 0.03);
     this.whineGain.gain.setTargetAtTime(m.whine, time, 0.05);
+    this.motor.frequency.setTargetAtTime(Math.max(20, m.motorHz), time, 0.03);
+    this.motorGain.gain.setTargetAtTime(m.motor, time, 0.05);
     if (m.shift > 0) this.pop(time, 0.28, 2400);
     else if (m.shift < 0) this.pop(time, 0.2, 1500);
     this.crackleClock += m.crackleRate * dt;
     while (this.crackleClock >= 1) {
       this.crackleClock -= 1;
-      this.pop(time + this.random.next() * dt, 0.1 + this.random.next() * 0.12, 1300 + this.random.next() * 1400);
+      this.pop(
+        time + this.random.next() * dt,
+        0.1 + this.random.next() * 0.12,
+        1300 + this.random.next() * 1400,
+      );
     }
   }
   reset() {
@@ -172,7 +204,10 @@ export class PowerUnitAudio {
   dispose() {
     this.turbo.stop();
     this.whine.stop();
+    this.motor.stop();
     for (const node of [
+      this.motor,
+      this.motorGain,
       this.turbo,
       this.turboGain,
       this.whine,
