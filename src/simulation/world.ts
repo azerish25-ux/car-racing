@@ -143,8 +143,10 @@ export class Simulation {
         this.ai[i].update(dt, this.track, this.cars, this.race);
       } else if (this.race.phase === PHASE.LIGHTS && c.input.throttle === 0) c.input.brake = 1;
       c.wake = 0;
+      // Exact cull (§23.4): wakeOverlap is zero beyond 100 m behind, and at
+      // more than 101 m apart the lateral offset exceeds the wake radius.
       for (const other of this.cars)
-        if (other !== c)
+        if (other !== c && c.body.position.distanceSq(other.body.position) < 101 * 101)
           c.wake = Math.max(
             c.wake,
             wakeOverlap(

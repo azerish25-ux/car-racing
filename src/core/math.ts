@@ -28,6 +28,9 @@ export class Vec3 {
     this.z = z;
     return this;
   }
+  distanceSq(v: Vec3) {
+    return (this.x - v.x) ** 2 + (this.y - v.y) ** 2 + (this.z - v.z) ** 2;
+  }
   copy(v: Vec3) {
     return this.set(v.x, v.y, v.z);
   }
