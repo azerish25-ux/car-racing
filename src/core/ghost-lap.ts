@@ -1,4 +1,9 @@
 import { CAR_STRIDE, F, H, HEADER, carBase } from '../simulation/protocol.ts';
+import {
+  recordIncompatibility,
+  SIMULATION_VERSION,
+  type RecordCategory,
+} from './session-identity.ts';
 
 /** One recorded lap of the player car, replayed as a Time Trial ghost. Poses
  * come from the worker snapshots the player actually drove; nothing is
@@ -19,16 +24,26 @@ export interface GhostLap {
   weather: string;
   recordedAt: string;
   samples: Float32Array;
+  /** Record identity (WP12); absent on ghosts saved before it existed. */
+  vehicle?: string;
+  physics?: number;
 }
 
-export function ghostKey(circuit: string) {
-  return `ghost:v${GHOST_VERSION}:${circuit}`;
+/** The Formula APX-01 keeps its original key; other vehicles get their own. */
+export function ghostKey(circuit: string, vehicle = 'apx01') {
+  return `ghost:v${GHOST_VERSION}:${circuit}${vehicle === 'apx01' ? '' : `:${vehicle}`}`;
 }
 
 /** Reject anything that is not a complete, time-ordered, finite recording. */
-export function validateGhost(value: unknown, circuit: string, trackLength: number): GhostLap | null {
+export function validateGhost(
+  value: unknown,
+  circuit: string,
+  trackLength: number,
+  category: RecordCategory = { circuit, vehicle: 'apx01', physics: SIMULATION_VERSION },
+): GhostLap | null {
   if (!value || typeof value !== 'object') return null;
   const g = value as Partial<GhostLap>;
+  if (recordIncompatibility(g, category)) return null;
   if (
     g.version !== GHOST_VERSION ||
     g.circuit !== circuit ||
@@ -62,6 +77,8 @@ export function validateGhost(value: unknown, circuit: string, trackLength: numb
     weather: String(g.weather ?? ''),
     recordedAt: String(g.recordedAt ?? ''),
     samples: g.samples,
+    vehicle: category.vehicle,
+    physics: category.physics,
   };
 }
 
@@ -71,6 +88,7 @@ export interface GhostContext {
   assist: string;
   compound: string;
   weather: string;
+  vehicle?: string;
 }
 
 /** Records the player's current lap from accepted snapshots. When a lap
@@ -122,6 +140,8 @@ export class GhostRecorder {
           weather: this.context.weather,
           recordedAt: new Date().toISOString(),
           samples: Float32Array.from(this.samples),
+          vehicle: this.context.vehicle ?? 'apx01',
+          physics: SIMULATION_VERSION,
         };
       }
     }
@@ -205,7 +225,10 @@ export class GhostPlayer {
     out.y = d[a + 3] + (d[b + 3] - d[a + 3]) * t;
     out.z = d[a + 4] + (d[b + 4] - d[a + 4]) * t;
     // Normalised lerp on the short arc; samples are 33 ms apart.
-    const sign = d[a + 5] * d[b + 5] + d[a + 6] * d[b + 6] + d[a + 7] * d[b + 7] + d[a + 8] * d[b + 8] < 0 ? -1 : 1;
+    const sign =
+      d[a + 5] * d[b + 5] + d[a + 6] * d[b + 6] + d[a + 7] * d[b + 7] + d[a + 8] * d[b + 8] < 0
+        ? -1
+        : 1;
     let qx = d[a + 5] + (sign * d[b + 5] - d[a + 5]) * t,
       qy = d[a + 6] + (sign * d[b + 6] - d[a + 6]) * t,
       qz = d[a + 7] + (sign * d[b + 7] - d[a + 7]) * t,

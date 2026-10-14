@@ -10,7 +10,12 @@ export interface LeaderboardEntry {
   /** Session that set it. Equal times keep their earlier order (stable sort). */
   session: string;
 }
-export const leaderboardKey = (circuit: string) => `leaderboard:${circuit}`;
+/** One board per circuit, vehicle and physics version (masterplan §22.5).
+ * The Formula APX-01 under physics v1 keeps the original key and entries. */
+export const leaderboardKey = (circuit: string, vehicle = 'apx01', physics = 1) =>
+  vehicle === 'apx01' && physics === 1
+    ? `leaderboard:${circuit}`
+    : `leaderboard:${circuit}:${vehicle}:p${physics}`;
 
 function valid(entry: unknown): entry is LeaderboardEntry {
   if (!entry || typeof entry !== 'object') return false;

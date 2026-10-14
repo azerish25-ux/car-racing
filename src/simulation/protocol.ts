@@ -224,3 +224,33 @@ export type FromWorker =
   | { type: 'flashback'; tick: number; time: number }
   | { type: 'error'; message: string };
 export const carBase = (id: number) => HEADER + id * CAR_STRIDE;
+/** Versioned snapshot schema (WP12 / F08, masterplan §6.5): every per-car
+ * block with its offset, stride and count, so new entity families add blocks
+ * instead of mutating magic offsets, and decoders can reject what they do not
+ * understand. The v11 layout is unchanged; R.VEHICLE occupies a slot that was
+ * always written as 0, which is index 0 (the Formula APX-01), so every older
+ * snapshot and recording decodes to the vehicle it actually was. */
+export const SNAPSHOT_SCHEMA = Object.freeze({
+  version: PROTOCOL_VERSION,
+  header: HEADER,
+  carStride: CAR_STRIDE,
+  entity: 'four-wheel' as const,
+  blocks: Object.freeze([
+    { name: 'chassis', offset: 0, stride: 1, count: WHEEL_BASE },
+    { name: 'wheels', offset: WHEEL_BASE, stride: WHEEL_STRIDE, count: 4 },
+    { name: 'debris', offset: DEBRIS_BASE, stride: DEBRIS_STRIDE, count: 4 },
+    { name: 'skid', offset: SKID_BASE, stride: SKID_STRIDE, count: 1 },
+    { name: 'race', offset: RACE_BASE, stride: RACE_STRIDE, count: 1 },
+  ]),
+});
+/** Reason a snapshot cannot be decoded by this build, or null. Unknown
+ * schemas are rejected explicitly, never decoded into corrupted animation. */
+export function snapshotIncompatibility(frame: Float32Array, version = PROTOCOL_VERSION) {
+  if (version !== SNAPSHOT_SCHEMA.version)
+    return `snapshot format v${version} is not supported (this build reads v${SNAPSHOT_SCHEMA.version})`;
+  const cars = frame[H.CARS];
+  if (!Number.isInteger(cars) || cars < 1 || cars > 32) return 'snapshot car count is invalid';
+  if (frame.length !== HEADER + cars * CAR_STRIDE)
+    return 'snapshot length does not match its car count';
+  return null;
+}
