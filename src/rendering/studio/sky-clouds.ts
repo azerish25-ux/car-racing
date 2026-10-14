@@ -78,7 +78,7 @@ export const SKY_CLOUDS = Object.freeze({
   /** Rays end at this distance; clouds fade into haze before it. */
   maxDistance: 120000,
   /** Distance at which a cloud keeps 1/e of its contrast against the horizon. */
-  hazeDistance: 60000,
+  hazeDistance: 38000,
   /** Wind drift of the cloud dome: one turn about the zenith per 3 hours of
    * presented simulation time (about 0.03 degrees a second: a cumulus 5 km
    * away drifts sideways at 3 m/s, a 30 km one at 17 m/s). */
@@ -316,10 +316,11 @@ void main() {
   // Cirrus: fibrous streaks, gradient noise stretched 8:1 along the wind and
   // sheared by a broad warp, gathered into patches by a slow envelope.
   vec2 w = p + 0.06 * vec2(cloudPerlin(p * 4.0, 4, 51u), cloudPerlin(p * 4.0 + 0.5, 4, 52u));
-  float fibres = 0.6 * cloudPerlin(vec2(w.x * 5.0, w.y * 30.0), 5, 53u) +
-    0.4 * cloudPerlin(vec2(w.x * 10.0, w.y * 60.0), 10, 54u);
+  float fibres = 0.55 * cloudPerlin(vec2(w.x * 5.0, w.y * 18.0), 5, 53u) +
+    0.3 * cloudPerlin(vec2(w.x * 10.0, w.y * 40.0), 10, 54u) +
+    0.15 * cloudPerlin(w * 24.0, 24, 55u);
   float patches = cloudPerlin(p * 2.0 + 0.25, 2, 56u);
-  float cirrus = smoothstep(0.5, 0.85, fibres) * smoothstep(0.5, 0.8, patches);
+  float cirrus = smoothstep(0.52, 0.9, fibres) * smoothstep(0.55, 0.85, patches);
   fieldColor = vec4(base, ownSize, ownPeak, cirrus);
 }`;
 
@@ -390,8 +391,11 @@ float density(vec3 p, bool detailed, out float column) {
   float inset = clamp((base - threshold) / peak * cell, 0.0, radius);
   float u = 1.0 - inset / radius;
   float dome = sqrt(max(0.0, 1.0 - u * u));
-  float height = min(mix(0.7, 1.15, broad) * radius, 0.95 * thickness) / thickness;
+  // Small cumulus (humilis) are much wider than tall; large ones heap up.
+  float aspect = mix(0.42, 1.0, smoothstep(400.0, 2600.0, radius)) * mix(0.8, 1.15, broad);
+  float height = min(aspect * radius, 0.95 * thickness) / thickness;
   column = dome * height / 0.95;
+  float cauliflower = 0.58;
   float top = base < threshold ? (base - threshold) * 4.0 - hf : dome * height - hf;
   if (detailed) {
     // The fine 3D octaves fade out with distance before a texel outgrows
@@ -410,18 +414,20 @@ float density(vec3 p, bool detailed, out float column) {
     const float VOXELS = ${SKY_CLOUDS.detailSize.toFixed(1)};
     float bulgeScale = max(cell * 0.45, 200.0), cauliflowerScale = ${(SKY_CLOUDS.detailPeriod / 3).toFixed(1)};
     float bulges = mix(0.58, textureLod(cloudDetail, p / bulgeScale + vec3(0.21, 0.0, 0.57),
-      log2(max(1.0, footprint * VOXELS / bulgeScale))).r, far);
-    float cauliflower = mix(0.58, textureLod(cloudDetail, p / cauliflowerScale + 0.37,
+      // One level softer than the footprint: Worley cell walls read as
+      // pock-marks on a near base.
+      log2(max(1.0, footprint * VOXELS / bulgeScale)) + 1.0).r, far);
+    cauliflower = mix(0.58, textureLod(cloudDetail, p / cauliflowerScale + 0.37,
       log2(max(1.0, footprint * VOXELS / cauliflowerScale))).r, fine);
     float own = hf / max(height, 0.04);
     float rising = smoothstep(0.0, 0.3, own) * (0.3 + 0.7 * min(own, 1.0));
-    top -= ((0.58 - bulges) * 2.4 + (0.58 - cauliflower) * 0.45) * height * rising;
+    top -= ((0.58 - bulges) * 2.0 + (0.58 - cauliflower) * 0.45) * height * rising;
     // A ragged base outline: the same bulges, sampled flat (one pattern for
     // the whole lower cloud), bite into the footprint near the base.
     float baseScale = bulgeScale * 0.5;
     float ragged = mix(0.58, textureLod(cloudDetail, vec3(p.x, 0.0, p.z) / baseScale + vec3(0.63, 0.41, 0.17),
       log2(max(1.0, footprint * VOXELS / baseScale))).r, far);
-    top -= (0.58 - ragged) * 1.2 * height * (1.0 - rising);
+    top -= (0.58 - ragged) * 0.7 * height * (1.0 - rising);
   }
   // Crisp cauliflower edges (a soft skin scaled to the cloud, 25-115 m) on
   // a flat condensation level.
@@ -429,7 +435,14 @@ float density(vec3 p, bool detailed, out float column) {
   // distance: a crisper edge would only alias into a crunchy fringe.
   // Nor thinner than 45 m: the 30 m in-cloud step must resolve it.
   float texel = max(length(p) * 0.0021, 45.0) / thickness;
-  return smoothstep(0.0, max(0.02 + 0.03 * height, texel), top) * smoothstep(0.0, 0.05, hf);
+  float shape = smoothstep(0.0, max(0.05 + 0.08 * height, texel), top);
+  // Edge erosion (Schneider 2015 remap): the cauliflower noise eats the thin
+  // outer shell into wisps and frayed lobes, so a cloud has no hard skin;
+  // the core stays dense.
+  float erosion = 0.55 * clamp(0.62 - cauliflower + 0.18, 0.0, 1.0) * (1.0 - shape);
+  float d = clamp((shape - erosion) / (1.0 - erosion), 0.0, 1.0);
+  d *= 0.55 + 0.45 * smoothstep(0.0, 0.25, top);
+  return d * smoothstep(0.0, 0.05, hf);
 }
 float phaseHG(float mu, float g) {
   float g2 = g * g;
@@ -512,7 +525,7 @@ void main() {
     float near = density(p + sunDirection * 90.0, true, unused);
     float far = density(p + sunDirection * 380.0, false, unused);
     float farther = density(p + sunDirection * 950.0, false, unused);
-    float depth = extinction * (near * 180.0 + far * 520.0 + farther * 650.0);
+    float depth = extinction * (near * 220.0 + far * 650.0 + farther * 800.0);
     // Multiple scattering as three Beer-Lambert octaves (Wrenninge 2013): the
     // light that diffuses through the cloud reaches deep into the shaded flank
     // and the base, so shade falls off gradually over a large part of the
@@ -527,7 +540,7 @@ void main() {
     // multiply scattered dome light and the bright ground below), darker
     // under tall columns than under small, thin clouds. A closing deck keeps
     // its own dim, rolling base.
-    float ambient = (mix(0.1, 0.45, fair) + mix(0.9, 0.55, fair) * pow(hf, 0.7)) * shade;
+    float ambient = (mix(0.1, 0.28, fair) + mix(0.9, 0.62, fair) * pow(hf, 0.8)) * shade;
     float bounce = mix(0.22, 0.32, fair) * pow(1.0 - hf, 2.0) * shade * glow;
     float stepOpacity = 1.0 - exp(-extinction * d * advance);
     float w = transmittance * stepOpacity;

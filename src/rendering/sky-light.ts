@@ -56,7 +56,7 @@ export const SKY_LIGHT = Object.freeze({
    * is 0.42 of the sun at the cloud layer (sunlit tops display just under
    * clip at the day exposure), the in-cloud ambient is the dome above plus
    * multiply scattered sunlight, and a deck base transmits the light above it. */
-  cloudKey: 0.36,
+  cloudKey: 0.5,
   cloudDome: 1.0,
   cloudMultiple: 0.032,
   cloudBounce: 0.12,
