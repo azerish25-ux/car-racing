@@ -1,3 +1,8 @@
+import {
+  armPitObservations,
+  configurePitStartup,
+  verifyRecordedPitSequence,
+} from './pit-sequence-review.ts';
 import { finishRaceEntry } from './race-entry.ts';
 import { test, expect, type Page, type TestInfo } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
@@ -78,6 +83,7 @@ for (const drive of drives)
     page.on('console', (m) => {
       if (m.type() === 'error') errors.push(m.text());
     });
+    if (drive.workload === 'pit-service') await configurePitStartup(page);
     await page.goto('/?dev');
     await expect(page.locator('#menu')).toBeVisible({ timeout: 90000 });
     // Functional populated-race evidence on CI's software GPU. The original high-
@@ -94,17 +100,15 @@ for (const drive of drives)
         await expect(page.locator('[name=graphics_particleDensity]')).toHaveValue('1');
       }
       if (resolutionScale === 0.5) {
-        // Run 36220062871 presented removal at clock 1.167 with a 0.057m jack,
-        // then installation at 2.383: it never rendered qualifying raised removal.
-        // Reduce ONLY the documented functional workload's existing render scale.
-        // Keep every car, all 15 crew, service timings and qualification thresholds.
-        // The separate default-quality full-lap/pit presentation suite is unchanged.
+        // Retain the documented functional workload scale. Pit sequence coverage
+        // must not depend on lowering it again to catch short live phases.
         await page.locator('[name=graphics_resolutionScale]').press('Home');
         await expect(page.locator('[name=graphics_resolutionScale]')).toHaveValue('0.5');
       }
     }
     await page.getByRole('button', { name: 'APPLY & SAVE', exact: true }).click();
     await expect(page.locator('#modal')).toBeHidden();
+    if (drive.workload === 'pit-service') await armPitObservations(page);
     await page.selectOption('#mode', 'race');
     await page.selectOption('#laps', '5');
     await page.selectOption('#opponents', drive.opponents);
@@ -192,6 +196,12 @@ for (const drive of drives)
         contentType: 'application/json',
       });
     }
+    // Live event reviews stay strict. The pit functional case instead observes
+    // a real recorded stop at the normal quarter-speed replay setting.
+    if (drive.workload === 'pit-service') {
+      await verifyRecordedPitSequence(page, info, errors);
+      return;
+    }
     await page.getByRole('button', { name: 'FULL-LAP VISUAL REVIEW', exact: true }).click();
     await page
       .locator('#reviewMachine')
@@ -204,61 +214,22 @@ for (const drive of drives)
     await page.selectOption('#reviewMode', 'timed-scene');
     await page.getByRole('button', { name: 'RESUME & RECORD REVIEW', exact: true }).click();
     await expect.poll(async () => (await diag(page)).presentationReview.state).toBe('recording');
-    if (drive.workload === 'pit-service') await page.keyboard.press('p');
     const seen = new Set<string>();
-    // Bounded diagnostics from the already-read presented state. Never mix the
-    // newer worker snapshot with rendered pit evidence, or force extra GPU draws.
-    const pitSamples: {
-      time: number;
-      phase: number;
-      clock: number;
-      jackHeight: number;
-      speed: number;
-      totalCrewActors: number;
-    }[] = [];
-    let lastPitTime = -1;
     await expect
       .poll(
         async () => {
           const d = await diag(page),
             r = d.presentationReview;
           if (errors.length) throw new Error(errors.join('\n'));
-          const pit = d.renderer?.pitState;
-          if (
-            drive.workload === 'pit-service' &&
-            pit &&
-            pit.inPit &&
-            pit.time !== lastPitTime &&
-            pitSamples.length < 512
-          ) {
-            lastPitTime = pit.time;
-            pitSamples.push({
-              time: pit.time,
-              phase: pit.phase,
-              clock: pit.clock,
-              jackHeight: pit.jackHeight,
-              speed: pit.speed,
-              totalCrewActors: d.renderer?.pitPersonnel.actors ?? 0,
-            });
-          }
           if (r.state === 'interrupted') {
             await info.attach('interrupted-race-diagnostics.json', {
               body: JSON.stringify(d, null, 2),
               contentType: 'application/json',
             });
-            await info.attach('presented-pit-observations.json', {
-              body: JSON.stringify(pitSamples, null, 2),
-              contentType: 'application/json',
-            });
             throw new Error(r.reason ?? 'Review interrupted');
           }
           const event = r.racing;
-          const stage =
-            drive.workload === 'pit-service'
-              ? event?.pitStage
-              : event?.qualified
-                ? 'qualified'
-                : 'running';
+          const stage = event?.qualified ? 'qualified' : 'running';
           if (stage && !seen.has(stage)) {
             seen.add(stage);
             if (drive.workload !== 'wet-following' || stage !== 'running')
@@ -312,7 +283,6 @@ for (const drive of drives)
       expect(report.racing!.summary.gridLaunched).toBe(true);
       expect(report.racing!.summary.wetFollowingSeconds).toBeGreaterThanOrEqual(3);
     }
-    if (drive.workload === 'pit-service') expect(report.racing!.summary.pitStage).toBe('exit');
     await info.attach(`27h6-${drive.workload}-${drive.lighting}-frame-report.json`, {
       body: raw,
       contentType: 'application/json',

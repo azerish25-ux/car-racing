@@ -1,0 +1,59 @@
+name: Pit sequence regression
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/pit-sequence-regression.yml'
+      - 'e2e/29-populated-race-review.spec.ts'
+      - 'e2e/pit-sequence-review.ts'
+      - 'e2e/fixtures/pit-sequence.ts'
+      - 'tests/pit-sequence.test.ts'
+  pull_request:
+    paths:
+      - '.github/workflows/pit-sequence-regression.yml'
+      - 'e2e/29-populated-race-review.spec.ts'
+      - 'e2e/pit-sequence-review.ts'
+      - 'e2e/fixtures/pit-sequence.ts'
+      - 'tests/pit-sequence.test.ts'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  pit-sequence:
+    # Independent repeats on the same runner image as the complete browser gate.
+    # All three must pass; no retries and no replacement of the eight full shards.
+    strategy:
+      fail-fast: false
+      matrix:
+        sample: [1, 2, 3]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      APEX_BROWSER_BACKEND: mesa
+      LIBGL_ALWAYS_SOFTWARE: 'true'
+      GALLIUM_DRIVER: llvmpipe
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+      - run: node --experimental-transform-types scripts/source-stability.ts -- npm run build
+      - run: npx vitest run tests/pit-sequence.test.ts tests/race-review.test.ts tests/session-review.test.ts
+      - run: npx playwright install --with-deps chromium
+      - run: sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb
+      - name: Observe the real pit stop and continuous presented replay
+        run: xvfb-run -a -s '-screen 0 1920x1080x24' npx playwright test e2e/29-populated-race-review.spec.ts --grep pit-service --workers=1 --retries=0 --forbid-only
+      - name: Preserve evidence from every independent run
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pit-sequence-${{ matrix.sample }}
+          path: |
+            test-results/
+            playwright-report/
+            browser-backend.json
+            browser-progress.json
+            dist/BUILD_IDENTITY.json
+          retention-days: 7
