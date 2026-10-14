@@ -10,7 +10,7 @@ the acceptance observation. Nothing below is player-accepted.
 | ID | Detail | State | Evidence / next |
 |---|---|---|---|
 | D001 | Tyre contact follows load and travel | integrated | wheel `COMPRESSION`/`LENGTH` drive wheel pivots (`car.ts`); next: kerb-strike capture |
-| D002 | Brake-disc thermal appearance | foundation | `W.DISC_TEMP` recorded; no glow material — next: emissive driven by disc temp with cooling |
+| D002 | Brake-disc thermal appearance | integrated | disc emissive follows recorded `W.DISC_TEMP` (`car.ts`), so it cools with the physics; TC-1 provisional body has no discs |
 | D003 | Steering wheel matches steering | integrated | supplied rig `driverPose().wheelRadians`; next: both-lock clip review |
 | D004 | Aero surfaces show DRS/damage state | integrated | `R.DRS_FLAP`, health fields in replay |
 | D005 | Body pitch from acceleration/braking | integrated | rigid-body pitch in snapshot; next: camera-only-pitch audit |
