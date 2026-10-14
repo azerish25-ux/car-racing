@@ -52,6 +52,7 @@ jobs:
       - run: node --experimental-transform-types scripts/race-classification.ts
       - run: node --experimental-transform-types scripts/vellamar-race.ts clear,changeable
       - run: node --experimental-transform-types scripts/reference-targets.ts
+      - run: npm run test:vehicles
       - name: Scenario evidence, including failures
         if: always()
         uses: actions/upload-artifact@v4
