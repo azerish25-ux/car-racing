@@ -68,7 +68,7 @@ test('27H.6 menu access: real interface keeps all actions reachable with mouse a
       await expect.poll(() => body.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
     }
     const buttons = page.locator('#menu .menu-actions button');
-    await expect(buttons).toHaveCount(6);
+    await expect(buttons).toHaveCount(7);
     // Developer tools are not rendered for players.
     await expect(page.locator('#menu .dev-tools')).toHaveCount(0);
     await expect(page.locator('#buildIdentity')).toBeHidden();
