@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { GpuFrameGate } from '../src/rendering/gpu-frame-gate.ts';
 
 function fixture() {
+  const clock = { now: 0 };
   const state = {
     lost: false,
     allocationFails: false,
@@ -10,6 +11,8 @@ function fixture() {
     deleted: [] as WebGLSync[],
     waits: [] as number[][],
     flushes: 0,
+    finishes: 0,
+    finishCost: 0,
     fences: [] as number[][],
   };
   const gl = {
@@ -29,8 +32,12 @@ function fixture() {
     },
     deleteSync: (fence: WebGLSync) => state.deleted.push(fence),
     flush: () => state.flushes++,
+    finish: () => {
+      state.finishes++;
+      // gl.finish blocks until outstanding GPU work completes.
+      clock.now += state.finishCost;
+    },
   } as unknown as WebGL2RenderingContext;
-  const clock = { now: 0 };
   return { gate: new GpuFrameGate(gl, () => clock.now), gl, state, clock };
 }
 
@@ -52,11 +59,11 @@ describe('bounded asynchronous GPU frame submissions', () => {
     clock.now += 100;
     expect(gate.ready()).toBe(false);
   });
-  it('scales the release bound with a slow GPU so it never builds a backlog', () => {
+  it('drains rather than queueing: a slow GPU never has two frames in flight', () => {
     const { gate, gl, state, clock } = fixture();
-    // Frames that genuinely take 2 s each, polled every 16 ms. The first may
-    // expire at the 1 s floor; the bound then converges above the frame time.
-    let released = 0;
+    // Frames that genuinely take 2 s each, polled every 16 ms. A drain at the
+    // 1 s floor blocks for the remaining second of real GPU work.
+    state.finishCost = 1000;
     for (let i = 0; i < 6; i++) {
       gate.submittedFrame();
       let done = false;
@@ -64,24 +71,26 @@ describe('bounded asynchronous GPU frame submissions', () => {
         clock.now += 16;
         state.wait = t >= 2000 ? gl.CONDITION_SATISFIED : gl.TIMEOUT_EXPIRED;
         done = gate.ready();
-        if (done && t < 2000) released++;
       }
-      if (!done) {
-        clock.now += 16;
-        expect(gate.ready()).toBe(true);
-      }
+      // Whatever released the fence, nothing is outstanding before the next draw.
+      expect(gate.diagnostics().pending).toBe(false);
+      expect(gate.diagnostics().completed).toBe(gate.diagnostics().submitted);
     }
-    expect(released).toBeLessThanOrEqual(2);
-    expect(gate.waitBoundMs).toBeGreaterThan(4000);
-    // A deadlocked fence is still released within the 10 s ceiling.
-    const expired = gate.diagnostics().expiredFences;
+    // Early releases always drained the GPU first.
+    expect(state.finishes).toBe(gate.diagnostics().expiredFences);
+    // Once latency is learned, a 2 s frame is awaited by polling, not drained.
+    expect(gate.waitBoundMs).toBeGreaterThan(2000);
+    // A stale fence (work long done) is resolved without learning latency.
+    state.finishCost = 0;
+    const learned = gate.diagnostics().latencyMs;
     gate.submittedFrame();
     state.wait = gl.TIMEOUT_EXPIRED;
-    clock.now += 2100;
-    expect(gate.ready()).toBe(false);
-    clock.now += 8000;
-    expect(gate.ready()).toBe(true);
-    expect(gate.diagnostics().expiredFences).toBe(expired + 1);
+    for (let t = 0; t < 10000; t += 16) {
+      clock.now += 16;
+      if (gate.ready()) break;
+    }
+    expect(gate.diagnostics().pending).toBe(false);
+    expect(gate.diagnostics().latencyMs).toBe(learned);
   });
   it('ignores completions first observed after an idle period and caps the bound', () => {
     const { gate, gl, state, clock } = fixture();

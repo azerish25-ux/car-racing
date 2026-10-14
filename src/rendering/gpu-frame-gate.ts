@@ -7,10 +7,12 @@
  * itself withholds every draw (a held or seeking replay submits nothing
  * else), a zero-timeout poll can report TIMEOUT_EXPIRED indefinitely. That
  * deadlocked replay: playback and seeks waited forever for a fence nothing
- * would refresh. A fence is therefore released once it has waited both
- * `minWaitMs` and four times the measured completion latency of recent
- * frames: a deadlocked status cannot hold presentation forever, while a slow
- * GPU that genuinely completes its frames is still never given a backlog.
+ * would refresh. Once a fence has waited both `minWaitMs` and four times
+ * the measured completion latency of recent frames, the gate drains with
+ * `gl.finish()`: that returns at once when only the status was stale, and
+ * otherwise waits for the real outstanding work. Either way at most one frame
+ * is ever in flight, so a slow GPU is never handed a backlog and a stale
+ * status cannot hold presentation forever.
  */
 export class GpuFrameGate {
   private fence: WebGLSync | null = null;
@@ -57,20 +59,20 @@ export class GpuFrameGate {
         return false;
       }
       this.expired++;
-      // An expiry is also evidence of a slow GPU: widen the bound (doubling,
-      // capped), so a genuinely slow device converges instead of queueing.
-      this.latency = Math.min(this.maxWaitMs, Math.max(this.latency * 2, this.waitBoundMs / 2));
+      const drainStart = this.now();
+      gl.finish();
+      // A drain that had to wait ended when the GPU work did: a real sample.
+      // One that returned at once only found a stale status: not a sample.
+      if (continuous && this.now() - drainStart > 2) this.sample(this.now() - this.fencedAt);
       this.release();
+      this.completed = this.submitted;
       return true;
     }
     if (result !== gl.ALREADY_SIGNALED && result !== gl.CONDITION_SATISFIED) {
       this.release();
       throw new Error('Unable to check GPU frame completion');
     }
-    if (continuous) {
-      const elapsed = now - this.fencedAt;
-      this.latency = this.latency ? this.latency * 0.8 + elapsed * 0.2 : elapsed;
-    }
+    if (continuous) this.sample(now - this.fencedAt);
     this.release();
     this.completed = this.submitted;
     return true;
@@ -97,13 +99,17 @@ export class GpuFrameGate {
     gl.flush();
   }
 
+  private sample(elapsed: number) {
+    this.latency = this.latency ? this.latency * 0.8 + elapsed * 0.2 : elapsed;
+  }
+
   diagnostics() {
     return {
       pending: this.fence !== null,
       submitted: this.submitted,
       completed: this.completed,
       deferredCallbacks: this.deferred,
-      /** Fences released by the time bound instead of observed completion. */
+      /** Fences resolved by an explicit drain after the bound, not by polling. */
       expiredFences: this.expired,
       latencyMs: this.latency,
     };
