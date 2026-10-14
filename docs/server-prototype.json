@@ -1,0 +1,25 @@
+{
+  "fixture": "8-car Aurel race, AI-driven, 120 Hz, 60 s simulated",
+  "runtime": "node v22.22.0",
+  "cpuMsPerSimulatedSecond": 196.72655356666667,
+  "cpuMsPerCarPerSimulatedSecond": 24.590819195833333,
+  "realtimeFactor": 5.08319787984859,
+  "racesPerCore": 5,
+  "worstStepMs": 12.123888000000079,
+  "tickBudgetMs": 8.333333333333334,
+  "heapGrowthBytes": 24298528,
+  "determinism": {
+    "sameMachine": true,
+    "firstHash": "fdd888e6",
+    "secondHash": "fdd888e6",
+    "note": "Same-process, same-seed repetition only; cross-platform float determinism is not claimed."
+  },
+  "bandwidth": {
+    "networkHz": 20,
+    "compactBytesPerCar": 34,
+    "compactKbitPerClient": 43.52,
+    "fullSnapshotBytes": 8320,
+    "fullSnapshotKbitAt120Hz": 7987.2
+  },
+  "leaderLaps": 1
+}
