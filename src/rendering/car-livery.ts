@@ -452,7 +452,15 @@ export function flankLivery(paint: T.MeshPhysicalMaterial, side: number, id: num
   const finish = (paint.userData.paintFinish as PaintFinish | undefined) ?? liveryScheme(id).finish;
   installPaintFlakes(material, PAINT_FINISHES[finish].flake, PAINT_FINISHES[finish].peel);
   material.color.set(0xffffff);
-  material.map = canvasTexture(1024, 1024, (context) => drawFlank(context, side, id));
+  // A CPU-backed skin. apexDiagnostics() reads a skin pixel back
+  // (renderer.playerPaint) to prove a repaint reached the canvas; on an
+  // accelerated canvas that getImageData waits for every GPU submission queued
+  // ahead of it, so one diagnostics call during session loading on a software
+  // rasterizer held the main thread (and the worker's first snapshot) ~30 s.
+  // The skin is drawn once and on livery edits, then uploaded as a texture.
+  material.map = canvasTexture(1024, 1024, (context) => drawFlank(context, side, id), {
+    willReadFrequently: true,
+  });
   sourceCanvases.set(material.map, material.map.image as HTMLCanvasElement);
   material.userData.liverySide = side;
   material.map.name = `Original APEX car ${id + 7} ${side > 0 ? 'left' : 'right'} skin`;

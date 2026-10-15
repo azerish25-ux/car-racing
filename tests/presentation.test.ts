@@ -161,6 +161,35 @@ it('resizes immutable texture assets but never live displays and can restore res
   expect(map.anisotropy).toBe(16);
   budget.dispose();
 });
+it('keeps the resampled copy of a CPU-read skin CPU-backed, and only that copy', () => {
+  // Diagnostics read the presented flank skin back on every call. An
+  // accelerated budget copy made that read wait ~20-30 s behind queued GPU
+  // frames while an Aurel 12-car session loaded on a software rasterizer.
+  const requests: unknown[][] = [];
+  class Canvas {
+    width = 1024;
+    height = 1024;
+    getContext(...args: unknown[]) {
+      requests.push(args);
+      return { drawImage: vi.fn(), clearRect: vi.fn() };
+    }
+  }
+  vi.stubGlobal('HTMLCanvasElement', Canvas);
+  vi.stubGlobal('document', { createElement: () => new Canvas() });
+  const skin = new T.CanvasTexture(new Canvas() as unknown as HTMLCanvasElement);
+  skin.userData.cpuReadback = true;
+  const sign = new T.CanvasTexture(new Canvas() as unknown as HTMLCanvasElement);
+  const group = new T.Group();
+  for (const map of [skin, sign])
+    group.add(new T.Mesh(new T.PlaneGeometry(), new T.MeshBasicMaterial({ map })));
+  const budget = new TextureBudget();
+  budget.register(group);
+  expect(skin.image.width).toBe(512);
+  expect(sign.image.width).toBe(512);
+  expect(requests[0]).toEqual(['2d', { willReadFrequently: true }]);
+  expect(requests[2]).toEqual(['2d', undefined]);
+  budget.dispose();
+});
 
 it.each<[keyof Setup, number, number | 'any']>([
   ['rearARB', 16500, 500],
