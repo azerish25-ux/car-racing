@@ -2,8 +2,9 @@ import { circuitDefinition, type CircuitDefinition } from './circuits.ts';
 import { K, SKID_BASE } from './protocol.ts';
 import { clamp } from '../core/math.ts';
 import type { AIDriver } from './ai.ts';
-import { createDriver } from './bike-ai.ts';
-import { createVehicle, writeBikeBlock } from './bike-vehicle.ts';
+import { writeBikeBlock } from './bike-vehicle.ts';
+import { createEntrantDriver } from './offroad/ai.ts';
+import { OffroadSession, createEntrant, writeOffroadBlock } from './offroad/session.ts';
 import { wakeFields } from './aero.ts';
 import { CollisionSolver } from './collision.ts';
 import {
@@ -20,6 +21,7 @@ import { OVERTAKE } from './drs.ts';
 import {
   BIKE_BASE,
   CAR_STRIDE,
+  OFFROAD_BASE,
   DEBRIS_BASE,
   DEBRIS_STRIDE,
   F,
@@ -44,6 +46,8 @@ export class Simulation {
   readonly ai: AIDriver[];
   readonly race: RaceDirector;
   readonly collisions = new CollisionSolver();
+  /** Terrain venues: deformable ground and the off-road formats; else null. */
+  readonly offroad: OffroadSession | null;
   tick = 0;
   autoPlayer = false;
 
@@ -64,8 +68,8 @@ export class Simulation {
     // out-lap and clear track; a race uses the staggered grid in `grid` order.
     const spacing = Math.min(420, (length - 400) / count);
     this.cars = Array.from({ length: count }, (_, i) => {
-      // Each family runs its own dynamics adapter (four-wheel or bike, D13).
-      const c = createVehicle(
+      // Each family runs its own dynamics adapter (four-wheel, bike, off-road bike, D13).
+      const c = createEntrant(
         i,
         this.options.compound,
         this.options.setup,
@@ -84,8 +88,13 @@ export class Simulation {
         );
       return c;
     });
-    this.ai = this.cars.map((c) => createDriver(c, 0.92 + (c.id % 4) * 0.014, this.options.seed));
+    // Gate slots or the stage queue on terrain venues (no-op elsewhere).
+    OffroadSession.place(this.track, this.cars, this.options);
+    this.ai = this.cars.map((c) =>
+      createEntrantDriver(c, 0.92 + (c.id % 4) * 0.014, this.options.seed, this.track, this.options.laps),
+    );
     this.race = new RaceDirector(this.cars, this.track, this.options);
+    this.offroad = OffroadSession.create(this.track, this.cars, this.race, this.options);
     if (this.options.mode === 'endurance') {
       // Enough fuel for the distance plus a margin: real mass, no refuelling.
       // A timed race budgets laps at a conservative 55 m/s average.
@@ -149,12 +158,14 @@ export class Simulation {
       // Dirty air (downforce) and slipstream (drag) behind every leader.
       wakeFields(c, this.cars);
     }
+    this.offroad?.beforePhysics(dt);
     for (let sub = 0; sub < 2; sub++) {
       for (const c of this.cars) c.step(dt * 0.5, this.track);
       this.collisions.solve(this.cars, this.track);
     }
     for (const c of this.cars) c.recoverIfUpset(dt, this.track);
     for (const c of this.cars) updatePit(c, this.track, dt, this.cars);
+    this.offroad?.afterPhysics(dt);
     this.track.evolve(dt, Math.max(0, this.race.time - this.race.greenAt));
     this.race.step(dt);
   }
@@ -250,6 +261,7 @@ export class Simulation {
       out[r + R.DRS_FLAP] = c.drsFlap;
       out[r + R.VEHICLE] = vehicleIndex(c.definition.id);
       writeBikeBlock(out, o + BIKE_BASE, c);
+      writeOffroadBlock(out, o + OFFROAD_BASE, c, this.offroad);
       const k = o + SKID_BASE,
         skid = c.skid;
       out[k + K.CONTACTS] = skid.contacts;

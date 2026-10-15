@@ -12,6 +12,7 @@ import {
 } from './weather.ts';
 import { AUREL, STANDARD_PIT, type CircuitDefinition, type PitLaneDefinition } from './circuits.ts';
 import { RUNOFF } from './circuit-catalogue/venue-data.ts';
+import type { OffroadSurface } from './offroad/types.ts';
 export const TRACK_NAME = AUREL.name,
   CELL_ROWS = 512,
   CELL_COLS = 7;
@@ -103,7 +104,11 @@ export class Track {
   /** Water-grid rows under a roof (tunnels): 1 where rain cannot fall. */
   readonly sheltered = new Uint8Array(CELL_ROWS);
   private contactMesh: TrackContactMesh | null = null;
+  /** Terrain venues (offroad/): the authoritative deformable ground, which
+   * contact, casts and the rendered terrain read; null on paved circuits. */
+  readonly offroad: OffroadSurface | null;
   cast(origin: Vec3, down: Vec3, maximum: number, out: SurfaceSample) {
+    if (this.offroad) return this.offroad.cast(origin, down, maximum, out);
     this.contactMesh ??= new TrackContactMesh(this);
     return this.contactMesh.cast(origin, down, maximum, out);
   }
@@ -239,6 +244,7 @@ export class Track {
       const fromLine = (lateral - line.offsetAt(s)) / 1.8;
       this.rubber[i] = 0.035 + 0.415 * Math.exp(-0.5 * fromLine * fromLine);
     }
+    this.offroad = circuit.offroad?.createSurface(this) ?? null;
   }
   at(s: number, out: TrackPoint): TrackPoint {
     s = mod(s, this.length);
@@ -391,6 +397,20 @@ export class Track {
       grip = 1,
       resistance = 0.015,
       kerb = 0;
+    if (this.offroad && !pit) {
+      const row = Math.min(CELL_ROWS - 1, Math.floor((p.s / this.length) * CELL_ROWS)),
+        col = clamp(Math.floor(((l / p.width) * 0.5 + 0.5) * CELL_COLS), 0, CELL_COLS - 1),
+        cell = row * CELL_COLS + col;
+      if (this.offroad.sample(p, l, cell, out)) {
+        out.water = this.water[cell];
+        // Only sealed ground (rallycross asphalt) carries laid rubber.
+        const sealed = out.surface === SURFACE.ASPHALT;
+        out.rubber = sealed ? this.rubber[cell] : 0;
+        out.marbles = sealed ? this.marbles[cell] : 0;
+        out.temp = this.temperature[cell];
+        return out;
+      }
+    }
     if (pit) surface = SURFACE.PIT;
     else if (a > p.width + 4) {
       surface = this.runoffSurface(p, l);

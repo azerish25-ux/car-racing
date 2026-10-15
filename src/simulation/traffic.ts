@@ -63,6 +63,8 @@ export class TrafficPlanner {
      * car follows it, so a lane is a distance from the line, and a path's
      * lateral position ahead includes the line's own shift. */
     line: (s: number) => number = () => 0,
+    /** Lateral separation scale for narrow machines (1: car widths). */
+    lateralScale = 1,
   ) {
     const lineOffset = line(car.s);
     // Lateral shift of a line-relative path between here and distance `s`.
@@ -76,13 +78,13 @@ export class TrafficPlanner {
     if (Math.abs(preferredOffset - this.preferred) > 0.5) this.holdUntil = 0;
     this.preferred = preferredOffset;
     const result = this.result;
-    const limit = Math.max(1, car.trackPosition.width - 2.4);
+    const limit = Math.max(1, car.trackPosition.width - 2.4 * lateralScale);
     const closest = clamp(car.lateral, -limit, limit);
     const held = lineOffset + this.heldOffset;
     this.candidates[0] = clamp(now < this.holdUntil ? held : lineOffset, -limit, limit);
     this.candidates[1] = closest;
-    this.candidates[2] = clamp(closest - 3.5, -limit, limit);
-    this.candidates[3] = clamp(closest + 3.5, -limit, limit);
+    this.candidates[2] = clamp(closest - 3.5 * lateralScale, -limit, limit);
+    this.candidates[3] = clamp(closest + 3.5 * lateralScale, -limit, limit);
     this.candidates[4] = clamp(lineOffset, -limit, limit);
     this.candidates[5] = clamp(preferredOffset, -limit, limit);
     let best = Infinity,
@@ -148,11 +150,11 @@ export class TrafficPlanner {
               theirLine +
               lateralVelocity * Math.min(t, 1.2);
           const dy = Math.abs(theirs - ours);
-          if (Math.abs(dx) < 6.5 + Math.min(4, t * 0.5) && dy < 2.75) {
+          if (Math.abs(dx) < 6.5 + Math.min(4, t * 0.5) && dy < 2.75 * lateralScale) {
             safe = false;
             break;
           }
-          if (!queueing && dx > 0 && dx < 70 && dy < 2.9)
+          if (!queueing && dx > 0 && dx < 70 && dy < 2.9 * lateralScale)
             score += ((70 - dx) / 70) * (1 + traits.aggression);
         }
         if (!safe) break;
@@ -194,8 +196,8 @@ export class TrafficPlanner {
       // Our path reaches the other car's distance shifted with the line.
       const shift = shiftAt(other.s);
       const corridor =
-        Math.abs(other.lateral - (car.lateral + shift)) < 3 ||
-        Math.abs(other.lateral - (result.offset + shift)) < 3;
+        Math.abs(other.lateral - (car.lateral + shift)) < 3 * lateralScale ||
+        Math.abs(other.lateral - (result.offset + shift)) < 3 * lateralScale;
       if (!corridor) continue;
       const reserve = 7 + car.speed * (0.45 + 0.12 * (1 - traits.consistency));
       const safeSpeed = Math.sqrt(

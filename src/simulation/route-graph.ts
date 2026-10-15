@@ -194,10 +194,16 @@ export class RouteProgress {
   distance = 0;
   /** True while the physical position does not match any permitted edge. */
   offRoute = false;
+  /** The edge this one was entered from (fork resolution). */
+  private from: string | null = null;
   constructor(
     readonly graph: RouteGraph,
     /** Lateral tolerance (m) for being on an edge, e.g. road half-width + margin. */
     readonly tolerance = 14,
+    /** Within this many metres after a fork the sibling branches stay
+     * candidates, so a joker or pit branch that leaves the lap gradually is
+     * still recognised once it separates (0: no fork re-evaluation). */
+    readonly forkWindow = 0,
   ) {
     this.edge = graph.spec.start;
   }
@@ -206,12 +212,20 @@ export class RouteProgress {
    * an edge progress may not jump more than `maxStep` metres (a shortcut
    * across an infield is detected, not credited). */
   update(p: RoutePoint, maxStep = 60): RouteLocation | null {
-    const candidates = [this.edge, ...this.graph.successors(this.edge)];
+    const siblings =
+      this.forkWindow > 0 && this.from !== null && this.s < this.forkWindow
+        ? this.graph.successors(this.from).filter((e) => e !== this.edge)
+        : [];
+    const candidates = [this.edge, ...this.graph.successors(this.edge), ...siblings];
     let best: RouteLocation | null = null;
     for (const id of candidates) {
       const at = this.graph.project(id, p);
       if (!at || at.distance > this.tolerance) continue;
-      const along = id === this.edge ? at.s - this.s : this.graph.length(this.edge) - this.s + at.s;
+      const sibling = siblings.includes(id) && id !== this.edge;
+      const along =
+        id === this.edge || sibling
+          ? at.s - this.s
+          : this.graph.length(this.edge) - this.s + at.s;
       if (along < -maxStep || along > maxStep) continue;
       // Prefer staying on the current edge until its end is genuinely reached.
       const score = at.distance + (id === this.edge ? 0 : 2);
@@ -219,9 +233,15 @@ export class RouteProgress {
     }
     this.offRoute = !best;
     if (!best || this.finished) return best;
+    const switched = siblings.includes(best.edge);
     const travelled =
-      best.edge === this.edge ? best.s - this.s : this.graph.length(this.edge) - this.s + best.s;
-    if (best.edge !== this.edge) this.edge = best.edge;
+      best.edge === this.edge || switched
+        ? best.s - this.s
+        : this.graph.length(this.edge) - this.s + best.s;
+    if (best.edge !== this.edge) {
+      if (!switched) this.from = this.edge;
+      this.edge = best.edge;
+    }
     this.s = best.s;
     this.distance += Math.max(0, travelled);
     const gates = this.graph.spec.checkpoints,

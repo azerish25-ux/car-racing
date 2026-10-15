@@ -27,10 +27,18 @@ export const CATALOGUE_CIRCUIT_IDS = Object.freeze([
   'dockyard-reverse',
 ] as const);
 export type CatalogueCircuitId = (typeof CATALOGUE_CIRCUIT_IDS)[number];
+/** Terrain venues (src/simulation/offroad/venues.ts), after the catalogue. */
+export const OFFROAD_CIRCUIT_IDS = Object.freeze([
+  'valley-ridge-mx',
+  'arena-nord-sx',
+  'kestrel-rx',
+  'pinewood-stage',
+] as const);
+export type OffroadCircuitId = (typeof OFFROAD_CIRCUIT_IDS)[number];
 
 /** Menu groups (§15): approximations of public real-world geometry, original
  * venues, and unconventional venues. */
-export type CatalogueGroup = 'real-world' | 'original' | 'unconventional';
+export type CatalogueGroup = 'real-world' | 'original' | 'unconventional' | 'off-road';
 
 /** Run-off beyond the 4 m paint band, as the physical surface reads it. */
 export const RUNOFF = Object.freeze({ GRASS: 0, GRAVEL: 1, ASPHALT: 2 } as const);
@@ -54,7 +62,11 @@ export type VenueTheme =
   | 'oval'
   | 'desert'
   | 'coastal-cliff'
-  | 'dockyard';
+  | 'dockyard'
+  | 'motocross'
+  | 'stadium'
+  | 'rallycross'
+  | 'forest-stage';
 
 /** A lap-distance span on one side (+1 right of travel, -1 left). `from` may
  * exceed `to` when the span wraps through the start line. */

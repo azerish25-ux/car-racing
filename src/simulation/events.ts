@@ -1,9 +1,16 @@
-import { CIRCUIT_IDS, type CircuitId } from './circuits.ts';
+import { CIRCUIT_IDS, circuitDefinition, type CircuitId } from './circuits.ts';
 import type { Assist, Compound, SessionOptions, WeatherPreset } from './config.ts';
 import { VEHICLES, type VehicleClass } from './vehicles.ts';
 import { CATALOGUE_EVENTS as CIRCUIT_EVENTS } from './circuit-catalogue/events.ts';
 import { vehicleFamily } from './bike-definitions.ts';
 import { ALL_CLASSES, CATALOGUE_EVENTS, CATALOGUE_RULESETS } from './catalogue-events.ts';
+import {
+  OFFROAD_CLASSES,
+  OFFROAD_EVENTS,
+  OFFROAD_RULESETS,
+  type OffroadFormat,
+} from './offroad/formats.ts';
+import { venueAdmits } from './offroad/venues.ts';
 
 /** Composable sporting rules (WP09 / F07, masterplan §6.3). A session format
  * (practice, qualifying, race...) is separate from its ruleset (tyre, service,
@@ -34,12 +41,21 @@ export interface RulesetDefinition {
   singleClass?: boolean;
   /** 'per-class': classes share the road but are classified within class. */
   classScoring?: 'overall' | 'per-class';
+  /** Off-road session format: start gate / lights / staggered stage starts,
+   * joker laps, moto points (offroad/formats.ts). */
+  format?: OffroadFormat;
 }
 const DRY: readonly Compound[] = Object.freeze(['soft', 'medium', 'hard']);
 const ALL: readonly Compound[] = Object.freeze([...DRY, 'intermediate', 'wet']);
 const POINTS = Object.freeze([25, 18, 15, 12, 10, 8, 6, 4, 2, 1]);
 /** Motorcycle classes (WP36); cars and bikes never share a grid. */
 const BIKE_CLASSES: readonly VehicleClass[] = Object.freeze(['gp-bike', 'superbike'] as const);
+/** Every class a practice, qualifying or time-trial session admits. */
+const SOLO_CLASSES: readonly VehicleClass[] = Object.freeze([
+  ...ALL_CLASSES,
+  ...BIKE_CLASSES,
+  ...OFFROAD_CLASSES.bikes,
+]);
 const base = {
   version: 1,
   tires: Object.freeze({ allowed: ALL, mandatoryCompoundChange: false, penaltySeconds: 0 }),
@@ -117,7 +133,7 @@ export const RULESETS: Readonly<Record<string, RulesetDefinition>> = Object.free
     id: 'open-practice',
     name: 'PRACTICE',
     sessions: Object.freeze(['practice'] as const),
-    allowedClasses: Object.freeze([...ALL_CLASSES, ...BIKE_CLASSES]),
+    allowedClasses: SOLO_CLASSES,
     points: Object.freeze([]),
   }),
   qualifying: Object.freeze({
@@ -125,7 +141,7 @@ export const RULESETS: Readonly<Record<string, RulesetDefinition>> = Object.free
     id: 'qualifying',
     name: 'QUALIFYING',
     sessions: Object.freeze(['qualifying'] as const),
-    allowedClasses: Object.freeze([...ALL_CLASSES, ...BIKE_CLASSES]),
+    allowedClasses: SOLO_CLASSES,
     points: Object.freeze([]),
   }),
   'time-trial': Object.freeze({
@@ -133,11 +149,12 @@ export const RULESETS: Readonly<Record<string, RulesetDefinition>> = Object.free
     id: 'time-trial',
     name: 'TIME TRIAL',
     sessions: Object.freeze(['time-trial'] as const),
-    allowedClasses: Object.freeze([...ALL_CLASSES, ...BIKE_CLASSES]),
+    allowedClasses: SOLO_CLASSES,
     points: Object.freeze([]),
     service: Object.freeze({ pitStops: true }),
   }),
   ...CATALOGUE_RULESETS,
+  ...OFFROAD_RULESETS,
 });
 /** The ruleset each legacy mode always implied. */
 export const DEFAULT_RULESET: Readonly<Record<SessionMode, string>> = Object.freeze({
@@ -175,6 +192,18 @@ export function sessionIncompatibilities(options: SessionOptions): string[] {
     errors.push(`${rules.name} runs single-class grids`);
   if (!options.vehicles && !rules.allowedClasses.includes('formula'))
     errors.push(`${rules.name} needs eligible vehicles; the default Formula field is not`);
+  // Terrain venues admit their own families (no Formula car on a motocross track).
+  const venue = circuitDefinition(options.circuit);
+  vehicles.forEach((id, car) => {
+    const def = VEHICLES[id];
+    if (def && !venueAdmits(venue, def.classId))
+      errors.push(`Car ${car + 1} (${def.name}) cannot race at ${venue.name}`);
+  });
+  if (!options.vehicles && venue.offroad) errors.push(`${venue.name} needs off-road machines`);
+  if (rules.format?.kind === 'stage' && !venue.offroad)
+    errors.push(`${rules.name} needs a stage venue`);
+  if (rules.format?.kind === 'rallycross' && rules.format.joker && venue.offroad?.kind !== 'rallycross')
+    errors.push(`${rules.name} needs a venue with a joker road`);
   if (!rules.tires.allowed.includes(options.compound))
     errors.push(`${options.compound} tyres are not permitted by ${rules.name}`);
   if (!rules.assists.includes(options.assist))
@@ -280,6 +309,8 @@ export const EVENTS: readonly EventDefinition[] = Object.freeze([
   // Catalogue layouts (WP29-WP30).
   ...CIRCUIT_EVENTS,
   ...CATALOGUE_EVENTS,
+  // Terrain venues (WP37-WP42).
+  ...OFFROAD_EVENTS,
 ]);
 /** Finishing position of every car within its own class (1-based), for
  * per-class classification; `order` is the overall classification (car ids). */

@@ -3,6 +3,7 @@ import { BIKE_VEHICLES, type BikeSpec } from './bike-definitions.ts';
 import type { DrivelineSpec } from './differential.ts';
 import type { TireFamilyId } from './tire-families.ts';
 import { CATALOGUE } from './vehicle-catalogue/index.ts';
+import { DIRT_BIKES } from './offroad/dirt-bikes.ts';
 import type { VehicleDynamicsOverrides } from './vehicle-dynamics.ts';
 
 /** Per-vehicle content contract (WP08 / F04, masterplan §6.3). Every entrant is
@@ -92,7 +93,9 @@ export type VehicleClass =
   | 'kart'
   | 'road'
   | 'gp-bike'
-  | 'superbike';
+  | 'superbike'
+  | 'motocross'
+  | 'supermoto';
 /** Driven axle(s); 'awd' splits torque through `driveline.centre`. */
 export type Drivetrain = 'rwd' | 'fwd' | 'awd';
 export interface VehicleDefinition {
@@ -350,6 +353,8 @@ export const VEHICLES: Readonly<Record<string, VehicleDefinition>> = Object.free
   tc1: TOURING_TC1,
   ...BIKE_VEHICLES,
   ...CATALOGUE,
+  // Off-road motorcycles (WP39), appended after the catalogue.
+  ...DIRT_BIKES,
 });
 export const VEHICLE_IDS = Object.freeze(Object.keys(VEHICLES));
 export const DEFAULT_VEHICLE_ID = 'apx01';

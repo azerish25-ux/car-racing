@@ -2,18 +2,23 @@ import { clamp, mod, TAU } from '../core/math.ts';
 import { CATALOGUE_CIRCUITS } from './circuit-catalogue/index.ts';
 import {
   CATALOGUE_CIRCUIT_IDS,
+  OFFROAD_CIRCUIT_IDS,
   type CatalogueCircuitId,
   type CatalogueMeta,
+  type OffroadCircuitId,
   type RunoffCode,
 } from './circuit-catalogue/venue-data.ts';
+import { OFFROAD_CIRCUITS } from './offroad/venues.ts';
+import type { OffroadVenueData } from './offroad/types.ts';
 
 /** Identifies a circuit layout. Aurel remains the default everywhere; the
  * catalogue layouts (WP29-WP30, circuit-catalogue/) follow the two originals. */
-export type CircuitId = 'aurel' | 'vellamar' | CatalogueCircuitId;
+export type CircuitId = 'aurel' | 'vellamar' | CatalogueCircuitId | OffroadCircuitId;
 export const CIRCUIT_IDS: readonly CircuitId[] = Object.freeze([
   'aurel',
   'vellamar',
   ...CATALOGUE_CIRCUIT_IDS,
+  ...OFFROAD_CIRCUIT_IDS,
 ]);
 
 /** One consistent source for a circuit's centreline and cross-section. The
@@ -62,6 +67,10 @@ export interface CircuitDefinition {
   covered?(s: number): boolean;
   /** Catalogue layouts: venue, menu and dressing data (circuit-catalogue/). */
   catalogue?: CatalogueMeta;
+  /** Terrain venues (offroad/): deformable ground, course features and formats. */
+  offroad?: OffroadVenueData;
+  /** Surveyed jumps (terrain venues) for the landing licence (career/registry.ts). */
+  jumps?: readonly unknown[];
 }
 /** Venue-owned pit lane, grid and service geometry (WP10 / F06). Distances
  * are lap metres measured from the start line (the lane straddles it), the
@@ -306,6 +315,7 @@ export const CIRCUITS: Readonly<Record<CircuitId, CircuitDefinition>> = Object.f
   aurel: AUREL,
   vellamar: VELLAMAR,
   ...CATALOGUE_CIRCUITS,
+  ...OFFROAD_CIRCUITS,
 });
 export function circuitDefinition(id: unknown): CircuitDefinition {
   return typeof id === 'string' && Object.hasOwn(CIRCUITS, id) ? CIRCUITS[id as CircuitId] : AUREL;

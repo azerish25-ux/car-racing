@@ -12,7 +12,9 @@ export type TireFamilyId =
   | 'gravel'
   | 'all-terrain'
   | 'kart'
-  | 'historic';
+  | 'historic'
+  | 'knobby'
+  | 'supermoto';
 export interface TireFamily {
   id: TireFamilyId;
   name: string;
@@ -45,5 +47,10 @@ export const TIRE_FAMILIES: Readonly<Record<TireFamilyId, TireFamily>> = Object.
   kart: family('kart', 'Kart slick', [0.85, 1.1], 0),
   /** Narrow 1960s cross-ply racing tyre. */
   historic: family('historic', 'Historic cross-ply', [0.5, 0.7], 0.05),
+  /** Off-road motorcycle knobby: tall square blocks that bite into loam,
+   * sand and mud (bike definitions carry their own peak μ; tireGrip 1). */
+  knobby: family('knobby', 'Motocross knobby', [0.6, 1.1], 0.8),
+  /** Supermoto treaded slick: sticky on asphalt, a little bite on dirt. */
+  supermoto: family('supermoto', 'Supermoto treaded slick', [0.6, 1.1], 0.25),
 });
 export const TIRE_FAMILY_IDS = Object.freeze(Object.keys(TIRE_FAMILIES) as TireFamilyId[]);

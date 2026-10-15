@@ -57,7 +57,7 @@ export class TerrainTile {
   readonly depth: Float32Array;
   readonly compaction: Float32Array;
   /** Cells changed since construction (sparse checkpoint set). */
-  private readonly dirty = new Set<number>();
+  protected readonly dirty = new Set<number>();
   /** Monotonic count of authoritative modifications (replay ordering). */
   sequence = 0;
   constructor(
@@ -75,7 +75,7 @@ export class TerrainTile {
     this.depth = new Float32Array(columns * rows);
     this.compaction = new Float32Array(columns * rows);
   }
-  private index(x: number, z: number) {
+  protected index(x: number, z: number) {
     const c = Math.floor((x - this.originX) / TERRAIN.cell),
       r = Math.floor((z - this.originZ) / TERRAIN.cell);
     return c < 0 || r < 0 || c >= this.columns || r >= this.rows ? -1 : r * this.columns + c;
