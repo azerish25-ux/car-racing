@@ -605,7 +605,7 @@ export class RoadNetwork {
         for (const c of branches) {
           if (c.line === b.line) continue;
           const other = lines[c.line];
-          let clear = c.foot + 1;
+          let clear = 0;
           for (let along = 1; along <= PLATEAU_MAX; along += 1) {
             const [x, z] = this.pointAt(line, split.arc + b.side * along);
             clear = along;
@@ -614,7 +614,8 @@ export class RoadNetwork {
           reach = Math.max(reach, clear, c.foot + 1);
         }
         // Never more than PLATEAU_MAX, nor most of the way to the next split.
-        let room = b.side > 0 ? total - split.arc : split.arc;
+        // (A closed road wraps: only its other splits bound the room.)
+        let room = line.closed ? total : b.side > 0 ? total - split.arc : split.arc;
         for (const other of line.splits) {
           if (other === split) continue;
           let gap = (other.arc - split.arc) * b.side;
