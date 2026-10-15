@@ -423,6 +423,38 @@ export class RoutePath {
     }
     return this.closed ? ((bestD % this.length) + this.length) % this.length : bestD;
   }
+  /** Path distance of a location on this route's RouteGraph (routeSpec):
+   * leg `edge` (its id is the leg index) at 3-D arc `s` along that leg's
+   * points, which start at the previous leg's last sample. RouteProgress
+   * reports where a participant's legal progress stands in these terms. */
+  progressDistance(edge: string | number, s: number) {
+    const leg = Number(edge),
+      n = this.count;
+    let first = -1,
+      last = -1;
+    for (let i = 0; i < n; i++)
+      if (this.leg[i] === leg) {
+        if (first < 0) first = i;
+        last = i;
+      }
+    if (first < 0) return 0;
+    // The leg's polyline in the graph: joined to the previous leg's end,
+    // closed back to the start on a circuit's last leg.
+    const start = leg > 0 && first > 0 ? first - 1 : first,
+      end = this.closed && last === n - 1 ? n : last;
+    let arc = 0;
+    for (let i = start; i < end; i++) {
+      const j = (i + 1) % n,
+        step = Math.hypot(this.x[j] - this.x[i], this.y[j] - this.y[i], this.z[j] - this.z[i]);
+      if (arc + step >= s) {
+        const f = step > 0 ? clamp((s - arc) / step, 0, 1) : 0,
+          d = this.d[i] + this.span(i, j) * f;
+        return this.closed ? d % this.length : d;
+      }
+      arc += step;
+    }
+    return end === n ? 0 : this.d[end];
+  }
   /** RouteGraph spec of this route (legs as directed edges) with checkpoints
    * every `gateSpacing` metres and the finish at the route end. */
   routeSpec(id: string, gateSpacing = 400): RouteSpec {

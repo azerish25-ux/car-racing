@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { Vec3 } from '../src/core/math.ts';
 import { controls } from '../src/simulation/config.ts';
 import { DriftMeter, type FestivalResult } from '../src/simulation/open-world/festival-events.ts';
+import { pathPoint } from '../src/simulation/open-world/route-path.ts';
 import { OpenWorldSimulation } from '../src/simulation/open-world/session.ts';
 import { CAR_STRIDE, F, HEADER, R, RACE_BASE, carBase } from '../src/simulation/protocol.ts';
 import { Vehicle } from '../src/simulation/vehicle.ts';
@@ -101,6 +102,35 @@ describe('festival free-roam session', () => {
     for (let i = 0; i < 120 * 31; i++) sim.step(1 / 120);
     expect(sim.status().mode).toBe('free');
     expect(sim.cars.length).toBe(1);
+  });
+  it('resets onto the route at the legal progress, never ahead of it (a shortcut gains nothing)', () => {
+    const sim = new OpenWorldSimulation({ vehicle: 'tc1' });
+    sim.command({ type: 'start', event: 'valley-sprint' });
+    for (let i = 0; i < 120 * 3.2; i++) sim.step(1 / 120);
+    expect(sim.status().mode).toBe('running');
+    const path = sim.events.find((e) => e.spec.id === 'valley-sprint')!.path,
+      p = pathPoint(),
+      at = () => path.locate(sim.player.body.position.x, sim.player.body.position.z, 0, 400);
+    const legal = at();
+    // A shortcut that rejoins the route 90 m ahead (beyond RouteProgress's
+    // 60 m step): progress cannot follow, the car is off its legal route.
+    path.at(legal + 90, p);
+    sim.placeAt(sim.player, p.x, p.z, Math.atan2(p.tx, p.tz), p.y + 0.5);
+    for (let i = 0; i < 12; i++) sim.step(1 / 120);
+    expect(sim.status().event!.offRoute).toBe(true);
+    // R: back at the legal progress, where RouteProgress matches at once.
+    sim.command({ type: 'reset' });
+    expect(at()).toBeLessThan(legal + 12);
+    for (let i = 0; i < 12; i++) sim.step(1 / 120);
+    expect(sim.status().event!.offRoute).toBe(false);
+    // Driving on is credited again and the race carries on.
+    sim.command({ type: 'autopilot', value: true });
+    const before = sim.status().event!.progress;
+    for (let i = 0; i < 120 * 12; i++) sim.step(1 / 120);
+    const status = sim.status();
+    expect(status.mode).toBe('running');
+    expect(status.event!.offRoute).toBe(false);
+    expect(status.event!.progress).toBeGreaterThan(before + 0.02);
   });
   it('measures a speed trap and a speed zone as skill challenges', () => {
     const sim = new OpenWorldSimulation({ vehicle: 'tc1' });

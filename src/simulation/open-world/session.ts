@@ -157,6 +157,11 @@ interface Run {
   lost: number;
 }
 const SPAWN = { x: 560, z: -2602, heading: Math.PI / 2 };
+/** Event reset: route search window around the legal progress (m, well
+ * inside RouteProgress's 60 m maxStep) and the most it may place a car
+ * ahead of that progress. */
+const RESET_WINDOW = 30;
+const RESET_AHEAD = 8;
 
 /**
  * The festival free-roam session (runs in the open-world worker, or headless
@@ -268,11 +273,19 @@ export class OpenWorldSimulation {
     fresh.input.throttle = 0;
     this.cars[index] = fresh;
     if (run && slot >= 0) {
-      // Back onto the event route at the last legal progress.
+      // Back onto the event route at the last legal progress: near it (the
+      // closest route point to the car within a short window) but never
+      // more than a few metres ahead of it, so RouteProgress, which accepts
+      // only moves of up to its maxStep, matches the placed car at once and
+      // a shortcut gains nothing.
       const participant = run.participants[slot];
       participant.car = fresh;
       const path = run.event.path,
-        d = path.locate(pos.x, pos.z, this.progressDistance(participant), 80, this.located);
+        legal = path.progressDistance(participant.progress.edge, participant.progress.s),
+        found = path.locate(pos.x, pos.z, legal, RESET_WINDOW, this.located);
+      let ahead = found - legal;
+      if (path.closed) ahead = ((ahead % path.length) + path.length * 1.5) % path.length - path.length / 2;
+      const d = ahead > RESET_AHEAD ? legal + RESET_AHEAD : found;
       this.placeOnPath(fresh, path, d, 0);
       const driver = run.drivers[slot];
       if (driver) {
@@ -297,11 +310,6 @@ export class OpenWorldSimulation {
     }
     this.upset = 0;
     this.drowned = 0;
-  }
-  private progressDistance(p: Participant) {
-    // RouteProgress distance accumulates laps; the path is one lap long.
-    const length = this.run?.event.path.length ?? 1;
-    return p.progress.distance % length;
   }
   private say(message: string) {
     this.message = message;
