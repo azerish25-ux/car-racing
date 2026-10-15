@@ -107,7 +107,7 @@ exist as an in-memory prototype ([ONLINE_SLICE.md](ONLINE_SLICE.md)): redundant 
 local-car prediction with smoothed reconciliation, server collision authority, content-version
 agreement on join, verified records by headless re-simulation, lobbies and resilience. Measured for 8
 clients at 100 ms RTT / 2% loss: ~60 kbit/s down and ~28 kbit/s up per client on the wire, local-car
-prediction error p95 ≈ 0.14 m. Next: a real transport and a player session reaching it.
+prediction error p95 ≈ 0.15 m. Next: a real transport and a player session reaching it.
 
 ## 9. Platform (§21.6, §23.7)
 

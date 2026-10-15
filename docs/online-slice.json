@@ -1,5 +1,5 @@
 {
-  "fixture": "8-client online race on aurel, 60 s of racing after the green light, in-memory transport",
+  "fixture": "8-client online race on aurel, 70 s of racing after the green light, in-memory transport",
   "cadences": {
     "physicsHz": 120,
     "inputSampleHz": 60,
@@ -33,53 +33,53 @@
       },
       {
         "phase": "results",
-        "atMs": 67702.3
+        "atMs": 77702.3
       },
       {
         "phase": "teardown",
-        "atMs": 69702.3
+        "atMs": 79702.3
       }
     ],
-    "raceSeconds": 65.708,
-    "simulatedSeconds": 65.717,
-    "endTick": 7886,
+    "raceSeconds": 75.708,
+    "simulatedSeconds": 75.717,
+    "endTick": 9086,
     "reason": "time-limit"
   },
   "bandwidth": {
     "perClientDownKbit": {
       "samples": 8,
-      "mean": 55.49,
-      "p50": 55.68,
-      "p95": 55.68,
-      "p99": 55.68,
-      "max": 55.68
+      "mean": 55.55,
+      "p50": 55.7,
+      "p95": 55.71,
+      "p99": 55.71,
+      "max": 55.71
     },
     "perClientUpKbit": {
       "samples": 8,
-      "mean": 21.09,
-      "p50": 21.1,
-      "p95": 21.31,
-      "p99": 21.31,
-      "max": 21.31
+      "mean": 21.07,
+      "p50": 21.11,
+      "p95": 21.27,
+      "p99": 21.27,
+      "max": 21.27
     },
     "perClientDownWireKbit": {
       "samples": 8,
-      "mean": 59.97,
-      "p50": 60.17,
-      "p95": 60.19,
-      "p99": 60.19,
-      "max": 60.19
+      "mean": 60.04,
+      "p50": 60.2,
+      "p95": 60.22,
+      "p99": 60.22,
+      "max": 60.22
     },
     "perClientUpWireKbit": {
       "samples": 8,
-      "mean": 27.8,
-      "p50": 27.82,
-      "p95": 28.02,
-      "p99": 28.02,
-      "max": 28.02
+      "mean": 27.79,
+      "p50": 27.83,
+      "p95": 27.98,
+      "p99": 27.98,
+      "max": 27.98
     },
     "snapshotBytes": {
-      "samples": 10284,
+      "samples": 11866,
       "mean": 347,
       "p50": 347,
       "p95": 347,
@@ -87,7 +87,7 @@
       "max": 347
     },
     "inputPacketBytes": {
-      "samples": 15755,
+      "samples": 18155,
       "mean": 87.9,
       "p50": 82,
       "p95": 98,
@@ -98,186 +98,186 @@
     "note": "Payload excludes, wire includes 28 B IPv4+UDP per datagram (and reliable retransmissions). Measured over the race window. WP49 estimated per-car payload only; the measured snapshot adds a 23 B per-recipient header and the receiving car's angular velocity and acceleration."
   },
   "inputs": {
-    "commandsSent": 31512,
-    "packetsSent": 15755,
+    "commandsSent": 36310,
+    "packetsSent": 18155,
     "copiesPerCommand": 4.37,
-    "duplicatesDropped": 102964,
-    "lateCommands": 12,
-    "lateTicks": 34,
-    "missingTicks": 142,
+    "duplicatesDropped": 118676,
+    "lateCommands": 10,
+    "lateTicks": 39,
+    "missingTicks": 146,
     "rejected": 0,
-    "appliedTicks": 62491,
+    "appliedTicks": 72091,
     "perCar": [
       {
         "car": 0,
-        "missingTicks": 5,
-        "lateTicks": 5,
-        "duplicates": 12937
+        "missingTicks": 4,
+        "lateTicks": 4,
+        "duplicates": 14903
       },
       {
         "car": 1,
-        "missingTicks": 2,
-        "lateTicks": 2,
-        "duplicates": 13038
+        "missingTicks": 6,
+        "lateTicks": 6,
+        "duplicates": 14896
       },
       {
         "car": 2,
-        "missingTicks": 6,
-        "lateTicks": 6,
-        "duplicates": 13005
+        "missingTicks": 3,
+        "lateTicks": 3,
+        "duplicates": 15006
       },
       {
         "car": 3,
-        "missingTicks": 5,
-        "lateTicks": 5,
-        "duplicates": 12996
+        "missingTicks": 4,
+        "lateTicks": 4,
+        "duplicates": 15092
       },
       {
         "car": 4,
         "missingTicks": 3,
         "lateTicks": 3,
-        "duplicates": 12780
+        "duplicates": 14694
       },
       {
         "car": 5,
-        "missingTicks": 111,
-        "lateTicks": 3,
-        "duplicates": 12284
+        "missingTicks": 114,
+        "lateTicks": 7,
+        "duplicates": 14310
       },
       {
         "car": 6,
-        "missingTicks": 6,
-        "lateTicks": 6,
-        "duplicates": 13041
+        "missingTicks": 8,
+        "lateTicks": 8,
+        "duplicates": 14986
       },
       {
         "car": 7,
         "missingTicks": 4,
         "lateTicks": 4,
-        "duplicates": 12883
+        "duplicates": 14789
       }
     ],
     "leadTicks": {
-      "samples": 10225,
-      "mean": 17.98,
-      "p50": 17.69,
-      "p95": 19.84,
-      "p99": 21.13,
-      "max": 24.34
+      "samples": 11800,
+      "mean": 18.01,
+      "p50": 17.71,
+      "p95": 19.89,
+      "p99": 21.26,
+      "max": 24.31
     }
   },
   "prediction": {
     "positionErrorM": {
-      "samples": 10207,
-      "mean": 0.0398,
-      "p50": 0.0211,
-      "p95": 0.1365,
-      "p99": 0.2595,
-      "max": 1.11
+      "samples": 11782,
+      "mean": 0.0429,
+      "p50": 0.0214,
+      "p95": 0.1472,
+      "p99": 0.2864,
+      "max": 1.7373
     },
     "positionErrorCleanM": {
-      "samples": 10206,
-      "mean": 0.0398,
-      "p50": 0.0211,
-      "p95": 0.1365,
-      "p99": 0.2595,
-      "max": 1.11
+      "samples": 11747,
+      "mean": 0.042,
+      "p50": 0.0213,
+      "p95": 0.1456,
+      "p99": 0.2722,
+      "max": 0.9269
     },
     "positionErrorNearContactM": {
-      "samples": 0,
-      "mean": 0,
-      "p50": 0,
-      "p95": 0,
-      "p99": 0,
-      "max": 0
+      "samples": 33,
+      "mean": 0.3763,
+      "p50": 0.1445,
+      "p95": 1.268,
+      "p99": 1.7373,
+      "max": 1.7373
     },
     "positionErrorAiDrivenM": {
-      "samples": 1,
-      "mean": 0.0009,
-      "p50": 0.0009,
-      "p95": 0.0009,
-      "p99": 0.0009,
-      "max": 0.0009
+      "samples": 2,
+      "mean": 0.0032,
+      "p50": 0.0046,
+      "p95": 0.0046,
+      "p99": 0.0046,
+      "max": 0.0046
     },
     "headingErrorDeg": {
-      "samples": 10207,
-      "mean": 0.3077,
-      "p50": 0.1607,
-      "p95": 0.9609,
-      "p99": 2.6233,
-      "max": 10.5552
+      "samples": 11782,
+      "mean": 0.4201,
+      "p50": 0.1703,
+      "p95": 1.1678,
+      "p99": 4.5989,
+      "max": 113.5878
     },
     "correctionM": {
-      "samples": 10207,
-      "mean": 0.0346,
-      "p50": 0.0157,
-      "p95": 0.1276,
-      "p99": 0.2774,
-      "max": 1.0304
+      "samples": 11782,
+      "mean": 0.0381,
+      "p50": 0.0163,
+      "p95": 0.145,
+      "p99": 0.308,
+      "max": 2.0447
     },
     "visualStepM": {
-      "samples": 9245,
-      "mean": 0.0053,
-      "p50": 0.00274,
-      "p95": 0.01921,
-      "p99": 0.03335,
-      "max": 0.10021
+      "samples": 36277,
+      "mean": 0.00567,
+      "p50": 0.0028,
+      "p95": 0.02012,
+      "p99": 0.03832,
+      "max": 0.49068
     },
-    "snaps": 0,
+    "snaps": 5,
     "note": "positionError: displayed (full-horizon) prediction of the local car vs the authoritative state for the same tick; correction: jump of the present predicted pose on reconciliation, before smoothing; visualStep: per-frame motion added by the decaying smoothing offset."
   },
   "interpolation": {
     "delayMs": {
-      "samples": 31510,
-      "mean": 116.88,
-      "p50": 116.75,
-      "p95": 122.57,
-      "p99": 126.03,
-      "max": 131.74
+      "samples": 36310,
+      "mean": 117.13,
+      "p50": 116.96,
+      "p95": 122.94,
+      "p99": 126.34,
+      "max": 132.5
     },
     "positionErrorM": {
-      "samples": 219051,
+      "samples": 252651,
       "mean": 0.0001,
       "p50": 0.0001,
       "p95": 0.0003,
       "p99": 0.0006,
-      "max": 0.9745
+      "max": 0.8274
     },
     "renderKinds": {
-      "predicted": 31485,
-      "interpolated": 218904,
-      "extrapolated": 140,
+      "predicted": 36286,
+      "interpolated": 252483,
+      "extrapolated": 161,
       "held": 1169
     },
     "stalledFrames": 166
   },
   "network": {
     "rttMs": {
-      "samples": 10199,
-      "mean": 99.86,
+      "samples": 11773,
+      "mean": 99.88,
       "p50": 100,
       "p95": 110,
-      "p99": 120,
-      "max": 151
+      "p99": 119,
+      "max": 148
     },
-    "upDropped": 414,
-    "downDropped": 245,
-    "duplicated": 133,
-    "reordered": 278,
-    "snapshotsLost": 224,
+    "upDropped": 461,
+    "downDropped": 270,
+    "duplicated": 148,
+    "reordered": 312,
+    "snapshotsLost": 250,
     "snapshotsLate": 0,
-    "snapshotsDuplicate": 59
+    "snapshotsDuplicate": 66
   },
   "server": {
     "budgetMs": 8.333333333333334,
-    "ticks": 7886,
-    "meanMs": 6.0178,
-    "p99Ms": 38.75,
-    "worstMs": 586.9495,
-    "overruns": 1866,
-    "longestOverrunStreak": 13,
-    "status": "degraded",
-    "cpuMsPerSimulatedSecond": 722.14
+    "ticks": 9086,
+    "meanMs": 4.6664,
+    "p99Ms": 28.9,
+    "worstMs": 201.7834,
+    "overruns": 1464,
+    "longestOverrunStreak": 10,
+    "status": "ok",
+    "cpuMsPerSimulatedSecond": 559.97
   },
   "resilience": {
     "disconnect": {
@@ -285,12 +285,13 @@
       "severedAtMs": 22000,
       "takeoverAfterMs": 994,
       "rejoinedAfterMs": 3046,
-      "humanAgainAfterMs": 3235.6
+      "humanAgainAfterMs": 3244
     },
     "invalidMessages": 0,
     "rateLimited": 0,
     "kicks": 0,
-    "inputStarvations": 1
+    "inputStarvations": 1,
+    "oversizeMessages": 0
   },
   "classification": [
     {
@@ -299,7 +300,7 @@
       "name": "Driver 2",
       "laps": 1,
       "lapTimes": [
-        56.5241355627165
+        58.641454748003476
       ],
       "status": "running"
     },
@@ -307,44 +308,34 @@
       "position": 2,
       "car": 0,
       "name": "Driver 1",
-      "laps": 0,
-      "lapTimes": [],
+      "laps": 1,
+      "lapTimes": [
+        59.26412200384964
+      ],
       "status": "running"
     },
     {
       "position": 3,
-      "car": 3,
-      "name": "Driver 4",
-      "laps": 0,
-      "lapTimes": [],
+      "car": 2,
+      "name": "Driver 3",
+      "laps": 1,
+      "lapTimes": [
+        62.11934725976873
+      ],
       "status": "running"
     },
     {
       "position": 4,
-      "car": 2,
-      "name": "Driver 3",
-      "laps": 0,
-      "lapTimes": [],
+      "car": 4,
+      "name": "Driver 5",
+      "laps": 1,
+      "lapTimes": [
+        62.8676144098262
+      ],
       "status": "running"
     },
     {
       "position": 5,
-      "car": 5,
-      "name": "Driver 6",
-      "laps": 0,
-      "lapTimes": [],
-      "status": "running"
-    },
-    {
-      "position": 6,
-      "car": 4,
-      "name": "Driver 5",
-      "laps": 0,
-      "lapTimes": [],
-      "status": "running"
-    },
-    {
-      "position": 7,
       "car": 6,
       "name": "Driver 7",
       "laps": 0,
@@ -352,9 +343,25 @@
       "status": "running"
     },
     {
-      "position": 8,
+      "position": 6,
+      "car": 3,
+      "name": "Driver 4",
+      "laps": 0,
+      "lapTimes": [],
+      "status": "running"
+    },
+    {
+      "position": 7,
       "car": 7,
       "name": "Driver 8",
+      "laps": 0,
+      "lapTimes": [],
+      "status": "running"
+    },
+    {
+      "position": 8,
+      "car": 5,
+      "name": "Driver 6",
       "laps": 0,
       "lapTimes": [],
       "status": "running"
@@ -363,21 +370,23 @@
   "progressDisputes": [],
   "verification": {
     "ok": true,
-    "ticks": 7886,
-    "cpuMs": 37245.5,
-    "finalHash": "bb9db164",
+    "ticks": 9086,
+    "cpuMs": 32627.8,
+    "finalHash": "01a5e4ce",
     "category": {
       "circuit": "aurel",
       "vehicle": "apx01",
       "physics": 1
     },
-    "recordBytes": 396872,
-    "journalEntries": 29656
+    "categoryBest": 59.26412200384964,
+    "categoryLaps": 1,
+    "recordBytes": 460672,
+    "journalEntries": 34428
   },
   "forgedRecord": {
     "attempted": true,
     "rejected": true,
-    "reason": "car 1 lap 1: claimed 56.0241355627165 s, re-simulation gives 56.5241355627165 s"
+    "reason": "car 0 lap 1: claimed 58.76412200384964 s, re-simulation gives 59.26412200384964 s"
   },
   "checks": {
     "recordVerified": true,
@@ -387,13 +396,14 @@
     "takeoverWithinTimeout": true,
     "predictionCleanP95BelowHalfMetre": true,
     "downlinkBelow100Kbit": true,
-    "noRejectedInputs": true
+    "noRejectedInputs": true,
+    "noOversizeMessages": true
   },
-  "wallSeconds": 134.5,
+  "wallSeconds": 114.4,
   "runtime": "node v22.22.0",
   "host": {
     "cpus": 4,
-    "loadAverage1m": 17.3
+    "loadAverage1m": 16.18
   },
   "note": "In-memory transport and simulated network; server tick timings are this machine, not reference hardware. Bot drivers are AI pilots whose commands cross the simulated network (see ONLINE_SLICE.md)."
 }
