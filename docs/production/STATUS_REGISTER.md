@@ -58,6 +58,8 @@ Last reviewed against source: branch `claude/peaceful-einstein-dedc7t`, commits 
 | Force feedback | absent | — | Native bridge study (§21.2) | Input/platform lead |
 | Desktop/Steam package | absent | — | WP58 | Release/platform |
 | VR / split-screen | absent | — | WP62 separate feasibility | Platform R&D |
+| ULTRA preset (TAA+CAS, Hi-Z SSR, temporal GTAO, 3 sun cascades, energy bloom, sun shafts, replay lens, AgX/Neutral) | integrated (opt-in) | `src/rendering/ultra/`, `tests/ultra-*.test.ts`, `e2e/58-ultra-pipeline.spec.ts`, `scripts/ultra-capture.ts`, `RENDERING_PIPELINE.md` | Reference-hardware captures of the §3 suite at ULTRA; frame-time budget | Rendering lead |
+| Shared PBR material library (GPU-generated detail maps) | prototype | `src/rendering/materials/`, `tests/material-library.test.ts` | First vehicle/venue kit built from it | Rendering lead + art director |
 | WebGPU renderer | absent | — | WP61 bounded experiment | Rendering R&D |
 
 ## 2. Work packages (§26)

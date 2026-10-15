@@ -36,6 +36,9 @@ const graphics: GraphicsOptions = {
   localFog: true, motionBlur: 0, antialias: true, anisotropy: 8,
   msaa: 2, ambientOcclusion: true, filmGrade: true,
   temporalAA: false, lensEffects: true, cockpitFov: 54,
+  ssr: false, taaSharpen: 0, aoTemporal: false, toneMapper: 'aces',
+  physicalBloom: false, chromaticAberration: false, lightShafts: false,
+  shadowCascades: 2, replayDof: false,
 };
 const before = { quality: 'medium' as const, graphics };
 
@@ -53,6 +56,9 @@ const alternatives: GraphicsOptions = {
   localFog: false, motionBlur: 0.2, antialias: false, anisotropy: 4,
   msaa: 0, ambientOcclusion: false, filmGrade: false,
   temporalAA: true, lensEffects: false, cockpitFov: 62,
+  ssr: true, taaSharpen: 0.5, aoTemporal: true, toneMapper: 'agx',
+  physicalBloom: true, chromaticAberration: true, lightShafts: true,
+  shadowCascades: 3, replayDof: true,
 };
 for (const key of Object.keys(graphics) as (keyof GraphicsOptions)[]) {
   test(`detects a custom ${key} change under the same quality label`, () => {

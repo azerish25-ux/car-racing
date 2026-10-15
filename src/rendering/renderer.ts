@@ -106,9 +106,12 @@ import {
   graphicsPreset,
   validateGraphics,
   bufferSize,
+  detailTier,
   type GraphicsOptions,
   type Quality,
+  type QualityPreset,
 } from './options.ts';
+import { UltraPipeline } from './ultra/pipeline.ts';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { FXAAShader } from 'three/addons/shaders/FXAAShader.js';
 import { Sky } from 'three/addons/objects/Sky.js';
@@ -217,6 +220,8 @@ export class RacingRenderer {
   private hemisphere = new T.HemisphereLight(0x8fb6ea, 0x4a4237, 0.14);
   private sky = new Sky();
   private composer: EffectComposer;
+  /** ULTRA modules (SSR, temporal AO, sharpening, shafts, cascades, replay lens). */
+  readonly ultra: UltraPipeline;
   private exposure = new AdaptiveExposurePass();
   private atmosphere: LocalAtmosphere;
   private weatherPresentation = new WeatherPresentation();
@@ -251,7 +256,9 @@ export class RacingRenderer {
   private trackside: TracksideDirector;
   mode: CameraMode = 'chase';
   photo: PhotoSettings | null = null;
+  /** Detail tier of the preset (ULTRA draws High-tier scenery). */
   quality: Quality = 'medium';
+  preset: QualityPreset = 'medium';
   shake = 0.35;
   lookX = 0;
   lookY = 0;
@@ -439,6 +446,19 @@ export class RacingRenderer {
     this.composer.addPass(new OutputPass());
     this.composer.addPass(this.fxaa);
     this.composer.addPass(this.grade);
+    this.ultra = new UltraPipeline({
+      renderer: this.renderer,
+      scene: this.scene,
+      camera: this.camera,
+      composer: this.composer,
+      scenePass: this.scenePass,
+      bloom: this.bloom,
+      grade: this.grade,
+      sun: this.sun,
+      farShadow: this.farShadow,
+      wetReflection: this.circuit.wetReflection,
+      roadMaterial: this.circuit.roadMaterial,
+    });
     if (!deferred) {
       this.circuit.construction.runSynchronously();
       this.textures.register(this.circuit.group);
@@ -452,7 +472,7 @@ export class RacingRenderer {
     track: Track,
     progress: (value: BuildProgress) => void,
     cancelled: () => boolean,
-    initial?: { quality: Quality; graphics?: GraphicsOptions },
+    initial?: { quality: QualityPreset; graphics?: GraphicsOptions },
   ): Promise<RacingRenderer | null> {
     const renderer = new RacingRenderer(canvas, track, true);
     // The starting settings decide the far shadow map baked while loading;
@@ -767,7 +787,7 @@ export class RacingRenderer {
    * the camera, car poses, physics, replay or recorded presentation clocks.
    * The application owns normal-frame exclusion for the whole transaction. */
   async prepareQuality(
-    quality: Quality,
+    quality: QualityPreset,
     graphics: GraphicsOptions,
     cancelled: () => boolean,
     yieldControl: () => Promise<void>,
@@ -782,9 +802,11 @@ export class RacingRenderer {
     await compileSceneTarget(this.renderer, this.scene, this.camera, this.composer.readBuffer);
     return !stopped();
   }
-  setQuality(q: Quality, options: GraphicsOptions = graphicsPreset(q)) {
+  setQuality(preset: QualityPreset, options: GraphicsOptions = graphicsPreset(preset)) {
+    this.preset = preset;
+    const q = detailTier(preset);
     this.quality = q;
-    this.graphics = validateGraphics(options, q);
+    this.graphics = this.ultra.deviceGraphics(validateGraphics(options, preset));
     const g = this.graphics;
     this.reflection.quality(g.mirrorQuality);
     this.circuit.wetReflection.setQuality(g.reflections === 'local' ? q : 'low');
@@ -817,6 +839,7 @@ export class RacingRenderer {
       g.textureSize,
       Math.min(g.anisotropy, this.renderer.capabilities.getMaxAnisotropy()),
     );
+    this.ultra.configure(preset, g);
     this.resize();
   }
   resize() {
@@ -1454,8 +1477,22 @@ export class RacingRenderer {
         cameraMode,
         speed,
       );
+      this.ultra.prepareFrame({
+        presented,
+        cars: this.cars,
+        subject: this.target,
+        cameraMode,
+        lighting: illumination,
+        studio,
+        menu,
+        photo: !!this.photo,
+        replay,
+        otherDof: !!this.photoFocus?.enabled,
+        cut: this.cameraClock.discontinuous,
+      });
       this.drawLedger.mark('composer');
       this.composer.render();
+      this.ultra.afterFrame();
       this.drawLedger.mark('other');
       if (this.photo && this.photo.survey !== 'off' && this.geometrySurvey) {
         if (this.geometrySurvey.dirty)
@@ -1913,6 +1950,8 @@ export class RacingRenderer {
       triangles: info.triangles,
       // Per-phase attribution of the same completed frame's counters.
       drawBreakdown: this.drawLedger.snapshot(),
+      // ULTRA modules: per-pass draws, fetch estimates and GPU timestamps.
+      ultra: this.ultra.diagnostics(),
       textures: this.renderer.info.memory.textures,
       geometries: this.renderer.info.memory.geometries,
     };
@@ -1970,6 +2009,7 @@ export class RacingRenderer {
     this.fxaa.dispose();
     this.scenePass.dispose();
     this.grade.dispose();
+    this.ultra.dispose();
     const geometries = new Set<T.BufferGeometry>(),
       materials = new Set<T.Material>(),
       textures = new Set<T.Texture>();

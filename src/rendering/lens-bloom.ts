@@ -174,10 +174,24 @@ function material(fragmentShader: string, uniforms: Record<string, T.IUniform>, 
   });
 }
 
+/** Energy-conserving mode (ULTRA `physicalBloom`): no threshold; the frame
+ * becomes (1 - mix) · scene + mix · blurred scene, so the pyramid redistributes
+ * a fixed share of every pixel's energy (veiling glare of a real lens) instead
+ * of adding light above a threshold. Total radiance is preserved. */
+export const PHYSICAL_BLOOM = Object.freeze({
+  mix: 0.035,
+  /** Wet air scatters more (multiplied by the post-lens wetness gain). */
+  wetMix: 0.055,
+});
+
 export class LensBloomPass extends Pass {
   /** levels[0] is half resolution; each later level halves again. */
   readonly levels: T.WebGLRenderTarget[];
   strength: number = LENS_BLOOM.strength;
+  /** ULTRA energy-conserving mode (see PHYSICAL_BLOOM); off on every preset. */
+  energyConserving = false;
+  /** Scene share redistributed in energy-conserving mode. */
+  energyMix: number = PHYSICAL_BLOOM.mix;
   private readonly quad = new FullScreenQuad();
   private readonly prefilter = material(prefilterShader, {
     tSource: { value: null },
@@ -257,15 +271,24 @@ export class LensBloomPass extends Pass {
     };
     // Every pixel of every level is written by an opaque pass before any
     // additive pass reads or accumulates into it, so no clears are needed.
+    const shape = this.prefilter.uniforms.shape.value as T.Vector4;
+    const energy = this.energyConserving;
+    const mix = Math.min(Math.max(this.energyMix, 0), 0.25);
+    // Threshold 0 with a vanishing knee passes every pixel unchanged.
+    shape.x = energy ? 0 : LENS_BLOOM.threshold;
+    shape.y = energy ? 1e-3 : LENS_BLOOM.knee;
     draw(this.prefilter, readBuffer.texture, readBuffer, this.levels[0]);
     for (let i = 1; i < this.levels.length; i++)
       draw(this.downsample, this.levels[i - 1].texture, this.levels[i - 1], this.levels[i]);
     this.upsample.uniforms.gain.value = LENS_BLOOM.scatter;
     for (let i = this.levels.length - 1; i > 0; i--)
       draw(this.upsample, this.levels[i].texture, this.levels[i], this.levels[i - 1]);
-    this.composite.uniforms.gain.value = this.strength / this.normalization;
+    this.composite.uniforms.gain.value = (energy ? mix : this.strength) / this.normalization;
     this.composite.uniforms.tGhost.value =
       this.levels[Math.min(LENS_GHOST_LEVEL, this.levels.length - 1)].texture;
+    // Energy-conserving: dst · (1 - mix) + mix · blur (constant-alpha blend).
+    this.composite.blendDst = energy ? T.OneMinusConstantAlphaFactor : T.OneFactor;
+    this.composite.blendAlpha = energy ? mix : 0;
     draw(this.composite, this.levels[0].texture, this.levels[0], this.renderToScreen ? null : readBuffer);
     renderer.autoClear = autoClear;
   }

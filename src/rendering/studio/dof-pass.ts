@@ -26,7 +26,15 @@ export interface DepthOfFieldParameters {
   maxblur: number;
 }
 
-const fragmentShader = /* glsl */ `
+/** Options beyond BokehPass's response (ULTRA replay lens). */
+export interface DepthOfFieldOptions {
+  /** Gather taps (24 is the photo/broadcast default). */
+  taps?: number;
+  /** Thin-lens circle of confusion: `lensK · (1 - focus / depth)` (uniform `lensK`). */
+  thinLens?: boolean;
+}
+
+const dofFragment = (taps: number, thinLens: boolean) => /* glsl */ `
 #include <packing>
 uniform sampler2D tColor;
 uniform sampler2D tDepth;
@@ -40,9 +48,17 @@ varying vec2 vUv;
 float viewDepth(vec2 uv) {
   return -perspectiveDepthToViewZ(texture2D(tDepth, uv).x, cameraNear, cameraFar);
 }
-// Signed circle of confusion, in screen-height units (BokehPass response).
+${
+  thinLens
+    ? `uniform float lensK;
+// Signed thin-lens circle of confusion, in screen-height units.
+float circle(float depth) {
+  return clamp(lensK * (1.0 - focus / max(depth, 1e-3)), -maxblur, maxblur);
+}`
+    : `// Signed circle of confusion, in screen-height units (BokehPass response).
 float circle(float depth) {
   return clamp((depth - focus) * aperture, -maxblur, maxblur);
+}`
 }
 void main() {
   vec3 centre = texture2D(tColor, vUv).rgb;
@@ -55,8 +71,8 @@ void main() {
   vec2 pixel = 1.0 / resolution;
   vec3 sum = centre;
   float weight = 1.0;
-  for (int i = 0; i < ${DOF_TAPS}; i++) {
-    float r = sqrt((float(i) + 0.5) / ${DOF_TAPS}.0) * radius;
+  for (int i = 0; i < ${taps}; i++) {
+    float r = sqrt((float(i) + 0.5) / ${taps}.0) * radius;
     float a = float(i) * 2.39996323;
     vec2 uv = vUv + vec2(cos(a), sin(a)) * r * pixel;
     float cs = abs(circle(viewDepth(uv))) * resolution.y;
@@ -77,8 +93,11 @@ export class DepthOfFieldPass extends Pass {
     private readonly camera: T.PerspectiveCamera,
     parameters: DepthOfFieldParameters,
     depth: T.DepthTexture,
+    options: DepthOfFieldOptions = {},
   ) {
     super();
+    const taps = Math.round(options.taps ?? DOF_TAPS);
+    if (!(taps >= 8 && taps <= 96)) throw new Error('Invalid depth-of-field tap count');
     this.materialBokeh = new T.ShaderMaterial({
       name: 'APEX depth of field',
       uniforms: {
@@ -90,10 +109,11 @@ export class DepthOfFieldPass extends Pass {
         focus: { value: parameters.focus },
         aperture: { value: parameters.aperture },
         maxblur: { value: parameters.maxblur },
+        ...(options.thinLens ? { lensK: { value: 0 } } : {}),
       },
       vertexShader:
         'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
-      fragmentShader,
+      fragmentShader: dofFragment(taps, !!options.thinLens),
       depthTest: false,
       depthWrite: false,
       blending: T.NoBlending,

@@ -21,9 +21,10 @@ import { DEFAULT_RUMBLE, validateRumble, type RumbleSettings } from '../input/ru
 import { DEFAULT_SETUP, validateSetup, type Setup } from '../simulation/config.ts';
 import {
   graphicsPreset,
+  isQualityPreset,
   validateGraphics,
   type GraphicsOptions,
-  type Quality,
+  type QualityPreset,
 } from '../rendering/options.ts';
 export interface InputMapping {
   buttonActions: ButtonActions;
@@ -59,7 +60,8 @@ export interface Settings {
   reducedMotion: boolean;
   /** Skip race-day briefing/preparation on ordinary race entry. */
   quickStart: boolean;
-  quality: Quality;
+  /** Render preset. 'ultra' is opt-in only: no migration or default selects it. */
+  quality: QualityPreset;
   volume: number;
   drivingAudio: DrivingAudioSettings;
   /** Gamepad rumble channel strengths (D088). */
@@ -119,7 +121,9 @@ export function validateSettings(v: unknown): Settings {
     typeof x === 'number' && Number.isFinite(x) ? clamp(x, a, b) : f;
   const m = p.mapping ?? DEFAULT_SETTINGS.mapping;
   const bindings = validateBindings(p.bindings);
-  const quality = p.quality === 'low' || p.quality === 'high' ? p.quality : 'medium';
+  // Saves from before ULTRA keep their preset; graphics fields added since then
+  // validate to that preset's values, which leave every new module off.
+  const quality: QualityPreset = isQualityPreset(p.quality) ? p.quality : 'medium';
   const result: Settings = {
     version: 6,
     graphics: validateGraphics(version >= 4 ? p.graphics : undefined, quality),

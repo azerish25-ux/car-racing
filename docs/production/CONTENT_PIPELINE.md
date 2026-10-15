@@ -128,9 +128,24 @@ the suite (temporal stability, §17.6). Priorities (§17.3): silhouette and grou
 stable lighting/shadows, coherent materials, believable motion, readable rivals, scale, weather,
 then lens decoration.
 
+**Capture presets.** Every shot is captured at the player default (Medium) and at High; shots 2, 4,
+5, 8 and 9 are also captured at the opt-in **ULTRA** preset (TAA + sharpening, hierarchical SSR on
+wet asphalt and paint, temporal GTAO, near/mid/far sun cascades, energy-conserving bloom, sun
+shafts, replay lens). Passes, costs and fallbacks: [RENDERING_PIPELINE.md](RENDERING_PIPELINE.md).
+Until the live suite is automated, `scripts/ultra-capture.ts` is the deterministic stand-in: a fixed
+material/lighting set rendered through High and ULTRA (dry, rain, replay) with a JSON report of
+per-pass draws, fetch estimates, GPU timestamps where available and cascade texel sizes; it fails on
+shader/GL errors and on held frames that are not byte-identical. Judge ULTRA shots additionally for
+reflection stability under motion (shot 4), shaft restraint (shot 5) and focus breathing (shot 8).
+
 Material library families (§17.5): asphalt families, wet road, paint markings, rubber, carbon,
 metallic paint, bare metal, glass, textiles, soil, vegetation, concrete — one scale/roughness
-convention, wear masks from actual exposure.
+convention, wear masks from actual exposure. The shared library in `src/rendering/materials/`
+implements metallic paint (`materials.carPaint`), carbon, rubber, bare/brushed/polished/cast metal,
+glass, asphalt (fresh/worn/patched), wet road, concrete and vegetation with GPU-generated detail
+maps (no downloaded textures) and the shared surface-weather response; textiles, soil and paint
+markings remain open. New vehicle and venue kits should take their materials from it so one
+roughness convention and the ULTRA reflection mask apply everywhere.
 
 ## 4. Asset contracts (§18)
 
