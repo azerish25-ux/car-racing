@@ -112,7 +112,7 @@ export function vehicleDynamics(def: VehicleDefinition): VehicleDynamics {
   let resolved = CACHE.get(def);
   if (resolved) return resolved;
   const base = def.classId === 'formula' ? formula() : touring();
-  const own = (def as VehicleDefinition & { dynamics?: VehicleDynamicsOverrides }).dynamics;
+  const own = def.dynamics;
   // Another content source may name the axle differential on the definition.
   const named = (def as VehicleDefinition & { differential?: unknown }).differential;
   resolved = Object.freeze({

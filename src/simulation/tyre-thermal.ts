@@ -105,8 +105,7 @@ export function advanceTyreTemperatures(
   const a1 = cs + gsc + gsa + gst + gw,
     a2 = cc + gsc + gcg + gca,
     a3 = cg + gcg + gga + gd,
-    b1 =
-      cs * t.surfaceTemp + qs + gsa * input.airTemp + gst * input.trackTemp + gw * input.airTemp,
+    b1 = cs * t.surfaceTemp + qs + gsa * input.airTemp + gst * input.trackTemp + gw * input.airTemp,
     b2 = cc * t.carcassTemp + qc + gca * input.airTemp,
     b3 = cg * t.coreTemp + gga * input.airTemp + gd * input.discTemp;
   const c1 = -gsc / a1,

@@ -48,7 +48,8 @@ export interface Tire {
   blistering: number;
   graining: number;
   punctured: boolean;
-  /** Suspension travel (m, + bump) and suspension length (m). */
+  /** Geometric wheel travel (m, + bump: suspension and tyre deflection) and
+   * the wheel-centre distance below its chassis station (m). */
   compression: number;
   length: number;
   discTemp: number;
@@ -184,9 +185,11 @@ export function aquaplaning(
   const grooves = TREAD_DEPTH_MM[compound] > 0 ? 1 - 0.55 * clamp(wear, 0, 1) : 1,
     drainage = grooves * clamp(0.75 + 0.3125 * textureMm, 0.6, 1.25),
     tolerance = COMPOUNDS[compound].waterTolerance * drainage;
-  const onset =
-    Math.sqrt(clamp(load / 2200, 0.25, 4)) * Math.sqrt(clamp(pressure / 160, 0.5, 1.6));
-  return smooth(tolerance * 0.7, tolerance * 3 + drainage, waterMm) * smooth(24 * onset, 95 * onset, Math.abs(speed));
+  const onset = Math.sqrt(clamp(load / 2200, 0.25, 4)) * Math.sqrt(clamp(pressure / 160, 0.5, 1.6));
+  return (
+    smooth(tolerance * 0.7, tolerance * 3 + drainage, waterMm) *
+    smooth(24 * onset, 95 * onset, Math.abs(speed))
+  );
 }
 /** Peak friction coefficient μ (excluding camber, which needs the slip
  * direction). Load sensitivity, grip window, water film, aquaplaning, wear,
@@ -293,6 +296,7 @@ export function solveTire(
     material.stiffness,
     material.falloff,
     SLIP,
+    material.coupling,
   );
   // Camber: patch-size factor on the peak (scales D and the reference slips
   // together so slip stiffness is unchanged) and thrust as a slip-angle shift.
@@ -352,9 +356,7 @@ export function solveTire(
     dt,
   );
   t.rolling =
-    surface.resistance -
-    material.rolling +
-    rollingCoefficient(material, t.sinkage, t.patchLength);
+    surface.resistance - material.rolling + rollingCoefficient(material, t.sinkage, t.patchLength);
   t.groundDrag =
     t.load < 1 ? 0 : groundDrag(material, t.sinkage, k.width, vLong, surface.water, t.aquaplane);
   // Force times slip-speed gives watts, not a cosmetic heating timer.

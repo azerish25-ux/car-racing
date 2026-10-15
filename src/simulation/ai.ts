@@ -118,6 +118,8 @@ export class AIDriver {
   private offset = 0;
   /** Lateral distance from the racing line (passing/defending lanes). */
   private tactical = 0;
+  /** The first update starts the lateral target at the car's own position. */
+  private placed = false;
   private desiredOffset = 0;
   private trafficSpeed = 100;
   private stuckTime = 0;
@@ -209,6 +211,14 @@ export class AIDriver {
     // a fixed place on the track, not a distance from the line).
     const lineHere = lineAt(c.s);
     const corridor = pit || preparingPit;
+    // A car leaves its grid slot (or a rejoin point) on its own line and
+    // merges toward the racing line at the finite lateral rate below, rather
+    // than aiming across the track from standstill with full lock.
+    if (!this.placed) {
+      this.placed = true;
+      this.tactical = c.lateral - lineHere;
+      this.desiredOffset = c.lateral;
+    }
     if (pit) {
       this.offset = approach(this.offset, this.pitLine(track, c.s), dt * 6);
       this.tactical = this.offset - lineHere;
@@ -393,8 +403,7 @@ export class AIDriver {
     // a margin on their friction ellipse (power oversteer / understeer).
     const driven = c.definition.drivetrain === 'fwd' ? 0 : 2,
       drivenUse = Math.max(c.tires[driven].usage, c.tires[driven + 1].usage);
-    if (drivenUse > 0.9)
-      command.throttle *= clamp(1 - (drivenUse - 0.9) * 5, 0.25, 1);
+    if (drivenUse > 0.9) command.throttle *= clamp(1 - (drivenUse - 0.9) * 5, 0.25, 1);
     // Braking shares the same friction circle: at the cornering limit the
     // pedal is squeezed, not stamped, and eased off a locking wheel. Losing
     // the rear under braking is worse than missing a traffic target.
@@ -408,6 +417,16 @@ export class AIDriver {
     }
     if (lock < -0.12 * lockScale)
       command.brake *= clamp(1 - ((-lock - 0.12 * lockScale) * 4) / lockScale, 0.35, 1);
+    // Rear tyres braking at their friction limit would step the car out under
+    // trail braking (combined slip): the pedal comes off before they saturate.
+    const rearUse = Math.max(c.tires[2].usage, c.tires[3].usage);
+    if (command.brake > 0 && rearUse > 0.9) command.brake *= clamp(1 - (rearUse - 0.9) * 5, 0.4, 1);
+    // Steered front tyres at their limit while turning: braking is taking the
+    // grip the corner needs (entry understeer), so the pedal yields to steering.
+    const frontUse = Math.max(c.tires[0].usage, c.tires[1].usage),
+      turning = clamp(Math.abs(command.steer) / 0.25, 0, 1);
+    if (command.brake > 0 && frontUse > 0.92)
+      command.brake *= 1 - turning * (1 - clamp(1 - (frontUse - 0.92) * 6, 0.4, 1));
     if (desired < 0.15) {
       command.throttle = 0;
       command.brake = 1;

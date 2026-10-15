@@ -2,7 +2,7 @@ import { circuitDefinition, type CircuitDefinition } from './circuits.ts';
 import { K, SKID_BASE } from './protocol.ts';
 import { clamp } from '../core/math.ts';
 import { AIDriver } from './ai.ts';
-import { wakeOverlap } from './aero.ts';
+import { wakeFields } from './aero.ts';
 import { CollisionSolver } from './collision.ts';
 import {
   COMPOUNDS,
@@ -142,21 +142,8 @@ export class Simulation {
         this.race.laps[i].assisted = true;
         this.ai[i].update(dt, this.track, this.cars, this.race);
       } else if (this.race.phase === PHASE.LIGHTS && c.input.throttle === 0) c.input.brake = 1;
-      c.wake = 0;
-      // Exact cull (§23.4): wakeOverlap is zero beyond 100 m behind, and at
-      // more than 101 m apart the lateral offset exceeds the wake radius.
-      for (const other of this.cars)
-        if (other !== c && c.body.position.distanceSq(other.body.position) < 101 * 101)
-          c.wake = Math.max(
-            c.wake,
-            wakeOverlap(
-              c.body.position,
-              other.body.position,
-              other.forward,
-              other.speed,
-              c.forward,
-            ),
-          );
+      // Dirty air (downforce) and slipstream (drag) behind every leader.
+      wakeFields(c, this.cars);
     }
     for (let sub = 0; sub < 2; sub++) {
       for (const c of this.cars) c.step(dt * 0.5, this.track);

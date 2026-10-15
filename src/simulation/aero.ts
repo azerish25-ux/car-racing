@@ -2,6 +2,7 @@ import { sampleAeroMap } from './aero-map.ts';
 import { smooth, Vec3 } from '../core/math.ts';
 import { VEHICLE, type Setup } from './config.ts';
 import { DRS } from './drs.ts';
+import type { Vehicle } from './vehicle.ts';
 const FORMULA_BODY = Object.freeze({ downforce: 1, drag: 1 });
 /** Aero platform behaviour of one body (docs/production/PHYSICS_MODEL.md §4).
  * Floor centre of pressure (car-local z, m) at the reference attitude and its
@@ -48,12 +49,7 @@ export const TOURING_AERO_DYNAMICS: AeroDynamics = Object.freeze({
 });
 /** Floor centre of pressure (car-local z, m) at the given attitude, bounded
  * to the floor's length. */
-export function floorCentre(
-  a: AeroDynamics,
-  pitch: number,
-  meanHeight: number,
-  limit = 1.5,
-) {
+export function floorCentre(a: AeroDynamics, pitch: number, meanHeight: number, limit = 1.5) {
   const z =
     a.floorCentre +
     a.floorCentrePitch * (pitch - a.referencePitch) +
@@ -61,13 +57,26 @@ export function floorCentre(
   return Math.max(-limit, Math.min(limit, z));
 }
 /** Exact convective lag of a ride-height input: τ = length/V. */
-export function lagHeight(current: number, measured: number, speed: number, length: number, dt: number) {
+export function lagHeight(
+  current: number,
+  measured: number,
+  speed: number,
+  length: number,
+  dt: number,
+) {
   if (length <= 0) return measured;
-  return measured + (current - measured) * Math.exp((-Math.max(0.5, Math.abs(speed)) * dt) / length);
+  return (
+    measured + (current - measured) * Math.exp((-Math.max(0.5, Math.abs(speed)) * dt) / length)
+  );
 }
 /** Quasi-steady plunge damping force (N, along body up) at a station moving
  * with vertical speed `heave` (m/s). */
-export function plungeDamping(airspeed: number, heave: number, area: number, density = VEHICLE.airDensity) {
+export function plungeDamping(
+  airspeed: number,
+  heave: number,
+  area: number,
+  density = VEHICLE.airDensity,
+) {
   return -0.5 * density * Math.abs(airspeed) * area * heave;
 }
 export interface AeroForces {
@@ -201,4 +210,33 @@ export function slipstreamOverlap(
     smooth(15, 50, leaderSpeed) *
     alignment
   );
+}
+/** Dirty-air and slipstream fractions of `follower` behind every other car,
+ * scaled by each leader's wake and tow strength. Exact cull (§23.4): both
+ * volumes are zero beyond 100 m behind, and at more than 101 m apart the
+ * lateral offset exceeds their radii. */
+export function wakeFields(
+  follower: Pick<Vehicle, 'wake' | 'slipstream' | 'body' | 'forward'>,
+  cars: readonly Pick<Vehicle, 'body' | 'forward' | 'speed' | 'dynamics'>[],
+) {
+  let wake = 0,
+    tow = 0;
+  const position = follower.body.position;
+  for (const other of cars)
+    if (other !== follower && position.distanceSq(other.body.position) < 101 * 101) {
+      const leader = other.dynamics.aero,
+        at = other.body.position;
+      wake = Math.max(
+        wake,
+        wakeOverlap(position, at, other.forward, other.speed, follower.forward) *
+          leader.wakeStrength,
+      );
+      tow = Math.max(
+        tow,
+        slipstreamOverlap(position, at, other.forward, other.speed, follower.forward) *
+          leader.towStrength,
+      );
+    }
+  follower.wake = Math.min(1, wake);
+  follower.slipstream = Math.min(1, tow);
 }

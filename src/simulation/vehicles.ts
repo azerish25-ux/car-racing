@@ -1,4 +1,5 @@
 import type { Setup } from './config.ts';
+import type { VehicleDynamicsOverrides } from './vehicle-dynamics.ts';
 
 /** Per-vehicle content contract (WP08 / F04, masterplan §6.3). Every entrant is
  * built from one of these; nothing in the solver reads a global vehicle. Units
@@ -83,6 +84,10 @@ export interface VehicleDefinition {
   /** Setup parameters this car genuinely exposes; others stay at default. */
   setupKeys: readonly (keyof Setup)[];
   ai: CapabilityEnvelope;
+  /** Optional physical blocks (tyre construction, suspension, engine,
+   * gearbox, differential, aero platform) overriding the class defaults of
+   * vehicle-dynamics.ts (docs/production/PHYSICS_MODEL.md). */
+  dynamics?: VehicleDynamicsOverrides;
 }
 const FORMULA_SPEC: VehicleSpec = Object.freeze<VehicleSpec>({
   dryMass: 770,

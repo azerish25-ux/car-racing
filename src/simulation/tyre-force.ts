@@ -7,9 +7,13 @@ import { clamp, smooth } from '../core/math.ts';
  *  - slip stiffness BCD a carcass property: load-saturating, pressure,
  *    wear, temperature and ground dependent, only partly coupled to road μ,
  *    so low-friction ground has a smaller peak slip (the brush-model result);
- *  - combined slip by the normalized slip vector: σ = |(κ/κ*, α/α*)|, force
- *    magnitude from the pure curves at σ, direction along the slip vector, so
- *    every combined force lies inside the friction ellipse (μx Fz, μy Fz);
+ *  - combined slip by Magic-Formula weighting functions on normalized slips
+ *    sx = κ/κ*, sy = α/α* (MF 5.2 form with C = 1):
+ *        Fy = Gyκ·Fy0(α),  Gyκ = cos(atan(By·sx)),  By = by1·cos(atan(by2·sy)),
+ *        Fx = Gxα·Fx0(κ),  Gxα = cos(atan(Bx·sy)),  Bx = bx1·cos(atan(bx2·sx)),
+ *    then bounded by the friction ellipse (μx Fz, μy Fz), so a spinning or
+ *    locked tyre loses its cornering force while moderate slip in one
+ *    direction costs the other a calibrated, moderate share;
  *  - camber thrust as an equivalent slip-angle shift Cγ·γ/Cα (saturates with
  *    the lateral force, never adds outside the ellipse);
  *  - first-order lateral relaxation (transient slip lag), faded out at low
@@ -21,6 +25,12 @@ export interface SlipCurve {
   readonly E: number;
   /** Slip stiffness per unit load at Fz0 and reference friction (1/rad or per unit κ). */
   readonly stiffness: number;
+}
+export interface CombinedSlip {
+  readonly by1: number;
+  readonly by2: number;
+  readonly bx1: number;
+  readonly bx2: number;
 }
 export interface TyreConstruction {
   /** Nominal load Fz0 (N) of the load-sensitivity laws. */
@@ -37,6 +47,9 @@ export interface TyreConstruction {
   readonly longitudinal: SlipCurve;
   /** Peak longitudinal friction relative to lateral. */
   readonly longitudinalFriction: number;
+  /** Combined-slip weighting: by1/by2 (lateral force lost to longitudinal
+   * slip and its fade with slip angle), bx1/bx2 (the converse). */
+  readonly combined: CombinedSlip;
   /** Camber thrust stiffness per unit load (N/N/rad). */
   readonly camberStiffness: number;
   /** Inclination into the lateral force with the largest contact patch (rad). */
@@ -82,6 +95,7 @@ export const FORMULA_SLICK: TyreConstruction = Object.freeze({
   lateral: Object.freeze({ C: 1.28, E: 0.15, stiffness: 7.2 * 1.28 * 1.84 }),
   longitudinal: Object.freeze({ C: 1.3, E: 0.15, stiffness: 10.5 * 1.3 * 1.84 }),
   longitudinalFriction: 1,
+  combined: Object.freeze({ by1: 0.7, by2: 0.6, bx1: 0.7, bx2: 0.6 }),
   camberStiffness: 0.35,
   camberOptimum: 0.03,
   camberSensitivity: 9,
@@ -139,6 +153,11 @@ export interface SlipState {
   alphaRef: number;
   /** Lateral slip after relaxation and camber shift (rad), as σy·α*. */
   alpha: number;
+  /** Combined-slip weighting coefficients of this tyre. */
+  by1: number;
+  by2: number;
+  bx1: number;
+  bx2: number;
   /** Cornering stiffness (N/rad) and longitudinal slip stiffness (N/unit). */
   corneringStiffness: number;
   slipStiffness: number;
@@ -157,6 +176,10 @@ export const slipState = (): SlipState => ({
   alpha: 0,
   corneringStiffness: 0,
   slipStiffness: 0,
+  by1: 0,
+  by2: 0,
+  bx1: 0,
+  bx2: 0,
 });
 /** Stiffness multiplier from pressure, wear and carcass temperature. */
 export function carcassStiffness(
@@ -183,6 +206,7 @@ export function prepareSlip(
   groundStiffness: number,
   groundFalloff: number,
   out: SlipState,
+  groundCoupling = 1,
 ) {
   const fz = Math.max(load, 1),
     ratio = clamp(fz / c.nominalLoad, 0.05, 6),
@@ -195,6 +219,10 @@ export function prepareSlip(
       groundStiffness;
   out.dy = friction * fz;
   out.dx = out.dy * c.longitudinalFriction;
+  out.by1 = c.combined.by1 * groundCoupling;
+  out.by2 = c.combined.by2;
+  out.bx1 = c.combined.bx1 * groundCoupling;
+  out.bx2 = c.combined.bx2;
   // Loose ground keeps ploughing force at large slip (C → 1, no fall-off).
   out.cy = clamp(1 + (c.lateral.C - 1) * groundFalloff, 1.03, 1.9);
   out.cx = clamp(1 + (c.longitudinal.C - 1) * groundFalloff, 1.03, 1.9);
@@ -240,29 +268,38 @@ export function pressureGrip(c: TyreConstruction, pressure: number) {
     1,
   );
 }
+/** Pure-slip force of a normalized slip (signed, magnitude ≤ peak). */
+function pure(peak: number, sigma: number, C: number, E: number, X0: number) {
+  return sigma >= 0 ? peak * slipCurve(sigma, C, E, X0) : -peak * slipCurve(-sigma, C, E, X0);
+}
+/** Combined forces for normalized slips (sx, sy): MF weighting, then the
+ * friction-ellipse bound. Writes fx (along +rolling) and fy (along +sy, i.e.
+ * before the sign that opposes the lateral slip). */
+function combine(state: SlipState, sx: number, sy: number, out: { fx: number; fy: number }) {
+  const fx0 = pure(state.dx, sx, state.cx, state.ex, state.x0x),
+    fy0 = pure(state.dy, sy, state.cy, state.ey, state.x0y),
+    // cos(atan(x)) = 1/√(1+x²): the C = 1 weighting functions are algebraic.
+    by = state.by1 / Math.sqrt(1 + (state.by2 * sy) ** 2),
+    bx = state.bx1 / Math.sqrt(1 + (state.bx2 * sx) ** 2),
+    fy = fy0 / Math.sqrt(1 + (by * sx) ** 2),
+    fx = fx0 / Math.sqrt(1 + (bx * sy) ** 2),
+    use = Math.hypot(fx / Math.max(1e-9, state.dx), fy / Math.max(1e-9, state.dy)),
+    scale = use > 1 ? 1 / use : 1;
+  out.fx = fx * scale;
+  out.fy = fy * scale;
+  return out;
+}
+const SCRATCH = { fx: 0, fy: 0 };
 /** Longitudinal force (N) of the combined law at slip ratio κ with the
- * prepared lateral slip. Monotone in κ up to the peak; used by the implicit
- * wheel solve. */
+ * prepared lateral slip; used by the implicit wheel solve. */
 export function longitudinalForce(state: SlipState, kappa: number) {
-  const sx = kappa / state.kappaRef,
-    sy = state.alpha / state.alphaRef,
-    sigma = Math.hypot(sx, sy);
-  if (sigma < 1e-12) return state.slipStiffness * kappa;
-  return (state.dx * slipCurve(sigma, state.cx, state.ex, state.x0x) * sx) / sigma;
+  return combine(state, kappa / state.kappaRef, state.alpha / state.alphaRef, SCRATCH).fx;
 }
 /** Combined forces: Fx along +rolling, Fy opposing lateral slip. */
 export function combinedForces(state: SlipState, kappa: number, out: { fx: number; fy: number }) {
-  const sx = kappa / state.kappaRef,
-    sy = state.alpha / state.alphaRef,
-    sigma = Math.hypot(sx, sy);
-  if (sigma < 1e-12) {
-    out.fx = state.slipStiffness * kappa;
-    // 0 - x, not -x: an unloaded or straight-running tyre reports +0.
-    out.fy = 0 - state.corneringStiffness * state.alpha;
-    return out;
-  }
-  out.fx = (state.dx * slipCurve(sigma, state.cx, state.ex, state.x0x) * sx) / sigma;
-  out.fy = 0 - (state.dy * slipCurve(sigma, state.cy, state.ey, state.x0y) * sy) / sigma;
+  combine(state, kappa / state.kappaRef, state.alpha / state.alphaRef, out);
+  // 0 - x, not -x: an unloaded or straight-running tyre reports +0.
+  out.fy = 0 - out.fy;
   return out;
 }
 /** Effective relaxation length (m): grows ~√load, shortens with pressure and
@@ -285,7 +322,13 @@ export function relaxationLength(
 }
 /** Exact first-order slip lag dα/dt = (V/σ)(α_ss − α) over a step with the
  * speed held: unconditionally stable and never overshoots the target. */
-export function relaxSlip(current: number, target: number, speed: number, length: number, dt: number) {
+export function relaxSlip(
+  current: number,
+  target: number,
+  speed: number,
+  length: number,
+  dt: number,
+) {
   if (length < 1e-4) return target;
   return target + (current - target) * Math.exp((-Math.abs(speed) * dt) / length);
 }

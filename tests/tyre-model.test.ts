@@ -73,6 +73,31 @@ describe('combined-slip tyre force law', () => {
     combinedForces(state, 0.12, out);
     expect(out.fx).toBeLessThan(pure * 0.8);
   });
+  it('takes the cornering force of a spinning or locked tyre, a modest share at small slip', () => {
+    const state = slipState(),
+      out = forces();
+    prepareSlip(FORMULA_SLICK, 3000, 1.8, 1, 1, 1, state);
+    state.alpha = 0.08;
+    combinedForces(state, 0, out);
+    const pure = Math.abs(out.fy);
+    combinedForces(state, 0.3 * state.kappaRef, out);
+    expect(Math.abs(out.fy)).toBeGreaterThan(0.9 * pure);
+    expect(Math.abs(out.fy)).toBeLessThan(pure);
+    // Wheelspin at κ = 5 and a locked wheel (κ = −1) slide almost along the
+    // rolling direction, so little lateral force remains.
+    for (const [kappa, share] of [
+      [5, 0.15],
+      [-1, 0.4],
+    ] as const) {
+      combinedForces(state, kappa, out);
+      expect(Math.abs(out.fy)).toBeLessThan(share * pure);
+    }
+    // Symmetric in the sign of either slip.
+    combinedForces(state, -0.1, out);
+    const braking = out.fy;
+    combinedForces(state, 0.1, out);
+    expect(out.fy).toBeCloseTo(braking, 6);
+  });
   it('has load-sensitive friction and sub-linear, saturating slip stiffness', () => {
     const a = slipState(),
       b = slipState();
@@ -119,8 +144,12 @@ describe('combined-slip tyre force law', () => {
     expect(pressureGrip(k, k.pressureOptimum)).toBe(1);
     expect(pressureGrip(k, k.pressureOptimum + 40)).toBeLessThan(1);
     expect(pressureGrip(k, k.pressureOptimum - 40)).toBeLessThan(1);
-    expect(carcassStiffness(k, 190, 0, 92, 92)).toBeGreaterThan(carcassStiffness(k, 140, 0, 92, 92));
-    expect(relaxationLength(k, 2200, 190, 0, 40)).toBeLessThan(relaxationLength(k, 2200, 140, 0, 40));
+    expect(carcassStiffness(k, 190, 0, 92, 92)).toBeGreaterThan(
+      carcassStiffness(k, 140, 0, 92, 92),
+    );
+    expect(relaxationLength(k, 2200, 190, 0, 40)).toBeLessThan(
+      relaxationLength(k, 2200, 140, 0, 40),
+    );
   });
   it('loses grip and gains stiffness with wear', () => {
     const fresh = makeTire('soft'),

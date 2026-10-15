@@ -40,6 +40,10 @@ export interface SurfaceMaterial {
   /** Scales the tyre's post-peak fall-off (shape factor C-1): 0 = loose ground
    * that keeps ploughing force at large slip, 1 = the tyre's own fall-off. */
   readonly falloff: number;
+  /** Combined-slip coupling scale: on deformable ground part of the lateral
+   * resistance is ploughing of the rut wall, which wheelspin or locking does
+   * not remove, so slip in one direction costs the other less (1 = rigid). */
+  readonly coupling: number;
   /** Rolling-resistance coefficient of a rigid tyre on this ground. */
   readonly rolling: number;
   /** Macrotexture depth (mm): drains water from under the tread. */
@@ -74,6 +78,7 @@ export const MATERIALS: readonly SurfaceMaterial[] = Object.freeze([
     wetDepthMm: 1,
     stiffness: 1,
     falloff: 1,
+    coupling: 1,
     rolling: 0.015,
     textureMm: 0.8,
     ...RIGID,
@@ -89,6 +94,7 @@ export const MATERIALS: readonly SurfaceMaterial[] = Object.freeze([
     wetDepthMm: 0.3,
     stiffness: 1,
     falloff: 1.1,
+    coupling: 1,
     rolling: 0.015,
     textureMm: 0.25,
     ...RIGID,
@@ -104,6 +110,7 @@ export const MATERIALS: readonly SurfaceMaterial[] = Object.freeze([
     wetDepthMm: 0.4,
     stiffness: 0.95,
     falloff: 1.05,
+    coupling: 1,
     rolling: 0.015,
     textureMm: 0.45,
     ...RIGID,
@@ -115,10 +122,11 @@ export const MATERIALS: readonly SurfaceMaterial[] = Object.freeze([
     id: 3,
     name: 'grass',
     grip: 0.53,
-    wetGrip: 0.68,
+    wetGrip: 0.85,
     wetDepthMm: 0.6,
     stiffness: 0.7,
     falloff: 0.8,
+    coupling: 0.35,
     rolling: 0.06,
     textureMm: 1.5,
     sinkModulus: 6e6,
@@ -138,6 +146,7 @@ export const MATERIALS: readonly SurfaceMaterial[] = Object.freeze([
     wetDepthMm: 2,
     stiffness: 0.45,
     falloff: 0,
+    coupling: 0.25,
     rolling: 0.115,
     textureMm: 6,
     sinkModulus: 1.5e6,
@@ -157,6 +166,7 @@ export const MATERIALS: readonly SurfaceMaterial[] = Object.freeze([
     wetDepthMm: 1,
     stiffness: 1,
     falloff: 1,
+    coupling: 1,
     rolling: 0.015,
     textureMm: 0.6,
     ...RIGID,
@@ -172,6 +182,7 @@ export const MATERIALS: readonly SurfaceMaterial[] = Object.freeze([
     wetDepthMm: 1.5,
     stiffness: 0.6,
     falloff: 0.4,
+    coupling: 0.5,
     rolling: 0.04,
     textureMm: 3,
     sinkModulus: 5e6,
@@ -191,6 +202,7 @@ export const MATERIALS: readonly SurfaceMaterial[] = Object.freeze([
     wetDepthMm: 3,
     stiffness: 0.4,
     falloff: 0.3,
+    coupling: 0.3,
     rolling: 0.08,
     textureMm: 2,
     sinkModulus: 6e5,
@@ -210,6 +222,7 @@ export const MATERIALS: readonly SurfaceMaterial[] = Object.freeze([
     wetDepthMm: 2,
     stiffness: 0.4,
     falloff: 0,
+    coupling: 0.25,
     rolling: 0.09,
     textureMm: 5,
     sinkModulus: 8e5,
@@ -229,6 +242,7 @@ export const MATERIALS: readonly SurfaceMaterial[] = Object.freeze([
     wetDepthMm: 1,
     stiffness: 0.5,
     falloff: 0.5,
+    coupling: 0.5,
     rolling: 0.03,
     textureMm: 2,
     sinkModulus: 4e5,
@@ -248,6 +262,7 @@ export const MATERIALS: readonly SurfaceMaterial[] = Object.freeze([
     wetDepthMm: 0.2,
     stiffness: 0.85,
     falloff: 1.2,
+    coupling: 1,
     rolling: 0.01,
     textureMm: 0.05,
     ...RIGID,
@@ -314,7 +329,9 @@ export function groundDrag(
 ) {
   const v2 = speed * speed;
   const bulldozing =
-    sinkage > 0 ? sinkage * width * (m.bulldoze * clamp(Math.abs(speed), 0, 1) + m.bulldozeDynamic * v2) : 0;
+    sinkage > 0
+      ? sinkage * width * (m.bulldoze * clamp(Math.abs(speed), 0, 1) + m.bulldozeDynamic * v2)
+      : 0;
   // Displacement drag: ½ρ_w·C_d·(width·depth)·v², C_d 0.2 (planing reduces it).
   const water =
     waterMm > 0 ? WATER_DRAG * width * (waterMm * 1e-3) * v2 * (1 - 0.7 * aquaplane) : 0;

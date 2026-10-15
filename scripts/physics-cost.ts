@@ -8,7 +8,7 @@
 // Timing is machine- and load-dependent; compare candidates on one machine,
 // interleaved, never against numbers recorded elsewhere.
 import { AIDriver } from '../src/simulation/ai.ts';
-import { wakeOverlap } from '../src/simulation/aero.ts';
+import { wakeFields } from '../src/simulation/aero.ts';
 import { CollisionSolver } from '../src/simulation/collision.ts';
 import { DEFAULT_OPTIONS } from '../src/simulation/config.ts';
 import { PHASE, RaceDirector, updatePit } from '../src/simulation/race.ts';
@@ -48,13 +48,7 @@ function run() {
   for (let tick = 0; tick < ticks; tick++) {
     for (const c of cars) {
       ai[c.id].update(TICK, track, cars, race);
-      c.wake = 0;
-      for (const other of cars)
-        if (other !== c && c.body.position.distanceSq(other.body.position) < 101 * 101)
-          c.wake = Math.max(
-            c.wake,
-            wakeOverlap(c.body.position, other.body.position, other.forward, other.speed, c.forward),
-          );
+      wakeFields(c, cars);
     }
     for (let sub = 0; sub < 2; sub++) {
       const before = performance.now();

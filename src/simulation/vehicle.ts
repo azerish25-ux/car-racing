@@ -401,6 +401,9 @@ export class Vehicle {
       this.tires[this.drivenRight].inertia,
       dt,
       this.diffOut,
+      // Road reactions of the last step predict the tyres' share (−Fx·r).
+      -this.tires[this.drivenLeft].fx * this.tires[this.drivenLeft].radius,
+      -this.tires[this.drivenRight].fx * this.tires[this.drivenRight].radius,
     );
     const hub = this.hub,
       tyreDef = dynamics.tyre;
@@ -442,13 +445,13 @@ export class Vehicle {
     hub.solve(dt);
     for (let i = 0; i < 4; i++) {
       const t = this.tires[i],
-        travel = hub.travel[i],
+        length = this.lengthScratch[i],
         rest = this.restScratch[i];
-      t.compression = Math.max(0, travel);
-      t.deflection = hub.contact[i] ? Math.max(0, hub.compression[i] - travel) : 0;
-      t.length = hub.contact[i]
-        ? rest - travel
-        : Math.min(rest + 0.05, Math.max(0.06, this.lengthScratch[i]));
+      // Geometric wheel travel as before (suspension plus tyre deflection);
+      // the hub's own travel is hub.travel and the deflection t.deflection.
+      t.length = Math.min(rest + 0.05, Math.max(0.06, length));
+      t.compression = Number.isFinite(length) ? Math.max(0, rest - length) : 0;
+      t.deflection = hub.contact[i] ? Math.max(0, hub.compression[i] - hub.travel[i]) : 0;
       this.hubs[i].copy(this.origins[i]).addScaled(this.up, -t.length);
       this.normalLoads[i] = hub.tyreForce[i];
     }
@@ -477,7 +480,8 @@ export class Vehicle {
         this.assist === 'sport' ? 1 / (1 + Math.max(0, -t.slip - 0.14 * slipScale(t)) * 9) : 1;
       const friction =
         Math.max(0, total - (i >= 2 ? regenTorque : 0)) * brakeEfficiency(t.discTemp) * release;
-      const driven = i === this.drivenLeft ? split.first : i === this.drivenRight ? split.second : 0,
+      const driven =
+          i === this.drivenLeft ? split.first : i === this.drivenRight ? split.second : 0,
         regen = i >= 2 ? regenTorque * release : 0;
       const previousPickup = t.marblePickup;
       solveTire(
@@ -495,8 +499,7 @@ export class Vehicle {
       );
       generatorWorkW += regen * Math.abs(t.omega);
       const rolling =
-        Math.tanh(long * 2) *
-        ((t.rolling + (t.punctured ? 0.13 : 0)) * t.load + t.groundDrag);
+        Math.tanh(long * 2) * ((t.rolling + (t.punctured ? 0.13 : 0)) * t.load + t.groundDrag);
       // Wheel load acts at the patch. Tread forces reach the sprung mass through
       // the suspension links, i.e. at the link centre above the patch;
       // applying them at ground level overstated the overturning moment so a

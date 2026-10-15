@@ -166,7 +166,14 @@ export function resolveSuspension(
   tyreDamping: number,
   travel: number,
 ): CornerHardware[] {
-  const front = resolveCorner(def.front, setup.frontSpring, setup.frontARB, tyreRate, tyreDamping, travel),
+  const front = resolveCorner(
+      def.front,
+      setup.frontSpring,
+      setup.frontARB,
+      tyreRate,
+      tyreDamping,
+      travel,
+    ),
     rear = resolveCorner(def.rear, setup.rearSpring, setup.rearARB, tyreRate, tyreDamping, travel);
   return [front, { ...front }, rear, { ...rear }];
 }
@@ -180,13 +187,20 @@ export function damperForce(h: CornerHardware, v: number) {
     : h.rebound * h.reboundKnee + h.reboundHigh * (u - h.reboundKnee));
 }
 function damperSlope(h: CornerHardware, v: number) {
-  return v >= 0 ? (v <= h.bumpKnee ? h.bump : h.bumpHigh) : -v <= h.reboundKnee ? h.rebound : h.reboundHigh;
+  return v >= 0
+    ? v <= h.bumpKnee
+      ? h.bump
+      : h.bumpHigh
+    : -v <= h.reboundKnee
+      ? h.rebound
+      : h.reboundHigh;
 }
 /** Spring + bump-stop force (N) and its slope at hub travel x. */
 export function springForce(h: CornerHardware, x: number) {
   const stop = Math.max(0, x - h.stopGap);
   return (
-    h.wheelRate * x * (1 + (0.5 * h.progression * Math.max(0, x)) / h.travel) + h.stopRate * stop * stop
+    h.wheelRate * x * (1 + (0.5 * h.progression * Math.max(0, x)) / h.travel) +
+    h.stopRate * stop * stop
   );
 }
 function springSlope(h: CornerHardware, x: number) {
@@ -250,7 +264,10 @@ export class HubSolver {
         // A tyre cannot pull: re-solve the free hub if the patch would.
         if (this.contact[i]) {
           const v = (x - this.previous[i]) / dt;
-          if (this.tyreRate[i] * (this.compression[i] - x) + h.tyreDamping * (this.rate[i] - v) < 0) {
+          if (
+            this.tyreRate[i] * (this.compression[i] - x) + h.tyreDamping * (this.rate[i] - v) <
+            0
+          ) {
             this.contact[i] = 0;
             for (let n = 0; n < 6; n++) {
               this.residual(i, x, dt, other);
@@ -295,7 +312,9 @@ export function geometricLoad(
 ) {
   const rc = Math.max(-0.2, axle.rollCentreHeight + axle.rollCentreGain * meanTravel),
     slope = fx < 0 ? axle.antiBrake : axle.antiDrive;
-  return -(rc / (Math.abs(y) < 0.05 ? 0.05 * Math.sign(y || 1) : y)) * fy - slope * fx * Math.sign(z);
+  return (
+    -(rc / (Math.abs(y) < 0.05 ? 0.05 * Math.sign(y || 1) : y)) * fy - slope * fx * Math.sign(z)
+  );
 }
 /** Road-relative inclination: chassis-relative camber minus the chassis roll
  * relative to the road plane (sin of its lateral axis along the normal). */
