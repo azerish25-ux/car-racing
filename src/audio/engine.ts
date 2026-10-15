@@ -178,6 +178,8 @@ export class RacingAudio {
         emitted: this.cueDirector?.emitted ?? 0,
       },
       contactAttenuation: this.contactAttenuation,
+      landings: this.contactAudio?.landings ?? 0,
+      lastLanding: this.contactAudio?.lastLanding ?? 0,
       powerUnit: this.powerUnit ? { ...this.powerUnit.mix, bursts: this.powerUnit.bursts } : null,
       voices: this.engines?.spatial.voices.map((voice) => ({ ...voice })) ?? [],
     };
