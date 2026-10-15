@@ -203,6 +203,34 @@ describe('D06 team liveries', () => {
     repaintFlank(flank, 0, { ...DEFAULT_LIVERY, primary: '#285c89', pattern: 'split' });
     expect(calls[calls.indexOf('fillRect:0,0,1024,1024') - 1]).toBe('fillStyle=#285c89');
   });
+  it('keeps flank skins CPU-backed so the diagnostics readback never waits on queued GPU work', () => {
+    // apexDiagnostics() reads a flank pixel back on every call. On an
+    // accelerated canvas that read waited ~30 s behind a software rasterizer's
+    // queued frames during session loading, stalling the worker's first
+    // snapshot (e2e/55 Aurel held grid). The skin must request a CPU canvas.
+    const requests: unknown[][] = [];
+    const context = new Proxy({} as Record<string, unknown>, {
+      get: (target, key: string) =>
+        key in target
+          ? target[key]
+          : key === 'createLinearGradient'
+            ? () => ({ addColorStop() {} })
+            : () => undefined,
+      set: (target, key: string, value) => ((target[key] = value), true),
+    });
+    vi.stubGlobal('document', {
+      createElement: () => ({
+        width: 0,
+        height: 0,
+        getContext: (...args: unknown[]) => (requests.push(args), context),
+      }),
+    });
+    const paint = installTeamPaint(new T.MeshPhysicalMaterial({ color: LIVERIES[0] }), 0);
+    const flank = flankLivery(paint, -1, 0);
+    expect(requests[0]).toEqual(['2d', { willReadFrequently: true }]);
+    // TextureBudget's presented (resampled) copy follows this flag.
+    expect(flank.map!.userData.cpuReadback).toBe(true);
+  });
   it('makes rival carbon a lacquered physical twill and the floor raw satin', () => {
     const coat = carbonMaterial();
     expect(coat).toBeInstanceOf(T.MeshPhysicalMaterial);

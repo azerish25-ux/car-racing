@@ -122,16 +122,19 @@ export function canvasTexture(
   width: number,
   height: number,
   draw: (c: CanvasRenderingContext2D) => void,
+  settings?: CanvasRenderingContext2DSettings,
 ) {
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
-  const c = canvas.getContext('2d');
+  const c = canvas.getContext('2d', settings);
   if (!c) throw new Error('Canvas 2D unavailable');
   draw(c);
   const texture = new T.CanvasTexture(canvas);
   texture.colorSpace = T.SRGBColorSpace;
   texture.anisotropy = 8;
+  // TextureBudget keeps the resampled copies of a CPU-read canvas CPU-backed too.
+  if (settings?.willReadFrequently) texture.userData.cpuReadback = true;
   return texture;
 }
 export function label(text: string, bg = '#171d21', fg = '#f5eee2', w = 512, h = 128) {

@@ -110,7 +110,14 @@ test('Aurel venue ships through ordinary menu, held grid, camera changes and sta
   await page.selectOption('#mode', 'race');
   await page.selectOption('#opponents', '11');
   await page.getByRole('button', { name: 'PREPARE GRID START PAUSED', exact: true }).click();
-  await expect.poll(async () => (await diag()).state).toBe('paused');
+  // A cold 12-car grid on a software rasterizer is GPU-process bound (shader
+  // JIT plus the chase/cockpit warm-up draws): the same 180 s budget as the
+  // other full-grid cases (53-a61-rival, 32-race-clarity). Measured locally on
+  // Mesa llvmpipe, 53b6130 (last green) and b509815 take the same work -
+  // byte-identical shader sources, 1331 draws / 9.41 M triangles, ~70-90 s
+  // GPU-process CPU - and both straddle 60 s (54-87 s). Only a real paused
+  // grid at tick 0 is accepted.
+  await expect.poll(async () => (await diag()).state, { timeout: 180000 }).toBe('paused');
   await expect.poll(async () => (await diag()).frame?.[H.TICK] ?? -1).toBe(0);
   const before = (await diag()).frame;
   await page.getByRole('button', { name: 'CHANGE CAMERA', exact: true }).click();
