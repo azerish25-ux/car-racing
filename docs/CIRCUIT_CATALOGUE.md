@@ -103,6 +103,33 @@ and a flyover lap without progress jumps, 31° banking layer, tunnel rain
 shelter, authored run-off/barriers, events, recorded race evidence, live AI
 laps) and `tests/venue-kit.test.ts`.
 
+Recorded run (seed 29030, 6 cars, 2 laps; AI pace on the default setup, not reference lap records):
+
+<!-- catalogue-race-table -->
+| Layout | Lap (m) | AI best lap | Average | Slowest car best |
+|---|---:|---:|---:|---:|
+| parco-reale | 5793 | 1:37.126 | 214.7 km/h | 1:44.714 |
+| ardennes | 7004 | 2:15.790 | 185.7 km/h | 2:22.001 |
+| northfield | 5891 | 1:51.610 | 190.0 km/h | 1:57.658 |
+| northfield-classic | 5141 | 1:33.972 | 196.9 km/h | 1:40.372 |
+| kansai | 5807 | 1:49.287 | 191.3 km/h | 1:56.513 |
+| kansai-east | 2243 | 0:43.646 | 185.0 km/h | 0:48.473 |
+| riviera | 3337 | 1:31.104 | 131.9 km/h | 1:37.907 |
+| texas-hill | 5513 | 1:55.916 | 171.2 km/h | 2:03.090 |
+| neon-city | 4874 | 1:42.549 | 171.1 km/h | 1:49.506 |
+| neon-city-reverse | 4874 | 1:42.206 | 171.7 km/h | 1:49.018 |
+| alpine-pass | 7276 | 2:32.594 | 171.7 km/h | 2:41.297 |
+| alpine-pass-reverse | 7276 | 2:31.660 | 172.7 km/h | 2:39.531 |
+| speedbowl | 4005 | 0:48.553 | 296.9 km/h | 0:51.568 |
+| speedbowl-infield | 4486 | 1:19.870 | 202.2 km/h | 1:27.630 |
+| desert-canyon | 5604 | 1:39.617 | 202.5 km/h | 1:46.311 |
+| desert-canyon-reverse | 5604 | 1:38.696 | 204.4 km/h | 1:46.255 |
+| coastal-cliff | 4710 | 1:29.319 | 189.8 km/h | 1:37.406 |
+| coastal-cliff-reverse | 4710 | 1:29.706 | 189.0 km/h | 1:36.859 |
+| dockyard | 4600 | 1:29.455 | 185.1 km/h | 1:36.013 |
+| dockyard-reverse | 4600 | 1:29.246 | 185.6 km/h | 1:36.318 |
+<!-- /catalogue-race-table -->
+
 ## Venue kit (rendering)
 
 `src/rendering/venue-kit/` dresses any catalogue `CircuitDefinition` from its
