@@ -3,6 +3,7 @@ import { AIDriver } from './ai.ts';
 import { leanAuthority } from './bike.ts';
 import { BikeVehicle } from './bike-vehicle.ts';
 import type { RaceDirector } from './race.ts';
+import { pitPreparationDistance } from './pit-safety.ts';
 import { racingLineFor } from './racing-line.ts';
 import { trackPoint, type Track } from './track.ts';
 import type { Vehicle } from './vehicle.ts';
@@ -18,6 +19,8 @@ export class BikeAIDriver extends AIDriver {
   private readonly savedOrientation = new Quat();
   private readonly savedPosition = new Vec3();
   private readonly preview = trackPoint();
+  private readonly ahead = trackPoint();
+  private pitCorridor = false;
   constructor(
     readonly bike: BikeVehicle,
     skill = 0.96,
@@ -62,36 +65,45 @@ export class BikeAIDriver extends AIDriver {
     command.reverse = false;
     command.clutch = 0;
     command.steer = this.steerIntent(track, command.steer);
+    c.aiControlled();
   }
   /** Path tracking for a leaning vehicle (WP35): a car's pure pursuit cuts
    * corners and over-corrects when the lean must change before the path can.
    * The bike follows the lane the line follower chose (same tactical offset
    * from the racing line) with the path's own curvature, previewed by the lean
    * response time, plus a critically damped correction of lateral and heading
-   * error. In the pit lane and at walking pace the car-style command is
-   * converted directly. */
+   * error. The pit approach and the pit lane are absolute corridors (as for
+   * cars); at walking pace the car-style command is converted directly. */
   private steerIntent(track: Track, steer: number) {
     const c = this.bike,
       d = c.dynamics;
-    if (c.inPit || c.pitRequested || d.speed < 6) return leanIntent(c, steer);
+    if (d.speed < 6) return leanIntent(c, steer);
+    // Mirror the line follower's pit-approach latch (same inputs, same rule).
+    const entryGap = mod(track.pitEntryS() - c.s, track.length);
+    if (!c.pitRequested || c.inPit || entryGap > track.length - 20) this.pitCorridor = false;
+    else if (entryGap < pitPreparationDistance(c.speed, c.lateral, track.pit.side * 6))
+      this.pitCorridor = true;
     const line = racingLineFor(track),
       v = d.speed,
-      near = clamp(6 + c.speed * 0.48, 8, 46);
-    const tactical = c.aiOffset - line.offsetAt(c.s + near);
+      near = clamp(6 + c.speed * 0.48, 8, 46),
+      absolute = c.inPit || this.pitCorridor;
+    const tactical = absolute ? 0 : c.aiOffset - line.offsetAt(c.s + near);
     const p = track.at(c.s, this.preview);
     const reach = Math.max(1, p.width - 1.4);
-    const target = clamp(line.offsetAt(c.s) + tactical, -reach, reach);
-    const slope =
-      (line.offsetAt(c.s + 3) - line.offsetAt(c.s - 3)) /
-      6 /
-      Math.max(0.5, 1 - p.curvature * target);
+    const target = absolute ? c.aiOffset : clamp(line.offsetAt(c.s) + tactical, -reach, reach);
+    const pathSlope = absolute
+      ? c.inPit
+        ? (track.pitOffset(c.s + 3) - track.pitOffset(c.s - 3)) / 6
+        : 0
+      : (line.offsetAt(c.s + 3) - line.offsetAt(c.s - 3)) / 6;
+    const slope = pathSlope / Math.max(0.5, 1 - p.curvature * target);
     const heading = mod(d.heading - Math.atan2(p.tx, p.tz) + Math.PI, Math.PI * 2) - Math.PI;
     const error = target - c.lateral,
       headingError = Math.atan(slope) - heading;
     // Feed-forward: the lane's curvature where the bike will be once it has leaned.
     const ahead = c.s + v * BIKE_AI.preview;
-    const k = line.curvatureAt(ahead);
-    const feedForward = k / Math.max(0.5, 1 - k * tactical);
+    const k = absolute ? track.at(ahead, this.ahead).curvature : line.curvatureAt(ahead);
+    const feedForward = k / Math.max(0.5, 1 - k * (absolute ? target : tactical));
     const w = BIKE_AI.bandwidth;
     // Corrections are gentle: their lateral acceleration is bounded, so a
     // lane error never asks for a full-lean swerve on a straight.

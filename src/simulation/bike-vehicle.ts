@@ -74,6 +74,8 @@ export class BikeVehicle extends Vehicle {
   private readonly riderVelocity = new Vec3();
   private incident: string | null = null;
   private contactCrash = false;
+  private aiSteps = 0;
+  private readonly riderAids: BikeAssists;
   private stuckClock = 0;
   private yawKick = 0;
   private roadPitch = 0;
@@ -98,10 +100,8 @@ export class BikeVehicle extends Vehicle {
     this.fuel = this.bikeSpec.fuel;
     this.battery = 0;
     this.body.mass = definition.spec.dryMass + this.fuel;
-    this.dynamics = new Bike(
-      bikeAssists(assist, id > 0),
-      bikeParameters(definition, this.body.mass),
-    );
+    this.riderAids = bikeAssists(assist, id > 0);
+    this.dynamics = new Bike(this.riderAids, bikeParameters(definition, this.body.mass));
     this.fitFrontRadius();
   }
   get heading() {
@@ -109,6 +109,11 @@ export class BikeVehicle extends Vehicle {
   }
   get riding() {
     return this.dynamics.state === 'riding';
+  }
+  /** The AI rides with the aids whatever the player's assist setting; the
+   * mark lasts the physics substeps of the tick it was given in. */
+  aiControlled(substeps = 2) {
+    this.aiSteps = substeps;
   }
   private fitFrontRadius() {
     for (const t of [this.tires[0], this.tires[1]]) {
@@ -210,6 +215,8 @@ export class BikeVehicle extends Vehicle {
       spec = this.bikeSpec;
     this.debris.step(dt, track);
     this.absorbExternal(dt);
+    d.assists = this.aiSteps > 0 ? NOVICE : this.riderAids;
+    if (this.aiSteps > 0) this.aiSteps--;
     b.mass = this.definition.spec.dryMass + this.fuel - this.lostMass;
     d.mass = b.mass;
     let throttle = clamp(this.input.throttle, 0, 1);
