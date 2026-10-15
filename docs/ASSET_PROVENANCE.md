@@ -1,10 +1,43 @@
 # Asset provenance
 
-The circuit layout, car lofts, wings, halo, wheel/rim construction, pit buildings, signage, stands, vegetation, interface, textures and audio synthesis are original procedural content authored for this repository. No game files, licensed Formula 1 branding, real team liveries, sponsor assets, real-person likenesses or extracted commercial audio are included. Driver names and the Aurel circuit are fictional design elements.
+The circuit layouts, car and bike lofts, wings, halo, wheel/rim construction, pit buildings, signage, stands, vegetation, interface, most textures and the audio synthesis are original content authored for this repository (procedural code or the Blender authoring scripts below). No game files, licensed Formula 1 branding, real team liveries, sponsor assets, real-person likenesses or extracted commercial audio are included. Driver names and the Aurel circuit are fictional design elements.
+
+**Since 2026-10-15 the application also ships licensed third-party content** — photographed skies (HDRIs) and scanned material textures, all under CC0 1.0 so far — because procedural generation alone could not reach a photographic look (decision D14 in [DECISIONS_AND_RISKS.md](production/DECISIONS_AND_RISKS.md)). The rules, the register and the list are in [Third-party assets](#third-party-assets) below. Everything else in this document remains original work.
 
 Three.js and its examples/addons supply the renderer, geometry helpers, sky and post-processing infrastructure. Their dependency license is retained through npm. Vite, TypeScript, ESLint, Vitest and Playwright are development dependencies. Consult each installed package's own LICENSE and the lockfile for dependency provenance; this document does not replace third-party license terms.
 
-No external font files, models, textures, online image downloads or sound recordings are needed to run the built application. System fonts are used. The generated textures and models are local and do not require paid services or API credentials.
+No external font files, online image downloads or paid services are needed to run the built application: every third-party file ships inside the build under `public/assets/` (no runtime CDN). System fonts are used.
+
+## Third-party assets
+
+**Policy.** Only CC0-1.0, CC-BY-4.0, CC-BY-2.0 and MIT content may ship (`src/rendering/assets/licences.ts`). Every shipped third-party file is recorded with its source, licence, author, attribution, size and SHA-256; CC-BY content is credited visibly in the game (**Paddock → CREDITS & LICENCES**, which lists every manifest entry) and in `public/assets/third-party/CREDITS.txt`; MIT content ships its notice. Content showing brands, logos, shop signage or branded vehicles is excluded, and asset names, credits and file names are checked against a brand list and the protected real-world names (`forbiddenNameIn`).
+
+**Register and build.** `assets/third-party/sources.json` is the source register: id, kind, title, author, SPDX licence, attribution text, licence evidence, pinned source URL(s) (a commit-pinned GitHub path or an immutable object path) with SHA-256 and size, and the processing recipe. `scripts/assets/build-third-party.ts` fetches each source into the gitignored `.cache/third-party/` (verifying size and hash), converts it and writes the shipped files under `public/assets/third-party/<kind>/<id>/`, the credits text and the manifest `src/rendering/assets/third-party-manifest.json` (id, files with role/format/size/SHA-256, licence, attribution, source URL, and per-sky measurements). The tools it runs (hdrify 1.3.0 for the Ultra HDR container, jpeg-js, ImageMagick/libjpeg, KTX-Software 4.4.2 `toktx`) are build-time tools outside the application's dependencies; their versions are recorded in the manifest. `tests/third-party-assets.test.ts` fails if any file under `public/assets/third-party` is missing from the manifest or differs in size or hash, if a licence is outside the allowed set, if a CC-BY/MIT entry lacks attribution, if a brand word appears, or if the total exceeds the 150 MB budget; `npm run validate:content` re-checks the register and sizes.
+
+**Shipped today (11.0 MB of the 150 MB budget).**
+
+| Id | Kind | Author | Licence | Source (pinned) | Use |
+|---|---|---|---|---|---|
+| kiara-5-noon | HDRI | Greg Zaal (Poly Haven) | CC0-1.0 | Poly Haven `kiara_5_noon` 4k, via the Google Kubric public mirror `storage.googleapis.com/kubric-public/assets/HDRI_haven/kiara_5_noon.tar.gz` | clear day, arid, alpine and coastal venues |
+| goegap | HDRI | Greg Zaal | CC0-1.0 | same mirror, `goegap` | clear day, desert venues |
+| quarry-02 | HDRI | Sergej Majboroda | CC0-1.0 | `quarry_02` | fair-weather cumulus over a chalk quarry (arid and desert venues) |
+| rural-landscape | HDRI | Sergej Majboroda | CC0-1.0 | `rural_landscape` | broken cumulus over flat country (clear and cloudy days at green, city and flat venues; cloudy at alpine and coastal ones) |
+| waterbuck-trail | HDRI | Greg Zaal | CC0-1.0 | `waterbuck_trail` | overcast over low hills (green, coastal, arid) |
+| mud-road | HDRI | Sergey Rudavin | CC0-1.0 | `mud_road` | overcast, flat/city/desert venues |
+| kloppenheim-01 | HDRI | Greg Zaal | CC0-1.0 | `kloppenheim_01` | rain cloud and mist |
+| winter-lake-01 | HDRI | Sergej Majboroda | CC0-1.0 | `winter_lake_01` | bright winter overcast over snow (alpine, highland) |
+| table-mountain-1 | HDRI | Greg Zaal | CC0-1.0 | `table_mountain_1` | golden hour with broken cloud |
+| kiara-8-sunset | HDRI | Greg Zaal | CC0-1.0 | `kiara_8_sunset` | clear sunset (arid, desert) |
+| syferfontein-0d-clear | HDRI | Greg Zaal | CC0-1.0 | `syferfontein_0d_clear` | dawn-clear horizon (flat venues' golden hour) |
+| kloppenheim-02 | HDRI | Greg Zaal | CC0-1.0 | `kloppenheim_02` | moonlit night |
+| kloppenheim-04 | HDRI | Greg Zaal | CC0-1.0 | `kloppenheim_04` | night under low cloud lit by distant towns (city venues) |
+| sandy-gravel-01 | PBR texture | cgbookcase | CC0-1.0 | `google/filament@58fcec6e…/third_party/textures/Sandy_gravel_01/` | gravel traps and run-off (KTX2 + WebP; not yet applied to a material) |
+
+Licence evidence: Poly Haven publishes every asset under CC0 1.0, and both the mirror's index (`HDRI_haven.json`) and each archive's `data.json` state `"license": "CC0 1.0"`; cgbookcase publishes its textures under CC0 1.0 and the files are redistributed unchanged in the commit-pinned filament repository. Each sky ships as a 4096 × 2048 and a 2048 × 1024 Ultra HDR JPEG (sRGB base plus a half-size scalar gain map, radiance normalised to a unit dome mean, sun cores clipped at 64× that mean, everything below the horizon or the sky's skyline replaced by blurred sky before encoding, so the photographer's ground is not shipped); the texture set as 1024 px KTX2 (Basis ETC1S colour/ORM, UASTC normal) and WebP fallbacks, its DirectX normal map converted to OpenGL. No HDRI with signage, vehicles or brand marks in view was chosen; the city-at-night sky shows only distant, unreadable lights. Skies were also chosen for a clean horizon: a photo is drawn at infinity, so a hillside, tree or building near the photographer would tower over the circuit (early picks with a roadside hill, nearby trees, a snowy hillside and seaside ruins were replaced for that reason). Below the horizon (below a raised per-sky skyline where needed) the shader replaces the photographer's surroundings with haze, so only distant ridges, tree lines and rocks of a photo remain visible: `rural-landscape` hides its nearby utility poles, trees, farm buildings and a distant parked car (no readable marking) under a 7.5° skyline, `winter-lake-01` its housing estate under 5.5°.
+
+**Runtime library shipped beside the assets.** `public/assets/basis/basis_transcoder.{js,wasm}` is copied byte-for-byte from the `three` npm package (`examples/jsm/libs/basis`) so `KTX2Loader` can transcode KTX2 textures; it is the Basis Universal transcoder by Binomial LLC, licensed Apache-2.0 (a code dependency like three.js itself, not art content). A test checks the copy matches the installed package.
+
+**Still original/procedural.** Cars, bikes, riders, crews, buildings, vegetation, terrain, road surfaces, kerbs, barriers, crowds and every other material are still the repository's own procedural or Blender-authored work; the third-party skies replace only the visible sky dome and its image-based lighting on HIGH/ULTRA (2k on MEDIUM; LOW keeps the physical sky).
 
 ## User-provided visual references (2026-09-19)
 

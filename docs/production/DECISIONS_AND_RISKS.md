@@ -21,6 +21,7 @@ expensive it would be to change course later.
 | D11 | **Ongoing-funding services** (online racing, UGC moderation, cloud saves) are not launch dependencies of the offline car release. | proposed | Launch with online | §5.3 | medium | G3 |
 | D12 | Presentation gates must have a bounded wait with an expiry counter (F01). | adopted | Unbounded fence wait | `REPLAY_CLOCKS_AND_F01.md` | low | — |
 | D13 | Vehicle physics content is data (`VehicleDefinition`); a new family that cannot be expressed in the four-wheel solver gets its own dynamics adapter, never optional Formula fields. | adopted | One universal interface | Bikes run `BikeVehicle` over the `bike.ts` core; the definition carries a `bike` block, not Formula fields | medium | G4 |
+| D14 | **Licensed third-party content may ship** (reverses the all-procedural stance of `ASSET_PROVENANCE.md`): photographed/scanned assets under CC0-1.0, CC-BY-4.0, CC-BY-2.0 or MIT only, each recorded in `assets/third-party/sources.json` with a pinned source, SHA-256, licence evidence and attribution, built reproducibly by `scripts/assets/build-third-party.ts`, credited in-game (Paddock → CREDITS & LICENCES), within a 150 MB budget, and never showing brands or logos. First use: 13 CC0 HDRI skies as the sky dome and image-based light on HIGH/ULTRA (2k on MEDIUM). | adopted (2026-10-15) | Keep everything procedural (owner verdict: "cartoony, amateurish"); commission original photography (no budget yet); licensed commercial packs (redistribution terms, brands) | `docs/ASSET_PROVENANCE.md` §Third-party assets, `tests/third-party-assets.test.ts`, before/after captures in the rendering pipeline notes | medium (assets are data behind one manifest; the procedural sky remains the LOW path and the fallback) | per asset; budget at every 25 MB |
 
 ## 2. Non-negotiable decisions (§28.1) and where they stand
 
@@ -57,6 +58,9 @@ expensive it would be to change course later.
 | Save/replay incompatibility | New entity families | Lost progress | Backups, recovery, identity, schema rejection | Termination/quota tests | Persistence owner |
 | Art inconsistency | Many families | Patchwork look | Capture suite defined | Art director, kits | Art director |
 | Provisional art shipped as final | TC-1 greybox body | Quality gap | Labelled provisional in code and register | Final exterior/interior | Vehicle art |
+| Third-party licence or provenance error | Downloaded skies/textures (D14) | Takedown, rebuild | Register with pinned sources + SHA-256, allowed-licence and brand checks in tests and `validate:content`, in-game credits | Second-person licence review before release; CC-BY entries need the visible credit kept | Producer + tech art |
+| Photographed sky does not match the scene | A static photo against a dynamic sun, fog and terrain | Floating horizon, wrong shadow direction, visible seams | Sun azimuth aligned by rotation, sunlit skies chosen within 8° of the key light elevation (tested), radiance scaled to the physical dome, haze coloured from the photo horizon | Venue-specific skies and horizon matching; dynamic time of day needs sky sequences or the physical sky | Rendering lead |
+| Download and memory growth | 4k skies (0.3–1.4 MB file, ≈45 MB GPU each, two resident while crossfading) | Slow loads, mobile memory | 2k on MEDIUM, procedural on LOW, at most four decoded skies resident | Measure on reference hardware; KTX2/streaming if the budget is hit | Rendering lead |
 
 ## 4. Stop/go rules (§28.2)
 

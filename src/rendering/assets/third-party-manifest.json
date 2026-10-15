@@ -1,0 +1,1242 @@
+{
+  "version": 1,
+  "budgetBytes": 157286400,
+  "totalBytes": 11498600,
+  "tools": {
+    "hdrify": "1.3.0",
+    "jpeg-js": "0.4.4",
+    "toktx": "toktx v4.4.2",
+    "imagemagick": "ImageMagick 6.9.12-98 Q16 x86_64 18038 https://legacy.imagemagick.org"
+  },
+  "assets": [
+    {
+      "id": "kiara-5-noon",
+      "kind": "hdri",
+      "title": "Kiara 5 Noon",
+      "author": "Greg Zaal",
+      "licence": "CC0-1.0",
+      "attribution": "\"Kiara 5 Noon\" HDRI by Greg Zaal, Poly Haven (CC0 1.0)",
+      "sourceUrl": "https://storage.googleapis.com/kubric-public/assets/HDRI_haven/kiara_5_noon.tar.gz",
+      "homepage": "https://polyhaven.com/a/kiara_5_noon",
+      "files": [
+        {
+          "path": "assets/third-party/hdri/kiara-5-noon/kiara-5-noon_4k.hdr.jpg",
+          "bytes": 488599,
+          "sha256": "6a45c418e904656378bcb70d9d2b5075a9925e206c633a66d8ecef36b09d87ac",
+          "role": "4k",
+          "format": "ultrahdr",
+          "width": 4096,
+          "height": 2048,
+          "colorSpace": "linear",
+          "gainMap": {
+            "offset": 363926,
+            "width": 2048,
+            "height": 1024,
+            "gainMax": 6.022367813028454
+          }
+        },
+        {
+          "path": "assets/third-party/hdri/kiara-5-noon/kiara-5-noon_2k.hdr.jpg",
+          "bytes": 147047,
+          "sha256": "0300eeedb31eb08c090593059070ed11fffc7cfb7c0127e6322f7035b97f9a61",
+          "role": "2k",
+          "format": "ultrahdr",
+          "width": 2048,
+          "height": 1024,
+          "colorSpace": "linear",
+          "gainMap": {
+            "offset": 108172,
+            "width": 1024,
+            "height": 512,
+            "gainMax": 6.022367813028454
+          }
+        }
+      ],
+      "hdri": {
+        "sunAzimuth": 41.98,
+        "sunElevation": 51.19,
+        "sunColor": [
+          0.9306,
+          0.932,
+          1
+        ],
+        "sunToSky": 40.286,
+        "domeMean": [
+          0.667,
+          0.9715,
+          2.263
+        ],
+        "horizonSunSide": [
+          0.6396,
+          0.6682,
+          0.9331
+        ],
+        "horizonAntiSun": [
+          1.4787,
+          1.1817,
+          0.9173
+        ],
+        "horizonMean": [
+          1.2104,
+          1.2114,
+          1.487
+        ],
+        "zenith": [
+          0.5032,
+          0.7353,
+          1.7339
+        ],
+        "groundMean": [
+          3.2136,
+          2.4527,
+          1.4182
+        ],
+        "normalisation": 10.257,
+        "clamp": 64,
+        "skyline": 0,
+        "rmsStops": 0.0205
+      }
+    },
+    {
+      "id": "goegap",
+      "kind": "hdri",
+      "title": "Goegap",
+      "author": "Greg Zaal",
+      "licence": "CC0-1.0",
+      "attribution": "\"Goegap\" HDRI by Greg Zaal, Poly Haven (CC0 1.0)",
+      "sourceUrl": "https://storage.googleapis.com/kubric-public/assets/HDRI_haven/goegap.tar.gz",
+      "homepage": "https://polyhaven.com/a/goegap",
+      "files": [
+        {
+          "path": "assets/third-party/hdri/goegap/goegap_4k.hdr.jpg",
+          "bytes": 621418,
+          "sha256": "a6fedfc4d1f2583fd7af8840cfd371be8e1f9fdfc10b70a24084b1db66738175",
+          "role": "4k",
+          "format": "ultrahdr",
+          "width": 4096,
+          "height": 2048,
+          "colorSpace": "linear",
+          "gainMap": {
+            "offset": 464474,
+            "width": 2048,
+            "height": 1024,
+            "gainMax": 6.022367813028454
+          }
+        },
+        {
+          "path": "assets/third-party/hdri/goegap/goegap_2k.hdr.jpg",
+          "bytes": 187252,
+          "sha256": "7bc5731b2c0f8c945c8ba76b14fda0b19707adf57dbbe4795c847c9e849b0576",
+          "role": "2k",
+          "format": "ultrahdr",
+          "width": 2048,
+          "height": 1024,
+          "colorSpace": "linear",
+          "gainMap": {
+            "offset": 139598,
+            "width": 1024,
+            "height": 512,
+            "gainMax": 6.022367813028454
+          }
+        }
+      ],
+      "hdri": {
+        "sunAzimuth": 38.97,
+        "sunElevation": 46.51,
+        "sunColor": [
+          0.9951,
+          1,
+          0.9947
+        ],
+        "sunToSky": 41.432,
+        "domeMean": [
+          0.5473,
+          0.9877,
+          2.4545
+        ],
+        "horizonSunSide": [
+          0.473,
+          0.337,
+          0.2588
+        ],
+        "horizonAntiSun": [
+          2.3137,
+          1.5381,
+          0.8263
+        ],
+        "horizonMean": [
+          1.5038,
+          1.2706,
+          1.1709
+        ],
+        "zenith": [
+          0.3486,
+          0.6738,
+          1.78
+        ],
+        "groundMean": [
+          4.123,
+          2.4927,
+          1.2084
+        ],
+        "normalisation": 10.4375,
+        "clamp": 64,
+        "skyline": 0,
+        "rmsStops": 0.028
+      }
+    },
+    {
+      "id": "quarry-02",
+      "kind": "hdri",
+      "title": "Quarry 02",
+      "author": "Sergej Majboroda",
+      "licence": "CC0-1.0",
+      "attribution": "\"Quarry 02\" HDRI by Sergej Majboroda, Poly Haven (CC0 1.0)",
+      "sourceUrl": "https://storage.googleapis.com/kubric-public/assets/HDRI_haven/quarry_02.tar.gz",
+      "homepage": "https://polyhaven.com/a/quarry_02",
+      "files": [
+        {
+          "path": "assets/third-party/hdri/quarry-02/quarry-02_4k.hdr.jpg",
+          "bytes": 570911,
+          "sha256": "7548c2dd1de1e155b694e5ef5046e1cc003f8fe724ac988c57115e587a0795bb",
+          "role": "4k",
+          "format": "ultrahdr",
+          "width": 4096,
+          "height": 2048,
+          "colorSpace": "linear",
+          "gainMap": {
+            "offset": 431315,
+            "width": 2048,
+            "height": 1024,
+            "gainMax": 6.022367813028454
+          }
+        },
+        {
+          "path": "assets/third-party/hdri/quarry-02/quarry-02_2k.hdr.jpg",
+          "bytes": 182390,
+          "sha256": "85364b6c127ff0739161fe630ce233c786bce322b3f731bcc518cf33db470b46",
+          "role": "2k",
+          "format": "ultrahdr",
+          "width": 2048,
+          "height": 1024,
+          "colorSpace": "linear",
+          "gainMap": {
+            "offset": 137295,
+            "width": 1024,
+            "height": 512,
+            "gainMax": 6.022367813028454
+          }
+        }
+      ],
+      "hdri": {
+        "sunAzimuth": 36.02,
+        "sunElevation": 47.18,
+        "sunColor": [
+          1,
+          0.8365,
+          0.5476
+        ],
+        "sunToSky": 10.358,
+        "domeMean": [
+          0.815,
+          1.0354,
+          1.1938
+        ],
+        "horizonSunSide": [
+          1.8935,
+          1.9447,
+          1.7218
+        ],
+        "horizonAntiSun": [
+          1.8292,
+          1.6672,
+          1.2794
+        ],
+        "horizonMean": [
+          1.7412,
+          1.659,
+          1.3527
+        ],
+        "zenith": [
+          0.5274,
+          0.7174,
+          0.8793
+        ],
+        "groundMean": [
+          2.4711,
+          2.0984,
+          1.5218
+        ],
+        "normalisation": 5.42147,
+        "clamp": 64,
+        "skyline": 0,
+        "rmsStops": 0.0196
+      }
+    },
+    {
+      "id": "rural-landscape",
+      "kind": "hdri",
+      "title": "Rural Landscape",
+      "author": "Sergej Majboroda",
+      "licence": "CC0-1.0",
+      "attribution": "\"Rural Landscape\" HDRI by Sergej Majboroda, Poly Haven (CC0 1.0)",
+      "sourceUrl": "https://storage.googleapis.com/kubric-public/assets/HDRI_haven/rural_landscape.tar.gz",
+      "homepage": "https://polyhaven.com/a/rural_landscape",
+      "files": [
+        {
+          "path": "assets/third-party/hdri/rural-landscape/rural-landscape_4k.hdr.jpg",
+          "bytes": 596213,
+          "sha256": "20ce4d7a94048e6789d1bde904871709ee5edd913b7a81a569a060f4996fd3ce",
+          "role": "4k",
+          "format": "ultrahdr",
+          "width": 4096,
+          "height": 2048,
+          "colorSpace": "linear",
+          "gainMap": {
+            "offset": 450603,
+            "width": 2048,
+            "height": 1024,
+            "gainMax": 6.022367813028454
+          }
+        },
+        {
+          "path": "assets/third-party/hdri/rural-landscape/rural-landscape_2k.hdr.jpg",
+          "bytes": 202809,
+          "sha256": "d076363586514ccdf9b0e297fb523dfc9b6e7298a6d4929a644e8503aabf97da",
+          "role": "2k",
+          "format": "ultrahdr",
+          "width": 2048,
+          "height": 1024,
+          "colorSpace": "linear",
+          "gainMap": {
+            "offset": 154346,
+            "width": 1024,
+            "height": 512,
+            "gainMax": 6.022367813028454
+          }
+        }
+      ],
+      "hdri": {
+        "sunAzimuth": 36.32,
+        "sunElevation": 11.61,
+        "sunColor": [
+          1,
+          0.7796,
+          0.5002
+        ],
+        "sunToSky": 0.013,
+        "domeMean": [
+          0.8477,
+          1.0236,
+          1.2143
+        ],
+        "horizonSunSide": [
+          3.9738,
+          3.7553,
+          3.2369
+        ],
+        "horizonAntiSun": [
+          0.7761,
+          0.9171,
+          1.047
+        ],
+        "horizonMean": [
+          1.6086,
+          1.68,
+          1.6668
+        ],
+        "zenith": [
+          0.6182,
+          0.7565,
+          0.9375
+        ],
+        "groundMean": [
+          0.1045,
+          0.0933,
+          0.0697
+        ],
+        "normalisation": 1.52354,
+        "clamp": 64,
+        "skyline": 7.5,
+        "rmsStops": 0.0156
+      }
+    },
+    {
+      "id": "waterbuck-trail",
+      "kind": "hdri",
+      "title": "Waterbuck Trail",
+      "author": "Greg Zaal",
+      "licence": "CC0-1.0",
+      "attribution": "\"Waterbuck Trail\" HDRI by Greg Zaal, Poly Haven (CC0 1.0)",
+      "sourceUrl": "https://storage.googleapis.com/kubric-public/assets/HDRI_haven/waterbuck_trail.tar.gz",
+      "homepage": "https://polyhaven.com/a/waterbuck_trail",
+      "files": [
+        {
+          "path": "assets/third-party/hdri/waterbuck-trail/waterbuck-trail_4k.hdr.jpg",
+          "bytes": 348921,
+          "sha256": "2f350202a21f4310e9b88943cac6e47e13c7a19dbf6bcdbcf7fb0cd573ee1da1",
+          "role": "4k",
+          "format": "ultrahdr",
+          "width": 4096,
+          "height": 2048,
+          "colorSpace": "linear",
+          "gainMap": {
+            "offset": 271792,
+            "width": 2048,
+            "height": 1024,
+            "gainMax": 6.022367813028454
+          }
+        },
+        {
+          "path": "assets/third-party/hdri/waterbuck-trail/waterbuck-trail_2k.hdr.jpg",
+          "bytes": 115459,
+          "sha256": "73e7e9779e2cfb58ffd24246e25f8548914517440c631f10d45e877e6fc1e893",
+          "role": "2k",
+          "format": "ultrahdr",
+          "width": 2048,
+          "height": 1024,
+          "colorSpace": "linear",
+          "gainMap": {
+            "offset": 88741,
+            "width": 1024,
+            "height": 512,
+            "gainMax": 6.022367813028454
+          }
+        }
+      ],
+      "hdri": {
+        "sunAzimuth": 64.91,
+        "sunElevation": 84.76,
+        "sunColor": [
+          0.8974,
+          1,
+          0.9917
+        ],
+        "sunToSky": 0,
+        "domeMean": [
+          0.9576,
+          0.996,
+          1.1648
+        ],
+        "horizonSunSide": [
+          0.395,
+          0.4045,
+          0.466
+        ],
+        "horizonAntiSun": [
+          0.0671,
+          0.0547,
+          0.0345
+        ],
+        "horizonMean": [
+          0.181,
+          0.1797,
+          0.1917
+        ],
+        "zenith": [
+          1.1751,
+          1.2259,
+          1.4219
+        ],
+        "groundMean": [
+          0.0719,
+          0.0548,
+          0.0329
+        ],
+        "normalisation": 0.590781,
+        "clamp": 64,
+        "skyline": 0,
+        "rmsStops": 0.0297
+      }
+    },
+    {
+      "id": "mud-road",
+      "kind": "hdri",
+      "title": "Mud Road",
+      "author": "Sergey Rudavin",
+      "licence": "CC0-1.0",
+      "attribution": "\"Mud Road\" HDRI by Sergey Rudavin, Poly Haven (CC0 1.0)",
+      "sourceUrl": "https://storage.googleapis.com/kubric-public/assets/HDRI_haven/mud_road.tar.gz",
+      "homepage": "https://polyhaven.com/a/mud_road",
+      "files": [
+        {
+          "path": "assets/third-party/hdri/mud-road/mud-road_4k.hdr.jpg",
+          "bytes": 342330,
+          "sha256": "01055cd7a5f36f26149a9c3dad79c8c8f5def315d6e846a42bc705cd55b7e962",
+          "role": "4k",
+          "format": "ultrahdr",
+          "width": 4096,
+          "height": 2048,
+          "colorSpace": "linear",
+          "gainMap": {
+            "offset": 262686,
+            "width": 2048,
+            "height": 1024,
+            "gainMax": 6.022367813028454
+          }
+        },
+        {
+          "path": "assets/third-party/hdri/mud-road/mud-road_2k.hdr.jpg",
+          "bytes": 112843,
+          "sha256": "8cb1d2e0ddabcaf76ddf507174422327360ffa92ef64f98bd044108e7db2d444",
+          "role": "2k",
+          "format": "ultrahdr",
+          "width": 2048,
+          "height": 1024,
+          "colorSpace": "linear",
+          "gainMap": {
+            "offset": 85887,
+            "width": 1024,
+            "height": 512,
+            "gainMax": 6.022367813028454
+          }
+        }
+      ],
+      "hdri": {
+        "sunAzimuth": -88,
+        "sunElevation": 61.5,
+        "sunColor": [
+          0.9623,
+          0.9702,
+          1
+        ],
+        "sunToSky": 0.001,
+        "domeMean": [
+          0.9675,
+          0.9959,
+          1.1359
+        ],
+        "horizonSunSide": [
+          0.4432,
+          0.4398,
+          0.4622
+        ],
+        "horizonAntiSun": [
+          0.3997,
+          0.3851,
+          0.3943
+        ],
+        "horizonMean": [
+          0.402,
+          0.3904,
+          0.4025
+        ],
+        "zenith": [
+          1.1718,
+          1.214,
+          1.4085
+        ],
+        "groundMean": [
+          0.1171,
+          0.0782,
+          0.0459
+        ],
+        "normalisation": 1.73716,
+        "clamp": 64,
+        "skyline": 0,
+        "rmsStops": 0.0244
+      }
+    },
+    {
+      "id": "kloppenheim-01",
+      "kind": "hdri",
+      "title": "Kloppenheim 01",
+      "author": "Greg Zaal",
+      "licence": "CC0-1.0",
+      "attribution": "\"Kloppenheim 01\" HDRI by Greg Zaal, Poly Haven (CC0 1.0)",
+      "sourceUrl": "https://storage.googleapis.com/kubric-public/assets/HDRI_haven/kloppenheim_01.tar.gz",
+      "homepage": "https://polyhaven.com/a/kloppenheim_01",
+      "files": [
+        {
+          "path": "assets/third-party/hdri/kloppenheim-01/kloppenheim-01_4k.hdr.jpg",
+          "bytes": 325681,
+          "sha256": "b5618006c5d39a62fc07e46d85ee54776320194e21ccd39e56772fb18c8c6696",
+          "role": "4k",
+          "format": "ultrahdr",
+          "width": 4096,
+          "height": 2048,
+          "colorSpace": "linear",
+          "gainMap": {
+            "offset": 243819,
+            "width": 2048,
+            "height": 1024,
+            "gainMax": 6.022367813028454
+          }
+        },
+        {
+          "path": "assets/third-party/hdri/kloppenheim-01/kloppenheim-01_2k.hdr.jpg",
+          "bytes": 112650,
+          "sha256": "4036612e90c2f6a9182868e8833b5b0d5d4ef874af17a05ef78504d918e06b09",
+          "role": "2k",
+          "format": "ultrahdr",
+          "width": 2048,
+          "height": 1024,
+          "colorSpace": "linear",
+          "gainMap": {
+            "offset": 84423,
+            "width": 1024,
+            "height": 512,
+            "gainMax": 6.022367813028454
+          }
+        }
+      ],
+      "hdri": {
+        "sunAzimuth": 35.72,
+        "sunElevation": 3.37,
+        "sunColor": [
+          1,
+          0.4479,
+          0.1352
+        ],
+        "sunToSky": 0.001,
+        "domeMean": [
+          0.8869,
+          1.0019,
+          1.3142
+        ],
+        "horizonSunSide": [
+          1.9582,
+          1.6189,
+          1.4907
+        ],
+        "horizonAntiSun": [
+          0.2361,
+          0.2875,
+          0.382
+        ],
+        "horizonMean": [
+          0.703,
+          0.6736,
+          0.7378
+        ],
+        "zenith": [
+          0.7302,
+          0.8913,
+          1.2639
+        ],
+        "groundMean": [
+          0.066,
+          0.0597,
+          0.0467
+        ],
+        "normalisation": 1.05338,
+        "clamp": 64,
+        "skyline": 0,
+        "rmsStops": 0.023
+      }
+    },
+    {
+      "id": "winter-lake-01",
+      "kind": "hdri",
+      "title": "Winter Lake 01",
+      "author": "Sergej Majboroda",
+      "licence": "CC0-1.0",
+      "attribution": "\"Winter Lake 01\" HDRI by Sergej Majboroda, Poly Haven (CC0 1.0)",
+      "sourceUrl": "https://storage.googleapis.com/kubric-public/assets/HDRI_haven/winter_lake_01.tar.gz",
+      "homepage": "https://polyhaven.com/a/winter_lake_01",
+      "files": [
+        {
+          "path": "assets/third-party/hdri/winter-lake-01/winter-lake-01_4k.hdr.jpg",
+          "bytes": 383751,
+          "sha256": "878e6e1aee0b01cbff1dc6808317055403b77d39174d42013ebc88b7a649d48e",
+          "role": "4k",
+          "format": "ultrahdr",
+          "width": 4096,
+          "height": 2048,
+          "colorSpace": "linear",
+          "gainMap": {
+            "offset": 290176,
+            "width": 2048,
+            "height": 1024,
+            "gainMax": 6.022367813028454
+          }
+        },
+        {
+          "path": "assets/third-party/hdri/winter-lake-01/winter-lake-01_2k.hdr.jpg",
+          "bytes": 121972,
+          "sha256": "d6d720ad9b3c80750e0b48ee2c1ff232e34f4df4c683572daeffe22c8640af38",
+          "role": "2k",
+          "format": "ultrahdr",
+          "width": 2048,
+          "height": 1024,
+          "colorSpace": "linear",
+          "gainMap": {
+            "offset": 91195,
+            "width": 1024,
+            "height": 512,
+            "gainMax": 6.022367813028454
+          }
+        }
+      ],
+      "hdri": {
+        "sunAzimuth": 36.42,
+        "sunElevation": 11.37,
+        "sunColor": [
+          1,
+          0.7057,
+          0.2867
+        ],
+        "sunToSky": 0.002,
+        "domeMean": [
+          0.8704,
+          1.0201,
+          1.183
+        ],
+        "horizonSunSide": [
+          2.6271,
+          2.1188,
+          1.4861
+        ],
+        "horizonAntiSun": [
+          1.0461,
+          1.2803,
+          1.3744
+        ],
+        "horizonMean": [
+          1.4836,
+          1.5068,
+          1.3878
+        ],
+        "zenith": [
+          0.4594,
+          0.6584,
+          0.9238
+        ],
+        "groundMean": [
+          0.6749,
+          0.8271,
+          1.0004
+        ],
+        "normalisation": 1.47713,
+        "clamp": 64,
+        "skyline": 5.5,
+        "rmsStops": 0.0152
+      }
+    },
+    {
+      "id": "table-mountain-1",
+      "kind": "hdri",
+      "title": "Table Mountain 1",
+      "author": "Greg Zaal",
+      "licence": "CC0-1.0",
+      "attribution": "\"Table Mountain 1\" HDRI by Greg Zaal, Poly Haven (CC0 1.0)",
+      "sourceUrl": "https://storage.googleapis.com/kubric-public/assets/HDRI_haven/table_mountain_1.tar.gz",
+      "homepage": "https://polyhaven.com/a/table_mountain_1",
+      "files": [
+        {
+          "path": "assets/third-party/hdri/table-mountain-1/table-mountain-1_4k.hdr.jpg",
+          "bytes": 449787,
+          "sha256": "8c3b499c0364d4b152a9b9d505e86f96bfca14afb6f94c22c9037828df41c911",
+          "role": "4k",
+          "format": "ultrahdr",
+          "width": 4096,
+          "height": 2048,
+          "colorSpace": "linear",
+          "gainMap": {
+            "offset": 334994,
+            "width": 2048,
+            "height": 1024,
+            "gainMax": 6.022367813028454
+          }
+        },
+        {
+          "path": "assets/third-party/hdri/table-mountain-1/table-mountain-1_2k.hdr.jpg",
+          "bytes": 152817,
+          "sha256": "cf5f43e67a6266fdb80d7c26e7f420d67c41fa8ca82224a5abe1e3435a7843ba",
+          "role": "2k",
+          "format": "ultrahdr",
+          "width": 2048,
+          "height": 1024,
+          "colorSpace": "linear",
+          "gainMap": {
+            "offset": 115156,
+            "width": 1024,
+            "height": 512,
+            "gainMax": 6.022367813028454
+          }
+        }
+      ],
+      "hdri": {
+        "sunAzimuth": 49.49,
+        "sunElevation": 12.84,
+        "sunColor": [
+          1,
+          0.8945,
+          0.581
+        ],
+        "sunToSky": 1.595,
+        "domeMean": [
+          0.8795,
+          1.0009,
+          1.3457
+        ],
+        "horizonSunSide": [
+          5.5421,
+          5.9627,
+          5.2538
+        ],
+        "horizonAntiSun": [
+          1.6686,
+          2.2288,
+          2.616
+        ],
+        "horizonMean": [
+          2.444,
+          2.9498,
+          3.1103
+        ],
+        "zenith": [
+          0.4675,
+          0.5363,
+          0.7766
+        ],
+        "groundMean": [
+          0.2992,
+          0.2731,
+          0.2027
+        ],
+        "normalisation": 5.96373,
+        "clamp": 64,
+        "skyline": 0,
+        "rmsStops": 0.0149
+      }
+    },
+    {
+      "id": "kiara-8-sunset",
+      "kind": "hdri",
+      "title": "Kiara 8 Sunset",
+      "author": "Greg Zaal",
+      "licence": "CC0-1.0",
+      "attribution": "\"Kiara 8 Sunset\" HDRI by Greg Zaal, Poly Haven (CC0 1.0)",
+      "sourceUrl": "https://storage.googleapis.com/kubric-public/assets/HDRI_haven/kiara_8_sunset.tar.gz",
+      "homepage": "https://polyhaven.com/a/kiara_8_sunset",
+      "files": [
+        {
+          "path": "assets/third-party/hdri/kiara-8-sunset/kiara-8-sunset_4k.hdr.jpg",
+          "bytes": 439544,
+          "sha256": "bb5a577f3716cc4b7e31300b7499297fa943e1784fc351b6e38c1c75f6179d44",
+          "role": "4k",
+          "format": "ultrahdr",
+          "width": 4096,
+          "height": 2048,
+          "colorSpace": "linear",
+          "gainMap": {
+            "offset": 329629,
+            "width": 2048,
+            "height": 1024,
+            "gainMax": 6.022367813028454
+          }
+        },
+        {
+          "path": "assets/third-party/hdri/kiara-8-sunset/kiara-8-sunset_2k.hdr.jpg",
+          "bytes": 135406,
+          "sha256": "025d72b57db3598740db8d88fd6af9dca2b6b5ee8379d25fc870f601b5eec7a3",
+          "role": "2k",
+          "format": "ultrahdr",
+          "width": 2048,
+          "height": 1024,
+          "colorSpace": "linear",
+          "gainMap": {
+            "offset": 100275,
+            "width": 1024,
+            "height": 512,
+            "gainMax": 6.022367813028454
+          }
+        }
+      ],
+      "hdri": {
+        "sunAzimuth": 41.95,
+        "sunElevation": 3.53,
+        "sunColor": [
+          1,
+          0.6908,
+          0.1512
+        ],
+        "sunToSky": 1.475,
+        "domeMean": [
+          0.7298,
+          1.0142,
+          1.6548
+        ],
+        "horizonSunSide": [
+          5.7043,
+          4.7839,
+          2.6733
+        ],
+        "horizonAntiSun": [
+          1.4415,
+          1.4317,
+          1.1962
+        ],
+        "horizonMean": [
+          1.7285,
+          1.5345,
+          1.0255
+        ],
+        "zenith": [
+          0.308,
+          0.4693,
+          0.9094
+        ],
+        "groundMean": [
+          0.3704,
+          0.2475,
+          0.1395
+        ],
+        "normalisation": 3.05365,
+        "clamp": 64,
+        "skyline": 0,
+        "rmsStops": 0.0231
+      }
+    },
+    {
+      "id": "syferfontein-0d-clear",
+      "kind": "hdri",
+      "title": "Syferfontein 0d Clear",
+      "author": "Greg Zaal",
+      "licence": "CC0-1.0",
+      "attribution": "\"Syferfontein 0d Clear\" HDRI by Greg Zaal, Poly Haven (CC0 1.0)",
+      "sourceUrl": "https://storage.googleapis.com/kubric-public/assets/HDRI_haven/syferfontein_0d_clear.tar.gz",
+      "homepage": "https://polyhaven.com/a/syferfontein_0d_clear",
+      "files": [
+        {
+          "path": "assets/third-party/hdri/syferfontein-0d-clear/syferfontein-0d-clear_4k.hdr.jpg",
+          "bytes": 307484,
+          "sha256": "05d6b7d831b0ccaa460165ea4e5c8e63c0c4135e018b1eedda175ec81a731e7a",
+          "role": "4k",
+          "format": "ultrahdr",
+          "width": 4096,
+          "height": 2048,
+          "colorSpace": "linear",
+          "gainMap": {
+            "offset": 220359,
+            "width": 2048,
+            "height": 1024,
+            "gainMax": 6.022367813028454
+          }
+        },
+        {
+          "path": "assets/third-party/hdri/syferfontein-0d-clear/syferfontein-0d-clear_2k.hdr.jpg",
+          "bytes": 93388,
+          "sha256": "ac8ebf420373b5cf65130fd855a5197a056cbb808fc62ac7dbffe2cc7e710ceb",
+          "role": "2k",
+          "format": "ultrahdr",
+          "width": 2048,
+          "height": 1024,
+          "colorSpace": "linear",
+          "gainMap": {
+            "offset": 66008,
+            "width": 1024,
+            "height": 512,
+            "gainMax": 6.022367813028454
+          }
+        }
+      ],
+      "hdri": {
+        "sunAzimuth": 34.86,
+        "sunElevation": 3.43,
+        "sunColor": [
+          1,
+          0.6955,
+          0.3296
+        ],
+        "sunToSky": 0.005,
+        "domeMean": [
+          0.6904,
+          0.9859,
+          2.0513
+        ],
+        "horizonSunSide": [
+          22.3845,
+          15.4475,
+          8.5074
+        ],
+        "horizonAntiSun": [
+          0.469,
+          0.6196,
+          1.0677
+        ],
+        "horizonMean": [
+          6.2866,
+          4.5231,
+          3.168
+        ],
+        "zenith": [
+          0.2465,
+          0.4437,
+          1.1985
+        ],
+        "groundMean": [
+          0.1116,
+          0.077,
+          0.0894
+        ],
+        "normalisation": 2.19565,
+        "clamp": 64,
+        "skyline": 0,
+        "rmsStops": 0.0167
+      }
+    },
+    {
+      "id": "kloppenheim-02",
+      "kind": "hdri",
+      "title": "Kloppenheim 02",
+      "author": "Greg Zaal",
+      "licence": "CC0-1.0",
+      "attribution": "\"Kloppenheim 02\" HDRI by Greg Zaal, Poly Haven (CC0 1.0)",
+      "sourceUrl": "https://storage.googleapis.com/kubric-public/assets/HDRI_haven/kloppenheim_02.tar.gz",
+      "homepage": "https://polyhaven.com/a/kloppenheim_02",
+      "files": [
+        {
+          "path": "assets/third-party/hdri/kloppenheim-02/kloppenheim-02_4k.hdr.jpg",
+          "bytes": 1440664,
+          "sha256": "5ff5be68de7e0816ae966066c6e25c67aa886277bd36aee866f27f61997b6c92",
+          "role": "4k",
+          "format": "ultrahdr",
+          "width": 4096,
+          "height": 2048,
+          "colorSpace": "linear",
+          "gainMap": {
+            "offset": 1021039,
+            "width": 2048,
+            "height": 1024,
+            "gainMax": 6.022367813028454
+          }
+        },
+        {
+          "path": "assets/third-party/hdri/kloppenheim-02/kloppenheim-02_2k.hdr.jpg",
+          "bytes": 403608,
+          "sha256": "44ab146761eea32595351b3997c9ccd20a90f5c9a0e4bba2844f2329bfb82f63",
+          "role": "2k",
+          "format": "ultrahdr",
+          "width": 2048,
+          "height": 1024,
+          "colorSpace": "linear",
+          "gainMap": {
+            "offset": 285381,
+            "width": 1024,
+            "height": 512,
+            "gainMax": 6.022367813028454
+          }
+        }
+      ],
+      "hdri": {
+        "sunAzimuth": 35.63,
+        "sunElevation": 17.03,
+        "sunColor": [
+          0.7948,
+          0.8618,
+          1
+        ],
+        "sunToSky": 0.903,
+        "domeMean": [
+          0.8129,
+          1.0169,
+          1.3834
+        ],
+        "horizonSunSide": [
+          7.6524,
+          7.3253,
+          6.5868
+        ],
+        "horizonAntiSun": [
+          4.5193,
+          4.2556,
+          3.5221
+        ],
+        "horizonMean": [
+          5.5682,
+          4.8256,
+          3.8679
+        ],
+        "zenith": [
+          0.4371,
+          0.5783,
+          0.8425
+        ],
+        "groundMean": [
+          0.1947,
+          0.1861,
+          0.1263
+        ],
+        "normalisation": 5.86895,
+        "clamp": 64,
+        "skyline": 0,
+        "rmsStops": 0.0437
+      }
+    },
+    {
+      "id": "kloppenheim-04",
+      "kind": "hdri",
+      "title": "Kloppenheim 04",
+      "author": "Greg Zaal",
+      "licence": "CC0-1.0",
+      "attribution": "\"Kloppenheim 04\" HDRI by Greg Zaal, Poly Haven (CC0 1.0)",
+      "sourceUrl": "https://storage.googleapis.com/kubric-public/assets/HDRI_haven/kloppenheim_04.tar.gz",
+      "homepage": "https://polyhaven.com/a/kloppenheim_04",
+      "files": [
+        {
+          "path": "assets/third-party/hdri/kloppenheim-04/kloppenheim-04_4k.hdr.jpg",
+          "bytes": 497403,
+          "sha256": "7d160b1541bab349ca53f860721b792f582c2ae4a979512a3531eae77518c268",
+          "role": "4k",
+          "format": "ultrahdr",
+          "width": 4096,
+          "height": 2048,
+          "colorSpace": "linear",
+          "gainMap": {
+            "offset": 388865,
+            "width": 2048,
+            "height": 1024,
+            "gainMax": 6.022367813028454
+          }
+        },
+        {
+          "path": "assets/third-party/hdri/kloppenheim-04/kloppenheim-04_2k.hdr.jpg",
+          "bytes": 129318,
+          "sha256": "cd403ea9eeb582e8cc97646b036045448c8d77854191b4c10c55b37781028f9f",
+          "role": "2k",
+          "format": "ultrahdr",
+          "width": 2048,
+          "height": 1024,
+          "colorSpace": "linear",
+          "gainMap": {
+            "offset": 96752,
+            "width": 1024,
+            "height": 512,
+            "gainMax": 6.022367813028454
+          }
+        }
+      ],
+      "hdri": {
+        "sunAzimuth": 13.58,
+        "sunElevation": -0.33,
+        "sunColor": [
+          1,
+          0.8897,
+          0.8519
+        ],
+        "sunToSky": 0,
+        "domeMean": [
+          0.8841,
+          1.0296,
+          1.0487
+        ],
+        "horizonSunSide": [
+          3.03,
+          3.6748,
+          3.5268
+        ],
+        "horizonAntiSun": [
+          0.1903,
+          0.2056,
+          0.1933
+        ],
+        "horizonMean": [
+          1.4637,
+          1.8257,
+          1.7304
+        ],
+        "zenith": [
+          0.6945,
+          0.8053,
+          0.8484
+        ],
+        "groundMean": [
+          0.0808,
+          0.0783,
+          0.0415
+        ],
+        "normalisation": 3.68703,
+        "clamp": 64,
+        "skyline": 0,
+        "rmsStops": 0.0258
+      }
+    },
+    {
+      "id": "sandy-gravel-01",
+      "kind": "texture",
+      "title": "Sandy Gravel 01",
+      "author": "cgbookcase",
+      "licence": "CC0-1.0",
+      "attribution": "\"Sandy Gravel 01\" texture by cgbookcase (CC0 1.0)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/filament/58fcec6e73ed90f8d4be8ad9ad570bc3f3a59a4d/third_party/textures/Sandy_gravel_01/Sandy_gravel_01_Color.png",
+      "homepage": "https://www.cgbookcase.com/",
+      "files": [
+        {
+          "path": "assets/third-party/texture/sandy-gravel-01/sandy-gravel-01_color.webp",
+          "bytes": 239754,
+          "sha256": "073246ea9a6b3fd3ae0568e784fb43f64fea8b74c5f32b38f560bf110ddec64f",
+          "role": "color",
+          "format": "webp",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/texture/sandy-gravel-01/sandy-gravel-01_color.ktx2",
+          "bytes": 245065,
+          "sha256": "0c23fc7a24f38e8ee2e8143a32ee1b0d118fb5c9da2485d507b82627cfe156b1",
+          "role": "color",
+          "format": "ktx2",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/texture/sandy-gravel-01/sandy-gravel-01_normal.webp",
+          "bytes": 326396,
+          "sha256": "14e398f7b2bc2b7705b6838cf039b9fdc308ce632f29291c57c8af1fe1c5977b",
+          "role": "normal",
+          "format": "webp",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/texture/sandy-gravel-01/sandy-gravel-01_normal.ktx2",
+          "bytes": 1307480,
+          "sha256": "096c7381998fcd9d059d8bd8accc1f6ccfe855a5a51b9b79176afb7bd1159f50",
+          "role": "normal",
+          "format": "ktx2",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/texture/sandy-gravel-01/sandy-gravel-01_orm.webp",
+          "bytes": 238758,
+          "sha256": "ed90a7bfb17a4d561ac8fde2ad36006ba6f7be959889e45432c4672f435d2ffa",
+          "role": "orm",
+          "format": "webp",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/texture/sandy-gravel-01/sandy-gravel-01_orm.ktx2",
+          "bytes": 225517,
+          "sha256": "0e3518353e02c18b2792b00595bda0735b231a34dcda9914befec52b255c6f6b",
+          "role": "orm",
+          "format": "ktx2",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "linear"
+        }
+      ],
+      "texture": {
+        "metres": 2,
+        "normalConvention": "gl"
+      }
+    }
+  ],
+  "documents": [
+    {
+      "path": "assets/third-party/CREDITS.txt",
+      "bytes": 5965,
+      "sha256": "f028a97d6a3b76f9555c046c1e9a5190f2623c01ccb9fa0964466c33f0f6d984",
+      "role": "credits",
+      "format": "text"
+    }
+  ]
+}
