@@ -34,6 +34,12 @@ export interface CareerVenue {
   /** Surveyed jumps (off-road venues), for the landing licence. Read through
    * `surveyedJumps`, which keeps only entries that declare the geometry. */
   jumps?: readonly unknown[];
+  /** Machine classes the venue admits (terrain venues: motorcycles at a
+   * motocross track, cars at a rallycross or stage venue); absent: all. */
+  classes?: readonly string[];
+  /** Race formats the venue is built for (moto, rallycross, stage); a
+   * ruleset with a format races only where the venue declares it. */
+  formats?: readonly string[];
 }
 /** A jump the landing licence can score: where it is and the slope of its
  * landing face. Lap distances in m; `landingPitch` is the landing face's
@@ -82,6 +88,8 @@ export interface CareerRuleset {
   tires: { allowed: readonly string[] };
   classification: string;
   points: readonly number[];
+  /** Off-road format (gate motos, joker heats, timed stages), if any. */
+  format?: { kind: string };
 }
 export interface CareerRegistry {
   vehicles: readonly CareerVehicle[];
@@ -133,6 +141,7 @@ const OFF_ROAD_CLASSES = new Set([
   'trophy-truck',
   'motocross',
   'supercross',
+  'supermoto',
   'dirt-bike',
   'enduro',
 ]);

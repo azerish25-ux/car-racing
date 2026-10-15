@@ -13,7 +13,9 @@ export type TireFamilyId =
   | 'all-terrain'
   | 'kart'
   | 'historic'
-  | 'historic-slick';
+  | 'historic-slick'
+  | 'knobby'
+  | 'supermoto';
 export interface TireFamily {
   id: TireFamilyId;
   name: string;
@@ -49,5 +51,10 @@ export const TIRE_FAMILIES: Readonly<Record<TireFamilyId, TireFamily>> = Object.
   /** 1970s-80s racing slick: wide bias-ply or early radial construction, far
    * more grip than a cross-ply but less than a modern slick. */
   'historic-slick': family('historic-slick', 'Historic slick', [0.68, 0.9], 0),
+  /** Off-road motorcycle knobby: tall square blocks that bite into loam,
+   * sand and mud (bike definitions carry their own peak μ; tireGrip 1). */
+  knobby: family('knobby', 'Motocross knobby', [0.6, 1.1], 0.8),
+  /** Supermoto treaded slick: sticky on asphalt, a little bite on dirt. */
+  supermoto: family('supermoto', 'Supermoto treaded slick', [0.6, 1.1], 0.25),
 });
 export const TIRE_FAMILY_IDS = Object.freeze(Object.keys(TIRE_FAMILIES) as TireFamilyId[]);

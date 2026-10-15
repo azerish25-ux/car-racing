@@ -8,6 +8,8 @@
 import { clamp, G } from '../src/core/math.ts';
 import { DEFAULT_SETUP } from '../src/simulation/config.ts';
 import { BikeVehicle } from '../src/simulation/bike-vehicle.ts';
+import { DirtBikeVehicle } from '../src/simulation/offroad/dirt-bike-vehicle.ts';
+import { isDirtBike } from '../src/simulation/offroad/dirt-bikes.ts';
 import type { VehicleDefinition } from '../src/simulation/vehicles.ts';
 import { DynamicsTrack } from './dynamics-fixtures.ts';
 
@@ -53,9 +55,35 @@ export const BIKE_TARGETS: Record<string, Record<string, Band>> = {
     braking100Distance: [40, 56],
     lateral80G: [0.85, 1.15],
   },
+  // Off-road machines (WP37) on the same asphalt runway: knobby tyres, short
+  // gearing and a ~120-150 km/h top end; the supermoto on treaded road tyres.
+  // Acceleration is wheelie-limited: with the rider seated the combined CG
+  // stands ~0.86 m over a 1.48 m wheelbase (g·b/h ≈ 8.3 m/s²), and the anti-
+  // wheelie aid keeps a margin under that, so 0-100 km/h takes 4-5 s.
+  mx450: {
+    accel0to100: [3.4, 5.4],
+    topSpeed: [118, 145],
+    braking100Distance: [40, 62],
+    lateral80G: [0.75, 1.1],
+  },
+  mx250: {
+    accel0to100: [3.6, 5.6],
+    topSpeed: [118, 145],
+    braking100Distance: [40, 62],
+    lateral80G: [0.75, 1.1],
+  },
+  sm450: {
+    accel0to100: [3.4, 5.2],
+    topSpeed: [138, 165],
+    braking100Distance: [34, 50],
+    lateral80G: [0.95, 1.3],
+  },
 };
 function rider(def: VehicleDefinition, track: DynamicsTrack) {
-  const bike = new BikeVehicle(0, 'medium', DEFAULT_SETUP, 'sport', def);
+  // Off-road machines run their own adapter (long travel, flight, posture).
+  const bike = isDirtBike(def)
+    ? new DirtBikeVehicle(0, 'medium', DEFAULT_SETUP, 'sport', def)
+    : new BikeVehicle(0, 'medium', DEFAULT_SETUP, 'sport', def);
   bike.place(track, 0);
   return bike;
 }

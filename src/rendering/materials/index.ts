@@ -11,6 +11,7 @@
  *   materials.wetRoad({ wetness: 1 });
  *   materials.concrete({ variant: 'rough', horizontal: 0 });
  *   materials.vegetation({ translucency: 0.4, alphaMap });
+ *   materials.soil({ tile: 1.4 });
  *
  * See library.ts for the shared conventions and docs/production/RENDERING_PIPELINE.md.
  */
@@ -26,6 +27,7 @@ import {
   prepareMaterials,
   rubber,
   setSurfaceWeather,
+  soil,
   vegetation,
   wetRoad,
 } from './library.ts';
@@ -39,6 +41,7 @@ export const materials = Object.freeze({
   asphalt,
   wetRoad,
   concrete,
+  soil,
   vegetation,
   boxProjectUv,
   setSurfaceWeather,
@@ -53,6 +56,7 @@ export type {
   GlassOptions,
   MetalOptions,
   RubberOptions,
+  SoilOptions,
   VegetationOptions,
 } from './library.ts';
 export { METAL_F0, surfaceWeather, wetSurfaceResponse } from './library.ts';

@@ -27,7 +27,8 @@ export type ProceduralRecipe =
   | 'asphalt-worn'
   | 'asphalt-patched'
   | 'concrete-smooth'
-  | 'concrete-rough';
+  | 'concrete-rough'
+  | 'soil';
 export type ProceduralOutput = 'normal' | 'orm' | 'albedo';
 export const PROCEDURAL_RECIPES: readonly ProceduralRecipe[] = Object.freeze([
   'flake',
@@ -38,6 +39,7 @@ export const PROCEDURAL_RECIPES: readonly ProceduralRecipe[] = Object.freeze([
   'asphalt-patched',
   'concrete-smooth',
   'concrete-rough',
+  'soil',
 ]);
 /** Texels per side of every baked map (power of two: full mip chain). */
 export const PROCEDURAL_SIZE = 512;
@@ -220,6 +222,31 @@ vec3 orm( vec2 uv ) { return vec3( mix( 0.78, 1.0, height( uv ) ), 0.97, 1.0 ); 
 vec3 albedo( vec2 uv ) {
 	vec4 v = voronoi( uv, 70.0 );
 	return vec3( ( 0.85 + 0.25 * v.y * smoothstep( 0.4, 0.15, v.x ) ) * ( 0.9 + 0.2 * fbm( uv, 4.0, 3 ) ) );
+}`,
+  },
+  // Worked soil: clods, a scatter of small stones and fine grain; cavities
+  // between clods are darker and rougher, stone tops a little smoother.
+  soil: {
+    relief: 2.2,
+    glsl: `
+float clods( vec2 uv ) {
+	vec4 v = voronoi( uv, 14.0 );
+	return smoothstep( 0.55, 0.12, v.x ) * ( 0.55 + 0.45 * v.y );
+}
+float stones( vec2 uv ) {
+	vec4 v = voronoi( uv, 52.0 );
+	return step( v.y, 0.2 ) * smoothstep( 0.3, 0.1, v.x );
+}
+float height( vec2 uv ) {
+	return 0.45 * clods( uv ) + 0.3 * fbm( uv, 20.0, 4 ) + 0.3 * stones( uv );
+}
+vec3 orm( vec2 uv ) {
+	float h = height( uv );
+	return vec3( mix( 0.66, 1.0, smoothstep( 0.05, 0.55, h ) ), 1.0 - 0.18 * stones( uv ) + 0.06 * fbm( uv, 10.0, 2 ), 1.0 );
+}
+vec3 albedo( vec2 uv ) {
+	float tone = 0.84 + 0.2 * fbm( uv, 4.0, 4 ) + 0.12 * clods( uv );
+	return vec3( tone * ( 1.0 + 0.3 * stones( uv ) ) );
 }`,
   },
 });

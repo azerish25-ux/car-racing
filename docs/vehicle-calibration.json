@@ -4565,6 +4565,219 @@
         "referenceMu": 1.82,
         "downforceReference": 250
       }
+    },
+    "mx450": {
+      "name": "MX-450 MOTOCROSS",
+      "version": 1,
+      "hash": "c71a9c4d",
+      "comparison": [
+        {
+          "metric": "accel0to100",
+          "measured": 5.079166666666699,
+          "coarseDt": 5.108333333333377,
+          "band": [
+            3.4,
+            5.4
+          ],
+          "within": true,
+          "coarseWithin": true,
+          "timestepDrift": 0.005742411812963704
+        },
+        {
+          "metric": "topSpeed",
+          "measured": 125.09744537006662,
+          "coarseDt": 125.12512580040267,
+          "band": [
+            118,
+            145
+          ],
+          "within": true,
+          "coarseWithin": true,
+          "timestepDrift": 0.0002212709480530385
+        },
+        {
+          "metric": "braking100Distance",
+          "measured": 45.8881792344265,
+          "coarseDt": 45.947119383295046,
+          "band": [
+            40,
+            62
+          ],
+          "within": true,
+          "coarseWithin": true,
+          "timestepDrift": 0.001284429886996377
+        },
+        {
+          "metric": "lateral80G",
+          "measured": 0.8023985764385325,
+          "coarseDt": 0.8024923732323278,
+          "band": [
+            0.75,
+            1.1
+          ],
+          "within": true,
+          "coarseWithin": true,
+          "timestepDrift": 0.00011689551371290584
+        }
+      ],
+      "lateralEnvelopeFit": {
+        "base": 7.868841999630934,
+        "aero": 0
+      },
+      "aiEnvelope": {
+        "lateralBase": 8,
+        "lateralAero": 0,
+        "brakingBase": 7.35,
+        "brakingAero": 0.002168,
+        "lateralMargin": 0.8,
+        "slowLateralMargin": 0.74,
+        "brakingMargin": 0.5,
+        "topSpeed": 34,
+        "referenceMu": 1.82,
+        "downforceReference": 184.5
+      }
+    },
+    "mx250": {
+      "name": "MX-250 TWO-STROKE",
+      "version": 1,
+      "hash": "8bb6e084",
+      "comparison": [
+        {
+          "metric": "accel0to100",
+          "measured": 4.983333333333371,
+          "coarseDt": 5.000000000000038,
+          "band": [
+            3.6,
+            5.6
+          ],
+          "within": true,
+          "coarseWithin": true,
+          "timestepDrift": 0.003344481605351312
+        },
+        {
+          "metric": "topSpeed",
+          "measured": 128.55295813600847,
+          "coarseDt": 128.56506852580307,
+          "band": [
+            118,
+            145
+          ],
+          "within": true,
+          "coarseWithin": true,
+          "timestepDrift": 0.0000942054540805452
+        },
+        {
+          "metric": "braking100Distance",
+          "measured": 45.27909247247884,
+          "coarseDt": 45.24994416457153,
+          "band": [
+            40,
+            62
+          ],
+          "within": true,
+          "coarseWithin": true,
+          "timestepDrift": 0.0006437476176233596
+        },
+        {
+          "metric": "lateral80G",
+          "measured": 0.8024332914953639,
+          "coarseDt": 0.8025308282258767,
+          "band": [
+            0.75,
+            1.1
+          ],
+          "within": true,
+          "coarseWithin": true,
+          "timestepDrift": 0.00012155120126068398
+        }
+      ],
+      "lateralEnvelopeFit": {
+        "base": 7.86918243804301,
+        "aero": 0
+      },
+      "aiEnvelope": {
+        "lateralBase": 8,
+        "lateralAero": 0,
+        "brakingBase": 7.44,
+        "brakingAero": 0.002247,
+        "lateralMargin": 0.8,
+        "slowLateralMargin": 0.74,
+        "brakingMargin": 0.5,
+        "topSpeed": 33,
+        "referenceMu": 1.82,
+        "downforceReference": 178
+      }
+    },
+    "sm450": {
+      "name": "SM-450 SUPERMOTO",
+      "version": 1,
+      "hash": "44b95993",
+      "comparison": [
+        {
+          "metric": "accel0to100",
+          "measured": 4.750000000000051,
+          "coarseDt": 4.766666666666693,
+          "band": [
+            3.4,
+            5.2
+          ],
+          "within": true,
+          "coarseWithin": true,
+          "timestepDrift": 0.003508771929819463
+        },
+        {
+          "metric": "topSpeed",
+          "measured": 149.99520851046975,
+          "coarseDt": 149.99338154676,
+          "band": [
+            138,
+            165
+          ],
+          "within": true,
+          "coarseWithin": true,
+          "timestepDrift": 0.000012180147138718753
+        },
+        {
+          "metric": "braking100Distance",
+          "measured": 43.78883988032766,
+          "coarseDt": 43.81171903740156,
+          "band": [
+            34,
+            50
+          ],
+          "within": true,
+          "coarseWithin": true,
+          "timestepDrift": 0.0005224883129224108
+        },
+        {
+          "metric": "lateral80G",
+          "measured": 0.993909907287228,
+          "coarseDt": 0.994022472571731,
+          "band": [
+            0.95,
+            1.3
+          ],
+          "within": true,
+          "coarseWithin": true,
+          "timestepDrift": 0.00011325501806328877
+        }
+      ],
+      "lateralEnvelopeFit": {
+        "base": 9.746926592298294,
+        "aero": 0
+      },
+      "aiEnvelope": {
+        "lateralBase": 9.88,
+        "lateralAero": 0,
+        "brakingBase": 7.86,
+        "brakingAero": 0.001905,
+        "lateralMargin": 0.8,
+        "slowLateralMargin": 0.74,
+        "brakingMargin": 0.5,
+        "topSpeed": 41,
+        "referenceMu": 1.82,
+        "downforceReference": 189
+      }
     }
   }
 }

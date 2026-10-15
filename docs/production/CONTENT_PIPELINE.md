@@ -334,23 +334,23 @@ Metrics within 3 % of a band edge at either timestep (from `docs/vehicle-calibra
 | Lightweight club | 2 | car launch | 3 (CR-1, HH-2; vintage VC-62) |
 | Endurance prototype | 3 | circuit expansion | 4 (HY-9, HY-11, PR-2, PR-3) |
 | Historic | 3 | circuit expansion | 4 (HF-67, HF-76, HF-86, SP-71) |
-| Rally | 3 | dirt expansion | 3 (RL-2, RL-7, GB-4; no dirt venue yet) |
-| Rallycross | 3 | dirt expansion | 2 (RCX-6, RX-E; no dirt venue yet) |
+| Rally | 3 | dirt expansion | 3 (RL-2, RL-7, GB-4; the classes race the Pinewood special stage, the historic RL-7 and GB-4 also their own paved heats) |
+| Rallycross | 3 | dirt expansion | 2 (RCX-6, RX-E; the class races the Kestrel joker heat) |
 | Off-road truck/buggy | 3 | dirt expansion | 2 (DX-8, BG-2; limited suspension travel) |
 | Kart | 2 | small-vehicle slice | 2 (SK-125, DK-100) |
 | Road sport motorcycle | 3 | bike expansion | 3 (SBK-1000, SS-600, CR-750; procedural art) |
 | Prototype GP-style motorcycle | 3 | bike expansion | 2 (GP-R1, GP-R2; procedural art) |
-| Motocross | 4 | dirt-bike expansion | 0 here (off-road programme) |
-| Supermoto | 3 | after bike/dirt gates | 0 here (off-road programme) |
+| Motocross | 4 | dirt-bike expansion | 2 (MX-450, MX-250; integrated, procedural art) |
+| Supermoto | 3 | after bike/dirt gates | 1 (SM-450; integrated, procedural art) |
 | Flat-track | 2 | after bike/dirt gates | 0 |
 | Experimental | 4 | extreme expansion | 4 (XF-2 fan car, XE-1 electric time attack, XH-3 hydrogen concept, XT-1 track hypercar) |
 
 "Present" means integrated (definition, calibration inside its bands at both timesteps, AI
 envelope, procedural exterior with its own body sheet, explicit sound family, menu entry, class
 ruleset and event where the class races); none of these meets the §1.1 definition of done (no
-authored source assets, damage variants, recorded audio or sign-off). Counts: 48 cars and 6 road
-motorcycles are registered (54 machines; 43 against the destination families above). Eleven
-open-world machines sit outside the 48-model destination list: EH-3, SC-7, RH-3 hot hatch, RS-5
+authored source assets, damage variants, recorded audio or sign-off). Counts: 48 cars, 6 road
+motorcycles and 3 off-road motorcycles are registered (57 machines; 46 against the destination
+families above). Eleven open-world machines sit outside the 48-model destination list: EH-3, SC-7, RH-3 hot hatch, RS-5
 sports sedan, RM-8 muscle coupe, RG-63 classic grand tourer, RP-6 pickup, RR-4 rally-bred road
 car, LX-12 luxury GT, RD-2 roadster and the NR-900 naked roadster bike (classes `road` and
 `road-bike`: practice, qualifying and time trial, no circuit race).
@@ -409,6 +409,17 @@ previewer, performance heat map (§14.4), and person-time records for the stages
 
 Selection (§15.3): rank by new racing created, reuse, readability, vehicle fit and risk; approve
 only after a greybox lap, an AI race, a recovery demonstration and a rough performance capture.
+
+**Terrain venues (WP39).** Four original off-road venues are built with the same layout builder plus
+a course description (`src/simulation/offroad/venues.ts`): a longitudinal jump profile with surveyed
+take-off and landing faces, berms on the outside of turns, whoops/rollers, soil zones and a
+deformable terrain band. Valley Ridge (outdoor motocross: gate straight, 2 tabletops, 2 doubles, a
+triple, a kicker, whoops, rollers), Arena Nord (indoor supercross at night: triple rhythm lane, double,
+tabletop, whoops, finish triple), Kestrel (rallycross: asphalt start and finish, gravel loop, crest,
+joker road) and Pinewood (gravel special stage, ~2.8 km, three crests, two splits). Each passes
+`validate:content`, has seeded AI races in `docs/offroad-races.json` and admits only its machine
+classes (motorcycles at motocross/supercross, cars at rallycross/stages). Not done: art pass beyond
+the procedural venue kit, human races, performance capture, §15.3 approval.
 
 Catalogue layouts C01–C12 (20 layouts, [roster and limits](../CIRCUIT_CATALOGUE.md)) have passed the
 greybox lap and AI race stages (`docs/circuit-catalogue-races.json`), and the operational pass for

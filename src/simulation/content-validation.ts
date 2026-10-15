@@ -262,7 +262,7 @@ function validateCatalogueEntry(def: CircuitDefinition): string[] {
     if (protectedName.test(text)) e.push(`${at}: "${text}" uses a protected real-world name`);
   if (!meta.description || meta.description.length > 160)
     e.push(`${at}: description must be 1-160 characters`);
-  if (!['real-world', 'original', 'unconventional'].includes(meta.group))
+  if (!['real-world', 'original', 'unconventional', 'off-road'].includes(meta.group))
     e.push(`${at}: unknown menu group ${meta.group}`);
   if (meta.group === 'real-world' && !meta.referenceLength)
     e.push(`${at}: a real-world approximation must state its reference length`);

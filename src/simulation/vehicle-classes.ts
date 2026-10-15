@@ -129,6 +129,18 @@ export const VEHICLE_CLASSES: Readonly<Partial<Record<VehicleClass, VehicleClass
       raceRuleset: 'motorcycle-class-sprint',
     },
     'road-bike': { name: 'Road motorcycle (open-world)', family: 'motorcycle', order: 15.8 },
+    motocross: {
+      name: 'Motocross',
+      family: 'motorcycle',
+      order: 16,
+      raceRuleset: 'motocross-moto',
+    },
+    supermoto: {
+      name: 'Supermoto',
+      family: 'motorcycle',
+      order: 17,
+      raceRuleset: 'supermoto-moto',
+    },
   });
 const OTHER: VehicleClassInfo = Object.freeze({ name: 'Other', family: 'other', order: 99 });
 export function classInfo(classId: string): VehicleClassInfo {

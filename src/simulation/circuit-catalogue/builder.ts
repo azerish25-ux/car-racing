@@ -6,6 +6,7 @@ import {
   type BarrierSpan,
   type CatalogueCircuitId,
   type CatalogueGroup,
+  type OffroadCircuitId,
   type CatalogueMeta,
   type LapSpan,
   type RouteCrossing,
@@ -50,7 +51,7 @@ export interface Segment {
   drs?: boolean;
 }
 export interface CircuitSpec {
-  id: CatalogueCircuitId;
+  id: CatalogueCircuitId | OffroadCircuitId;
   name: string;
   short: string;
   group: CatalogueGroup;
@@ -86,7 +87,7 @@ export interface CircuitSpec {
   variantOf?: string;
 }
 export type CatalogueCircuit = CircuitDefinition & {
-  readonly id: CatalogueCircuitId;
+  readonly id: CatalogueCircuitId | OffroadCircuitId;
   readonly catalogue: CatalogueMeta;
 };
 

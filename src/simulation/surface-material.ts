@@ -4,8 +4,8 @@ import { clamp, smooth } from '../core/math.ts';
  * prototype and future terrain tiles (docs/production/PHYSICS_MODEL.md §5).
  *
  * Ids 0-5 are the circuit ids carried in snapshots (`SURFACE` in track.ts,
- * protocol W.SURFACE); 6-10 are additional materials for venues, terrain and
- * bikes. Original engineering calibration, not measured tribology data: the
+ * protocol W.SURFACE); 6-11 are additional materials for venues, terrain and
+ * bikes (11, compacted gravel road, for rally stages and rallycross). Original engineering calibration, not measured tribology data: the
  * circuit values reproduce the former hard-coded track grip/resistance.
  *
  * Units: friction and coefficients dimensionless, depths in metres unless
@@ -22,6 +22,8 @@ export const MATERIAL = Object.freeze({
   SAND: 8,
   SNOW: 9,
   ICE: 10,
+  /** Compacted gravel road (rally stages, rallycross loose sections). */
+  GRAVEL_ROAD: 11,
 } as const);
 export type MaterialId = (typeof MATERIAL)[keyof typeof MATERIAL];
 
@@ -269,6 +271,28 @@ export const MATERIALS: readonly SurfaceMaterial[] = Object.freeze([
     loose: false,
     sealed: false,
     meltSensitive: true,
+  }),
+  // Rolled gravel over a hard base: a loose top layer on a firm road, so it
+  // grips far better than a gravel trap and barely sinks (rally stages).
+  material({
+    id: 11,
+    name: 'gravel road',
+    grip: 0.62,
+    wetGrip: 0.86,
+    wetDepthMm: 1.5,
+    stiffness: 0.55,
+    falloff: 0.3,
+    coupling: 0.45,
+    rolling: 0.03,
+    textureMm: 4,
+    sinkModulus: 9e6,
+    sinkExponent: 1,
+    maxSinkage: 0.012,
+    bulldoze: 6000,
+    bulldozeDynamic: 2.5,
+    loose: true,
+    sealed: false,
+    meltSensitive: false,
   }),
 ]);
 /** Material for a surface id; unknown ids are asphalt (never undefined). */

@@ -1,6 +1,7 @@
 import { clamp, G } from '../core/math.ts';
 import type { BikeParameters } from './bike.ts';
 import type { CapabilityEnvelope, VehicleDefinition } from './vehicles.ts';
+import type { OffroadBikeSpec } from './offroad/types.ts';
 
 /** Two-wheel family block of a VehicleDefinition (WP33/WP34, masterplan §8,
  * decision D13): a motorcycle runs its own dynamics adapter (BikeVehicle), so
@@ -50,6 +51,8 @@ export interface BikeSpec {
   shockRate: number;
   /** Contact energy (J) above which the rider cannot stay on. */
   crashEnergy: number;
+  /** Off-road machines (offroad/dirt-bikes.ts): airborne and terrain block. */
+  offroad?: OffroadBikeSpec;
 }
 export function isBike(def: Pick<VehicleDefinition, 'dynamicsKind'>) {
   return def.dynamicsKind === 'bike';

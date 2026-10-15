@@ -181,6 +181,12 @@ export class RaceDirector {
   private nextMessage = 0;
   /** Sporting rules for this session (WP09); legacy modes imply theirs. */
   readonly ruleset: RulesetDefinition;
+  /** A session format that judges its own start (the off-road gate and stage
+   * start control): the lights-phase jump-start check stands down for it. */
+  formatJudgesStart = false;
+  /** Called as each car is given its finishing time, before the field is
+   * checked for the flag (format penalties land before the classification). */
+  onFinish: ((car: number) => void) | null = null;
   constructor(
     readonly cars: Vehicle[],
     readonly track: Track,
@@ -298,7 +304,7 @@ export class RaceDirector {
       for (let i = 0; i < this.cars.length; i++) {
         const lap = this.laps[i],
           c = this.cars[i];
-        if (c.speed > 0.8 && !lap.jumped && this.time < this.greenAt) {
+        if (!this.formatJudgesStart && c.speed > 0.8 && !lap.jumped && this.time < this.greenAt) {
           lap.jumped = true;
           this.penalize(i, 5, 'JUMP_START');
           this.message = 'JUMP START · +5 SECONDS';
@@ -398,6 +404,7 @@ export class RaceDirector {
               !mandatoryStopSatisfied(car.compoundsUsed)
             )
               this.penalize(i, this.ruleset.tires.penaltySeconds, 'MANDATORY_STOP');
+            this.onFinish?.(i);
           }
           else if (!car.finishTime && this.raceTime - this.finishStartedAt >= FINISH_GRACE_SECONDS)
             car.retired = true; // Explicit DNF, never a manufactured finishing time.

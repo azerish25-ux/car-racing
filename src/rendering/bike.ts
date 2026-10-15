@@ -5,6 +5,8 @@ import {
   BIKE_BASE,
   F,
   H,
+  O,
+  OFFROAD_BASE,
   R,
   RACE_BASE,
   W,
@@ -20,6 +22,9 @@ import { canvasTexture } from './geometry.ts';
 import { detailDistance } from './view-detail.ts';
 import { Rider, type RiderDetail } from './rider.ts';
 import { bikeSheetFor } from './bike-sheet.ts';
+import { isDirtBike } from '../simulation/offroad/dirt-bikes.ts';
+import { DirtBikeModel } from './offroad/dirt-bike-model.ts';
+import { mudUniforms } from './offroad/mud.ts';
 
 /** Procedural road-racing motorcycle (WP34 presentation, masterplan §17).
  * Original design, no real manufacturer or team: a lofted fairing in
@@ -34,7 +39,7 @@ type Detail = RiderDetail;
 const RAKE = 0.42,
   FORK_OFFSET = 0.03,
   FORK_LENGTH = 0.7;
-interface Section {
+export interface Section {
   z: number;
   y: number;
   w: number;
@@ -44,7 +49,7 @@ interface Section {
   topWidth?: number;
 }
 /** Closed superelliptic loft along +Z; distinct top/bottom radii shape a fairing. */
-function superLoft(input: readonly Section[], sides: number, exponent = 2.6, caps = true) {
+export function superLoft(input: readonly Section[], sides: number, exponent = 2.6, caps = true) {
   // Ascending z keeps the winding (and so the normals) outward.
   const sections = [...input].sort((a, b) => a.z - b.z);
   const p: number[] = [],
@@ -118,7 +123,7 @@ function arcSheet(input: readonly Section[], from: number, to: number, columns: 
 }
 /** Tyre: tread arc of `crown` radius over `halfWidth`, rounded sidewalls to the
  * rim bead; lathed about the axle (local X). */
-function tyreGeometry(
+export function tyreGeometry(
   radius: number,
   halfWidth: number,
   crown: number,
@@ -144,7 +149,7 @@ function tyreGeometry(
   g.rotateZ(Math.PI / 2);
   return g;
 }
-function ringGeometry(outer: number, inner: number, thickness: number, sides: number) {
+export function ringGeometry(outer: number, inner: number, thickness: number, sides: number) {
   const shape = new T.Shape();
   shape.absarc(0, 0, outer, 0, Math.PI * 2, false);
   const hole = new T.Path();
@@ -160,7 +165,7 @@ function ringGeometry(outer: number, inner: number, thickness: number, sides: nu
   return g;
 }
 /** Rectangular-section beam swept along a curve (frame spars, swingarm). */
-function beam(
+export function beam(
   points: readonly [number, number, number][],
   width: number,
   height: number,
@@ -182,7 +187,7 @@ function beam(
   const path = new T.CatmullRomCurve3(points.map((p) => new T.Vector3(...p)));
   return new T.ExtrudeGeometry(shape, { steps: segments, bevelEnabled: false, extrudePath: path });
 }
-function tube(
+export function tube(
   points: readonly [number, number, number][],
   radius: number,
   segments: number,
@@ -197,7 +202,7 @@ function tube(
   );
 }
 /** Exhaust tube with a heat-tint vertex gradient (blued headers to straw). */
-function exhaustGeometry(
+export function exhaustGeometry(
   points: readonly [number, number, number][],
   radius: number,
   segments: number,
@@ -244,7 +249,7 @@ function carbonTexture() {
   texture.repeat.set(6, 6);
   return texture;
 }
-function numberTexture(number: number, paint: string, ink: string) {
+export function numberTexture(number: number, paint: string, ink: string) {
   return canvasTexture(256, 256, (c) => {
     c.fillStyle = paint;
     c.fillRect(0, 0, 256, 256);
@@ -443,7 +448,7 @@ export class BikeMaterials {
     }
   }
 }
-function add(
+export function add(
   parent: T.Object3D,
   g: T.BufferGeometry,
   m: T.Material,
@@ -460,7 +465,7 @@ function add(
   return mesh;
 }
 /** Static compressions under the bike's own weight (m). */
-function staticSag(def: VehicleDefinition) {
+export function staticSag(def: VehicleDefinition) {
   const b = def.bike!,
     m = def.spec.dryMass + b.fuel,
     L = def.spec.wheelbase;
@@ -1349,11 +1354,18 @@ export interface BikePoseValues {
   discTemp: number;
   compoundColour: number;
   riding: boolean;
+  /** Off-road (WP41, snapshot O block): standing 0..1, foot dab -1..1, body
+   * fore/aft, mud coat 0..1 and the soil wetness it came from. */
+  standing?: number;
+  dab?: number;
+  body?: number;
+  mud?: number;
+  mudWet?: number;
 }
 interface Entry {
   definition: VehicleDefinition;
   materials: BikeMaterials;
-  levels: BikeModel[];
+  levels: (BikeModel | DirtBikeModel)[];
   level: number;
 }
 const COMPOUND_COLOURS = Object.values(COMPOUNDS).map((c) => c.color);
@@ -1408,8 +1420,12 @@ export class BikeShells {
   }
   private build(id: number, definition: VehicleDefinition): Entry {
     const materials = new BikeMaterials(id);
-    const levels = (['high', 'mid', 'far'] as const).map(
-      (detail) => new BikeModel(definition, id, detail, materials, detail === 'high'),
+    // Off-road machines (WP41) have their own model; one mud coat per entrant.
+    const mud = mudUniforms();
+    const levels = (['high', 'mid', 'far'] as const).map((detail) =>
+      isDirtBike(definition)
+        ? new DirtBikeModel(definition, id, detail, materials, mud)
+        : new BikeModel(definition, id, detail, materials, detail === 'high'),
     );
     for (const level of levels) {
       this.root.add(level.root);
@@ -1478,7 +1494,13 @@ export class BikeShells {
       this.pose(model, a, b, alpha, id);
     }
   }
-  private pose(model: BikeModel, a: Float32Array, b: Float32Array, t: number, id: number) {
+  private pose(
+    model: BikeModel | DirtBikeModel,
+    a: Float32Array,
+    b: Float32Array,
+    t: number,
+    id: number,
+  ) {
     const o = carBase(id),
       k = o + BIKE_BASE,
       bike = model.definition.bike!,
@@ -1499,6 +1521,12 @@ export class BikeShells {
     v.compoundColour = COMPOUND_COLOURS[Math.round(b[o + F.COMPOUND])] ?? 0xffffff;
     const state = BIKE_STATES[Math.round(b[k + B.STATE])] ?? 'riding';
     v.riding = state === 'riding';
+    const ob = o + OFFROAD_BASE;
+    v.standing = lerp(ob + O.STANDING);
+    v.dab = lerp(ob + O.DAB);
+    v.body = lerp(ob + O.BODY);
+    v.mud = b[ob + O.MUD];
+    v.mudWet = b[ob + O.MOISTURE];
     model.pose(v);
     const rider = model.rider;
     if (v.riding) {

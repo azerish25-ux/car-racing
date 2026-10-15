@@ -620,3 +620,53 @@ recorded angle includes camber gain.
   tyre, thermal, hub and ground models. Per-car `dynamics` blocks are the next calibration step.
 * **AI tuning.** The AI capability envelopes were not refitted. The AI keeps its margins and
   friction-limit feedback.
+
+## Off-road machines and terrain (WP37–WP38)
+
+**Dirt bikes** (`src/simulation/offroad/dirt-bike-vehicle.ts`) run the shared two-wheel core
+(lean, steer, tyre forces, rider aids) with a vertical model of their own: a 2-DOF sprung chassis
+(heave and pitch) over the two contact patches, rising-rate springs (`k·c·(1 + p·(c/T)²)`),
+digressive damping with harder rebound, and a stiff, lossy bump stop whose shaft speed is the
+bottoming measure. Longitudinal tyre forces pitch the chassis (squat and dive). Take-off is
+detected when both wheels stay unloaded for three substeps; the flight is ballistic at the plan-view
+speed of the face the rear wheel left, with drag, and the chassis pitch is the integral of the body
+torque (rider fore/aft) and the rear wheel's spin reaction (throttle spins it up and pitches the nose
+up, the rear brake stops it and pitches the nose down). The AI's (and the Sport aid's) pitch control
+aims a little nose-up of the predicted landing slope. A touchdown is judged once: a nose-down or
+nose-up error beyond the machine's limits with a real impact crashes, and the bump-stop shaft speed
+over the first quarter second bottoms (a speed loss) or crashes. Hops at walking pace are never
+judged on pitch. On the ground, grip is smoothed over a third of a second (a hop or a rut edge does
+not change the lean budget within a step), a berm's bank adds the friction it supports, and lean
+the tyres cannot hold inside the aid's 0.8 µ budget is bled off as a rear slide that stands the
+bike up instead of a lean that runs away. The rider's body fore/aft (±0.25 m over the pegs) shifts
+the CG on the ground; rolling a steep face slowly the rider stands and leans over the bars. The
+sprung chassis carries every wheelie (the core's relative pitch is not added at take-off): a held
+wheelie past its balance point (`atan(cgToRear / (cgHeight + rear sag))` over the ground, the front
+off for 0.4 s and the drive still rotating the nose up) loops the rider out on the ground instead
+of lifting the rear into a flight. With the wheelie aid (Sport and the AI) the adapter reads the
+sprung chassis too: a front off the ground with the nose up over it closes the throttle, then
+covers the rear brake. A rider who comes off in the air (a contact) leaves a machine that keeps
+flying ballistically until it is down at its lying height. Calibration: 0–60 m from the gate, the
+flight distance against the ballistic distance of the measured take-off speed (0.85–1.15), the
+landing windows per surveyed jump and every gap jump rolled at walking pace past its end
+(`npm run test:offroad`, `docs/offroad-calibration.json`); asphalt runway bands in
+`docs/vehicle-calibration.json` (acceleration is wheelie-limited with a 0.86 m combined CG).
+
+**Loose-ground tyres.** A tyre family's loose-surface recovery (`looseGrip`: knobbies, gravel and
+all-terrain tyres) applies on grass and gravel everywhere, and on any loose material (dirt, mud,
+sand, snow, gravel road) only where the sample comes from a terrain venue's own deformable ground
+(`SurfaceSample.terrain`). Dirt, sand or snow emitted elsewhere (the festival world) keeps the
+original grass-and-gravel rule.
+
+**Course terrain** (`course-terrain.ts`) is a `TerrainTile` laid in the Track frame (columns across,
+rows along the lap; 0.25 m × 0.5 m) over a band around the course. The base height is the Track's
+cross-section plus the static relief (the jump profile with faded sides, berms on the outside of
+turns, the joker island, braking chop). Every loaded contact patch, in fixed entrant and wheel
+order, depresses and compacts its cell (and half as much each side): sinkage grows with load, slip,
+moisture and the soil's softness and falls as the cell compacts. Contact reads the deformed height
+and normal, soil friction with compaction and moisture terms, and bulldozing resistance from the rut
+depth; asphalt cells never deform. Session wetness rises with rain and falls in dry, sunny air.
+Determinism: the field is a pure function of the step sequence (identical across runs and after a
+flashback re-simulation; `hash()` fingerprints it). No relaxation runs inside a session; a new
+session starts on prepared ground.
+

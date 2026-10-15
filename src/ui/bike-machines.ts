@@ -1,12 +1,14 @@
 import type { SessionOptions } from '../simulation/config.ts';
 import { classInfo, vehiclesByClass } from '../simulation/vehicle-classes.ts';
 import { VEHICLES } from '../simulation/vehicles.ts';
+import { isDirtBike } from '../simulation/offroad/dirt-bikes.ts';
 
 /** MACHINE choices for the motorcycle discipline (WP36), data-driven from the
  * registry: every motorcycle in class order (a single-machine grid under its
  * class's race ruleset), then a mixed GP + superbike grid (both classes race
  * under the GP motorcycle ruleset). Cars and bikes never share a grid; that
- * is enforced by sessionIncompatibilities, not by this menu. */
+ * is enforced by sessionIncompatibilities, not by this menu. Off-road
+ * motorcycles have their own group and moto rules (machine-options.ts). */
 const MIXED_BIKES = Object.freeze({ bikes: 'Motorcycle grid · GP-R1 + SBK-1000' });
 /** "SS-600 SUPERSPORT" → "SS-600 Supersport · motorcycle". */
 function label(name: string) {
@@ -16,7 +18,9 @@ function label(name: string) {
 }
 export const BIKE_MACHINES: Readonly<Record<string, string>> = Object.freeze({
   ...Object.fromEntries(
-    vehiclesByClass(Object.values(VEHICLES).filter((v) => v.dynamicsKind === 'bike'))
+    vehiclesByClass(
+      Object.values(VEHICLES).filter((v) => v.dynamicsKind === 'bike' && !isDirtBike(v)),
+    )
       .flatMap((g) => g.vehicles)
       .map((v) => [v.id, label(v.name)]),
   ),

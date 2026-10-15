@@ -117,6 +117,7 @@ export function minimapFrame(track: Track) {
 }
 import { type Settings, validateSettings } from '../storage/data.ts';
 import { type RacingRenderer } from '../rendering/renderer.ts';
+import { OffroadHud } from './offroad-hud.ts';
 export const lapTime = (seconds: number) =>
   seconds > 0
     ? `${Math.floor(seconds / 60)}:${(seconds % 60).toFixed(3).padStart(6, '0')}`
@@ -161,6 +162,8 @@ export { machineOptions } from './machine-options.ts';
 export class Interface {
   readonly menu: HTMLElement;
   readonly hud: HTMLElement;
+  /** Terrain venues: gate, holeshot, joker and stage readout (WP42). */
+  private readonly offroadHud: OffroadHud;
   readonly modal: HTMLDialogElement;
   readonly map: HTMLCanvasElement;
   readonly graph: HTMLCanvasElement;
@@ -257,6 +260,7 @@ export class Interface {
   `;
     this.menu = this.get('menu');
     this.hud = this.get('hud');
+    this.offroadHud = new OffroadHud(this.hud);
     this.modal = this.get('modal') as HTMLDialogElement;
     this.map = this.get('minimap') as HTMLCanvasElement;
     this.graph = this.get('graph') as HTMLCanvasElement;
@@ -542,6 +546,7 @@ export class Interface {
     this.setText('tireCompound', compound.toUpperCase());
     this.setText('autoLabel', auto ? 'AI ON' : 'AI OFF');
     this.setText('cameraLabel', renderer.mode.toUpperCase());
+    this.offroadHud.update(frame, this.track, this.options);
     this.setText('health', `${Math.round(frame[o + F.FRONT_HEALTH] * 100)}%`);
     this.setText('lateralG', `${Math.abs(frame[o + F.G_LAT]).toFixed(1)} G`);
     this.setText('penalty', `${Math.round(frame[o + F.PENALTY])} S`);
@@ -1017,7 +1022,7 @@ export class Interface {
       })
       .join('');
     this.modalContent(
-      `<span class="eyebrow">CHEQUERED FLAG / SESSION CLASSIFICATION</span><h2>${frame[carBase(0) + F.FINISH] > 0 ? 'Across the line.' : 'Session ended.'}</h2><p>Classified by laps completed, then race time including penalties.</p><table class="results"><thead><tr><th>POS</th><th>DRIVER</th><th>LAPS</th><th>TIME + PEN.</th><th>BEST LAP</th><th>PEN.</th></tr></thead><tbody>${rows}</tbody></table>${this.championshipNote ? `<p class="championship-note">${escapeHtml(this.championshipNote)}</p>` : ''}${this.resultsExtra}<div class="dialog-buttons inline"><button class="primary" data-action="replay">WATCH REPLAY</button><button data-action="telemetry">TELEMETRY</button>${this.championshipNote ? '<button data-action="championship">STANDINGS</button>' : ''}<button data-action="photo">PHOTO STUDIO</button><button data-action="restart">RACE AGAIN</button><button data-action="menu">PADDOCK</button></div>`,
+      `<span class="eyebrow">CHEQUERED FLAG / SESSION CLASSIFICATION</span><h2>${frame[carBase(0) + F.FINISH] > 0 ? 'Across the line.' : 'Session ended.'}</h2><p>Classified by laps completed, then race time including penalties.</p><table class="results"><thead><tr><th>POS</th><th>DRIVER</th><th>LAPS</th><th>TIME + PEN.</th><th>BEST LAP</th><th>PEN.</th></tr></thead><tbody>${rows}</tbody></table>${this.offroadHud.results(frame, this.track, this.options, (id) => (id === 0 ? this.playerName : DRIVERS[id]))}${this.championshipNote ? `<p class="championship-note">${escapeHtml(this.championshipNote)}</p>` : ''}${this.resultsExtra}<div class="dialog-buttons inline"><button class="primary" data-action="replay">WATCH REPLAY</button><button data-action="telemetry">TELEMETRY</button>${this.championshipNote ? '<button data-action="championship">STANDINGS</button>' : ''}<button data-action="photo">PHOTO STUDIO</button><button data-action="restart">RACE AGAIN</button><button data-action="menu">PADDOCK</button></div>`,
     );
   }
   /** Qualifying classification: the fastest valid lap sets the race grid. */

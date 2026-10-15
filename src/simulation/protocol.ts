@@ -1,6 +1,7 @@
+import type { TerrainRenderDelta } from './offroad/course-terrain.ts';
 import type { Compound, Controls, SessionOptions } from './config.ts';
 export const HEADER = 24,
-  CAR_STRIDE = 277,
+  CAR_STRIDE = 293,
   WHEEL_BASE = 96,
   WHEEL_STRIDE = 26,
   DEBRIS_BASE = 200,
@@ -10,9 +11,12 @@ export const HEADER = 24,
   RACE_BASE = 249,
   RACE_STRIDE = 8,
   BIKE_BASE = 257,
-  BIKE_STRIDE = 20;
-/** v12 appends the motorcycle block (BIKE_BASE); every v11 offset is unchanged. */
-export const PROTOCOL_VERSION = 12;
+  BIKE_STRIDE = 20,
+  OFFROAD_BASE = 277,
+  OFFROAD_STRIDE = 16;
+/** v12 appended the motorcycle block (BIKE_BASE); v13 appends the off-road
+ * block (OFFROAD_BASE). Every v12 offset is unchanged. */
+export const PROTOCOL_VERSION = 13;
 /** Race-rules tail per car (protocol v11). DRS: 0 off, 1 available, 2 open. */
 export const R = {
   DRS: 0,
@@ -57,6 +61,43 @@ export const B = {
   /** Separated rider's heading / tumble (rad). */
   RIDER_HEADING: 18,
   RIDER_TUMBLE: 19,
+} as const;
+/** Off-road tail per entrant (protocol v13, WP37-WP41). Zero on paved
+ * circuits. Airborne flight, rider posture, suspension bottoming and landing
+ * quality, mud carried by the machine, rut depth and soil moisture under it,
+ * and the session format state (start gate, holeshot, joker laps, stage). */
+export const O = {
+  /** 1 while no wheel carries load (flight). */
+  AIRBORNE: 0,
+  /** Seconds of the current (or last) flight. */
+  AIR_TIME: 1,
+  /** Rider standing on the pegs, 0 seated .. 1 standing. */
+  STANDING: 2,
+  /** Foot dab: -1 right foot .. +1 left foot down, 0 both on the pegs. */
+  DAB: 3,
+  /** Suspension bottoming intensity 0..1 (decays after the event). */
+  BOTTOM: 4,
+  /** Pitch error of the last landing against the ground slope (rad, nose-up +). */
+  LANDING_PITCH: 5,
+  /** Normal impact speed of the last landing (m/s). */
+  LANDING_SPEED: 6,
+  /** Rider body position fore/aft, -1 back .. +1 forward. */
+  BODY: 7,
+  /** Mud carried by machine and rider, 0 clean .. 1 caked. */
+  MUD: 8,
+  /** Rut depth under the front / rear contact (m). */
+  RUT_FRONT: 9,
+  RUT_REAR: 10,
+  /** Soil moisture under the machine 0..1. */
+  MOISTURE: 11,
+  /** Joker laps taken (rallycross). */
+  JOKERS: 12,
+  /** Start state: 0 none, 1 held at the gate/control, 2 released, 3 jump start. */
+  START: 13,
+  /** Gate slot + 1 (gate starts) or start order + 1 (staggered stage starts). */
+  SLOT: 14,
+  /** Holeshot taken (1) / stage time so far or final (s) for stages (negative: not started). */
+  FORMAT: 15,
 } as const;
 // +Z is the nose, +Y up and +X the driver's left; negative-X hubs are right-side wheels.
 export const WHEEL_NAMES = ['FR', 'FL', 'RR', 'RL'] as const;
@@ -255,6 +296,8 @@ export type FromWorker =
       rubber: Float32Array;
       marbles: Float32Array;
       time: number;
+      /** Terrain venues: the deformed soil since the last keyframe. */
+      terrain?: TerrainRenderDelta;
     }
   /** D31: the session now stands at this tick and race time (paused). */
   | { type: 'flashback'; tick: number; time: number }
@@ -263,9 +306,10 @@ export const carBase = (id: number) => HEADER + id * CAR_STRIDE;
 /** Versioned snapshot schema (WP12 / F08, masterplan §6.5): every per-car
  * block with its offset, stride and count, so new entity families add blocks
  * instead of mutating magic offsets, and decoders can reject what they do not
- * understand. v12 appends the 'bike' entity block after the v11 blocks; v11
- * recordings are rejected explicitly by version (their stride differs), never
- * re-read at the wrong offsets. R.VEHICLE selects the entity family. */
+ * understand. v12 appended the 'bike' entity block after the v11 blocks and
+ * v13 the 'offroad' block after it; older recordings are rejected explicitly
+ * by version (their stride differs), never re-read at the wrong offsets.
+ * R.VEHICLE selects the entity family. */
 export const SNAPSHOT_SCHEMA = Object.freeze({
   version: PROTOCOL_VERSION,
   header: HEADER,
@@ -278,6 +322,7 @@ export const SNAPSHOT_SCHEMA = Object.freeze({
     { name: 'skid', offset: SKID_BASE, stride: SKID_STRIDE, count: 1 },
     { name: 'race', offset: RACE_BASE, stride: RACE_STRIDE, count: 1 },
     { name: 'bike', offset: BIKE_BASE, stride: BIKE_STRIDE, count: 1 },
+    { name: 'offroad', offset: OFFROAD_BASE, stride: OFFROAD_STRIDE, count: 1 },
   ]),
 });
 /** Reason a snapshot cannot be decoded by this build, or null. Unknown

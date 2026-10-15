@@ -163,7 +163,15 @@ export function makeTire(
  * the grip grass and gravel remove from a slick. */
 function surfaceGrip(t: Tire, s: SurfaceSample) {
   const loose = t.looseGrip;
-  if (!loose || (s.surface !== SURFACE.GRASS && s.surface !== SURFACE.GRAVEL)) return s.grip;
+  if (!loose) return s.grip;
+  // Grass and gravel everywhere; any loose material only on a terrain venue's
+  // own ground, so other dirt, sand or snow samples (the festival world)
+  // keep the original rule.
+  const recovers =
+    s.surface === SURFACE.GRASS ||
+    s.surface === SURFACE.GRAVEL ||
+    (s.terrain === true && surfaceMaterial(s.surface).loose);
+  if (!recovers) return s.grip;
   return s.grip + (1 - s.grip) * loose;
 }
 export function magic(x: number, stiffness: number, shape = 1.35, curvature = 0.15) {

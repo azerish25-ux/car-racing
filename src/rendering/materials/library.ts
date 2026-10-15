@@ -379,6 +379,68 @@ export function concrete(options: ConcreteOptions = {}) {
   return tag(material, 'concrete', false);
 }
 
+// --- Soil (off-road venues) -------------------------------------------------
+export interface SoilOptions {
+  /** Detail tile in metres. */
+  tile?: number;
+}
+const SOIL_VERTEX = /* glsl */ `vApexSoil = apexSoilState;`;
+const SOIL_COLOR = /* glsl */ `
+{
+	// Moisture (cell base plus the session's soaking) darkens worked soil; a
+	// fresh rut is turned-over, darker earth.
+	float wet = clamp( vApexSoil.x + apexSoilWetness, 0.0, 1.0 );
+	diffuseColor.rgb *= 1.0 - 0.42 * smoothstep( 0.08, 0.85, wet );
+	diffuseColor.rgb *= 1.0 - 0.18 * clamp( vApexSoil.z * 6.0, 0.0, 1.0 );
+}`;
+const SOIL_ROUGHNESS = /* glsl */ `
+{
+	float wet = clamp( vApexSoil.x + apexSoilWetness, 0.0, 1.0 );
+	// Saturated mud carries a film; compacted lines are slightly polished.
+	roughnessFactor = mix( roughnessFactor, 0.5, 0.55 * smoothstep( 0.55, 0.95, wet ) );
+	roughnessFactor *= 1.0 - 0.15 * clamp( vApexSoil.y, 0.0, 1.0 );
+}`;
+/** Loose soil for terrain venues (loam, clay, sand, mud, gravel): the
+ * soil kind comes in as the vertex colour; the `apexSoilState` attribute
+ * carries (base moisture, compaction, rut depth m) per vertex, and
+ * `userData.soil.apexSoilWetness` the session's soaking. Wet soil darkens
+ * (porous albedo) and, saturated, gains a water film through the shared
+ * surface weather (puddles in ruts). */
+export function soil(options: SoilOptions = {}) {
+  const repeat = 1 / clamp(options.tile ?? 1.4, 0.05, 20);
+  const material = new T.MeshPhysicalMaterial({
+    name: 'APEX library soil',
+    color: 0xffffff,
+    vertexColors: true,
+    roughness: 0.97,
+    metalness: 0,
+    map: textures.get('soil', 'albedo', repeat),
+    normalMap: textures.get('soil', 'normal', repeat),
+    roughnessMap: textures.get('soil', 'orm', repeat),
+    aoMap: textures.get('soil', 'orm', repeat),
+    aoMapIntensity: 0.55,
+  });
+  material.normalScale.set(0.9, 0.9);
+  material.color.multiplyScalar(ALBEDO_SCALE);
+  const local = { apexSoilWetness: { value: 0 } as T.IUniform<number> };
+  material.userData.soil = local;
+  chainShaderHook(material, 'library-soil-v1', (shader) => {
+    Object.assign(shader.uniforms, local);
+    injectDeclarations(shader, 'common', 'attribute vec3 apexSoilState;\nvarying vec3 vApexSoil;', 'vertex');
+    injectAfter(shader, 'begin_vertex', SOIL_VERTEX, 'vertex');
+    injectDeclarations(
+      shader,
+      'common',
+      'varying vec3 vApexSoil;\nuniform float apexSoilWetness;',
+      'fragment',
+    );
+    injectAfter(shader, 'color_fragment', SOIL_COLOR, 'fragment');
+    injectAfter(shader, 'roughnessmap_fragment', SOIL_ROUGHNESS, 'fragment');
+  });
+  installWetSurface(material, { wetAmount: 0.7, puddles: 0.45, porosity: 1 });
+  return tag(material, 'soil', false);
+}
+
 // --- Vegetation ------------------------------------------------------------
 export interface VegetationOptions {
   color?: T.ColorRepresentation;

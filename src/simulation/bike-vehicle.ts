@@ -71,25 +71,25 @@ export class BikeVehicle extends Vehicle {
   readonly rider = new Vec3();
   riderHeading = 0;
   riderTumble = 0;
-  private readonly riderVelocity = new Vec3();
-  private incident: string | null = null;
-  private contactCrash = false;
-  private aiSteps = 0;
-  private readonly riderAids: BikeAssists;
-  private stuckClock = 0;
+  protected readonly riderVelocity = new Vec3();
+  protected incident: string | null = null;
+  protected contactCrash = false;
+  protected aiSteps = 0;
+  protected readonly riderAids: BikeAssists;
+  protected stuckClock = 0;
   /** Dynamics state at the end of the last step: transitions are detected
    * against it, so a fall started outside step() still separates the rider. */
-  private lastState: Bike['state'] = 'riding';
-  private yawKick = 0;
-  private roadPitch = 0;
-  private groundY = 0;
-  private readonly remount = { x: 0, z: 0, heading: 0, active: false };
-  private readonly written = { position: new Vec3(), velocity: new Vec3(), omega: new Vec3() };
-  private readonly pivot = new Vec3();
-  private readonly offset = new Vec3();
-  private readonly scratch = new Vec3();
-  private readonly riderSurface = surfaceSample();
-  private readonly remountPoint = trackPoint();
+  protected lastState: Bike['state'] = 'riding';
+  protected yawKick = 0;
+  protected roadPitch = 0;
+  protected groundY = 0;
+  protected readonly remount = { x: 0, z: 0, heading: 0, active: false };
+  protected readonly written = { position: new Vec3(), velocity: new Vec3(), omega: new Vec3() };
+  protected readonly pivot = new Vec3();
+  protected readonly offset = new Vec3();
+  protected readonly scratch = new Vec3();
+  protected readonly riderSurface = surfaceSample();
+  protected readonly remountPoint = trackPoint();
   constructor(
     id: number,
     compound: Compound = 'medium',
@@ -118,7 +118,7 @@ export class BikeVehicle extends Vehicle {
   aiControlled(substeps = 2) {
     this.aiSteps = substeps;
   }
-  private fitFrontRadius() {
+  protected fitFrontRadius() {
     for (const t of [this.tires[0], this.tires[1]]) {
       t.radius = t.nominalRadius = this.bikeSpec.frontWheelRadius;
       t.inertia = 0.6;
@@ -175,13 +175,13 @@ export class BikeVehicle extends Vehicle {
     this.frontHealth = Math.min(1, this.frontHealth + dt * 0.3);
   }
   /** Grip multiplier of a contact patch relative to a fresh dry slick. */
-  private surfaceGrip(i: number) {
+  protected surfaceGrip(i: number) {
     const t = this.tires[i];
     return (
       peakGrip(t, 2200, this.contacts[i], Math.max(this.dynamics.speed, 20)) / COMPOUNDS.medium.mu
     );
   }
-  private drive(dt: number, throttle: number) {
+  protected drive(dt: number, throttle: number) {
     const spec = this.spec,
       d = this.dynamics,
       b = this.bikeSpec;
@@ -298,7 +298,7 @@ export class BikeVehicle extends Vehicle {
     if (b.position.y < this.groundY - 4) this.retired = true;
   }
   /** Fold collision-solver impulses and position corrections into the bike state. */
-  private absorbExternal(dt: number) {
+  protected absorbExternal(dt: number) {
     const b = this.body,
       w = this.written,
       d = this.dynamics,
@@ -326,7 +326,7 @@ export class BikeVehicle extends Vehicle {
     if (Math.abs(roll) > 1e-6 && this.riding) d.leanRate -= clamp(roll, -2, 2);
     void dt;
   }
-  private separate() {
+  protected separate() {
     const d = this.dynamics,
       h = d.heading;
     this.incident = d.state === 'highside' ? 'RIDER_DOWN_HIGHSIDE' : 'RIDER_DOWN_LOWSIDE';
@@ -343,7 +343,7 @@ export class BikeVehicle extends Vehicle {
     this.riderTumble = 0;
     this.remount.active = false;
   }
-  private riderReady() {
+  protected riderReady() {
     const d = this.dynamics;
     if (d.state === 'separated') {
       if (d.stateClock > BIKE_RECOVERY.maxJog + 2) return true;
@@ -355,7 +355,7 @@ export class BikeVehicle extends Vehicle {
     return true;
   }
   /** Remount on the racing surface, inside its edge, facing the direction of travel. */
-  private planRemount(track: Track) {
+  protected planRemount(track: Track) {
     const d = this.dynamics,
       p = this.remountPoint;
     const lateral = track.nearest(d.x, d.z, p, this.groundY);
@@ -366,7 +366,7 @@ export class BikeVehicle extends Vehicle {
     this.remount.heading = Math.atan2(p.tx, p.tz);
     this.remount.active = true;
   }
-  private pushToRemount(dt: number) {
+  protected pushToRemount(dt: number) {
     const d = this.dynamics,
       r = this.remount;
     d.speed = 0;
@@ -399,7 +399,7 @@ export class BikeVehicle extends Vehicle {
       r.active = false;
     }
   }
-  private updateRider(dt: number, track: Track) {
+  protected updateRider(dt: number, track: Track) {
     const d = this.dynamics;
     if (d.state === 'riding') {
       this.rider.copy(this.body.position);
@@ -473,7 +473,7 @@ export class BikeVehicle extends Vehicle {
       );
     }
   }
-  private updateSuspensionAndTyres(dt: number) {
+  protected updateSuspensionAndTyres(dt: number) {
     const d = this.dynamics,
       spec = this.bikeSpec,
       riding = this.riding;
@@ -523,7 +523,7 @@ export class BikeVehicle extends Vehicle {
     }
   }
   /** Sliding fairing and pegs on asphalt: the shared skid/spark channel. */
-  private updateSkid(dt: number) {
+  protected updateSkid(dt: number) {
     const k = this.skid,
       d = this.dynamics,
       sliding =
@@ -546,7 +546,7 @@ export class BikeVehicle extends Vehicle {
   }
   /** Rigid-body pose from the bike state: the bike rolls on its tyre crowns
    * and pitches about the contact that stays on the road. */
-  private writeBody(track: Track, dt: number) {
+  protected writeBody(track: Track, dt: number) {
     const d = this.dynamics,
       b = this.body,
       spec = this.bikeSpec,
@@ -615,7 +615,7 @@ export class BikeVehicle extends Vehicle {
     this.written.velocity.copy(b.velocity);
     this.written.omega.copy(b.omega);
   }
-  private copySample(from: Vehicle['contacts'][number], to: Vehicle['contacts'][number]) {
+  protected copySample(from: Vehicle['contacts'][number], to: Vehicle['contacts'][number]) {
     to.s = from.s;
     to.width = from.width;
     to.lateral = from.lateral;
@@ -630,6 +630,7 @@ export class BikeVehicle extends Vehicle {
     to.resistance = from.resistance;
     to.cell = from.cell;
     to.pit = from.pit;
+    if (from.terrain !== undefined) to.terrain = from.terrain;
   }
   /** Marshal help for a riding bike that cannot move (e.g. nosed into a
    * barrier): after a hold it is placed at the track edge, facing the course. */

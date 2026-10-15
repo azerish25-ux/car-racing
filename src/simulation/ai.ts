@@ -207,7 +207,7 @@ export class AIDriver {
     // A wider or less agile machine keeps further from the edges (its envelope's
     // lineScale; absent: the full line).
     const width = (1 - 0.45 * wetness) * (c.definition.ai.lineScale ?? 1);
-    const lineAt = (s: number) => line.offsetAt(s) * width;
+    const lineAt = (s: number) => this.lineOffset(track, s, line.offsetAt(s) * width);
     if (this.tacticalClock > 1 / 12 && !c.inPit) {
       this.tacticalClock = 0;
       const grip = clamp(
@@ -226,8 +226,9 @@ export class AIDriver {
         preparingPit ? entryLane : this.brain.preferredLine(c, cars, track, race) || lineAt(c.s),
         preparingPit,
         lineAt,
+        this.trafficScale(),
       );
-      this.desiredOffset = plan.offset;
+      this.desiredOffset = this.laneOverride(track, c.s, plan.offset);
       this.trafficSpeed = plan.speedLimit;
       this.decision = plan.decision;
     }
@@ -268,7 +269,7 @@ export class AIDriver {
     if (pit && c.pitPhase === 1 && boxGap < 35)
       lookahead = Math.min(lookahead, Math.max(1, boxGap));
     track.at(c.s + lookahead, this.target);
-    const reach = Math.max(1, this.target.width - RACING_LINE.edgeMargin);
+    const reach = this.laneReach(track, c.s + lookahead, Math.max(1, this.target.width - RACING_LINE.edgeMargin));
     const pathOffset = pit
       ? this.pitLine(track, c.s + lookahead)
       : corridor
@@ -407,6 +408,8 @@ export class AIDriver {
           );
       }
     }
+    // Venue-specific limits (off-road: jumps, surface ahead); none by default.
+    desired = this.limitSpeed(desired, track, race);
     const lateralError = Math.abs(c.lateral - (pit ? this.pitLine(track, c.s) : this.offset));
     if (lateralError > 4) desired = Math.min(desired, Math.max(10, 34 - lateralError * 2));
     c.aiTarget = desired;
@@ -497,6 +500,36 @@ export class AIDriver {
       command.reverse = false;
       this.decision = 'MISSED BOX / RETRY NEXT LAP';
     }
+  }
+  /** The traffic lane a venue driver insists on (a rallycross joker road
+   * beyond the main road's width); the planner's lane by default. */
+  protected laneOverride(track: Track, s: number, planned: number) {
+    void track;
+    void s;
+    return planned;
+  }
+  /** Lateral reach of the path target at `s` (m); the road's own by default. */
+  protected laneReach(track: Track, s: number, reach: number) {
+    void track;
+    void s;
+    return reach;
+  }
+  /** Lateral line target at lap distance `s` (m from the centreline); the
+   * racing line unless a venue driver chooses another (off-road ruts, joker). */
+  protected lineOffset(track: Track, s: number, racing: number) {
+    void track;
+    void s;
+    return racing;
+  }
+  /** Lateral traffic separation scale (narrow machines on narrow courses). */
+  protected trafficScale() {
+    return 1;
+  }
+  /** Further speed limits a venue driver applies (m/s); none by default. */
+  protected limitSpeed(desired: number, track: Track, race: RaceDirector) {
+    void track;
+    void race;
+    return desired;
   }
   private pitLine(track: Track, s: number) {
     const base = track.pitOffset(s),

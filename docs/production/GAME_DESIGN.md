@@ -51,14 +51,21 @@ explicit `family` field, else its dynamics adapter, else its class; a discipline
 venue or race ruleset is shown **COMING** with the missing items listed, never hard-coded. With the
 current catalogues, circuit cars and road bikes are open (the superbike and GP bike race under the
 motorcycle ruleset; no circuit declares bike safety yet, so bike events use every paved circuit and
-say so); off-road is coming (rally, rallycross and off-road machines exist, no dirt venue does) and
-festival is coming (road machines exist and the Solvane region runs as free roam, section 8.1, but the
-region is not yet registered as a career venue). Circuit-car tiers: club, vintage and touring →
-grand touring → Formula ladder (entry, feeder, junior, the three historic eras, top tier) →
-endurance prototypes (incl. the historic sports prototype) → unlimited experimental; bike, off-road
-and festival tiers exist as data
-and fill when their classes are registered. A registered class that no tier names joins an automatic
-open tier.
+say so); off-road is open (see below) and festival is coming (road machines exist and the Solvane
+region runs as free roam, section 8.1, but the region is not yet registered as a career venue).
+Circuit-car tiers: club, vintage and touring → grand touring → Formula ladder (entry, feeder, junior,
+the three historic eras, top tier) → endurance prototypes (incl. the historic sports prototype) →
+unlimited experimental; bike and festival tiers exist as data and fill when their classes are
+registered. A registered class that no tier names joins an automatic open tier.
+
+**Off-road (implemented, WP37–WP42).** Tiers motocross and supercross (MX-450, MX-250, SM-450) →
+rallycross (RCX-6, RX-E) → rally and trophy trucks (RL-2, DX-8, BG-2, and the historic RL-7 and
+GB-4). A terrain venue names the classes it admits and the formats it is built for, so a tier only
+races where its machines are admitted and an event takes the venue's own format (gate motos at
+Valley Ridge and Arena Nord, the joker heat at Kestrel, the timed stage at Pinewood). The recovery
+meeting and the jump-landing licence run on the MX-250 loaner at Valley Ridge; the authored off-road
+events (two Valley Ridge motos, the Arena Nord main, a supermoto race, the Kestrel heat, the
+Pinewood stage) appear in their tiers.
 
 | Licence | Measured from the snapshot | Gold / silver / bronze | State |
 |---|---|---|---|
@@ -66,7 +73,7 @@ open tier.
 | Cornering line | mean distance from the AI racing line through the tightest named corner, at ≥ 62 % of the grip-limited corner speed; measured only on a lap still valid when the corner starts (an earlier breach waits for the next lap), and a track-limits breach inside the corner voids the attempt | ≤ 0.75 / 1.5 / 2.5 m | integrated |
 | Wet control | peak body slide angle on a valid heavy-rain flying lap at ≥ 30 % of top speed; an invalid or slow lap is not measured and the next lap is another try | ≤ 4 / 7 / 11° | integrated |
 | Lean and trail braking (bikes) | share of corner entry braking while leaned > 10°, lean read from the protocol v12 bike block (`BIKE_BASE + B.LEAN`) | ≥ 50 / 35 / 20 % | integrated: open with the registered superbike, scored from a real bike practice session in tests |
-| Jump landing (off-road) | pitch error at touchdown in the surveyed landing zone, against that jump's declared landing slope (a venue's `jumps` entries with `takeoff`, `landing`, `landingLength` and `landingPitch`); touchdowns elsewhere are not scored | ≤ 3 / 6 / 10° | scorer tested; coming until a dirt venue declares a surveyed jump |
+| Jump landing (off-road) | pitch error at touchdown in the surveyed landing zone, against that jump's declared landing slope (a venue's `jumps` entries with `takeoff`, `landing`, `landingLength` and `landingPitch`); touchdowns elsewhere are not scored | ≤ 3 / 6 / 10° | integrated: Valley Ridge declares six surveyed jumps; open on the MX-250 loaner |
 
 Thresholds are provisional design targets: the production AI scores gold on the cornering, wet and
 lean tests, so human calibration in the playtest protocol is the next step. Licences run solo on the
@@ -152,14 +159,28 @@ control (120 Hz). Passing is an explicit commitment with abort conditions (gap o
 speed, defender covering before overlap, no safe lane) and a retry hysteresis (`TrafficPlanner`
 pass state); defence is one early line choice per corner (`DefensiveLine`). Personalities vary
 aggression, consistency, wet skill and tyre management, never grip. Bikes add lean-limited corner
-speed; off-road AI adds surface-aware lines and jump speed control.
+speed; off-road AI adds surface-aware lines and jump speed control (implemented: line choice across
+ruts by the terrain's `lineCost`, a straight line over jumps and whoops, a lip speed per feature kind
+that lands on the landing face, a clear-or-roll decision locked where braking runs out, rolling under
+a yellow flag, a flat-out launch from the gate; rally and rallycross cars brake for the grip of the
+surface ahead and take one planned joker lap).
 
 ## 7. Rules and stewarding
 
 Rulesets are data (`src/simulation/events.ts`): track limits, unsafe release, pit speed, mandatory
 stops, energy deployment, DRS, timed classification, multi-class. Stewarding explains every penalty
 with its consequence and how to avoid another. Bikes: long-lap penalty, track-limit warnings.
-Off-road: course cutting by route progress (RouteProgress), jump-landing contact rules.
+Off-road (implemented in `src/simulation/offroad/session.ts`, rules in `formats.ts`):
+
+| Rule | Implemented | Designed, not implemented |
+|---|---|---|
+| Synchronised start gate | one release for every slot; a machine pushing the gate in the last 0.4 s or creeping into it is a jump start (the format's time penalty, judged by the format alone: the lights-phase check stands down for gate and stage-control starts); the AI is held until the drop; the holeshot is the first machine past the first-corner line; a field larger than the venue's slots widens the gate (sim and rendered gate alike) | gate-drop randomisation, a 30-second board |
+| Gate pick | slots chosen in qualifying order, inside of the first corner first (`pickGates`) | a player-facing pick screen |
+| Motos | moto points 25-22-20-18-16-15…1 and the combined classification of two motos (tie: the better last moto) as a tested function | a two-moto meeting session in the menu |
+| Rallycross joker | a joker lap is the joker road's three checkpoints (a quarter, half and three quarters along it, where a turf island parts the roads) crossed on it in order; exactly one per heat, each missing or extra joker costs 30 s, applied as each car takes the flag (the last one included) | semi-finals and finals, joker on the first lap rules |
+| Rally stage | staggered starts at the ruleset interval from a start control (the first starter waits there through the lights and goes on the green; the others are called 4 s before their start), a countdown on the HUD, a jump start at the control, two split checkpoints and the finish on the stage RouteGraph, a stop control and parking | a multi-stage rally with service parks and road sections |
+| Course limits | a tape margin beyond the groomed width and berm faces count as track; track-limit warnings as for circuits | cutting by route progress, jump-landing contact rules |
+| Recovery | a fallen rider remounts (shared bike sequence); a machine pinned against a wall is pushed out by the marshals | flagged marshal posts on the course |
 
 ## 8. Venue roster plan
 
@@ -168,7 +189,7 @@ Off-road: course cutting by route progress (RouteProgress), jump-landing contact
 | Real-world-faithful | layouts approximating famous circuits from public geometry, neutral names until licensed | familiarity, benchmark comparisons |
 | Original circuits | Aurel, Vellamar and new originals | identity, art-direction showcases |
 | Unconventional | neon city with tunnels, alpine pass, high-banked oval, desert canyon, coastal cliffs, dockyard overpass | spectacle, new racing problems |
-| Off-road | motocross terrain parks, rallycross mixed surface, rally stages | discipline-specific skills |
+| Off-road | motocross terrain parks, rallycross mixed surface, rally stages — implemented: Valley Ridge (outdoor motocross), Arena Nord (indoor supercross), Kestrel (rallycross), Pinewood (gravel stage) | discipline-specific skills |
 | Festival region | open terrain with a road network, towns, mountain, coast, airfield | exploration and event discovery |
 
 ### 8.1 Festival region: implemented vs designed

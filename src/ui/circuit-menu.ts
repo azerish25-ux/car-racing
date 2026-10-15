@@ -17,6 +17,7 @@ export const CIRCUIT_GROUPS: readonly { group: CatalogueGroup; label: string }[]
   { group: 'original', label: 'Original' },
   { group: 'real-world', label: 'Real-world approximations' },
   { group: 'unconventional', label: 'Unconventional' },
+  { group: 'off-road', label: 'Off-road' },
 ]);
 export function circuitGroup(id: CircuitId): CatalogueGroup {
   return CIRCUITS[id].catalogue?.group ?? 'original';

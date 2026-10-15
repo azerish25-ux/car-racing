@@ -369,13 +369,15 @@ describe('licence scoring from measured values', () => {
       dynamicsKind: 'four-wheel',
       setupKeys: [],
     };
-    const bare = withVehicles([rx], { venues: [...live.venues, dirt([{ s: 400 }])] });
+    // Paved circuits only, plus the test venue (the live terrain venues are surveyed).
+    const paved = live.venues.filter((v) => venueKind(v) !== 'dirt');
+    const bare = withVehicles([rx], { venues: [...paved, dirt([{ s: 400 }])] });
     expect(venueKind(bare.venues.at(-1)!)).toBe('dirt');
     const coming = licenceAvailability(bare, newCareer(), 'jump');
     expect(coming.status).toBe('coming');
     expect(coming.reasons.join(' ')).toContain('surveyed jump');
     const surveyed = withVehicles([rx], {
-      venues: [...live.venues, dirt([{ takeoff: 980, landing: 1030, landingPitch: -0.2 }])],
+      venues: [...paved, dirt([{ takeoff: 980, landing: 1030, landingPitch: -0.2 }])],
     });
     expect(licenceAvailability(surveyed, newCareer(), 'jump').venue).toBe('test-dirt');
   });

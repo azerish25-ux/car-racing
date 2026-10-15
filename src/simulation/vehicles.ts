@@ -3,6 +3,7 @@ import { BIKE_ADDITIONS, BIKE_VEHICLES, type BikeSpec } from './bike-definitions
 import type { DrivelineSpec } from './differential.ts';
 import type { TireFamilyId } from './tire-families.ts';
 import { CATALOGUE } from './vehicle-catalogue/index.ts';
+import { DIRT_BIKES } from './offroad/dirt-bikes.ts';
 import type { VehicleDynamicsOverrides } from './vehicle-dynamics.ts';
 
 /** Per-vehicle content contract (WP08 / F04, masterplan §6.3). Every entrant is
@@ -111,7 +112,10 @@ export type VehicleClass =
   | 'experimental'
   | 'supersport'
   | 'classic-bike'
-  | 'road-bike';
+  | 'road-bike'
+  // Off-road motorcycles (WP39).
+  | 'motocross'
+  | 'supermoto';
 /** Fan-assisted floor (vehicle.ts applies it at the floor centre). */
 export interface FanSpec {
   /** Suction (N) with the skirts sealed at or below `sealHeight`. */
@@ -385,6 +389,8 @@ export const VEHICLES: Readonly<Record<string, VehicleDefinition>> = Object.free
   ...BIKE_VEHICLES,
   ...CATALOGUE,
   ...BIKE_ADDITIONS,
+  // Off-road motorcycles (WP39), appended after the catalogue and bikes.
+  ...DIRT_BIKES,
 });
 export const VEHICLE_IDS = Object.freeze(Object.keys(VEHICLES));
 export const DEFAULT_VEHICLE_ID = 'apx01';

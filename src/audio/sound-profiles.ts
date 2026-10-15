@@ -427,6 +427,11 @@ const BY_VEHICLE: Readonly<Record<string, SoundFamily>> = {
   ss600: 'i4-bike',
   nr900: 'i3-bike',
   cr750: 'two-stroke-bike',
+  // Off-road motorcycles (WP37): the 450s are four-stroke singles; the 250
+  // is a two-stroke single, one firing per revolution like the kart engine.
+  mx450: 'single-mx',
+  mx250: 'two-stroke-kart',
+  sm450: 'single-mx',
 };
 /** The family a vehicle id names explicitly, or null when it would fall back
  * by class (content checks require every registered machine to name one). */

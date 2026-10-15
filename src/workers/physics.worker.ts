@@ -48,11 +48,13 @@ function finishFlashback(job: Resimulation) {
   send({ type: 'flashback', tick: simulation.tick, time: simulation.race.time });
   const water = simulation.track.water.slice(),
     rubber = simulation.track.rubber.slice(),
-    marbles = simulation.track.marbles.slice();
-  send({ type: 'surface', water, rubber, marbles, time: simulation.race.time }, [
+    marbles = simulation.track.marbles.slice(),
+    terrain = simulation.offroad?.terrain.renderDelta(true);
+  send({ type: 'surface', water, rubber, marbles, time: simulation.race.time, terrain }, [
     water.buffer,
     rubber.buffer,
     marbles.buffer,
+    ...(terrain ? [terrain.blocks.buffer] : []),
   ]);
   snapshot(true);
 }
@@ -221,14 +223,18 @@ setInterval(() => {
     if (simulation.tick - lastSurface >= 60) {
       const water = simulation.track.water.slice(),
         rubber = simulation.track.rubber.slice(),
-        marbles = simulation.track.marbles.slice();
+        marbles = simulation.track.marbles.slice(),
+        // Terrain venues: the soil deformed since the last keyframe (the
+        // whole field on a session's first keyframe).
+        terrain = simulation.offroad?.terrain.renderDelta(lastSurface < 0);
       // Surface keyframes are independently timestamped. Flushing replay here
       // would send half-empty pages every 0.5 s and halve the configured stall reserve.
       // SessionReplay carries leading surface keyframes across pose-page boundaries.
-      send({ type: 'surface', water, rubber, marbles, time: simulation.race.time }, [
+      send({ type: 'surface', water, rubber, marbles, time: simulation.race.time, terrain }, [
         water.buffer,
         rubber.buffer,
         marbles.buffer,
+        ...(terrain ? [terrain.blocks.buffer] : []),
       ]);
       lastSurface = simulation.tick;
     }
