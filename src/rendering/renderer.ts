@@ -83,6 +83,7 @@ import {
   bindSkyCelestial,
   lightingDirection,
   lightingMode,
+  urbanFogColor,
   type LightingMode,
 } from './daylight.ts';
 import { prewarmSky, skySunKey } from './sky-light.ts';
@@ -1071,6 +1072,13 @@ export class RacingRenderer {
     const rainRate = presented[H.RAIN];
     setAerialExtinction(daylight.haze, studio || !Number.isFinite(rainRate) ? 0 : rainRate);
     fog.color.setRGB(daylight.fogRed, daylight.fogGreen, daylight.fogBlue);
+    // Catalogue night cities: urban skyglow on the dome and in the haze.
+    const urban = illumination === 'night' && !studio && !!this.circuit.venueKit?.urban;
+    this.sky.material.uniforms.urbanGlow.value = urban ? 1 : 0;
+    if (urban) {
+      urbanFogColor(fog.color);
+      urbanFogColor(this.nightFog);
+    }
     this.sky.material.uniforms.cloudCover.value = daylight.cover;
     this.sky.material.uniforms.skyRadiance.value = daylight.skyRadiance;
     this.sky.material.uniforms.nightAmount.value = illumination === 'night' ? 1 : 0;
@@ -1263,7 +1271,7 @@ export class RacingRenderer {
     this.circuit.signalHardware?.update(this.camera, this.quality);
     this.circuit.trackBoards?.update(this.camera, this.quality);
     this.circuit.broadcastCameras?.update(this.camera, this.quality);
-    this.circuit.venueKit?.update(this.camera, this.night);
+    this.circuit.venueKit?.update(this.camera, this.night, this.bloom.energyConserving);
     this.circuit.vegetation?.update(this.camera, this.quality);
     this.circuit.quarry?.update(this.camera, this.quality);
     this.circuit.heroGarage?.update(this.camera, this.quality, illumination);

@@ -13,8 +13,14 @@ import { chunks, sweep, unwrap, venuePoint } from './sweep.ts';
 
 /** Box with metre-scaled UVs (one facade tile = 14 m x 28 m) so window rows
  * stay the same size on every building. */
-function facadeBox(w: number, h: number, d: number, tileW = 14, tileH = 28) {
+/** `street`: world height of the road beside the building, for the facade
+ * street light's falloff (materials.ts FACADE_STREET_LIGHT). */
+function facadeBox(w: number, h: number, d: number, tileW = 14, tileH = 28, street = 0) {
   const g = new T.BoxGeometry(w, h, d);
+  g.setAttribute(
+    'streetLevel',
+    new T.BufferAttribute(new Float32Array(g.getAttribute('position').count).fill(street), 1),
+  );
   const uv = g.getAttribute('uv'),
     normal = g.getAttribute('normal');
   for (let i = 0; i < uv.count; i++) {
@@ -68,7 +74,7 @@ export function buildPaddock(kit: VenueKitContext) {
   const length = 12 * spacing + 6,
     mid = frame(track, centre, side * (front + 6.5), 0);
   const base = mid.p.y + mid.p.bank * clamp(side * front, -12, 12);
-  const block = new T.Mesh(facadeBox(length, 4.2, 14, 14, 9), m.facades[1]);
+  const block = new T.Mesh(facadeBox(length, 4.2, 14, 14, 9, base), m.facades[1]);
   block.position.set(mid.position.x, base + 8.4, mid.position.z);
   block.rotation.y = mid.yaw + Math.PI / 2;
   block.castShadow = block.receiveShadow = true;
@@ -81,7 +87,7 @@ export function buildPaddock(kit: VenueKitContext) {
   root.add(roof);
   const towerS = centre + length / 2 + 10,
     tower = frame(track, towerS, side * (front + 7), 0);
-  const control = new T.Mesh(facadeBox(14, 18, 14, 14, 9), m.facades[2]);
+  const control = new T.Mesh(facadeBox(14, 18, 14, 14, 9, tower.p.y), m.facades[2]);
   control.position.set(tower.position.x, tower.p.y + 9.6, tower.position.z);
   control.rotation.y = tower.yaw;
   control.castShadow = control.receiveShadow = true;
@@ -163,7 +169,7 @@ export function buildFacades(kit: VenueKitContext) {
           clear = false;
       if (!clear) continue;
       const ground = Math.min(p.y, terrainFor(track).height(x, z)) - 1.5;
-      const g = facadeBox(width, height + 1.5, depth);
+      const g = facadeBox(width, height + 1.5, depth, 14, 28, p.y);
       g.rotateY(Math.atan2(p.tx, p.tz));
       g.translate(x, ground + (height + 1.5) / 2, z);
       byMaterial[Math.floor(random.next() * m.facades.length)].push(g);
@@ -259,7 +265,7 @@ export function buildTunnels(kit: VenueKitContext) {
           f = frame(track, s, 0, 0, p);
         const width = track.boundaryAt(p, -1) + track.boundaryAt(p, 1) + 6,
           h = 10 + ((Math.floor(s) * 7) % 13);
-        const g = facadeBox(width, h, c1 - c0 - 2);
+        const g = facadeBox(width, h, c1 - c0 - 2, 14, 28, p.y + 7.4);
         g.rotateY(f.yaw);
         g.translate(f.position.x, p.y + 7.4 + h / 2, f.position.z);
         group.add(
