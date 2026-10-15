@@ -1,5 +1,6 @@
 import manifestJson from './third-party-manifest.json' with { type: 'json' };
 import { LICENCE_INFO, type Licence } from './licences.ts';
+import type { VegetationInfo } from '../vegetation/format.ts';
 
 /**
  * The shipped third-party asset manifest, written by
@@ -9,7 +10,7 @@ import { LICENCE_INFO, type Licence } from './licences.ts';
  * (`tests/third-party-assets.test.ts`), with the licence, author and the
  * attribution the credits view shows.
  */
-export type ThirdPartyKind = 'hdri' | 'texture' | 'mesh';
+export type ThirdPartyKind = 'hdri' | 'texture' | 'mesh' | 'vegetation';
 
 /** Ultra HDR layout of a shipped `.hdr.jpg`: the primary (SDR base) JPEG is
  * bytes [0, offset), the gain map JPEG [offset, end). The gain is scalar
@@ -28,7 +29,7 @@ export interface ShippedFile {
   sha256: string;
   /** e.g. '4k', '2k' for skies; 'color', 'normal', 'orm' for texture sets. */
   role: string;
-  format: 'ultrahdr' | 'ktx2' | 'webp' | 'jpeg' | 'png' | 'glb' | 'text';
+  format: 'ultrahdr' | 'ktx2' | 'webp' | 'jpeg' | 'png' | 'glb' | 'bin' | 'text';
   width?: number;
   height?: number;
   colorSpace?: 'srgb' | 'linear';
@@ -75,6 +76,8 @@ export interface ShippedAsset {
   files: ShippedFile[];
   hdri?: HdriInfo;
   texture?: TextureSetInfo;
+  /** Baked plant (scripts/assets/vegetation): sizes, cards, impostor layout. */
+  vegetation?: VegetationInfo;
 }
 export interface ThirdPartyManifest {
   version: 1;
@@ -114,7 +117,7 @@ export interface CreditLine {
 }
 /** Every shipped third-party asset with its attribution, grouped skies first. */
 export function creditLines(manifest: ThirdPartyManifest = thirdPartyManifest): CreditLine[] {
-  const order: Record<ThirdPartyKind, number> = { hdri: 0, texture: 1, mesh: 2 };
+  const order: Record<ThirdPartyKind, number> = { hdri: 0, texture: 1, mesh: 2, vegetation: 3 };
   return [...manifest.assets]
     .sort((a, b) => order[a.kind] - order[b.kind] || a.title.localeCompare(b.title))
     .map((asset) => ({

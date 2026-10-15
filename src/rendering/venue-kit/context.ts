@@ -22,6 +22,11 @@ export class VenueKitContext {
   readonly materials: VenueKitMaterials;
   readonly root = new StaticTransformGroup();
   readonly cells: DetailCell[] = [];
+  /** When photographic vegetation is loaded, scatter records its shrubs here
+   * (x, y, z, size, yaw) for the planting step instead of drawing them. */
+  photoShrubs:
+    | { x: number; y: number; z: number; height: number; width: number; yaw: number }[]
+    | null = null;
   private footprints = new Map<string, { x: number; z: number; r: number }[]>();
   private readonly scratch = trackPoint();
   constructor(readonly track: Track) {

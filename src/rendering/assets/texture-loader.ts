@@ -153,3 +153,27 @@ export async function loadPbrSet(
     },
   };
 }
+
+/**
+ * One shipped texture role (KTX2 preferred on WebGL2, else its WebP
+ * fallback), decoded once per renderer and shared; the caller receives its
+ * own clone (wrap, repeat and filtering are per use). Rejects in node.
+ */
+export async function loadShippedTexture(
+  renderer: T.WebGLRenderer,
+  files: ShippedFile[],
+  prefer?: 'ktx2' | 'webp',
+): Promise<{ texture: T.Texture; format: 'ktx2' | 'webp' } | null> {
+  if (typeof document === 'undefined') throw new Error('Textures load in a browser only');
+  const usable = files.filter((f) => f.format === 'ktx2' || f.format === 'webp');
+  if (!usable.length) return null;
+  const source = await loadRole(
+    renderer,
+    usable,
+    prefer ?? (renderer.capabilities.isWebGL2 ? 'ktx2' : 'webp'),
+  );
+  if (!source) return null;
+  const texture = source.texture.clone();
+  texture.needsUpdate = true;
+  return { texture, format: source.format };
+}

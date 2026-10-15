@@ -1,6 +1,9 @@
 import { SecondaryGrandstands } from './secondary-grandstands.ts';
 import type { AurelQuarryKit } from './aurel-quarry.ts';
 import type { AurelVegetationKit } from './aurel-vegetation.ts';
+import { PhotoPlanting } from './vegetation/planting.ts';
+import type { VegetationLibrary } from './vegetation/library.ts';
+import { skyPaletteFor } from './assets/sky-catalogue.ts';
 import type { TrackSignalHardwareKit } from './track-signal-hardware.ts';
 import type { TrackBoardsKit } from './track-boards.ts';
 import type { BroadcastCamerasKit } from './broadcast-cameras.ts';
@@ -84,6 +87,10 @@ interface RibbonOptions {
 export class CircuitScene {
   quarry: AurelQuarryKit | null = null;
   vegetation: AurelVegetationKit | null = null;
+  /** Photographic trees, shrubs and grass (loaded before construction; LOW
+   * and failed loads keep the procedural planting). */
+  photoLibrary: VegetationLibrary | null = null;
+  photoPlanting: PhotoPlanting | null = null;
   concreteBarriers: ConcreteBarrierKit | null = null;
   steelGuardrails: SteelGuardrailKit | null = null;
   catchFence: CatchFenceKit | null = null;
@@ -412,6 +419,27 @@ export class CircuitScene {
         (this.quarry?.blocksPlanting(track, x, z, padding) ?? false) ||
         (this.venueKit?.blocks(x, z, padding) ?? false);
       const style = this.venueKit?.context.style;
+      if (this.photoLibrary) {
+        const planting = !style || !!style.planting;
+        const belts = !style || style.forestBelts;
+        this.photoPlanting = new PhotoPlanting(
+          {
+            track,
+            library: this.photoLibrary,
+            palette: skyPaletteFor(track.circuit),
+            services: this.serviceSites,
+            exclusion: excluded,
+            aurel: track.circuit.id === 'aurel',
+            planting,
+            forestBelts: belts,
+            grass: !style || style.ground === 'grass',
+            kit: this.venueKit?.context ?? null,
+            shrubs: this.venueKit?.context.photoShrubs ?? [],
+          },
+          this.vegetationGroup,
+        );
+        return;
+      }
       if (style && !style.planting) return;
       if (this.vegetation)
         this.vegetation.build(track, this.vegetationGroup, this.serviceSites, excluded);

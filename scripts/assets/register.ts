@@ -14,6 +14,7 @@ import {
 import type { ThirdPartyKind, ThirdPartyManifest } from '../../src/rendering/assets/third-party.ts';
 import { brandWordIn } from './brands.ts';
 import { PROTECTED_NAMES } from '../../src/simulation/content-validation.ts';
+import { validateVegetationRecipe, type VegetationRecipe } from './vegetation/recipe.ts';
 
 export interface SourceFile {
   url: string;
@@ -57,7 +58,7 @@ export interface SourceEntry {
   licenceEvidence: string;
   notes?: string;
   files: SourceFile[];
-  recipe: HdriRecipe | PbrRecipe;
+  recipe: HdriRecipe | PbrRecipe | VegetationRecipe;
 }
 export interface SourceRegister {
   version: 1;
@@ -107,7 +108,8 @@ export function validateRegister(register: SourceRegister): string[] {
     if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(s.id)) errors.push(`${at}: id must be kebab-case`);
     if (ids.has(s.id)) errors.push(`${at}: duplicate id`);
     ids.add(s.id);
-    if (!['hdri', 'texture', 'mesh'].includes(s.kind)) errors.push(`${at}: unknown kind ${s.kind}`);
+    if (!['hdri', 'texture', 'mesh', 'vegetation'].includes(s.kind))
+      errors.push(`${at}: unknown kind ${s.kind}`);
     if (!isAllowedLicence(s.licence)) errors.push(`${at}: licence ${s.licence} is not allowed`);
     else if (LICENCE_INFO[s.licence].attribution && !s.attribution.includes(s.author))
       errors.push(`${at}: ${s.licence} attribution must name the author`);
@@ -141,6 +143,10 @@ export function validateRegister(register: SourceRegister): string[] {
       errors.push(`${at}: skyline must be 0-15 degrees`);
     if (s.recipe.type === 'pbr' && s.kind !== 'texture')
       errors.push(`${at}: pbr recipe on a ${s.kind}`);
+    if (s.recipe.type === 'vegetation') {
+      if (s.kind !== 'vegetation') errors.push(`${at}: vegetation recipe on a ${s.kind}`);
+      for (const e of validateVegetationRecipe(s.recipe)) errors.push(`${at}: ${e}`);
+    }
   }
   return errors;
 }

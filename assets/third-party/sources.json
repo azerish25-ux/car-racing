@@ -422,6 +422,1121 @@
         "normal": "dx",
         "metres": 2
       }
+    },
+    {
+      "id": "tree-linden",
+      "kind": "vegetation",
+      "title": "Silver linden (Tilia tomentosa)",
+      "author": "Jan-Walter Schliep, Burak Kahraman and Timm Dapper (Laubwerk)",
+      "licence": "CC-BY-4.0",
+      "attribution": "\"Silver linden (Tilia tomentosa)\" from the pbrt-v4 Landscape scene by Jan-Walter Schliep, Burak Kahraman and Timm Dapper (Laubwerk), CC BY 4.0. Modified: simplified and baked into leaf cards, impostors and textures for real-time use.",
+      "homepage": "https://github.com/mmp/pbrt-v4-scenes/tree/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape",
+      "licenceEvidence": "pbrt-v4-scenes README.md (commit 30cf4a0) states the landscape scene by Jan-Walter Schliep, Burak Kahraman and Timm Dapper from Laubwerk is licensed under CC-BY (https://creativecommons.org/licenses/by/4.0/).",
+      "notes": "broadleaf, 11.6 m, round crown",
+      "files": [
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/geometry.pbrt",
+          "sha256": "38e43c2ffa51203556b8aa9c9152b93ca42690703f225e6661ca7610feaa6b9a",
+          "bytes": 9487420
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00090.ply",
+          "sha256": "066e1f61ef100af64d32d6196ec8baa5d1c1eb1b1ecd1dfcfb32559074f112ce",
+          "bytes": 260535
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Tilia_tomentosa_tr_02_co.png",
+          "sha256": "bce3abfe4bf4a37733449dfb083645a9a8238ec2e662d59d02598f532b0c332a",
+          "bytes": 4361365
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Tilia_tomentosa_tr_02_di.png",
+          "sha256": "0c11c2e42e2aa5d12b07ab3df33006ac79520d0c4f24382a8f2c475ffe70ae3f",
+          "bytes": 978996
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00091.ply",
+          "sha256": "492be37c02ee84f7177638c0aa249f0e728f6c741d63675bec9e51521eb36087",
+          "bytes": 9289519
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Tilia_tomentosa_br_01_co.png",
+          "sha256": "1a941eef6b3bfe717be6e96bcb90da457a45e83d89fecb70bd715b466edfeab9",
+          "bytes": 753569
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00092.ply",
+          "sha256": "aa73cb6c058efb42f93ea40f159efb0639b1fe57c30e0111cb552a74e0769086",
+          "bytes": 13819871
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Tilia_tomentosa_br_02_co.png",
+          "sha256": "7f077d297d95f1dc940d24e6271f52b7d1bc8498f9b36da8d166c0ff47c92078",
+          "bytes": 64769
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00093.ply",
+          "sha256": "2aa5aeae6078d8bae8ca551510d81922db6a95a8347e5d09cddb2e4c4a284f31",
+          "bytes": 5946043
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Tilia_tomentosa_lf_02_su_co_fr.png",
+          "sha256": "a94b8d726152eaab6c31a3b59ef7c0d51888dbbc77d3de46b199243c57eed5de",
+          "bytes": 697560
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Tilia_tomentosa_lf_02_su_tr.png",
+          "sha256": "46dc37a917ec1fefb5fca2271d05d90be13fa6ebb1a2263d7a2c75df27a65831",
+          "bytes": 543319
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00094.ply",
+          "sha256": "db42689e848afe1c5b90bb6b3a42c4acd96e4dd53200a36fe9c2207eb38ef7e5",
+          "bytes": 13339147
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Tilia_tomentosa_lf_01_su_co_fr.png",
+          "sha256": "c703503a747455fbf0aaf2edfaa09da016bea02626daab59e6bdaed58fb486af",
+          "bytes": 858204
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Tilia_tomentosa_lf_01_su_tr.png",
+          "sha256": "bd06a6161bb35bbcde2cb409e19cda8abd74730b0233f46e0c55e30b81f109ff",
+          "bytes": 689740
+        }
+      ],
+      "recipe": {
+        "type": "vegetation",
+        "cardOrientation": "fit",
+        "outwardBias": 0.6,
+        "cardAtlas": [
+          2048,
+          2048
+        ],
+        "views": 8,
+        "impostorCell": [
+          512,
+          512
+        ],
+        "trunkTriangles": 4000,
+        "barkSize": [
+          512,
+          1024
+        ],
+        "crownNormal": 0.45,
+        "supersample": 3,
+        "form": "tree",
+        "object": "xref_Tilia_tomentosa_02medium.c4d Instance",
+        "up": "y",
+        "trunk": [
+          "geometry/mesh_00090.ply"
+        ],
+        "cards": 300,
+        "seed": 101
+      }
+    },
+    {
+      "id": "tree-chestnut",
+      "kind": "vegetation",
+      "title": "Horse chestnut (Aesculus hippocastanum)",
+      "author": "Jan-Walter Schliep, Burak Kahraman and Timm Dapper (Laubwerk)",
+      "licence": "CC-BY-4.0",
+      "attribution": "\"Horse chestnut (Aesculus hippocastanum)\" from the pbrt-v4 Landscape scene by Jan-Walter Schliep, Burak Kahraman and Timm Dapper (Laubwerk), CC BY 4.0. Modified: simplified and baked into leaf cards, impostors and textures for real-time use.",
+      "homepage": "https://github.com/mmp/pbrt-v4-scenes/tree/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape",
+      "licenceEvidence": "pbrt-v4-scenes README.md (commit 30cf4a0) states the landscape scene by Jan-Walter Schliep, Burak Kahraman and Timm Dapper from Laubwerk is licensed under CC-BY (https://creativecommons.org/licenses/by/4.0/).",
+      "notes": "broadleaf, 18.7 m, wide domed crown",
+      "files": [
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/geometry.pbrt",
+          "sha256": "38e43c2ffa51203556b8aa9c9152b93ca42690703f225e6661ca7610feaa6b9a",
+          "bytes": 9487420
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00126.ply",
+          "sha256": "448f9e8389070d3fdc693499df08122250a2ce2d8010ee228a2a50047a7167a2",
+          "bytes": 2738387
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Aesculus_hippocastanum_tr_01_co.png",
+          "sha256": "554c87492ce49a5e06909d56e86b1f29230c44ffd8ead16f8f9441ff1f013178",
+          "bytes": 5945481
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Aesculus_hippocastanum_tr_01_di.png",
+          "sha256": "268e39d491057ab2bc766efcd1def037be6c7c6ea479396dc4eb3899bda5d756",
+          "bytes": 1076095
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00127.ply",
+          "sha256": "4788e40abfddfac850d8741b9a901c832a5f209e4d83c2b3454b0f0feda02ed5",
+          "bytes": 4403164
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Aesculus_hippocastanum_tr_02_co.png",
+          "sha256": "6d66c7832a36d04b8ffda4b133581587afe62ad2a97f4119fa33b94c220e84ea",
+          "bytes": 5861620
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Aesculus_hippocastanum_tr_02_di.png",
+          "sha256": "6a147b1fffe6c660326af909cbf8410a4f40c9bf283600f5edc0934278d36f35",
+          "bytes": 779302
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00128.ply",
+          "sha256": "5602565507d16f2948dfd68191fe4a4c8d8a0a676f72741142101f5a16028590",
+          "bytes": 5736039
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Aesculus_hippocastanum_tr_03_co.png",
+          "sha256": "9f98db731b3ca9e4df26b89707a3fba5f5266c7973a6f9ecc01a8f4fa6b57d31",
+          "bytes": 4650990
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Aesculus_hippocastanum_tr_03_di.png",
+          "sha256": "6230193d9c3dfc03ccba1aa9b470bd81ca27f7ca9c70aa13ba47083e7244cef4",
+          "bytes": 1416794
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00129.ply",
+          "sha256": "100649354e29096058f87be9daa84fae168be53fa8f9ff4a22cb0778a82d8e08",
+          "bytes": 23751849
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Aesculus_hippocastanum_br_01_co.png",
+          "sha256": "3077c355cf2eaece5ab93d56ad459ba6f9d8972f85577d2fe511fd06f611246c",
+          "bytes": 104835
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Aesculus_hippocastanum_br_01_di.png",
+          "sha256": "9c30016e659d746f428a08d04c7245acf424d6aa6610da1cce9c8c89e4aa50ec",
+          "bytes": 32025
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00130.ply",
+          "sha256": "2ab36572b69519960210edc32a3a6b32528d282c9b03fe270a02fb412ead66a2",
+          "bytes": 15798673
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Aesculus_hippocastanum_lf_01_su_co_shadow.png",
+          "sha256": "f0ad2e9f438e82ed7f23e8f49a835885104a744512ecf7217870e25d1d6b945b",
+          "bytes": 874786
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00131.ply",
+          "sha256": "97a7502aa446d537bfab161a65f4c42f04551b9a5f173cfff226c24aad2df9a4",
+          "bytes": 11061470
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Aesculus_hippocastanum_lf_04_su_co_shadow.png",
+          "sha256": "dad3b86313dcf7fe0a89fd768d54209cd24d87ccd263507e0b735a314a449a82",
+          "bytes": 799641
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00132.ply",
+          "sha256": "ffe2f5fe7b94056eb978644daa5beb8e6599db88554b3e7ecea6233298136d62",
+          "bytes": 8215143
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Aesculus_hippocastanum_lf_02_su_co_shadow.png",
+          "sha256": "b248de0820fcf2ee2110bc4a8e4944be8ed7df7c6a9519789e92695b8f075b62",
+          "bytes": 750600
+        }
+      ],
+      "recipe": {
+        "type": "vegetation",
+        "cardOrientation": "fit",
+        "outwardBias": 0.6,
+        "cardAtlas": [
+          2048,
+          2048
+        ],
+        "views": 8,
+        "impostorCell": [
+          512,
+          512
+        ],
+        "trunkTriangles": 6000,
+        "barkSize": [
+          512,
+          1024
+        ],
+        "crownNormal": 0.45,
+        "supersample": 3,
+        "form": "tree",
+        "object": "xref_Aesculus_02adult.c4d Instance",
+        "up": "y",
+        "trunk": [
+          "geometry/mesh_00126.ply",
+          "geometry/mesh_00127.ply",
+          "geometry/mesh_00128.ply"
+        ],
+        "cards": 480,
+        "seed": 102
+      }
+    },
+    {
+      "id": "tree-birch",
+      "kind": "vegetation",
+      "title": "Silver birch (Betula pendula)",
+      "author": "Jan-Walter Schliep, Burak Kahraman and Timm Dapper (Laubwerk)",
+      "licence": "CC-BY-4.0",
+      "attribution": "\"Silver birch (Betula pendula)\" from the pbrt-v4 Landscape scene by Jan-Walter Schliep, Burak Kahraman and Timm Dapper (Laubwerk), CC BY 4.0. Modified: simplified and baked into leaf cards, impostors and textures for real-time use.",
+      "homepage": "https://github.com/mmp/pbrt-v4-scenes/tree/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape",
+      "licenceEvidence": "pbrt-v4-scenes README.md (commit 30cf4a0) states the landscape scene by Jan-Walter Schliep, Burak Kahraman and Timm Dapper from Laubwerk is licensed under CC-BY (https://creativecommons.org/licenses/by/4.0/).",
+      "notes": "broadleaf, 15.9 m, weeping crown, white bark",
+      "files": [
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/geometry.pbrt",
+          "sha256": "38e43c2ffa51203556b8aa9c9152b93ca42690703f225e6661ca7610feaa6b9a",
+          "bytes": 9487420
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00064.ply",
+          "sha256": "735a0a0221543e949c6985714907523f89fe4e9a13a040abc2df77eb3b5046f9",
+          "bytes": 158247
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Betula_pendula_tr_03_co.png",
+          "sha256": "e05907fb30d6dfadd1ff410b9bb4b53dacc8dda30261049f7cb2b7166e3eefc0",
+          "bytes": 1435659
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Betula_pendula_tr_03_di.png",
+          "sha256": "b6c18f6058ea243dacca98994bc3ddb88ebd3db4deef52171b5ada9957422837",
+          "bytes": 377226
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00065.ply",
+          "sha256": "4fa761703e08f60ee0d543411d128f52ce820c70bda079f9cb62529cf9e3d15f",
+          "bytes": 25331755
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Betula_pendula_tr_06_co2.png",
+          "sha256": "22de6ed3834f9f91baa34bb6db68cafd8a6192d8421071779e43893ead6d700b",
+          "bytes": 26190899
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Betula_pendula_tr_06_di3.png",
+          "sha256": "781170416dd2c11965d115685ee35f528bf8997b69e1941e296dde5c44f54a15",
+          "bytes": 20689136
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00066.ply",
+          "sha256": "1471e9cf73204155935a2e7d5b49cf7399419bb483a53ebe123021d60619b112",
+          "bytes": 9059467
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00067.ply",
+          "sha256": "cc1c3d6a748fe1284eafa106dddc141d02619eabf86f05dd2c3ab996feccc69f",
+          "bytes": 30149
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00068.ply",
+          "sha256": "baf1d9a88c439820dd0f5eeab0e5548f0af7ca93b3d79e81bed31c335381e706",
+          "bytes": 1149849
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00069.ply",
+          "sha256": "f1863ca68deaee37099512c6cad26d0d921a0a54afbbcc036f610babe1b53082",
+          "bytes": 58457809
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Betula_pendula_br_01_co.png",
+          "sha256": "6b0cc9543b4277770dd162f4b436caebad0e1c33597d3d0fca207edacc977338",
+          "bytes": 428836
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00070.ply",
+          "sha256": "5c74b17740828206a01eb9cd5711a6b573295f10dfa19b2f61990d6004228e22",
+          "bytes": 19036181
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Betula_pendula_lf_02_su_co.png",
+          "sha256": "62d9b5f206391849c85908fb2d44bc47e0f5440c41664b660354a611e0782705",
+          "bytes": 317748
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Betula_pendula_lf_02_su_tr.png",
+          "sha256": "4a8819591eac7cfa7a6037224d585397a3a43150fa329853d1ecaf6852e47172",
+          "bytes": 401145
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00071.ply",
+          "sha256": "403a679c8afcd0cf570e8e67a170a826f54d1106c7d9bb1cc5d7a6d7c506862b",
+          "bytes": 52800223
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Betula_pendula_lf_01_su_co.png",
+          "sha256": "e02569396ccf8f54146d308bf71c989e8630bb45af17a08f77b4d16616b99127",
+          "bytes": 252798
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Betula_pendula_lf_01_su_tr.png",
+          "sha256": "46ded6b27dd2baf83a4f4f1c27f34c789aa204bc9cf4571b1877be4cfb9f6120",
+          "bytes": 265598
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00072.ply",
+          "sha256": "c7f025f8702ad3fd8787266a8cf36e7891398e4e8fa9d145e9062e0895ade68d",
+          "bytes": 14573571
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Betula_pendula_lf_03_su_co.png",
+          "sha256": "d8f8d74344d1e0ad7d872f4a602fb271933bb36c7012400151242cd23fcb985e",
+          "bytes": 251433
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Betula_pendula_lf_03_su_tr.png",
+          "sha256": "f471e0197027f15d56855f25292390f5ca5be97c67aaf4e1a50052d0a4bab65d",
+          "bytes": 317542
+        }
+      ],
+      "recipe": {
+        "type": "vegetation",
+        "cardOrientation": "fit",
+        "outwardBias": 0.6,
+        "cardAtlas": [
+          2048,
+          2048
+        ],
+        "views": 8,
+        "impostorCell": [
+          512,
+          512
+        ],
+        "trunkTriangles": 4000,
+        "barkSize": [
+          512,
+          2048
+        ],
+        "crownNormal": 0.45,
+        "supersample": 3,
+        "form": "tree",
+        "object": "xref_Betula_pendula_03mediumb.c4d",
+        "up": "y",
+        "trunk": [
+          "geometry/mesh_00064.ply",
+          "geometry/mesh_00065.ply",
+          "geometry/mesh_00066.ply",
+          "geometry/mesh_00067.ply",
+          "geometry/mesh_00068.ply"
+        ],
+        "cards": 300,
+        "seed": 103
+      }
+    },
+    {
+      "id": "tree-rowan",
+      "kind": "vegetation",
+      "title": "Rowan (Sorbus aucuparia)",
+      "author": "Jan-Walter Schliep, Burak Kahraman and Timm Dapper (Laubwerk)",
+      "licence": "CC-BY-4.0",
+      "attribution": "\"Rowan (Sorbus aucuparia)\" from the pbrt-v4 Landscape scene by Jan-Walter Schliep, Burak Kahraman and Timm Dapper (Laubwerk), CC BY 4.0. Modified: simplified and baked into leaf cards, impostors and textures for real-time use.",
+      "homepage": "https://github.com/mmp/pbrt-v4-scenes/tree/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape",
+      "licenceEvidence": "pbrt-v4-scenes README.md (commit 30cf4a0) states the landscape scene by Jan-Walter Schliep, Burak Kahraman and Timm Dapper from Laubwerk is licensed under CC-BY (https://creativecommons.org/licenses/by/4.0/).",
+      "notes": "small broadleaf, 8.4 m, with berries",
+      "files": [
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/geometry.pbrt",
+          "sha256": "38e43c2ffa51203556b8aa9c9152b93ca42690703f225e6661ca7610feaa6b9a",
+          "bytes": 9487420
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00073.ply",
+          "sha256": "528ae10febe38597b8bce9f092cb7e45696f16c3ba955530e0ce0610224dce1a",
+          "bytes": 408810
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Sorbus_aucuparia_tr_01_co.png",
+          "sha256": "579dc9848454232ec1d61b06a64e24bedfdc8e8ab16b7ddc09047ca20109369a",
+          "bytes": 1069021
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Sorbus_aucuparia_tr_01_di.png",
+          "sha256": "3c728e1b7a66bf67bc1c2e8f7d074597513cf74e54898b073dace4a5e67d2cdc",
+          "bytes": 303591
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00074.ply",
+          "sha256": "15e4555b9668e092961c5a412c455eb88d9ab93ada7d251fc38862e9efab0d55",
+          "bytes": 3418211
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Sorbus_aucuparia_br_01_co.png",
+          "sha256": "784b6826b29ac1f179c3d6c37c04a80ed4ddc794d65579e8b84b57ef25b8098b",
+          "bytes": 133444
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00075.ply",
+          "sha256": "02dbade9379ea973f2c1390f4bf40d5dc4427c632bbeb316f4deee50b0bdaf04",
+          "bytes": 14715443
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Sorbus_aucuparia_lf_01_su_co_fr.png",
+          "sha256": "e00d70875e826688ac5fda3753495694d9f878572e682977e3aadbe0efa969b4",
+          "bytes": 732968
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00076.ply",
+          "sha256": "35b6e32b0abce09f58a00e8f4172cdcad3e64d1f6ef89750ee7d43ddade139f5",
+          "bytes": 5804975
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Sorbus_aucuparia_br_02_co.png",
+          "sha256": "2d35008e2e2f711592871fd4c41810f508bae58070e626320be253fea21fa238",
+          "bytes": 292072
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00077.ply",
+          "sha256": "7a1a68ad202c6a360155c805386fe8554108ce0206ee15f444c17725fe81f5ab",
+          "bytes": 4252010
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Sorbus_aucuparia_ft_02_su_co.png",
+          "sha256": "07f2679bb53b51294fd7d534a5bb212399666b14937a226438a255bb64e46a12",
+          "bytes": 78095
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Sorbus_aucuparia_ft_02_su_di.png",
+          "sha256": "72bcc528fdde4e30cba913269f170e482aa52f49c6c18d0d8def573920354fb6",
+          "bytes": 103340
+        }
+      ],
+      "recipe": {
+        "type": "vegetation",
+        "cardOrientation": "fit",
+        "outwardBias": 0.6,
+        "cardAtlas": [
+          2048,
+          2048
+        ],
+        "views": 8,
+        "impostorCell": [
+          512,
+          512
+        ],
+        "trunkTriangles": 4000,
+        "barkSize": [
+          512,
+          1024
+        ],
+        "crownNormal": 0.45,
+        "supersample": 3,
+        "form": "tree",
+        "object": "mountain_ash",
+        "up": "y",
+        "trunk": [
+          "geometry/mesh_00073.ply"
+        ],
+        "cards": 220,
+        "seed": 104
+      }
+    },
+    {
+      "id": "tree-fir",
+      "kind": "vegetation",
+      "title": "White fir (Abies concolor)",
+      "author": "Jan-Walter Schliep, Burak Kahraman and Timm Dapper (Laubwerk)",
+      "licence": "CC-BY-4.0",
+      "attribution": "\"White fir (Abies concolor)\" from the pbrt-v4 Landscape scene by Jan-Walter Schliep, Burak Kahraman and Timm Dapper (Laubwerk), CC BY 4.0. Modified: simplified and baked into leaf cards, impostors and textures for real-time use.",
+      "homepage": "https://github.com/mmp/pbrt-v4-scenes/tree/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape",
+      "licenceEvidence": "pbrt-v4-scenes README.md (commit 30cf4a0) states the landscape scene by Jan-Walter Schliep, Burak Kahraman and Timm Dapper from Laubwerk is licensed under CC-BY (https://creativecommons.org/licenses/by/4.0/).",
+      "notes": "conifer, 7.9 m, dense tiers",
+      "files": [
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/geometry.pbrt",
+          "sha256": "38e43c2ffa51203556b8aa9c9152b93ca42690703f225e6661ca7610feaa6b9a",
+          "bytes": 9487420
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00147.ply",
+          "sha256": "332e4580a9efd4010bddecea985062c2e6638bfd23c2a1501389f6bb37aa44f8",
+          "bytes": 18485
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Abies_concolor_tr_01_co.png",
+          "sha256": "6d1769790387ed42e740b18401d32589b6049d2247c117dd0084013a3be3ef3e",
+          "bytes": 1083226
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00148.ply",
+          "sha256": "df6e4be83e707e74c20ffb4256d3ca2fa0a3eff628264c6816582bc5cc3b7bd1",
+          "bytes": 744251
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00149.ply",
+          "sha256": "8fb99109c23ea94d11855bc7810fe502d86c9c307c79d8b0e7fefb5c7ce1257a",
+          "bytes": 44979792
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Abies_concolor_br_01_co.png",
+          "sha256": "a4d82526e4cc1dc465f3be5252a4d09b476a07d9034ce322c5dfde1c5898a614",
+          "bytes": 674115
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00150.ply",
+          "sha256": "cab1e8594a692ae61e4da8c8ad7341e4d2b69dbe3a986c4b8a5b45c12ddca6f0",
+          "bytes": 5233186
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Abies_concolor_tw_01_su_co.png",
+          "sha256": "fa5063b48ac69cd89f84c9bbe4368236e223db2fe9691084a79002eff46bf23c",
+          "bytes": 316676
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00151.ply",
+          "sha256": "068920159056d1ae9ce9caacd6ee682302f1868d914e3f11e01cbd918b157b95",
+          "bytes": 4820466
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Abies_concolor_tw_02_su_co.png",
+          "sha256": "e3e4ee3440be1bd98852447214a16d4382b561a3c1df8bbe9933198bbc69589a",
+          "bytes": 482926
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00152.ply",
+          "sha256": "c23fd2dd6c45a5703cb4ce532afb8272ae1da013544f49709a5e0ea0ceb63534",
+          "bytes": 6893
+        }
+      ],
+      "recipe": {
+        "type": "vegetation",
+        "cardOrientation": "outward",
+        "outwardBias": 0.6,
+        "cardAtlas": [
+          2048,
+          2048
+        ],
+        "views": 8,
+        "impostorCell": [
+          384,
+          768
+        ],
+        "trunkTriangles": 4000,
+        "barkSize": [
+          512,
+          1024
+        ],
+        "crownNormal": 0.45,
+        "supersample": 3,
+        "form": "tree",
+        "object": "Abies_concolor_02medium",
+        "up": "y",
+        "trunk": [
+          "geometry/mesh_00147.ply",
+          "geometry/mesh_00148.ply",
+          "geometry/mesh_00152.ply"
+        ],
+        "cards": 240,
+        "seed": 105
+      }
+    },
+    {
+      "id": "tree-fir-b",
+      "kind": "vegetation",
+      "title": "White fir, second form (Abies concolor)",
+      "author": "Jan-Walter Schliep, Burak Kahraman and Timm Dapper (Laubwerk)",
+      "licence": "CC-BY-4.0",
+      "attribution": "\"White fir, second form (Abies concolor)\" from the pbrt-v4 Landscape scene by Jan-Walter Schliep, Burak Kahraman and Timm Dapper (Laubwerk), CC BY 4.0. Modified: simplified and baked into leaf cards, impostors and textures for real-time use.",
+      "homepage": "https://github.com/mmp/pbrt-v4-scenes/tree/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape",
+      "licenceEvidence": "pbrt-v4-scenes README.md (commit 30cf4a0) states the landscape scene by Jan-Walter Schliep, Burak Kahraman and Timm Dapper from Laubwerk is licensed under CC-BY (https://creativecommons.org/licenses/by/4.0/).",
+      "notes": "conifer, open tiers",
+      "files": [
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/geometry.pbrt",
+          "sha256": "38e43c2ffa51203556b8aa9c9152b93ca42690703f225e6661ca7610feaa6b9a",
+          "bytes": 9487420
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00001.ply",
+          "sha256": "af2f4c394fa3aae318ca464d22e3724ebb4da4ab614a5e9f5477220cfd5c13d2",
+          "bytes": 19129
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Abies_concolor_tr_01_co.png",
+          "sha256": "6d1769790387ed42e740b18401d32589b6049d2247c117dd0084013a3be3ef3e",
+          "bytes": 1083226
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00002.ply",
+          "sha256": "726d0922c552e298f89a0f60f407a99e6c9ede518dc06ed508cb61ce1c088d6f",
+          "bytes": 763175
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00003.ply",
+          "sha256": "a43959fda6290aee09183cf89dcab1acb16556c14d3214acff6ca08c7eaf1136",
+          "bytes": 46700534
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Abies_concolor_br_01_co.png",
+          "sha256": "a4d82526e4cc1dc465f3be5252a4d09b476a07d9034ce322c5dfde1c5898a614",
+          "bytes": 674115
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00004.ply",
+          "sha256": "2fda76f96a6531b6e24027b8b5df9ceff71a49714c9b3c708bf9cddc4b9d5f23",
+          "bytes": 5419064
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Abies_concolor_tw_01_su_co.png",
+          "sha256": "fa5063b48ac69cd89f84c9bbe4368236e223db2fe9691084a79002eff46bf23c",
+          "bytes": 316676
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00005.ply",
+          "sha256": "a1ec865b73b8524d5b14c51246d92527776a2538a8184fdbff9d5c0ba2c0c3d5",
+          "bytes": 4995102
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Abies_concolor_tw_02_su_co.png",
+          "sha256": "e3e4ee3440be1bd98852447214a16d4382b561a3c1df8bbe9933198bbc69589a",
+          "bytes": 482926
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00006.ply",
+          "sha256": "1ab4666906c0d7dd327b5fa3f0446bb37f50ff3fe06608c82d718e34a646aece",
+          "bytes": 6893
+        }
+      ],
+      "recipe": {
+        "type": "vegetation",
+        "cardOrientation": "outward",
+        "outwardBias": 0.6,
+        "cardAtlas": [
+          2048,
+          2048
+        ],
+        "views": 8,
+        "impostorCell": [
+          384,
+          768
+        ],
+        "trunkTriangles": 4000,
+        "barkSize": [
+          512,
+          1024
+        ],
+        "crownNormal": 0.45,
+        "supersample": 3,
+        "form": "tree",
+        "object": "Abies_concolor_01medium",
+        "up": "y",
+        "trunk": [
+          "geometry/mesh_00001.ply",
+          "geometry/mesh_00002.ply",
+          "geometry/mesh_00006.ply"
+        ],
+        "cards": 240,
+        "seed": 106
+      }
+    },
+    {
+      "id": "shrub-flowering",
+      "kind": "vegetation",
+      "title": "Flowering shrub",
+      "author": "Jan-Walter Schliep, Burak Kahraman and Timm Dapper (Laubwerk)",
+      "licence": "CC-BY-4.0",
+      "attribution": "\"Flowering shrub\" from the pbrt-v4 Landscape scene by Jan-Walter Schliep, Burak Kahraman and Timm Dapper (Laubwerk), CC BY 4.0. Modified: simplified and baked into leaf cards, impostors and textures for real-time use.",
+      "homepage": "https://github.com/mmp/pbrt-v4-scenes/tree/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape",
+      "licenceEvidence": "pbrt-v4-scenes README.md (commit 30cf4a0) states the landscape scene by Jan-Walter Schliep, Burak Kahraman and Timm Dapper from Laubwerk is licensed under CC-BY (https://creativecommons.org/licenses/by/4.0/).",
+      "notes": "shrub, 1.1 m, white-pink flowers",
+      "files": [
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/geometry.pbrt",
+          "sha256": "38e43c2ffa51203556b8aa9c9152b93ca42690703f225e6661ca7610feaa6b9a",
+          "bytes": 9487420
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00166.ply",
+          "sha256": "8ea52c0bdedcc3760ea0f769643fa68230ff36bca4ffff1d70aa51908e7b1741",
+          "bytes": 63459
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/si3d_0069_bark01.png",
+          "sha256": "7acef627a8fdda1637094f71e17fa3494bfe5efb035087d6609bdf7a44a14336",
+          "bytes": 1533602
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00167.ply",
+          "sha256": "6bb0075f17f52a1bd45c664dac6ef9650bb9e20bc8c7e1fe11062f9daae28a3b",
+          "bytes": 966341
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00168.ply",
+          "sha256": "77c402175d5d8195bba136012b928fa3469eb03f52acb46e5f45f70d8a62777e",
+          "bytes": 2037861
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/si3d_0069_branch01.png",
+          "sha256": "b907a50d553506fe107057b550d59186b1c0934921d1e90a73b7b338f86073b5",
+          "bytes": 596312
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00169.ply",
+          "sha256": "499cd5483e5d49c874cc1f6bf3505900b928bc5d2a94f8a222e324a7d44b1ced",
+          "bytes": 76999
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/si3d_0069_bud01.png",
+          "sha256": "1b5dbb551908e132b2ef73cc256cbaf8cf67014b8e8f166b8493ee5f8b29a11f",
+          "bytes": 5523764
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/si3d_0069_bud01_a.png",
+          "sha256": "f04fdfb5445d01339bf89613616838461ed2503f39d50223ada13e12040cd64e",
+          "bytes": 140111
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00170.ply",
+          "sha256": "f478b92285bbd2e924e9149fe9b2849efd640fe2ef87281dbfb96beb2163381e",
+          "bytes": 245915
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/si3d_0069_bud02.png",
+          "sha256": "bb4d0ee4b6e54bc837d4ddb03e8500afcbe38c71f02a3e2a3de0e07abbdde2f6",
+          "bytes": 134110
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/si3d_0069_bud02_a.png",
+          "sha256": "7e1643a439994e5dc9495f5f63ce65f94852e416120628cd835d205cc984e440",
+          "bytes": 7080
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00171.ply",
+          "sha256": "4045d01d36d0fa37cbecb4fe6853cda5c0d31d302a51c354fb09d86926976a61",
+          "bytes": 2193961
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/si3d_0069_bud04.png",
+          "sha256": "3d60f431bac090991298a502535f6aed745d1629e18612651fc0423bb7f286d6",
+          "bytes": 228055
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/si3d_0069_bud04_a.png",
+          "sha256": "417004a8390c80c74c0db8a26e3725f6994385f3449ff386edf76cb602dcedfc",
+          "bytes": 6208
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00172.ply",
+          "sha256": "2fbaac205e02fbbd72b98f248dfb810a4d677968b09925d6a41c9fcb9196460e",
+          "bytes": 899977
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/si3d_0069_petal01.png",
+          "sha256": "83fb3637d7eb051038288afff4d5dac309c49d66c4b712e1e03bd1c5663870a1",
+          "bytes": 693413
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/si3d_0069_petal01_a.png",
+          "sha256": "dcd34941005927b47ea78e9a2d62cba2b30c04ce85dccf0b433a3a6006e0e682",
+          "bytes": 17839
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00173.ply",
+          "sha256": "b1d08f5f8dee7f159f7f5cfbd9ec19d3b2c1859f55e9588efc5404f5296e0fa3",
+          "bytes": 1349833
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/si3d_0069_petal02.png",
+          "sha256": "e2ef618c83b1f9b72067077185dc5703237c85299b569c357a3ffb210034886f",
+          "bytes": 656704
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/si3d_0069_petal02_a.png",
+          "sha256": "34f468f780f2b760a3e768032fa697796e53e028b927bcfdefdbba996ba74675",
+          "bytes": 16478
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00174.ply",
+          "sha256": "d92efcec9358223c47737bc725df979eeaa2740e6e79d5a6c96019ab8e4d504d",
+          "bytes": 2198857
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/si3d_0069_flower01.png",
+          "sha256": "0eb3646ab16e09e6eb839f8ba3e779871a2a5a39ffed94a78185590b4695888e",
+          "bytes": 98639
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/si3d_0069_flower01_a.png",
+          "sha256": "1484414aa51d9a2913afdf2d9fd8e28498de268bed8004dc9b4676dcd2269ea6",
+          "bytes": 15456
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00175.ply",
+          "sha256": "528170b20f0b8a4fcaf39bd20ae8540a937cb424898d728f7a11ae0345f78eff",
+          "bytes": 463096
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/si3d_0069_leaf06.png",
+          "sha256": "b25506e1e7defea994d79f350c35ae595687bdba386aac678bcd6b6bf23894a2",
+          "bytes": 318040
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/si3d_0069_leaf06_a.png",
+          "sha256": "f97081d09bd540e0106a3d966a2b4ccfa6cdf2321531a13e70c7d525044fa08b",
+          "bytes": 14885
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00176.ply",
+          "sha256": "4c1157e7df8a4a5795001ed9037ac988933cdb6a7c920a719c2e4cb22cae0cbe",
+          "bytes": 205343
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/si3d_0069_leaf01.png",
+          "sha256": "1ad71f7086a2782803668e4c39a145c2feac4a9013097ca2cea5061f8fcc6f63",
+          "bytes": 1060190
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/si3d_0069_leaf01_a.png",
+          "sha256": "84026c4f37d49cad700907564bba6b25c435c6ba2291dcaf11d9096b2f3b040e",
+          "bytes": 15255
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00177.ply",
+          "sha256": "f53d069d3b3f9f08850c6c6de8333c17568fd722873536a8dca5df2999eaa3de",
+          "bytes": 504217
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/si3d_0069_leaf02.png",
+          "sha256": "7a8520887a614efe53c7952468a38db4621b9d24c666360fc8ba14f05f287522",
+          "bytes": 1281695
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/si3d_0069_leaf02_a.png",
+          "sha256": "8fb75e8179488ab803ecbe5d5050a8f270ba75e5de7bc0f34a1e5b7ed0ab26d3",
+          "bytes": 22612
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00178.ply",
+          "sha256": "2f1cbb71a34bd4f65b38229fb6efedf3549c3c4862d96f87ee4a68fc179b30dc",
+          "bytes": 498865
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/si3d_0069_leaf03.png",
+          "sha256": "efe84887dc360897870be677465b75c4b868f3ea38262866471f22d7e3b83b6a",
+          "bytes": 1028120
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/si3d_0069_leaf03_a.png",
+          "sha256": "67a4d5cb731874e1969f49c8f2484d71a81be6ad5eb2beac25ebd9a09d6c1f7b",
+          "bytes": 28306
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00179.ply",
+          "sha256": "b5317def573042434cd1e4d16fd12b54501256290cbe7fe35abbc8d5ca4aa18c",
+          "bytes": 318919
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/si3d_0069_leaf04.png",
+          "sha256": "9cdf232a34c29b08ab8558665d8e71bb4c4a07107ee164d661665751ac31a2a1",
+          "bytes": 1419340
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/si3d_0069_leaf04_a.png",
+          "sha256": "03668db48642f33cda05ff85d90ae6aa7590b908d4cbe2e3b939c1b20c93ed00",
+          "bytes": 20270
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00180.ply",
+          "sha256": "7c417e47af63d7f400970a3ea0ff8c9a93e80cef983bbd2c9268f686ebcf23a2",
+          "bytes": 205399
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/si3d_0069_leaf05.png",
+          "sha256": "7edfa6bd43d2a02a3dc9a11de5a52b9c2fc1f0d4f828b35f543b3ed1e46c4acf",
+          "bytes": 1488706
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/si3d_0069_leaf05_a.png",
+          "sha256": "cd2533345d5f004d496168603121d01f2cb647a4cb7caea92df07a7d649ae086",
+          "bytes": 29560
+        }
+      ],
+      "recipe": {
+        "type": "vegetation",
+        "cardOrientation": "fit",
+        "outwardBias": 0.6,
+        "cardAtlas": [
+          1024,
+          1024
+        ],
+        "views": 8,
+        "impostorCell": [
+          256,
+          256
+        ],
+        "trunkTriangles": 1200,
+        "barkSize": [
+          256,
+          512
+        ],
+        "crownNormal": 0.45,
+        "supersample": 3,
+        "form": "shrub",
+        "object": "xref_WPR.c4d",
+        "up": "y",
+        "trunk": [
+          "geometry/mesh_00166.ply",
+          "geometry/mesh_00167.ply"
+        ],
+        "cards": 80,
+        "seed": 107
+      }
+    },
+    {
+      "id": "grass-meadow",
+      "kind": "vegetation",
+      "title": "Meadow grass",
+      "author": "Jan-Walter Schliep, Burak Kahraman and Timm Dapper (Laubwerk)",
+      "licence": "CC-BY-4.0",
+      "attribution": "\"Meadow grass\" from the pbrt-v4 Landscape scene by Jan-Walter Schliep, Burak Kahraman and Timm Dapper (Laubwerk), CC BY 4.0. Modified: simplified and baked into leaf cards, impostors and textures for real-time use.",
+      "homepage": "https://github.com/mmp/pbrt-v4-scenes/tree/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape",
+      "licenceEvidence": "pbrt-v4-scenes README.md (commit 30cf4a0) states the landscape scene by Jan-Walter Schliep, Burak Kahraman and Timm Dapper from Laubwerk is licensed under CC-BY (https://creativecommons.org/licenses/by/4.0/).",
+      "notes": "meadow and late-summer meadow patches as clump cards",
+      "files": [
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/geometry.pbrt",
+          "sha256": "38e43c2ffa51203556b8aa9c9152b93ca42690703f225e6661ca7610feaa6b9a",
+          "bytes": 9487420
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00252.ply",
+          "sha256": "acf397446ccd11aab69670a435499f262589adc86861b83fe3de916c58a12304",
+          "bytes": 444712
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/meadow_grass2_leaf1.png",
+          "sha256": "d33f9255298bbd35bdadff82eaa0e28b8a7ea05d6608fece5b2debcf5dcc6896",
+          "bytes": 41318
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00253.ply",
+          "sha256": "44a70a0b94d27d2a3068a5e3f69dcfa5840fdad192d4e64c2abf7951b41dd813",
+          "bytes": 610521
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/meadow_grass1_leaf1.png",
+          "sha256": "dfa9a2813c8975d1e1ddda139f81e47b7124d51a7160383be1159db7d1c79638",
+          "bytes": 67705
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/meadow_grass1_leaf1_tr.png",
+          "sha256": "06b0c910bf843ba207590c068b4b990ccd3aae77c75feaf6f385e4fc76d2bb12",
+          "bytes": 25412
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00254.ply",
+          "sha256": "9ad7dc5497103ee3dacd39a4cea036eb1369988888c8a59681ef4fb149d2f925",
+          "bytes": 148935
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/meadow_weed2.png",
+          "sha256": "80fef1ce5b5e46b79e1ef958a9bcf37ca1c88bc1b9eadd5c3b70036829d3bd1b",
+          "bytes": 68897
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/meadow_weed2_sp.png",
+          "sha256": "0dd2360432bb921b1778676c23a1477f93be3be25825766878668136e986bf3f",
+          "bytes": 40578
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00256.ply",
+          "sha256": "ba6dcd24de643f96a1c14cbee2ae3cefb9552ebbc92146ff7271107d16373ebf",
+          "bytes": 1882229
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00257.ply",
+          "sha256": "c30d9b45a55fb23d936c130c90aa6a5b99f63dfa7f29a4131718a1a93032bfbb",
+          "bytes": 196263
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/meadow_grass2_blos1b.png",
+          "sha256": "bb7aef925f0e234b04c312111e496a1fae2701aed4e80c611a40cf1fc1a0052b",
+          "bytes": 48562
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00258.ply",
+          "sha256": "f3179f322ff0110167a669d20df043e002801f282102b43b2c4548bae8cabc59",
+          "bytes": 806203
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/meadow_grass2_branch1.png",
+          "sha256": "4162361750b430bc5fd711e1c63d03f36162e1df201cac940ed5f25492989008",
+          "bytes": 77063
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00181.ply",
+          "sha256": "acf397446ccd11aab69670a435499f262589adc86861b83fe3de916c58a12304",
+          "bytes": 444712
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/meadow_oldgrass03.png",
+          "sha256": "631f1f0eb647d90518fcee1cdc74814ea0fa9c2ac435d02e7eadd49cc33947ec",
+          "bytes": 42838
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00182.ply",
+          "sha256": "44a70a0b94d27d2a3068a5e3f69dcfa5840fdad192d4e64c2abf7951b41dd813",
+          "bytes": 610521
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/meadow_oldgrass02.png",
+          "sha256": "57c98759340fa8b0aa93cb4059fb37ce84a023fa112d84382d4549a0eb94924b",
+          "bytes": 189127
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00183.ply",
+          "sha256": "9ad7dc5497103ee3dacd39a4cea036eb1369988888c8a59681ef4fb149d2f925",
+          "bytes": 148935
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00185.ply",
+          "sha256": "ba6dcd24de643f96a1c14cbee2ae3cefb9552ebbc92146ff7271107d16373ebf",
+          "bytes": 1882229
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00186.ply",
+          "sha256": "c30d9b45a55fb23d936c130c90aa6a5b99f63dfa7f29a4131718a1a93032bfbb",
+          "bytes": 196263
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00187.ply",
+          "sha256": "f3179f322ff0110167a669d20df043e002801f282102b43b2c4548bae8cabc59",
+          "bytes": 806203
+        }
+      ],
+      "recipe": {
+        "type": "vegetation",
+        "form": "grass",
+        "patches": [
+          {
+            "object": "meadow_v3",
+            "up": "z",
+            "exclude": [
+              "geometry/mesh_00255.ply"
+            ]
+          },
+          {
+            "object": "meadow_v3dry",
+            "up": "z",
+            "exclude": [
+              "geometry/mesh_00184.ply"
+            ]
+          }
+        ],
+        "views": 4,
+        "slab": 0.45,
+        "tile": [
+          512,
+          256
+        ],
+        "tileMetres": [
+          1.4,
+          0.7
+        ],
+        "crownNormal": 0.3,
+        "supersample": 3
+      }
     }
   ]
 }

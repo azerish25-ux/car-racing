@@ -48,6 +48,8 @@ import { EventMarkers } from './markers.ts';
 import { RoadMeshes } from './roads.ts';
 import { TERRAIN_BUDGETS, TerrainStreamer } from './terrain.ts';
 import { Vegetation } from './vegetation.ts';
+import { photoVegetationEnabled, VegetationLibrary } from '../vegetation/library.ts';
+import { speciesForPalette } from '../vegetation/species.ts';
 import { Water } from './water.ts';
 
 export type FestivalCamera = 'chase' | 'far' | 'hood';
@@ -77,6 +79,8 @@ export class FestivalRenderer {
   readonly roads: RoadMeshes;
   readonly buildings: Buildings;
   readonly vegetation = new Vegetation();
+  /** Photographic trees and shrubs, when loaded (see loadPhotoVegetation). */
+  photoVegetation: VegetationLibrary | null = null;
   readonly water: Water;
   readonly markers: EventMarkers;
   readonly cars = new FestivalCars();
@@ -185,6 +189,29 @@ export class FestivalRenderer {
       e = net.edges[net.edgeOf[net.lastSegment]];
     if (Math.abs(l) < e.spec.halfWidth + e.spec.shoulder) return net.surfaceHeight(p, l, e.spec.halfWidth, e.spec.crown);
     return this.world.field.height(x, z);
+  }
+  /** Load the photographic trees and shrubs (not on LOW); call before the
+   * world streams so every tile is planted the same way. Failures keep the
+   * procedural crowns. */
+  async loadPhotoVegetation() {
+    if (this.photoVegetation || !photoVegetationEnabled(this.preset)) return false;
+    try {
+      const library = await VegetationLibrary.load(
+        this.renderer,
+        speciesForPalette(FESTIVAL_PALETTE, true, false),
+      );
+      if (!library.trees.length) {
+        library.dispose();
+        return false;
+      }
+      this.photoVegetation = library;
+      // Trees never stand on roads: the natural ground alone (cheap per tile).
+      this.vegetation.setPhotoLibrary(library, (x, z) => this.world.field.height(x, z));
+      return true;
+    } catch (error) {
+      console.warn('Festival photographic vegetation unavailable:', error);
+      return false;
+    }
   }
   setQuality(preset: QualityPreset, options: GraphicsOptions = graphicsPreset(preset)) {
     this.preset = preset;
@@ -308,6 +335,7 @@ export class FestivalRenderer {
       this.terrain.treesChanged = false;
       this.vegetation.sync(this.terrain.treeTiles);
     }
+    this.vegetation.update(this.camera, this.preset);
     this.markers.update(time, this.discovered, this.activeEvent, this.gate, (x, z) => this.groundHeight(x, z));
     this.roads.setNight(night);
     this.buildings.setNight(night);
@@ -347,6 +375,8 @@ export class FestivalRenderer {
     const wet = clamp(presented[H.WATER] / 0.8, 0, 1);
     this.terrain.material.userData.ow.owWet.value = wet;
     studioUniforms.studioTime.value = time;
+    // A light onshore breeze for the planting (no weather wind in free roam).
+    studioUniforms.studioWind.value.set(2.6, 1.4, time, 0.5);
     // --- Render ---------------------------------------------------------------
     this.environment.update(this.renderer, this.scene, daylight.cover, mode);
     this.audioView.update(this.camera, time, 0, this.mode === 'hood', 0);
@@ -392,6 +422,8 @@ export class FestivalRenderer {
     this.roads.dispose();
     this.buildings.dispose();
     this.vegetation.dispose();
+    this.photoVegetation?.dispose();
+    this.photoVegetation = null;
     this.water.dispose();
     this.markers.dispose();
     this.cars.dispose();

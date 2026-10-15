@@ -100,3 +100,59 @@ Sandy Gravel 01 (texture)
   Source: https://raw.githubusercontent.com/google/filament/58fcec6e73ed90f8d4be8ad9ad570bc3f3a59a4d/third_party/textures/Sandy_gravel_01/Sandy_gravel_01_Color.png
   Original: https://www.cgbookcase.com/
   Files: sandy-gravel-01_color.webp, sandy-gravel-01_color.ktx2, sandy-gravel-01_normal.webp, sandy-gravel-01_normal.ktx2, sandy-gravel-01_orm.webp, sandy-gravel-01_orm.ktx2
+
+Silver linden (Tilia tomentosa) (vegetation)
+  "Silver linden (Tilia tomentosa)" from the pbrt-v4 Landscape scene by Jan-Walter Schliep, Burak Kahraman and Timm Dapper (Laubwerk), CC BY 4.0. Modified: simplified and baked into leaf cards, impostors and textures for real-time use.
+  Licence: Creative Commons Attribution 4.0 International — https://creativecommons.org/licenses/by/4.0/
+  Source: https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/geometry.pbrt
+  Original: https://github.com/mmp/pbrt-v4-scenes/tree/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape
+  Files: tree-linden.veg, tree-linden_cards_color.webp, tree-linden_cards_color.ktx2, tree-linden_cards_normal.webp, tree-linden_cards_normal.ktx2, tree-linden_impostor_color.webp, tree-linden_impostor_color.ktx2, tree-linden_impostor_normal.webp, tree-linden_impostor_normal.ktx2, tree-linden_bark_color.webp, tree-linden_bark_color.ktx2, tree-linden_bark_normal.webp, tree-linden_bark_normal.ktx2
+
+Horse chestnut (Aesculus hippocastanum) (vegetation)
+  "Horse chestnut (Aesculus hippocastanum)" from the pbrt-v4 Landscape scene by Jan-Walter Schliep, Burak Kahraman and Timm Dapper (Laubwerk), CC BY 4.0. Modified: simplified and baked into leaf cards, impostors and textures for real-time use.
+  Licence: Creative Commons Attribution 4.0 International — https://creativecommons.org/licenses/by/4.0/
+  Source: https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/geometry.pbrt
+  Original: https://github.com/mmp/pbrt-v4-scenes/tree/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape
+  Files: tree-chestnut.veg, tree-chestnut_cards_color.webp, tree-chestnut_cards_color.ktx2, tree-chestnut_cards_normal.webp, tree-chestnut_cards_normal.ktx2, tree-chestnut_impostor_color.webp, tree-chestnut_impostor_color.ktx2, tree-chestnut_impostor_normal.webp, tree-chestnut_impostor_normal.ktx2, tree-chestnut_bark_color.webp, tree-chestnut_bark_color.ktx2, tree-chestnut_bark_normal.webp, tree-chestnut_bark_normal.ktx2
+
+Silver birch (Betula pendula) (vegetation)
+  "Silver birch (Betula pendula)" from the pbrt-v4 Landscape scene by Jan-Walter Schliep, Burak Kahraman and Timm Dapper (Laubwerk), CC BY 4.0. Modified: simplified and baked into leaf cards, impostors and textures for real-time use.
+  Licence: Creative Commons Attribution 4.0 International — https://creativecommons.org/licenses/by/4.0/
+  Source: https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/geometry.pbrt
+  Original: https://github.com/mmp/pbrt-v4-scenes/tree/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape
+  Files: tree-birch.veg, tree-birch_cards_color.webp, tree-birch_cards_color.ktx2, tree-birch_cards_normal.webp, tree-birch_cards_normal.ktx2, tree-birch_impostor_color.webp, tree-birch_impostor_color.ktx2, tree-birch_impostor_normal.webp, tree-birch_impostor_normal.ktx2, tree-birch_bark_color.webp, tree-birch_bark_color.ktx2, tree-birch_bark_normal.webp, tree-birch_bark_normal.ktx2
+
+Rowan (Sorbus aucuparia) (vegetation)
+  "Rowan (Sorbus aucuparia)" from the pbrt-v4 Landscape scene by Jan-Walter Schliep, Burak Kahraman and Timm Dapper (Laubwerk), CC BY 4.0. Modified: simplified and baked into leaf cards, impostors and textures for real-time use.
+  Licence: Creative Commons Attribution 4.0 International — https://creativecommons.org/licenses/by/4.0/
+  Source: https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/geometry.pbrt
+  Original: https://github.com/mmp/pbrt-v4-scenes/tree/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape
+  Files: tree-rowan.veg, tree-rowan_cards_color.webp, tree-rowan_cards_color.ktx2, tree-rowan_cards_normal.webp, tree-rowan_cards_normal.ktx2, tree-rowan_impostor_color.webp, tree-rowan_impostor_color.ktx2, tree-rowan_impostor_normal.webp, tree-rowan_impostor_normal.ktx2, tree-rowan_bark_color.webp, tree-rowan_bark_color.ktx2, tree-rowan_bark_normal.webp, tree-rowan_bark_normal.ktx2
+
+White fir (Abies concolor) (vegetation)
+  "White fir (Abies concolor)" from the pbrt-v4 Landscape scene by Jan-Walter Schliep, Burak Kahraman and Timm Dapper (Laubwerk), CC BY 4.0. Modified: simplified and baked into leaf cards, impostors and textures for real-time use.
+  Licence: Creative Commons Attribution 4.0 International — https://creativecommons.org/licenses/by/4.0/
+  Source: https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/geometry.pbrt
+  Original: https://github.com/mmp/pbrt-v4-scenes/tree/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape
+  Files: tree-fir.veg, tree-fir_cards_color.webp, tree-fir_cards_color.ktx2, tree-fir_cards_normal.webp, tree-fir_cards_normal.ktx2, tree-fir_impostor_color.webp, tree-fir_impostor_color.ktx2, tree-fir_impostor_normal.webp, tree-fir_impostor_normal.ktx2, tree-fir_bark_color.webp, tree-fir_bark_color.ktx2, tree-fir_bark_normal.webp, tree-fir_bark_normal.ktx2
+
+White fir, second form (Abies concolor) (vegetation)
+  "White fir, second form (Abies concolor)" from the pbrt-v4 Landscape scene by Jan-Walter Schliep, Burak Kahraman and Timm Dapper (Laubwerk), CC BY 4.0. Modified: simplified and baked into leaf cards, impostors and textures for real-time use.
+  Licence: Creative Commons Attribution 4.0 International — https://creativecommons.org/licenses/by/4.0/
+  Source: https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/geometry.pbrt
+  Original: https://github.com/mmp/pbrt-v4-scenes/tree/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape
+  Files: tree-fir-b.veg, tree-fir-b_cards_color.webp, tree-fir-b_cards_color.ktx2, tree-fir-b_cards_normal.webp, tree-fir-b_cards_normal.ktx2, tree-fir-b_impostor_color.webp, tree-fir-b_impostor_color.ktx2, tree-fir-b_impostor_normal.webp, tree-fir-b_impostor_normal.ktx2, tree-fir-b_bark_color.webp, tree-fir-b_bark_color.ktx2, tree-fir-b_bark_normal.webp, tree-fir-b_bark_normal.ktx2
+
+Flowering shrub (vegetation)
+  "Flowering shrub" from the pbrt-v4 Landscape scene by Jan-Walter Schliep, Burak Kahraman and Timm Dapper (Laubwerk), CC BY 4.0. Modified: simplified and baked into leaf cards, impostors and textures for real-time use.
+  Licence: Creative Commons Attribution 4.0 International — https://creativecommons.org/licenses/by/4.0/
+  Source: https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/geometry.pbrt
+  Original: https://github.com/mmp/pbrt-v4-scenes/tree/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape
+  Files: shrub-flowering.veg, shrub-flowering_cards_color.webp, shrub-flowering_cards_color.ktx2, shrub-flowering_cards_normal.webp, shrub-flowering_cards_normal.ktx2, shrub-flowering_impostor_color.webp, shrub-flowering_impostor_color.ktx2, shrub-flowering_impostor_normal.webp, shrub-flowering_impostor_normal.ktx2, shrub-flowering_bark_color.webp, shrub-flowering_bark_color.ktx2, shrub-flowering_bark_normal.webp, shrub-flowering_bark_normal.ktx2
+
+Meadow grass (vegetation)
+  "Meadow grass" from the pbrt-v4 Landscape scene by Jan-Walter Schliep, Burak Kahraman and Timm Dapper (Laubwerk), CC BY 4.0. Modified: simplified and baked into leaf cards, impostors and textures for real-time use.
+  Licence: Creative Commons Attribution 4.0 International — https://creativecommons.org/licenses/by/4.0/
+  Source: https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/geometry.pbrt
+  Original: https://github.com/mmp/pbrt-v4-scenes/tree/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape
+  Files: grass-meadow.veg, grass-meadow_grass_color.webp, grass-meadow_grass_color.ktx2, grass-meadow_grass_normal.webp, grass-meadow_grass_normal.ktx2

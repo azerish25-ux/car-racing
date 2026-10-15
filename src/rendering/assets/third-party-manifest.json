@@ -1,7 +1,7 @@
 {
   "version": 1,
   "budgetBytes": 157286400,
-  "totalBytes": 11498600,
+  "totalBytes": 37458303,
   "tools": {
     "hdrify": "1.3.0",
     "jpeg-js": "0.4.4",
@@ -1228,13 +1228,1269 @@
         "metres": 2,
         "normalConvention": "gl"
       }
+    },
+    {
+      "id": "tree-linden",
+      "kind": "vegetation",
+      "title": "Silver linden (Tilia tomentosa)",
+      "author": "Jan-Walter Schliep, Burak Kahraman and Timm Dapper (Laubwerk)",
+      "licence": "CC-BY-4.0",
+      "attribution": "\"Silver linden (Tilia tomentosa)\" from the pbrt-v4 Landscape scene by Jan-Walter Schliep, Burak Kahraman and Timm Dapper (Laubwerk), CC BY 4.0. Modified: simplified and baked into leaf cards, impostors and textures for real-time use.",
+      "sourceUrl": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/geometry.pbrt",
+      "homepage": "https://github.com/mmp/pbrt-v4-scenes/tree/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape",
+      "files": [
+        {
+          "path": "assets/third-party/vegetation/tree-linden/tree-linden.veg",
+          "bytes": 147340,
+          "sha256": "581a64d4be02c63ef0830a2c719b5e73b8cc327b28d2566761d181a1a33adef7",
+          "role": "geometry",
+          "format": "bin"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-linden/tree-linden_cards_color.webp",
+          "bytes": 406152,
+          "sha256": "ab40900d4b5d7c5566d6a6e39cd8a0ab84fb51d25d6b7bd6e84c01b3d70b92a6",
+          "role": "cards_color",
+          "format": "webp",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-linden/tree-linden_cards_color.ktx2",
+          "bytes": 1077287,
+          "sha256": "e9b48992d7f4b016b5bba93bd004f64f9d6d5c5cae4bc596cc0077f54422cc0c",
+          "role": "cards_color",
+          "format": "ktx2",
+          "width": 2048,
+          "height": 2048,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-linden/tree-linden_cards_normal.webp",
+          "bytes": 197276,
+          "sha256": "72b141bb26c36d7041ee1e5870d4de9d65c9e1e0e893f46757951fd7254a8865",
+          "role": "cards_normal",
+          "format": "webp",
+          "width": 512,
+          "height": 512,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-linden/tree-linden_cards_normal.ktx2",
+          "bytes": 996965,
+          "sha256": "de8b7a048416c76334ecf538515acc39eb3bd290c6417d30edc0acee2eaba2d9",
+          "role": "cards_normal",
+          "format": "ktx2",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-linden/tree-linden_impostor_color.webp",
+          "bytes": 164232,
+          "sha256": "c6b3c7f3ed3caa4fe04294a9646a40577b6a81899c22de0d70541c47bf49753e",
+          "role": "impostor_color",
+          "format": "webp",
+          "width": 768,
+          "height": 768,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-linden/tree-linden_impostor_color.ktx2",
+          "bytes": 464204,
+          "sha256": "ccfa44b8c2aede0169ae688d90024e37e27d06d06c2f252fd58eed7b2c0352f4",
+          "role": "impostor_color",
+          "format": "ktx2",
+          "width": 1536,
+          "height": 1536,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-linden/tree-linden_impostor_normal.webp",
+          "bytes": 83652,
+          "sha256": "b8db36900616b8fee9f5b9e3024eab3c53f0ebbada2bd0c2ddc080f46c41c4ff",
+          "role": "impostor_normal",
+          "format": "webp",
+          "width": 384,
+          "height": 384,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-linden/tree-linden_impostor_normal.ktx2",
+          "bytes": 411982,
+          "sha256": "e9a11d32647b6ddc74f9386d7c1a30e1cbff4c375a9c10e65532932eae79c41b",
+          "role": "impostor_normal",
+          "format": "ktx2",
+          "width": 768,
+          "height": 768,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-linden/tree-linden_bark_color.webp",
+          "bytes": 33574,
+          "sha256": "9d096d6cf5f19c18bcd0165f4f8e4e748cd1662bc04ca34e0fd08f350b82b84b",
+          "role": "bark_color",
+          "format": "webp",
+          "width": 256,
+          "height": 512,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-linden/tree-linden_bark_color.ktx2",
+          "bytes": 146156,
+          "sha256": "c7bfe6bfb4af29bf74b5658468575df74f0c405bdf94cc72abe2d591cf471d9d",
+          "role": "bark_color",
+          "format": "ktx2",
+          "width": 512,
+          "height": 1024,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-linden/tree-linden_bark_normal.webp",
+          "bytes": 14280,
+          "sha256": "1e3cc83bc67a11ff1ef1bde51dd1c48d3ebd8a99eb32a44bb9d1aee76538b937",
+          "role": "bark_normal",
+          "format": "webp",
+          "width": 128,
+          "height": 256,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-linden/tree-linden_bark_normal.ktx2",
+          "bytes": 162604,
+          "sha256": "46e1fbb5a6023e0205782927303a736ace1a34e7fe11680f6714c84736e7bc44",
+          "role": "bark_normal",
+          "format": "ktx2",
+          "width": 256,
+          "height": 512,
+          "colorSpace": "linear"
+        }
+      ],
+      "vegetation": {
+        "form": "tree",
+        "height": 11.6005,
+        "radius": 4.1819,
+        "bounds": [
+          -4.9463,
+          0,
+          -4.5067,
+          4.5406,
+          11.6005,
+          4.8344
+        ],
+        "crownCentreY": 6.7031,
+        "trunkTriangles": 4000,
+        "cards": 300,
+        "cardDensity": 84.222,
+        "views": 8,
+        "impostorHalfWidth": 5.0726,
+        "impostorHeight": 11.8325,
+        "impostorColumns": 3,
+        "impostorRows": 3,
+        "crownAlbedo": [
+          0.05003,
+          0.0633,
+          0.02252
+        ],
+        "sourceTriangles": 1004632
+      }
+    },
+    {
+      "id": "tree-chestnut",
+      "kind": "vegetation",
+      "title": "Horse chestnut (Aesculus hippocastanum)",
+      "author": "Jan-Walter Schliep, Burak Kahraman and Timm Dapper (Laubwerk)",
+      "licence": "CC-BY-4.0",
+      "attribution": "\"Horse chestnut (Aesculus hippocastanum)\" from the pbrt-v4 Landscape scene by Jan-Walter Schliep, Burak Kahraman and Timm Dapper (Laubwerk), CC BY 4.0. Modified: simplified and baked into leaf cards, impostors and textures for real-time use.",
+      "sourceUrl": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/geometry.pbrt",
+      "homepage": "https://github.com/mmp/pbrt-v4-scenes/tree/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape",
+      "files": [
+        {
+          "path": "assets/third-party/vegetation/tree-chestnut/tree-chestnut.veg",
+          "bytes": 313528,
+          "sha256": "19c0f6cfbbdd8d2786ed30d038e8a7ad0ac1d3629ba08ad7df8a71a1c8dabf65",
+          "role": "geometry",
+          "format": "bin"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-chestnut/tree-chestnut_cards_color.webp",
+          "bytes": 373258,
+          "sha256": "ace222e955d41f6223d276c5b6b5e2317ee98b286612da410368420b66aee3c0",
+          "role": "cards_color",
+          "format": "webp",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-chestnut/tree-chestnut_cards_color.ktx2",
+          "bytes": 1083656,
+          "sha256": "2a35397f53948a1ba40a3c85404097dbb667d7a87c65be6d8843b5f2a8929bdf",
+          "role": "cards_color",
+          "format": "ktx2",
+          "width": 2048,
+          "height": 2048,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-chestnut/tree-chestnut_cards_normal.webp",
+          "bytes": 189348,
+          "sha256": "39dca9b677eae714fd34b41db958f10c054cefda50a074098c366df0012b5e83",
+          "role": "cards_normal",
+          "format": "webp",
+          "width": 512,
+          "height": 512,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-chestnut/tree-chestnut_cards_normal.ktx2",
+          "bytes": 974137,
+          "sha256": "173b30e06a5a5e43f3e900a21748bde3378a984c193d0005d9ca39d8b988359d",
+          "role": "cards_normal",
+          "format": "ktx2",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-chestnut/tree-chestnut_impostor_color.webp",
+          "bytes": 90480,
+          "sha256": "aa77d8ae38537e57ae16cdfb9e63a92f9651f655cc73869f7de03927b86a9be7",
+          "role": "impostor_color",
+          "format": "webp",
+          "width": 768,
+          "height": 768,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-chestnut/tree-chestnut_impostor_color.ktx2",
+          "bytes": 401381,
+          "sha256": "8a068e14604de0452ffbd7fc72822e0f6bf81ec3cadf6f8298a0be0a8e250609",
+          "role": "impostor_color",
+          "format": "ktx2",
+          "width": 1536,
+          "height": 1536,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-chestnut/tree-chestnut_impostor_normal.webp",
+          "bytes": 89532,
+          "sha256": "333e65fa25ed56d6c7faeacc9ccbb72016ff0d8f6c5b6ad5a24335b996586957",
+          "role": "impostor_normal",
+          "format": "webp",
+          "width": 384,
+          "height": 384,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-chestnut/tree-chestnut_impostor_normal.ktx2",
+          "bytes": 427352,
+          "sha256": "c5ac71368a7a08b0bd0cfa33e4b5c135ac2812ab3706742f720c88c49b7bb991",
+          "role": "impostor_normal",
+          "format": "ktx2",
+          "width": 768,
+          "height": 768,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-chestnut/tree-chestnut_bark_color.webp",
+          "bytes": 38710,
+          "sha256": "c2471c53a1a37dd8e59d4ee36c0da36648b279e927d0f69dbeb5d1c11772c359",
+          "role": "bark_color",
+          "format": "webp",
+          "width": 256,
+          "height": 512,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-chestnut/tree-chestnut_bark_color.ktx2",
+          "bytes": 144419,
+          "sha256": "17e5047f4a193d751db0b60d72728008ba30df060e3e7cc2ecac25962c805330",
+          "role": "bark_color",
+          "format": "ktx2",
+          "width": 512,
+          "height": 1024,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-chestnut/tree-chestnut_bark_normal.webp",
+          "bytes": 11512,
+          "sha256": "9ab5d688d69ce2a8138ac20661b2c0d41544eccfdaa43cd14908b91096e995a1",
+          "role": "bark_normal",
+          "format": "webp",
+          "width": 128,
+          "height": 256,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-chestnut/tree-chestnut_bark_normal.ktx2",
+          "bytes": 147253,
+          "sha256": "1551a4ddab7bf54f0e22391e5413c9bcdf633765e9e638fc91b8f1045c2bd31f",
+          "role": "bark_normal",
+          "format": "ktx2",
+          "width": 256,
+          "height": 512,
+          "colorSpace": "linear"
+        }
+      ],
+      "vegetation": {
+        "form": "tree",
+        "height": 18.7314,
+        "radius": 7.5918,
+        "bounds": [
+          -7.4827,
+          0,
+          -8.6787,
+          8.7276,
+          18.7314,
+          6.2278
+        ],
+        "crownCentreY": 9.9471,
+        "trunkTriangles": 5531,
+        "cards": 480,
+        "cardDensity": 41.061,
+        "views": 8,
+        "impostorHalfWidth": 9.4162,
+        "impostorHeight": 19.106,
+        "impostorColumns": 3,
+        "impostorRows": 3,
+        "crownAlbedo": [
+          0.04393,
+          0.08141,
+          0.01202
+        ],
+        "sourceTriangles": 1605943
+      }
+    },
+    {
+      "id": "tree-birch",
+      "kind": "vegetation",
+      "title": "Silver birch (Betula pendula)",
+      "author": "Jan-Walter Schliep, Burak Kahraman and Timm Dapper (Laubwerk)",
+      "licence": "CC-BY-4.0",
+      "attribution": "\"Silver birch (Betula pendula)\" from the pbrt-v4 Landscape scene by Jan-Walter Schliep, Burak Kahraman and Timm Dapper (Laubwerk), CC BY 4.0. Modified: simplified and baked into leaf cards, impostors and textures for real-time use.",
+      "sourceUrl": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/geometry.pbrt",
+      "homepage": "https://github.com/mmp/pbrt-v4-scenes/tree/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape",
+      "files": [
+        {
+          "path": "assets/third-party/vegetation/tree-birch/tree-birch.veg",
+          "bytes": 198196,
+          "sha256": "2f8bf72d34b48ac7ee8afd344da33e2c3fabcd727d8d00d1bc12a394bcd8dd2b",
+          "role": "geometry",
+          "format": "bin"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-birch/tree-birch_cards_color.webp",
+          "bytes": 349924,
+          "sha256": "487d5393ca1e2a951092669b4ba1d28e03c9a53179bf6d6b4653398ebc62b5e1",
+          "role": "cards_color",
+          "format": "webp",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-birch/tree-birch_cards_color.ktx2",
+          "bytes": 955983,
+          "sha256": "51860219e05529b3982d9234d94ba984bd9b26db3250e2c2f7ec7be76ad0a344",
+          "role": "cards_color",
+          "format": "ktx2",
+          "width": 2048,
+          "height": 2048,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-birch/tree-birch_cards_normal.webp",
+          "bytes": 183080,
+          "sha256": "d07be362ade86a89d80a2b4092882f5dc3f63f16917c31e0f960bd132da7db51",
+          "role": "cards_normal",
+          "format": "webp",
+          "width": 512,
+          "height": 512,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-birch/tree-birch_cards_normal.ktx2",
+          "bytes": 985021,
+          "sha256": "1fd072c20b891973fa6c156338356954e87ac75915d4274f18ee9906ddc7d71f",
+          "role": "cards_normal",
+          "format": "ktx2",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-birch/tree-birch_impostor_color.webp",
+          "bytes": 144578,
+          "sha256": "c9432a2cd548df0cffa98897e522a801f3bc698a4fce760adb60a19609feb6c0",
+          "role": "impostor_color",
+          "format": "webp",
+          "width": 768,
+          "height": 768,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-birch/tree-birch_impostor_color.ktx2",
+          "bytes": 418224,
+          "sha256": "ba002cf0a44375122756263592ed9f8336a776dc088ddd3d72faef3ea3ef8fce",
+          "role": "impostor_color",
+          "format": "ktx2",
+          "width": 1536,
+          "height": 1536,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-birch/tree-birch_impostor_normal.webp",
+          "bytes": 73550,
+          "sha256": "1a77360272764acbcfa6889bd305e109d6f81fd36416b854686f2e811bc029a5",
+          "role": "impostor_normal",
+          "format": "webp",
+          "width": 384,
+          "height": 384,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-birch/tree-birch_impostor_normal.ktx2",
+          "bytes": 408091,
+          "sha256": "a6137b045758d6e7a7bc1d054e709276fe872a37ce7623f717f4f292fe581a7b",
+          "role": "impostor_normal",
+          "format": "ktx2",
+          "width": 768,
+          "height": 768,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-birch/tree-birch_bark_color.webp",
+          "bytes": 20720,
+          "sha256": "ed188a286d684a6750a09e500b13dca68622e3deacbe2f13bc6efb44c1fd0d84",
+          "role": "bark_color",
+          "format": "webp",
+          "width": 256,
+          "height": 1024,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-birch/tree-birch_bark_color.ktx2",
+          "bytes": 213986,
+          "sha256": "32a47a25442d269fa2af1909c003dfd8b9a9d9be1b4b6d4660a1e358d10a7c2c",
+          "role": "bark_color",
+          "format": "ktx2",
+          "width": 512,
+          "height": 2048,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-birch/tree-birch_bark_normal.webp",
+          "bytes": 8886,
+          "sha256": "3fdf45366229eca4dddc101e0c58245af93f9857a8f7f20dbab335730d107e60",
+          "role": "bark_normal",
+          "format": "webp",
+          "width": 128,
+          "height": 512,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-birch/tree-birch_bark_normal.ktx2",
+          "bytes": 195637,
+          "sha256": "5b4d3831740e9966e06848705c1d1d2f408183bac2af575a154d5095beb880fe",
+          "role": "bark_normal",
+          "format": "ktx2",
+          "width": 256,
+          "height": 1024,
+          "colorSpace": "linear"
+        }
+      ],
+      "vegetation": {
+        "form": "tree",
+        "height": 15.8721,
+        "radius": 4.8919,
+        "bounds": [
+          -6.0187,
+          0,
+          -5.6149,
+          4.6654,
+          15.8721,
+          5.7632
+        ],
+        "crownCentreY": 8.3005,
+        "trunkTriangles": 6367,
+        "cards": 300,
+        "cardDensity": 67.652,
+        "views": 8,
+        "impostorHalfWidth": 6.2759,
+        "impostorHeight": 16.1895,
+        "impostorColumns": 3,
+        "impostorRows": 3,
+        "crownAlbedo": [
+          0.04499,
+          0.07263,
+          0.01132
+        ],
+        "sourceTriangles": 4173512
+      }
+    },
+    {
+      "id": "tree-rowan",
+      "kind": "vegetation",
+      "title": "Rowan (Sorbus aucuparia)",
+      "author": "Jan-Walter Schliep, Burak Kahraman and Timm Dapper (Laubwerk)",
+      "licence": "CC-BY-4.0",
+      "attribution": "\"Rowan (Sorbus aucuparia)\" from the pbrt-v4 Landscape scene by Jan-Walter Schliep, Burak Kahraman and Timm Dapper (Laubwerk), CC BY 4.0. Modified: simplified and baked into leaf cards, impostors and textures for real-time use.",
+      "sourceUrl": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/geometry.pbrt",
+      "homepage": "https://github.com/mmp/pbrt-v4-scenes/tree/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape",
+      "files": [
+        {
+          "path": "assets/third-party/vegetation/tree-rowan/tree-rowan.veg",
+          "bytes": 160988,
+          "sha256": "ca0b68ca145e06f170105cafa6f629bdf18c12d00a094c348eae81218d74277d",
+          "role": "geometry",
+          "format": "bin"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-rowan/tree-rowan_cards_color.webp",
+          "bytes": 364404,
+          "sha256": "5e043a90dbf7c00568001b18991054ea760e8f8091fd8c1cc17c0bfa6b3d37af",
+          "role": "cards_color",
+          "format": "webp",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-rowan/tree-rowan_cards_color.ktx2",
+          "bytes": 1042435,
+          "sha256": "e320c4cf4fe8de236a3f887789861eb85fded6ed57451be43cb06ec4d2cd3e5f",
+          "role": "cards_color",
+          "format": "ktx2",
+          "width": 2048,
+          "height": 2048,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-rowan/tree-rowan_cards_normal.webp",
+          "bytes": 177168,
+          "sha256": "9107d39f1fbb68a10ed01b6d14f0bd991652320f30cb9405ca205355631aef03",
+          "role": "cards_normal",
+          "format": "webp",
+          "width": 512,
+          "height": 512,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-rowan/tree-rowan_cards_normal.ktx2",
+          "bytes": 959303,
+          "sha256": "e60d1c2032a31d592ebef434f03237bccae30f6e333cf40583b57c295ae6bba8",
+          "role": "cards_normal",
+          "format": "ktx2",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-rowan/tree-rowan_impostor_color.webp",
+          "bytes": 97624,
+          "sha256": "f6e76e8433f7e3c6ff0aeab6aaf016456f59163c4f41ab71e7bd300d8f92c9f2",
+          "role": "impostor_color",
+          "format": "webp",
+          "width": 768,
+          "height": 768,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-rowan/tree-rowan_impostor_color.ktx2",
+          "bytes": 371871,
+          "sha256": "eb29da3a34ced0dd774ee8227a93ea019b8d46be8ad97136c7aa64754292ad15",
+          "role": "impostor_color",
+          "format": "ktx2",
+          "width": 1536,
+          "height": 1536,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-rowan/tree-rowan_impostor_normal.webp",
+          "bytes": 75120,
+          "sha256": "37fdf038855fc361e7ac81ba35f5fc640950b0550e378f38d90507b60d41cdb6",
+          "role": "impostor_normal",
+          "format": "webp",
+          "width": 384,
+          "height": 384,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-rowan/tree-rowan_impostor_normal.ktx2",
+          "bytes": 362378,
+          "sha256": "a36841e831455f6a2d90e3557f2102e4bb24f61f3b5fe3ac78890324fc242969",
+          "role": "impostor_normal",
+          "format": "ktx2",
+          "width": 768,
+          "height": 768,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-rowan/tree-rowan_bark_color.webp",
+          "bytes": 25998,
+          "sha256": "a36f880a538f6a8374b4cfff644253d2b0ade223a1259e31a074d4ff1abd3be6",
+          "role": "bark_color",
+          "format": "webp",
+          "width": 256,
+          "height": 512,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-rowan/tree-rowan_bark_color.ktx2",
+          "bytes": 134521,
+          "sha256": "f05bd510bc2cfdc960315ee84920708b9c0be834ea2e2e8d293f9895706516ca",
+          "role": "bark_color",
+          "format": "ktx2",
+          "width": 512,
+          "height": 1024,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-rowan/tree-rowan_bark_normal.webp",
+          "bytes": 14604,
+          "sha256": "0ee878c7c61750140318876b4c63c71292afd9b69f1387ec0d2b90535f022e63",
+          "role": "bark_normal",
+          "format": "webp",
+          "width": 128,
+          "height": 256,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-rowan/tree-rowan_bark_normal.ktx2",
+          "bytes": 161547,
+          "sha256": "8427f63d9da24ca6f27c089d4f94829899b1d14a481ad0e807eeb0f2503e7136",
+          "role": "bark_normal",
+          "format": "ktx2",
+          "width": 256,
+          "height": 512,
+          "colorSpace": "linear"
+        }
+      ],
+      "vegetation": {
+        "form": "tree",
+        "height": 8.4109,
+        "radius": 3.2178,
+        "bounds": [
+          -3.1179,
+          0,
+          -3.6062,
+          3.8383,
+          8.4109,
+          3.4082
+        ],
+        "crownCentreY": 5.0384,
+        "trunkTriangles": 3999,
+        "cards": 220,
+        "cardDensity": 120.239,
+        "views": 8,
+        "impostorHalfWidth": 3.9698,
+        "impostorHeight": 8.5791,
+        "impostorColumns": 3,
+        "impostorRows": 3,
+        "crownAlbedo": [
+          0.05578,
+          0.10994,
+          0.01549
+        ],
+        "sourceTriangles": 672680
+      }
+    },
+    {
+      "id": "tree-fir",
+      "kind": "vegetation",
+      "title": "White fir (Abies concolor)",
+      "author": "Jan-Walter Schliep, Burak Kahraman and Timm Dapper (Laubwerk)",
+      "licence": "CC-BY-4.0",
+      "attribution": "\"White fir (Abies concolor)\" from the pbrt-v4 Landscape scene by Jan-Walter Schliep, Burak Kahraman and Timm Dapper (Laubwerk), CC BY 4.0. Modified: simplified and baked into leaf cards, impostors and textures for real-time use.",
+      "sourceUrl": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/geometry.pbrt",
+      "homepage": "https://github.com/mmp/pbrt-v4-scenes/tree/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape",
+      "files": [
+        {
+          "path": "assets/third-party/vegetation/tree-fir/tree-fir.veg",
+          "bytes": 162928,
+          "sha256": "b5dba76cfa62687bf70a19aa90d0737af80369f5110be26d1bcaf6b41f77264f",
+          "role": "geometry",
+          "format": "bin"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-fir/tree-fir_cards_color.webp",
+          "bytes": 262040,
+          "sha256": "17db91061ff2db80609122144507a36d092c9807108dc8abf479a298dc7b69c8",
+          "role": "cards_color",
+          "format": "webp",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-fir/tree-fir_cards_color.ktx2",
+          "bytes": 875911,
+          "sha256": "652518162dcdacf3bbae4ef720e4d104aad5e1e4c7e4c3cf1478a07e9154685d",
+          "role": "cards_color",
+          "format": "ktx2",
+          "width": 2048,
+          "height": 2048,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-fir/tree-fir_cards_normal.webp",
+          "bytes": 159934,
+          "sha256": "1da1b9a320492c170be5baa9de63451ce32cf247c03d6d5a7a306abef4cada9c",
+          "role": "cards_normal",
+          "format": "webp",
+          "width": 512,
+          "height": 512,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-fir/tree-fir_cards_normal.ktx2",
+          "bytes": 858175,
+          "sha256": "86caaf960f81c715c7f7a0154808afb09dfe1974d9dab8c1f705054d733c6835",
+          "role": "cards_normal",
+          "format": "ktx2",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-fir/tree-fir_impostor_color.webp",
+          "bytes": 112520,
+          "sha256": "26ee78735ff44baa80bd38979ab6cdd3e369c1240355383fa6e904b42064572a",
+          "role": "impostor_color",
+          "format": "webp",
+          "width": 768,
+          "height": 768,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-fir/tree-fir_impostor_color.ktx2",
+          "bytes": 481557,
+          "sha256": "c2142288c73db5a8cfc68a907e21db7cc6e5a62cf105351a6ff522b49b5fbf53",
+          "role": "impostor_color",
+          "format": "ktx2",
+          "width": 1536,
+          "height": 1536,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-fir/tree-fir_impostor_normal.webp",
+          "bytes": 108550,
+          "sha256": "717a4d73b61bea7bf601e8911720ff98a436d566d9f59167b66f357d3fd0579f",
+          "role": "impostor_normal",
+          "format": "webp",
+          "width": 384,
+          "height": 384,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-fir/tree-fir_impostor_normal.ktx2",
+          "bytes": 524523,
+          "sha256": "afe8cd3cbc420e849cd46c970923cb5f1bacb2de69155222beb3d7cf124a0b8c",
+          "role": "impostor_normal",
+          "format": "ktx2",
+          "width": 768,
+          "height": 768,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-fir/tree-fir_bark_color.webp",
+          "bytes": 26180,
+          "sha256": "2d8e5e3908d46c4b5a05e682f27e7a6d5128492cf5709ef8d929c3e340227113",
+          "role": "bark_color",
+          "format": "webp",
+          "width": 256,
+          "height": 512,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-fir/tree-fir_bark_color.ktx2",
+          "bytes": 136383,
+          "sha256": "2c7915ad34f8c22873825b559a8cf2595c6100d7d49ec20c1c54c9795c2485b6",
+          "role": "bark_color",
+          "format": "ktx2",
+          "width": 512,
+          "height": 1024,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-fir/tree-fir_bark_normal.webp",
+          "bytes": 10886,
+          "sha256": "a58044fb00651b6239750f34835ca19ae15cb1476fde8d54a46ca382f150dea6",
+          "role": "bark_normal",
+          "format": "webp",
+          "width": 128,
+          "height": 256,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-fir/tree-fir_bark_normal.ktx2",
+          "bytes": 108498,
+          "sha256": "128235154612439281fadf2d8c988154481a089ddb9185c4de2dba2daf4b2044",
+          "role": "bark_normal",
+          "format": "ktx2",
+          "width": 256,
+          "height": 512,
+          "colorSpace": "linear"
+        }
+      ],
+      "vegetation": {
+        "form": "tree",
+        "height": 7.9168,
+        "radius": 1.5318,
+        "bounds": [
+          -1.8775,
+          0,
+          -1.6842,
+          1.7664,
+          7.9168,
+          1.7497
+        ],
+        "crownCentreY": 4.0977,
+        "trunkTriangles": 3924,
+        "cards": 240,
+        "cardDensity": 167.376,
+        "views": 8,
+        "impostorHalfWidth": 1.9171,
+        "impostorHeight": 8.0752,
+        "impostorColumns": 4,
+        "impostorRows": 2,
+        "crownAlbedo": [
+          0.0645,
+          0.09121,
+          0.03105
+        ],
+        "sourceTriangles": 1363270
+      }
+    },
+    {
+      "id": "tree-fir-b",
+      "kind": "vegetation",
+      "title": "White fir, second form (Abies concolor)",
+      "author": "Jan-Walter Schliep, Burak Kahraman and Timm Dapper (Laubwerk)",
+      "licence": "CC-BY-4.0",
+      "attribution": "\"White fir, second form (Abies concolor)\" from the pbrt-v4 Landscape scene by Jan-Walter Schliep, Burak Kahraman and Timm Dapper (Laubwerk), CC BY 4.0. Modified: simplified and baked into leaf cards, impostors and textures for real-time use.",
+      "sourceUrl": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/geometry.pbrt",
+      "homepage": "https://github.com/mmp/pbrt-v4-scenes/tree/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape",
+      "files": [
+        {
+          "path": "assets/third-party/vegetation/tree-fir-b/tree-fir-b.veg",
+          "bytes": 163756,
+          "sha256": "91cc1b9e5abebf9af8e0fdb96dd5f34289199bee03b176bf5aeab83d11c9b3d3",
+          "role": "geometry",
+          "format": "bin"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-fir-b/tree-fir-b_cards_color.webp",
+          "bytes": 263014,
+          "sha256": "22f6abe6f7e4672403ecab9f33291c6a8a107feaa07df4136c48dec449699486",
+          "role": "cards_color",
+          "format": "webp",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-fir-b/tree-fir-b_cards_color.ktx2",
+          "bytes": 887379,
+          "sha256": "df163e78936aca3eefe86662c6395e1fdcd5b901015015f8aa74c1eaa0ac4aae",
+          "role": "cards_color",
+          "format": "ktx2",
+          "width": 2048,
+          "height": 2048,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-fir-b/tree-fir-b_cards_normal.webp",
+          "bytes": 156634,
+          "sha256": "2bc26f697472e9528d0e2d675353d6e203873f1aabc5696f2240da215e4043ed",
+          "role": "cards_normal",
+          "format": "webp",
+          "width": 512,
+          "height": 512,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-fir-b/tree-fir-b_cards_normal.ktx2",
+          "bytes": 852664,
+          "sha256": "2246a69736f7d9bd3a7ecd71bb2468815d710886c8080d327a0a7a99f61f69ae",
+          "role": "cards_normal",
+          "format": "ktx2",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-fir-b/tree-fir-b_impostor_color.webp",
+          "bytes": 98050,
+          "sha256": "bb363d1b6c8e355b57e1a2cc58b5fc75fd66f20ad74c399f6b2a0ed4e0df4242",
+          "role": "impostor_color",
+          "format": "webp",
+          "width": 768,
+          "height": 768,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-fir-b/tree-fir-b_impostor_color.ktx2",
+          "bytes": 440299,
+          "sha256": "ae1b871ad85d2bf5dacb73fd3807cc5f375fcbba916ac9ba461dcd0d849fb1c5",
+          "role": "impostor_color",
+          "format": "ktx2",
+          "width": 1536,
+          "height": 1536,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-fir-b/tree-fir-b_impostor_normal.webp",
+          "bytes": 100020,
+          "sha256": "0d048be254e34912061a1311f842a30d2c80709fd5ecd5bdb2e657c1d3d232bd",
+          "role": "impostor_normal",
+          "format": "webp",
+          "width": 384,
+          "height": 384,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-fir-b/tree-fir-b_impostor_normal.ktx2",
+          "bytes": 487349,
+          "sha256": "08c7873b8952c28fdc470c9efc7fabfe92b1bac0405c5ba416315066942a71e4",
+          "role": "impostor_normal",
+          "format": "ktx2",
+          "width": 768,
+          "height": 768,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-fir-b/tree-fir-b_bark_color.webp",
+          "bytes": 26180,
+          "sha256": "2d8e5e3908d46c4b5a05e682f27e7a6d5128492cf5709ef8d929c3e340227113",
+          "role": "bark_color",
+          "format": "webp",
+          "width": 256,
+          "height": 512,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-fir-b/tree-fir-b_bark_color.ktx2",
+          "bytes": 136383,
+          "sha256": "2c7915ad34f8c22873825b559a8cf2595c6100d7d49ec20c1c54c9795c2485b6",
+          "role": "bark_color",
+          "format": "ktx2",
+          "width": 512,
+          "height": 1024,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-fir-b/tree-fir-b_bark_normal.webp",
+          "bytes": 10886,
+          "sha256": "a58044fb00651b6239750f34835ca19ae15cb1476fde8d54a46ca382f150dea6",
+          "role": "bark_normal",
+          "format": "webp",
+          "width": 128,
+          "height": 256,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/vegetation/tree-fir-b/tree-fir-b_bark_normal.ktx2",
+          "bytes": 108498,
+          "sha256": "128235154612439281fadf2d8c988154481a089ddb9185c4de2dba2daf4b2044",
+          "role": "bark_normal",
+          "format": "ktx2",
+          "width": 256,
+          "height": 512,
+          "colorSpace": "linear"
+        }
+      ],
+      "vegetation": {
+        "form": "tree",
+        "height": 8.9413,
+        "radius": 1.7552,
+        "bounds": [
+          -2.0624,
+          0,
+          -1.9655,
+          2.0582,
+          8.9413,
+          2.0156
+        ],
+        "crownCentreY": 4.8002,
+        "trunkTriangles": 3912,
+        "cards": 240,
+        "cardDensity": 150.646,
+        "views": 8,
+        "impostorHalfWidth": 2.2246,
+        "impostorHeight": 9.1201,
+        "impostorColumns": 4,
+        "impostorRows": 2,
+        "crownAlbedo": [
+          0.0644,
+          0.09121,
+          0.03106
+        ],
+        "sourceTriangles": 1414462
+      }
+    },
+    {
+      "id": "shrub-flowering",
+      "kind": "vegetation",
+      "title": "Flowering shrub",
+      "author": "Jan-Walter Schliep, Burak Kahraman and Timm Dapper (Laubwerk)",
+      "licence": "CC-BY-4.0",
+      "attribution": "\"Flowering shrub\" from the pbrt-v4 Landscape scene by Jan-Walter Schliep, Burak Kahraman and Timm Dapper (Laubwerk), CC BY 4.0. Modified: simplified and baked into leaf cards, impostors and textures for real-time use.",
+      "sourceUrl": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/geometry.pbrt",
+      "homepage": "https://github.com/mmp/pbrt-v4-scenes/tree/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape",
+      "files": [
+        {
+          "path": "assets/third-party/vegetation/shrub-flowering/shrub-flowering.veg",
+          "bytes": 64220,
+          "sha256": "b2b376b5c6da10b15398812831149567ba6136e2340032eb0ab0dda1cd23f0d6",
+          "role": "geometry",
+          "format": "bin"
+        },
+        {
+          "path": "assets/third-party/vegetation/shrub-flowering/shrub-flowering_cards_color.webp",
+          "bytes": 76292,
+          "sha256": "152c67659d8ef74647c1627599d28d11b62977076d82be0f0daa27503067c807",
+          "role": "cards_color",
+          "format": "webp",
+          "width": 512,
+          "height": 512,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/vegetation/shrub-flowering/shrub-flowering_cards_color.ktx2",
+          "bytes": 264344,
+          "sha256": "594da5199055bc54bc99e97518480dc4449629a116a2a61e8582dd83a561162d",
+          "role": "cards_color",
+          "format": "ktx2",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/vegetation/shrub-flowering/shrub-flowering_cards_normal.webp",
+          "bytes": 45492,
+          "sha256": "0e0a9ef07620db9477964a43da708e8ae173d00d806e773ee57c9a84e8b591b6",
+          "role": "cards_normal",
+          "format": "webp",
+          "width": 256,
+          "height": 256,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/vegetation/shrub-flowering/shrub-flowering_cards_normal.ktx2",
+          "bytes": 233296,
+          "sha256": "f6d228c5e1acca367d2786d23c55e8879673daeaff04de110a6078af0a3bb158",
+          "role": "cards_normal",
+          "format": "ktx2",
+          "width": 512,
+          "height": 512,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/vegetation/shrub-flowering/shrub-flowering_impostor_color.webp",
+          "bytes": 51240,
+          "sha256": "70b302bff174c61b9d0d3dc2fdbb1db4bc7dc8543c1a217611cf16a6a5a6a365",
+          "role": "impostor_color",
+          "format": "webp",
+          "width": 384,
+          "height": 384,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/vegetation/shrub-flowering/shrub-flowering_impostor_color.ktx2",
+          "bytes": 169514,
+          "sha256": "a9b899055a30e12ebdf1ce03e659f268570b7a00a52e27bd956bc376ddbc0627",
+          "role": "impostor_color",
+          "format": "ktx2",
+          "width": 768,
+          "height": 768,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/vegetation/shrub-flowering/shrub-flowering_impostor_normal.webp",
+          "bytes": 30206,
+          "sha256": "87d03c2359eadb37997ed4287c2ee7e6bc1126acf16147180eb108ea506689ca",
+          "role": "impostor_normal",
+          "format": "webp",
+          "width": 192,
+          "height": 192,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/vegetation/shrub-flowering/shrub-flowering_impostor_normal.ktx2",
+          "bytes": 130102,
+          "sha256": "92f79cf1accfc98bfb077ca857fd909970ecf1dd4617cfd3f2704eeb11ed7450",
+          "role": "impostor_normal",
+          "format": "ktx2",
+          "width": 384,
+          "height": 384,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/vegetation/shrub-flowering/shrub-flowering_bark_color.webp",
+          "bytes": 6950,
+          "sha256": "2720099c3666741c265e61355dffef2454aaade02cb7767ff975fd27314f0636",
+          "role": "bark_color",
+          "format": "webp",
+          "width": 128,
+          "height": 256,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/vegetation/shrub-flowering/shrub-flowering_bark_color.ktx2",
+          "bytes": 48007,
+          "sha256": "e516c7779fffd3fcfa815885fed8f4cff34ebd377a1f230a60bc5a07a764b6c7",
+          "role": "bark_color",
+          "format": "ktx2",
+          "width": 256,
+          "height": 512,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/vegetation/shrub-flowering/shrub-flowering_bark_normal.webp",
+          "bytes": 2912,
+          "sha256": "7af90df3ed3f28e738d23a2292a42658383b15d6d8c357a643dc7267975d7b42",
+          "role": "bark_normal",
+          "format": "webp",
+          "width": 64,
+          "height": 128,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/vegetation/shrub-flowering/shrub-flowering_bark_normal.ktx2",
+          "bytes": 41145,
+          "sha256": "d45525abf2f2ab53b8b456621d3bbdcdd24910c5836f4ad539f9baebb0db89d2",
+          "role": "bark_normal",
+          "format": "ktx2",
+          "width": 128,
+          "height": 256,
+          "colorSpace": "linear"
+        }
+      ],
+      "vegetation": {
+        "form": "shrub",
+        "height": 1.1035,
+        "radius": 0.7942,
+        "bounds": [
+          -0.8443,
+          0,
+          -0.7437,
+          0.89,
+          1.1035,
+          0.7115
+        ],
+        "crownCentreY": 0.5526,
+        "trunkTriangles": 1194,
+        "cards": 80,
+        "cardDensity": 349.892,
+        "views": 8,
+        "impostorHalfWidth": 0.9249,
+        "impostorHeight": 1.1255,
+        "impostorColumns": 3,
+        "impostorRows": 3,
+        "crownAlbedo": [
+          0.0469,
+          0.05247,
+          0.03495
+        ],
+        "sourceTriangles": 324632
+      }
+    },
+    {
+      "id": "grass-meadow",
+      "kind": "vegetation",
+      "title": "Meadow grass",
+      "author": "Jan-Walter Schliep, Burak Kahraman and Timm Dapper (Laubwerk)",
+      "licence": "CC-BY-4.0",
+      "attribution": "\"Meadow grass\" from the pbrt-v4 Landscape scene by Jan-Walter Schliep, Burak Kahraman and Timm Dapper (Laubwerk), CC BY 4.0. Modified: simplified and baked into leaf cards, impostors and textures for real-time use.",
+      "sourceUrl": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/geometry.pbrt",
+      "homepage": "https://github.com/mmp/pbrt-v4-scenes/tree/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape",
+      "files": [
+        {
+          "path": "assets/third-party/vegetation/grass-meadow/grass-meadow.veg",
+          "bytes": 400,
+          "sha256": "c8a39c2c52701aeab0369ac44aeb1c97420138d56064be381b9d668d2eee5a2c",
+          "role": "geometry",
+          "format": "bin"
+        },
+        {
+          "path": "assets/third-party/vegetation/grass-meadow/grass-meadow_grass_color.webp",
+          "bytes": 86570,
+          "sha256": "7386fab0f57850b49cfa95d4a7a64d60bb99111a331595a78d368aec6425c784",
+          "role": "grass_color",
+          "format": "webp",
+          "width": 512,
+          "height": 512,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/vegetation/grass-meadow/grass-meadow_grass_color.ktx2",
+          "bytes": 254041,
+          "sha256": "c7d7e04951b0e563b9a6029c29f54801c40a6656f95fc2b65131728e2f9107f0",
+          "role": "grass_color",
+          "format": "ktx2",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/vegetation/grass-meadow/grass-meadow_grass_normal.webp",
+          "bytes": 43350,
+          "sha256": "0271aa2016d0ad45100be60b8ebab4745931fcd8afee18a837c85b0406117995",
+          "role": "grass_normal",
+          "format": "webp",
+          "width": 256,
+          "height": 256,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/vegetation/grass-meadow/grass-meadow_grass_normal.ktx2",
+          "bytes": 150383,
+          "sha256": "265c550e14d5908d5eeec8b68eb50b4e519484fcddd087fc1c958faa508a5497",
+          "role": "grass_normal",
+          "format": "ktx2",
+          "width": 512,
+          "height": 512,
+          "colorSpace": "linear"
+        }
+      ],
+      "vegetation": {
+        "form": "grass",
+        "height": 0.6559,
+        "radius": 0.7,
+        "bounds": [
+          -0.7,
+          0,
+          -0.7,
+          0.7,
+          0.7,
+          0.7
+        ],
+        "crownCentreY": 0,
+        "trunkTriangles": 0,
+        "cards": 8,
+        "cardDensity": 365.714,
+        "views": 4,
+        "impostorHalfWidth": 0.7,
+        "impostorHeight": 0.7,
+        "impostorColumns": 2,
+        "impostorRows": 4,
+        "crownAlbedo": [
+          0.09203,
+          0.10048,
+          0.02401
+        ],
+        "sourceTriangles": 0
+      }
     }
   ],
   "documents": [
     {
       "path": "assets/third-party/CREDITS.txt",
-      "bytes": 5965,
-      "sha256": "f028a97d6a3b76f9555c046c1e9a5190f2623c01ccb9fa0964466c33f0f6d984",
+      "bytes": 13900,
+      "sha256": "df8cdf4ffafad2022d7c1004468c1e58e58d8f2c4d31d1805da671889d816f4e",
       "role": "credits",
       "format": "text"
     }

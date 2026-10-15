@@ -140,6 +140,8 @@ export class FestivalSession {
     this.renderer = renderer;
     renderer.setQuality(host.quality, host.graphics);
     renderer.lighting = host.lighting;
+    host.loading('Loading photographed trees…');
+    await renderer.loadPhotoVegetation();
     for (const id of this.save.discovered) renderer.discovered.add(id);
     const vehicles = festivalVehicles();
     // A road machine chosen in the MACHINE menu wins over the festival save;
