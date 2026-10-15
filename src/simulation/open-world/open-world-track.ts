@@ -307,7 +307,10 @@ export class OpenWorldTrack {
     q.surface = surface;
     const physics = SURFACE_PHYSICS[surface];
     out.surface = physics.code;
-    out.grip = physics.grip * (onRoad && surface !== WORLD_SURFACE.SHOULDER ? spec.grip : 1);
+    // The class grip (public asphalt by age and use) scales paved surfaces;
+    // loose surfaces carry their own absolute grip.
+    const paved = surface === WORLD_SURFACE.ASPHALT || surface === WORLD_SURFACE.MARKING;
+    out.grip = physics.grip * (onRoad && paved ? spec.grip : 1);
     out.resistance = physics.resistance;
     out.water = Math.min(3, this.wetness * physics.water);
     // A light general rubber coat on public asphalt; no racing line.

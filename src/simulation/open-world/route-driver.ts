@@ -4,6 +4,11 @@ import { peakGrip } from '../tire.ts';
 import type { Vehicle } from '../vehicle.ts';
 import { pathPoint, type RoutePath } from './route-path.ts';
 
+/** Speed (m/s) above which the driver will not commit on a loose road: a
+ * narrow crowned gravel lane leaves no margin for the slide a car develops
+ * there at rally pace, so the AI keeps a reserve the player may spend. */
+export const LOOSE_ROAD_SPEED = 41;
+
 /** Why the driver is doing what it does (HUD/debug, tests). */
 export type RouteDecision = 'HOLD' | 'RACE LINE' | 'FOLLOW' | 'PASS LEFT' | 'PASS RIGHT' | 'RECOVERY' | 'FINISHED';
 
@@ -44,7 +49,7 @@ export class RouteDriver {
     public path: RoutePath,
     /** Fraction of the envelope used (0.8 calm .. 1 committed). */
     readonly skill = 0.92,
-    /** Constant lane offset preference (traffic keeps right). */
+    /** Constant lane offset (m, positive left; right-hand traffic is negative). */
     readonly laneOffset = 0,
     /** Speed cap (m/s), e.g. a cruising autopilot. */
     readonly speedCap = Infinity,
@@ -84,11 +89,15 @@ export class RouteDriver {
       this.trafficClock = 0;
       this.planTraffic(cars);
     }
+    // Pure pursuit of a point on the race line (or lane) ahead. Lateral
+    // offsets are positive to the left of travel (Track convention), the
+    // car's local +X is its left, and positive steer turns left.
     const lookahead = clamp(6 + c.speed * 0.5, 8, 48);
     path.at(this.d + lookahead, this.target);
     const reach = Math.max(0.5, this.target.halfWidth - 1.3);
+    // A finished car pulls over to the right-hand verge (negative lateral).
     const offset = finished
-      ? reach
+      ? -reach
       : clamp(path.lineAt(this.d + lookahead) * (this.laneOffset ? 0 : 1) + this.laneOffset + this.tactical, -reach, reach);
     this.delta.set(
       this.target.x + this.target.nx * offset - c.body.position.x,
@@ -111,7 +120,16 @@ export class RouteDriver {
       const at = this.d + i * ENVELOPE_STEP;
       const k = this.laneOffset ? path.at(at, this.sample).curvature : path.lineCurvatureAt(at);
       this.curvatures[i] = Math.abs(k);
-      this.corners[i] = envelopeCornerSpeed(k, laneGrip, aero, env) * this.skill;
+      // Crests: keep the tyres loaded (v²·κ below ~half of g) instead of
+      // flying a rolling road and landing off-line.
+      const crest = -path.verticalCurvatureAt(at),
+        crestSpeed = crest > 1e-4 ? Math.sqrt((0.55 * G) / crest) : Infinity,
+        loose = path.network.edges[path.edge[path.index(at)]].spec.surface !== 'asphalt';
+      this.corners[i] = Math.min(
+        envelopeCornerSpeed(k, laneGrip, aero, env) * this.skill,
+        crestSpeed,
+        loose ? LOOSE_ROAD_SPEED * this.skill : Infinity,
+      );
     }
     let desired = Math.min(env.topSpeed * this.skill, this.speedCap);
     desired = Math.min(desired, envelopeProfile(this.curvatures, this.corners, laneGrip, aero, env));
@@ -120,7 +138,7 @@ export class RouteDriver {
     const remaining = path.closed ? Infinity : path.length - 6 - this.d;
     if (remaining < 1) desired = 0;
     else if (remaining < 260) desired = Math.min(desired, Math.sqrt(2 * 5 * remaining));
-    // A finished car eases off and pulls to the right-hand verge.
+    // A finished car eases off.
     if (finished) desired = Math.min(desired, Math.max(0, c.speed - 4), 16);
     // Far off the road: slow down while steering back.
     const off = Math.abs(this.lateral - offset);

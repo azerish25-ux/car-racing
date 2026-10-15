@@ -221,20 +221,31 @@ export class RouteProgress {
     if (!best || this.finished) return best;
     const travelled =
       best.edge === this.edge ? best.s - this.s : this.graph.length(this.edge) - this.s + best.s;
-    if (best.edge !== this.edge) this.edge = best.edge;
+    const gates = this.graph.spec.checkpoints;
+    /** Pass the next gate; true when that completed a lap or the stage. */
+    const pass = () => {
+      this.checkpoint++;
+      if (this.checkpoint < gates.length) return false;
+      // A lap counts only when every gate was passed in order.
+      if (this.graph.spec.closed) {
+        this.checkpoint = 0;
+        this.laps++;
+      } else this.finished = true;
+      return true;
+    };
+    if (best.edge !== this.edge) {
+      // Leaving an edge through its end passes the gates still ahead on it:
+      // a gate within one update of the end is otherwise never seen, because
+      // the next accepted location already lies on the successor.
+      while (gates[this.checkpoint]?.edge === this.edge && gates[this.checkpoint].s >= this.s)
+        if (pass()) break;
+      this.edge = best.edge;
+    }
     this.s = best.s;
     this.distance += Math.max(0, travelled);
-    const gates = this.graph.spec.checkpoints,
-      gate = gates[this.checkpoint];
-    if (gate && gate.edge === this.edge && this.s >= gate.s) {
-      this.checkpoint++;
-      if (this.checkpoint === gates.length) {
-        // A lap counts only when every gate was passed in order.
-        if (this.graph.spec.closed) {
-          this.checkpoint = 0;
-          this.laps++;
-        } else this.finished = true;
-      }
+    while (!this.finished) {
+      const gate = gates[this.checkpoint];
+      if (!gate || gate.edge !== this.edge || this.s < gate.s || pass()) break;
     }
     return best;
   }

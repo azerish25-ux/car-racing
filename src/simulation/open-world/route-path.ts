@@ -135,12 +135,12 @@ export interface PathPoint {
   x: number;
   y: number;
   z: number;
-  /** Unit direction of travel and its right-hand normal. */
+  /** Unit direction of travel and its left-hand normal (Track convention). */
   tx: number;
   tz: number;
   nx: number;
   nz: number;
-  /** Signed curvature in the travel direction (positive: right turn). */
+  /** Signed curvature in the travel direction (positive: left turn). */
   curvature: number;
   halfWidth: number;
   edge: number;
@@ -175,9 +175,11 @@ export class RoutePath {
   readonly halfWidth: Float32Array;
   readonly edge: Int32Array;
   readonly leg: Int32Array;
-  /** Race line: lateral offset (m, right positive) and its curvature. */
+  /** Race line: lateral offset (m, positive left) and its curvature. */
   readonly line: Float32Array;
   readonly lineCurvature: Float32Array;
+  /** Vertical curvature of the road profile (1/m; negative over crests). */
+  readonly verticalCurvature: Float32Array;
   readonly length: number;
   readonly count: number;
   /** Legs that contribute samples (zero-length pieces dropped). */
@@ -257,6 +259,19 @@ export class RoutePath {
     }
     this.line = new Float32Array(n);
     this.lineCurvature = new Float32Array(n);
+    // Second difference of height over ±10 m (crests and dips).
+    this.verticalCurvature = new Float32Array(n);
+    for (let i = 0; i < n; i++) {
+      let a = i,
+        b = i;
+      while (a > 0 && this.d[i] - this.d[a] < 10) a--;
+      while (b < n - 1 && this.d[b] - this.d[i] < 10) b++;
+      const da = this.d[i] - this.d[a],
+        db = this.d[b] - this.d[i];
+      if (da > 1 && db > 1)
+        this.verticalCurvature[i] =
+          (2 * ((this.y[b] - this.y[i]) / db - (this.y[i] - this.y[a]) / da)) / (da + db);
+    }
     this.solveLine();
   }
   private wrap(i: number) {
@@ -364,6 +379,9 @@ export class RoutePath {
       seg = this.span(i, j),
       t = seg > 0 && j !== i ? clamp((d - this.d[i]) / seg, 0, 1) : 0;
     return this.line[i] + (this.line[j] - this.line[i]) * t;
+  }
+  verticalCurvatureAt(d: number) {
+    return this.verticalCurvature[this.index(d)];
   }
   lineCurvatureAt(d: number) {
     const i = this.index(d);

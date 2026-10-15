@@ -14,7 +14,8 @@ import type { TerrainField } from './terrain-field.ts';
 /** Sample flags. */
 export const ROAD_FLAG = Object.freeze({
   BRIDGE: 1,
-  /** Guardrail on the left (negative lateral) / right (positive lateral). */
+  /** Guardrail on the negative-lateral side (right of travel) / positive
+   * side (left of travel; Track's lateral is positive to the left). */
   BARRIER_LEFT: 2,
   BARRIER_RIGHT: 4,
   /** Within a junction mouth (no barrier, shared surface). */
@@ -704,7 +705,7 @@ export class RoadNetwork {
       this.tz[o] = dz / len;
       this.gradient[o] = (this.y[b] - this.y[a]) / Math.max(1e-6, this.s[b] - this.s[a]);
     }
-    // Signed curvature (positive: right turn) over ±2 samples, then smoothed.
+    // Signed curvature (Track convention, positive: left turn) over ±2 samples, then smoothed.
     const raw = new Float32Array(n);
     for (let c = 0; c < n; c++) {
       const a = first + Math.max(0, c - 2),
@@ -982,7 +983,7 @@ export class RoadNetwork {
     return this.pointOnSegment(i, span > 0 ? clamp((local - this.s[i]) / span, 0, 1) : 0, out);
   }
   /** Nearest centreline point (layer-aware like Track.nearest) and the
-   * signed lateral offset (positive right of travel). */
+   * signed lateral offset (Track convention: positive to the left). */
   nearest(x: number, z: number, out: TrackPoint, y?: number): number {
     const g = this.grid,
       cx = Math.floor((x - g.x0) / ROAD_CELL),

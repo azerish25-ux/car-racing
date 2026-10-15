@@ -140,7 +140,7 @@ interface Run {
   /** Seconds the player has been off the legal route (resets on return). */
   lost: number;
 }
-const SPAWN = { x: 1000, z: -2590, heading: Math.PI / 2 };
+const SPAWN = { x: 560, z: -2602, heading: Math.PI / 2 };
 
 /**
  * The festival free-roam session (runs in the open-world worker, or headless
@@ -261,8 +261,9 @@ export class OpenWorldSimulation {
         e = this.world.network.edges[this.world.network.edgeOf[this.world.network.lastSegment]],
         keep = Math.max(0, e.spec.halfWidth - 2.2),
         forward = old.forward.x * p.tx + old.forward.z * p.tz >= 0 ? 1 : -1,
-        // Keep to the right-hand lane of the chosen direction.
-        lane = clamp(forward * Math.min(keep, e.spec.halfWidth * 0.5) || clamp(lateral, -keep, keep), -keep, keep);
+        // Keep to the right-hand lane of the chosen direction (lateral is
+        // positive to the left of the edge's forward direction).
+        lane = clamp(-forward * Math.min(keep, e.spec.halfWidth * 0.5) || clamp(lateral, -keep, keep), -keep, keep);
       this.placeAt(fresh, p.x + p.nx * lane, p.z + p.nz * lane, Math.atan2(p.tx * forward, p.tz * forward), p.y + 0.5);
     }
     if (index === 0 && this.autopilotDriver) this.autopilotDriver = null;
