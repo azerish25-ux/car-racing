@@ -13,7 +13,7 @@ import { O, OFFROAD_STRIDE } from '../protocol.ts';
 import { PHASE, type RaceDirector } from '../race.ts';
 import { RouteGraph, RouteProgress, type RoutePoint } from '../route-graph.ts';
 import { MATERIAL } from '../surface-material.ts';
-import { trackPoint, type Track } from '../track.ts';
+import { Track, trackPoint } from '../track.ts';
 import type { Vehicle } from '../vehicle.ts';
 import type { VehicleDefinition } from '../vehicles.ts';
 import { TrackTerrainSurface, type CourseTerrain } from './course-terrain.ts';
@@ -89,8 +89,9 @@ export class OffroadSession {
     readonly race: RaceDirector,
     readonly options: SessionOptions,
   ) {
-    if (!(track.offroad instanceof TrackTerrainSurface)) throw new Error('Not a terrain venue');
-    this.surface = track.offroad;
+    const surface = Track.offroadOf(track);
+    if (!(surface instanceof TrackTerrainSurface)) throw new Error('Not a terrain venue');
+    this.surface = surface;
     this.terrain = this.surface.terrain;
     this.course = this.surface.course;
     this.terrain.reset();
@@ -135,7 +136,7 @@ export class OffroadSession {
     race: RaceDirector,
     options: SessionOptions,
   ) {
-    return track.offroad instanceof TrackTerrainSurface
+    return Track.offroadOf(track) instanceof TrackTerrainSurface
       ? new OffroadSession(track, cars, race, options)
       : null;
   }

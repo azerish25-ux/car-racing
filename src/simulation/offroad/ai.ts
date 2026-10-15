@@ -5,7 +5,7 @@ import { FLAG } from '../marshal.ts';
 import { PHASE, type RaceDirector } from '../race.ts';
 import { racingLineFor } from '../racing-line.ts';
 import { lineCost } from '../terrain.ts';
-import { surfaceSample, trackPoint, type Track } from '../track.ts';
+import { surfaceSample, Track, trackPoint } from '../track.ts';
 import { peakGrip } from '../tire.ts';
 import type { Vehicle } from '../vehicle.ts';
 import { TrackTerrainSurface } from './course-terrain.ts';
@@ -168,7 +168,7 @@ export class DirtBikeAIDriver extends BikeAIDriver {
   /** Lateral choice at the preview point: the terrain's line cost across a
    * band around the racing line, with a pull back toward the line. */
   private chooseLine(track: Track) {
-    const surface = track.offroad;
+    const surface = Track.offroadOf(track);
     if (!(surface instanceof TrackTerrainSurface)) return;
     const c = this.rider,
       line = racingLineFor(track),
@@ -452,7 +452,7 @@ export function createEntrantDriver(
   laps = 4,
 ) {
   if (car instanceof DirtBikeVehicle) return new DirtBikeAIDriver(car, skill, seed);
-  if (track.offroad && !(car.definition.dynamicsKind === 'bike'))
+  if (Track.offroadOf(track) && !(car.definition.dynamicsKind === 'bike'))
     return new OffroadCarAIDriver(car, skill, seed, laps);
   return createDriver(car, skill, seed);
 }

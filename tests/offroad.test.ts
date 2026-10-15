@@ -23,7 +23,7 @@ import { GATE_DROP_SECONDS } from '../src/simulation/offroad/session.ts';
 import { OFFROAD_CIRCUITS, offroadCourse, venueAdmits } from '../src/simulation/offroad/venues.ts';
 import { CAR_STRIDE, HEADER, O, OFFROAD_BASE, carBase } from '../src/simulation/protocol.ts';
 import { PHASE } from '../src/simulation/race.ts';
-import { trackPoint } from '../src/simulation/track.ts';
+import { Track, trackPoint } from '../src/simulation/track.ts';
 import { Simulation } from '../src/simulation/world.ts';
 import { TerrainView } from '../src/rendering/offroad/terrain-view.ts';
 import { disciplineEvents, disciplineTiers, licenceAvailability } from '../src/career/ladder.ts';
@@ -95,7 +95,7 @@ describe('WP37 dirt-bike jump ballistics and landing', () => {
 describe('WP38 deformable course terrain', () => {
   it('ruts deepen where a wheel passes, firm up the line and never deform asphalt', () => {
     const track = rigTrack('valley-ridge-mx'),
-      t = (track.offroad as TrackTerrainSurface).terrain;
+      t = (Track.offroadOf(track) as TrackTerrainSurface).terrain;
     t.reset();
     const s = 300.25,
       lateral = 1.1,
@@ -108,7 +108,7 @@ describe('WP38 deformable course terrain', () => {
     // The rut is wider than one cell: the neighbours sink, less.
     expect(t.depthAt(lateral + 0.25, s)).toBeGreaterThan(0);
     expect(t.depthAt(lateral + 0.25, s)).toBeLessThan(t.depthAt(lateral, s));
-    const rx = (rigTrack('kestrel-rx').offroad as TrackTerrainSurface).terrain,
+    const rx = (Track.offroadOf(rigTrack('kestrel-rx')) as TrackTerrainSurface).terrain,
       course = offroadCourse(circuitDefinition('kestrel-rx'))!,
       paved = course.spec.zones.find((z) => z.soil === 'asphalt')!;
     rx.reset();
@@ -301,7 +301,7 @@ describe('WP42 off-road formats', () => {
 describe('WP41 terrain presentation', () => {
   it('poses the render grid from worker keyframes and rewinds them for replays', () => {
     const track = rigTrack('valley-ridge-mx'),
-      surface = track.offroad as TrackTerrainSurface;
+      surface = Track.offroadOf(track) as TrackTerrainSurface;
     const view = new TerrainView(track);
     const t = surface.terrain;
     t.reset();

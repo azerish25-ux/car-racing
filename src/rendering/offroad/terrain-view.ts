@@ -6,7 +6,7 @@ import {
   type TerrainRenderDelta,
 } from '../../simulation/offroad/course-terrain.ts';
 import { COURSE_CELL, type SoilKind } from '../../simulation/offroad/course.ts';
-import { trackPoint, type Track } from '../../simulation/track.ts';
+import { Track, trackPoint } from '../../simulation/track.ts';
 import { materials } from '../materials/index.ts';
 
 /** Soil albedo per kind (sRGB; the soil detail map multiplies it). */
@@ -56,8 +56,9 @@ export class TerrainView {
   private shown = -1;
   private wetness = 0;
   constructor(readonly track: Track) {
-    if (!(track.offroad instanceof TrackTerrainSurface)) throw new Error('Not a terrain venue');
-    this.terrain = track.offroad.terrain;
+    const surface = Track.offroadOf(track);
+    if (!(surface instanceof TrackTerrainSurface)) throw new Error('Not a terrain venue');
+    this.terrain = surface.terrain;
     const t = this.terrain,
       blocks = t.renderColumns * t.renderRows;
     this.depth = new Float32Array(blocks);

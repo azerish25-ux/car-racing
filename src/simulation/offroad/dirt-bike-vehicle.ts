@@ -5,7 +5,7 @@ import { chassisLean } from '../bike-definitions.ts';
 import { COMPOUNDS, DEFAULT_SETUP, type Assist, type Compound, type Setup } from '../config.ts';
 import { MARSHAL } from '../marshal.ts';
 import { MATERIAL } from '../surface-material.ts';
-import { surfaceSample, type Track } from '../track.ts';
+import { surfaceSample, Track } from '../track.ts';
 import type { VehicleDefinition } from '../vehicles.ts';
 import { TrackTerrainSurface } from './course-terrain.ts';
 import { offroadCourse } from './venues.ts';
@@ -786,7 +786,7 @@ export class DirtBikeVehicle extends BikeVehicle {
     this.written.velocity.copy(b.velocity);
     this.written.omega.copy(b.omega);
     // Ruts and moisture under the machine (snapshot channels).
-    const surface = track.offroad;
+    const surface = Track.offroadOf(track);
     if (surface instanceof TrackTerrainSurface) {
       const t = surface.terrain;
       this.rutFront = t.depthAt(this.contacts[0].lateral, this.contacts[0].s);

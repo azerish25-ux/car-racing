@@ -5,7 +5,7 @@ import {
   type TerrainRenderDelta,
 } from '../../simulation/offroad/course-terrain.ts';
 import { H } from '../../simulation/protocol.ts';
-import type { Track } from '../../simulation/track.ts';
+import { Track } from '../../simulation/track.ts';
 import type { BuildQueue } from '../build-queue.ts';
 import { installLightPools } from '../studio/light-pools.ts';
 import { Roost } from './roost.ts';
@@ -38,8 +38,9 @@ export class OffroadScene {
     readonly track: Track,
     construction: BuildQueue,
   ) {
-    if (!(track.offroad instanceof TrackTerrainSurface)) throw new Error('Not a terrain venue');
-    const course = track.offroad.course;
+    const surface = Track.offroadOf(track);
+    if (!(surface instanceof TrackTerrainSurface)) throw new Error('Not a terrain venue');
+    const course = surface.course;
     this.group.name = 'Off-road venue';
     this.group.add(this.roost.points);
     construction.add('Off-road course terrain', 3, () => {
@@ -89,7 +90,7 @@ export class OffroadScene {
 }
 /** The off-road presentation for a terrain venue, else null. */
 export function offroadSceneFor(track: Track, construction: BuildQueue) {
-  return track.offroad instanceof TrackTerrainSurface
+  return Track.offroadOf(track) instanceof TrackTerrainSurface
     ? new OffroadScene(track, construction)
     : null;
 }
