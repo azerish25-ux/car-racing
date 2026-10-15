@@ -5,6 +5,7 @@ import { NET_PROTOCOL_VERSION } from '../src/net/constants.ts';
 import { joinIdentity } from '../src/net/identity.ts';
 import { validateClientControl } from '../src/net/messages.ts';
 import { GUEST_PREFIX } from '../src/net/server.ts';
+import { PROTOCOL_VERSION } from '../src/simulation/protocol.ts';
 import { onlineFixture } from './net-helpers.ts';
 
 describe('session lifecycle with content-version agreement (WP51)', () => {
@@ -41,11 +42,13 @@ describe('session lifecycle with content-version agreement (WP51)', () => {
     f.loop.runUntil(2000);
     const reasons = cases.map(({ client }) => [client.state, client.reason]);
     expect(reasons.slice(0, 6).map(([state]) => state)).toEqual(Array(6).fill('rejected'));
-    expect(reasons[0][1]).toMatch(/simulation version 2 does not match the server's version 1/);
+    expect(reasons[0][1]).toContain(
+      `simulation version ${SIMULATION_VERSION + 1} does not match the server's version ${SIMULATION_VERSION}`,
+    );
     expect(reasons[1][1]).toMatch(/content mismatch: circuit aurel content 0badc0de differs/);
     expect(reasons[2][1]).toMatch(/vehicle apx01 content 12345678 differs/);
     expect(reasons[3][1]).toMatch(/ruleset formula-grand-prix content abcdef01 differs/);
-    expect(reasons[4][1]).toMatch(/snapshot format v10 does not match/);
+    expect(reasons[4][1]).toContain(`snapshot format v${PROTOCOL_VERSION - 1} does not match`);
     expect(reasons[5][1]).toMatch(/not eligible for FORMULA GRAND PRIX/);
     expect(reasons[6][0]).toBe('lobby');
     expect(rawReply).toMatch(/network protocol v6 is not supported/);
