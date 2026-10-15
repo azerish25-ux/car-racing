@@ -11,6 +11,7 @@ import { expect, it } from 'vitest';
 import { DEFAULT_OPTIONS, DEFAULT_SETUP, VEHICLE } from '../src/simulation/config.ts';
 import { Simulation } from '../src/simulation/world.ts';
 import { WHEEL_POSITIONS } from '../src/simulation/vehicle.ts';
+import { kinematicCamber } from '../src/simulation/suspension.ts';
 import {
   F,
   W,
@@ -47,7 +48,14 @@ it('records the exact Ackermann, toe and camber angles used by each physical tir
               )
             : 0,
         toe = side * (i < 2 ? vehicle.setup.frontToe : vehicle.setup.rearToe),
-        camber = side * (i < 2 ? vehicle.setup.frontCamber : vehicle.setup.rearCamber);
+        // Static camber plus the suspension's camber gain at the actual hub travel.
+        axle = i < 2 ? vehicle.dynamics.suspension.front : vehicle.dynamics.suspension.rear,
+        camber = kinematicCamber(
+          i < 2 ? vehicle.setup.frontCamber : vehicle.setup.rearCamber,
+          axle.camberGain,
+          vehicle.hub.travel[i],
+          side,
+        );
       expect(frame[p + W.STEER]).toBeCloseTo(
         ackermann + toe + vehicle.cornerDamage[i] * 0.07 * side,
         7,

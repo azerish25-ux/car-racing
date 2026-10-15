@@ -7,7 +7,7 @@ import {
   pitPreparationDistance,
   pitApproachTrafficSpeed,
 } from './pit-safety.ts';
-import { peakGrip } from './tire.ts';
+import { peakGrip, slipScale } from './tire.ts';
 import { approach, clamp, G, mod, Vec3 } from '../core/math.ts';
 import { racingSession } from './config.ts';
 import { FORMULA_APX01, type CapabilityEnvelope } from './vehicles.ts';
@@ -381,16 +381,33 @@ export class AIDriver {
     );
     // A driver feathers the pedal against wheelspin (rear slip ratio above the
     // traction peak) rather than holding it flat through a slide.
-    const wheelspin = Math.max(c.tires[2].slip, c.tires[3].slip);
-    if (wheelspin > 0.08) command.throttle *= clamp(1 - (wheelspin - 0.08) * 5, 0.05, 1);
+    // Thresholds are relative to the tyre's present force peak (0.08 and 0.12
+    // at the reference slick's 0.25): a wet or loose surface peaks earlier,
+    // and drive slip there costs the rear its lateral grip sooner.
+    const wheelspin = Math.max(c.tires[2].slip, c.tires[3].slip),
+      spinLimit = 0.08 * Math.min(slipScale(c.tires[2]), slipScale(c.tires[3]));
+    if (wheelspin > spinLimit)
+      command.throttle *= clamp(1 - ((wheelspin - spinLimit) * 5) / slipScale(c.tires[2]), 0.05, 1);
+    // The driven axle's combined friction use (tyre-model output): drive slip
+    // costs lateral grip, so power is fed in only while the driven tyres keep
+    // a margin on their friction ellipse (power oversteer / understeer).
+    const driven = c.definition.drivetrain === 'fwd' ? 0 : 2,
+      drivenUse = Math.max(c.tires[driven].usage, c.tires[driven + 1].usage);
+    if (drivenUse > 0.9)
+      command.throttle *= clamp(1 - (drivenUse - 0.9) * 5, 0.25, 1);
     // Braking shares the same friction circle: at the cornering limit the
     // pedal is squeezed, not stamped, and eased off a locking wheel. Losing
     // the rear under braking is worse than missing a traffic target.
     const available = Math.sqrt(Math.max(0, 1 - lateralUsage * lateralUsage));
     command.brake = Math.min(command.brake, 0.3 + 0.7 * available);
-    let lock = 0;
-    for (const tire of c.tires) lock = Math.min(lock, tire.slip);
-    if (lock < -0.12) command.brake *= clamp(1 - (-lock - 0.12) * 4, 0.35, 1);
+    let lock = 0,
+      lockScale = 1.6;
+    for (const tire of c.tires) {
+      lock = Math.min(lock, tire.slip);
+      lockScale = Math.min(lockScale, slipScale(tire));
+    }
+    if (lock < -0.12 * lockScale)
+      command.brake *= clamp(1 - ((-lock - 0.12 * lockScale) * 4) / lockScale, 0.35, 1);
     if (desired < 0.15) {
       command.throttle = 0;
       command.brake = 1;

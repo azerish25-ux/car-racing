@@ -9,11 +9,12 @@ export class FrictionClutch {
   transmittedTorque = 0;
   slipPower = 0;
   engagement = 0;
-  readonly inertia = 0.34; // crankshaft + motor reflected rotational inertia, kg m²
   readonly capacity = 760; // shaft friction capacity, N m
   constructor(
     private readonly idleRPM: number = VEHICLE.idleRPM,
     private readonly wheelInertia: number = VEHICLE.wheelInertia,
+    /** Crankshaft + motor reflected rotational inertia, kg m² (powertrain.ts). */
+    readonly inertia: number = 0.34,
   ) {
     this.engineOmega = (idleRPM * Math.PI) / 30;
   }
