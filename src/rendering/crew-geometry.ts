@@ -24,6 +24,42 @@ export function crewTeamColour(car: number) {
   return colour;
 }
 
+/** Role-coded kit over the team colour, so a pit crew does not read as one
+ * mannequin army: wheel gunners in the full team colour, tyre carriers a
+ * shade lower, jack operators in the team's dark shade, the release controller toward
+ * a light grey, with a small per-person fabric variation (`actor`). Helmets
+ * follow the role a little less. Shared cached Colors; do not mutate. */
+export type CrewKitRole = 'gun' | 'remove' | 'install' | 'front-jack' | 'rear-jack' | 'release';
+const ROLE_KIT: Readonly<Record<CrewKitRole, readonly [number, number, number]>> = Object.freeze({
+  gun: [0x000000, 0, 1],
+  remove: [0x000000, 0.14, 1],
+  install: [0x000000, 0.08, 0.97],
+  'front-jack': [0x000000, 0.4, 1],
+  'rear-jack': [0x000000, 0.4, 1],
+  release: [0x9aa0a6, 0.32, 1],
+});
+const roleKits = new Map<string, T.Color>();
+export function crewRoleColour(car: number, role: CrewKitRole, actor = 0, helmet = false) {
+  const id = Number.isInteger(car) && car >= 0 ? car : 0,
+    person = Number.isInteger(actor) && actor >= 0 ? actor % 8 : 0;
+  const key = `${id}:${role}:${person}:${helmet}`;
+  let colour = roleKits.get(key);
+  if (!colour) {
+    const [mixHex, amount, gain] = ROLE_KIT[role];
+    colour = crewTeamColour(id).clone();
+    if (mixHex || amount) {
+      const share = helmet ? amount * 0.6 : amount;
+      if (mixHex) colour.lerp(new T.Color(mixHex), share);
+      else colour.multiplyScalar(1 - share);
+    }
+    // Fabric lots and wear: +-5 % per person, deterministic.
+    const jitter = helmet ? 1 : 0.95 + 0.1 * (((person * 37 + id * 11) % 8) / 7);
+    colour.multiplyScalar(gain * jitter);
+    roleKits.set(key, colour);
+  }
+  return colour;
+}
+
 /** Closed tailored limb and chest shapes with identical topology. Instanced
  * morph weights select a real shoulder/waist silhouette for torsos, without
  * turning every forearm into a torso or adding a draw call for every person. */

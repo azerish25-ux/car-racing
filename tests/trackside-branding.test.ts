@@ -13,8 +13,11 @@ import {
 import {
   BRIDGES,
   CHUNK_METRES,
+  LED,
   VINYL,
+  brandLedUniforms,
   buildTracksideBranding,
+  setBrandLedLighting,
   drawBrandingAtlas,
   vinylModules,
 } from '../src/rendering/studio/trackside-branding.ts';
@@ -178,5 +181,16 @@ describe('barrier vinyl and bridges', () => {
     expect(shader.fragmentShader).toContain('textureGrad( map, atlasUv');
     expect(shader.fragmentShader).toContain('boardUv.x += vBrandLed * studioTime');
     expect(material.roughness).toBe(0.7);
+    // LED boards are displays: wordmark colour as emission of a filtered
+    // matrix on a dark glossy face, gain set by the lighting, not albedo x 2.5.
+    expect(shader.uniforms.brandLedGain).toBe(brandLedUniforms.brandLedGain);
+    expect(shader.fragmentShader).toContain('totalEmissiveRadiance += apexLedEmission;');
+    expect(shader.fragmentShader).toContain(`vec3( ${LED.substrate.toFixed(3)} ), vBrandLed`);
+    expect(shader.fragmentShader).not.toContain('2.50 * diffuseColor.rgb');
+    setBrandLedLighting('night');
+    expect(brandLedUniforms.brandLedGain.value).toBe(LED.gain.night);
+    setBrandLedLighting('day');
+    expect(brandLedUniforms.brandLedGain.value).toBeLessThanOrEqual(0.9);
+    expect(LED.gain.night).toBeGreaterThan(LED.gain.day * 2);
   });
 });

@@ -13,7 +13,7 @@ import { F, H, R, RACE_BASE, W, WHEEL_BASE, WHEEL_STRIDE } from '../simulation/p
 import { COMPOUNDS } from '../simulation/config.ts';
 import { wheelPhase, wheelTravel } from './wheel-pose.ts';
 import { serviceWheelOffset } from './pit-crew.ts';
-import { rearSignalIntensity } from './rear-signal.ts';
+import { rearLampIntensity } from './rear-signal.ts';
 import manifest from './supplied-player.manifest.json' with { type: 'json' };
 
 /** The Blender assembly uses the nominal wheel-centre datum, while the
@@ -481,7 +481,7 @@ export class SuppliedPlayer {
       material.roughness = roughness * (1 - 0.3 * clamp(b[H.RAIN] / 14, 0, 1));
     });
     this.rain.forEach((m) => {
-      m.emissiveIntensity = rearSignalIntensity(
+      m.emissiveIntensity = rearLampIntensity(
         lerp(a[o + F.BRAKE], b[o + F.BRAKE], t),
         lerp(a[H.TIME], b[H.TIME], t),
       );

@@ -1,40 +1,47 @@
 import * as T from 'three';
+import { ATMOSPHERE } from '../atmosphere.ts';
 import type { LightingMode } from '../daylight.ts';
 import { studioGlsl, studioUniforms } from './studio-frame.ts';
 
 /**
- * Aerial perspective (D07, producer decision P12).
+ * Aerial perspective (D07, producer decision P12; photoreal pass).
  *
- * three's FogExp2 fades every fragment toward one colour by view depth alone,
- * at a density (0.000205) that left 1-2 km treelines, stands and ridges crisp
- * and saturated. The fog chunk of every material that carries the local
- * atmosphere (LocalAtmosphere.installMaterial: the circuit, terrain, forest,
- * cars and weather particles) now replaces that term with:
+ * three's FogExp2 fades every fragment toward one colour by view depth alone.
+ * The fog chunk of every material that carries the local atmosphere
+ * (LocalAtmosphere.installMaterial: the circuit, terrain, forest, cars and
+ * weather particles) now replaces that term with the same air the sky dome
+ * is baked from:
  *
- *  - Extinction: the scene's FogExp2 density is the extinction at the
- *    circuit datum, thinning with altitude as exp(-(y - y0) / 150 m). The
- *    sightline's mean of that profile is integrated in closed form, so valley
- *    floors and hill bases haze more than ridgelines, and the sky never greys.
- *    The squared-exponential response is kept: 26 % contrast loss at 1 km on
- *    the flat at the clear-day density 0.00055 (ART_BIBLE_A section 2.3), the
- *    near field stays crisp, and elevated ridges at 2-3 km land at 50-65 %.
- *  - In-scatter colour by view direction: the scene fog colour is the
- *    anti-sun haze; toward the sun it gains the forward-scattering glow,
- *    `mix(antiSun, sunSide, pow(max(dot(v, sun), 0), 8))`, faded out as the
- *    cloud deck closes (overcast and rain haze is one grey).
+ *  - Extinction (Beer-Lambert): amount = 1 - exp(-tau) per channel, with
+ *    tau = sigma * distance * (mean of exp(-(y - y0) / 1200 m) along the
+ *    sightline, in closed form). sigma is the atmosphere's own extinction at
+ *    the datum: Rayleigh plus Mie aerosols at the sky's haze level
+ *    (`aerialExtinction`, ~0.7/0.9/1.4e-4 per metre on a clear day, a 40 km
+ *    visibility), plus rain. The old squared response (FogExp2's) put ridges
+ *    2-5 km out at 50-95 % haze, flattening them into pale cut-outs; now they
+ *    keep 60-75 % of their contrast and blue a little more than they redden,
+ *    while the near field stays crisp. Valley floors haze more than ridges.
+ *  - In-scatter colour by view direction: the scene fog colour is the sky's
+ *    own horizon away from the sun; toward the sun it gains the forward-
+ *    scattering glow, `mix(antiSun, sunSide, pow(max(dot(v, sun), 0), 24))`
+ *    (a tight Mie aureole), faded out as the cloud deck closes.
  *
  * Materials without the local atmosphere (unlit signs, screens) keep three's
- * FogExp2 with the same density and anti-sun colour; a linear `T.Fog` (tests,
+ * FogExp2 at the scene density and anti-sun colour; a linear `T.Fog` (tests,
  * fixtures) is untouched. No draw calls, no time source: a pure function of
  * the presented weather, the lighting and the camera.
  */
 export const AERIAL_PERSPECTIVE = Object.freeze({
-  /** Height of the circuit datum the density refers to, metres. */
+  /** Height of the circuit datum the extinction refers to, metres. */
   referenceHeight: 0,
-  /** Scale height of the haze, metres. */
-  scaleHeight: 150,
-  /** Exponent of the sun-side lobe. */
-  sunPower: 8,
+  /** Scale height of the haze, metres (the atmosphere's aerosol scale height). */
+  scaleHeight: ATMOSPHERE.mieScaleHeight,
+  /** Exponent of the sun-side lobe: a tight Mie aureole (half width ~14
+   * degrees), not a 23 degree veil over the into-the-sun view. */
+  sunPower: 24,
+  /** Rain's extra (grey) extinction per mm/h of rain rate, 1/m: about
+   * 1.5e-3 at the 24 mm/h preset (a ~2.6 km visibility). */
+  rainExtinction: 6.25e-5,
   /** Fog colours (linear scene radiance) chosen so a fully hazed sightline
    * displays the ART_BIBLE_A section 2.3 / P12 colour through ACES at the
    * lighting's exposure and the broadcast grade. Display targets in comments. */
@@ -54,6 +61,24 @@ export const AERIAL_PERSPECTIVE = Object.freeze({
     night: Object.freeze([0.0153, 0.0196, 0.0254] as const),
   }),
 });
+
+/** Relative aerosol extinction at 680, 550 and 440 nm (atmosphere.ts). */
+const MIE_SPECTRUM = [680, 550, 440].map((nm) => (nm / 550) ** -ATMOSPHERE.mieAngstrom);
+/** Extinction (1/m, at 680/550/440 nm) of the air at the circuit datum: the
+ * atmosphere's Rayleigh scattering plus its Mie aerosols at `haze` (multiples
+ * of the reference aerosols, the sky's own level), plus grey rain extinction
+ * for a rain rate in mm/h. */
+export function aerialExtinction(haze: number, rain = 0, out = new T.Vector3()) {
+  if (!Number.isFinite(haze) || haze < 0 || !Number.isFinite(rain))
+    throw new Error('Invalid aerial extinction');
+  const mie = (ATMOSPHERE.mieScattering + ATMOSPHERE.mieAbsorption) * haze;
+  const wet = AERIAL_PERSPECTIVE.rainExtinction * Math.min(60, Math.max(0, rain));
+  return out.set(
+    ATMOSPHERE.rayleighScattering[0] + mie * MIE_SPECTRUM[0] + wet,
+    ATMOSPHERE.rayleighScattering[1] + mie * MIE_SPECTRUM[1] + wet,
+    ATMOSPHERE.rayleighScattering[2] + mie * MIE_SPECTRUM[2] + wet,
+  );
+}
 
 function lerp(a: number, b: number, t: number) {
   return a + (b - a) * t;
@@ -133,6 +158,8 @@ export interface AerialUniforms {
   apexAerialSunGlow: T.IUniform<T.Vector3>;
   /** (reference height y0, 1 / scale height). */
   apexAerialFalloff: T.IUniform<T.Vector2>;
+  /** Extinction at the datum (1/m per channel): `aerialExtinction`. */
+  apexAerialExtinction: T.IUniform<T.Vector3>;
 }
 export function createAerialUniforms(): AerialUniforms {
   return {
@@ -140,10 +167,24 @@ export function createAerialUniforms(): AerialUniforms {
     apexAerialFalloff: {
       value: new T.Vector2(AERIAL_PERSPECTIVE.referenceHeight, 1 / AERIAL_PERSPECTIVE.scaleHeight),
     },
+    apexAerialExtinction: { value: aerialExtinction(SKY_CLEAR_HAZE) },
   };
 }
+/** Clear-day haze level of the sky (sky-light.ts SKY_LIGHT.haze.day[0]); the
+ * renderer writes the presented level every frame (`setAerialExtinction`). */
+const SKY_CLEAR_HAZE = 18;
 /** Shared by every installed material, bound by identity. */
 export const aerialUniforms: AerialUniforms = createAerialUniforms();
+
+/** Write this frame's air into the shared uniforms (renderer, with the fog):
+ * the sky's haze level for the cover and lighting, and the rain rate. */
+export function setAerialExtinction(
+  haze: number,
+  rain: number,
+  uniforms: AerialUniforms = aerialUniforms,
+) {
+  aerialExtinction(haze, rain, uniforms.apexAerialExtinction.value);
+}
 
 /** Write this frame's lighting into the shared uniforms (SkyEnvironment.update). */
 export function setAerialPerspective(
@@ -164,18 +205,19 @@ export function aerialHeightMean(from: number, rise: number, falloff = createAer
   const shape = Math.abs(dh) > 1e-4 ? -Math.expm1(-dh) / dh : 1 - 0.5 * dh;
   return Math.exp(-h0) * shape;
 }
-/** CPU reference of the shader's haze amount (0..1) for a camera and a point. */
+/** CPU reference of the shader's haze amount (0..1) for a camera and a point,
+ * for one channel's extinction at the datum (1/m). */
 export function aerialAmount(
   camera: T.Vector3,
   point: T.Vector3,
-  density: number,
+  extinction: number,
   falloff = createAerialUniforms(),
 ) {
-  if (![camera.x, camera.y, camera.z, point.x, point.y, point.z, density].every(Number.isFinite))
+  if (![camera.x, camera.y, camera.z, point.x, point.y, point.z, extinction].every(Number.isFinite))
     throw new Error('Invalid aerial perspective ray');
   const distance = camera.distanceTo(point);
-  const depth = density * distance * aerialHeightMean(camera.y, point.y - camera.y, falloff);
-  return 1 - Math.exp(-depth * depth);
+  const tau = extinction * distance * aerialHeightMean(camera.y, point.y - camera.y, falloff);
+  return -Math.expm1(-tau);
 }
 
 /** Declarations for the fog_pars_fragment region (guarded; `studioSunDir` is
@@ -187,16 +229,17 @@ ${studioGlsl(['studioSunDir'])}
 #define APEX_AERIAL_DECLARED
 uniform vec3 apexAerialSunGlow;
 uniform vec2 apexAerialFalloff;
-// Aerial perspective: FogExp2 extinction at the datum, thinning with altitude
-// along the sightline, in-scatter coloured by the view's angle to the sun.
+uniform vec3 apexAerialExtinction;
+// Aerial perspective: Beer-Lambert extinction of the sky's own air at the
+// datum, thinning with altitude along the sightline, per channel; in-scatter
+// coloured by the view's angle to the sun.
 vec3 apexAerialPerspective(vec3 color, vec3 world) {
   vec3 ray = world - cameraPosition;
   float rayLength = length(ray);
   float h0 = max(-2.0, (cameraPosition.y - apexAerialFalloff.x) * apexAerialFalloff.y);
   float dh = ray.y * apexAerialFalloff.y;
   float shape = abs(dh) > 1e-4 ? (1.0 - exp(-dh)) / dh : 1.0 - 0.5 * dh;
-  float depth = fogDensity * rayLength * exp(-h0) * shape;
-  float amount = 1.0 - exp(-depth * depth);
+  vec3 amount = 1.0 - exp(-apexAerialExtinction * (rayLength * exp(-h0) * shape));
   float toSun = max(dot(ray / max(rayLength, 1e-4), studioSunDir), 0.0);
   vec3 inscatter = fogColor + apexAerialSunGlow * pow(toSun, ${AERIAL_PERSPECTIVE.sunPower.toFixed(1)});
   return mix(color, inscatter, amount);
@@ -220,5 +263,6 @@ export function useAerialUniforms(
 ) {
   shader.uniforms.apexAerialSunGlow = uniforms.apexAerialSunGlow;
   shader.uniforms.apexAerialFalloff = uniforms.apexAerialFalloff;
+  shader.uniforms.apexAerialExtinction = uniforms.apexAerialExtinction;
   shader.uniforms.studioSunDir = studioUniforms.studioSunDir;
 }

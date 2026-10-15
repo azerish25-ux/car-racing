@@ -28,12 +28,21 @@ const linear = (byte: number) => {
 };
 
 describe('olive turf', () => {
-  it('tints the shared grass texels to an olive #808054 albedo', () => {
+  it('tints the shared grass texels to a mown summer-turf #566a43 albedo', () => {
     const texel = [89, 101, 53].map(linear);
-    const albedo = texel.map((v, i) => srgb(v * GRASS_TINT[i]));
-    // TEST-UPDATE (KPI 9 iteration): #6c7438 rendered too green (#6d7937, sat 0.54).
-    const target = [0x80, 0x80, 0x54];
-    albedo.forEach((v, i) => expect(Math.abs(v - target[i])).toBeLessThanOrEqual(12));
+    const lin = texel.map((v, i) => v * GRASS_TINT[i]);
+    const albedo = lin.map(srgb);
+    // TEST-UPDATE (photoreal pass): the KPI 9 olive #808054 read as khaki felt
+    // as bright as the road; real mown turf is ~0.08-0.13 luminance, G/R 1.5-1.8.
+    const target = [0x56, 0x6a, 0x43];
+    albedo.forEach((v, i) => expect(Math.abs(v - target[i])).toBeLessThanOrEqual(8));
+    // The finish's mostly-lush soil mix (.84/.9/.78) settles the rendered turf.
+    const lush = [0.84, 0.9, 0.78].map((k, i) => lin[i] * k);
+    const luminance = 0.2126 * lush[0] + 0.7152 * lush[1] + 0.0722 * lush[2];
+    expect(luminance).toBeGreaterThan(0.09);
+    expect(luminance).toBeLessThan(0.13);
+    expect(lush[1] / lush[0]).toBeGreaterThan(1.4);
+    expect(lush[1] / lush[0]).toBeLessThan(1.9);
     // Less saturated than the old irrigated tint (sRGB 80/104/48).
     const sat = (c: number[]) => (Math.max(...c) - Math.min(...c)) / Math.max(...c);
     expect(sat(albedo)).toBeLessThan(sat([80, 104, 48]));
@@ -60,7 +69,7 @@ describe('olive turf', () => {
 });
 
 describe('gravel', () => {
-  it('draws Voronoi pebbles, cavities and raked furrows in #b9a98a', () => {
+  it('draws Voronoi pebbles, cavities and raked furrows in river-gravel #8f8470', () => {
     const gravel = new T.MeshStandardMaterial({ color: 0x777777 });
     expect(installGravelFinish(gravel)).toBe(true);
     expect(installGravelFinish(gravel)).toBe(false);
@@ -74,6 +83,10 @@ describe('gravel', () => {
     expect(f).toContain('vGravelWorld.xz * 50.0000');
     expect(f).toContain('vGravelMetres.x / 0.3000');
     expect(f).toContain('normal = apexGravelRelief( normal, gravelRelief );');
+    // River gravel, not sand: linear albedo 0.2-0.32.
+    const g = new T.Color(GRAVEL.color);
+    expect(0.2126 * g.r + 0.7152 * g.g + 0.0722 * g.b).toBeGreaterThan(0.2);
+    expect(0.2126 * g.r + 0.7152 * g.g + 0.0722 * g.b).toBeLessThan(0.32);
     expect(GRAVEL.cellsPerMetre).toBeGreaterThanOrEqual(40);
     expect(GRAVEL.cellsPerMetre).toBeLessThanOrEqual(60);
   });

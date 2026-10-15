@@ -29,7 +29,7 @@ import { useStudioUniforms } from './studio-frame.ts';
  * 6 mm proud of it, skipping guardrail, impact-barrier and gate spans. One
  * mesh per `CHUNK_METRES` of lap (both sides merged), so the whole lap costs
  * about ten draws. Each sponsor span repeats its wordmark every
- * `BOARD_METRES`; LED spans glow (emissive `LED_EMISSIVE`) and scroll with
+ * `BOARD_METRES`; LED spans are displays (see `LED`) and scroll with
  * presented simulation time. Vinyl roughness 0.7, reflected in the wet road.
  */
 export const VINYL = Object.freeze({
@@ -45,7 +45,33 @@ export const VINYL = Object.freeze({
 });
 export const CHUNK_METRES = 300;
 export const BOARD_METRES = 4.6;
-export const LED_EMISSIVE = 2.5;
+/**
+ * LED boards are displays, not lit vinyl: a dark glossy face (albedo
+ * `substrate`, roughness `roughness`, so daylight reflects off it) carrying an
+ * LED matrix of `pitch` metres at `fill` coverage whose emission is the
+ * wordmark colour. The matrix converges to its mean before it could alias.
+ * The mean radiance (`gain`, x the atlas colour, linear) follows the lighting:
+ * a sunlit white board is about as bright as sunlit white vinyl by day, so
+ * the board reads as a saturated, legible panel rather than a neon tube; the
+ * operators turn it up at night.
+ */
+export const LED = Object.freeze({
+  substrate: 0.04,
+  roughness: 0.3,
+  pitch: 0.012,
+  fill: 0.5,
+  gain: Object.freeze({ day: 0.8, sunset: 1.2, night: 2.0 }),
+});
+/** Shared by every branding material; the renderer sets it per lighting. */
+export const brandLedUniforms = Object.freeze({ brandLedGain: { value: LED.gain.day as number } });
+export function setBrandLedLighting(mode: keyof typeof LED.gain) {
+  brandLedUniforms.brandLedGain.value = LED.gain[mode];
+}
+const PROFILE_METRES = VINYL.profile.reduce(
+  (sum, row, i, rows) =>
+    i ? sum + Math.hypot(row[0] - rows[i - 1][0], row[1] - rows[i - 1][1]) : 0,
+  0,
+);
 /** LED wordmark scroll speed, boards per second. */
 export const LED_SCROLL = 0.12;
 /** Banner bridges over the track: lap stations and dimensions. */
@@ -100,8 +126,9 @@ export function brandingMaterial() {
     metalness: 0,
   });
   material.name = 'Trackside sponsor vinyl';
-  chainShaderHook(material, 'trackside-vinyl-v3', (shader) => {
+  chainShaderHook(material, 'trackside-vinyl-v4', (shader) => {
     useStudioUniforms(shader, ['studioTime'], 'fragment');
+    Object.assign(shader.uniforms, brandLedUniforms);
     injectDeclarations(
       shader,
       'common',
@@ -117,7 +144,7 @@ export function brandingMaterial() {
     injectDeclarations(
       shader,
       'common',
-      `varying vec4 vBrandPanel;\nvarying float vBrandLed;\nvarying vec2 vBrandUv;\nvarying vec3 vBrandWeather;\nfloat vinylWear = 0.0, vinylRubber = 0.0;
+      `varying vec4 vBrandPanel;\nvarying float vBrandLed;\nvarying vec2 vBrandUv;\nvarying vec3 vBrandWeather;\nfloat vinylWear = 0.0, vinylRubber = 0.0;\nuniform float brandLedGain;\nvec3 apexLedEmission = vec3( 0.0 );
 ${TRACKSIDE_NOISE_GLSL}
 ${TRACKSIDE_RUBBER_GLSL}
 float apexVinylHash( vec2 p ) {
@@ -164,19 +191,29 @@ float apexVinylNoise( vec2 p ) {
 	// (station, height above the foot, corner-exit wear per vertex).
 	vinylRubber = twRubberMarks( vBrandWeather.x, vBrandWeather.y, vBrandWeather.z ) * clean;
 	diffuseColor.rgb = mix( diffuseColor.rgb, vec3( 0.03, 0.03, 0.032 ), vinylRubber * 0.82 );
+	// LED display: the wordmark is the emission of a ${(LED.pitch * 1000).toFixed(0)} mm matrix
+	// (${(LED.fill * 100).toFixed(0)} % fill) on a dark glossy face, converged to its mean
+	// before one pixel spans a pitch (derivatives in uniform control flow).
+	vec2 ledCell = vec2( alongM, vBrandUv.y * ${PROFILE_METRES.toFixed(4)} ) / ${LED.pitch.toFixed(4)};
+	float ledFoot = max( length( dFdx( ledCell ) ), length( dFdy( ledCell ) ) );
+	float ledRadius = ${Math.sqrt(LED.fill / Math.PI).toFixed(4)};
+	float ledDot = 1.0 - smoothstep( ledRadius - ledFoot, ledRadius + ledFoot, length( fract( ledCell ) - 0.5 ) );
+	ledDot = mix( ledDot, ${LED.fill.toFixed(3)}, smoothstep( 0.2, 0.6, ledFoot ) );
+	apexLedEmission = diffuseColor.rgb * ( ledDot / ${LED.fill.toFixed(3)} ) * brandLedGain * vBrandLed;
+	diffuseColor.rgb = mix( diffuseColor.rgb, vec3( ${LED.substrate.toFixed(3)} ), vBrandLed );
 }`,
       'fragment',
     );
     injectAfter(
       shader,
       'roughnessmap_fragment',
-      'roughnessFactor = mix( clamp( roughnessFactor + 0.16 * vinylWear, 0.0, 1.0 ), 0.6, vinylRubber );',
+      `roughnessFactor = mix( clamp( roughnessFactor + 0.16 * vinylWear, 0.0, 1.0 ), 0.6, vinylRubber );\nroughnessFactor = mix( roughnessFactor, ${LED.roughness.toFixed(2)}, vBrandLed );`,
       'fragment',
     );
     injectAfter(
       shader,
       'emissivemap_fragment',
-      `totalEmissiveRadiance += vBrandLed * ${LED_EMISSIVE.toFixed(2)} * diffuseColor.rgb;`,
+      'totalEmissiveRadiance += apexLedEmission;',
       'fragment',
     );
   });
