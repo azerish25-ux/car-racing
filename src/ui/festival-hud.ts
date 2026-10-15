@@ -6,6 +6,7 @@ import type { VehicleDefinition } from '../simulation/vehicles.ts';
 import { EVENT_COLOURS } from '../rendering/open-world/markers.ts';
 import { escapeHtml } from './team-hub.ts';
 import type { LightingMode } from '../rendering/daylight.ts';
+import { MAP_HALF, MAP_SIZE, mapToWorld, minimapMatrix, worldToMap } from './festival-map.ts';
 
 export interface FestivalHudCallbacks {
   start(id: string): void;
@@ -19,8 +20,6 @@ export interface FestivalHudCallbacks {
   travel(id: string): void;
   autopilot(on: boolean): void;
 }
-const MAP_SIZE = 2048;
-const MAP_HALF = 4400;
 const colour = (hex: number) => `#${hex.toString(16).padStart(6, '0')}`;
 const clock = (seconds: number) => {
   const m = Math.floor(seconds / 60),
@@ -132,26 +131,24 @@ export class FestivalHud {
     const node = this.get(id);
     if (node.hidden === visible) node.hidden = !visible;
   }
-  /** The road network, sea and towns pre-drawn once (north up). */
+  /** The road network, sea and towns pre-drawn once (north up, east on
+   * the left: see festival-map.ts). */
   private paintMap() {
     const canvas = document.createElement('canvas');
     canvas.width = canvas.height = MAP_SIZE;
     const ctx = canvas.getContext('2d')!;
     const net = this.world.network,
-      field = this.world.field,
-      scale = MAP_SIZE / (2 * MAP_HALF);
-    const px = (x: number) => (x + MAP_HALF) * scale,
-      pz = (z: number) => (MAP_HALF - z) * scale;
-    // Ground relief: a coarse shaded height map.
+      field = this.world.field;
+    // Ground relief: a coarse shaded height map, lit from the image's left.
     const cells = 256,
       cell = MAP_SIZE / cells,
       step = (2 * MAP_HALF) / cells;
     for (let j = 0; j < cells; j++)
       for (let i = 0; i < cells; i++) {
-        const x = -MAP_HALF + (i + 0.5) * step,
-          z = MAP_HALF - (j + 0.5) * step,
+        const [x, z] = mapToWorld((i + 0.5) * cell, (j + 0.5) * cell),
           h = field.height(x, z, step),
-          hx = field.height(x + step, z, step) - h;
+          // Rise toward the image's right (world -x).
+          hx = field.height(x - step, z, step) - h;
         const shade = Math.max(0.55, Math.min(1.25, 0.9 - hx / step * 2.2));
         let r: number, g: number, b: number;
         if (h < field.region.seaLevel) [r, g, b] = [18, 38, 58];
@@ -178,23 +175,18 @@ export class FestivalHud {
         ctx.lineJoin = ctx.lineCap = 'round';
         ctx.beginPath();
         for (let i = e.first; i <= e.last; i += 2) {
-          const x = px(net.x[i]),
-            y = pz(net.z[i]);
+          const [x, y] = worldToMap(net.x[i], net.z[i]);
           if (i === e.first) ctx.moveTo(x, y);
           else ctx.lineTo(x, y);
         }
-        ctx.lineTo(px(net.x[e.last]), pz(net.z[e.last]));
+        ctx.lineTo(...worldToMap(net.x[e.last], net.z[e.last]));
         ctx.stroke();
       }
     return canvas;
   }
-  private worldToMap(x: number, z: number) {
-    const scale = MAP_SIZE / (2 * MAP_HALF);
-    return [(x + MAP_HALF) * scale, (MAP_HALF - z) * scale] as const;
-  }
   private drawMarkers(ctx: CanvasRenderingContext2D, discovered: ReadonlySet<string>, radius: number) {
     for (const event of this.events) {
-      const [x, y] = this.worldToMap(event.marker.x, event.marker.z),
+      const [x, y] = worldToMap(event.marker.x, event.marker.z),
         known = discovered.has(event.spec.id);
       ctx.beginPath();
       ctx.arc(x, y, radius, 0, Math.PI * 2);
@@ -213,27 +205,23 @@ export class FestivalHud {
     ctx.lineWidth = width;
     ctx.beginPath();
     for (let i = 0; i < path.count; i += 3) {
-      const [x, y] = this.worldToMap(path.x[i], path.z[i]);
+      const [x, y] = worldToMap(path.x[i], path.z[i]);
       if (i === 0) ctx.moveTo(x, y);
       else ctx.lineTo(x, y);
     }
     if (path.closed) ctx.closePath();
     ctx.stroke();
   }
-  /** Heading-up minimap around the player (±650 m). */
+  /** Heading-up minimap around the player (±650 m); `heading` from
+   * minimapHeading(forward). */
   private paintMinimap(x: number, z: number, heading: number, discovered: ReadonlySet<string>) {
     const ctx = this.minimap.getContext('2d')!,
       size = this.minimap.width,
-      range = 650,
-      scale = (size / (2 * range)) * ((2 * MAP_HALF) / MAP_SIZE);
+      range = 650;
     ctx.save();
     ctx.fillStyle = '#0b1016';
     ctx.fillRect(0, 0, size, size);
-    ctx.translate(size / 2, size / 2);
-    ctx.rotate(heading);
-    ctx.scale(scale, scale);
-    const [mx, my] = this.worldToMap(x, z);
-    ctx.translate(-mx, -my);
+    ctx.setTransform(...minimapMatrix(x, z, heading, size, range));
     ctx.drawImage(this.mapImage, 0, 0);
     this.drawRoute(ctx, 6);
     this.drawMarkers(ctx, discovered, 9);
@@ -266,11 +254,11 @@ export class FestivalHud {
     ctx.fillStyle = '#f4f6f8';
     for (const event of this.events) {
       if (!discovered.has(event.spec.id)) continue;
-      const [x, y] = this.worldToMap(event.marker.x, event.marker.z);
+      const [x, y] = worldToMap(event.marker.x, event.marker.z);
       ctx.fillText(event.spec.name, x + 28, y + 10);
     }
     if (at) {
-      const [x, y] = this.worldToMap(at.x, at.z);
+      const [x, y] = worldToMap(at.x, at.z);
       ctx.fillStyle = '#ffffff';
       ctx.beginPath();
       ctx.arc(x, y, 16, 0, Math.PI * 2);

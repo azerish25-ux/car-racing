@@ -16,6 +16,7 @@ import { FestivalRenderer } from '../rendering/open-world/festival-renderer.ts';
 import type { GraphicsOptions, QualityPreset } from '../rendering/options.ts';
 import type { AudioView } from '../audio/spatial.ts';
 import { FestivalHud } from '../ui/festival-hud.ts';
+import { minimapHeading } from '../ui/festival-map.ts';
 import { FestivalControls } from './festival-controls.ts';
 import type { FromOpenWorld, ToOpenWorld } from '../workers/open-world-protocol.ts';
 import OpenWorldWorker from '../workers/open-world.worker.ts?worker&inline';
@@ -410,7 +411,7 @@ export class FestivalSession {
         this.status,
         presented[o + F.X],
         presented[o + F.Z],
-        -Math.atan2(fx, fz),
+        minimapHeading(fx, fz),
         Math.round(presented[o + F.GEAR]),
         (presented[o + F.RPM] - spec.idleRPM) / Math.max(1, spec.limiterRPM - spec.idleRPM),
       );
