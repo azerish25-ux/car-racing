@@ -35,7 +35,8 @@ Last reviewed against source: branch `claude/peaceful-einstein-dedc7t`, commits 
 | Circuit catalogue: 20 layouts at 12 new venues | integrated | `src/simulation/circuit-catalogue/`, `tests/circuit-catalogue.test.ts`, `docs/circuit-catalogue-races.json`, [CIRCUIT_CATALOGUE.md](../CIRCUIT_CATALOGUE.md) | Human races, crash/recovery and performance capture per venue (§15.3); licence decision for official names | Track/tools lead |
 | Procedural venue kit | integrated | `src/rendering/venue-kit/`, `tests/venue-kit.test.ts` | In-browser capture-suite review and art direction sign-off (§17.2); hardware frame timing | Environment art + rendering lead |
 | Tunnel rain shelter (roofed zones) | integrated | `Track.sheltered`/`isCovered`, `tests/circuit-catalogue.test.ts` | Spray, sky light and reflections inside tunnels | Weather/rendering |
-| Directed route graph, checkpoints, branches | prototype | `src/simulation/route-graph.ts`, `tests/route-graph.test.ts` | Drive a session from a RouteGraph venue | Track/tools lead |
+| Directed route graph, checkpoints, branches | integrated (festival events) | `src/simulation/route-graph.ts`, `tests/route-graph.test.ts`; festival event progress via `RouteProgress` (`src/simulation/open-world/route-path.ts`, `tests/open-world.test.ts`) | Drive a circuit or stage session from a RouteGraph venue | Track/tools lead |
+| Festival open world (Solvane Coast: 8.19 km region, 70.9 km road network, free roam, 13 discovered events) | integrated | `src/simulation/open-world/`, `src/rendering/open-world/`, `src/session/free-roam.ts`, `tests/open-world*.test.ts`, `npm run test:open-world` → `docs/open-world.json`, [OPEN_WORLD.md](OPEN_WORLD.md) | Reference-hardware capture of streaming and frame time at each preset; human free-roam and event sessions; traffic; career consumption of `FestivalResult` | Open-world lead + rendering lead |
 | Recorded-session identity & record categories | integrated | `src/core/session-identity.ts`, ghost/leaderboard keys | Public-board verification (WP52) | Runtime lead |
 | Snapshot schema descriptor | integrated | `SNAPSHOT_SCHEMA`, `snapshotIncompatibility` | Entity-type blocks for bikes (G4) | Runtime lead |
 | Content validation | integrated (CI) | `npm run validate:content` in `npm run check` | Validate imported/creator content in-game | Tools lead |
@@ -53,7 +54,7 @@ Last reviewed against source: branch `claude/peaceful-einstein-dedc7t`, commits 
 | Deformable dirt terrain | prototype | `src/simulation/terrain.ts`, `tests/terrain.test.ts` | Couple to a dirt bike (G5) | Terrain/physics lead |
 | Magnetic local-frame vehicles | prototype | `src/simulation/local-frame.ts` | Engineering course (§16.5) | Extreme gameplay |
 | Moving surfaces | prototype | `src/simulation/moving-surface.ts` | Couple to vehicle contact | Physics/runtime |
-| Freestyle/drift scoring | prototype | `src/core/scoring.ts` | A playable challenge | Gameplay lead |
+| Freestyle/drift scoring | integrated (festival drift zones) | `src/core/scoring.ts`, `DriftMeter` in `src/simulation/open-world/festival-events.ts`, `tests/open-world-session.test.ts` | Player tuning of thresholds; freestyle (bike/air) scoring | Gameplay lead |
 | Rally stage / joker classification | prototype | `src/core/stage-rules.ts` | Point-to-point venue | Rally gameplay |
 | Creator content import | prototype | `src/simulation/content-import.ts` | Authoring UI, moderation (G8) | Security/platform |
 | Authoritative server workload | research | `scripts/server-prototype.ts`, `docs/server-prototype.json` | Prediction/reconciliation (WP50) | Network lead |
@@ -79,7 +80,7 @@ Last reviewed against source: branch `claude/peaceful-einstein-dedc7t`, commits 
 | WP08 | integrated | Per-entry definitions; TC-1 proves coexistence. |
 | WP09 | integrated | Rulesets/events; five legacy modes resolve unchanged. |
 | WP10 | integrated | Left-pit venue completes a full AI stop. |
-| WP11 | integrated / prototype | Track layer gate integrated; RouteGraph prototype. |
+| WP11 | integrated | Track layer gate integrated; RouteGraph/RouteProgress drive festival event progress (gates at the very end of an edge were missed when the next sample was already on the successor: fixed, regression in `route-graph.test.ts`). No circuit venue is built from a RouteGraph yet. |
 | WP12 | integrated | Identity, record categories, schema descriptor, explicit legacy policy. |
 | WP13 | integrated (partial) | Records and replay clock extracted; session/profile/presentation controllers remain in `main.ts`. |
 | WP14 | integrated | `npm run validate:content`. |
@@ -108,7 +109,7 @@ Last reviewed against source: branch `claude/peaceful-einstein-dedc7t`, commits 
 | WP42 | prototype | Stage/joker classification on RouteGraph. |
 | WP43–WP44 | prototype | Magnetic local frames; moving surfaces. |
 | WP45–WP47 | absent | Extreme slice acceptance, venue selection, presentation libraries. |
-| WP48 | prototype | Explainable scoring. |
+| WP48 | integrated (partial) | Explainable scoring drives festival drift zones; freestyle disciplines open. |
 | WP49 | research | Server workload measurement. |
 | WP50–WP54 | absent | Prediction, lifecycle, records verification, lobbies, resilience. |
 | WP55 | absent | Productized authoring tools. |
