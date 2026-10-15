@@ -1271,15 +1271,17 @@ export class RoadNetwork {
         dx = this.x[j] - ax,
         dz = this.z[j] - az,
         len2 = dx * dx + dz * dz || 1,
-        len = Math.sqrt(len2),
         u = ((x - ax) * dx + (z - az) * dz) / len2,
         t = clamp(u, 0, 1),
         px = ax + dx * t,
         pz = az + dz * t,
-        d = Math.hypot(x - px, z - pz),
+        d2 = (x - px) ** 2 + (z - pz) ** 2,
+        limit = footprint + reach + 1;
+      // Quick reject (most of the cell) before the exact footprint test.
+      if (d2 > limit * limit) continue;
+      const len = Math.sqrt(len2),
+        d = Math.sqrt(d2),
         lateral = ((x - ax) * dz - (z - az) * dx) / len;
-      // Quick reject before the exact footprint test.
-      if (d > footprint + reach + 1) continue;
       // A dead end stops square at its end line, as its ribbon does. At a
       // junction the piece's rounded end also covers the outside corner of
       // a bend where it meets the next piece.

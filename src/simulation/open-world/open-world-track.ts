@@ -156,6 +156,8 @@ export class OpenWorldTrack {
   private readonly candH = new Float64Array(MAX_ROAD_CANDIDATES);
   private readonly candE = new Float64Array(MAX_ROAD_CANDIDATES);
   private readonly candG = new Float64Array(4 * MAX_ROAD_CANDIDATES);
+  private readonly candLateral = new Float64Array(MAX_ROAD_CANDIDATES);
+  private readonly candS = new Float64Array(MAX_ROAD_CANDIDATES);
   private roadH = 0;
   private roadGx = 0;
   private roadGz = 0;
@@ -308,6 +310,25 @@ export class OpenWorldTrack {
     }
     return lateral;
   }
+  /** Candidate k's surface, shoulder edge and gradients into the arrays. */
+  private evaluate(k: number, x: number, z: number) {
+    this.candLateral[k] = this.candidateSurface(k, x, z);
+    this.candS[k] = this.candidatePoint.s;
+    this.candH[k] = this.roadH;
+    this.candE[k] = this.edgeH;
+    this.candG[4 * k] = this.roadGx;
+    this.candG[4 * k + 1] = this.roadGz;
+    this.candG[4 * k + 2] = this.edgeGx;
+    this.candG[4 * k + 3] = this.edgeGz;
+  }
+  /** How far a covered candidate has faded in across its shoulder (0 at its
+   * footprint edge, 1 on its carriageway; a bridge deck is all or nothing). */
+  private fade(k: number) {
+    const c = this.candidates,
+      spec = this.network.edges[this.network.edgeOf[c.segment[k]]].spec,
+      margin = spec.halfWidth + spec.shoulder - c.distance[k];
+    return c.bridge[k] ? 1 : smoothstep(0, Math.max(0.05, spec.shoulder), margin);
+  }
   /**
    * World ground under (x, z): fills a SurfaceSample (Track contract) and
    * `query` (detailed class). `y` selects the road layer (bridges).
@@ -329,13 +350,20 @@ export class OpenWorldTrack {
   sample(x: number, z: number, out: SurfaceSample, y?: number): SurfaceSample {
     const net = this.network,
       p = this.point,
-      lateral = this.nearest(x, z, p, y),
       c = this.candidates,
-      count = net.covering(x, z, y !== undefined && Number.isFinite(y) ? y : p.y, RUN_OUT, c);
+      layered = y !== undefined && Number.isFinite(y);
+    // The nearest centreline (s, lateral, layer) is needed off the roads and
+    // as the layer reference of a query without a height; on a road the
+    // road the point is on answers it.
+    let lateral = 0,
+      resolved = false;
+    if (!layered) {
+      lateral = this.nearest(x, z, p);
+      resolved = true;
+    }
+    const count = net.covering(x, z, layered ? (y as number) : p.y, RUN_OUT, c);
     const q = this.query;
     q.waterDepth = 0;
-    out.s = p.s;
-    out.lateral = lateral;
     out.pit = false;
     out.cell = 0;
     // Candidate heights: road surface (covered pieces) and shoulder edge.
@@ -344,31 +372,22 @@ export class OpenWorldTrack {
       edgeH = this.candE;
     let covered = 0,
       top = -1;
-    for (let k = 0; k < count; k++) {
-      this.candidateSurface(k, x, z);
-      roadH[k] = this.roadH;
-      edgeH[k] = this.edgeH;
-      this.candG[4 * k] = this.roadGx;
-      this.candG[4 * k + 1] = this.roadGz;
-      this.candG[4 * k + 2] = this.edgeGx;
-      this.candG[4 * k + 3] = this.edgeGz;
+    // Covered pieces first: inside the top road's carriageway nothing else
+    // is needed (the common case for a car on a road).
+    for (let k = 0; k < count; k++)
       if (c.outside[k] === 0) {
+        this.evaluate(k, x, z);
         covered++;
         if (top < 0 || roadH[k] > roadH[top]) top = k;
       }
-    }
     let height: number, gx: number, gz: number;
-    const fade = (k: number) => {
-      const spec = net.edges[net.edgeOf[c.segment[k]]].spec,
-        margin = spec.halfWidth + spec.shoulder - c.distance[k];
-      return c.bridge[k] ? 1 : smoothstep(0, Math.max(0.05, spec.shoulder), margin);
-    };
-    if (top >= 0 && fade(top) >= 1) {
+    if (top >= 0 && this.fade(top) >= 1) {
       // Inside the highest road's carriageway: that road, exactly.
       height = roadH[top];
       gx = this.candG[4 * top];
       gz = this.candG[4 * top + 1];
     } else {
+      for (let k = 0; k < count; k++) if (c.outside[k] !== 0) this.evaluate(k, x, z);
       // Ground: the tile, pulled to the shoulder edges within the run-out,
       // lowest edge first (order-independent where edges are level).
       let n = 0;
@@ -434,7 +453,7 @@ export class OpenWorldTrack {
           spec = net.edges[net.edgeOf[c.segment[k]]].spec,
           ramp = Math.max(0.05, spec.shoulder),
           margin = spec.halfWidth + spec.shoulder - c.distance[k],
-          w = fade(k),
+          w = this.fade(k),
           // d(w)/d(margin) and margin falls along the radial direction.
           dw = c.bridge[k] ? 0 : smoothstepSlope(0, ramp, margin),
           dh = roadH[k] - height;
@@ -464,17 +483,26 @@ export class OpenWorldTrack {
     }
     if (owner < 0) owner = top;
     const onRoad = covered > 0;
+    if (!onRoad && !resolved) lateral = this.nearest(x, z, p, y);
     out.height = height;
     out.normal.set(-gx, 1, -gz).normalize();
     let surface: WorldSurface, edge: number;
     if (onRoad && owner >= 0) {
       const i = c.segment[owner],
-        roadLateral = this.candidateSurface(owner, x, z);
+        roadLateral = this.candLateral[owner];
       edge = net.edgeOf[i];
       surface = this.roadSurface(edge, roadLateral, c.distance[owner]);
       q.bridge = c.bridge[owner] === 1;
       q.layer = true;
+      // Station and lateral on the road the point is on.
+      out.s = this.candS[owner];
+      out.lateral = roadLateral;
+      this.lastSegment = i;
+      this.lastLateral = roadLateral;
+      this.lastLayer = true;
     } else {
+      out.s = p.s;
+      out.lateral = lateral;
       edge = net.edgeOf[this.lastSegment];
       q.bridge = false;
       q.layer = this.lastLayer;
