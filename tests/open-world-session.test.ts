@@ -44,9 +44,17 @@ describe('festival free-roam session', () => {
     const marker = sim.events.find((e) => e.spec.id === 'pass-zone')!.marker;
     const p = sim.player.body.position;
     expect(Math.hypot(p.x - marker.x, p.z - marker.z)).toBeLessThan(12);
-    for (let i = 0; i < 240; i++) sim.step(1 / 120);
+    // Parked on the mountain grade: it holds until the driver acts.
+    const placed = new Vec3().copy(p);
+    for (let i = 0; i < 360; i++) sim.step(1 / 120);
+    expect(Math.hypot(p.x - placed.x, p.z - placed.z)).toBeLessThan(1);
     expect(sim.status().road.onRoad).toBe(true);
     expect(sim.status().discovered).toContain('pass-zone');
+    // Driving off: the speed zone starts at its entry gate.
+    sim.setInput({ ...controls(), throttle: 0.8 });
+    for (let i = 0; i < 480 && sim.status().mode === 'free'; i++) sim.step(1 / 120);
+    expect(sim.status().mode).toBe('running');
+    expect(sim.status().event?.id).toBe('pass-zone');
   });
   it('resets an upturned or drowned car onto the nearest road, repaired', () => {
     const sim = new OpenWorldSimulation({ vehicle: 'tc1' });

@@ -1,6 +1,6 @@
 import type * as T from 'three';
 import type { Assist, Controls, WeatherPreset } from '../simulation/config.ts';
-import { resolveEvents, type FestivalResult } from '../simulation/open-world/festival-events.ts';
+import { resolveEvents, type FestivalEvent, type FestivalResult } from '../simulation/open-world/festival-events.ts';
 import { regionStructures } from '../simulation/open-world/placement.ts';
 import {
   festivalDefaultVehicle,
@@ -90,6 +90,10 @@ export class FestivalSession {
   private lastTime = 0;
   private status: FestivalStatus | null = null;
   private paused = false;
+  /** Fast travel in progress: the simulation is held and frames are not
+   * drawn while the destination streams in behind the loading screen. */
+  private travelling = false;
+  private events: readonly FestivalEvent[] = [];
   private disposed = false;
   private readyResolve: (() => void) | null = null;
   private readyReject: ((e: Error) => void) | null = null;
@@ -136,6 +140,7 @@ export class FestivalSession {
     host.loading('Planning event routes and town streets…');
     await new Promise<void>((resolve) => setTimeout(resolve, 0));
     const events = resolveEvents(world);
+    this.events = events;
     const structures = regionStructures(world);
     host.loading('Building roads, buildings and water…');
     await new Promise<void>((resolve) => setTimeout(resolve, 0));
@@ -170,10 +175,7 @@ export class FestivalSession {
         void this.persist();
         this.setPaused(false);
       },
-      travel: (id) => {
-        this.command({ type: 'travel', event: id });
-        this.setPaused(false);
-      },
+      travel: (id) => void this.travel(id),
       autopilot: (on) => {
         this.command({ type: 'autopilot', value: on });
         this.setPaused(false);
@@ -295,6 +297,33 @@ export class FestivalSession {
   command(command: FestivalCommand) {
     this.post({ type: 'command', command });
   }
+  /** Fast travel to a discovered event: the car is placed at once, and the
+   * simulation stays held behind the loading screen until the terrain and
+   * cover at the destination are resident (bounded wait), so the player
+   * never drives onto coarse or missing ground. */
+  private async travel(id: string) {
+    const renderer = this.renderer,
+      event = this.events.find((e) => e.spec.id === id);
+    if (!renderer || !event || this.travelling) return;
+    this.travelling = true;
+    this.hud?.showMenu(false);
+    this.host.loading(`Travelling to ${event.spec.name}…`);
+    this.command({ type: 'travel', event: id });
+    const { x, z } = event.marker,
+      deadline = performance.now() + 12000;
+    try {
+      while (!renderer.ready(x, z) && performance.now() < deadline && !this.disposed) {
+        renderer.prestream(x, z);
+        await new Promise<void>((resolve) => setTimeout(resolve, 30));
+      }
+    } finally {
+      this.travelling = false;
+      if (!this.disposed) {
+        this.host.loaded();
+        this.setPaused(false);
+      }
+    }
+  }
   input(input: Controls) {
     if (!this.paused) this.post({ type: 'input', input: { ...input } });
   }
@@ -320,6 +349,8 @@ export class FestivalSession {
   }
   /** Application actions while the festival drives; true when consumed. */
   action(name: string) {
+    // Fast travel owns the session until the destination has streamed in.
+    if (this.travelling) return name !== 'mute';
     switch (name) {
       case 'pause':
         if (this.hud?.mapOpen) this.hud.showMap(false);
@@ -358,7 +389,7 @@ export class FestivalSession {
     const renderer = this.renderer,
       a = this.previous,
       b = this.current;
-    if (!renderer || !a || !b || this.disposed) return;
+    if (!renderer || !a || !b || this.disposed || this.travelling) return;
     const wall = Math.max(0.001, (time - (this.lastTime || time - 16)) / 1000);
     this.lastTime = time;
     const span = Math.max(8, (b[H.TIME] - a[H.TIME]) * 1000),

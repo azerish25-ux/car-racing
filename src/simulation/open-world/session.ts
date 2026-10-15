@@ -188,6 +188,10 @@ export class OpenWorldSimulation {
   /** A race card the player declined ("not now"): it stays closed until the
    * player has left its marker. */
   private declined: string | null = null;
+  /** The player's car was just placed (spawn, travel, reset, new machine):
+   * it holds on the brakes, so it does not roll down a hill unattended,
+   * until the driver touches a control. */
+  private parked = true;
   private run: Run | null = null;
   private lastResult: FestivalResult | null = null;
   private resultClock = 0;
@@ -287,7 +291,10 @@ export class OpenWorldSimulation {
       this.placeAt(fresh, p.x + p.nx * lane, p.z + p.nz * lane, Math.atan2(p.tx * forward, p.tz * forward), p.y + 0.5);
     }
     if (index === 0 && this.autopilotDriver) this.autopilotDriver = null;
-    if (index === 0) this.say(reason);
+    if (index === 0) {
+      this.parked = true;
+      this.say(reason);
+    }
     this.upset = 0;
     this.drowned = 0;
   }
@@ -311,6 +318,7 @@ export class OpenWorldSimulation {
     dst.reverse = !!input.reverse;
     dst.manualClutch = input.manualClutch === true;
     dst.clutch = Number.isFinite(input.clutch) ? clamp(input.clutch, 0, 1) : 0;
+    if (dst.throttle > 0.05 || dst.brake > 0.05 || Math.abs(dst.steer) > 0.1 || dst.reverse) this.parked = false;
   }
   command(cmd: FestivalCommand) {
     switch (cmd.type) {
@@ -348,6 +356,7 @@ export class OpenWorldSimulation {
           fresh = this.makeCar(0, cmd.id);
         this.cars[0] = fresh;
         this.placeAt(fresh, old.body.position.x, old.body.position.z, Math.atan2(old.forward.x, old.forward.z), old.body.position.y);
+        this.parked = true;
         this.say(`${fresh.definition.name} ready`);
         break;
       }
@@ -360,6 +369,7 @@ export class OpenWorldSimulation {
         this.cars[0] = fresh;
         this.placeOnPath(fresh, event.path, 0, 0);
         this.prefetchAround(fresh, 0);
+        this.parked = true;
         this.say(`Travelled to ${event.spec.name}`);
         break;
       }
@@ -619,6 +629,11 @@ export class OpenWorldSimulation {
         run.assisted = true;
       }
     } else if (this.autopilot) this.cruise(dt);
+    else if (this.parked) {
+      const input = this.player.input;
+      input.throttle = 0;
+      input.brake = 1;
+    }
     // Physics: two substeps, car contacts, rails and static colliders.
     // Finished rivals are out of the race: no car contact with them.
     const track = this.asTrack,
