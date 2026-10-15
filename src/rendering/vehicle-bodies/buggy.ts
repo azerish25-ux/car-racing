@@ -7,6 +7,9 @@ import { sharedMaterials } from './materials.ts';
 import type { Link } from './open-wheel.ts';
 import { Parts, placed } from './parts.ts';
 import type { Detail } from './wheel.ts';
+import type { CabinLayout } from './cabin.ts';
+import { buildFrameCabin } from './interior.ts';
+import type { VehicleDefinition } from '../../simulation/vehicles.ts';
 
 /** Tube-frame desert buggy (WP30 catalogue growth): an exposed space frame
  * and roll cage over a two-seat cockpit, minimal glass-fibre panels (nose,
@@ -21,6 +24,7 @@ export function buildBuggy(
   mats: CarMaterials,
   detail: Detail,
   lod: BuiltLod,
+  cabin?: { layout: CabinLayout; def: VehicleDefinition },
 ): Link[] {
   const parts = new Parts(),
     y = f.y,
@@ -173,7 +177,20 @@ export function buildBuggy(
       placed(side * 0.28, floor + 0.38, zCockpit - 0.3, -0.16),
     );
   }
-  addDriver(parts, mats, 0.28, floor + 0.08, zCockpit - 0.1, 0.92, zCockpit + 0.36);
+  const near = detail === 0 && cabin ? cabin : null;
+  const headParts = new Parts();
+  addDriver(parts, mats, 0.28, floor + 0.08, zCockpit - 0.1, 0.92, zCockpit + 0.36, false, {
+    ...(near ? { head: headParts, wheel: false, handDrop: near.layout.wheel.handDrop } : {}),
+  });
+  if (near)
+    lod.cabin = buildFrameCabin({
+      layout: near.layout,
+      def: near.def,
+      shell: parts,
+      lod,
+      headParts,
+      dash: { z: zCockpit + 0.56, y: floor + 0.4, floor },
+    });
   parts.build(lod.group, detail === 0);
   // Long-travel arms: upper and lower wishbones from the frame to each hub.
   const links: Link[] = [];

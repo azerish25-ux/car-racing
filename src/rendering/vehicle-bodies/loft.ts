@@ -120,7 +120,8 @@ export interface LoftOptions {
   /** Material index of the end caps (default: the face material at j = 0). */
   capMaterial?: number;
   /** Material index for the quad between rings i, i+1 and ring samples j, j+1
-   * of the LEFT half (mirrored faces share it). Groups are emitted in index order. */
+   * of the LEFT half (mirrored faces share it). Groups are emitted in index
+   * order; a negative index leaves the quad out (an opening in the surface). */
   material?: (zMid: number, j: number, i: number) => number;
 }
 /** Loft mirrored rings into one indexed, smooth-shaded geometry. Faces are
@@ -155,6 +156,7 @@ export function loftRings(rings: readonly Ring[], options: LoftOptions = {}) {
   });
   const groups = new Map<number, number[]>();
   const push = (material: number, ...v: number[]) => {
+    if (material < 0) return;
     let list = groups.get(material);
     if (!list) groups.set(material, (list = []));
     list.push(...v);
@@ -318,4 +320,33 @@ export function aerofoil(
   g.translate(-span / 2, 0, 0);
   g.computeVertexNormals();
   return g;
+}
+/** A sampled half profile moved `d` metres inward along its normals (the
+ * last, centreline sample stays on the centreline). */
+export function insetProfile(half: readonly Pt[], d: number): Pt[] {
+  return half.map(([x, y], k) => {
+    const a = half[Math.max(0, k - 1)],
+      b = half[Math.min(half.length - 1, k + 1)];
+    const tx = b[0] - a[0],
+      ty = b[1] - a[1],
+      l = Math.hypot(tx, ty) || 1;
+    const nx = ty / l,
+      ny = -tx / l;
+    return [k === half.length - 1 ? 0 : Math.max(0, x - nx * d), y - ny * d] as const;
+  });
+}
+/** Reverse the winding of an indexed geometry in place (an inner lining
+ * built from an outward loft) and recompute its normals. */
+export function flipWinding(geometry: T.BufferGeometry) {
+  const index = geometry.getIndex();
+  if (!index) throw new Error('flipWinding needs an indexed geometry');
+  const a = index.array;
+  for (let i = 0; i + 2 < a.length; i += 3) {
+    const t = a[i + 1];
+    a[i + 1] = a[i + 2];
+    a[i + 2] = t;
+  }
+  index.needsUpdate = true;
+  geometry.computeVertexNormals();
+  return geometry;
 }

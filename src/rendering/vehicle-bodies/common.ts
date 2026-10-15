@@ -10,6 +10,7 @@ import {
   type PanelGap,
 } from './materials.ts';
 import { placed, type Parts } from './parts.ts';
+import type { BuiltCabin } from './interior.ts';
 
 /** Per-car materials: its own paint (livery colour), accent, lamps (driven
  * from the snapshot), number board and helmet; everything else is shared. */
@@ -46,11 +47,24 @@ export interface BuiltLod {
   group: T.Group;
   front: T.Object3D[];
   rear: T.Object3D[];
+  /** The near cabin (LOD0 only): interior.ts. */
+  cabin?: BuiltCabin;
 }
 export function emptyLod(name: string): BuiltLod {
   const group = new T.Group();
   group.name = name;
   return { group, front: [], rear: [] };
+}
+/** Driver options for the near cabin (LOD0): the helmet and visor go to
+ * `head` (hidden in the driver's own cockpit view), the static steering ring
+ * is left out when the cabin carries a turning wheel, and `legs` reach from
+ * the cushion to the pedals at (floor y, pedal z). */
+export interface DriverOptions {
+  head?: Parts;
+  wheel?: boolean;
+  legs?: { floor: number; pedals: number };
+  /** Hands below the helmet centre (x scale); default 0.38. */
+  handDrop?: number;
 }
 /** A seated driver: helmet with visor, HANS collar, shoulders, torso and
  * arms reaching for a wheel `reach` m ahead. `scale` 1 is an adult. */
@@ -63,7 +77,9 @@ export function addDriver(
   scale: number,
   wheelZ: number,
   openFace = false,
+  options: DriverOptions = {},
 ) {
+  const headParts = options.head ?? parts;
   const s = scale,
     headY = seatY + 0.74 * s,
     headZ = z + 0.02;
@@ -79,17 +95,17 @@ export function addDriver(
   ].map(([r, a]) => [r * s, a * s] as const);
   const helmet = revolveX(shell, 24).rotateZ(Math.PI / 2);
   helmet.scale(1, 1, 1.12);
-  parts.add(helmet, mats.helmet, placed(x, headY, headZ));
+  headParts.add(helmet, mats.helmet, placed(x, headY, headZ));
   if (!openFace) {
     const visor = roundedBox(0.2 * s, 0.07 * s, 0.03 * s, 0.012 * s, 2);
-    parts.add(
+    headParts.add(
       visor,
       sharedMaterials.visor(),
       placed(x, headY + 0.01 * s, headZ + 0.128 * s, -0.12),
     );
   } else {
     const goggles = roundedBox(0.18 * s, 0.05 * s, 0.03 * s, 0.015 * s, 2);
-    parts.add(goggles, sharedMaterials.visor(), placed(x, headY + 0.02 * s, headZ + 0.13 * s));
+    headParts.add(goggles, sharedMaterials.visor(), placed(x, headY + 0.02 * s, headZ + 0.13 * s));
   }
   // Collar, shoulders and torso.
   parts.add(
@@ -109,7 +125,7 @@ export function addDriver(
   );
   // Arms to the wheel, hands on it.
   const shoulderY = headY - 0.27 * s,
-    hand = new T.Vector3(0, headY - 0.38 * s, wheelZ);
+    hand = new T.Vector3(0, headY - (options.handDrop ?? 0.38) * s, wheelZ);
   for (const side of [-1, 1]) {
     const sx = x + side * 0.19 * s,
       hx = x + side * 0.17 * s;
@@ -132,7 +148,39 @@ export function addDriver(
       placed(hx, hand.y, wheelZ),
     );
   }
-  // Steering wheel.
-  const wheel = new T.TorusGeometry(0.15 * s, 0.016 * s, 8, 24);
-  parts.add(wheel, sharedMaterials.trim(), placed(x, hand.y, wheelZ + 0.02, -0.35));
+  // Steering wheel (unless the cabin carries a turning one).
+  if (options.wheel !== false) {
+    const wheel = new T.TorusGeometry(0.15 * s, 0.016 * s, 8, 24);
+    parts.add(wheel, sharedMaterials.trim(), placed(x, hand.y, wheelZ + 0.02, -0.35));
+  }
+  if (options.legs) {
+    // Thighs forward from the hips, knees raised, shins down to the pedals.
+    const hipY = seatY + 0.08 * s,
+      hipZ = z + 0.02,
+      { floor, pedals } = options.legs;
+    for (const side of [-1, 1]) {
+      const lx = x + side * 0.1 * s,
+        kneeZ = Math.min(hipZ + 0.44 * s, pedals - 0.14),
+        kneeY = Math.max(hipY + 0.06 * s, floor + 0.32 * s);
+      parts.add(
+        tubeGeometry(
+          [
+            [lx, hipY, hipZ - 0.04],
+            [lx + side * 0.012, kneeY, kneeZ],
+            [lx, floor + 0.09, pedals - 0.06],
+          ],
+          0.062 * s,
+          12,
+          8,
+        ),
+        mats.suit,
+      );
+      // Boot on the pedal.
+      parts.add(
+        roundedBox(0.1 * s, 0.09 * s, 0.24 * s, 0.03 * s, 1),
+        sharedMaterials.trim(),
+        placed(lx, floor + 0.07, pedals - 0.05, -0.5),
+      );
+    }
+  }
 }

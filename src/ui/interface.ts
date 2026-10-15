@@ -5,6 +5,13 @@ import {
   machineSelectOptions,
   sessionRulesSummary,
 } from './machine-options.ts';
+import {
+  applySetupScreen,
+  setupMachine,
+  setupSaveNote,
+  setupSectionHtml,
+  type SetupContext,
+} from './setup-screen.ts';
 import { installCompactRaceHud } from './compact-race-hud.ts';
 import {
   compoundOf,
@@ -54,12 +61,7 @@ import {
   type StartSlot,
 } from '../simulation/config.ts';
 import { sessionIncompatibilities } from '../simulation/events.ts';
-import {
-  DEFAULT_VEHICLE_ID,
-  vehicleDefinition,
-  type VehicleDefinition,
-} from '../simulation/vehicles.ts';
-import { setupRows, setupStep } from './setup-page.ts';
+import { setupStep } from './setup-page.ts';
 import { F, H, W, WHEEL_BASE, WHEEL_STRIDE, WHEEL_NAMES, carBase } from '../simulation/protocol.ts';
 import { type Track } from '../simulation/track.ts';
 import { circuitDefinition, type CircuitId } from '../simulation/circuits.ts';
@@ -329,7 +331,10 @@ export class Interface {
       Object.assign(this.options, machineOptions(this.options, select('vehicle')));
       // Reject incompatible machine/ruleset/tyre combinations with reasons
       // (the festival picks its own road machine and has no circuit rules).
-      const problems = select('mode') === 'festival' ? [] : sessionIncompatibilities(validateOptions(this.options));
+      const problems =
+        select('mode') === 'festival'
+          ? []
+          : sessionIncompatibilities(validateOptions(this.options));
       if (problems.length) {
         this.get('sessionRules').textContent = `Cannot start: ${problems.join('; ')}.`;
         return;
@@ -822,24 +827,14 @@ export class Interface {
     const key = (this.get('telemetryView') as HTMLSelectElement).value;
     return Object.hasOwn(TELEMETRY_VIEWS, key) ? (key as TelemetryView) : 'driver';
   }
-  /** The machine the MACHINE select would put the player on (its first entry). */
-  selectedVehicle(): VehicleDefinition {
-    const select = document.getElementById('vehicle') as HTMLSelectElement | null;
-    if (!select) return vehicleDefinition(DEFAULT_VEHICLE_ID);
-    return vehicleDefinition(machineOptions({ ...DEFAULT_OPTIONS }, select.value).vehicles?.[0]);
-  }
-  /** Garage & Settings. The vehicle setup section lists only the parameters
-   * `vehicle` exposes (a motorcycle's preload, damping, steering damper,
-   * gearing and maps; a car's aero and chassis), at the values its session
-   * uses; the other machines' values in the shared setup are kept. */
-  settings(settings: Settings, vehicle: VehicleDefinition = this.selectedVehicle()) {
-    const rows = setupRows(vehicle, settings.setup);
-    const setupRowsHtml = rows
-      .map(
-        (row) =>
-          `<label class="range-row">${row.label}<output>${row.value}</output><input name="${row.key}" data-setup type="range" min="${row.min}" max="${row.max}" step="${row.step}" value="${row.value}"></label>`,
-      )
-      .join('');
+  /** GARAGE & SETTINGS. The vehicle setup section shows the active machine's
+   * own parameters (setup-screen.ts): `context.machine` names it explicitly (a
+   * running session's entry); otherwise the MACHINE menu choice decides. A
+   * career session racing a garage preset (`context.preset`) shows it read-only. */
+  settings(settings: Settings, context?: SetupContext) {
+    const menuChoice = document.querySelector<HTMLSelectElement>('#vehicle')?.value ?? null;
+    const vehicle = setupMachine(context?.machine, menuChoice, this.options),
+      preset = context?.preset ?? null;
     this.modalContent(
       `<header><div><span class="eyebrow">GARAGE / PREFERENCES</span><h2>Make it yours.</h2></div><button data-action="modalClose" aria-label="Close settings">✕</button></header><form id="settingsForm"><div class="settings-columns"><section><h3>Presentation</h3><label>RENDER QUALITY<select name="quality"><option value="low">Low · No shadows / crowd / particles</option><option value="medium">Medium · 2× MSAA / AO / bloom</option><option value="high">High · 4× MSAA / local reflections / specular AA</option><option value="ultra">Ultra · TAA / SSR / 3 shadow cascades (opt-in, fast GPUs)</option></select></label>${presentationControls(settings)}${[
         ['volume', 'Volume', 0, 1, 0.01],
@@ -887,7 +882,7 @@ export class Interface {
         )
         .join(
           '',
-        )}</div></section><section><h3>Vehicle setup</h3><p class="small-note" id="setupMachine" data-vehicle="${escapeHtml(vehicle.id)}">${escapeHtml(vehicle.name)} · ${rows.length} parameter${rows.length === 1 ? '' : 's'} this machine exposes. Physical setup changes take effect at the next session start. Rendering and audio changes apply immediately.</p>${setupRowsHtml}<div class="setup-files"><button type="button" id="exportSetup">EXPORT SETUP</button><label class="file-label">IMPORT SETUP<input id="importSetup" type="file" accept=".json,application/json" hidden></label></div></section></div><footer><button type="button" data-action="modalClose">CANCEL</button><button class="primary" type="submit">APPLY & SAVE</button></footer></form>`,
+        )}</div></section><section><h3>Vehicle setup</h3>${setupSectionHtml(vehicle, settings.setup, preset)}<div class="setup-files"><button type="button" id="exportSetup">EXPORT SETUP</button><label class="file-label">IMPORT SETUP<input id="importSetup" type="file" accept=".json,application/json" hidden></label></div></section></div><footer><button type="button" data-action="modalClose">CANCEL</button><button class="primary" type="submit">APPLY & SAVE</button></footer></form>`,
     );
     const form = document.getElementById('settingsForm') as HTMLFormElement;
     this.deviceCalibration = new DeviceCalibrationPanel(
@@ -903,6 +898,17 @@ export class Interface {
       const input = e.target as HTMLInputElement;
       const output = input.parentElement?.querySelector('output');
       if (output) output.value = input.value;
+      // The one value a machine reads as its own baseline saves as its neighbour.
+      if (input.dataset.setup !== undefined) {
+        const note = form.querySelector<HTMLElement>(`#note-${input.name}`);
+        if (note)
+          note.textContent = setupSaveNote(
+            vehicle,
+            input.name as keyof Settings['setup'],
+            Number(input.value),
+            Number(input.dataset.shown),
+          );
+      }
     });
     form.querySelectorAll<HTMLButtonElement>('[data-bind]').forEach((button) =>
       button.addEventListener('click', () => {
@@ -960,13 +966,7 @@ export class Interface {
         next.rumble[key] = Number(value(`rumble_${key}`));
       next.quickStart = (form.elements.namedItem('quickStart') as HTMLInputElement).checked;
       for (const key of ['volume', 'shake', 'uiScale'] as const) next[key] = Number(value(key));
-      // Only the machine's own parameters are on the page, shown at the values
-      // its session uses; a row the player moved is saved, the rest of the
-      // shared setup (other machines' baselines included) is kept as it was.
-      for (const row of rows) {
-        const chosen = Number(value(row.key));
-        if (chosen !== row.value) next.setup[row.key] = chosen;
-      }
+      next.setup = applySetupScreen(vehicle, settings.setup, (key) => Number(value(key)), preset);
       for (const key of [
         'steerAxis',
         'throttleAxis',

@@ -17,6 +17,9 @@ import {
 import { sharedMaterials } from './materials.ts';
 import { Parts, placed } from './parts.ts';
 import type { Detail } from './wheel.ts';
+import type { CabinLayout } from './cabin.ts';
+import { buildFrameCabin, buildOpenWheelCabin } from './interior.ts';
+import type { VehicleDefinition } from '../../simulation/vehicles.ts';
 
 /** Open-wheel single-seaters (modern feeder formula with halo, sidepods and
  * wings; 1960s cigar-tube car with exposed engine and exhausts) and karts.
@@ -42,7 +45,9 @@ export function buildOpenWheel(
   mats: CarMaterials,
   detail: Detail,
   lod: BuiltLod,
+  cabin?: { layout: CabinLayout; def: VehicleDefinition },
 ): Link[] {
+  const near = detail === 0 && cabin ? cabin : null;
   const modern = s.era === 'modern',
     historic = s.era === 'historic',
     seventies = s.era === 'seventies',
@@ -126,8 +131,9 @@ export function buildOpenWheel(
     capStart: true,
     capEnd: true,
     material: (zMid, j) => {
-      // Cockpit opening: interior on the top between the halo/screen and the headrest.
-      if (j >= topStart && zMid < zCockpit + 0.42 && zMid > zCockpit - 0.32) return 1;
+      // Cockpit opening between the halo/screen and the headrest: open on the
+      // near LOD (the cabin fills it), a dark lid on the others.
+      if (j >= topStart && zMid < zCockpit + 0.42 && zMid > zCockpit - 0.32) return near ? -1 : 1;
       if (s.stripe === 'centre' && j >= topStart + counts[7] - 1) return 2;
       if (j < counts[0]) return 3;
       return 0;
@@ -136,15 +142,40 @@ export function buildOpenWheel(
   const parts = new Parts();
   parts.addGrouped(
     tub,
-    [mats.paint, sharedMaterials.interior(), mats.accent, sharedMaterials.carbonSatin()],
+    [mats.paint, sharedMaterials.cabinLid(), mats.accent, sharedMaterials.carbonSatin()],
     'Monocoque (lofted)',
   );
   const carbon = sharedMaterials.carbon(),
     satin = sharedMaterials.carbonSatin();
-  // Driver.
+  // Driver (the near cabin seats its own, with legs and a turning wheel).
   const seatY = y(0.12),
     seatZ = zCockpit - 0.1;
-  addDriver(parts, mats, 0, seatY, seatZ, 0.92, zCockpit + 0.36, historic);
+  if (!near) addDriver(parts, mats, 0, seatY, seatZ, 0.92, zCockpit + 0.36, historic);
+  else {
+    const rear = zCockpit - 0.32,
+      front = zCockpit + 0.42,
+      edge = (z: number) => ring(Math.max(rear, Math.min(front, z))).half[topStart];
+    const mirrorAt: (readonly [number, number, number])[] =
+      modern || eighties
+        ? [-1, 1].map((side) => [side * 0.5, y(0.68), zCockpit + 0.42 - 0.034] as const)
+        : [-1, 1].map((side) => [side * 0.3, y(tubTop + 0.04), zCockpit + 0.3 - 0.029] as const);
+    lod.cabin = buildOpenWheelCabin({
+      layout: near.layout,
+      def: near.def,
+      mats,
+      shell: parts,
+      lod,
+      opening: {
+        rear,
+        front,
+        floor: Math.min(seatY - 0.01, Math.max(bottom.at(rear), bottom.at(front)) + 0.01),
+        edge,
+      },
+      openFace: historic,
+      mirrorAt,
+      mirrorSize: modern || eighties ? [0.14, 0.045] : [0.085, 0.038],
+    });
+  }
   if (detail < 2) {
     // Headrest / roll structure.
     if (modern || eighties)
@@ -228,7 +259,9 @@ export function buildOpenWheel(
     fin.lineTo(-(zCockpit - 0.5 - (f.rearAxle + 0.1)), 0.1);
     fin.lineTo(0, 0.42);
     const g = new T.ExtrudeGeometry(fin, { depth: 0.01, bevelEnabled: false });
-    g.rotateY(Math.PI / 2).translate(-0.005, y(0.55), zCockpit - 0.5);
+    // Shape x runs back from the airbox (negative x -> -z): the fin tapers
+    // from the airbox to the rear axle over the engine cover.
+    g.rotateY(-Math.PI / 2).translate(0.005, y(0.55), zCockpit - 0.5);
     parts.add(g, mats.paint);
   }
   if (seventies && s.airbox && detail < 2) {
@@ -476,6 +509,11 @@ export function buildOpenWheel(
     }
   }
   parts.build(lod.group, detail === 0);
+  if (lod.cabin)
+    lod.group.traverse((o) => {
+      if (o instanceof T.Mesh && !Array.isArray(o.material) && o.material.userData.vehicleGlass)
+        lod.cabin!.glass.push(o);
+    });
   // Suspension links: wishbone legs and push rods from tub to hubs.
   const links: Link[] = [];
   if (detail < 2)
@@ -507,6 +545,7 @@ export function buildKart(
   mats: CarMaterials,
   detail: Detail,
   lod: BuiltLod,
+  cabin?: { layout: CabinLayout; def: VehicleDefinition },
 ) {
   const compact = s.nose === 'compact',
     short = s.pods === 'short',
@@ -601,7 +640,19 @@ export function buildKart(
   const seatZ = zR + 0.3,
     seatY = y(0.06);
   parts.add(roundedBox(0.4, 0.42, 0.36, 0.08, 2), plastic, placed(0, seatY + 0.2, seatZ, -0.25));
-  addDriver(parts, mats, 0, seatY, seatZ + 0.1, 0.92, zF - 0.08, false);
+  const near = detail === 0 && cabin ? cabin : null;
+  const headParts = new Parts();
+  addDriver(parts, mats, 0, seatY, seatZ + 0.1, 0.92, zF - 0.08, false, {
+    ...(near ? { head: headParts, wheel: false, handDrop: near.layout.wheel.handDrop } : {}),
+  });
+  if (near)
+    lod.cabin = buildFrameCabin({
+      layout: near.layout,
+      def: near.def,
+      shell: parts,
+      lod,
+      headParts,
+    });
   parts.add(
     rodGeometry(
       new T.Vector3(0, y(0.12), zF + 0.02),

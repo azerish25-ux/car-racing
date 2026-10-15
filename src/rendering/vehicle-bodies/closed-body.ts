@@ -4,6 +4,8 @@ import type { ClosedSheet, WingSheet } from './body-sheet.ts';
 import type { BodyFrame } from './frame.ts';
 import {
   aerofoil,
+  flipWinding,
+  insetProfile,
   loftRings,
   rodGeometry,
   roundedBox,
@@ -16,7 +18,10 @@ import {
 import { sharedMaterials, type PanelGap } from './materials.ts';
 import { Parts, placed } from './parts.ts';
 import type { Detail } from './wheel.ts';
-import { addDriver, type CarMaterials, type BuiltLod } from './common.ts';
+import type { CarMaterials, BuiltLod } from './common.ts';
+import type { CabinLayout } from './cabin.ts';
+import { buildClosedCabin, type CabinOpening } from './interior.ts';
+import type { VehicleDefinition } from '../../simulation/vehicles.ts';
 
 /** Closed-wheel bodies (GT, prototype, saloon, roadster, rally, truck, road
  * supercar) generated from a ClosedSheet. The lower body is one loft of
@@ -206,6 +211,20 @@ export class ClosedBodyModel {
   ring(z: number, detail: Detail): Ring {
     return { z, half: sampleProfile(this.control(z), SEGMENTS[detail]) };
   }
+  /** First sample of the deck-to-centreline segment (the top under the glass). */
+  deckSample(detail: Detail) {
+    return SEGMENTS[detail].slice(0, 7).reduce((a, b) => a + b, 0);
+  }
+  /** Inner edge of the near cockpit opening at z: the outermost deck sample
+   * inside the greenhouse sill (x, y). The near loft omits the deck faces
+   * inside it; the cabin's door cards stand on it. */
+  cabinEdge(z: number): Pt {
+    const half = this.ring(z, 0).half,
+      sill = this.halfWidth(z) * 0.8 - 0.01 + 0.02;
+    for (let j = this.deckSample(0); j < half.length - 1; j++)
+      if (half[j][0] <= sill) return half[j];
+    return half[half.length - 2];
+  }
   /** Stations along the car: uniform, plus both sides of every arch edge. */
   stations(detail: Detail) {
     const out: number[] = [];
@@ -302,65 +321,93 @@ export class ClosedBodyModel {
     return out;
   }
 }
-/** Greenhouse (glass, pillars, roof) standing on the body. */
-function greenhouse(model: ClosedBodyModel, detail: Detail) {
-  const { f, s } = model;
-  const [ws, rf, rr, rw] = s.cabin;
-  const zWs = f.z(ws),
-    zRF = f.z(rf),
-    zRR = f.z(rr),
-    zRW = f.z(rw);
-  const roofY = f.y(s.roof);
-  const base = (z: number) => model.topY(z) - 0.012;
-  const roof = new Track([
-    [zRW, base(zRW) + 0.004],
-    [zRW + (zRR - zRW) * 0.45, base(zRW) + (roofY - base(zRW)) * 0.62],
-    [zRR, roofY - 0.012],
-    [(zRR + zRF) / 2, roofY + 0.008],
-    [zRF, roofY - 0.008],
-    [zWs - (zWs - zRF) * 0.35, base(zWs) + (roofY - base(zWs)) * 0.55],
-    [zWs, base(zWs) + 0.004],
-  ]);
-  const roofHalf = (z: number) =>
-    (model.halfBase * s.roofWidth * model.halfWidth(z)) / model.halfBase;
-  const counts = detail === 0 ? [4, 4, 3, 3] : detail === 1 ? [2, 2, 2, 2] : [1, 1, 1, 1];
-  const n = Math.max(
-    6,
-    Math.ceil((zWs - zRW) / (detail === 0 ? 0.035 : detail === 1 ? 0.08 : 0.2)),
-  );
-  const rings: Ring[] = [];
-  for (let i = 0; i <= n; i++) {
-    const z = zRW + ((zWs - zRW) * i) / n,
-      b = base(z),
-      top = Math.max(b + 0.004, roof.at(z)),
+/** Greenhouse (glass, pillars, roof) standing on the body: its sections and
+ * per-face materials (0 paint, 1 glass, 2 trim). The cabin interior reads the
+ * same sections for the headliner, pillar trims and roll cage. */
+export class Greenhouse {
+  readonly zWs: number;
+  readonly zRF: number;
+  readonly zRR: number;
+  readonly zRW: number;
+  readonly roofY: number;
+  private readonly roof: Track;
+  constructor(readonly model: ClosedBodyModel) {
+    const { f, s } = model;
+    const [ws, rf, rr, rw] = s.cabin;
+    const zWs = (this.zWs = f.z(ws)),
+      zRF = (this.zRF = f.z(rf)),
+      zRR = (this.zRR = f.z(rr)),
+      zRW = (this.zRW = f.z(rw));
+    const roofY = (this.roofY = f.y(s.roof));
+    const base = (z: number) => this.base(z);
+    this.roof = new Track([
+      [zRW, base(zRW) + 0.004],
+      [zRW + (zRR - zRW) * 0.45, base(zRW) + (roofY - base(zRW)) * 0.62],
+      [zRR, roofY - 0.012],
+      [(zRR + zRF) / 2, roofY + 0.008],
+      [zRF, roofY - 0.008],
+      [zWs - (zWs - zRF) * 0.35, base(zWs) + (roofY - base(zWs)) * 0.55],
+      [zWs, base(zWs) + 0.004],
+    ]);
+  }
+  /** Height the greenhouse stands on at z. */
+  base(z: number) {
+    return this.model.topY(z) - 0.012;
+  }
+  /** Control points of the half section at z: sill, side, cantrail, roof centre. */
+  control(z: number): Pt[] {
+    const { model } = this,
+      s = model.s;
+    const b = this.base(z),
+      top = Math.max(b + 0.004, this.roof.at(z)),
       sill = model.halfWidth(z) * 0.8 - 0.01,
-      hr = Math.min(sill - 0.02, roofHalf(z)),
+      hr = Math.min(
+        sill - 0.02,
+        (model.halfBase * s.roofWidth * model.halfWidth(z)) / model.halfBase,
+      ),
       h = top - b,
       crown = Math.min(0.03, h * 0.1);
-    rings.push({
-      z,
-      half: sampleProfile(
-        [
-          [sill, b],
-          [sill - (sill - hr) * 0.4, b + h * 0.45],
-          [hr + 0.02, top - Math.min(0.035, h * 0.15)],
-          [hr * 0.55, top + crown * 0.7],
-          [0, top + crown],
-        ],
-        counts,
-      ),
-    });
+    return [
+      [sill, b],
+      [sill - (sill - hr) * 0.4, b + h * 0.45],
+      [hr + 0.02, top - Math.min(0.035, h * 0.15)],
+      [hr * 0.55, top + crown * 0.7],
+      [0, top + crown],
+    ];
   }
-  const pillarB = (zRF + zRR) / 2 - 0.08;
-  const sideEnd = counts[0] + counts[1];
-  const geometry = loftRings(rings, {
-    closed: false,
-    material: (zMid, j) => {
+  counts(detail: Detail) {
+    return detail === 0 ? [4, 4, 3, 3] : detail === 1 ? [2, 2, 2, 2] : [1, 1, 1, 1];
+  }
+  rings(detail: Detail, inset = 0): Ring[] {
+    const { zWs, zRW } = this,
+      counts = this.counts(detail);
+    const n = Math.max(
+      6,
+      Math.ceil((zWs - zRW) / (detail === 0 ? 0.035 : detail === 1 ? 0.08 : 0.2)),
+    );
+    const rings: Ring[] = [];
+    for (let i = 0; i <= n; i++) {
+      const z = zRW + ((zWs - zRW) * i) / n,
+        half: readonly Pt[] = sampleProfile(this.control(z), counts);
+      rings.push({ z, half: inset ? insetProfile(half, inset) : half });
+    }
+    return rings;
+  }
+  /** Face material of the loft between samples j, j+1 at station zMid. */
+  material(detail: Detail) {
+    const { zWs, zRF, zRR, zRW } = this,
+      s = this.model.s,
+      counts = this.counts(detail);
+    const pillarB = (zRF + zRR) / 2 - 0.08;
+    const sideEnd = counts[0] + counts[1];
+    return (zMid: number, j: number) => {
       // 0 paint, 1 glass, 2 trim.
       const upper = j >= sideEnd;
       if (zMid > zRF - 0.01) {
         if (zMid > zWs - 0.035) return 2;
-        if (j === sideEnd - 1 || j === sideEnd) return 0; // A-pillar
+        // A-pillar; a prototype's narrow bubble wraps its screen round instead
+        // (the cantrail line would otherwise cross the driver's view).
+        if ((j === sideEnd - 1 || j === sideEnd) && s.style !== 'prototype') return 0;
         return 1;
       }
       if (zMid < zRR + 0.01) {
@@ -374,9 +421,43 @@ function greenhouse(model: ClosedBodyModel, detail: Detail) {
       if (Math.abs(zMid - pillarB) < 0.045) return 0; // B-pillar
       if (j === 0 || j === sideEnd - 1) return 2; // window frame
       return 1;
-    },
+    };
+  }
+  /** Sample index where the side glass meets the roof (the cantrail). */
+  cantrail(detail: Detail) {
+    const counts = this.counts(detail);
+    return counts[0] + counts[1];
+  }
+}
+/** Greenhouse geometry: opaque frames and roof, and the glazing as its own
+ * mesh (it sorts and casts differently), sharing one vertex buffer. */
+function greenhouse(gh: Greenhouse, detail: Detail) {
+  const geometry = loftRings(gh.rings(detail), { closed: false, material: gh.material(detail) });
+  const opaque = new T.BufferGeometry(),
+    glass = new T.BufferGeometry();
+  for (const g of [opaque, glass]) {
+    g.setIndex(geometry.getIndex());
+    for (const name of Object.keys(geometry.attributes))
+      g.setAttribute(name, geometry.getAttribute(name));
+    g.boundingSphere = geometry.boundingSphere?.clone() ?? null;
+  }
+  for (const group of geometry.groups)
+    (group.materialIndex === 1 ? glass : opaque).addGroup(
+      group.start,
+      group.count,
+      group.materialIndex,
+    );
+  return { opaque, glass };
+}
+/** Inner headliner and pillar trims: the greenhouse surface 2 mm in, wound to
+ * face the cabin (opposite facings never draw together), glass faces open. */
+function greenhouseLining(gh: Greenhouse) {
+  const material = gh.material(0);
+  const lining = loftRings(gh.rings(0, 0.002), {
+    closed: false,
+    material: (zMid, j) => (material(zMid, j) === 1 ? -1 : 0),
   });
-  return geometry;
+  return flipWinding(lining);
 }
 function wing(
   parts: Parts,
@@ -464,21 +545,40 @@ function wing(
     }
   return group;
 }
-/** Build one LOD of a closed body into `lod.group`. */
+/** Build one LOD of a closed body into `lod.group`. With a cabin layout the
+ * near LOD (0) opens the deck inside the greenhouse or cockpit and carries the
+ * interior (interior.ts); the other LODs show a dark lid under the glass. */
 export function buildClosedBody(
   model: ClosedBodyModel,
   mats: CarMaterials,
   detail: Detail,
   lod: BuiltLod,
+  cabin?: { layout: CabinLayout; def: VehicleDefinition },
 ) {
   const { f, s } = model;
   const parts = new Parts();
   const rings = model.stations(detail).map((z) => model.ring(z, detail));
+  const openCockpit = s.style === 'roadster' || !!s.open;
+  const deck = model.deckSample(detail),
+    zLidFront = f.z(s.cabin[0]),
+    zLidRear = f.z(s.cabin[3]);
+  const cell = detail === 0 ? cabin?.layout.cell : null;
   const lower = loftRings(rings, {
     capStart: true,
     capEnd: true,
     capMaterial: M.paint,
-    material: (zMid, j) => model.slot(zMid, j, detail),
+    material: (zMid, j, i) => {
+      if (cabin && j >= deck && zMid < zLidFront && zMid > zLidRear) {
+        // The near cabin's opening (inside the greenhouse sill); elsewhere
+        // under the glass a dark lid (parcel shelf, engine cover, tonneau).
+        if (cell && zMid > cell.rear) {
+          const sill = model.halfWidth(zMid) * 0.8 - 0.01 + 0.02;
+          if (Math.max(rings[i].half[j][0], rings[i + 1].half[j][0]) <= sill) return -1;
+        }
+        if (!openCockpit) return M.interior;
+      }
+      return model.slot(zMid, j, detail);
+    },
   });
   parts.addGrouped(
     lower,
@@ -487,17 +587,21 @@ export function buildClosedBody(
       sharedMaterials.plastic(),
       sharedMaterials.carbonSatin(),
       mats.accent,
-      sharedMaterials.interior(),
+      // M.interior: the lid under the glass / an open cockpit's deck.
+      sharedMaterials.cabinLid(),
     ],
     'Body (lofted)',
   );
-  const openCockpit = s.style === 'roadster' || !!s.open;
-  if (!openCockpit)
-    parts.addGrouped(
-      greenhouse(model, detail),
-      [mats.paint, sharedMaterials.glass(), sharedMaterials.trim()],
-      'Greenhouse',
-    );
+  const glassMaterial =
+    cabin && !cabin.layout.race ? sharedMaterials.roadGlass() : sharedMaterials.glass();
+  const gh = openCockpit ? null : new Greenhouse(model);
+  if (gh) {
+    const house = greenhouse(gh, detail),
+      materials = [mats.paint, glassMaterial, sharedMaterials.trim()];
+    parts.addGrouped(house.opaque, materials, 'Greenhouse');
+    parts.addGrouped(house.glass, materials, 'Cabin glass');
+    if (detail === 0 && cabin) parts.add(greenhouseLining(gh), sharedMaterials.interior());
+  }
   const [ws, rf, rr, rw] = s.cabin,
     zWs = f.z(ws),
     zRF = f.z(rf),
@@ -843,8 +947,8 @@ export function buildClosedBody(
         placed(x * hw(zt), yt + 0.02, zt - 0.03),
       );
   }
-  if (s.extras.includes('cage') && detail === 0 && !openCockpit && s.style !== 'truck') {
-    // Roll cage visible through the glass.
+  if (s.extras.includes('cage') && detail === 0 && !openCockpit && s.style !== 'truck' && !cabin) {
+    // Roll cage visible through the glass (a cabin builds the full cage).
     const y0 = model.topY(zRR) - 0.05,
       y1 = f.y(s.roof) - 0.07;
     for (const side of [-1, 1]) {
@@ -874,7 +978,7 @@ export function buildClosedBody(
     const screen = roundedBox(hw(zw) * 1.5, racing ? 0.22 : 0.36, 0.008, 0.004, 1);
     parts.add(
       screen,
-      sharedMaterials.glass(),
+      glassMaterial,
       placed(0, yw + (racing ? 0.1 : 0.16), zw, racing ? -0.45 : -0.62),
     );
     if (!racing)
@@ -902,32 +1006,41 @@ export function buildClosedBody(
       );
   }
   extraFurniture(parts, model, mats, detail, lod);
-  // Interior: dash, seat, driver (visible through glass / open cockpit).
-  if (detail === 0) {
-    const zd = zWs - 0.12,
-      yd = model.topY(zd) - (openCockpit ? 0.02 : 0.06);
-    parts.add(
-      roundedBox(hw(zd) * 1.4, 0.1, 0.3, 0.03, 2),
-      sharedMaterials.interior(),
-      placed(0, yd, zd),
-    );
-    const seatZ = openCockpit ? (zWs + zRW) / 2 - 0.15 : (zRF + zRR) / 2;
-    const seatX = s.style === 'truck' || s.style === 'saloon' || s.style === 'rally' ? 0.36 : 0.3;
-    const seatY = f.y(s.floor) + 0.12;
-    parts.add(
-      roundedBox(0.44, 0.12, 0.48, 0.04, 2),
-      sharedMaterials.interior(),
-      placed(seatX, seatY + 0.06, seatZ),
-    );
-    parts.add(
-      roundedBox(0.44, 0.62, 0.12, 0.05, 2),
-      sharedMaterials.interior(),
-      placed(seatX, seatY + 0.36, seatZ - 0.26, -0.18),
-    );
-    addDriver(parts, mats, seatX, seatY + 0.12, seatZ - 0.05, 0.9, zd - 0.12);
+  // Interior (near LOD): the cabin shell merges into this LOD's draws; its
+  // detail, helmet and turning wheel are groups of their own (interior.ts).
+  if (detail === 0 && cabin && cell) {
+    const opening: CabinOpening = {
+      rear: cell.rear,
+      front: cell.front,
+      floor: cell.floor,
+      edge: (z) => model.cabinEdge(Math.min(z, zWs - 0.005)),
+    };
+    const zm = zWs - 0.14,
+      ym = model.topY(zm) + 0.08;
+    lod.cabin = buildClosedCabin({
+      layout: cabin.layout,
+      def: cabin.def,
+      mats,
+      shell: parts,
+      lod,
+      opening,
+      greenhouse: gh,
+      mirrorAt: s.mirrors
+        ? [-1, 1].map((side) => [side * (hw(zm) * 0.8 + 0.08), ym, zm - 0.049] as const)
+        : [],
+    });
   }
   void rr;
   parts.build(lod.group, detail === 0);
+  if (lod.cabin)
+    lod.group.traverse((o) => {
+      if (!(o instanceof T.Mesh)) return;
+      const m = o.material;
+      if (o.name === 'Cabin glass' || (!Array.isArray(m) && m.userData.vehicleGlass)) {
+        o.castShadow = false;
+        lod.cabin!.glass.push(o);
+      }
+    });
   if (s.wing) {
     const built = wing(parts, model, s.wing, mats, detail);
     if (built) {
