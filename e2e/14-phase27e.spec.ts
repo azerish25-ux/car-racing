@@ -44,7 +44,10 @@ test('actual rear-signal uniforms tint nearby spray and freeze/rewind without mu
   expect(errors).toEqual([]);
   expect(result.glError).toBe(0);
   expect(result.sourceUnchanged).toBe(true);
-  expect(result.on[0]).toBeGreaterThan(result.off[0] * 2);
+  // Bounded rain-light in-scatter (SPRAY_SIGNAL): clearly tinted, never
+  // painted red; an LED's increment is capped at half the puff's ambient.
+  expect(result.on[0]).toBeGreaterThan(result.off[0] * 1.25);
+  expect(result.on[0]).toBeLessThan(result.off[0] * 2);
   expect(result.on[0] - result.off[0]).toBeGreaterThan((result.on[1] - result.off[1]) * 3);
   expect(result.distant).toEqual(result.off);
   expect(result.pauseExact).toBe(true);

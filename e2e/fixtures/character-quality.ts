@@ -123,7 +123,17 @@ export function helmetGPU() {
   const light = new T.DirectionalLight(0xffffff, 4);
   light.position.set(-0.3, 0.25, 0.8);
   scene.add(light);
-  camera.position.set(0.12, 0.015, 0.48);
+  // Crew within 1.2 m of the lens dissolve (CREW_NEAR_FADE), so hold the same
+  // close-up framing (0.49 m at 55 degrees) from 1.3 m with a longer lens.
+  const near = new T.Vector3(0.12, 0.015, 0.48),
+    distance = 1.3;
+  camera.position.copy(near).setLength(distance);
+  camera.fov =
+    (2 *
+      Math.atan((Math.tan(T.MathUtils.degToRad(camera.fov / 2)) * near.length()) / distance) *
+      180) /
+    Math.PI;
+  camera.updateProjectionMatrix();
   camera.lookAt(0, 0, 0);
   const captures = [];
   const setFinish = (enabled: boolean, witness = false) => {
