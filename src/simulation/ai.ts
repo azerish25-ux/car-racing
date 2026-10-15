@@ -7,7 +7,7 @@ import {
   pitPreparationDistance,
   pitApproachTrafficSpeed,
 } from './pit-safety.ts';
-import { peakGrip } from './tire.ts';
+import { peakGrip, slipScale } from './tire.ts';
 import { approach, clamp, G, mod, Vec3 } from '../core/math.ts';
 import { racingSession } from './config.ts';
 import { FORMULA_APX01, type CapabilityEnvelope } from './vehicles.ts';
@@ -34,6 +34,8 @@ export function lateralMarginAt(speed: number, env: CapabilityEnvelope = AI_ENVE
 }
 export const ENVELOPE_STEP = 12;
 export const ENVELOPE_SAMPLES = 21;
+/** Distance (m) over which a start position's offset from the lane fades by 1/e. */
+export const LAUNCH_MERGE_LENGTH = 50;
 /** Backward velocity profile over samples ENVELOPE_STEP apart: returns the
  * highest speed at sample 0 from which every later sample's corner speed can
  * be met, with braking limited to what the friction circle leaves after the
@@ -118,6 +120,13 @@ export class AIDriver {
   private offset = 0;
   /** Lateral distance from the racing line (passing/defending lanes). */
   private tactical = 0;
+  /** Lateral distance of the car's start position (grid slot or rejoin point)
+   * from its lane, fading with distance travelled (see update). */
+  private launch = 0;
+  private placed = false;
+  /** Race time of the last update: a gap means the AI is taking a car back
+   * (a player handing over, a remounted rider). */
+  private lastUpdate = -Infinity;
   private desiredOffset = 0;
   private trafficSpeed = 100;
   private stuckTime = 0;
@@ -211,6 +220,18 @@ export class AIDriver {
     // a fixed place on the track, not a distance from the line).
     const lineHere = lineAt(c.s);
     const corridor = pit || preparingPit;
+    // A car leaves its grid slot, or the point where the AI takes it (back)
+    // over, on its own line: that position's offset from the lane fades over
+    // LAUNCH_MERGE_LENGTH of distance travelled. The lane logic is unchanged,
+    // but there is no lateral demand at standstill, so the car does not
+    // launch at full lock across the track, which spins a car without
+    // traction control and lays a remounting rider over at walking pace.
+    if (!this.placed || race.time - this.lastUpdate > 0.5) {
+      this.placed = true;
+      this.launch = c.lateral - lineHere - this.tactical;
+    }
+    this.lastUpdate = race.time;
+    this.launch *= Math.exp((-Math.max(0, c.speed) * dt) / LAUNCH_MERGE_LENGTH);
     if (pit) {
       this.offset = approach(this.offset, this.pitLine(track, c.s), dt * 6);
       this.tactical = this.offset - lineHere;
@@ -219,7 +240,7 @@ export class AIDriver {
       this.tactical = this.offset - lineHere;
     } else {
       this.tactical = approach(this.tactical, this.desiredOffset - lineHere, dt * 1.6);
-      this.offset = lineHere + this.tactical;
+      this.offset = lineHere + this.tactical + this.launch;
     }
     const preview = c.definition.ai.lookahead;
     let lookahead = clamp((preview?.[0] ?? 6) + c.speed * (preview?.[1] ?? 0.48), 8, 46);
@@ -231,7 +252,7 @@ export class AIDriver {
       ? this.pitLine(track, c.s + lookahead)
       : corridor
         ? this.offset
-        : clamp(lineAt(c.s + lookahead) + this.tactical, -reach, reach);
+        : clamp(lineAt(c.s + lookahead) + this.tactical + this.launch, -reach, reach);
     this.delta.set(
       this.target.x + this.target.nx * pathOffset - c.body.position.x,
       0,
@@ -384,16 +405,42 @@ export class AIDriver {
     );
     // A driver feathers the pedal against wheelspin (rear slip ratio above the
     // traction peak) rather than holding it flat through a slide.
-    const wheelspin = Math.max(c.tires[2].slip, c.tires[3].slip);
-    if (wheelspin > 0.08) command.throttle *= clamp(1 - (wheelspin - 0.08) * 5, 0.05, 1);
+    // Thresholds are relative to the tyre's present force peak (0.08 and 0.12
+    // at the reference slick's 0.25): a wet or loose surface peaks earlier,
+    // and drive slip there costs the rear its lateral grip sooner.
+    const wheelspin = Math.max(c.tires[2].slip, c.tires[3].slip),
+      spinLimit = 0.08 * Math.min(slipScale(c.tires[2]), slipScale(c.tires[3]));
+    if (wheelspin > spinLimit)
+      command.throttle *= clamp(1 - ((wheelspin - spinLimit) * 5) / slipScale(c.tires[2]), 0.05, 1);
+    // The driven axle's combined friction use (tyre-model output): drive slip
+    // costs lateral grip, so power is fed in only while the driven tyres keep
+    // a margin on their friction ellipse (power oversteer / understeer).
+    const driven = c.definition.drivetrain === 'fwd' ? 0 : 2,
+      drivenUse = Math.max(c.tires[driven].usage, c.tires[driven + 1].usage);
+    if (drivenUse > 0.9) command.throttle *= clamp(1 - (drivenUse - 0.9) * 5, 0.25, 1);
     // Braking shares the same friction circle: at the cornering limit the
     // pedal is squeezed, not stamped, and eased off a locking wheel. Losing
     // the rear under braking is worse than missing a traffic target.
     const available = Math.sqrt(Math.max(0, 1 - lateralUsage * lateralUsage));
     command.brake = Math.min(command.brake, 0.3 + 0.7 * available);
-    let lock = 0;
-    for (const tire of c.tires) lock = Math.min(lock, tire.slip);
-    if (lock < -0.12) command.brake *= clamp(1 - (-lock - 0.12) * 4, 0.35, 1);
+    let lock = 0,
+      lockScale = 1.6;
+    for (const tire of c.tires) {
+      lock = Math.min(lock, tire.slip);
+      lockScale = Math.min(lockScale, slipScale(tire));
+    }
+    if (lock < -0.12 * lockScale)
+      command.brake *= clamp(1 - ((-lock - 0.12 * lockScale) * 4) / lockScale, 0.35, 1);
+    // Rear tyres braking at their friction limit would step the car out under
+    // trail braking (combined slip): the pedal comes off before they saturate.
+    const rearUse = Math.max(c.tires[2].usage, c.tires[3].usage);
+    if (command.brake > 0 && rearUse > 0.9) command.brake *= clamp(1 - (rearUse - 0.9) * 5, 0.4, 1);
+    // Steered front tyres at their limit while turning: braking is taking the
+    // grip the corner needs (entry understeer), so the pedal yields to steering.
+    const frontUse = Math.max(c.tires[0].usage, c.tires[1].usage),
+      turning = clamp(Math.abs(command.steer) / 0.25, 0, 1);
+    if (command.brake > 0 && frontUse > 0.92)
+      command.brake *= 1 - turning * (1 - clamp(1 - (frontUse - 0.92) * 6, 0.4, 1));
     if (desired < 0.15) {
       command.throttle = 0;
       command.brake = 1;

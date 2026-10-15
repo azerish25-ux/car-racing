@@ -1,5 +1,5 @@
 import { beforeAll, describe, expect, it } from 'vitest';
-import { canonical } from '../src/core/session-identity.ts';
+import { canonical, SIMULATION_VERSION } from '../src/core/session-identity.ts';
 import { DEFAULT_OPTIONS, validateOptions } from '../src/simulation/config.ts';
 import {
   AuthoritativeWorld,
@@ -44,7 +44,11 @@ describe('verified records (WP52)', () => {
     expect(record.claim.lapTimes[0][0]).toBeGreaterThan(40);
     expect(record.identity.seed).toBe(6060);
     expect(record.identity.circuitHash).toMatch(/^[0-9a-f]{8}$/);
-    expect(record.category).toEqual({ circuit: 'aurel', vehicle: 'apx01', physics: 1 });
+    expect(record.category).toEqual({
+      circuit: 'aurel',
+      vehicle: 'apx01',
+      physics: SIMULATION_VERSION,
+    });
     expect(record.journalEntries).toBeGreaterThan(500);
     expect(decodeJournal(fromBase64(record.journal))).toEqual(live.journal);
     expect(record.claim.checkpoints.length).toBe(Math.floor(record.endTick / 1200));
@@ -96,7 +100,10 @@ describe('verified records (WP52)', () => {
       [(r) => (r.identity.circuitHash = '00000000'), /circuit aurel content 00000000 differs/],
       [(r) => (r.identity.vehicleHashes[0] = 'deadbeef'), /vehicle apx01 content deadbeef differs/],
       [(r) => (r.identity.rulesetHash = 'feedface'), /ruleset time-trial content feedface differs/],
-      [(r) => (r.identity.simulationVersion = 2), /physics v2; this verifier runs v1/],
+      [
+        (r) => (r.identity.simulationVersion = SIMULATION_VERSION + 1),
+        new RegExp(`physics v${SIMULATION_VERSION + 1}; this verifier runs v${SIMULATION_VERSION}`),
+      ],
       [(r) => (r.options.seed = 1), /seed/],
       [(r) => (r.options.setup.frontWing = 7), /canonical/],
       [(r) => (r.category.vehicle = 'tc1'), /category mismatch/],

@@ -1,6 +1,7 @@
 import { racingLineFor } from './racing-line.ts';
 import { TrackContactMesh, kerbHeight } from './contact.ts';
 import { surfaceDrainageRate } from './surface-drainage.ts';
+import { surfaceMaterial } from './surface-material.ts';
 import { clamp, lerp, mod, smooth, Vec3 } from '../core/math.ts';
 import type { WeatherPreset } from './config.ts';
 import {
@@ -393,10 +394,16 @@ export class Track {
     if (pit) surface = SURFACE.PIT;
     else if (a > p.width + 4) {
       surface = this.runoffSurface(p, l);
-      // Asphalt run-off: dusty, unrubbered tarmac.
-      grip = surface === SURFACE.GRAVEL ? 0.4 : surface === SURFACE.GRASS ? 0.53 : 0.9;
-      resistance =
-        surface === SURFACE.GRAVEL ? 0.16 : surface === SURFACE.GRASS ? 0.08 : 0.017;
+      // Grass and gravel friction and rigid rolling resistance come from the
+      // material table; the tyre adds compaction work from its sinkage
+      // (surface-material.ts). Asphalt run-off: dusty, unrubbered tarmac.
+      if (surface === SURFACE.GRAVEL || surface === SURFACE.GRASS) {
+        grip = surfaceMaterial(surface).grip;
+        resistance = surfaceMaterial(surface).rolling;
+      } else {
+        grip = 0.9;
+        resistance = 0.017;
+      }
     } else if (a > p.width + 1.1) {
       surface = SURFACE.PAINT;
       grip = 0.93;

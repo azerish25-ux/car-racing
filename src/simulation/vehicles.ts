@@ -3,6 +3,7 @@ import { BIKE_VEHICLES, type BikeSpec } from './bike-definitions.ts';
 import type { DrivelineSpec } from './differential.ts';
 import type { TireFamilyId } from './tire-families.ts';
 import { CATALOGUE } from './vehicle-catalogue/index.ts';
+import type { VehicleDynamicsOverrides } from './vehicle-dynamics.ts';
 
 /** Per-vehicle content contract (WP08 / F04, masterplan §6.3). Every entrant is
  * built from one of these; nothing in the solver reads a global vehicle. Units
@@ -152,6 +153,10 @@ export interface VehicleDefinition {
   /** Per-car limits for exposed setup keys. */
   setupLimits?: Partial<Record<keyof Setup, readonly [number, number]>>;
   powertrain?: 'combustion' | 'hybrid' | 'electric';
+  /** Optional physical blocks (tyre construction, suspension, engine,
+   * gearbox, differential, aero platform) overriding the class defaults of
+   * vehicle-dynamics.ts (docs/production/PHYSICS_MODEL.md). */
+  dynamics?: VehicleDynamicsOverrides;
 }
 const FORMULA_SPEC: VehicleSpec = Object.freeze<VehicleSpec>({
   dryMass: 770,

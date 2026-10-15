@@ -25,6 +25,7 @@ Last reviewed against source: branch `claude/peaceful-einstein-dedc7t`, commits 
 | Feature | State | Evidence | Next acceptance step | Owner role |
 |---|---|---|---|---|
 | Formula vehicle dynamics (APX-01) | integrated | `src/simulation/vehicle.ts`, `tests/physics.test.ts`, `scripts/vehicle-calibration.ts` | Human full-stint feel review (§7.6) | Physics lead |
+| Physics v2: combined-slip/thermal tyres, hub suspension, powertrain, differentials, aero platform, ground materials | integrated with the vehicle catalogue (AWD/LSD via the catalogue driveline; turbo prototype) | `docs/production/PHYSICS_MODEL.md`, `tests/tyre-model.test.ts`, `tests/integrator-stability.test.ts`, `tests/differential.test.ts`, `scripts/physics-cost.ts` | Tyre/rig data fit, wheel-hop, per-car catalogue geometry, human feel review | Physics lead |
 | Per-entry vehicle definitions | integrated | `src/simulation/vehicles.ts`, `tests/vehicle-definitions.test.ts` | Hardware/AI review of a mixed grid | Technical director |
 | TC-1 touring car (front drive) | integrated (procedural art) | `TOURING_TC1`, `docs/vehicle-calibration.json`, `src/rendering/vehicle-bodies/` | Interior, audio identity, handling sign-off (§10.2) | Vehicle gameplay |
 | Multi-class catalogue (15 machines) | integrated | `src/simulation/vehicle-catalogue/`, `tests/vehicle-catalogue.test.ts`, `docs/vehicle-calibration.json` | Per-class target review, audio, dirt venue, hardware/AI review of mixed grids | Vehicle gameplay |
