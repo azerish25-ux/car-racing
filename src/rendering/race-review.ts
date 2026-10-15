@@ -9,6 +9,7 @@ import {
   CAR_STRIDE,
 } from '../simulation/protocol.ts';
 import { PHASE } from '../simulation/race.ts';
+import type { StartSlot } from '../simulation/config.ts';
 
 /** Additional observations in the existing presentation capture, not a second
  * simulation or a driving controller. Distances are metres and time is seconds.
@@ -274,6 +275,19 @@ export function validRaceReviewFrame(f: RaceReviewFrame, followedCar: number) {
 }
 export const isRacingWorkload = (workload: string) =>
   ['grid-start', 'close-racing', 'wet-following', 'pit-service'].includes(workload);
+/** Paddock START slot (the session menu's START option) a racing workload is
+ * recorded from; absent keeps pole. The event is a property of the
+ * deterministic session that slot produces, so the hosted review
+ * (e2e/29-populated-race-review.spec.ts) and its headless regression
+ * (tests/wet-review-start.test.ts) read the same slot. A wet-following
+ * session must also follow a wet car after the launch: hosted software
+ * rendering has exceeded the one-second continuity gate near the launch
+ * (docs/PHASE_27H6_PUBLICATION.md), so following that exists only there is
+ * not reliably observable. */
+export const REVIEW_START_SLOTS: Readonly<Partial<Record<string, StartSlot>>> = Object.freeze({
+  'close-racing': 'midfield',
+  'wet-following': 'back',
+});
 
 /** Qualifies events from adjacent, advancing simulation observations. Holding a
  * snapshot, changing the label, or waiting thirty wall-clock seconds is not an

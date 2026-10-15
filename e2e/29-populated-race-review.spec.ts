@@ -7,6 +7,7 @@ import { finishRaceEntry } from './race-entry.ts';
 import { test, expect, type Page, type TestInfo } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { H } from '../src/simulation/protocol.ts';
+import { REVIEW_START_SLOTS } from '../src/rendering/race-review.ts';
 import {
   readPresentationReport,
   type ReviewWorkload,
@@ -117,10 +118,14 @@ for (const drive of drives)
     // Following and close racing need a car alongside. With the AI driving to
     // the measured car envelope, a pole-sitter runs away from the field (run
     // 36817461056 never held a rival close for 5 s), so these reviews start
-    // mid-field (the paddock START option). The qualification thresholds are
-    // unchanged.
-    if (drive.workload === 'wet-following' || drive.workload === 'close-racing')
-      await page.selectOption('#startSlot', 'midfield');
+    // further back (the paddock START option). Since physics v2 the mid-field
+    // wet session follows a wet car for longer than 3.4 s only during the
+    // launch (6.9-16.2 s), which run 38685156128 could not record within the
+    // one-second continuity gate; from the back it follows again at 29-37 s
+    // and 46-55 s. tests/wet-review-start.test.ts replays this exact session.
+    // The qualification thresholds are unchanged.
+    const startSlot = REVIEW_START_SLOTS[drive.workload];
+    if (startSlot) await page.selectOption('#startSlot', startSlot);
     // All event reviews begin from the ordinary held grid. A running start lets
     // slow browser setup advance the opponents before the player's AI and camera
     // are ready. No vehicle is repositioned and simulation timing is unchanged.
