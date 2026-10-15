@@ -73,15 +73,17 @@ export const GRADE_PROFILES: Readonly<Record<LightingMode | 'studio', Readonly<G
  * default). The broadcast profiles above were tuned over ACES, which already
  * adds contrast and saturation; on top of a neutral transform they read as a
  * 'game-punchy' second curve that pushes exactly the muted natural materials
- * (grass, sky, asphalt, foliage). Here the S-curve is light, saturation is
- * neutral and vibrance a hint; tints, vignette and the hue-selective LUT stay. */
+ * (grass, sky, asphalt, foliage). Here the S-curve is light, vibrance a
+ * hint and saturation only offsets AgX's own desaturation of mid-chroma
+ * colours (a blue zenith read grey at 1.0); tints, vignette and the
+ * hue-selective LUT stay. */
 export const FILMIC_GRADE_PROFILES: Readonly<
   Record<LightingMode | 'studio', Readonly<GradeProfile>>
 > = Object.freeze({
-  day: { ...GRADE_PROFILES.day, contrast: 0.08, saturation: 1.0, vibrance: 0.04 },
-  sunset: { ...GRADE_PROFILES.sunset, contrast: 0.08, saturation: 1.02, vibrance: 0.04 },
-  night: { ...GRADE_PROFILES.night, contrast: 0.07, saturation: 1.0, vibrance: 0.04 },
-  studio: { ...GRADE_PROFILES.studio, contrast: 0.07, saturation: 1.0, vibrance: 0.04 },
+  day: { ...GRADE_PROFILES.day, contrast: 0.08, saturation: 1.05, vibrance: 0.04 },
+  sunset: { ...GRADE_PROFILES.sunset, contrast: 0.08, saturation: 1.05, vibrance: 0.04 },
+  night: { ...GRADE_PROFILES.night, contrast: 0.07, saturation: 1.03, vibrance: 0.04 },
+  studio: { ...GRADE_PROFILES.studio, contrast: 0.07, saturation: 1.03, vibrance: 0.04 },
 });
 
 /** CPU reference of the shader's tone curve; used by tests and documentation. */

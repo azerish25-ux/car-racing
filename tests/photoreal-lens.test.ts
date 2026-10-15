@@ -130,7 +130,8 @@ describe('photoreal lens: tight glare, little veil', () => {
     for (const mode of ['day', 'sunset', 'night'] as const) {
       const p = FILMIC_GRADE_PROFILES[mode];
       expect(p.contrast).toBeLessThanOrEqual(0.08);
-      expect(p.saturation).toBeLessThanOrEqual(1.02);
+      expect(p.saturation).toBeLessThanOrEqual(1.05);
+      expect(p.saturation).toBeLessThanOrEqual(GRADE_PROFILES[mode].saturation);
       expect(p.vibrance).toBeLessThanOrEqual(0.04);
       expect(p.contrast).toBeLessThan(GRADE_PROFILES[mode].contrast);
     }
