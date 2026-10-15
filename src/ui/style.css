@@ -4421,3 +4421,50 @@ dialog .error-detail {
   margin: 0;
   flex: 1 1 260px;
 }
+/* Two-moto off-road meeting screen (src/ui/offroad-meeting.ts). */
+.meeting-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 14px;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #a3adb0;
+}
+.meeting-steps li[data-done='true'] {
+  color: #d69b69;
+}
+.meeting-steps li[aria-current='step'] {
+  color: #f1efe8;
+  font-weight: 700;
+}
+.meeting-gates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 12px 0;
+  border: 1px solid #ffffff18;
+  padding: 10px;
+}
+.meeting-gates legend {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: #a3adb0;
+}
+.meeting-gates button[aria-pressed='true'] {
+  background: #d69b69;
+  color: #171e22;
+  border-color: #d69b69;
+}
+.meeting-picks {
+  columns: 2 220px;
+  margin: 8px 0 14px;
+  padding-left: 18px;
+}
+.meeting-picks .you,
+.offroad-meeting caption {
+  color: #d69b69;
+}

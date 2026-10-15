@@ -134,6 +134,9 @@ export interface SessionOptions {
   opponents: number;
   /** Starting order as car ids, pole first. Absent: car order (player on pole). */
   grid?: number[];
+  /** Motocross start-gate slot per car id, as a meeting's gate pick chose
+   * them (offroad/meeting.ts). Absent: the session picks in `grid` order. */
+  gates?: number[];
   /** Per-entry vehicle definition ids (index = car id). Absent: every entrant
    * runs the Formula APX-01 (older saves and callers). WP08. */
   vehicles?: string[];
@@ -198,6 +201,16 @@ function validGrid(value: unknown, cars: number): number[] | null {
   }
   return [...value];
 }
+/** One distinct gate slot (0..31) per entrant; anything else is ignored. */
+function validGates(value: unknown, cars: number): number[] | null {
+  if (!Array.isArray(value) || value.length !== cars) return null;
+  const seen = new Set<number>();
+  for (const slot of value) {
+    if (!Number.isInteger(slot) || slot < 0 || slot > 31 || seen.has(slot)) return null;
+    seen.add(slot);
+  }
+  return [...value];
+}
 /** One known vehicle id per entrant; anything else is ignored (all Formula). */
 function validVehicles(value: unknown, cars: number): string[] | null {
   if (!Array.isArray(value) || value.length !== cars) return null;
@@ -210,6 +223,7 @@ export function validateOptions(v: unknown): SessionOptions {
   const opponents =
     o.mode === 'time-trial' ? 0 : clamp(Math.round(Number(o.opponents) || 0), 0, 11);
   const grid = validGrid(o.grid, opponents + 1);
+  const gates = validGates(o.gates, opponents + 1);
   const vehicles = validVehicles(o.vehicles, opponents + 1);
   return {
     circuit: circuitDefinition(o.circuit).id,
@@ -227,6 +241,7 @@ export function validateOptions(v: unknown): SessionOptions {
     ),
     opponents,
     ...(grid ? { grid } : {}),
+    ...(gates ? { gates } : {}),
     ...(vehicles ? { vehicles } : {}),
     ...(typeof o.ruleset === 'string' && Object.hasOwn(RULESETS, o.ruleset)
       ? { ruleset: o.ruleset }

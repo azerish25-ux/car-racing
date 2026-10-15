@@ -81,6 +81,20 @@ export interface CareerSession {
   setup: Setup | null;
   /** Championship round index this session races, or -1. */
   round: number;
+  /** A session of a two-moto meeting (offroad/meeting.ts): the career pays
+   * the meeting once, on its combined classification, after the final moto;
+   * qualifying and the first moto ('part') are not settled on their own. */
+  meeting?: 'part' | 'final';
+}
+/** The meeting's result for the final moto's settlement (finish()). */
+export interface MeetingOutcome {
+  /** Overall meeting position of the player (1-based) and the field size. */
+  position: number;
+  cars: number;
+  /** The player scored in at least one moto. */
+  classified: boolean;
+  /** Qualifying position (0-based), the meeting's grid slot. */
+  gridSlot: number;
 }
 /** What the career needs from the application shell (main.ts). */
 export interface CareerHost {
@@ -96,6 +110,8 @@ export interface CareerHost {
   toast(message: string): void;
   setResultsExtra(html: string): void;
   start(options: SessionOptions, career: CareerSession): void;
+  /** Run a career event as a two-moto meeting (absent: not offered). */
+  meeting?(options: SessionOptions, career: CareerSession, name: string): void;
   pause(): void;
   state(): string;
   track(): Track;
@@ -307,6 +323,7 @@ export class CareerController {
         return void this.startEvent(name.slice('career:start:'.length)).catch((error) =>
           this.fail(error),
         );
+      if (command === 'meeting') return this.startMeeting(name.slice('career:meeting:'.length));
       if (command === 'licence' && LICENCE_IDS.includes(a as LicenceId))
         return this.briefLicence(a as LicenceId);
       if (command === 'licenceGo') return this.startLicence();
@@ -443,6 +460,45 @@ export class CareerController {
       round,
     });
   }
+  /** A career race event with a two-moto format, run as a full meeting: the
+   * same field, venue and stakes; paid once on the combined result. */
+  private startMeeting(key: string) {
+    const event = this.findEvent(key);
+    if (
+      !event ||
+      event.status !== 'open' ||
+      !event.definition ||
+      !event.vehicle ||
+      event.kind === 'championship'
+    )
+      return this.fail(new Error('This event cannot run as a meeting.'));
+    if (!this.host.meeting) return this.fail(new Error('Meetings are not available here.'));
+    if (!this.canStart()) return;
+    const player = this.vehicle(event.vehicle)!,
+      definition = event.definition;
+    const options = eventSession(definition, this.base());
+    this.host.meeting(
+      options,
+      {
+        kind: 'race',
+        event: {
+          key: event.key,
+          kind: event.kind,
+          discipline: event.discipline,
+          tier: event.tier,
+          name: `${definition.name} · MEETING`,
+          stakes: event.stakes,
+          objectives: event.objectives,
+        },
+        licence: null,
+        vehicle: player.id,
+        setup: careerSetup(this.save, player),
+        round: -1,
+        meeting: 'part',
+      },
+      `${definition.name} · TWO-MOTO MEETING`,
+    );
+  }
   private briefLicence(id: LicenceId) {
     const a = licenceAvailability(this.registry, this.save, id);
     if (a.status !== 'open')
@@ -544,9 +600,14 @@ export class CareerController {
   }
   /** main.ts finish(): settle a career race. Returns true for a career
    * session (the team ledger does not also pay it). */
-  finish(frame: Float32Array, grid: readonly number[] | undefined) {
+  finish(frame: Float32Array, grid: readonly number[] | undefined, meeting?: MeetingOutcome) {
     const career = this.active;
     if (!career) return false;
+    // A meeting's qualifying and first moto are settled with the meeting.
+    if (career.meeting === 'part') {
+      this.host.setResultsExtra('');
+      return true;
+    }
     if (career.kind === 'licence') {
       if (!this.attempt?.complete)
         this.host.setResultsExtra(
@@ -570,15 +631,16 @@ export class CareerController {
       startGrid = grid ?? Array.from({ length: cars }, (_, i) => i),
       session = this.sessionId,
       ai = this.aiUsed;
+    const final = career.meeting === 'final' && meeting ? meeting : null;
     const outcome = {
       session,
-      position: Math.round(frame[o + F.RANK]),
-      cars,
-      classified: frame[o + F.FINISH] > 0 && frame[o + F.RETIRED] === 0,
+      position: final ? final.position : Math.round(frame[o + F.RANK]),
+      cars: final ? final.cars : cars,
+      classified: final ? final.classified : frame[o + F.FINISH] > 0 && frame[o + F.RETIRED] === 0,
       demonstration: ai,
       penalties: frame[o + F.PENALTY],
       contactEnergy: this.contact.energy,
-      gridSlot: Math.max(0, startGrid.indexOf(0)),
+      gridSlot: final ? final.gridSlot : Math.max(0, startGrid.indexOf(0)),
       bestLap: frame[o + F.BEST_LAP],
       round:
         event.kind === 'championship' && career.round >= 0
