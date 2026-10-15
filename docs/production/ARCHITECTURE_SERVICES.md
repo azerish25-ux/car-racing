@@ -9,7 +9,7 @@ Masterplan §6. Current owners of each responsibility, and the boundary each mus
 | Vehicle dynamics adapter | class forces, controls, constraints | `Vehicle` + `VehicleDefinition` (four-wheel); `Bike` prototype (separate family) | career money, camera shake |
 | Race rules engine | starts, legal routes, penalties, scoring, classification | `RaceDirector` + `RulesetDefinition`; `RouteProgress`; `stage-rules.ts` | force corrections |
 | Content registry | validated vehicle, circuit/route, ruleset, event definitions | `vehicles.ts`, `circuits.ts`, `route-graph.ts`, `events.ts`; `content-validation.ts` | per-race state |
-| Presentation world | interpolation, meshes, effects, camera, sound cues | `src/rendering`, `src/audio`, `TouringShells` | race results |
+| Presentation world | interpolation, meshes, effects, camera, sound cues | `src/rendering`, `src/audio`, `VehicleBodies` | race results |
 | Replay service | recording spans, versioning, seek, playback clock | `SessionReplay`, `ReplayClock` | waiting on a drawn scene for logical progress |
 | Profile/progression | saves, results, idempotent rewards, migrations | `SaveStore` (+ backup/recovery), `team-career.ts`, `championship.ts`, `TimeTrialRecords` | trusting client results for ranked play |
 | Platform adapter | files, devices, FFB, overlays, cloud | browser APIs (`src/input`) | remote code execution |
