@@ -221,6 +221,10 @@ export class FestivalSession {
       renderer.prestream(x, z);
       await new Promise<void>((resolve) => setTimeout(resolve, 20));
     }
+    if (renderer.photoSky.enabled) {
+      host.loading('Loading the photographed sky…');
+      await renderer.photoSky.ready(frame[H.CLOUD], renderer.lighting);
+    }
     await host.audio?.start().catch(() => undefined);
     host.loaded();
     this.post({ type: 'pause', value: false });

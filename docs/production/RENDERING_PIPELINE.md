@@ -102,7 +102,9 @@ split scheme (`cascadeSplits`, λ = 0.8) is provided for view-fitted cascades an
 splits.
 
 **Image-based lighting.** Retained: the sky PMREM is recaptured on lighting/LIVE-sun changes and
-blended between cloud bins without recapture; local scene probes refresh one face per frame.
+blended between cloud bins without recapture; local scene probes refresh one face per frame. Since
+D14 the dome it captures is a **photographed sky** on HIGH/ULTRA/MEDIUM (§8), so the environment
+light, reflections and the visible background are the same photograph.
 
 **Sun shafts** (`light-shafts.ts`). Screen-space volumetric scattering in linear HDR before bloom:
 a quarter-resolution mask of open sky weighted by a Henyey-Greenstein lobe (g = 0.76), two 24-tap
@@ -194,7 +196,103 @@ Factories return ordinary three.js materials — callers own and dispose them.
 | GPU pass timing | timestamp queries | `gpuMs: null`; frame GPU time only |
 | Material maps | RGBA8 render-target readback | identity (flat) maps |
 
-## 8. Known limits
+## 8. Photographed skies and third-party assets (D14)
+
+The visible sky and its image-based light are photographs (13 CC0 Poly Haven HDRIs, list and
+licences in `docs/ASSET_PROVENANCE.md`), not the procedural dome, on every preset except LOW.
+
+**Files.** Each sky ships as `public/assets/third-party/hdri/<id>/<id>_{4k,2k}.hdr.jpg`: an
+Ultra HDR JPEG whose sRGB base is full size and whose gain map is a half-size scalar
+(log2 over [0, log2 65], gamma 1, zero offsets) — `hdr = base · 2^(gain · gainMax)` exactly, the
+base computed against the gain the decoder reads back (built and verified by
+`scripts/assets/hdri.ts`; reconstruction 0.015–0.045 stops RMS, JPEG noise). Radiance is normalised so
+the cosine-weighted dome mean is 1 and sun cores are clipped at 64×; pixels below the skyline (the
+photographer's ground) are replaced by the blurred sky above it before encoding, since the shader
+never shows them. The build measures, and the
+manifest stores, the brightest region's azimuth/elevation and colour, direct/diffuse ratio, dome
+mean, horizon colours toward/away from the sun, zenith and ground means.
+
+**Selection** (`src/rendering/assets/sky-catalogue.ts`). A venue's landscape picks a palette
+(`THEME_PALETTE` for every catalogue/off-road theme; Aurel green, Vellamar coast, festival coast);
+each lighting has a ramp of skies over simulated cloud cover — day: clear (≤ 0.20) → fair-weather
+cumulus (0.45) → overcast (0.72) → rain cloud and mist (≥ 0.92); golden hour: clear/broken
+evening → overcast → rain; night: moonlit (≤ 0.4) → low cloud lit by distant towns (≥ 0.7; cities
+always, at 4× the physical night dome so a city's sky glow reads above the floodlit-venue black).
+Green, city and flat venues open under broken cumulus with the sun out of shot: no clear-sky photo
+with a high sun and a clean horizon exists in the reachable set for them. The visible dome and every
+PMREM bin crossfade the two neighbouring skies per pixel, so a weather transition is continuous; the
+weather presets land on clear (0.12) and rain (0.95). Skies were chosen for a clean horizon (a photo
+is drawn at infinity: a nearby hill or tree would tower over the circuit); see
+`docs/ASSET_PROVENANCE.md`.
+
+**Alignment and radiometry** (`src/rendering/assets/photo-sky.ts`). Each photo is rotated about +y
+so its measured sun (moon or glow at night) stands under the scene's key light (`skyRotation`);
+skies with a visible sun were chosen within 8° of the key's elevation (52° day, 10° golden hour —
+tested), so shadows, shafts and the photographed sun agree. The photo is scaled to the
+cosine-weighted mean radiance of the physical sky it replaces (`skyCosineRadiance`), which keeps
+the sun, fill, exposure and IBL calibration of §1–§7; only the sky's content and colour change. The
+aerial-perspective haze takes the photo's horizon colours (`fogPalette` → `aerialFogColor` and the
+sun-side glow), so distant terrain dissolves into the photographed horizon. Cube captures (PMREM bins,
+local probes) clip the photo at 16× the dome mean — the directional light carries the sun — and
+replace the lower hemisphere with the calibrated ground (`SKY_GROUND_GLSL`). The visible dome never
+shows the photographer's ground: below the recipe's `skyline` it fades over 1° into the sky just
+above it, blurred across azimuth (a 64-texel-wide mip), so wherever the venue's terrain ends inside the
+haze the horizon continues as haze, as the physical sky does. The skyline is 0° (horizon) for most
+skies; 7.5° for the broken-cumulus sky (it also hides nearby poles, trees and farm buildings) and 5.5°
+for the winter sky (a distant housing estate).
+
+**Shader** (`photo-sky-shader.ts`, in the dome of `daylight.ts`). Two texture pairs (base sRGB
+RGBA8 with mips and 4× anisotropy, gain R8), equirectangular lookup with seam-free `textureGrad`,
+crossfade weight, capture clamp; `photoAmount` 1 skips the procedural sky entirely (no sky-view,
+cloud or star fetches). Cost: 2 (4 while crossfading) texture fetches per sky pixel, 4 (8) below the
+horizon. The diffuse IBL keeps the physical sky's blue/red balance (`irradianceSaturation`: clear
+photographs run B/R 3–4.5 against the model's calibrated 2.4, which tinted sunlit asphalt blue);
+the visible sky keeps the photograph's colour. The festival renderer, whose materials lack that
+patch, gets the same balance in its PMREM captures (`photoCaptureSaturation`).
+
+**Loading and memory.** Files load on demand (`fetch`, split at the manifest's gain-map offset,
+`createImageBitmap` without colour management, off the main thread). Sessions wait for the skies of
+their starting cover behind the loading screen (circuit `prepare`, festival boot; menu: the clear
+sky during renderer creation); a later weather or lighting change loads in the background and the
+dome keeps its loaded neighbour (or the procedural sky) until then, followed by one PMREM recapture.
+At most four decoded skies stay resident. 4k: 0.3–1.4 MB download, ≈45 MB GPU (base 32 MB + mips,
+gain 2 MB); 2k: 0.1–0.4 MB / ≈11 MB. All 13 skies at both sizes are 10.6 MB. LOW, a missing decoder (node tests), or a failed load keep the
+physical sky (`console.warn`, no error dialog). `apexDiagnostics().renderer.photoSky` reports
+palette, variant, shown pair and residents.
+
+| Preset | Sky |
+|---|---|
+| Low | procedural physical sky (unchanged) |
+| Medium | photographed, 2k |
+| High / ULTRA | photographed, 4k |
+
+**Asset APIs for other features** (`src/rendering/assets/`):
+
+```ts
+import { loadPbrSet } from '../rendering/assets/texture-loader.ts';
+const set = await loadPbrSet(renderer.renderer, 'sandy-gravel-01', { repeat: 8, anisotropy: 8 });
+const gravel = new T.MeshStandardMaterial({ ...set.maps });   // map, normalMap, roughnessMap, metalnessMap, aoMap (ORM)
+set.metres;                                                   // physical size of one repeat
+set.dispose();
+
+import { loadEnvironment } from '../rendering/assets/environment-loader.ts';
+const env = await loadEnvironment(renderer, 'quarry-02', { variant: '2k' });   // studio / showroom scenes
+scene.background = env.background; scene.environment = env.environment;
+scene.backgroundRotation.y = scene.environmentRotation.y = env.rotationFor(sunDirection);
+
+import { thirdPartyAsset, creditLines } from '../rendering/assets/third-party.ts';
+```
+
+`loadPbrSet` prefers KTX2 (transcoder at `assets/basis/`, copied from three by the build) and
+falls back to WebP per map; textures are cached per renderer and cloned per call. `loadEnvironment`
+decodes the gain map on the GPU into a half-float equirect + PMREM (three's `UltraHDRLoader` /
+`HDRLoader` for files without a manifest layout) and is reference counted. All loaders reject in
+node, so unit tests and LOW keep the procedural paths. To add an asset: add a register entry
+(pinned URL, SHA-256, size, licence, author, attribution, licence evidence, recipe), run
+`node --experimental-transform-types scripts/assets/build-third-party.ts --tools <node_modules with
+hdrify> [--toktx <path>]`, commit the register, the manifest and `public/assets/third-party/`.
+
+## 9. Known limits
 
 - SSR normals are reconstructed from depth (no MRT G-buffer): tessellated curvature can show as
   faceted reflections on low-polygon bodies; normal-mapped detail is not reflected. Single bounce;
@@ -210,6 +308,13 @@ Factories return ordinary three.js materials — callers own and dispose them.
   shadows); PCSS penumbrae are capped at 6 texels in every map.
 - Sun shafts are screen-space: no shafts once the sun is well outside the frame, and no ray-marched
   in-scattering in shadowed air (the aerial-perspective haze remains the retained model).
+- Photographed skies are static: the sun's azimuth follows the scene key by rotation, but its
+  elevation is the photo's (within 8° for sunlit skies); a LIVE sky keeps the photo of the nearest
+  lighting rather than the real time of day, and night is a fixed moonlit or town-lit sky. Clouds
+  in the photo do not move or cast the (procedural) cloud shadows on the circuit. The photo's
+  ground below the horizon is at infinity — wherever the venue's terrain ends inside the haze the
+  photographed foreground can show through. 4k over 360° is about 11 px per degree, softer than
+  the screen at 50–60° FOV.
 - Software rendering (CI SwiftShader/Mesa) proves function only. ULTRA frame cost, memory headroom
   and image quality need captures on named reference hardware (`HARDWARE_DEVICE_PLAYTEST_PROTOCOLS.md`)
   before any row moves beyond *integrated*.

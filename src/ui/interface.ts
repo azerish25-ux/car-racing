@@ -121,6 +121,7 @@ export function minimapFrame(track: Track) {
 import { type Settings, validateSettings } from '../storage/data.ts';
 import { type RacingRenderer } from '../rendering/renderer.ts';
 import { OffroadHud } from './offroad-hud.ts';
+import { CreditsGamepad, creditsHtml } from './credits.ts';
 export const lapTime = (seconds: number) =>
   seconds > 0
     ? `${Math.floor(seconds / 60)}:${(seconds % 60).toFixed(3).padStart(6, '0')}`
@@ -176,6 +177,7 @@ export class Interface {
   private tick = 0;
   private lastAnnounced = '';
   private deviceCalibration: DeviceCalibrationPanel | null = null;
+  private creditsPad: CreditsGamepad | null = null;
   private bindingCapture: AbortController | null = null;
   private driverName = DRIVERS[0];
   /** The player's driver name (timing tower, results and paddock masthead). */
@@ -227,7 +229,7 @@ export class Interface {
     <p class="session-rules" id="sessionRules" aria-live="polite"></p>
     <button class="primary enter" type="submit">ENTER CIRCUIT <span aria-hidden="true">↗</span></button>
     <button class="enter" type="submit" name="prepareGrid" value="yes">PREPARE GRID <span>START PAUSED</span></button>
-   </form><div class="menu-actions" role="group" aria-label="Paddock"><button data-action="career">CAREER</button><button data-action="settings">GARAGE & SETTINGS</button><button data-action="events">EVENTS</button><button data-action="championship">CHAMPIONSHIP</button><button data-action="team">TEAM HQ</button><button data-action="academy">DRIVING ACADEMY</button><button data-action="photo">PHOTO / LIVERY</button><button data-action="controls">CONTROLS</button></div>${
+   </form><div class="menu-actions" role="group" aria-label="Paddock"><button data-action="career">CAREER</button><button data-action="settings">GARAGE & SETTINGS</button><button data-action="events">EVENTS</button><button data-action="championship">CHAMPIONSHIP</button><button data-action="team">TEAM HQ</button><button data-action="academy">DRIVING ACADEMY</button><button data-action="photo">PHOTO / LIVERY</button><button data-action="controls">CONTROLS</button><button data-action="credits">CREDITS &amp; LICENCES</button></div>${
      DEV
        ? '<div class="dev-tools" role="group" aria-label="Developer tools"><span>DEV</span><button data-action="references">REFERENCE REVIEW</button><button data-action="sessionReview">SESSION 146 EVIDENCE</button></div>'
        : ''
@@ -795,7 +797,18 @@ export class Interface {
         )}<b>ESC</b><span>Pause / release mouse look</span><b>DOUBLE CLICK</b><span>Cockpit mouse look</span></div><p>Gamepad: left stick steers, triggers for throttle and brake, shoulder buttons shift, Y changes camera, X cycles energy mode and Start pauses. Remap any control or set up a wheel in Garage &amp; Settings.</p><button class="primary" data-action="modalClose">UNDERSTOOD</button>`,
     );
   }
+  /** Paddock "Credits & licences": every third-party attribution (manifest). */
+  credits() {
+    this.modalContent(creditsHtml());
+    const list = this.element.querySelector<HTMLElement>('#creditsList');
+    if (list) {
+      list.focus();
+      this.creditsPad = new CreditsGamepad(list, () => this.callbacks.action('modalClose'));
+    }
+  }
   modalContent(html: string) {
+    this.creditsPad?.dispose();
+    this.creditsPad = null;
     this.bindingCapture?.abort();
     this.bindingCapture = null;
     this.deviceCalibration?.dispose();
@@ -804,6 +817,8 @@ export class Interface {
     if (!this.modal.open) this.modal.showModal();
   }
   closeModal() {
+    this.creditsPad?.dispose();
+    this.creditsPad = null;
     this.bindingCapture?.abort();
     this.bindingCapture = null;
     this.deviceCalibration?.dispose();

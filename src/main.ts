@@ -1998,6 +1998,9 @@ export class GameApp {
       case 'controls':
         this.ui.controls(this.settings.bindings);
         break;
+      case 'credits':
+        this.ui.credits();
+        break;
       case 'modalClose':
         this.gridBriefingOpen = false;
         this.ui.closeModal();

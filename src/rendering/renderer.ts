@@ -42,7 +42,7 @@ import { reflectInWetRoad } from './wet-reflection.ts';
 import { ghostPose, type GhostPose } from '../core/ghost-lap.ts';
 import { WeatherPresentation } from './weather-presentation.ts';
 import { applyCircuitLightPalette } from './lighting-coherence.ts';
-import { installSpecularIBL, setIblEnergy } from './studio/ibl-energy.ts';
+import { iblUniforms, installSpecularIBL, setIblEnergy } from './studio/ibl-energy.ts';
 import { PEOPLE_ASSET } from './people-asset.ts';
 import { loadDriverAsset, type DriverAsset } from './driver-asset.ts';
 import { loadHeroShells, type HeroShells } from './hero-shells.ts';
@@ -84,6 +84,9 @@ import {
   type LightingMode,
 } from './daylight.ts';
 import { prewarmSky, skySunKey } from './sky-light.ts';
+import { PhotoSky } from './assets/photo-sky.ts';
+import { skyPaletteFor } from './assets/sky-catalogue.ts';
+import { aerialFogColor } from './studio/aerial-perspective.ts';
 import { SKY_CLOUDS, SkyClouds } from './studio/sky-clouds.ts';
 import { EngineeringView } from './engineering-view.ts';
 import type { EngineeringSample } from '../workers/diagnostics.ts';
@@ -243,6 +246,8 @@ export class RacingRenderer {
   private renderWidth = 1;
   private renderHeight = 1;
   private environment: SkyEnvironment;
+  /** Photographed CC0 sky (HIGH/ULTRA 4k, MEDIUM 2k; LOW keeps the physical sky). */
+  readonly photoSky: PhotoSky;
   private disposed = false;
   private heroShells: HeroShells | null = null;
   private rivalLevels: RivalLevels | null = null;
@@ -382,7 +387,9 @@ export class RacingRenderer {
     this.sky.userData.excludeMotionBlur = true;
     configureSky(this.sky);
     const clouds = SkyClouds.forSky(this.sky.material, lightingDirection);
-    this.environment = new SkyEnvironment(this.sky, clouds);
+    this.photoSky = new PhotoSky(skyPaletteFor(track.circuit));
+    this.photoSky.setQuality(this.preset);
+    this.environment = new SkyEnvironment(this.sky, clouds, this.photoSky);
     this.scene.add(this.sky);
     this.scene.environmentIntensity = 0.7;
     this.scene.fog = new T.FogExp2(0xb9c7c1, 0.00044);
@@ -502,6 +509,9 @@ export class RacingRenderer {
       renderer.setCars(1),
     );
     try {
+      // The showroom and a clear session open under the venue's clear sky.
+      progress({ completed: 0, total: 1, fraction: 0, label: 'Loading photographed sky' });
+      await renderer.photoSky.ready(0, renderer.lighting, 15000);
       progress({ completed: 0, total: 1, fraction: 0, label: 'Loading Blender-authored bodywork' });
       renderer.heroShells = await loadHeroShells(cancelled);
       renderer.rivalLevels = await loadRivalLevels(cancelled);
@@ -753,6 +763,11 @@ export class RacingRenderer {
       this.setCars(total);
       for (let i = 0; i < total; i++)
         this.cars[i].update(frame, frame, carBase(i), 1, 1 / 120, frame[H.TIME], false);
+      if (this.photoSky?.enabled) {
+        progress('Loading the photographed sky…');
+        await this.photoSky.ready(frame[H.CLOUD], this.lighting);
+        if (cancelled()) return false;
+      }
       progress('Compiling circuit and vehicle materials…');
       await yieldFrame();
       if (cancelled()) return false;
@@ -830,6 +845,7 @@ export class RacingRenderer {
     this.reflection.quality(g.mirrorQuality);
     this.circuit.wetReflection.setQuality(g.reflections === 'local' ? q : 'low');
     this.environment.highDetail = g.reflections === 'local';
+    this.photoSky?.setQuality(preset);
     this.renderer.shadowMap.enabled = g.shadowSize > 0;
     this.configureFarShadow();
     if (this.sun.shadow.mapSize.x !== g.shadowSize && g.shadowSize > 0) {
@@ -1039,6 +1055,18 @@ export class RacingRenderer {
     const studio = !!this.photo && this.photo.backdrop !== 'circuit';
     const illumination: LightingMode = studio ? 'day' : this.lighting;
     const daylight = circuitLightState(presented[H.CLOUD], presented[H.RAIN], illumination);
+    // Distant haze takes the horizon colours of the photographed sky.
+    const photoPalette =
+      illumination === 'night' || studio
+        ? null
+        : (this.photoSky?.fogPalette(daylight.cover, illumination) ?? null);
+    if (photoPalette)
+      [daylight.fogRed, daylight.fogGreen, daylight.fogBlue] = aerialFogColor(
+        daylight.cover,
+        presented[H.RAIN],
+        illumination,
+        photoPalette,
+      );
     if (this.night && !studio)
       this.nightFog.setRGB(daylight.fogRed, daylight.fogGreen, daylight.fogBlue);
     if (studio) {
@@ -1058,6 +1086,15 @@ export class RacingRenderer {
     this.scene.environmentIntensity = daylight.environment;
     // Sky fallback and already-lit local radiance have different gains.
     const specularIBL = setIblEnergy(daylight.environment, illumination, undefined, !studio);
+    // A photographed dome keeps the physical sky's diffuse colour balance.
+    const photoSaturation = studio
+      ? null
+      : (this.photoSky?.irradianceSaturation(
+          daylight.cover,
+          illumination,
+          iblUniforms.apexSkyIrradianceSaturation.value,
+        ) ?? null);
+    if (photoSaturation !== null) iblUniforms.apexSkyIrradianceSaturation.value = photoSaturation;
     this.reflection.setSkyIntensity(reflectionMaterials, daylight.environment, specularIBL);
     this.renderer.toneMappingExposure = daylight.exposure * 2 ** (this.photo?.exposure ?? 0);
     const fog = this.scene.fog as T.FogExp2;
@@ -1070,6 +1107,8 @@ export class RacingRenderer {
     this.sky.material.uniforms.sunPosition.value.copy(lightingDirection(illumination));
     // Moon, stars and twilight: the live ephemeris or the preset's fixed sky.
     bindSkyCelestial(this.sky.material, illumination);
+    // The photographed sky over the dome (procedural where none is resident).
+    this.photoSky?.bind(this.sky.material, daylight.cover, illumination, false);
     // Clouds drift with presented simulation time: held by pause and replay.
     this.sky.material.uniforms.cloudDrift.value =
       (presented[H.TIME] * SKY_CLOUDS.driftPerSecond) % 1;
@@ -1957,6 +1996,7 @@ export class RacingRenderer {
       farShadow: this.farShadow.diagnostics(),
       shadowCasterBytes: this.shadowProxies.bytes,
       skyEnvironmentUpdates: this.environment.captures,
+      photoSky: this.photoSky?.diagnostics() ?? null,
       lighting: this.lighting,
       vegetationTrees: this.circuit.vegetationGroup.userData.treeCount,
       infrastructureDetail: this.circuit.infrastructureDiagnostics(),
@@ -2078,6 +2118,7 @@ export class RacingRenderer {
     }
     this.circuit.stateTexture.dispose();
     this.environment.dispose();
+    this.photoSky?.dispose();
     this.composer.dispose();
     this.renderer.dispose();
   }
