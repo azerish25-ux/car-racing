@@ -1,6 +1,7 @@
 import { CIRCUIT_IDS, type CircuitId } from './circuits.ts';
 import type { Assist, Compound, SessionOptions, WeatherPreset } from './config.ts';
 import { VEHICLES, type VehicleClass } from './vehicles.ts';
+import { vehicleFamily } from './bike-definitions.ts';
 
 /** Composable sporting rules (WP09 / F07, masterplan §6.3). A session format
  * (practice, qualifying, race...) is separate from its ruleset (tyre, service,
@@ -31,6 +32,8 @@ export interface RulesetDefinition {
 const DRY: readonly Compound[] = Object.freeze(['soft', 'medium', 'hard']);
 const ALL: readonly Compound[] = Object.freeze([...DRY, 'intermediate', 'wet']);
 const POINTS = Object.freeze([25, 18, 15, 12, 10, 8, 6, 4, 2, 1]);
+/** Motorcycle classes (WP36); cars and bikes never share a grid. */
+const BIKE_CLASSES: readonly VehicleClass[] = Object.freeze(['gp-bike', 'superbike'] as const);
 const base = {
   version: 1,
   tires: Object.freeze({ allowed: ALL, mandatoryCompoundChange: false, penaltySeconds: 0 }),
@@ -88,12 +91,27 @@ export const RULESETS: Readonly<Record<string, RulesetDefinition>> = Object.free
     allowedClasses: Object.freeze(['formula', 'touring'] as const),
     drs: false,
   }),
+  /** Motorcycle sprint (WP36): no mandatory stop, no DRS; GP and superbike classes. */
+  'gp-motorcycle': Object.freeze({
+    ...base,
+    id: 'gp-motorcycle',
+    name: 'GP MOTORCYCLE SPRINT',
+    sessions: Object.freeze(['race'] as const),
+    allowedClasses: BIKE_CLASSES,
+    tires: Object.freeze({
+      allowed: Object.freeze(['soft', 'medium', 'hard', 'wet'] as const),
+      mandatoryCompoundChange: false,
+      penaltySeconds: 0,
+    }),
+    points: Object.freeze([25, 20, 16, 13, 11, 10, 9, 8, 7, 6, 5, 4]),
+    drs: false,
+  }),
   'open-practice': Object.freeze({
     ...base,
     id: 'open-practice',
     name: 'PRACTICE',
     sessions: Object.freeze(['practice'] as const),
-    allowedClasses: Object.freeze(['formula', 'touring'] as const),
+    allowedClasses: Object.freeze(['formula', 'touring', ...BIKE_CLASSES] as const),
     points: Object.freeze([]),
   }),
   qualifying: Object.freeze({
@@ -101,7 +119,7 @@ export const RULESETS: Readonly<Record<string, RulesetDefinition>> = Object.free
     id: 'qualifying',
     name: 'QUALIFYING',
     sessions: Object.freeze(['qualifying'] as const),
-    allowedClasses: Object.freeze(['formula', 'touring'] as const),
+    allowedClasses: Object.freeze(['formula', 'touring', ...BIKE_CLASSES] as const),
     points: Object.freeze([]),
   }),
   'time-trial': Object.freeze({
@@ -109,7 +127,7 @@ export const RULESETS: Readonly<Record<string, RulesetDefinition>> = Object.free
     id: 'time-trial',
     name: 'TIME TRIAL',
     sessions: Object.freeze(['time-trial'] as const),
-    allowedClasses: Object.freeze(['formula', 'touring'] as const),
+    allowedClasses: Object.freeze(['formula', 'touring', ...BIKE_CLASSES] as const),
     points: Object.freeze([]),
     service: Object.freeze({ pitStops: true }),
   }),
@@ -142,6 +160,10 @@ export function sessionIncompatibilities(options: SessionOptions): string[] {
     if (def && !rules.allowedClasses.includes(def.classId))
       errors.push(`Car ${car + 1} (${def.name}) is not eligible for ${rules.name}`);
   });
+  const families = new Set(
+    vehicles.filter((id) => VEHICLES[id]).map((id) => vehicleFamily(VEHICLES[id])),
+  );
+  if (families.size > 1) errors.push('Cars and motorcycles cannot share a grid');
   if (!options.vehicles && !rules.allowedClasses.includes('formula'))
     errors.push(`${rules.name} needs eligible vehicles; the default Formula field is not`);
   if (!rules.tires.allowed.includes(options.compound))
@@ -231,5 +253,19 @@ export const EVENTS: readonly EventDefinition[] = Object.freeze([
     vehicles: 'apx01',
     compound: 'medium' as const,
     seed: 5202,
+  }),
+  Object.freeze({
+    id: 'vellamar-gp-motorcycle-sprint',
+    version: 1,
+    name: 'VELLAMAR GP MOTORCYCLE SPRINT',
+    circuit: 'vellamar' as const,
+    mode: 'race' as const,
+    ruleset: 'gp-motorcycle',
+    laps: 4,
+    opponents: 7,
+    weather: 'clear' as const,
+    vehicles: 'gpr1',
+    compound: 'medium' as const,
+    seed: 3303,
   }),
 ]);

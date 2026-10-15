@@ -1,4 +1,5 @@
 import type { Setup } from './config.ts';
+import { BIKE_VEHICLES, type BikeSpec } from './bike-definitions.ts';
 
 /** Per-vehicle content contract (WP08 / F04, masterplan §6.3). Every entrant is
  * built from one of these; nothing in the solver reads a global vehicle. Units
@@ -47,7 +48,7 @@ export interface CapabilityEnvelope {
   /** Downforce reference (N at unit normalization) divided by mass at runtime. */
   downforceReference: number;
 }
-export type VehicleClass = 'formula' | 'touring' | 'gt' | 'club';
+export type VehicleClass = 'formula' | 'touring' | 'gt' | 'club' | 'gp-bike' | 'superbike';
 /** Driven axle. All-wheel drive needs a centre differential model first. */
 export type Drivetrain = 'rwd' | 'fwd';
 export interface VehicleDefinition {
@@ -55,9 +56,11 @@ export interface VehicleDefinition {
   version: number;
   name: string;
   classId: VehicleClass;
-  /** Dynamics adapter family. Only the four-wheel solver exists today; bikes
-   * and deformable-terrain vehicles need their own (masterplan §8, §9). */
-  dynamicsKind: 'four-wheel';
+  /** Dynamics adapter family (masterplan §8, §9, D13): 'four-wheel' runs
+   * Vehicle; 'bike' runs BikeVehicle (bike-vehicle.ts) and carries `bike`. */
+  dynamicsKind: 'four-wheel' | 'bike';
+  /** Two-wheel family block (bike-definitions.ts); present iff a 'bike'. */
+  bike?: BikeSpec;
   spec: VehicleSpec;
   /** Car-local wheel centres: FR, FL, RR, RL (+Z nose, +X driver's left). */
   wheelPositions: readonly (readonly [number, number, number])[];
@@ -273,6 +276,7 @@ export const TOURING_TC1: VehicleDefinition = Object.freeze({
 export const VEHICLES: Readonly<Record<string, VehicleDefinition>> = Object.freeze({
   apx01: FORMULA_APX01,
   tc1: TOURING_TC1,
+  ...BIKE_VEHICLES,
 });
 export const VEHICLE_IDS = Object.freeze(Object.keys(VEHICLES));
 export const DEFAULT_VEHICLE_ID = 'apx01';
