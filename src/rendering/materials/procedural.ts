@@ -259,6 +259,7 @@ interface Master {
 export class ProceduralTextures {
   private readonly masters = new Map<string, Master>();
   private readonly handed = new Set<T.DataTexture>();
+  private unbaked = 0;
   bakes = 0;
   lastBakeMs = 0;
   failures = 0;
@@ -287,6 +288,7 @@ export class ProceduralTextures {
       texture.needsUpdate = true;
       entry = { recipe, output, texture, baked: false };
       this.masters.set(key, entry);
+      this.unbaked++;
     }
     return entry;
   }
@@ -309,7 +311,10 @@ export class ProceduralTextures {
   /** Draw every pending recipe on the GPU and publish it to all clones. Returns
    * the number baked. Restores the renderer's target and clear state. */
   bake(renderer: T.WebGLRenderer) {
+    // Called every frame by the renderer: nothing to do allocates nothing.
+    if (!this.unbaked) return 0;
     const pending = [...this.masters.values()].filter((m) => !m.baked);
+    this.unbaked = 0;
     if (!pending.length) return 0;
     const start = performance.now();
     const target = new T.WebGLRenderTarget(this.size, this.size, {
