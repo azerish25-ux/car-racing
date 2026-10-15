@@ -63,7 +63,7 @@ export const LED = Object.freeze({
   gain: Object.freeze({ day: 0.8, sunset: 1.2, night: 2.0 }),
 });
 /** Shared by every branding material; the renderer sets it per lighting. */
-export const brandLedUniforms = Object.freeze({ brandLedGain: { value: LED.gain.day } });
+export const brandLedUniforms = Object.freeze({ brandLedGain: { value: LED.gain.day as number } });
 export function setBrandLedLighting(mode: keyof typeof LED.gain) {
   brandLedUniforms.brandLedGain.value = LED.gain[mode];
 }
