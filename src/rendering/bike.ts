@@ -1051,9 +1051,7 @@ export class BikeModel {
       dz = this.rearAxle.z - p.z;
     this.swingarm.rotation.x = Math.atan2(dy, -dz);
     this.swingarm.scale.z = Math.hypot(dy, dz) / this.armLength;
-    for (const material of [this.m.disc]) {
-      material.emissiveIntensity = T.MathUtils.clamp((v.discTemp - 450) / 350, 0, 1) * 1.6;
-    }
+    this.m.disc.emissiveIntensity = T.MathUtils.clamp((v.discTemp - 450) / 350, 0, 1) * 1.6;
     this.m.lamp.emissiveIntensity = v.brake > 0.05 || v.rearBrake > 0.05 ? 3 : 0.2;
     for (const ring of this.rings)
       (ring.material as T.MeshStandardMaterial).color.setHex(v.compoundColour);

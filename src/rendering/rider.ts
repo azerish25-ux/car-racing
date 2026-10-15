@@ -248,8 +248,8 @@ export class Rider {
         bodyLoft(
           [
             [0.16, -0.08, 0.04, 0.02, 0.03],
-            [0.3, -0.1, 0.1, 0.03, 0.08],
-            [0.46, -0.08, 0.11, 0.03, 0.09],
+            [0.3, -0.1, 0.085, 0.03, 0.06],
+            [0.46, -0.08, 0.095, 0.03, 0.07],
             [0.58, -0.05, 0.06, 0.02, 0.05],
           ],
           sides,
@@ -261,9 +261,10 @@ export class Rider {
       if (detail === 'far') break;
       const flank = part(this.torso, limbGeometry(0.035, 0.03, 0.3, sides), panel);
       flank.position.set(side * 0.15, 0.08, 0);
-      const cap = part(this.torso, new T.SphereGeometry(0.06, sides, sides / 2), armour);
-      cap.position.set(side * 0.19, 0.46, 0.0);
-      cap.scale.set(1, 0.8, 1.1);
+      // Low-profile shoulder armour moulded into the leathers.
+      const cap = part(this.torso, new T.SphereGeometry(0.055, sides, sides / 2), armour);
+      cap.position.set(side * 0.175, 0.46, 0.0);
+      cap.scale.set(0.75, 0.55, 1.0);
     }
     // Head and helmet: neck pivot at the top of the spine.
     this.head.position.set(0, RIDER.spine + 0.04, 0.03);
