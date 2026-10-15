@@ -1,0 +1,138 @@
+
+> apex-formula-laboratory@0.1.0 test:vehicles
+> node --experimental-transform-types scripts/vehicle-calibration.ts
+
+APX-01 FORMULA (apx01 v1)
+  OK  accel0to100          2.60 / 2.59 [2.3, 3.2] dt-drift 0.2%
+  OK  topSpeed             320.55 / 320.54 [320, 360] dt-drift 0.0%
+  OK  braking100Distance   19.24 / 19.24 [15, 32] dt-drift 0.0%
+  OK  lateral80G           1.95 / 1.95 [1.8, 3.2] dt-drift 0.0%
+  lateral fit: base 15.58 m/s², aero 6.38e-3 · braking fit: base 16.78, aero 8.91e-3
+  aero @199 km/h: ClA 6.63 m², CdA 1.26 m², front 45.3%
+TC-1 TOURING (tc1 v1)
+  OK  accel0to100          4.93 / 4.93 [4.8, 7.5] dt-drift 0.0%
+  OK  topSpeed             232.25 / 232.24 [205, 255] dt-drift 0.0%
+  OK  braking100Distance   28.09 / 28.09 [26, 42] dt-drift 0.0%
+  OK  lateral80G           1.33 / 1.33 [1, 1.45] dt-drift 0.0%
+  lateral fit: base 13.04 m/s², aero 1.16e-4 · braking fit: base 13.34, aero 7.33e-4
+  aero @199 km/h: ClA 0.51 m², CdA 0.79 m², front 51.0%
+GP-R1 PROTOTYPE (gpr1 v1)
+  OK  accel0to100          3.03 / 3.02 [2.4, 3.4] dt-drift 0.1%
+  OK  topSpeed             353.68 / 353.67 [335, 365] dt-drift 0.0%
+  OK  braking100Distance   36.00 / 35.94 [30, 42] dt-drift 0.2%
+  OK  lateral80G           1.37 / 1.37 [1.15, 1.5] dt-drift 0.0%
+  lateral fit: base 13.43 m/s², aero 0.00e+0
+SBK-1000 SUPERBIKE (sbk1000 v1)
+  OK  accel0to100          3.16 / 3.16 [2.7, 3.8] dt-drift 0.1%
+  OK  topSpeed             307.63 / 307.64 [285, 320] dt-drift 0.0%
+  OK  braking100Distance   38.64 / 38.62 [32, 45] dt-drift 0.0%
+  OK  lateral80G           1.26 / 1.26 [1.1, 1.45] dt-drift 0.0%
+  lateral fit: base 12.35 m/s², aero 0.00e+0
+JF-2 JUNIOR FORMULA (jf2 v1)
+  OK  accel0to100          2.68 / 2.68 [2.6, 3.5] dt-drift 0.0%
+  OK  topSpeed             308.47 / 308.50 [295, 340] dt-drift 0.0%
+  OK  braking100Distance   20.76 / 20.76 [18, 34] dt-drift 0.0%
+  OK  lateral80G           1.72 / 1.72 [1.6, 2.4] dt-drift 0.0%
+  lateral fit: base 14.50 m/s², aero 4.10e-3 · braking fit: base 16.66, aero 5.14e-3
+  aero @199 km/h: ClA 3.76 m², CdA 1.05 m², front 41.6%
+HF-67 HISTORIC FORMULA (hf67 v1)
+  OK  accel0to100          3.81 / 3.81 [3.4, 5.2] dt-drift 0.1%
+  OK  topSpeed             276.35 / 276.33 [265, 315] dt-drift 0.0%
+  OK  braking100Distance   32.44 / 32.44 [32, 52] dt-drift 0.0%
+  OK  lateral80G           1.06 / 1.06 [0.95, 1.35] dt-drift 0.0%
+  lateral fit: base 9.84 m/s², aero 7.91e-4 · braking fit: base 11.47, aero 7.67e-4
+  aero @200 km/h: ClA 0.00 m², CdA 0.70 m², front —
+HY-9 HYPERCAR (hy9 v1)
+  OK  accel0to100          2.88 / 2.87 [2.6, 3.8] dt-drift 0.0%
+  OK  topSpeed             334.45 / 334.44 [315, 355] dt-drift 0.0%
+  OK  braking100Distance   21.74 / 21.74 [20, 36] dt-drift 0.0%
+  OK  lateral80G           1.61 / 1.61 [1.45, 2.2] dt-drift 0.0%
+  lateral fit: base 13.84 m/s², aero 3.17e-3 · braking fit: base 16.39, aero 3.52e-3
+  aero @200 km/h: ClA 3.49 m², CdA 0.92 m², front 44.0%
+PR-2 PROTOTYPE (pr2 v1)
+  OK  accel0to100          2.89 / 2.89 [2.7, 3.9] dt-drift 0.0%
+  OK  topSpeed             311.70 / 311.69 [300, 345] dt-drift 0.0%
+  OK  braking100Distance   21.67 / 21.67 [20, 36] dt-drift 0.0%
+  OK  lateral80G           1.61 / 1.61 [1.45, 2.2] dt-drift 0.0%
+  lateral fit: base 13.72 m/s², aero 3.62e-3 · braking fit: base 16.19, aero 4.10e-3
+  aero @199 km/h: ClA 3.75 m², CdA 0.98 m², front 43.0%
+GT-8F FRONT-ENGINE GT (gt8f v1)
+  OK  accel0to100          3.37 / 3.37 [3, 4.2] dt-drift 0.1%
+  OK  topSpeed             278.95 / 278.95 [265, 300] dt-drift 0.0%
+  OK  braking100Distance   24.28 / 24.28 [24, 36] dt-drift 0.0%
+  OK  lateral80G           1.40 / 1.40 [1.3, 1.75] dt-drift 0.0%
+  lateral fit: base 12.83 m/s², aero 1.58e-3 · braking fit: base 15.11, aero 1.90e-3
+  aero @200 km/h: ClA 2.30 m², CdA 0.88 m², front 42.0%
+GT-10M MID-ENGINE GT (gt10m v1)
+  OK  accel0to100          3.29 / 3.28 [3, 4.2] dt-drift 0.1%
+  OK  topSpeed             279.55 / 279.54 [265, 300] dt-drift 0.0%
+  OUT braking100Distance   23.67 / 23.67 [24, 36] dt-drift 0.0%
+  OK  lateral80G           1.39 / 1.39 [1.3, 1.75] dt-drift 0.0%
+  lateral fit: base 12.50 m/s², aero 1.99e-3 · braking fit: base 15.70, aero 1.63e-3
+  aero @200 km/h: ClA 2.40 m², CdA 0.90 m², front 40.0%
+GS-4 GT SPORT (gs4 v1)
+  OK  accel0to100          3.78 / 3.78 [3.6, 5] dt-drift 0.0%
+  OK  topSpeed             259.06 / 259.06 [245, 280] dt-drift 0.0%
+  OUT braking100Distance   27.49 / 27.49 [28, 40] dt-drift 0.0%
+  OK  lateral80G           1.26 / 1.26 [1.15, 1.5] dt-drift 0.0%
+  lateral fit: base 11.84 m/s², aero 9.17e-4 · braking fit: base 13.47, aero 1.07e-3
+  aero @200 km/h: ClA 0.91 m², CdA 0.82 m², front 45.0%
+TC-2 TOURING (tc2 v1)
+  OK  accel0to100          4.01 / 4.01 [4, 5.6] dt-drift 0.1%
+  OK  topSpeed             239.99 / 239.97 [225, 265] dt-drift 0.0%
+  OK  braking100Distance   26.76 / 26.76 [26, 40] dt-drift 0.0%
+  OK  lateral80G           1.38 / 1.38 [1.15, 1.5] dt-drift 0.0%
+  lateral fit: base 13.13 m/s², aero 6.71e-4 · braking fit: base 14.01, aero 7.73e-4
+  aero @200 km/h: ClA 0.55 m², CdA 0.78 m², front 42.1%
+CR-1 CLUB ROADSTER (cr1 v1)
+  OK  accel0to100          4.32 / 4.32 [3.5, 5] dt-drift 0.1%
+  OK  topSpeed             199.54 / 199.55 [190, 220] dt-drift 0.0%
+  OK  braking100Distance   28.06 / 28.06 [28, 42] dt-drift 0.0%
+  OK  lateral80G           1.32 / 1.32 [1.1, 1.45] dt-drift 0.0%
+  lateral fit: base 12.88 m/s², aero 1.68e-4 · braking fit: base 13.40, aero 8.41e-4
+  aero @179 km/h: ClA 0.00 m², CdA 0.75 m², front —
+RL-2 RALLY (rl2 v1)
+  OK  accel0to100          4.23 / 4.23 [3.5, 5] dt-drift 0.0%
+  OK  topSpeed             192.30 / 192.28 [180, 210] dt-drift 0.0%
+  OK  braking100Distance   32.14 / 32.14 [30, 46] dt-drift 0.0%
+  OK  lateral80G           1.11 / 1.11 [0.95, 1.35] dt-drift 0.0%
+  lateral fit: base 10.51 m/s², aero 6.62e-4 · braking fit: base 11.70, aero 6.48e-4
+  aero @173 km/h: ClA 0.45 m², CdA 0.88 m², front 45.1%
+RCX-6 RALLYCROSS (rcx6 v1)
+  OK  accel0to100          2.50 / 2.49 [2, 3] dt-drift 0.2%
+  OK  topSpeed             237.04 / 237.04 [220, 255] dt-drift 0.0%
+  OK  braking100Distance   30.96 / 30.96 [28, 44] dt-drift 0.0%
+  OK  lateral80G           1.15 / 1.15 [1, 1.4] dt-drift 0.0%
+  lateral fit: base 10.75 m/s², aero 8.72e-4 · braking fit: base 12.01, aero 9.03e-4
+  aero @200 km/h: ClA 0.81 m², CdA 0.95 m², front 42.1%
+DX-8 TROPHY TRUCK (dx8 v1)
+  OK  accel0to100          5.18 / 5.18 [4.2, 6.5] dt-drift 0.1%
+  OK  topSpeed             210.69 / 210.68 [195, 230] dt-drift 0.0%
+  OUT braking100Distance   37.51 / 37.51 [38, 62] dt-drift 0.0%
+  OK  lateral80G           0.97 / 0.97 [0.7, 1.05] dt-drift 0.0%
+  lateral fit: base 9.44 m/s², aero 1.03e-4 · braking fit: base 9.75, aero 6.89e-4
+  aero @189 km/h: ClA 0.00 m², CdA 1.80 m², front —
+SK-125 SHIFTER KART (sk125 v1)
+  OK  accel0to100          4.05 / 4.04 [2.6, 4.2] dt-drift 0.1%
+  OK  topSpeed             136.81 / 136.83 [125, 150] dt-drift 0.0%
+  OUT braking100Distance   17.90 / 17.90 [18, 34] dt-drift 0.0%
+  OK  lateral80G           2.03 / 2.03 [1.8, 2.8] dt-drift 0.0%
+  lateral fit: base 18.52 m/s², aero 1.32e-3 · braking fit: base 20.68, aero 1.98e-3
+  aero @122 km/h: ClA 0.00 m², CdA 0.60 m², front —
+EH-3 ELECTRIC HYPERCAR (eh3 v1)
+  OK  accel0to100          2.38 / 2.37 [1.9, 2.8] dt-drift 0.2%
+  OK  topSpeed             348.81 / 348.79 [320, 365] dt-drift 0.0%
+  OUT braking100Distance   27.64 / 27.64 [28, 40] dt-drift 0.0%
+  OK  lateral80G           1.21 / 1.21 [1.1, 1.45] dt-drift 0.0%
+  lateral fit: base 11.36 m/s², aero 9.48e-4 · braking fit: base 13.24, aero 7.51e-4
+  aero @201 km/h: ClA 0.81 m², CdA 0.68 m², front 45.0%
+SC-7 SUPERCAR (sc7 v1)
+  OK  accel0to100          3.16 / 3.16 [2.6, 3.8] dt-drift 0.0%
+  OK  topSpeed             331.56 / 331.54 [315, 350] dt-drift 0.0%
+  OUT braking100Distance   27.73 / 27.73 [28, 40] dt-drift 0.0%
+  OK  lateral80G           1.20 / 1.20 [1.05, 1.4] dt-drift 0.0%
+  lateral fit: base 11.23 m/s², aero 8.79e-4 · braking fit: base 13.46, aero 6.96e-4
+  aero @200 km/h: ClA 0.56 m², CdA 0.72 m², front 42.0%
+(node:13183) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+EXIT 0

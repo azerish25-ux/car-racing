@@ -1,0 +1,107 @@
+
+> apex-formula-laboratory@0.1.0 prebuild
+> npm run generate:player-lods
+
+
+> apex-formula-laboratory@0.1.0 generate:player-lods
+> node --experimental-strip-types scripts/build-player-lods.mjs
+
+mesh 0: 32262 -> 8860 near triangles
+mesh 1: 50456 -> 29174 near triangles
+mesh 2: 241852 -> 131054 near triangles
+mesh 3: 44752 -> 10318 near triangles
+mesh 4: 2 -> 2 near triangles
+mesh 5: 7108 -> 2946 near triangles
+mesh 6: 504 -> 416 near triangles
+mesh 7: 752047 -> 406205 near triangles
+mesh 8: 51920 -> 47482 near triangles
+mesh 9: 21133 -> 21025 near triangles
+mesh 10: 38706 -> 37002 near triangles
+mesh 11: 51680 -> 39384 near triangles
+mesh 12: 51680 -> 39342 near triangles
+mesh 13: 51680 -> 39360 near triangles
+mesh 14: 51680 -> 39396 near triangles
+mesh 15: 108 -> 108 near triangles
+mesh 16: 108 -> 108 near triangles
+mesh 17: 7440 -> 3472 near triangles
+{
+  "version": 2,
+  "generator": "meshoptimizer@0.25.0 / exact livery surfaces, locked seams, opaque triangle cache order",
+  "sourceSHA256": "013a47f059bf34a0a28bd31ae8f407f07ed6e2b55755753aed9a942c895e132b",
+  "sha256": "2bcd661c78be3df21090c042c43ffd2fb828b9db42465d1fd4111fac8d48437d",
+  "compressedSHA256": "1553e32eef4a6f89d02fb8f44a45f000620ee8539466d41704654e5f5dd09b58",
+  "bytes": 13037000,
+  "compressedBytes": 4213368,
+  "primitives": 172,
+  "triangles": [
+    1455118,
+    855654,
+    814806,
+    797386
+  ],
+  "cacheModel": {
+    "name": "FIFO-16 vertex misses, not hardware timings",
+    "levels": [
+      {
+        "before": 992010,
+        "after": 622914
+      },
+      {
+        "before": 952099,
+        "after": 595999
+      },
+      {
+        "before": 933925,
+        "after": 583328
+      }
+    ]
+  },
+  "levels": [
+    {
+      "name": "efficient-close",
+      "ratio": 0.15,
+      "error": 0.002
+    },
+    {
+      "name": "medium",
+      "ratio": 0.075,
+      "error": 0.006
+    },
+    {
+      "name": "distant",
+      "ratio": 0.025,
+      "error": 0.012
+    }
+  ]
+}
+
+> apex-formula-laboratory@0.1.0 build
+> tsc --noEmit && vite build
+
+vite v7.1.7 building for production...
+transforming...
+✓ 446 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/BUILD_IDENTITY.json                                      0.16 kB │ gzip:     0.14 kB
+dist/index.html                                               0.96 kB │ gzip:     0.53 kB
+dist/assets/saira-vietnamese-wdth-normal-Dabr_kLY.woff2      26.80 kB
+dist/assets/saira-vietnamese-wdth-italic-52KPIsOu.woff2      29.93 kB
+dist/assets/saira-latin-ext-wdth-normal-3Ba4ICIc.woff2       67.19 kB
+dist/assets/saira-latin-ext-wdth-italic-CqU2kHDy.woff2       77.37 kB
+dist/assets/saira-latin-wdth-normal-X2eA-qfZ.woff2           98.91 kB
+dist/assets/saira-latin-wdth-italic-wJlFlYW8.woff2          116.24 kB
+dist/assets/a61-rival-far.glb-ClvD6mFa.gz                   161.38 kB
+dist/assets/apx01-driver.glb-CNKxI3ag.gz                    209.40 kB
+dist/assets/a61-rival-mid.glb-CAutdD2Z.gz                   397.76 kB
+dist/assets/apx01-shell.glb-B2AhAkfx.gz                   1,142.77 kB
+dist/assets/a61-rival-near.glb-DNe8_BZp.gz                1,219.90 kB
+dist/assets/index-DAhP22PU.css                               69.33 kB │ gzip:    16.00 kB
+dist/assets/three-T_rtu10y.js                               612.16 kB │ gzip:   156.52 kB │ map: 2,874.35 kB
+dist/assets/index-CCOxU36X.js                            11,989.30 kB │ gzip: 3,610.77 kB │ map: 5,657.18 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 41.99s

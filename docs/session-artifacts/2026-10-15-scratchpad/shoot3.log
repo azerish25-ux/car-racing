@@ -1,0 +1,8 @@
+console [vite] connecting...
+console [vite] connected.
+console Failed to load resource: the server responded with a status of 404 (Not Found)
+crash {"lean":-1.45,"speed":18.719963365099133,"state":"separated","tuck":0,"fork":0.020000000002150086,"calls":257,"triangles":77172}
+console [vite] connecting...
+console [vite] connected.
+brake {"lean":0.514293755002356,"speed":51.55851164118786,"state":"riding","tuck":0,"fork":0.020080098614826767,"calls":257,"triangles":77172}
+EXIT 0

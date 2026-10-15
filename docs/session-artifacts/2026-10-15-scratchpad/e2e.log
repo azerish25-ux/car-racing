@@ -1,0 +1,71 @@
+Observed swiftshader test backend: ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)
+
+Running 3 tests using 1 worker
+
+  ✓  1 e2e/30-menu-access.spec.ts:9:1 › 27H.6 menu access: real interface keeps all actions reachable with mouse and keyboard (31.3s)
+  ✘  2 e2e/30-menu-access.spec.ts:101:1 › 27H.6 menu access: 640x400 settings persist and the normal paused grid starts (2.8m)
+  ✘  3 e2e/59-career-hub.spec.ts:10:1 › career hub: CAREER entry, keyboard reach, licences, dealership, garage and recovery (7.8s)
+
+
+  1) e2e/30-menu-access.spec.ts:101:1 › 27H.6 menu access: 640x400 settings persist and the normal paused grid starts 
+
+    TimeoutError: locator.click: Timeout 15000ms exceeded.
+    Call log:
+    [2m  - waiting for getByRole('button', { name: 'GARAGE & SETTINGS', exact: true })[22m
+    [2m    - locator resolved to <button data-action="settings">GARAGE & SETTINGS</button>[22m
+    [2m  - attempting click action[22m
+    [2m    - waiting for element to be visible, enabled and stable[22m
+
+
+      109 |   await expect(page.locator('#menu')).toBeVisible({ timeout: 90000 });
+      110 |   const settings = page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true });
+    > 111 |   await settings.click();
+          |                  ^
+      112 |   await page.locator('[name=quality]').selectOption('low');
+      113 |   await page.getByRole('button', { name: 'APPLY & SAVE', exact: true }).click();
+      114 |   await expect(page.locator('#modal')).toBeHidden();
+        at /home/user/Experiment-3/.claude/worktrees/wf_79603d95-dab-1/e2e/30-menu-access.spec.ts:111:18
+
+    Error Context: test-results/30-menu-access-27H-6-menu--d5087-e-normal-paused-grid-starts/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/30-menu-access-27H-6-menu--d5087-e-normal-paused-grid-starts/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/30-menu-access-27H-6-menu--d5087-e-normal-paused-grid-starts/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) e2e/59-career-hub.spec.ts:10:1 › career hub: CAREER entry, keyboard reach, licences, dealership, garage and recovery 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mnot[2m.[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: not [32m"outside"[39m
+
+      61 |       return active?.closest('#modal') ? (active.dataset.action ?? '') : 'outside';
+      62 |     });
+    > 63 |     expect(action).not.toBe('outside');
+         |                        ^
+      64 |     reached.add(action);
+      65 |   }
+      66 |   for (const page_ of ['hub', 'events', 'licences', 'garage', 'dealership'])
+        at /home/user/Experiment-3/.claude/worktrees/wf_79603d95-dab-1/e2e/59-career-hub.spec.ts:63:24
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/59-career-hub-career-hub-C-1d84b-lership-garage-and-recovery/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/59-career-hub-career-hub-C-1d84b-lership-garage-and-recovery/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/59-career-hub-career-hub-C-1d84b-lership-garage-and-recovery/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/59-career-hub-career-hub-C-1d84b-lership-garage-and-recovery/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2 failed
+    e2e/30-menu-access.spec.ts:101:1 › 27H.6 menu access: 640x400 settings persist and the normal paused grid starts 
+    e2e/59-career-hub.spec.ts:10:1 › career hub: CAREER entry, keyboard reach, licences, dealership, garage and recovery 
+  1 passed (3.5m)

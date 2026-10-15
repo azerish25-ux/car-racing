@@ -1,0 +1,36 @@
+
+ RUN  v3.2.4 /home/user/Experiment-3/.claude/worktrees/wf_f5fa9a5f-78d-1
+
+ ✓ tests/net-authority.test.ts (4 tests) 19640ms
+   ✓ authoritative world (WP50 server simulation) > an all-AI NetDriver field is bit-identical to the plain Simulation  7000ms
+   ✓ authoritative world (WP50 server simulation) > the shadow pilot leaves no trace in the world it reads  5710ms
+   ✓ authoritative world (WP50 server simulation) > replays its journal to the identical state, and restores a crashed world  6810ms
+ ✓ tests/net-records.test.ts (4 tests) 11657ms
+   ✓ verified records (WP52) > a record is seed + options + input journal + content hashes, and verifies  3066ms
+   ✓ verified records (WP52) > rejects a forged lap time, even with a recomputed digest  2544ms
+   ✓ verified records (WP52) > rejects a tampered input log at the first divergent checkpoint  1561ms
+stdout | tests/net-prediction.test.ts > online race under 100 ms RTT and 2% loss (WP50 measurement) > measures prediction corrections, interpolation error and input delivery
+online slice (4 clients, 10 s racing, 100 ms RTT, 2% loss): {"rttMs":100.3,"clean":{"samples":1215,"mean":0.0253,"p50":0.0069,"p95":0.1072,"p99":0.2668,"max":0.5091},"correction":{"samples":1215,"mean":0.0221,"p50":0.0048,"p95":0.1121,"p99":0.2967,"max":0.6381},"headingDeg":0.9255,"remote":{"samples":11130,"mean":0.0001,"p50":0,"p95":0.0002,"p99":0.0003,"max":0.0029},"downKbit":35.31,"upKbit":27.54,"missingTicks":8}
+
+ ✓ tests/net-prediction.test.ts (7 tests) 6063ms
+   ✓ online race under 100 ms RTT and 2% loss (WP50 measurement) > measures prediction corrections, interpolation error and input delivery  5996ms
+ ✓ tests/net-lifecycle.test.ts (3 tests) 5208ms
+   ✓ session lifecycle with content-version agreement (WP51) > runs lobby → grid → race → results → teardown and delivers the record digest  3395ms
+   ✓ session lifecycle with content-version agreement (WP51) > does not start until every member is ready  1777ms
+ ✓ tests/net-resilience.test.ts (8 tests) 18038ms
+   ✓ resilience (WP54) > takes a lost driver over with the AI and hands the car back on rejoin  6300ms
+   ✓ resilience (WP54) > holds a car with the AI during an input gap shorter than the timeout, then hands it back  1782ms
+   ✓ resilience (WP54) > refuses a rejoin after the window and classifies a ghost behind running cars  2903ms
+   ✓ resilience (WP54) > tolerates heavy loss, duplication and reordering without breaking authority  3946ms
+   ✓ resilience (WP54) > rejects non-finite samples at the client; the server only ever applies in-range controls  1668ms
+   ✓ resilience (WP54) > monitors the server tick budget  1414ms
+ ✓ tests/net-codec.test.ts (8 tests) 401ms
+   ✓ online codec: untrusted client messages (WP54 size limits) > never throws on random or truncated bytes  357ms
+ ✓ tests/net-transport.test.ts (9 tests) 196ms
+ ✓ tests/net-lobby.test.ts (5 tests) 12ms
+
+ Test Files  8 passed (8)
+      Tests  48 passed (48)
+   Start at  02:03:54
+   Duration  68.05s (transform 1.03s, setup 0ms, collect 2.19s, tests 61.22s, environment 1ms, prepare 1.14s)
+

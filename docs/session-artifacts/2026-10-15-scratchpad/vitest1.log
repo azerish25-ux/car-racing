@@ -1,0 +1,233 @@
+
+ RUN  v3.2.4 /home/user/Experiment-3/.claude/worktrees/wf_b0a03695-07e-1
+
+··········································································································································x·············································································································································································xx··································stdout | tests/net-prediction.test.ts > online race under 100 ms RTT and 2% loss (WP50 measurement) > measures prediction corrections, interpolation error and input delivery
+online slice (4 clients, 10 s racing, 100 ms RTT, 2% loss): {"rttMs":100.3,"clean":{"samples":1215,"mean":0.0251,"p50":0.0103,"p95":0.1005,"p99":0.2544,"max":0.4267},"correction":{"samples":1215,"mean":0.0236,"p50":0.0069,"p95":0.119,"p99":0.275,"max":0.4363},"headingDeg":0.6543,"remote":{"samples":11130,"mean":0.0001,"p50":0,"p95":0.0002,"p99":0.0003,"max":0.0024},"downKbit":35.31,"upKbit":27.54,"missingTicks":8}
+
+···················································································································································································································································stdout | tests/a61-rival.test.ts > preserves actual FormulaCar steering, service, damage, replay rewind and mirror handoff without increasing near draws
+A61_CPU_DRAW_CENSUS [{"level":0,"before":{"draws":94,"triangles":221140},"after":{"draws":94,"triangles":228936}},{"level":1,"before":{"draws":23,"triangles":22113},"after":{"draws":27,"triangles":46444}},{"level":2,"before":{"draws":23,"triangles":16517},"after":{"draws":27,"triangles":24212}},{"level":0,"before":{"draws":94,"triangles":221140},"after":{"draws":94,"triangles":228936}}]
+
+·························································································x·····························································································································································································································································································································································································································································································································································································································································································································································································stderr | tests/source-stability.test.ts > rejects a build-time modification or addition to src/example.ts
+Command rewrote application inputs:
+src/example.ts
+
+stderr | tests/source-stability.test.ts > rejects a build-time modification or addition to src/new.ts
+Command rewrote application inputs:
+src/new.ts
+
+··stderr | tests/source-stability.test.ts > rejects a build-time modification or addition to docs/guide.md
+Command rewrote application inputs:
+docs/guide.md
+
+·stderr | tests/source-stability.test.ts > rejects a build-time modification or addition to package.json
+Command rewrote application inputs:
+package.json
+
+stderr | tests/source-stability.test.ts > rejects deleted input even when the child command fails
+Command rewrote application inputs:
+src/example.ts
+
+··stderr | tests/source-stability.test.ts > propagates a failing command and fails closed for a missing executable
+spawnSync /tmp/source-stability-uCKQ8o/nonexistent-executable ENOENT
+
+································································x·········x···xx···················································································································································································································································································································································································································································································································································································x··········································································································································································································································································································································································································································································································································································
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/supplied-player-lods.test.ts [ tests/supplied-player-lods.test.ts ]
+Error: ENOENT: no such file or directory, open '/home/user/Experiment-3/.claude/worktrees/wf_b0a03695-07e-1/public/models/supplied-player-lods.bin.gz'
+ ❯ tests/supplied-player-lods.test.ts:15:16
+     13| import manifest from '../src/rendering/supplied-player-lods.manifest.j…
+     14| 
+     15| const packed = readFileSync(
+       |                ^
+     16|   new URL('../public/models/supplied-player-lods.bin.gz', import.meta.…
+     17| );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/10]⎯
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 9 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/bike-session.test.ts > WP36 bike identity, rules and content > validates bike content and names what is wrong
+AssertionError: expected [ …(2) ] to deeply equal []
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- [][39m
+[31m+ [[39m
+[31m+   "vehicle mx250: cgToFront + cgToRear must equal the wheelbase",[39m
+[31m+   "vehicle mx250: wheel positions disagree with the wheelbase",[39m
+[31m+ ][39m
+
+ ❯ tests/bike-session.test.ts:310:31
+    308|   });
+    309|   it('validates bike content and names what is wrong', () => {
+    310|     expect(validateContent()).toEqual([]);
+       |                               ^
+    311|     const broken = {
+    312|       ...GP_R1,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/10]⎯
+
+ FAIL  tests/career.test.ts > licence scoring from measured values > reads the jump geometry a venue declares and opens the jump test only with a survey
+AssertionError: expected 'open' to be 'coming' // Object.is equality
+
+Expected: [32m"coming"[39m
+Received: [31m"open"[39m
+
+ ❯ tests/career.test.ts:375:27
+    373|     expect(venueKind(bare.venues.at(-1)!)).toBe('dirt');
+    374|     const coming = licenceAvailability(bare, newCareer(), 'jump');
+    375|     expect(coming.status).toBe('coming');
+       |                           ^
+    376|     expect(coming.reasons.join(' ')).toContain('surveyed jump');
+    377|     const surveyed = withVehicles([rx], {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/10]⎯
+
+ FAIL  tests/career.test.ts > unlocks and availability are derived from the registries > opens circuit cars and states what the other disciplines are missing
+AssertionError: expected '' to contain 'dirt or mixed-surface venue'
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- dirt or mixed-surface venue[39m
+
+ ❯ tests/career.test.ts:640:68
+    638|       !live.venues.some((v) => /dirt|gravel|terrain/.test(String(v.sur…
+    639|     )
+    640|       expect(disciplineStatus(live, 'off-road').reasons.join(' ')).toC…
+       |                                                                    ^
+    641|         'dirt or mixed-surface venue',
+    642|       );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/10]⎯
+
+ FAIL  tests/career.test.ts > unlocks and availability are derived from the registries > builds every open event and licence into a loadable session
+Error: VALLEY RIDGE RALLYCROSS INVITATIONAL: Car 1 (RCX-6 RALLYCROSS) cannot race at VALLEY RIDGE / MOTOCROSS; Car 2 (RCX-6 RALLYCROSS) cannot race at VALLEY RIDGE / MOTOCROSS; Car 3 (RCX-6 RALLYCROSS) cannot race at VALLEY RIDGE / MOTOCROSS; Car 4 (RCX-6 RALLYCROSS) cannot race at VALLEY RIDGE / MOTOCROSS; Car 5 (RCX-6 RALLYCROSS) cannot race at VALLEY RIDGE / MOTOCROSS; Car 6 (RCX-6 RALLYCROSS) cannot race at VALLEY RIDGE / MOTOCROSS; Car 7 (RCX-6 RALLYCROSS) cannot race at VALLEY RIDGE / MOTOCROSS; Car 8 (RCX-6 RALLYCROSS) cannot race at VALLEY RIDGE / MOTOCROSS
+ ❯ eventSession src/simulation/events.ts:261:28
+    259|   };
+    260|   const errors = sessionIncompatibilities(options);
+    261|   if (errors.length) throw new Error(`${event.name}: ${errors.join('; …
+       |                            ^
+    262|   return options;
+    263| }
+ ❯ tests/career.test.ts:772:25
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/10]⎯
+
+ FAIL  tests/career.test.ts > unlocks and availability are derived from the registries > validates the career content built from the live registries
+AssertionError: expected [ …(7) ] to deeply equal []
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- [][39m
+[31m+ [[39m
+[31m+   "career event off-road.rallycross.inv.valley-ridge-mx: VALLEY RIDGE RALLYCROSS INVITATIONAL: Car 1 (RCX-6 RALLYCROSS) cannot race at VALLEY RIDGE / MOTOCROSS; Car 2 (RCX-6 RALLYCROSS) cannot race at VALLEY RIDGE / MOTOCROSS; Car 3 (RCX-6 RALLYCROSS) cannot race at VALLEY RIDGE / MOTOCROSS; Car 4 (RCX-6 RALLYCROSS) cannot race at VALLEY RIDGE / MOTOCROSS; Car 5 (RCX-6 RALLYCROSS) cannot race at VALLEY RIDGE / MOTOCROSS; Car 6 (RCX-6 RALLYCROSS) cannot race at VALLEY RIDGE / MOTOCROSS; Car 7 (RCX-6 RALLYCROSS) cannot race at VALLEY RIDGE / MOTOCROSS; Car 8 (RCX-6 RALLYCROSS) cannot race at VALLEY RIDGE / MOTOCROSS",[39m
+[31m+   "career event off-road.rallycross.inv.arena-nord-sx: ARENA NORD RALLYCROSS INVITATIONAL: Car 1 (RCX-6 RALLYCROSS) cannot race at ARENA NORD / SUPERCROSS; Car 2 (RCX-6 RALLYCROSS) cannot race at ARENA NORD / SUPERCROSS; Car 3 (RCX-6 RALLYCROSS) cannot race at ARENA NORD / SUPERCROSS; Car 4 (RCX-6 RALLYCROSS) cannot race at ARENA NORD / SUPERCROSS; Car 5 (RCX-6 RALLYCROSS) cannot race at ARENA NORD / SUPERCROSS; Car 6 (RCX-6 RALLYCROSS) cannot race at ARENA NORD / SUPERCROSS; Car 7 (RCX-6 RALLYCROSS) cannot race at ARENA NORD / SUPERCROSS; Car 8 (RCX-6 RALLYCROSS) cannot race at ARENA NORD / SUPERCROSS",[39m
+[31m+   "career event off-road.rallycross.championship: RALLYCROSS CHAMPIONSHIP · ROUND 1: Car 1 (RCX-6 RALLYCROSS) cannot race at VALLEY RIDGE / MOTOCROSS; Car 2 (RCX-6 RALLYCROSS) cannot race at VALLEY RIDGE / MOTOCROSS; Car 3 (RCX-6 RALLYCROSS) cannot race at VALLEY RIDGE / MOTOCROSS; Car 4 (RCX-6 RALLYCROSS) cannot race at VALLEY RIDGE / MOTOCROSS; Car 5 (RCX-6 RALLYCROSS) cannot race at VALLEY RIDGE / MOTOCROSS; Car 6 (RCX-6 RALLYCROSS) cannot race at VALLEY RIDGE / MOTOCROSS; Car 7 (RCX-6 RALLYCROSS) cannot race at VALLEY RIDGE / MOTOCROSS; Car 8 (RCX-6 RALLYCROSS) cannot race at VALLEY RIDGE / MOTOCROSS",[39m
+[31m+   "career event off-road.rally.inv.valley-ridge-mx: VALLEY RIDGE RALLY AND TROPHY TRUCKS INVITATIONAL: Car 1 (RL-2 RALLY) cannot race at VALLEY RIDGE / MOTOCROSS; Car 2 (RL-2 RALLY) cannot race at VALLEY RIDGE / MOTOCROSS; Car 3 (RL-2 RALLY) cannot race at VALLEY RIDGE / MOTOCROSS; Car 4 (RL-2 RALLY) cannot race at VALLEY RIDGE / MOTOCROSS; Car 5 (RL-2 RALLY) cannot race at VALLEY RIDGE / MOTOCROSS; Car 6 (RL-2 RALLY) cannot race at VALLEY RIDGE / MOTOCROSS; Car 7 (RL-2 RALLY) cannot race at VALLEY RIDGE / MOTOCROSS; Car 8 (RL-2 RALLY) cannot race at VALLEY RIDGE / MOTOCROSS",[39m
+[31m+   "career event off-road.rally.inv.arena-nord-sx: ARENA NORD RALLY AND TROPHY TRUCKS INVITATIONAL: Car 1 (RL-2 RALLY) cannot race at ARENA NORD / SUPERCROSS; Car 2 (RL-2 RALLY) cannot race at ARENA NORD / SUPERCROSS; Car 3 (RL-2 RALLY) cannot race at ARENA NORD / SUPERCROSS; Car 4 (RL-2 RALLY) cannot race at ARENA NORD / SUPERCROSS; Car 5 (RL-2 RALLY) cannot race at ARENA NORD / SUPERCROSS; Car 6 (RL-2 RALLY) cannot race at ARENA NORD / SUPERCROSS; Car 7 (RL-2 RALLY) cannot race at ARENA NORD / SUPERCROSS; Car 8 (RL-2 RALLY) cannot race at ARENA NORD / SUPERCROSS",[39m
+[31m+   "career event off-road.rally.championship: RALLY AND TROPHY TRUCKS CHAMPIONSHIP · ROUND 1: Car 1 (RL-2 RALLY) cannot race at VALLEY RIDGE / MOTOCROSS; Car 2 (RL-2 RALLY) cannot race at VALLEY RIDGE / MOTOCROSS; Car 3 (RL-2 RALLY) cannot race at VALLEY RIDGE / MOTOCROSS; Car 4 (RL-2 RALLY) cannot race at VALLEY RIDGE / MOTOCROSS; Car 5 (RL-2 RALLY) cannot race at VALLEY RIDGE / MOTOCROSS; Car 6 (RL-2 RALLY) cannot race at VALLEY RIDGE / MOTOCROSS; Car 7 (RL-2 RALLY) cannot race at VALLEY RIDGE / MOTOCROSS; Car 8 (RL-2 RALLY) cannot race at VALLEY RIDGE / MOTOCROSS",[39m
+[31m+   "career licence jump: JUMP LANDING LICENCE: Car 1 (RL-2 RALLY) cannot race at VALLEY RIDGE / MOTOCROSS",[39m
+[31m+ ][39m
+
+ ❯ tests/career.test.ts:787:37
+    785|   });
+    786|   it('validates the career content built from the live registries', ()…
+    787|     expect(validateCareerContent()).toEqual([]);
+       |                                     ^
+    788|     // A registered class without a race ruleset is coming, not merely…
+    789|     // and coming content is not loaded.
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/10]⎯
+
+ FAIL  tests/catalogue-menu-events.test.ts > WP22/WP30 data-driven machine choice > lists every four-wheel machine once, grouped by class in order
+AssertionError: mx450: expected [] to have a length of 1 but got +0
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 1[39m
+[31m+ 0[39m
+
+ ❯ tests/catalogue-menu-events.test.ts:37:9
+     35|         values.filter((v) => v === id),
+     36|         id,
+     37|       ).toHaveLength(1);
+       |         ^
+     38|     expect(values).toContain('mixed');
+     39|     expect(values).toContain('multiclass');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/10]⎯
+
+ FAIL  tests/content-validation.test.ts > WP14 content validation > accepts every registered and development definition
+AssertionError: expected [ …(2) ] to deeply equal []
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- [][39m
+[31m+ [[39m
+[31m+   "vehicle mx250: cgToFront + cgToRear must equal the wheelbase",[39m
+[31m+   "vehicle mx250: wheel positions disagree with the wheelbase",[39m
+[31m+ ][39m
+
+ ❯ tests/content-validation.test.ts:13:31
+     11| describe('WP14 content validation', () => {
+     12|   it('accepts every registered and development definition', () => {
+     13|     expect(validateContent()).toEqual([]);
+       |                               ^
+     14|     expect(validateCircuitDefinition(KESTREL_LEFT_PIT)).toEqual([]);
+     15|     expect(validateCircuitDefinition(FIGURE_EIGHT_OVERPASS)).toEqual([…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/10]⎯
+
+ FAIL  tests/vehicle-catalogue.test.ts > WP30 destination catalogue > records every machine inside its design bands at both timesteps
+AssertionError: mx450 missing from docs/vehicle-calibration.json: expected undefined to be defined
+ ❯ tests/vehicle-catalogue.test.ts:108:73
+    106|     for (const id of VEHICLE_IDS) {
+    107|       const entry = report.vehicles[id];
+    108|       expect(entry, `${id} missing from docs/vehicle-calibration.json`…
+       |                                                                         ^
+    109|       expect(entry.hash, `${id} calibration is stale: run npm run test…
+    110|         vehicleHash(VEHICLES[id]),
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/10]⎯
+
+ FAIL  tests/vehicle-catalogue.test.ts > WP30 destination catalogue > groups the registry by class for presentation
+AssertionError: expected 99 to be greater than 99
+ ❯ tests/vehicle-catalogue.test.ts:125:36
+    123|     expect(groups.flatMap((g) => g.vehicles)).toHaveLength(VEHICLE_IDS…
+    124|     for (let i = 1; i < groups.length; i++)
+    125|       expect(groups[i].info.order).toBeGreaterThan(groups[i - 1].info.…
+       |                                    ^
+    126|   });
+    127|   it('drives a field of different catalogue machines without numerical…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/10]⎯
+
+⎯⎯⎯⎯⎯⎯ Unhandled Errors ⎯⎯⎯⎯⎯⎯
+
+Vitest caught 1 unhandled error during the test run.
+This might cause false positive tests. Resolve unhandled errors to make sure your tests are not affected.
+
+⎯⎯⎯⎯⎯⎯ Unhandled Error ⎯⎯⎯⎯⎯⎯⎯
+Error: [vitest-worker]: Timeout calling "onTaskUpdate"
+ ❯ Object.onTimeoutError ../../../node_modules/vitest/dist/chunks/rpc.-pEldfrD.js:53:10
+ ❯ Timeout._onTimeout ../../../node_modules/vitest/dist/chunks/index.B521nVV-.js:59:62
+ ❯ listOnTimeout node:internal/timers:588:17
+ ❯ processTimers node:internal/timers:523:7
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+
+
+ Test Files  6 failed | 310 passed (316)
+      Tests  9 failed | 2640 passed (2649)
+     Errors  1 error
+   Start at  06:59:33
+   Duration  1914.10s (transform 19.52s, setup 0ms, collect 318.52s, tests 1420.72s, environment 94ms, prepare 41.49s)
+

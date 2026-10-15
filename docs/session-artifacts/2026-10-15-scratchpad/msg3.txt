@@ -1,0 +1,23 @@
+feat(offroad): terrain presentation, dirt-bike model, career, tests and races
+
+Rendering (presentation only, materials library): the deformable course
+terrain as a render grid posed from worker keyframes and kept for replays,
+a soil PBR recipe with moisture darkening, roost particles, a mud coat on
+bikes, riders and cars, the hinged start gate, the supercross stadium bowl
+and an original dirt-bike model with long forks, high fenders, spoked
+wheels and knobby tyres; the rider stands and dabs from the snapshot in an
+off-road kit. Paved ribbons and kerbs are skipped on terrain venues.
+
+The worker exports rut deltas with each surface keyframe; the HUD reads
+gate, holeshot, joker and stage state. The career runs motocross,
+rallycross and rally tiers at venues that admit their classes under the
+venue's own formats. Dirt bikes join the machine menu and the vehicle
+calibration. AI launches from the gate together and holds autopilot
+players at the gate and start control. Unit tests cover jump ballistics,
+landing windows, rut determinism with re-simulation, venues, gate
+jump-starts, joker enforcement, stage intervals, moto points and the
+terrain view; npm run test:offroad runs the calibration bands and seeded
+races (docs/offroad-calibration.json, docs/offroad-races.json).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01RN7q935R3iepiRcM32D9uW

@@ -1,0 +1,33 @@
+{
+    "asset_type": "Texture",
+    "id": "noon_grass",
+    "kwargs": {
+        "filename": "environment_4k.hdr"
+    },
+    "license": "CC0 1.0",
+    "metadata": {
+        "authors": [
+            "Greg Zaal"
+        ],
+        "categories": [
+            "outdoor",
+            "skies",
+            "nature",
+            "midday",
+            "clear",
+            "high contrast",
+            "natural light"
+        ],
+        "coords": [
+            -26.153069,
+            27.991045
+        ],
+        "date_taken": 1450781460,
+        "resolution": "4k",
+        "tags": [
+            "tree",
+            "sun",
+            "grass"
+        ]
+    }
+}

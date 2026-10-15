@@ -1,0 +1,97 @@
+[third-party] toktx toktx v4.4.2
+[third-party] xref_Tilia_tomentosa_02medium.c4d Instance: 5 parts, 1004632 triangles, 11.60 m tall, crown radius 4.18 m (2802 ms)
+[third-party]   canopy volume 43x51x42 solved (3843 ms)
+[third-party]   300 cards at 84.2 px/m (8271 ms)
+[third-party]   card atlas drawn (16193 ms)
+[third-party]   8 impostor views 1536x1536 (28977 ms)
+[third-party]   trunk 4000 triangles (30265 ms)
+[third-party]   done (30266 ms)
+[third-party]   cards_color: webp 397 KB, ktx2 1052 KB
+[third-party]   cards_normal: webp 193 KB, ktx2 974 KB
+[third-party]   impostor_color: webp 160 KB, ktx2 453 KB
+[third-party]   impostor_normal: webp 82 KB, ktx2 402 KB
+[third-party]   bark_color: webp 33 KB, ktx2 143 KB
+[third-party]   bark_normal: webp 14 KB, ktx2 159 KB
+[third-party] xref_Aesculus_02adult.c4d Instance: 7 parts, 1605943 triangles, 18.73 m tall, crown radius 7.59 m (4164 ms)
+[third-party]   canopy volume 45x51x42 solved (5079 ms)
+[third-party]   480 cards at 41.1 px/m (11700 ms)
+[third-party]   card atlas drawn (24483 ms)
+[third-party]   8 impostor views 1536x1536 (44566 ms)
+[third-party]   trunk 5531 triangles (46262 ms)
+[third-party]   done (46263 ms)
+[third-party]   cards_color: webp 365 KB, ktx2 1058 KB
+[third-party]   cards_normal: webp 185 KB, ktx2 951 KB
+[third-party]   impostor_color: webp 88 KB, ktx2 392 KB
+[third-party]   impostor_normal: webp 87 KB, ktx2 417 KB
+[third-party]   bark_color: webp 38 KB, ktx2 141 KB
+[third-party]   bark_normal: webp 11 KB, ktx2 144 KB
+[third-party] xref_Betula_pendula_03mediumb.c4d: 9 parts, 4173512 triangles, 15.87 m tall, crown radius 4.89 m (8116 ms)
+[third-party]   canopy volume 36x51x38 solved (9401 ms)
+[third-party]   300 cards at 67.7 px/m (20216 ms)
+[third-party]   card atlas drawn (28340 ms)
+[third-party]   8 impostor views 1536x1536 (46151 ms)
+[third-party]   trunk 6367 triangles (49130 ms)
+[third-party]   done (49132 ms)
+[third-party]   cards_color: webp 342 KB, ktx2 934 KB
+[third-party]   cards_normal: webp 179 KB, ktx2 962 KB
+[third-party]   impostor_color: webp 141 KB, ktx2 408 KB
+[third-party]   impostor_normal: webp 72 KB, ktx2 399 KB
+[third-party]   bark_color: webp 20 KB, ktx2 209 KB
+[third-party]   bark_normal: webp 9 KB, ktx2 191 KB
+[third-party] mountain_ash: 5 parts, 672680 triangles, 8.41 m tall, crown radius 3.22 m (1538 ms)
+[third-party]   canopy volume 43x51x44 solved (2387 ms)
+[third-party]   220 cards at 120.2 px/m (4903 ms)
+[third-party]   card atlas drawn (13312 ms)
+[third-party]   8 impostor views 1536x1536 (24100 ms)
+[third-party]   trunk 3999 triangles (24693 ms)
+[third-party]   done (24694 ms)
+[third-party]   cards_color: webp 356 KB, ktx2 1018 KB
+[third-party]   cards_normal: webp 173 KB, ktx2 937 KB
+[third-party]   impostor_color: webp 95 KB, ktx2 363 KB
+[third-party]   impostor_normal: webp 73 KB, ktx2 354 KB
+[third-party]   bark_color: webp 25 KB, ktx2 131 KB
+[third-party]   bark_normal: webp 14 KB, ktx2 158 KB
+[third-party] Abies_concolor_02medium: 6 parts, 1363270 triangles, 7.92 m tall, crown radius 1.53 m (2564 ms)
+[third-party]   canopy volume 26x51x24 solved (2980 ms)
+[third-party]   240 cards at 167.4 px/m (7482 ms)
+[third-party]   card atlas drawn (23534 ms)
+[third-party]   8 impostor views 1536x1536 (51365 ms)
+[third-party]   trunk 3924 triangles (52746 ms)
+[third-party]   done (52747 ms)
+[third-party]   cards_color: webp 256 KB, ktx2 855 KB
+[third-party]   cards_normal: webp 156 KB, ktx2 838 KB
+[third-party]   impostor_color: webp 110 KB, ktx2 470 KB
+[third-party]   impostor_normal: webp 106 KB, ktx2 512 KB
+[third-party]   bark_color: webp 26 KB, ktx2 133 KB
+[third-party]   bark_normal: webp 11 KB, ktx2 106 KB
+[third-party] Abies_concolor_01medium: 6 parts, 1414462 triangles, 8.94 m tall, crown radius 1.76 m (3267 ms)
+[third-party]   canopy volume 26x51x25 solved (3742 ms)
+[third-party]   240 cards at 150.6 px/m (8681 ms)
+[third-party]   card atlas drawn (27108 ms)
+[third-party]   8 impostor views 1536x1536 (59294 ms)
+[third-party]   trunk 3912 triangles (60348 ms)
+[third-party]   done (60350 ms)
+[third-party]   cards_color: webp 257 KB, ktx2 867 KB
+[third-party]   cards_normal: webp 153 KB, ktx2 833 KB
+[third-party]   impostor_color: webp 96 KB, ktx2 430 KB
+[third-party]   impostor_normal: webp 98 KB, ktx2 476 KB
+[third-party]   bark_color: webp 26 KB, ktx2 133 KB
+[third-party]   bark_normal: webp 11 KB, ktx2 106 KB
+[third-party] xref_WPR.c4d: 15 parts, 324632 triangles, 1.10 m tall, crown radius 0.79 m (27948 ms)
+[third-party]   canopy volume 25x17x22 solved (28352 ms)
+[third-party]   80 cards at 349.9 px/m (30238 ms)
+[third-party]   card atlas drawn (33141 ms)
+[third-party]   8 impostor views 768x768 (38501 ms)
+[third-party]   trunk 1194 triangles (41423 ms)
+[third-party]   done (41424 ms)
+[third-party]   cards_color: webp 75 KB, ktx2 258 KB
+[third-party]   cards_normal: webp 44 KB, ktx2 228 KB
+[third-party]   impostor_color: webp 50 KB, ktx2 166 KB
+[third-party]   impostor_normal: webp 29 KB, ktx2 127 KB
+[third-party]   bark_color: webp 7 KB, ktx2 47 KB
+[third-party]   bark_normal: webp 3 KB, ktx2 40 KB
+[third-party] meadow_v3: 6 parts, 0.66 m, 4 slabs
+[third-party] meadow_v3dry: 6 parts, 0.66 m, 4 slabs
+[third-party]   grass_color: webp 85 KB, ktx2 248 KB
+[third-party]   grass_normal: webp 42 KB, ktx2 147 KB
+[third-party] 22 assets, 35.72 MB of 150 MB budget -> public/assets/third-party

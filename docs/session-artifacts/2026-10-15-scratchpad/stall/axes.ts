@@ -1,0 +1,10 @@
+const repo = process.argv[2];
+const { DEFAULT_OPTIONS } = await import(`${repo}/src/simulation/config.ts`);
+const { Simulation } = await import(`${repo}/src/simulation/world.ts`);
+const { Vec3 } = await import(`${repo}/src/core/math.ts`);
+const sim = new Simulation({ ...DEFAULT_OPTIONS, mode: 'race', laps: 1, opponents: 1 });
+const c = sim.cars[0];
+const p = c.trackPosition;
+const x = c.body.orientation.rotate(new Vec3(1, 0, 0), new Vec3());
+const z = c.body.orientation.rotate(new Vec3(0, 0, 1), new Vec3());
+console.log('x.n', x.x * p.nx + x.z * p.nz, 'z.t', z.x * p.tx + z.z * p.tz, 'spec', c.spec.wheelbase, c.spec.maxSteer);

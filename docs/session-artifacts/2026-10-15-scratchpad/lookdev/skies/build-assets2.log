@@ -1,0 +1,38 @@
+[third-party] toktx toktx v4.4.2
+[third-party] kiara-5-noon 4096: 2.14 MB, base clipped 18, rms 0.058 stops, worst 1.26
+[third-party] kiara-5-noon 2048: 0.56 MB, base clipped 21, rms 0.061 stops, worst 1.01
+[third-party] goegap 4096: 2.23 MB, base clipped 26, rms 0.061 stops, worst 1.66
+[third-party] goegap 2048: 0.55 MB, base clipped 34, rms 0.063 stops, worst 2.51
+[third-party] quarry-02 4096: 1.44 MB, base clipped 4, rms 0.041 stops, worst 0.61
+[third-party] quarry-02 2048: 0.39 MB, base clipped 4, rms 0.042 stops, worst 0.63
+[third-party] rural-landscape 4096: 1.42 MB, base clipped 49, rms 0.077 stops, worst 1.02
+[third-party] rural-landscape 2048: 0.39 MB, base clipped 9, rms 0.080 stops, worst 0.99
+[third-party] reused https://storage.googleapis.com/kubric-public/assets/HDRI_haven/waterbuck_trail.tar.gz
+[third-party] waterbuck-trail 4096: 1.22 MB, base clipped 0, rms 0.091 stops, worst 1.29
+[third-party] waterbuck-trail 2048: 0.33 MB, base clipped 0, rms 0.099 stops, worst 1.73
+[third-party] reused https://storage.googleapis.com/kubric-public/assets/HDRI_haven/cannon.tar.gz
+[third-party] cannon 4096: 1.40 MB, base clipped 0, rms 0.073 stops, worst 0.98
+[third-party] cannon 2048: 0.40 MB, base clipped 0, rms 0.087 stops, worst 1.08
+[third-party] mud-road 4096: 1.24 MB, base clipped 0, rms 0.083 stops, worst 1.14
+[third-party] mud-road 2048: 0.32 MB, base clipped 0, rms 0.090 stops, worst 1.04
+[third-party] kloppenheim-01 4096: 1.07 MB, base clipped 26, rms 0.076 stops, worst 1.02
+[third-party] kloppenheim-01 2048: 0.29 MB, base clipped 8, rms 0.088 stops, worst 1.29
+[third-party] reused https://storage.googleapis.com/kubric-public/assets/HDRI_haven/winter_lake_01.tar.gz
+[third-party] winter-lake-01 4096: 0.75 MB, base clipped 1, rms 0.025 stops, worst 0.67
+[third-party] winter-lake-01 2048: 0.22 MB, base clipped 0, rms 0.025 stops, worst 0.60
+[third-party] table-mountain-1 4096: 1.74 MB, base clipped 227, rms 0.077 stops, worst 1.40
+[third-party] table-mountain-1 2048: 0.52 MB, base clipped 118, rms 0.089 stops, worst 1.40
+[third-party] kiara-8-sunset 4096: 2.00 MB, base clipped 55, rms 0.082 stops, worst 1.31
+[third-party] kiara-8-sunset 2048: 0.55 MB, base clipped 19, rms 0.090 stops, worst 1.29
+[third-party] syferfontein-0d-clear 4096: 1.37 MB, base clipped 1, rms 0.084 stops, worst 2.43
+[third-party] syferfontein-0d-clear 2048: 0.38 MB, base clipped 0, rms 0.095 stops, worst 1.24
+[third-party] kloppenheim-02 4096: 2.48 MB, base clipped 178, rms 0.090 stops, worst 1.36
+[third-party] kloppenheim-02 2048: 0.66 MB, base clipped 24, rms 0.094 stops, worst 1.21
+[third-party] kloppenheim-04 4096: 1.26 MB, base clipped 196, rms 0.079 stops, worst 0.99
+[third-party] kloppenheim-04 2048: 0.32 MB, base clipped 29, rms 0.081 stops, worst 0.86
+[third-party] sandy-gravel-01 color: webp 234 KB, ktx2 239 KB
+[third-party] sandy-gravel-01 normal: webp 319 KB, ktx2 1277 KB
+[third-party] sandy-gravel-01 orm: webp 233 KB, ktx2 220 KB
+[third-party] 15 assets, 30.12 MB of 150 MB budget -> public/assets/third-party
+(node:26496) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)

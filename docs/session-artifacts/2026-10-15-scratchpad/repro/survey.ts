@@ -1,0 +1,3 @@
+import { circuitDefinition } from '/home/user/Experiment-3/.claude/worktrees/wf_b0a03695-07e-1/src/simulation/circuits.ts';
+import { offroadCourse } from '/home/user/Experiment-3/.claude/worktrees/wf_b0a03695-07e-1/src/simulation/offroad/venues.ts';
+for (const v of ['valley-ridge-mx', 'arena-nord-sx'] as const) for (const j of offroadCourse(circuitDefinition(v))!.jumps) console.log(v.slice(0,6), j.name.padEnd(14), j.kind.padEnd(8), 'start', j.start.toFixed(1), 'takeoff', j.takeoff.toFixed(1), 'rollEnd', j.rollEnd.toFixed(1), 'landing', j.landing.toFixed(1), 'len', j.landingLength.toFixed(1), 'end', j.end.toFixed(1), j.forgiving);

@@ -1,0 +1,10 @@
+
+> apex-formula-laboratory@0.1.0 test:bikes
+> node --experimental-transform-types scripts/bike-race.ts
+
+aurel clear seed 3303: finished true in 206.0 s, crashes 0,0,0,0,0,0,0,0, best 62.37 s
+vellamar clear seed 77: finished true in 270.0 s, crashes 0,0,0,0,0,0,0,0, best 82.33 s
+aurel rain seed 2024: finished true in 406.6 s, crashes 0,0,0,0,0,0,0,0, best 78.22 s
+(node:5002) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+EXIT 0

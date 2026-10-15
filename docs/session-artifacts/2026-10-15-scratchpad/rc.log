@@ -1,0 +1,8 @@
+
+> apex-formula-laboratory@0.1.0 test:race-control
+> node --experimental-transform-types scripts/marshal-integration.ts
+
+{"sourceSHA256":"b381cdf73f282573c36e7fc8688c0ced110e23c10e087f90b34af19791543a5c","passed":true,"failures":[],"seconds":15.358333333333333,"sawDouble":true,"sawClear":true,"distantInitiallyGreen":true,"driverStationM":1100.1021021731167,"driverSpeedMps":35.8286622982703,"maximumImpact":[0,0,0],"events":[{"sequence":1,"time":10.008333333333333,"kind":"incident","car":1,"code":"OBSTRUCTION","seconds":0},{"sequence":2,"time":10.008333333333333,"kind":"flag","car":0,"code":"DOUBLE YELLOW","seconds":0},{"sequence":3,"time":22.991666666665928,"kind":"flag","car":0,"code":"GREEN FLAG","seconds":0}]}
+(node:32620) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+EXIT 0

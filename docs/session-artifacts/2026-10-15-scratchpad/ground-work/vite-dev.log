@@ -1,0 +1,10 @@
+
+  VITE v7.1.7  ready in 1505 ms
+
+  ➜  Local:   http://127.0.0.1:5391/
+9:41:15 PM [vite] (client) ✨ new dependencies optimized: three/addons/loaders/HDRLoader.js, three/addons/loaders/UltraHDRLoader.js
+9:41:15 PM [vite] (client) ✨ optimized dependencies changed. reloading
+9:46:43 PM [vite] (client) page reload src/rendering/ground/scanned-ground.ts
+9:55:56 PM [vite] (client) page reload src/rendering/ground/soil-splat.ts
+10:00:45 PM [vite] (client) page reload lookdev-tmp/scan-check.ts
+10:43:52 PM [vite] (client) page reload lookdev-tmp/scan-check.ts

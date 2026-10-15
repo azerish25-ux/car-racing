@@ -1,0 +1,25 @@
+(node:20415) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+[    0 s] open http://127.0.0.1:47311/ (mesa, 1280x720)
+[  105 s] menu ready on ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)
+[  150 s] captured 01-events-hub.png
+[  152 s] captured 01-events-hub-scrolled.png
+[  235 s] captured 01b-screen.png (60 options, 25 groups)
+[  251 s] captured 02-career-hub.png
+[  252 s] session menu took 147 s
+[  252 s] GARAGE & SETTINGS → ultra
+[  293 s] preset applied
+[  293 s] session: poggio-alto race 3 laps clear grid 8 start midfield machine gpr1
+[  294 s] rules: GP MOTORCYCLE SPRINT: no mandatory stop · DRS off · points scored.
+[  485 s] session prepared
+[  512 s] 03 leaned in a corner: met (t 26.5 s, race 20.6 s)
+[  629 s] captured 03-gpr1-poggio-alto-lean.png
+[  672 s] captured 03-gpr1-poggio-alto-trackside.png
+[  672 s] session bikes took 421 s
+[  681 s] session: valley-ridge-mx race 3 laps clear grid 12 start midfield machine mx450
+[  681 s] rules: MOTOCROSS MOTO: no mandatory stop · DRS off · points scored.
+[  777 s] session prepared
+[  868 s] 10 airborne: met (t 62.8 s, race 56.9 s)
+[  897 s] captured 10-valley-ridge-mx450-airborne.png
+[  897 s] session valley took 224 s
+[  899 s] done: 7 shots, 0 failures → /tmp/claude-0/-home-user-Experiment-3/c20c3567-05b6-5daa-8126-ea386a6ddfeb/scratchpad/showcase/runs/a

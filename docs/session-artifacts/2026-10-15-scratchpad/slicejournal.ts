@@ -1,0 +1,10 @@
+import { writeFileSync } from 'node:fs';
+const root = process.argv[2], out = process.argv[3];
+const { runOnlineSlice } = await import(root + '/src/net/slice.ts');
+const { TARGET_LINK } = await import(root + '/src/net/transport.ts');
+const { server, everyClient } = runOnlineSlice({ clients: 8, seed: 2026, raceSeconds: 20, link: TARGET_LINK, verify: false });
+const w = server.world;
+const lines = w.journal.map((e) => JSON.stringify(e));
+const leads = everyClient.map((c) => c.stats.leadTicks.slice(0, 40).map((x) => +x.toFixed(2)).join(','));
+writeFileSync(out, lines.join('\n') + '\n--leads--\n' + leads.join('\n') + '\n');
+console.log('done', lines.length);

@@ -1,0 +1,76 @@
+
+> apex-formula-laboratory@0.1.0 test:bike-clearance
+> node --experimental-transform-types scripts/bike-clearance.ts --jobs 3
+
+(node:28829) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS aurel                gp-bike       falls 0 parked 0.38 s best 62.295 s
+PASS aurel                supersport    falls 0 parked 0.44 s best 67.116 s
+PASS aurel                superbike     falls 0 parked 0.41 s best 66.188 s
+PASS aurel                classic-bike  falls 0 parked 0.46 s best 75.698 s
+PASS vellamar             gp-bike       falls 0 parked 0.37 s best 77.929 s
+PASS vellamar             superbike     falls 0 parked 0.39 s best 82.334 s
+PASS vellamar             supersport    falls 0 parked 0.44 s best 86.232 s
+PASS parco-reale          gp-bike       falls 0 parked 0.37 s best 110.932 s
+PASS vellamar             classic-bike  falls 0 parked 0.46 s best 97.027 s
+PASS parco-reale          superbike     falls 0 parked 0.39 s best 115.896 s
+PASS parco-reale          supersport    falls 0 parked 0.43 s best 122.098 s
+PASS parco-reale          classic-bike  falls 0 parked 0.44 s best 135.335 s
+PASS ardennes             gp-bike       falls 0 parked 0.38 s best 150.774 s
+PASS ardennes             superbike     falls 5 parked 13.12 s best 165.963 s
+PASS ardennes             supersport    falls 6 parked 10.53 s best 165.268 s
+PASS northfield           gp-bike       falls 0 parked 0.38 s best 124.011 s
+PASS northfield           superbike     falls 0 parked 0.39 s best 130.907 s
+FAIL ardennes             classic-bike  falls 44 parked 26.4 s best null s
+PASS northfield-classic   gp-bike       falls 0 parked 0.38 s best 105.579 s
+PASS northfield           classic-bike  falls 0 parked 0.44 s best 152.215 s
+PASS northfield           supersport    falls 0 parked 0.43 s best 136.709 s
+PASS northfield-classic   supersport    falls 0 parked 0.43 s best 116.659 s
+PASS northfield-classic   classic-bike  falls 0 parked 0.45 s best 129.031 s
+PASS northfield-classic   superbike     falls 0 parked 0.39 s best 111.476 s
+PASS kansai               supersport    falls 0 parked 0.43 s best 140.502 s
+PASS kansai               superbike     falls 0 parked 0.39 s best 136.058 s
+PASS kansai-east          superbike     falls 0 parked 0.41 s best 55.326 s
+PASS kansai-east          gp-bike       falls 0 parked 0.38 s best 52.726 s
+PASS kansai               gp-bike       falls 0 parked 0.37 s best 129.131 s
+PASS kansai-east          classic-bike  falls 0 parked 0.46 s best 61.95 s
+PASS texas-hill           gp-bike       falls 0 parked 0.38 s best 129.465 s
+FAIL kansai               classic-bike  falls 11 parked 20.56 s best 156.208 s
+PASS texas-hill           supersport    falls 0 parked 0.43 s best 141.411 s
+PASS kansai-east          supersport    falls 0 parked 0.43 s best 56.289 s
+FAIL texas-hill           classic-bike  falls 12 parked 16.04 s best 168.42 s
+PASS texas-hill           superbike     falls 0 parked 0.38 s best 136.632 s
+PASS poggio-alto          superbike     falls 0 parked 0.38 s best 119.82 s
+PASS poggio-alto          supersport    falls 0 parked 0.43 s best 124.252 s
+PASS cape-wrenna          gp-bike       falls 0 parked 0.37 s best 96.303 s
+PASS poggio-alto          gp-bike       falls 1 parked 11.71 s best 112.834 s
+PASS cape-wrenna          superbike     falls 0 parked 0.39 s best 100.958 s
+PASS cape-wrenna          classic-bike  falls 0 parked 0.44 s best 118.212 s
+FAIL poggio-alto          classic-bike  falls 15 parked 12.62 s best 142.33 s
+PASS haarveld             gp-bike       falls 0 parked 0.38 s best 101.176 s
+PASS haarveld             supersport    falls 0 parked 0.44 s best 109.705 s
+PASS cape-wrenna          supersport    falls 0 parked 0.43 s best 104.612 s
+PASS haarveld             classic-bike  falls 0 parked 0.46 s best 121.443 s
+PASS haarveld             superbike     falls 0 parked 0.4 s best 105.993 s
+PASS montejaral           superbike     falls 0 parked 0.39 s best 109.683 s
+PASS montejaral           supersport    falls 0 parked 0.43 s best 113.339 s
+PASS montejaral           gp-bike       falls 0 parked 0.38 s best 104.643 s
+PASS loirette-club        gp-bike       falls 0 parked 0.37 s best 98.41 s
+PASS loirette-club        superbike     falls 0 parked 0.38 s best 103.746 s
+FAIL loirette-club        classic-bike  falls 30 parked 18.45 s best 118.059 s
+FAIL montejaral           classic-bike  falls 19 parked 16.92 s best 140.006 s
+PASS arroyo-oro           gp-bike       falls 0 parked 0.39 s best 83.057 s
+PASS arroyo-oro           supersport    falls 0 parked 0.44 s best 89.968 s
+PASS loirette-club        supersport    falls 0 parked 0.42 s best 107.252 s
+FAIL arroyo-oro           classic-bike  falls 17 parked 22.82 s best 102.448 s
+PASS arroyo-oro           superbike     falls 0 parked 0.41 s best 87.267 s
+PASS fiume-verde          superbike     falls 1 parked 8.19 s best 103.047 s
+(node:28850) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS fiume-verde          supersport    falls 0 parked 0.45 s best 107.136 s
+(node:28856) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS fiume-verde          gp-bike       falls 2 parked 7.73 s best 96.974 s
+PASS fiume-verde          classic-bike  falls 2 parked 8.86 s best 120.681 s
+(node:28849) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)

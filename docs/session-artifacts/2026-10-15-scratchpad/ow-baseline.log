@@ -1,0 +1,27 @@
+
+> apex-formula-laboratory@0.1.0 test:open-world
+> node --experimental-transform-types scripts/open-world.ts
+
+PASS  region is 8.19 km square (>= 8 km)
+PASS  road network 70.92 km (>= 60 km)
+PASS  network RouteGraph valid (0 errors)
+PASS  13 event routes planned and validated
+coast-to-summit: 10.17 km in 217.8 s (167.7 km/h avg, 311.8 top), off-route 0 s, resets 0, tiles peak 24/24, stalls 0
+PASS  coast-to-summit: AI finished the route
+PASS  coast-to-summit: never stuck (longest stall 0 s)
+PASS  coast-to-summit: no reset needed
+PASS  coast-to-summit: stayed on the legal route (0 s off)
+PASS  coast-to-summit: physics tiles within budget (24/24)
+thornwood-rally: 5.14 km in 141.8 s (129.3 km/h avg, 133.9 top), off-route 0 s, resets 0, tiles peak 24/24, stalls 0
+PASS  thornwood-rally: AI finished the route
+PASS  thornwood-rally: never stuck (longest stall 0 s)
+PASS  thornwood-rally: no reset needed
+PASS  thornwood-rally: stayed on the legal route (0 s off)
+PASS  thornwood-rally: physics tiles within budget (24/24)
+PASS  long route is 10.17 km (>= 10 km)
+PASS  valley sprint race completed with a typed result
+PASS  rivals finished the race route
+Open world acceptance passed → docs/open-world.json
+(node:17001) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+EXIT 0

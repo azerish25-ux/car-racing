@@ -1,0 +1,42 @@
+
+> apex-formula-laboratory@0.1.0 prebuild
+> npm run generate:player-lods
+
+
+> apex-formula-laboratory@0.1.0 generate:player-lods
+> node --experimental-strip-types scripts/build-player-lods.mjs
+
+Player LODs already match the pinned derivative.
+
+> apex-formula-laboratory@0.1.0 build
+> tsc --noEmit && vite build
+
+vite v7.1.7 building for production...
+transforming...
+✓ 563 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/BUILD_IDENTITY.json                                      0.12 kB │ gzip:     0.12 kB
+dist/index.html                                               0.96 kB │ gzip:     0.53 kB
+dist/assets/saira-vietnamese-wdth-normal-Dabr_kLY.woff2      26.80 kB
+dist/assets/saira-vietnamese-wdth-italic-52KPIsOu.woff2      29.93 kB
+dist/assets/saira-latin-ext-wdth-normal-3Ba4ICIc.woff2       67.19 kB
+dist/assets/saira-latin-ext-wdth-italic-CqU2kHDy.woff2       77.37 kB
+dist/assets/saira-latin-wdth-normal-X2eA-qfZ.woff2           98.91 kB
+dist/assets/saira-latin-wdth-italic-wJlFlYW8.woff2          116.24 kB
+dist/assets/a61-rival-far.glb-ClvD6mFa.gz                   161.38 kB
+dist/assets/apx01-driver.glb-CNKxI3ag.gz                    209.40 kB
+dist/assets/a61-rival-mid.glb-CAutdD2Z.gz                   397.76 kB
+dist/assets/apx01-shell.glb-B2AhAkfx.gz                   1,142.77 kB
+dist/assets/a61-rival-near.glb-DNe8_BZp.gz                1,219.90 kB
+dist/assets/free-roam-B-7AXIAc.css                            5.47 kB │ gzip:     1.58 kB
+dist/assets/index-DicFjAHi.css                               72.94 kB │ gzip:    16.77 kB
+dist/assets/free-roam-C1D30g0y.js                           503.24 kB │ gzip:   173.09 kB │ map:   567.59 kB
+dist/assets/three-DUWQr9RI.js                               615.74 kB │ gzip:   157.79 kB │ map: 2,882.15 kB
+dist/assets/index-BykZkKkS.js                            12,600.60 kB │ gzip: 3,803.36 kB │ map: 7,054.63 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 21.52s

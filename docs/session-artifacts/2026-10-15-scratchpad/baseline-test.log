@@ -1,0 +1,786 @@
+
+> apex-formula-laboratory@0.1.0 pretest
+> npm run generate:player-lods
+
+
+> apex-formula-laboratory@0.1.0 generate:player-lods
+> node --experimental-strip-types scripts/build-player-lods.mjs
+
+mesh 0: 32262 -> 8860 near triangles
+mesh 1: 50456 -> 29174 near triangles
+mesh 2: 241852 -> 131054 near triangles
+mesh 3: 44752 -> 10318 near triangles
+mesh 4: 2 -> 2 near triangles
+mesh 5: 7108 -> 2946 near triangles
+mesh 6: 504 -> 416 near triangles
+mesh 7: 752047 -> 406205 near triangles
+mesh 8: 51920 -> 47482 near triangles
+mesh 9: 21133 -> 21025 near triangles
+mesh 10: 38706 -> 37002 near triangles
+mesh 11: 51680 -> 39384 near triangles
+mesh 12: 51680 -> 39342 near triangles
+mesh 13: 51680 -> 39360 near triangles
+mesh 14: 51680 -> 39396 near triangles
+mesh 15: 108 -> 108 near triangles
+mesh 16: 108 -> 108 near triangles
+mesh 17: 7440 -> 3472 near triangles
+{
+  "version": 2,
+  "generator": "meshoptimizer@0.25.0 / exact livery surfaces, locked seams, opaque triangle cache order",
+  "sourceSHA256": "013a47f059bf34a0a28bd31ae8f407f07ed6e2b55755753aed9a942c895e132b",
+  "sha256": "2bcd661c78be3df21090c042c43ffd2fb828b9db42465d1fd4111fac8d48437d",
+  "compressedSHA256": "1553e32eef4a6f89d02fb8f44a45f000620ee8539466d41704654e5f5dd09b58",
+  "bytes": 13037000,
+  "compressedBytes": 4213368,
+  "primitives": 172,
+  "triangles": [
+    1455118,
+    855654,
+    814806,
+    797386
+  ],
+  "cacheModel": {
+    "name": "FIFO-16 vertex misses, not hardware timings",
+    "levels": [
+      {
+        "before": 992010,
+        "after": 622914
+      },
+      {
+        "before": 952099,
+        "after": 595999
+      },
+      {
+        "before": 933925,
+        "after": 583328
+      }
+    ]
+  },
+  "levels": [
+    {
+      "name": "efficient-close",
+      "ratio": 0.15,
+      "error": 0.002
+    },
+    {
+      "name": "medium",
+      "ratio": 0.075,
+      "error": 0.006
+    },
+    {
+      "name": "distant",
+      "ratio": 0.025,
+      "error": 0.012
+    }
+  ]
+}
+
+> apex-formula-laboratory@0.1.0 test
+> vitest run
+
+
+ RUN  v3.2.4 /home/user/Experiment-3/.claude/worktrees/wf_79603d95-dab-1
+
+ ✓ tests/secondary-stand-traversal.test.ts (4 tests) 106892ms
+   ✓ A12 clear: visits all six stands with exact live, ordered production frames  38096ms
+   ✓ A12 rain: visits all six stands with exact live, ordered production frames  66256ms
+   ✓ A12 stops advancing when an asynchronous evidence sink rejects  2347ms
+ ✓ tests/endurance-mode.test.ts (4 tests) 113074ms
+   ✓ endurance: long race with the mandatory stop rule > penalises a finish without the stop  11474ms
+   ✓ endurance: long race with the mandatory stop rule > runs a full endurance race: every car stops once onto a second dry compound  101409ms
+ ✓ tests/phase27h6.test.ts (10 tests) 69112ms
+   ✓ 27H.6 service composition and bounded pose reuse > does no pose/texture work for identical service snapshots or inactive racing  339ms
+   ✓ 27H.6 service composition and bounded pose reuse > limits instance upload ranges to active actors and preserves replay rebuilds  356ms
+   ✓ 27H.6 service composition and bounded pose reuse > contains actual skinned cloth, helmets, gloves, tyres and machinery over the complete service  66940ms
+   ✓ reuses bounded service witnesses without leaking inactive roles or mutable diagnostics  814ms
+   ✓ prepares both cloth colour variants before service without changing visibility or buffer ownership  389ms
+ ✓ tests/qualifying.test.ts (5 tests) 65757ms
+   ✓ race weekend: qualifying sets the grid > runs a full qualifying session through the production AI and classifies by best lap  59600ms
+   ✓ starting grid slot > starts a wet race behind rivals, so the player follows through their spray  5959ms
+ ✓ tests/racing-line.test.ts (6 tests) 57791ms
+   ✓ minimum-curvature racing line > aurel: stays on the asphalt, is smooth and opens every corner  306ms
+   ✓ minimum-curvature racing line > is solved once per circuit geometry and shared by its tracks  390ms
+   ✓ minimum-curvature racing line > the AI drives the line: quicker, valid laps without damage  15093ms
+   ✓ minimum-curvature racing line > a mid-field start still races wheel to wheel on the line  41676ms
+ ✓ tests/flashback-determinism.test.ts (2 tests) 30469ms
+   ✓ flashback determinism > re-simulates 3000 logged ticks to bitwise-identical frames, twice  16478ms
+   ✓ flashback determinism > rewinds to a past tick and resumes on a new timeline  13989ms
+ ✓ tests/physics.test.ts (21 tests) 37249ms
+   ✓ rigid dynamics and integration > settles on four suspension contacts without low-speed chatter  3029ms
+   ✓ rigid dynamics and integration > accelerates from torque and brakes to rest  3078ms
+   ✓ rigid dynamics and integration > serializes identical results for identical seeds and input history  7923ms
+   ✓ rigid dynamics and integration > physics state is independent of 24 FPS rendering  3804ms
+   ✓ rigid dynamics and integration > physics state is independent of 30 FPS rendering  3489ms
+   ✓ rigid dynamics and integration > physics state is independent of 60 FPS rendering  4006ms
+   ✓ rigid dynamics and integration > physics state is independent of 90 FPS rendering  4621ms
+   ✓ rigid dynamics and integration > physics state is independent of 120 FPS rendering  3385ms
+   ✓ rigid dynamics and integration > physics state is independent of 144 FPS rendering  3683ms
+ ✓ tests/pit-release.test.ts (3 tests) 34002ms
+   ✓ pit-release circular-wait regression > physically releases the blocked pair and services both without contact  12571ms
+   ✓ anticipates the future service-bay sweep before a moving car becomes trapped beside a serviced car  21426ms
+ ✓ tests/vsc.test.ts (3 tests) 23225ms
+   ✓ virtual safety car and safety car > neutralises a long obstruction: VSC, then a safety car the field never passes  17695ms
+   ✓ virtual safety car and safety car > never deploys outside race sessions  3899ms
+   ✓ virtual safety car and safety car > renders an original-livery safety car with an alternating 2 Hz amber bar  1629ms
+ ✓ tests/a32-pit-jacks.test.ts (12 tests) 25447ms
+   ✓ A32 authored mechanical handoff > preserves A31 and A33 in either tool installation order, with reachable jack hands  1069ms
+   ✓ A32 authored mechanical handoff > keeps actual uploaded jack vertices within the conservative service camera envelope  21769ms
+   ✓ A32 authored mechanical handoff > measures the retained supplied-player and authored-rival surfaces without modifying either  1956ms
+ ✓ tests/probe-detail.test.ts (6 tests) 28128ms
+   ✓ probe detail on the built circuits > omits over a third of the probe draws and nothing a texel wide  27933ms
+ ✓ tests/event-hall-approach.test.ts (3 tests) 22505ms
+   ✓ A71 clear approach retains at least four native physics samples  11998ms
+   ✓ A71 rain approach retains at least four native physics samples  10484ms
+ ✓ tests/engineering.test.ts (13 tests) 18760ms
+   ✓ is disabled by default, rate-limited to physics ticks, resettable and fails malformed toggles  1576ms
+   ✓ reports exact physical contact/AI data and does not reuse writable physics vector references  1211ms
+   ✓ cannot alter the simulation trajectory, RNG, tire work or recorded snapshots  2708ms
+   ✓ marks inactive AI honestly instead of labeling stale targets as player commands  1404ms
+   ✓ rejects invalid normal debug data  1529ms
+   ✓ rejects invalid time debug data  1390ms
+   ✓ rejects invalid load debug data  1495ms
+   ✓ rejects invalid cell debug data  1197ms
+   ✓ rejects invalid rubber debug data  1408ms
+   ✓ rejects invalid decision debug data  1301ms
+   ✓ never presents current live contacts as replay history or an old probe as current  1266ms
+   ✓ formats every required engineering category from actual frame channels, without fabricated GPU timing  1129ms
+   ✓ shows real contact points and sampled suspension rays, then hides stale/replay overlays  1139ms
+ ✓ tests/people.test.ts (14 tests) 14167ms
+   ✓ 27H.3 retained Blender people assets > uses owned finite geometry, normalized skin weights and explicit near/mid/far budgets  512ms
+   ✓ 27H.3 real service-state rig and prop contacts > keeps every task reachable across jack motion, suspension lengths and both sides  1268ms
+   ✓ 27H.3 real service-state rig and prop contacts > keeps task helmets separated and rejects corrupt service state before uploading a pose  1689ms
+   ✓ 27H.3 real service-state rig and prop contacts > matches actual uploaded forearm matrices to the actual glove cuffs; boots stay above the pit floor  5122ms
+   ✓ 27H.3 real service-state rig and prop contacts > reconstructs bone/prop data exactly on pause, replay rewind, LOD return and maximum simultaneous crews  325ms
+   ✓ 27H.3 real service-state rig and prop contacts > consumes an unmodified production simulation pit stop through service and release  4756ms
+ ✓ tests/pit-role-performance.test.ts (9 tests) 16023ms
+   ✓ uses all six authored roles in actual uploaded service bones, without changing geometry or adding draws  508ms
+   ✓ keeps a fixed support foot while translating and turning tyre handlers, gun operators and release personnel  1106ms
+   ✓ seeks all service roles without history, including holds, LOD changes and twelve simultaneous teams  586ms
+   ✓ performs all six roles during an actual requested stop, with unchanged snapshots and recorded rewinds  5322ms
+   ✓ lowers the real physical jack before release without changing the exchange instant or minimum service  7774ms
+   ✓ clears both real authored jacks only while lowered, with fixed support and reachable hands  666ms
+ ✓ tests/wet-review-start.test.ts (3 tests) 21127ms
+   ✓ wet review prepared before the physical grid release > qualifies real following with '2 Hz' without relaxing its three-second gate  8171ms
+   ✓ wet review prepared before the physical grid release > qualifies real following with '1.5 Hz' without relaxing its three-second gate  8380ms
+   ✓ wet review prepared before the physical grid release > qualifies real following with 'irregular subsecond sampling' without relaxing its three-second gate  4574ms
+ ✓ tests/broadcast-cameras.test.ts (11 tests) 20392ms
+   ✓ A10 authored broadcast cameras and retained optical positions > retains finite indexed geometry, normalized normals and padded atlas coordinates in all variants and every tier  3545ms
+   ✓ A10 authored broadcast cameras and retained optical positions > keeps body/tripod vertices behind the optical plane and platform working/entry spaces clear  387ms
+   ✓ A10 authored broadcast cameras and retained optical positions > retains all twenty optical coordinates and protected footprints while grounding supports on both sides  10252ms
+   ✓ A10 authored broadcast cameras and retained optical positions > does not obscure its own original optical rays across each rig coverage window  523ms
+   ✓ A10 authored broadcast cameras and retained optical positions > keeps central and peripheral optical views free across common aspects with real framing FOVs  2774ms
+   ✓ A10 authored broadcast cameras and retained optical positions > keeps all front-facing hardware triangles outside the wide optical frustum through the coverage interval  1208ms
+   ✓ A10 authored broadcast cameras and retained optical positions > retains the original infrastructure plan and unrelated marshals/drains while replacing only camera hardware  1482ms
+ ✓ tests/vehicle-definitions.test.ts (5 tests) 12292ms
+   ✓ WP08 per-entry vehicle definitions > races a mixed field whose identities survive into snapshots  12285ms
+ ✓ tests/events.test.ts (5 tests) 12034ms
+   ✓ WP09 event and ruleset definitions > classifies a timed race on the leader’s first crossing after the clock  11929ms
+ ✓ tests/start-finish-shadow-bounds.test.ts (3 tests) 14314ms
+   ✓ production start-finish shadow frustum > retains wet night as the original sphere-culling no-change control  5822ms
+   ✓ production start-finish shadow frustum > rejects the day sphere false-positive without changing seat geometry  4872ms
+   ✓ production start-finish shadow frustum > rejects the sunset sphere false-positive without changing seat geometry  3616ms
+ ✓ tests/gap-timer.test.ts (5 tests) 13779ms
+   ✓ timing-loop race intervals > matches the race timing at the line in a production simulation  13760ms
+ ✓ tests/aurel-vegetation.test.ts (14 tests) 12385ms
+   ✓ A51-A54 original asset library > decodes finite indexed metre geometry, padded UVs and normalized normals for every tier  4134ms
+   ✓ integrated Aurel planting > is stable across weather/replays, bounded and uses all six distinct forms  1553ms
+   ✓ integrated Aurel planting > retains unchanged eligible scatter positions and checks complete crowns against every protected footprint  555ms
+   ✓ integrated Aurel planting > makes two straight managed row plots, real row-end variants and no overlapping scatter  581ms
+   ✓ integrated Aurel planting > respects extra recovery-route exclusions for foreground, groves and treelines, without changing Vellamar  1068ms
+   ✓ instanced tier continuity and ownership > uses stable draw-range wrappers and shared attributes through a full lap, long lenses, reverse seeks and density changes  2756ms
+   ✓ instanced tier continuity and ownership > uses the actual inspection/reflection camera without poisoning the main camera hysteresis  808ms
+   ✓ instanced tier continuity and ownership > releases instantiated buffers, template buffers and shadow materials once  862ms
+ ✓ tests/hero-import.test.ts (3 tests) 9171ms
+   ✓ imports the real browser bodywork bundle without resolving URLs or starting acquisition  4445ms
+   ✓ authored bodywork import lifecycle > imports an inline bundle before an asset origin exists (minify=false)  3158ms
+   ✓ authored bodywork import lifecycle > imports an inline bundle before an asset origin exists (minify=true)  1554ms
+ ✓ tests/a32-contact-witness.test.ts (5 tests) 10803ms
+   ✓ accepts real uploaded jack matrices through lifting, lowering and full withdrawal on both circuits  10795ms
+ ✓ tests/shadow-proxies.test.ts (8 tests) 5567ms
+   ✓ leaves large sources casting alone and keeps merged casters within 16-bit indices  1794ms
+   ✓ casts the same shadow triangles from a rival car with about half the draws  3719ms
+ ✓ tests/pit-building-frontage.test.ts (16 tests) 8306ms
+   ✓ A21 authored pit-building frontage > preserves finite positions, unit normals, UVs and indexed triangles  5642ms
+   ✓ A21 authored pit-building frontage > places four independent chunks, clears the pit lane and never modifies track state  360ms
+   ✓ A21 authored pit-building frontage > retains exact A22 bay alignment and future sockets after static batching  353ms
+   ✓ A21 authored pit-building frontage > leaves every existing garage central mouth clear in all detail levels  541ms
+   ✓ A21 authored pit-building frontage > registers real slabs and end cores without treating empty garage mouths as solid  328ms
+   ✓ A21 authored pit-building frontage > selects exactly one level per chunk, never four near levels for a one-end closeup  379ms
+   ✓ A21 authored pit-building frontage > reuses geometry and materials while changing lighting and representation  361ms
+ ✓ tests/sky-clouds.test.ts (10 tests) 7597ms
+   ✓ cloud layer and coverage > lights clouds white by day, warm at dusk and grey under a closed deck  668ms
+   ✓ baked cumulus panorama > bakes the field once and each bin panorama on first use, restoring renderer state  1446ms
+   ✓ baked cumulus panorama > binds one bin for a PMREM capture and restores the visible blend  1317ms
+   ✓ baked cumulus panorama > never evicts a bound panorama and keeps at most the cache size  1316ms
+   ✓ baked cumulus panorama > does not cache a failed bake  1343ms
+   ✓ baked cumulus panorama > captures each PMREM bin with that bin panorama and restores the dome blend  1331ms
+ ✓ tests/worker-pause.test.ts (5 tests) 8336ms
+   ✓ the real worker flushes recording and sends a final frame before pause acknowledgement even with an exhausted frame pool  1699ms
+   ✓ delivers every player pit-service phase even while the consumer holds every pooled frame  6622ms
+ ✓ tests/impact-barriers.test.ts (8 tests) 4535ms
+   ✓ A04 authored impact blocks and tyre walls > retains metre-space templates, UVs, finite normalized normals and complete LOD geometry  1646ms
+   ✓ A04 authored impact blocks and tyre walls > places posts outside each track side and preserves source geometry through mirrored end treatments  363ms
+   ✓ A04 authored impact blocks and tyre walls > partitions all original barrier spans without changing track boundaries or fence wire  2123ms
+ ✓ tests/recovery-gates.test.ts (8 tests) 9098ms
+   ✓ A05 authored closed recovery/access gate family > keeps finite indexed metre-space geometry, unit normals, padded UVs and three mechanical pieces per tier  1573ms
+   ✓ A05 authored closed recovery/access gate family > partitions all 1596 original boundary spans while keeping 12 marshal panels and all six service gates  6830ms
+ ✓ tests/aurel-quarry.test.ts (12 tests) 8561ms
+   ✓ Quarry composition and retained race geometry > is deterministic across weather and includes every family only in Aurel  2168ms
+   ✓ Quarry composition and retained race geometry > checks the complete exported footprint and rejects blocked or invalid sites  2091ms
+   ✓ production lifetime and per-view detail > queues bounded spatial work and keeps geometry identity through lens/camera cycles  1759ms
+   ✓ production lifetime and per-view detail > excludes tree crowns from the formations and newly graded slope without removing the wider planting  2068ms
+ ✓ tests/route-overpass.test.ts (3 tests) 8210ms
+   ✓ WP11 overpass route identity > an AI lap over and under the bridge never teleports progress or surface  8206ms
+ ✓ tests/review-tools.test.ts (3 tests) 8716ms
+   ✓ Phase 27E evidence command line > recomputes raw observations, enforces source identity and gives strict failures for interrupted captures  4526ms
+   ✓ Phase 27E evidence command line > verifies actual counterpart PNG bytes without converting declarations into art certification  4053ms
+ ✓ tests/driver-asset.test.ts (6 tests) 6336ms
+   ✓ Blender-authored coupled driver > keeps continuous sleeves inside their culling envelope through rapid full-lock countersteering and loads  4868ms
+   ✓ Blender-authored coupled driver > reconstructs identical suit vertices after a replay seek, transforms correctly, and isolates two cars  1138ms
+ ✓ tests/branchless-release.test.ts (1 test) 5919ms
+   ✓ publishes exact validated bytes, recovers reruns, and rejects altered or stale artifacts without pushing branches  5916ms
+ ✓ tests/road-detail.test.ts (15 tests) 6445ms
+   ✓ asphalt texels (P4 tone, Sobel normals, meso tile) > builds a seamless, normalised meso tile with its own seed  933ms
+   ✓ asphalt texels (P4 tone, Sobel normals, meso tile) > gives asphalt a linear normal map (no bump map) and keeps three textures  706ms
+   ✓ asphalt detail shader > fades the chip tile to its mean over 15-40 m and adds meso tone and relief  622ms
+   ✓ racing surface layer > keeps the wet road uniform keys and composes after its state sample  538ms
+   ✓ racing surface layer > takes derivatives in uniform control flow and never inverts the chip relief  545ms
+   ✓ grid launch rubber and asphalt tone > compiles the launch tracks continuously across the start line  727ms
+   ✓ grid launch rubber and asphalt tone > lifts the racing asphalt by one calibrated tone gain in its finish  1796ms
+ ✓ tests/catch-fence.test.ts (8 tests) 5777ms
+   ✓ A03 authored catch-fence supports and retained analytic wire > retains finite indexed metre-space geometry and unit normals in every variant and tier  713ms
+   ✓ A03 authored catch-fence supports and retained analytic wire > keeps the wire vertices, UVs, indices and transparent shadow policy byte-identical  581ms
+   ✓ A03 authored catch-fence supports and retained analytic wire > uses exactly one closed gate at each retained marshal station across all 1596 spans  4126ms
+ ✓ tests/venue-pit-data.test.ts (3 tests) 5247ms
+   ✓ WP10 venue-owned pit and grid geometry > drives a full AI pit stop into a left-hand box and rejoins  4960ms
+ ✓ tests/overhead-garage-service-rig.test.ts (10 tests) 6784ms
+   ✓ A26 overhead garage services > all triangles clear the real passage and all vertices have finite UV/normal data  2520ms
+   ✓ A26 overhead garage services > clears all three concurrently integrated A35 parked-equipment envelopes  2788ms
+   ✓ A26 overhead garage services > inherits garage placement and all LOD transitions without changing A22 or A33  382ms
+   ✓ A26 overhead garage services > disposes attached resources exactly once and keeps the garage valid  373ms
+ ✓ tests/sector-timing.test.ts (5 tests) 8985ms
+   ✓ SectorBoard > times the production lap tracker: three sectors sum to the published lap  8978ms
+ ✓ tests/race-surface-atmosphere.test.ts (10 tests) 5898ms
+   ✓ registered full-lap asphalt aggregate > changes only asphalt maps, preserving all other surface bytes and texture storage  5096ms
+   ✓ optical-error-bounded local weather > conservatively bounds the retained quadrature for varied full-circuit rays  393ms
+ ✓ tests/steel-guardrails.test.ts (9 tests) 4400ms
+   ✓ A02 authored steel guardrail kit > retains metre-space templates, UVs, finite normalized normals and complete LOD geometry  410ms
+   ✓ A02 authored steel guardrail kit > retains the existing full-lap barrier segment coverage without overlapping concrete and steel  3241ms
+   ✓ A02 authored steel guardrail kit > retains fences and adds steel only inside the defined presentation runs  375ms
+ ✓ tests/ghost-lap.test.ts (4 tests) 6978ms
+   ✓ Time Trial ghost laps > never saves laps driven by the AI demonstration  6964ms
+ ✓ tests/supplied-player-lods.test.ts (8 tests) 6299ms
+   ✓ supplied player index-only LODs > pins the actual generated data to the unmodified source and measured budgets  1065ms
+   ✓ supplied player index-only LODs > changes real geometry only, preserves every source attribute and releases each wrapper once  1683ms
+   ✓ supplied player index-only LODs > fails closed for a missing primitive and for mismatched source vertex counts  346ms
+   ✓ supplied player index-only LODs > retains the exact baseline oriented-triangle fingerprint across all 516 primitive tiers  1591ms
+   ✓ supplied player index-only LODs > aliases only complete earlier ranges of the same primitive and reuses their geometry owner  948ms
+   ✓ supplied player index-only LODs > bounds transport and rejects corruption rather than accepting a fallback  464ms
+ ✓ tests/workshop-equipment.test.ts (15 tests) 5230ms
+   ✓ A36 original workshop equipment > does not intersect the actual A22 architecture above the floor  3371ms
+   ✓ A36 original workshop equipment > follows the garage LOD through scene batching and rejects repeated attachment  683ms
+   ✓ A36 bounded loading > loads the real bytes through the bounded transfer path  385ms
+ ✓ tests/phase27h-assembly.test.ts (38 tests) 4853ms
+   ✓ 27H.1 complete native mechanical assembly > contains every bounded material role and finite, unit-normal, indexed geometry  2740ms
+   ✓ 27H.1 complete native mechanical assembly > deforms the authored sidewall and lettering without lifting the bead at phase 0  322ms
+ ✓ tests/scenery-shadow-camera.test.ts (4 tests) 6946ms
+   ✓ vegetation pass-specific geometry detail > uses the actual shadow camera without changing the driving-view hysteresis  1775ms
+   ✓ vegetation pass-specific geometry detail > selects economical geometry for a small reflection without coarsening the main view  994ms
+   ✓ quarry pass-specific geometry detail > uses the actual shadow camera without changing the driving-view hysteresis  2267ms
+   ✓ quarry pass-specific geometry detail > selects economical geometry for a small reflection without coarsening the main view  1908ms
+ ✓ tests/start-gantry.test.ts (10 tests) 7970ms
+   ✓ A07 authored start-light gantry and retained signal apertures > retains normalized indexed geometry, padded atlas UVs and four structural parts at every tier  3533ms
+   ✓ A07 authored start-light gantry and retained signal apertures > grounds original-station footings without moving templates and registers only bounded structural occluders  542ms
+   ✓ A07 authored start-light gantry and retained signal apertures > retains the real race countdown and lights-out through the unchanged circuit signal update  3276ms
+ ✓ tests/drs.test.ts (8 tests) 6164ms
+   ✓ DRS and ERS overtake in the simulation > opens the player flap only on request, moving it over 0.15 s, and publishes R.DRS  3711ms
+   ✓ DRS and ERS overtake in the simulation > gives a 4 s overtake boost once the battery allows it  2363ms
+ ✓ tests/recording.test.ts (37 tests) 7080ms
+   ✓ keeps powertrain energy, damage and fragment poses connected to serialized state  2506ms
+   ✓ retains the real worker recording cadence during a 24-second consumer stall with surface updates  3936ms
+ ✓ tests/aurel-environment.test.ts (24 tests) 5216ms
+   ✓ 27H.4 constructed Aurel districts > terrace preserves geometry and bounds through the production batcher  403ms
+   ✓ plaza-to-terrain transitions > club returns every perimeter vertex to the actual terrain  796ms
+   ✓ plaza-to-terrain transitions > terrace returns every perimeter vertex to the actual terrain  350ms
+   ✓ physical drainage station presentation > keeps all original drain stations and conforms every vertex to the actual grade  1424ms
+ ✓ tests/clutch.test.ts (7 tests) 5292ms
+   ✓ a real car can free-rev with its clutch open, then launch without a velocity override  3230ms
+   ✓ serializes physical clutch state and rejects non-finite input  2056ms
+ ✓ tests/forest-belts.test.ts (8 tests) 8722ms
+   ✓ forest belts > plants 6-12 k deterministic trees 30-120 m behind the nearest boundary  3668ms
+   ✓ forest belts > mixes about 40 % conifers 14-28 m with 15-25 m broadleaf crowns  694ms
+   ✓ forest belts > builds unshadowed, density-scalable 240 m buckets within the draw allocation  1827ms
+   ✓ forest belts > plants the coastal circuit too  2524ms
+ ✓ tests/weather.test.ts (10 tests) 4698ms
+   ✓ evolves spatial wetting, drainage, temperature and contact sampling  1881ms
+   ✓ wind changes actual aerodynamic force rather than only particle direction  2594ms
+ ✓ tests/circuits.test.ts (11 tests) 8402ms
+   ✓ circuit definitions > drives the production simulation on Vellamar with finite state  6731ms
+   ✓ Vellamar venue and terrain > resolves every authored site clear of the circuit and above the waterline  899ms
+ ✓ tests/track-infrastructure.test.ts (10 tests) 5156ms
+   ✓ A01-A07 integrated infrastructure contract > A04 rejects zero-area exported triangles across every retained LOD  547ms
+   ✓ A01-A07 integrated infrastructure contract > A05 rejects zero-area exported triangles across every retained LOD  393ms
+   ✓ A01-A07 integrated infrastructure contract > A07 rejects zero-area exported triangles across every retained LOD  355ms
+   ✓ A01-A07 integrated infrastructure contract > restores actual recorded start lamps after lights-out, held frames and a new-session reset without mutating snapshots  3054ms
+ ✓ tests/race-day.test.ts (5 tests) 5428ms
+   ✓ routes a full grid around car envelopes and leaves parked bodies fixed in world space  5146ms
+ ✓ tests/wheel-alignment.test.ts (3 tests) 4341ms
+   ✓ records the exact Ackermann, toe and camber angles used by each physical tire  2342ms
+   ✓ CSV and both replay presentation paths preserve actual per-wheel alignment  1928ms
+stdout | tests/a61-rival.test.ts > preserves actual FormulaCar steering, service, damage, replay rewind and mirror handoff without increasing near draws
+A61_CPU_DRAW_CENSUS [{"level":0,"before":{"draws":94,"triangles":221140},"after":{"draws":94,"triangles":228936}},{"level":1,"before":{"draws":23,"triangles":22113},"after":{"draws":27,"triangles":46444}},{"level":2,"before":{"draws":23,"triangles":16517},"after":{"draws":27,"triangles":24212}},{"level":0,"before":{"draws":94,"triangles":221140},"after":{"draws":94,"triangles":228936}}]
+
+ ✓ tests/a61-rival.test.ts (5 tests) 4490ms
+   ✓ retains one original native source, complete mechanical roles, bounded UVs and three smaller derivatives  1547ms
+   ✓ preserves actual FormulaCar steering, service, damage, replay rewind and mirror handoff without increasing near draws  2264ms
+ ✓ tests/start-finish.test.ts (9 tests) 5546ms
+   ✓ Original Aurel start/finish kit > retains native/exchange/runtime identity and finite owned geometry for every tier  581ms
+   ✓ Original Aurel start/finish kit > constructs both start stands with unchanged seat transforms and unobstructed aisle centres  779ms
+   ✓ Original Aurel start/finish kit > keeps marshal gloves on the pole and every arm reachable through all real flag types and seeks  713ms
+   ✓ Original Aurel start/finish kit > refreshes recorded board data after rewind and session reset, without replaying a stale grid  2631ms
+   ✓ Original Aurel start/finish kit > keeps fence mounting detail in the existing three batches without editing track data  489ms
+ ✓ tests/scenery-cube-camera.test.ts (3 tests) 4322ms
+   ✓ real cubemap cameras in the production scenery callbacks > vegetation draws all six signed cube lenses without changing main-view LOD or resources  1632ms
+   ✓ real cubemap cameras in the production scenery callbacks > quarry draws all six signed cube lenses without changing main-view LOD or resources  2686ms
+ ✓ tests/visual-coherence.test.ts (28 tests) 4022ms
+   ✓ 27H.5 snapshot-owned material weather > holds and rewinds exactly without mutating production simulation frames  2855ms
+   ✓ 27H.5 shared illumination, not emissive precipitation > day keeps sun/fill finite and uses reversible cloud response  418ms
+   ✓ 27H.5 shared illumination, not emissive precipitation > reduces orange sunset illumination under thick cloud and keeps night subordinate  397ms
+ ✓ tests/presentation-closure.test.ts (5 tests) 2561ms
+   ✓ Phase 27 graphics closure > keeps independently actuated instanced paddles at the exact original local poses  850ms
+   ✓ Phase 27 graphics closure > samples actual nearby canopy geometry across each broadcast shot and four aspects  829ms
+   ✓ hands off crowd levels without double-drawing or dropping a spectator and restores exact rewind weights  736ms
+ ✓ tests/track-signal-hardware.test.ts (8 tests) 2409ms
+   ✓ A08 authored signal housings and retained live displays > retains finite indexed geometry, normalized normals and padded atlas coordinates in all variants and every tier  949ms
+   ✓ A08 authored signal housings and retained live displays > retains exact live LED and unrelated camera/drain geometry while replacing only utility cabinets  915ms
+   ✓ A08 authored signal housings and retained live displays > uses the three original timing stations with grounded, protected footprints and immutable source templates  429ms
+ ✓ tests/track-boards.test.ts (9 tests) 3664ms
+   ✓ A09 authored braking and sector boards > retains finite indexed geometry, normalized normals and padded atlas coordinates in all variants and every tier  756ms
+   ✓ A09 authored braking and sector boards > grounds each weighted foot, preserves templates, keeps road/fence stand-offs and uses bounded LODs  2253ms
+ ✓ tests/marshal-posts.test.ts (8 tests) 4995ms
+   ✓ A06 authored marshal shelters and retained signals > retains finite indexed geometry, normalized normals and padded atlas coordinates in both variants and every tier  1696ms
+   ✓ A06 authored marshal shelters and retained signals > keeps all twelve sites, protected track offsets, immutable templates and grounded footings on both mirrored sides  2296ms
+   ✓ A06 authored marshal shelters and retained signals > replaces shelter geometry while retaining exact LED, extinguisher and unrelated infrastructure geometry  765ms
+ ✓ tests/phase27c.test.ts (7 tests) 3401ms
+   ✓ Phase 27C geometry, integration and temporal invariants > preserves seat anchors and fixed arm lengths at every load and steering extreme  775ms
+   ✓ Phase 27C geometry, integration and temporal invariants > keeps the six service sites and lighting grounded and clear of protected corridors  1683ms
+   ✓ Phase 27C geometry, integration and temporal invariants > keeps camera bodies out of their own views without a transmissive full-scene pass  525ms
+ ✓ tests/human-kit.test.ts (7 tests) 3138ms
+   ✓ procedural human kit > decodes every baked mesh into owned, valid, closed-index geometry  974ms
+   ✓ procedural human kit > skins bodies to the shared skeleton with four normalised influences  1424ms
+   ✓ procedural human kit > bakes spectator occlusion, arm coordinates and build at every LOD without changing far budgets  544ms
+ ✓ tests/secondary-grandstands.test.ts (8 tests) 3159ms
+   ✓ A12 retained-site integration > preserves all six seat buffers, crowd cohorts, aisles, clearance and canopy sightlines  2348ms
+   ✓ A12 authored shape and camera-specific detail > retains winding, normal correspondence and geometry ownership when mirrored  302ms
+ ✓ tests/skid-recording.test.ts (14 tests) 2568ms
+   ✓ records a real chassis strike and exports every skid measurement without moving old CSV fields  2371ms
+ ✓ tests/tyre-marks.test.ts (5 tests) 3530ms
+   ✓ laid tyre rubber > aurel: braking zones end at corners and every mark lies on the asphalt near the line  842ms
+   ✓ laid tyre rubber > vellamar: braking zones end at corners and every mark lies on the asphalt near the line  946ms
+   ✓ laid tyre rubber > builds a few culled, upward-facing, non-occluding meshes on the road  817ms
+   ✓ laid tyre rubber > fades the marks under the physics water film, on the road state coordinates  883ms
+ ✓ tests/reference-rendering.test.ts (11 tests) 2336ms
+   ✓ asphalt texels are deterministic, bounded and fully opaque  301ms
+   ✓ reduces direct sunlight with recorded cloud cover and bounds adverse weather lighting  873ms
+   ✓ places complete trees on the visible ground, outside every nearby racing or pit corridor  607ms
+ ✓ tests/race-surface-finish.test.ts (12 tests) 3319ms
+   ✓ race surface continuity > integrates stripe coverage at negative phases, seams and minified footprints  379ms
+   ✓ race surface continuity > keeps bind coordinates, topology and UVs independent of live authored carcasses  1440ms
+   ✓ race surface continuity > observes all four live tyre states before LOD returns and restores an exact rewind  1487ms
+ ✓ tests/pit-wall-station.test.ts (11 tests) 4315ms
+   ✓ A24 retained pit-wall asset > reads the real interpolated presentation, then restores an exact seek  3467ms
+ ✓ tests/secondary-stand-circulation.test.ts (8 tests) 4631ms
+   ✓ A12 same-material circulation batching > retains every oriented near rail/aisle corner on right stands  503ms
+   ✓ A12 same-material circulation batching > retains every oriented mid rail/aisle corner on right stands  836ms
+   ✓ A12 same-material circulation batching > retains every oriented far rail/aisle corner on right stands  588ms
+   ✓ A12 same-material circulation batching > retains every oriented near rail/aisle corner on left stands  804ms
+   ✓ A12 same-material circulation batching > retains every oriented mid rail/aisle corner on left stands  745ms
+   ✓ A12 same-material circulation batching > retains every oriented far rail/aisle corner on left stands  426ms
+   ✓ A12 same-material circulation batching > owns separate packed buffers per scene and never mutates native prototypes  692ms
+ ✓ tests/studio-qa-tools.test.ts (7 tests) 961ms
+ ✓ tests/service-lens.test.ts (7 tests) 3748ms
+   ✓ projects the complete real crew envelope at every bay and viewport with a readable footprint  338ms
+   ✓ uses the selected authored cloth in the actual fifteen-person crew and reuses held poses  888ms
+   ✓ places the permanent pit lens above the actual foreground fence at all twelve bays  2366ms
+ ✓ tests/mirror-detail.test.ts (4 tests) 2293ms
+   ✓ keeps coarser representations posed and damaged while a rival is at full detail  2282ms
+ ✓ tests/spray-lighting.test.ts (5 tests) 2072ms
+   ✓ lit spray and spatial floodlight continuity > uses bounded continuous weights and exchanges tied lamps at zero energy  833ms
+   ✓ lit spray and spatial floodlight continuity > keeps four physical slots, deterministic seeks and a reversible daylight state  615ms
+   ✓ lit spray and spatial floodlight continuity > leaves no dark gaps or discontinuous handoffs along the complete racing line  594ms
+ ✓ tests/marbles.test.ts (25 tests) 3720ms
+   ✓ physical loose rubber and tire contamination > depletes the touched cell and does not change a neighbouring cell merely by pickup  606ms
+   ✓ physical loose rubber and tire contamination > couples production vehicle contacts, pickup counters and actual track depletion  2504ms
+ ✓ tests/race-control.test.ts (13 tests) 3156ms
+   ✓ raised pit jack feet retain a finite support polygon on the sloped lane  2909ms
+ ✓ tests/a33-spare-wheel-set.test.ts (12 tests) 3371ms
+   ✓ A33 retained Blender wheel handling contract > preserves radius, distinct widths, UVs, normals and exact front/rear topology at every LOD  936ms
+   ✓ A33 retained Blender wheel handling contract > retains a genuine axial bore in both shapes and all three LODs  313ms
+   ✓ A33 retained Blender wheel handling contract > preserves atlas surface separation without baked light or per-wheel material allocation  313ms
+   ✓ A33 production service consumers > uses axle-centred transfer, end-correct spares and unchanged recorded state  558ms
+   ✓ A33 production service consumers > keeps 48 spares for twelve simultaneous crews, with no per-wheel draws or per-frame geometry  493ms
+ ✓ tests/race-finish.test.ts (6 tests) 2972ms
+   ✓ recorded rear signal across the production car LODs > keeps one visible lamp, matches the spray field and rewinds without stale emission  2231ms
+   ✓ authored suit regions and shadow agreement > crew_high has unambiguous bind-space torso/sleeve/leg regions  486ms
+ ✓ tests/hero-shells.test.ts (8 tests) 2787ms
+   ✓ 27H real Blender glTF integration > loads the exact false transport with actual GLTFLoader and preserves metre envelopes/paint UVs  773ms
+   ✓ 27H real Blender glTF integration > loads the exact true transport with actual GLTFLoader and preserves metre envelopes/paint UVs  679ms
+   ✓ 27H real Blender glTF integration > owns independent clones and releases prototypes without invalidating another renderer or a car  530ms
+   ✓ 27H real Blender glTF integration > loads a real streamed response and rejects oversized or HTTP-error responses  501ms
+ ✓ tests/grid-presentation.test.ts (6 tests) 2725ms
+   ✓ plants feet in world space between swings, without teleporting at pose boundaries  585ms
+   ✓ uses the real skinned bodies and gloves through the whole sequence without changing the race  1306ms
+   ✓ retains bounded authored hero topology, UVs and normalized four-influence skin weights  466ms
+   ✓ retains a fixed supporting foot while kneeling and rising, and throughout each walking stance  347ms
+ ✓ tests/driver-brain.test.ts (8 tests) 3495ms
+   ✓ generates repeatable, bounded correlated control mistakes from the seed  2986ms
+ ✓ tests/tyre-blankets.test.ts (10 tests) 2347ms
+   ✓ A34 retained thermal-blanket kit > clears the APX outboard locking hub with actual panel geometry at every LOD  610ms
+   ✓ A34 retained thermal-blanket kit > aligns the actual A33 garage wheel batches under the covers across LOD changes  534ms
+   ✓ A34 retained thermal-blanket kit > validates each runtime LOD, sockets, clone sharing and material batching  454ms
+   ✓ A34 retained thermal-blanket kit > keeps fitted covers on their floor contacts and routes cables outside the central car aisle  469ms
+ ✓ tests/wet-broadcast-fidelity.test.ts (9 tests) 2023ms
+   ✓ builds finite batchable marshal, drainage, utility and camera geometry  1611ms
+ ✓ tests/input.test.ts (7 tests) 2919ms
+   ✓ human input and vehicle coordinate boundary > a real car commanded right moves to the right in the starting camera frame  2907ms
+ ✓ tests/trackside-operations.test.ts (5 tests) 3624ms
+   ✓ A08-A10 integrated asset contracts > A08 has non-degenerate indexed triangles at every exported level  719ms
+   ✓ A08-A10 integrated asset contracts > A09 has non-degenerate indexed triangles at every exported level  551ms
+   ✓ A08-A10 integrated asset contracts > A10 has non-degenerate indexed triangles at every exported level  1954ms
+   ✓ A08-A10 integrated asset contracts > is deterministic across fresh plans and does not mutate track or boundary samples  395ms
+ ✓ tests/vehicle-rollover.test.ts (5 tests) 2211ms
+   ✓ rollover resistance > slides rather than overturning at full lock (sport, runway)  749ms
+   ✓ rollover resistance > slides rather than overturning at full lock (sport, sausage-kerb)  831ms
+ ✓ tests/phase27e.test.ts (11 tests) 1256ms
+   ✓ Phase 27E snapshot-connected lights and broadcast > leaves daylight identical and bounds continuous wet-night grading  536ms
+   ✓ Phase 27E venue access remains inside the original budgets > grounds six full-width spurs and batches their detail without increasing the gates  461ms
+stderr | tests/source-stability.test.ts > rejects a build-time modification or addition to src/example.ts
+Command rewrote application inputs:
+src/example.ts
+
+stderr | tests/source-stability.test.ts > rejects a build-time modification or addition to src/new.ts
+Command rewrote application inputs:
+src/new.ts
+
+stderr | tests/source-stability.test.ts > rejects a build-time modification or addition to docs/guide.md
+Command rewrote application inputs:
+docs/guide.md
+
+stderr | tests/source-stability.test.ts > rejects a build-time modification or addition to package.json
+Command rewrote application inputs:
+package.json
+
+stderr | tests/source-stability.test.ts > rejects deleted input even when the child command fails
+Command rewrote application inputs:
+src/example.ts
+
+stderr | tests/source-stability.test.ts > propagates a failing command and fails closed for a missing executable
+spawnSync /tmp/source-stability-xzCOWt/nonexistent-executable ENOENT
+
+ ✓ tests/source-stability.test.ts (9 tests) 840ms
+ ✓ tests/practice-programme.test.ts (10 tests) 1743ms
+   ✓ authoritative physics-worker participation and validity metadata > marks actual auto and pit assistance, not just a UI toggle, including AI opponents  1485ms
+ ✓ tests/concrete-barriers.test.ts (8 tests) 708ms
+ ✓ tests/foliage-coverage.test.ts (3 tests) 1350ms
+   ✓ quantized foliage mip coverage > matches the best representable histogram partition for sparse and dense mips  1346ms
+ ✓ tests/weather-reconciliation.test.ts (15 tests) 1957ms
+   ✓ fractional sky changes blend without repeated PMREM work or paused GPU updates  653ms
+   ✓ sky replay and day/sunset/night switches reconstruct coverage with bounded ownership  854ms
+ ✓ tests/crew-performance.test.ts (6 tests) 2422ms
+   ✓ keeps geometry owned, UV-complete, four-weight normalized, and properly mirrored at the glove  616ms
+   ✓ uses the same procedural human kit and skeleton in grid preparation and live pit service  1508ms
+ ✓ tests/supplied-skin-bounds.test.ts (6 tests) 1413ms
+   ✓ conservative supplied-player skin bounds > contains every actual source vertex at both steering locks, neutral, translated and rewound poses  1392ms
+ ✓ tests/presentation-continuity.test.ts (10 tests) 1540ms
+   ✓ Presentation continuation: distant spectators > partitions every transition into exactly one visible representation per spectator  671ms
+   ✓ Presentation continuation: bounded night illumination > leaves daytime exposure unchanged and uses a finite reversible night profile  398ms
+ ✓ tests/reference-depth.test.ts (29 tests) 629ms
+   ✓ original headquarters geometry and real team calendar > builds a bounded three-dimensional atrium without changing the physical subject  511ms
+ ✓ tests/venue-landmark.test.ts (4 tests) 1022ms
+   ✓ grounded original event hall > shares a deterministic full-plaza footprint with planting and sampled terrain  563ms
+ ✓ tests/cockpit-detail.test.ts (13 tests) 1237ms
+   ✓ cockpit detail batching > encloses every selector vertex throughout rotation without disabling frustum culling  769ms
+ ✓ tests/environment-weathering.test.ts (16 tests) 908ms
+   ✓ authored asset download > lets a slow but live transfer finish past the stall window  378ms
+   ✓ authored asset download > abandons a stalled transfer with a stall message, not a truncation  314ms
+ ✓ tests/daylight-environment.test.ts (6 tests) 701ms
+   ✓ interpolates bounded sky bins, restores live uniforms and disposes replaced outputs exactly once  530ms
+ ✓ tests/event-hall.test.ts (20 tests) 983ms
+   ✓ A71 architecture and projected detail > does not replace Vellamar with an Aurel event hall  431ms
+ ✓ tests/tyre-trolleys-racks.test.ts (11 tests) 1795ms
+   ✓ A35 tyre trolleys and garage racks > checks real garage mesh rays, not only bounding boxes, through the occupied equipment volumes  587ms
+ ✓ tests/studio-look-contracts.test.ts (8 tests) 1091ms
+   ✓ studio look contracts > P3: diffuse environment, hemisphere and sun follow cover  914ms
+ ✓ tests/terrain-landform.test.ts (5 tests) 1040ms
+   ✓ far landscape finish > measures every terrain vertex distance to the circuit, capped  750ms
+ ✓ tests/landform-groves.test.ts (4 tests) 941ms
+   ✓ grove and treeline planting layer > is deterministic, bounded and separate from the near-track plan  478ms
+   ✓ grove and treeline planting layer > clumps trees, stays clear of the racing and service corridors and every footprint  396ms
+ ✓ tests/phase27f-atmosphere-audio.test.ts (3 tests) 678ms
+   ✓ captures independent day/night environment identities and restores the live night mode after errors  674ms
+ ✓ tests/race-review.test.ts (43 tests) 997ms
+ ✓ tests/elbow-sleeve.test.ts (2 tests) 1006ms
+   ✓ IK-driven elbow cloth > keeps buffers, finite unit normals and welded seams across all steering positions  997ms
+ ✓ tests/hero-garage.test.ts (7 tests) 1563ms
+   ✓ A22 authored garage > has nine correctly transformed metre-space sockets and stays within its bay  716ms
+   ✓ A22 authored garage > preserves an open central passage and the LOD hierarchy through static scene batching  315ms
+   ✓ A22 authored garage > frees every owned resource exactly once on repeated detached disposal  414ms
+ ✓ tests/phase27g-models.test.ts (10 tests) 855ms
+ ✓ tests/brake-coupling.test.ts (4 tests) 1049ms
+   ✓ ABS releases generator torque and only credits actual generator work  734ms
+ ✓ tests/ibl-energy.test.ts (10 tests) 3195ms
+   ✓ D03 producer lighting decisions (P1-P3) > splits the day light into sun, sky IBL and a minor hemisphere term  3132ms
+ ✓ tests/circuit-detail.test.ts (14 tests) 1339ms
+   ✓ shares the structural footprint with vegetation and leaves racing and pit corridors clear  471ms
+ ✓ tests/aurel-drain-datum.test.ts (1 test) 389ms
+   ✓ keeps the Quarry drain bars visible above the actual shipping runoff triangles  386ms
+ ✓ tests/phase27g-presentation.test.ts (6 tests) 2076ms
+   ✓ ties sunset sky, direct light and shadow grid to the same low sun  1338ms
+   ✓ separates day/sunset/night environment identities and restores live uniforms on errors  706ms
+ ✓ tests/pit-material-warmup.test.ts (7 tests) 1558ms
+   ✓ offscreen pit material warmup ownership > exercises all fifteen actual authored actors in each layout, then restores the real grid  1524ms
+ ✓ tests/dusk-readability.test.ts (2 tests) 1376ms
+   ✓ shared dusk skylight balance > lifts indirect readability without changing the key, camera exposure, sky or fog  1370ms
+ ✓ tests/acceptance-matrix.test.ts (8 tests) 861ms
+   ✓ exact acceptance evidence > binds all 248 rows to actual paths and keeps 82 game, two hardware and 16 unrelated images distinct  663ms
+ ✓ tests/graphics-continuity.test.ts (11 tests) 794ms
+   ✓ graphics closure: original livery at every distance > shares both signed flank materials at LOD 2, without allocating replacement textures  321ms
+ ✓ tests/tire-carcass.test.ts (12 tests) 561ms
+ ✓ tests/wing-surface.test.ts (15 tests) 1544ms
+   ✓ Phase 27B original aero surfaces > builds deterministic buffers and spends only 480 extra triangles across eight wings  479ms
+ ✓ tests/contact.test.ts (5 tests) 928ms
+   ✓ triangle contact acceleration > matches the analytic road, limits triangle work and closes the lap seam  915ms
+ ✓ tests/reference-implementation.test.ts (30 tests) 1048ms
+ ✓ tests/camera.test.ts (31 tests) 995ms
+   ✓ freezes actual trackside gaze and cockpit spring state at a paused presentation time  486ms
+ ✓ tests/broadcast-sightlines.test.ts (5 tests) 1440ms
+   ✓ actual static geometry broadcast sightlines > cuts to an existing visible neighbour and stays there until coverage expires  362ms
+   ✓ actual static geometry broadcast sightlines > registers actual built shelter solids and stand canopy before geometry batching  1007ms
+ ✓ tests/phase27g-venue.test.ts (2 tests) 1582ms
+   ✓ authors four genuinely different districts on safe, separate outboard footprints  1474ms
+ ✓ tests/aerial-perspective.test.ts (7 tests) 987ms
+   ✓ P12 aerial perspective > sets the P12 densities by weather and lighting  576ms
+ ✓ tests/broadcast-camera-cycle.test.ts (1 test) 1117ms
+   ✓ closes the long-lens hysteresis cycle without creating new authored geometry  1109ms
+ ✓ tests/wheel-gun.test.ts (9 tests) 915ms
+   ✓ A31 wheel-gun production handoff > replaces—not overlays—the old gun batch; preserves other pit props and immutable/replay state  690ms
+ ✓ tests/f1-hud.test.ts (14 tests) 926ms
+   ✓ F1 HUD map and MFD > maps the circuit inside the canvas with sector marks outside the loop  319ms
+ ✓ tests/material-library.test.ts (14 tests) 701ms
+   ✓ material library API > asphalt and wet road couple to the shared weather with puddles and ripples  417ms
+ ✓ tests/driver-controls.test.ts (3 tests) 749ms
+   ✓ Coupled cockpit contact surfaces > keeps distal finger contact with its actual moving paddle, while preserving the proximal grip  693ms
+ ✓ tests/foliage-crowns.test.ts (3 tests) 897ms
+   ✓ shaped foliage crowns > keeps every shaped crown inside its culling bounds and the silhouettes distinct  859ms
+ ✓ tests/sky-linear.test.ts (7 tests) 905ms
+   ✓ scene light from the sky > lights clouds white by day, gold at dusk and grey under a closed deck  525ms
+ ✓ tests/rival-detail.test.ts (2 tests) 552ms
+   ✓ paints the reduced rival wheels and halo in the team colour, draw-neutral  540ms
+ ✓ tests/presentation-review.test.ts (22 tests) 473ms
+ ✓ tests/grid-staff.test.ts (2 tests) 521ms
+   ✓ poses every grid staff member reachably, with gloves on the posed wrists  325ms
+ ✓ tests/presentation-time.test.ts (23 tests) 1186ms
+   ✓ retains real weather/contact work during 0.5 FPS rendering  441ms
+ ✓ tests/core.test.ts (25 tests) 312ms
+ ✓ tests/pit-presentation.test.ts (2 tests) 499ms
+   ✓ bounds twelve authored fifteen-person crews and three allocated A33 LODs with finite transforms  495ms
+ ✓ tests/tab-evidence.test.ts (8 tests) 401ms
+ ✓ tests/proximity.test.ts (10 tests) 556ms
+ ✓ tests/character-quality.test.ts (8 tests) 481ms
+ ✓ tests/secondary-grandstand-assets.test.ts (14 tests) 334ms
+ ✓ tests/post-lens.test.ts (10 tests) 505ms
+   ✓ lens effects > builds the same dirt mask every time  340ms
+ ✓ tests/sky-order.test.ts (1 test) 265ms
+ ✓ tests/marshal.test.ts (15 tests) 540ms
+ ✓ tests/driver.test.ts (4 tests) 432ms
+   ✓ articulated driver > maintains fixed limb lengths and reachable wrists through the entire steering range  329ms
+ ✓ tests/supplied-player.test.ts (10 tests) 377ms
+ ✓ tests/race-view-continuity.test.ts (5 tests) 676ms
+   ✓ current-view detail and deterministic presentation > poses each car once, after the current view is solved (following 0)  506ms
+ ✓ tests/traffic.test.ts (8 tests) 451ms
+ ✓ tests/wake-cull.test.ts (1 test) 333ms
+   ✓ §23.4 the 101 m wake cull never discards a non-zero wake  326ms
+ ✓ tests/phase27g-completion.test.ts (23 tests) 544ms
+ ✓ tests/wet-presentation.test.ts (13 tests) 577ms
+ ✓ tests/terrain-tiles.test.ts (3 tests) 760ms
+   ✓ terrain tiles (D32) > gives each tile a bounding sphere a quarter of the plane across, so frusta cull it  603ms
+ ✓ tests/trackside-branding.test.ts (5 tests) 487ms
+   ✓ barrier vinyl and bridges > builds about ten merged vinyl draws plus two bridges, in front of the barrier face  346ms
+ ✓ tests/phase27g-events.test.ts (8 tests) 396ms
+ ✓ tests/phase27f-models.test.ts (10 tests) 307ms
+ ✓ tests/sky-ephemeris.test.ts (8 tests) 439ms
+   ✓ LIVE lighting controller > binds the moon, stars and twilight to the sky dome  426ms
+ ✓ tests/lens-bloom.test.ts (6 tests) 469ms
+ ✓ tests/pit-approach.test.ts (6 tests) 419ms
+ ✓ tests/cockpit-framing.test.ts (9 tests) 237ms
+ ✓ tests/session-review.test.ts (6 tests) 369ms
+ ✓ tests/crowd-flags.test.ts (2 tests) 182ms
+ ✓ tests/aero-surface.test.ts (8 tests) 222ms
+ ❯ tests/frontend-menus.test.ts (4 tests | 1 failed) 149ms
+   ✓ front-end showroom and speed tunnel > frames the menu car from a low eye with a long lens (AB-B 4.2) 130ms
+   ✓ front-end showroom and speed tunnel > paints a deterministic streak tunnel converging on (0.62, 0.45) 5ms
+   ✓ front-end showroom and speed tunnel > installs one menu-only backdrop rule, leaving the pause menu over the live race 1ms
+   × front-end showroom and speed tunnel > styles the menu list as F1 25 pills with player actions only; dev tools stay behind ?dev 10ms
+     → expected [ '<button data-action=', …(7) ] to have a length of 7 but got 8
+ ✓ tests/road-contact.test.ts (8 tests) 291ms
+ ✓ tests/supplied-compaction.test.ts (12 tests) 99ms
+ ✓ tests/phase27g-media.test.ts (4 tests) 129ms
+ ✓ tests/light-pools.test.ts (4 tests) 233ms
+ ✓ tests/race-structures.test.ts (3 tests) 162ms
+ ✓ tests/rotation.test.ts (6 tests) 226ms
+ ✓ tests/ultra-pipeline.test.ts (21 tests) 120ms
+ ✓ tests/paddock-detail.test.ts (5 tests) 87ms
+ ✓ tests/rendering.test.ts (5 tests) 262ms
+ ✓ tests/cloud-shadow.test.ts (4 tests) 108ms
+ ✓ tests/trackside.test.ts (3 tests) 180ms
+ ✓ tests/broadcast-presentation.test.ts (14 tests) 115ms
+ ✓ tests/telemetry-plots.test.ts (13 tests) 129ms
+ ✓ tests/driver-look.test.ts (9 tests) 157ms
+ ✓ tests/supplied-draw-ranges.test.ts (8 tests) 62ms
+ ✓ tests/flashback-recording.test.ts (4 tests) 11ms
+ ✓ tests/phase27g-seams.test.ts (3 tests) 42ms
+ ✓ tests/replay-photo.test.ts (8 tests) 66ms
+ ✓ tests/effects-upload.test.ts (1 test) 102ms
+ ✓ tests/local-frame.test.ts (4 tests) 148ms
+ ✓ tests/supplied-shader-work.test.ts (9 tests) 33ms
+ ✓ tests/reflections.test.ts (18 tests) 56ms
+ ✓ tests/photo-reference.test.ts (13 tests) 58ms
+ ✓ tests/ultra-math.test.ts (23 tests) 52ms
+ ✓ tests/menu-preview.test.ts (3 tests) 130ms
+ ✓ tests/terrain.test.ts (4 tests) 38ms
+ ✓ tests/performance.test.ts (16 tests) 77ms
+ ✓ tests/recorded-signal-displays.test.ts (9 tests) 93ms
+ ✓ tests/team-career.test.ts (22 tests) 74ms
+ ✓ tests/wheel-pose.test.ts (9 tests) 20ms
+ ✓ tests/route-graph.test.ts (4 tests) 45ms
+ ✓ tests/bike.test.ts (5 tests) 44ms
+ ✓ tests/safety.test.ts (9 tests) 32ms
+ ✓ tests/road-macro.test.ts (2 tests) 56ms
+ ✓ tests/studio-frame.test.ts (21 tests) 52ms
+ ✓ tests/mirrors.test.ts (7 tests) 30ms
+ ✓ tests/quarry-surface-uv.test.ts (1 test) 62ms
+ ✓ tests/scoring-stage.test.ts (3 tests) 204ms
+ ✓ tests/controller-buttons.test.ts (34 tests) 55ms
+ ✓ tests/paint-livery.test.ts (6 tests) 28ms
+ ✓ tests/decal-coverage.test.ts (4 tests) 11ms
+ ✓ tests/stadium-seat.test.ts (2 tests) 27ms
+ ✓ tests/brand-atlas.test.ts (5 tests) 35ms
+ ✓ tests/gpu-frame-gate.test.ts (11 tests) 32ms
+ ✓ tests/reference-evidence.test.ts (9 tests) 40ms
+ ✓ tests/browser-shard-plan.test.ts (2 tests) 19ms
+ ✓ tests/championship.test.ts (5 tests) 9ms
+ ✓ tests/temporal-aa.test.ts (5 tests) 16ms
+ ✓ tests/button-actions.test.ts (17 tests) 23ms
+ ✓ tests/review-hardware.test.ts (3 tests) 6ms
+ ✓ tests/race-readability.test.ts (13 tests) 28ms
+ ✓ tests/secondary-stand-artifacts.test.ts (4 tests) 38ms
+ ✓ tests/telemetry-export.test.ts (2 tests) 15ms
+ ✓ tests/static-instance-shadow-bounds.test.ts (15 tests) 19ms
+ ✓ tests/presentation.test.ts (19 tests) 30ms
+ ✓ tests/motion-blur.test.ts (10 tests) 22ms
+ ✓ tests/pixel-difference.test.ts (6 tests) 11ms
+ ✓ tests/replay-clock.test.ts (2 tests) 15ms
+ ✓ tests/studio-shader-hooks.test.ts (25 tests) 28ms
+ ✓ tests/static-transform-group.test.ts (6 tests) 24ms
+ ✓ tests/browser-backend.test.ts (3 tests) 8ms
+ ✓ tests/kerb-runoff.test.ts (5 tests) 13ms
+ ✓ tests/tyre-wheels.test.ts (7 tests) 17ms
+ ✓ tests/far-shadow.test.ts (4 tests) 15ms
+ ✓ tests/imported-render-budget.test.ts (8 tests) 16ms
+ ✓ tests/moving-surface.test.ts (3 tests) 18ms
+ ✓ tests/supplied-lookdev.test.ts (5 tests) 16ms
+ ✓ tests/calibration.test.ts (15 tests) 16ms
+ ✓ tests/ultra-options.test.ts (11 tests) 13ms
+ ✓ tests/spatial-audio.test.ts (8 tests) 9ms
+ ✓ tests/spray-plume.test.ts (1 test) 3ms
+ ✓ tests/skid-contact.test.ts (13 tests) 76ms
+ ✓ tests/pit-sequence.test.ts (13 tests) 9ms
+ ✓ tests/steering-display.test.ts (2 tests) 4ms
+ ✓ tests/player-index-cache.test.ts (3 tests) 16ms
+ ✓ tests/infrastructure-render-budget.test.ts (17 tests) 13ms
+ ✓ tests/session-identity.test.ts (3 tests) 17ms
+ ✓ tests/settings-transition.test.ts (49 tests) 11ms
+ ✓ tests/startup.test.ts (4 tests) 13ms
+ ✓ tests/menu-presentation.test.ts (8 tests) 17ms
+ ✓ tests/completed-draw.test.ts (6 tests) 10ms
+ ✓ tests/shadow-grounding.test.ts (6 tests) 9ms
+ ✓ tests/bindings.test.ts (5 tests) 10ms
+ ✓ tests/point-light-work.test.ts (8 tests) 11ms
+ ✓ tests/replay-presentation.test.ts (4 tests) 11ms
+ ✓ tests/render-census.test.ts (1 test) 7ms
+ ✓ tests/wet-reflection.test.ts (4 tests) 14ms
+ ✓ tests/visible-wheel-pivots.test.ts (4 tests) 13ms
+ ✓ tests/preparation.test.ts (4 tests) 12ms
+ ✓ tests/wet-detail.test.ts (2 tests) 5ms
+ ✓ tests/content-import.test.ts (2 tests) 8ms
+ ✓ tests/build-queue.test.ts (5 tests) 8ms
+ ✓ tests/barrier-lookdev.test.ts (1 test) 4ms
+ ✓ tests/power-unit-audio.test.ts (4 tests) 5ms
+ ✓ tests/scenery-pass-detail.test.ts (4 tests) 9ms
+ ✓ tests/operations-render-budget.test.ts (12 tests) 8ms
+ ✓ tests/secondary-stand-capture.test.ts (3 tests) 8ms
+ ✓ tests/secondary-stand-camera.test.ts (4 tests) 7ms
+ ✓ tests/frontend-retail.test.ts (3 tests) 9ms
+ ✓ tests/lap-reference.test.ts (5 tests) 8ms
+ ✓ tests/directive.test.ts (1 test) 6ms
+ ✓ tests/audio.test.ts (5 tests) 7ms
+ ✓ tests/radio.test.ts (4 tests) 7ms
+ ✓ tests/exposure-key.test.ts (3 tests) 20ms
+ ✓ tests/glazing.test.ts (1 test) 6ms
+ ✓ tests/pit-replay-selection.test.ts (3 tests) 5ms
+ ✓ tests/content-validation.test.ts (3 tests) 6ms
+ ✓ tests/near-grass.test.ts (3 tests) 6ms
+ ✓ tests/sound-profiles.test.ts (3 tests) 5ms
+ ✓ tests/gpu-timer.test.ts (7 tests) 5ms
+ ✓ tests/draw-ledger.test.ts (2 tests) 5ms
+ ✓ tests/specular-aa.test.ts (2 tests) 5ms
+ ✓ tests/rumble.test.ts (2 tests) 5ms
+ ✓ tests/machine-options.test.ts (2 tests) 5ms
+ ✓ tests/shadow-substitution.test.ts (1 test) 4ms
+ ✓ tests/event-cards.test.ts (1 test) 3ms
+ ✓ tests/instruments.test.ts (4 tests) 3ms
+ ✓ tests/printed-panels.test.ts (1 test) 4ms
+ ✓ tests/crew-kit.test.ts (1 test) 3ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/frontend-menus.test.ts > front-end showroom and speed tunnel > styles the menu list as F1 25 pills with player actions only; dev tools stay behind ?dev
+AssertionError: expected [ '<button data-action=', …(7) ] to have a length of 7 but got 8
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 7[39m
+[31m+ 8[39m
+
+ ❯ tests/frontend-menus.test.ts:67:52
+     65|     const actions = template.match(/<div class="menu-actions"[^>]*>(.*…
+     66|     // Player actions only, including the EVENTS hub (masterplan §21.4…
+     67|     expect(actions.match(/<button data-action=/g)).toHaveLength(7);
+       |                                                    ^
+     68|     expect(actions).toContain('data-action="events"');
+     69|     for (const dev of ['references', 'sessionReview', 'performance', '…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+⎯⎯⎯⎯⎯⎯ Unhandled Errors ⎯⎯⎯⎯⎯⎯
+
+Vitest caught 1 unhandled error during the test run.
+This might cause false positive tests. Resolve unhandled errors to make sure your tests are not affected.
+
+⎯⎯⎯⎯⎯⎯ Unhandled Error ⎯⎯⎯⎯⎯⎯⎯
+Error: [vitest-worker]: Timeout calling "onTaskUpdate"
+ ❯ Object.onTimeoutError ../../../node_modules/vitest/dist/chunks/rpc.-pEldfrD.js:53:10
+ ❯ Timeout._onTimeout ../../../node_modules/vitest/dist/chunks/index.B521nVV-.js:59:62
+ ❯ listOnTimeout node:internal/timers:588:17
+ ❯ processTimers node:internal/timers:523:7
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+
+
+ Test Files  1 failed | 289 passed (290)
+      Tests  1 failed | 2406 passed (2407)
+     Errors  1 error
+   Start at  02:15:29
+   Duration  1479.84s (transform 12.71s, setup 0ms, collect 94.68s, tests 1195.31s, environment 75ms, prepare 51.13s)
+

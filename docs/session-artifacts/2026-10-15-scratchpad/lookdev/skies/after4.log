@@ -1,0 +1,43 @@
+(node:16933) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+[    0 s] open http://127.0.0.1:47812/ (mesa, 1280x720)
+[  117 s] menu ready on ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)
+[  117 s] GARAGE & SETTINGS → ultra
+[  190 s] preset applied
+[  190 s] session: aurel race 3 laps clear grid 12 start back machine multiclass
+[  190 s] rules: MULTI-CLASS ENDURANCE: no mandatory stop · DRS off · points scored.
+[  260 s] session prepared
+[  285 s] 04 multiclass-pack-aurel: met (t 12.1 s, race 6.2 s)
+[  408 s] captured 04-multiclass-pack-aurel.png
+[  505 s] captured 04-multiclass-pack-aurel-trackside.png
+[  505 s] session pack took 388 s
+[  519 s] session: poggio-alto race 3 laps clear grid 8 start midfield machine gpr1
+[  520 s] rules: GP MOTORCYCLE SPRINT: no mandatory stop · DRS off · points scored.
+[  688 s] session prepared
+[  715 s] 03 leaned in a corner: met (t 26.2 s, race 20.3 s)
+[  832 s] captured 03-gpr1-poggio-alto-lean.png
+[  899 s] captured 03-gpr1-poggio-alto-trackside.png
+[  900 s] session bikes took 395 s
+[  914 s] session: neon-city race 3 laps clear grid 8 start midfield machine gt10m
+[  914 s] rules: GT SPRINT: no mandatory stop · DRS off · points scored.
+[  996 s] session prepared
+[ 1017 s] 06 neon-city-night-gt10m: met (t 16.0 s, race 10.1 s)
+[ 1040 s] captured 06-neon-city-night-gt10m.png
+[ 1076 s] captured 06-neon-city-night-trackside.png
+[ 1076 s] session neon took 176 s
+[ 1083 s] session: festival (open world)
+[ 1144 s] festival loaded at Port Ilse
+[ 1229 s] captured 08-festival-port-ilse-golden-hour.png
+[ 1246 s] captured 09-festival-world-map.png
+[ 1247 s] festival autopilot on, driving
+[ 1346 s] captured 09b-festival-drive-1.png
+[ 1422 s] captured 09b-festival-drive-2.png
+[ 1507 s] captured 09b-festival-drive-3.png
+[ 1507 s] session festival took 431 s
+[ 1507 s] session: valley-ridge-mx race 3 laps clear grid 12 start midfield machine mx450
+[ 1507 s] rules: MOTOCROSS MOTO: no mandatory stop · DRS off · points scored.
+[ 1597 s] session prepared
+[ 1692 s] 10 airborne: met (t 82.5 s, race 76.6 s)
+[ 1737 s] captured 10-valley-ridge-mx450-airborne.png
+[ 1737 s] session valley took 230 s
+[ 1740 s] done: 12 shots, 0 failures → /tmp/claude-0/-home-user-Experiment-3/c20c3567-05b6-5daa-8126-ea386a6ddfeb/scratchpad/lookdev/skies/after4

@@ -1,0 +1,24 @@
+const W = '/home/user/Experiment-3/.claude/worktrees/wf_f5fa9a5f-78d-1';
+const { DEFAULT_OPTIONS, controls, validateOptions } = await import(W + '/src/simulation/config.ts');
+const { RaceClient } = await import(W + '/src/net/client.ts');
+const { EventLoop } = await import(W + '/src/net/event-loop.ts');
+const { Lobby } = await import(W + '/src/net/lobby.ts');
+const { RaceServer } = await import(W + '/src/net/server.ts');
+const { NetworkSimulator } = await import(W + '/src/net/transport.ts');
+
+const oneWay = Number(process.argv[2] ?? 100);
+const link = { latencyMs: oneWay, jitterMs: 4, loss: 0.02, duplicate: 0.005, reorder: 0.01 };
+const loop = new EventLoop(), net = new NetworkSimulator(loop, 17);
+const session = validateOptions({ ...DEFAULT_OPTIONS, mode: 'race', laps: 1, opponents: 0, seed: 99 });
+const created = Lobby.create('T', { name: 'Test', options: session, capacity: 1, fieldSize: 1, minPlayers: 1 });
+if (!created.ok) throw new Error('lobby');
+const server = new RaceServer({ loop, lobby: created.lobby, raceSeconds: 4 });
+const pair = net.connect(link);
+server.accept(pair.server);
+const client = new RaceClient({ loop, transport: pair.client, name: 'A', vehicle: 'apx01', advertised: session, input: () => ({ ...controls(), throttle: 1 }), autoReady: true });
+client.join();
+loop.runWhile(() => server.phase !== 'results', 60000);
+const q = server.inputStats()[0];
+const w = server.world!;
+console.log('RTT', 2 * oneWay, 'ms', 'lead', client.lead.toFixed(2), 'applied', q.appliedTicks, 'late', q.late, 'missing', q.missingTicks, 'ticks', w.tick);
+console.log('car speed m/s', w.sim.cars[0].speed.toFixed(2), 'journal controls', w.journal.filter(e => e.kind === 'controls').length, 'mode', w.drivers[0].mode);

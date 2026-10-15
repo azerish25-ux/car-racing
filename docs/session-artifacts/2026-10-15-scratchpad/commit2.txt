@@ -1,0 +1,12 @@
+docs(catalogue): briefs, bands and measured results of the 35 new machines
+
+CONTENT_PIPELINE.md §1.3 records every new brief with its bands, sound
+family, body and events, the measured 1/240 s results (all inside their
+bands at both timesteps), the AI tuning and the known limits; §1.4 updates
+the destination-catalogue counts (54 machines: 48 cars, 6 road bikes; 43
+against the destination families, 11 open-world). PHYSICS_MODEL.md §4
+describes the fan-assisted floor; GAME_DESIGN.md lists the new machine
+families per discipline and career tier.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01RN7q935R3iepiRcM32D9uW

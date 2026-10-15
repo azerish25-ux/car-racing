@@ -1,0 +1,33 @@
+Circuit catalogue wave 2: 20 layouts, bike-safe circuits, long laps
+
+Adds twenty layouts at seventeen venues to the circuit catalogue (40
+layouts / 29 venues in total), appended after wave 1 so existing
+geometry, sampling and seeded race results are unchanged:
+
+- Motorcycle GP (bike-safe): Poggio Alto, Cape Wrenna, Haarveld,
+  Montejaral.
+- Endurance: Hochwald Forest Ring (20.8 km) and Loirette (13.6 km,
+  plus Club Circuit), lit for day-night running; laps over 9 km get
+  dense Track sampling (~4.5 m) and a matching contact ribbon.
+- Real-world styles under neutral names: Serra Verde, Mount Ardlow,
+  Arroyo Oro, Fiume Verde, Duinwijk, Ramla (night, two layouts),
+  Mirvari, Lantern Bay (night), Lotus Hill.
+- Unconventional: Gantry Point container-terminal figure-eight with a
+  flyover and crane gantries (both directions), Bright Basin salt-flat
+  airbase.
+
+CircuitDefinition.bikeSafe marks motorcycle-assessed circuits; content
+validation re-measures run-off, barrier distance, kerb height, banking
+and frontage for every flagged circuit. The GP motorcycle and class
+sprint rulesets and the road-bike career read the flag. Seven existing
+layouts (Aurel, Vellamar, Parco Reale, Ardennes, Northfield, Kansai,
+Texas Hill) are flagged without geometry changes.
+
+Venue kit: twelve new themes, crane gantries, day-night floodlights,
+theme style flags. Twenty wave-2 events; seeded AI races on all 40
+layouts and two new seeded bike races pass. Docs: catalogue roster,
+race table, provenance (unlicensed approximations), content pipeline
+§2.3, status register.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01RN7q935R3iepiRcM32D9uW

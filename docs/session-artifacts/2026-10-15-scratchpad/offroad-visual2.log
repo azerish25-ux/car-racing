@@ -1,0 +1,30 @@
+Observed swiftshader test backend: ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)
+
+Running 2 tests using 1 worker
+
+POLL [33m0[39m loading Loading cars [33mfalse[39m
+POLL [33m1[39m loading Building the pit lane [33mfalse[39m
+POLL [33m2[39m loading Loading circuit [33mfalse[39m
+POLL [33m3[39m loading Almost ready [33mfalse[39m
+POLL [33m4[39m loading Readying the pit crew [33mfalse[39m
+POLL [33m5[39m loading Warming up tyres [33mfalse[39m
+POLL [33m6[39m driving Warming up tyres [33mfalse[39m
+DIAG {"state":"driving","draws":296,"time":146.79910278320312}
+ERRORS []
+  ✓  1 e2e/zz-offroad-visual.spec.ts:7:3 › off-road visual arena-nord-sx mx450 (12.5m)
+POLL [33m0[39m loading Loading cars [33mfalse[39m
+POLL [33m1[39m loading Building the pit lane [33mfalse[39m
+POLL [33m2[39m loading Building the pit lane [33mfalse[39m
+POLL [33m3[39m loading Loading circuit [33mfalse[39m
+POLL [33m4[39m loading Preparing graphics [33mfalse[39m
+POLL [33m5[39m loading Readying the pit crew [33mfalse[39m
+POLL [33m6[39m loading Warming up tyres [33mfalse[39m
+POLL [33m7[39m driving Warming up tyres [33mfalse[39m
+DIAG {"state":"driving","draws":1316,"time":157.52410888671875}
+ERRORS []
+  ✓  2 e2e/zz-offroad-visual.spec.ts:7:3 › off-road visual valley-ridge-mx mx450 (10.5m)
+
+  Slow test file: e2e/zz-offroad-visual.spec.ts (23.1m)
+  Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+  2 passed (23.2m)
+exit 0

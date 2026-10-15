@@ -1,0 +1,38 @@
+[third-party] toktx toktx v4.4.2
+[third-party] reused https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/geometry.pbrt
+[third-party] reused https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00090.ply
+[third-party] reused https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Tilia_tomentosa_tr_02_co.png
+[third-party] reused https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Tilia_tomentosa_tr_02_di.png
+[third-party] reused https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00091.ply
+[third-party] reused https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Tilia_tomentosa_br_01_co.png
+[third-party] reused https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00092.ply
+[third-party] reused https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Tilia_tomentosa_br_02_co.png
+[third-party] reused https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00093.ply
+[third-party] reused https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Tilia_tomentosa_lf_02_su_co_fr.png
+[third-party] reused https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Tilia_tomentosa_lf_02_su_tr.png
+[third-party] reused https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/geometry/mesh_00094.ply
+[third-party] reused https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Tilia_tomentosa_lf_01_su_co_fr.png
+[third-party] reused https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/landscape/textures/Tilia_tomentosa_lf_01_su_tr.png
+[third-party] xref_Tilia_tomentosa_02medium.c4d Instance: 5 parts, 1004632 triangles, 11.60 m tall, crown radius 4.18 m (2314 ms)
+[third-party]   canopy volume 43x51x42 solved (3389 ms)
+[third-party]   300 cards at 84.2 px/m (7645 ms)
+[third-party]   card atlas drawn (15515 ms)
+[third-party]   8 impostor views 1536x1536 (28457 ms)
+(node:22581) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+[third-party]   trunk 4000 triangles (29582 ms)
+[third-party]   done (29584 ms)
+[third-party]   cards_color: webp 397 KB, ktx2 1052 KB
+[third-party]   cards_normal: webp 590 KB, ktx2 3255 KB
+[third-party]   impostor_color: webp 160 KB, ktx2 453 KB
+[third-party]   impostor_normal: webp 315 KB, ktx2 1524 KB
+[third-party]   bark_color: webp 33 KB, ktx2 143 KB
+[third-party]   bark_normal: webp 56 KB, ktx2 618 KB
+[third-party] tree-chestnut skipped (--only) and not built before: left out of this manifest
+[third-party] tree-birch skipped (--only) and not built before: left out of this manifest
+[third-party] tree-rowan skipped (--only) and not built before: left out of this manifest
+[third-party] tree-fir skipped (--only) and not built before: left out of this manifest
+[third-party] tree-fir-b skipped (--only) and not built before: left out of this manifest
+[third-party] shrub-flowering skipped (--only) and not built before: left out of this manifest
+[third-party] grass-meadow skipped (--only) and not built before: left out of this manifest
+[third-party] 15 assets, 19.50 MB of 150 MB budget -> public/assets/third-party

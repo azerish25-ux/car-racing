@@ -1,0 +1,35 @@
+
+ RUN  v3.2.4 /tmp/claude-0/-home-user-Experiment-3/c20c3567-05b6-5daa-8126-ea386a6ddfeb/scratchpad/offroad-merged
+
+····························x·································································
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/open-world.test.ts > festival world surface (physics adapter) > answers every public Track member (no missing method on the adapter)
+AssertionError: expected [ 'offroad' ] to deeply equal []
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- [][39m
+[31m+ [[39m
+[31m+   "offroad",[39m
+[31m+ ][39m
+
+ ❯ tests/open-world.test.ts:126:20
+    124|     const fields = Object.keys(circuit).filter((k) => !k.startsWith('c…
+    125|     const absent = fields.filter((k) => !(k in track));
+    126|     expect(absent).toEqual([]);
+       |                    ^
+    127|   });
+    128|   it('reads the cambered road: asphalt and markings on highways, grave…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 6 passed (7)
+      Tests  1 failed | 93 passed (94)
+   Start at  09:38:28
+   Duration  62.28s (transform 2.53s, setup 0ms, collect 8.47s, tests 50.25s, environment 1ms, prepare 1.05s)
+
+exit 1

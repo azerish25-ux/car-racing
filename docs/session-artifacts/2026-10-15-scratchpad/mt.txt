@@ -1,0 +1,65 @@
+3e52bc64e35f22d56989e43649ee067910acd4a9
+100644 384729580bcd559ed4a38acdfc1e39e060401652 1	docs/production/CONTENT_PIPELINE.md
+100644 535ba0c3bf972027bd7fcbcee8f64233e7bc6cce 2	docs/production/CONTENT_PIPELINE.md
+100644 68e14756f4cdd049fcc18e312ae1d670b5ca8183 3	docs/production/CONTENT_PIPELINE.md
+100644 3da5df2fab2069131a7a35af68f97464cfccabba 1	docs/production/GAME_DESIGN.md
+100644 1b8b9e42eb7915dae4fb9d67bc3746dc99773502 2	docs/production/GAME_DESIGN.md
+100644 842d63b503e4cd5d218ad3025a7ba08a5973c3eb 3	docs/production/GAME_DESIGN.md
+100644 9c0bf78657e2d2954528dd4cf3cb4e278292d407 1	docs/production/STATUS_REGISTER.md
+100644 99b71640ca0caca35ad209b08c620784bec640aa 2	docs/production/STATUS_REGISTER.md
+100644 bd68044b990c547bce642190ba86cb38a6e44cd4 3	docs/production/STATUS_REGISTER.md
+100644 2bfa342ac7f2e934235446a289300221cadf57e8 1	package.json
+100644 61256c309d080d94d8da1669134302c96aee64cd 2	package.json
+100644 2bf4b27a793459585818539c61b7f282505337c6 3	package.json
+100644 596f0e0c12a075dc73a4ed93d125f0864d07c974 1	src/career/ladder.ts
+100644 10293596630a661c305b9eb76b62f01d5fa862ec 2	src/career/ladder.ts
+100644 06a1b0cbec2a800cef13172746d4ca7d52df6899 3	src/career/ladder.ts
+100644 1e83f1f503a1e3cc126390df621bef6b614b95c8 1	src/simulation/circuit-catalogue/venue-data.ts
+100644 0fc7fab9ebc874298ad3cd1fd594f98a2d8ff99a 2	src/simulation/circuit-catalogue/venue-data.ts
+100644 272e8fff38225e68d66e48d516138e5f0db6bbe1 3	src/simulation/circuit-catalogue/venue-data.ts
+100644 10fc9462c521ecf48d59244676a03a1a953c480c 1	src/simulation/circuits.ts
+100644 0925e3620f7e01ee34f4896e3e35138a680d0c83 2	src/simulation/circuits.ts
+100644 1c2eeba49dead0afa6fd9b66eea9b3d6554779af 3	src/simulation/circuits.ts
+100644 d835ae1d43a132a51477f00307cf71c795690246 1	src/simulation/events.ts
+100644 419aaeeafd5a7aad85d7dbb02872e6a77a8042cd 2	src/simulation/events.ts
+100644 aac6f32aafa834bdcd07b9ac9070f2f176d7c9bc 3	src/simulation/events.ts
+100644 6e3ae90a12a58e3f68c74622412edaf8388844a8 1	src/simulation/track.ts
+100644 3d221de192520808dd12e3e7574b14855711b8fc 2	src/simulation/track.ts
+100644 8d9a43306e8fc09a8ffd1c5b5503d96be3d0a297 3	src/simulation/track.ts
+100644 9599cfcd665fb545e3176f2f4744bd2b522762dd 1	src/simulation/world.ts
+100644 f246f093ce0aeddd53a7a5c744988d4e064edffa 2	src/simulation/world.ts
+100644 c329aae532c0c62f2fd2f65ee3867e43b574e664 3	src/simulation/world.ts
+100644 5ad9ea60b1542cfb2a4afbd1ebd32f70c6464816 1	src/ui/machine-options.ts
+100644 b988f8d73ca528716062122cb8768ba2e80aeee3 2	src/ui/machine-options.ts
+100644 1afcc30a2b6db41b97f81dacdf1c3f8d2837d808 3	src/ui/machine-options.ts
+
+Auto-merging docs/production/CONTENT_PIPELINE.md
+CONFLICT (content): Merge conflict in docs/production/CONTENT_PIPELINE.md
+Auto-merging docs/production/GAME_DESIGN.md
+CONFLICT (content): Merge conflict in docs/production/GAME_DESIGN.md
+Auto-merging docs/production/STATUS_REGISTER.md
+CONFLICT (content): Merge conflict in docs/production/STATUS_REGISTER.md
+Auto-merging package.json
+CONFLICT (content): Merge conflict in package.json
+Auto-merging src/career/ladder.ts
+CONFLICT (content): Merge conflict in src/career/ladder.ts
+Auto-merging src/career/registry.ts
+Auto-merging src/rendering/venue-kit/theme.ts
+Auto-merging src/simulation/ai.ts
+Auto-merging src/simulation/circuit-catalogue/builder.ts
+Auto-merging src/simulation/circuit-catalogue/venue-data.ts
+CONFLICT (content): Merge conflict in src/simulation/circuit-catalogue/venue-data.ts
+Auto-merging src/simulation/circuits.ts
+CONFLICT (content): Merge conflict in src/simulation/circuits.ts
+Auto-merging src/simulation/content-validation.ts
+Auto-merging src/simulation/events.ts
+CONFLICT (content): Merge conflict in src/simulation/events.ts
+Auto-merging src/simulation/race.ts
+Auto-merging src/simulation/track.ts
+CONFLICT (content): Merge conflict in src/simulation/track.ts
+Auto-merging src/simulation/world.ts
+CONFLICT (content): Merge conflict in src/simulation/world.ts
+Auto-merging src/ui/interface.ts
+Auto-merging src/ui/machine-options.ts
+CONFLICT (content): Merge conflict in src/ui/machine-options.ts
+Auto-merging tests/career.test.ts

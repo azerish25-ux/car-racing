@@ -1,0 +1,38 @@
+(node:28432) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+[    0 s] open http://127.0.0.1:37483/ (mesa, 960x540)
+[   59 s] menu ready on ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5); GARAGE & SETTINGS → ultra
+[   88 s] preset applied
+[   88 s] session: aurel race 10 laps clear grid 12 start midfield
+[  147 s] session prepared
+[  156 s] 03 side-by-side: met (t 7.4 s, race 1.5 s)
+[  218 s] captured 03-side-by-side.png
+[  218 s] lighting → night
+[  266 s] 06 night traffic: met (t 11.7 s, race 5.8 s)
+[  328 s] captured 06-night-traffic.png
+[  328 s] lighting → day
+[  424 s] 02 main straight: met (t 69.9 s, race 64.0 s)
+[  469 s] captured 02-chase-main-straight.png
+[  547 s] 07 pit approach (request 1): met (t 137.6 s, race 131.7 s)
+[  580 s] 07 pit service (request 1): met (t 147.1 s, race 141.2 s)
+[  640 s] captured 07-pit-service.png
+[  648 s] 01 pit exit: met (t 153.6 s, race 147.7 s)
+[  696 s] captured 01-cockpit-pit-exit.png
+[  759 s] captured 09-close-photo.png
+[  827 s] captured 08-replay-broadcast.png
+[  830 s] lighting → sunset
+[  951 s] 05 into the sun: met (t 212.5 s, race 206.6 s)
+[ 1045 s] captured 05-sunset-into-sun.png
+[ 1061 s] session: aurel race 3 laps rain grid 8 start midfield
+[ 1136 s] session prepared
+[ 1136 s] lighting → day
+[ 1203 s] 04 wet braking turn 1: met (t 29.8 s, race 23.9 s)
+[ 1253 s] captured 04-wet-braking-turn1.png
+[ 1260 s] session: neon-city race 3 laps clear grid 8 start midfield
+[ 1358 s] session prepared
+[ 1377 s] 10 neon city: met (t 16.4 s, race 10.5 s)
+[ 1418 s] captured 10-neon-city-night.png
+[ 1434 s] session: festival (open world)
+[ 1467 s] festival loaded at Port Ilse
+[ 1575 s] captured 11-festival-town-golden-hour.png
+[ 1577 s] done: 11 shots, 0 failures → /tmp/claude-0/-home-user-Experiment-3/c20c3567-05b6-5daa-8126-ea386a6ddfeb/scratchpad/art/after

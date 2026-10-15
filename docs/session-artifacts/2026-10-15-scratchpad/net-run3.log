@@ -1,0 +1,50 @@
+
+ RUN  v3.2.4 /home/user/Experiment-3/.claude/worktrees/wf_f5fa9a5f-78d-1
+
+ ✓ tests/net-records.test.ts (7 tests) 47335ms
+   ✓ verified records (WP52) > a record is seed + options + input journal + content hashes, and verifies  5235ms
+   ✓ verified records (WP52) > rejects a forged lap time, even with a recomputed digest  5157ms
+   ✓ verified records (WP52) > rejects a tampered input log at the first divergent checkpoint  3366ms
+   ✓ verified records (WP52) > rejects mismatched content, versions and malformed records  388ms
+   ✓ verified records (WP52) > requires exactly the session checkpoints and compares every one of them  3398ms
+   ✓ verified records (WP52) > AI-driven laps verify as a session but never count for the category  20650ms
+   ✓ verified records (WP52) > bounds the journal by the session, so a full-length race fits and a padded one does not  1936ms
+ ✓ tests/net-authority.test.ts (5 tests) 29152ms
+   ✓ authoritative world (WP50 server simulation) > an all-AI NetDriver field is bit-identical to the plain Simulation  8452ms
+   ✓ authoritative world (WP50 server simulation) > an overtake request starts the boost; edges that cannot act and fast pit toggles are not journaled  4890ms
+   ✓ authoritative world (WP50 server simulation) > the shadow pilot leaves no trace in the world it reads  6727ms
+   ✓ authoritative world (WP50 server simulation) > replays its journal to the identical state, and restores a crashed world  8976ms
+ ✓ tests/net-lifecycle.test.ts (5 tests) 12971ms
+   ✓ session lifecycle with content-version agreement (WP51) > runs lobby → grid → race → results → teardown and delivers the record digest  4048ms
+   ✓ session lifecycle with content-version agreement (WP51) > does not start until every member is ready  1967ms
+   ✓ session lifecycle with content-version agreement (WP51) > starts the grid when the only unready member leaves, is kicked or times out  6905ms
+stdout | tests/net-prediction.test.ts > online race under 100 ms RTT and 2% loss (WP50 measurement) > measures prediction corrections, interpolation error and input delivery
+online slice (4 clients, 10 s racing, 100 ms RTT, 2% loss): {"rttMs":100.3,"clean":{"samples":1215,"mean":0.0253,"p50":0.0069,"p95":0.1072,"p99":0.2668,"max":0.5091},"correction":{"samples":1215,"mean":0.0221,"p50":0.0048,"p95":0.1121,"p99":0.2967,"max":0.6381},"headingDeg":0.9255,"remote":{"samples":11130,"mean":0.0001,"p50":0,"p95":0.0002,"p99":0.0003,"max":0.0029},"downKbit":35.31,"upKbit":27.54,"missingTicks":8}
+
+ ✓ tests/net-prediction.test.ts (8 tests) 9372ms
+   ✓ online race under 100 ms RTT and 2% loss (WP50 measurement) > measures prediction corrections, interpolation error and input delivery  9281ms
+ ✓ tests/net-resilience.test.ts (16 tests) 39126ms
+   ✓ resilience (WP54) > takes a lost driver over with the AI and hands the car back on rejoin  7232ms
+   ✓ resilience (WP54) > holds a car with the AI during an input gap shorter than the timeout, then hands it back  1965ms
+   ✓ resilience (WP54) > refuses a rejoin after the window and classifies a ghost behind running cars  2604ms
+   ✓ resilience (WP54) > tolerates heavy loss, duplication and reordering without breaking authority  4277ms
+   ✓ resilience (WP54) > rejects non-finite samples at the client; the server only ever applies in-range controls  1656ms
+   ✓ resilience (WP54) > monitors the server tick budget  1398ms
+   ✓ review regressions: input lead, rejoin, lobby and queue bounds > drives at 200 and 300 ms RTT: the first lead comes from the keep-alive round trip  3511ms
+   ✓ review regressions: input lead, rejoin, lobby and queue bounds > a driver rejoining over a 300 ms link gets the car back  1975ms
+   ✓ review regressions: input lead, rejoin, lobby and queue bounds > a lead that starts too short grows from negative slack (latency rises at the start)  2486ms
+   ✓ review regressions: input lead, rejoin, lobby and queue bounds > a driver whose client restarts during the countdown rejoins and races  2151ms
+   ✓ review regressions: input lead, rejoin, lobby and queue bounds > session tokens are independent CSPRNG values and cannot take a live car  3304ms
+   ✓ review regressions: input lead, rejoin, lobby and queue bounds > a late rejoin receives the whole event history in size-limited chunks  1669ms
+   ✓ review regressions: input lead, rejoin, lobby and queue bounds > sends a classification larger than one message as lap-time chunks  2074ms
+   ✓ review regressions: input lead, rejoin, lobby and queue bounds > strikes and kicks a client flooding commands outside the windows; its queue stays empty  2799ms
+ ✓ tests/net-codec.test.ts (9 tests) 689ms
+   ✓ online codec: untrusted client messages (WP54 size limits) > never throws on random or truncated bytes  572ms
+ ✓ tests/net-transport.test.ts (11 tests) 466ms
+ ✓ tests/net-lobby.test.ts (5 tests) 11ms
+
+ Test Files  8 passed (8)
+      Tests  66 passed (66)
+   Start at  02:32:08
+   Duration  148.42s (transform 1.47s, setup 0ms, collect 3.06s, tests 139.12s, environment 1ms, prepare 1.63s)
+

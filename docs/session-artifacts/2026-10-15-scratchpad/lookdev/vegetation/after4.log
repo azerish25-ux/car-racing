@@ -1,0 +1,16 @@
+(node:981) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+[    0 s] open http://127.0.0.1:5493/ (mesa, 1280x720)
+[  112 s] menu ready on ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)
+[  134 s] GARAGE & SETTINGS → ultra
+[  199 s] preset applied
+[  199 s] session: hochwald race 1 laps clear grid 8 start midfield machine hf67
+[  203 s] rules: HISTORIC FORMULA: no mandatory stop · DRS off · points scored.
+[  403 s] session prepared
+[  441 s] 07 hochwald-forest-ring-hf67: met (t 31.2 s, race 25.3 s)
+[  654 s] captured 07-hochwald-forest-ring-hf67.png
+[  942 s] captured 07-hochwald-forest-ring-trackside.png
+[ 1010 s] 07 deeper in the forest: met (t 91.6 s, race 85.7 s)
+[ 1011 s] shot 07 failed: page.waitForFunction: Target page, context or browser has been closed
+[ 1011 s] session hochwald took 899 s
+[ 1011 s] done: 2 shots, 1 failures → /tmp/claude-0/-home-user-Experiment-3/c20c3567-05b6-5daa-8126-ea386a6ddfeb/scratchpad/lookdev/vegetation/after4

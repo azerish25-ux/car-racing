@@ -1,0 +1,154 @@
+{
+  "suite": "APEX feature showcase (live application)",
+  "url": "http://127.0.0.1:5493/",
+  "repo": "/home/user/Experiment-3/.claude/worktrees/wf_1ec31848-637-3",
+  "size": {
+    "width": 1280,
+    "height": 720
+  },
+  "preset": "ultra",
+  "backend": "mesa",
+  "sessions": [
+    "hochwald"
+  ],
+  "startedAt": "2026-10-15T23:09:06.665Z",
+  "shots": [
+    {
+      "id": "07",
+      "slug": "hochwald-forest-ring-hf67",
+      "file": "07-hochwald-forest-ring-hf67.png",
+      "hud": null,
+      "notes": "HOCHWALD FOREST RING (catalogue wave 2), HF-67 historic formula field (8), live chase camera; 3 cars 4-104 m ahead when held, 80 km/h, race 25.4 s",
+      "player": {
+        "speedKmh": 80.1,
+        "s": 579.9,
+        "lap": 0,
+        "leanDeg": 0,
+        "airborne": 0,
+        "airTime": 0
+      },
+      "build": {
+        "commit": null,
+        "fingerprint": "0ad44e7b75758220336b3b727e014e5f02473719ad87a65642098198d6290193"
+      },
+      "state": "paused",
+      "options": {
+        "circuit": "hochwald",
+        "mode": "race",
+        "laps": 1,
+        "opponents": 7,
+        "weather": "clear",
+        "ruleset": "historic-formula",
+        "vehicles": [
+          "hf67",
+          "hf67",
+          "hf67",
+          "hf67",
+          "hf67",
+          "hf67",
+          "hf67",
+          "hf67"
+        ]
+      },
+      "presentedTime": 31.266666412353516,
+      "replayPosition": null,
+      "renderer": {
+        "camera": "chase",
+        "requestedCamera": "chase",
+        "lighting": "day",
+        "renderWidth": 1280,
+        "renderHeight": 720,
+        "drawCalls": 2986,
+        "triangles": 3147859,
+        "ultra": {
+          "preset": "ultra",
+          "tier": "high",
+          "unsupported": [],
+          "replayDof": {
+            "enabled": false,
+            "focus": 4.612686088387136,
+            "backgroundBlur": 0.001250335874190063,
+            "fNumber": 2.8,
+            "taps": 48,
+            "frames": 1,
+            "extraDraws": 0
+          }
+        }
+      },
+      "capturedAt": "2026-10-15T23:20:01.029Z"
+    },
+    {
+      "id": "07",
+      "slug": "hochwald-forest-ring-trackside",
+      "file": "07-hochwald-forest-ring-trackside.png",
+      "hud": null,
+      "notes": "same held moment, trackside camera",
+      "player": {
+        "speedKmh": 80.1,
+        "s": 579.9,
+        "lap": 0,
+        "leanDeg": 0,
+        "airborne": 0,
+        "airTime": 0
+      },
+      "build": {
+        "commit": null,
+        "fingerprint": "0ad44e7b75758220336b3b727e014e5f02473719ad87a65642098198d6290193"
+      },
+      "state": "paused",
+      "options": {
+        "circuit": "hochwald",
+        "mode": "race",
+        "laps": 1,
+        "opponents": 7,
+        "weather": "clear",
+        "ruleset": "historic-formula",
+        "vehicles": [
+          "hf67",
+          "hf67",
+          "hf67",
+          "hf67",
+          "hf67",
+          "hf67",
+          "hf67",
+          "hf67"
+        ]
+      },
+      "presentedTime": 31.266666412353516,
+      "replayPosition": null,
+      "renderer": {
+        "camera": "trackside",
+        "requestedCamera": "trackside",
+        "lighting": "day",
+        "renderWidth": 1280,
+        "renderHeight": 720,
+        "drawCalls": 838,
+        "triangles": 2403504,
+        "ultra": {
+          "preset": "ultra",
+          "tier": "high",
+          "unsupported": [],
+          "replayDof": {
+            "enabled": false,
+            "focus": 4.612686088387136,
+            "backgroundBlur": 0.001250335874190063,
+            "fNumber": 2.8,
+            "taps": 48,
+            "frames": 1,
+            "extraDraws": 0
+          }
+        }
+      },
+      "capturedAt": "2026-10-15T23:24:48.511Z"
+    }
+  ],
+  "failures": [
+    {
+      "id": "07",
+      "message": "page.waitForFunction: Target page, context or browser has been closed"
+    }
+  ],
+  "consoleErrors": [],
+  "gl": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+  "finishedAt": "2026-10-15T23:25:57.309Z"
+}

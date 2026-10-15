@@ -1,0 +1,34 @@
+{
+    "asset_type": "Texture",
+    "id": "kloppenheim_01",
+    "kwargs": {
+        "filename": "environment_4k.hdr"
+    },
+    "license": "CC0 1.0",
+    "metadata": {
+        "authors": [
+            "Greg Zaal"
+        ],
+        "categories": [
+            "outdoor",
+            "skies",
+            "nature",
+            "sunrise-sunset",
+            "overcast",
+            "low contrast",
+            "natural light"
+        ],
+        "coords": [
+            -25.654156,
+            30.161901
+        ],
+        "date_taken": 1572627540,
+        "resolution": "4k",
+        "tags": [
+            "field",
+            "mist",
+            "cloud",
+            "grass"
+        ]
+    }
+}

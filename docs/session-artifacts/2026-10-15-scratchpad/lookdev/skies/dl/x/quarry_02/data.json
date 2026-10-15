@@ -1,0 +1,33 @@
+{
+    "asset_type": "Texture",
+    "id": "quarry_02",
+    "kwargs": {
+        "filename": "environment_4k.hdr"
+    },
+    "license": "CC0 1.0",
+    "metadata": {
+        "authors": [
+            "Sergej Majboroda"
+        ],
+        "categories": [
+            "outdoor",
+            "skies",
+            "nature",
+            "midday",
+            "partly cloudy",
+            "high contrast",
+            "natural light"
+        ],
+        "coords": null,
+        "date_taken": 1565081040,
+        "resolution": "4k",
+        "tags": [
+            "sun",
+            "hill",
+            "sand",
+            "tracks",
+            "dirt road",
+            "backplates"
+        ]
+    }
+}

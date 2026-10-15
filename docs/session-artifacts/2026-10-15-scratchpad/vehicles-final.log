@@ -1,0 +1,19 @@
+
+> apex-formula-laboratory@0.1.0 test:vehicles
+> node --experimental-transform-types scripts/vehicle-calibration.ts
+
+APX-01 FORMULA (apx01 v1)
+  OK  accel0to100          2.60 [2.3, 3.2] dt-drift 0.2%
+  OK  topSpeed             320.55 [320, 360] dt-drift 0.0%
+  OK  braking100Distance   19.24 [15, 32] dt-drift 0.0%
+  OK  lateral80G           1.95 [1.8, 3.2] dt-drift 0.0%
+  lateral fit: base 15.58 m/s², aero 6.38e-3
+TC-1 TOURING (tc1 v1)
+  OK  accel0to100          4.93 [4.8, 7.5] dt-drift 0.0%
+  OK  topSpeed             232.25 [205, 255] dt-drift 0.0%
+  OK  braking100Distance   28.09 [26, 42] dt-drift 0.0%
+  OK  lateral80G           1.33 [1, 1.45] dt-drift 0.0%
+  lateral fit: base 13.04 m/s², aero 1.16e-4
+(node:1806) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+EXIT 0

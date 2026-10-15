@@ -1,0 +1,33 @@
+{
+  "cars": 20,
+  "simulatedSeconds": 60,
+  "repeats": 3,
+  "medianTickMs": 3.5772292412500004,
+  "medianVehicleStepMsPerTick": 3.042161017638919,
+  "medianVehicleStepUsPerCarSubstep": 76.05402544097296,
+  "meanDistanceM": 2582.403030450626,
+  "retired": 0,
+  "runs": [
+    {
+      "tickMs": 3.814902722222222,
+      "vehicleStepMsPerTick": 3.2187764886111165,
+      "vehicleStepUsPerCarSubstep": 80.46941221527791,
+      "meanDistanceM": 2582.403030450626,
+      "retired": 0
+    },
+    {
+      "tickMs": 3.5772292412500004,
+      "vehicleStepMsPerTick": 3.042161017638919,
+      "vehicleStepUsPerCarSubstep": 76.05402544097296,
+      "meanDistanceM": 2582.403030450626,
+      "retired": 0
+    },
+    {
+      "tickMs": 3.458957122777777,
+      "vehicleStepMsPerTick": 2.9345571479166552,
+      "vehicleStepUsPerCarSubstep": 73.36392869791638,
+      "meanDistanceM": 2582.403030450626,
+      "retired": 0
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+const W = '/home/user/Experiment-3/.claude/worktrees/wf_f5fa9a5f-78d-1';
+const { DEFAULT_OPTIONS, controls, validateOptions } = await import(W + '/src/simulation/config.ts');
+const { RaceClient } = await import(W + '/src/net/client.ts');
+const { EventLoop } = await import(W + '/src/net/event-loop.ts');
+const { Lobby } = await import(W + '/src/net/lobby.ts');
+const { RaceServer } = await import(W + '/src/net/server.ts');
+const { NetworkSimulator, TARGET_LINK } = await import(W + '/src/net/transport.ts');
+const loop = new EventLoop(), net = new NetworkSimulator(loop, 17);
+const session = validateOptions({ ...DEFAULT_OPTIONS, mode: 'race', laps: 1, opponents: 2, seed: 99 });
+const created = Lobby.create('T', { name: 'Test', options: session, capacity: 3, fieldSize: 3, minPlayers: 2 });
+if (!created.ok) throw new Error('lobby');
+const server = new RaceServer({ loop, lobby: created.lobby, raceSeconds: 2 });
+const connect = (name: string, autoReady: boolean) => {
+  const pair = net.connect(TARGET_LINK);
+  server.accept(pair.server);
+  const client = new RaceClient({ loop, transport: pair.client, name, vehicle: 'apx01', advertised: session, input: () => ({ ...controls(), throttle: 0.4 }), autoReady });
+  client.join();
+  return client;
+};
+const a = connect('A', true), b = connect('B', true), c = connect('C', false);
+loop.runUntil(2000);
+console.log('before leave: phase', server.phase, 'ready check', JSON.stringify(created.lobby.readyCheck()));
+c.leave();
+loop.runUntil(3000);
+console.log('after C left: phase', server.phase, 'ready check', JSON.stringify(created.lobby.readyCheck()));
+loop.runUntil(60000);
+console.log('60 s later: phase', server.phase, 'clients', a.state, b.state);

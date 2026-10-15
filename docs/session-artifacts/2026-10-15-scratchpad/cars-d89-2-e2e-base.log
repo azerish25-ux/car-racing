@@ -1,0 +1,227 @@
+Observed swiftshader test backend: ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)
+
+Running 11 tests using 1 worker
+
+  ✘   1 e2e/28-race-hud-layout.spec.ts:7:1 › Race-Day V2 DOM-only: lower-corner telemetry clears the road, lights and timing (1.6m)
+  ✘   2 e2e/28-race-hud-layout.spec.ts:200:3 › 27H.6 DOM-only: menu controls are reachable at 320x568 (44.3s)
+  ✓   3 e2e/28-race-hud-layout.spec.ts:200:3 › 27H.6 DOM-only: menu controls are reachable at 360x640 (12.9s)
+  ✓   4 e2e/28-race-hud-layout.spec.ts:200:3 › 27H.6 DOM-only: menu controls are reachable at 640x400 (10.1s)
+  ✓   5 e2e/28-race-hud-layout.spec.ts:200:3 › 27H.6 DOM-only: menu controls are reachable at 800x600 (12.3s)
+  ✓   6 e2e/28-race-hud-layout.spec.ts:200:3 › 27H.6 DOM-only: menu controls are reachable at 1440x900 (16.6s)
+  ✘   7 e2e/28-race-hud-layout.spec.ts:200:3 › 27H.6 DOM-only: menu controls are reachable at 1920x1080 (45.2s)
+  ✓   8 e2e/30-menu-access.spec.ts:9:1 › 27H.6 menu access: real interface keeps all actions reachable with mouse and keyboard (1.0m)
+  ✘   9 e2e/30-menu-access.spec.ts:101:1 › 27H.6 menu access: 640x400 settings persist and the normal paused grid starts (1.8m)
+  ✘  10 e2e/settings-transition.spec.ts:6:3 › settings transition: 640x400 owns its first covered frame and persists quality (4.2m)
+  ✘  11 e2e/settings-transition.spec.ts:6:3 › settings transition: 1280x720 owns its first covered frame and persists quality (4.1m)
+
+
+  1) e2e/28-race-hud-layout.spec.ts:7:1 › Race-Day V2 DOM-only: lower-corner telemetry clears the road, lights and timing › Expect "poll toBeGreaterThan" 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeGreaterThan[2m([22m[32mexpected[39m[2m)[22m
+
+    Expected: > [32m0[39m
+    Received:   [31m0[39m
+
+    Call Log:
+    - Timeout 60000ms exceeded while waiting on the predicate
+
+      105 |   await timing.focus();
+      106 |   await page.keyboard.press('End');
+    > 107 |   await expect.poll(() => timing.evaluate((e) => e.scrollTop)).toBeGreaterThan(0);
+          |   ^
+      108 |   await expect(page.locator('#keyEvents')).toHaveText('keyup:End;');
+      109 |   await page.keyboard.press('ArrowUp');
+      110 |   await expect(page.locator('#keyEvents')).toHaveText('keyup:End;keyup:ArrowUp;');
+        at /tmp/claude-0/-home-user-Experiment-3/c20c3567-05b6-5daa-8126-ea386a6ddfeb/scratchpad/cars-d89-2-base/e2e/28-race-hud-layout.spec.ts:107:3
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/28-race-hud-layout-Race-Da-1a2b5--the-road-lights-and-timing/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/28-race-hud-layout-Race-Da-1a2b5--the-road-lights-and-timing/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/28-race-hud-layout-Race-Da-1a2b5--the-road-lights-and-timing/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/28-race-hud-layout-Race-Da-1a2b5--the-road-lights-and-timing/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) e2e/28-race-hud-layout.spec.ts:200:3 › 27H.6 DOM-only: menu controls are reachable at 320x568 › Expect "poll toBeGreaterThan" 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeGreaterThan[2m([22m[32mexpected[39m[2m)[22m
+
+    Expected: > [32m0[39m
+    Received:   [31m0[39m
+
+    Call Log:
+    - Test timeout of 45000ms exceeded
+
+      274 |     await page.keyboard.press('End');
+      275 |     if (initial.scrollHeight > initial.clientHeight)
+    > 276 |       await expect.poll(() => region.evaluate((e) => e.scrollTop)).toBeGreaterThan(0);
+          |       ^
+      277 |     await page.keyboard.press('Home');
+      278 |     await expect.poll(() => region.evaluate((e) => e.scrollTop)).toBe(0);
+      279 |     // Nine selects (circuit first, machine last), two start controls, CAREER,
+        at /tmp/claude-0/-home-user-Experiment-3/c20c3567-05b6-5daa-8126-ea386a6ddfeb/scratchpad/cars-d89-2-base/e2e/28-race-hud-layout.spec.ts:276:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/28-race-hud-layout-27H-6-D-e4845-ls-are-reachable-at-320x568/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/28-race-hud-layout-27H-6-D-e4845-ls-are-reachable-at-320x568/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/28-race-hud-layout-27H-6-D-e4845-ls-are-reachable-at-320x568/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/28-race-hud-layout-27H-6-D-e4845-ls-are-reachable-at-320x568/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) e2e/28-race-hud-layout.spec.ts:200:3 › 27H.6 DOM-only: menu controls are reachable at 1920x1080 › Expect "poll toBe" 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32m0[39m
+    Received: [31m22[39m
+
+    Call Log:
+    - Test timeout of 45000ms exceeded
+
+      276 |       await expect.poll(() => region.evaluate((e) => e.scrollTop)).toBeGreaterThan(0);
+      277 |     await page.keyboard.press('Home');
+    > 278 |     await expect.poll(() => region.evaluate((e) => e.scrollTop)).toBe(0);
+          |     ^
+      279 |     // Nine selects (circuit first, machine last), two start controls, CAREER,
+      280 |     // then settings: focus must scroll each into view.
+      281 |     for (let i = 0; i < 13; i++) {
+        at /tmp/claude-0/-home-user-Experiment-3/c20c3567-05b6-5daa-8126-ea386a6ddfeb/scratchpad/cars-d89-2-base/e2e/28-race-hud-layout.spec.ts:278:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/28-race-hud-layout-27H-6-D-b011c--are-reachable-at-1920x1080/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/28-race-hud-layout-27H-6-D-b011c--are-reachable-at-1920x1080/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/28-race-hud-layout-27H-6-D-b011c--are-reachable-at-1920x1080/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/28-race-hud-layout-27H-6-D-b011c--are-reachable-at-1920x1080/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4) e2e/30-menu-access.spec.ts:101:1 › 27H.6 menu access: 640x400 settings persist and the normal paused grid starts 
+
+    TimeoutError: locator.click: Timeout 15000ms exceeded.
+    Call log:
+    [2m  - waiting for getByRole('button', { name: 'APPLY & SAVE', exact: true })[22m
+    [2m    - locator resolved to <button type="submit" class="primary">APPLY & SAVE</button>[22m
+    [2m  - attempting click action[22m
+    [2m    - waiting for element to be visible, enabled and stable[22m
+
+
+      111 |   await settings.click();
+      112 |   await page.locator('[name=quality]').selectOption('low');
+    > 113 |   await page.getByRole('button', { name: 'APPLY & SAVE', exact: true }).click();
+          |                                                                         ^
+      114 |   await expect(page.locator('#modal')).toBeHidden();
+      115 |   await page.reload();
+      116 |   await expect(page.locator('#menu')).toBeVisible({ timeout: 90000 });
+        at /tmp/claude-0/-home-user-Experiment-3/c20c3567-05b6-5daa-8126-ea386a6ddfeb/scratchpad/cars-d89-2-base/e2e/30-menu-access.spec.ts:113:73
+
+    Error Context: test-results/30-menu-access-27H-6-menu--d5087-e-normal-paused-grid-starts/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/30-menu-access-27H-6-menu--d5087-e-normal-paused-grid-starts/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/30-menu-access-27H-6-menu--d5087-e-normal-paused-grid-starts/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  5) e2e/settings-transition.spec.ts:6:3 › settings transition: 640x400 owns its first covered frame and persists quality 
+
+    [31mTest timeout of 240000ms exceeded.[39m
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m()[22m failed
+
+    Locator:  locator('#menu')
+    Expected: visible
+    Received: hidden
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 90000ms[22m
+    [2m  - waiting for locator('#menu')[22m
+    [2m    24 × locator resolved to <section id="menu" hidden="" class="menu">…</section>[22m
+    [2m       - unexpected value "hidden"[22m
+
+
+      45 |       .toEqual({ busy: false, phase: 'idle' });
+      46 |     await page.reload();
+    > 47 |     await expect(page.locator('#menu')).toBeVisible({ timeout: 90000 });
+         |                                         ^
+      48 |     await settings.click();
+      49 |     await expect(page.locator('[name=quality]')).toHaveValue('low');
+      50 |     // Exercise keyboard submission with unchanged graphics as well as the cold
+        at /tmp/claude-0/-home-user-Experiment-3/c20c3567-05b6-5daa-8126-ea386a6ddfeb/scratchpad/cars-d89-2-base/e2e/settings-transition.spec.ts:47:41
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/settings-transition-settin-f66bd--frame-and-persists-quality/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/settings-transition-settin-f66bd--frame-and-persists-quality/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  6) e2e/settings-transition.spec.ts:6:3 › settings transition: 1280x720 owns its first covered frame and persists quality 
+
+    [31mTest timeout of 240000ms exceeded.[39m
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m()[22m failed
+
+    Locator:  locator('#menu')
+    Expected: visible
+    Received: hidden
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 90000ms[22m
+    [2m  - waiting for locator('#menu')[22m
+    [2m    7 × locator resolved to <section id="menu" hidden="" class="menu">…</section>[22m
+    [2m      - unexpected value "hidden"[22m
+
+
+      45 |       .toEqual({ busy: false, phase: 'idle' });
+      46 |     await page.reload();
+    > 47 |     await expect(page.locator('#menu')).toBeVisible({ timeout: 90000 });
+         |                                         ^
+      48 |     await settings.click();
+      49 |     await expect(page.locator('[name=quality]')).toHaveValue('low');
+      50 |     // Exercise keyboard submission with unchanged graphics as well as the cold
+        at /tmp/claude-0/-home-user-Experiment-3/c20c3567-05b6-5daa-8126-ea386a6ddfeb/scratchpad/cars-d89-2-base/e2e/settings-transition.spec.ts:47:41
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/settings-transition-settin-72d7f--frame-and-persists-quality/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/settings-transition-settin-72d7f--frame-and-persists-quality/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/settings-transition-settin-72d7f--frame-and-persists-quality/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/settings-transition-settin-72d7f--frame-and-persists-quality/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  6 failed
+    e2e/28-race-hud-layout.spec.ts:7:1 › Race-Day V2 DOM-only: lower-corner telemetry clears the road, lights and timing 
+    e2e/28-race-hud-layout.spec.ts:200:3 › 27H.6 DOM-only: menu controls are reachable at 320x568 ──
+    e2e/28-race-hud-layout.spec.ts:200:3 › 27H.6 DOM-only: menu controls are reachable at 1920x1080 
+    e2e/30-menu-access.spec.ts:101:1 › 27H.6 menu access: 640x400 settings persist and the normal paused grid starts 
+    e2e/settings-transition.spec.ts:6:3 › settings transition: 640x400 owns its first covered frame and persists quality 
+    e2e/settings-transition.spec.ts:6:3 › settings transition: 1280x720 owns its first covered frame and persists quality 
+  5 passed (16.5m)

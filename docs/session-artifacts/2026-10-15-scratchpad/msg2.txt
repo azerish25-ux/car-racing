@@ -1,0 +1,14 @@
+perf(open-world): cheaper surface queries on the road
+
+The surface query scanned the road grid twice (nearest, then covering)
+and evaluated every candidate. On a road the covering piece now answers
+station and lateral itself (the nearest-centreline scan runs only off the
+roads or for a query without a height), segments outside reach are
+rejected on squared distance, and run-out candidates are evaluated only
+when the point is not inside a carriageway. On 200,000 queries around the
+roads (Node, best of three) this costs about 1.3x the nearest-centreline
+query it replaced at d08eae5, down from 2.5x before this change.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01RN7q935R3iepiRcM32D9uW
+

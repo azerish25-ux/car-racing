@@ -1,0 +1,13 @@
+fix(offroad): supercross walls, lean bleed, jump aborts and rejoin angle
+
+Arena Nord's walls stand behind the berm faces (1.8 m from the edge).
+Lean the tyres cannot hold inside the aid's friction budget is bled off
+as a rear slide before it runs away. A committed jump is aborted when an
+obstruction slows the run-up well under the lip speed, and a rider
+rejoining from wide of a berm turns back at a bounded angle instead of
+crossing the track into the far wall. Calmer stadium crowd colours, a
+lower helmet peak, and OFFROAD_RACE to run one seeded race.
+docs/offroad-races.json regenerated.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01RN7q935R3iepiRcM32D9uW

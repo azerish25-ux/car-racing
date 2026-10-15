@@ -1,0 +1,157 @@
+# Implementation and acceptance register
+
+Masterplan WP04 / F14 / §29.2. One row per major feature and per work package. Every row
+carries exactly one state; "done" is not a state.
+
+| State | Meaning |
+|---|---|
+| **absent** | No implementation exists in the repository. |
+| **research** | A bounded study, measurement or design exists; no game code depends on it. |
+| **prototype** | Tested code exists in isolation; it is not part of a player session. |
+| **integrated** | Reachable in a player session and covered by automated tests. |
+| **performance accepted** | Integrated, and measured on named reference hardware within budget. |
+| **player accepted** | Performance accepted, and target players accepted it in full sessions. |
+| **release accepted** | Player accepted, and the exact artifact passed release acceptance. |
+
+Nothing in this repository is above **integrated** today: no named reference-hardware captures and no
+target-player sessions have been recorded (§2.1, §23.1). Moving a row up needs the linked evidence.
+Roles are accountable roles from §26, not named people.
+
+Last reviewed against source: branch `claude/peaceful-einstein-dedc7t`, commits after
+`a8800c73` (see `git log a8800c7..HEAD`).
+
+## 1. Features
+
+| Feature | State | Evidence | Next acceptance step | Owner role |
+|---|---|---|---|---|
+| Formula vehicle dynamics (APX-01) | integrated | `src/simulation/vehicle.ts`, `tests/physics.test.ts`, `scripts/vehicle-calibration.ts` | Human full-stint feel review (§7.6) | Physics lead |
+| Physics v2: combined-slip/thermal tyres, hub suspension, powertrain, differentials, aero platform, ground materials | integrated with the vehicle catalogue (AWD/LSD via the catalogue driveline; turbo prototype) | `docs/production/PHYSICS_MODEL.md`, `tests/tyre-model.test.ts`, `tests/integrator-stability.test.ts`, `tests/differential.test.ts`, `scripts/physics-cost.ts` | Tyre/rig data fit, wheel-hop, per-car catalogue geometry, human feel review | Physics lead |
+| Per-entry vehicle definitions | integrated | `src/simulation/vehicles.ts`, `tests/vehicle-definitions.test.ts` | Hardware/AI review of a mixed grid | Technical director |
+| TC-1 touring car (front drive) | integrated (procedural art) | `TOURING_TC1`, `docs/vehicle-calibration.json`, `src/rendering/vehicle-bodies/` | Interior, audio identity, handling sign-off (§10.2) | Vehicle gameplay |
+| Multi-class catalogue (15 machines) | integrated | `src/simulation/vehicle-catalogue/`, `tests/vehicle-catalogue.test.ts`, `docs/vehicle-calibration.json` | Per-class target review, audio, dirt venue, hardware/AI review of mixed grids | Vehicle gameplay |
+| AWD and per-axle differentials | integrated | `src/simulation/differential.ts`, `tests/drivetrain.test.ts` | Human feel review on split-μ and loose surfaces | Physics lead |
+| Procedural vehicle bodies (3 LODs + shadow proxy) | integrated | `src/rendering/vehicle-bodies/`, `tests/vehicle-bodies.test.ts` | Art-director review, LOD/material timings on reference hardware (§18.3) | Vehicle art |
+| Class-grouped MACHINE menu and class events | integrated | `src/ui/machine-options.ts`, `src/simulation/catalogue-events.ts`, `tests/catalogue-menu-events.test.ts` | Controller/accessibility audit of the grouped list | Gameplay lead |
+| Vehicle calibration laboratory | integrated (CI) | `npm run test:vehicles`, two-timestep drift report | Independent target review per class | Physics lead |
+| Event / ruleset definitions | integrated | `src/simulation/events.ts`, `tests/events.test.ts` | Designer-authored events for G3 | Gameplay lead |
+| Timed endurance classification | integrated (event only) | `timed-endurance` ruleset, timed race test | Fuel/service choices, stint persistence (§11.4) | Gameplay lead |
+| Venue-owned pit/grid geometry | integrated | `PitLaneDefinition`, `tests/venue-pit-data.test.ts` | Rendering of a non-standard paddock | Track/tools lead |
+| Layer-aware 3-D track progress | integrated | `Track.nearest(.., y)`, `tests/route-overpass.test.ts` | First stacked-road venue in production | Track/tools lead |
+| Circuit catalogue: 20 layouts at 12 new venues | integrated | `src/simulation/circuit-catalogue/`, `tests/circuit-catalogue.test.ts`, `docs/circuit-catalogue-races.json`, [CIRCUIT_CATALOGUE.md](../CIRCUIT_CATALOGUE.md) | Human races, crash/recovery and performance capture per venue (§15.3); licence decision for official names | Track/tools lead |
+| Procedural venue kit | integrated | `src/rendering/venue-kit/`, `tests/venue-kit.test.ts` | In-browser capture-suite review and art direction sign-off (§17.2); hardware frame timing | Environment art + rendering lead |
+| Tunnel rain shelter (roofed zones) | integrated | `Track.sheltered`/`isCovered`, `tests/circuit-catalogue.test.ts` | Spray, sky light and reflections inside tunnels | Weather/rendering |
+| Directed route graph, checkpoints, branches | prototype | `src/simulation/route-graph.ts`, `tests/route-graph.test.ts` | Drive a session from a RouteGraph venue | Track/tools lead |
+| Recorded-session identity & record categories | integrated | `src/core/session-identity.ts`, ghost/leaderboard keys; online join agreement and `verifyRecord` reuse them (prototype) | A public board that accepts only verified records (WP52) | Runtime lead |
+| Snapshot schema descriptor | integrated | `SNAPSHOT_SCHEMA` v12 (appended `bike` block, both entity families), `snapshotIncompatibility` (version, length, vehicle index) | Recordings migration policy for v11 replays (rejected today) | Runtime lead |
+| Content validation | integrated (CI) | `npm run validate:content` in `npm run check` | Validate imported/creator content in-game | Tools lead |
+| Replay service (paged recording) | integrated | `src/storage/replay-pages.ts`, `tests/replay-clock.test.ts` | Close F01 on the hosted Mesa job | Runtime lead |
+| Replay playback clock | integrated | `src/session/replay-clock.ts` | — | Runtime lead |
+| GPU frame gate (bounded wait) | integrated | `src/rendering/gpu-frame-gate.ts`, `tests/gpu-frame-gate.test.ts` | Hardware frame-pacing capture | Rendering lead |
+| Replay director (event-aware) | integrated | `pitSubject`, `tests/replay-photo.test.ts` | Overtake/incident priorities (§17.9) | Rendering lead |
+| Race radio & captions | integrated | `src/core/radio.ts`, `src/ui/radio-caption.ts` | Voice assets, priority review with players | Audio lead |
+| Accessibility: captions, reduced motion | integrated | Settings → Accessibility | Accessibility matrix review (WP32) | Accessibility + QA |
+| EVENTS hub / machine choice | integrated | `src/ui/event-cards.ts`, MACHINE select | Controller-only journey review (WP22) | UI/UX lead |
+| Save backup and recovery | integrated | `SaveStore.writeWithBackup`, `recoverSave`; career save recovery in `tests/career.test.ts` | Abrupt-termination test on hardware (§12.5) | Persistence owner |
+| Transparent race rewards | integrated | `rewardIncome`; itemised career payment under the classification (`src/career/economy.ts`) | Economy review (§12.3) | Design lead |
+| Championship and team career | integrated | `src/core/championship.ts`, `src/storage/team-career.ts` | One result identity across both (WP23) | Gameplay lead |
+| Driver career: disciplines, tiers, invitationals, tier championships | integrated | `src/career/registry.ts`, `src/career/ladder.ts`, CAREER menu (`src/ui/career-hub.ts`), `tests/career.test.ts`, `tests/career-session.test.ts`, `e2e/59-career-hub.spec.ts` (DOM-only) | Rendered end-to-end career session in CI; human journey review (WP22) | Design lead + gameplay lead |
+| Registry-derived discipline availability (circuit cars and bikes open; off-road and festival coming until a dirt venue / region exists) | integrated | `disciplineStatus`, `licenceAvailability`, `purchaseReasons`; unlock tests on synthetic registries independent of the live catalogue; re-checked after the bike, car and circuit catalogues merged | Bike-safety flags on circuits; dirt venue and festival region | Gameplay lead |
+| Licence tests, circuit cars (braking marker, cornering line, wet control) | integrated | `src/career/licences.ts`, `src/career/course.ts`; scored from snapshots of a production practice session in `tests/career-session.test.ts`; corner validity measured from the corner entry, invalid wet laps retried | Calibrate the provisional medal limits with human players | Design lead |
+| Licence test, bikes (lean/trail braking) | integrated | Lean from the v12 bike block; scored from a real headless bike practice session in `tests/career-session.test.ts` (the AI scores gold) | Calibrate with human riders; bike-safe venue choice | Motorcycle lead |
+| Licence test, off-road (jump landing) | prototype | Scored against the surveyed landing slope inside the landing zone (`surveyedJumps`, recorded-sample tests); coming until a dirt venue declares a surveyed jump | Couple to the G5 slice: a venue with surveyed jumps | Terrain lead |
+| Career economy: credits, per-discipline reputation, class prices, recovery series | integrated | `racePayout`, `settleRace`, `settleLicence`, `buyVehicle` (refuses machines that cannot race), `recoveryEvent`; once-per-session tests; no title for a season with AI-driven rounds; seasons locked to their machine, abandon confirmed | Economy balance review with players (§12.3) | Design lead |
+| Garage: owned machines, active per discipline, per-vehicle setup presets | integrated | `savePreset`/`careerSetup` (setupKeys only), `SETUP_EFFECTS` hints | Show setup effects in telemetry; bike/off-road parameters | Vehicle gameplay |
+| Vehicle upgrades | absent | Not offered: an upgrade must create a new definition hash and record category | Upgrade definitions with their own record categories | Vehicle gameplay |
+| Versioned career save with migration and recovery | integrated | `src/career/save.ts` (`validateCareer`, `careerFromLegacy`, migration table), `writeWithBackup`/`recoverSave`; newer-build saves never overwritten (`career:newer`), unreadable copies kept (`career:unreadable`), revision re-read and Web Locks for several tabs | Corruption/quota/termination suite on hardware (WP24); a real two-tab browser test | Persistence owner |
+| Motorcycle (road) dynamics | integrated | `bike.ts` core, `bike-vehicle.ts` adapter, `bike-definitions.ts` (GP-R1, SBK-1000), `tests/bike.test.ts`, `tests/bike-session.test.ts`, calibration lab | Human riding-feel review with pad and keyboard; hardware capture (G4) | Motorcycle lead |
+| Motorcycle AI and events | integrated | `bike-ai.ts`, `gp-motorcycle` ruleset, Vellamar bike event, seeded AI races (`npm run test:bikes` → `docs/bike-race.json`, `tests/bike-session.test.ts`) | Overtaking/defending tuned for bikes; incident review over long races | Gameplay lead |
+| Motorcycle and rider presentation | integrated (procedural art) | `src/rendering/bike.ts`, `src/rendering/rider.ts`, onboard/chase cameras | Art-director review, authored asset with rights, rider animation polish, own engine sound | Vehicle art lead |
+| Deformable dirt terrain | prototype | `src/simulation/terrain.ts`, `tests/terrain.test.ts` | Couple to a dirt bike (G5) | Terrain/physics lead |
+| Magnetic local-frame vehicles | prototype | `src/simulation/local-frame.ts` | Engineering course (§16.5) | Extreme gameplay |
+| Moving surfaces | prototype | `src/simulation/moving-surface.ts` | Couple to vehicle contact | Physics/runtime |
+| Freestyle/drift scoring | prototype | `src/core/scoring.ts` | A playable challenge | Gameplay lead |
+| Rally stage / joker classification | prototype | `src/core/stage-rules.ts` | Point-to-point venue | Rally gameplay |
+| Creator content import | prototype | `src/simulation/content-import.ts` | Authoring UI, moderation (G8) | Security/platform |
+| Authoritative server workload | research | `scripts/server-prototype.ts`, `docs/server-prototype.json` | Server tick cost of the online slice on named reference hardware | Network lead |
+| Authoritative online race (in-memory slice) | prototype | `src/net/`, `tests/net-*.test.ts`, `npm run test:online` → `docs/online-slice.json`, [ONLINE_SLICE.md](ONLINE_SLICE.md) | A real transport and a player session that reaches it | Network lead |
+| Online multiplayer service | absent | No deployed service; only the in-memory slice above | Deployable transport, matchmaking, accounts (G7) | Network lead |
+| Force feedback | absent | — | Native bridge study (§21.2) | Input/platform lead |
+| Desktop/Steam package | absent | — | WP58 | Release/platform |
+| VR / split-screen | absent | — | WP62 separate feasibility | Platform R&D |
+| ULTRA preset (TAA+CAS, Hi-Z SSR, temporal GTAO, 3 sun cascades, energy bloom, sun shafts, replay lens, AgX/Neutral) | integrated (opt-in) | `src/rendering/ultra/`, `tests/ultra-*.test.ts`, `e2e/58-ultra-pipeline.spec.ts`, `scripts/ultra-capture.ts`, `RENDERING_PIPELINE.md` | Reference-hardware captures of the §3 suite at ULTRA; frame-time budget | Rendering lead |
+| Shared PBR material library (GPU-generated detail maps) | prototype | `src/rendering/materials/`, `tests/material-library.test.ts` | First vehicle/venue kit built from it | Rendering lead + art director |
+| WebGPU renderer | absent | — | WP61 bounded experiment | Rendering R&D |
+| Off-road dirt bikes (MX-450, MX-250, SM-450) | integrated (procedural art) | `src/simulation/offroad/dirt-bike-vehicle.ts`, `dirt-bikes.ts`, `tests/offroad.test.ts`, `docs/offroad-calibration.json` | Human feel review of flight and landing; audio identity | Physics lead |
+| Deformable course terrain | integrated | `src/simulation/offroad/course-terrain.ts`, `src/rendering/offroad/terrain-view.ts`, `tests/offroad.test.ts` | Hardware capture of the terrain mesh update cost | Physics lead |
+| Off-road venues and formats | integrated (procedural art) | `src/simulation/offroad/venues.ts`, `session.ts`, `formats.ts`, `docs/offroad-races.json` | Human motos and heats; art pass on the venues | Game design |
+
+## 2. Work packages (§26)
+
+| WP | State | What exists / what remains |
+|---|---|---|
+| WP01 | integrated | Mechanism reproduced: the GPU frame gate waited forever for a fence the browser does not refresh while no frames are submitted; the replay director also followed another car during the pit visit. Fixes and regressions: `gpu-frame-gate.test.ts`, `replay-photo.test.ts`, `replay-clock.test.ts`. Causal note: `REPLAY_CLOCKS_AND_F01.md`. |
+| WP02 | integrated | Full journey assertions unchanged; diagnostics added. Passed on the hosted Mesa shard (run 38637809713, shard 6, 6.9 min). Whole-workflow green is still required for WP03. |
+| WP03 | absent | Publication of the corrected artifact is a release-owner action after green CI. |
+| WP04 | integrated | This register. |
+| WP05 | research | Protocol in `HARDWARE_DEVICE_PLAYTEST_PROTOCOLS.md`; no hardware captured. |
+| WP06 | integrated | Shadow-pass LOD substitution for crowd/seats; needs hardware timing and moving-image review. |
+| WP07 | absent | Requires approved retopology of the supplied player asset and rights review. |
+| WP08 | integrated | Per-entry definitions; TC-1 proves coexistence. |
+| WP09 | integrated | Rulesets/events; five legacy modes resolve unchanged. |
+| WP10 | integrated | Left-pit venue completes a full AI stop. |
+| WP11 | integrated / prototype | Track layer gate integrated; RouteGraph prototype. |
+| WP12 | integrated | Identity, record categories, schema descriptor, explicit legacy policy. |
+| WP13 | integrated (partial) | Records and replay clock extracted; session/profile/presentation controllers remain in `main.ts`. |
+| WP14 | integrated | `npm run validate:content`. |
+| WP15 | absent | Load/residency/teardown measurement needs hardware captures. |
+| WP16 | research | Proposed decision record in `DECISIONS_AND_RISKS.md`; needs producer sign-off. |
+| WP17 | integrated | Calibration lab with design-brief bands and timestep drift; AWD with centre split, open/LSD/locked axle differentials, tyre families. Every catalogue machine in band at both timesteps (APX-01 top speed 319.8 vs 320 km/h floor is a pre-existing exception). Human feel review open. |
+| WP18 | integrated (provisional) | TC-1 plus fifteen catalogue machines: mechanics, AI envelopes, setup limits, snapshot identity, procedural exteriors. Interiors, audio families, damage variants and sign-off absent. |
+| WP19 | integrated | Per-definition AI envelopes, zero-downforce braking fix. |
+| WP20 | integrated | Explicit pass commitment in `TrafficPlanner`: one target per attempt, abort on gap opening, lost closing speed (>1 s), defender covering before overlap, no safe lane or 12 s timeout; skill-dependent retry hysteresis; passes/aborts counted with reason (`tests/traffic.test.ts`). Unit suite and `test:physics` green. QA-suite measurements (§13.7) open. |
+| WP21 | absent | Needs human sessions on named devices. |
+| WP22 | integrated (partial) | EVENTS hub, machine choice with explained rejections; CAREER hub is native buttons in reading order with focus kept on the active section (DOM-only browser test); full controller audit open. |
+| WP23 | integrated (partial) | Idempotent, explained rewards (team ledger and career wallet, each session paid by one of them); one result identity across championship/team/career open. |
+| WP24 | integrated (partial) | Backup-on-write and recovery, including the versioned career save and its legacy-save migration; corruption/quota/termination suite on hardware open. |
+| WP25 | integrated (partial) | Licence tests per vehicle family: circuit-car braking, cornering and wet, the bike lean licence and the off-road jump-landing licence (surveyed jumps at Valley Ridge, on the MX-250 loaner) are reachable from CAREER and scored from snapshots. |
+| WP26 | integrated | Powertrain sound families (`src/audio/sound-profiles.ts`): firing order, harmonic emphasis, rev range, induction, transmission and electric-motor briefs for 13 families; engine voices and the player power-unit layer follow the recorded vehicle (`tests/sound-profiles.test.ts`). APX-01 output is unchanged; TC-1 has its own four-cylinder turbo voice. Listening review open. |
+| WP27 | research | Capture-suite definition in `CONTENT_PIPELINE.md`; art director approval open. |
+| WP28 | absent | Temporal clarity work needs the capture suite. |
+| WP29 | integrated (partial) | Twenty catalogue layouts reached greybox, AI race (seeded 6-car races, all pass) and an operational pass with a procedural venue kit; layer-aware overpasses (Kansai, Iron Quay) and tunnels in production venues. Open: crash/recovery demonstration, human races, art pass and performance capture (§14.3 stages 4–6), person-time records (§14.7). |
+| WP30 | integrated (partial) | Venue side: 12 new venues / 20 layouts selectable (Original / Real-world / Unconventional), six events use them. Real-world layouts are approximations under neutral names pending a licence. The twelve-car side belongs to the vehicle programme. No layout is performance-, player- or release-accepted. Car side: 17 machines across 11 families with procedural bodies, class-grouped menu, multi-class endurance ruleset and GT/hypercar/touring/kart/rallycross events. Six-venue scope, dirt venue, audio and art acceptance open. |
+| WP31 | research | Device matrix template; no certification. |
+| WP32 | integrated (partial) | Captions, reduced motion, engineer mute added; matrix review open. |
+| WP33 | integrated | Rider-bike model and control contract in sessions: lean intent with counter-steer controller, separate front/rear brake (rear on the clutch binding), TC/wheelie/stoppie/cornering ABS on the Sport assist; GP-R1 and SBK-1000 definitions with calibration bands. Human feel review open. |
+| WP34 | integrated (procedural art) | BikeVehicle adapter (slim OBB, contact feedback, crash → separation → remount reported to race control), snapshot v12 bike block, procedural bike and rider rig with LODs, onboard/chase cameras. Authored art, damage variants and own audio absent. |
+| WP35 | integrated | Bike AI on the shared race craft with lean-limited envelopes and a lean-aware path tracker; seeded AI race completes with bounded incidents (test). Bike-specific overtaking not tuned. |
+| WP36 | integrated (partial) | MACHINE choices, all-bike grid, `gp-motorcycle` ruleset, Vellamar bike event card, mixed car/bike grids rejected. Slice acceptance (players, hardware) open; nothing accepted. |
+| WP37 | integrated (procedural art) | Dirt bikes on the bike adapter (`src/simulation/offroad/dirt-bike-vehicle.ts`): MX-450 four-stroke, MX-250 two-stroke and SM-450 supermoto with ~300 mm travel, a 2-DOF sprung chassis (rising-rate springs, digressive damping, bump stop), knobby/supermoto tyre families on the surface-material model, ballistic flight with body and rear-wheel (throttle / rear brake) pitch control, landing judgement (pitch error, impact, bottoming → clean / bottomed / crash), standing pose and foot dab in the snapshot (protocol v13 off-road block). Calibration bands in `npm run test:offroad` (`docs/offroad-calibration.json`: 0–60 m from the gate, flight distance against the ballistic distance, landing windows, rolling); asphalt runway bands in `docs/vehicle-calibration.json`. Human feel review, hardware and audio open. |
+| WP38 | integrated | Session-scale deformable course terrain (`course-terrain.ts`, a `TerrainTile` in the Track frame: 0.25 m × 0.5 m cells, soil kind and moisture per cell, session wetness): every loaded contact patch ruts and compacts in a fixed order; ruts change grip and rolling resistance and the AI's `lineCost`; reset per session; identical across runs and after a flashback re-simulation (`tests/offroad.test.ts`). The worker exports rut deltas with each surface keyframe for the renderer and replays. No relaxation inside a session (a course is re-prepared between motos); no network delta format. |
+| WP39 | integrated (procedural art) | Four original terrain venues in the catalogue builder (`venues.ts`): Valley Ridge outdoor motocross (start-gate straight, tabletops, doubles, a triple, whoops, rollers, berms), Arena Nord indoor supercross (night, tight, triple rhythm lane, whoops), Kestrel rallycross (asphalt and gravel, joker road) and Pinewood gravel special stage (point to point with two splits). Surveyed jumps feed the landing licence; `npm run validate:content` passes. Art beyond the procedural venue kit, human laps and performance captures open. |
+| WP40 | integrated | Off-road AI (`src/simulation/offroad/ai.ts`): dirt-bike line choice across ruts and berms by `lineCost`, straight lines over jumps and whoops, jump speed control (hold speed for the landing face measured per feature kind, a clear/roll decision locked where braking runs out and aborted for an obstruction on the run-up, rolling over gap jumps after a fall), a bounded rejoin angle, gate launch, crash recovery and marshal push-out; rally and rallycross car AI with surface-ahead grip envelopes, crest caps and a planned joker lap. Seeded races with bounded crashes in `npm run test:offroad` (`docs/offroad-races.json`). Not tuned against human riders; overtaking is the shared race craft. |
+| WP41 | integrated (partial) | Motocross / supercross slice in player sessions: menu machines, gate start, terrain mesh with ruts and moisture, roost, mud coat, dirt-bike model and standing rider, start gate, stadium bowl, off-road HUD line, career tier. Slice acceptance (players, hardware, art, audio) open; nothing accepted. |
+| WP42 | integrated | Formats on the off-road session (`session.ts`, `formats.ts`): two-moto meetings with moto points and combined classification, gate pick by qualifying order, synchronised gate with jump-start detection and the holeshot (D049), rallycross heats with exactly one joker lap enforced at the flag, rally stages with staggered starts, splits on the stage RouteGraph, a stop control and parking. Rulesets and events registered; the career's off-road discipline (motocross, rallycross, rally tiers) opens from the registry. The two-moto meeting is a classification function, not yet a menu session. |
+| WP43–WP44 | prototype | Magnetic local frames; moving surfaces. |
+| WP45–WP47 | absent | Extreme slice acceptance, venue selection, presentation libraries. |
+| WP48 | prototype | Explainable scoring. |
+| WP49 | research | Server workload measurement. |
+| WP50 | prototype | Sequenced input commands (60 Hz sampling, 30 Hz send, every unacknowledged command repeated), 20 Hz compact per-recipient snapshots, authoritative 120 Hz server, local-car prediction with a learned input response and smoothed reconciliation, jitter-buffered Hermite interpolation of remote cars, explicit server collision authority. Corrections measured at 100 ms RTT / 2% loss (`tests/net-prediction.test.ts`, `docs/online-slice.json`: p95 0.15 m); the input lead starts from the keep-alive round trip and grows from late-command feedback (200/300 ms RTT tested). Full-world client re-simulation not done (no Simulation state restore); bot drivers, not human inputs; no player session. |
+| WP51 | prototype | lobby → grid → race → results → teardown over the `Transport` interface; joins present a `RecordedSessionIdentity` computed from local content and are rejected with the first version/hash mismatch (`tests/net-lifecycle.test.ts`). Crash/restart procedure documented; journal-replay restore tested; persistence, supervisor and address migration absent; host migration out of scope. |
+| WP52 | prototype | Records = seed + options + input journal + content hashes (+ exact 10 s state checkpoints, per-lap AI-assisted flags); headless re-simulation accepts only bit-identical classification, lap times, flags and checkpoints; forged lap time, invented checkpoints, tampered journal and mismatched content/physics version rejected; AI-driven laps never count as `categoryBest`; journal bound derived from the session (`tests/net-records.test.ts`). Not wired to time-trial boards; records unsigned; same-build determinism only. |
+| WP53 | prototype | Lobby directory create/list/join/leave, capacity, ready check, class/ruleset compatibility via `sessionIncompatibilities`, host kick/ban with moderation hooks, per-player and per-connection rate limits (`tests/net-lobby.test.ts`, `tests/net-resilience.test.ts`). No UI, no authenticated accounts. |
+| WP54 | prototype | Disconnect → AI takeover (or ghost classification), 250 ms input-starvation hold, token rejoin within 30 s (CSPRNG tokens bound to the account, never replacing a live connection, rate-limited; during the countdown too), loss/duplication/reordering tolerated, input sanity limits, message size limits, strikes and kick, server tick-budget monitor (`tests/net-resilience.test.ts`, slice run). No load shedding; ghosts are not contact-immune. |
+| WP55 | absent | Productized authoring tools. |
+| WP56 | prototype | Sandboxed creator import. |
+| WP57–WP60 | absent | Publishing, PC package, product acceptance, release packet. |
+| WP61–WP62 | absent | WebGPU and new-platform evaluations. |
+| WP63 | integrated | `DECISIONS_AND_RISKS.md` is the living scope/risk record. |
+| WP64 | research | Dashboard definition in `RELEASE_DASHBOARD.md`; replay corpus not yet assembled. |
+
+## 3. Gates (§25.1)
+
+| Gate | Status | Blocking evidence |
+|---|---|---|
+| G0 Stable baseline | open | Hosted CI green on the corrected source; publication and rollback evidence. |
+| G1 Golden race | open | Human full races, hardware profiles. |
+| G2 Generalized car/track platform | open, technically substantially met | Mechanically distinct second car, left-pit venue, overpass tests and record policy exist; G1 first. |
+| G3–G9 | not started | Depend on G1/G2 acceptance. |

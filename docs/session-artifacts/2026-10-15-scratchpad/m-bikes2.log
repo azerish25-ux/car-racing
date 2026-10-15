@@ -1,0 +1,25 @@
+
+> apex-formula-laboratory@0.1.0 test:bikes
+> node --experimental-transform-types scripts/bike-race.ts
+
+aurel clear seed 3303: finished true in 206.0 s, crashes 0,0,0,0,0,0,0,0, best 62.37 s
+vellamar clear seed 77: finished true in 270.0 s, crashes 0,0,0,0,0,0,0,0, best 82.33 s
+aurel rain seed 2024: finished true in 406.6 s, crashes 0,0,0,0,0,0,0,0, best 78.22 s
+vellamar clear seed 8624: finished true in 258.3 s, crashes 0,0,0,0,0,0,0,0, best 77.90 s
+aurel clear seed 8725: finished true in 219.7 s, crashes 0,0,0,0,0,0,0,0, best 67.12 s
+vellamar clear seed 8826: finished true in 307.3 s, crashes 0,0,0,0,0,0,0,0, best 97.18 s
+poggio-alto clear seed 30101: finished true in 375.1 s, crashes 0,0,1,0,0,0,0,0, best 112.78 s
+montejaral clear seed 30103: finished true in 367.5 s, crashes 0,0,0,0,0,0,0,0, best 113.34 s
+event vellamar-gp-motorcycle-sprint vellamar clear seed 3303: finished true in 338.3 s, crashes 0,0,0,0,0,0,0,0, best 77.81 s
+event poggio-alto-gp-motorcycle poggio-alto clear seed 30101: finished true in 621.6 s, crashes 0,0,2,0,0,0,1,0,0,0, best 112.78 s
+event cape-wrenna-superbike cape-wrenna clear seed 30102: finished true in 647.3 s, crashes 0,0,0,0,0,0,0,0,0,0, best 100.96 s
+event haarveld-supersport haarveld changeable seed 30103: finished true in 800.2 s, crashes 0,0,0,0,0,0,1,0,0,0, best 117.02 s
+event montejaral-gp-motorcycle montejaral clear seed 30104: finished true in 557.4 s, crashes 0,0,0,0,0,0,0,0, best 104.71 s
+event loirette-club-supersport loirette-club clear seed 30105: finished true in 460.3 s, crashes 0,0,0,0,0,0,0,0, best 107.25 s
+event arroyo-oro-superbike arroyo-oro clear seed 30106: finished true in 467.3 s, crashes 0,0,0,0,0,0,0,0, best 87.45 s
+event aurel-gp-prototype-pair aurel clear seed 8624: finished true in 270.4 s, crashes 0,0,0,0,0,0,0,0, best 62.29 s
+event vellamar-supersport-sprint vellamar clear seed 8725: finished true in 368.9 s, crashes 0,0,0,0,0,0,0,0, best 86.05 s
+event aurel-classic-motorcycle-sprint aurel clear seed 8826: finished true in 243.2 s, crashes 0,0,0,0,0,0,0,0, best 76.30 s
+event vellamar-superbike-sprint vellamar clear seed 8927: finished true in 354.5 s, crashes 0,0,0,0,0,0,0,0, best 82.33 s
+(node:29809) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)

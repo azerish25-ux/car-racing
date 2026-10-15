@@ -1,0 +1,41 @@
+(node:8761) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+[    0 s] open http://127.0.0.1:47311/ (mesa, 1280x720)
+[   83 s] menu ready on ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)
+[   83 s] GARAGE & SETTINGS → ultra
+[  152 s] preset applied
+[  152 s] session: festival (open world)
+[  279 s] festival loaded at Port Ilse
+[  363 s] captured 08-festival-port-ilse-golden-hour.png
+[  386 s] captured 09-festival-world-map.png
+[  386 s] festival autopilot on, driving
+[  487 s] captured 09b-festival-drive-1.png
+[  575 s] captured 09b-festival-drive-2.png
+[  660 s] captured 09b-festival-drive-3.png
+[  660 s] session festival took 577 s
+[  660 s] session: arena-nord-sx race 3 laps clear grid 12 start midfield machine mx250
+[  660 s] rules: MOTOCROSS MOTO: no mandatory stop · DRS off · points scored.
+[  757 s] session prepared
+[  772 s] 11 arena-nord-supercross-night: met (t 10.7 s, race 4.8 s)
+[  803 s] captured 11-arena-nord-supercross-night.png
+[  952 s] 11 airborne: met (t 109.1 s, race 103.2 s)
+[ 1011 s] captured 11-arena-nord-airborne.png
+[ 1011 s] session arena took 351 s
+[ 1019 s] session: kestrel-rx race 3 laps clear grid 8 start midfield machine rcx6
+[ 1019 s] rules: RALLYCROSS HEAT · JOKER: no mandatory stop · DRS off · points scored.
+[ 1087 s] session prepared
+[ 1100 s] 12 kestrel-rallycross-rcx6: met (t 11.1 s, race 5.2 s)
+[ 1142 s] captured 12-kestrel-rallycross-rcx6.png
+[ 1159 s] captured 12-kestrel-rallycross-trackside.png
+[ 1193 s] 12 kestrel-rallycross-rcx6-2: met (t 33.3 s, race 27.4 s)
+[ 1231 s] captured 12-kestrel-rallycross-rcx6-2.png
+[ 1231 s] session kestrel took 220 s
+[ 1239 s] session: pinewood-stage race 1 laps clear grid 4 start pole machine dx8
+[ 1239 s] rules: RALLY SPECIAL STAGE: no mandatory stop · DRS off · points scored.
+[ 1314 s] session prepared
+[ 1344 s] 05 trophy truck on the stage: met (t 28.9 s, race 23.0 s)
+[ 1400 s] captured 05-dx8-trophy-truck-pinewood.png
+[ 1426 s] 05 later on the stage: met (t 54.3 s, race 48.4 s)
+[ 1472 s] captured 05-dx8-trophy-truck-pinewood-2.png
+[ 1472 s] session truck took 241 s
+[ 1476 s] done: 12 shots, 0 failures → runs/c

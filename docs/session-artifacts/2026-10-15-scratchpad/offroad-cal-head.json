@@ -1,0 +1,531 @@
+{
+  "generated": "npm run test:offroad (scripts/offroad-calibration.ts)",
+  "bands": {
+    "sixty": {
+      "mx450": [
+        3.6,
+        5
+      ],
+      "mx250": [
+        3.7,
+        5.2
+      ],
+      "sm450": [
+        3.8,
+        5.6
+      ]
+    },
+    "distanceRatio": [
+      0.85,
+      1.15
+    ]
+  },
+  "sixty": [
+    {
+      "machine": "mx450",
+      "seconds": 4.52916666666673,
+      "band": [
+        3.6,
+        5
+      ],
+      "crashes": 0
+    },
+    {
+      "machine": "mx250",
+      "seconds": 4.495833333333398,
+      "band": [
+        3.7,
+        5.2
+      ],
+      "crashes": 0
+    },
+    {
+      "machine": "sm450",
+      "seconds": 4.425000000000069,
+      "band": [
+        3.8,
+        5.6
+      ],
+      "crashes": 0
+    }
+  ],
+  "jumps": [
+    {
+      "machine": "mx450",
+      "venue": "valley-ridge-mx",
+      "jump": "RIDGE TABLE",
+      "kind": "tabletop",
+      "hold": 11.17,
+      "gain": 0.4,
+      "ratio": 0.864,
+      "atHold": {
+        "takeoffSpeed": 11.422,
+        "distance": 10.56,
+        "ballistic": 12.22,
+        "airTime": 1.058,
+        "pitchError": 0.009,
+        "normalSpeed": 4.55,
+        "bottomSpeed": 0,
+        "outcome": "clean"
+      },
+      "window": null,
+      "rolled": "ok",
+      "rollSeconds": 13.71
+    },
+    {
+      "machine": "mx450",
+      "venue": "valley-ridge-mx",
+      "jump": "BARN DOUBLE",
+      "kind": "double",
+      "hold": 13.814,
+      "gain": 0.5,
+      "ratio": 0.918,
+      "atHold": {
+        "takeoffSpeed": 14.599,
+        "distance": 17.59,
+        "ballistic": 19.16,
+        "airTime": 1.421,
+        "pitchError": 0.137,
+        "normalSpeed": 2.83,
+        "bottomSpeed": 0,
+        "outcome": "clean"
+      },
+      "window": {
+        "short": "crash-front",
+        "long": "crash-flat"
+      },
+      "rolled": "ok",
+      "rollSeconds": 16.72
+    },
+    {
+      "machine": "mx450",
+      "venue": "valley-ridge-mx",
+      "jump": "CREEK KICKER",
+      "kind": "kicker",
+      "hold": 5.036,
+      "gain": 1,
+      "ratio": 0.766,
+      "atHold": {
+        "takeoffSpeed": 6.109,
+        "distance": 3.3,
+        "ballistic": 4.3,
+        "airTime": 0.562,
+        "pitchError": -0.379,
+        "normalSpeed": 3.85,
+        "bottomSpeed": 0,
+        "outcome": "clean"
+      },
+      "window": null,
+      "rolled": "ok",
+      "rollSeconds": 7.13
+    },
+    {
+      "machine": "mx450",
+      "venue": "valley-ridge-mx",
+      "jump": "SKY TRIPLE",
+      "kind": "triple",
+      "hold": 14.279,
+      "gain": 0.78,
+      "ratio": 0.976,
+      "atHold": {
+        "takeoffSpeed": 15.519,
+        "distance": 21.64,
+        "ballistic": 22.17,
+        "airTime": 1.642,
+        "pitchError": 0.149,
+        "normalSpeed": 3.63,
+        "bottomSpeed": 0,
+        "outcome": "clean"
+      },
+      "window": {
+        "short": "crash-front",
+        "long": "crash-flat"
+      },
+      "rolled": "ok",
+      "rollSeconds": 16.97
+    },
+    {
+      "machine": "mx450",
+      "venue": "valley-ridge-mx",
+      "jump": "SUMMIT TABLE",
+      "kind": "tabletop",
+      "hold": 12.064,
+      "gain": 0.4,
+      "ratio": 0.906,
+      "atHold": {
+        "takeoffSpeed": 12.293,
+        "distance": 13.09,
+        "ballistic": 14.44,
+        "airTime": 1.217,
+        "pitchError": 0.07,
+        "normalSpeed": 4.5,
+        "bottomSpeed": 0,
+        "outcome": "clean"
+      },
+      "window": null,
+      "rolled": "ok",
+      "rollSeconds": 16.27
+    },
+    {
+      "machine": "mx450",
+      "venue": "valley-ridge-mx",
+      "jump": "VALLEY DOUBLE",
+      "kind": "double",
+      "hold": 13.529,
+      "gain": 0.5,
+      "ratio": 0.952,
+      "atHold": {
+        "takeoffSpeed": 13.935,
+        "distance": 16.28,
+        "ballistic": 17.1,
+        "airTime": 1.342,
+        "pitchError": 0.134,
+        "normalSpeed": 2.38,
+        "bottomSpeed": 0,
+        "outcome": "clean"
+      },
+      "window": {
+        "short": "crash-front",
+        "long": "crash-flat"
+      },
+      "rolled": "ok",
+      "rollSeconds": 15.44
+    },
+    {
+      "machine": "mx250",
+      "venue": "valley-ridge-mx",
+      "jump": "RIDGE TABLE",
+      "kind": "tabletop",
+      "hold": 11.17,
+      "gain": 0.4,
+      "ratio": 0.855,
+      "atHold": {
+        "takeoffSpeed": 11.362,
+        "distance": 10.35,
+        "ballistic": 12.1,
+        "airTime": 1.042,
+        "pitchError": 0.009,
+        "normalSpeed": 4.68,
+        "bottomSpeed": 0,
+        "outcome": "clean"
+      },
+      "window": null,
+      "rolled": "ok",
+      "rollSeconds": 14.35
+    },
+    {
+      "machine": "mx250",
+      "venue": "valley-ridge-mx",
+      "jump": "BARN DOUBLE",
+      "kind": "double",
+      "hold": 13.814,
+      "gain": 0.5,
+      "ratio": 0.872,
+      "atHold": {
+        "takeoffSpeed": 14.228,
+        "distance": 15.9,
+        "ballistic": 18.23,
+        "airTime": 1.317,
+        "pitchError": -0.184,
+        "normalSpeed": 4.85,
+        "bottomSpeed": 0,
+        "outcome": "clean"
+      },
+      "window": {
+        "short": "crash-front",
+        "long": "crash-flat"
+      },
+      "rolled": "ok",
+      "rollSeconds": 17.86
+    },
+    {
+      "machine": "mx250",
+      "venue": "valley-ridge-mx",
+      "jump": "CREEK KICKER",
+      "kind": "kicker",
+      "hold": 5.036,
+      "gain": 1,
+      "ratio": 0.655,
+      "atHold": {
+        "takeoffSpeed": 5.016,
+        "distance": 2.12,
+        "ballistic": 3.23,
+        "airTime": 0.429,
+        "pitchError": -0.479,
+        "normalSpeed": 3.33,
+        "bottomSpeed": 0,
+        "outcome": "clean"
+      },
+      "window": null,
+      "rolled": "ok",
+      "rollSeconds": 7.38
+    },
+    {
+      "machine": "mx250",
+      "venue": "valley-ridge-mx",
+      "jump": "SKY TRIPLE",
+      "kind": "triple",
+      "hold": 14.279,
+      "gain": 0.78,
+      "ratio": 0.938,
+      "atHold": {
+        "takeoffSpeed": 15.302,
+        "distance": 20.23,
+        "ballistic": 21.57,
+        "airTime": 1.55,
+        "pitchError": 0.1,
+        "normalSpeed": 2.99,
+        "bottomSpeed": 0,
+        "outcome": "clean"
+      },
+      "window": {
+        "short": "crash-front",
+        "long": "crash-flat"
+      },
+      "rolled": "ok",
+      "rollSeconds": 18.6
+    },
+    {
+      "machine": "mx250",
+      "venue": "valley-ridge-mx",
+      "jump": "SUMMIT TABLE",
+      "kind": "tabletop",
+      "hold": 12.064,
+      "gain": 0.4,
+      "ratio": 0.898,
+      "atHold": {
+        "takeoffSpeed": 12.234,
+        "distance": 12.85,
+        "ballistic": 14.31,
+        "airTime": 1.2,
+        "pitchError": 0.066,
+        "normalSpeed": 4.77,
+        "bottomSpeed": 0,
+        "outcome": "clean"
+      },
+      "window": null,
+      "rolled": "ok",
+      "rollSeconds": 15.77
+    },
+    {
+      "machine": "mx250",
+      "venue": "valley-ridge-mx",
+      "jump": "VALLEY DOUBLE",
+      "kind": "double",
+      "hold": 13.529,
+      "gain": 0.5,
+      "ratio": 0.902,
+      "atHold": {
+        "takeoffSpeed": 13.713,
+        "distance": 14.96,
+        "ballistic": 16.58,
+        "airTime": 1.246,
+        "pitchError": -0.133,
+        "normalSpeed": 4.66,
+        "bottomSpeed": 0,
+        "outcome": "clean"
+      },
+      "window": {
+        "short": "crash-front",
+        "long": "crash-flat"
+      },
+      "rolled": "ok",
+      "rollSeconds": 16.55
+    },
+    {
+      "machine": "mx450",
+      "venue": "arena-nord-sx",
+      "jump": "TRIPLE",
+      "kind": "triple",
+      "hold": 13.785,
+      "gain": 0.78,
+      "ratio": 0.949,
+      "atHold": {
+        "takeoffSpeed": 15.252,
+        "distance": 20.3,
+        "ballistic": 21.4,
+        "airTime": 1.55,
+        "pitchError": 0.229,
+        "normalSpeed": 3.23,
+        "bottomSpeed": 1.88,
+        "outcome": "bottomed"
+      },
+      "window": {
+        "short": "crash-front",
+        "long": "crash-flat"
+      },
+      "rolled": "ok",
+      "rollSeconds": 16.32
+    },
+    {
+      "machine": "mx450",
+      "venue": "arena-nord-sx",
+      "jump": "LANE DOUBLE",
+      "kind": "double",
+      "hold": 11.733,
+      "gain": 0.5,
+      "ratio": 0.959,
+      "atHold": {
+        "takeoffSpeed": 12.555,
+        "distance": 13.57,
+        "ballistic": 14.15,
+        "airTime": 1.242,
+        "pitchError": 0.05,
+        "normalSpeed": 2.6,
+        "bottomSpeed": 0,
+        "outcome": "clean"
+      },
+      "window": {
+        "short": "crash-front",
+        "long": "bottomed"
+      },
+      "rolled": "ok",
+      "rollSeconds": 11.67
+    },
+    {
+      "machine": "mx450",
+      "venue": "arena-nord-sx",
+      "jump": "TABLETOP",
+      "kind": "tabletop",
+      "hold": 9.989,
+      "gain": 0.4,
+      "ratio": 0.935,
+      "atHold": {
+        "takeoffSpeed": 10.602,
+        "distance": 10.05,
+        "ballistic": 10.75,
+        "airTime": 1.092,
+        "pitchError": 0.157,
+        "normalSpeed": 2.85,
+        "bottomSpeed": 0,
+        "outcome": "clean"
+      },
+      "window": null,
+      "rolled": "ok",
+      "rollSeconds": 14.25
+    },
+    {
+      "machine": "mx450",
+      "venue": "arena-nord-sx",
+      "jump": "FINISH TRIPLE",
+      "kind": "triple",
+      "hold": 13.725,
+      "gain": 0.78,
+      "ratio": 0.967,
+      "atHold": {
+        "takeoffSpeed": 15.1,
+        "distance": 20.45,
+        "ballistic": 21.14,
+        "airTime": 1.587,
+        "pitchError": 0.17,
+        "normalSpeed": 3.57,
+        "bottomSpeed": 1.6,
+        "outcome": "bottomed"
+      },
+      "window": {
+        "short": "crash-front",
+        "long": "crash-flat"
+      },
+      "rolled": "ok",
+      "rollSeconds": 16.19
+    },
+    {
+      "machine": "mx250",
+      "venue": "arena-nord-sx",
+      "jump": "TRIPLE",
+      "kind": "triple",
+      "hold": 13.785,
+      "gain": 0.78,
+      "ratio": 0.894,
+      "atHold": {
+        "takeoffSpeed": 14.834,
+        "distance": 18.13,
+        "ballistic": 20.27,
+        "airTime": 1.425,
+        "pitchError": 0.075,
+        "normalSpeed": 3.37,
+        "bottomSpeed": 0,
+        "outcome": "clean"
+      },
+      "window": {
+        "short": "crash-front",
+        "long": "crash-flat"
+      },
+      "rolled": "ok",
+      "rollSeconds": 17.52
+    },
+    {
+      "machine": "mx250",
+      "venue": "arena-nord-sx",
+      "jump": "LANE DOUBLE",
+      "kind": "double",
+      "hold": 11.733,
+      "gain": 0.5,
+      "ratio": 0.943,
+      "atHold": {
+        "takeoffSpeed": 12.409,
+        "distance": 13.04,
+        "ballistic": 13.84,
+        "airTime": 1.208,
+        "pitchError": -0.031,
+        "normalSpeed": 2.38,
+        "bottomSpeed": 0,
+        "outcome": "clean"
+      },
+      "window": {
+        "short": "crash-front",
+        "long": "bottomed"
+      },
+      "rolled": "ok",
+      "rollSeconds": 12.47
+    },
+    {
+      "machine": "mx250",
+      "venue": "arena-nord-sx",
+      "jump": "TABLETOP",
+      "kind": "tabletop",
+      "hold": 9.989,
+      "gain": 0.4,
+      "ratio": 0.871,
+      "atHold": {
+        "takeoffSpeed": 10.16,
+        "distance": 8.67,
+        "ballistic": 9.95,
+        "airTime": 0.975,
+        "pitchError": 0.006,
+        "normalSpeed": 4.08,
+        "bottomSpeed": 0,
+        "outcome": "clean"
+      },
+      "window": null,
+      "rolled": "ok",
+      "rollSeconds": 13.43
+    },
+    {
+      "machine": "mx250",
+      "venue": "arena-nord-sx",
+      "jump": "FINISH TRIPLE",
+      "kind": "triple",
+      "hold": 13.725,
+      "gain": 0.78,
+      "ratio": 0.913,
+      "atHold": {
+        "takeoffSpeed": 14.645,
+        "distance": 18.19,
+        "ballistic": 19.92,
+        "airTime": 1.458,
+        "pitchError": 0.01,
+        "normalSpeed": 3.61,
+        "bottomSpeed": 0,
+        "outcome": "clean"
+      },
+      "window": {
+        "short": "crash-front",
+        "long": "crash-flat"
+      },
+      "rolled": "ok",
+      "rollSeconds": 17.6
+    }
+  ],
+  "failures": []
+}

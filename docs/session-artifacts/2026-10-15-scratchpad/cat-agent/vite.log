@@ -1,0 +1,66 @@
+1:42:52 AM [vite] (client) Re-optimizing dependencies because vite config has changed
+
+  VITE v7.1.7  ready in 1139 ms
+
+  ➜  Local:   http://127.0.0.1:5287/
+1:44:43 AM [vite] (client) page reload src/rendering/vehicle-bodies/materials.ts
+1:49:11 AM [vite] (client) page reload src/rendering/vehicle-bodies/closed-body.ts
+1:49:31 AM [vite] (client) page reload src/rendering/vehicle-bodies/loft.ts
+1:49:31 AM [vite] (client) page reload src/rendering/vehicle-bodies/closed-body.ts
+1:50:36 AM [vite] (client) page reload src/rendering/vehicle-bodies/closed-body.ts
+1:50:36 AM [vite] (client) page reload src/rendering/vehicle-bodies/open-wheel.ts
+1:53:14 AM [vite] (client) page reload src/simulation/vehicle-catalogue/small-road.ts
+1:56:25 AM [vite] (client) page reload src/simulation/vehicle-catalogue/formula.ts
+1:56:25 AM [vite] (client) page reload src/simulation/vehicle-catalogue/endurance.ts
+1:56:25 AM [vite] (client) page reload src/simulation/vehicle-catalogue/gt.ts
+1:56:25 AM [vite] (client) page reload src/simulation/vehicle-catalogue/touring-club.ts
+1:56:25 AM [vite] (client) page reload src/simulation/vehicle-catalogue/dirt.ts
+1:56:25 AM [vite] (client) page reload src/simulation/vehicle-catalogue/small-road.ts
+1:56:38 AM [vite] (client) page reload src/simulation/vehicle-catalogue/formula.ts
+1:56:38 AM [vite] (client) page reload src/simulation/vehicle-catalogue/gt.ts
+1:56:38 AM [vite] (client) page reload src/simulation/vehicle-catalogue/small-road.ts
+1:57:26 AM [vite] (client) page reload src/simulation/vehicle-catalogue/formula.ts
+1:57:26 AM [vite] (client) page reload src/simulation/vehicle-catalogue/endurance.ts
+1:57:26 AM [vite] (client) page reload src/simulation/vehicle-catalogue/gt.ts
+1:57:26 AM [vite] (client) page reload src/simulation/vehicle-catalogue/touring-club.ts
+1:57:26 AM [vite] (client) page reload src/simulation/vehicle-catalogue/dirt.ts
+1:57:26 AM [vite] (client) page reload src/simulation/vehicle-catalogue/small-road.ts
+2:00:39 AM [vite] (client) page reload src/rendering/vehicle-bodies/loft.ts
+2:00:40 AM [vite] (client) page reload src/rendering/vehicle-bodies/closed-body.ts
+2:05:31 AM [vite] (client) page reload src/simulation/vehicle-catalogue/small-road.ts
+2:10:07 AM [vite] (client) page reload src/simulation/vehicle-catalogue/gt.ts
+2:11:05 AM [vite] (client) page reload src/simulation/vehicle-catalogue/formula.ts
+2:11:05 AM [vite] (client) page reload src/simulation/vehicle-catalogue/endurance.ts
+2:11:05 AM [vite] (client) page reload src/simulation/vehicle-catalogue/gt.ts
+2:11:05 AM [vite] (client) page reload src/simulation/vehicle-catalogue/touring-club.ts
+2:11:05 AM [vite] (client) page reload src/simulation/vehicle-catalogue/dirt.ts
+2:11:05 AM [vite] (client) page reload src/simulation/vehicle-catalogue/small-road.ts
+2:12:10 AM [vite] (client) page reload src/simulation/vehicle-catalogue/small-road.ts
+2:13:00 AM [vite] (client) page reload src/simulation/vehicle-catalogue/small-road.ts
+2:13:00 AM [vite] (client) page reload src/simulation/vehicle-catalogue/gt.ts
+2:13:00 AM [vite] (client) page reload src/simulation/vehicle-catalogue/formula.ts
+2:13:00 AM [vite] (client) page reload src/simulation/vehicle-catalogue/endurance.ts
+2:13:00 AM [vite] (client) page reload src/simulation/vehicle-catalogue/gt.ts
+2:13:00 AM [vite] (client) page reload src/simulation/vehicle-catalogue/touring-club.ts
+2:13:00 AM [vite] (client) page reload src/simulation/vehicle-catalogue/dirt.ts
+2:13:00 AM [vite] (client) page reload src/simulation/vehicle-catalogue/small-road.ts
+2:17:04 AM [vite] (client) page reload src/rendering/vehicle-bodies/body-sheet.ts
+2:17:05 AM [vite] (client) page reload src/rendering/vehicle-bodies/closed-body.ts
+2:17:06 AM [vite] (client) page reload src/rendering/vehicle-bodies/common.ts
+2:17:06 AM [vite] (client) page reload src/rendering/vehicle-bodies/frame.ts
+2:17:06 AM [vite] (client) page reload src/rendering/vehicle-bodies/index.ts
+2:17:07 AM [vite] (client) page reload src/rendering/vehicle-bodies/open-wheel.ts
+2:17:08 AM [vite] (client) page reload src/simulation/vehicle-catalogue/gt.ts
+2:17:08 AM [vite] (client) page reload src/simulation/vehicle-catalogue/small-road.ts
+2:17:08 AM [vite] (client) page reload src/simulation/vehicle-catalogue/touring-club.ts
+2:19:46 AM [vite] (client) page reload src/rendering/vehicle-bodies/closed-body.ts
+2:19:46 AM [vite] (client) page reload src/rendering/vehicle-bodies/body-sheet.ts
+The request id "/home/user/Experiment-3/node_modules/@fontsource-variable/saira/files/saira-latin-wdth-italic.woff2" is outside of Vite serving allow list.
+
+- /home/user/Experiment-3/.claude/worktrees/agent-ac7432dc5f9d804f3
+- /home/user/Experiment-3/node_modules/vite/dist/client
+
+Refer to docs https://vite.dev/config/server-options.html#server-fs-allow for configurations and more details.
+
+The request id "/home/user/Experiment-3/node_modules/@fontsource-variable/saira/files/saira-latin-wdth-normal.woff2" is outside of Vite serving allow list.
+2:28:58 AM [vite] (client) page reload src/rendering/vehicle-bodies/closed-body.ts

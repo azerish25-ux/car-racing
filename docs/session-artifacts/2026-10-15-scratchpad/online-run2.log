@@ -1,0 +1,63 @@
+
+> apex-formula-laboratory@0.1.0 test:online
+> node --experimental-transform-types scripts/online-slice.ts
+
+[online-slice] phase grid at 0.49 s
+[online-slice] phase race at 1.99 s
+[online-slice] severed client 5 (car 5) at race time 20.01 s
+[online-slice] client 5 reconnecting with its token
+[online-slice] phase results at 67.70 s
+[online-slice] phase teardown at 69.70 s
+[online-slice] verifying the archived record by headless re-simulation
+{
+  "bandwidthDownKbit": 59.96,
+  "bandwidthUpKbit": 27.8,
+  "predictionCleanM": {
+    "samples": 10208,
+    "mean": 0.04,
+    "p50": 0.0212,
+    "p95": 0.1393,
+    "p99": 0.2573,
+    "max": 0.9269
+  },
+  "correctionM": {
+    "samples": 10210,
+    "mean": 0.0353,
+    "p50": 0.0162,
+    "p95": 0.1342,
+    "p99": 0.2786,
+    "max": 1.0196
+  },
+  "remoteErrorM": {
+    "samples": 219051,
+    "mean": 0.0001,
+    "p50": 0.0001,
+    "p95": 0.0003,
+    "p99": 0.0006,
+    "max": 0.8274
+  },
+  "verification": true,
+  "forged": {
+    "attempted": false,
+    "rejected": false,
+    "reason": "no completed lap to forge"
+  },
+  "checks": {
+    "recordVerified": true,
+    "forgedLapTimeRejected": false,
+    "noProgressDisputes": true,
+    "rejoinRestoredControl": true,
+    "takeoverWithinTimeout": true,
+    "predictionCleanP95BelowHalfMetre": true,
+    "downlinkBelow100Kbit": true,
+    "noRejectedInputs": true,
+    "noOversizeMessages": true
+  }
+}
+[online-slice] FAILED: forgedLapTimeRejected
+(node:557) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+real	1m5.116s
+user	0m32.412s
+sys	0m0.383s

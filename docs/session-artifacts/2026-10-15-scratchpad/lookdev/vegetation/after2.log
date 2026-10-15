@@ -1,0 +1,38 @@
+(node:23595) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+[    0 s] open http://127.0.0.1:5493/ (mesa, 1280x720)
+[   86 s] menu ready on ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)
+[   87 s] GARAGE & SETTINGS → ultra
+[  150 s] preset applied
+[  150 s] session: hochwald race 1 laps clear grid 8 start midfield machine hf67
+[  153 s] rules: HISTORIC FORMULA: no mandatory stop · DRS off · points scored.
+[  408 s] session prepared
+[  460 s] 07 hochwald-forest-ring-hf67: met (t 40.2 s, race 34.3 s)
+[  609 s] captured 07-hochwald-forest-ring-hf67.png
+[ 1087 s] captured 07-hochwald-forest-ring-trackside.png
+[ 1148 s] 07 deeper in the forest: met (t 100.8 s, race 94.8 s)
+[ 1295 s] captured 07-hochwald-forest-ring-2.png
+[ 1295 s] session hochwald took 1209 s
+[ 1351 s] session: poggio-alto race 3 laps clear grid 8 start midfield machine gpr1
+[ 1351 s] rules: GP MOTORCYCLE SPRINT: no mandatory stop · DRS off · points scored.
+[ 1637 s] session prepared
+[ 1674 s] 03 leaned in a corner: met (t 36.0 s, race 30.0 s)
+[ 2116 s] captured 03-gpr1-poggio-alto-lean.png
+[ 2367 s] captured 03-gpr1-poggio-alto-trackside.png
+[ 2367 s] session bikes took 1072 s
+[ 2441 s] session: valley-ridge-mx race 3 laps clear grid 12 start midfield machine mx450
+[ 2441 s] rules: MOTOCROSS MOTO: no mandatory stop · DRS off · points scored.
+[ 2591 s] session prepared
+[ 2670 s] 10 airborne: met (t 62.9 s, race 57.0 s)
+[ 2785 s] captured 10-valley-ridge-mx450-airborne.png
+[ 2785 s] session valley took 419 s
+[ 2864 s] session: festival (open world)
+[ 2952 s] festival loaded at Port Ilse
+[ 3135 s] captured 08-festival-port-ilse-golden-hour.png
+[ 3158 s] captured 09-festival-world-map.png
+[ 3159 s] festival autopilot on, driving
+[ 3263 s] captured 09b-festival-drive-1.png
+[ 3345 s] captured 09b-festival-drive-2.png
+[ 3430 s] captured 09b-festival-drive-3.png
+[ 3430 s] session festival took 645 s
+[ 3434 s] done: 11 shots, 0 failures → /tmp/claude-0/-home-user-Experiment-3/c20c3567-05b6-5daa-8126-ea386a6ddfeb/scratchpad/lookdev/vegetation/after2

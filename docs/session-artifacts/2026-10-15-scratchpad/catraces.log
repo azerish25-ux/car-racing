@@ -1,0 +1,27 @@
+
+> apex-formula-laboratory@0.1.0 test:catalogue-races
+> node --experimental-transform-types scripts/catalogue-races.ts
+
+PASS parco-reale            5793 m best 97.19 s (214.6 km/h) impact 0 air 0 s 30.4 s 
+PASS ardennes               7004 m best 136.03 s (185.4 km/h) impact 0 air 1.69 s 40.8 s 
+PASS northfield             5891 m best 112.25 s (188.9 km/h) impact 0 air 0 s 32.3 s 
+PASS northfield-classic     5141 m best 94.94 s (194.9 km/h) impact 0 air 0 s 26.6 s 
+PASS kansai                 5807 m best 109.87 s (190.3 km/h) impact 0 air 0 s 31.6 s 
+PASS kansai-east            2243 m best 43.73 s (184.6 km/h) impact 0 air 0 s 16.5 s 
+PASS riviera                3337 m best 91.39 s (131.5 km/h) impact 0 air 0 s 31.9 s 
+PASS texas-hill             5513 m best 116.54 s (170.3 km/h) impact 0 air 0 s 32 s 
+PASS neon-city              4874 m best 103.18 s (170.1 km/h) impact 0 air 0 s 28 s 
+PASS neon-city-reverse      4874 m best 102.61 s (171.0 km/h) impact 0.005 air 0 s 27.3 s 
+PASS alpine-pass            7276 m best 153.67 s (170.5 km/h) impact 0 air 0 s 50 s 
+PASS alpine-pass-reverse    7276 m best 151.87 s (172.5 km/h) impact 0 air 0 s 48.8 s 
+PASS speedbowl              4005 m best 48.53 s (297.1 km/h) impact 0 air 0 s 15.2 s 
+PASS speedbowl-infield      4486 m best 80.03 s (201.8 km/h) impact 0 air 0 s 23.6 s 
+PASS desert-canyon          5604 m best 100.15 s (201.4 km/h) impact 0 air 0 s 25.8 s 
+PASS desert-canyon-reverse  5604 m best 99.32 s (203.1 km/h) impact 0 air 0 s 26.7 s 
+PASS coastal-cliff          4710 m best 89.82 s (188.8 km/h) impact 0 air 0 s 25.3 s 
+PASS coastal-cliff-reverse  4710 m best 90.26 s (187.8 km/h) impact 0 air 0 s 26.7 s 
+PASS dockyard               4600 m best 89.96 s (184.1 km/h) impact 0 air 0 s 24.5 s 
+PASS dockyard-reverse       4600 m best 89.70 s (184.6 km/h) impact 0 air 0 s 24.6 s 
+(node:10900) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+EXIT 0

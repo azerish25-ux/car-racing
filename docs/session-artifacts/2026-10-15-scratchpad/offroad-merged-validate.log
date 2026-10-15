@@ -1,0 +1,8 @@
+
+> apex-formula-laboratory@0.1.0 validate:content
+> node --experimental-transform-types scripts/validate-content.ts
+
+Content valid
+(node:31407) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+exit 0

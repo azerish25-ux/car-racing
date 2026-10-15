@@ -1,0 +1,11 @@
+junction grid steps: worst 0.166 { node: 2, x: 3019.499996034964, z: -1816.2499819077668 } >5cm 1244 >15cm 4
+shoulder edge: >15cm 0 worst 0.102 { id: 'thornwood#0', x: 3761.9934561542495, z: 1804.4691634900382 }
+dead end h1#0 onRoad false h 50.03 tile 50.03 road 48.55
+dead end h1#11 onRoad false h 55.91 tile 55.91 road 55.12
+dead end lighthouse#0 onRoad false h 9.86 tile 9.86 road 10.95
+dead end west-quay#2 onRoad false h 21.47 tile 21.33 road 16.90
+dead end chandlers#2 onRoad true h 19.97 tile 19.79 road 18.60
+node 2 h1#9,h1#10,h2#0 pairs>15cm 3 worst 0.17
+node 3 h1#0,h1#1,h2#4 pairs>15cm 1 worst 0.16
+build 1053.0622120000003
+offroad m2 at junctions 0 {}

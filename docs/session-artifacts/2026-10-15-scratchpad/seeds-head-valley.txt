@@ -1,0 +1,3 @@
+HEAD {"venue":"valley","seed":41001,"mean":0.375,"crashes":[1,3,1,0,2,1,0,1],"causes":{"contact":6,"crash-front":3},"finished":true}
+HEAD {"venue":"valley","seed":63003,"mean":0.417,"crashes":[1,3,1,0,0,0,2,3],"causes":{"crash-front":4,"contact":5,"crash-flat":1},"finished":true}
+HEAD {"venue":"valley","seed":52002,"mean":0.375,"crashes":[0,3,1,0,0,2,0,3],"causes":{"crash-flat":3,"crash-front":2,"contact":3},"finished":true}

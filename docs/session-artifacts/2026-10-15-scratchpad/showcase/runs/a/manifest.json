@@ -1,0 +1,408 @@
+{
+  "suite": "APEX feature showcase (live application)",
+  "url": "http://127.0.0.1:47311/",
+  "repo": "/home/user/Experiment-3",
+  "size": {
+    "width": 1280,
+    "height": 720
+  },
+  "preset": "ultra",
+  "backend": "mesa",
+  "sessions": [
+    "menu",
+    "bikes",
+    "valley"
+  ],
+  "startedAt": "2026-10-15T16:29:03.563Z",
+  "shots": [
+    {
+      "id": "01",
+      "slug": "events-hub",
+      "file": "01-events-hub.png",
+      "hud": null,
+      "notes": "paddock EVENTS hub (event cards with venue, machine, rules)",
+      "player": {
+        "speedKmh": 0,
+        "s": 2940.7,
+        "lap": 0,
+        "leanDeg": 0,
+        "airborne": 0,
+        "airTime": 0
+      },
+      "build": {
+        "commit": "f5aa63f79f40dcd282fe921344915640e604283d",
+        "fingerprint": "733748883c5c6a49d51b7547a1c83e2abdff6f2a3d4e1cb66944f27983f738c9"
+      },
+      "state": "menu",
+      "options": {
+        "mode": "race",
+        "laps": 3,
+        "opponents": 7,
+        "weather": "clear"
+      },
+      "presentedTime": 0,
+      "replayPosition": null,
+      "renderer": {
+        "camera": "chase",
+        "requestedCamera": "chase",
+        "lighting": "day",
+        "renderWidth": 1280,
+        "renderHeight": 720,
+        "drawCalls": 387,
+        "triangles": 8826087,
+        "ultra": {
+          "preset": "medium",
+          "tier": "medium",
+          "unsupported": [],
+          "replayDof": {
+            "enabled": false,
+            "focus": 10,
+            "backgroundBlur": 0,
+            "fNumber": 2.8,
+            "taps": 48,
+            "frames": 0,
+            "extraDraws": 0
+          }
+        }
+      },
+      "capturedAt": "2026-10-15T16:31:33.376Z"
+    },
+    {
+      "id": "01",
+      "slug": "events-hub-scrolled",
+      "file": "01-events-hub-scrolled.png",
+      "hud": null,
+      "notes": "EVENTS hub scrolled (64 cards)",
+      "player": {
+        "speedKmh": 0,
+        "s": 2940.7,
+        "lap": 0,
+        "leanDeg": 0,
+        "airborne": 0,
+        "airTime": 0
+      },
+      "build": {
+        "commit": "f5aa63f79f40dcd282fe921344915640e604283d",
+        "fingerprint": "733748883c5c6a49d51b7547a1c83e2abdff6f2a3d4e1cb66944f27983f738c9"
+      },
+      "state": "menu",
+      "options": {
+        "mode": "race",
+        "laps": 3,
+        "opponents": 7,
+        "weather": "clear"
+      },
+      "presentedTime": 0,
+      "replayPosition": null,
+      "renderer": {
+        "camera": "chase",
+        "requestedCamera": "chase",
+        "lighting": "day",
+        "renderWidth": 1280,
+        "renderHeight": 720,
+        "drawCalls": 387,
+        "triangles": 8826087,
+        "ultra": {
+          "preset": "medium",
+          "tier": "medium",
+          "unsupported": [],
+          "replayDof": {
+            "enabled": false,
+            "focus": 10,
+            "backgroundBlur": 0,
+            "fNumber": 2.8,
+            "taps": 48,
+            "frames": 0,
+            "extraDraws": 0
+          }
+        }
+      },
+      "capturedAt": "2026-10-15T16:31:35.204Z"
+    },
+    {
+      "id": "01b",
+      "slug": "machine-select-open",
+      "file": "01b-screen.png",
+      "notes": "MACHINE select opened (60 options in 25 class groups), X root grab",
+      "geometry": {
+        "sx": 10,
+        "sy": 10,
+        "ow": 1288,
+        "oh": 805,
+        "iw": 1280,
+        "ih": 720
+      }
+    },
+    {
+      "id": "02",
+      "slug": "career-hub",
+      "file": "02-career-hub.png",
+      "hud": null,
+      "notes": "CAREER hub, discipline states circuit-cars:OPEN, road-bikes:OPEN, off-road:OPEN, festival:COMING",
+      "player": {
+        "speedKmh": 0,
+        "s": 2940.7,
+        "lap": 0,
+        "leanDeg": 0,
+        "airborne": 0,
+        "airTime": 0
+      },
+      "build": {
+        "commit": "f5aa63f79f40dcd282fe921344915640e604283d",
+        "fingerprint": "733748883c5c6a49d51b7547a1c83e2abdff6f2a3d4e1cb66944f27983f738c9"
+      },
+      "state": "menu",
+      "options": {
+        "mode": "race",
+        "laps": 3,
+        "opponents": 7,
+        "weather": "clear"
+      },
+      "presentedTime": 0,
+      "replayPosition": null,
+      "renderer": {
+        "camera": "chase",
+        "requestedCamera": "chase",
+        "lighting": "day",
+        "renderWidth": 1280,
+        "renderHeight": 720,
+        "drawCalls": 387,
+        "triangles": 8826087,
+        "ultra": {
+          "preset": "medium",
+          "tier": "medium",
+          "unsupported": [],
+          "replayDof": {
+            "enabled": false,
+            "focus": 10,
+            "backgroundBlur": 0,
+            "fNumber": 2.8,
+            "taps": 48,
+            "frames": 0,
+            "extraDraws": 0
+          }
+        }
+      },
+      "capturedAt": "2026-10-15T16:33:15.024Z"
+    },
+    {
+      "id": "03",
+      "slug": "gpr1-poggio-alto-lean",
+      "file": "03-gpr1-poggio-alto-lean.png",
+      "hud": "03-gpr1-poggio-alto-lean-hud.png",
+      "notes": "GP-R1 motorcycle grid (8), Poggio Alto, live chase camera, lean 38°, 64 km/h, 3 riders 2-60 m ahead",
+      "player": {
+        "speedKmh": 64.2,
+        "s": 678.7,
+        "lap": 0,
+        "leanDeg": 38.2,
+        "airborne": 0,
+        "airTime": 0
+      },
+      "build": {
+        "commit": "f5aa63f79f40dcd282fe921344915640e604283d",
+        "fingerprint": "733748883c5c6a49d51b7547a1c83e2abdff6f2a3d4e1cb66944f27983f738c9"
+      },
+      "state": "paused",
+      "options": {
+        "circuit": "poggio-alto",
+        "mode": "race",
+        "laps": 3,
+        "opponents": 7,
+        "weather": "clear",
+        "ruleset": "gp-motorcycle",
+        "vehicles": [
+          "gpr1",
+          "gpr1",
+          "gpr1",
+          "gpr1",
+          "gpr1",
+          "gpr1",
+          "gpr1",
+          "gpr1"
+        ]
+      },
+      "presentedTime": 26.608333587646484,
+      "replayPosition": null,
+      "renderer": {
+        "camera": "chase",
+        "requestedCamera": "chase",
+        "lighting": "day",
+        "renderWidth": 1280,
+        "renderHeight": 720,
+        "drawCalls": 3706,
+        "triangles": 5569546,
+        "ultra": {
+          "preset": "ultra",
+          "tier": "high",
+          "unsupported": [],
+          "replayDof": {
+            "enabled": false,
+            "focus": 4.612694123356647,
+            "backgroundBlur": 0.001250333689086924,
+            "fNumber": 2.8,
+            "taps": 48,
+            "frames": 1,
+            "extraDraws": 0
+          }
+        }
+      },
+      "capturedAt": "2026-10-15T16:39:32.969Z"
+    },
+    {
+      "id": "03",
+      "slug": "gpr1-poggio-alto-trackside",
+      "file": "03-gpr1-poggio-alto-trackside.png",
+      "hud": null,
+      "notes": "same held moment, trackside camera",
+      "player": {
+        "speedKmh": 64.2,
+        "s": 678.7,
+        "lap": 0,
+        "leanDeg": 38.2,
+        "airborne": 0,
+        "airTime": 0
+      },
+      "build": {
+        "commit": "f5aa63f79f40dcd282fe921344915640e604283d",
+        "fingerprint": "733748883c5c6a49d51b7547a1c83e2abdff6f2a3d4e1cb66944f27983f738c9"
+      },
+      "state": "paused",
+      "options": {
+        "circuit": "poggio-alto",
+        "mode": "race",
+        "laps": 3,
+        "opponents": 7,
+        "weather": "clear",
+        "ruleset": "gp-motorcycle",
+        "vehicles": [
+          "gpr1",
+          "gpr1",
+          "gpr1",
+          "gpr1",
+          "gpr1",
+          "gpr1",
+          "gpr1",
+          "gpr1"
+        ]
+      },
+      "presentedTime": 26.608333587646484,
+      "replayPosition": null,
+      "renderer": {
+        "camera": "trackside",
+        "requestedCamera": "trackside",
+        "lighting": "day",
+        "renderWidth": 1280,
+        "renderHeight": 720,
+        "drawCalls": 3041,
+        "triangles": 6898417,
+        "ultra": {
+          "preset": "ultra",
+          "tier": "high",
+          "unsupported": [],
+          "replayDof": {
+            "enabled": false,
+            "focus": 4.612694123356647,
+            "backgroundBlur": 0.001250333689086924,
+            "fNumber": 2.8,
+            "taps": 48,
+            "frames": 1,
+            "extraDraws": 0
+          }
+        }
+      },
+      "capturedAt": "2026-10-15T16:40:15.954Z"
+    },
+    {
+      "id": "10",
+      "slug": "valley-ridge-mx450-airborne",
+      "file": "10-valley-ridge-mx450-airborne.png",
+      "hud": "10-valley-ridge-mx450-airborne-hud.png",
+      "notes": "Valley Ridge motocross (National), MX-450 gate start, 12 riders; live pause in flight (air time 0.05 s, 2 riders 2-40 m ahead)",
+      "player": {
+        "speedKmh": 14.3,
+        "s": 305.3,
+        "lap": 0,
+        "leanDeg": 0.2,
+        "airborne": 1,
+        "airTime": 0.05
+      },
+      "build": {
+        "commit": "f5aa63f79f40dcd282fe921344915640e604283d",
+        "fingerprint": "733748883c5c6a49d51b7547a1c83e2abdff6f2a3d4e1cb66944f27983f738c9"
+      },
+      "state": "paused",
+      "options": {
+        "circuit": "valley-ridge-mx",
+        "mode": "race",
+        "laps": 3,
+        "opponents": 11,
+        "weather": "clear",
+        "ruleset": "motocross-moto",
+        "vehicles": [
+          "mx450",
+          "mx450",
+          "mx450",
+          "mx450",
+          "mx450",
+          "mx450",
+          "mx450",
+          "mx450",
+          "mx450",
+          "mx450",
+          "mx450",
+          "mx450"
+        ]
+      },
+      "presentedTime": 62.875,
+      "replayPosition": null,
+      "renderer": {
+        "camera": "chase",
+        "requestedCamera": "chase",
+        "lighting": "day",
+        "renderWidth": 1280,
+        "renderHeight": 720,
+        "drawCalls": 1409,
+        "triangles": 1533468,
+        "ultra": {
+          "preset": "ultra",
+          "tier": "high",
+          "unsupported": [],
+          "replayDof": {
+            "enabled": false,
+            "focus": 4.612680195290565,
+            "backgroundBlur": 0.001250337476817529,
+            "fNumber": 2.8,
+            "taps": 48,
+            "frames": 1,
+            "extraDraws": 0
+          }
+        }
+      },
+      "capturedAt": "2026-10-15T16:44:00.497Z"
+    }
+  ],
+  "failures": [],
+  "consoleErrors": [],
+  "gl": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+  "eventCards": 64,
+  "machineSelect": {
+    "groups": 25,
+    "options": 60
+  },
+  "windowGeometry": {
+    "sx": 10,
+    "sy": 10,
+    "ow": 1288,
+    "oh": 805,
+    "iw": 1280,
+    "ih": 720
+  },
+  "careerStates": [
+    "circuit-cars:OPEN",
+    "road-bikes:OPEN",
+    "off-road:OPEN",
+    "festival:COMING"
+  ],
+  "finishedAt": "2026-10-15T16:44:00.513Z"
+}

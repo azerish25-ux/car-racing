@@ -1,0 +1,62 @@
+Observed swiftshader test backend: ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)
+
+Running 2 tests using 1 worker
+
+POLL [33m0[39m loading Loading ARENA NORD [33mfalse[39m
+POLL [33m1[39m loading Loading ARENA NORD [33mfalse[39m
+POLL [33m2[39m loading Loading ARENA NORD [33mfalse[39m
+POLL [33m3[39m loading Loading ARENA NORD [33mfalse[39m
+POLL [33m4[39m loading Loading ARENA NORD [33mfalse[39m
+POLL [33m5[39m loading Loading ARENA NORD [33mfalse[39m
+POLL [33m6[39m loading Loading ARENA NORD [33mfalse[39m
+POLL [33m7[39m loading Loading ARENA NORD [33mfalse[39m
+POLL [33m8[39m loading Loading ARENA NORD [33mfalse[39m
+POLL [33m9[39m loading Loading ARENA NORD [33mfalse[39m
+POLL [33m10[39m loading Loading ARENA NORD [33mfalse[39m
+POLL [33m11[39m loading Loading ARENA NORD [33mfalse[39m
+POLL [33m12[39m loading Loading ARENA NORD [33mfalse[39m
+POLL [33m13[39m loading Loading ARENA NORD [33mfalse[39m
+POLL [33m14[39m loading Loading ARENA NORD [33mfalse[39m
+POLL [33m15[39m loading Loading ARENA NORD [33mfalse[39m
+POLL [33m16[39m loading Loading ARENA NORD [33mfalse[39m
+POLL [33m17[39m loading Loading ARENA NORD [33mfalse[39m
+POLL [33m18[39m loading Loading ARENA NORD [33mfalse[39m
+POLL [33m19[39m loading Loading ARENA NORD [33mfalse[39m
+POLL [33m20[39m loading Loading ARENA NORD [33mfalse[39m
+POLL [33m21[39m loading Loading ARENA NORD [33mfalse[39m
+POLL [33m22[39m loading Loading ARENA NORD [33mfalse[39m
+POLL [33m23[39m loading Loading ARENA NORD [33mfalse[39m
+POLL [33m24[39m loading Loading ARENA NORD [33mfalse[39m
+POLL [33m25[39m loading Loading ARENA NORD [33mfalse[39m
+POLL [33m26[39m loading Loading ARENA NORD [33mfalse[39m
+POLL [33m27[39m loading Loading ARENA NORD [33mfalse[39m
+POLL [33m28[39m loading Loading ARENA NORD [33mfalse[39m
+POLL [33m29[39m loading Loading ARENA NORD [33mfalse[39m
+POLL [33m30[39m loading Loading ARENA NORD [33mfalse[39m
+POLL [33m31[39m loading Loading ARENA NORD [33mfalse[39m
+POLL [33m32[39m loading Loading ARENA NORD [33mfalse[39m
+POLL [33m33[39m loading Loading ARENA NORD [33mfalse[39m
+POLL [33m34[39m loading Loading ARENA NORD [33mfalse[39m
+POLL [33m35[39m loading Loading ARENA NORD [33mfalse[39m
+POLL [33m36[39m loading Loading ARENA NORD [33mfalse[39m
+POLL [33m37[39m loading Loading ARENA NORD [33mfalse[39m
+POLL [33m38[39m loading Loading ARENA NORD [33mfalse[39m
+POLL [33m39[39m loading Loading ARENA NORD [33mfalse[39m
+DIAG {"state":"loading","time":0}
+ERRORS ["Error: Invalid drainage track length\n    at Xu (http://127.0.0.1:4173/assets/index-BFiAn9dg.js:8:16271)\n    at yi (http://127.0.0.1:4173/assets/index-BFiAn9dg.js:2510:2519)\n    at new sn (http://127.0.0.1:4173/assets/index-BFiAn9dg.js:5611:36980)\n    at new an (http://127.0.0.1:4173/assets/index-BFiAn9dg.js:5909:33895)\n    at an.create (http://127.0.0.1:4173/assets/index-BFiAn9dg.js:5909:38010)\n    at R40.buildRenderer (http://127.0.0.1:4173/assets/index-BFiAn9dg.js:5924:73119)\n    at R40.switchCircuit (http://127.0.0.1:4173/assets/index-BFiAn9dg.js:5924:74061)\n    at async R40.start (http://127.0.0.1:4173/assets/index-BFiAn9dg.js:5924:77568)"]
+  ✓  1 e2e/zz-offroad-visual.spec.ts:7:3 › off-road visual arena-nord-sx mx450 (12.4m)
+POLL [33m0[39m loading Loading cars [33mfalse[39m
+POLL [33m1[39m loading Building the pit lane [33mfalse[39m
+POLL [33m2[39m loading Building the circuit [33mfalse[39m
+POLL [33m3[39m loading Loading circuit [33mfalse[39m
+POLL [33m4[39m loading Almost ready [33mfalse[39m
+POLL [33m5[39m loading Readying the pit crew [33mfalse[39m
+POLL [33m6[39m loading Warming up tyres [33mfalse[39m
+POLL [33m7[39m driving Warming up tyres [33mfalse[39m
+DIAG {"state":"driving","draws":185,"time":124.49077606201172}
+ERRORS []
+  ✓  2 e2e/zz-offroad-visual.spec.ts:7:3 › off-road visual kestrel-rx rcx6 (10.4m)
+
+  Slow test file: e2e/zz-offroad-visual.spec.ts (22.8m)
+  Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+  2 passed (22.9m)

@@ -1,0 +1,44 @@
+fix(offroad): review findings on tyres, wheelies, starts, jokers and the gate
+
+Loose-ground tyres: the loose-surface recovery applies to grass and
+gravel everywhere and to any loose material only on a terrain venue's
+own ground (SurfaceSample.terrain, set by the course terrain). The
+festival world's dirt, sand, snow and mud samples are back on the
+original rule; test:open-world matches the base branch exactly.
+
+Dirt bikes: the core's wheelie pitch is no longer added to the sprung
+pitch at take-off. A held wheelie past its balance point over the
+ground, with the drive still lifting the nose, loops the rider out on
+the ground instead of launching the bike off flat ground. With the
+wheelie aid (Sport, AI) the adapter reads the sprung chassis: a lifted
+front closes the throttle, then covers the rear brake. The rider's body
+fore/aft shifts the CG on the ground, and a slow climb up a steep face
+stands the rider over the bars. A rider who comes off in the air
+leaves a machine that keeps flying until it is down at its lying
+height.
+
+Jump rig: rolling a feature runs on distance (rollRun) past its end,
+and the rig releases the rear brake on the ground as the AI does. Band
+4 now rolls every gap jump down into the gap and out; the calibration
+report is regenerated (the SKY TRIPLE hold run is clean without the
+dragging brake).
+
+Starts: one judge per start. The race director's lights check stands
+down for gate and stage-control starts, and the format's penalty also
+sets the lap's jump flag, so the penalty, the HUD and the results card
+agree. The first stage starter waits at the control through the lights
+and goes on the green; later starters are called 4 s before their
+start. The snapshot carries a countdown and the HUD shows it.
+
+Rallycross: a joker lap is three checkpoints on the joker road, in
+order. Kestrel's joker road now has a turf island between it and the
+lap. The joker requirement is applied as each car takes the flag, via a
+race-director finish hook, so the last finisher pays too and the
+classification includes it.
+
+Menu and gate: a quick race at a terrain venue runs the venue's own
+formatted ruleset (joker heat, special stage, moto). The rendered start
+gate widens with the field, as the session's gate slots do.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01RN7q935R3iepiRcM32D9uW

@@ -1,0 +1,10 @@
+
+> apex-formula-laboratory@0.1.0 test:physics
+> node --experimental-transform-types scripts/validate.ts && npm run test:dynamics && npm run test:race-control && npm run test:wet-pits && npm run test:journey
+
+{"passed":true,"failures":[],"weather":"clear","simulatedSeconds":320,"cars":4,"elapsedSeconds":26.737808024000003,"maxSpeedKmh":302.7996144705619,"maxLateral":7.1164309809705015,"laps":[4,6,6,6],"bestLaps":[51.32001154256909,49.73684741029221,50.466898655074004,49.57054048540552],"pitStops":[1,0,0,0],"frontHealth":[1,1,1,1],"compounds":["medium","medium","medium","medium"],"waterMm":0}
+{"passed":false,"failures":["changeable: required pit stop was missed"],"weather":"changeable","simulatedSeconds":320,"cars":4,"elapsedSeconds":24.936156158000003,"maxSpeedKmh":301.5625341961702,"maxLateral":18.61683496912786,"laps":[2,2,2,2],"bestLaps":[53.52460926429162,51.50608161519076,55.09825170421293,54.05256923777563],"pitStops":[0,0,0,0],"frontHealth":[0.7263167845843358,0.9540949280813337,1,0.7076866316889828],"compounds":["medium","medium","medium","medium"],"waterMm":1.2377112895150535}
+{"passed":true,"failures":[],"weather":"rain","simulatedSeconds":320,"cars":4,"elapsedSeconds":27.149704026,"maxSpeedKmh":275.0156550105713,"maxLateral":6.470062514297727,"laps":[4,4,4,4],"bestLaps":[67.85013593606924,66.32805582922173,69.29718231839459,68.83848466295133],"pitStops":[0,0,0,0],"frontHealth":[1,1,1,1],"compounds":["wet","wet","wet","wet"],"waterMm":1.2743959931623456}
+(node:28295) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+EXIT 1

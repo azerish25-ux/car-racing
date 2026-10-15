@@ -1,0 +1,35 @@
+{
+    "asset_type": "Texture",
+    "id": "kiara_4_mid-morning",
+    "kwargs": {
+        "filename": "environment_4k.hdr"
+    },
+    "license": "CC0 1.0",
+    "metadata": {
+        "authors": [
+            "Greg Zaal"
+        ],
+        "categories": [
+            "outdoor",
+            "skies",
+            "nature",
+            "midday",
+            "clear",
+            "high contrast",
+            "natural light"
+        ],
+        "coords": [
+            -28.508926,
+            28.56646
+        ],
+        "date_taken": 1472023800,
+        "resolution": "4k",
+        "tags": [
+            "sun",
+            "mountain",
+            "valley",
+            "rock",
+            "backplates"
+        ]
+    }
+}

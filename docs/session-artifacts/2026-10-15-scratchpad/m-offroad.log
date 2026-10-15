@@ -1,0 +1,16 @@
+
+> apex-formula-laboratory@0.1.0 test:offroad
+> node --experimental-transform-types scripts/offroad-calibration.ts && node --experimental-transform-types scripts/offroad-races.ts
+
+0-60 m mx450: 4.53 s
+0-60 m mx250: 4.50 s
+0-60 m sm450: 4.43 s
+20 jump runs; 0 band failure(s)
+(node:20804) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Valley Ridge motocross moto: 290.99 s race, 54.5 s wall, crashes [1,2,1,1,2,2,0,1], terrain 40496 cells / 7.3 cm, holeshot car 7
+Arena Nord supercross main: 286.55 s race, 89 s wall, crashes [1,0,4,2,3,1,1,3], terrain 28979 cells / 2.4 cm, holeshot car 7
+Kestrel rallycross heat: 246.59 s race, 105.8 s wall, crashes [], terrain 35887 cells / 1.8 cm, jokers [1,1,1,1,1]
+Pinewood special stage: 178.63 s race, 37.8 s wall, crashes [], terrain 35667 cells / 10.8 cm
+(node:20881) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)

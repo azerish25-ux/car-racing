@@ -1,0 +1,149 @@
+{
+  "sourceSHA256": "ef28f2c6549c250a5903df26ba94f2b9deed39c922ec8f6fda792ff803cc30d5",
+  "fixedDtSeconds": 0.004166666666666667,
+  "fixture": "Isolated analytic runway/skidpad/kerbs with the production Vehicle solver",
+  "passed": true,
+  "cases": [
+    {
+      "name": "braking-100kmh",
+      "passed": true,
+      "measurements": {
+        "distanceM": 19.087550965440727,
+        "stopSeconds": 1.45,
+        "lateralDriftM": 4.6133085693260823e-8,
+        "minimumSlip": -1,
+        "peakLoadN": 3586.2533512724085,
+        "discTemperaturesC": [
+          317.60087757707083,
+          317.60087774223246,
+          317.4465667745707,
+          317.446566763434
+        ]
+      }
+    },
+    {
+      "name": "braking-200kmh",
+      "passed": true,
+      "measurements": {
+        "distanceM": 55.665495255788976,
+        "stopSeconds": 2.3541666666666665,
+        "lateralDriftM": -0.000002863515819593122,
+        "minimumSlip": -1,
+        "peakLoadN": 7263.238811848441,
+        "discTemperaturesC": [
+          319.74609986047733,
+          319.74603684467735,
+          323.1311394061639,
+          323.1311514569634
+        ]
+      }
+    },
+    {
+      "name": "braking-300kmh",
+      "passed": true,
+      "measurements": {
+        "distanceM": 97.19459796992598,
+        "stopSeconds": 2.95,
+        "lateralDriftM": 0.00008720613516776041,
+        "minimumSlip": -1,
+        "peakLoadN": 12441.22905663439,
+        "discTemperaturesC": [
+          339.24863917818936,
+          339.2485293618216,
+          335.1513761547716,
+          335.15138528414496
+        ]
+      }
+    },
+    {
+      "name": "braking-speed-order",
+      "passed": true,
+      "measurements": [
+        19.087550965440727,
+        55.665495255788976,
+        97.19459796992598
+      ]
+    },
+    {
+      "name": "skidpad-15mps",
+      "passed": true,
+      "measurements": {
+        "commandedSpeedMps": 15,
+        "meanSpeedMps": 15.031791865348193,
+        "radialRmsErrorM": 0.0474744938290063,
+        "measuredLateralG": 0.2881804205568555,
+        "kinematicLateralG": 0.2881831905473917
+      }
+    },
+    {
+      "name": "skidpad-25mps",
+      "passed": true,
+      "measurements": {
+        "commandedSpeedMps": 25,
+        "meanSpeedMps": 24.945157070314774,
+        "radialRmsErrorM": 0.32129196877797495,
+        "measuredLateralG": 0.7898406825608589,
+        "kinematicLateralG": 0.7899891471632242
+      }
+    },
+    {
+      "name": "skidpad-35mps",
+      "passed": true,
+      "measurements": {
+        "commandedSpeedMps": 35,
+        "meanSpeedMps": 34.72674454359601,
+        "radialRmsErrorM": 1.110071197493838,
+        "measuredLateralG": 1.5142979781821335,
+        "kinematicLateralG": 1.516116892715517
+      }
+    },
+    {
+      "name": "slalom-repeated-steering",
+      "passed": true,
+      "measurements": {
+        "cyclePeakYawRadps": [
+          0.2024431219714255,
+          0.2023904151674476,
+          0.20238787904067407,
+          0.20238408213619272,
+          0.20238046146856842,
+          0.20237787876799027
+        ],
+        "recoveredYawRadps": 0.000002195671486958012
+      }
+    },
+    {
+      "name": "low-kerb",
+      "passed": true,
+      "measurements": {
+        "peakCompressionM": 0.0292519230637594,
+        "peakLoadN": 4179.862705058458,
+        "peakVerticalG": 0.36900542742402975,
+        "skidWorkJ": 0,
+        "finalHeightM": 0.5174612665130583
+      }
+    },
+    {
+      "name": "high-kerb",
+      "passed": true,
+      "measurements": {
+        "peakCompressionM": 0.03874751309546287,
+        "peakLoadN": 5876.173269832789,
+        "peakVerticalG": 0.6745150735693989,
+        "skidWorkJ": 0,
+        "finalHeightM": 0.517461286907087
+      }
+    },
+    {
+      "name": "sausage-kerb",
+      "passed": true,
+      "measurements": {
+        "peakCompressionM": 0.049510936669596495,
+        "peakLoadN": 7701.904269724342,
+        "peakVerticalG": 1.5609095643588928,
+        "skidWorkJ": 0,
+        "finalHeightM": 0.5174613324910806
+      }
+    }
+  ]
+}

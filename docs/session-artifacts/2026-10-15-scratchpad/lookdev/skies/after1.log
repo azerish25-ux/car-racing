@@ -1,0 +1,21 @@
+(node:23908) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+[    0 s] open http://127.0.0.1:47812/ (mesa, 1280x720)
+[   65 s] menu ready on ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)
+[   65 s] GARAGE & SETTINGS → ultra
+[  131 s] preset applied
+[  131 s] session: aurel race 3 laps clear grid 12 start back machine multiclass
+[  132 s] rules: MULTI-CLASS ENDURANCE: no mandatory stop · DRS off · points scored.
+[  193 s] session prepared
+[  208 s] 04 multiclass-pack-aurel: met (t 12.3 s, race 6.4 s)
+[  283 s] captured 04-multiclass-pack-aurel.png
+[  321 s] captured 04-multiclass-pack-aurel-trackside.png
+[  321 s] session pack took 255 s
+[  329 s] session: poggio-alto race 3 laps clear grid 8 start midfield machine gpr1
+[  329 s] rules: GP MOTORCYCLE SPRINT: no mandatory stop · DRS off · points scored.
+[  461 s] session prepared
+[  488 s] 03 leaned in a corner: met (t 26.2 s, race 20.3 s)
+[  541 s] captured 03-gpr1-poggio-alto-lean.png
+[  576 s] captured 03-gpr1-poggio-alto-trackside.png
+[  576 s] session bikes took 256 s
+[  577 s] done: 4 shots, 0 failures → /tmp/claude-0/-home-user-Experiment-3/c20c3567-05b6-5daa-8126-ea386a6ddfeb/scratchpad/lookdev/skies/after1

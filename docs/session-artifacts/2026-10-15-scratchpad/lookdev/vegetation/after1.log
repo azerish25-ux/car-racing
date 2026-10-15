@@ -1,0 +1,13 @@
+(node:15224) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+[    0 s] open http://127.0.0.1:5493/ (mesa, 1280x720)
+[ 1207 s] aborted: locator.waitFor: Timeout 1200000ms exceeded.
+Call log:
+[2m  - waiting for locator('#menu') to be visible[22m
+[2m    2360 × locator resolved to hidden <section id="menu" hidden="" class="menu">…</section>[22m
+
+    at openApp (/tmp/claude-0/-home-user-Experiment-3/c20c3567-05b6-5daa-8126-ea386a6ddfeb/scratchpad/showcase/showcase.mjs:384:31)
+    at async file:///tmp/claude-0/-home-user-Experiment-3/c20c3567-05b6-5daa-8126-ea386a6ddfeb/scratchpad/showcase/showcase.mjs:877:3 {
+  name: 'TimeoutError'
+}
+[ 1208 s] done: 0 shots, 1 failures → /tmp/claude-0/-home-user-Experiment-3/c20c3567-05b6-5daa-8126-ea386a6ddfeb/scratchpad/lookdev/vegetation/after1

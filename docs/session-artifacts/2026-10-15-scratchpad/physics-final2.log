@@ -1,0 +1,6 @@
+
+> apex-formula-laboratory@0.1.0 test:physics
+> node --experimental-transform-types scripts/validate.ts && npm run test:dynamics && npm run test:race-control && npm run test:wet-pits && npm run test:journey
+
+{"passed":true,"failures":[],"weather":"clear","simulatedSeconds":320,"cars":4,"elapsedSeconds":28.324511577000003,"maxSpeedKmh":303.73597362421117,"maxLateral":7.36728967668419,"laps":[4,6,6,6],"bestLaps":[51.26092113702782,49.87780039248502,50.10550494870901,49.707718132829314],"pitStops":[1,0,0,0],"frontHealth":[1,1,0.998740149090095,1],"compounds":["medium","medium","medium","medium"],"waterMm":0}
+{"passed":true,"failures":[],"weather":"changeable","simulatedSeconds":320,"cars":4,"elapsedSeconds":27.640910731000005,"maxSpeedKmh":301.50108449885596,"maxLateral":7.082124706435229,"laps":[4,4,3,3],"bestLaps":[53.65166334526542,51.39195739519535,55.512604670472314,54.05351812237142],"pitStops":[1,1,1,1],"frontHealth":[1,1,1,1],"compounds":["intermediate","intermediate","intermediate","intermediate"],"waterMm":1.2337680754384823}

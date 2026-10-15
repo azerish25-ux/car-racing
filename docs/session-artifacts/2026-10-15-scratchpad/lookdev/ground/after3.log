@@ -1,0 +1,16 @@
+(node:8971) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+[    0 s] open http://127.0.0.1:5392/ (mesa, 1280x720)
+[  856 s] menu ready on ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)
+[  857 s] GARAGE & SETTINGS → ultra
+[ 1700 s] preset applied
+[ 1700 s] session: poggio-alto race 3 laps clear grid 8 start midfield machine gpr1
+[ 1700 s] rules: GP MOTORCYCLE SPRINT: no mandatory stop · DRS off · points scored.
+[ 2841 s] session prepared
+[ 2867 s] 03 leaned in a corner: met (t 26.2 s, race 20.3 s)
+[ 4516 s] captured 03-gpr1-poggio-alto-lean.png
+[ 5249 s] shot 03 failed: page.waitForFunction: Target page, context or browser has been closed
+[ 5249 s] session bikes took 4393 s
+[ 5249 s] session valley aborted: page.evaluate: Target page, context or browser has been closed
+[ 5249 s] session valley took 0 s
+[ 5250 s] done: 1 shots, 2 failures → /tmp/claude-0/-home-user-Experiment-3/c20c3567-05b6-5daa-8126-ea386a6ddfeb/scratchpad/lookdev/ground/after3

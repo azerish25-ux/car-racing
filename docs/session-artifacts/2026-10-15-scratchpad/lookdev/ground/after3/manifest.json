@@ -1,0 +1,96 @@
+{
+  "suite": "APEX feature showcase (live application)",
+  "url": "http://127.0.0.1:5392/",
+  "repo": "/home/user/Experiment-3/.claude/worktrees/wf_1ec31848-637-2",
+  "size": {
+    "width": 1280,
+    "height": 720
+  },
+  "preset": "ultra",
+  "backend": "mesa",
+  "sessions": [
+    "bikes",
+    "valley"
+  ],
+  "startedAt": "2026-10-15T21:58:27.749Z",
+  "shots": [
+    {
+      "id": "03",
+      "slug": "gpr1-poggio-alto-lean",
+      "file": "03-gpr1-poggio-alto-lean.png",
+      "hud": "03-gpr1-poggio-alto-lean-hud.png",
+      "notes": "GP-R1 motorcycle grid (8), Poggio Alto, live chase camera, lean 40°, 62 km/h, 3 riders 2-60 m ahead",
+      "player": {
+        "speedKmh": 61.5,
+        "s": 671.1,
+        "lap": 0,
+        "leanDeg": 40.2,
+        "airborne": 0,
+        "airTime": 0
+      },
+      "build": {
+        "commit": null,
+        "fingerprint": "46492735470e81388aa4ff212ae3464c713f8017ef5eae2b8cbe3784b5c36d34"
+      },
+      "state": "paused",
+      "options": {
+        "circuit": "poggio-alto",
+        "mode": "race",
+        "laps": 3,
+        "opponents": 7,
+        "weather": "clear",
+        "ruleset": "gp-motorcycle",
+        "vehicles": [
+          "gpr1",
+          "gpr1",
+          "gpr1",
+          "gpr1",
+          "gpr1",
+          "gpr1",
+          "gpr1",
+          "gpr1"
+        ]
+      },
+      "presentedTime": 26.225000381469727,
+      "replayPosition": null,
+      "renderer": {
+        "camera": "chase",
+        "requestedCamera": "chase",
+        "lighting": "day",
+        "renderWidth": 1280,
+        "renderHeight": 720,
+        "drawCalls": 3510,
+        "triangles": 3983430,
+        "ultra": {
+          "preset": "ultra",
+          "tier": "high",
+          "unsupported": [],
+          "replayDof": {
+            "enabled": false,
+            "focus": 4.612694123356647,
+            "backgroundBlur": 0.001250333689086924,
+            "fNumber": 2.8,
+            "taps": 48,
+            "frames": 1,
+            "extraDraws": 0
+          }
+        }
+      },
+      "capturedAt": "2026-10-15T23:13:43.792Z"
+    }
+  ],
+  "failures": [
+    {
+      "id": "03",
+      "message": "page.waitForFunction: Target page, context or browser has been closed"
+    },
+    {
+      "id": "valley",
+      "attempt": 1,
+      "message": "page.evaluate: Target page, context or browser has been closed\n    at snap (/tmp/claude-0/-home-user-Experiment-3/c20c3567-05b6-5daa-8126-ea386a6ddfeb/scratchpad/showcase/showcase.mjs:126:15)\n    at toPaddock (/tmp/claude-0/-home-user-Experiment-3/c20c3567-05b6-5daa-8126-ea386a6ddfeb/scratchpad/showcase/showcase.mjs:415:20)\n    at startRace (/tmp/claude-0/-home-user-Experiment-3/c20c3567-05b6-5daa-8126-ea386a6ddfeb/scratchpad/showcase/showcase.mjs:425:9)\n    at valley (/tmp/claude-0/-home-user-Experiment-3/c20c3567-05b6-5daa-8126-ea386a6ddfeb/scratchpad/showcase/showcase.mjs:825:9)\n    at /tmp/claude-0/-home-user-Experiment-3/c20c3567-05b6-5daa-8126-ea386a6ddfeb/scratchpad/showcase/showcase.mjs:886:15"
+    }
+  ],
+  "consoleErrors": [],
+  "gl": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+  "finishedAt": "2026-10-15T23:25:57.169Z"
+}

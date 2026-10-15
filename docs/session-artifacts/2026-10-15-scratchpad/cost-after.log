@@ -1,0 +1,15 @@
+Observed swiftshader test backend: ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)
+
+Running 1 test using 1 worker
+
+[cabin-cost 42.9s] renderer ready
+[cabin-cost 115.5s] gt8f low: measured
+[cabin-cost 160.6s] gt8f medium: measured
+[cabin-cost 294.2s] apx01 low: measured
+[cabin-cost 368.1s] apx01 medium: measured
+[{"machine":"gt8f","quality":"low","cars":12,"bodies":12,"rivalDetail":0,"ownDetail":true,"mirrorFrames":3,"calls":1129,"triangles":2736858,"mirrorCalls":529,"mirrorTriangles":1174248},{"machine":"gt8f","quality":"medium","cars":12,"bodies":12,"rivalDetail":3,"ownDetail":true,"mirrorFrames":3,"calls":1340,"triangles":7597389,"mirrorCalls":601,"mirrorTriangles":1566213},{"machine":"apx01","quality":"low","cars":12,"bodies":0,"rivalDetail":3,"ownDetail":true,"mirrorFrames":3,"calls":1334,"triangles":4039665,"mirrorCalls":675,"mirrorTriangles":2086226},{"machine":"apx01","quality":"medium","cars":12,"bodies":0,"rivalDetail":3,"ownDetail":true,"mirrorFrames":3,"calls":2078,"triangles":11992898,"mirrorCalls":814,"mirrorTriangles":2819916}]
+  ✓  1 e2e/cabin-render-cost.spec.ts:14:1 › catalogue cockpit cabin and mirror-feed cost on a full grid (6.5m)
+
+  Slow test file: e2e/cabin-render-cost.spec.ts (6.5m)
+  Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+  1 passed (7.1m)

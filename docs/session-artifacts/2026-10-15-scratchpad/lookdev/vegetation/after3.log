@@ -1,0 +1,32 @@
+(node:20304) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+[    0 s] open http://127.0.0.1:5493/ (mesa, 1280x720)
+[   79 s] menu ready on ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)
+[   80 s] GARAGE & SETTINGS → ultra
+[  138 s] preset applied
+[  138 s] session: hochwald race 1 laps clear grid 8 start midfield machine hf67
+[  138 s] rules: HISTORIC FORMULA: no mandatory stop · DRS off · points scored.
+[  326 s] session prepared
+[  364 s] 07 hochwald-forest-ring-hf67: met (t 31.0 s, race 25.1 s)
+[  503 s] captured 07-hochwald-forest-ring-hf67.png
+[  761 s] captured 07-hochwald-forest-ring-trackside.png
+[  829 s] 07 deeper in the forest: met (t 91.8 s, race 85.8 s)
+[  934 s] captured 07-hochwald-forest-ring-2.png
+[  934 s] session hochwald took 855 s
+[  997 s] session: festival trees, discovered thornwood-rally,valley-sprint,coast-trap
+[ 1049 s] festival loaded
+[ 1056 s] travelling to thornwood-rally
+[ 1224 s] captured 13-festival-trees-1-thornwood-rally.png
+[ 1224 s] travelling to valley-sprint
+[ 1309 s] captured 13-festival-trees-2-valley-sprint.png
+[ 1309 s] travelling to coast-trap
+[ 1397 s] captured 13-festival-trees-3-coast-trap.png
+[ 1397 s] session festtrees took 463 s
+[ 1397 s] session: poggio-alto race 3 laps clear grid 8 start midfield machine gpr1
+[ 1397 s] rules: GP MOTORCYCLE SPRINT: no mandatory stop · DRS off · points scored.
+[ 1640 s] session prepared
+[ 1710 s] 03 leaned in a corner: met (t 32.1 s, race 26.2 s)
+[ 2076 s] captured 03-gpr1-poggio-alto-lean.png
+[ 2157 s] captured 03-gpr1-poggio-alto-trackside.png
+[ 2157 s] session bikes took 760 s
+[ 2159 s] done: 8 shots, 0 failures → /tmp/claude-0/-home-user-Experiment-3/c20c3567-05b6-5daa-8126-ea386a6ddfeb/scratchpad/lookdev/vegetation/after3

@@ -1,0 +1,17 @@
+(node:10480) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+jf2    incidents/lap 0.00 aurel 0/16 best 54.9 [] · vellamar 0/11 best 74.2 []
+hf67   incidents/lap 0.08 aurel 0/8 best 100.0 [] · vellamar 1/4 best 121.7 [900@80]
+hy9    incidents/lap 0.00 aurel 0/12 best 60.9 [] · vellamar 0/8 best 78.4 []
+pr2    incidents/lap 0.00 aurel 0/12 best 60.4 [] · vellamar 0/8 best 79.3 []
+gt8f   incidents/lap 0.00 aurel 0/12 best 69.9 [] · vellamar 0/8 best 89.1 []
+gt10m  incidents/lap 0.00 aurel 0/12 best 68.3 [] · vellamar 0/8 best 87.4 []
+gs4    incidents/lap 0.69 aurel 7/7 best 82.4 [600@54 650@30 1200@74 1300@52 150@42 650@49 550@124] · vellamar 2/6 best 97.1 [850@148 950@38]
+tc2    incidents/lap 0.00 aurel 0/12 best 75.4 [] · vellamar 0/8 best 97.1 []
+cr1    incidents/lap 0.13 aurel 2/8 best 81.1 [550@126 600@47] · vellamar 0/8 best 108.3 []
+rl2    incidents/lap 0.00 aurel 0/8 best 89.1 [] · vellamar 0/7 best 115.5 []
+rcx6   incidents/lap 0.13 aurel 2/8 best 81.1 [1100@30 1150@75] · vellamar 0/8 best 103.1 []
+dx8    incidents/lap 0.08 aurel 0/8 best 99.6 [] · vellamar 1/4 best 125.6 [700@111]
+sk125  incidents/lap 0.00 aurel 0/8 best 89.4 [] · vellamar 0/4 best 122.9 []
+eh3    incidents/lap 0.00 aurel 0/12 best 73.9 [] · vellamar 0/8 best 92.4 []
+sc7    incidents/lap 1.30 aurel 5/8 best 75.8 [1250@52 550@108 550@106 550@120 1050@117] · vellamar 8/2 best — [2600@180 2550@158 2750@111 2750@89 2800@27 2850@23 2950@34 2850@161]

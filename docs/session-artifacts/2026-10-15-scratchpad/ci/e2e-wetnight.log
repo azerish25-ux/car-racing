@@ -1,0 +1,44 @@
+Observed mesa test backend: ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)
+
+Running 1 test using 1 worker
+
+[1A[2K[1/1] e2e/28-race-pit-presentation.spec.ts:303:1 › 27H.6 wet-night traffic: actual following, full lap, spray, replay and measured frame intervals
+[1A[2K  1) e2e/28-race-pit-presentation.spec.ts:303:1 › 27H.6 wet-night traffic: actual following, full lap, spray, replay and measured frame intervals 
+
+    [31mTest timeout of 900000ms exceeded.[39m
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeGreaterThanOrEqual[2m([22m[32mexpected[39m[2m)[22m
+
+    Expected: >= [32m5[39m
+    Received:    [31m2[39m
+
+      188 |   expect(report.summary.elapsedMs).toBeGreaterThanOrEqual(30000);
+      189 |   // Software rendering may produce exactly five complete performance windows.
+    > 190 |   expect(report.summary.samples).toBeGreaterThanOrEqual(5);
+          |                                  ^
+      191 |   expect(report.summary.averageDrawCalls).toBeGreaterThan(0);
+      192 |   expect(report.context.source).toMatch(/^[a-f0-9]{64}$/);
+      193 |   await back(page);
+        at performance (/home/user/Experiment-3/e2e/28-race-pit-presentation.spec.ts:190:34)
+        at /home/user/Experiment-3/e2e/28-race-pit-presentation.spec.ts:368:3
+
+    attachment #5: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/28-race-pit-presentation-2-8b03b-nd-measured-frame-intervals/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/28-race-pit-presentation-2-8b03b-nd-measured-frame-intervals/error-context.md
+
+    attachment #7: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/28-race-pit-presentation-2-8b03b-nd-measured-frame-intervals/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/28-race-pit-presentation-2-8b03b-nd-measured-frame-intervals/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K  Slow test file: e2e/28-race-pit-presentation.spec.ts (15.2m)
+  Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+  1 failed
+    e2e/28-race-pit-presentation.spec.ts:303:1 › 27H.6 wet-night traffic: actual following, full lap, spray, replay and measured frame intervals 
+exit 1

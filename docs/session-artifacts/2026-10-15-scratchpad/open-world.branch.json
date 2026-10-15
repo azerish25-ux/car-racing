@@ -1,0 +1,232 @@
+{
+  "generatedBy": "npm run test:open-world",
+  "region": {
+    "id": "solvane",
+    "name": "Solvane Coast",
+    "sizeKm": 8.192,
+    "seed": 330270,
+    "buildMs": 1108
+  },
+  "network": {
+    "totalKm": 70.92,
+    "byClassKm": {
+      "highway": 19.77,
+      "country": 16.66,
+      "mountain": 11.59,
+      "runway": 4.4,
+      "dirt": 9.88,
+      "town": 8.62
+    },
+    "bySpeedClassKm": {
+      "motorway": 24.17,
+      "fast": 16.66,
+      "technical": 11.59,
+      "medium": 9.88,
+      "slow": 8.62
+    },
+    "edges": 60,
+    "junctions": 37,
+    "deadEnds": 5,
+    "bridges": 20,
+    "bridgeKm": 3.44,
+    "guardrailKm": 6.26,
+    "maxGrade": 0.15,
+    "minRadius": 14.5
+  },
+  "events": [
+    {
+      "id": "coast-to-summit",
+      "kind": "road-race",
+      "lengthKm": 10.17,
+      "laps": 1,
+      "legs": 8,
+      "checkpoints": 25
+    },
+    {
+      "id": "grand-loop",
+      "kind": "circuit",
+      "lengthKm": 18.23,
+      "laps": 1,
+      "legs": 15,
+      "checkpoints": 46
+    },
+    {
+      "id": "port-ilse-loop",
+      "kind": "circuit",
+      "lengthKm": 2.6,
+      "laps": 3,
+      "legs": 9,
+      "checkpoints": 6
+    },
+    {
+      "id": "kestrel-circuit",
+      "kind": "circuit",
+      "lengthKm": 4.4,
+      "laps": 2,
+      "legs": 3,
+      "checkpoints": 11
+    },
+    {
+      "id": "valley-sprint",
+      "kind": "sprint",
+      "lengthKm": 2.36,
+      "laps": 1,
+      "legs": 2,
+      "checkpoints": 6
+    },
+    {
+      "id": "thornwood-rally",
+      "kind": "sprint",
+      "lengthKm": 5.14,
+      "laps": 1,
+      "legs": 1,
+      "checkpoints": 13
+    },
+    {
+      "id": "ridge-trap",
+      "kind": "speed-trap",
+      "lengthKm": 0.3,
+      "laps": 1,
+      "legs": 1,
+      "checkpoints": 1
+    },
+    {
+      "id": "coast-trap",
+      "kind": "speed-trap",
+      "lengthKm": 0.4,
+      "laps": 1,
+      "legs": 1,
+      "checkpoints": 1
+    },
+    {
+      "id": "pass-zone",
+      "kind": "speed-zone",
+      "lengthKm": 1.29,
+      "laps": 1,
+      "legs": 1,
+      "checkpoints": 3
+    },
+    {
+      "id": "plateau-zone",
+      "kind": "speed-zone",
+      "lengthKm": 1.42,
+      "laps": 1,
+      "legs": 1,
+      "checkpoints": 3
+    },
+    {
+      "id": "hairpin-drift",
+      "kind": "drift-zone",
+      "lengthKm": 3.6,
+      "laps": 1,
+      "legs": 1,
+      "checkpoints": 9
+    },
+    {
+      "id": "quarry-drift",
+      "kind": "drift-zone",
+      "lengthKm": 1.53,
+      "laps": 1,
+      "legs": 1,
+      "checkpoints": 4
+    },
+    {
+      "id": "runway-showcase",
+      "kind": "showcase",
+      "lengthKm": 6.05,
+      "laps": 1,
+      "legs": 4,
+      "checkpoints": 15
+    }
+  ],
+  "drives": [
+    {
+      "route": "coast-to-summit",
+      "vehicle": "eh3",
+      "lengthKm": 10.17,
+      "finished": true,
+      "timeS": 217.8,
+      "averageKmh": 167.7,
+      "topKmh": 311.8,
+      "legalKm": 10.14,
+      "offRouteS": 0,
+      "longestStallS": 0,
+      "resetRequests": 0,
+      "surfacesS": {
+        "road marking": 35.5,
+        "asphalt": 182.5
+      },
+      "tiles": {
+        "resident": 24,
+        "peakResident": 24,
+        "budget": 24,
+        "generated": 67,
+        "evicted": 43,
+        "stalls": 0,
+        "prefetched": 67,
+        "generationMs": 446.8741680000053,
+        "worstGenerationMs": 19.838520999999673
+      },
+      "wallMs": 5160
+    },
+    {
+      "route": "thornwood-rally",
+      "vehicle": "eh3",
+      "lengthKm": 5.14,
+      "finished": true,
+      "timeS": 141.8,
+      "averageKmh": 129.3,
+      "topKmh": 133.9,
+      "legalKm": 5.09,
+      "offRouteS": 0,
+      "longestStallS": 0,
+      "resetRequests": 0,
+      "surfacesS": {
+        "dirt road": 142
+      },
+      "tiles": {
+        "resident": 24,
+        "peakResident": 24,
+        "budget": 24,
+        "generated": 43,
+        "evicted": 19,
+        "stalls": 0,
+        "prefetched": 43,
+        "generationMs": 223.28636499999084,
+        "worstGenerationMs": 12.055318999999145
+      },
+      "wallMs": 2697
+    }
+  ],
+  "race": {
+    "event": "valley-sprint",
+    "completed": true,
+    "position": 4,
+    "entrants": 4,
+    "timeS": 56.9,
+    "standings": [
+      {
+        "name": "RM-8 MUSCLE COUPE",
+        "vehicle": "rm8",
+        "timeS": 43.47
+      },
+      {
+        "name": "RP-6 DESERT PICKUP",
+        "vehicle": "rp6",
+        "timeS": 55.4
+      },
+      {
+        "name": "RR-4 RALLY-BRED ROAD CAR",
+        "vehicle": "rr4",
+        "timeS": 56.47
+      },
+      {
+        "name": "YOU",
+        "vehicle": "eh3",
+        "timeS": 56.87
+      }
+    ]
+  },
+  "failures": [],
+  "wallMs": 15324
+}

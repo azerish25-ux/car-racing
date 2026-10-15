@@ -1,0 +1,15 @@
+docs(offroad): register WP37-WP42 and D031-D050; venue and results fixes
+
+STATUS_REGISTER rows for WP37 to WP42 and the off-road features,
+D031-D050 restated against the code, the content catalogue counts, the
+implemented-vs-designed off-road rules in GAME_DESIGN and the dirt-bike
+and course-terrain notes in PHYSICS_MODEL.
+
+Arena Nord grows to 615 m (the drainage plan needs a 590 m lap), braking
+boards are not built at terrain venues, mud and dust collect over laps
+rather than seconds and never coat a part uniformly, the results card
+names the holeshot, jump starts, joker laps or stage times, the session
+uses the shared gate pick, and crash causes are short labels.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01RN7q935R3iepiRcM32D9uW

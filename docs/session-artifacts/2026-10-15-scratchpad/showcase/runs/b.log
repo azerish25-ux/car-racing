@@ -1,0 +1,30 @@
+(node:30625) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+[    0 s] open http://127.0.0.1:47311/ (mesa, 1280x720)
+[   68 s] menu ready on ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)
+[   68 s] GARAGE & SETTINGS → ultra
+[  129 s] preset applied
+[  129 s] session: aurel race 3 laps clear grid 12 start back machine multiclass
+[  129 s] rules: MULTI-CLASS ENDURANCE: no mandatory stop · DRS off · points scored.
+[  197 s] session prepared
+[  218 s] 04 multiclass-pack-aurel: met (t 13.1 s, race 7.2 s)
+[  295 s] captured 04-multiclass-pack-aurel.png
+[  336 s] captured 04-multiclass-pack-aurel-trackside.png
+[  336 s] session pack took 268 s
+[  345 s] session: neon-city race 3 laps clear grid 8 start midfield machine gt10m
+[  345 s] rules: GT SPRINT: no mandatory stop · DRS off · points scored.
+[  426 s] session prepared
+[  444 s] 06 neon-city-night-gt10m: met (t 16.3 s, race 10.4 s)
+[  466 s] captured 06-neon-city-night-gt10m.png
+[  496 s] captured 06-neon-city-night-trackside.png
+[  496 s] session neon took 160 s
+[  503 s] session: hochwald race 1 laps clear grid 8 start midfield machine hf67
+[  503 s] rules: HISTORIC FORMULA: no mandatory stop · DRS off · points scored.
+[  660 s] session prepared
+[  695 s] 07 hochwald-forest-ring-hf67: met (t 31.1 s, race 25.2 s)
+[  732 s] captured 07-hochwald-forest-ring-hf67.png
+[  771 s] captured 07-hochwald-forest-ring-trackside.png
+[  836 s] 07 deeper in the forest: met (t 91.5 s, race 85.6 s)
+[  878 s] captured 07-hochwald-forest-ring-2.png
+[  878 s] session hochwald took 381 s
+[  882 s] done: 7 shots, 0 failures → runs/b

@@ -1,0 +1,42 @@
+{
+  "sourceSHA256": "3c19b6ce604c9138739ef881f387b69e090cf408be594124a04e51b9c4c317f4",
+  "passed": true,
+  "failures": [],
+  "seconds": 15.266666666666667,
+  "sawDouble": true,
+  "sawClear": true,
+  "distantInitiallyGreen": true,
+  "driverStationM": 1100.2133709321288,
+  "driverSpeedMps": 35.798094550851786,
+  "maximumImpact": [
+    0,
+    0,
+    0
+  ],
+  "events": [
+    {
+      "sequence": 1,
+      "time": 10.008333333333333,
+      "kind": "incident",
+      "car": 1,
+      "code": "OBSTRUCTION",
+      "seconds": 0
+    },
+    {
+      "sequence": 2,
+      "time": 10.008333333333333,
+      "kind": "flag",
+      "car": 0,
+      "code": "DOUBLE YELLOW",
+      "seconds": 0
+    },
+    {
+      "sequence": 3,
+      "time": 22.8833333333326,
+      "kind": "flag",
+      "car": 0,
+      "code": "GREEN FLAG",
+      "seconds": 0
+    }
+  ]
+}

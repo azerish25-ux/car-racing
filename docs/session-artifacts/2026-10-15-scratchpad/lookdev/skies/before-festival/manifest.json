@@ -1,0 +1,65 @@
+{
+  "suite": "APEX feature showcase (live application)",
+  "url": "http://127.0.0.1:47811/",
+  "repo": "/home/user/Experiment-3/.claude/worktrees/wf_1ec31848-637-1",
+  "size": {
+    "width": 1280,
+    "height": 720
+  },
+  "preset": "ultra",
+  "backend": "mesa",
+  "sessions": [
+    "festival"
+  ],
+  "startedAt": "2026-10-15T17:04:01.163Z",
+  "shots": [
+    {
+      "id": "08",
+      "slug": "festival-port-ilse-golden-hour",
+      "file": "08-festival-port-ilse-golden-hour.png",
+      "hud": null,
+      "notes": "open-world festival, Port Ilse spawn (town), Golden hour, chase camera, festival menu hidden for the capture",
+      "player": null,
+      "festival": true,
+      "capturedAt": "2026-10-15T17:10:22.372Z"
+    },
+    {
+      "id": "09",
+      "slug": "festival-world-map",
+      "file": "09-festival-world-map.png",
+      "hud": null,
+      "notes": "open-world festival world map (T): Solvane region relief, road network, event markers, player at Port Ilse",
+      "player": null,
+      "festival": true,
+      "capturedAt": "2026-10-15T17:10:55.688Z"
+    },
+    {
+      "id": "09b",
+      "slug": "festival-drive-1",
+      "file": "09b-festival-drive-1.png",
+      "hud": "09b-festival-drive-1-hud.png",
+      "notes": "festival autopilot drive, live (not paused), day",
+      "hudText": "50\nHarbour Front\nASPHALT\nR RESET TO ROAD · C CAMERA · T MAP · G AUTOPILOT · ESC MENU\nCIRCUIT\nPort Ilse Street Loop\n\nTight harbour-front streets, three laps, no room for mistakes.\n\nDISTANCE\n7.8 km\nLAPS\n3\nRIVALS\n5\nSTART EVENT ENTERNOT NOW\n0\nKM/H · 1"
+    },
+    {
+      "id": "09b",
+      "slug": "festival-drive-2",
+      "file": "09b-festival-drive-2.png",
+      "hud": "09b-festival-drive-2-hud.png",
+      "notes": "festival autopilot drive, live (not paused), day",
+      "hudText": "50\nHarbour Front\nASPHALT\nR RESET TO ROAD · C CAMERA · T MAP · G AUTOPILOT · ESC MENU\nCIRCUIT\nPort Ilse Street Loop\n\nTight harbour-front streets, three laps, no room for mistakes.\n\nDISTANCE\n7.8 km\nLAPS\n3\nRIVALS\n5\nSTART EVENT ENTERNOT NOW\n0\nKM/H · 1"
+    },
+    {
+      "id": "09b",
+      "slug": "festival-drive-3",
+      "file": "09b-festival-drive-3.png",
+      "hud": "09b-festival-drive-3-hud.png",
+      "notes": "festival autopilot drive, live (not paused), day",
+      "hudText": "50\nHarbour Front\nASPHALT\nR RESET TO ROAD · C CAMERA · T MAP · G AUTOPILOT · ESC MENU\nCIRCUIT\nPort Ilse Street Loop\n\nTight harbour-front streets, three laps, no room for mistakes.\n\nDISTANCE\n7.8 km\nLAPS\n3\nRIVALS\n5\nSTART EVENT ENTERNOT NOW\n0\nKM/H · 1"
+    }
+  ],
+  "failures": [],
+  "consoleErrors": [],
+  "gl": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+  "finishedAt": "2026-10-15T17:15:48.864Z"
+}

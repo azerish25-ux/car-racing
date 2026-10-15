@@ -1,0 +1,43 @@
+fix(open-world): one continuous drivable surface at junctions, dead ends and verges
+
+Junction mouths: sample() took the surface from the nearest centreline
+only and tested the point against that one road's width, so the wide
+road's asphalt next to a narrow road's centreline read as grass (451 m²
+over 15 junctions, on the kestrel-circuit and runway-showcase lines) and
+overlapping roads left steps of up to 1.04 m. Every road piece whose
+footprint covers the point now counts, by true distance to each segment,
+on the queried layer; inside a carriageway the highest road is the
+surface (the ribbon the renderer shows on top), each road fades in across
+its shoulder so overlaps meet without a step, and the surface class comes
+from the carriageway the point is in (paved before loose).
+
+Junction pads: roads meeting at a node are held level along each branch
+until they are clear of the other roads' footprints (up to 40 m), side
+roads following the through road's crown, with no superelevation across
+the pad, so overlapping ribbons agree to within a crown instead of
+diverging with their own grades (render and physics both read this).
+
+Dead ends: the road ends at its end line; beyond it is the carved terrain,
+no longer a flat phantom road plane reaching into the hillside.
+
+Verges: the shoulder now falls to the verge edge the renderer draws
+(no 6 cm kerb at the asphalt edge), and the ground meets the 4 m terrain
+tile over a one-step run-out instead of dropping up to 43 cm where the
+shoulder ends; the run-out stops at a neighbouring road's footprint.
+
+Crossroads: a road end snapping to another road's end now also joins any
+road whose carriageway it lies on, so valley, farm and orchard meet at the
+four-way junction at (210, -430) instead of overlapping 35 cm apart.
+validateRegion checks that every control point shared by several roads is
+a junction joining all their branches.
+
+Measured on Solvane: off-road area inside junction carriageways 451 m² to
+0; adjacent 0.25 m height steps in junction areas over 15 cm 459 to 4,
+worst 1.04 m to 0.17 m (a highway crown under a side road's shoulder);
+shoulder-edge steps over 15 cm 2155 to 0, worst 43 cm to 4 mm (8 of
+32,574 edge points, where another road's footprint touches, meet that
+road: worst 10 cm); every event race line on road. Tests cover each.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01RN7q935R3iepiRcM32D9uW
+

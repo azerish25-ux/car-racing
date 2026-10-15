@@ -1,0 +1,44 @@
+(node:19483) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Building /home/user/Experiment-3 into /tmp/claude-0/-home-user-Experiment-3/c20c3567-05b6-5daa-8126-ea386a6ddfeb/scratchpad/art/capture-suite/build-tmp/apex-capture-build-ye1H6G
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+[    0 s] open http://127.0.0.1:39055/ (mesa, 960x540)
+[   72 s] menu ready on ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5); GARAGE & SETTINGS → ultra
+[  108 s] preset applied
+[  108 s] session: aurel race 10 laps clear grid 12 start midfield
+[  166 s] session prepared
+[  177 s] 03 side-by-side: met (t 7.8 s, race 1.9 s)
+[  245 s] captured 03-side-by-side.png
+[  245 s] lighting → night
+[  293 s] 06 night traffic: met (t 12.3 s, race 6.4 s)
+[  338 s] captured 06-night-traffic.png
+[  338 s] lighting → day
+[  427 s] 02 main straight: met (t 71.3 s, race 65.4 s)
+[  469 s] captured 02-chase-main-straight.png
+[  539 s] 07 pit approach (request 1): met (t 137.2 s, race 131.3 s)
+[  571 s] 07 pit service (request 1): met (t 147.5 s, race 141.6 s)
+[  614 s] captured 07-pit-service.png
+[  621 s] 01 pit exit: met (t 153.6 s, race 147.7 s)
+[  656 s] captured 01-cockpit-pit-exit.png
+[  696 s] captured 09-close-photo.png
+[  749 s] captured 08-replay-broadcast.png
+[  749 s] lighting → sunset
+[  846 s] 05 into the sun: met (t 214.9 s, race 209.0 s)
+[  887 s] captured 05-sunset-into-sun.png
+[  897 s] session: aurel race 3 laps rain grid 8 start midfield
+[  968 s] session prepared
+[  968 s] lighting → day
+[ 1050 s] 04 wet braking turn 1: met (t 30.0 s, race 24.1 s)
+[ 1086 s] captured 04-wet-braking-turn1.png
+[ 1094 s] session: neon-city race 3 laps clear grid 8 start midfield
+[ 1174 s] session prepared
+[ 1192 s] 10 neon city: met (t 16.0 s, race 10.1 s)
+[ 1231 s] captured 10-neon-city-night.png
+[ 1250 s] session: festival (open world)
+[ 1314 s] festival loaded at Port Ilse
+[ 1393 s] captured 11-festival-town-golden-hour.png
+[ 1395 s] done: 11 shots, 0 failures → /tmp/claude-0/-home-user-Experiment-3/c20c3567-05b6-5daa-8126-ea386a6ddfeb/scratchpad/art/capture-suite/run9

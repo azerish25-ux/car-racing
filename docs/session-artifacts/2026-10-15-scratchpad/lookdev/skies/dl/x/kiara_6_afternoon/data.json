@@ -1,0 +1,35 @@
+{
+    "asset_type": "Texture",
+    "id": "kiara_6_afternoon",
+    "kwargs": {
+        "filename": "environment_4k.hdr"
+    },
+    "license": "CC0 1.0",
+    "metadata": {
+        "authors": [
+            "Greg Zaal"
+        ],
+        "categories": [
+            "outdoor",
+            "skies",
+            "morning-afternoon",
+            "nature",
+            "clear",
+            "high contrast",
+            "natural light"
+        ],
+        "coords": [
+            -28.508926,
+            28.5665
+        ],
+        "date_taken": 1471956120,
+        "resolution": "4k",
+        "tags": [
+            "sun",
+            "mountain",
+            "valley",
+            "rock",
+            "backplates"
+        ]
+    }
+}

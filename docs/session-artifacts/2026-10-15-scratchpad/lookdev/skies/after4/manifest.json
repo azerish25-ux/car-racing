@@ -1,0 +1,529 @@
+{
+  "suite": "APEX feature showcase (live application)",
+  "url": "http://127.0.0.1:47812/",
+  "repo": "/home/user/Experiment-3/.claude/worktrees/wf_1ec31848-637-1",
+  "size": {
+    "width": 1280,
+    "height": 720
+  },
+  "preset": "ultra",
+  "backend": "mesa",
+  "sessions": [
+    "pack",
+    "bikes",
+    "neon",
+    "festival",
+    "valley"
+  ],
+  "startedAt": "2026-10-15T18:42:12.439Z",
+  "shots": [
+    {
+      "id": "04",
+      "slug": "multiclass-pack-aurel",
+      "file": "04-multiclass-pack-aurel.png",
+      "hud": "04-multiclass-pack-aurel-hud.png",
+      "notes": "multi-class endurance grid (HY-9, PR-2, GT-8F, GT-10M, GS-4 x12) at Aurel from the back, live chase camera; 4 cars 3-78 m ahead when held, 76 km/h, race 6.2 s",
+      "player": {
+        "speedKmh": 77.8,
+        "s": 2941.1,
+        "lap": 0,
+        "leanDeg": 0,
+        "airborne": 0,
+        "airTime": 0
+      },
+      "build": {
+        "commit": null,
+        "fingerprint": "3217ba0442b9576845c06a5c6afcc45d05dfbcb814a3d71104c8ed741c34d6e0"
+      },
+      "state": "paused",
+      "options": {
+        "circuit": "aurel",
+        "mode": "race",
+        "laps": 3,
+        "opponents": 11,
+        "weather": "clear",
+        "ruleset": "multi-class-endurance",
+        "vehicles": [
+          "hy9",
+          "pr2",
+          "gt8f",
+          "gt10m",
+          "gs4",
+          "hy9",
+          "pr2",
+          "gt8f",
+          "gt10m",
+          "gs4",
+          "hy9",
+          "pr2"
+        ]
+      },
+      "presentedTime": 12.308333396911621,
+      "replayPosition": null,
+      "renderer": {
+        "camera": "chase",
+        "requestedCamera": "chase",
+        "lighting": "day",
+        "renderWidth": 1280,
+        "renderHeight": 720,
+        "drawCalls": 1059,
+        "triangles": 6080200,
+        "ultra": {
+          "preset": "ultra",
+          "tier": "high",
+          "unsupported": [],
+          "replayDof": {
+            "enabled": false,
+            "focus": 4.612686088387122,
+            "backgroundBlur": 0.001250335874190067,
+            "fNumber": 2.8,
+            "taps": 48,
+            "frames": 1,
+            "extraDraws": 0
+          }
+        }
+      },
+      "capturedAt": "2026-10-15T18:49:00.160Z"
+    },
+    {
+      "id": "04",
+      "slug": "multiclass-pack-aurel-trackside",
+      "file": "04-multiclass-pack-aurel-trackside.png",
+      "hud": null,
+      "notes": "same held moment, trackside camera",
+      "player": {
+        "speedKmh": 77.8,
+        "s": 2941.1,
+        "lap": 0,
+        "leanDeg": 0,
+        "airborne": 0,
+        "airTime": 0
+      },
+      "build": {
+        "commit": null,
+        "fingerprint": "3217ba0442b9576845c06a5c6afcc45d05dfbcb814a3d71104c8ed741c34d6e0"
+      },
+      "state": "paused",
+      "options": {
+        "circuit": "aurel",
+        "mode": "race",
+        "laps": 3,
+        "opponents": 11,
+        "weather": "clear",
+        "ruleset": "multi-class-endurance",
+        "vehicles": [
+          "hy9",
+          "pr2",
+          "gt8f",
+          "gt10m",
+          "gs4",
+          "hy9",
+          "pr2",
+          "gt8f",
+          "gt10m",
+          "gs4",
+          "hy9",
+          "pr2"
+        ]
+      },
+      "presentedTime": 12.308333396911621,
+      "replayPosition": null,
+      "renderer": {
+        "camera": "trackside",
+        "requestedCamera": "trackside",
+        "lighting": "day",
+        "renderWidth": 1280,
+        "renderHeight": 720,
+        "drawCalls": 1097,
+        "triangles": 11856790,
+        "ultra": {
+          "preset": "ultra",
+          "tier": "high",
+          "unsupported": [],
+          "replayDof": {
+            "enabled": false,
+            "focus": 4.612686088387122,
+            "backgroundBlur": 0.001250335874190067,
+            "fNumber": 2.8,
+            "taps": 48,
+            "frames": 1,
+            "extraDraws": 0
+          }
+        }
+      },
+      "capturedAt": "2026-10-15T18:50:37.478Z"
+    },
+    {
+      "id": "03",
+      "slug": "gpr1-poggio-alto-lean",
+      "file": "03-gpr1-poggio-alto-lean.png",
+      "hud": "03-gpr1-poggio-alto-lean-hud.png",
+      "notes": "GP-R1 motorcycle grid (8), Poggio Alto, live chase camera, lean 38°, 64 km/h, 3 riders 2-60 m ahead",
+      "player": {
+        "speedKmh": 64.1,
+        "s": 678.6,
+        "lap": 0,
+        "leanDeg": 38.5,
+        "airborne": 0,
+        "airTime": 0
+      },
+      "build": {
+        "commit": null,
+        "fingerprint": "3217ba0442b9576845c06a5c6afcc45d05dfbcb814a3d71104c8ed741c34d6e0"
+      },
+      "state": "paused",
+      "options": {
+        "circuit": "poggio-alto",
+        "mode": "race",
+        "laps": 3,
+        "opponents": 7,
+        "weather": "clear",
+        "ruleset": "gp-motorcycle",
+        "vehicles": [
+          "gpr1",
+          "gpr1",
+          "gpr1",
+          "gpr1",
+          "gpr1",
+          "gpr1",
+          "gpr1",
+          "gpr1"
+        ]
+      },
+      "presentedTime": 26.600000381469727,
+      "replayPosition": null,
+      "renderer": {
+        "camera": "chase",
+        "requestedCamera": "chase",
+        "lighting": "day",
+        "renderWidth": 1280,
+        "renderHeight": 720,
+        "drawCalls": 3706,
+        "triangles": 5569546,
+        "ultra": {
+          "preset": "ultra",
+          "tier": "high",
+          "unsupported": [],
+          "replayDof": {
+            "enabled": false,
+            "focus": 4.612694123356647,
+            "backgroundBlur": 0.001250333689086924,
+            "fNumber": 2.8,
+            "taps": 48,
+            "frames": 1,
+            "extraDraws": 0
+          }
+        }
+      },
+      "capturedAt": "2026-10-15T18:56:04.469Z"
+    },
+    {
+      "id": "03",
+      "slug": "gpr1-poggio-alto-trackside",
+      "file": "03-gpr1-poggio-alto-trackside.png",
+      "hud": null,
+      "notes": "same held moment, trackside camera",
+      "player": {
+        "speedKmh": 64.1,
+        "s": 678.6,
+        "lap": 0,
+        "leanDeg": 38.5,
+        "airborne": 0,
+        "airTime": 0
+      },
+      "build": {
+        "commit": null,
+        "fingerprint": "3217ba0442b9576845c06a5c6afcc45d05dfbcb814a3d71104c8ed741c34d6e0"
+      },
+      "state": "paused",
+      "options": {
+        "circuit": "poggio-alto",
+        "mode": "race",
+        "laps": 3,
+        "opponents": 7,
+        "weather": "clear",
+        "ruleset": "gp-motorcycle",
+        "vehicles": [
+          "gpr1",
+          "gpr1",
+          "gpr1",
+          "gpr1",
+          "gpr1",
+          "gpr1",
+          "gpr1",
+          "gpr1"
+        ]
+      },
+      "presentedTime": 26.600000381469727,
+      "replayPosition": null,
+      "renderer": {
+        "camera": "trackside",
+        "requestedCamera": "trackside",
+        "lighting": "day",
+        "renderWidth": 1280,
+        "renderHeight": 720,
+        "drawCalls": 3041,
+        "triangles": 6898417,
+        "ultra": {
+          "preset": "ultra",
+          "tier": "high",
+          "unsupported": [],
+          "replayDof": {
+            "enabled": false,
+            "focus": 4.612694123356647,
+            "backgroundBlur": 0.001250333689086924,
+            "fNumber": 2.8,
+            "taps": 48,
+            "frames": 1,
+            "extraDraws": 0
+          }
+        }
+      },
+      "capturedAt": "2026-10-15T18:57:11.803Z"
+    },
+    {
+      "id": "06",
+      "slug": "neon-city-night-gt10m",
+      "file": "06-neon-city-night-gt10m.png",
+      "hud": null,
+      "notes": "NEON CITY street circuit (night by venue), GT-10M field (8), live chase camera; 4 cars 4-104 m ahead when held, 181 km/h, race 10.2 s",
+      "player": {
+        "speedKmh": 181.5,
+        "s": 236.7,
+        "lap": 0,
+        "leanDeg": 0,
+        "airborne": 0,
+        "airTime": 0
+      },
+      "build": {
+        "commit": null,
+        "fingerprint": "3217ba0442b9576845c06a5c6afcc45d05dfbcb814a3d71104c8ed741c34d6e0"
+      },
+      "state": "paused",
+      "options": {
+        "circuit": "neon-city",
+        "mode": "race",
+        "laps": 3,
+        "opponents": 7,
+        "weather": "clear",
+        "ruleset": "gt-sprint",
+        "vehicles": [
+          "gt10m",
+          "gt10m",
+          "gt10m",
+          "gt10m",
+          "gt10m",
+          "gt10m",
+          "gt10m",
+          "gt10m"
+        ]
+      },
+      "presentedTime": 16.075000762939453,
+      "replayPosition": null,
+      "renderer": {
+        "camera": "chase",
+        "requestedCamera": "chase",
+        "lighting": "night",
+        "renderWidth": 1280,
+        "renderHeight": 720,
+        "drawCalls": 599,
+        "triangles": 1305386,
+        "ultra": {
+          "preset": "ultra",
+          "tier": "high",
+          "unsupported": [],
+          "replayDof": {
+            "enabled": false,
+            "focus": 4.612686088387193,
+            "backgroundBlur": 0.0012503358741900478,
+            "fNumber": 2.8,
+            "taps": 48,
+            "frames": 1,
+            "extraDraws": 0
+          }
+        }
+      },
+      "capturedAt": "2026-10-15T18:59:32.404Z"
+    },
+    {
+      "id": "06",
+      "slug": "neon-city-night-trackside",
+      "file": "06-neon-city-night-trackside.png",
+      "hud": null,
+      "notes": "same held moment, trackside camera",
+      "player": {
+        "speedKmh": 181.5,
+        "s": 236.7,
+        "lap": 0,
+        "leanDeg": 0,
+        "airborne": 0,
+        "airTime": 0
+      },
+      "build": {
+        "commit": null,
+        "fingerprint": "3217ba0442b9576845c06a5c6afcc45d05dfbcb814a3d71104c8ed741c34d6e0"
+      },
+      "state": "paused",
+      "options": {
+        "circuit": "neon-city",
+        "mode": "race",
+        "laps": 3,
+        "opponents": 7,
+        "weather": "clear",
+        "ruleset": "gt-sprint",
+        "vehicles": [
+          "gt10m",
+          "gt10m",
+          "gt10m",
+          "gt10m",
+          "gt10m",
+          "gt10m",
+          "gt10m",
+          "gt10m"
+        ]
+      },
+      "presentedTime": 16.075000762939453,
+      "replayPosition": null,
+      "renderer": {
+        "camera": "trackside",
+        "requestedCamera": "trackside",
+        "lighting": "night",
+        "renderWidth": 1280,
+        "renderHeight": 720,
+        "drawCalls": 1371,
+        "triangles": 1206613,
+        "ultra": {
+          "preset": "ultra",
+          "tier": "high",
+          "unsupported": [],
+          "replayDof": {
+            "enabled": false,
+            "focus": 4.612686088387193,
+            "backgroundBlur": 0.0012503358741900478,
+            "fNumber": 2.8,
+            "taps": 48,
+            "frames": 1,
+            "extraDraws": 0
+          }
+        }
+      },
+      "capturedAt": "2026-10-15T19:00:08.174Z"
+    },
+    {
+      "id": "08",
+      "slug": "festival-port-ilse-golden-hour",
+      "file": "08-festival-port-ilse-golden-hour.png",
+      "hud": null,
+      "notes": "open-world festival, Port Ilse spawn (town), Golden hour, chase camera, festival menu hidden for the capture",
+      "player": null,
+      "festival": true,
+      "capturedAt": "2026-10-15T19:02:40.940Z"
+    },
+    {
+      "id": "09",
+      "slug": "festival-world-map",
+      "file": "09-festival-world-map.png",
+      "hud": null,
+      "notes": "open-world festival world map (T): Solvane region relief, road network, event markers, player at Port Ilse",
+      "player": null,
+      "festival": true,
+      "capturedAt": "2026-10-15T19:02:58.819Z"
+    },
+    {
+      "id": "09b",
+      "slug": "festival-drive-1",
+      "file": "09b-festival-drive-1.png",
+      "hud": "09b-festival-drive-1-hud.png",
+      "notes": "festival autopilot drive, live (not paused), day",
+      "hudText": "50\nHarbour Front\nASPHALT\nR RESET TO ROAD · C CAMERA · T MAP · G AUTOPILOT · ESC MENU\nCIRCUIT\nPort Ilse Street Loop\n\nTight harbour-front streets, three laps, no room for mistakes.\n\nDISTANCE\n7.8 km\nLAPS\n3\nRIVALS\n5\nSTART EVENT ENTERNOT NOW\n0\nKM/H · 1"
+    },
+    {
+      "id": "09b",
+      "slug": "festival-drive-2",
+      "file": "09b-festival-drive-2.png",
+      "hud": "09b-festival-drive-2-hud.png",
+      "notes": "festival autopilot drive, live (not paused), day",
+      "hudText": "50\nHarbour Front\nASPHALT\nR RESET TO ROAD · C CAMERA · T MAP · G AUTOPILOT · ESC MENU\nCIRCUIT\nPort Ilse Street Loop\n\nTight harbour-front streets, three laps, no room for mistakes.\n\nDISTANCE\n7.8 km\nLAPS\n3\nRIVALS\n5\nSTART EVENT ENTERNOT NOW\n0\nKM/H · 1"
+    },
+    {
+      "id": "09b",
+      "slug": "festival-drive-3",
+      "file": "09b-festival-drive-3.png",
+      "hud": "09b-festival-drive-3-hud.png",
+      "notes": "festival autopilot drive, live (not paused), day",
+      "hudText": "50\nHarbour Front\nASPHALT\nR RESET TO ROAD · C CAMERA · T MAP · G AUTOPILOT · ESC MENU\nCIRCUIT\nPort Ilse Street Loop\n\nTight harbour-front streets, three laps, no room for mistakes.\n\nDISTANCE\n7.8 km\nLAPS\n3\nRIVALS\n5\nSTART EVENT ENTERNOT NOW\n0\nKM/H · 1"
+    },
+    {
+      "id": "10",
+      "slug": "valley-ridge-mx450-airborne",
+      "file": "10-valley-ridge-mx450-airborne.png",
+      "hud": "10-valley-ridge-mx450-airborne-hud.png",
+      "notes": "Valley Ridge motocross (National), MX-450 gate start, 12 riders; live pause in flight (air time 0.02 s, 1 riders 2-40 m ahead)",
+      "player": {
+        "speedKmh": 19.4,
+        "s": 399.7,
+        "lap": 0,
+        "leanDeg": -2.1,
+        "airborne": 1,
+        "airTime": 0.13
+      },
+      "build": {
+        "commit": null,
+        "fingerprint": "3217ba0442b9576845c06a5c6afcc45d05dfbcb814a3d71104c8ed741c34d6e0"
+      },
+      "state": "paused",
+      "options": {
+        "circuit": "valley-ridge-mx",
+        "mode": "race",
+        "laps": 3,
+        "opponents": 11,
+        "weather": "clear",
+        "ruleset": "motocross-moto",
+        "vehicles": [
+          "mx450",
+          "mx450",
+          "mx450",
+          "mx450",
+          "mx450",
+          "mx450",
+          "mx450",
+          "mx450",
+          "mx450",
+          "mx450",
+          "mx450",
+          "mx450"
+        ]
+      },
+      "presentedTime": 82.63333129882812,
+      "replayPosition": null,
+      "renderer": {
+        "camera": "chase",
+        "requestedCamera": "chase",
+        "lighting": "day",
+        "renderWidth": 1280,
+        "renderHeight": 720,
+        "drawCalls": 1255,
+        "triangles": 2224052,
+        "ultra": {
+          "preset": "ultra",
+          "tier": "high",
+          "unsupported": [],
+          "replayDof": {
+            "enabled": false,
+            "focus": 4.612680195290565,
+            "backgroundBlur": 0.001250337476817529,
+            "fNumber": 2.8,
+            "taps": 48,
+            "frames": 1,
+            "extraDraws": 0
+          }
+        }
+      },
+      "capturedAt": "2026-10-15T19:11:09.305Z"
+    }
+  ],
+  "failures": [],
+  "consoleErrors": [],
+  "gl": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+  "finishedAt": "2026-10-15T19:11:09.324Z"
+}

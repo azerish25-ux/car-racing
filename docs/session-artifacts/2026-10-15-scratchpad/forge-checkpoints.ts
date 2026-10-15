@@ -1,0 +1,13 @@
+const W = '/home/user/Experiment-3/.claude/worktrees/wf_f5fa9a5f-78d-1';
+const { DEFAULT_OPTIONS, validateOptions } = await import(W + '/src/simulation/config.ts');
+const { AuthoritativeWorld } = await import(W + '/src/net/authority.ts');
+const { createRecord, verifyRecord, recordDigest } = await import(W + '/src/net/records.ts');
+const opts = validateOptions({ ...DEFAULT_OPTIONS, mode: 'race', opponents: 1, seed: 7 });
+const w = new AuthoritativeWorld(opts);
+w.setMode(0, 'ai'); w.setMode(1, 'ai');
+while (w.tick < 2500) w.step();
+const rec = JSON.parse(JSON.stringify(createRecord(w)));
+console.log('genuine checkpoints', JSON.stringify(rec.claim.checkpoints), 'verify', verifyRecord(JSON.parse(JSON.stringify(rec))).ok);
+rec.claim.checkpoints = rec.claim.checkpoints.map((c: any) => ({ tick: 10_000_000 + c.tick, hash: 'not-a-hash' }));
+rec.digest = recordDigest(rec);
+console.log('forged checkpoints', JSON.stringify(rec.claim.checkpoints), 'verify', JSON.stringify(verifyRecord(rec)));

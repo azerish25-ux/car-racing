@@ -1,0 +1,9 @@
+fix(offroad): keep the terrain surface off Track's public members
+
+Track holds a terrain venue's deformable ground in a private field read
+through Track.offroadOf, so an adapter that stands in for a Track (the
+festival world surface) needs no off-road member and a full-member check
+of that adapter stays green when the branches meet. No behaviour change.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01RN7q935R3iepiRcM32D9uW

@@ -1,0 +1,802 @@
+
+> apex-formula-laboratory@0.1.0 pretest
+> npm run generate:player-lods
+
+
+> apex-formula-laboratory@0.1.0 generate:player-lods
+> node --experimental-strip-types scripts/build-player-lods.mjs
+
+Player LODs already match the pinned derivative.
+
+> apex-formula-laboratory@0.1.0 test
+> vitest run
+
+
+ RUN  v3.2.4 /home/user/Experiment-3/.claude/worktrees/wf_79603d95-dab-1
+
+ ❯ tests/career.test.ts (27 tests | 2 failed) 153ms
+   ✓ licence scoring from measured values > maps metric values to medals at the published thresholds 2ms
+   ✓ licence scoring from measured values > scores the braking marker by stopping distance error, not position 4ms
+   ✓ licence scoring from measured values > scores the corner by mean distance from the racing line at pace 3ms
+   ✓ licence scoring from measured values > scores a wet flying lap by its peak slide angle 1ms
+   ✓ licence scoring from measured values > scores trail braking (bikes) and jump landings (off-road) from their channels 1ms
+   ✓ licence scoring from measured values > reads speed, sideslip and pitch from a real snapshot layout 1ms
+   ✓ licence scoring from measured values > places the braking marker on the venue’s longest straight and paces by machine 79ms
+   ✓ career payments are itemised and paid once per session > reuses rewardIncome for completion and adds clean, improvement and objective lines 1ms
+   ✓ career payments are itemised and paid once per session > pays a session exactly once and records improvement on the next 1ms
+   ✓ career payments are itemised and paid once per session > pays nothing for AI-driven or unclassified sessions, but still marks them settled 1ms
+   ✓ career payments are itemised and paid once per session > pays licence medals once per level and records attempts 1ms
+   ✓ career payments are itemised and paid once per session > scores a championship with the existing points and awards the title once 2ms
+   ✓ unlocks and availability are derived from the registries > opens circuit cars and states what the other disciplines are missing 1ms
+   × unlocks and availability are derived from the registries > opens the bike career when a bike and a ruleset for it are registered 19ms
+     → expected 'sbk1000' to be 'test-sbk' // Object.is equality
+   ✓ unlocks and availability are derived from the registries > places new classes in their tier, or in an open tier when no tier names them 1ms
+   ✓ unlocks and availability are derived from the registries > unlocks invitationals by licence, reputation and ownership 4ms
+   ✓ unlocks and availability are derived from the registries > builds every open event and licence into a loadable session 4ms
+   × unlocks and availability are derived from the registries > validates the career content built from the live registries 8ms
+     → expected [ …(7) ] to deeply equal []
+   ✓ unlocks and availability are derived from the registries > publishes car channels and the derived ones the licences read 1ms
+   ✓ a broke driver can always recover > keeps the club meeting open with a loaned machine and no credits 9ms
+   ✓ a broke driver can always recover > names the missing content instead of offering a recovery event that cannot run 0ms
+   ✓ garage ownership, active machines and setup presets > stores only the parameters a machine exposes and explains the change 2ms
+   ✓ career save versioning, migration and recovery > seeds a new career from existing team, championship and setup saves 1ms
+   ✓ career save versioning, migration and recovery > validates a stored career into bounded fields and round-trips 2ms
+   ✓ career save versioning, migration and recovery > rejects unusable or newer saves so recovery falls back to the backup 1ms
+   ✓ career save versioning, migration and recovery > loads through the store: recovers from the backup, else seeds from legacy saves 2ms
+   ✓ contact energy from the impact channel > accumulates new impacts above the decaying peak, not the decay itself 0ms
+ ✓ tests/frontend-menus.test.ts (4 tests) 89ms
+ ✓ tests/supplied-player-lods.test.ts (8 tests) 3310ms
+   ✓ supplied player index-only LODs > pins the actual generated data to the unmodified source and measured budgets  702ms
+   ✓ supplied player index-only LODs > changes real geometry only, preserves every source attribute and releases each wrapper once  850ms
+   ✓ supplied player index-only LODs > retains the exact baseline oriented-triangle fingerprint across all 516 primitive tiers  866ms
+   ✓ supplied player index-only LODs > aliases only complete earlier ranges of the same primitive and reuses their geometry owner  353ms
+ ✓ tests/secondary-stand-traversal.test.ts (4 tests) 65378ms
+   ✓ A12 clear: visits all six stands with exact live, ordered production frames  19877ms
+   ✓ A12 rain: visits all six stands with exact live, ordered production frames  43944ms
+   ✓ A12 stops advancing when an asynchronous evidence sink rejects  1422ms
+ ✓ tests/endurance-mode.test.ts (4 tests) 64083ms
+   ✓ endurance: long race with the mandatory stop rule > penalises a finish without the stop  6102ms
+   ✓ endurance: long race with the mandatory stop rule > runs a full endurance race: every car stops once onto a second dry compound  57880ms
+ ✓ tests/phase27h6.test.ts (10 tests) 41895ms
+   ✓ 27H.6 service composition and bounded pose reuse > contains actual skinned cloth, helmets, gloves, tyres and machinery over the complete service  40785ms
+   ✓ reuses bounded service witnesses without leaking inactive roles or mutable diagnostics  381ms
+ ✓ tests/racing-line.test.ts (6 tests) 36654ms
+   ✓ minimum-curvature racing line > the AI drives the line: quicker, valid laps without damage  8441ms
+   ✓ minimum-curvature racing line > a mid-field start still races wheel to wheel on the line  27837ms
+ ✓ tests/qualifying.test.ts (5 tests) 35736ms
+   ✓ race weekend: qualifying sets the grid > runs a full qualifying session through the production AI and classifies by best lap  32092ms
+   ✓ starting grid slot > starts a wet race behind rivals, so the player follows through their spray  3537ms
+ ✓ tests/venue-kit.test.ts (6 tests) 28899ms
+   ✓ WP30 procedural venue kit > plans stands, terrain and a levelled landmark plaza from data alone  7389ms
+   ✓ WP30 procedural venue kit > dresses riviera from its CircuitDefinition  5632ms
+   ✓ WP30 procedural venue kit > dresses dockyard from its CircuitDefinition  4891ms
+   ✓ WP30 procedural venue kit > dresses alpine-pass from its CircuitDefinition  6916ms
+   ✓ WP30 procedural venue kit > dresses speedbowl from its CircuitDefinition  3923ms
+ ✓ tests/circuit-catalogue.test.ts (15 tests) 18417ms
+   ✓ WP29/WP30 circuit catalogue > builds real-world approximations within 3% of their published lap length  1387ms
+   ✓ WP29/WP30 circuit catalogue > every layout passes definition and geometry validation with a solvable racing line  383ms
+   ✓ WP29/WP30 circuit catalogue > drives a full AI pit stop into a left-hand street paddock and rejoins  3121ms
+   ✓ WP29/WP30 circuit catalogue > drives the dockyard flyover and underpass without a progress jump  3012ms
+   ✓ WP29/WP30 circuit catalogue > an AI lap of alpine-pass-reverse stays on the road with valid progress  5491ms
+   ✓ WP29/WP30 circuit catalogue > an AI lap of speedbowl stays on the road with valid progress  2357ms
+   ✓ WP29/WP30 circuit catalogue > an AI lap of kansai-east stays on the road with valid progress  2264ms
+ ✓ tests/pit-release.test.ts (3 tests) 25291ms
+   ✓ pit-release circular-wait regression > physically releases the blocked pair and services both without contact  7649ms
+   ✓ anticipates the future service-bay sweep before a moving car becomes trapped beside a serviced car  17638ms
+ ✓ tests/net-resilience.test.ts (16 tests) 25812ms
+   ✓ resilience (WP54) > takes a lost driver over with the AI and hands the car back on rejoin  4437ms
+   ✓ resilience (WP54) > holds a car with the AI during an input gap shorter than the timeout, then hands it back  1541ms
+   ✓ resilience (WP54) > refuses a rejoin after the window and classifies a ghost behind running cars  1503ms
+   ✓ resilience (WP54) > tolerates heavy loss, duplication and reordering without breaking authority  3208ms
+   ✓ resilience (WP54) > rejects non-finite samples at the client; the server only ever applies in-range controls  1311ms
+   ✓ resilience (WP54) > monitors the server tick budget  1232ms
+   ✓ review regressions: input lead, rejoin, lobby and queue bounds > drives at 200 and 300 ms RTT: the first lead comes from the keep-alive round trip  2512ms
+   ✓ review regressions: input lead, rejoin, lobby and queue bounds > a driver rejoining over a 300 ms link gets the car back  1214ms
+   ✓ review regressions: input lead, rejoin, lobby and queue bounds > a lead that starts too short grows from negative slack (latency rises at the start)  1252ms
+   ✓ review regressions: input lead, rejoin, lobby and queue bounds > a driver whose client restarts during the countdown rejoins and races  1402ms
+   ✓ review regressions: input lead, rejoin, lobby and queue bounds > session tokens are independent CSPRNG values and cannot take a live car  2123ms
+   ✓ review regressions: input lead, rejoin, lobby and queue bounds > a late rejoin receives the whole event history in size-limited chunks  1117ms
+   ✓ review regressions: input lead, rejoin, lobby and queue bounds > sends a classification larger than one message as lap-time chunks  1304ms
+   ✓ review regressions: input lead, rejoin, lobby and queue bounds > strikes and kicks a client flooding commands outside the windows; its queue stays empty  1637ms
+ ✓ tests/net-records.test.ts (7 tests) 22868ms
+   ✓ verified records (WP52) > a record is seed + options + input journal + content hashes, and verifies  2797ms
+   ✓ verified records (WP52) > rejects a forged lap time, even with a recomputed digest  2682ms
+   ✓ verified records (WP52) > rejects a tampered input log at the first divergent checkpoint  1165ms
+   ✓ verified records (WP52) > requires exactly the session checkpoints and compares every one of them  1245ms
+   ✓ verified records (WP52) > AI-driven laps verify as a session but never count for the category  10101ms
+   ✓ verified records (WP52) > bounds the journal by the session, so a full-length race fits and a padded one does not  863ms
+ ✓ tests/net-authority.test.ts (5 tests) 15386ms
+   ✓ authoritative world (WP50 server simulation) > an all-AI NetDriver field is bit-identical to the plain Simulation  4741ms
+   ✓ authoritative world (WP50 server simulation) > an overtake request starts the boost; edges that cannot act and fast pit toggles are not journaled  2279ms
+   ✓ authoritative world (WP50 server simulation) > the shadow pilot leaves no trace in the world it reads  3652ms
+   ✓ authoritative world (WP50 server simulation) > replays its journal to the identical state, and restores a crashed world  4667ms
+ ✓ tests/events.test.ts (5 tests) 9909ms
+   ✓ WP09 event and ruleset definitions > classifies a timed race on the leader’s first crossing after the clock  9794ms
+ ✓ tests/a32-pit-jacks.test.ts (12 tests) 18618ms
+   ✓ A32 authored mechanical handoff > preserves A31 and A33 in either tool installation order, with reachable jack hands  1233ms
+   ✓ A32 authored mechanical handoff > keeps actual uploaded jack vertices within the conservative service camera envelope  16261ms
+   ✓ A32 authored mechanical handoff > measures the retained supplied-player and authored-rival surfaces without modifying either  799ms
+ ✓ tests/flashback-determinism.test.ts (2 tests) 18006ms
+   ✓ flashback determinism > re-simulates 3000 logged ticks to bitwise-identical frames, twice  10175ms
+   ✓ flashback determinism > rewinds to a past tick and resumes on a new timeline  7828ms
+ ✓ tests/vsc.test.ts (3 tests) 20119ms
+   ✓ virtual safety car and safety car > neutralises a long obstruction: VSC, then a safety car the field never passes  16334ms
+   ✓ virtual safety car and safety car > never deploys outside race sessions  2938ms
+   ✓ virtual safety car and safety car > renders an original-livery safety car with an alternating 2 Hz amber bar  845ms
+ ✓ tests/physics.test.ts (21 tests) 19119ms
+   ✓ rigid dynamics and integration > settles on four suspension contacts without low-speed chatter  1561ms
+   ✓ rigid dynamics and integration > accelerates from torque and brakes to rest  1314ms
+   ✓ rigid dynamics and integration > serializes identical results for identical seeds and input history  4110ms
+   ✓ rigid dynamics and integration > physics state is independent of 24 FPS rendering  2222ms
+   ✓ rigid dynamics and integration > physics state is independent of 30 FPS rendering  2072ms
+   ✓ rigid dynamics and integration > physics state is independent of 60 FPS rendering  2036ms
+   ✓ rigid dynamics and integration > physics state is independent of 90 FPS rendering  1949ms
+   ✓ rigid dynamics and integration > physics state is independent of 120 FPS rendering  1903ms
+   ✓ rigid dynamics and integration > physics state is independent of 144 FPS rendering  1841ms
+ ✓ tests/wet-review-start.test.ts (3 tests) 10120ms
+   ✓ wet review prepared before the physical grid release > qualifies real following with '2 Hz' without relaxing its three-second gate  3418ms
+   ✓ wet review prepared before the physical grid release > qualifies real following with '1.5 Hz' without relaxing its three-second gate  3751ms
+   ✓ wet review prepared before the physical grid release > qualifies real following with 'irregular subsecond sampling' without relaxing its three-second gate  2939ms
+ ✓ tests/probe-detail.test.ts (6 tests) 12538ms
+   ✓ probe detail on the built circuits > omits over a third of the probe draws and nothing a texel wide  12482ms
+ ✓ tests/bike-session.test.ts (14 tests) 15308ms
+   ✓ WP34 motorcycles in real sessions > laps a circuit under AI with lean, gears, tyre wear and valid timing  2070ms
+   ✓ WP34 motorcycles in real sessions > crash flows through race control: rider down, separation, remount, back on track  531ms
+   ✓ WP34 motorcycles in real sessions > services a bike in the pit lane and releases it  1636ms
+   ✓ WP34 snapshot v12 bike block > round-trips lean, steer, rider pose and loads; cars carry zeros  384ms
+   ✓ WP36 bike identity, rules and content > validates bike content and names what is wrong  1433ms
+   ✓ WP35 seeded AI bike race > finishes a mixed GP/superbike race with bounded incidents and no stuck rider  8928ms
+ ✓ tests/people.test.ts (14 tests) 11042ms
+   ✓ 27H.3 retained Blender people assets > uses owned finite geometry, normalized skin weights and explicit near/mid/far budgets  392ms
+   ✓ 27H.3 real service-state rig and prop contacts > keeps every task reachable across jack motion, suspension lengths and both sides  919ms
+   ✓ 27H.3 real service-state rig and prop contacts > keeps task helmets separated and rejects corrupt service state before uploading a pose  908ms
+   ✓ 27H.3 real service-state rig and prop contacts > matches actual uploaded forearm matrices to the actual glove cuffs; boots stay above the pit floor  4337ms
+   ✓ 27H.3 real service-state rig and prop contacts > consumes an unmodified production simulation pit stop through service and release  3919ms
+ ✓ tests/event-hall-approach.test.ts (3 tests) 14325ms
+   ✓ A71 clear approach retains at least four native physics samples  6541ms
+   ✓ A71 rain approach retains at least four native physics samples  7764ms
+ ✓ tests/pit-role-performance.test.ts (9 tests) 13721ms
+   ✓ keeps a fixed support foot while translating and turning tyre handlers, gun operators and release personnel  777ms
+   ✓ performs all six roles during an actual requested stop, with unchanged snapshots and recorded rewinds  4632ms
+   ✓ lowers the real physical jack before release without changing the exchange instant or minimum service  7466ms
+ ✓ tests/engineering.test.ts (13 tests) 13794ms
+   ✓ is disabled by default, rate-limited to physics ticks, resettable and fails malformed toggles  1258ms
+   ✓ reports exact physical contact/AI data and does not reuse writable physics vector references  978ms
+   ✓ cannot alter the simulation trajectory, RNG, tire work or recorded snapshots  2126ms
+   ✓ marks inactive AI honestly instead of labeling stale targets as player commands  989ms
+   ✓ rejects invalid normal debug data  961ms
+   ✓ rejects invalid time debug data  1026ms
+   ✓ rejects invalid load debug data  914ms
+   ✓ rejects invalid cell debug data  956ms
+   ✓ rejects invalid rubber debug data  952ms
+   ✓ rejects invalid decision debug data  950ms
+   ✓ never presents current live contacts as replay history or an old probe as current  874ms
+   ✓ formats every required engineering category from actual frame channels, without fabricated GPU timing  899ms
+   ✓ shows real contact points and sampled suspension rays, then hides stale/replay overlays  905ms
+ ✓ tests/broadcast-cameras.test.ts (11 tests) 9664ms
+   ✓ A10 authored broadcast cameras and retained optical positions > retains finite indexed geometry, normalized normals and padded atlas coordinates in all variants and every tier  1905ms
+   ✓ A10 authored broadcast cameras and retained optical positions > retains all twenty optical coordinates and protected footprints while grounding supports on both sides  5095ms
+   ✓ A10 authored broadcast cameras and retained optical positions > keeps central and peripheral optical views free across common aspects with real framing FOVs  1355ms
+   ✓ A10 authored broadcast cameras and retained optical positions > keeps all front-facing hardware triangles outside the wide optical frustum through the coverage interval  404ms
+   ✓ A10 authored broadcast cameras and retained optical positions > retains the original infrastructure plan and unrelated marshals/drains while replacing only camera hardware  405ms
+ ✓ tests/start-finish-shadow-bounds.test.ts (3 tests) 10484ms
+   ✓ production start-finish shadow frustum > retains wet night as the original sphere-culling no-change control  3942ms
+   ✓ production start-finish shadow frustum > rejects the day sphere false-positive without changing seat geometry  3368ms
+   ✓ production start-finish shadow frustum > rejects the sunset sphere false-positive without changing seat geometry  3171ms
+ ✓ tests/a32-contact-witness.test.ts (5 tests) 8378ms
+   ✓ accepts real uploaded jack matrices through lifting, lowering and full withdrawal on both circuits  8369ms
+ ✓ tests/review-tools.test.ts (3 tests) 7868ms
+   ✓ Phase 27E evidence command line > recomputes raw observations, enforces source identity and gives strict failures for interrupted captures  4308ms
+   ✓ Phase 27E evidence command line > verifies actual counterpart PNG bytes without converting declarations into art certification  3474ms
+ ✓ tests/pit-building-frontage.test.ts (16 tests) 7792ms
+   ✓ A21 authored pit-building frontage > preserves finite positions, unit normals, UVs and indexed triangles  5426ms
+   ✓ A21 authored pit-building frontage > places four independent chunks, clears the pit lane and never modifies track state  317ms
+   ✓ A21 authored pit-building frontage > leaves every existing garage central mouth clear in all detail levels  509ms
+   ✓ A21 authored pit-building frontage > selects exactly one level per chunk, never four near levels for a one-end closeup  406ms
+   ✓ A21 authored pit-building frontage > reuses geometry and materials while changing lighting and representation  335ms
+ ✓ tests/aurel-vegetation.test.ts (14 tests) 8927ms
+   ✓ A51-A54 original asset library > decodes finite indexed metre geometry, padded UVs and normalized normals for every tier  2840ms
+   ✓ integrated Aurel planting > is stable across weather/replays, bounded and uses all six distinct forms  1451ms
+   ✓ integrated Aurel planting > retains unchanged eligible scatter positions and checks complete crowns against every protected footprint  458ms
+   ✓ integrated Aurel planting > makes two straight managed row plots, real row-end variants and no overlapping scatter  542ms
+   ✓ integrated Aurel planting > respects extra recovery-route exclusions for foreground, groves and treelines, without changing Vellamar  732ms
+   ✓ instanced tier continuity and ownership > uses stable draw-range wrappers and shared attributes through a full lap, long lenses, reverse seeks and density changes  1707ms
+   ✓ instanced tier continuity and ownership > uses the actual inspection/reflection camera without poisoning the main camera hysteresis  599ms
+   ✓ instanced tier continuity and ownership > releases instantiated buffers, template buffers and shadow materials once  555ms
+ ✓ tests/gap-timer.test.ts (5 tests) 7899ms
+   ✓ timing-loop race intervals > matches the race timing at the line in a production simulation  7878ms
+ ✓ tests/vehicle-definitions.test.ts (5 tests) 8459ms
+   ✓ WP08 per-entry vehicle definitions > races a mixed field whose identities survive into snapshots  8451ms
+ ✓ tests/worker-pause.test.ts (5 tests) 6661ms
+   ✓ the real worker flushes recording and sends a final frame before pause acknowledgement even with an exhausted frame pool  1667ms
+   ✓ delivers every player pit-service phase even while the consumer holds every pooled frame  4987ms
+ ✓ tests/aurel-quarry.test.ts (12 tests) 5491ms
+   ✓ Quarry composition and retained race geometry > is deterministic across weather and includes every family only in Aurel  1660ms
+   ✓ Quarry composition and retained race geometry > checks the complete exported footprint and rejects blocked or invalid sites  1306ms
+   ✓ production lifetime and per-view detail > queues bounded spatial work and keeps geometry identity through lens/camera cycles  981ms
+   ✓ production lifetime and per-view detail > excludes tree crowns from the formations and newly graded slope without removing the wider planting  1302ms
+ ✓ tests/recovery-gates.test.ts (8 tests) 5542ms
+   ✓ A05 authored closed recovery/access gate family > keeps finite indexed metre-space geometry, unit normals, padded UVs and three mechanical pieces per tier  1488ms
+   ✓ A05 authored closed recovery/access gate family > partitions all 1596 original boundary spans while keeping 12 marshal panels and all six service gates  3656ms
+ ✓ tests/hero-import.test.ts (3 tests) 5319ms
+   ✓ imports the real browser bodywork bundle without resolving URLs or starting acquisition  2244ms
+   ✓ authored bodywork import lifecycle > imports an inline bundle before an asset origin exists (minify=false)  1762ms
+   ✓ authored bodywork import lifecycle > imports an inline bundle before an asset origin exists (minify=true)  1311ms
+ ✓ tests/route-overpass.test.ts (3 tests) 4700ms
+   ✓ WP11 overpass route identity > an AI lap over and under the bridge never teleports progress or surface  4696ms
+ ✓ tests/circuits.test.ts (11 tests) 4806ms
+   ✓ circuit definitions > labels the menu with the real lap lengths  1350ms
+   ✓ circuit definitions > drives the production simulation on Vellamar with finite state  2616ms
+   ✓ Vellamar venue and terrain > resolves every authored site clear of the circuit and above the waterline  508ms
+ ✓ tests/sky-clouds.test.ts (10 tests) 6221ms
+   ✓ cloud layer and coverage > lights clouds white by day, warm at dusk and grey under a closed deck  466ms
+   ✓ baked cumulus panorama > bakes the field once and each bin panorama on first use, restoring renderer state  1119ms
+   ✓ baked cumulus panorama > binds one bin for a PMREM capture and restores the visible blend  1185ms
+   ✓ baked cumulus panorama > never evicts a bound panorama and keeps at most the cache size  1147ms
+   ✓ baked cumulus panorama > does not cache a failed bake  1087ms
+   ✓ baked cumulus panorama > captures each PMREM bin with that bin panorama and restores the dome blend  1094ms
+ ✓ tests/net-lifecycle.test.ts (5 tests) 5735ms
+   ✓ session lifecycle with content-version agreement (WP51) > runs lobby → grid → race → results → teardown and delivers the record digest  1722ms
+   ✓ session lifecycle with content-version agreement (WP51) > does not start until every member is ready  955ms
+   ✓ session lifecycle with content-version agreement (WP51) > starts the grid when the only unready member leaves, is kicked or times out  3012ms
+ ✓ tests/vehicle-catalogue.test.ts (7 tests) 5660ms
+   ✓ WP30 destination catalogue > drives a field of different catalogue machines without numerical failure  5600ms
+stdout | tests/net-prediction.test.ts > online race under 100 ms RTT and 2% loss (WP50 measurement) > measures prediction corrections, interpolation error and input delivery
+online slice (4 clients, 10 s racing, 100 ms RTT, 2% loss): {"rttMs":100.3,"clean":{"samples":1215,"mean":0.0253,"p50":0.0069,"p95":0.1072,"p99":0.2668,"max":0.5091},"correction":{"samples":1215,"mean":0.0221,"p50":0.0048,"p95":0.1121,"p99":0.2967,"max":0.6381},"headingDeg":0.9255,"remote":{"samples":11130,"mean":0.0001,"p50":0,"p95":0.0002,"p99":0.0003,"max":0.0029},"downKbit":35.31,"upKbit":27.54,"missingTicks":8}
+
+ ✓ tests/net-prediction.test.ts (8 tests) 4442ms
+   ✓ online race under 100 ms RTT and 2% loss (WP50 measurement) > measures prediction corrections, interpolation error and input delivery  4377ms
+ ✓ tests/sector-timing.test.ts (5 tests) 5226ms
+   ✓ SectorBoard > times the production lap tracker: three sectors sum to the published lap  5213ms
+ ✓ tests/recording.test.ts (37 tests) 4153ms
+   ✓ keeps powertrain energy, damage and fragment poses connected to serialized state  1921ms
+   ✓ retains the real worker recording cadence during a 24-second consumer stall with surface updates  1959ms
+ ✓ tests/ghost-lap.test.ts (4 tests) 4006ms
+   ✓ Time Trial ghost laps > never saves laps driven by the AI demonstration  3994ms
+ ✓ tests/venue-pit-data.test.ts (3 tests) 2999ms
+   ✓ WP10 venue-owned pit and grid geometry > drives a full AI pit stop into a left-hand box and rejoins  2836ms
+ ✓ tests/impact-barriers.test.ts (8 tests) 3906ms
+   ✓ A04 authored impact blocks and tyre walls > retains metre-space templates, UVs, finite normalized normals and complete LOD geometry  1590ms
+   ✓ A04 authored impact blocks and tyre walls > places posts outside each track side and preserves source geometry through mirrored end treatments  318ms
+   ✓ A04 authored impact blocks and tyre walls > partitions all original barrier spans without changing track boundaries or fence wire  1709ms
+ ✓ tests/road-detail.test.ts (15 tests) 3905ms
+   ✓ asphalt texels (P4 tone, Sobel normals, meso tile) > builds a seamless, normalised meso tile with its own seed  520ms
+   ✓ asphalt texels (P4 tone, Sobel normals, meso tile) > gives asphalt a linear normal map (no bump map) and keeps three textures  526ms
+   ✓ asphalt detail shader > fades the chip tile to its mean over 15-40 m and adds meso tone and relief  412ms
+   ✓ racing surface layer > keeps the wet road uniform keys and composes after its state sample  418ms
+   ✓ racing surface layer > takes derivatives in uniform control flow and never inverts the chip relief  430ms
+   ✓ grid launch rubber and asphalt tone > compiles the launch tracks continuously across the start line  423ms
+   ✓ grid launch rubber and asphalt tone > lifts the racing asphalt by one calibrated tone gain in its finish  835ms
+ ✓ tests/driver-asset.test.ts (6 tests) 3686ms
+   ✓ Blender-authored coupled driver > keeps continuous sleeves inside their culling envelope through rapid full-lock countersteering and loads  2873ms
+   ✓ Blender-authored coupled driver > reconstructs identical suit vertices after a replay seek, transforms correctly, and isolates two cars  666ms
+ ✓ tests/overhead-garage-service-rig.test.ts (10 tests) 4394ms
+   ✓ A26 overhead garage services > all triangles clear the real passage and all vertices have finite UV/normal data  1395ms
+   ✓ A26 overhead garage services > clears all three concurrently integrated A35 parked-equipment envelopes  1842ms
+   ✓ A26 overhead garage services > inherits garage placement and all LOD transitions without changing A22 or A33  437ms
+ ✓ tests/shadow-proxies.test.ts (8 tests) 4078ms
+   ✓ leaves large sources casting alone and keeps merged casters within 16-bit indices  1347ms
+   ✓ casts the same shadow triangles from a rival car with about half the draws  2682ms
+ ✓ tests/race-day.test.ts (5 tests) 3203ms
+   ✓ routes a full grid around car envelopes and leaves parked bodies fixed in world space  3050ms
+ ✓ tests/forest-belts.test.ts (8 tests) 3941ms
+   ✓ forest belts > plants 6-12 k deterministic trees 30-120 m behind the nearest boundary  1600ms
+   ✓ forest belts > builds unshadowed, density-scalable 240 m buckets within the draw allocation  931ms
+   ✓ forest belts > plants the coastal circuit too  1214ms
+ ✓ tests/scenery-shadow-camera.test.ts (4 tests) 3364ms
+   ✓ vegetation pass-specific geometry detail > uses the actual shadow camera without changing the driving-view hysteresis  923ms
+   ✓ vegetation pass-specific geometry detail > selects economical geometry for a small reflection without coarsening the main view  602ms
+   ✓ quarry pass-specific geometry detail > uses the actual shadow camera without changing the driving-view hysteresis  934ms
+   ✓ quarry pass-specific geometry detail > selects economical geometry for a small reflection without coarsening the main view  902ms
+ ✓ tests/start-gantry.test.ts (10 tests) 3014ms
+   ✓ A07 authored start-light gantry and retained signal apertures > retains normalized indexed geometry, padded atlas UVs and four structural parts at every tier  1369ms
+   ✓ A07 authored start-light gantry and retained signal apertures > retains the real race countdown and lights-out through the unchanged circuit signal update  1284ms
+ ✓ tests/race-surface-atmosphere.test.ts (10 tests) 3237ms
+   ✓ registered full-lap asphalt aggregate > changes only asphalt maps, preserving all other surface bytes and texture storage  2905ms
+ ✓ tests/phase27h-assembly.test.ts (38 tests) 3027ms
+   ✓ 27H.1 complete native mechanical assembly > contains every bounded material role and finite, unit-normal, indexed geometry  1756ms
+ ✓ tests/start-finish.test.ts (9 tests) 2179ms
+   ✓ Original Aurel start/finish kit > constructs both start stands with unchanged seat transforms and unobstructed aisle centres  339ms
+   ✓ Original Aurel start/finish kit > keeps marshal gloves on the pole and every arm reachable through all real flag types and seeks  302ms
+   ✓ Original Aurel start/finish kit > refreshes recorded board data after rewind and session reset, without replaying a stale grid  1050ms
+ ✓ tests/track-infrastructure.test.ts (10 tests) 2371ms
+   ✓ A01-A07 integrated infrastructure contract > restores actual recorded start lamps after lights-out, held frames and a new-session reset without mutating snapshots  1379ms
+ ❯ tests/career-session.test.ts (5 tests | 1 failed) 3047ms
+   ✓ a career licence session measured from real snapshots > scores the cornering line from a practice session the career builds  2951ms
+   ✓ career controller: session hook and results flow > starts an invitational through eventSession and pays its result once 29ms
+   ✓ career controller: session hook and results flow > runs a braking licence from briefing to a saved medal, measured from snapshots 18ms
+   ✓ career controller: session hook and results flow > runs a tier championship round by round with the existing points table 19ms
+   × career controller: session hook and results flow > keeps a season in its machine when the active machine changes mid-season 28ms
+     → expected '<div class="career-hub" data-career-p…' to contain 'ABANDON SEASON'
+ ✓ tests/marshal-posts.test.ts (8 tests) 2477ms
+   ✓ A06 authored marshal shelters and retained signals > retains finite indexed geometry, normalized normals and padded atlas coordinates in both variants and every tier  1237ms
+   ✓ A06 authored marshal shelters and retained signals > keeps all twelve sites, protected track offsets, immutable templates and grounded footings on both mirrored sides  633ms
+   ✓ A06 authored marshal shelters and retained signals > replaces shelter geometry while retaining exact LED, extinguisher and unrelated infrastructure geometry  476ms
+ ✓ tests/clutch.test.ts (7 tests) 2393ms
+   ✓ a real car can free-rev with its clutch open, then launch without a velocity override  1391ms
+   ✓ serializes physical clutch state and rejects non-finite input  995ms
+ ✓ tests/workshop-equipment.test.ts (15 tests) 2512ms
+   ✓ A36 original workshop equipment > does not intersect the actual A22 architecture above the floor  1626ms
+ ✓ tests/track-boards.test.ts (9 tests) 2388ms
+   ✓ A09 authored braking and sector boards > retains finite indexed geometry, normalized normals and padded atlas coordinates in all variants and every tier  608ms
+   ✓ A09 authored braking and sector boards > grounds each weighted foot, preserves templates, keeps road/fence stand-offs and uses bounded LODs  1499ms
+ ✓ tests/branchless-release.test.ts (1 test) 2615ms
+   ✓ publishes exact validated bytes, recovers reruns, and rejects altered or stale artifacts without pushing branches  2614ms
+ ✓ tests/drs.test.ts (8 tests) 2664ms
+   ✓ DRS and ERS overtake in the simulation > opens the player flap only on request, moving it over 0.15 s, and publishes R.DRS  1494ms
+   ✓ DRS and ERS overtake in the simulation > gives a 4 s overtake boost once the battery allows it  1135ms
+ ✓ tests/catch-fence.test.ts (8 tests) 2483ms
+   ✓ A03 authored catch-fence supports and retained analytic wire > uses exactly one closed gate at each retained marshal station across all 1596 spans  1762ms
+ ✓ tests/human-kit.test.ts (7 tests) 2053ms
+   ✓ procedural human kit > decodes every baked mesh into owned, valid, closed-index geometry  699ms
+   ✓ procedural human kit > skins bodies to the shared skeleton with four normalised influences  1031ms
+ ✓ tests/aurel-environment.test.ts (24 tests) 2503ms
+   ✓ physical drainage station presentation > keeps all original drain stations and conforms every vertex to the actual grade  947ms
+stdout | tests/a61-rival.test.ts > preserves actual FormulaCar steering, service, damage, replay rewind and mirror handoff without increasing near draws
+A61_CPU_DRAW_CENSUS [{"level":0,"before":{"draws":94,"triangles":221140},"after":{"draws":94,"triangles":228936}},{"level":1,"before":{"draws":23,"triangles":22113},"after":{"draws":27,"triangles":46444}},{"level":2,"before":{"draws":23,"triangles":16517},"after":{"draws":27,"triangles":24212}},{"level":0,"before":{"draws":94,"triangles":221140},"after":{"draws":94,"triangles":228936}}]
+
+ ✓ tests/a61-rival.test.ts (5 tests) 2370ms
+   ✓ retains one original native source, complete mechanical roles, bounded UVs and three smaller derivatives  1040ms
+   ✓ preserves actual FormulaCar steering, service, damage, replay rewind and mirror handoff without increasing near draws  908ms
+ ✓ tests/wheel-alignment.test.ts (3 tests) 2383ms
+   ✓ records the exact Ackermann, toe and camber angles used by each physical tire  1394ms
+   ✓ CSV and both replay presentation paths preserve actual per-wheel alignment  956ms
+ ✓ tests/weather.test.ts (10 tests) 2493ms
+   ✓ evolves spatial wetting, drainage, temperature and contact sampling  985ms
+   ✓ wind changes actual aerodynamic force rather than only particle direction  1392ms
+ ✓ tests/steel-guardrails.test.ts (9 tests) 2034ms
+   ✓ A02 authored steel guardrail kit > retains metre-space templates, UVs, finite normalized normals and complete LOD geometry  369ms
+   ✓ A02 authored steel guardrail kit > retains the existing full-lap barrier segment coverage without overlapping concrete and steel  1332ms
+ ✓ tests/vehicle-bodies.test.ts (3 tests) 1654ms
+   ✓ WP30 procedural vehicle bodies > builds every catalogue body with three LODs, a shadow proxy and matching wheels  1593ms
+ ✓ tests/visual-coherence.test.ts (28 tests) 2063ms
+   ✓ 27H.5 snapshot-owned material weather > holds and rewinds exactly without mutating production simulation frames  1488ms
+ ✓ tests/scenery-cube-camera.test.ts (3 tests) 2153ms
+   ✓ real cubemap cameras in the production scenery callbacks > vegetation draws all six signed cube lenses without changing main-view LOD or resources  976ms
+   ✓ real cubemap cameras in the production scenery callbacks > quarry draws all six signed cube lenses without changing main-view LOD or resources  1173ms
+ ✓ tests/track-signal-hardware.test.ts (8 tests) 2110ms
+   ✓ A08 authored signal housings and retained live displays > retains finite indexed geometry, normalized normals and padded atlas coordinates in all variants and every tier  719ms
+   ✓ A08 authored signal housings and retained live displays > retains exact live LED and unrelated camera/drain geometry while replacing only utility cabinets  935ms
+   ✓ A08 authored signal housings and retained live displays > uses the three original timing stations with grounded, protected footprints and immutable source templates  375ms
+ ✓ tests/spray-lighting.test.ts (5 tests) 842ms
+   ✓ lit spray and spatial floodlight continuity > uses bounded continuous weights and exchanges tied lamps at zero energy  406ms
+ ✓ tests/vehicle-rollover.test.ts (5 tests) 994ms
+   ✓ rollover resistance > slides rather than overturning at full lock (sport, runway)  373ms
+ ✓ tests/secondary-stand-circulation.test.ts (8 tests) 2059ms
+   ✓ A12 same-material circulation batching > retains every oriented near rail/aisle corner on right stands  421ms
+   ✓ A12 same-material circulation batching > retains every oriented mid rail/aisle corner on right stands  312ms
+ ✓ tests/race-surface-finish.test.ts (12 tests) 1499ms
+   ✓ race surface continuity > keeps bind coordinates, topology and UVs independent of live authored carcasses  718ms
+   ✓ race surface continuity > observes all four live tyre states before LOD returns and restores an exact rewind  650ms
+ ✓ tests/trackside-operations.test.ts (5 tests) 1498ms
+   ✓ A08-A10 integrated asset contracts > A08 has non-degenerate indexed triangles at every exported level  310ms
+   ✓ A08-A10 integrated asset contracts > A10 has non-degenerate indexed triangles at every exported level  806ms
+ ✓ tests/phase27c.test.ts (7 tests) 1632ms
+   ✓ Phase 27C geometry, integration and temporal invariants > preserves seat anchors and fixed arm lengths at every load and steering extreme  563ms
+   ✓ Phase 27C geometry, integration and temporal invariants > keeps the six service sites and lighting grounded and clear of protected corridors  450ms
+ ✓ tests/race-control.test.ts (13 tests) 1617ms
+   ✓ raised pit jack feet retain a finite support polygon on the sloped lane  1319ms
+ ✓ tests/driver-brain.test.ts (8 tests) 1778ms
+   ✓ generates repeatable, bounded correlated control mistakes from the seed  1531ms
+ ✓ tests/marbles.test.ts (25 tests) 1994ms
+   ✓ physical loose rubber and tire contamination > couples production vehicle contacts, pickup counters and actual track depletion  1481ms
+ ✓ tests/secondary-grandstands.test.ts (8 tests) 2149ms
+   ✓ A12 retained-site integration > preserves all six seat buffers, crowd cohorts, aisles, clearance and canopy sightlines  1621ms
+ ✓ tests/content-validation.test.ts (3 tests) 1956ms
+   ✓ WP14 content validation > accepts every registered and development definition  1953ms
+ ✓ tests/grid-presentation.test.ts (6 tests) 1470ms
+   ✓ plants feet in world space between swings, without teleporting at pose boundaries  318ms
+   ✓ uses the real skinned bodies and gloves through the whole sequence without changing the race  635ms
+ ✓ tests/presentation-closure.test.ts (5 tests) 2417ms
+   ✓ Phase 27 graphics closure > keeps independently actuated instanced paddles at the exact original local poses  786ms
+   ✓ Phase 27 graphics closure > samples actual nearby canopy geometry across each broadcast shot and four aspects  665ms
+   ✓ hands off crowd levels without double-drawing or dropping a spectator and restores exact rewind weights  836ms
+ ✓ tests/pit-wall-station.test.ts (11 tests) 1496ms
+   ✓ A24 retained pit-wall asset > reads the real interpolated presentation, then restores an exact seek  1079ms
+ ✓ tests/cockpit-detail.test.ts (13 tests) 951ms
+   ✓ cockpit detail batching > encloses every selector vertex throughout rotation without disabling frustum culling  640ms
+ ✓ tests/a33-spare-wheel-set.test.ts (12 tests) 1528ms
+   ✓ A33 retained Blender wheel handling contract > preserves radius, distinct widths, UVs, normals and exact front/rear topology at every LOD  355ms
+ ✓ tests/drivetrain.test.ts (7 tests) 607ms
+ ✓ tests/race-finish.test.ts (6 tests) 664ms
+   ✓ recorded rear signal across the production car LODs > keeps one visible lamp, matches the spray field and rewinds without stale emission  584ms
+ ✓ tests/phase27e.test.ts (11 tests) 780ms
+   ✓ Phase 27E snapshot-connected lights and broadcast > leaves daylight identical and bounds continuous wet-night grading  388ms
+ ✓ tests/tyre-marks.test.ts (5 tests) 1521ms
+   ✓ laid tyre rubber > aurel: braking zones end at corners and every mark lies on the asphalt near the line  365ms
+   ✓ laid tyre rubber > vellamar: braking zones end at corners and every mark lies on the asphalt near the line  492ms
+   ✓ laid tyre rubber > fades the marks under the physics water film, on the road state coordinates  373ms
+ ✓ tests/reference-rendering.test.ts (11 tests) 1174ms
+   ✓ reduces direct sunlight with recorded cloud cover and bounds adverse weather lighting  411ms
+   ✓ places complete trees on the visible ground, outside every nearby racing or pit corridor  385ms
+ ✓ tests/service-lens.test.ts (7 tests) 1370ms
+   ✓ places the permanent pit lens above the actual foreground fence at all twelve bays  900ms
+ ✓ tests/input.test.ts (7 tests) 1364ms
+   ✓ human input and vehicle coordinate boundary > a real car commanded right moves to the right in the starting camera frame  1356ms
+ ✓ tests/crew-performance.test.ts (6 tests) 1324ms
+   ✓ keeps geometry owned, UV-complete, four-weight normalized, and properly mirrored at the glove  496ms
+   ✓ uses the same procedural human kit and skeleton in grid preparation and live pit service  652ms
+ ✓ tests/skid-recording.test.ts (14 tests) 1304ms
+   ✓ records a real chassis strike and exports every skid measurement without moving old CSV fields  1180ms
+ ✓ tests/supplied-skin-bounds.test.ts (6 tests) 807ms
+   ✓ conservative supplied-player skin bounds > contains every actual source vertex at both steering locks, neutral, translated and rewound poses  795ms
+ ✓ tests/hero-garage.test.ts (7 tests) 778ms
+ ✓ tests/practice-programme.test.ts (10 tests) 1386ms
+   ✓ authoritative physics-worker participation and validity metadata > marks actual auto and pit assistance, not just a UI toggle, including AI opponents  1204ms
+ ✓ tests/hero-shells.test.ts (8 tests) 927ms
+   ✓ 27H real Blender glTF integration > loads the exact false transport with actual GLTFLoader and preserves metre envelopes/paint UVs  311ms
+ ✓ tests/presentation-continuity.test.ts (10 tests) 1007ms
+   ✓ Presentation continuation: distant spectators > partitions every transition into exactly one visible representation per spectator  395ms
+   ✓ Presentation continuation: bounded night illumination > leaves daytime exposure unchanged and uses a finite reversible night profile  353ms
+ ✓ tests/studio-look-contracts.test.ts (8 tests) 536ms
+   ✓ studio look contracts > P3: diffuse environment, hemisphere and sun follow cover  397ms
+ ✓ tests/wet-broadcast-fidelity.test.ts (9 tests) 994ms
+   ✓ builds finite batchable marshal, drainage, utility and camera geometry  761ms
+ ✓ tests/phase27g-venue.test.ts (2 tests) 545ms
+   ✓ authors four genuinely different districts on safe, separate outboard footprints  504ms
+ ✓ tests/daylight-environment.test.ts (6 tests) 541ms
+   ✓ interpolates bounded sky bins, restores live uniforms and disposes replaced outputs exactly once  407ms
+ ✓ tests/mirror-detail.test.ts (4 tests) 679ms
+   ✓ keeps coarser representations posed and damaged while a rival is at full detail  669ms
+ ✓ tests/tyre-blankets.test.ts (10 tests) 731ms
+ ✓ tests/event-hall.test.ts (20 tests) 781ms
+   ✓ A71 architecture and projected detail > does not replace Vellamar with an Aurel event hall  309ms
+ ✓ tests/environment-weathering.test.ts (16 tests) 819ms
+   ✓ authored asset download > lets a slow but live transfer finish past the stall window  377ms
+   ✓ authored asset download > abandons a stalled transfer with a stall message, not a truncation  303ms
+ ✓ tests/weather-reconciliation.test.ts (15 tests) 781ms
+   ✓ sky replay and day/sunset/night switches reconstruct coverage with bounded ownership  331ms
+ ✓ tests/foliage-coverage.test.ts (3 tests) 599ms
+   ✓ quantized foliage mip coverage > matches the best representable histogram partition for sparse and dense mips  594ms
+ ✓ tests/venue-landmark.test.ts (4 tests) 578ms
+   ✓ grounded original event hall > shares a deterministic full-plaza footprint with planting and sampled terrain  330ms
+ ✓ tests/tyre-trolleys-racks.test.ts (11 tests) 730ms
+ ✓ tests/circuit-detail.test.ts (14 tests) 501ms
+ ✓ tests/reference-implementation.test.ts (30 tests) 430ms
+ ✓ tests/landform-groves.test.ts (4 tests) 678ms
+   ✓ grove and treeline planting layer > is deterministic, bounded and separate from the near-track plan  305ms
+   ✓ grove and treeline planting layer > clumps trees, stays clear of the racing and service corridors and every footprint  315ms
+ ✓ tests/phase27g-presentation.test.ts (6 tests) 624ms
+   ✓ ties sunset sky, direct light and shadow grid to the same low sun  388ms
+ ✓ tests/concrete-barriers.test.ts (8 tests) 624ms
+ ✓ tests/ibl-energy.test.ts (10 tests) 561ms
+   ✓ D03 producer lighting decisions (P1-P3) > splits the day light into sun, sky IBL and a minor hemisphere term  531ms
+ ✓ tests/dusk-readability.test.ts (2 tests) 614ms
+   ✓ shared dusk skylight balance > lifts indirect readability without changing the key, camera exposure, sky or fog  609ms
+ ✓ tests/broadcast-sightlines.test.ts (5 tests) 458ms
+   ✓ actual static geometry broadcast sightlines > registers actual built shelter solids and stand canopy before geometry batching  317ms
+ ✓ tests/studio-qa-tools.test.ts (7 tests) 674ms
+ ✓ tests/wing-surface.test.ts (15 tests) 488ms
+ ✓ tests/elbow-sleeve.test.ts (2 tests) 493ms
+   ✓ IK-driven elbow cloth > keeps buffers, finite unit normals and welded seams across all steering positions  490ms
+ ✓ tests/wheel-gun.test.ts (9 tests) 450ms
+   ✓ A31 wheel-gun production handoff > replaces—not overlays—the old gun batch; preserves other pit props and immutable/replay state  337ms
+ ✓ tests/terrain-landform.test.ts (5 tests) 527ms
+   ✓ far landscape finish > measures every terrain vertex distance to the circuit, capped  409ms
+ ✓ tests/phase27f-atmosphere-audio.test.ts (3 tests) 470ms
+   ✓ captures independent day/night environment identities and restores the live night mode after errors  463ms
+ ✓ tests/race-review.test.ts (43 tests) 460ms
+ ✓ tests/foliage-crowns.test.ts (3 tests) 442ms
+   ✓ shaped foliage crowns > keeps every shaped crown inside its culling bounds and the silhouettes distinct  418ms
+ ✓ tests/tire-carcass.test.ts (12 tests) 467ms
+ ✓ tests/aerial-perspective.test.ts (7 tests) 520ms
+   ✓ P12 aerial perspective > sets the P12 densities by weather and lighting  309ms
+ ✓ tests/net-transport.test.ts (11 tests) 479ms
+ ✓ tests/camera.test.ts (31 tests) 585ms
+ ✓ tests/post-lens.test.ts (10 tests) 388ms
+ ✓ tests/net-codec.test.ts (9 tests) 761ms
+   ✓ online codec: untrusted client messages (WP54 size limits) > never throws on random or truncated bytes  648ms
+ ✓ tests/reference-depth.test.ts (29 tests) 1142ms
+   ✓ original headquarters geometry and real team calendar > builds a bounded three-dimensional atrium without changing the physical subject  907ms
+ ✓ tests/sky-linear.test.ts (7 tests) 497ms
+ ✓ tests/phase27g-models.test.ts (10 tests) 381ms
+ ✓ tests/tab-evidence.test.ts (8 tests) 402ms
+ ✓ tests/broadcast-camera-cycle.test.ts (1 test) 588ms
+   ✓ closes the long-lens hysteresis cycle without creating new authored geometry  582ms
+ ✓ tests/contact.test.ts (5 tests) 383ms
+   ✓ triangle contact acceleration > matches the analytic road, limits triangle work and closes the lap seam  369ms
+ ✓ tests/rival-detail.test.ts (2 tests) 541ms
+   ✓ paints the reduced rival wheels and halo in the team colour, draw-neutral  528ms
+ ✓ tests/driver-controls.test.ts (3 tests) 333ms
+   ✓ Coupled cockpit contact surfaces > keeps distal finger contact with its actual moving paddle, while preserving the proximal grip  308ms
+ ✓ tests/pit-material-warmup.test.ts (7 tests) 401ms
+   ✓ offscreen pit material warmup ownership > exercises all fifteen actual authored actors in each layout, then restores the real grid  389ms
+ ✓ tests/aurel-drain-datum.test.ts (1 test) 383ms
+   ✓ keeps the Quarry drain bars visible above the actual shipping runoff triangles  382ms
+ ✓ tests/brake-coupling.test.ts (4 tests) 389ms
+ ✓ tests/character-quality.test.ts (8 tests) 361ms
+ ✓ tests/terrain-tiles.test.ts (3 tests) 484ms
+   ✓ terrain tiles (D32) > gives each tile a bounding sphere a quarter of the plane across, so frusta cull it  383ms
+ ✓ tests/session-review.test.ts (6 tests) 276ms
+ ✓ tests/race-view-continuity.test.ts (5 tests) 293ms
+ ✓ tests/core.test.ts (25 tests) 600ms
+   ✓ track and surface > clear-to-rain transition has no negative water  409ms
+ ✓ tests/f1-hud.test.ts (14 tests) 433ms
+ ✓ tests/graphics-continuity.test.ts (11 tests) 404ms
+ ✓ tests/presentation-review.test.ts (22 tests) 384ms
+ ✓ tests/trackside-branding.test.ts (5 tests) 577ms
+   ✓ barrier vinyl and bridges > builds about ten merged vinyl draws plus two bridges, in front of the barrier face  418ms
+ ✓ tests/secondary-grandstand-assets.test.ts (14 tests) 307ms
+ ✓ tests/material-library.test.ts (14 tests) 304ms
+ ✓ tests/pit-presentation.test.ts (2 tests) 331ms
+   ✓ bounds twelve authored fifteen-person crews and three allocated A33 LODs with finite transforms  327ms
+ ✓ tests/traffic.test.ts (8 tests) 282ms
+ ✓ tests/proximity.test.ts (10 tests) 277ms
+ ✓ tests/wet-presentation.test.ts (13 tests) 257ms
+stderr | tests/source-stability.test.ts > rejects a build-time modification or addition to src/example.ts
+Command rewrote application inputs:
+src/example.ts
+
+stderr | tests/source-stability.test.ts > rejects a build-time modification or addition to src/new.ts
+Command rewrote application inputs:
+src/new.ts
+
+stderr | tests/source-stability.test.ts > rejects a build-time modification or addition to docs/guide.md
+Command rewrote application inputs:
+docs/guide.md
+
+stderr | tests/source-stability.test.ts > rejects a build-time modification or addition to package.json
+Command rewrote application inputs:
+package.json
+
+stderr | tests/source-stability.test.ts > rejects deleted input even when the child command fails
+Command rewrote application inputs:
+src/example.ts
+
+stderr | tests/source-stability.test.ts > propagates a failing command and fails closed for a missing executable
+spawnSync /tmp/source-stability-YJOpzv/nonexistent-executable ENOENT
+
+ ✓ tests/source-stability.test.ts (9 tests) 563ms
+ ✓ tests/presentation-time.test.ts (23 tests) 429ms
+ ✓ tests/marshal.test.ts (15 tests) 346ms
+ ✓ tests/grid-staff.test.ts (2 tests) 232ms
+ ✓ tests/driver.test.ts (4 tests) 354ms
+ ✓ tests/wake-cull.test.ts (1 test) 283ms
+ ✓ tests/sky-order.test.ts (1 test) 214ms
+ ✓ tests/phase27g-completion.test.ts (23 tests) 377ms
+ ✓ tests/phase27f-models.test.ts (10 tests) 238ms
+ ✓ tests/supplied-player.test.ts (10 tests) 205ms
+ ✓ tests/sky-ephemeris.test.ts (8 tests) 223ms
+ ✓ tests/crowd-flags.test.ts (2 tests) 175ms
+ ✓ tests/phase27g-events.test.ts (8 tests) 234ms
+ ✓ tests/lens-bloom.test.ts (6 tests) 232ms
+ ✓ tests/acceptance-matrix.test.ts (8 tests) 325ms
+ ✓ tests/pit-approach.test.ts (6 tests) 164ms
+ ✓ tests/road-contact.test.ts (8 tests) 151ms
+ ✓ tests/rendering.test.ts (5 tests) 167ms
+ ✓ tests/aero-surface.test.ts (8 tests) 131ms
+ ✓ tests/light-pools.test.ts (4 tests) 120ms
+ ✓ tests/cockpit-framing.test.ts (9 tests) 149ms
+ ✓ tests/phase27g-media.test.ts (4 tests) 138ms
+ ✓ tests/ultra-pipeline.test.ts (21 tests) 107ms
+ ✓ tests/trackside.test.ts (3 tests) 91ms
+ ✓ tests/race-structures.test.ts (3 tests) 132ms
+ ✓ tests/cloud-shadow.test.ts (4 tests) 103ms
+ ✓ tests/broadcast-presentation.test.ts (14 tests) 123ms
+ ✓ tests/rotation.test.ts (6 tests) 125ms
+ ✓ tests/telemetry-plots.test.ts (13 tests) 106ms
+ ✓ tests/supplied-draw-ranges.test.ts (8 tests) 49ms
+ ✓ tests/effects-upload.test.ts (1 test) 99ms
+ ✓ tests/reflections.test.ts (18 tests) 76ms
+ ✓ tests/driver-look.test.ts (9 tests) 80ms
+ ✓ tests/performance.test.ts (16 tests) 71ms
+ ✓ tests/menu-preview.test.ts (3 tests) 122ms
+ ✓ tests/paddock-detail.test.ts (5 tests) 87ms
+ ✓ tests/supplied-compaction.test.ts (12 tests) 88ms
+ ✓ tests/local-frame.test.ts (4 tests) 85ms
+ ✓ tests/replay-photo.test.ts (8 tests) 54ms
+ ✓ tests/recorded-signal-displays.test.ts (9 tests) 81ms
+ ✓ tests/team-career.test.ts (22 tests) 45ms
+ ✓ tests/studio-frame.test.ts (21 tests) 66ms
+ ✓ tests/terrain.test.ts (4 tests) 39ms
+ ✓ tests/road-macro.test.ts (2 tests) 56ms
+ ✓ tests/brand-atlas.test.ts (5 tests) 31ms
+ ✓ tests/ultra-math.test.ts (23 tests) 48ms
+ ✓ tests/bike.test.ts (5 tests) 51ms
+ ✓ tests/route-graph.test.ts (4 tests) 69ms
+ ✓ tests/phase27g-seams.test.ts (3 tests) 41ms
+ ✓ tests/photo-reference.test.ts (13 tests) 37ms
+ ✓ tests/safety.test.ts (9 tests) 32ms
+ ✓ tests/stadium-seat.test.ts (2 tests) 31ms
+ ✓ tests/wheel-pose.test.ts (9 tests) 20ms
+ ✓ tests/controller-buttons.test.ts (34 tests) 39ms
+ ❯ tests/career-hub.test.ts (7 tests | 2 failed) 44ms
+   ✓ career screens (DOM markup, no renderer) > renders every page with button-only actions, one pressed section and a status line 28ms
+   ✓ career screens (DOM markup, no renderer) > lists the recovery series first on the events page and explains locked events 1ms
+   ✓ career screens (DOM markup, no renderer) > escapes registry-provided names 2ms
+   ✓ career screens (DOM markup, no renderer) > shows the itemised payment and the licence limits before a test 1ms
+   × career screens (DOM markup, no renderer) > lists unsellable machines with what is missing and no BUY button 9ms
+     → expected 'data-vehicle="test-rx"><header><span …' to contain 'data-status="coming"'
+   × career screens (DOM markup, no renderer) > shows a championship calendar and when the career is not being saved 3ms
+     → expected '<div class="career-hub" data-career-p…' to contain 'class="championship-calendar career-c…'
+   ✓ career screens (DOM markup, no renderer) > styles career screens with the existing menu tokens and no motion 1ms
+ ✓ tests/gpu-frame-gate.test.ts (12 tests) 85ms
+ ✓ tests/mirrors.test.ts (7 tests) 36ms
+ ✓ tests/supplied-shader-work.test.ts (9 tests) 165ms
+ ✓ tests/far-shadow.test.ts (4 tests) 14ms
+ ✓ tests/scoring-stage.test.ts (3 tests) 28ms
+ ✓ tests/quarry-surface-uv.test.ts (1 test) 103ms
+ ✓ tests/imported-render-budget.test.ts (8 tests) 17ms
+ ✓ tests/static-instance-shadow-bounds.test.ts (15 tests) 25ms
+ ✓ tests/catalogue-menu-events.test.ts (7 tests) 33ms
+ ✓ tests/race-readability.test.ts (13 tests) 47ms
+ ✓ tests/presentation.test.ts (19 tests) 17ms
+ ✓ tests/reference-evidence.test.ts (9 tests) 49ms
+ ✓ tests/studio-shader-hooks.test.ts (25 tests) 22ms
+ ✓ tests/paint-livery.test.ts (6 tests) 34ms
+ ✓ tests/motion-blur.test.ts (10 tests) 21ms
+ ✓ tests/moving-surface.test.ts (3 tests) 18ms
+ ✓ tests/tyre-wheels.test.ts (7 tests) 19ms
+ ✓ tests/browser-shard-plan.test.ts (2 tests) 18ms
+ ✓ tests/button-actions.test.ts (17 tests) 35ms
+ ✓ tests/replay-clock.test.ts (2 tests) 19ms
+ ✓ tests/secondary-stand-artifacts.test.ts (4 tests) 38ms
+ ✓ tests/calibration.test.ts (15 tests) 17ms
+ ✓ tests/kerb-runoff.test.ts (5 tests) 22ms
+ ✓ tests/static-transform-group.test.ts (6 tests) 15ms
+ ✓ tests/session-identity.test.ts (3 tests) 11ms
+ ✓ tests/net-lobby.test.ts (5 tests) 13ms
+ ✓ tests/supplied-lookdev.test.ts (5 tests) 15ms
+ ✓ tests/temporal-aa.test.ts (5 tests) 15ms
+ ✓ tests/player-index-cache.test.ts (3 tests) 19ms
+ ✓ tests/ultra-options.test.ts (11 tests) 16ms
+ ✓ tests/settings-transition.test.ts (49 tests) 17ms
+ ✓ tests/infrastructure-render-budget.test.ts (17 tests) 8ms
+ ✓ tests/build-queue.test.ts (5 tests) 8ms
+ ✓ tests/skid-contact.test.ts (13 tests) 19ms
+ ✓ tests/completed-draw.test.ts (6 tests) 11ms
+ ✓ tests/bindings.test.ts (5 tests) 10ms
+ ✓ tests/startup.test.ts (4 tests) 20ms
+ ✓ tests/decal-coverage.test.ts (4 tests) 12ms
+ ✓ tests/flashback-recording.test.ts (4 tests) 20ms
+ ✓ tests/shadow-grounding.test.ts (6 tests) 31ms
+ ✓ tests/championship.test.ts (5 tests) 8ms
+ ✓ tests/point-light-work.test.ts (8 tests) 8ms
+ ✓ tests/spatial-audio.test.ts (8 tests) 10ms
+ ✓ tests/visible-wheel-pivots.test.ts (4 tests) 9ms
+ ✓ tests/pixel-difference.test.ts (6 tests) 11ms
+ ✓ tests/wet-reflection.test.ts (4 tests) 10ms
+ ✓ tests/radio.test.ts (4 tests) 7ms
+ ✓ tests/secondary-stand-camera.test.ts (4 tests) 13ms
+ ✓ tests/replay-presentation.test.ts (4 tests) 10ms
+ ✓ tests/preparation.test.ts (4 tests) 9ms
+ ✓ tests/content-import.test.ts (2 tests) 9ms
+ ✓ tests/pit-sequence.test.ts (13 tests) 10ms
+ ✓ tests/menu-presentation.test.ts (8 tests) 17ms
+ ✓ tests/operations-render-budget.test.ts (12 tests) 7ms
+ ✓ tests/secondary-stand-capture.test.ts (3 tests) 7ms
+ ✓ tests/audio.test.ts (5 tests) 12ms
+ ✓ tests/frontend-retail.test.ts (3 tests) 7ms
+ ✓ tests/lap-reference.test.ts (5 tests) 8ms
+ ✓ tests/rumble.test.ts (2 tests) 5ms
+ ✓ tests/scenery-pass-detail.test.ts (4 tests) 7ms
+ ✓ tests/render-census.test.ts (1 test) 6ms
+ ✓ tests/browser-backend.test.ts (3 tests) 7ms
+ ✓ tests/telemetry-export.test.ts (2 tests) 9ms
+ ✓ tests/sound-profiles.test.ts (5 tests) 6ms
+ ✓ tests/machine-options.test.ts (3 tests) 6ms
+ ✓ tests/exposure-key.test.ts (3 tests) 6ms
+ ✓ tests/gpu-timer.test.ts (7 tests) 10ms
+ ✓ tests/review-hardware.test.ts (3 tests) 6ms
+ ✓ tests/instruments.test.ts (4 tests) 4ms
+ ✓ tests/directive.test.ts (1 test) 7ms
+ ✓ tests/glazing.test.ts (1 test) 6ms
+ ✓ tests/near-grass.test.ts (3 tests) 10ms
+ ✓ tests/pit-replay-selection.test.ts (3 tests) 5ms
+ ✓ tests/draw-ledger.test.ts (2 tests) 6ms
+ ✓ tests/power-unit-audio.test.ts (4 tests) 5ms
+ ✓ tests/specular-aa.test.ts (2 tests) 5ms
+ ✓ tests/spray-plume.test.ts (1 test) 3ms
+ ✓ tests/wet-detail.test.ts (2 tests) 5ms
+ ✓ tests/shadow-substitution.test.ts (1 test) 5ms
+ ✓ tests/steering-display.test.ts (2 tests) 4ms
+ ✓ tests/barrier-lookdev.test.ts (1 test) 4ms
+ ✓ tests/crew-kit.test.ts (1 test) 3ms
+ ✓ tests/printed-panels.test.ts (1 test) 3ms
+ ✓ tests/event-cards.test.ts (1 test) 3ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/career-hub.test.ts > career screens (DOM markup, no renderer) > lists unsellable machines with what is missing and no BUY button
+AssertionError: expected 'data-vehicle="test-rx"><header><span …' to contain 'data-status="coming"'
+
+Expected: [32m"data-[7mstatus="coming"[27m"[39m
+Received: [31m"data-[7mvehicle="test-rx"><header><span class="eyebrow">OFF-ROAD · RALLYCROSS · RALLYCROSS</span></header><h4>TEST RX</h4><p class="career-price">¤52,000</p><button class="primary" data-action="career:buy:test-rx">BUY FOR ¤52,000</button>[27m"[39m
+
+ ❯ tests/career-hub.test.ts:116:16
+    114|     const card = html.slice(html.indexOf('data-vehicle="test-rx"'));
+    115|     const rx = card.slice(0, card.indexOf('</article>'));
+    116|     expect(rx).toContain('data-status="coming"');
+       |                ^
+    117|     expect(rx).toContain('COMING');
+    118|     expect(rx).toContain('dirt or mixed-surface venue');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  tests/career-hub.test.ts > career screens (DOM markup, no renderer) > shows a championship calendar and when the career is not being saved
+AssertionError: expected '<div class="career-hub" data-career-p…' to contain 'class="championship-calendar career-c…'
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- class="championship-calendar career-calendar"[39m
+[31m+ <div class="career-hub" data-career-page="events"><header><div><span class="eyebrow">CAREER / DRIVER</span><h2>Career</h2></div><button data-action="modalClose">CLOSE</button></header><nav aria-label="Career sections"><button data-action="career:page:hub" aria-pressed="false">Disciplines</button><button data-action="career:page:events" aria-pressed="true">Events</button><button data-action="career:page:licences" aria-pressed="false">Licences</button><button data-action="career:page:garage" aria-pressed="false">Garage</button><button data-action="career:page:dealership" aria-pressed="false">Dealership</button></nav><div class="team-stats"><div><small>CREDITS</small><strong>¤40,000</strong></div><div><small>CIRCUIT REPUTATION</small><strong>0<em> / 100</em></strong></div><div><small>LICENCE MEDALS</small><strong>0<em> / 5</em></strong></div></div><div class="team-content"><div class="career-disciplines-nav" role="group" aria-label="Discipline"><button data-action="career:discipline:circuit-cars:events" aria-pressed="true">CIRCUIT</button><button data-action="career:discipline:road-bikes:events" aria-pressed="false">BIKES</button><button data-action="career:discipline:off-road:events" aria-pressed="false">OFF-ROAD</button><button data-action="career:discipline:festival:events" aria-pressed="false">FESTIVAL</button></div><div class="career-events"><article class="career-event" data-kind="recovery" data-status="open"><header><span class="eyebrow">RECOVERY SERIES · ALWAYS OPEN</span><span class="career-state" data-state="open">OPEN</span></header><h4>CIRCUIT CLUB MEETING</h4><p>Reduced-stakes club meeting on a loaned machine. No licence, reputation or ownership needed; pays a quarter of the full rate so a driver with no credits can always rebuild.</p><dl class="career-facts"><dt>Venue</dt><dd>AUREL / GRAND CIRCUIT</dd><dt>Machine</dt><dd>SK-125 SHIFTER KART · loaned</dd><dt>Format</dt><dd>2 laps · 4 cars · start P3</dd><dt>Rules</dt><dd>KART SPRINT</dd><dt>Pay rate</dt><dd>× 0.25</dd></dl><button class="primary" data-action="career:start:circuit-cars.recovery">ENTER CLUB MEETING</button></article></div><section class="career-tier" aria-label="Club and touring"><h4>Club and touring</h4><p class="small-note">Classes kart, club, touring · TC-1 TOURING, TC-2 TOURING, CR-1 CLUB ROADSTER, SK-125 SHIFTER KART · licences Braking marker bronze · reputation 0</p><div class="career-events"><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>AUREL TOURING SPRINT</h4><p>Authored event with its own rules, raced in your machine.</p><p class="career-objectives">Finish on the podium (¤1,250) · Gain two places from your grid slot (¤750)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Braking marker licence (bronze)</li><li>an owned kart / club / touring machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>SPEEDBOWL TOURING SPRINT</h4><p>Authored event with its own rules, raced in your machine.</p><p class="career-objectives">Finish on the podium (¤1,250) · Gain two places from your grid slot (¤750)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Braking marker licence (bronze)</li><li>an owned kart / club / touring machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>RIVIERA TOURING CLASSIC</h4><p>Authored event with its own rules, raced in your machine.</p><p class="career-objectives">Finish on the podium (¤1,250) · Gain two places from your grid slot (¤750)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Braking marker licence (bronze)</li><li>an owned kart / club / touring machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>VELLAMAR TOURING · FRONT VS REAR DRIVE</h4><p>Authored event with its own rules, raced in your machine.</p><p class="career-objectives">Finish on the podium (¤1,250) · Gain two places from your grid slot (¤750)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Braking marker licence (bronze)</li><li>an owned kart / club / touring machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>AUREL SHIFTER KART SPRINT</h4><p>Authored event with its own rules, raced in your machine.</p><p class="career-objectives">Finish on the podium (¤1,250) · Gain two places from your grid slot (¤750)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Braking marker licence (bronze)</li><li>an owned kart / club / touring machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>AUREL CLUB AND TOURING INVITATIONAL</h4><p>3 laps at AUREL / GRAND CIRCUIT, dry. Eight cars of your class; you start fifth.</p><p class="career-objectives">Finish on the podium (¤1,250) · Gain two places from your grid slot (¤750)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Braking marker licence (bronze)</li><li>an owned kart / club / touring machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>ARDENNES CLUB AND TOURING INVITATIONAL</h4><p>3 laps at ARDENNES / FOREST CIRCUIT, rain expected. Eight cars of your class; you start fifth.</p><p class="career-objectives">Finish on the podium (¤1,250) · Gain two places from your grid slot (¤750)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Braking marker licence (bronze)</li><li>an owned kart / club / touring machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>KANSAI EAST CLUB AND TOURING INVITATIONAL</h4><p>3 laps at KANSAI / EAST COURSE, dry. Eight cars of your class; you start fifth.</p><p class="career-objectives">Finish on the podium (¤1,250) · Gain two places from your grid slot (¤750)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Braking marker licence (bronze)</li><li>an owned kart / club / touring machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>NEON REV CLUB AND TOURING INVITATIONAL</h4><p>3 laps at NEON CITY / REVERSE, rain expected. Eight cars of your class; you start fifth.</p><p class="career-objectives">Finish on the podium (¤1,250) · Gain two places from your grid slot (¤750)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Braking marker licence (bronze)</li><li>an owned kart / club / touring machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>SPEEDBOWL CLUB AND TOURING INVITATIONAL</h4><p>3 laps at MESA SPEEDBOWL / OVAL, dry. Eight cars of your class; you start fifth.</p><p class="career-objectives">Finish on the podium (¤1,250) · Gain two places from your grid slot (¤750)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Braking marker licence (bronze)</li><li>an owned kart / club / touring machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>CAP LUMIÈRE CLUB AND TOURING INVITATIONAL</h4><p>3 laps at CAP LUMIÈRE / CLIFF ROAD, rain expected. Eight cars of your class; you start fifth.</p><p class="career-objectives">Finish on the podium (¤1,250) · Gain two places from your grid slot (¤750)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Braking marker licence (bronze)</li><li>an owned kart / club / touring machine (see Dealership)</li></ul></article><article class="career-event" data-kind="championship" data-status="locked"><header><span class="eyebrow">CHAMPIONSHIP</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>CLUB AND TOURING CHAMPIONSHIP</h4><p>A season scored 25-18-15-12-10-8-6-4-2-1 across 6 rounds.</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Braking marker licence (bronze)</li><li>an owned kart / club / touring machine (see Dealership)</li><li>6 reputation for the championship (you have 0)</li></ul></article></div></section><section class="career-tier" aria-label="Grand touring"><h4>Grand touring</h4><p class="small-note">Classes gt-sport, gt · GT-8F FRONT-ENGINE GT, GT-10M MID-ENGINE GT, GS-4 GT SPORT · licences Braking marker bronze, Cornering line bronze · reputation 18</p><div class="career-events"><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>VELLAMAR GT SPRINT</h4><p>Authored event with its own rules, raced in your machine.</p><p class="career-objectives">Finish on the podium (¤1,880) · Gain two places from your grid slot (¤1,130)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Braking marker licence (bronze)</li><li>Cornering line licence (bronze)</li><li>18 circuit reputation (you have 0)</li><li>an owned gt-sport / gt machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>VELLAMAR GRAND TOURING INVITATIONAL</h4><p>4 laps at VELLAMAR / COAST CIRCUIT, rain expected. Eight cars of your class; you start fifth.</p><p class="career-objectives">Finish on the podium (¤1,880) · Gain two places from your grid slot (¤1,130)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Braking marker licence (bronze)</li><li>Cornering line licence (bronze)</li><li>18 circuit reputation (you have 0)</li><li>an owned gt-sport / gt machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>NORTHFIELD GRAND TOURING INVITATIONAL</h4><p>4 laps at NORTHFIELD / AIRFIELD GP, dry. Eight cars of your class; you start fifth.</p><p class="career-objectives">Finish on the podium (¤1,880) · Gain two places from your grid slot (¤1,130)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Braking marker licence (bronze)</li><li>Cornering line licence (bronze)</li><li>18 circuit reputation (you have 0)</li><li>an owned gt-sport / gt machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>RIVIERA GRAND TOURING INVITATIONAL</h4><p>4 laps at RIVIERA / HARBOUR STREETS, rain expected. Eight cars of your class; you start fifth.</p><p class="career-objectives">Finish on the podium (¤1,880) · Gain two places from your grid slot (¤1,130)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Braking marker licence (bronze)</li><li>Cornering line licence (bronze)</li><li>18 circuit reputation (you have 0)</li><li>an owned gt-sport / gt machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>COL D’ARGENT GRAND TOURING INVITATIONAL</h4><p>4 laps at COL D’ARGENT / MOUNTAIN PASS, dry. Eight cars of your class; you start fifth.</p><p class="career-objectives">Finish on the podium (¤1,880) · Gain two places from your grid slot (¤1,130)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Braking marker licence (bronze)</li><li>Cornering line licence (bronze)</li><li>18 circuit reputation (you have 0)</li><li>an owned gt-sport / gt machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>SPEEDBOWL RC GRAND TOURING INVITATIONAL</h4><p>4 laps at MESA SPEEDBOWL / INFIELD ROAD, rain expected. Eight cars of your class; you start fifth.</p><p class="career-objectives">Finish on the podium (¤1,880) · Gain two places from your grid slot (¤1,130)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Braking marker licence (bronze)</li><li>Cornering line licence (bronze)</li><li>18 circuit reputation (you have 0)</li><li>an owned gt-sport / gt machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>CAP REV GRAND TOURING INVITATIONAL</h4><p>4 laps at CAP LUMIÈRE / REVERSE, dry. Eight cars of your class; you start fifth.</p><p class="career-objectives">Finish on the podium (¤1,880) · Gain two places from your grid slot (¤1,130)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Braking marker licence (bronze)</li><li>Cornering line licence (bronze)</li><li>18 circuit reputation (you have 0)</li><li>an owned gt-sport / gt machine (see Dealership)</li></ul></article><article class="career-event" data-kind="championship" data-status="locked"><header><span class="eyebrow">CHAMPIONSHIP</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>GRAND TOURING CHAMPIONSHIP</h4><p>A season scored 25-18-15-12-10-8-6-4-2-1 across 6 rounds.</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Braking marker licence (bronze)</li><li>Cornering line licence (bronze)</li><li>18 circuit reputation (you have 0)</li><li>an owned gt-sport / gt machine (see Dealership)</li><li>26 reputation for the championship (you have 0)</li></ul></article></div></section><section class="career-tier" aria-label="Formula ladder"><h4>Formula ladder</h4><p class="small-note">Classes formula-junior, historic, formula · APX-01 FORMULA, JF-2 JUNIOR FORMULA, HF-67 HISTORIC FORMULA · licences Braking marker silver, Cornering line bronze, Wet control bronze · reputation 30</p><div class="career-events"><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>VELLAMAR 20-MINUTE ENDURANCE</h4><p>Authored event with its own rules, raced in your machine.</p><p class="career-objectives">Finish on the podium (¤2,500) · Gain two places from your grid slot (¤1,500)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Braking marker licence (silver)</li><li>Cornering line licence (bronze)</li><li>Wet control licence (bronze)</li><li>30 circuit reputation (you have 0)</li><li>an owned formula-junior / historic / formula machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>PARCO REALE GRAND PRIX</h4><p>Authored event with its own rules, raced in your machine.</p><p class="career-objectives">Finish on the podium (¤2,500) · Gain two places from your grid slot (¤1,500)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Braking marker licence (silver)</li><li>Cornering line licence (bronze)</li><li>Wet control licence (bronze)</li><li>30 circuit reputation (you have 0)</li><li>an owned formula-junior / historic / formula machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>NEON CITY NIGHT RACE</h4><p>Authored event with its own rules, raced in your machine.</p><p class="career-objectives">Finish on the podium (¤2,500) · Gain two places from your grid slot (¤1,500)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Braking marker licence (silver)</li><li>Cornering line licence (bronze)</li><li>Wet control licence (bronze)</li><li>30 circuit reputation (you have 0)</li><li>an owned formula-junior / historic / formula machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>KANSAI FIGURE-EIGHT ENDURANCE</h4><p>Authored event with its own rules, raced in your machine.</p><p class="career-objectives">Finish on the podium (¤2,500) · Gain two places from your grid slot (¤1,500)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Braking marker licence (silver)</li><li>Cornering line licence (bronze)</li><li>Wet control licence (bronze)</li><li>30 circuit reputation (you have 0)</li><li>an owned formula-junior / historic / formula machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>COL D’ARGENT HILL RACE</h4><p>Authored event with its own rules, raced in your machine.</p><p class="career-objectives">Finish on the podium (¤2,500) · Gain two places from your grid slot (¤1,500)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Braking marker licence (silver)</li><li>Cornering line licence (bronze)</li><li>Wet control licence (bronze)</li><li>30 circuit reputation (you have 0)</li><li>an owned formula-junior / historic / formula machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>PARCO REALE FORMULA LADDER INVITATIONAL</h4><p>5 laps at PARCO REALE / AUTODROMO, dry. Eight cars of your class; you start fifth.</p><p class="career-objectives">Finish on the podium (¤2,500) · Gain two places from your grid slot (¤1,500)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Braking marker licence (silver)</li><li>Cornering line licence (bronze)</li><li>Wet control licence (bronze)</li><li>30 circuit reputation (you have 0)</li><li>an owned formula-junior / historic / formula machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>NFLD CLASSIC FORMULA LADDER INVITATIONAL</h4><p>5 laps at NORTHFIELD / CLASSIC, rain expected. Eight cars of your class; you start fifth.</p><p class="career-objectives">Finish on the podium (¤2,500) · Gain two places from your grid slot (¤1,500)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Braking marker licence (silver)</li><li>Cornering line licence (bronze)</li><li>Wet control licence (bronze)</li><li>30 circuit reputation (you have 0)</li><li>an owned formula-junior / historic / formula machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>TEXAS HILL FORMULA LADDER INVITATIONAL</h4><p>5 laps at TEXAS HILL / COUNTRY CIRCUIT, dry. Eight cars of your class; you start fifth.</p><p class="career-objectives">Finish on the podium (¤2,500) · Gain two places from your grid slot (¤1,500)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Braking marker licence (silver)</li><li>Cornering line licence (bronze)</li><li>Wet control licence (bronze)</li><li>30 circuit reputation (you have 0)</li><li>an owned formula-junior / historic / formula machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>COL DESCENT FORMULA LADDER INVITATIONAL</h4><p>5 laps at COL D’ARGENT / DESCENT, rain expected. Eight cars of your class; you start fifth.</p><p class="career-objectives">Finish on the podium (¤2,500) · Gain two places from your grid slot (¤1,500)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Braking marker licence (silver)</li><li>Cornering line licence (bronze)</li><li>Wet control licence (bronze)</li><li>30 circuit reputation (you have 0)</li><li>an owned formula-junior / historic / formula machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>RED MESA FORMULA LADDER INVITATIONAL</h4><p>5 laps at RED MESA / CANYON CIRCUIT, dry. Eight cars of your class; you start fifth.</p><p class="career-objectives">Finish on the podium (¤2,500) · Gain two places from your grid slot (¤1,500)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Braking marker licence (silver)</li><li>Cornering line licence (bronze)</li><li>Wet control licence (bronze)</li><li>30 circuit reputation (you have 0)</li><li>an owned formula-junior / historic / formula machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>IRON QUAY FORMULA LADDER INVITATIONAL</h4><p>5 laps at IRON QUAY / DOCKLANDS, rain expected. Eight cars of your class; you start fifth.</p><p class="career-objectives">Finish on the podium (¤2,500) · Gain two places from your grid slot (¤1,500)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Braking marker licence (silver)</li><li>Cornering line licence (bronze)</li><li>Wet control licence (bronze)</li><li>30 circuit reputation (you have 0)</li><li>an owned formula-junior / historic / formula machine (see Dealership)</li></ul></article><article class="career-event" data-kind="championship" data-status="locked"><header><span class="eyebrow">CHAMPIONSHIP</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>FORMULA LADDER CHAMPIONSHIP</h4><p>A season scored 25-18-15-12-10-8-6-4-2-1 across 6 rounds.</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Braking marker licence (silver)</li><li>Cornering line licence (bronze)</li><li>Wet control licence (bronze)</li><li>30 circuit reputation (you have 0)</li><li>an owned formula-junior / historic / formula machine (see Dealership)</li><li>42 reputation for the championship (you have 0)</li></ul></article></div></section><section class="career-tier" aria-label="Endurance prototypes"><h4>Endurance prototypes</h4><p class="small-note">Classes prototype, hypercar · HY-9 HYPERCAR, PR-2 PROTOTYPE · licences Cornering line silver, Wet control silver · reputation 55</p><div class="career-events"><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>AUREL 30-MINUTE MULTI-CLASS</h4><p>Authored event with its own rules, raced in your machine.</p><p class="career-objectives">Finish on the podium (¤3,130) · Gain two places from your grid slot (¤1,880)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Cornering line licence (silver)</li><li>Wet control licence (silver)</li><li>55 circuit reputation (you have 0)</li><li>an owned prototype / hypercar machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>AUREL HYPERCAR SPRINT</h4><p>Authored event with its own rules, raced in your machine.</p><p class="career-objectives">Finish on the podium (¤3,130) · Gain two places from your grid slot (¤1,880)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Cornering line licence (silver)</li><li>Wet control licence (silver)</li><li>55 circuit reputation (you have 0)</li><li>an owned prototype / hypercar machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>ARDENNES ENDURANCE PROTOTYPES INVITATIONAL</h4><p>6 laps at ARDENNES / FOREST CIRCUIT, rain expected. Eight cars of your class; you start fifth.</p><p class="career-objectives">Finish on the podium (¤3,130) · Gain two places from your grid slot (¤1,880)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Cornering line licence (silver)</li><li>Wet control licence (silver)</li><li>55 circuit reputation (you have 0)</li><li>an owned prototype / hypercar machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>KANSAI ENDURANCE PROTOTYPES INVITATIONAL</h4><p>6 laps at KANSAI / FIGURE-EIGHT, dry. Eight cars of your class; you start fifth.</p><p class="career-objectives">Finish on the podium (¤3,130) · Gain two places from your grid slot (¤1,880)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Cornering line licence (silver)</li><li>Wet control licence (silver)</li><li>55 circuit reputation (you have 0)</li><li>an owned prototype / hypercar machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>NEON CITY ENDURANCE PROTOTYPES INVITATIONAL</h4><p>6 laps at NEON CITY / NIGHT STREETS, rain expected. Eight cars of your class; you start fifth.</p><p class="career-objectives">Finish on the podium (¤3,130) · Gain two places from your grid slot (¤1,880)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Cornering line licence (silver)</li><li>Wet control licence (silver)</li><li>55 circuit reputation (you have 0)</li><li>an owned prototype / hypercar machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>SPEEDBOWL ENDURANCE PROTOTYPES INVITATIONAL</h4><p>6 laps at MESA SPEEDBOWL / OVAL, dry. Eight cars of your class; you start fifth.</p><p class="career-objectives">Finish on the podium (¤3,130) · Gain two places from your grid slot (¤1,880)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Cornering line licence (silver)</li><li>Wet control licence (silver)</li><li>55 circuit reputation (you have 0)</li><li>an owned prototype / hypercar machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>RED MESA REV ENDURANCE PROTOTYPES INVITATIONAL</h4><p>6 laps at RED MESA / REVERSE, rain expected. Eight cars of your class; you start fifth.</p><p class="career-objectives">Finish on the podium (¤3,130) · Gain two places from your grid slot (¤1,880)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Cornering line licence (silver)</li><li>Wet control licence (silver)</li><li>55 circuit reputation (you have 0)</li><li>an owned prototype / hypercar machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>IRON QUAY REV ENDURANCE PROTOTYPES INVITATIONAL</h4><p>6 laps at IRON QUAY / REVERSE, dry. Eight cars of your class; you start fifth.</p><p class="career-objectives">Finish on the podium (¤3,130) · Gain two places from your grid slot (¤1,880)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Cornering line licence (silver)</li><li>Wet control licence (silver)</li><li>55 circuit reputation (you have 0)</li><li>an owned prototype / hypercar machine (see Dealership)</li></ul></article><article class="career-event" data-kind="championship" data-status="locked"><header><span class="eyebrow">CHAMPIONSHIP</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>ENDURANCE PROTOTYPES CHAMPIONSHIP</h4><p>A season scored 25-18-15-12-10-8-6-4-2-1 across 6 rounds.</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Cornering line licence (silver)</li><li>Wet control licence (silver)</li><li>55 circuit reputation (you have 0)</li><li>an owned prototype / hypercar machine (see Dealership)</li><li>65 reputation for the championship (you have 0)</li></ul></article></div></section></div><p class="team-save" role="status" id="careerSaveStatus">LOCAL SAVE · ¤40,000 · 0 MACHINES</p></div>[39m
+
+ ❯ tests/career-hub.test.ts:131:18
+    129|       },
+    130|     });
+    131|     expect(html).toContain('class="championship-calendar career-calend…
+       |                  ^
+    132|     expect(html).toMatch(/<b>R1<\/b> [^<]+ · (DRY|RAIN|CHANGEABLE) · \…
+    133|     expect(html).toContain('NOT SAVING');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  tests/career-session.test.ts > career controller: session hook and results flow > keeps a season in its machine when the active machine changes mid-season
+AssertionError: expected '<div class="career-hub" data-career-p…' to contain 'ABANDON SEASON'
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- ABANDON SEASON[39m
+[31m+ <div class="career-hub" data-career-page="events"><header><div><span class="eyebrow">CAREER / DRIVER</span><h2>Career</h2></div><button data-action="modalClose">CLOSE</button></header><nav aria-label="Career sections"><button data-action="career:page:hub" aria-pressed="false">Disciplines</button><button data-action="career:page:events" aria-pressed="true">Events</button><button data-action="career:page:licences" aria-pressed="false">Licences</button><button data-action="career:page:garage" aria-pressed="false">Garage</button><button data-action="career:page:dealership" aria-pressed="false">Dealership</button></nav><div class="team-stats"><div><small>CREDITS</small><strong>¤61,500</strong></div><div><small>CIRCUIT REPUTATION</small><strong>34<em> / 100</em></strong></div><div><small>LICENCE MEDALS</small><strong>1<em> / 5</em></strong></div></div><div class="team-content"><div class="career-disciplines-nav" role="group" aria-label="Discipline"><button data-action="career:discipline:circuit-cars:events" aria-pressed="true">CIRCUIT</button><button data-action="career:discipline:road-bikes:events" aria-pressed="false">BIKES</button><button data-action="career:discipline:off-road:events" aria-pressed="false">OFF-ROAD</button><button data-action="career:discipline:festival:events" aria-pressed="false">FESTIVAL</button></div><div class="career-events"><article class="career-event" data-kind="recovery" data-status="open"><header><span class="eyebrow">RECOVERY SERIES · ALWAYS OPEN</span><span class="career-state" data-state="open">OPEN</span></header><h4>CIRCUIT CLUB MEETING</h4><p>Reduced-stakes club meeting on a loaned machine. No licence, reputation or ownership needed; pays a quarter of the full rate so a driver with no credits can always rebuild.</p><dl class="career-facts"><dt>Venue</dt><dd>AUREL / GRAND CIRCUIT</dd><dt>Machine</dt><dd>SK-125 SHIFTER KART · loaned</dd><dt>Format</dt><dd>2 laps · 4 cars · start P3</dd><dt>Rules</dt><dd>KART SPRINT</dd><dt>Pay rate</dt><dd>× 0.25</dd></dl><button class="primary" data-action="career:start:circuit-cars.recovery">ENTER CLUB MEETING</button></article></div><section class="career-tier" aria-label="Club and touring"><h4>Club and touring</h4><p class="small-note">Classes kart, club, touring · TC-1 TOURING, TC-2 TOURING, CR-1 CLUB ROADSTER, SK-125 SHIFTER KART · licences Braking marker bronze · reputation 0</p><div class="career-events"><article class="career-event" data-kind="invitational" data-status="open"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="open">OPEN</span></header><h4>AUREL TOURING SPRINT</h4><p>Authored event with its own rules, raced in your machine.</p><dl class="career-facts"><dt>Venue</dt><dd>AUREL / GRAND CIRCUIT</dd><dt>Machine</dt><dd>TC-2 TOURING</dd><dt>Format</dt><dd>4 laps · 8 cars · start P5</dd><dt>Rules</dt><dd>TOURING SPRINT</dd><dt>Pay rate</dt><dd>× 0.5</dd></dl><p class="career-objectives">Finish on the podium (¤1,250) · Gain two places from your grid slot (¤750)</p><button class="primary" data-action="career:start:circuit-cars.club.event.aurel-touring-sprint">START EVENT</button></article><article class="career-event" data-kind="invitational" data-status="open"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="open">OPEN</span></header><h4>SPEEDBOWL TOURING SPRINT</h4><p>Authored event with its own rules, raced in your machine.</p><dl class="career-facts"><dt>Venue</dt><dd>MESA SPEEDBOWL / OVAL</dd><dt>Machine</dt><dd>TC-2 TOURING</dd><dt>Format</dt><dd>6 laps · 8 cars · start P5</dd><dt>Rules</dt><dd>TOURING SPRINT</dd><dt>Pay rate</dt><dd>× 0.5</dd></dl><p class="career-objectives">Finish on the podium (¤1,250) · Gain two places from your grid slot (¤750)</p><button class="primary" data-action="career:start:circuit-cars.club.event.speedbowl-touring-sprint">START EVENT</button></article><article class="career-event" data-kind="invitational" data-status="open"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="open">OPEN</span></header><h4>RIVIERA TOURING CLASSIC</h4><p>Authored event with its own rules, raced in your machine.</p><dl class="career-facts"><dt>Venue</dt><dd>RIVIERA / HARBOUR STREETS</dd><dt>Machine</dt><dd>TC-2 TOURING</dd><dt>Format</dt><dd>6 laps · 8 cars · start P5</dd><dt>Rules</dt><dd>TOURING SPRINT</dd><dt>Pay rate</dt><dd>× 0.5</dd></dl><p class="career-objectives">Finish on the podium (¤1,250) · Gain two places from your grid slot (¤750)</p><button class="primary" data-action="career:start:circuit-cars.club.event.riviera-touring-classic">START EVENT</button></article><article class="career-event" data-kind="invitational" data-status="open"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="open">OPEN</span></header><h4>VELLAMAR TOURING · FRONT VS REAR DRIVE</h4><p>Authored event with its own rules, raced in your machine.</p><dl class="career-facts"><dt>Venue</dt><dd>VELLAMAR / COAST CIRCUIT</dd><dt>Machine</dt><dd>TC-2 TOURING</dd><dt>Format</dt><dd>4 laps · 8 cars · start P5</dd><dt>Rules</dt><dd>TOURING SPRINT</dd><dt>Pay rate</dt><dd>× 0.5</dd></dl><p class="career-objectives">Finish on the podium (¤1,250) · Gain two places from your grid slot (¤750)</p><button class="primary" data-action="career:start:circuit-cars.club.event.vellamar-touring-mixed-drive">START EVENT</button></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>AUREL SHIFTER KART SPRINT</h4><p>Authored event with its own rules, raced in your machine.</p><p class="career-objectives">Finish on the podium (¤1,250) · Gain two places from your grid slot (¤750)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>AUREL SHIFTER KART SPRINT is for kart machines.</li></ul></article><article class="career-event" data-kind="invitational" data-status="open"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="open">OPEN</span></header><h4>AUREL CLUB AND TOURING INVITATIONAL</h4><p>3 laps at AUREL / GRAND CIRCUIT, dry. Eight cars of your class; you start fifth.</p><dl class="career-facts"><dt>Venue</dt><dd>AUREL / GRAND CIRCUIT</dd><dt>Machine</dt><dd>TC-2 TOURING</dd><dt>Format</dt><dd>3 laps · 8 cars · start P5</dd><dt>Rules</dt><dd>TOURING SPRINT</dd><dt>Pay rate</dt><dd>× 0.5</dd></dl><p class="career-objectives">Finish on the podium (¤1,250) · Gain two places from your grid slot (¤750)</p><button class="primary" data-action="career:start:circuit-cars.club.inv.aurel">START EVENT</button></article><article class="career-event" data-kind="invitational" data-status="open"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="open">OPEN</span></header><h4>ARDENNES CLUB AND TOURING INVITATIONAL</h4><p>3 laps at ARDENNES / FOREST CIRCUIT, rain expected. Eight cars of your class; you start fifth.</p><dl class="career-facts"><dt>Venue</dt><dd>ARDENNES / FOREST CIRCUIT</dd><dt>Machine</dt><dd>TC-2 TOURING</dd><dt>Format</dt><dd>3 laps · 8 cars · start P5</dd><dt>Rules</dt><dd>TOURING SPRINT</dd><dt>Pay rate</dt><dd>× 0.5</dd></dl><p class="career-objectives">Finish on the podium (¤1,250) · Gain two places from your grid slot (¤750)</p><button class="primary" data-action="career:start:circuit-cars.club.inv.ardennes">START EVENT</button></article><article class="career-event" data-kind="invitational" data-status="open"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="open">OPEN</span></header><h4>KANSAI EAST CLUB AND TOURING INVITATIONAL</h4><p>3 laps at KANSAI / EAST COURSE, dry. Eight cars of your class; you start fifth.</p><dl class="career-facts"><dt>Venue</dt><dd>KANSAI / EAST COURSE</dd><dt>Machine</dt><dd>TC-2 TOURING</dd><dt>Format</dt><dd>3 laps · 8 cars · start P5</dd><dt>Rules</dt><dd>TOURING SPRINT</dd><dt>Pay rate</dt><dd>× 0.5</dd></dl><p class="career-objectives">Finish on the podium (¤1,250) · Gain two places from your grid slot (¤750)</p><button class="primary" data-action="career:start:circuit-cars.club.inv.kansai-east">START EVENT</button></article><article class="career-event" data-kind="invitational" data-status="open"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="open">OPEN</span></header><h4>NEON REV CLUB AND TOURING INVITATIONAL</h4><p>3 laps at NEON CITY / REVERSE, rain expected. Eight cars of your class; you start fifth.</p><dl class="career-facts"><dt>Venue</dt><dd>NEON CITY / REVERSE</dd><dt>Machine</dt><dd>TC-2 TOURING</dd><dt>Format</dt><dd>3 laps · 8 cars · start P5</dd><dt>Rules</dt><dd>TOURING SPRINT</dd><dt>Pay rate</dt><dd>× 0.5</dd></dl><p class="career-objectives">Finish on the podium (¤1,250) · Gain two places from your grid slot (¤750)</p><button class="primary" data-action="career:start:circuit-cars.club.inv.neon-city-reverse">START EVENT</button></article><article class="career-event" data-kind="invitational" data-status="open"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="open">OPEN</span></header><h4>SPEEDBOWL CLUB AND TOURING INVITATIONAL</h4><p>3 laps at MESA SPEEDBOWL / OVAL, dry. Eight cars of your class; you start fifth.</p><dl class="career-facts"><dt>Venue</dt><dd>MESA SPEEDBOWL / OVAL</dd><dt>Machine</dt><dd>TC-2 TOURING</dd><dt>Format</dt><dd>3 laps · 8 cars · start P5</dd><dt>Rules</dt><dd>TOURING SPRINT</dd><dt>Pay rate</dt><dd>× 0.5</dd></dl><p class="career-objectives">Finish on the podium (¤1,250) · Gain two places from your grid slot (¤750)</p><button class="primary" data-action="career:start:circuit-cars.club.inv.speedbowl">START EVENT</button></article><article class="career-event" data-kind="invitational" data-status="open"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="open">OPEN</span></header><h4>CAP LUMIÈRE CLUB AND TOURING INVITATIONAL</h4><p>3 laps at CAP LUMIÈRE / CLIFF ROAD, rain expected. Eight cars of your class; you start fifth.</p><dl class="career-facts"><dt>Venue</dt><dd>CAP LUMIÈRE / CLIFF ROAD</dd><dt>Machine</dt><dd>TC-2 TOURING</dd><dt>Format</dt><dd>3 laps · 8 cars · start P5</dd><dt>Rules</dt><dd>TOURING SPRINT</dd><dt>Pay rate</dt><dd>× 0.5</dd></dl><p class="career-objectives">Finish on the podium (¤1,250) · Gain two places from your grid slot (¤750)</p><button class="primary" data-action="career:start:circuit-cars.club.inv.coastal-cliff">START EVENT</button></article><article class="career-event" data-kind="championship" data-status="open"><header><span class="eyebrow">CHAMPIONSHIP</span><span class="career-state" data-state="open">OPEN</span></header><h4>CLUB AND TOURING CHAMPIONSHIP</h4><p>A season scored 25-18-15-12-10-8-6-4-2-1 across 6 rounds.</p><dl class="career-facts"><dt>Venue</dt><dd>AUREL / GRAND CIRCUIT</dd><dt>Machine</dt><dd>TC-2 TOURING</dd><dt>Format</dt><dd>3 laps · 8 cars · start P5</dd><dt>Rules</dt><dd>TOURING SPRINT</dd><dt>Pay rate</dt><dd>× 0.5</dd><dt>Your best</dt><dd>P2 · 2 starts</dd></dl><p class="career-season">Round 3 of 6 · P2 on 36 pts</p><button class="primary" data-action="career:start:circuit-cars.club.championship">START ROUND 3</button></article></div></section><section class="career-tier" aria-label="Grand touring"><h4>Grand touring</h4><p class="small-note">Classes gt-sport, gt · GT-8F FRONT-ENGINE GT, GT-10M MID-ENGINE GT, GS-4 GT SPORT · licences Braking marker bronze, Cornering line bronze · reputation 18</p><div class="career-events"><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>VELLAMAR GT SPRINT</h4><p>Authored event with its own rules, raced in your machine.</p><p class="career-objectives">Finish on the podium (¤1,880) · Gain two places from your grid slot (¤1,130)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Cornering line licence (bronze)</li><li>an owned gt-sport / gt machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>VELLAMAR GRAND TOURING INVITATIONAL</h4><p>4 laps at VELLAMAR / COAST CIRCUIT, rain expected. Eight cars of your class; you start fifth.</p><p class="career-objectives">Finish on the podium (¤1,880) · Gain two places from your grid slot (¤1,130)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Cornering line licence (bronze)</li><li>an owned gt-sport / gt machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>NORTHFIELD GRAND TOURING INVITATIONAL</h4><p>4 laps at NORTHFIELD / AIRFIELD GP, dry. Eight cars of your class; you start fifth.</p><p class="career-objectives">Finish on the podium (¤1,880) · Gain two places from your grid slot (¤1,130)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Cornering line licence (bronze)</li><li>an owned gt-sport / gt machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>RIVIERA GRAND TOURING INVITATIONAL</h4><p>4 laps at RIVIERA / HARBOUR STREETS, rain expected. Eight cars of your class; you start fifth.</p><p class="career-objectives">Finish on the podium (¤1,880) · Gain two places from your grid slot (¤1,130)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Cornering line licence (bronze)</li><li>an owned gt-sport / gt machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>COL D’ARGENT GRAND TOURING INVITATIONAL</h4><p>4 laps at COL D’ARGENT / MOUNTAIN PASS, dry. Eight cars of your class; you start fifth.</p><p class="career-objectives">Finish on the podium (¤1,880) · Gain two places from your grid slot (¤1,130)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Cornering line licence (bronze)</li><li>an owned gt-sport / gt machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>SPEEDBOWL RC GRAND TOURING INVITATIONAL</h4><p>4 laps at MESA SPEEDBOWL / INFIELD ROAD, rain expected. Eight cars of your class; you start fifth.</p><p class="career-objectives">Finish on the podium (¤1,880) · Gain two places from your grid slot (¤1,130)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Cornering line licence (bronze)</li><li>an owned gt-sport / gt machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>CAP REV GRAND TOURING INVITATIONAL</h4><p>4 laps at CAP LUMIÈRE / REVERSE, dry. Eight cars of your class; you start fifth.</p><p class="career-objectives">Finish on the podium (¤1,880) · Gain two places from your grid slot (¤1,130)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Cornering line licence (bronze)</li><li>an owned gt-sport / gt machine (see Dealership)</li></ul></article><article class="career-event" data-kind="championship" data-status="locked"><header><span class="eyebrow">CHAMPIONSHIP</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>GRAND TOURING CHAMPIONSHIP</h4><p>A season scored 25-18-15-12-10-8-6-4-2-1 across 6 rounds.</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Cornering line licence (bronze)</li><li>an owned gt-sport / gt machine (see Dealership)</li></ul></article></div></section><section class="career-tier" aria-label="Formula ladder"><h4>Formula ladder</h4><p class="small-note">Classes formula-junior, historic, formula · APX-01 FORMULA, JF-2 JUNIOR FORMULA, HF-67 HISTORIC FORMULA · licences Braking marker silver, Cornering line bronze, Wet control bronze · reputation 30</p><div class="career-events"><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>VELLAMAR 20-MINUTE ENDURANCE</h4><p>Authored event with its own rules, raced in your machine.</p><p class="career-objectives">Finish on the podium (¤2,500) · Gain two places from your grid slot (¤1,500)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Braking marker licence (silver)</li><li>Cornering line licence (bronze)</li><li>Wet control licence (bronze)</li><li>an owned formula-junior / historic / formula machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>PARCO REALE GRAND PRIX</h4><p>Authored event with its own rules, raced in your machine.</p><p class="career-objectives">Finish on the podium (¤2,500) · Gain two places from your grid slot (¤1,500)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Braking marker licence (silver)</li><li>Cornering line licence (bronze)</li><li>Wet control licence (bronze)</li><li>an owned formula-junior / historic / formula machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>NEON CITY NIGHT RACE</h4><p>Authored event with its own rules, raced in your machine.</p><p class="career-objectives">Finish on the podium (¤2,500) · Gain two places from your grid slot (¤1,500)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Braking marker licence (silver)</li><li>Cornering line licence (bronze)</li><li>Wet control licence (bronze)</li><li>an owned formula-junior / historic / formula machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>KANSAI FIGURE-EIGHT ENDURANCE</h4><p>Authored event with its own rules, raced in your machine.</p><p class="career-objectives">Finish on the podium (¤2,500) · Gain two places from your grid slot (¤1,500)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Braking marker licence (silver)</li><li>Cornering line licence (bronze)</li><li>Wet control licence (bronze)</li><li>an owned formula-junior / historic / formula machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>COL D’ARGENT HILL RACE</h4><p>Authored event with its own rules, raced in your machine.</p><p class="career-objectives">Finish on the podium (¤2,500) · Gain two places from your grid slot (¤1,500)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Braking marker licence (silver)</li><li>Cornering line licence (bronze)</li><li>Wet control licence (bronze)</li><li>an owned formula-junior / historic / formula machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>PARCO REALE FORMULA LADDER INVITATIONAL</h4><p>5 laps at PARCO REALE / AUTODROMO, dry. Eight cars of your class; you start fifth.</p><p class="career-objectives">Finish on the podium (¤2,500) · Gain two places from your grid slot (¤1,500)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Braking marker licence (silver)</li><li>Cornering line licence (bronze)</li><li>Wet control licence (bronze)</li><li>an owned formula-junior / historic / formula machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>NFLD CLASSIC FORMULA LADDER INVITATIONAL</h4><p>5 laps at NORTHFIELD / CLASSIC, rain expected. Eight cars of your class; you start fifth.</p><p class="career-objectives">Finish on the podium (¤2,500) · Gain two places from your grid slot (¤1,500)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Braking marker licence (silver)</li><li>Cornering line licence (bronze)</li><li>Wet control licence (bronze)</li><li>an owned formula-junior / historic / formula machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>TEXAS HILL FORMULA LADDER INVITATIONAL</h4><p>5 laps at TEXAS HILL / COUNTRY CIRCUIT, dry. Eight cars of your class; you start fifth.</p><p class="career-objectives">Finish on the podium (¤2,500) · Gain two places from your grid slot (¤1,500)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Braking marker licence (silver)</li><li>Cornering line licence (bronze)</li><li>Wet control licence (bronze)</li><li>an owned formula-junior / historic / formula machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>COL DESCENT FORMULA LADDER INVITATIONAL</h4><p>5 laps at COL D’ARGENT / DESCENT, rain expected. Eight cars of your class; you start fifth.</p><p class="career-objectives">Finish on the podium (¤2,500) · Gain two places from your grid slot (¤1,500)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Braking marker licence (silver)</li><li>Cornering line licence (bronze)</li><li>Wet control licence (bronze)</li><li>an owned formula-junior / historic / formula machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>RED MESA FORMULA LADDER INVITATIONAL</h4><p>5 laps at RED MESA / CANYON CIRCUIT, dry. Eight cars of your class; you start fifth.</p><p class="career-objectives">Finish on the podium (¤2,500) · Gain two places from your grid slot (¤1,500)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Braking marker licence (silver)</li><li>Cornering line licence (bronze)</li><li>Wet control licence (bronze)</li><li>an owned formula-junior / historic / formula machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>IRON QUAY FORMULA LADDER INVITATIONAL</h4><p>5 laps at IRON QUAY / DOCKLANDS, rain expected. Eight cars of your class; you start fifth.</p><p class="career-objectives">Finish on the podium (¤2,500) · Gain two places from your grid slot (¤1,500)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Braking marker licence (silver)</li><li>Cornering line licence (bronze)</li><li>Wet control licence (bronze)</li><li>an owned formula-junior / historic / formula machine (see Dealership)</li></ul></article><article class="career-event" data-kind="championship" data-status="locked"><header><span class="eyebrow">CHAMPIONSHIP</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>FORMULA LADDER CHAMPIONSHIP</h4><p>A season scored 25-18-15-12-10-8-6-4-2-1 across 6 rounds.</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Braking marker licence (silver)</li><li>Cornering line licence (bronze)</li><li>Wet control licence (bronze)</li><li>an owned formula-junior / historic / formula machine (see Dealership)</li><li>42 reputation for the championship (you have 34)</li></ul></article></div></section><section class="career-tier" aria-label="Endurance prototypes"><h4>Endurance prototypes</h4><p class="small-note">Classes prototype, hypercar · HY-9 HYPERCAR, PR-2 PROTOTYPE · licences Cornering line silver, Wet control silver · reputation 55</p><div class="career-events"><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>AUREL 30-MINUTE MULTI-CLASS</h4><p>Authored event with its own rules, raced in your machine.</p><p class="career-objectives">Finish on the podium (¤3,130) · Gain two places from your grid slot (¤1,880)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Cornering line licence (silver)</li><li>Wet control licence (silver)</li><li>55 circuit reputation (you have 34)</li><li>an owned prototype / hypercar machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>AUREL HYPERCAR SPRINT</h4><p>Authored event with its own rules, raced in your machine.</p><p class="career-objectives">Finish on the podium (¤3,130) · Gain two places from your grid slot (¤1,880)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Cornering line licence (silver)</li><li>Wet control licence (silver)</li><li>55 circuit reputation (you have 34)</li><li>an owned prototype / hypercar machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>ARDENNES ENDURANCE PROTOTYPES INVITATIONAL</h4><p>6 laps at ARDENNES / FOREST CIRCUIT, rain expected. Eight cars of your class; you start fifth.</p><p class="career-objectives">Finish on the podium (¤3,130) · Gain two places from your grid slot (¤1,880)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Cornering line licence (silver)</li><li>Wet control licence (silver)</li><li>55 circuit reputation (you have 34)</li><li>an owned prototype / hypercar machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>KANSAI ENDURANCE PROTOTYPES INVITATIONAL</h4><p>6 laps at KANSAI / FIGURE-EIGHT, dry. Eight cars of your class; you start fifth.</p><p class="career-objectives">Finish on the podium (¤3,130) · Gain two places from your grid slot (¤1,880)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Cornering line licence (silver)</li><li>Wet control licence (silver)</li><li>55 circuit reputation (you have 34)</li><li>an owned prototype / hypercar machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>NEON CITY ENDURANCE PROTOTYPES INVITATIONAL</h4><p>6 laps at NEON CITY / NIGHT STREETS, rain expected. Eight cars of your class; you start fifth.</p><p class="career-objectives">Finish on the podium (¤3,130) · Gain two places from your grid slot (¤1,880)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Cornering line licence (silver)</li><li>Wet control licence (silver)</li><li>55 circuit reputation (you have 34)</li><li>an owned prototype / hypercar machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>SPEEDBOWL ENDURANCE PROTOTYPES INVITATIONAL</h4><p>6 laps at MESA SPEEDBOWL / OVAL, dry. Eight cars of your class; you start fifth.</p><p class="career-objectives">Finish on the podium (¤3,130) · Gain two places from your grid slot (¤1,880)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Cornering line licence (silver)</li><li>Wet control licence (silver)</li><li>55 circuit reputation (you have 34)</li><li>an owned prototype / hypercar machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>RED MESA REV ENDURANCE PROTOTYPES INVITATIONAL</h4><p>6 laps at RED MESA / REVERSE, rain expected. Eight cars of your class; you start fifth.</p><p class="career-objectives">Finish on the podium (¤3,130) · Gain two places from your grid slot (¤1,880)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Cornering line licence (silver)</li><li>Wet control licence (silver)</li><li>55 circuit reputation (you have 34)</li><li>an owned prototype / hypercar machine (see Dealership)</li></ul></article><article class="career-event" data-kind="invitational" data-status="locked"><header><span class="eyebrow">INVITATIONAL</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>IRON QUAY REV ENDURANCE PROTOTYPES INVITATIONAL</h4><p>6 laps at IRON QUAY / REVERSE, dry. Eight cars of your class; you start fifth.</p><p class="career-objectives">Finish on the podium (¤3,130) · Gain two places from your grid slot (¤1,880)</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Cornering line licence (silver)</li><li>Wet control licence (silver)</li><li>55 circuit reputation (you have 34)</li><li>an owned prototype / hypercar machine (see Dealership)</li></ul></article><article class="career-event" data-kind="championship" data-status="locked"><header><span class="eyebrow">CHAMPIONSHIP</span><span class="career-state" data-state="locked">LOCKED</span></header><h4>ENDURANCE PROTOTYPES CHAMPIONSHIP</h4><p>A season scored 25-18-15-12-10-8-6-4-2-1 across 6 rounds.</p><p class="career-needs">Requires:</p><ul class="career-reasons"><li>Cornering line licence (silver)</li><li>Wet control licence (silver)</li><li>55 circuit reputation (you have 34)</li><li>an owned prototype / hypercar machine (see Dealership)</li><li>65 reputation for the championship (you have 34)</li></ul></article></div></section></div><p class="team-save" role="status" id="careerSaveStatus">LOCAL SAVE · ¤61,500 · 2 MACHINES</p></div>[39m
+
+ ❯ tests/career-session.test.ts:258:29
+    256|     const h = harness();
+    257|     await h.career.load({});
+    258|     await h.career.transact((s) => ({
+       |                             ^
+    259|       ...s,
+    260|       credits: 100000,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  tests/career.test.ts > unlocks and availability are derived from the registries > opens the bike career when a bike and a ruleset for it are registered
+AssertionError: expected 'sbk1000' to be 'test-sbk' // Object.is equality
+
+Expected: [32m"test-sbk"[39m
+Received: [31m"sbk1000"[39m
+
+ ❯ tests/career.test.ts:457:29
+    456|       outcome({ session: 's-2', position: 1, bestLap: 91 }),
+    457|     );
+    458|     expect(better.payout.lines.find((l) => l.label.startsWith('Improve…
+       |                      ^
+    459|     expect(better.payout.lines.find((l) => l.label.startsWith('Persona…
+    460|       400,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+ FAIL  tests/career.test.ts > unlocks and availability are derived from the registries > validates the career content built from the live registries
+AssertionError: expected [ …(7) ] to deeply equal []
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- [][39m
+[31m+ [[39m
+[31m+   "career event circuit-cars.gt.inv.vellamar: VELLAMAR GRAND TOURING INVITATIONAL: unknown vehicle test-gt",[39m
+[31m+   "career event circuit-cars.gt.inv.northfield: NORTHFIELD GRAND TOURING INVITATIONAL: unknown vehicle test-gt",[39m
+[31m+   "career event circuit-cars.gt.inv.riviera: RIVIERA GRAND TOURING INVITATIONAL: unknown vehicle test-gt",[39m
+[31m+   "career event circuit-cars.gt.inv.alpine-pass: COL D’ARGENT GRAND TOURING INVITATIONAL: unknown vehicle test-gt",[39m
+[31m+   "career event circuit-cars.gt.inv.speedbowl-infield: SPEEDBOWL RC GRAND TOURING INVITATIONAL: unknown vehicle test-gt",[39m
+[31m+   "career event circuit-cars.gt.inv.coastal-cliff-reverse: CAP REV GRAND TOURING INVITATIONAL: unknown vehicle test-gt",[39m
+[31m+   "career event circuit-cars.gt.championship: GRAND TOURING CHAMPIONSHIP: unknown vehicle test-gt",[39m
+[31m+ ][39m
+
+ ❯ tests/career.test.ts:553:45
+    552|           round: {
+    553|             order: [0, 1, 2, 3],
+    554|             retired: [],
+       |            ^
+    555|             grid: [0, 1, 2, 3],
+    556|             demonstration: true,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+
+
+ Test Files  3 failed | 305 passed (308)
+      Tests  5 failed | 2570 passed (2575)
+   Start at  03:50:01
+   Duration  1183.54s (transform 10.52s, setup 0ms, collect 191.97s, tests 868.87s, environment 59ms, prepare 32.57s)
+

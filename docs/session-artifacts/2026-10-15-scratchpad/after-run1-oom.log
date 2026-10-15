@@ -1,0 +1,17 @@
+(node:26360) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Building /home/user/Experiment-3/.claude/worktrees/wf_ef3f8a4a-fe2-5 into /tmp/apex-capture-build-qU1PJ1
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+[    0 s] open http://127.0.0.1:37379/ (mesa, 960x540)
+[   94 s] menu ready on ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5); GARAGE & SETTINGS → ultra
+[  189 s] preset applied
+[  189 s] session: aurel race 10 laps clear grid 12 start midfield
+[  545 s] session prepared
+[  558 s] 03 side-by-side: met (t 7.4 s, race 1.5 s)
+[  653 s] captured 03-side-by-side.png
+[  653 s] lighting → night
+[  893 s] 06 night traffic: met (t 12.0 s, race 6.1 s)

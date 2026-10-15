@@ -1,0 +1,33 @@
+{
+    "asset_type": "Texture",
+    "id": "dreifaltigkeitsberg",
+    "kwargs": {
+        "filename": "environment_4k.hdr"
+    },
+    "license": "CC0 1.0",
+    "metadata": {
+        "authors": [
+            "Andreas Mischok"
+        ],
+        "categories": [
+            "outdoor",
+            "skies",
+            "nature",
+            "natural light",
+            "midday",
+            "clear"
+        ],
+        "coords": [
+            48.079648,
+            8.764125
+        ],
+        "date_taken": 1630836960,
+        "resolution": "4k",
+        "tags": [
+            "field",
+            "tree",
+            "grass",
+            "sun"
+        ]
+    }
+}

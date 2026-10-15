@@ -1,0 +1,81 @@
+
+ RUN  v3.2.4 /home/user/Experiment-3/.claude/worktrees/agent-ac6b2a4140eb0510a
+
+ ✓ tests/ultra-math.test.ts (23 tests) 62ms
+ ✓ tests/supplied-player-lods.test.ts (8 tests) 6590ms
+   ✓ supplied player index-only LODs > pins the actual generated data to the unmodified source and measured budgets  1110ms
+   ✓ supplied player index-only LODs > changes real geometry only, preserves every source attribute and releases each wrapper once  2452ms
+   ✓ supplied player index-only LODs > fails closed for a missing primitive and for mismatched source vertex counts  473ms
+   ✓ supplied player index-only LODs > retains the exact baseline oriented-triangle fingerprint across all 516 primitive tiers  1506ms
+   ✓ supplied player index-only LODs > aliases only complete earlier ranges of the same primitive and reuses their geometry owner  580ms
+ ✓ tests/secondary-stand-traversal.test.ts (4 tests) 146335ms
+   ✓ A12 clear: visits all six stands with exact live, ordered production frames  43238ms
+   ✓ A12 rain: visits all six stands with exact live, ordered production frames  99348ms
+   ✓ A12 rejects an invalid starting session without stepping it  908ms
+   ✓ A12 stops advancing when an asynchronous evidence sink rejects  2840ms
+ ✓ tests/endurance-mode.test.ts (4 tests) 120443ms
+   ✓ endurance: long race with the mandatory stop rule > penalises a finish without the stop  14109ms
+   ✓ endurance: long race with the mandatory stop rule > runs a full endurance race: every car stops once onto a second dry compound  106022ms
+ ✓ tests/phase27h6.test.ts (10 tests) 64330ms
+   ✓ 27H.6 service composition and bounded pose reuse > does no pose/texture work for identical service snapshots or inactive racing  1143ms
+   ✓ 27H.6 service composition and bounded pose reuse > limits instance upload ranges to active actors and preserves replay rebuilds  686ms
+   ✓ 27H.6 service composition and bounded pose reuse > contains actual skinned cloth, helmets, gloves, tyres and machinery over the complete service  61564ms
+   ✓ reuses bounded service witnesses without leaking inactive roles or mutable diagnostics  423ms
+   ✓ prepares both cloth colour variants before service without changing visibility or buffer ownership  307ms
+ ✓ tests/racing-line.test.ts (6 tests) 58166ms
+   ✓ minimum-curvature racing line > the AI drives the line: quicker, valid laps without damage  14190ms
+   ✓ minimum-curvature racing line > a mid-field start still races wheel to wheel on the line  43392ms
+ ✓ tests/qualifying.test.ts (5 tests) 49631ms
+   ✓ race weekend: qualifying sets the grid > runs a full qualifying session through the production AI and classifies by best lap  45104ms
+   ✓ starting grid slot > starts a wet race behind rivals, so the player follows through their spray  4372ms
+ ✓ tests/pit-release.test.ts (3 tests) 29358ms
+   ✓ pit-release circular-wait regression > physically releases the blocked pair and services both without contact  7774ms
+   ✓ anticipates the future service-bay sweep before a moving car becomes trapped beside a serviced car  21579ms
+ ✓ tests/vsc.test.ts (3 tests) 42021ms
+   ✓ virtual safety car and safety car > neutralises a long obstruction: VSC, then a safety car the field never passes  34587ms
+   ✓ virtual safety car and safety car > never deploys outside race sessions  5901ms
+   ✓ virtual safety car and safety car > renders an original-livery safety car with an alternating 2 Hz amber bar  1532ms
+ ✓ tests/physics.test.ts (21 tests) 37346ms
+   ✓ rigid dynamics and integration > settles on four suspension contacts without low-speed chatter  3101ms
+   ✓ rigid dynamics and integration > accelerates from torque and brakes to rest  2268ms
+   ✓ rigid dynamics and integration > serializes identical results for identical seeds and input history  9355ms
+   ✓ rigid dynamics and integration > physics state is independent of 24 FPS rendering  4462ms
+   ✓ rigid dynamics and integration > physics state is independent of 30 FPS rendering  3465ms
+   ✓ rigid dynamics and integration > physics state is independent of 60 FPS rendering  3892ms
+   ✓ rigid dynamics and integration > physics state is independent of 90 FPS rendering  3756ms
+   ✓ rigid dynamics and integration > physics state is independent of 120 FPS rendering  3422ms
+   ✓ rigid dynamics and integration > physics state is independent of 144 FPS rendering  3508ms
+ ✓ tests/flashback-determinism.test.ts (2 tests) 32499ms
+   ✓ flashback determinism > re-simulates 3000 logged ticks to bitwise-identical frames, twice  19316ms
+   ✓ flashback determinism > rewinds to a past tick and resumes on a new timeline  13172ms
+ ✓ tests/event-hall-approach.test.ts (3 tests) 33331ms
+   ✓ A71 clear approach retains at least four native physics samples  14766ms
+   ✓ A71 rain approach retains at least four native physics samples  18533ms
+ ✓ tests/a32-pit-jacks.test.ts (12 tests) 39822ms
+   ✓ A32 authored mechanical handoff > preserves A31 and A33 in either tool installation order, with reachable jack hands  2024ms
+   ✓ A32 authored mechanical handoff > keeps actual uploaded jack vertices within the conservative service camera envelope  34648ms
+   ✓ A32 authored mechanical handoff > measures the retained supplied-player and authored-rival surfaces without modifying either  2374ms
+   ✓ A32 authored mechanical handoff > disposes detached geometry and atlas resources only once  330ms
+ ✓ tests/pit-role-performance.test.ts (9 tests) 34287ms
+   ✓ uses all six authored roles in actual uploaded service bones, without changing geometry or adding draws  1335ms
+   ✓ keeps a fixed support foot while translating and turning tyre handlers, gun operators and release personnel  2750ms
+   ✓ seeks all service roles without history, including holds, LOD changes and twelve simultaneous teams  781ms
+   ✓ performs all six roles during an actual requested stop, with unchanged snapshots and recorded rewinds  12363ms
+   ✓ lowers the real physical jack before release without changing the exchange instant or minimum service  16306ms
+   ✓ clears both real authored jacks only while lowered, with fixed support and reachable hands  690ms
+ ✓ tests/engineering.test.ts (13 tests) 27886ms
+   ✓ is disabled by default, rate-limited to physics ticks, resettable and fails malformed toggles  1745ms
+   ✓ reports exact physical contact/AI data and does not reuse writable physics vector references  2493ms
+   ✓ cannot alter the simulation trajectory, RNG, tire work or recorded snapshots  4793ms
+   ✓ marks inactive AI honestly instead of labeling stale targets as player commands  2103ms
+   ✓ rejects invalid normal debug data  2181ms
+   ✓ rejects invalid time debug data  1554ms
+   ✓ rejects invalid load debug data  1719ms
+   ✓ rejects invalid cell debug data  1807ms
+   ✓ rejects invalid rubber debug data  1727ms
+   ✓ rejects invalid decision debug data  1534ms
+   ✓ never presents current live contacts as replay history or an old probe as current  2100ms
+   ✓ formats every required engineering category from actual frame channels, without fabricated GPU timing  2070ms
+   ✓ shows real contact points and sampled suspension rays, then hides stale/replay overlays  2045ms
+ ✓ tests/probe-detail.test.ts (6 tests) 23253ms
+   ✓ probe detail on the built circuits > omits over a third of the probe draws and nothing a texel wide  23096ms

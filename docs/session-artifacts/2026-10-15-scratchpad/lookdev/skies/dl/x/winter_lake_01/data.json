@@ -1,0 +1,35 @@
+{
+    "asset_type": "Texture",
+    "id": "winter_lake_01",
+    "kwargs": {
+        "filename": "environment_4k.hdr"
+    },
+    "license": "CC0 1.0",
+    "metadata": {
+        "authors": [
+            "Sergej Majboroda"
+        ],
+        "categories": [
+            "outdoor",
+            "skies",
+            "nature",
+            "sunrise-sunset",
+            "partly cloudy",
+            "low contrast",
+            "natural light"
+        ],
+        "coords": [
+            50.9034383,
+            34.8265526
+        ],
+        "date_taken": 1546955820,
+        "resolution": "4k",
+        "tags": [
+            "field",
+            "lake",
+            "snow",
+            "winter",
+            "frozen"
+        ]
+    }
+}

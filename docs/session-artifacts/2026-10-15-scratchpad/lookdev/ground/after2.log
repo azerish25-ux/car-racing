@@ -1,0 +1,13 @@
+(node:11786) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+[    0 s] open http://127.0.0.1:5392/ (mesa, 1280x720)
+[  586 s] menu ready on ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)
+[  859 s] GARAGE & SETTINGS → ultra
+[ 1389 s] preset applied
+[ 1389 s] session: poggio-alto race 3 laps clear grid 8 start midfield machine gpr1
+[ 1392 s] rules: GP MOTORCYCLE SPRINT: no mandatory stop · DRS off · points scored.
+[ 2828 s] session bikes aborted: page.waitForFunction: Timeout 1200000ms exceeded.
+[ 2828 s] session bikes took 2243 s
+[ 2828 s] session valley aborted: page.evaluate: Target page, context or browser has been closed
+[ 2828 s] session valley took 0 s
+[ 2828 s] done: 0 shots, 2 failures → /tmp/claude-0/-home-user-Experiment-3/c20c3567-05b6-5daa-8126-ea386a6ddfeb/scratchpad/lookdev/ground/after2

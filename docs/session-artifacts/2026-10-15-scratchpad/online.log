@@ -1,0 +1,59 @@
+
+> apex-formula-laboratory@0.1.0 test:online
+> node --experimental-transform-types scripts/online-slice.ts
+
+[online-slice] phase grid at 0.49 s
+[online-slice] phase race at 1.99 s
+[online-slice] severed client 5 (car 5) at race time 20.01 s
+[online-slice] client 5 reconnecting with its token
+[online-slice] phase results at 77.70 s
+[online-slice] phase teardown at 79.70 s
+[online-slice] verifying the archived record by headless re-simulation
+[online-slice] verifying a forged copy (one lap 0.5 s faster)
+{
+  "bandwidthDownKbit": 60.04,
+  "bandwidthUpKbit": 27.79,
+  "predictionCleanM": {
+    "samples": 11747,
+    "mean": 0.042,
+    "p50": 0.0213,
+    "p95": 0.1456,
+    "p99": 0.2722,
+    "max": 0.9269
+  },
+  "correctionM": {
+    "samples": 11782,
+    "mean": 0.0381,
+    "p50": 0.0163,
+    "p95": 0.145,
+    "p99": 0.308,
+    "max": 2.0447
+  },
+  "remoteErrorM": {
+    "samples": 252651,
+    "mean": 0.0001,
+    "p50": 0.0001,
+    "p95": 0.0003,
+    "p99": 0.0006,
+    "max": 0.8274
+  },
+  "verification": true,
+  "forged": {
+    "attempted": true,
+    "rejected": true,
+    "reason": "car 0 lap 1: claimed 58.76412200384964 s, re-simulation gives 59.26412200384964 s"
+  },
+  "checks": {
+    "recordVerified": true,
+    "forgedLapTimeRejected": true,
+    "noProgressDisputes": true,
+    "rejoinRestoredControl": true,
+    "takeoverWithinTimeout": true,
+    "predictionCleanP95BelowHalfMetre": true,
+    "downlinkBelow100Kbit": true,
+    "noRejectedInputs": true,
+    "noOversizeMessages": true
+  }
+}
+(node:2308) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)

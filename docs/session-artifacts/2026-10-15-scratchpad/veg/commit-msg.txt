@@ -1,0 +1,30 @@
+feat(vegetation): photographic trees, shrubs and meadow grass from CC BY 4.0 plant models
+
+Replaces the procedural card crowns and cone conifers on HIGH and ULTRA
+with plants baked from the pbrt-v4 Landscape scene (Laubwerk; Jan-Walter
+Schliep, Burak Kahraman, Timm Dapper; CC BY 4.0, credited in-game with
+the modification stated):
+
+- Bake (scripts/assets/vegetation/, run by build-third-party.ts for the new
+  "vegetation" recipe): pbrt object + PLY + PNG reader, leaf-area-density
+  sky visibility through the crown, meshoptimizer trunks, a k-means
+  billboard cloud of 80-480 leaf cards per plant (colour+coverage and
+  tangent-normal+visibility atlases), eight impostor views, bark maps and
+  meadow-grass clump slabs; KTX2 (bottom-first rows) + WebP fallbacks.
+- Register: linden, horse chestnut, birch, rowan, two white firs, a
+  flowering shrub and meadow grass, every source file pinned with its
+  SHA-256; manifest and CREDITS regenerated.
+- Runtime (src/rendering/vegetation/): per-venue species from the sky
+  palette, PhotoForest instanced chunks with per-plant card/impostor
+  crossfade, cards turned half toward the eye, wind sway and flutter,
+  leaf transmission per shadowed light, baked crown occlusion, contact
+  discs under crowns, alpha-to-coverage, light-facing impostors in the
+  far shadow map; meadow grass along both barriers of every grass venue.
+- Wired into circuits (Aurel layout, catalogue kits incl. off-road),
+  forest belts, venue-kit shrubs and the festival tiles; LOW, MEDIUM and
+  failed loads keep the procedural planting.
+- Tests: tests/photo-vegetation.test.ts; docs: ASSET_PROVENANCE, D15 and
+  risks, RENDERING_PIPELINE section 8b, STATUS_REGISTER.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01RN7q935R3iepiRcM32D9uW

@@ -1,0 +1,12 @@
+=== lint
+=== lint EXIT 0
+=== build
+=== build EXIT 0
+=== validate:content
+=== validate:content EXIT 0
+=== test:open-world
+=== test:open-world EXIT 0
+=== test
+=== test EXIT 0
+=== test:physics
+=== test:physics EXIT 0

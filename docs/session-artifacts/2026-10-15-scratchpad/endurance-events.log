@@ -1,0 +1,15 @@
+
+> apex-formula-laboratory@0.1.0 test:endurance-events
+> node --experimental-transform-types scripts/endurance-event-races.ts
+
+(node:22109) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:22124) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:22125) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:22131) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS kansai-endurance           5807 m 1438.54 s SC 0 (0 s) recoveries 0 
+PASS hochwald-multi-class       20832 m 3383.34 s SC 0 (0 s) recoveries 0 
+PASS loirette-dusk-endurance    13626 m 4153.1 s SC 0 (0 s) recoveries 0 

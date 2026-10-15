@@ -1,0 +1,32 @@
+{
+  "suite": "APEX feature showcase (live application)",
+  "url": "http://127.0.0.1:5392/",
+  "repo": "/home/user/Experiment-3/.claude/worktrees/wf_1ec31848-637-2",
+  "size": {
+    "width": 1280,
+    "height": 720
+  },
+  "preset": "ultra",
+  "backend": "mesa",
+  "sessions": [
+    "bikes",
+    "valley"
+  ],
+  "startedAt": "2026-10-15T21:01:48.060Z",
+  "shots": [],
+  "failures": [
+    {
+      "id": "bikes",
+      "attempt": 1,
+      "message": "page.waitForFunction: Timeout 1200000ms exceeded.\n    at wf (/tmp/claude-0/-home-user-Experiment-3/c20c3567-05b6-5daa-8126-ea386a6ddfeb/scratchpad/showcase/showcase.mjs:113:36)\n    at startRace (/tmp/claude-0/-home-user-Experiment-3/c20c3567-05b6-5daa-8126-ea386a6ddfeb/scratchpad/showcase/showcase.mjs:439:9)\n    at async bikes (/tmp/claude-0/-home-user-Experiment-3/c20c3567-05b6-5daa-8126-ea386a6ddfeb/scratchpad/showcase/showcase.mjs:573:3)\n    at async file:///tmp/claude-0/-home-user-Experiment-3/c20c3567-05b6-5daa-8126-ea386a6ddfeb/scratchpad/showcase/showcase.mjs:886:9"
+    },
+    {
+      "id": "valley",
+      "attempt": 1,
+      "message": "page.evaluate: Target page, context or browser has been closed\n    at snap (/tmp/claude-0/-home-user-Experiment-3/c20c3567-05b6-5daa-8126-ea386a6ddfeb/scratchpad/showcase/showcase.mjs:126:15)\n    at toPaddock (/tmp/claude-0/-home-user-Experiment-3/c20c3567-05b6-5daa-8126-ea386a6ddfeb/scratchpad/showcase/showcase.mjs:415:20)\n    at startRace (/tmp/claude-0/-home-user-Experiment-3/c20c3567-05b6-5daa-8126-ea386a6ddfeb/scratchpad/showcase/showcase.mjs:425:9)\n    at valley (/tmp/claude-0/-home-user-Experiment-3/c20c3567-05b6-5daa-8126-ea386a6ddfeb/scratchpad/showcase/showcase.mjs:825:9)\n    at /tmp/claude-0/-home-user-Experiment-3/c20c3567-05b6-5daa-8126-ea386a6ddfeb/scratchpad/showcase/showcase.mjs:886:15"
+    }
+  ],
+  "consoleErrors": [],
+  "gl": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+  "finishedAt": "2026-10-15T21:48:56.425Z"
+}

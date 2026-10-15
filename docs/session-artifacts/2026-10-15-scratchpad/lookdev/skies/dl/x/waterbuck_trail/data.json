@@ -1,0 +1,35 @@
+{
+    "asset_type": "Texture",
+    "id": "waterbuck_trail",
+    "kwargs": {
+        "filename": "environment_4k.hdr"
+    },
+    "license": "CC0 1.0",
+    "metadata": {
+        "authors": [
+            "Greg Zaal"
+        ],
+        "categories": [
+            "outdoor",
+            "skies",
+            "nature",
+            "midday",
+            "overcast",
+            "low contrast",
+            "natural light"
+        ],
+        "coords": [
+            -24.857558,
+            30.679505
+        ],
+        "date_taken": 1479559200,
+        "resolution": "4k",
+        "tags": [
+            "rock",
+            "tree",
+            "mountain",
+            "hill",
+            "valley"
+        ]
+    }
+}

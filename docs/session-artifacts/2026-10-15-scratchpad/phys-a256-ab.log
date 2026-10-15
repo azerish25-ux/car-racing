@@ -1,0 +1,10 @@
+round 1 load 9.35
+integration wall 7.643 cpu 4.178 vehicle 6.407 us/car-substep 160.2 retired 0
+merged wall 6.615 cpu 4.688 vehicle 5.454 us/car-substep 136.3 retired 0
+round 2 load 8.33
+integration wall 4.317 cpu 4.174 vehicle 3.573 us/car-substep 89.3 retired 0
+merged wall 4.947 cpu 4.852 vehicle 4.101 us/car-substep 102.5 retired 0
+round 3 load 5.88
+integration wall 4.192 cpu 4.124 vehicle 3.480 us/car-substep 87.0 retired 0
+merged wall 4.770 cpu 4.676 vehicle 3.962 us/car-substep 99.0 retired 0
+DONE

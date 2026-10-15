@@ -1,0 +1,13 @@
+feat(offroad): dirt bikes, deformable course terrain, venues and formats
+
+Adds the off-road simulation core: the MX-450, MX-250 and SM-450 on the
+bike adapter with long-travel sprung chassis, airborne pitch control and
+landing judgement; a track-frame deformable terrain that ruts per
+contact and resets per session; four original venues (outdoor
+motocross, indoor supercross, rallycross with a joker road, a gravel
+special stage); gate starts, joker counting and staggered stage timing
+in an off-road session; dirt-bike and gravel-car AI hooks; snapshot
+protocol v13 off-road block.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01RN7q935R3iepiRcM32D9uW

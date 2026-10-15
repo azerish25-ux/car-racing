@@ -1,0 +1,16 @@
+(node:10281) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+[    0 s] open http://127.0.0.1:47811/ (mesa, 1280x720)
+[   94 s] menu ready on ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)
+[   94 s] GARAGE & SETTINGS → ultra
+[  139 s] preset applied
+[  139 s] session: festival (open world)
+[  296 s] festival loaded at Port Ilse
+[  381 s] captured 08-festival-port-ilse-golden-hour.png
+[  415 s] captured 09-festival-world-map.png
+[  415 s] festival autopilot on, driving
+[  522 s] captured 09b-festival-drive-1.png
+[  617 s] captured 09b-festival-drive-2.png
+[  707 s] captured 09b-festival-drive-3.png
+[  708 s] session festival took 613 s
+[  710 s] done: 5 shots, 0 failures → /tmp/claude-0/-home-user-Experiment-3/c20c3567-05b6-5daa-8126-ea386a6ddfeb/scratchpad/lookdev/skies/before-festival

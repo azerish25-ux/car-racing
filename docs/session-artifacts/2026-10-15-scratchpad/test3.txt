@@ -1,0 +1,48 @@
+
+ RUN  v3.2.4 /home/user/Experiment-3/.claude/worktrees/wf_9577868e-cce-1
+
+ ✓ tests/menu-presentation.test.ts (8 tests) 11ms
+ ✓ tests/preparation.test.ts (4 tests) 8ms
+ ✓ tests/championship.test.ts (5 tests) 22ms
+ ✓ tests/skid-contact.test.ts (13 tests) 27ms
+ ✓ tests/shadow-grounding.test.ts (6 tests) 13ms
+ ✓ tests/spatial-audio.test.ts (8 tests) 8ms
+ ✓ tests/content-import.test.ts (2 tests) 8ms
+ ✓ tests/infrastructure-render-budget.test.ts (17 tests) 13ms
+ ✓ tests/build-queue.test.ts (5 tests) 9ms
+ ✓ tests/secondary-stand-camera.test.ts (4 tests) 7ms
+ ✓ tests/browser-backend.test.ts (3 tests) 7ms
+ ✓ tests/frontend-retail.test.ts (3 tests) 13ms
+ ✓ tests/wet-detail.test.ts (2 tests) 6ms
+ ✓ tests/lap-reference.test.ts (5 tests) 7ms
+ ✓ tests/replay-presentation.test.ts (4 tests) 10ms
+ ✓ tests/secondary-stand-capture.test.ts (3 tests) 8ms
+ ✓ tests/machine-options.test.ts (4 tests) 7ms
+ ✓ tests/pixel-difference.test.ts (6 tests) 11ms
+ ✓ tests/rumble.test.ts (2 tests) 5ms
+ ✓ tests/exposure-key.test.ts (3 tests) 10ms
+ ✓ tests/directive.test.ts (1 test) 6ms
+ ✓ tests/audio.test.ts (5 tests) 8ms
+ ✓ tests/render-census.test.ts (1 test) 6ms
+ ✓ tests/review-hardware.test.ts (3 tests) 6ms
+ ✓ tests/barrier-lookdev.test.ts (1 test) 5ms
+ ✓ tests/specular-aa.test.ts (2 tests) 5ms
+ ✓ tests/pit-replay-selection.test.ts (3 tests) 16ms
+ ✓ tests/glazing.test.ts (1 test) 9ms
+ ✓ tests/draw-ledger.test.ts (2 tests) 6ms
+ ✓ tests/power-unit-audio.test.ts (4 tests) 7ms
+ ✓ tests/instruments.test.ts (4 tests) 3ms
+ ✓ tests/gpu-timer.test.ts (7 tests) 8ms
+ ✓ tests/shadow-substitution.test.ts (1 test) 7ms
+ ✓ tests/spray-plume.test.ts (1 test) 3ms
+ ✓ tests/event-cards.test.ts (1 test) 4ms
+ ✓ tests/steering-display.test.ts (2 tests) 4ms
+ ✓ tests/crew-kit.test.ts (1 test) 7ms
+ ✓ tests/printed-panels.test.ts (1 test) 5ms
+
+ Test Files  38 passed (38)
+      Tests  148 passed (148)
+   Start at  07:21:00
+   Duration  52.79s (transform 8.08s, setup 0ms, collect 27.06s, tests 327ms, environment 9ms, prepare 5.94s)
+
+exit 0

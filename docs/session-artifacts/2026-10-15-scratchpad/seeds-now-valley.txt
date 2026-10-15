@@ -1,0 +1,3 @@
+NOW {"venue":"valley","seed":52002,"mean":0.542,"crashes":[3,1,3,0,1,1,1,3],"causes":{"crash-flat":3,"crash-front":5,"contact":3,"loop-out":1},"finished":true}
+NOW {"venue":"valley","seed":63003,"mean":0.375,"crashes":[2,1,1,3,1,0,0,1],"causes":{"grip-lowside":1,"loop-out":3,"contact":4,"crash-front":1},"finished":true}
+NOW {"venue":"valley","seed":41001,"mean":0.583,"crashes":[1,2,1,1,1,4,1,3],"causes":{"contact":5,"crash-front":2,"crash-flat":1,"crash-rear":1,"loop-out":3,"grip-lowside":2},"finished":true}

@@ -1,0 +1,8 @@
+test:offroad exit 0
+validate:content exit 0
+test:vehicles exit 0
+test:bikes exit 0
+test:physics exit 0
+build exit 0
+test exit 1
+ALL DONE

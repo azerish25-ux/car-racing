@@ -1,0 +1,1470 @@
+{
+  "suite": "APEX art-direction capture suite (live application)",
+  "url": "http://127.0.0.1:37483/",
+  "repo": "/home/user/Experiment-3/.claude/worktrees/wf_ef3f8a4a-fe2-5",
+  "size": {
+    "width": 960,
+    "height": 540
+  },
+  "preset": "ultra",
+  "backend": "mesa",
+  "startedAt": "2026-10-15T17:24:51.465Z",
+  "shots": [
+    {
+      "id": "03",
+      "slug": "side-by-side",
+      "file": "03-side-by-side.png",
+      "asSeen": null,
+      "notes": "live chase camera, car 7 alongside (gap 10.1 m, 33 km/h)",
+      "player": {
+        "speedKmh": 32.9,
+        "s": 2918.1,
+        "lap": 0,
+        "pitPhase": 0,
+        "brake": 0
+      },
+      "build": {
+        "commit": "1a6a954c0d1296cdb6d015315b6d5b4c5eb21d91",
+        "fingerprint": "1eab2f3ae57a97bc7f84649e0ef8c7e2d5c2846c357c03d70e5997ef8a3a5a76"
+      },
+      "state": "paused",
+      "options": {
+        "mode": "race",
+        "laps": 10,
+        "opponents": 11,
+        "weather": "clear",
+        "assist": "sport",
+        "compound": "medium",
+        "setup": {
+          "frontWing": 0.55,
+          "rearWing": 0.58,
+          "brakeBias": 0.56,
+          "diffPower": 0.5,
+          "diffCoast": 0.25,
+          "frontSpring": 115000,
+          "rearSpring": 125000,
+          "frontARB": 26000,
+          "rearARB": 21000,
+          "frontRide": 0.065,
+          "rearRide": 0.075,
+          "frontPressure": 155,
+          "rearPressure": 148,
+          "frontCamber": -0.044,
+          "rearCamber": -0.023,
+          "frontToe": -0.001,
+          "rearToe": 0.002
+        },
+        "seed": 73021,
+        "circuit": "aurel",
+        "grid": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          0,
+          7,
+          8,
+          9,
+          10,
+          11
+        ]
+      },
+      "presentedTime": 7.474999904632568,
+      "replayPosition": null,
+      "renderer": {
+        "camera": "chase",
+        "requestedCamera": "chase",
+        "lighting": "day",
+        "renderWidth": 960,
+        "renderHeight": 540,
+        "automaticExposure": {
+          "active": true,
+          "ev": 0,
+          "targetEV": 0.85,
+          "samples": 1,
+          "pending": false,
+          "failedReads": 0,
+          "lastError": null,
+          "samplePixels": 192,
+          "maximumSampleHz": 4
+        },
+        "weatherPresentation": {
+          "source": "presented-snapshot",
+          "dampness": 0,
+          "time": 7.474999904632568,
+          "rain": 0,
+          "meanWater": 0,
+          "materialRoles": {
+            "fabric": 258,
+            "paint": 22,
+            "metal": 16,
+            "concrete": 2,
+            "stone": 7,
+            "grass": 3,
+            "foliage": 4,
+            "paving": 2,
+            "timber": 2,
+            "kerb": 1,
+            "gravel": 1
+          },
+          "roadMaterials": 2,
+          "offTrackWetness": "mean-track-water-and-rain approximation",
+          "extraTextures": 0,
+          "extraDraws": 0
+        },
+        "photo": null,
+        "drawCalls": 2023,
+        "triangles": 12200849,
+        "ultra": {
+          "preset": "ultra",
+          "tier": "high",
+          "unsupported": [],
+          "toneMapper": "agx",
+          "ssrFrames": 7,
+          "aoTemporalFrames": 0,
+          "taaSharpenFrames": 0,
+          "lightShafts": {
+            "wanted": true,
+            "active": false,
+            "strength": 0,
+            "sunScreen": [
+              0.5,
+              0.5
+            ],
+            "frames": 0,
+            "resolution": [
+              240,
+              135
+            ],
+            "extraDraws": 0
+          },
+          "replayDof": {
+            "enabled": false,
+            "focus": 4.61268608838715,
+            "backgroundBlur": 0.0012503358741900593,
+            "fNumber": 2.8,
+            "taps": 48,
+            "frames": 1,
+            "extraDraws": 0
+          },
+          "cascades": 3
+        }
+      },
+      "capturedAt": "2026-10-15T17:27:29.138Z"
+    },
+    {
+      "id": "06",
+      "slug": "night-traffic",
+      "file": "06-night-traffic.png",
+      "asSeen": null,
+      "notes": "ACADEMY NIGHT, chase camera, 1 cars 5-100 m ahead when held",
+      "player": {
+        "speedKmh": 132.7,
+        "s": 27.2,
+        "lap": 0,
+        "pitPhase": 0,
+        "brake": 0
+      },
+      "build": {
+        "commit": "1a6a954c0d1296cdb6d015315b6d5b4c5eb21d91",
+        "fingerprint": "1eab2f3ae57a97bc7f84649e0ef8c7e2d5c2846c357c03d70e5997ef8a3a5a76"
+      },
+      "state": "paused",
+      "options": {
+        "mode": "race",
+        "laps": 10,
+        "opponents": 11,
+        "weather": "clear",
+        "assist": "sport",
+        "compound": "medium",
+        "setup": {
+          "frontWing": 0.55,
+          "rearWing": 0.58,
+          "brakeBias": 0.56,
+          "diffPower": 0.5,
+          "diffCoast": 0.25,
+          "frontSpring": 115000,
+          "rearSpring": 125000,
+          "frontARB": 26000,
+          "rearARB": 21000,
+          "frontRide": 0.065,
+          "rearRide": 0.075,
+          "frontPressure": 155,
+          "rearPressure": 148,
+          "frontCamber": -0.044,
+          "rearCamber": -0.023,
+          "frontToe": -0.001,
+          "rearToe": 0.002
+        },
+        "seed": 73021,
+        "circuit": "aurel",
+        "grid": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          0,
+          7,
+          8,
+          9,
+          10,
+          11
+        ]
+      },
+      "presentedTime": 11.858333587646484,
+      "replayPosition": null,
+      "renderer": {
+        "camera": "chase",
+        "requestedCamera": "chase",
+        "lighting": "night",
+        "renderWidth": 960,
+        "renderHeight": 540,
+        "automaticExposure": {
+          "active": true,
+          "ev": 0,
+          "targetEV": -0.33910230731791036,
+          "samples": 1,
+          "pending": false,
+          "failedReads": 0,
+          "lastError": null,
+          "samplePixels": 192,
+          "maximumSampleHz": 4
+        },
+        "weatherPresentation": {
+          "source": "presented-snapshot",
+          "dampness": 0,
+          "time": 11.858333587646484,
+          "rain": 0,
+          "meanWater": 0,
+          "materialRoles": {
+            "fabric": 258,
+            "paint": 22,
+            "metal": 16,
+            "concrete": 2,
+            "stone": 7,
+            "grass": 3,
+            "foliage": 4,
+            "paving": 2,
+            "timber": 2,
+            "kerb": 1,
+            "gravel": 1
+          },
+          "roadMaterials": 2,
+          "offTrackWetness": "mean-track-water-and-rain approximation",
+          "extraTextures": 0,
+          "extraDraws": 0
+        },
+        "photo": null,
+        "drawCalls": 1570,
+        "triangles": 11241170,
+        "ultra": {
+          "preset": "ultra",
+          "tier": "high",
+          "unsupported": [],
+          "toneMapper": "agx",
+          "ssrFrames": 13,
+          "aoTemporalFrames": 0,
+          "taaSharpenFrames": 0,
+          "lightShafts": {
+            "wanted": true,
+            "active": false,
+            "strength": 0,
+            "sunScreen": [
+              0.5,
+              0.5
+            ],
+            "frames": 0,
+            "resolution": [
+              240,
+              135
+            ],
+            "extraDraws": 0
+          },
+          "replayDof": {
+            "enabled": false,
+            "focus": 4.61268608838715,
+            "backgroundBlur": 0.0012503358741900593,
+            "fNumber": 2.8,
+            "taps": 48,
+            "frames": 1,
+            "extraDraws": 0
+          },
+          "cascades": 3
+        }
+      },
+      "capturedAt": "2026-10-15T17:28:56.313Z"
+    },
+    {
+      "id": "02",
+      "slug": "chase-main-straight",
+      "file": "02-chase-main-straight.png",
+      "asSeen": null,
+      "notes": "live chase camera, start/finish straight after the line, above 216 km/h",
+      "player": {
+        "speedKmh": 293.8,
+        "s": 134.5,
+        "lap": 1,
+        "pitPhase": 0,
+        "brake": 0
+      },
+      "build": {
+        "commit": "1a6a954c0d1296cdb6d015315b6d5b4c5eb21d91",
+        "fingerprint": "1eab2f3ae57a97bc7f84649e0ef8c7e2d5c2846c357c03d70e5997ef8a3a5a76"
+      },
+      "state": "paused",
+      "options": {
+        "mode": "race",
+        "laps": 10,
+        "opponents": 11,
+        "weather": "clear",
+        "assist": "sport",
+        "compound": "medium",
+        "setup": {
+          "frontWing": 0.55,
+          "rearWing": 0.58,
+          "brakeBias": 0.56,
+          "diffPower": 0.5,
+          "diffCoast": 0.25,
+          "frontSpring": 115000,
+          "rearSpring": 125000,
+          "frontARB": 26000,
+          "rearARB": 21000,
+          "frontRide": 0.065,
+          "rearRide": 0.075,
+          "frontPressure": 155,
+          "rearPressure": 148,
+          "frontCamber": -0.044,
+          "rearCamber": -0.023,
+          "frontToe": -0.001,
+          "rearToe": 0.002
+        },
+        "seed": 73021,
+        "circuit": "aurel",
+        "grid": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          0,
+          7,
+          8,
+          9,
+          10,
+          11
+        ]
+      },
+      "presentedTime": 70.04166412353516,
+      "replayPosition": null,
+      "renderer": {
+        "camera": "chase",
+        "requestedCamera": "chase",
+        "lighting": "day",
+        "renderWidth": 960,
+        "renderHeight": 540,
+        "automaticExposure": {
+          "active": true,
+          "ev": 0,
+          "targetEV": 0.2980615576420162,
+          "samples": 1,
+          "pending": false,
+          "failedReads": 0,
+          "lastError": null,
+          "samplePixels": 192,
+          "maximumSampleHz": 4
+        },
+        "weatherPresentation": {
+          "source": "presented-snapshot",
+          "dampness": 0,
+          "time": 70.04166412353516,
+          "rain": 0,
+          "meanWater": 0,
+          "materialRoles": {
+            "fabric": 258,
+            "paint": 22,
+            "metal": 16,
+            "concrete": 2,
+            "stone": 7,
+            "grass": 3,
+            "foliage": 4,
+            "paving": 2,
+            "timber": 2,
+            "kerb": 1,
+            "gravel": 1
+          },
+          "roadMaterials": 2,
+          "offTrackWetness": "mean-track-water-and-rain approximation",
+          "extraTextures": 0,
+          "extraDraws": 0
+        },
+        "photo": null,
+        "drawCalls": 900,
+        "triangles": 6144274,
+        "ultra": {
+          "preset": "ultra",
+          "tier": "high",
+          "unsupported": [],
+          "toneMapper": "agx",
+          "ssrFrames": 24,
+          "aoTemporalFrames": 0,
+          "taaSharpenFrames": 0,
+          "lightShafts": {
+            "wanted": true,
+            "active": false,
+            "strength": 0,
+            "sunScreen": [
+              0.5,
+              0.5
+            ],
+            "frames": 0,
+            "resolution": [
+              240,
+              135
+            ],
+            "extraDraws": 0
+          },
+          "replayDof": {
+            "enabled": false,
+            "focus": 4.61268608838715,
+            "backgroundBlur": 0.0012503358741900593,
+            "fNumber": 2.8,
+            "taps": 48,
+            "frames": 1,
+            "extraDraws": 0
+          },
+          "cascades": 3
+        }
+      },
+      "capturedAt": "2026-10-15T17:31:03.769Z"
+    },
+    {
+      "id": "07",
+      "slug": "pit-service",
+      "file": "07-pit-service.png",
+      "asSeen": null,
+      "notes": "pit assist, paused in the box during service (pit phase 2-5), chase camera",
+      "player": {
+        "speedKmh": 0,
+        "s": 100.1,
+        "lap": 2,
+        "pitPhase": 2,
+        "brake": 1
+      },
+      "build": {
+        "commit": "1a6a954c0d1296cdb6d015315b6d5b4c5eb21d91",
+        "fingerprint": "1eab2f3ae57a97bc7f84649e0ef8c7e2d5c2846c357c03d70e5997ef8a3a5a76"
+      },
+      "state": "paused",
+      "options": {
+        "mode": "race",
+        "laps": 10,
+        "opponents": 11,
+        "weather": "clear",
+        "assist": "sport",
+        "compound": "medium",
+        "setup": {
+          "frontWing": 0.55,
+          "rearWing": 0.58,
+          "brakeBias": 0.56,
+          "diffPower": 0.5,
+          "diffCoast": 0.25,
+          "frontSpring": 115000,
+          "rearSpring": 125000,
+          "frontARB": 26000,
+          "rearARB": 21000,
+          "frontRide": 0.065,
+          "rearRide": 0.075,
+          "frontPressure": 155,
+          "rearPressure": 148,
+          "frontCamber": -0.044,
+          "rearCamber": -0.023,
+          "frontToe": -0.001,
+          "rearToe": 0.002
+        },
+        "seed": 73021,
+        "circuit": "aurel",
+        "grid": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          0,
+          7,
+          8,
+          9,
+          10,
+          11
+        ]
+      },
+      "presentedTime": 147.5500030517578,
+      "replayPosition": null,
+      "renderer": {
+        "camera": "chase",
+        "requestedCamera": "chase",
+        "lighting": "day",
+        "renderWidth": 960,
+        "renderHeight": 540,
+        "automaticExposure": {
+          "active": true,
+          "ev": 0,
+          "targetEV": 0.2510027341126046,
+          "samples": 1,
+          "pending": false,
+          "failedReads": 0,
+          "lastError": null,
+          "samplePixels": 192,
+          "maximumSampleHz": 4
+        },
+        "weatherPresentation": {
+          "source": "presented-snapshot",
+          "dampness": 0,
+          "time": 147.5500030517578,
+          "rain": 0,
+          "meanWater": 0,
+          "materialRoles": {
+            "fabric": 258,
+            "paint": 22,
+            "metal": 16,
+            "concrete": 2,
+            "stone": 7,
+            "grass": 3,
+            "foliage": 4,
+            "paving": 2,
+            "timber": 2,
+            "kerb": 1,
+            "gravel": 1
+          },
+          "roadMaterials": 2,
+          "offTrackWetness": "mean-track-water-and-rain approximation",
+          "extraTextures": 0,
+          "extraDraws": 0
+        },
+        "photo": null,
+        "drawCalls": 1070,
+        "triangles": 7692215,
+        "ultra": {
+          "preset": "ultra",
+          "tier": "high",
+          "unsupported": [],
+          "toneMapper": "agx",
+          "ssrFrames": 37,
+          "aoTemporalFrames": 0,
+          "taaSharpenFrames": 0,
+          "lightShafts": {
+            "wanted": true,
+            "active": false,
+            "strength": 0,
+            "sunScreen": [
+              0.5,
+              0.5
+            ],
+            "frames": 0,
+            "resolution": [
+              240,
+              135
+            ],
+            "extraDraws": 0
+          },
+          "replayDof": {
+            "enabled": false,
+            "focus": 4.61268608838715,
+            "backgroundBlur": 0.0012503358741900593,
+            "fNumber": 2.8,
+            "taps": 48,
+            "frames": 1,
+            "extraDraws": 0
+          },
+          "cascades": 3
+        }
+      },
+      "capturedAt": "2026-10-15T17:33:20.733Z"
+    },
+    {
+      "id": "01",
+      "slug": "cockpit-pit-exit",
+      "file": "01-cockpit-pit-exit.png",
+      "asSeen": null,
+      "notes": "cockpit camera, released from the box, pit-lane speed",
+      "player": {
+        "speedKmh": 46.7,
+        "s": 109.5,
+        "lap": 2,
+        "pitPhase": 6,
+        "brake": 0
+      },
+      "build": {
+        "commit": "1a6a954c0d1296cdb6d015315b6d5b4c5eb21d91",
+        "fingerprint": "1eab2f3ae57a97bc7f84649e0ef8c7e2d5c2846c357c03d70e5997ef8a3a5a76"
+      },
+      "state": "paused",
+      "options": {
+        "mode": "race",
+        "laps": 10,
+        "opponents": 11,
+        "weather": "clear",
+        "assist": "sport",
+        "compound": "medium",
+        "setup": {
+          "frontWing": 0.55,
+          "rearWing": 0.58,
+          "brakeBias": 0.56,
+          "diffPower": 0.5,
+          "diffCoast": 0.25,
+          "frontSpring": 115000,
+          "rearSpring": 125000,
+          "frontARB": 26000,
+          "rearARB": 21000,
+          "frontRide": 0.065,
+          "rearRide": 0.075,
+          "frontPressure": 155,
+          "rearPressure": 148,
+          "frontCamber": -0.044,
+          "rearCamber": -0.023,
+          "frontToe": -0.001,
+          "rearToe": 0.002
+        },
+        "seed": 73021,
+        "circuit": "aurel",
+        "grid": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          0,
+          7,
+          8,
+          9,
+          10,
+          11
+        ]
+      },
+      "presentedTime": 153.68333435058594,
+      "replayPosition": null,
+      "renderer": {
+        "camera": "cockpit",
+        "requestedCamera": "cockpit",
+        "lighting": "day",
+        "renderWidth": 960,
+        "renderHeight": 540,
+        "automaticExposure": {
+          "active": true,
+          "ev": 0,
+          "targetEV": 0.4392380282302519,
+          "samples": 1,
+          "pending": false,
+          "failedReads": 0,
+          "lastError": null,
+          "samplePixels": 192,
+          "maximumSampleHz": 4
+        },
+        "weatherPresentation": {
+          "source": "presented-snapshot",
+          "dampness": 0,
+          "time": 153.68333435058594,
+          "rain": 0,
+          "meanWater": 0,
+          "materialRoles": {
+            "fabric": 258,
+            "paint": 22,
+            "metal": 16,
+            "concrete": 2,
+            "stone": 7,
+            "grass": 3,
+            "foliage": 4,
+            "paving": 2,
+            "timber": 2,
+            "kerb": 1,
+            "gravel": 1
+          },
+          "roadMaterials": 2,
+          "offTrackWetness": "mean-track-water-and-rain approximation",
+          "extraTextures": 0,
+          "extraDraws": 0
+        },
+        "photo": null,
+        "drawCalls": 1094,
+        "triangles": 9018680,
+        "ultra": {
+          "preset": "ultra",
+          "tier": "high",
+          "unsupported": [],
+          "toneMapper": "agx",
+          "ssrFrames": 42,
+          "aoTemporalFrames": 0,
+          "taaSharpenFrames": 0,
+          "lightShafts": {
+            "wanted": true,
+            "active": false,
+            "strength": 0,
+            "sunScreen": [
+              0.5,
+              0.5
+            ],
+            "frames": 0,
+            "resolution": [
+              240,
+              135
+            ],
+            "extraDraws": 0
+          },
+          "replayDof": {
+            "enabled": false,
+            "focus": 4.61268608838715,
+            "backgroundBlur": 0.0012503358741900593,
+            "fNumber": 2.8,
+            "taps": 48,
+            "frames": 1,
+            "extraDraws": 0
+          },
+          "cascades": 3
+        }
+      },
+      "capturedAt": "2026-10-15T17:34:08.600Z"
+    },
+    {
+      "id": "09",
+      "slug": "close-photo",
+      "file": "09-close-photo.png",
+      "notes": "PHOTO STUDIO free orbit (az 32, el 8, 8 m, 50 mm, DOF on subject), DOWNLOAD PNG export",
+      "build": {
+        "commit": "1a6a954c0d1296cdb6d015315b6d5b4c5eb21d91",
+        "fingerprint": "1eab2f3ae57a97bc7f84649e0ef8c7e2d5c2846c357c03d70e5997ef8a3a5a76"
+      },
+      "state": "photo",
+      "options": {
+        "mode": "race",
+        "laps": 10,
+        "opponents": 11,
+        "weather": "clear",
+        "assist": "sport",
+        "compound": "medium",
+        "setup": {
+          "frontWing": 0.55,
+          "rearWing": 0.58,
+          "brakeBias": 0.56,
+          "diffPower": 0.5,
+          "diffCoast": 0.25,
+          "frontSpring": 115000,
+          "rearSpring": 125000,
+          "frontARB": 26000,
+          "rearARB": 21000,
+          "frontRide": 0.065,
+          "rearRide": 0.075,
+          "frontPressure": 155,
+          "rearPressure": 148,
+          "frontCamber": -0.044,
+          "rearCamber": -0.023,
+          "frontToe": -0.001,
+          "rearToe": 0.002
+        },
+        "seed": 73021,
+        "circuit": "aurel",
+        "grid": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          0,
+          7,
+          8,
+          9,
+          10,
+          11
+        ]
+      },
+      "presentedTime": 153.68333435058594,
+      "replayPosition": null,
+      "renderer": {
+        "camera": "chase",
+        "requestedCamera": "chase",
+        "lighting": "day",
+        "renderWidth": 960,
+        "renderHeight": 540,
+        "automaticExposure": {
+          "active": false,
+          "ev": 0,
+          "targetEV": 0,
+          "samples": 0,
+          "pending": false,
+          "failedReads": 0,
+          "lastError": null,
+          "samplePixels": 192,
+          "maximumSampleHz": 4
+        },
+        "weatherPresentation": {
+          "source": "presented-snapshot",
+          "dampness": 0,
+          "time": 153.68333435058594,
+          "rain": 0,
+          "meanWater": 0,
+          "materialRoles": {
+            "fabric": 258,
+            "paint": 22,
+            "metal": 16,
+            "concrete": 2,
+            "stone": 7,
+            "grass": 3,
+            "foliage": 4,
+            "paving": 2,
+            "timber": 2,
+            "kerb": 1,
+            "gravel": 1
+          },
+          "roadMaterials": 2,
+          "offTrackWetness": "mean-track-water-and-rain approximation",
+          "extraTextures": 0,
+          "extraDraws": 0
+        },
+        "photo": {
+          "view": "orbit",
+          "azimuth": 32,
+          "elevation": 8,
+          "distance": 8,
+          "focalLength": 50,
+          "exposure": 0,
+          "roll": 0,
+          "target": 0,
+          "focusSubject": 0,
+          "backdrop": "circuit",
+          "depthOfField": true,
+          "focusMode": "subject",
+          "focusDistance": 8.5,
+          "fStop": 4,
+          "survey": "off",
+          "split": 0.5,
+          "filter": "neutral",
+          "vignette": 0.12,
+          "grain": 0,
+          "saturation": 1
+        },
+        "drawCalls": 642,
+        "triangles": 11514445,
+        "ultra": {
+          "preset": "ultra",
+          "tier": "high",
+          "unsupported": [],
+          "toneMapper": "agx",
+          "ssrFrames": 47,
+          "aoTemporalFrames": 0,
+          "taaSharpenFrames": 0,
+          "lightShafts": {
+            "wanted": true,
+            "active": false,
+            "strength": 0,
+            "sunScreen": [
+              -0.2876285092967802,
+              4.790628643373585
+            ],
+            "frames": 0,
+            "resolution": [
+              240,
+              135
+            ],
+            "extraDraws": 0
+          },
+          "replayDof": {
+            "enabled": false,
+            "focus": 4.61268608838715,
+            "backgroundBlur": 0.0012503358741900593,
+            "fNumber": 2.8,
+            "taps": 48,
+            "frames": 1,
+            "extraDraws": 0
+          },
+          "cascades": 3
+        }
+      },
+      "capturedAt": "2026-10-15T17:35:02.113Z"
+    },
+    {
+      "id": "08",
+      "slug": "replay-broadcast",
+      "file": "08-replay-broadcast.png",
+      "asSeen": "08-replay-broadcast-as-seen.png",
+      "notes": "WATCH REPLAY, held at replay 9.32 s, trackside (broadcast) camera; as-seen keeps letterbox and lower third",
+      "player": {
+        "speedKmh": 46.7,
+        "s": 109.5,
+        "lap": 2,
+        "pitPhase": 6,
+        "brake": 0
+      },
+      "build": {
+        "commit": "1a6a954c0d1296cdb6d015315b6d5b4c5eb21d91",
+        "fingerprint": "1eab2f3ae57a97bc7f84649e0ef8c7e2d5c2846c357c03d70e5997ef8a3a5a76"
+      },
+      "state": "replay",
+      "options": {
+        "mode": "race",
+        "laps": 10,
+        "opponents": 11,
+        "weather": "clear",
+        "assist": "sport",
+        "compound": "medium",
+        "setup": {
+          "frontWing": 0.55,
+          "rearWing": 0.58,
+          "brakeBias": 0.56,
+          "diffPower": 0.5,
+          "diffCoast": 0.25,
+          "frontSpring": 115000,
+          "rearSpring": 125000,
+          "frontARB": 26000,
+          "rearARB": 21000,
+          "frontRide": 0.065,
+          "rearRide": 0.075,
+          "frontPressure": 155,
+          "rearPressure": 148,
+          "frontCamber": -0.044,
+          "rearCamber": -0.023,
+          "frontToe": -0.001,
+          "rearToe": 0.002
+        },
+        "seed": 73021,
+        "circuit": "aurel",
+        "grid": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          0,
+          7,
+          8,
+          9,
+          10,
+          11
+        ]
+      },
+      "presentedTime": 9.386666297912598,
+      "replayPosition": 9.32,
+      "renderer": {
+        "camera": "trackside",
+        "requestedCamera": "trackside",
+        "lighting": "day",
+        "renderWidth": 960,
+        "renderHeight": 540,
+        "automaticExposure": {
+          "active": true,
+          "ev": 0,
+          "targetEV": 0,
+          "samples": 0,
+          "pending": true,
+          "failedReads": 0,
+          "lastError": null,
+          "samplePixels": 192,
+          "maximumSampleHz": 4
+        },
+        "weatherPresentation": {
+          "source": "presented-snapshot",
+          "dampness": 0,
+          "time": 9.386666297912598,
+          "rain": 0,
+          "meanWater": 0,
+          "materialRoles": {
+            "fabric": 258,
+            "paint": 22,
+            "metal": 16,
+            "concrete": 2,
+            "stone": 7,
+            "grass": 3,
+            "foliage": 4,
+            "paving": 2,
+            "timber": 2,
+            "kerb": 1,
+            "gravel": 1
+          },
+          "roadMaterials": 2,
+          "offTrackWetness": "mean-track-water-and-rain approximation",
+          "extraTextures": 0,
+          "extraDraws": 0
+        },
+        "photo": null,
+        "drawCalls": 4475,
+        "triangles": 36126490,
+        "ultra": {
+          "preset": "ultra",
+          "tier": "high",
+          "unsupported": [],
+          "toneMapper": "agx",
+          "ssrFrames": 52,
+          "aoTemporalFrames": 0,
+          "taaSharpenFrames": 0,
+          "lightShafts": {
+            "wanted": true,
+            "active": false,
+            "strength": 0,
+            "sunScreen": [
+              0.5,
+              0.5
+            ],
+            "frames": 0,
+            "resolution": [
+              240,
+              135
+            ],
+            "extraDraws": 0
+          },
+          "replayDof": {
+            "enabled": false,
+            "focus": 4.61268608838715,
+            "backgroundBlur": 0.0012503358741900593,
+            "fNumber": 2.8,
+            "taps": 48,
+            "frames": 1,
+            "extraDraws": 0
+          },
+          "cascades": 3
+        }
+      },
+      "capturedAt": "2026-10-15T17:35:47.983Z"
+    },
+    {
+      "id": "05",
+      "slug": "sunset-into-sun",
+      "file": "05-sunset-into-sun.png",
+      "asSeen": null,
+      "notes": "ACADEMY SUNSET, live chase camera heading within 26° of the low sun",
+      "player": {
+        "speedKmh": 131.2,
+        "s": 1355,
+        "lap": 2,
+        "pitPhase": 0,
+        "brake": 0.23
+      },
+      "build": {
+        "commit": "1a6a954c0d1296cdb6d015315b6d5b4c5eb21d91",
+        "fingerprint": "1eab2f3ae57a97bc7f84649e0ef8c7e2d5c2846c357c03d70e5997ef8a3a5a76"
+      },
+      "state": "paused",
+      "options": {
+        "mode": "race",
+        "laps": 10,
+        "opponents": 11,
+        "weather": "clear",
+        "assist": "sport",
+        "compound": "medium",
+        "setup": {
+          "frontWing": 0.55,
+          "rearWing": 0.58,
+          "brakeBias": 0.56,
+          "diffPower": 0.5,
+          "diffCoast": 0.25,
+          "frontSpring": 115000,
+          "rearSpring": 125000,
+          "frontARB": 26000,
+          "rearARB": 21000,
+          "frontRide": 0.065,
+          "rearRide": 0.075,
+          "frontPressure": 155,
+          "rearPressure": 148,
+          "frontCamber": -0.044,
+          "rearCamber": -0.023,
+          "frontToe": -0.001,
+          "rearToe": 0.002
+        },
+        "seed": 73021,
+        "circuit": "aurel",
+        "grid": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          0,
+          7,
+          8,
+          9,
+          10,
+          11
+        ]
+      },
+      "presentedTime": 212.85000610351562,
+      "replayPosition": null,
+      "renderer": {
+        "camera": "chase",
+        "requestedCamera": "chase",
+        "lighting": "sunset",
+        "renderWidth": 960,
+        "renderHeight": 540,
+        "automaticExposure": {
+          "active": true,
+          "ev": 0,
+          "targetEV": -0.29979111677144377,
+          "samples": 1,
+          "pending": false,
+          "failedReads": 0,
+          "lastError": null,
+          "samplePixels": 192,
+          "maximumSampleHz": 4
+        },
+        "weatherPresentation": {
+          "source": "presented-snapshot",
+          "dampness": 0,
+          "time": 212.85000610351562,
+          "rain": 0,
+          "meanWater": 0,
+          "materialRoles": {
+            "fabric": 258,
+            "paint": 22,
+            "metal": 16,
+            "concrete": 2,
+            "stone": 7,
+            "grass": 3,
+            "foliage": 4,
+            "paving": 2,
+            "timber": 2,
+            "kerb": 1,
+            "gravel": 1
+          },
+          "roadMaterials": 2,
+          "offTrackWetness": "mean-track-water-and-rain approximation",
+          "extraTextures": 0,
+          "extraDraws": 0
+        },
+        "photo": null,
+        "drawCalls": 1551,
+        "triangles": 6519808,
+        "ultra": {
+          "preset": "ultra",
+          "tier": "high",
+          "unsupported": [],
+          "toneMapper": "agx",
+          "ssrFrames": 60,
+          "aoTemporalFrames": 0,
+          "taaSharpenFrames": 0,
+          "lightShafts": {
+            "wanted": true,
+            "active": true,
+            "strength": 0.0695039998165369,
+            "sunScreen": [
+              0.36680339294399067,
+              0.8068079555628569
+            ],
+            "frames": 2,
+            "resolution": [
+              240,
+              135
+            ],
+            "extraDraws": 4
+          },
+          "replayDof": {
+            "enabled": false,
+            "focus": 4.61268608838715,
+            "backgroundBlur": 0.0012503358741900593,
+            "fNumber": 2.8,
+            "taps": 48,
+            "frames": 1,
+            "extraDraws": 0
+          },
+          "cascades": 3
+        }
+      },
+      "capturedAt": "2026-10-15T17:38:47.319Z"
+    },
+    {
+      "id": "04",
+      "slug": "wet-braking-turn1",
+      "file": "04-wet-braking-turn1.png",
+      "asSeen": null,
+      "notes": "heavy rain, live chase camera, turn-1 braking zone (first stop after the line): s 948 m, 208 km/h, brake 0.10",
+      "player": {
+        "speedKmh": 208,
+        "s": 948,
+        "lap": 0,
+        "pitPhase": 0,
+        "brake": 0.1
+      },
+      "build": {
+        "commit": "1a6a954c0d1296cdb6d015315b6d5b4c5eb21d91",
+        "fingerprint": "1eab2f3ae57a97bc7f84649e0ef8c7e2d5c2846c357c03d70e5997ef8a3a5a76"
+      },
+      "state": "paused",
+      "options": {
+        "mode": "race",
+        "laps": 3,
+        "opponents": 7,
+        "weather": "rain",
+        "assist": "sport",
+        "compound": "wet",
+        "setup": {
+          "frontWing": 0.55,
+          "rearWing": 0.58,
+          "brakeBias": 0.56,
+          "diffPower": 0.5,
+          "diffCoast": 0.25,
+          "frontSpring": 115000,
+          "rearSpring": 125000,
+          "frontARB": 26000,
+          "rearARB": 21000,
+          "frontRide": 0.065,
+          "rearRide": 0.075,
+          "frontPressure": 155,
+          "rearPressure": 148,
+          "frontCamber": -0.044,
+          "rearCamber": -0.023,
+          "frontToe": -0.001,
+          "rearToe": 0.002
+        },
+        "seed": 73021,
+        "circuit": "aurel",
+        "grid": [
+          1,
+          2,
+          3,
+          4,
+          0,
+          5,
+          6,
+          7
+        ]
+      },
+      "presentedTime": 29.975000381469727,
+      "replayPosition": null,
+      "renderer": {
+        "camera": "chase",
+        "requestedCamera": "chase",
+        "lighting": "day",
+        "renderWidth": 960,
+        "renderHeight": 540,
+        "automaticExposure": {
+          "active": true,
+          "ev": 0,
+          "targetEV": 0.413234849348012,
+          "samples": 1,
+          "pending": false,
+          "failedReads": 0,
+          "lastError": null,
+          "samplePixels": 192,
+          "maximumSampleHz": 4
+        },
+        "weatherPresentation": {
+          "source": "presented-snapshot",
+          "dampness": 1,
+          "time": 29.975000381469727,
+          "rain": 24,
+          "meanWater": 0.9295812249183655,
+          "materialRoles": {
+            "fabric": 258,
+            "paint": 22,
+            "metal": 16,
+            "concrete": 2,
+            "stone": 7,
+            "grass": 3,
+            "foliage": 4,
+            "paving": 2,
+            "timber": 2,
+            "kerb": 1,
+            "gravel": 1
+          },
+          "roadMaterials": 2,
+          "offTrackWetness": "mean-track-water-and-rain approximation",
+          "extraTextures": 0,
+          "extraDraws": 0
+        },
+        "photo": null,
+        "drawCalls": 736,
+        "triangles": 4967876,
+        "ultra": {
+          "preset": "ultra",
+          "tier": "high",
+          "unsupported": [],
+          "toneMapper": "agx",
+          "ssrFrames": 73,
+          "aoTemporalFrames": 0,
+          "taaSharpenFrames": 0,
+          "lightShafts": {
+            "wanted": true,
+            "active": false,
+            "strength": 0.0695039998165369,
+            "sunScreen": [
+              0.5,
+              0.5
+            ],
+            "frames": 5,
+            "resolution": [
+              240,
+              135
+            ],
+            "extraDraws": 0
+          },
+          "replayDof": {
+            "enabled": false,
+            "focus": 4.612686088387235,
+            "backgroundBlur": 0.0012503358741900359,
+            "fNumber": 2.8,
+            "taps": 48,
+            "frames": 2,
+            "extraDraws": 0
+          },
+          "cascades": 3
+        }
+      },
+      "capturedAt": "2026-10-15T17:42:33.618Z"
+    },
+    {
+      "id": "10",
+      "slug": "neon-city-night",
+      "file": "10-neon-city-night.png",
+      "asSeen": null,
+      "notes": "catalogue venue NEON CITY (night by venue), live chase camera, race traffic",
+      "player": {
+        "speedKmh": 222.3,
+        "s": 258.4,
+        "lap": 0,
+        "pitPhase": 0,
+        "brake": 0
+      },
+      "build": {
+        "commit": "1a6a954c0d1296cdb6d015315b6d5b4c5eb21d91",
+        "fingerprint": "1eab2f3ae57a97bc7f84649e0ef8c7e2d5c2846c357c03d70e5997ef8a3a5a76"
+      },
+      "state": "paused",
+      "options": {
+        "mode": "race",
+        "laps": 3,
+        "opponents": 7,
+        "weather": "clear",
+        "assist": "sport",
+        "compound": "wet",
+        "setup": {
+          "frontWing": 0.55,
+          "rearWing": 0.58,
+          "brakeBias": 0.56,
+          "diffPower": 0.5,
+          "diffCoast": 0.25,
+          "frontSpring": 115000,
+          "rearSpring": 125000,
+          "frontARB": 26000,
+          "rearARB": 21000,
+          "frontRide": 0.065,
+          "rearRide": 0.075,
+          "frontPressure": 155,
+          "rearPressure": 148,
+          "frontCamber": -0.044,
+          "rearCamber": -0.023,
+          "frontToe": -0.001,
+          "rearToe": 0.002
+        },
+        "seed": 73021,
+        "circuit": "neon-city",
+        "grid": [
+          1,
+          2,
+          3,
+          4,
+          0,
+          5,
+          6,
+          7
+        ]
+      },
+      "presentedTime": 16.524999618530273,
+      "replayPosition": null,
+      "renderer": {
+        "camera": "chase",
+        "requestedCamera": "chase",
+        "lighting": "night",
+        "renderWidth": 960,
+        "renderHeight": 540,
+        "automaticExposure": {
+          "active": true,
+          "ev": 0,
+          "targetEV": -0.7,
+          "samples": 1,
+          "pending": false,
+          "failedReads": 0,
+          "lastError": null,
+          "samplePixels": 192,
+          "maximumSampleHz": 4
+        },
+        "weatherPresentation": {
+          "source": "presented-snapshot",
+          "dampness": 0,
+          "time": 16.524999618530273,
+          "rain": 0,
+          "meanWater": 0,
+          "materialRoles": {
+            "fabric": 137,
+            "paint": 5,
+            "metal": 6,
+            "stone": 5,
+            "kerb": 1,
+            "concrete": 2,
+            "grass": 1
+          },
+          "roadMaterials": 2,
+          "offTrackWetness": "mean-track-water-and-rain approximation",
+          "extraTextures": 0,
+          "extraDraws": 0
+        },
+        "photo": null,
+        "drawCalls": 1128,
+        "triangles": 5381520,
+        "ultra": {
+          "preset": "ultra",
+          "tier": "high",
+          "unsupported": [],
+          "toneMapper": "agx",
+          "ssrFrames": 6,
+          "aoTemporalFrames": 0,
+          "taaSharpenFrames": 0,
+          "lightShafts": {
+            "wanted": true,
+            "active": false,
+            "strength": 0,
+            "sunScreen": [
+              0,
+              0
+            ],
+            "frames": 0,
+            "resolution": [
+              240,
+              135
+            ],
+            "extraDraws": 0
+          },
+          "replayDof": {
+            "enabled": false,
+            "focus": 4.612686088387193,
+            "backgroundBlur": 0.0012503358741900478,
+            "fNumber": 2.8,
+            "taps": 48,
+            "frames": 1,
+            "extraDraws": 0
+          },
+          "cascades": 3
+        }
+      },
+      "capturedAt": "2026-10-15T17:45:00.389Z"
+    },
+    {
+      "id": "11",
+      "slug": "festival-town-golden-hour",
+      "file": "11-festival-town-golden-hour.png",
+      "asSeen": null,
+      "notes": "open-world festival, Port Ilse spawn (town), festival menu Golden hour, chase camera, menu hidden for the capture",
+      "player": null,
+      "festival": true,
+      "capturedAt": "2026-10-15T17:47:06.429Z"
+    }
+  ],
+  "failures": [],
+  "consoleErrors": [],
+  "gl": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+  "finishedAt": "2026-10-15T17:47:06.431Z",
+  "timelineSamples": 21
+}

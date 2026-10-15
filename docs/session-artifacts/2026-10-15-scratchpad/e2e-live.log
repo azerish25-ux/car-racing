@@ -1,0 +1,9 @@
+Observed swiftshader test backend: ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)
+
+Running 1 test using 1 worker
+
+  ✓  1 e2e/58-ultra-pipeline.spec.ts:72:1 › a saved ULTRA preference loads and runs its modules in a live session (12.4m)
+
+  Slow test file: e2e/58-ultra-pipeline.spec.ts (12.4m)
+  Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+  1 passed (12.5m)

@@ -1,0 +1,3 @@
+(node:28733) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+eh3 {"pos":4,"t":56.86666666666391,"st":[["rm8",43.46666666666467],["rp6",55.39999999999733],["rr4",56.46666666666393],["eh3",56.86666666666391]]}

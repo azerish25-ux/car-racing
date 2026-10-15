@@ -1,0 +1,9 @@
+ FAIL  tests/career-hub.test.ts [ tests/career-hub.test.ts ]
+ FAIL  tests/career-session.test.ts [ tests/career-session.test.ts ]
+ FAIL  tests/supplied-player-lods.test.ts [ tests/supplied-player-lods.test.ts ]
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+ FAIL  tests/career.test.ts > unlocks and availability are derived from the registries > opens the bike career when a bike and a ruleset for it are registered
+ FAIL  tests/career.test.ts > unlocks and availability are derived from the registries > validates the career content built from the live registries
+ FAIL  tests/frontend-menus.test.ts > front-end showroom and speed tunnel > styles the menu list as F1 25 pills with player actions only; dev tools stay behind ?dev
+ Test Files  5 failed | 303 passed (308)
+      Tests  3 failed | 2552 passed (2555)

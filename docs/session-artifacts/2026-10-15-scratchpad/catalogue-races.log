@@ -1,0 +1,46 @@
+
+> apex-formula-laboratory@0.1.0 test:catalogue-races
+> node --experimental-transform-types scripts/catalogue-races.ts
+
+PASS parco-reale            5793 m best 97.19 s (214.6 km/h) impact 0 air 0 s 101.1 s 
+PASS ardennes               7004 m best 136.03 s (185.4 km/h) impact 0 air 1.69 s 115.4 s 
+PASS northfield             5891 m best 112.25 s (188.9 km/h) impact 0 air 0 s 107.6 s 
+PASS northfield-classic     5141 m best 94.94 s (194.9 km/h) impact 0 air 0 s 94.6 s 
+PASS kansai                 5807 m best 109.87 s (190.3 km/h) impact 0 air 0 s 100.5 s 
+PASS kansai-east            2243 m best 43.73 s (184.6 km/h) impact 0 air 0 s 31.6 s 
+PASS riviera                3337 m best 91.39 s (131.5 km/h) impact 0 air 0 s 67.4 s 
+PASS texas-hill             5513 m best 116.54 s (170.3 km/h) impact 0 air 0 s 75.7 s 
+PASS neon-city              4874 m best 103.18 s (170.1 km/h) impact 0 air 0 s 54.9 s 
+PASS neon-city-reverse      4874 m best 102.61 s (171.0 km/h) impact 0.005 air 0 s 35.8 s 
+PASS alpine-pass            7276 m best 153.67 s (170.5 km/h) impact 0 air 0 s 62.3 s 
+PASS alpine-pass-reverse    7276 m best 151.87 s (172.5 km/h) impact 0 air 0 s 63.6 s 
+PASS speedbowl              4005 m best 48.53 s (297.1 km/h) impact 0 air 0 s 18.6 s 
+PASS speedbowl-infield      4486 m best 80.03 s (201.8 km/h) impact 0 air 0 s 29.1 s 
+PASS desert-canyon          5604 m best 100.15 s (201.4 km/h) impact 0 air 0 s 30.8 s 
+PASS desert-canyon-reverse  5604 m best 99.32 s (203.1 km/h) impact 0 air 0 s 31.5 s 
+PASS coastal-cliff          4710 m best 89.82 s (188.8 km/h) impact 0 air 0 s 29.7 s 
+PASS coastal-cliff-reverse  4710 m best 90.26 s (187.8 km/h) impact 0 air 0 s 33.5 s 
+PASS dockyard               4600 m best 89.96 s (184.1 km/h) impact 0 air 0 s 31.3 s 
+PASS dockyard-reverse       4600 m best 89.70 s (184.6 km/h) impact 0 air 0 s 27.3 s 
+PASS poggio-alto            5245 m best 99.83 s (189.1 km/h) impact 0 air 0 s 29.8 s 
+PASS cape-wrenna            4448 m best 81.59 s (196.3 km/h) impact 0.052 air 0 s 26.8 s 
+PASS haarveld               4542 m best 84.22 s (194.2 km/h) impact 0 air 0 s 25.2 s 
+PASS montejaral             4423 m best 92.43 s (172.3 km/h) impact 0.018 air 0 s 29.1 s 
+PASS hochwald               20832 m best 334.67 s (224.1 km/h) impact 0.009 air 0 s 93.9 s 
+PASS loirette               13626 m best 222.97 s (220.0 km/h) impact 0.039 air 0 s 63.9 s 
+PASS loirette-club          4185 m best 91.53 s (164.6 km/h) impact 0.031 air 0.02 s 28.4 s 
+PASS serra-verde            4309 m best 86.60 s (179.1 km/h) impact 0 air 0 s 27.2 s 
+PASS mount-ardlow           6213 m best 113.18 s (197.6 km/h) impact 0 air 0 s 33.1 s 
+PASS arroyo-oro             3602 m best 73.50 s (176.4 km/h) impact 0.007 air 0 s 25.5 s 
+PASS fiume-verde            4909 m best 86.11 s (205.2 km/h) impact 0 air 0 s 29.9 s 
+PASS duinwijk               4259 m best 91.10 s (168.3 km/h) impact 0 air 0 s 28.9 s 
+PASS ramla-night            5412 m best 101.08 s (192.7 km/h) impact 0 air 0 s 30.6 s 
+PASS ramla-outer            3543 m best 60.54 s (210.7 km/h) impact 0 air 0 s 20.7 s 
+PASS mirvari                6003 m best 125.68 s (172.0 km/h) impact 0 air 0 s 36.4 s 
+PASS lantern-bay            4940 m best 116.50 s (152.7 km/h) impact 0.02 air 0 s 35.5 s 
+PASS lotus-hill             6120 m best 122.52 s (179.8 km/h) impact 0 air 0 s 37.3 s 
+PASS gantry-point           5379 m best 98.52 s (196.6 km/h) impact 0 air 0 s 29.4 s 
+PASS gantry-point-reverse   5379 m best 98.30 s (197.0 km/h) impact 0 air 0 s 31 s 
+PASS salt-flat              6800 m best 98.81 s (247.7 km/h) impact 0 air 0 s 27.7 s 
+(node:22116) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)

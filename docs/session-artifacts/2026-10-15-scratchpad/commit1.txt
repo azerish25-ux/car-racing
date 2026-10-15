@@ -1,0 +1,53 @@
+feat(catalogue): grow to 54 machines (31 cars, 4 road bikes) from target sheets
+
+Thirty-one generic cars join CATALOGUE from physical target sheets (mass,
+weight split, CG, torque curve, gearing, inertia, ClA/CdA/balance, tyre
+family, brakes, drivelines, setup keys): FX-26 top-tier Formula (350 kW
+crank motor, DRS, less downforce and drag than APX-01), FR-3 feeder and
+FE-4 entry formulas, HF-76 (1970s) and HF-86 (1980s turbo) historics,
+SP-71 long-tail sports prototype, HY-11 hypercar (crank hybrid), PR-3
+open prototype, GT-6R rear-engine and GT-6S front straight-six GT3s,
+GS-6M mid-engine GT4, TC-3 AWD touring, HH-2 hot-hatch and VC-62 vintage
+club racers, RL-7 rear-drive and GB-4 group-supercar historic rally cars,
+RX-E electric rallycross, BG-2 desert buggy, DK-100 direct-drive kart,
+four experimental machines (XF-2 fan car, XE-1 electric time attack, XH-3
+hydrogen concept, XT-1 track hypercar) and eight festival road cars. Four
+road bikes (GP-R2, SS-600, NR-900, CR-750) are appended after the
+catalogue as BIKE_ADDITIONS, so every existing snapshot index and all 19
+earlier content hashes are unchanged (pinned by a test).
+
+Every machine lands inside its design bands (0-100, top speed, 100-0,
+lateral g at 80 km/h) at 1/240 and 1/120 s (largest drift 0.24 %); bands
+were never moved after measuring. AI envelopes are the measured fits,
+tuned for stability in four-car AI practice on Aurel and Vellamar.
+
+Solver addition: an optional fan-assisted floor (VehicleDefinition.fan,
+speed-independent suction that fades as the skirts lift), only on XF-2.
+New historic-slick tyre family; bikeEnvelope caps braking at a drum-era
+machine's brake force (GP-R1/SBK-1000 unchanged) and takes optional
+margins.
+
+Classes, rulesets and events: eleven new classes with menu order, family,
+price and an honest race ruleset (none for road and road-bike); feeder
+formula, heritage, historic masters (per-class), historic-rally heat,
+unlimited showcase and motorcycle class sprint rulesets; 23 new events so
+every racing machine enters one (including JF-2, RL-2 and SBK-1000).
+Career tiers and CLASS_PRICES cover the new classes; the bike menu is now
+data-driven from the registry.
+
+Presentation: a body sheet per new car with era-aware single-seaters
+(1970s wedge, 1980s flat-bottom), kart variants, a tube-frame buggy,
+open-cockpit prototypes, wire wheels and new furniture (fan shroud, dive
+planes, lamp pod, bonnet scoop, louvres); motorcycle body sheets
+(fairing, wings, lamps, exhaust, tail, bars, frame, wheels, shocks) with
+GP-R1/SBK-1000 kept as before. Ten new sound families; every machine names
+its family explicitly.
+
+Tests: definitions validate, unique hashes, frozen earlier hashes, bands
+and calibration records, body sheet and measured silhouette distinctness
+for cars and road bikes, explicit sound families, prices and rulesets per
+class, events for every racing machine, bike class menu, fan floor.
+Regenerated docs/vehicle-calibration.json and docs/bike-race.json.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01RN7q935R3iepiRcM32D9uW

@@ -1,0 +1,12 @@
+(node:11506) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+jf2    incidents/lap 0.04 aurel 1/15 best 62.1 · vellamar 0/11 best 73.9
+hf67   incidents/lap 0.08 aurel 0/8 best 95.8 · vellamar 1/5 best 116.7
+gt8f   incidents/lap 0.35 aurel 7/12 best 72.5 · vellamar 0/8 best 87.9
+gt10m  incidents/lap 0.75 aurel 15/12 best — · vellamar 0/8 best 87.4
+gs4    incidents/lap 0.36 aurel 5/6 best 78.7 · vellamar 0/8 best 96.3
+tc2    incidents/lap 0.50 aurel 8/10 best 75.5 · vellamar 1/8 best 96.2
+rcx6   incidents/lap 2.15 aurel 27/7 best — · vellamar 1/6 best 102.2
+sk125  incidents/lap 0.75 aurel 6/8 best 91.2 · vellamar 3/4 best 125.7
+eh3    incidents/lap 1.41 aurel 21/9 best — · vellamar 3/8 best 95.2
+sc7    incidents/lap 2.06 aurel 22/8 best — · vellamar 11/8 best 99.0

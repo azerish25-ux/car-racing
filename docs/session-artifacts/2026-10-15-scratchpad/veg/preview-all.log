@@ -1,0 +1,54 @@
+=== birch
+xref_Betula_pendula_03mediumb.c4d: 9 parts, 4173512 triangles, 15.87 m tall, crown radius 4.89 m (8476 ms)
+  canopy volume 36x51x38 solved (9788 ms)
+  260 cards at 81.5 px/m (21489 ms)
+  card atlas drawn (31875 ms)
+  8 impostor views 1536x1536 (49948 ms)
+  trunk 8749 triangles (53461 ms)
+  done (53463 ms)
+preview written 20
+=== spruce
+xref_Picea_20mt.c4d: 12 parts, 267802 triangles, 12.25 m tall, crown radius 2.07 m (2840 ms)
+  canopy volume 20x51x21 solved (3124 ms)
+  300 cards at 197.9 px/m (5120 ms)
+  card atlas drawn (24430 ms)
+  8 impostor views 1536x1536 (38341 ms)
+  trunk 3958 triangles (39087 ms)
+  done (39089 ms)
+preview written 20
+=== fir
+Abies_concolor_02medium: 6 parts, 1363270 triangles, 7.92 m tall, crown radius 1.53 m (2663 ms)
+  canopy volume 26x51x24 solved (3124 ms)
+  220 cards at 225.2 px/m (7982 ms)
+  card atlas drawn (30355 ms)
+  8 impostor views 1536x1536 (56511 ms)
+  trunk 3924 triangles (57259 ms)
+  done (57260 ms)
+preview written 20
+=== chestnut
+xref_Aesculus_02adult.c4d Instance: 7 parts, 1605943 triangles, 18.73 m tall, crown radius 7.59 m (4354 ms)
+  canopy volume 45x51x42 solved (5393 ms)
+  320 cards at 57.2 px/m (10752 ms)
+  card atlas drawn (28198 ms)
+  8 impostor views 1536x1536 (49092 ms)
+  trunk 29903 triangles (51013 ms)
+  done (51016 ms)
+preview written 20
+=== rowan
+mountain_ash: 5 parts, 672680 triangles, 8.41 m tall, crown radius 3.22 m (1708 ms)
+  canopy volume 43x51x44 solved (2664 ms)
+  200 cards at 147.9 px/m (5225 ms)
+  card atlas drawn (16667 ms)
+  8 impostor views 1536x1536 (28081 ms)
+  trunk 3999 triangles (28737 ms)
+  done (28740 ms)
+preview written 20
+=== rose
+xref_WPR.c4d: 15 parts, 324632 triangles, 1.10 m tall, crown radius 0.79 m (5439 ms)
+  canopy volume 25x17x22 solved (5583 ms)
+  70 cards at 469.8 px/m (6647 ms)
+  card atlas drawn (9159 ms)
+  8 impostor views 768x768 (11790 ms)
+  trunk 1194 triangles (12560 ms)
+  done (12562 ms)
+preview written 20

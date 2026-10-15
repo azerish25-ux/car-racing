@@ -1,0 +1,29 @@
+{
+  "suite": "APEX feature showcase (live application)",
+  "url": "http://127.0.0.1:5493/",
+  "repo": "/home/user/Experiment-3/.claude/worktrees/wf_1ec31848-637-3",
+  "size": {
+    "width": 1280,
+    "height": 720
+  },
+  "preset": "ultra",
+  "backend": "mesa",
+  "sessions": [
+    "hochwald",
+    "bikes",
+    "valley",
+    "festival"
+  ],
+  "startedAt": "2026-10-15T21:09:56.181Z",
+  "shots": [],
+  "failures": [
+    {
+      "id": "boot",
+      "message": "locator.waitFor: Timeout 1200000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#menu') to be visible\u001b[22m\n\u001b[2m    2360 × locator resolved to hidden <section id=\"menu\" hidden=\"\" class=\"menu\">…</section>\u001b[22m\n\n    at openApp (/tmp/claude-0/-home-user-Experiment-3/c20c3567-05b6-5daa-8126-ea386a6ddfeb/scratchpad/showcase/showcase.mjs:384:31)\n    at async file:///tmp/claude-0/-home-user-Experiment-3/c20c3567-05b6-5daa-8126-ea386a6ddfeb/scratchpad/showcase/showcase.mjs:877:3"
+    }
+  ],
+  "consoleErrors": [
+    "Error: Player LOD integrity check failed\n    at L10 (http://127.0.0.1:5493/assets/index-DKkM3PxJ.js:3167:124674)\n    at async Tn.decode (http://127.0.0.1:5493/assets/index-DKkM3PxJ.js:3167:130939)\n    at async x10 (http://127.0.0.1:5493/assets/index-DKkM3PxJ.js:3167:137936)\n    at async Zn.create (http://127.0.0.1:5493/assets/index-DKkM3PxJ.js:6344:44902)\n    at async nt0.buildRenderer (http://127.0.0.1:5493/assets/index-DKkM3PxJ.js:6359:74466)\n    at async nt0.boot (http://127.0.0.1:5493/assets/index-DKkM3PxJ.js:6359:77001)"
+  ],
+  "finishedAt": "2026-10-15T21:30:03.221Z"
+}

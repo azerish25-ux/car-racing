@@ -1,0 +1,13 @@
+(node:27075) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+rs5     laps 0,1,1,1 best 106.71 vmax 247 stuck 174.8 impact 1.00 incidents 0 warn 1,0,0,2 retired 0 (24 s)
+rm8     laps 1,1,1,1 best 113.32 vmax 227 stuck 0.4 impact 1.00 incidents 0 warn 1,0,0,2 retired 0 (22 s)
+rg63    laps 0,1,1,1 best 138.80 vmax 210 stuck 3.1 impact 1.00 incidents 6 warn 3,3,1,2 retired 0 (25 s)
+rp6     laps 1,1,1,1 best 132.97 vmax 176 stuck 0.4 impact 1.00 incidents 0 warn 1,0,0,0 retired 0 (22 s)
+rr4     laps 1,1,1,1 best 113.47 vmax 217 stuck 0.0 impact 0.00 incidents 0 warn 0,0,0,0 retired 0 (26 s)
+lx12    laps 1,1,1,1 best 113.83 vmax 244 stuck 0.0 impact 0.00 incidents 0 warn 0,0,0,0 retired 0 (25 s)
+rd2     laps 1,1,1,1 best 118.33 vmax 199 stuck 0.0 impact 0.00 incidents 0 warn 0,0,0,0 retired 0 (25 s)
+gpr2    laps 2,2,2,2 best 77.17 vmax 324 stuck 0.0 impact 0.00 incidents 0 warn 0,0,0,0 retired 0 (7 s)
+ss600   laps 2,2,2,2 best 86.28 vmax 244 stuck 0.0 impact 0.00 incidents 0 warn 0,0,0,0 retired 0 (6 s)
+nr900   laps 1,2,1,1 best 95.96 vmax 203 stuck 0.0 impact 0.00 incidents 0 warn 0,0,0,0 retired 0 (6 s)
+cr750   laps 1,1,1,1 best — vmax 219 stuck 11.9 impact 0.99 incidents 8 warn 1,2,1,2 retired 0 (7 s)

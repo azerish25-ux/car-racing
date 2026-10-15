@@ -1,0 +1,373 @@
+{
+  "suite": "APEX feature showcase (live application)",
+  "url": "http://127.0.0.1:5493/",
+  "repo": "/home/user/Experiment-3/.claude/worktrees/wf_1ec31848-637-3",
+  "size": {
+    "width": 1280,
+    "height": 720
+  },
+  "preset": "ultra",
+  "backend": "mesa",
+  "sessions": [
+    "hochwald",
+    "festtrees",
+    "bikes"
+  ],
+  "startedAt": "2026-10-15T22:31:50.233Z",
+  "shots": [
+    {
+      "id": "07",
+      "slug": "hochwald-forest-ring-hf67",
+      "file": "07-hochwald-forest-ring-hf67.png",
+      "hud": null,
+      "notes": "HOCHWALD FOREST RING (catalogue wave 2), HF-67 historic formula field (8), live chase camera; 3 cars 4-104 m ahead when held, 73 km/h, race 25.1 s",
+      "player": {
+        "speedKmh": 73.2,
+        "s": 574.1,
+        "lap": 0,
+        "leanDeg": 0,
+        "airborne": 0,
+        "airTime": 0
+      },
+      "build": {
+        "commit": null,
+        "fingerprint": "a06dd96886be8c692869e0ed0b3a745b20941cc720ce40c05b9d56dbf6046a70"
+      },
+      "state": "paused",
+      "options": {
+        "circuit": "hochwald",
+        "mode": "race",
+        "laps": 1,
+        "opponents": 7,
+        "weather": "clear",
+        "ruleset": "historic-formula",
+        "vehicles": [
+          "hf67",
+          "hf67",
+          "hf67",
+          "hf67",
+          "hf67",
+          "hf67",
+          "hf67",
+          "hf67"
+        ]
+      },
+      "presentedTime": 30.991666793823242,
+      "replayPosition": null,
+      "renderer": {
+        "camera": "chase",
+        "requestedCamera": "chase",
+        "lighting": "day",
+        "renderWidth": 1280,
+        "renderHeight": 720,
+        "drawCalls": 2995,
+        "triangles": 3129415,
+        "ultra": {
+          "preset": "ultra",
+          "tier": "high",
+          "unsupported": [],
+          "replayDof": {
+            "enabled": false,
+            "focus": 4.612686088387136,
+            "backgroundBlur": 0.001250335874190063,
+            "fNumber": 2.8,
+            "taps": 48,
+            "frames": 1,
+            "extraDraws": 0
+          }
+        }
+      },
+      "capturedAt": "2026-10-15T22:40:12.804Z"
+    },
+    {
+      "id": "07",
+      "slug": "hochwald-forest-ring-trackside",
+      "file": "07-hochwald-forest-ring-trackside.png",
+      "hud": null,
+      "notes": "same held moment, trackside camera",
+      "player": {
+        "speedKmh": 73.2,
+        "s": 574.1,
+        "lap": 0,
+        "leanDeg": 0,
+        "airborne": 0,
+        "airTime": 0
+      },
+      "build": {
+        "commit": null,
+        "fingerprint": "a06dd96886be8c692869e0ed0b3a745b20941cc720ce40c05b9d56dbf6046a70"
+      },
+      "state": "paused",
+      "options": {
+        "circuit": "hochwald",
+        "mode": "race",
+        "laps": 1,
+        "opponents": 7,
+        "weather": "clear",
+        "ruleset": "historic-formula",
+        "vehicles": [
+          "hf67",
+          "hf67",
+          "hf67",
+          "hf67",
+          "hf67",
+          "hf67",
+          "hf67",
+          "hf67"
+        ]
+      },
+      "presentedTime": 30.991666793823242,
+      "replayPosition": null,
+      "renderer": {
+        "camera": "trackside",
+        "requestedCamera": "trackside",
+        "lighting": "day",
+        "renderWidth": 1280,
+        "renderHeight": 720,
+        "drawCalls": 829,
+        "triangles": 2216494,
+        "ultra": {
+          "preset": "ultra",
+          "tier": "high",
+          "unsupported": [],
+          "replayDof": {
+            "enabled": false,
+            "focus": 4.612686088387136,
+            "backgroundBlur": 0.001250335874190063,
+            "fNumber": 2.8,
+            "taps": 48,
+            "frames": 1,
+            "extraDraws": 0
+          }
+        }
+      },
+      "capturedAt": "2026-10-15T22:44:30.771Z"
+    },
+    {
+      "id": "07",
+      "slug": "hochwald-forest-ring-2",
+      "file": "07-hochwald-forest-ring-2.png",
+      "hud": null,
+      "notes": "later on the lap, s 2428 m, 117 km/h",
+      "player": {
+        "speedKmh": 117.3,
+        "s": 2427.8,
+        "lap": 0,
+        "leanDeg": 0,
+        "airborne": 0,
+        "airTime": 0
+      },
+      "build": {
+        "commit": null,
+        "fingerprint": "a06dd96886be8c692869e0ed0b3a745b20941cc720ce40c05b9d56dbf6046a70"
+      },
+      "state": "paused",
+      "options": {
+        "circuit": "hochwald",
+        "mode": "race",
+        "laps": 1,
+        "opponents": 7,
+        "weather": "clear",
+        "ruleset": "historic-formula",
+        "vehicles": [
+          "hf67",
+          "hf67",
+          "hf67",
+          "hf67",
+          "hf67",
+          "hf67",
+          "hf67",
+          "hf67"
+        ]
+      },
+      "presentedTime": 91.85832977294922,
+      "replayPosition": null,
+      "renderer": {
+        "camera": "chase",
+        "requestedCamera": "chase",
+        "lighting": "day",
+        "renderWidth": 1280,
+        "renderHeight": 720,
+        "drawCalls": 944,
+        "triangles": 1456013,
+        "ultra": {
+          "preset": "ultra",
+          "tier": "high",
+          "unsupported": [],
+          "replayDof": {
+            "enabled": false,
+            "focus": 4.612686088387136,
+            "backgroundBlur": 0.001250335874190063,
+            "fNumber": 2.8,
+            "taps": 48,
+            "frames": 1,
+            "extraDraws": 0
+          }
+        }
+      },
+      "capturedAt": "2026-10-15T22:47:24.228Z"
+    },
+    {
+      "id": "13",
+      "slug": "festival-trees-1-thornwood-rally",
+      "file": "13-festival-trees-1-thornwood-rally.png",
+      "hud": null,
+      "notes": "festival fast travel to thornwood-rally, chase camera, menu hidden for the capture",
+      "player": null,
+      "festival": true,
+      "capturedAt": "2026-10-15T22:52:12.664Z"
+    },
+    {
+      "id": "13",
+      "slug": "festival-trees-2-valley-sprint",
+      "file": "13-festival-trees-2-valley-sprint.png",
+      "hud": null,
+      "notes": "festival fast travel to valley-sprint, chase camera, menu hidden for the capture",
+      "player": null,
+      "festival": true,
+      "capturedAt": "2026-10-15T22:53:38.939Z"
+    },
+    {
+      "id": "13",
+      "slug": "festival-trees-3-coast-trap",
+      "file": "13-festival-trees-3-coast-trap.png",
+      "hud": null,
+      "notes": "festival fast travel to coast-trap, chase camera, menu hidden for the capture",
+      "player": null,
+      "festival": true,
+      "capturedAt": "2026-10-15T22:55:06.623Z"
+    },
+    {
+      "id": "03",
+      "slug": "gpr1-poggio-alto-lean",
+      "file": "03-gpr1-poggio-alto-lean.png",
+      "hud": "03-gpr1-poggio-alto-lean-hud.png",
+      "notes": "GP-R1 motorcycle grid (8), Poggio Alto, live chase camera, lean -42°, 81 km/h, 2 riders 2-60 m ahead",
+      "player": {
+        "speedKmh": 80.7,
+        "s": 819.9,
+        "lap": 0,
+        "leanDeg": -42.4,
+        "airborne": 0,
+        "airTime": 0
+      },
+      "build": {
+        "commit": null,
+        "fingerprint": "a06dd96886be8c692869e0ed0b3a745b20941cc720ce40c05b9d56dbf6046a70"
+      },
+      "state": "paused",
+      "options": {
+        "circuit": "poggio-alto",
+        "mode": "race",
+        "laps": 3,
+        "opponents": 7,
+        "weather": "clear",
+        "ruleset": "gp-motorcycle",
+        "vehicles": [
+          "gpr1",
+          "gpr1",
+          "gpr1",
+          "gpr1",
+          "gpr1",
+          "gpr1",
+          "gpr1",
+          "gpr1"
+        ]
+      },
+      "presentedTime": 32.125,
+      "replayPosition": null,
+      "renderer": {
+        "camera": "chase",
+        "requestedCamera": "chase",
+        "lighting": "day",
+        "renderWidth": 1280,
+        "renderHeight": 720,
+        "drawCalls": 3530,
+        "triangles": 2771454,
+        "ultra": {
+          "preset": "ultra",
+          "tier": "high",
+          "unsupported": [],
+          "replayDof": {
+            "enabled": false,
+            "focus": 4.612694123356647,
+            "backgroundBlur": 0.001250333689086924,
+            "fNumber": 2.8,
+            "taps": 48,
+            "frames": 1,
+            "extraDraws": 0
+          }
+        }
+      },
+      "capturedAt": "2026-10-15T23:06:25.709Z"
+    },
+    {
+      "id": "03",
+      "slug": "gpr1-poggio-alto-trackside",
+      "file": "03-gpr1-poggio-alto-trackside.png",
+      "hud": null,
+      "notes": "same held moment, trackside camera",
+      "player": {
+        "speedKmh": 80.7,
+        "s": 819.9,
+        "lap": 0,
+        "leanDeg": -42.4,
+        "airborne": 0,
+        "airTime": 0
+      },
+      "build": {
+        "commit": null,
+        "fingerprint": "a06dd96886be8c692869e0ed0b3a745b20941cc720ce40c05b9d56dbf6046a70"
+      },
+      "state": "paused",
+      "options": {
+        "circuit": "poggio-alto",
+        "mode": "race",
+        "laps": 3,
+        "opponents": 7,
+        "weather": "clear",
+        "ruleset": "gp-motorcycle",
+        "vehicles": [
+          "gpr1",
+          "gpr1",
+          "gpr1",
+          "gpr1",
+          "gpr1",
+          "gpr1",
+          "gpr1",
+          "gpr1"
+        ]
+      },
+      "presentedTime": 32.125,
+      "replayPosition": null,
+      "renderer": {
+        "camera": "trackside",
+        "requestedCamera": "trackside",
+        "lighting": "day",
+        "renderWidth": 1280,
+        "renderHeight": 720,
+        "drawCalls": 1152,
+        "triangles": 1733521,
+        "ultra": {
+          "preset": "ultra",
+          "tier": "high",
+          "unsupported": [],
+          "replayDof": {
+            "enabled": false,
+            "focus": 4.612694123356647,
+            "backgroundBlur": 0.001250333689086924,
+            "fNumber": 2.8,
+            "taps": 48,
+            "frames": 1,
+            "extraDraws": 0
+          }
+        }
+      },
+      "capturedAt": "2026-10-15T23:07:47.196Z"
+    }
+  ],
+  "failures": [],
+  "consoleErrors": [],
+  "gl": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+  "finishedAt": "2026-10-15T23:07:47.356Z"
+}

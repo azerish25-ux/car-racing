@@ -1,0 +1,44 @@
+Observed swiftshader test backend: ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)
+
+Running 1 test using 1 worker
+
+[1A[2K[1/1] e2e/application.spec.ts:311:1 › preferences persist and invalid setup import fails safely
+[1A[2K  1) e2e/application.spec.ts:311:1 › preferences persist and invalid setup import fails safely ─────
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m()[22m failed
+
+    Locator:  locator('#menu')
+    Expected: visible
+    Received: hidden
+    Timeout:  60000ms
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 60000ms[22m
+    [2m  - waiting for locator('#menu')[22m
+    [2m    48 × locator resolved to <section id="menu" hidden="" class="menu">…</section>[22m
+    [2m       - unexpected value "hidden"[22m
+
+
+       7 | async function ready(page: Page) {
+       8 |   await page.goto('/');
+    >  9 |   await expect(page.locator('#menu')).toBeVisible({ timeout: 60000 });
+         |                                       ^
+      10 | }
+      11 | async function diag(page: Page) {
+      12 |   return page.evaluate(() => window.apexDiagnostics());
+        at ready (/home/user/Experiment-3/.claude/worktrees/wf_466ee687-d89-2/e2e/application.spec.ts:9:39)
+        at /home/user/Experiment-3/.claude/worktrees/wf_466ee687-d89-2/e2e/application.spec.ts:312:3
+
+    Error Context: test-results/application-preferences-pe-58c50-d-setup-import-fails-safely/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/application-preferences-pe-58c50-d-setup-import-fails-safely/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/application-preferences-pe-58c50-d-setup-import-fails-safely/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K  1 failed
+    e2e/application.spec.ts:311:1 › preferences persist and invalid setup import fails safely ──────

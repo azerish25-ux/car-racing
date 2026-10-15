@@ -1,0 +1,36 @@
+{
+    "asset_type": "Texture",
+    "id": "cannon",
+    "kwargs": {
+        "filename": "environment_4k.hdr"
+    },
+    "license": "CC0 1.0",
+    "metadata": {
+        "authors": [
+            "Greg Zaal"
+        ],
+        "categories": [
+            "outdoor",
+            "skies",
+            "nature",
+            "midday",
+            "overcast",
+            "low contrast",
+            "natural light"
+        ],
+        "coords": [
+            -34.176869,
+            18.419998
+        ],
+        "date_taken": 1581673800,
+        "resolution": "4k",
+        "tags": [
+            "rock",
+            "hill",
+            "view",
+            "cannon",
+            "ocean",
+            "mountain"
+        ]
+    }
+}

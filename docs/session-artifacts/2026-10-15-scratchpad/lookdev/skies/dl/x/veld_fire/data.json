@@ -1,0 +1,37 @@
+{
+    "asset_type": "Texture",
+    "id": "veld_fire",
+    "kwargs": {
+        "filename": "environment_4k.hdr"
+    },
+    "license": "CC0 1.0",
+    "metadata": {
+        "authors": [
+            "Greg Zaal"
+        ],
+        "categories": [
+            "outdoor",
+            "skies",
+            "nature",
+            "midday",
+            "clear",
+            "high contrast",
+            "natural light"
+        ],
+        "coords": [
+            -25.711609,
+            27.883848
+        ],
+        "date_taken": 1439207880,
+        "resolution": "4k",
+        "tags": [
+            "path",
+            "grass",
+            "fire",
+            "radio",
+            "tower",
+            "burnt",
+            "sun"
+        ]
+    }
+}

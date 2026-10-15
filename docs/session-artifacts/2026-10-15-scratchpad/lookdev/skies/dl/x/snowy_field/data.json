@@ -1,0 +1,35 @@
+{
+    "asset_type": "Texture",
+    "id": "snowy_field",
+    "kwargs": {
+        "filename": "environment_4k.hdr"
+    },
+    "license": "CC0 1.0",
+    "metadata": {
+        "authors": [
+            "Andreas Mischok"
+        ],
+        "categories": [
+            "outdoor",
+            "skies",
+            "nature",
+            "morning-afternoon",
+            "partly cloudy",
+            "high contrast",
+            "natural light"
+        ],
+        "coords": [
+            48.804556,
+            9.170392
+        ],
+        "date_taken": 1613048460,
+        "resolution": "4k",
+        "tags": [
+            "tree",
+            "sun",
+            "snow",
+            "field",
+            "tracks"
+        ]
+    }
+}

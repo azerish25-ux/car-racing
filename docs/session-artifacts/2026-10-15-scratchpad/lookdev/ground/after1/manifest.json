@@ -1,0 +1,27 @@
+{
+  "suite": "APEX feature showcase (live application)",
+  "url": "http://127.0.0.1:5392/",
+  "repo": "/home/user/Experiment-3/.claude/worktrees/wf_1ec31848-637-2",
+  "size": {
+    "width": 1280,
+    "height": 720
+  },
+  "preset": "ultra",
+  "backend": "mesa",
+  "sessions": [
+    "bikes",
+    "valley"
+  ],
+  "startedAt": "2026-10-15T20:38:12.947Z",
+  "shots": [],
+  "failures": [
+    {
+      "id": "boot",
+      "message": "locator.waitFor: Timeout 1200000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#menu') to be visible\u001b[22m\n\u001b[2m    2370 × locator resolved to hidden <section id=\"menu\" hidden=\"\" class=\"menu\">…</section>\u001b[22m\n\n    at openApp (/tmp/claude-0/-home-user-Experiment-3/c20c3567-05b6-5daa-8126-ea386a6ddfeb/scratchpad/showcase/showcase.mjs:384:31)\n    at async file:///tmp/claude-0/-home-user-Experiment-3/c20c3567-05b6-5daa-8126-ea386a6ddfeb/scratchpad/showcase/showcase.mjs:877:3"
+    }
+  ],
+  "consoleErrors": [
+    "Error: Player LOD integrity check failed\n    at P00 (http://127.0.0.1:5392/assets/index-CNl2zaID.js:2904:124549)\n    at async bn.decode (http://127.0.0.1:5392/assets/index-CNl2zaID.js:2904:130813)\n    at async m00 (http://127.0.0.1:5392/assets/index-CNl2zaID.js:2904:137808)\n    at async zn.create (http://127.0.0.1:5392/assets/index-CNl2zaID.js:6447:45023)\n    at async We0.buildRenderer (http://127.0.0.1:5392/assets/index-CNl2zaID.js:6462:74466)\n    at async We0.boot (http://127.0.0.1:5392/assets/index-CNl2zaID.js:6462:77001)"
+  ],
+  "finishedAt": "2026-10-15T20:58:14.794Z"
+}

@@ -1,0 +1,286 @@
+{
+  "suite": "APEX feature showcase (live application)",
+  "url": "http://127.0.0.1:47812/",
+  "repo": "/home/user/Experiment-3/.claude/worktrees/wf_1ec31848-637-1",
+  "size": {
+    "width": 1280,
+    "height": 720
+  },
+  "preset": "ultra",
+  "backend": "mesa",
+  "sessions": [
+    "pack",
+    "bikes"
+  ],
+  "startedAt": "2026-10-15T17:35:31.680Z",
+  "shots": [
+    {
+      "id": "04",
+      "slug": "multiclass-pack-aurel",
+      "file": "04-multiclass-pack-aurel.png",
+      "hud": "04-multiclass-pack-aurel-hud.png",
+      "notes": "multi-class endurance grid (HY-9, PR-2, GT-8F, GT-10M, GS-4 x12) at Aurel from the back, live chase camera; 4 cars 3-78 m ahead when held, 78 km/h, race 6.4 s",
+      "player": {
+        "speedKmh": 77.9,
+        "s": 2941.5,
+        "lap": 0,
+        "leanDeg": 0,
+        "airborne": 0,
+        "airTime": 0
+      },
+      "build": {
+        "commit": null,
+        "fingerprint": "5d4960e073be7f613817d84a88c887f8e0c9d92120ca773b7c662021a5eaa091"
+      },
+      "state": "paused",
+      "options": {
+        "circuit": "aurel",
+        "mode": "race",
+        "laps": 3,
+        "opponents": 11,
+        "weather": "clear",
+        "ruleset": "multi-class-endurance",
+        "vehicles": [
+          "hy9",
+          "pr2",
+          "gt8f",
+          "gt10m",
+          "gs4",
+          "hy9",
+          "pr2",
+          "gt8f",
+          "gt10m",
+          "gs4",
+          "hy9",
+          "pr2"
+        ]
+      },
+      "presentedTime": 12.324999809265137,
+      "replayPosition": null,
+      "renderer": {
+        "camera": "chase",
+        "requestedCamera": "chase",
+        "lighting": "day",
+        "renderWidth": 1280,
+        "renderHeight": 720,
+        "drawCalls": 1061,
+        "triangles": 6086388,
+        "ultra": {
+          "preset": "ultra",
+          "tier": "high",
+          "unsupported": [],
+          "replayDof": {
+            "enabled": false,
+            "focus": 4.612686088387122,
+            "backgroundBlur": 0.001250335874190067,
+            "fNumber": 2.8,
+            "taps": 48,
+            "frames": 1,
+            "extraDraws": 0
+          }
+        }
+      },
+      "capturedAt": "2026-10-15T17:40:14.911Z"
+    },
+    {
+      "id": "04",
+      "slug": "multiclass-pack-aurel-trackside",
+      "file": "04-multiclass-pack-aurel-trackside.png",
+      "hud": null,
+      "notes": "same held moment, trackside camera",
+      "player": {
+        "speedKmh": 77.9,
+        "s": 2941.5,
+        "lap": 0,
+        "leanDeg": 0,
+        "airborne": 0,
+        "airTime": 0
+      },
+      "build": {
+        "commit": null,
+        "fingerprint": "5d4960e073be7f613817d84a88c887f8e0c9d92120ca773b7c662021a5eaa091"
+      },
+      "state": "paused",
+      "options": {
+        "circuit": "aurel",
+        "mode": "race",
+        "laps": 3,
+        "opponents": 11,
+        "weather": "clear",
+        "ruleset": "multi-class-endurance",
+        "vehicles": [
+          "hy9",
+          "pr2",
+          "gt8f",
+          "gt10m",
+          "gs4",
+          "hy9",
+          "pr2",
+          "gt8f",
+          "gt10m",
+          "gs4",
+          "hy9",
+          "pr2"
+        ]
+      },
+      "presentedTime": 12.324999809265137,
+      "replayPosition": null,
+      "renderer": {
+        "camera": "trackside",
+        "requestedCamera": "trackside",
+        "lighting": "day",
+        "renderWidth": 1280,
+        "renderHeight": 720,
+        "drawCalls": 1097,
+        "triangles": 12290635,
+        "ultra": {
+          "preset": "ultra",
+          "tier": "high",
+          "unsupported": [],
+          "replayDof": {
+            "enabled": false,
+            "focus": 4.612686088387122,
+            "backgroundBlur": 0.001250335874190067,
+            "fNumber": 2.8,
+            "taps": 48,
+            "frames": 1,
+            "extraDraws": 0
+          }
+        }
+      },
+      "capturedAt": "2026-10-15T17:40:52.195Z"
+    },
+    {
+      "id": "03",
+      "slug": "gpr1-poggio-alto-lean",
+      "file": "03-gpr1-poggio-alto-lean.png",
+      "hud": "03-gpr1-poggio-alto-lean-hud.png",
+      "notes": "GP-R1 motorcycle grid (8), Poggio Alto, live chase camera, lean 40°, 62 km/h, 3 riders 2-60 m ahead",
+      "player": {
+        "speedKmh": 61.6,
+        "s": 671.2,
+        "lap": 0,
+        "leanDeg": 40.3,
+        "airborne": 0,
+        "airTime": 0
+      },
+      "build": {
+        "commit": null,
+        "fingerprint": "5d4960e073be7f613817d84a88c887f8e0c9d92120ca773b7c662021a5eaa091"
+      },
+      "state": "paused",
+      "options": {
+        "circuit": "poggio-alto",
+        "mode": "race",
+        "laps": 3,
+        "opponents": 7,
+        "weather": "clear",
+        "ruleset": "gp-motorcycle",
+        "vehicles": [
+          "gpr1",
+          "gpr1",
+          "gpr1",
+          "gpr1",
+          "gpr1",
+          "gpr1",
+          "gpr1",
+          "gpr1"
+        ]
+      },
+      "presentedTime": 26.233333587646484,
+      "replayPosition": null,
+      "renderer": {
+        "camera": "chase",
+        "requestedCamera": "chase",
+        "lighting": "day",
+        "renderWidth": 1280,
+        "renderHeight": 720,
+        "drawCalls": 3514,
+        "triangles": 3980050,
+        "ultra": {
+          "preset": "ultra",
+          "tier": "high",
+          "unsupported": [],
+          "replayDof": {
+            "enabled": false,
+            "focus": 4.612694123356647,
+            "backgroundBlur": 0.001250333689086924,
+            "fNumber": 2.8,
+            "taps": 48,
+            "frames": 1,
+            "extraDraws": 0
+          }
+        }
+      },
+      "capturedAt": "2026-10-15T17:44:33.097Z"
+    },
+    {
+      "id": "03",
+      "slug": "gpr1-poggio-alto-trackside",
+      "file": "03-gpr1-poggio-alto-trackside.png",
+      "hud": null,
+      "notes": "same held moment, trackside camera",
+      "player": {
+        "speedKmh": 61.6,
+        "s": 671.2,
+        "lap": 0,
+        "leanDeg": 40.3,
+        "airborne": 0,
+        "airTime": 0
+      },
+      "build": {
+        "commit": null,
+        "fingerprint": "5d4960e073be7f613817d84a88c887f8e0c9d92120ca773b7c662021a5eaa091"
+      },
+      "state": "paused",
+      "options": {
+        "circuit": "poggio-alto",
+        "mode": "race",
+        "laps": 3,
+        "opponents": 7,
+        "weather": "clear",
+        "ruleset": "gp-motorcycle",
+        "vehicles": [
+          "gpr1",
+          "gpr1",
+          "gpr1",
+          "gpr1",
+          "gpr1",
+          "gpr1",
+          "gpr1",
+          "gpr1"
+        ]
+      },
+      "presentedTime": 26.233333587646484,
+      "replayPosition": null,
+      "renderer": {
+        "camera": "trackside",
+        "requestedCamera": "trackside",
+        "lighting": "day",
+        "renderWidth": 1280,
+        "renderHeight": 720,
+        "drawCalls": 3156,
+        "triangles": 6934529,
+        "ultra": {
+          "preset": "ultra",
+          "tier": "high",
+          "unsupported": [],
+          "replayDof": {
+            "enabled": false,
+            "focus": 4.612694123356647,
+            "backgroundBlur": 0.001250333689086924,
+            "fNumber": 2.8,
+            "taps": 48,
+            "frames": 1,
+            "extraDraws": 0
+          }
+        }
+      },
+      "capturedAt": "2026-10-15T17:45:07.837Z"
+    }
+  ],
+  "failures": [],
+  "consoleErrors": [],
+  "gl": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+  "finishedAt": "2026-10-15T17:45:07.916Z"
+}

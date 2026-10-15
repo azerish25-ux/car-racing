@@ -1,0 +1,479 @@
+{
+  "suite": "APEX feature showcase (live application)",
+  "url": "http://127.0.0.1:47311/",
+  "repo": "/home/user/Experiment-3",
+  "size": {
+    "width": 1280,
+    "height": 720
+  },
+  "preset": "ultra",
+  "backend": "mesa",
+  "sessions": [
+    "pack",
+    "neon",
+    "hochwald"
+  ],
+  "startedAt": "2026-10-15T16:44:15.440Z",
+  "shots": [
+    {
+      "id": "04",
+      "slug": "multiclass-pack-aurel",
+      "file": "04-multiclass-pack-aurel.png",
+      "hud": "04-multiclass-pack-aurel-hud.png",
+      "notes": "multi-class endurance grid (HY-9, PR-2, GT-8F, GT-10M, GS-4 x12) at Aurel from the back, live chase camera; 4 cars 3-78 m ahead when held, 93 km/h, race 7.4 s",
+      "player": {
+        "speedKmh": 97.2,
+        "s": 2970.6,
+        "lap": 0,
+        "leanDeg": 0,
+        "airborne": 0,
+        "airTime": 0
+      },
+      "build": {
+        "commit": "f5aa63f79f40dcd282fe921344915640e604283d",
+        "fingerprint": "733748883c5c6a49d51b7547a1c83e2abdff6f2a3d4e1cb66944f27983f738c9"
+      },
+      "state": "paused",
+      "options": {
+        "circuit": "aurel",
+        "mode": "race",
+        "laps": 3,
+        "opponents": 11,
+        "weather": "clear",
+        "ruleset": "multi-class-endurance",
+        "vehicles": [
+          "hy9",
+          "pr2",
+          "gt8f",
+          "gt10m",
+          "gs4",
+          "hy9",
+          "pr2",
+          "gt8f",
+          "gt10m",
+          "gs4",
+          "hy9",
+          "pr2"
+        ]
+      },
+      "presentedTime": 13.524999618530273,
+      "replayPosition": null,
+      "renderer": {
+        "camera": "chase",
+        "requestedCamera": "chase",
+        "lighting": "day",
+        "renderWidth": 1280,
+        "renderHeight": 720,
+        "drawCalls": 1051,
+        "triangles": 7836912,
+        "ultra": {
+          "preset": "ultra",
+          "tier": "high",
+          "unsupported": [],
+          "replayDof": {
+            "enabled": false,
+            "focus": 4.612686088387122,
+            "backgroundBlur": 0.001250335874190067,
+            "fNumber": 2.8,
+            "taps": 48,
+            "frames": 1,
+            "extraDraws": 0
+          }
+        }
+      },
+      "capturedAt": "2026-10-15T16:49:10.349Z"
+    },
+    {
+      "id": "04",
+      "slug": "multiclass-pack-aurel-trackside",
+      "file": "04-multiclass-pack-aurel-trackside.png",
+      "hud": null,
+      "notes": "same held moment, trackside camera",
+      "player": {
+        "speedKmh": 97.2,
+        "s": 2970.6,
+        "lap": 0,
+        "leanDeg": 0,
+        "airborne": 0,
+        "airTime": 0
+      },
+      "build": {
+        "commit": "f5aa63f79f40dcd282fe921344915640e604283d",
+        "fingerprint": "733748883c5c6a49d51b7547a1c83e2abdff6f2a3d4e1cb66944f27983f738c9"
+      },
+      "state": "paused",
+      "options": {
+        "circuit": "aurel",
+        "mode": "race",
+        "laps": 3,
+        "opponents": 11,
+        "weather": "clear",
+        "ruleset": "multi-class-endurance",
+        "vehicles": [
+          "hy9",
+          "pr2",
+          "gt8f",
+          "gt10m",
+          "gs4",
+          "hy9",
+          "pr2",
+          "gt8f",
+          "gt10m",
+          "gs4",
+          "hy9",
+          "pr2"
+        ]
+      },
+      "presentedTime": 13.524999618530273,
+      "replayPosition": null,
+      "renderer": {
+        "camera": "trackside",
+        "requestedCamera": "trackside",
+        "lighting": "day",
+        "renderWidth": 1280,
+        "renderHeight": 720,
+        "drawCalls": 576,
+        "triangles": 4654164,
+        "ultra": {
+          "preset": "ultra",
+          "tier": "high",
+          "unsupported": [],
+          "replayDof": {
+            "enabled": false,
+            "focus": 4.612686088387122,
+            "backgroundBlur": 0.001250335874190067,
+            "fNumber": 2.8,
+            "taps": 48,
+            "frames": 1,
+            "extraDraws": 0
+          }
+        }
+      },
+      "capturedAt": "2026-10-15T16:49:51.389Z"
+    },
+    {
+      "id": "06",
+      "slug": "neon-city-night-gt10m",
+      "file": "06-neon-city-night-gt10m.png",
+      "hud": null,
+      "notes": "NEON CITY street circuit (night by venue), GT-10M field (8), live chase camera; 4 cars 4-104 m ahead when held, 184 km/h, race 10.6 s",
+      "player": {
+        "speedKmh": 184.3,
+        "s": 258.3,
+        "lap": 0,
+        "leanDeg": 0,
+        "airborne": 0,
+        "airTime": 0
+      },
+      "build": {
+        "commit": "f5aa63f79f40dcd282fe921344915640e604283d",
+        "fingerprint": "733748883c5c6a49d51b7547a1c83e2abdff6f2a3d4e1cb66944f27983f738c9"
+      },
+      "state": "paused",
+      "options": {
+        "circuit": "neon-city",
+        "mode": "race",
+        "laps": 3,
+        "opponents": 7,
+        "weather": "clear",
+        "ruleset": "gt-sprint",
+        "vehicles": [
+          "gt10m",
+          "gt10m",
+          "gt10m",
+          "gt10m",
+          "gt10m",
+          "gt10m",
+          "gt10m",
+          "gt10m"
+        ]
+      },
+      "presentedTime": 16.5,
+      "replayPosition": null,
+      "renderer": {
+        "camera": "chase",
+        "requestedCamera": "chase",
+        "lighting": "night",
+        "renderWidth": 1280,
+        "renderHeight": 720,
+        "drawCalls": 560,
+        "triangles": 1077084,
+        "ultra": {
+          "preset": "ultra",
+          "tier": "high",
+          "unsupported": [],
+          "replayDof": {
+            "enabled": false,
+            "focus": 4.612686088387193,
+            "backgroundBlur": 0.0012503358741900478,
+            "fNumber": 2.8,
+            "taps": 48,
+            "frames": 1,
+            "extraDraws": 0
+          }
+        }
+      },
+      "capturedAt": "2026-10-15T16:52:01.118Z"
+    },
+    {
+      "id": "06",
+      "slug": "neon-city-night-trackside",
+      "file": "06-neon-city-night-trackside.png",
+      "hud": null,
+      "notes": "same held moment, trackside camera",
+      "player": {
+        "speedKmh": 184.3,
+        "s": 258.3,
+        "lap": 0,
+        "leanDeg": 0,
+        "airborne": 0,
+        "airTime": 0
+      },
+      "build": {
+        "commit": "f5aa63f79f40dcd282fe921344915640e604283d",
+        "fingerprint": "733748883c5c6a49d51b7547a1c83e2abdff6f2a3d4e1cb66944f27983f738c9"
+      },
+      "state": "paused",
+      "options": {
+        "circuit": "neon-city",
+        "mode": "race",
+        "laps": 3,
+        "opponents": 7,
+        "weather": "clear",
+        "ruleset": "gt-sprint",
+        "vehicles": [
+          "gt10m",
+          "gt10m",
+          "gt10m",
+          "gt10m",
+          "gt10m",
+          "gt10m",
+          "gt10m",
+          "gt10m"
+        ]
+      },
+      "presentedTime": 16.5,
+      "replayPosition": null,
+      "renderer": {
+        "camera": "trackside",
+        "requestedCamera": "trackside",
+        "lighting": "night",
+        "renderWidth": 1280,
+        "renderHeight": 720,
+        "drawCalls": 798,
+        "triangles": 1126167,
+        "ultra": {
+          "preset": "ultra",
+          "tier": "high",
+          "unsupported": [],
+          "replayDof": {
+            "enabled": false,
+            "focus": 4.612686088387193,
+            "backgroundBlur": 0.0012503358741900478,
+            "fNumber": 2.8,
+            "taps": 48,
+            "frames": 1,
+            "extraDraws": 0
+          }
+        }
+      },
+      "capturedAt": "2026-10-15T16:52:31.396Z"
+    },
+    {
+      "id": "07",
+      "slug": "hochwald-forest-ring-hf67",
+      "file": "07-hochwald-forest-ring-hf67.png",
+      "hud": null,
+      "notes": "HOCHWALD FOREST RING (catalogue wave 2), HF-67 historic formula field (8), live chase camera; 3 cars 4-104 m ahead when held, 76 km/h, race 25.2 s",
+      "player": {
+        "speedKmh": 75.9,
+        "s": 576.3,
+        "lap": 0,
+        "leanDeg": 0,
+        "airborne": 0,
+        "airTime": 0
+      },
+      "build": {
+        "commit": "f5aa63f79f40dcd282fe921344915640e604283d",
+        "fingerprint": "733748883c5c6a49d51b7547a1c83e2abdff6f2a3d4e1cb66944f27983f738c9"
+      },
+      "state": "paused",
+      "options": {
+        "circuit": "hochwald",
+        "mode": "race",
+        "laps": 1,
+        "opponents": 7,
+        "weather": "clear",
+        "ruleset": "historic-formula",
+        "vehicles": [
+          "hf67",
+          "hf67",
+          "hf67",
+          "hf67",
+          "hf67",
+          "hf67",
+          "hf67",
+          "hf67"
+        ]
+      },
+      "presentedTime": 31.100000381469727,
+      "replayPosition": null,
+      "renderer": {
+        "camera": "chase",
+        "requestedCamera": "chase",
+        "lighting": "day",
+        "renderWidth": 1280,
+        "renderHeight": 720,
+        "drawCalls": 2703,
+        "triangles": 4820496,
+        "ultra": {
+          "preset": "ultra",
+          "tier": "high",
+          "unsupported": [],
+          "replayDof": {
+            "enabled": false,
+            "focus": 4.612686088387136,
+            "backgroundBlur": 0.001250335874190063,
+            "fNumber": 2.8,
+            "taps": 48,
+            "frames": 1,
+            "extraDraws": 0
+          }
+        }
+      },
+      "capturedAt": "2026-10-15T16:56:27.651Z"
+    },
+    {
+      "id": "07",
+      "slug": "hochwald-forest-ring-trackside",
+      "file": "07-hochwald-forest-ring-trackside.png",
+      "hud": null,
+      "notes": "same held moment, trackside camera",
+      "player": {
+        "speedKmh": 75.9,
+        "s": 576.3,
+        "lap": 0,
+        "leanDeg": 0,
+        "airborne": 0,
+        "airTime": 0
+      },
+      "build": {
+        "commit": "f5aa63f79f40dcd282fe921344915640e604283d",
+        "fingerprint": "733748883c5c6a49d51b7547a1c83e2abdff6f2a3d4e1cb66944f27983f738c9"
+      },
+      "state": "paused",
+      "options": {
+        "circuit": "hochwald",
+        "mode": "race",
+        "laps": 1,
+        "opponents": 7,
+        "weather": "clear",
+        "ruleset": "historic-formula",
+        "vehicles": [
+          "hf67",
+          "hf67",
+          "hf67",
+          "hf67",
+          "hf67",
+          "hf67",
+          "hf67",
+          "hf67"
+        ]
+      },
+      "presentedTime": 31.100000381469727,
+      "replayPosition": null,
+      "renderer": {
+        "camera": "trackside",
+        "requestedCamera": "trackside",
+        "lighting": "day",
+        "renderWidth": 1280,
+        "renderHeight": 720,
+        "drawCalls": 782,
+        "triangles": 1945535,
+        "ultra": {
+          "preset": "ultra",
+          "tier": "high",
+          "unsupported": [],
+          "replayDof": {
+            "enabled": false,
+            "focus": 4.612686088387136,
+            "backgroundBlur": 0.001250335874190063,
+            "fNumber": 2.8,
+            "taps": 48,
+            "frames": 1,
+            "extraDraws": 0
+          }
+        }
+      },
+      "capturedAt": "2026-10-15T16:57:06.628Z"
+    },
+    {
+      "id": "07",
+      "slug": "hochwald-forest-ring-2",
+      "file": "07-hochwald-forest-ring-2.png",
+      "hud": null,
+      "notes": "later on the lap, s 2419 m, 112 km/h",
+      "player": {
+        "speedKmh": 111.8,
+        "s": 2418.5,
+        "lap": 0,
+        "leanDeg": 0,
+        "airborne": 0,
+        "airTime": 0
+      },
+      "build": {
+        "commit": "f5aa63f79f40dcd282fe921344915640e604283d",
+        "fingerprint": "733748883c5c6a49d51b7547a1c83e2abdff6f2a3d4e1cb66944f27983f738c9"
+      },
+      "state": "paused",
+      "options": {
+        "circuit": "hochwald",
+        "mode": "race",
+        "laps": 1,
+        "opponents": 7,
+        "weather": "clear",
+        "ruleset": "historic-formula",
+        "vehicles": [
+          "hf67",
+          "hf67",
+          "hf67",
+          "hf67",
+          "hf67",
+          "hf67",
+          "hf67",
+          "hf67"
+        ]
+      },
+      "presentedTime": 91.56666564941406,
+      "replayPosition": null,
+      "renderer": {
+        "camera": "chase",
+        "requestedCamera": "chase",
+        "lighting": "day",
+        "renderWidth": 1280,
+        "renderHeight": 720,
+        "drawCalls": 905,
+        "triangles": 1999718,
+        "ultra": {
+          "preset": "ultra",
+          "tier": "high",
+          "unsupported": [],
+          "replayDof": {
+            "enabled": false,
+            "focus": 4.612686088387136,
+            "backgroundBlur": 0.001250335874190063,
+            "fNumber": 2.8,
+            "taps": 48,
+            "frames": 1,
+            "extraDraws": 0
+          }
+        }
+      },
+      "capturedAt": "2026-10-15T16:58:53.073Z"
+    }
+  ],
+  "failures": [],
+  "consoleErrors": [],
+  "gl": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+  "finishedAt": "2026-10-15T16:58:53.082Z"
+}

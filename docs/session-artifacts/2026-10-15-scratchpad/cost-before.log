@@ -1,0 +1,41 @@
+Observed swiftshader test backend: ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)
+
+Running 1 test using 1 worker
+
+[cabin-cost 43.5s] renderer ready
+[cabin-cost 127.7s] gt8f low: measured
+[cabin-cost 166.9s] gt8f medium: measured
+[cabin-cost 292.0s] apx01 low: measured
+[cabin-cost 365.2s] apx01 medium: measured
+[{"machine":"gt8f","quality":"low","cars":12,"bodies":12,"rivalDetail":3,"ownDetail":true,"mirrorFrames":3,"calls":1239,"triangles":3024604,"mirrorCalls":639,"mirrorTriangles":1461994},{"machine":"gt8f","quality":"medium","cars":12,"bodies":12,"rivalDetail":3,"ownDetail":true,"mirrorFrames":3,"calls":1381,"triangles":7755417,"mirrorCalls":642,"mirrorTriangles":1724241},{"machine":"apx01","quality":"low","cars":12,"bodies":0,"rivalDetail":3,"ownDetail":true,"mirrorFrames":3,"calls":1334,"triangles":4039665,"mirrorCalls":675,"mirrorTriangles":2086226},{"machine":"apx01","quality":"medium","cars":12,"bodies":0,"rivalDetail":3,"ownDetail":true,"mirrorFrames":3,"calls":2078,"triangles":11992898,"mirrorCalls":814,"mirrorTriangles":2819916}]
+  ✘  1 e2e/cabin-render-cost.spec.ts:14:1 › catalogue cockpit cabin and mirror-feed cost on a full grid (6.6m)
+
+
+  1) e2e/cabin-render-cost.spec.ts:14:1 › catalogue cockpit cabin and mirror-feed cost on a full grid 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32m0[39m
+    Received: [31m3[39m
+
+      72 |   }
+      73 |   // Low tier: no rival cabin detail at all, however close.
+    > 74 |   expect(row('gt8f', 'low').rivalDetail).toBe(0);
+         |                                          ^
+      75 |   // Medium keeps it for the cars right around the grid slot.
+      76 |   expect(row('gt8f', 'medium').rivalDetail).toBeGreaterThan(0);
+      77 | });
+        at /tmp/claude-0/-home-user-Experiment-3/c20c3567-05b6-5daa-8126-ea386a6ddfeb/scratchpad/before/e2e/cabin-render-cost.spec.ts:74:42
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/cabin-render-cost-catalogu-faf6e-or-feed-cost-on-a-full-grid/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/cabin-render-cost-catalogu-faf6e-or-feed-cost-on-a-full-grid/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  Slow test file: e2e/cabin-render-cost.spec.ts (6.6m)
+  Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+  1 failed
+    e2e/cabin-render-cost.spec.ts:14:1 › catalogue cockpit cabin and mirror-feed cost on a full grid 

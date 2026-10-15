@@ -1,0 +1,24 @@
+syferfontein_0d_clear | Greg Zaal | CC0 1.0 | outdoor,skies,nature,sunrise-sunset,clear,low contrast,natural light
+kiara_5_noon | Greg Zaal | CC0 1.0 | outdoor,skies,nature,midday,clear,high contrast,natural light
+versveldpas | Greg Zaal | CC0 1.0 | outdoor,skies,nature,midday,clear,high contrast,natural light
+derelict_highway_noon | Greg Zaal | CC0 1.0 | outdoor,nature,midday,clear,high contrast,natural light
+stadium_01 | Sergej Majboroda | CC0 1.0 | outdoor,urban,sunrise-sunset,clear,low contrast,natural light
+qwantani | Greg Zaal | CC0 1.0 | outdoor,skies,nature,morning-afternoon,clear,high contrast,natural light
+small_rural_road_02 | Sergej Majboroda | CC0 1.0 | outdoor,nature,sunrise-sunset,clear,low contrast,natural light
+cloudy_cliffside_road | Greg Zaal | CC0 1.0 | outdoor,nature,urban,midday,overcast,low contrast,natural light
+mud_road | Sergey Rudavin | CC0 1.0 | outdoor,skies,nature,midday,overcast,low contrast,natural light
+autumn_road | Sergej Majboroda | CC0 1.0 | outdoor,nature,morning-afternoon,overcast,low contrast,natural light
+lenong_1 | Greg Zaal | CC0 1.0 | outdoor,skies,nature,morning-afternoon,overcast,low contrast,natural light
+kloppenheim_04 | Greg Zaal | CC0 1.0 | outdoor,skies,nature,night,overcast,low contrast,artificial light
+suburban_field_01 | Jacopo Voltolina | CC0 1.0 | outdoor,nature,midday,overcast,low contrast,natural light
+snowy_hillside_02 | Andreas Mischok | CC0 1.0 | outdoor,nature,midday,low contrast,natural light,overcast
+kiara_1_dawn | Greg Zaal | CC0 1.0 | outdoor,skies,nature,sunrise-sunset,partly cloudy,medium contrast,natural light
+kiara_8_sunset | Greg Zaal | CC0 1.0 | outdoor,skies,nature,sunrise-sunset,clear,high contrast,natural light
+evening_road_01 | Sergej Majboroda | CC0 1.0 | outdoor,skies,nature,sunrise-sunset,partly cloudy,medium contrast,natural light
+rural_landscape | Sergej Majboroda | CC0 1.0 | outdoor,skies,nature,sunrise-sunset,partly cloudy,low contrast,natural light
+table_mountain_1 | Greg Zaal | CC0 1.0 | outdoor,skies,nature,sunrise-sunset,partly cloudy,high contrast,natural light
+satara_night | Greg Zaal | CC0 1.0 | outdoor,skies,nature,clear,night,high contrast,artificial light
+satara_night_no_lamps | Greg Zaal | CC0 1.0 | outdoor,skies,nature,clear,night,low contrast,natural light
+kloppenheim_02 | Greg Zaal | CC0 1.0 | outdoor,skies,nature,night,clear,high contrast,natural light
+street_lamp | Greg Zaal | CC0 1.0 | outdoor,urban,night,partly cloudy,high contrast,artificial light
+preller_drive | Greg Zaal | CC0 1.0 | outdoor,urban,nature,partly cloudy,night,high contrast,artificial light

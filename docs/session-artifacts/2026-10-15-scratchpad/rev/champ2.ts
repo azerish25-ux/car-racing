@@ -1,0 +1,32 @@
+const W = '/home/user/Experiment-3/.claude/worktrees/wf_79603d95-dab-1/src';
+const { liveRegistry } = await import(`${W}/career/registry.ts`);
+const { disciplineEvents, disciplineTiers, championshipCalendar } = await import(`${W}/career/ladder.ts`);
+const { newCareer } = await import(`${W}/career/save.ts`);
+const { buyVehicle, setActive, startChampionship, settleRace } = await import(`${W}/career/economy.ts`);
+const { disciplineStatus } = await import(`${W}/career/registry.ts`);
+const live = liveRegistry();
+const tc1 = live.vehicles.find((v: any) => v.id === 'tc1');
+// A second touring car registered by the concurrent car catalogue work.
+const reg = { ...live, vehicles: [...live.vehicles, { ...tc1, id: 'tc2', name: 'TOURING 2' }] };
+let save = newCareer();
+save.credits = 1e6;
+save = buyVehicle(save, reg, 'tc1');
+save = buyVehicle(save, reg, 'tc2');
+save.reputation['circuit-cars'] = 20;
+save.licences.braking = { medal: 'bronze', best: 6, attempts: 1 };
+const key = 'circuit-cars.club.championship';
+const ev = () => disciplineEvents(reg, save, 'circuit-cars').find((e: any) => e.key === key);
+console.log('active', save.active['circuit-cars'], 'entry', ev().vehicle, ev().status);
+const venues = disciplineStatus(reg, 'circuit-cars').venues;
+const tiers = disciplineTiers(reg, 'circuit-cars');
+const rounds = championshipCalendar(venues, 0, tiers[0]);
+save = startChampionship(save, key, ev().vehicle, rounds, 8);
+const order = [0,1,2,3,4,5,6,7];
+save = settleRace(save, { ...ev(), name: 'X' }, { session: 'r1', position: 1, cars: 8, classified: true, demonstration: false, penalties: 0, contactEnergy: 0, gridSlot: 4, bestLap: 90, round: { order, retired: [], grid: order, demonstration: false, session: 'r1' } }).save;
+save = settleRace(save, { ...ev(), name: 'X' }, { session: 'r2', position: 1, cars: 8, classified: true, demonstration: false, penalties: 0, contactEnergy: 0, gridSlot: 4, bestLap: 90, round: { order, retired: [], grid: order, demonstration: false, session: 'r2' } }).save;
+console.log('rounds recorded', save.championships[key].season.results.length, 'of', rounds.length);
+save = setActive(save, reg, 'circuit-cars', 'tc2');
+console.log('after setActive: entry', ev().vehicle);
+// Controller.startEvent does exactly this with event.vehicle:
+save = startChampionship(save, key, ev().vehicle, rounds, 8);
+console.log('rounds recorded after START ROUND 3 click', save.championships[key].season.results.length);

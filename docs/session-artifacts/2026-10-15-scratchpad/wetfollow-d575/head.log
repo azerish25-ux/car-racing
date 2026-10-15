@@ -1,0 +1,17 @@
+(node:13495) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+t=0.0 ph=1 rank=1 v=0.1 meanW=0.875 rain=24.00 wheels=0.987@7615 0.987@6171 0.968@2924 0.968@1326 cw=0.977 leader=-1 lw=0.000 spray=0 ahead:id5 ds=0.0 lat=4.40 wet=0.00
+t=30.0 ph=2 rank=5 v=57.5 meanW=0.930 rain=24.00 wheels=0.954@4809 1.026@4127 0.954@5571 1.026@4835 cw=0.990 leader=-1 lw=0.000 spray=0 ahead:id3 ds=48.4 lat=1.99 wet=9.33
+t=60.0 ph=2 rank=5 v=40.6 meanW=0.981 rain=24.00 wheels=0.981@3118 0.981@3124 1.017@3851 1.017@3845 cw=0.999 leader=-1 lw=0.000 spray=0 ahead:id3 ds=36.4 lat=1.36 wet=9.33
+t=90.0 ph=2 rank=5 v=54.6 meanW=1.026 rain=24.00 wheels=1.025@4662 1.025@4124 1.282@5568 1.282@4964 cw=1.154 leader=-1 lw=0.000 spray=0 ahead:id3 ds=82.4 lat=0.42 wet=9.33
+t=120.0 ph=2 rank=5 v=26.1 meanW=1.068 rain=24.00 wheels=1.236@2229 1.324@2633 1.236@2803 1.324@3137 cw=1.280 leader=-1 lw=0.000 spray=0 ahead:id3 ds=51.1 lat=-0.89 wet=9.33
+t=150.0 ph=2 rank=5 v=68.2 meanW=1.106 rain=24.00 wheels=0.923@6459 1.158@5584 0.923@8088 1.158@7093 cw=1.041 leader=-1 lw=0.000 spray=0 ahead:id3 ds=194.0 lat=4.94 wet=9.33
+t=180.0 ph=2 rank=5 v=24.5 meanW=1.140 rain=24.00 wheels=1.086@2805 1.086@2226 1.157@2864 1.086@2228 cw=1.104 leader=-1 lw=0.000 spray=0 ahead:id3 ds=85.5 lat=0.11 wet=9.33
+t=210.0 ph=2 rank=5 v=35.3 meanW=1.172 rain=24.00 wheels=1.490@3268 1.490@2252 1.314@4175 1.314@3071 cw=1.402 leader=-1 lw=0.000 spray=0 ahead:id3 ds=146.4 lat=-2.43 wet=9.33
+t=240.0 ph=2 rank=5 v=57.0 meanW=1.200 rain=24.00 wheels=0.925@4765 1.181@3977 0.925@6091 1.181@5267 cw=1.053 leader=-1 lw=0.000 spray=0 ahead:id3 ds=246.6 lat=-0.00 wet=9.33
+t=270.0 ph=2 rank=5 v=36.3 meanW=1.227 rain=24.00 wheels=1.646@2522 1.495@2878 1.736@3528 1.596@3911 cw=1.618 leader=-1 lw=0.000 spray=0 ahead:id3 ds=184.8 lat=-1.48 wet=9.33
+t=300.0 ph=2 rank=5 v=72.8 meanW=1.250 rain=24.00 wheels=1.105@6258 1.105@6404 1.165@7870 1.165@8016 cw=1.135 leader=-1 lw=0.000 spray=0 ahead:id3 ds=306.2 lat=4.31 wet=9.33
+t=330.0 ph=2 rank=5 v=22.5 meanW=1.272 rain=24.00 wheels=1.428@2212 1.428@2808 1.474@2249 1.474@2750 cw=1.451 leader=-1 lw=0.000 spray=0 ahead:id3 ds=133.8 lat=0.09 wet=9.33
+t=360.0 ph=2 rank=5 v=68.3 meanW=1.292 rain=24.00 wheels=1.301@6470 1.692@5587 1.252@8084 1.691@7069 cw=1.484 leader=-1 lw=0.000 spray=0 ahead:id3 ds=360.8 lat=5.95 wet=9.33
+player finished at 365.6
+{"time":365.57499999983185,"qualified":true,"wetFollowingSeconds":9.333333015441895,"racingFrames":10791,"leaderFrames":692,"playerWetFrames":10791,"leaderWetFrames":692,"sprayFrames":690,"hist":{},"runs":[[6.9,9.33,0],[21.5,2.7,0],[42,3.37,0],[46.1,2.87,0],[49,1.27,0],[54.5,1.13,0],[57.2,1,0]]}

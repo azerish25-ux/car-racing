@@ -1,0 +1,40 @@
+(node:28062) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+[    0 s] open http://127.0.0.1:47812/ (mesa, 1280x720)
+[   61 s] menu ready on ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)
+[   61 s] GARAGE & SETTINGS → ultra
+[  111 s] preset applied
+[  111 s] session: aurel race 3 laps clear grid 12 start back machine multiclass
+[  111 s] rules: MULTI-CLASS ENDURANCE: no mandatory stop · DRS off · points scored.
+[  160 s] session prepared
+[  176 s] 04 multiclass-pack-aurel: met (t 12.8 s, race 6.9 s)
+[  253 s] captured 04-multiclass-pack-aurel.png
+[  302 s] captured 04-multiclass-pack-aurel-trackside.png
+[  302 s] session pack took 242 s
+[  309 s] session: poggio-alto race 3 laps clear grid 8 start midfield machine gpr1
+[  309 s] rules: GP MOTORCYCLE SPRINT: no mandatory stop · DRS off · points scored.
+[  438 s] session prepared
+[  465 s] 03 leaned in a corner: met (t 26.2 s, race 20.3 s)
+[  549 s] captured 03-gpr1-poggio-alto-lean.png
+[  614 s] captured 03-gpr1-poggio-alto-trackside.png
+[  614 s] session bikes took 312 s
+[  628 s] session: neon-city race 3 laps clear grid 8 start midfield machine gt10m
+[  628 s] rules: GT SPRINT: no mandatory stop · DRS off · points scored.
+[  715 s] session prepared
+[  734 s] 06 neon-city-night-gt10m: met (t 16.4 s, race 10.4 s)
+[  749 s] captured 06-neon-city-night-gt10m.png
+[  766 s] captured 06-neon-city-night-trackside.png
+[  766 s] session neon took 152 s
+[  771 s] session: festival (open world)
+[  791 s] festival loaded at Port Ilse
+[  899 s] captured 08-festival-port-ilse-golden-hour.png
+[  926 s] captured 09-festival-world-map.png
+[  926 s] festival autopilot on, driving
+[ 1030 s] captured 09b-festival-drive-1.png
+[ 1110 s] captured 09b-festival-drive-2.png
+[ 1160 s] shot 09b failed: page.screenshot: Target page, context or browser has been closed
+[ 1160 s] shot festival-exit failed: locator.isVisible: Target page, context or browser has been closed
+[ 1160 s] session festival took 393 s
+[ 1160 s] session valley aborted: page.evaluate: Target page, context or browser has been closed
+[ 1160 s] session valley took 0 s
+[ 1160 s] done: 10 shots, 3 failures → /tmp/claude-0/-home-user-Experiment-3/c20c3567-05b6-5daa-8126-ea386a6ddfeb/scratchpad/lookdev/skies/after2

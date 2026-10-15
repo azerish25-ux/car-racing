@@ -1,0 +1,36 @@
+{
+    "asset_type": "Texture",
+    "id": "shudu_lake",
+    "kwargs": {
+        "filename": "environment_4k.hdr"
+    },
+    "license": "CC0 1.0",
+    "metadata": {
+        "authors": [
+            "Alex Radosnov"
+        ],
+        "categories": [
+            "outdoor",
+            "nature",
+            "overcast",
+            "natural light",
+            "low contrast",
+            "midday"
+        ],
+        "coords": [
+            27.904654,
+            99.938984
+        ],
+        "date_taken": 1476100800,
+        "resolution": "4k",
+        "tags": [
+            "lake",
+            "platform",
+            "wood floor",
+            "hill",
+            "mountain",
+            "park",
+            "backplates"
+        ]
+    }
+}

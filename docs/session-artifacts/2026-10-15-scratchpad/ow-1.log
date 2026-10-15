@@ -1,0 +1,42 @@
+
+> apex-formula-laboratory@0.1.0 test:open-world
+> node --experimental-transform-types scripts/open-world.ts
+
+PASS  region is 8.19 km square (>= 8 km)
+PASS  road network 70.92 km (>= 60 km)
+PASS  network RouteGraph valid (0 errors)
+PASS  13 event routes planned and validated
+coast-to-summit: 10.17 km in 217.8 s (167.7 km/h avg, 311.8 top), off-route 0 s, resets 0, tiles peak 24/24, stalls 0
+PASS  coast-to-summit: AI finished the route
+PASS  coast-to-summit: never stuck (longest stall 0 s)
+PASS  coast-to-summit: no reset needed
+PASS  coast-to-summit: stayed on the legal route (0 s off)
+PASS  coast-to-summit: physics tiles within budget (24/24)
+thornwood-rally: 5.14 km in 141.8 s (129.3 km/h avg, 133.9 top), off-route 0 s, resets 0, tiles peak 24/24, stalls 0
+PASS  thornwood-rally: AI finished the route
+PASS  thornwood-rally: never stuck (longest stall 0 s)
+PASS  thornwood-rally: no reset needed
+PASS  thornwood-rally: stayed on the legal route (0 s off)
+PASS  thornwood-rally: physics tiles within budget (24/24)
+PASS  long route is 10.17 km (>= 10 km)
+PASS  valley sprint race completed with a typed result
+PASS  rivals finished the race route
+traffic: peak 24/24 cars, 130 spawned, closest spawn 182.8 m, 0 collisions, 0.0422 ms/step traffic of 0.4622 ms/step session
+PASS  traffic within the total cap (peak 24/24)
+PASS  traffic spawns beyond 180 m of the player (closest 182.8 m)
+PASS  traffic is deterministic (digest 3037811142 twice)
+PASS  traffic is cheap (0.0422 ms per 120 Hz step in Node)
+bike roam sbk1000: 1.67 km in 120 s, 0 falls
+PASS  sbk1000: rode 120 s of free roam on the autopilot without a fall
+bike roam nr900: 1.66 km in 120 s, 0 falls
+PASS  nr900: rode 120 s of free roam on the autopilot without a fall
+bike roam sm450: 1.55 km in 120 s, 0 falls
+PASS  sm450: rode 120 s of free roam on the autopilot without a fall
+bike race sbk1000 valley-sprint: 79.5 s, 4/4 finished, falls 0 + 0
+PASS  sbk1000: valley-sprint completed by every rider
+bike race sm450 thornwood-rally: 178.4 s, 4/4 finished, falls 0 + 0
+PASS  sm450: thornwood-rally completed by every rider
+Open world acceptance passed → docs/open-world.json
+(node:8210) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+EXIT 0

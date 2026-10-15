@@ -1,0 +1,21 @@
+Merge branch 'claude/peaceful-einstein-dedc7t' into worktree-wf_b0a03695-07e-1
+
+Brings the festival open world and the second catalogue wave under the
+off-road work. Conflicts resolved by keeping both sides: the new car
+and road-bike classes, tyre families, rulesets and calibration bands
+sit beside the motocross and supermoto entries, and the dirt bikes are
+appended to the vehicle registry after the new road bikes. Practice,
+qualifying and time trial admit every road and off-road motorcycle
+class. docs/vehicle-calibration.json regenerated: every existing
+machine's record is unchanged, the three dirt bikes are added.
+
+Integration fixes: the road-motorcycle menu leaves the dirt bikes to
+their own group (they race moto rules on medium or wet tyres); the
+dirt bikes name their engine voices (four-stroke and two-stroke
+singles); historic rally cars, on gravel tyres, are admitted at the
+rallycross venue and the special stage under the off-road rulesets.
+Catalogue counts, the career paragraph and the discipline and
+off-road licence register rows describe the merged state.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01RN7q935R3iepiRcM32D9uW

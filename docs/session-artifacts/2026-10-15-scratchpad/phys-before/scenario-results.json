@@ -1,0 +1,125 @@
+[
+  {
+    "passed": true,
+    "failures": [],
+    "weather": "clear",
+    "simulatedSeconds": 320,
+    "cars": 4,
+    "elapsedSeconds": 53.79964050700001,
+    "maxSpeedKmh": 304.1014596350872,
+    "maxLateral": 7.263128394117072,
+    "laps": [
+      4,
+      6,
+      6,
+      6
+    ],
+    "bestLaps": [
+      51.251873648478465,
+      49.62881662473679,
+      50.0801489126971,
+      49.65914095824634
+    ],
+    "pitStops": [
+      1,
+      0,
+      0,
+      0
+    ],
+    "frontHealth": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "compounds": [
+      "medium",
+      "medium",
+      "medium",
+      "medium"
+    ],
+    "waterMm": 0
+  },
+  {
+    "passed": true,
+    "failures": [],
+    "weather": "changeable",
+    "simulatedSeconds": 320,
+    "cars": 4,
+    "elapsedSeconds": 55.68404358699999,
+    "maxSpeedKmh": 302.0384141473874,
+    "maxLateral": 7.267655355640163,
+    "laps": [
+      4,
+      4,
+      3,
+      3
+    ],
+    "bestLaps": [
+      53.57390661937075,
+      51.39352672102261,
+      55.58936106462811,
+      54.261008427053206
+    ],
+    "pitStops": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "frontHealth": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "compounds": [
+      "intermediate",
+      "intermediate",
+      "intermediate",
+      "intermediate"
+    ],
+    "waterMm": 1.2337620644830167
+  },
+  {
+    "passed": true,
+    "failures": [],
+    "weather": "rain",
+    "simulatedSeconds": 320,
+    "cars": 4,
+    "elapsedSeconds": 35.723247674000014,
+    "maxSpeedKmh": 281.0145247334025,
+    "maxLateral": 6.201210576027582,
+    "laps": [
+      4,
+      4,
+      4,
+      4
+    ],
+    "bestLaps": [
+      67.80428503792317,
+      65.97572462327467,
+      69.15599886752685,
+      68.71361934806754
+    ],
+    "pitStops": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "frontHealth": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "compounds": [
+      "wet",
+      "wet",
+      "wet",
+      "wet"
+    ],
+    "waterMm": 1.2743591388321616
+  }
+]

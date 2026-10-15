@@ -1,0 +1,7 @@
+Observed swiftshader test backend: ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)
+
+Running 1 test using 1 worker
+
+  ✓  1 e2e/59-career-hub.spec.ts:10:1 › career hub: CAREER entry, keyboard reach, licences, dealership, garage and recovery (10.5s)
+
+  1 passed (13.5s)
