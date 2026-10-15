@@ -75,6 +75,11 @@ Timeout increases were rejected (masterplan §24.7).
 * Independent replay-clock regression without rendering: `tests/replay-clock.test.ts` (advance,
   pause, seeks across sealed pages, play to the exact end, restart from the end, rate, step cap,
   rapid repeated controls) over an in-memory `SessionReplay`.
+* The service-playback check is a liveness assertion: it fails when playback makes no progress
+  for 30 s (the F01 symptom) rather than at a fixed 120 s wall deadline. Hosted runners present
+  one 0.5 s replay step every ~5.6–10.5 s on software GL (runs 38662457092, 38671039493: the replay
+  advanced steadily and missed the old deadline by one step), so a wall-clock deadline measured
+  host speed, not replay correctness.
 * The pit journey assertions are unchanged; on failure it now reports page residency, buffering vs
   GPU-deferred callbacks and gate state instead of an opaque timeout.
 

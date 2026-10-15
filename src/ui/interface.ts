@@ -219,7 +219,7 @@ export class Interface {
     <p class="session-rules" id="sessionRules" aria-live="polite"></p>
     <button class="primary enter" type="submit">ENTER CIRCUIT <span aria-hidden="true">↗</span></button>
     <button class="enter" type="submit" name="prepareGrid" value="yes">PREPARE GRID <span>START PAUSED</span></button>
-   </form><div class="menu-actions" role="group" aria-label="Paddock"><button data-action="settings">GARAGE & SETTINGS</button><button data-action="events">EVENTS</button><button data-action="championship">CHAMPIONSHIP</button><button data-action="team">TEAM HQ</button><button data-action="academy">DRIVING ACADEMY</button><button data-action="photo">PHOTO / LIVERY</button><button data-action="controls">CONTROLS</button></div>${
+   </form><div class="menu-actions" role="group" aria-label="Paddock"><button data-action="career">CAREER</button><button data-action="settings">GARAGE & SETTINGS</button><button data-action="events">EVENTS</button><button data-action="championship">CHAMPIONSHIP</button><button data-action="team">TEAM HQ</button><button data-action="academy">DRIVING ACADEMY</button><button data-action="photo">PHOTO / LIVERY</button><button data-action="controls">CONTROLS</button></div>${
      DEV
        ? '<div class="dev-tools" role="group" aria-label="Developer tools"><span>DEV</span><button data-action="references">REFERENCE REVIEW</button><button data-action="sessionReview">SESSION 146 EVIDENCE</button></div>'
        : ''
@@ -998,6 +998,8 @@ export class Interface {
   }
   /** Championship line under a race classification (set by the application). */
   championshipNote = '';
+  /** Career payment panel under a classification (trusted HTML from career-hub.ts). */
+  resultsExtra = '';
   results(frame: Float32Array) {
     if (this.options.mode === 'qualifying') {
       this.qualifyingResults(frame);
@@ -1011,7 +1013,7 @@ export class Interface {
       })
       .join('');
     this.modalContent(
-      `<span class="eyebrow">CHEQUERED FLAG / SESSION CLASSIFICATION</span><h2>${frame[carBase(0) + F.FINISH] > 0 ? 'Across the line.' : 'Session ended.'}</h2><p>Classified by laps completed, then race time including penalties.</p><table class="results"><thead><tr><th>POS</th><th>DRIVER</th><th>LAPS</th><th>TIME + PEN.</th><th>BEST LAP</th><th>PEN.</th></tr></thead><tbody>${rows}</tbody></table>${this.championshipNote ? `<p class="championship-note">${escapeHtml(this.championshipNote)}</p>` : ''}<div class="dialog-buttons inline"><button class="primary" data-action="replay">WATCH REPLAY</button><button data-action="telemetry">TELEMETRY</button>${this.championshipNote ? '<button data-action="championship">STANDINGS</button>' : ''}<button data-action="photo">PHOTO STUDIO</button><button data-action="restart">RACE AGAIN</button><button data-action="menu">PADDOCK</button></div>`,
+      `<span class="eyebrow">CHEQUERED FLAG / SESSION CLASSIFICATION</span><h2>${frame[carBase(0) + F.FINISH] > 0 ? 'Across the line.' : 'Session ended.'}</h2><p>Classified by laps completed, then race time including penalties.</p><table class="results"><thead><tr><th>POS</th><th>DRIVER</th><th>LAPS</th><th>TIME + PEN.</th><th>BEST LAP</th><th>PEN.</th></tr></thead><tbody>${rows}</tbody></table>${this.championshipNote ? `<p class="championship-note">${escapeHtml(this.championshipNote)}</p>` : ''}${this.resultsExtra}<div class="dialog-buttons inline"><button class="primary" data-action="replay">WATCH REPLAY</button><button data-action="telemetry">TELEMETRY</button>${this.championshipNote ? '<button data-action="championship">STANDINGS</button>' : ''}<button data-action="photo">PHOTO STUDIO</button><button data-action="restart">RACE AGAIN</button><button data-action="menu">PADDOCK</button></div>`,
     );
   }
   /** Qualifying classification: the fastest valid lap sets the race grid. */

@@ -276,9 +276,9 @@ for (const viewport of [
       await expect.poll(() => region.evaluate((e) => e.scrollTop)).toBeGreaterThan(0);
     await page.keyboard.press('Home');
     await expect.poll(() => region.evaluate((e) => e.scrollTop)).toBe(0);
-    // Nine selects (circuit first, machine last), two start controls, then
-    // settings: focus must scroll each into view.
-    for (let i = 0; i < 12; i++) {
+    // Nine selects (circuit first, machine last), two start controls, CAREER,
+    // then settings: focus must scroll each into view.
+    for (let i = 0; i < 13; i++) {
       await page.keyboard.press('Tab');
       const focused = await page.evaluate(() => {
         const active = document.activeElement as HTMLElement;
@@ -311,6 +311,7 @@ for (const viewport of [
     for (const name of ['REFERENCE REVIEW', 'SESSION 146 EVIDENCE'])
       await expect(page.getByRole('button', { name, exact: true })).toHaveCount(0);
     for (const [name, action] of [
+      ['CAREER', 'career'],
       ['CONTROLS', 'controls'],
       ['CHAMPIONSHIP', 'championship'],
       ['TEAM HQ', 'team'],

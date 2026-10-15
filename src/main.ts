@@ -112,6 +112,7 @@ import { drivingAcademy, academyConfirmation, programmeHud } from './ui/driving-
 import { LiveSky, liveSkyPreferred, setLiveSkyPreferred } from './rendering/live-sky.ts';
 import { requestObserver, storedObserver } from './rendering/sky-ephemeris.ts';
 import { PracticeProgramme } from './simulation/practice-programme.ts';
+import { CareerController, type CareerSession } from './career/controller.ts';
 import type { GuideMode } from './rendering/driving-guide.ts';
 import type { FestivalSession } from './session/free-roam.ts';
 type State = 'menu' | 'loading' | 'driving' | 'paused' | 'results' | 'replay' | 'photo' | 'pregame';
@@ -133,6 +134,8 @@ export class GameApp {
   private festival: FestivalSession | null = null;
   private festivalStarting = false;
   private programme = new PracticeProgramme();
+  /** Driver career (src/career): licences, events, garage and payments. */
+  private career: CareerController;
   private inspectedReference: number | null = null;
   private referenceEvidence = ReferenceEvidenceStore.browser();
   private referenceSession: ReferenceSessionReview;
@@ -273,6 +276,26 @@ export class GameApp {
     });
     this.replayHud = new ReplayHud(element);
     this.radioCaption = new RadioCaption(element);
+    this.career = new CareerController({
+      store: this.store,
+      modal: (html) => this.ui.modalContent(html),
+      modalRoot: () => this.ui.get('modalContent'),
+      toast: (message) => this.ui.toast(message),
+      setResultsExtra: (html) => {
+        this.ui.resultsExtra = html;
+      },
+      start: (options, career) => {
+        // A career session is outside the legacy championship weekend.
+        this.championshipRound = -1;
+        this.ui.championshipNote = '';
+        void this.start(options, false, false, career).catch((e) => this.fail(e));
+      },
+      pause: () => this.pause(),
+      state: () => this.state,
+      track: () => this.track,
+      setup: () => this.settings.setup,
+      assist: () => this.ui.options.assist,
+    });
     this.flashbackPanel = new FlashbackPanel(this.ui.get('replayBar'));
     const identity = this.ui.get('buildIdentity');
     identity.textContent = __APEX_SOURCE_COMMIT__
@@ -434,6 +457,7 @@ export class GameApp {
     this.radioCaption.enabled = settings.captions;
   }
   private async boot(canvas: HTMLCanvasElement) {
+    let teamLoaded = false;
     try {
       const saved = await this.store.read('settings');
       if (saved) this.settings = validateSettings(saved);
@@ -445,6 +469,7 @@ export class GameApp {
         v && typeof v === 'object' ? validateTeam(v) : null,
       );
       if (saved.value) this.team = saved.value;
+      teamLoaded = !!saved.value;
       if (saved.recovered)
         this.ui.toast(`Team save was unreadable (${saved.reason}); restored the previous copy.`);
     } catch (e) {
@@ -460,6 +485,13 @@ export class GameApp {
     } catch (e) {
       this.ui.toast(`Championship save unavailable: ${e instanceof Error ? e.message : String(e)}`);
     }
+    // The career seeds itself from these saves the first time; it never rewrites them.
+    await this.career.load({
+      team: teamLoaded ? this.team : null,
+      championship: this.championship,
+      setup: this.settings.setup,
+      vehicles: this.career.registry.vehicles,
+    });
     if (this.disposed) return;
     this.ui.playerName = driverProfile(this.team).name;
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) this.settings.shake = 0;
@@ -552,7 +584,12 @@ export class GameApp {
     this.ui.ready();
     this.ui.showMode('menu');
   }
-  private async start(options: SessionOptions, programme = false, holdOnGrid = false) {
+  private async start(
+    options: SessionOptions,
+    programme = false,
+    holdOnGrid = false,
+    career: CareerSession | null = null,
+  ) {
     if (this.savingSettings) {
       this.ui.toast(
         'Preferences are still being applied. Start the session after saving completes.',
@@ -577,6 +614,7 @@ export class GameApp {
     this.frozenPhoto = null;
     this.captureRequested = false;
     this.sessionId = crypto.randomUUID();
+    this.career.begin(career, this.sessionId);
     this.radio.reset();
     this.radioCaption.show(null);
     this.usedDemonstration = false;
@@ -605,7 +643,8 @@ export class GameApp {
       circuit,
       // Time Trial is a solo session: the worker validates the same rule.
       opponents: options.mode === 'time-trial' ? 0 : options.opponents,
-      setup: { ...this.settings.setup },
+      // A career session may race a saved per-vehicle preset (src/career/economy.ts).
+      setup: { ...(this.career.sessionSetup() ?? this.settings.setup) },
     };
     this.ui.options = this.options;
     this.auto = false;
@@ -806,6 +845,7 @@ export class GameApp {
         performance.now(),
       );
       this.programme.observe(next);
+      this.career.observe(next, this.auto || this.usedDemonstration);
       this.records.observe(next, !this.auto, this.options, this.sessionId);
       this.observeSession();
       if (next[H.PHASE] === 3) this.finish(next);
@@ -1089,7 +1129,9 @@ export class GameApp {
     // costs a DOM mutation, and progress() copies every attempt.
     const programmeText = this.programme.running
       ? programmeHud(this.programme.progress(), this.state === 'replay')
-      : '';
+      : this.state === 'replay'
+        ? ''
+        : this.career.hudText();
     const programmeNode = this.ui.get('programmeHud');
     if (programmeNode.hidden !== !programmeText) programmeNode.hidden = !programmeText;
     this.ui.setText('programmeHud', programmeText);
@@ -1457,8 +1499,11 @@ export class GameApp {
     this.audio.stop();
     this.ui.showMode('results');
     this.recordChampionshipRace(frame);
+    // Career sessions are paid to the career wallet (itemised under the
+    // classification); the team ledger pays every other racing session.
+    const careerSession = this.career.finish(frame, this.options.grid);
     this.ui.results(frame);
-    if (racingSession(this.options.mode)) {
+    if (racingSession(this.options.mode) && !careerSession) {
       const next = rewardRace(this.team, {
         session: this.sessionId,
         position: Math.round(frame[carBase(0) + F.RANK]),
@@ -1692,7 +1737,13 @@ export class GameApp {
     this.tabEvidence.observe('action', name);
     // Team transactions only change modal DOM and next-session data. They must
     // not restart the expensive covered backdrop after every saved transaction.
-    if (!(this.state === 'menu' && this.ui.modal.open && name.startsWith('team:')))
+    if (
+      !(
+        this.state === 'menu' &&
+        this.ui.modal.open &&
+        (name.startsWith('team:') || name.startsWith('career:'))
+      )
+    )
       this.renderedState = null;
     if (this.state === 'photo') {
       if (name === 'pause') this.closePhoto();
@@ -1805,6 +1856,10 @@ export class GameApp {
     }
     if (name.startsWith('team:')) {
       void this.teamAction(name);
+      return;
+    }
+    if (name === 'career' || name.startsWith('career:')) {
+      this.career.action(name);
       return;
     }
     // Native modal cancellation owns Escape. Background replay/drive actions
@@ -1925,7 +1980,9 @@ export class GameApp {
         this.renderer?.setLivery(this.team.livery);
         break;
       case 'restart':
-        void this.start(this.options).catch((e) => this.fail(e));
+        void this.start(this.options, false, false, this.career.restartContext()).catch((e) =>
+          this.fail(e),
+        );
         break;
       case 'settings':
         if (this.state === 'driving') this.pause();

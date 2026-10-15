@@ -10,8 +10,10 @@ import {
 
 /** Version of the physical model. Bump it whenever a solver change can alter
  * recorded lap times, so old records are archived or migrated explicitly
- * instead of competing silently against new physics (masterplan §22.5). */
-export const SIMULATION_VERSION = 1;
+ * instead of competing silently against new physics (masterplan §22.5).
+ * v2: combined-slip/thermal/relaxation tyres, hub suspension, powertrain lags,
+ * aero platform and ground materials (docs/production/PHYSICS_MODEL.md). */
+export const SIMULATION_VERSION = 2;
 /** Fixed physics tick used by the worker and headless simulation. */
 export const SIMULATION_TICK_HZ = 120;
 
