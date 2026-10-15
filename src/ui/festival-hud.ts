@@ -43,7 +43,10 @@ export class FestivalHud {
   private readonly minimap: HTMLCanvasElement;
   private readonly nodes = new Map<string, HTMLElement>();
   private lastCard = '';
-  private lastResult: FestivalResult | null = null;
+  /** Rendered results (event and time): every status message is a new
+   * structured clone, so identity would rebuild the card at 10 Hz and eat
+   * mouse clicks on CONTINUE. */
+  private lastResult = '';
   private routeEvent: FestivalEvent | null = null;
   menuOpen = false;
   mapOpen = false;
@@ -312,9 +315,10 @@ export class FestivalHud {
       }
     }
     // Results.
-    const result = status.mode === 'finished' ? status.result : null;
-    if (result !== this.lastResult) {
-      this.lastResult = result;
+    const result = status.mode === 'finished' ? status.result : null,
+      resultKey = result ? `${result.eventId}:${result.at}` : '';
+    if (resultKey !== this.lastResult) {
+      this.lastResult = resultKey;
       const node = this.get('festResults');
       node.hidden = !result || !isRace(result.eventKind);
       if (result && isRace(result.eventKind)) node.innerHTML = this.resultsHtml(result);
