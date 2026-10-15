@@ -156,6 +156,21 @@ export const CHASE = Object.freeze({
   fov: 50,
   fovGain: 4,
 });
+/** Chase rig while the followed car stands in its pit box (pit phases 2-5, or
+ * 1 and 6 below `speed` m/s): raised and pulled back over the crew, moved to
+ * the lane side by `yawDeg` so the gaze crosses the car toward the garage (a
+ * three-quarter pit-box view, pitched ~14 degrees down), eased in and out
+ * with a `ease` s time constant of presented time. The normal chase put the
+ * lens 0.8 m behind the rear-jack operator's helmet. */
+export const CHASE_PIT = Object.freeze({
+  height: 2.6,
+  distance: 7.5,
+  yawDeg: 18,
+  lookAhead: 1.5,
+  lookLift: 0.4,
+  speed: 2,
+  ease: 0.45,
+});
 /** T-cam lift above the authored pod socket and its downward gaze slope (P7). */
 export const TCAM_LIFT_M = 0.09;
 export const TCAM_PITCH = -0.075;
@@ -303,6 +318,10 @@ export class RacingRenderer {
   private previousAnchor = new T.Vector3();
   private temporary = new T.Vector3();
   private chaseBasis = new T.Quaternion();
+  /** 0..1 blend of the chase rig toward CHASE_PIT (eased in presented time). */
+  private pitView = 0;
+  private readonly pitPoint = trackPoint();
+  private readonly pitSide = new T.Vector3();
   private chaseEuler = new T.Euler();
   private eyeLocal = new T.Vector3();
   private reflectionMaterials: T.MeshStandardMaterial[][] = [];
@@ -1195,17 +1214,50 @@ export class RacingRenderer {
         this.chaseBasis.setFromEuler(
           this.chaseEuler.set(-pitch, Math.atan2(this.direction.x, this.direction.z), 0, 'YXZ'),
         );
-        this.desired
-          .set(
-            0,
+        // In the pit box the rig rises over the crew into a three-quarter view.
+        const phase = presented[o + F.PIT_PHASE];
+        const boxed =
+          !bikeFollow &&
+          ((phase >= 2 && phase <= 5) ||
+            ((phase === 1 || phase === 6) && Math.abs(speed) < CHASE_PIT.speed));
+        if (!this.initialized || menu || this.photo || pregame) this.pitView = boxed ? 1 : 0;
+        else if (cameraDt > 0)
+          this.pitView +=
+            ((boxed ? 1 : 0) - this.pitView) * -Math.expm1(-cameraDt / CHASE_PIT.ease);
+        const pit = this.pitView * this.pitView * (3 - 2 * this.pitView);
+        // Garage side in the chase frame (+1: the car's local +X).
+        let garage = 0;
+        if (pit > 0) {
+          const track = this.circuit.track;
+          track.nearest(this.target.x, this.target.z, this.pitPoint);
+          this.pitSide.set(1, 0, 0).applyQuaternion(this.chaseBasis);
+          garage =
+            Math.sign(track.boxLateral()) *
+              Math.sign(this.pitPoint.nx * this.pitSide.x + this.pitPoint.nz * this.pitSide.z) || 1;
+        }
+        const yaw = (pit * CHASE_PIT.yawDeg * Math.PI) / 180,
+          height = T.MathUtils.lerp(
             CHASE.height + speed * CHASE.heightPerMS,
-            -CHASE.distance - speed * CHASE.distancePerMS,
-          )
+            CHASE_PIT.height,
+            pit,
+          ),
+          distance = T.MathUtils.lerp(
+            CHASE.distance + speed * CHASE.distancePerMS,
+            CHASE_PIT.distance,
+            pit,
+          );
+        this.desired
+          .set(-garage * distance * Math.sin(yaw), height, -distance * Math.cos(yaw))
           .applyQuaternion(this.chaseBasis)
           .add(this.target);
         this.direction.set(0, 0, 1).applyQuaternion(this.chaseBasis);
-        this.gaze.copy(this.target).addScaledVector(this.direction, CHASE.lookAhead);
-        this.gaze.y += CHASE.lookLift;
+        this.gaze
+          .copy(this.target)
+          .addScaledVector(
+            this.direction,
+            T.MathUtils.lerp(CHASE.lookAhead, CHASE_PIT.lookAhead, pit),
+          );
+        this.gaze.y += T.MathUtils.lerp(CHASE.lookLift, CHASE_PIT.lookLift, pit);
       }
       if (this.lookX || this.lookY) {
         this.direction
