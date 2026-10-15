@@ -1893,6 +1893,9 @@ export class RacingRenderer {
       photoFocus: {
         enabled: this.photoFocus?.enabled ?? false,
         focus: this.photoFocus?.materialBokeh.uniforms.focus.value ?? null,
+        // Which lens owns the pass: photo mode's own settings, or the subject
+        // lens outside photo mode (D29 showroom, D30 broadcast telephoto).
+        source: !this.photoFocus?.enabled ? 'off' : this.photo?.depthOfField ? 'photo' : 'subject',
       },
       night: this.night,
       guide: this.guide.diagnostics(),
