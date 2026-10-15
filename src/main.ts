@@ -46,6 +46,7 @@ import {
   validateSetup,
   type SessionOptions,
 } from './simulation/config.ts';
+import { vehicleDefinition } from './simulation/vehicles.ts';
 import { F, H, carBase } from './simulation/protocol.ts';
 import { safetyCarPose } from './rendering/studio/safety-car.ts';
 import { RacingRenderer } from './rendering/renderer.ts';
@@ -1692,10 +1693,17 @@ export class GameApp {
     else if (route.destination === 'team') this.openTeam(route.hub);
     else {
       this.suspendPlayback();
-      if (route.destination === 'settings') this.ui.settings(this.settings);
+      if (route.destination === 'settings') this.ui.settings(this.settings, this.setupVehicle());
       else this.ui.controls(this.settings.bindings);
     }
     this.ui.toast(`Reference ${String(id).padStart(3, '0')}: ${route.instruction}`);
+  }
+  /** The machine whose setup the garage shows: the session's own machine
+   * while one runs, else (undefined) the menu's MACHINE choice. */
+  private setupVehicle() {
+    return this.state === 'menu' || this.state === 'loading'
+      ? undefined
+      : vehicleDefinition(this.options.vehicles?.[0]);
   }
   private action(name: string) {
     if (this.festival?.action(name)) return;
@@ -1993,7 +2001,7 @@ export class GameApp {
         break;
       case 'settings':
         if (this.state === 'driving') this.pause();
-        this.ui.settings(this.settings);
+        this.ui.settings(this.settings, this.setupVehicle());
         break;
       case 'controls':
         this.ui.controls(this.settings.bindings);
@@ -2463,7 +2471,7 @@ export class GameApp {
       const value = JSON.parse(await file.text()) as { version: unknown; setup: unknown };
       if (value.version !== 1) throw new Error('Unsupported setup version.');
       this.settings.setup = validateSetup(value.setup);
-      this.ui.settings(this.settings);
+      this.ui.settings(this.settings, this.setupVehicle());
       this.ui.toast('Setup imported. Apply & Save to retain it.');
     } catch (e) {
       this.ui.toast(`Import rejected: ${e instanceof Error ? e.message : String(e)}`);

@@ -59,6 +59,13 @@ export interface BikeParameters {
   wheelieLimit?: number;
   /** Stoppie assist: fraction of the rear-lift deceleration it permits. */
   stoppieMargin?: number;
+  /** Setup (bikeSetupParameters; absent: the calibrated values). Traction
+   * control's share of the rear friction circle left for drive (0.92), the
+   * share of static front load wheelie control keeps (0.2) and the chassis
+   * roll damping rate (1.2 /s). */
+  tractionMargin?: number;
+  wheelieKeep?: number;
+  rollDamping?: number;
 }
 export const BIKE: BikeParameters = Object.freeze({
   mass: 157 + 72,
@@ -257,13 +264,19 @@ export class Bike {
     const lateralNow = Math.abs(this.speed * this.speed * this.curvature),
       rearLatNow = m * lateralNow * (p.cgToFront / p.wheelbase);
     if (a.traction)
-      drive = Math.min(drive, Math.sqrt(Math.max(0, rearCapacity ** 2 - rearLatNow ** 2)) * 0.92);
+      drive = Math.min(
+        drive,
+        Math.sqrt(Math.max(0, rearCapacity ** 2 - rearLatNow ** 2)) * (p.tractionMargin ?? 0.92),
+      );
     // Wheelie control cuts drive before the acceleration that unloads the
     // front: it keeps a fifth of the static load, and in a corner the load
     // the front tyre needs for its share of the cornering force.
     const frontLatNow = m * lateralNow * (p.cgToRear / p.wheelbase);
     if (a.wheelie) {
-      const keep = Math.min(staticFront, Math.max(0.2 * staticFront, frontLatNow / (0.8 * mu)));
+      const keep = Math.min(
+        staticFront,
+        Math.max((p.wheelieKeep ?? 0.2) * staticFront, frontLatNow / (0.8 * mu)),
+      );
       drive = Math.min(drive, ((staticFront - keep) * p.wheelbase) / p.cgHeight);
     }
     this.intervention = requested > 1 ? clamp(1 - drive / requested, 0, 1) : 0;
@@ -326,7 +339,7 @@ export class Bike {
     // supports the bike, so lean is held near upright instead of toppling.
     const support = a.lean ? 1 - clamp((this.speed - 1) / 4, 0, 1) : 0;
     this.leanRate += (rollAccel - support * (this.lean * 40 + this.leanRate * 10)) * dt;
-    this.leanRate *= Math.exp(-1.2 * dt);
+    this.leanRate *= Math.exp(-(p.rollDamping ?? 1.2) * dt);
     this.lean += this.leanRate * dt;
     // --- Grip limits: lateral demand against each friction circle.
     const camber = 1 - 0.18 * Math.max(0, Math.abs(this.lean) - 0.8);

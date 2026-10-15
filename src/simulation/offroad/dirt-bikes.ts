@@ -1,4 +1,4 @@
-import { bikeEnvelope, type BikeSpec } from '../bike-definitions.ts';
+import { BIKE_SETUP_KEYS, bikeEnvelope, type BikeSpec } from '../bike-definitions.ts';
 import type { VehicleDefinition } from '../vehicles.ts';
 import type { OffroadBikeSpec } from './types.ts';
 
@@ -175,7 +175,7 @@ export const MX_450: VehicleDefinition = Object.freeze({
   tireFamily: 'knobby',
   hybrid: false,
   drs: false,
-  setupKeys: Object.freeze(['brakeBias'] as const),
+  setupKeys: BIKE_SETUP_KEYS.offroad,
   ai: dirtEnvelope(MX450, 1.48, 104 + 75 + 5.5, 34),
   bike: MX450,
 });

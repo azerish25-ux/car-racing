@@ -23,6 +23,24 @@ export interface Setup {
   rearCamber: number;
   frontToe: number;
   rearToe: number;
+  /** Motorcycles (BikeVehicle; cars never expose these). Spring preload
+   * beyond the machine's calibrated base (m): less sag and a higher centre
+   * of mass in the dynamics. */
+  frontPreload: number;
+  rearPreload: number;
+  /** Damping clicks, 0 soft .. 1 firm; 0.5 is the calibrated base. */
+  frontDamping: number;
+  rearDamping: number;
+  /** Steering damper, 0 off .. 1 firm; 0.5 is the calibrated base. */
+  steeringDamper: number;
+  /** Final-drive (sprocket) ratio multiplier; 1 is the calibrated gearing. */
+  gearing: number;
+  /** Rider-aid maps (Sport rider aids): 1 least .. 6 (traction) / 5 (wheelie)
+   * most intervention; 3 is the calibrated map. */
+  tractionMap: number;
+  wheelieMap: number;
+  /** Closed-throttle engine braking map: 0 free-wheel (as calibrated) .. 3 strong. */
+  engineBrakeMap: number;
 }
 export const DEFAULT_SETUP: Setup = {
   frontWing: 0.55,
@@ -42,6 +60,15 @@ export const DEFAULT_SETUP: Setup = {
   rearCamber: -0.023,
   frontToe: -0.001,
   rearToe: 0.002,
+  frontPreload: 0,
+  rearPreload: 0,
+  frontDamping: 0.5,
+  rearDamping: 0.5,
+  steeringDamper: 0.5,
+  gearing: 1,
+  tractionMap: 3,
+  wheelieMap: 3,
+  engineBrakeMap: 0,
 };
 export const SETUP_LIMITS: Record<keyof Setup, readonly [number, number]> = {
   frontWing: [0, 1],
@@ -61,6 +88,15 @@ export const SETUP_LIMITS: Record<keyof Setup, readonly [number, number]> = {
   rearCamber: [-0.05, 0],
   frontToe: [-0.005, 0.005],
   rearToe: [-0.005, 0.005],
+  frontPreload: [-0.005, 0.01],
+  rearPreload: [-0.005, 0.01],
+  frontDamping: [0, 1],
+  rearDamping: [0, 1],
+  steeringDamper: [0, 1],
+  gearing: [0.92, 1.08],
+  tractionMap: [1, 6],
+  wheelieMap: [1, 5],
+  engineBrakeMap: [0, 3],
 };
 export function validateSetup(value: unknown): Setup {
   if (!value || typeof value !== 'object') throw new Error('Setup must be an object');

@@ -170,7 +170,7 @@
     "gpr1": {
       "name": "GP-R1 PROTOTYPE",
       "version": 1,
-      "hash": "9bdbbf3b",
+      "hash": "acdbb92a",
       "comparison": [
         {
           "metric": "accel0to100",
@@ -241,7 +241,7 @@
     "sbk1000": {
       "name": "SBK-1000 SUPERBIKE",
       "version": 1,
-      "hash": "cb3f914d",
+      "hash": "7593a112",
       "comparison": [
         {
           "metric": "accel0to100",
@@ -4285,7 +4285,7 @@
     "gpr2": {
       "name": "GP-R2 PROTOTYPE",
       "version": 1,
-      "hash": "9bf4f27f",
+      "hash": "ab9c866c",
       "comparison": [
         {
           "metric": "accel0to100",
@@ -4356,7 +4356,7 @@
     "ss600": {
       "name": "SS-600 SUPERSPORT",
       "version": 1,
-      "hash": "dfe363a6",
+      "hash": "192ac0b3",
       "comparison": [
         {
           "metric": "accel0to100",
@@ -4427,7 +4427,7 @@
     "nr900": {
       "name": "NR-900 NAKED ROADSTER",
       "version": 1,
-      "hash": "58766377",
+      "hash": "580838df",
       "comparison": [
         {
           "metric": "accel0to100",
@@ -4498,7 +4498,7 @@
     "cr750": {
       "name": "CR-750 CLASSIC RACER",
       "version": 1,
-      "hash": "3b59869d",
+      "hash": "90485cd0",
       "comparison": [
         {
           "metric": "accel0to100",
@@ -4569,7 +4569,7 @@
     "mx450": {
       "name": "MX-450 MOTOCROSS",
       "version": 1,
-      "hash": "c71a9c4d",
+      "hash": "8a99aee4",
       "comparison": [
         {
           "metric": "accel0to100",
@@ -4585,43 +4585,43 @@
         },
         {
           "metric": "topSpeed",
-          "measured": 125.09744537006662,
-          "coarseDt": 125.12512580040267,
+          "measured": 125.09784249995913,
+          "coarseDt": 125.12511089067169,
           "band": [
             118,
             145
           ],
           "within": true,
           "coarseWithin": true,
-          "timestepDrift": 0.0002212709480530385
+          "timestepDrift": 0.0002179765067696738
         },
         {
           "metric": "braking100Distance",
-          "measured": 45.8881792344265,
-          "coarseDt": 45.947119383295046,
+          "measured": 45.88816521974914,
+          "coarseDt": 45.94708635828738,
           "band": [
             40,
             62
           ],
           "within": true,
           "coarseWithin": true,
-          "timestepDrift": 0.001284429886996377
+          "timestepDrift": 0.0012840160040410644
         },
         {
           "metric": "lateral80G",
-          "measured": 0.8023985764385325,
-          "coarseDt": 0.8024923732323278,
+          "measured": 0.8023944795603323,
+          "coarseDt": 0.8024883672674294,
           "band": [
             0.75,
             1.1
           ],
           "within": true,
           "coarseWithin": true,
-          "timestepDrift": 0.00011689551371290584
+          "timestepDrift": 0.00011700941306153873
         }
       ],
       "lateralEnvelopeFit": {
-        "base": 7.868841999630934,
+        "base": 7.868801822980332,
         "aero": 0
       },
       "aiEnvelope": {
@@ -4640,7 +4640,7 @@
     "mx250": {
       "name": "MX-250 TWO-STROKE",
       "version": 1,
-      "hash": "8bb6e084",
+      "hash": "c575e80f",
       "comparison": [
         {
           "metric": "accel0to100",
@@ -4656,43 +4656,43 @@
         },
         {
           "metric": "topSpeed",
-          "measured": 128.55295813600847,
-          "coarseDt": 128.56506852580307,
+          "measured": 128.55295733772545,
+          "coarseDt": 128.56506667765322,
           "band": [
             118,
             145
           ],
           "within": true,
           "coarseWithin": true,
-          "timestepDrift": 0.0000942054540805452
+          "timestepDrift": 0.00009419728786139543
         },
         {
           "metric": "braking100Distance",
-          "measured": 45.27909247247884,
-          "coarseDt": 45.24994416457153,
+          "measured": 45.279084780067166,
+          "coarseDt": 45.24992681321952,
           "band": [
             40,
             62
           ],
           "within": true,
           "coarseWithin": true,
-          "timestepDrift": 0.0006437476176233596
+          "timestepDrift": 0.0006439610471209143
         },
         {
           "metric": "lateral80G",
-          "measured": 0.8024332914953639,
-          "coarseDt": 0.8025308282258767,
+          "measured": 0.8024303683970072,
+          "coarseDt": 0.8025280117178217,
           "band": [
             0.75,
             1.1
           ],
           "within": true,
           "coarseWithin": true,
-          "timestepDrift": 0.00012155120126068398
+          "timestepDrift": 0.00012168447837982696
         }
       ],
       "lateralEnvelopeFit": {
-        "base": 7.86918243804301,
+        "base": 7.8691537722405105,
         "aero": 0
       },
       "aiEnvelope": {
@@ -4711,7 +4711,7 @@
     "sm450": {
       "name": "SM-450 SUPERMOTO",
       "version": 1,
-      "hash": "44b95993",
+      "hash": "a9e0a34c",
       "comparison": [
         {
           "metric": "accel0to100",
@@ -4727,43 +4727,43 @@
         },
         {
           "metric": "topSpeed",
-          "measured": 149.99520851046975,
-          "coarseDt": 149.99338154676,
+          "measured": 149.99520666550032,
+          "coarseDt": 149.99337766498212,
           "band": [
             138,
             165
           ],
           "within": true,
           "coarseWithin": true,
-          "timestepDrift": 0.000012180147138718753
+          "timestepDrift": 0.000012193726445394761
         },
         {
           "metric": "braking100Distance",
-          "measured": 43.78883988032766,
-          "coarseDt": 43.81171903740156,
+          "measured": 43.78883265815091,
+          "coarseDt": 43.811703581544506,
           "band": [
             34,
             50
           ],
           "within": true,
           "coarseWithin": true,
-          "timestepDrift": 0.0005224883129224108
+          "timestepDrift": 0.0005223003675879012
         },
         {
           "metric": "lateral80G",
-          "measured": 0.993909907287228,
-          "coarseDt": 0.994022472571731,
+          "measured": 0.9939208377847081,
+          "coarseDt": 0.9940331055579859,
           "band": [
             0.95,
             1.3
           ],
           "within": true,
           "coarseWithin": true,
-          "timestepDrift": 0.00011325501806328877
+          "timestepDrift": 0.00011295444165151164
         }
       ],
       "lateralEnvelopeFit": {
-        "base": 9.746926592298294,
+        "base": 9.747033783861406,
         "aero": 0
       },
       "aiEnvelope": {
