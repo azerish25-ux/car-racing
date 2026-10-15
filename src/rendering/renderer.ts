@@ -38,7 +38,7 @@ import { SafetyCarView } from './studio/safety-car.ts';
 import { LightPools } from './studio/light-pools.ts';
 import { setBrandLedLighting } from './studio/trackside-branding.ts';
 import { MENU_CAR_DATUM, SHOWROOM } from './menu-preview.ts';
-import { focusOnSubject, subjectLens } from './studio/subject-focus.ts';
+import { focusOnSubject, subjectLens, type SubjectLens } from './studio/subject-focus.ts';
 import { reflectInWetRoad } from './wet-reflection.ts';
 import { ghostPose, type GhostPose } from '../core/ghost-lap.ts';
 import { WeatherPresentation } from './weather-presentation.ts';
@@ -235,6 +235,8 @@ export class RacingRenderer {
   private scenePass: SceneAmbientPass;
   private grade = new BroadcastGradePass();
   private photoFocus: DepthOfFieldPass | null = null;
+  /** Trackside broadcast telephoto: a thin-lens pass (studio/subject-focus.ts). */
+  private broadcastFocus: DepthOfFieldPass | null = null;
   private geometrySurvey: GeometrySurvey | null = null;
   private motionBlur: MotionBlur;
   private fxaa = new ShaderPass(FXAAShader);
@@ -1460,11 +1462,22 @@ export class RacingRenderer {
       );
       this.motionBlur.prepareFrame(presented, this.camera, this.follow, cameraMode, replay);
       // D29/D30: depth of field on the subject car (showroom, broadcast telephoto).
-      const lens =
+      const lens: SubjectLens | null =
         pregame && this.gridShot.maxblur > 0
           ? this.gridShot
           : subjectLens(menu, !!this.photo, cameraMode, this.camera.fov);
-      if (lens) {
+      if (lens?.thinLens) {
+        this.broadcastFocus ??= new DepthOfFieldPass(
+          this.camera,
+          { focus: 10, aperture: 0, maxblur: lens.maxblur },
+          this.scenePass.target.depthTexture!,
+          { thinLens: true },
+        );
+        if (!this.composer.passes.includes(this.broadcastFocus))
+          this.composer.insertPass(this.broadcastFocus, 1);
+        focusOnSubject(this.broadcastFocus, this.camera, this.target, lens, this.temporary);
+        if (this.photoFocus && !this.photo?.depthOfField) this.photoFocus.enabled = false;
+      } else if (lens) {
         this.photoFocus ??= new DepthOfFieldPass(
           this.camera,
           { focus: 10, ...lens },
@@ -1480,6 +1493,7 @@ export class RacingRenderer {
           this.temporary,
         );
       } else if (this.photoFocus && !this.photo?.depthOfField) this.photoFocus.enabled = false;
+      if (this.broadcastFocus && !lens?.thinLens) this.broadcastFocus.enabled = false;
       if (this.photoFocus?.enabled && this.photo) {
         // Optical-axis depth, rather than Euclidean distance, matches the depth shader.
         this.camera.updateMatrixWorld();
@@ -1524,7 +1538,7 @@ export class RacingRenderer {
         menu,
         photo: !!this.photo,
         replay,
-        otherDof: !!this.photoFocus?.enabled,
+        otherDof: !!this.photoFocus?.enabled || !!this.broadcastFocus?.enabled,
         cut: this.cameraClock.discontinuous,
       });
       this.drawLedger.mark('composer');
@@ -1899,6 +1913,12 @@ export class RacingRenderer {
         // lens outside photo mode (D29 showroom, D30 broadcast telephoto).
         source: !this.photoFocus?.enabled ? 'off' : this.photo?.depthOfField ? 'photo' : 'subject',
       },
+      // Trackside broadcast telephoto: thin lens on a 2/3-inch gate.
+      broadcastFocus: {
+        enabled: this.broadcastFocus?.enabled ?? false,
+        focus: this.broadcastFocus?.materialBokeh.uniforms.focus.value ?? null,
+        backgroundBlur: this.broadcastFocus?.materialBokeh.uniforms.lensK?.value ?? null,
+      },
       night: this.night,
       guide: this.guide.diagnostics(),
       gridPreparation: this.gridPreparation.diagnostics(),
@@ -2044,6 +2064,7 @@ export class RacingRenderer {
     this.exposure.dispose();
     this.weatherPresentation.dispose();
     this.photoFocus?.dispose();
+    this.broadcastFocus?.dispose();
     this.geometrySurvey?.dispose();
     this.bloom.dispose();
     this.fxaa.dispose();

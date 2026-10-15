@@ -16,7 +16,14 @@ import {
   lowerThird,
   replayShot,
 } from '../src/ui/replay-hud.ts';
-import { subjectLens } from '../src/rendering/studio/subject-focus.ts';
+import {
+  BROADCAST_LENS,
+  focusOnSubject,
+  subjectLens,
+} from '../src/rendering/studio/subject-focus.ts';
+import { DepthOfFieldPass } from '../src/rendering/studio/dof-pass.ts';
+import { circleOfConfusion, thinLensScale } from '../src/rendering/ultra/replay-lens.ts';
+import * as T from 'three';
 import { SHOWROOM } from '../src/rendering/menu-preview.ts';
 import { CAR_STRIDE, F, H, HEADER, carBase } from '../src/simulation/protocol.ts';
 
@@ -86,10 +93,61 @@ describe('replay presentation', () => {
 describe('subject depth of field', () => {
   it('focuses the showroom and tight trackside lenses, never gameplay chase or photo mode', () => {
     expect(subjectLens(true, false, 'chase', 32)).toBe(SHOWROOM);
-    expect(subjectLens(false, false, 'trackside', 15)).toBe(TELEPHOTO);
+    expect(subjectLens(false, false, 'trackside', 15)).toBe(BROADCAST_LENS);
     expect(subjectLens(false, false, 'trackside', 22)).toBeNull();
     expect(subjectLens(false, false, 'chase', 15)).toBeNull();
     expect(subjectLens(true, true, 'trackside', 15)).toBeNull();
+  });
+  it('drives the trackside telephoto with a broadcast thin lens, not a tilt-shift blur', () => {
+    const lens = BROADCAST_LENS.thinLens!;
+    // 2/3-inch B4 gate at f/4-5.6.
+    expect(lens.sensorHeight).toBeCloseTo(0.0054, 6);
+    expect(lens.fNumber).toBeGreaterThanOrEqual(4);
+    expect(lens.fNumber).toBeLessThanOrEqual(5.6);
+    expect(BROADCAST_LENS.maxblur).toBeLessThanOrEqual(0.004);
+    const blurPx = (fov: number, focus: number, depth: number) =>
+      Math.abs(
+        circleOfConfusion(
+          depth,
+          focus,
+          thinLensScale(fov, focus, lens.fNumber, lens.sensorHeight),
+          BROADCAST_LENS.maxblur,
+        ),
+      ) * 1080;
+    // A pack 100 m away on a 15 degree lens: the background stays sharp.
+    expect(blurPx(15, 100, 2000)).toBeLessThan(0.5);
+    expect(blurPx(15, 100, 300)).toBeLessThan(0.5);
+    // The blur grows with distance from focus instead of saturating 10 m out.
+    expect(blurPx(12, 25, 8)).toBeGreaterThan(blurPx(12, 25, 15));
+    // A close pit-lane shot still separates its foreground.
+    expect(blurPx(12, 25, 4)).toBeGreaterThan(1);
+    // focusOnSubject sets lensK from the camera's fov on a thin-lens pass.
+    const camera = new T.PerspectiveCamera(15, 16 / 9, 0.1, 2000);
+    camera.position.set(0, 2, 0);
+    camera.lookAt(0, 2, -1);
+    const pass = new DepthOfFieldPass(
+      camera,
+      { focus: 10, aperture: 0, maxblur: 0.004 },
+      new T.DepthTexture(4, 4),
+      {
+        thinLens: true,
+      },
+    );
+    focusOnSubject(pass, camera, new T.Vector3(0, 2, -100), BROADCAST_LENS, new T.Vector3());
+    const u = pass.materialBokeh.uniforms;
+    expect(u.focus.value).toBeCloseTo(100, 6);
+    expect(u.lensK.value).toBeCloseTo(thinLensScale(15, 100, lens.fNumber, lens.sensorHeight), 12);
+    expect(pass.enabled).toBe(true);
+    const plain = new DepthOfFieldPass(
+      camera,
+      { focus: 10, aperture: 0, maxblur: 0.004 },
+      new T.DepthTexture(4, 4),
+    );
+    expect(() =>
+      focusOnSubject(plain, camera, new T.Vector3(0, 2, -100), BROADCAST_LENS, new T.Vector3()),
+    ).toThrow();
+    pass.dispose();
+    plain.dispose();
   });
 });
 
