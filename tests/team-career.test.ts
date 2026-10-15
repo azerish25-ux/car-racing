@@ -1,6 +1,7 @@
 import { recoverSave } from '../src/storage/data.ts';
 import { rewardIncome } from '../src/storage/team-career.ts';
 import { foundingBriefing } from '../src/storage/team-career.ts';
+import { CIRCUITS, CIRCUIT_IDS } from '../src/simulation/circuits.ts';
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_SETUP } from '../src/simulation/config.ts';
 import {
@@ -164,7 +165,13 @@ describe('persistent original team transactions', () => {
 
 describe('F11 data-driven onboarding text', () => {
   it('names every registered circuit instead of a stale count', () => {
-    expect(foundingBriefing()).toBe(
+    const venues = CIRCUIT_IDS.filter((id) => !CIRCUITS[id].catalogue?.variantOf);
+    expect(foundingBriefing()).toMatch(
+      new RegExp(
+        `^A new team\\. ${venues.length} circuits: Aurel, Vellamar, .+\\. Earn your first classified finish\\.$`,
+      ),
+    );
+    expect(foundingBriefing(['AUREL', 'VELLAMAR'])).toBe(
       'A new team. 2 circuits: Aurel and Vellamar. Earn your first classified finish.',
     );
     expect(foundingBriefing(['AUREL'])).toMatch(/One circuit: Aurel\./);

@@ -393,6 +393,9 @@ export class RacingRenderer {
     // PCSS for the sun's 0.53° disc (studio/shadow-filter.ts reads it as radius).
     this.sun.shadow.radius = sunPenumbraScale(this.sun.shadow.camera);
     this.circuit = new CircuitScene(track, true);
+    // Catalogue tunnels are sheltered: no rain is born under a roof (WP30).
+    const kit = this.circuit.venueKit;
+    if (kit) this.effects.sheltered = (x, z) => kit.covers(x, z);
     this.reflection.probeDetail = this.circuit.probeDetail;
     // The far map covers the circuit and the planting and stands around it.
     const point = trackPoint();
@@ -475,6 +478,8 @@ export class RacingRenderer {
     initial?: { quality: QualityPreset; graphics?: GraphicsOptions },
   ): Promise<RacingRenderer | null> {
     const renderer = new RacingRenderer(canvas, track, true);
+    // Night venues open floodlit (a live sky, if enabled, still overrides).
+    if (track.circuit.catalogue?.night) renderer.lighting = 'night';
     // The starting settings decide the far shadow map baked while loading;
     // applied later, a different map size would discard it and bake again on
     // the first rendered frame.
@@ -1223,6 +1228,7 @@ export class RacingRenderer {
     this.circuit.signalHardware?.update(this.camera, this.quality);
     this.circuit.trackBoards?.update(this.camera, this.quality);
     this.circuit.broadcastCameras?.update(this.camera, this.quality);
+    this.circuit.venueKit?.update(this.camera, this.night);
     this.circuit.vegetation?.update(this.camera, this.quality);
     this.circuit.quarry?.update(this.camera, this.quality);
     this.circuit.heroGarage?.update(this.camera, this.quality, illumination);

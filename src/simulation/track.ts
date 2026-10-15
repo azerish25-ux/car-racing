@@ -10,6 +10,7 @@ import {
   type WeatherKeyframe,
 } from './weather.ts';
 import { AUREL, STANDARD_PIT, type CircuitDefinition, type PitLaneDefinition } from './circuits.ts';
+import { RUNOFF } from './circuit-catalogue/venue-data.ts';
 export const TRACK_NAME = AUREL.name,
   CELL_ROWS = 512,
   CELL_COLS = 7;
@@ -98,6 +99,8 @@ export class Track {
   readonly length: number;
   /** Venue pit lane/grid data (WP10). */
   readonly pit: PitLaneDefinition;
+  /** Water-grid rows under a roof (tunnels): 1 where rain cannot fall. */
+  readonly sheltered = new Uint8Array(CELL_ROWS);
   private contactMesh: TrackContactMesh | null = null;
   cast(origin: Vec3, down: Vec3, maximum: number, out: SurfaceSample) {
     this.contactMesh ??= new TrackContactMesh(this);
@@ -216,11 +219,17 @@ export class Track {
     }
     // Race-day rubber was laid by earlier sessions where cars drive: along the
     // racing line (a band about a car wide), over a light general coating.
+    if (circuit.covered)
+      for (let row = 0; row < CELL_ROWS; row++)
+        this.sheltered[row] = circuit.covered(((row + 0.5) / CELL_ROWS) * this.length) ? 1 : 0;
     const line = racingLineFor(this),
       rowPoint = trackPoint();
     for (let i = 0; i < this.water.length; i++) {
       this.temperature[i] = preset === 'rain' ? 22 : 34;
-      this.water[i] = preset === 'rain' ? 0.7 + 0.35 * (0.5 + 0.5 * Math.sin(i * 0.27)) : 0;
+      this.water[i] =
+        preset === 'rain' && !this.sheltered[Math.floor(i / CELL_COLS)]
+          ? 0.7 + 0.35 * (0.5 + 0.5 * Math.sin(i * 0.27))
+          : 0;
       const row = Math.floor(i / CELL_COLS),
         col = i % CELL_COLS,
         s = ((row + 0.5) / CELL_ROWS) * this.length;
@@ -278,7 +287,17 @@ export class Track {
         dz = b.z - a.z,
         t = clamp(((x - a.x) * dx + (z - a.z) * dz) / (dx * dx + dz * dz), 0, 1),
         d = (x - a.x - dx * t) ** 2 + (z - a.z - dz * t) ** 2;
-      if (layered && Math.abs((y as number) - lerp(a.y, b.y, t)) > ROUTE_LAYER_GAP) {
+      if (
+        layered &&
+        Math.abs((y as number) - lerp(a.y, b.y, t)) > ROUTE_LAYER_GAP &&
+        // A steeply banked road (oval) is one layer across its whole width.
+        Math.abs(
+          (y as number) -
+            lerp(a.y, b.y, t) -
+            lerp(a.bank, b.bank, t) *
+              clamp(((x - a.x) * dz - (z - a.z) * dx) / (Math.sqrt(dx * dx + dz * dz) || 1), -12, 12),
+        ) > ROUTE_LAYER_GAP
+      ) {
         if (d < other) {
           other = d;
           otherS = lerp(a.s, b.s, t);
@@ -313,16 +332,29 @@ export class Track {
     return this.pit.side * lateral;
   }
   boundary(s: number, side: number) {
-    const p = this.at(s, trackPoint());
-    return side !== this.pit.side
-      ? p.width + 11
-      : Math.max(p.width + 11, Math.abs(this.pitOffset(s)) + 5);
+    return this.boundaryAt(this.at(s, trackPoint()), side);
   }
   /** Barrier distance at an already-resolved track point (no allocation). */
   boundaryAt(p: TrackPoint, side: number) {
-    return side !== this.pit.side
-      ? p.width + 11
-      : Math.max(p.width + 11, Math.abs(this.pitOffset(p.s)) + 5);
+    const wall = p.width + (this.circuit.barrier ? this.circuit.barrier(p.s, side < 0 ? -1 : 1) : 11);
+    return side !== this.pit.side ? wall : Math.max(wall, Math.abs(this.pitOffset(p.s)) + 5);
+  }
+  /** Run-off surface beyond the paint band at a resolved station (shared by
+   * contact and rendering): authored per venue, else gravel on the outside of
+   * tighter corners and grass elsewhere. */
+  runoffSurface(p: TrackPoint, lateral: number): number {
+    const authored = this.circuit.runoff;
+    if (!authored) return p.curvature * lateral < -0.009 ? SURFACE.GRAVEL : SURFACE.GRASS;
+    const code = authored(p.s, lateral < 0 ? -1 : 1);
+    return code === RUNOFF.GRAVEL
+      ? SURFACE.GRAVEL
+      : code === RUNOFF.ASPHALT
+        ? SURFACE.ASPHALT
+        : SURFACE.GRASS;
+  }
+  /** Is lap distance `s` under a roof (tunnel)? Weather and rendering read it. */
+  isCovered(s: number) {
+    return this.circuit.covered?.(mod(s, this.length)) ?? false;
   }
   isPitSection(s: number) {
     return s > this.length - this.pit.sectionBefore || s < this.pit.sectionAfter;
@@ -360,9 +392,11 @@ export class Track {
       kerb = 0;
     if (pit) surface = SURFACE.PIT;
     else if (a > p.width + 4) {
-      surface = p.curvature * l < -0.009 ? SURFACE.GRAVEL : SURFACE.GRASS;
-      grip = surface === SURFACE.GRAVEL ? 0.4 : 0.53;
-      resistance = surface === SURFACE.GRAVEL ? 0.16 : 0.08;
+      surface = this.runoffSurface(p, l);
+      // Asphalt run-off: dusty, unrubbered tarmac.
+      grip = surface === SURFACE.GRAVEL ? 0.4 : surface === SURFACE.GRASS ? 0.53 : 0.9;
+      resistance =
+        surface === SURFACE.GRAVEL ? 0.16 : surface === SURFACE.GRASS ? 0.08 : 0.017;
     } else if (a > p.width + 1.1) {
       surface = SURFACE.PAINT;
       grip = 0.93;
@@ -408,7 +442,7 @@ export class Track {
       for (let c = 0; c < CELL_COLS; c++) {
         const i = r * CELL_COLS + c,
           depression = 0.65 + 0.35 * Math.sin(r * 0.113 + c * 0.4) ** 2,
-          rainfall = (this.rain / 3600) * depression,
+          rainfall = this.sheltered[r] ? 0 : (this.rain / 3600) * depression,
           drainage = this.drainage[i],
           evaporation = (1 - this.cloud) * 0.0006;
         this.water[i] = advanceWater(this.water[i], rainfall - evaporation, drainage, step);
