@@ -4,7 +4,7 @@
   "sources": {
     "src/simulation/circuits.ts": "8516281c4f5cc8e0cb0f71bb783041835facd1975588823734e81dc06f05f9b2",
     "src/simulation/track.ts": "fd5f73d9b9c7ab5ad4156a995fec079bea8e2cf240871d7627820442a6637782",
-    "src/simulation/ai.ts": "320f38c16d709facd4aa81ed2d9efe31ed549cbc518c7a7da20de4184fbf2c4f",
+    "src/simulation/ai.ts": "acadab7ae533a76b6d661e4a79dec58a967cc865e28aabb73153a214de41e26f",
     "src/simulation/circuit-catalogue/builder.ts": "42ae84911abe318e172449021cfe370a45a8d93194d57871fdae1e829a8b47d2",
     "src/simulation/circuit-catalogue/real-world.ts": "8f2e3bcf99bd3220170e594bfb098b695a248374cc42b2629bac5ce478d943af",
     "src/simulation/circuit-catalogue/unconventional.ts": "a6d5b3b91b0faf02d0b7ac0d38fc719649ac8cb6526465621d6372ae2f5439c5"
@@ -36,7 +36,7 @@
       "maximumSpeedKmh": 299.3,
       "maximumImpact": 0,
       "airborneCarSeconds": 0,
-      "wallSeconds": 30.4,
+      "wallSeconds": 26.2,
       "classification": [
         {
           "id": 1,
@@ -118,7 +118,7 @@
       "maximumSpeedKmh": 297.9,
       "maximumImpact": 0,
       "airborneCarSeconds": 1.69,
-      "wallSeconds": 40.8,
+      "wallSeconds": 34.6,
       "classification": [
         {
           "id": 0,
@@ -200,7 +200,7 @@
       "maximumSpeedKmh": 296.4,
       "maximumImpact": 0,
       "airborneCarSeconds": 0,
-      "wallSeconds": 32.3,
+      "wallSeconds": 29.5,
       "classification": [
         {
           "id": 0,
@@ -282,7 +282,7 @@
       "maximumSpeedKmh": 296.2,
       "maximumImpact": 0,
       "airborneCarSeconds": 0,
-      "wallSeconds": 26.6,
+      "wallSeconds": 26.2,
       "classification": [
         {
           "id": 0,
@@ -364,7 +364,7 @@
       "maximumSpeedKmh": 289.8,
       "maximumImpact": 0,
       "airborneCarSeconds": 0,
-      "wallSeconds": 31.6,
+      "wallSeconds": 31.2,
       "classification": [
         {
           "id": 0,
@@ -446,7 +446,7 @@
       "maximumSpeedKmh": 286,
       "maximumImpact": 0,
       "airborneCarSeconds": 0,
-      "wallSeconds": 16.5,
+      "wallSeconds": 16.8,
       "classification": [
         {
           "id": 0,
@@ -528,7 +528,7 @@
       "maximumSpeedKmh": 288.7,
       "maximumImpact": 0,
       "airborneCarSeconds": 0,
-      "wallSeconds": 31.9,
+      "wallSeconds": 32.7,
       "classification": [
         {
           "id": 0,
@@ -610,7 +610,7 @@
       "maximumSpeedKmh": 302.7,
       "maximumImpact": 0,
       "airborneCarSeconds": 0,
-      "wallSeconds": 32,
+      "wallSeconds": 31,
       "classification": [
         {
           "id": 1,
@@ -692,7 +692,7 @@
       "maximumSpeedKmh": 294.1,
       "maximumImpact": 0,
       "airborneCarSeconds": 0,
-      "wallSeconds": 28,
+      "wallSeconds": 27.4,
       "classification": [
         {
           "id": 0,
@@ -774,7 +774,7 @@
       "maximumSpeedKmh": 295.6,
       "maximumImpact": 0.005,
       "airborneCarSeconds": 0,
-      "wallSeconds": 27.3,
+      "wallSeconds": 28.2,
       "classification": [
         {
           "id": 1,
@@ -856,7 +856,7 @@
       "maximumSpeedKmh": 297,
       "maximumImpact": 0,
       "airborneCarSeconds": 0,
-      "wallSeconds": 50,
+      "wallSeconds": 53.5,
       "classification": [
         {
           "id": 1,
@@ -938,7 +938,7 @@
       "maximumSpeedKmh": 304,
       "maximumImpact": 0,
       "airborneCarSeconds": 0,
-      "wallSeconds": 48.8,
+      "wallSeconds": 49.3,
       "classification": [
         {
           "id": 0,
@@ -1020,7 +1020,7 @@
       "maximumSpeedKmh": 298.6,
       "maximumImpact": 0,
       "airborneCarSeconds": 0,
-      "wallSeconds": 15.2,
+      "wallSeconds": 15,
       "classification": [
         {
           "id": 1,
@@ -1102,7 +1102,7 @@
       "maximumSpeedKmh": 303.8,
       "maximumImpact": 0,
       "airborneCarSeconds": 0,
-      "wallSeconds": 23.6,
+      "wallSeconds": 23.9,
       "classification": [
         {
           "id": 1,
@@ -1184,7 +1184,7 @@
       "maximumSpeedKmh": 302.3,
       "maximumImpact": 0,
       "airborneCarSeconds": 0,
-      "wallSeconds": 25.8,
+      "wallSeconds": 26.1,
       "classification": [
         {
           "id": 0,
@@ -1266,7 +1266,7 @@
       "maximumSpeedKmh": 304.4,
       "maximumImpact": 0,
       "airborneCarSeconds": 0,
-      "wallSeconds": 26.7,
+      "wallSeconds": 26.2,
       "classification": [
         {
           "id": 1,
@@ -1348,7 +1348,7 @@
       "maximumSpeedKmh": 301,
       "maximumImpact": 0,
       "airborneCarSeconds": 0,
-      "wallSeconds": 25.3,
+      "wallSeconds": 25.6,
       "classification": [
         {
           "id": 1,
@@ -1430,7 +1430,7 @@
       "maximumSpeedKmh": 305.8,
       "maximumImpact": 0,
       "airborneCarSeconds": 0,
-      "wallSeconds": 26.7,
+      "wallSeconds": 26.1,
       "classification": [
         {
           "id": 0,
@@ -1512,7 +1512,7 @@
       "maximumSpeedKmh": 282.7,
       "maximumImpact": 0,
       "airborneCarSeconds": 0,
-      "wallSeconds": 24.5,
+      "wallSeconds": 24.3,
       "classification": [
         {
           "id": 0,

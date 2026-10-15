@@ -537,6 +537,14 @@ figure. In a CPU profile, contact queries already in the baseline (BVH raycast a
 take about 10%. The lateral terms of the combined law are cached across the implicit wheel solve's
 16 bisection steps, which halves its curve evaluations. No car retired in any run.
 
+After the merge with the integration branch (car catalogue, motorcycles, circuit catalogue), I ran
+three interleaved rounds against that branch's tip:
+
+* process CPU per tick: 4.17 ms (4.12–4.18) → 4.69 ms (4.68–4.85), **+12%**;
+* `Vehicle.step` per car-substep on the two quieter rounds: 87–89 µs → 99–103 µs, +14%.
+
+The overhead is unchanged by the merge.
+
 ## 9. Tests
 
 | File | Covers |

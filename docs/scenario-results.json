@@ -5,7 +5,7 @@
     "weather": "clear",
     "simulatedSeconds": 320,
     "cars": 4,
-    "elapsedSeconds": 37.878814156,
+    "elapsedSeconds": 53.79964050700001,
     "maxSpeedKmh": 304.1014596350872,
     "maxLateral": 7.263128394117072,
     "laps": [
@@ -46,7 +46,7 @@
     "weather": "changeable",
     "simulatedSeconds": 320,
     "cars": 4,
-    "elapsedSeconds": 35.89262945299999,
+    "elapsedSeconds": 55.68404358699999,
     "maxSpeedKmh": 302.0384141473874,
     "maxLateral": 7.267655355640163,
     "laps": [
@@ -87,7 +87,7 @@
     "weather": "rain",
     "simulatedSeconds": 320,
     "cars": 4,
-    "elapsedSeconds": 31.672749022999998,
+    "elapsedSeconds": 35.723247674000014,
     "maxSpeedKmh": 281.0145247334025,
     "maxLateral": 6.201210576027582,
     "laps": [
