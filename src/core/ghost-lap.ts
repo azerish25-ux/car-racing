@@ -178,6 +178,8 @@ export class GhostRecorder {
 }
 
 export interface GhostPose {
+  /** Recorded vehicle id (the ghost lap's record category); Formula when absent. */
+  vehicle?: string;
   s: number;
   x: number;
   y: number;

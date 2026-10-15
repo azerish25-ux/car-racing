@@ -136,6 +136,8 @@ export class TimeTrialRecords {
       to = b[o + F.LAP_TIME];
     // A lap reset between snapshots starts the ghost again at the line.
     const time = to >= from ? from + (to - from) * alpha : to;
+    // The ghost is drawn as the machine that set the lap (its record category).
+    this.pose.vehicle = player.lap.vehicle;
     return time > 0 && b[o + F.IN_PIT] === 0 && player.poseAt(time, this.pose) ? this.pose : null;
   }
 }
