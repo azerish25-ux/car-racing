@@ -357,6 +357,8 @@ export class RaceServer {
     player.queue = new ServerInputQueue();
     player.started = false;
     player.awaitingCommand = true;
+    player.starved = 0;
+    player.starving = false;
     player.ghost = false;
     // Never drive on the old connection's last controls: the AI holds the
     // car until the new connection's first command arrives.
@@ -435,26 +437,27 @@ export class RaceServer {
   private tick() {
     const world = this.world;
     if (!world || this.phase !== 'race') return;
-    const now = this.loop.now,
+    // The budget covers all per-tick server work: inputs, step, snapshots.
+    const start = this.wall(),
+      now = this.loop.now,
       t = world.tick;
     for (const player of this.players.values()) {
       if (player.car === null) continue;
       const slot = player.queue.take(t);
       if (player.connection && player.disconnectedAt === null && !player.forfeited) {
         if (slot) {
-          if (player.awaitingCommand) {
+          if (player.awaitingCommand || player.starving) {
+            world.setMode(player.car, 'human');
+            if (player.awaitingCommand)
+              this.emit({
+                type: 'driver',
+                car: player.car,
+                mode: 'human',
+                reason: 'rejoined',
+                tick: t,
+              });
             player.awaitingCommand = false;
-            world.setMode(player.car, 'human');
-            this.emit({
-              type: 'driver',
-              car: player.car,
-              mode: 'human',
-              reason: 'rejoined',
-              tick: t,
-            });
-          } else if (player.starving) {
             player.starving = false;
-            world.setMode(player.car, 'human');
           }
           player.starved = 0;
           world.setControls(player.car, slot.controls, slot.first);
@@ -472,12 +475,11 @@ export class RaceServer {
           this.disconnect(player, 'connection timed out');
       }
     }
-    const start = this.wall();
     world.step();
-    this.budget.record(this.wall() - start);
     for (const event of world.events) this.emit(event);
-    this.config.onTick?.(world);
     if (world.tick % TICKS_PER_SNAPSHOT === 0) this.snapshot();
+    this.budget.record(this.wall() - start);
+    this.config.onTick?.(world);
     const race = world.sim.race,
       limit = this.config.raceSeconds;
     if (race.phase === PHASE.FINISHED) this.endRace('finished');

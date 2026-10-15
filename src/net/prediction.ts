@@ -1,5 +1,5 @@
 import type { Controls } from '../simulation/config.ts';
-import { TICK_MS } from './constants.ts';
+import { COLLISION_AUTHORITY, TICK_MS } from './constants.ts';
 import { CAR_FLAG, type CarNetState } from './snapshot.ts';
 
 const DT = TICK_MS / 1000;
@@ -133,10 +133,10 @@ export interface PredictorOptions {
 export const DEFAULT_PREDICTOR: PredictorOptions = Object.freeze({
   responseLagTicks: 6,
   responseSeconds: 0.04,
-  smoothingSeconds: 0.1,
-  contactSmoothingSeconds: 0.04,
-  snapMeters: 5,
-  snapDegrees: 25,
+  smoothingSeconds: COLLISION_AUTHORITY.smoothingSeconds,
+  contactSmoothingSeconds: COLLISION_AUTHORITY.contactSmoothingSeconds,
+  snapMeters: COLLISION_AUTHORITY.snapMeters,
+  snapDegrees: COLLISION_AUTHORITY.snapDegrees,
   maxHorizonTicks: 60,
 });
 
@@ -267,7 +267,8 @@ export class LocalCarPredictor {
     for (const t of this.history.keys()) if (t <= tick) this.history.delete(t);
     this.stats.reconciles++;
     if (state.flags & CAR_FLAG.AI) this.stats.aiDriven++;
-    if (state.flags & CAR_FLAG.CONTACT) this.contactUntil = now + 300;
+    if (state.flags & CAR_FLAG.CONTACT)
+      this.contactUntil = now + COLLISION_AUTHORITY.contactWindowMs;
     if (!before) return;
     const after = this.pose(),
       dx = before.x - after.x,

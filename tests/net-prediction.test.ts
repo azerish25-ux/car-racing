@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { controls, type Controls } from '../src/simulation/config.ts';
+import { COLLISION_AUTHORITY } from '../src/net/constants.ts';
 import { RemoteCarTrack, ServerClock, JitterBuffer } from '../src/net/interpolation.ts';
 import { LocalCarPredictor, poseDistance } from '../src/net/prediction.ts';
 import { runOnlineSlice } from '../src/net/slice.ts';
@@ -63,6 +64,24 @@ describe('local-car prediction and smoothing (WP50)', () => {
     p.reconcile(far, 12, steady, 24, 200);
     expect(p.stats.snaps).toBe(1);
     expect(poseDistance(p.render(201), p.predictedAt(24) ?? far)).toBeLessThan(1e-9);
+  });
+  it("contacts are the server's: a CONTACT flag only makes the blend faster", () => {
+    const run = (flags: number) => {
+      const p = new LocalCarPredictor();
+      p.reconcile(circle(0), 0, steady, 12, 0);
+      p.render(0);
+      p.reconcile({ ...circle(6), flags, x: circle(6).x + 1 }, 6, steady, 18, 50);
+      p.render(50);
+      return poseDistance(p.render(100), p.predictedAt(18) ?? circle(18));
+    };
+    const normal = run(CAR_FLAG.FULL),
+      contact = run(CAR_FLAG.FULL | CAR_FLAG.CONTACT);
+    expect(normal).toBeCloseTo(Math.exp(-0.05 / COLLISION_AUTHORITY.smoothingSeconds), 2);
+    expect(contact).toBeCloseTo(Math.exp(-0.05 / COLLISION_AUTHORITY.contactSmoothingSeconds), 2);
+    expect(COLLISION_AUTHORITY).toMatchObject({
+      resolver: 'server',
+      clientPredictsContacts: false,
+    });
   });
   it('learns the input response so a brake application is predicted before it shows', () => {
     // Synthetic car: acceleration follows the pedals 6 ticks later (40 ms

@@ -33,6 +33,25 @@ describe('resilience (WP54)', () => {
     expect(report.verification?.ok).toBe(true);
     expect(report.classification.find((r) => r.car === d.car)?.status).toBe('running');
   });
+  it('holds a car with the AI during an input gap shorter than the timeout, then hands it back', () => {
+    const f = onlineFixture({ capacity: 1, raceSeconds: 3 });
+    const { client, link } = f.connect('Gappy');
+    f.loop.runUntil(6000);
+    link.sever();
+    f.loop.runUntil(6400);
+    link.severed = false;
+    f.loop.runWhile(() => f.server.phase !== 'results', 30000);
+    expect(f.server.stats.starvations).toBe(1);
+    expect(f.server.stats.takeovers).toEqual([]);
+    const modes = f.server.world?.journal
+      .filter((e) => e.kind === 'mode' && e.car === client.car)
+      .map((e) => e.kind === 'mode' && e.mode);
+    expect(modes).toEqual(['ai', 'human']);
+    // Starvation began 250 ms (30 ticks) after the last command was applied.
+    const input = f.server.inputStats()[0];
+    expect(input.missingTicks).toBeGreaterThan(30);
+    expect(input.missingTicks).toBeLessThan(70);
+  });
   it('refuses a rejoin after the window and classifies a ghost behind running cars', () => {
     const f = onlineFixture({
       capacity: 2,

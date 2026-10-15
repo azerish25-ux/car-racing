@@ -7,7 +7,8 @@ a directed route graph, recorded-session identity and versioned record
 categories, content validation, the F01 replay/GPU-gate fix, race radio with
 captions, accessibility switches, rumble, an EVENTS hub, and isolated
 prototypes for motorcycles, deformable dirt, magnetic loops, moving surfaces,
-scoring, joker stages, creator import and an authoritative-server workload.
+scoring, joker stages, creator import, an authoritative-server workload and an in-memory
+authoritative online race slice (`npm run test:online`, [docs/production/ONLINE_SLICE.md](docs/production/ONLINE_SLICE.md)).
 Status (nothing is claimed beyond "integrated" without hardware or player
 evidence), decisions, risks and protocols: [docs/production](docs/production/README.md).
 

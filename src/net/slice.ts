@@ -117,6 +117,7 @@ export interface SliceReport {
     missingTicks: number;
     rejected: number;
     appliedTicks: number;
+    perCar: { car: number; missingTicks: number; lateTicks: number; duplicates: number }[];
     leadTicks: Distribution;
   };
   prediction: {
@@ -419,6 +420,12 @@ export function runOnlineSlice(config: SliceConfig): SliceRun {
       missingTicks: total('missingTicks'),
       rejected: total('rejected'),
       appliedTicks: total('appliedTicks'),
+      perCar: inputStats.map((row) => ({
+        car: row.car,
+        missingTicks: row.missingTicks,
+        lateTicks: row.lateTicks,
+        duplicates: row.duplicates,
+      })),
       leadTicks: roundDist(distribution(all((c) => c.stats.leadTicks)), 2),
     },
     prediction: {

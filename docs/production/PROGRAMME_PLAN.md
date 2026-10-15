@@ -102,9 +102,12 @@ Stages: shared ghosts → private unranked → authoritative racing → rankings
 server owns accepted inputs, simulation, legal progress (RouteProgress), penalties and results.
 Physics tick (120 Hz), input cadence and network snapshot cadence are separate: the WP49 measurement
 shows a compact 20 Hz state is ~44 kbit/s per client for 8 cars versus ~8 Mbit/s for full render
-snapshots, at ~0.2 s CPU per simulated second per race on the measurement machine. Next: prediction
-and reconciliation with an explicit collision authority policy (WP50), lifecycle with content-version
-agreement using `RecordedSessionIdentity` hashes (WP51), verified records (WP52).
+snapshots, at ~0.2 s CPU per simulated second per race on the measurement machine. WP50–WP54 now
+exist as an in-memory prototype ([ONLINE_SLICE.md](ONLINE_SLICE.md)): redundant input commands,
+local-car prediction with smoothed reconciliation, server collision authority, content-version
+agreement on join, verified records by headless re-simulation, lobbies and resilience. Measured for 8
+clients at 100 ms RTT / 2% loss: ~60 kbit/s down and ~28 kbit/s up per client on the wire, local-car
+prediction error p95 ≈ 0.14 m. Next: a real transport and a player session reaching it.
 
 ## 9. Platform (§21.6, §23.7)
 

@@ -6,6 +6,7 @@
 // checks that a forged lap time is rejected. Writes docs/online-slice.json.
 // No real network is involved; see docs/production/ONLINE_SLICE.md.
 import { writeFileSync } from 'node:fs';
+import { cpus, loadavg } from 'node:os';
 import { recordDigest, verifyRecord, type SessionRecord } from '../src/net/records.ts';
 import { runOnlineSlice } from '../src/net/slice.ts';
 import { TARGET_LINK } from '../src/net/transport.ts';
@@ -63,6 +64,8 @@ const output = {
   checks,
   wallSeconds: Math.round((performance.now() - started) / 100) / 10,
   runtime: `node ${process.version}`,
+  // Server tick timings are wall-clock on this host; a loaded host inflates them.
+  host: { cpus: cpus().length, loadAverage1m: Math.round(loadavg()[0] * 100) / 100 },
   note: 'In-memory transport and simulated network; server tick timings are this machine, not reference hardware. Bot drivers are AI pilots whose commands cross the simulated network (see ONLINE_SLICE.md).',
 };
 writeFileSync('docs/online-slice.json', JSON.stringify(output, null, 2) + '\n');

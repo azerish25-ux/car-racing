@@ -68,3 +68,23 @@ export const RATES = Object.freeze({
 /** IPv4 + UDP header bytes added to every datagram on the wire. Reliable
  * channels over DTLS/SCTP or TCP carry more; this is a stated lower bound. */
 export const UDP_IP_OVERHEAD_BYTES = 28;
+
+/** Collision authority (WP50). The server's CollisionSolver is the only
+ * place contacts are resolved; clients never predict, push or resolve them.
+ * A client learns of a contact only through its car's corrected state and
+ * the snapshot CONTACT flag, which shortens visual smoothing so an impact is
+ * felt promptly; corrections beyond the snap thresholds are shown at once.
+ * Remote cars are pure interpolation of authoritative states, so the local
+ * (predicted, ahead-in-time) car may visually overlap a remote car that is
+ * drawn in the past; that is accepted and never "fixed" client-side. */
+export const COLLISION_AUTHORITY = Object.freeze({
+  resolver: 'server' as const,
+  clientPredictsContacts: false,
+  clientMovesRemoteCars: false,
+  smoothingSeconds: 0.1,
+  contactSmoothingSeconds: 0.04,
+  /** Contact smoothing stays active this long after a CONTACT flag. */
+  contactWindowMs: 300,
+  snapMeters: 5,
+  snapDegrees: 25,
+});

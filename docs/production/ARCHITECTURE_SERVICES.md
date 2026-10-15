@@ -14,6 +14,7 @@ Masterplan §6. Current owners of each responsibility, and the boundary each mus
 | Profile/progression | saves, results, idempotent rewards, migrations | `SaveStore` (+ backup/recovery), `team-career.ts`, `championship.ts`, `TimeTrialRecords` | trusting client results for ranked play |
 | Platform adapter | files, devices, FFB, overlays, cloud | browser APIs (`src/input`) | remote code execution |
 | Developer evidence tools | inspection, captures | `?dev` surface | player primary navigation |
+| Online race service | accepted inputs, authoritative stepping, snapshots, lifecycle, lobbies, verified records | `src/net/` (in-memory prototype, [ONLINE_SLICE.md](ONLINE_SLICE.md)) | rendering, trusting client state or results |
 
 ## Contracts in code (§6.3)
 
@@ -38,4 +39,5 @@ prototype shows same-process repeatability only; cross-platform float determinis
 2. Vehicle and event identities (`VehicleDefinition`, rulesets).
 3. Route/pit data (`PitLaneDefinition`, layer-aware progress, RouteGraph).
 4. Mixed car definitions (TC-1 alongside APX-01 in one field).
-5. Bike-specific blocks, terrain state and online authority — prototypes only, not in sessions.
+5. Bike-specific blocks, terrain state and online authority — prototypes only, not in sessions
+   (online: `src/net/`, [ONLINE_SLICE.md](ONLINE_SLICE.md)).
