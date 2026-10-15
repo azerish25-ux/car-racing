@@ -61,9 +61,13 @@ export class GpuFrameGate {
       this.expired++;
       const drainStart = this.now();
       gl.finish();
-      // A drain that had to wait ended when the GPU work did: a real sample.
-      // One that returned at once only found a stale status: not a sample.
-      if (continuous && this.now() - drainStart > 2) this.sample(this.now() - this.fencedAt);
+      // Only the time the drain itself blocked is GPU work we did not already
+      // wait out. Sampling submit-to-drain-end would include the gate's own
+      // wait (4 × latency) and grow the bound geometrically to the cap on
+      // hosts that never refresh fence status (hosted run 38662457092: ~10 s
+      // per replay frame). A drain that returned at once found a stale status.
+      const blocked = this.now() - drainStart;
+      if (continuous && blocked > 2) this.sample(blocked);
       this.release();
       this.completed = this.submitted;
       return true;

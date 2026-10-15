@@ -65,6 +65,11 @@ Timeout increases were rejected (masterplan §24.7).
   present; `completed` stalled while `submitted` grew). Unit regressions:
   `tests/gpu-frame-gate.test.ts` (never-refreshed fence; slow GPU never two frames in flight; stale
   drain is not a latency sample; idle observation).
+* A drain samples only the time `gl.finish()` itself blocked. Hosted run 38662457092 showed the
+  first design sampling submit-to-drain-end: that includes the gate's own wait, so on a host that
+  never refreshes fence status (and where `finish` costs a few ms of driver overhead) the bound grew
+  ×1.6 per frame to the 10 s cap and replay presented one frame per ~10 s. Regression: `does not
+  grow its own wait on a host that never refreshes fence status` (fails before, passes after).
 * The director follows the player's pit visit, else a rival stationary in service, before battles
   (`pitSubject`, `tests/replay-photo.test.ts`).
 * Independent replay-clock regression without rendering: `tests/replay-clock.test.ts` (advance,
