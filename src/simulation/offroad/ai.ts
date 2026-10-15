@@ -43,10 +43,20 @@ const ABORT_MARGIN = 2.5;
 const HEADING_LIMIT = 0.5;
 /** Seconds after the gate drop the field launches flat out. */
 const LAUNCH_SECONDS = 1.6;
+/** Grade (sine of the ground slope) and speed (m/s) below which a rider
+ * climbing a face holds the drive that carries it (climbFace). */
+const CLIMB_GRADE = 0.1,
+  CLIMB_SPEED = 8;
 /** Seconds a riding bike may sit still before the marshals push it out. */
 const STUCK_SECONDS = 4;
 /** Lip speed (m/s) a rider rolls a feature at: below it the bike stays on the ground. */
 export const ROLL_SPEED = 2.5;
+/** Speed (m/s) whose energy carries a rolling bike `climb` metres up to a
+ * crest at ROLL_SPEED (the drive is not counted on: on loose faces it
+ * barely holds the grade). */
+export function rollSpeed(climb: number) {
+  return Math.sqrt(ROLL_SPEED * ROLL_SPEED + 2 * G * Math.max(0, climb));
+}
 /** The speed to hold up the face of `j` so the flight lands on its landing
  * zone (tabletops a little short: the deck is the safe side). */
 export function jumpHoldSpeed(j: JumpSurvey) {
@@ -84,6 +94,7 @@ export class DirtBikeAIDriver extends BikeAIDriver {
     this.rutBias = approach(this.rutBias, this.biasTarget, dt * 1.2);
     super.update(dt, track, cars, race);
     this.governJump(track);
+    this.climbFace();
     this.headingGuard(track);
     this.gateLaunch(track, race);
     this.unstick(dt, track, race);
@@ -129,9 +140,25 @@ export class DirtBikeAIDriver extends BikeAIDriver {
     else this.stuck = 0;
     if (this.stuck < STUCK_SECONDS) return;
     this.stuck = 0;
-    const w = track.at(c.s, previewPoint).width - 1;
-    c.place(track, c.s, clamp(c.lateral, -w, w));
+    // At the course edge facing the course, never back on a face it could
+    // not climb (the adapter's restart point).
+    c.restart(track);
     this.decisions.pushes++;
+  }
+  /** Slow up a face a rider holds the drive that carries the grade: the
+   * general pedal controller, proportional to the speed error, settles well
+   * below its target on a 30° face and, slowed further by traffic, at a
+   * standstill where the drive only just holds the bike there (it cannot
+   * restart). Below the target speed the throttle is at least the grade's
+   * share of full drive. */
+  private climbFace() {
+    const c = this.rider,
+      input = c.input,
+      grade = Math.sin(c.groundPitch);
+    if (!c.riding || c.airborne || grade < CLIMB_GRADE || c.speed > CLIMB_SPEED) return;
+    if (c.aiTarget < 0.5 || c.aiTarget <= c.speed) return;
+    input.throttle = Math.max(input.throttle, clamp(0.3 + 1.4 * grade, 0, 1));
+    input.brake = 0;
   }
   /** On the last metres to a lip a rider meters the speed with a firm hand
    * (the general controller's proportional pedal settles below its target)
@@ -267,7 +294,10 @@ export class DirtBikeAIDriver extends BikeAIDriver {
       mod(c.s - inside.start, L) > inside.takeoff - inside.start + 0.5
     ) {
       this.plan = null;
-      return inside.forgiving ? desired : Math.min(desired, ROLL_SPEED + 1.5);
+      if (inside.forgiving) return desired;
+      // Down in a gap: enough speed to roll up and over the next mound (its
+      // height above the ground here), never less than a walking roll.
+      return Math.min(desired, Math.max(ROLL_SPEED + 1.5, rollSpeed(course.climbAhead(c.s))));
     }
     const next = inside ? { jump: inside } : course.nextJump(c.s);
     if (!next) return desired;
@@ -285,7 +315,12 @@ export class DirtBikeAIDriver extends BikeAIDriver {
     // only when the run-up and every other limit leave the hold speed.
     const flag = race.control.flags[c.id],
       yellow = flag === FLAG.YELLOW || flag === FLAG.DOUBLE_YELLOW;
-    const brakeToRoll = (c.speed * c.speed - ROLL_SPEED * ROLL_SPEED) / (2 * 0.45 * G) + 4;
+    // A roll reaches the foot of the face with the speed whose energy carries
+    // the bike up to the lip at a walking roll: up a 30° face of loose soil
+    // the drive barely holds the grade (and not at all when it is wet), so
+    // the climb is ridden on momentum.
+    const rollFoot = rollSpeed(j.lipHeight),
+      brakeToRoll = (c.speed * c.speed - rollFoot * rollFoot) / (2 * 0.45 * G) + 4;
     const same = this.plan?.jump === j;
     if (!same || !this.plan!.locked || (yellow && this.plan!.clear && toFace > brakeToRoll - 2)) {
       const reachable = this.reach(c.speed, Math.max(0, toFace - 1), c.definition.ai.topSpeed);
@@ -298,10 +333,15 @@ export class DirtBikeAIDriver extends BikeAIDriver {
     }
     const plan = this.plan!;
     if (!plan.clear) {
-      if (onFace) return Math.min(desired, Math.max(ROLL_SPEED, Math.min(c.speed, ROLL_SPEED + 1)));
+      if (onFace) {
+        // Up the face: the speed the rest of the climb needs, kept (never
+        // braked away) up to a little more.
+        const need = rollSpeed(j.lipHeight - course.profileHeight(c.s));
+        return Math.min(desired, Math.max(need, Math.min(c.speed, need + 1.5)));
+      }
       return Math.min(
         desired,
-        Math.sqrt(ROLL_SPEED * ROLL_SPEED + 2 * 0.45 * G * Math.max(0, toFace - 1)),
+        Math.sqrt(rollFoot * rollFoot + 2 * 0.45 * G * Math.max(0, toFace - 1)),
       );
     }
     // Committed: the lip speed is the target, small traffic and corner
