@@ -1,0 +1,69 @@
+name: Claude merge inspection
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/claude-merge-inspect.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          filter: blob:none
+          sparse-checkout: .github
+      - name: Inspect pinned branch merges without changing any branch
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import subprocess, pathlib, json, re
+          def git(*args):
+              return subprocess.run(['git', *args], capture_output=True, text=True)
+          pairs = [
+            ('main-ground', '5a46c72fa6ad00a58243849982839c9489defee5', 'c77dc39fe3a4b1309cb6907c2085097cdb96406f'),
+            ('main-vegetation', '5a46c72fa6ad00a58243849982839c9489defee5', 'a5759f8fe7dcd12893f309f1232879830164c634'),
+            ('ground-vegetation', 'c77dc39fe3a4b1309cb6907c2085097cdb96406f', 'a5759f8fe7dcd12893f309f1232879830164c634'),
+          ]
+          root = pathlib.Path('/tmp/claude-merge-inspection'); root.mkdir(exist_ok=True)
+          for label, base, head in pairs:
+              result = git('merge-tree', '--write-tree', base, head)
+              if result.returncode not in (0, 1):
+                  raise RuntimeError(result.stderr)
+              print('::group::' + label)
+              print(result.stdout)
+              tree = result.stdout.splitlines()[0]
+              folder = root / label; folder.mkdir(exist_ok=True)
+              (folder / 'merge-tree.txt').write_text(result.stdout)
+              (folder / 'diff.raw').write_text(git('diff-tree', '-r', '--no-commit-id', '--raw', base, tree).stdout)
+              conflicts = []
+              for line in result.stdout.splitlines()[1:]:
+                  match = re.match(r'^\d{6} ([0-9a-f]{40}) ([123])\t(.+)$', line)
+                  if match:
+                      sha, stage, name = match.groups()
+                      target = folder / ('stage-' + stage) / name
+                      target.parent.mkdir(parents=True, exist_ok=True)
+                      target.write_text(git('cat-file', '-p', sha).stdout)
+                      if name not in conflicts: conflicts.append(name)
+              for name in conflicts:
+                  body = git('show', tree + ':' + name).stdout
+                  target = folder / 'merged' / name
+                  target.parent.mkdir(parents=True, exist_ok=True); target.write_text(body)
+                  lines = body.splitlines()
+                  print('\nFILE: ' + name)
+                  active = False; start = 0
+                  for i, line in enumerate(lines):
+                      if line.startswith('<<<<<<< '): start = max(0, i - 5); active = True
+                      elif active and line.startswith('>>>>>>> '):
+                          print('\n'.join(f'{j+1}: {lines[j]}' for j in range(start, min(len(lines), i + 6))))
+                          active = False
+              print('::endgroup::')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: claude-merge-inspection
+          path: /tmp/claude-merge-inspection/
+          retention-days: 1
