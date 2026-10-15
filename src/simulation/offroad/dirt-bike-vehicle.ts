@@ -264,8 +264,7 @@ export class DirtBikeVehicle extends BikeVehicle {
       this.crashCauses.push({
         cause: fromLanding
           ? landing.outcome
-          : this.crashReason ||
-            `grip-${d.state} v${d.speed.toFixed(1)} lean${d.lean.toFixed(2)} g${d.grip.toFixed(2)} lg${this.loadGrip.toFixed(2)} fu${d.frontUse.toFixed(2)} ru${d.rearUse.toFixed(2)} slide${this.slide.toFixed(1)}`,
+          : this.crashReason || `grip-${d.state}`,
         s: this.s,
         time: this.clock,
       });
@@ -645,7 +644,9 @@ export class DirtBikeVehicle extends BikeVehicle {
               c.surface === MATERIAL.GRAVEL_ROAD
             ? 0.15 + this.moisture
             : 0;
-    const pick = this.airborne ? 0 : wetSoil * (0.004 * d.speed + 0.08 * d.rearSlip) * dt;
+    // A dry moto leaves a film of dust over several laps; mud and spin coat
+    // a machine within a lap or two.
+    const pick = this.airborne ? 0 : wetSoil * (0.0004 * d.speed + 0.012 * Math.abs(d.rearSlip)) * dt;
     this.mud = clamp(this.mud + pick - 0.0015 * dt * this.mud, 0, 1);
   }
   protected override updateSuspensionAndTyres(dt: number) {

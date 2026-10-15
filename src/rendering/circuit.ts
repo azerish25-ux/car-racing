@@ -789,9 +789,11 @@ export class CircuitScene {
       const plan = venuePlan(this.track);
       for (const sign of plan.signs)
         this.sign(sign.text, sign.s, sign.lateral, sign.width, sign.height);
-      if (this.trackBoards) this.trackBoards.build(this.track, this.props);
+      // Terrain venues have no braking-distance boards.
+      const boards = this.offroad ? [] : plan.brakingBoards;
+      if (this.trackBoards && !this.offroad) this.trackBoards.build(this.track, this.props);
       else
-        for (const corner of plan.brakingBoards)
+        for (const corner of boards)
           for (const distance of [50, 100, 150])
             this.sign(String(distance), corner - distance, -18, 1, 0.9);
       const p = this.track.at(0, trackPoint()),

@@ -247,13 +247,13 @@ const VALLEY_RIDGE = venue(
 
 // ---- Arena Nord: indoor supercross stadium (anticlockwise, night) ---------
 const arenaPath: (Segment & { berm?: number })[] = [
-  S(82, { w: 6, stands: 'right' }),
+  S(100, { w: 6, stands: 'right' }),
   A(7, 180, berm(1.2, { name: 'TURN ONE' })),
-  S(92),
+  S(110),
   A(7, -180, berm(1.1, { name: 'STAGE TURN' })),
-  S(80),
+  S(95),
   A(7, 180, berm(1.2, { name: 'SCOREBOARD' })),
-  S(125),
+  S(140),
   A(7, 90, berm(1.0, { name: 'TUNNEL' })),
   S(28),
   A(7, 90, berm(1.0, { name: 'FINISH TURN', w: 6 })),

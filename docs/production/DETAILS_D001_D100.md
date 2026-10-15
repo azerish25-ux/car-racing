@@ -50,35 +50,35 @@ the acceptance observation. Nothing below is player-accepted.
 | D029 | Restrained cockpit reflections | foundation | review in capture suite |
 | D030 | Pause/disconnect removes stale inputs | integrated | input sanitation + disconnect handling (`src/input/controller.ts`) |
 
-## 19.4 Rider and motorcycle (prototype model only)
+## 19.4 Rider and motorcycle
 
 | ID | Detail | State | Evidence / next |
 |---|---|---|---|
-| D031 | Tuck follows speed/state | absent | needs rider rig (WP34) |
-| D032 | Hands on bars | absent | WP34 |
-| D033 | Boots on pegs | absent | WP34 |
-| D034 | Mass shift has matching pose | research | `Bike.riderOffset` is physical state for the future pose |
-| D035 | Fork compression on braking | research | `Bike.frontLoad` available |
-| D036 | Chain follows drive state | absent | WP34/WP47 |
-| D037 | Knee/boot scrape needs contact | absent | WP34 |
-| D038 | Stable optional horizon | absent | camera profiles (§21.3) |
-| D039 | Crash keeps rider/bike identity | prototype | single `Bike` owns crash → separated → remount |
-| D040 | Remount and control return agree | prototype | inputs ignored until remount completes (`tests/bike.test.ts`) |
+| D031 | Tuck follows speed/state | integrated (procedural art) | rider pose reads `B.TUCK` from the snapshot (`rider.ts` `ride()`); off-road riders sit up instead; next: onboard review |
+| D032 | Hands on bars | integrated (procedural art) | two-bone IK to the steered grips every frame (`bike.ts`, `dirt-bike-model.ts`) |
+| D033 | Boots on pegs | integrated (procedural art) | two-bone IK to the pegs; a dabbed foot leaves its peg (D043) |
+| D034 | Mass shift has matching pose | integrated (procedural art) | hang-off from `B.RIDER_OFFSET`; off-road body fore/aft from `O.BODY` |
+| D035 | Fork compression on braking | integrated | fork lowers slide with the recorded `B.FORK`; dirt bikes show their full ~300 mm stroke |
+| D036 | Chain follows drive state | absent | chain runs are static geometry |
+| D037 | Knee/boot scrape needs contact | absent | slider pucks are drawn; no contact effect |
+| D038 | Stable optional horizon | absent | chase roll is a fixed fraction of lean (`BIKE_CHASE_ROLL`); no player option |
+| D039 | Crash keeps rider/bike identity | integrated | one `BikeVehicle` owns crash → separated → remount, reported to race control; dirt bikes add landing crashes |
+| D040 | Remount and control return agree | integrated | inputs ignored until remount completes (`tests/bike.test.ts`) |
 
-## 19.5 Dirt and jumps (prototype terrain only)
+## 19.5 Dirt and jumps
 
 | ID | Detail | State | Evidence / next |
 |---|---|---|---|
-| D041 | Roost follows rear contact/slip | absent | particles separate from authoritative soil (by design) |
-| D042 | Mud by exposed region | absent | — |
-| D043 | Standing pose for rough sections | absent | WP39 |
-| D044 | Suspension bottoming visible | absent | WP39 |
-| D045 | Rut edges influence lines | prototype | `lineCost()` penalises rut edges |
-| D046 | Wet vs dry berm | prototype | moisture term in terrain grip/softness |
-| D047 | Airborne audio stops on lift-off | absent | WP47 |
-| D048 | Landing effects at contacting wheel | absent | WP39 |
-| D049 | Start gate synchronized | absent | WP41 event format |
-| D050 | Track reset restores whole terrain | prototype | `TerrainTile.reset()` clears physical and visual depth together |
+| D041 | Roost follows rear contact/slip | integrated (presentation) | `src/rendering/offroad/roost.ts` emits from driven wheels by recorded load, slip and surface; never written back to the soil (by design) |
+| D042 | Mud by exposed region | integrated (procedural art) | per-entrant `O.MUD` coat (`mud.ts`) heavier on low parts; dry dust vs wet mud by `O.MOISTURE`; next: art review of coverage |
+| D043 | Standing pose for rough sections | integrated (procedural art) | `O.STANDING` (whoops, rollers, jump faces, flight) and `O.DAB` drive the rider (`rider.ts`) |
+| D044 | Suspension bottoming visible | foundation | full fork/shock stroke is shown and `O.BOTTOM` is recorded; no dedicated visual or audio cue |
+| D045 | Rut edges influence lines | integrated | physics ruts change grip; dirt-bike AI chooses lines by `lineCost()` |
+| D046 | Wet vs dry berm | integrated | moisture term in soil contact grip and softness; rain soaks the session soil |
+| D047 | Airborne audio stops on lift-off | absent | airborne state is in the snapshot (`O.AIRBORNE`); audio not wired (WP47) |
+| D048 | Landing effects at contacting wheel | foundation | landing record (pitch error, impact speed) in `O.LANDING_*`; no landing effect drawn |
+| D049 | Start gate synchronized | integrated | one release for every slot, jump-start detection (`session.ts`, `tests/offroad.test.ts`); hinged gate model falls from race time (`start-gate.ts`) |
+| D050 | Track reset restores whole terrain | integrated | a new session resets the course terrain; the worker's first keyframe replaces the rendered field (`terrain-view.ts`) |
 
 ## 19.6 Weather and atmosphere
 

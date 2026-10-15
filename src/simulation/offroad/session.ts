@@ -20,7 +20,7 @@ import { TrackTerrainSurface, type CourseTerrain } from './course-terrain.ts';
 import type { OffroadCourse } from './course.ts';
 import { DirtBikeVehicle } from './dirt-bike-vehicle.ts';
 import { isDirtBike } from './dirt-bikes.ts';
-import type { OffroadFormat } from './formats.ts';
+import { pickGates, type OffroadFormat } from './formats.ts';
 import { offroadCourse } from './venues.ts';
 
 /** The dynamics adapter for an entrant: off-road motorcycles get the
@@ -116,7 +116,7 @@ export class OffroadSession {
     this.route = this.buildRoute();
     if (this.format?.start === 'gate' && this.course.spec.gate) {
       const slots = gateSlots(track, this.course, cars.length),
-        picks = pickSlots(options.grid ?? cars.map((c) => c.id), slots.preference);
+        picks = pickGates(options.grid ?? cars.map((c) => c.id), slots.preference);
       for (const c of cars) {
         const e = this.entrants[c.id];
         e.slot = picks.get(c.id)!;
@@ -147,7 +147,7 @@ export class OffroadSession {
     if (format.start === 'gate' && course.spec.gate) {
       const slots = gateSlots(track, course, cars.length),
         order = options.grid ?? cars.map((c) => c.id),
-        picks = pickSlots(order, slots.preference);
+        picks = pickGates(order, slots.preference);
       for (const c of cars) {
         const k = picks.get(c.id)!,
           reach =
@@ -447,7 +447,7 @@ export class OffroadSession {
             s === MATERIAL.MUD ? 1 : s === MATERIAL.DIRT || s === MATERIAL.GRAVEL_ROAD ? 0.15 : 0,
           spin = Math.abs(c.tires[2].slip) + Math.abs(c.tires[3].slip);
         e.mud = clamp(
-          e.mud + wet * (0.003 * c.speed + 0.05 * spin) * dt - 0.0012 * e.mud * dt,
+          e.mud + wet * (0.0003 * c.speed + 0.01 * spin) * dt - 0.0012 * e.mud * dt,
           0,
           1,
         );
@@ -488,16 +488,6 @@ export function gateSlots(track: Track, course: OffroadCourse, riders: number) {
   const inside = turn >= 0 ? 1 : -1,
     preference = lateral.map((_, k) => k).sort((a, b) => lateral[b] * inside - lateral[a] * inside);
   return { lateral, preference };
-}
-function pickSlots(order: readonly number[], preference: readonly number[]) {
-  const taken = new Set<number>(),
-    out = new Map<number, number>();
-  for (const id of order) {
-    const k = preference.find((s) => !taken.has(s))!;
-    taken.add(k);
-    out.set(id, k);
-  }
-  return out;
 }
 /** Snapshot off-road block (protocol O). Zeros on paved circuits for
  * machines without an off-road adapter. */

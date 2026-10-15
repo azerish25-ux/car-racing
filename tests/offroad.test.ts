@@ -26,6 +26,9 @@ import { PHASE } from '../src/simulation/race.ts';
 import { trackPoint } from '../src/simulation/track.ts';
 import { Simulation } from '../src/simulation/world.ts';
 import { TerrainView } from '../src/rendering/offroad/terrain-view.ts';
+import { disciplineEvents, disciplineTiers, licenceAvailability } from '../src/career/ladder.ts';
+import { disciplineStatus, liveRegistry } from '../src/career/registry.ts';
+import { newCareer } from '../src/career/save.ts';
 
 const MX = DIRT_BIKES.mx450;
 const jump = (venue: 'valley-ridge-mx' | 'arena-nord-sx', name: string) =>
@@ -321,5 +324,37 @@ describe('WP41 terrain presentation', () => {
     const p = trackPoint();
     track.at(0, p);
     expect(Number.isFinite(p.x)).toBe(true);
+  });
+});
+
+describe('WP42 off-road career from the registry', () => {
+  it('opens the off-road discipline with tiers that race only where they are admitted', () => {
+    const registry = liveRegistry();
+    expect(disciplineStatus(registry, 'off-road').state).toBe('open');
+    expect(disciplineTiers(registry, 'off-road').map((t) => t.id)).toEqual([
+      'motocross',
+      'rallycross',
+      'rally',
+    ]);
+    const events = disciplineEvents(registry, newCareer(), 'off-road');
+    const recovery = events.find((e) => e.kind === 'recovery')!;
+    expect(recovery.status).toBe('open');
+    expect(recovery.definition!.circuit).toBe('valley-ridge-mx');
+    expect(recovery.definition!.ruleset).toBe('motocross-moto');
+    // Every event a fully progressed rider could enter names a venue that
+    // admits its machines and a format the venue is built for.
+    const save = newCareer();
+    save.reputation['off-road'] = 100;
+    save.licences.jump = { medal: 'gold', best: 0, attempts: 1 };
+    save.owned = registry.vehicles.map((v) => ({ id: v.id, source: 'purchase' as const }));
+    for (const e of disciplineEvents(registry, save, 'off-road')) {
+      if (!e.definition) continue;
+      expect(sessionIncompatibilities(eventSession(e.definition, DEFAULT_OPTIONS)), e.key).toEqual(
+        [],
+      );
+    }
+    const licence = licenceAvailability(registry, newCareer(), 'jump');
+    expect(licence.status).toBe('open');
+    expect(licence.venue).toBe('valley-ridge-mx');
   });
 });

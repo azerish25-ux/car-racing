@@ -116,14 +116,14 @@ Known limits as GP-R1.
 | Lightweight club | 2 | car launch | 1 (CR-1) |
 | Endurance prototype | 3 | circuit expansion | 2 (HY-9, PR-2) |
 | Historic | 3 | circuit expansion | 1 (HF-67) |
-| Rally | 3 | dirt expansion | 1 (RL-2; no dirt venue yet) |
-| Rallycross | 3 | dirt expansion | 1 (RCX-6; no dirt venue yet) |
+| Rally | 3 | dirt expansion | 1 (RL-2; races the Pinewood special stage) |
+| Rallycross | 3 | dirt expansion | 1 (RCX-6; races the Kestrel joker heat) |
 | Off-road truck/buggy | 3 | dirt expansion | 1 (DX-8; limited suspension travel) |
 | Kart | 2 | small-vehicle slice | 1 (SK-125) |
 | Road sport motorcycle | 3 | bike expansion | 1 (SBK-1000, integrated, procedural art) |
 | Prototype GP-style motorcycle | 3 | bike expansion | 1 (GP-R1, integrated, procedural art) |
-| Motocross | 4 | dirt-bike expansion | 0 |
-| Supermoto | 3 | after bike/dirt gates | 0 |
+| Motocross | 4 | dirt-bike expansion | 2 (MX-450, MX-250; integrated, procedural art) |
+| Supermoto | 3 | after bike/dirt gates | 1 (SM-450; integrated, procedural art) |
 | Flat-track | 2 | after bike/dirt gates | 0 |
 | Experimental | 4 | extreme expansion | 0 |
 
@@ -186,6 +186,17 @@ previewer, performance heat map (§14.4), and person-time records for the stages
 
 Selection (§15.3): rank by new racing created, reuse, readability, vehicle fit and risk; approve
 only after a greybox lap, an AI race, a recovery demonstration and a rough performance capture.
+
+**Terrain venues (WP39).** Four original off-road venues are built with the same layout builder plus
+a course description (`src/simulation/offroad/venues.ts`): a longitudinal jump profile with surveyed
+take-off and landing faces, berms on the outside of turns, whoops/rollers, soil zones and a
+deformable terrain band. Valley Ridge (outdoor motocross: gate straight, 2 tabletops, 2 doubles, a
+triple, a kicker, whoops, rollers), Arena Nord (indoor supercross at night: triple rhythm lane, double,
+tabletop, whoops, finish triple), Kestrel (rallycross: asphalt start and finish, gravel loop, crest,
+joker road) and Pinewood (gravel special stage, ~2.8 km, three crests, two splits). Each passes
+`validate:content`, has seeded AI races in `docs/offroad-races.json` and admits only its machine
+classes (motorcycles at motocross/supercross, cars at rallycross/stages). Not done: art pass beyond
+the procedural venue kit, human races, performance capture, §15.3 approval.
 
 Catalogue layouts C01–C12 (20 layouts, [roster and limits](../CIRCUIT_CATALOGUE.md)) have passed the
 greybox lap and AI race stages (`docs/circuit-catalogue-races.json`), and the operational pass for

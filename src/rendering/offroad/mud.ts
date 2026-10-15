@@ -35,10 +35,12 @@ if ( offroadMud > 0.002 ) {
 	float n = 0.65 * offroadMudNoise( vOffroadMudPos * 9.0 ) + 0.35 * offroadMudNoise( vOffroadMudPos * 31.0 );
 	// Lower parts (fenders, legs, sills) catch the roost first.
 	float low = clamp( 0.6 - vOffroadMudPos.y, 0.0, 1.0 );
-	offroadMudMask = smoothstep( 1.0 - offroadMud, 1.18 - offroadMud, n + 0.35 * low * offroadMud );
-	// Dry dust is pale and fine; wet mud dark and clumped.
-	vec3 dust = vec3( 0.33, 0.27, 0.2 ), mud = vec3( 0.085, 0.06, 0.04 );
-	diffuseColor.rgb = mix( diffuseColor.rgb, mix( dust, mud, offroadMudWet ), offroadMudMask * 0.92 );
+	// Never a uniform coat: at most ~80 % of a part, splattered from below.
+	float cover = 0.8 * offroadMud;
+	offroadMudMask = smoothstep( 1.0 - cover, 1.15 - cover, n + 0.3 * low * cover );
+	// Dry dust is a thin earthy film; wet mud dark, clumped and opaque.
+	vec3 dust = vec3( 0.2, 0.16, 0.12 ), mud = vec3( 0.075, 0.055, 0.038 );
+	diffuseColor.rgb = mix( diffuseColor.rgb, mix( dust, mud, offroadMudWet ), offroadMudMask * mix( 0.55, 0.9, offroadMudWet ) );
 }`;
 const ROUGHNESS = /* glsl */ `
 roughnessFactor = mix( roughnessFactor, mix( 0.96, 0.62, offroadMudWet ), offroadMudMask );`;
