@@ -6,7 +6,11 @@ import {
   PHYSICAL_BLOOM,
   physicalBloomMix,
 } from '../src/rendering/lens-bloom.ts';
-import { LIGHT_SHAFTS, LightShaftsPass, shaftStrength } from '../src/rendering/ultra/light-shafts.ts';
+import {
+  LIGHT_SHAFTS,
+  LightShaftsPass,
+  shaftStrength,
+} from '../src/rendering/ultra/light-shafts.ts';
 import { AERIAL_PERSPECTIVE } from '../src/rendering/studio/aerial-perspective.ts';
 import { LENS, LensEffects, createLensUniforms } from '../src/rendering/studio/lens-effects.ts';
 import { LIGHT_POOLS, LightPools } from '../src/rendering/studio/light-pools.ts';
@@ -33,7 +37,10 @@ describe('photoreal lens: tight glare, little veil', () => {
     expect(bloom.scatter).toBe(PHYSICAL_BLOOM.scatter);
     // About nine tenths of the redistributed share in the three finest levels,
     // under half a percent in the coarsest.
-    const weights = Array.from({ length: LENS_BLOOM.levels + 1 }, (_, i) => PHYSICAL_BLOOM.scatter ** i);
+    const weights = Array.from(
+      { length: LENS_BLOOM.levels + 1 },
+      (_, i) => PHYSICAL_BLOOM.scatter ** i,
+    );
     const total = weights.reduce((a, b) => a + b, 0);
     expect(total).toBeCloseTo(bloom.normalization, 12);
     expect((weights[0] + weights[1] + weights[2]) / total).toBeGreaterThan(0.7);
@@ -80,7 +87,9 @@ describe('photoreal lens: tight glare, little veil', () => {
     type Internals = { composite: T.ShaderMaterial };
     const composite = (pass as unknown as Internals).composite;
     expect(composite.fragmentShader).toContain('perspectiveDepthToViewZ');
-    expect(composite.fragmentShader).toContain(`mix( ${LIGHT_SHAFTS.occluded.toFixed(3)}, 1.0, open )`);
+    expect(composite.fragmentShader).toContain(
+      `mix( ${LIGHT_SHAFTS.occluded.toFixed(3)}, 1.0, open )`,
+    );
     pass.dispose();
     // The aerial perspective's sun-side lobe is a tight aureole.
     expect(AERIAL_PERSPECTIVE.sunPower).toBeGreaterThanOrEqual(24);

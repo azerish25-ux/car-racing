@@ -44,7 +44,9 @@ export function fanColour(hex: number, desaturate = 0.4, cap = CLOTH_ALBEDO_MAX)
 /** Fan shirts in team kit: muted dyed cotton. */
 export const CROWD_TEAM_COLOURS = Object.freeze(CROWD_TEAM_KITS.map((c) => fanColour(c)));
 /** Team flags: printed polyester, lightly muted. */
-export const CROWD_FLAG_COLOURS = Object.freeze(CROWD_TEAM_KITS.map((c) => fanColour(c, 0.15, 0.7)));
+export const CROWD_FLAG_COLOURS = Object.freeze(
+  CROWD_TEAM_KITS.map((c) => fanColour(c, 0.15, 0.7)),
+);
 /** Everyday clothing (sRGB) and its share of the neutral picks, weighted dark. */
 export const CROWD_NEUTRAL_MIX = Object.freeze([
   [0x1c1c1e, 0.2], // black
