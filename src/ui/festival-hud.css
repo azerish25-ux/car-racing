@@ -10,8 +10,9 @@
   --fest-panel: rgba(10, 14, 20, 0.72);
   --fest-line: rgba(255, 255, 255, 0.14);
 }
-.fest-hud[hidden] {
-  display: none;
+.fest-hud[hidden],
+.fest-hud [hidden] {
+  display: none !important;
 }
 .fest-hud button {
   pointer-events: auto;
@@ -87,8 +88,8 @@
   position: absolute;
   left: calc(18px * var(--ui-scale, 1));
   bottom: calc(18px * var(--ui-scale, 1));
-  width: 220px;
-  height: 220px;
+  width: min(220px, 32vh);
+  height: min(220px, 32vh);
   border-radius: 50%;
   overflow: hidden;
   border: 2px solid rgba(255, 255, 255, 0.35);
@@ -312,8 +313,16 @@
   place-items: center;
 }
 .fest-map canvas {
-  max-width: 100%;
-  max-height: 100%;
+  /* The square region map fits the dialog (inset 6vh 6vw) on any aspect. */
+  width: min(84vw, 84vh);
+  height: min(84vw, 84vh);
+}
+/* Dialogs sit above the always-on panels (minimap, speed, road sign). */
+.fest-card,
+.fest-results,
+.fest-menu,
+.fest-map {
+  z-index: 2;
 }
 .fest-map .fest-secondary {
   position: absolute;
