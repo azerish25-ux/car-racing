@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import * as T from 'three';
 import { SPRAY_SIGNAL, SprayClouds, spraySignalTint } from '../src/rendering/spray-clouds.ts';
+import {
+  REAR_LAMP,
+  REAR_LAMP_PHYSICAL_GAIN,
+  rearLampIntensity,
+  rearSignalIntensity,
+} from '../src/rendering/rear-signal.ts';
 import { Effects, EFFECT_CAPACITY } from '../src/rendering/effects.ts';
 import { VenueLighting, VENUE_LIGHT_INTENSITY, venueLightWeight } from '../src/rendering/venue-lighting.ts';
 import { Track, trackPoint } from '../src/simulation/track.ts';
@@ -126,5 +132,19 @@ describe('rain-light in-scatter on the spray', () => {
     expect(v).toContain(`${SPRAY_SIGNAL.ceiling.toFixed(2)}*ambient`);
     spray.material.dispose();
     spray.geometry.dispose();
+  });
+});
+
+describe('rain lights in physical radiance on ULTRA', () => {
+  it('scales only the visible lamp, never the spray signal', () => {
+    expect(REAR_LAMP.gain).toBe(1);
+    expect(rearLampIntensity(0.5, 1)).toBe(rearSignalIntensity(0.5, 1));
+    REAR_LAMP.gain = REAR_LAMP_PHYSICAL_GAIN;
+    try {
+      expect(rearLampIntensity(0.5, 1)).toBe(rearSignalIntensity(0.5, 1) * REAR_LAMP_PHYSICAL_GAIN);
+      expect(rearSignalIntensity(0.5, 1)).toBe(2.5);
+    } finally {
+      REAR_LAMP.gain = 1;
+    }
   });
 });

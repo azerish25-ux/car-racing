@@ -37,6 +37,7 @@ import { GhostCar } from './ghost-car.ts';
 import { SafetyCarView } from './studio/safety-car.ts';
 import { LightPools } from './studio/light-pools.ts';
 import { setBrandLedLighting } from './studio/trackside-branding.ts';
+import { REAR_LAMP, REAR_LAMP_PHYSICAL_GAIN } from './rear-signal.ts';
 import { setAerialExtinction } from './studio/aerial-perspective.ts';
 import { MENU_CAR_DATUM, SHOWROOM } from './menu-preview.ts';
 import { focusOnSubject, subjectLens, type SubjectLens } from './studio/subject-focus.ts';
@@ -1076,6 +1077,7 @@ export class RacingRenderer {
       illumination === 'sunset' ? 0.18 : 1,
     );
     this.lightPools.update(studio ? 'day' : illumination, this.bloom.energyConserving);
+    REAR_LAMP.gain = this.bloom.energyConserving ? REAR_LAMP_PHYSICAL_GAIN : 1;
     setBrandLedLighting(studio ? 'day' : illumination);
     applyCircuitLightPalette(this.sun, this.hemisphere, daylight.cover, illumination);
     this.sun.intensity = daylight.sun;
