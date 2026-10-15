@@ -91,21 +91,35 @@ function venue(spec: CircuitSpec, kind: OffroadCourseSpec['kind'], author: Autho
     builder = new ProfileBuilder(),
     data = author(at, builder, length),
     built = builder.build();
-  const course = new OffroadCourse({ kind, ...data }, built.profile, built.jumps, built.rough, length);
+  const course = new OffroadCourse(
+    { kind, ...data },
+    built.profile,
+    built.jumps,
+    built.rough,
+    length,
+  );
   const offroad: OffroadVenue = Object.freeze({
     kind,
     course,
     createSurface: (track: Track) => new TrackTerrainSurface(track, course),
   });
+  const bikes = kind === 'motocross' || kind === 'supercross';
   return Object.freeze({
     ...circuit,
     offroad,
     jumps: Object.freeze(built.jumps.map((j: JumpSurvey) => Object.freeze({ ...j }))),
+    // What races here (career/registry.ts reads these).
+    surface: kind === 'rallycross' ? 'mixed' : kind === 'rally-stage' ? 'gravel' : 'dirt',
+    classes: bikes ? OFFROAD_CLASSES.bikes : OFFROAD_CLASSES.cars,
+    formats: Object.freeze([bikes ? 'moto' : kind === 'rallycross' ? 'rallycross' : 'stage']),
   });
 }
 const berm = (h: number, extra: Partial<Segment> = {}) => ({ ...extra, berm: h });
 /** Berm heights authored on the arcs (index -> m), resolved after building. */
-function berms(path: readonly (Segment & { berm?: number })[], at: (i: number, l?: number) => number) {
+function berms(
+  path: readonly (Segment & { berm?: number })[],
+  at: (i: number, l?: number) => number,
+) {
   const out: { from: number; to: number; height: number; side: 1 | -1 }[] = [];
   path.forEach((seg, i) => {
     if (!seg.berm || seg.r === undefined || seg.turn === undefined) return;
@@ -161,13 +175,56 @@ const VALLEY_RIDGE = venue(
   },
   'motocross',
   (at, p, length) => {
-    p.jump({ name: 'RIDGE TABLE', kind: 'tabletop', at: at(2, 22), height: 2.0, face: 28, gap: 11, landing: 18 });
-    p.jump({ name: 'BARN DOUBLE', kind: 'double', at: at(4, 22), height: 2.1, face: 29, gap: 15, landingHeight: 2.8, landing: 18 });
+    p.jump({
+      name: 'RIDGE TABLE',
+      kind: 'tabletop',
+      at: at(2, 22),
+      height: 2.0,
+      face: 28,
+      gap: 11,
+      landing: 18,
+    });
+    p.jump({
+      name: 'BARN DOUBLE',
+      kind: 'double',
+      at: at(4, 22),
+      height: 2.1,
+      face: 29,
+      gap: 15,
+      landingHeight: 2.8,
+      landing: 18,
+    });
     p.jump({ name: 'CREEK KICKER', kind: 'kicker', at: at(6, 16), height: 1.0, face: 24, gap: 8 });
     p.whoops({ at: at(8, 14), count: 9, spacing: 5, height: 0.45 });
-    p.jump({ name: 'SKY TRIPLE', kind: 'triple', at: at(8, 78), height: 1.8, face: 31, gap: 18, landingHeight: 2.5, landing: 19 });
-    p.jump({ name: 'SUMMIT TABLE', kind: 'tabletop', at: at(10, 18), height: 2.4, face: 29, gap: 13, landing: 18 });
-    p.jump({ name: 'VALLEY DOUBLE', kind: 'double', at: at(10, 68), height: 2.0, face: 28, gap: 14, landingHeight: 2.7, landing: 18 });
+    p.jump({
+      name: 'SKY TRIPLE',
+      kind: 'triple',
+      at: at(8, 78),
+      height: 1.8,
+      face: 31,
+      gap: 18,
+      landingHeight: 2.5,
+      landing: 19,
+    });
+    p.jump({
+      name: 'SUMMIT TABLE',
+      kind: 'tabletop',
+      at: at(10, 18),
+      height: 2.4,
+      face: 29,
+      gap: 13,
+      landing: 18,
+    });
+    p.jump({
+      name: 'VALLEY DOUBLE',
+      kind: 'double',
+      at: at(10, 68),
+      height: 2.0,
+      face: 28,
+      gap: 14,
+      landingHeight: 2.7,
+      landing: 18,
+    });
     p.rollers({ at: at(10, 104), count: 3, spacing: 7, height: 0.6 });
     return {
       soil: 'loam',
@@ -227,12 +284,47 @@ const ARENA_NORD = venue(
   },
   'supercross',
   (at, p, length) => {
-    p.jump({ name: 'TRIPLE', kind: 'triple', at: at(2, 14), height: 1.6, face: 31, gap: 17, landingHeight: 2.2, landing: 19 });
-    p.jump({ name: 'LANE DOUBLE', kind: 'double', at: at(2, 50), height: 1.5, face: 29, gap: 11, landingHeight: 2.0, landing: 18 });
+    p.jump({
+      name: 'TRIPLE',
+      kind: 'triple',
+      at: at(2, 14),
+      height: 1.6,
+      face: 31,
+      gap: 17,
+      landingHeight: 2.2,
+      landing: 19,
+    });
+    p.jump({
+      name: 'LANE DOUBLE',
+      kind: 'double',
+      at: at(2, 50),
+      height: 1.5,
+      face: 29,
+      gap: 11,
+      landingHeight: 2.0,
+      landing: 18,
+    });
     p.whoops({ at: at(4, 12), count: 11, spacing: 4.2, height: 0.4 });
-    p.jump({ name: 'TABLETOP', kind: 'tabletop', at: at(6, 14), height: 1.8, face: 29, gap: 9, landing: 18 });
+    p.jump({
+      name: 'TABLETOP',
+      kind: 'tabletop',
+      at: at(6, 14),
+      height: 1.8,
+      face: 29,
+      gap: 9,
+      landing: 18,
+    });
     p.rollers({ at: at(6, 40), count: 4, spacing: 6, height: 0.6 });
-    p.jump({ name: 'FINISH TRIPLE', kind: 'triple', at: at(6, 78), height: 1.7, face: 31, gap: 17, landingHeight: 2.2, landing: 19 });
+    p.jump({
+      name: 'FINISH TRIPLE',
+      kind: 'triple',
+      at: at(6, 78),
+      height: 1.7,
+      face: 31,
+      gap: 17,
+      landingHeight: 2.2,
+      landing: 19,
+    });
     return {
       soil: 'hardpack',
       offTrack: 'hardpack',
@@ -250,7 +342,12 @@ const kestrelPath: (Segment & { berm?: number })[] = [
   S(100, { stands: 'left' }),
   A(30, 180, { name: 'FIRST BEND', stands: 'out', y: 0.5 }),
   S(60, { y: 1, barrier: { side: 'left', offset: 13 } }),
-  A(18, -180, { name: 'JOKER HAIRPIN', y: 1.5, barrier: { side: 'out', offset: 13 }, stands: 'in' }),
+  A(18, -180, {
+    name: 'JOKER HAIRPIN',
+    y: 1.5,
+    barrier: { side: 'out', offset: 13 },
+    stands: 'in',
+  }),
   S(70, { y: 2, barrier: { side: 'left', offset: 13 } }),
   A(20, 90, { name: 'BIRCH', y: 3 }),
   S(50, { y: 4 }),
@@ -285,7 +382,15 @@ const KESTREL = venue(
   },
   'rallycross',
   (at, p, length) => {
-    p.jump({ name: 'KESTREL CREST', kind: 'crest', at: at(8, 60), height: 0.9, face: 9, gap: 6, landing: 8 });
+    p.jump({
+      name: 'KESTREL CREST',
+      kind: 'crest',
+      at: at(8, 60),
+      height: 0.9,
+      face: 9,
+      gap: 6,
+      landing: 8,
+    });
     // The hairpin turns right (builder hand -1), so its outside is the left.
     return {
       soil: 'gravel',
@@ -360,9 +465,33 @@ const PINEWOOD = venue(
   },
   'rally-stage',
   (at, p, length) => {
-    p.jump({ name: 'HIGH CREST', kind: 'crest', at: at(4, 90), height: 1.1, face: 7, gap: 8, landing: 7 });
-    p.jump({ name: 'MILL CREST', kind: 'crest', at: at(10, 70), height: 1.0, face: 7, gap: 6, landing: 7 });
-    p.jump({ name: 'RIDGE CREST', kind: 'crest', at: at(18, 140), height: 1.2, face: 8, gap: 8, landing: 8 });
+    p.jump({
+      name: 'HIGH CREST',
+      kind: 'crest',
+      at: at(4, 90),
+      height: 1.1,
+      face: 7,
+      gap: 8,
+      landing: 7,
+    });
+    p.jump({
+      name: 'MILL CREST',
+      kind: 'crest',
+      at: at(10, 70),
+      height: 1.0,
+      face: 7,
+      gap: 6,
+      landing: 7,
+    });
+    p.jump({
+      name: 'RIDGE CREST',
+      kind: 'crest',
+      at: at(18, 140),
+      height: 1.2,
+      face: 8,
+      gap: 8,
+      landing: 8,
+    });
     const start = 40,
       finish = at(20, 250),
       stop = at(21, 10);
@@ -386,12 +515,13 @@ const PINEWOOD = venue(
   },
 );
 /** Terrain venues by id (registered after the catalogue in circuits.ts). */
-export const OFFROAD_CIRCUITS: Readonly<Record<OffroadCircuitId, CircuitDefinition>> = Object.freeze({
-  'valley-ridge-mx': VALLEY_RIDGE,
-  'arena-nord-sx': ARENA_NORD,
-  'kestrel-rx': KESTREL,
-  'pinewood-stage': PINEWOOD,
-});
+export const OFFROAD_CIRCUITS: Readonly<Record<OffroadCircuitId, CircuitDefinition>> =
+  Object.freeze({
+    'valley-ridge-mx': VALLEY_RIDGE,
+    'arena-nord-sx': ARENA_NORD,
+    'kestrel-rx': KESTREL,
+    'pinewood-stage': PINEWOOD,
+  });
 /** The course of a terrain venue, or null for a paved circuit. */
 export function offroadCourse(def: Pick<CircuitDefinition, 'offroad'>): OffroadCourse | null {
   const data = def.offroad as OffroadVenue | undefined;

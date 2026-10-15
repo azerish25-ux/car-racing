@@ -14,7 +14,8 @@ import { offroadCourse } from './venues.ts';
 const tracks = new Map<string, Track>();
 export function rigTrack(venue: CircuitId) {
   let track = tracks.get(venue);
-  if (!track) tracks.set(venue, (track = new Track('clear', false, undefined, circuitDefinition(venue))));
+  if (!track)
+    tracks.set(venue, (track = new Track('clear', false, undefined, circuitDefinition(venue))));
   return track;
 }
 const point = trackPoint();
@@ -38,7 +39,8 @@ export function rigBike(def: VehicleDefinition, track: Track, s: number, speed: 
   const spec = def.spec;
   for (let g = 1; g < spec.gearRatios.length - 1; g++) {
     bike.gear = g;
-    const rpm = ((speed / spec.wheelRadius) * spec.gearRatios[g + 1] * spec.finalDrive * 30) / Math.PI;
+    const rpm =
+      ((speed / spec.wheelRadius) * spec.gearRatios[g + 1] * spec.finalDrive * 30) / Math.PI;
     if (rpm < spec.shiftRPM * 0.85) break;
   }
   return bike;
@@ -74,18 +76,28 @@ export function jumpRun(
     const onFace = bike.s >= j.start - 1 && bike.s <= j.takeoff + 1;
     if (!bike.airborne) rideLine(bike, track, onFace ? Math.max(lip, bike.dynamics.speed) : lip);
     bike.step(dt, track);
-    if (!before && bike.airborne && !flew) {
+    // Only the flight off this lip counts (not a hop over chop on the run-up).
+    const offLip = mod(bike.s - j.start + 1, track.length) < j.takeoff - j.start + 3;
+    if (!before && bike.airborne && !flew && offLip) {
       flew = true;
       takeoffSpeed = bike.lastTakeoff;
     }
     if (flew && before && !bike.airborne) break;
     if (!bike.riding) break;
   }
-  for (let t = 0; t < 0.4 && bike.riding; t += dt) {
-    rideLine(bike, track, lip);
-    bike.step(dt, track);
+  // The record of this flight's touchdown (settled over the next steps; a
+  // later hop on the run-out writes a record of its own).
+  const landed = bike.landings;
+  let landing = null as typeof bike.lastLanding;
+  for (let t = 0; t < 0.4; t += dt) {
+    if (bike.riding) {
+      rideLine(bike, track, lip);
+      bike.step(dt, track);
+    }
+    // Judged on the step after the touchdown, settled over the next ones.
+    if (flew && !landing && bike.landings >= landed && bike.lastLanding) landing = bike.lastLanding;
+    if (!bike.riding && landing) break;
   }
-  const landing = bike.lastLanding;
   return {
     flew,
     takeoffSpeed,
@@ -112,7 +124,8 @@ export function standingStart(def: VehicleDefinition, venue: CircuitId, metres =
     bike.input.brake = 0;
     bike.input.steer = clamp(-bike.lateral * 0.08, -1, 1);
     bike.step(dt, track);
-    if (mod(bike.s - s0, track.length) >= metres) return { seconds: t, crashes: bike.dynamics.crashes };
+    if (mod(bike.s - s0, track.length) >= metres)
+      return { seconds: t, crashes: bike.dynamics.crashes };
   }
   return { seconds: null, crashes: bike.dynamics.crashes };
 }

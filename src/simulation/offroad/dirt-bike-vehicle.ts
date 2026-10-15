@@ -191,7 +191,10 @@ export class DirtBikeVehicle extends BikeVehicle {
     // within one step (the core's lean aid assumes a slowly varying grip).
     const surface = Math.min(this.surfaceGrip(0), this.surfaceGrip(2)),
       target = surface * clamp(this.loadGrip, 0.85, 1.15) * this.bankSupport(surface);
-    this.smoothGrip = this.smoothGrip > 0 ? this.smoothGrip + (target - this.smoothGrip) * Math.min(1, dt / 0.35) : target;
+    this.smoothGrip =
+      this.smoothGrip > 0
+        ? this.smoothGrip + (target - this.smoothGrip) * Math.min(1, dt / 0.35)
+        : target;
     d.grip = this.smoothGrip;
     d.slope = Math.sin(this.roadPitch);
     this.posture(dt, course, track);
@@ -212,7 +215,14 @@ export class DirtBikeVehicle extends BikeVehicle {
       const x0 = d.x,
         z0 = d.z;
       d.step(
-        { lean: this.input.steer, throttle, frontBrake: brake, rearBrake: rear, rider: hang, drive: force },
+        {
+          lean: this.input.steer,
+          throttle,
+          frontBrake: brake,
+          rearBrake: rear,
+          rider: hang,
+          drive: force,
+        },
         dt,
       );
       // The core integrates horizontal travel at its speed; on a face that
@@ -222,7 +232,10 @@ export class DirtBikeVehicle extends BikeVehicle {
       d.z = z0 + (d.z - z0) * c;
       if (d.state === 'riding') {
         // Bulldozing and rolling in loose soil beyond the tyre's own rolling.
-        const extra = Math.max(0, 0.5 * (this.contacts[0].resistance + this.contacts[2].resistance) - (d.p.rolling ?? 0));
+        const extra = Math.max(
+          0,
+          0.5 * (this.contacts[0].resistance + this.contacts[2].resistance) - (d.p.rolling ?? 0),
+        );
         d.speed = Math.max(0, d.speed - extra * G * dt);
         // A foot down props the lean in slow, tight corners.
         if (Math.abs(this.dab) > 0.5) {
@@ -246,9 +259,13 @@ export class DirtBikeVehicle extends BikeVehicle {
     if (this.pendingLanding) this.judgeLanding(this.pendingLanding);
     if (was === 'riding' && d.state !== 'riding') {
       const landing = this.lastLanding,
-        fromLanding = landing && landing.outcome.startsWith('crash') && this.clock - landing.time < 0.5;
+        fromLanding =
+          landing && landing.outcome.startsWith('crash') && this.clock - landing.time < 0.5;
       this.crashCauses.push({
-        cause: fromLanding ? landing.outcome : this.crashReason || `grip-${d.state} v${d.speed.toFixed(1)} lean${d.lean.toFixed(2)} g${d.grip.toFixed(2)} lg${this.loadGrip.toFixed(2)} fu${d.frontUse.toFixed(2)} ru${d.rearUse.toFixed(2)} slide${this.slide.toFixed(1)}`,
+        cause: fromLanding
+          ? landing.outcome
+          : this.crashReason ||
+            `grip-${d.state} v${d.speed.toFixed(1)} lean${d.lean.toFixed(2)} g${d.grip.toFixed(2)} lg${this.loadGrip.toFixed(2)} fu${d.frontUse.toFixed(2)} ru${d.rearUse.toFixed(2)} slide${this.slide.toFixed(1)}`,
         s: this.s,
         time: this.clock,
       });
@@ -308,7 +325,10 @@ export class DirtBikeVehicle extends BikeVehicle {
       a = this.air,
       spec = this.spec;
     this.airTime += dt;
-    this.flightSpeed = Math.max(0, this.flightSpeed - ((d.p.drag * this.flightSpeed ** 2) / d.mass) * dt);
+    this.flightSpeed = Math.max(
+      0,
+      this.flightSpeed - ((d.p.drag * this.flightSpeed ** 2) / d.mass) * dt,
+    );
     d.speed = this.flightSpeed;
     d.x += Math.sin(d.heading) * this.flightSpeed * dt;
     d.z += Math.cos(d.heading) * this.flightSpeed * dt;
@@ -424,10 +444,19 @@ export class DirtBikeVehicle extends BikeVehicle {
     }
     const standUp = this.airborne || (d.speed > 7 && Math.abs(d.lean) < 0.42 && rough);
     this.standing = approach(this.standing, standUp ? 1 : 0, dt * 3.5);
-    const slow = d.speed < a.dabSpeed && (Math.abs(d.lean) > a.dabLean * 0.6 || Math.abs(d.steer) > 0.32);
-    this.dab = approach(this.dab, slow && !this.airborne ? Math.sign(d.lean || d.steer || 1) : 0, dt * 6);
+    const slow =
+      d.speed < a.dabSpeed && (Math.abs(d.lean) > a.dabLean * 0.6 || Math.abs(d.steer) > 0.32);
+    this.dab = approach(
+      this.dab,
+      slow && !this.airborne ? Math.sign(d.lean || d.steer || 1) : 0,
+      dt * 6,
+    );
     if (!this.airborne)
-      this.riderBody = approach(this.riderBody, clamp(0.45 * this.throttle - 0.55 * this.brake, -1, 1), dt * 3);
+      this.riderBody = approach(
+        this.riderBody,
+        clamp(0.45 * this.throttle - 0.55 * this.brake, -1, 1),
+        dt * 3,
+      );
     void track;
   }
   /** The 2-DOF sprung chassis over the two contact patches (heave + pitch),
@@ -498,7 +527,9 @@ export class DirtBikeVehicle extends BikeVehicle {
     this.pitchRate += (torque / a.pitchInertia) * dt;
     // The rider's body damps pitch: strongly with a wheel down (more when
     // standing over rough ground), a little in the air.
-    this.pitchRate *= Math.exp(-(contact ? 1.5 + 2.5 * this.standing : 0.3 + 0.5 * this.standing) * dt);
+    this.pitchRate *= Math.exp(
+      -(contact ? 1.5 + 2.5 * this.standing : 0.3 + 0.5 * this.standing) * dt,
+    );
     this.cgY += this.vy * dt;
     this.pitch = clamp(this.pitch + this.pitchRate * dt, -1.2, 1.2);
     this.compressionFront = clamp(cF, 0, spec.forkTravel);
@@ -512,7 +543,9 @@ export class DirtBikeVehicle extends BikeVehicle {
         // Touchdown: judged once both the speed split and pitch are known.
         this.airborne = false;
         this.landings++;
-        const slopeAt = Math.atan(cF > 0 && cR > 0 ? 0.5 * (slope(0) + slope(2)) : cF > 0 ? slope(0) : slope(2));
+        const slopeAt = Math.atan(
+          cF > 0 && cR > 0 ? 0.5 * (slope(0) + slope(2)) : cF > 0 ? slope(0) : slope(2),
+        );
         const chassis = this.pitch + this.riderBody * 0.06;
         const normal = this.flightSpeed * Math.sin(slopeAt) - this.vy * Math.cos(slopeAt);
         const along = this.flightSpeed * Math.cos(slopeAt) + this.vy * Math.sin(slopeAt);
@@ -723,7 +756,11 @@ export class DirtBikeVehicle extends BikeVehicle {
     const yawRate = (this.riding && !this.airborne ? d.speed * d.curvature : 0) + this.yawKick;
     this.heading3.set(sh, 0, ch);
     this.left3.set(ch, 0, -sh);
-    b.omega.set(-sh * d.leanRate + this.left3.x * -this.pitchRate, yawRate, -ch * d.leanRate + this.left3.z * -this.pitchRate);
+    b.omega.set(
+      -sh * d.leanRate + this.left3.x * -this.pitchRate,
+      yawRate,
+      -ch * d.leanRate + this.left3.z * -this.pitchRate,
+    );
     b.orientation.rotate(this.scratch.set(0, 0, 1), this.forward);
     b.orientation.rotate(this.scratch.set(0, 1, 0), this.up);
     b.orientation.inverseRotate(b.velocity, this.localVelocity);
@@ -737,7 +774,10 @@ export class DirtBikeVehicle extends BikeVehicle {
     this.gVert = (this.forceFront + this.forceRear) / (d.mass * G);
     this.aero.front = this.aero.rear = this.aero.floor = 0;
     this.aero.drag = spec.drag * d.dragScale * d.speed * d.speed;
-    this.frontRideHeight = this.rearRideHeight = Math.max(0, b.position.y - this.groundY - spec.cgHeight * 0.5);
+    this.frontRideHeight = this.rearRideHeight = Math.max(
+      0,
+      b.position.y - this.groundY - spec.cgHeight * 0.5,
+    );
     b.acceleration.set(0, 0, 0);
     this.written.position.copy(b.position);
     this.written.velocity.copy(b.velocity);

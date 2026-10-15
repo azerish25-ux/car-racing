@@ -35,6 +35,8 @@ const smooth = (x: number) => {
   const t = clamp(x, 0, 1);
   return t * t * (3 - 2 * t);
 };
+/** Seconds after the gate drop the field launches flat out. */
+const LAUNCH_SECONDS = 1.6;
 /** Seconds a riding bike may sit still before the marshals push it out. */
 const STUCK_SECONDS = 4;
 /** Lip speed (m/s) a rider rolls a feature at: below it the bike stays on the ground. */
@@ -76,14 +78,31 @@ export class DirtBikeAIDriver extends BikeAIDriver {
     this.rutBias = approach(this.rutBias, this.biasTarget, dt * 1.2);
     super.update(dt, track, cars, race);
     this.governJump(track);
+    this.gateLaunch(track, race);
     this.unstick(dt, track, race);
+  }
+  /** Gate start: every rider goes flat out as the gate drops (the traffic
+   * planner would otherwise wait for a gap in a row of bikes abreast). */
+  private gateLaunch(track: Track, race: RaceDirector) {
+    const c = this.rider;
+    if (!c.riding || race.phase !== PHASE.RACING || race.raceTime > LAUNCH_SECONDS) return;
+    if (offroadSessionFor(track)?.format?.start !== 'gate' || race.laps[c.id].completed > 0) return;
+    c.input.throttle = 1;
+    c.input.brake = 0;
   }
   private stuck = 0;
   /** Marshal assistance: a bike pinned against a tyre wall or beached on a
    * berm's back (riding, but going nowhere) is pushed back onto the track. */
   private unstick(dt: number, track: Track, race: RaceDirector) {
     const c = this.rider;
-    if (race.phase === PHASE.RACING && race.raceTime > 5 && c.riding && !c.airborne && c.speed < 0.5 && c.aiTarget > 4)
+    if (
+      race.phase === PHASE.RACING &&
+      race.raceTime > 5 &&
+      c.riding &&
+      !c.airborne &&
+      c.speed < 0.5 &&
+      c.aiTarget > 4
+    )
       this.stuck += dt;
     else this.stuck = 0;
     if (this.stuck < STUCK_SECONDS) return;
@@ -118,7 +137,9 @@ export class DirtBikeAIDriver extends BikeAIDriver {
     if (run < face + 10) {
       track.at(c.s, squarePoint);
       const d = c.dynamics,
-        error = mod(Math.atan2(squarePoint.tx, squarePoint.tz) - d.heading + Math.PI, Math.PI * 2) - Math.PI;
+        error =
+          mod(Math.atan2(squarePoint.tx, squarePoint.tz) - d.heading + Math.PI, Math.PI * 2) -
+          Math.PI;
       input.steer = clamp(error * 2.2 - d.lean * 0.4, -0.5, 0.5);
     }
   }
@@ -162,7 +183,12 @@ export class DirtBikeAIDriver extends BikeAIDriver {
         span = mod(r.to - from, L);
       if (rel > span + JUMP_LINE_BLEND) continue;
       const frozen = clamp(line.offsetAt(mod(r.to, L)), -2.5, 2.5),
-        w = rel < JUMP_LINE_BLEND ? smooth(rel / JUMP_LINE_BLEND) : rel > span ? 1 - smooth((rel - span) / JUMP_LINE_BLEND) : 1;
+        w =
+          rel < JUMP_LINE_BLEND
+            ? smooth(rel / JUMP_LINE_BLEND)
+            : rel > span
+              ? 1 - smooth((rel - span) / JUMP_LINE_BLEND)
+              : 1;
       return base + (frozen - base) * w;
     }
     for (const j of course.jumps) {
@@ -171,7 +197,12 @@ export class DirtBikeAIDriver extends BikeAIDriver {
         span = j.end + 2 - from;
       if (rel > span + JUMP_LINE_BLEND) continue;
       const frozen = clamp(line.offsetAt(mod(from, L)), -1.5, 1.5),
-        w = rel < JUMP_LINE_BLEND ? smooth(rel / JUMP_LINE_BLEND) : rel > span ? 1 - smooth((rel - span) / JUMP_LINE_BLEND) : 1;
+        w =
+          rel < JUMP_LINE_BLEND
+            ? smooth(rel / JUMP_LINE_BLEND)
+            : rel > span
+              ? 1 - smooth((rel - span) / JUMP_LINE_BLEND)
+              : 1;
       return base + (frozen - base) * w;
     }
     return base;
@@ -189,7 +220,8 @@ export class DirtBikeAIDriver extends BikeAIDriver {
       power = 0.82 * spec.motorPowerW;
     let speed = Math.max(1, v);
     for (let x = 0; x < run && speed < cap; x += 1) {
-      const a = Math.min(0.4 * G, power / (mass * speed)) - (c.dynamics.p.drag * speed * speed) / mass;
+      const a =
+        Math.min(0.4 * G, power / (mass * speed)) - (c.dynamics.p.drag * speed * speed) / mass;
       speed = Math.sqrt(Math.max(1, speed * speed + 2 * a));
     }
     return Math.min(speed, cap);
@@ -207,7 +239,11 @@ export class DirtBikeAIDriver extends BikeAIDriver {
       L = track.length;
     if (!course || c.airborne) return desired;
     const inside = course.jumpAt(c.s);
-    if (inside && mod(c.s - inside.takeoff, L) < inside.end - inside.takeoff + 1 && mod(c.s - inside.start, L) > inside.takeoff - inside.start + 0.5) {
+    if (
+      inside &&
+      mod(c.s - inside.takeoff, L) < inside.end - inside.takeoff + 1 &&
+      mod(c.s - inside.start, L) > inside.takeoff - inside.start + 0.5
+    ) {
       this.plan = null;
       return inside.forgiving ? desired : Math.min(desired, ROLL_SPEED + 1.5);
     }
@@ -241,7 +277,10 @@ export class DirtBikeAIDriver extends BikeAIDriver {
     const plan = this.plan!;
     if (!plan.clear) {
       if (onFace) return Math.min(desired, Math.max(ROLL_SPEED, Math.min(c.speed, ROLL_SPEED + 1)));
-      return Math.min(desired, Math.sqrt(ROLL_SPEED * ROLL_SPEED + 2 * 0.45 * G * Math.max(0, toFace - 1)));
+      return Math.min(
+        desired,
+        Math.sqrt(ROLL_SPEED * ROLL_SPEED + 2 * 0.45 * G * Math.max(0, toFace - 1)),
+      );
     }
     // Committed: the lip speed is the target (traffic waits for the landing).
     if (plan.locked) return onFace ? Math.max(hold, c.speed) : hold;
@@ -261,12 +300,7 @@ export class OffroadCarAIDriver extends AIDriver {
   private readonly jokerLap: number;
   private gripClock = 0;
   private surfaceCap = Infinity;
-  constructor(
-    car: Vehicle,
-    skill = 0.94,
-    seed = 73021,
-    laps = 4,
-  ) {
+  constructor(car: Vehicle, skill = 0.94, seed = 73021, laps = 4) {
     super(car, skill, seed);
     // Lap 1 is crowded at the joker; most drivers keep it for later.
     this.jokerLap = 1 + ((car.id * 7 + seed) % Math.max(1, laps));
@@ -335,7 +369,10 @@ export class OffroadCarAIDriver extends AIDriver {
           v = takeoffSpeed(far - j.takeoff, j.lipHeight - j.landingHeight * 0.4, j.lipAngle);
         if (Number.isFinite(v)) {
           const lip = Math.max(14, v * 1.15);
-          desired = Math.min(desired, Math.sqrt(lip * lip + 2 * env.brakingBase * 0.5 * Math.max(0, run - 3)));
+          desired = Math.min(
+            desired,
+            Math.sqrt(lip * lip + 2 * env.brakingBase * 0.5 * Math.max(0, run - 3)),
+          );
         }
       }
     }
@@ -346,7 +383,11 @@ export class OffroadCarAIDriver extends AIDriver {
     const c = this.car,
       env = c.definition.ai,
       line = racingLineFor(track);
-    const here = clamp(peakGrip(c.tires[0], 2500, c.contacts[0], Math.max(c.speed, 25)) / env.referenceMu, 0.1, 1);
+    const here = clamp(
+      peakGrip(c.tires[0], 2500, c.contacts[0], Math.max(c.speed, 25)) / env.referenceMu,
+      0.1,
+      1,
+    );
     let cap = Infinity;
     for (let i = 1; i <= 12; i++) {
       const d = i * 12,
@@ -354,18 +395,31 @@ export class OffroadCarAIDriver extends AIDriver {
       track.at(s, this.p);
       const l = line.offsetAt(s);
       track.sample(this.p.x + this.p.nx * l, this.p.z + this.p.nz * l, this.ahead, this.p.y);
-      const grip = clamp(peakGrip(c.tires[0], 2500, this.ahead, Math.max(c.speed, 25)) / env.referenceMu, 0.1, 1);
+      const grip = clamp(
+        peakGrip(c.tires[0], 2500, this.ahead, Math.max(c.speed, 25)) / env.referenceMu,
+        0.1,
+        1,
+      );
       if (grip >= here * 0.97) continue;
       const k = line.curvatureAt(s),
         corner = envelopeCornerSpeed(k, grip, 0, env) * this.skill;
-      cap = Math.min(cap, envelopeBrakingSpeed(corner, d, Math.min(grip, here), 0, env.brakingMargin, env));
+      cap = Math.min(
+        cap,
+        envelopeBrakingSpeed(corner, d, Math.min(grip, here), 0, env.brakingMargin, env),
+      );
     }
     return cap;
   }
 }
 /** The AI driver for an entrant on any venue: off-road bikes and cars on a
  * terrain venue get the off-road drivers; everything else is unchanged. */
-export function createEntrantDriver(car: Vehicle, skill: number, seed: number, track: Track, laps = 4) {
+export function createEntrantDriver(
+  car: Vehicle,
+  skill: number,
+  seed: number,
+  track: Track,
+  laps = 4,
+) {
   if (car instanceof DirtBikeVehicle) return new DirtBikeAIDriver(car, skill, seed);
   if (track.offroad && !(car.definition.dynamicsKind === 'bike'))
     return new OffroadCarAIDriver(car, skill, seed, laps);

@@ -1,3 +1,4 @@
+import type { TerrainRenderDelta } from './offroad/course-terrain.ts';
 import type { Compound, Controls, SessionOptions } from './config.ts';
 export const HEADER = 24,
   CAR_STRIDE = 293,
@@ -295,6 +296,8 @@ export type FromWorker =
       rubber: Float32Array;
       marbles: Float32Array;
       time: number;
+      /** Terrain venues: the deformed soil since the last keyframe. */
+      terrain?: TerrainRenderDelta;
     }
   /** D31: the session now stands at this tick and race time (paused). */
   | { type: 'flashback'; tick: number; time: number }

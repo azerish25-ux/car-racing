@@ -3,6 +3,8 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { lerp } from '../../core/math.ts';
 import {
   F,
+  O,
+  OFFROAD_BASE,
   R,
   RACE_BASE,
   W,
@@ -20,6 +22,7 @@ import { bodyFrame, type BodyFrame } from './frame.ts';
 import { buildKart, buildOpenWheel, type Link } from './open-wheel.ts';
 import { sharedMaterials } from './materials.ts';
 import { WheelAssembly, type Detail } from './wheel.ts';
+import { installMudOn, mudUniforms, type MudUniforms } from '../offroad/mud.ts';
 
 /** Procedural exteriors for every non-Formula definition (WP30), replacing
  * the TC-1 greybox shell. The snapshot's R.VEHICLE decides the body, so live
@@ -44,6 +47,8 @@ interface Built {
   materials: CarMaterials;
   frame: BodyFrame;
   level: number;
+  /** Off-road mud coat (WP41), installed once the car first picks up mud. */
+  mud?: MudUniforms;
 }
 const LOD_NAMES = ['near', 'mid', 'far'];
 export function buildVehicleBody(id: number, definition: VehicleDefinition, sheet: BodySheet) {
@@ -194,6 +199,13 @@ export class VehicleBodies {
       body.root.visible = true;
       body.root.position.copy(host.position);
       body.root.quaternion.copy(host.quaternion);
+      // Off-road (WP41): the mud and dust the car has picked up (O.MUD).
+      const mud = b[o + OFFROAD_BASE + O.MUD];
+      if (mud > 0.001 && !body.mud) installMudOn(body.root, (body.mud = mudUniforms()));
+      if (body.mud) {
+        body.mud.offroadMud.value = Math.min(1, Math.max(0, mud));
+        body.mud.offroadMudWet.value = Math.min(1, Math.max(0, b[o + OFFROAD_BASE + O.MOISTURE] * 1.6));
+      }
       const level = Math.max(0, Math.min(2, Math.round(cars[id].lodLevel ?? 0)));
       if (level !== body.level) {
         body.lods.forEach((lod, i) => (lod.group.visible = i === level));

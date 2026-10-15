@@ -12,6 +12,7 @@ import {
   vehicleDiscipline,
   type CareerRegistry,
   type CareerVehicle,
+  type CareerVenue,
   type DisciplineId,
 } from './registry.ts';
 
@@ -111,14 +112,25 @@ export const TIERS: readonly TierDefinition[] = Object.freeze([
     laps: 4,
   }),
   tier({
-    id: 'rallycross',
+    id: 'motocross',
     discipline: 'off-road',
-    name: 'Rallycross',
-    classes: ['rallycross', 'motocross', 'supercross', 'dirt-bike'],
+    name: 'Motocross and supercross',
+    classes: ['motocross', 'supercross', 'supermoto', 'dirt-bike'],
     licences: [{ id: 'jump', medal: 'bronze' }],
     reputation: 0,
     championshipReputation: 8,
     payScale: 0.6,
+    laps: 4,
+  }),
+  tier({
+    id: 'rallycross',
+    discipline: 'off-road',
+    name: 'Rallycross',
+    classes: ['rallycross'],
+    licences: [{ id: 'jump', medal: 'bronze' }],
+    reputation: 10,
+    championshipReputation: 20,
+    payScale: 0.8,
     laps: 4,
   }),
   tier({
@@ -203,6 +215,7 @@ export const CLASS_PRICES: Readonly<Record<string, number>> = Object.freeze({
   superbike: 42000,
   'gp-bike': 115000,
   motocross: 18000,
+  supermoto: 21000,
   rallycross: 52000,
   rally: 60000,
   offroad: 75000,
@@ -312,6 +325,23 @@ const allowedCompound = (allowed: readonly string[], weather: WeatherPreset) =>
     : allowed.includes('medium')
       ? 'medium'
       : allowed[0]) as EventDefinition['compound'];
+/** Does a venue admit a machine class? (Terrain venues name theirs.) */
+export function venueTakes(venue: { classes?: readonly string[] }, classId: string) {
+  return !venue.classes || venue.classes.includes(classId);
+}
+/** Rulesets for a class at a venue: one with a format only where the venue
+ * is built for it, and the venue's own formats first. */
+function venueRulesets(
+  registry: CareerRegistry,
+  classId: string,
+  mode: string,
+  venue: CareerVenue | undefined,
+) {
+  const formats = venue?.formats ?? [];
+  return rulesetsFor(registry, classId, mode)
+    .filter((r) => !r.format || formats.includes(r.format.kind))
+    .sort((a, b) => Number(!!b.format) - Number(!!a.format));
+}
 /** Build an event definition for `player` at a venue; null with a reason
  * when no ruleset can run it. */
 export function buildEvent(
@@ -327,10 +357,18 @@ export function buildEvent(
     weather: WeatherPreset;
   },
 ): { definition: EventDefinition | null; reason: string | null } {
+  const venue = registry.venues.find((v) => v.id === spec.venue);
+  if (venue && !venueTakes(venue, spec.player.classId))
+    return {
+      definition: null,
+      reason: `${venue.short ?? venue.name} does not admit ${spec.player.classId} machines.`,
+    };
   const rules =
-    rulesetsFor(registry, spec.player.classId, spec.mode)[0] ??
+    venueRulesets(registry, spec.player.classId, spec.mode, venue)[0] ??
     // A solo licence session may run under a race ruleset when no practice one admits the class.
-    (spec.mode === 'practice' ? rulesetsFor(registry, spec.player.classId, 'race')[0] : undefined);
+    (spec.mode === 'practice'
+      ? venueRulesets(registry, spec.player.classId, 'race', venue)[0]
+      : undefined);
   if (!rules)
     return { definition: null, reason: `No ${spec.mode} ruleset admits ${spec.player.classId}.` };
   const mode = rules.sessions.includes(spec.mode) ? spec.mode : 'race';
@@ -379,7 +417,7 @@ export function disciplineEvents(
   const tiers = disciplineTiers(registry, discipline);
   // Recovery: reduced stakes, loaned machine, no requirements.
   {
-    const venue = venues[0];
+    const venue = venues.find((v) => !loaner || venueTakes(v, loaner.classId)) ?? venues[0];
     const built =
       loaner && venue
         ? buildEvent(registry, {
@@ -416,6 +454,8 @@ export function disciplineEvents(
   }
   tiers.forEach((t, tierIndex) => {
     const machines = tierVehicles(registry, t);
+    // A tier races where its classes are admitted (terrain venues name theirs).
+    const venues = status.venues.filter((v) => t.classes.some((c) => venueTakes(v, c)));
     const coming = [...status.reasons];
     if (!machines.length) coming.push(`No ${t.classes.join(' / ')} machine is registered yet.`);
     else if (!machines.some((m) => rulesetsFor(registry, m.classId, 'race').length))
@@ -613,18 +653,21 @@ export function licenceAvailability(
   const missing = test.channels.filter((c) => !registry.channels.includes(c));
   if (missing.length)
     reasons.push(`The session snapshot does not publish ${missing.join(', ')} yet.`);
-  const venue =
-    test.needs === 'jump' ? status.venues.find((v) => surveyedJumps(v).length) : status.venues[0];
-  if (!venue && test.needs === 'jump' && status.venues.length)
-    reasons.push(
-      'No venue declares a surveyed jump (take-off, landing position and landing slope) yet.',
-    );
   const owned = disciplineVehicles(registry, test.discipline).filter((v) =>
     view.owned.some((o) => o.id === v.id),
   );
   const active = view.active[test.discipline];
   const mine = owned.find((v) => v.id === active) ?? owned[0] ?? null;
   const machine = mine ?? loanerVehicle(registry, test.discipline);
+  // A venue that suits the test and admits the machine (else any that suits).
+  const suits = (v: CareerVenue) => test.needs !== 'jump' || surveyedJumps(v).length > 0;
+  const venue =
+    status.venues.find((v) => suits(v) && (!machine || venueTakes(v, machine.classId))) ??
+    status.venues.find(suits);
+  if (!venue && test.needs === 'jump' && status.venues.length)
+    reasons.push(
+      'No venue declares a surveyed jump (take-off, landing position and landing slope) yet.',
+    );
   let definition: EventDefinition | null = null;
   if (!reasons.length && machine && venue) {
     const built = buildEvent(registry, {

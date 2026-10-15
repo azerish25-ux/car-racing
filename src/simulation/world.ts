@@ -158,7 +158,7 @@ export class Simulation {
       // Dirty air (downforce) and slipstream (drag) behind every leader.
       wakeFields(c, this.cars);
     }
-    this.offroad?.beforePhysics(dt);
+    this.offroad?.beforePhysics(dt, this.autoPlayer);
     for (let sub = 0; sub < 2; sub++) {
       for (const c of this.cars) c.step(dt * 0.5, this.track);
       this.collisions.solve(this.cars, this.track);

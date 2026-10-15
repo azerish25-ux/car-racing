@@ -66,7 +66,7 @@ const MX250: BikeSpec = Object.freeze({
   riderMass: 75,
   fuel: 6,
   cgHeight: 0.85,
-  cgToFront: 0.74,
+  cgToFront: 0.75,
   cgToRear: 0.73,
   mu: 1.12,
   frontBrake: 2200,

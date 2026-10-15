@@ -70,6 +70,18 @@ export const VEHICLE_CLASSES: Readonly<Partial<Record<VehicleClass, VehicleClass
       raceRuleset: 'gp-motorcycle',
     },
     superbike: { name: 'Superbike', family: 'motorcycle', order: 15, raceRuleset: 'gp-motorcycle' },
+    motocross: {
+      name: 'Motocross',
+      family: 'motorcycle',
+      order: 16,
+      raceRuleset: 'motocross-moto',
+    },
+    supermoto: {
+      name: 'Supermoto',
+      family: 'motorcycle',
+      order: 17,
+      raceRuleset: 'supermoto-moto',
+    },
   });
 const OTHER: VehicleClassInfo = Object.freeze({ name: 'Other', family: 'other', order: 99 });
 export function classInfo(classId: string): VehicleClassInfo {

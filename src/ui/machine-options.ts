@@ -3,6 +3,7 @@ import { RULESETS, TIMED_LIMITS } from '../simulation/events.ts';
 import { classInfo, vehiclesByClass } from '../simulation/vehicle-classes.ts';
 import { DEFAULT_VEHICLE_ID, VEHICLES } from '../simulation/vehicles.ts';
 import { BIKE_MACHINES, bikeMachineOptions } from './bike-machines.ts';
+import { isDirtBike } from '../simulation/offroad/dirt-bikes.ts';
 
 /** MACHINE choice (WP22, WP30): data-driven from the vehicle registry,
  * grouped by class. A single machine fills the grid with its own class under
@@ -43,6 +44,13 @@ export function machineChoices(): MachineGroup[] {
   groups.push({
     label: 'Motorcycles',
     options: Object.entries(BIKE_MACHINES).map(([value, text]) => ({ value, label: text })),
+  });
+  // Off-road motorcycles (WP37): each races its own class's moto rules.
+  groups.push({
+    label: 'Off-road motorcycles',
+    options: Object.values(VEHICLES)
+      .filter((v) => isDirtBike(v))
+      .map((v) => ({ value: v.id, label: `${v.name} · ${classInfo(v.classId).name.toLowerCase()}` })),
   });
   groups.push({
     label: 'Mixed classes',

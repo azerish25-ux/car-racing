@@ -194,7 +194,8 @@ export class OffroadCourse {
         span = mod(b.to - b.from, this.length),
         ramp = Math.min(7, span / 3),
         env = smooth(0, ramp, into) * (1 - smooth(span - ramp, span, into)),
-        dEnv = dSmooth(0, ramp, into) * (1 - smooth(span - ramp, span, into)) -
+        dEnv =
+          dSmooth(0, ramp, into) * (1 - smooth(span - ramp, span, into)) -
           smooth(0, ramp, into) * dSmooth(span - ramp, span, into);
       // Wall rising toward the outside edge, then its back falling away.
       const out = side * lateral,
@@ -228,9 +229,17 @@ export class OffroadCourse {
       // Braking chop: short deterministic bumps across the line.
       const k1 = (Math.PI * 2) / 1.7,
         k2 = (Math.PI * 2) / 0.9;
-      h += this.spec.chop * (0.6 * Math.sin(s * k1) * Math.cos(lateral * 1.3) + 0.4 * Math.sin(s * k2 + lateral));
-      ds += this.spec.chop * (0.6 * k1 * Math.cos(s * k1) * Math.cos(lateral * 1.3) + 0.4 * k2 * Math.cos(s * k2 + lateral));
-      dl += this.spec.chop * (-0.6 * 1.3 * Math.sin(s * k1) * Math.sin(lateral * 1.3) + 0.4 * Math.cos(s * k2 + lateral));
+      h +=
+        this.spec.chop *
+        (0.6 * Math.sin(s * k1) * Math.cos(lateral * 1.3) + 0.4 * Math.sin(s * k2 + lateral));
+      ds +=
+        this.spec.chop *
+        (0.6 * k1 * Math.cos(s * k1) * Math.cos(lateral * 1.3) +
+          0.4 * k2 * Math.cos(s * k2 + lateral));
+      dl +=
+        this.spec.chop *
+        (-0.6 * 1.3 * Math.sin(s * k1) * Math.sin(lateral * 1.3) +
+          0.4 * Math.cos(s * k2 + lateral));
     }
     out.h = h;
     out.ds = ds;
@@ -296,7 +305,14 @@ function dSmooth(a: number, b: number, x: number) {
   return (6 * t * (1 - t)) / (b - a);
 }
 /** Static height of the ground at (s, lateral) without ruts. */
-export function groundHeight(track: Track, course: OffroadCourse, s: number, lateral: number, p: TrackPoint, r: Relief) {
+export function groundHeight(
+  track: Track,
+  course: OffroadCourse,
+  s: number,
+  lateral: number,
+  p: TrackPoint,
+  r: Relief,
+) {
   track.at(s, p);
   course.relief(s, lateral, p, r);
   return p.y + p.bank * clamp(lateral, -12, 12) + r.h;

@@ -98,7 +98,18 @@ export const OFFROAD_EVENTS: readonly EventDefinition[] = Object.freeze([
     laps: 4,
     opponents: 9,
     weather: 'clear',
-    vehicles: Object.freeze(['mx450', 'mx450', 'mx250', 'mx450', 'mx250', 'mx450', 'mx250', 'mx450', 'mx250', 'mx450']),
+    vehicles: Object.freeze([
+      'mx450',
+      'mx450',
+      'mx250',
+      'mx450',
+      'mx250',
+      'mx450',
+      'mx250',
+      'mx450',
+      'mx250',
+      'mx450',
+    ]),
     compound: 'medium',
     seed: 41001,
   }),
@@ -112,7 +123,18 @@ export const OFFROAD_EVENTS: readonly EventDefinition[] = Object.freeze([
     laps: 4,
     opponents: 9,
     weather: 'changeable',
-    vehicles: Object.freeze(['mx450', 'mx450', 'mx250', 'mx450', 'mx250', 'mx450', 'mx250', 'mx450', 'mx250', 'mx450']),
+    vehicles: Object.freeze([
+      'mx450',
+      'mx450',
+      'mx250',
+      'mx450',
+      'mx250',
+      'mx450',
+      'mx250',
+      'mx450',
+      'mx250',
+      'mx450',
+    ]),
     compound: 'medium',
     seed: 41002,
   }),
@@ -189,7 +211,10 @@ export function combineMotos(
         ? (m.finished as readonly number[]).includes(id)
         : (m.finished as ReadonlySet<number>).has(id);
       const position = m.order.indexOf(id) + 1;
-      return { position: finished && position > 0 ? position : 0, points: finished ? (points[position - 1] ?? 0) : 0 };
+      return {
+        position: finished && position > 0 ? position : 0,
+        points: finished ? (points[position - 1] ?? 0) : 0,
+      };
     });
     return { id, results, total: results.reduce((a, r) => a + r.points, 0) };
   });

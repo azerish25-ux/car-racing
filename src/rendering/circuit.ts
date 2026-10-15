@@ -64,6 +64,7 @@ import { installLightPools } from './studio/light-pools.ts';
 import { buildForestBelts } from './studio/forest-belts.ts';
 import { venueKitFor, type VenueKit } from './venue-kit/index.ts';
 import { batchScene, box, canvasTexture, label, mesh, unprintedBack } from './geometry.ts';
+import { offroadSceneFor, type OffroadScene } from './offroad/index.ts';
 /** Lit start lamp emission (D28: bright enough to bloom at night and in daylight). */
 export const START_LAMP_EMISSIVE = 25;
 interface RibbonOptions {
@@ -125,6 +126,8 @@ export class CircuitScene {
   readonly districts: ReturnType<typeof districtPlan>;
   /** Procedural dressing for catalogue venues (WP30); null for Aurel/Vellamar. */
   readonly venueKit: VenueKit | null;
+  /** Terrain venues (WP41): deformable soil, start gate, stadium, roost. */
+  readonly offroad: OffroadScene | null;
   readonly safetyPanel = new T.MeshStandardMaterial({
     color: 0x2a5636,
     emissive: 0x2a5636,
@@ -148,6 +151,10 @@ export class CircuitScene {
     this.venueKit = venueKitFor(track);
     this.group.add(this.props, this.crowd, this.vegetationGroup, this.surfaces);
     if (this.venueKit) this.group.add(this.venueKit.root);
+    // A terrain venue's course is soil, not a paved ribbon with kerbs.
+    this.offroad = offroadSceneFor(track, this.construction);
+    const paved = !this.offroad;
+    if (this.offroad) this.group.add(this.offroad.group);
     this.surfaces.name = 'Immutable circuit surfaces and barriers';
     this.vegetationGroup.name = 'Planting, groves and treelines';
     this.crowd.name = 'Spectators and marshal staff';
@@ -210,24 +217,26 @@ export class CircuitScene {
           return Math.abs(lateral) > this.temp.width + 4 && this.temp.curvature * lateral < -0.009;
         },
       });
-    this.queueRibbon(runOff, {
-      offset: (s, t) => {
-        track.at(s, this.temp);
-        return (t * 2 - 1) * (this.temp.width + 4);
-      },
-      height: () => -0.008,
-      columns: 4,
-      runoff: true,
-    });
-    this.queueRibbon(this.roadMaterial, {
-      offset: (s, t) => {
-        track.at(s, this.temp);
-        return (t * 2 - 1) * this.temp.width;
-      },
-      columns: 14,
-      road: true,
-      step: 1.8,
-    });
+    if (paved)
+      this.queueRibbon(runOff, {
+        offset: (s, t) => {
+          track.at(s, this.temp);
+          return (t * 2 - 1) * (this.temp.width + 4);
+        },
+        height: () => -0.008,
+        columns: 4,
+        runoff: true,
+      });
+    if (paved)
+      this.queueRibbon(this.roadMaterial, {
+        offset: (s, t) => {
+          track.at(s, this.temp);
+          return (t * 2 - 1) * this.temp.width;
+        },
+        columns: 14,
+        road: true,
+        step: 1.8,
+      });
     // Line paint is an off-white with a little sheen, never pure white.
     const white = new T.MeshStandardMaterial({ color: 0xe9e7e0, roughness: 0.55 });
     installCircuitFinish(white, 'paint');
@@ -238,7 +247,7 @@ export class CircuitScene {
       installCarGrounding(m);
       installLightPools(m);
     }
-    for (const side of [-1, 1]) {
+    for (const side of paved ? [-1, 1] : []) {
       this.queueRibbon(kerb, {
         offset: (s, t) => {
           track.at(s, this.temp);
@@ -860,6 +869,7 @@ export class CircuitScene {
     line.rotation.set(-Math.PI / 2, 0, -Math.atan2(p.tx, p.tz));
   }
   update(frame: Float32Array) {
+    this.offroad?.update(frame);
     for (let i = 0; i < 5; i++)
       this.startLamps[i].emissiveIntensity = i < frame[H.LIGHTS] ? START_LAMP_EMISSIVE : 0;
     updateSafetyPanel(this.safetyPanel, frame);

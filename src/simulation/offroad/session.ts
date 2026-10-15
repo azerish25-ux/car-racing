@@ -1,12 +1,17 @@
 import { clamp, mod } from '../../core/math.ts';
-import { classifyStage, competitor, observeStage, type StageCompetitor } from '../../core/stage-rules.ts';
+import {
+  classifyStage,
+  competitor,
+  observeStage,
+  type StageCompetitor,
+} from '../../core/stage-rules.ts';
 import { BikeVehicle } from '../bike-vehicle.ts';
 import { createVehicle } from '../bike-vehicle.ts';
 import type { Assist, Compound, SessionOptions, Setup } from '../config.ts';
 import { rulesetFor } from '../events.ts';
 import { O, OFFROAD_STRIDE } from '../protocol.ts';
 import { PHASE, type RaceDirector } from '../race.ts';
-import { RouteGraph, RouteProgress, type RoutePoint, type RouteSpec } from '../route-graph.ts';
+import { RouteGraph, RouteProgress, type RoutePoint } from '../route-graph.ts';
 import { MATERIAL } from '../surface-material.ts';
 import { trackPoint, type Track } from '../track.ts';
 import type { Vehicle } from '../vehicle.ts';
@@ -124,8 +129,15 @@ export class OffroadSession {
     for (const [id, c] of cars.entries()) this.entrants[id].lastS = c.s;
     sessions.set(track, this);
   }
-  static create(track: Track, cars: readonly Vehicle[], race: RaceDirector, options: SessionOptions) {
-    return track.offroad instanceof TrackTerrainSurface ? new OffroadSession(track, cars, race, options) : null;
+  static create(
+    track: Track,
+    cars: readonly Vehicle[],
+    race: RaceDirector,
+    options: SessionOptions,
+  ) {
+    return track.offroad instanceof TrackTerrainSurface
+      ? new OffroadSession(track, cars, race, options)
+      : null;
   }
   /** Start placement before timing begins (gate slots or the stage queue). */
   static place(track: Track, cars: readonly Vehicle[], options: SessionOptions) {
@@ -138,7 +150,10 @@ export class OffroadSession {
         picks = pickSlots(order, slots.preference);
       for (const c of cars) {
         const k = picks.get(c.id)!,
-          reach = c instanceof BikeVehicle ? c.bikeSpec.cgToFront + c.bikeSpec.frontWheelRadius + 0.05 : 2.4;
+          reach =
+            c instanceof BikeVehicle
+              ? c.bikeSpec.cgToFront + c.bikeSpec.frontWheelRadius + 0.05
+              : 2.4;
         c.place(track, mod(course.spec.gate.s - reach, track.length), slots.lateral[k]);
       }
     } else if (format.start === 'staggered' && course.spec.stage) {
@@ -169,7 +184,8 @@ export class OffroadSession {
     if (stage && this.format?.kind === 'stage') {
       const edge = line(stage.start, stage.finish, () => 0),
         length = edge.reduce(
-          (a, q, i) => (i ? a + Math.hypot(q.x - edge[i - 1].x, q.y - edge[i - 1].y, q.z - edge[i - 1].z) : 0),
+          (a, q, i) =>
+            i ? a + Math.hypot(q.x - edge[i - 1].x, q.y - edge[i - 1].y, q.z - edge[i - 1].z) : 0,
           0,
         ),
         total = mod(stage.finish - stage.start, L);
@@ -180,7 +196,10 @@ export class OffroadSession {
         start: 'stage',
         edges: [{ id: 'stage', kind: 'stage', points: edge, next: [] }],
         checkpoints: [
-          ...stage.splits.map((s) => ({ edge: 'stage', s: (mod(s - stage.start, L) / total) * length })),
+          ...stage.splits.map((s) => ({
+            edge: 'stage',
+            s: (mod(s - stage.start, L) / total) * length,
+          })),
           { edge: 'stage', s: length - 0.5 },
         ],
       });
@@ -199,9 +218,11 @@ export class OffroadSession {
     return this.entrants[id]?.jokers ?? 0;
   }
   /** Before the physics substeps: hold machines at the gate, the start
-   * control and the queue (inputs only; the player may still jump). */
-  beforePhysics(dt: number) {
+   * control and the queue (inputs only; the player may still jump unless
+   * the AI drives for them, `autoPlayer`). */
+  beforePhysics(dt: number, autoPlayer = false) {
     void dt;
+    const ai = (id: number) => id > 0 || autoPlayer;
     const f = this.format,
       race = this.race;
     if (!f) return;
@@ -209,7 +230,7 @@ export class OffroadSession {
       const held = race.phase === PHASE.LIGHTS || race.time < race.greenAt;
       for (const [id, e] of this.entrants.entries()) {
         if (e.start === 0) e.start = 1;
-        if (held && id > 0) {
+        if (held && ai(id)) {
           const c = this.cars[id];
           c.input.throttle = 0;
           c.input.brake = 1;
@@ -242,7 +263,7 @@ export class OffroadSession {
         if (e.start <= 1 && now < go) {
           const atLine = e.start === 1;
           // AI and queued machines hold; the player at the line may jump.
-          if (id > 0 || !atLine || c.input.throttle === 0) {
+          if (ai(id) || !atLine || c.input.throttle === 0) {
             c.input.throttle = 0;
             c.input.brake = 1;
           }
@@ -380,7 +401,11 @@ export class OffroadSession {
     if (e.parked) return;
     e.parked = true;
     const p = this.track.at(stage.stop, this.point);
-    c.place(this.track, mod(stage.stop + 12 + 9 * this.parkedCount++, this.track.length), -(p.width + 2.4));
+    c.place(
+      this.track,
+      mod(stage.stop + 12 + 9 * this.parkedCount++, this.track.length),
+      -(p.width + 2.4),
+    );
     c.input.throttle = 0;
     c.input.brake = 1;
   }
@@ -407,16 +432,25 @@ export class OffroadSession {
         const tire = c.tires[i],
           contact = c.contacts[i];
         if (!(tire.load > 1) || contact.pit) continue;
-        const slip = clamp(Math.abs(tire.slip) * 4 + (bike ? 0 : Math.abs(tire.fy) / (tire.load + 1) * 0.3), 0, 2);
+        const slip = clamp(
+          Math.abs(tire.slip) * 4 + (bike ? 0 : (Math.abs(tire.fy) / (tire.load + 1)) * 0.3),
+          0,
+          2,
+        );
         t.deform(contact.lateral, contact.s, tire.load, slip, dt);
       }
       // Mud on cars (bikes carry their own): wet, soft soil under the wheels.
       if (!bike) {
         const e = this.entrants[c.id],
           s = c.contacts[2].surface,
-          wet = s === MATERIAL.MUD ? 1 : s === MATERIAL.DIRT || s === MATERIAL.GRAVEL_ROAD ? 0.15 : 0,
+          wet =
+            s === MATERIAL.MUD ? 1 : s === MATERIAL.DIRT || s === MATERIAL.GRAVEL_ROAD ? 0.15 : 0,
           spin = Math.abs(c.tires[2].slip) + Math.abs(c.tires[3].slip);
-        e.mud = clamp(e.mud + wet * (0.003 * c.speed + 0.05 * spin) * dt - 0.0012 * e.mud * dt, 0, 1);
+        e.mud = clamp(
+          e.mud + wet * (0.003 * c.speed + 0.05 * spin) * dt - 0.0012 * e.mud * dt,
+          0,
+          1,
+        );
       }
     }
   }
@@ -425,7 +459,9 @@ export class OffroadSession {
     const f = this.format;
     const stage =
       f?.kind === 'stage'
-        ? classifyStage(this.entrants.map((e, id) => e.stage ?? competitor(id, new RouteProgress(this.route!))))
+        ? classifyStage(
+            this.entrants.map((e, id) => e.stage ?? competitor(id, new RouteProgress(this.route!))),
+          )
         : null;
     return {
       kind: f?.kind ?? null,
@@ -465,7 +501,12 @@ function pickSlots(order: readonly number[], preference: readonly number[]) {
 }
 /** Snapshot off-road block (protocol O). Zeros on paved circuits for
  * machines without an off-road adapter. */
-export function writeOffroadBlock(out: Float32Array, base: number, car: Vehicle, session: OffroadSession | null) {
+export function writeOffroadBlock(
+  out: Float32Array,
+  base: number,
+  car: Vehicle,
+  session: OffroadSession | null,
+) {
   out.fill(0, base, base + OFFROAD_STRIDE);
   if (car instanceof DirtBikeVehicle) {
     out[base + O.AIRBORNE] = Number(car.airborne);

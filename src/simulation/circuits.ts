@@ -71,6 +71,11 @@ export interface CircuitDefinition {
   offroad?: OffroadVenueData;
   /** Surveyed jumps (terrain venues) for the landing licence (career/registry.ts). */
   jumps?: readonly unknown[];
+  /** Terrain venues: the ground (dirt, mixed, gravel), the machine classes
+   * admitted and the formats raced. */
+  surface?: string;
+  classes?: readonly string[];
+  formats?: readonly string[];
 }
 /** Venue-owned pit lane, grid and service geometry (WP10 / F06). Distances
  * are lap metres measured from the start line (the lane straddles it), the

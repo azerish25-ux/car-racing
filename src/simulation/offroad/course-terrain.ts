@@ -29,6 +29,13 @@ const trackPoint = (): TrackPoint => ({
   gradient: 0,
 });
 
+/** A terrain render export: (block, depth, compaction) triples, the session
+ * wetness, and whether it replaces the whole field (session start, rewind). */
+export interface TerrainRenderDelta {
+  blocks: Float32Array;
+  wetness: number;
+  reset: boolean;
+}
 /** Session-scale deformable terrain (WP37/WP38): a TerrainTile laid out in
  * the Track's own frame — columns across (lateral, 0.25 m), rows along the
  * lap (0.5 m) — over the course's terrain band. It keeps the prototype's
@@ -109,7 +116,9 @@ export class CourseTerrain extends TerrainTile {
     return SOIL_KINDS[this.soil[cell]] ?? 'loam';
   }
   moistureAt(cell: number) {
-    return cell < 0 ? clamp(this.wetness, 0, 1) : clamp(this.baseMoisture[cell] / 255 + this.wetness, 0, 1);
+    return cell < 0
+      ? clamp(this.wetness, 0, 1)
+      : clamp(this.baseMoisture[cell] / 255 + this.wetness, 0, 1);
   }
   depthAt(lateral: number, s: number) {
     const i = this.index(lateral, s);
@@ -134,7 +143,8 @@ export class CourseTerrain extends TerrainTile {
     result.nx = -dx / len;
     result.ny = 1 / len;
     result.nz = -dz / len;
-    result.material = kind === 'mud' ? 'mud' : kind === 'sand' ? 'sand' : kind === 'hardpack' ? 'hardpack' : 'loam';
+    result.material =
+      kind === 'mud' ? 'mud' : kind === 'sand' ? 'sand' : kind === 'hardpack' ? 'hardpack' : 'loam';
     result.moisture = wet;
     result.compaction = compaction;
     result.depth = depth;
@@ -143,7 +153,10 @@ export class CourseTerrain extends TerrainTile {
     // deformable soil (a wet berm is slicker than a dry one, D046).
     const deformable = soil.softness > 0.3 ? 1 : 0.3;
     result.grip =
-      m.grip * soil.grip * (1 + 0.08 * compaction) * (1 - 0.3 * deformable * wet * (1 - compaction));
+      m.grip *
+      soil.grip *
+      (1 + 0.08 * compaction) *
+      (1 - 0.3 * deformable * wet * (1 - compaction));
     result.resistance =
       m.rolling + TERRAIN.bulldoze * (depth / TERRAIN.maxDepth) * (1 - compaction * 0.5);
     return result;
@@ -214,6 +227,33 @@ export class CourseTerrain extends TerrainTile {
     out.compaction = n ? compaction / n : 0;
     return out;
   }
+  /** Render-grid export for the presentation (worker -> renderer): the
+   * blocks changed since the last export (or, `full`, every deformed block)
+   * as (block, depth m, compaction 0..1) triples in ascending block order.
+   * Read-only for the simulation: the change set is presentation state. */
+  renderDelta(full = false): TerrainRenderDelta {
+    let blocks: number[];
+    if (full) {
+      const all = new Set<number>();
+      for (const i of this.dirty) {
+        const row = Math.floor(i / this.columns),
+          col = i % this.columns;
+        all.add((row >> 1) * this.renderColumns + (col >> 1));
+      }
+      blocks = [...all];
+    } else blocks = [...this.changed];
+    blocks.sort((a, b) => a - b);
+    this.changed.clear();
+    const data = new Float32Array(blocks.length * 3),
+      v = { depth: 0, compaction: 0 };
+    blocks.forEach((block, k) => {
+      this.renderBlock(block, v);
+      data[k * 3] = block;
+      data[k * 3 + 1] = v.depth;
+      data[k * 3 + 2] = v.compaction / TERRAIN.maxCompaction;
+    });
+    return { blocks: data, wetness: this.wetness, reset: full };
+  }
   /** FNV-1a fingerprint of the authoritative state (depth, compaction bits). */
   hash() {
     let h = 0x811c9dc5;
@@ -261,11 +301,7 @@ export class TrackTerrainSurface implements OffroadSurface {
     out.width = this.course.legalWidth(p.width, p.s, lateral);
     out.height = c.height;
     // Track frame (lateral along n, along-lap along t) to world.
-    this.normal.set(
-      c.nx * p.nx + c.nz * p.tx,
-      c.ny,
-      c.nx * p.nz + c.nz * p.tz,
-    );
+    this.normal.set(c.nx * p.nx + c.nz * p.tx, c.ny, c.nx * p.nz + c.nz * p.tz);
     out.normal.copy(this.normal.normalize());
     out.surface = soil.material;
     out.grip = c.grip;

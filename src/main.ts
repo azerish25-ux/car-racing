@@ -651,6 +651,8 @@ export class GameApp {
         this.replay?.recordSurface(message.water, message.rubber, message.time, message.marbles);
         if (this.state !== 'replay')
           this.renderer?.circuit.updateSurface(message.water, message.rubber, message.marbles);
+        // Terrain venues: rut keyframes, kept for replays (WP41).
+        this.renderer?.circuit.offroad?.record(message.terrain, message.time, this.state !== 'replay');
         return;
       }
       if (message.type === 'flashback') {
@@ -891,6 +893,7 @@ export class GameApp {
         this.renderer.circuit.updateSurface(surface.water, surface.rubber, surface.marbles);
         this.appliedReplaySurfaceTime = surface.time;
       }
+      this.renderer.circuit.offroad?.showAt(this.replayB[H.TIME]);
       a = this.replayA;
       b = this.replayB;
       // Attribute writes mutate the DOM even when unchanged; write only changes.
@@ -1554,6 +1557,7 @@ export class GameApp {
         this.liveSurface.rubber,
         this.liveSurface.marbles,
       );
+    this.renderer?.circuit.offroad?.showAt(null);
     this.input.setEnabled(false);
     this.renderer?.reset();
     this.ui.showMode(this.state);
