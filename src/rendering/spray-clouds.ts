@@ -3,6 +3,46 @@ import { RearSignalField } from './rear-signal.ts';
 import * as T from 'three';
 import { markAll, markItems } from './attribute-ranges.ts';
 
+/** Rain-light in-scatter on the wheel spray (see the vertex shader). */
+export const SPRAY_SIGNAL = Object.freeze({
+  /** Red radiance per unit lamp signal at the lamp (was 0.34, isotropic). */
+  gain: 0.06,
+  /** Gaussian falloff exp(-d^2 * falloff): half at about 0.7 m. */
+  falloff: 1.5,
+  /** Beam gate on the cosine to the lamp's rear axis. */
+  beam: Object.freeze([0.3, 0.8] as const),
+  /** Henyey-Greenstein asymmetry of the scattering toward the camera. */
+  g: 0.6,
+  /** Red increment ceiling as a share of the puff's ambient luminance. */
+  ceiling: 0.5,
+});
+
+/** CPU reference of one lamp's red increment on a puff (linear), given the
+ * distance to the lamp, the cosine to its rear axis, the cosine between the
+ * lamp-to-puff ray and the puff-to-camera ray, the puff opacity and its
+ * ambient luminance. */
+export function spraySignalTint(
+  signal: number,
+  distance: number,
+  beamCos: number,
+  viewCos: number,
+  opacity: number,
+  ambient: number,
+) {
+  const k = SPRAY_SIGNAL,
+    smooth = (a: number, b: number, x: number) => {
+      const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
+      return t * t * (3 - 2 * t);
+    };
+  const phase = (1 - k.g) ** 3 / (1 + k.g ** 2 - 2 * k.g * viewCos) ** 1.5;
+  const lit =
+    signal *
+    Math.exp(-distance * distance * k.falloff) *
+    smooth(k.beam[0], k.beam[1], beamCos) *
+    phase;
+  return Math.min(k.gain * lit * Math.min(1, Math.max(0, opacity)), k.ceiling * ambient);
+}
+
 /** One instanced draw over Effects' existing contact pool for every soft
  * volume: wheel-water spray, tyre smoke and off-track dust. This changes only
  * presentation: wheel water/load, slip work, births, advection and lifetime
@@ -136,16 +176,27 @@ export class SprayClouds {
           // glowing block. Smoke and dust stay radial (no wake anisotropy).
           vLight=min(vLight,vec3(1.6));
           if(!spray) { vAnisotropy=0.0; return; }
+          // Rain-light in-scatter: a bounded, forward-scattered single-scatter
+          // tint of the puffs right behind each lamp (half at ~0.7 m), inside
+          // its beam, phase-weighted toward the camera (HG relative to its
+          // forward peak) and by the puff's own density. It never exceeds half
+          // of the puff's ambient light: an LED cannot paint the spray red,
+          // and the lamp's own bloom carries its glow.
           vec3 worldCenter=(modelMatrix*vec4(center,1.0)).xyz;
+          vec3 toCamera=normalize(cameraPosition-worldCenter);
+          float signal=0.0;
           for(int i=0;i<12;i++) {
             if(i>=signalCount) break;
             vec3 delta=worldCenter-signalPositions[i].xyz;
             float d2=dot(delta,delta);
-            float rear=smoothstep(-0.08,0.5,dot(delta,signalDirections[i])/sqrt(max(0.0001,d2)));
-            float attenuation=exp(-d2*0.35)*rear;
-            vLight+=vec3(0.34,0.004,0.001)*signalPositions[i].w*attenuation;
+            vec3 ray=delta*inversesqrt(max(0.0001,d2));
+            float beam=smoothstep(${SPRAY_SIGNAL.beam[0].toFixed(2)},${SPRAY_SIGNAL.beam[1].toFixed(2)},dot(ray,signalDirections[i]));
+            float phase=${((1 - SPRAY_SIGNAL.g) ** 3).toFixed(4)}/pow(${(1 + SPRAY_SIGNAL.g ** 2).toFixed(4)}-${(2 * SPRAY_SIGNAL.g).toFixed(4)}*dot(ray,toCamera),1.5);
+            signal+=signalPositions[i].w*exp(-d2*${SPRAY_SIGNAL.falloff.toFixed(2)})*beam*phase;
           }
-          vLight=min(vLight,vec3(2.2,1.6,1.6));
+          float ambient=dot(vLight,vec3(0.2126,0.7152,0.0722));
+          float tint=min(${SPRAY_SIGNAL.gain.toFixed(3)}*signal*clamp(opacity,0.0,1.0),${SPRAY_SIGNAL.ceiling.toFixed(2)}*ambient);
+          vLight+=vec3(1.0,0.012,0.003)*tint;
         }`,
       fragmentShader: `
         varying vec2 vUv;

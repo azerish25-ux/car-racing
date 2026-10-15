@@ -6,7 +6,7 @@ import type { HeroShells } from './hero-shells.ts';
 import { installManufacturingFinish, ventilatedBrakeGeometry } from './manufacturing.ts';
 import { addSafetyCell, addAirbox, buildWing } from './car-architecture.ts';
 import { floorGeometry, floorFenceGeometry, wheelCoverGeometry } from './car-floor.ts';
-import { rearSignalIntensity } from './rear-signal.ts';
+import { rearLampIntensity } from './rear-signal.ts';
 import {
   NOSE_SECTIONS,
   sidepodShell,
@@ -686,7 +686,7 @@ export class FormulaCar {
     setPaintObservation(this.accent, wetPaint, b[o + F.FRONT_HEALTH], b[o + F.REAR_HEALTH]);
     // Update before the reduced-car return, using recorded interpolation rather
     // than a render timer. Pauses, seeks and hysteretic LOD handoffs stay in phase.
-    this.rainLight.emissiveIntensity = rearSignalIntensity(
+    this.rainLight.emissiveIntensity = rearLampIntensity(
       lerp(a[o + F.BRAKE], b[o + F.BRAKE], t),
       lerp(a[H.TIME], b[H.TIME], t),
     );

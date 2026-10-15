@@ -117,7 +117,7 @@ export function catalogueTerrain(track: Track): Terrain {
         ) {
           track.at(nearest.station, p);
           const edge = track.boundaryAt(p, nearest.side) + 2.5,
-            fall = meta.theme === 'coastal-cliff' ? 55 : 4;
+            fall = style.cliffs ? 55 : 4;
           const floor = Math.min(h, sea - 7);
           h = h + (floor - h) * smoothstep(edge, edge + fall, nearest.distance);
         }

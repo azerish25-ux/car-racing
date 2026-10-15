@@ -13,8 +13,14 @@ import { chunks, sweep, unwrap, venuePoint } from './sweep.ts';
 
 /** Box with metre-scaled UVs (one facade tile = 14 m x 28 m) so window rows
  * stay the same size on every building. */
-function facadeBox(w: number, h: number, d: number, tileW = 14, tileH = 28) {
+/** `street`: world height of the road beside the building, for the facade
+ * street light's falloff (materials.ts FACADE_STREET_LIGHT). */
+function facadeBox(w: number, h: number, d: number, tileW = 14, tileH = 28, street = 0) {
   const g = new T.BoxGeometry(w, h, d);
+  g.setAttribute(
+    'streetLevel',
+    new T.BufferAttribute(new Float32Array(g.getAttribute('position').count).fill(street), 1),
+  );
   const uv = g.getAttribute('uv'),
     normal = g.getAttribute('normal');
   for (let i = 0; i < uv.count; i++) {
@@ -68,7 +74,7 @@ export function buildPaddock(kit: VenueKitContext) {
   const length = 12 * spacing + 6,
     mid = frame(track, centre, side * (front + 6.5), 0);
   const base = mid.p.y + mid.p.bank * clamp(side * front, -12, 12);
-  const block = new T.Mesh(facadeBox(length, 4.2, 14, 14, 9), m.facades[1]);
+  const block = new T.Mesh(facadeBox(length, 4.2, 14, 14, 9, base), m.facades[1]);
   block.position.set(mid.position.x, base + 8.4, mid.position.z);
   block.rotation.y = mid.yaw + Math.PI / 2;
   block.castShadow = block.receiveShadow = true;
@@ -81,7 +87,7 @@ export function buildPaddock(kit: VenueKitContext) {
   root.add(roof);
   const towerS = centre + length / 2 + 10,
     tower = frame(track, towerS, side * (front + 7), 0);
-  const control = new T.Mesh(facadeBox(14, 18, 14, 14, 9), m.facades[2]);
+  const control = new T.Mesh(facadeBox(14, 18, 14, 14, 9, tower.p.y), m.facades[2]);
   control.position.set(tower.position.x, tower.p.y + 9.6, tower.position.z);
   control.rotation.y = tower.yaw;
   control.castShadow = control.receiveShadow = true;
@@ -120,7 +126,7 @@ export function buildFacades(kit: VenueKitContext) {
   const track = kit.track,
     m = kit.materials,
     random = new Random(0x5eed + track.length),
-    tall = kit.meta.theme === 'neon-city',
+    tall = !!kit.style.tallFacades,
     rigs = tracksideRigs(track),
     p = trackPoint();
   const spans = kit.meta.dressing.facades,
@@ -163,7 +169,7 @@ export function buildFacades(kit: VenueKitContext) {
           clear = false;
       if (!clear) continue;
       const ground = Math.min(p.y, terrainFor(track).height(x, z)) - 1.5;
-      const g = facadeBox(width, height + 1.5, depth);
+      const g = facadeBox(width, height + 1.5, depth, 14, 28, p.y);
       g.rotateY(Math.atan2(p.tx, p.tz));
       g.translate(x, ground + (height + 1.5) / 2, z);
       byMaterial[Math.floor(random.next() * m.facades.length)].push(g);
@@ -259,7 +265,7 @@ export function buildTunnels(kit: VenueKitContext) {
           f = frame(track, s, 0, 0, p);
         const width = track.boundaryAt(p, -1) + track.boundaryAt(p, 1) + 6,
           h = 10 + ((Math.floor(s) * 7) % 13);
-        const g = facadeBox(width, h, c1 - c0 - 2);
+        const g = facadeBox(width, h, c1 - c0 - 2, 14, 28, p.y + 7.4);
         g.rotateY(f.yaw);
         g.translate(f.position.x, p.y + 7.4 + h / 2, f.position.z);
         group.add(
@@ -402,7 +408,7 @@ export function buildRockAndDrops(kit: VenueKitContext) {
           include: (s) => !kit.overOtherSection(...posAt(kit, s, span.side, 3), s, 0),
         },
       );
-      (sea !== null && kit.meta.theme !== 'coastal-cliff' ? quay : rock).push(g);
+      (sea !== null && !kit.style.cliffs ? quay : rock).push(g);
     }
   }
   const group = new T.Group();
@@ -424,7 +430,7 @@ export function buildLightTowers(kit: VenueKitContext) {
   const track = kit.track,
     m = kit.materials,
     p = trackPoint(),
-    city = kit.meta.theme === 'neon-city';
+    city = !!kit.style.streetLamps;
   const spacing = city ? 36 : 140,
     height = city ? 9 : 34;
   const poles: T.Matrix4[] = [],
@@ -506,4 +512,114 @@ export function buildBoards(kit: VenueKitContext) {
     }
   }
   if (group.children.length) kit.detail(group, 600);
+}
+
+let craneShared: T.MeshStandardMaterial | null = null;
+const containerShared: T.MeshStandardMaterial[] = [];
+/** Container-terminal dressing along `gantries` spans: portal cranes that
+ * straddle the road (legs beyond both barriers, girder 16 m above the road,
+ * lit at night) and stacked shipping containers behind the barrier. Visual
+ * only; nothing stands on another section or within reach of a crossing. */
+export function buildGantries(kit: VenueKitContext) {
+  const track = kit.track,
+    m = kit.materials,
+    p = trackPoint(),
+    random = new Random(0x9a7e + Math.round(track.length));
+  const crane = (craneShared ??= new T.MeshStandardMaterial({
+    color: 0xd9822b,
+    metalness: 0.5,
+    roughness: 0.5,
+  }));
+  if (!containerShared.length)
+    for (const c of [0x9c3b2e, 0x2f5f8a, 0x3c7a4a, 0xc9a23a, 0x7a7f84])
+      containerShared.push(
+        new T.MeshStandardMaterial({ color: c, roughness: 0.7, metalness: 0.3 }),
+      );
+  const nearCrossing = (s: number) =>
+    kit.meta.dressing.crossings.some((c) =>
+      [c.lower, c.upper].some(
+        (x) => Math.abs(mod(x - s + track.length / 2, track.length) - track.length / 2) < 110,
+      ),
+    );
+  const steel: T.BufferGeometry[] = [],
+    lamps: T.BufferGeometry[] = [],
+    boxes = containerShared.map(() => [] as T.BufferGeometry[]);
+  for (const span of kit.meta.dressing.gantries) {
+    const [a, b] = unwrap(span, track.length);
+    for (let s = a + 30; s < b - 20; s += 75) {
+      if (nearCrossing(s) || track.isCovered(s)) continue;
+      at(track, s, p);
+      const yaw = Math.atan2(p.tx, p.tz),
+        left = track.boundaryAt(p, -1) + 3,
+        right = track.boundaryAt(p, 1) + 3,
+        legs: [number, number][] = [];
+      let clear = true;
+      for (const l of [-left, right])
+        for (const v of [-6, 6]) {
+          const x = p.x + p.nx * l + p.tx * v,
+            z = p.z + p.nz * l + p.tz * v;
+          if (kit.overOtherSection(x, z, s, 3) || inStandFootprint(track, x, z, 3)) clear = false;
+          legs.push([x, z]);
+        }
+      if (!clear) continue;
+      const top = p.y + 16,
+        span2 = left + right,
+        mid = (right - left) / 2;
+      for (const [x, z] of legs) {
+        const g = new T.BoxGeometry(1.2, top - p.y + 2, 1.2);
+        g.translate(x, p.y - 1 + (top - p.y + 2) / 2, z);
+        steel.push(g);
+        kit.occupy(x, z, 2.5);
+      }
+      for (const v of [-6, 6]) {
+        const girder = new T.BoxGeometry(span2 + 2, 1.8, 1.4).rotateY(yaw);
+        girder.translate(p.x + p.nx * mid + p.tx * v, top + 1, p.z + p.nz * mid + p.tz * v);
+        steel.push(girder);
+      }
+      // Trolley house and a hanging spreader over a random lane.
+      const t = (random.next() - 0.5) * span2 * 0.6 + mid;
+      const house = new T.BoxGeometry(6, 3, 13).rotateY(yaw);
+      house.translate(p.x + p.nx * t, top + 3.4, p.z + p.nz * t);
+      steel.push(house);
+      const spreader = new T.BoxGeometry(2.4, 0.6, 12).rotateY(yaw);
+      spreader.translate(p.x + p.nx * t, top - 3.5, p.z + p.nz * t);
+      steel.push(spreader);
+      const lamp = new T.BoxGeometry(span2 * 0.8, 0.3, 0.6).rotateY(yaw);
+      lamp.translate(p.x + p.nx * mid, top - 0.2, p.z + p.nz * mid);
+      lamps.push(lamp);
+    }
+    // Container stacks behind the barrier on both sides.
+    for (let s = a + 10; s < b - 10; s += 14)
+      for (const side of [-1, 1] as const) {
+        if (random.next() < 0.35 || nearCrossing(s)) continue;
+        at(track, s, p);
+        const l = side * (track.boundaryAt(p, side) + 9 + random.next() * 14),
+          x = p.x + p.nx * l,
+          z = p.z + p.nz * l;
+        if (
+          kit.overOtherSection(x, z, s, 8) ||
+          inStandFootprint(track, x, z, 8) ||
+          kit.blocks(x, z, 3)
+        )
+          continue;
+        const tiers = 1 + Math.floor(random.next() * 4),
+          ground = Math.min(p.y, terrainFor(track).height(x, z)) - 0.1;
+        for (let k = 0; k < tiers; k++) {
+          const g = new T.BoxGeometry(2.44, 2.6, 12.2).rotateY(Math.atan2(p.tx, p.tz));
+          g.translate(x, ground + 1.3 + k * 2.6, z);
+          boxes[Math.floor(random.next() * boxes.length)].push(g);
+        }
+        kit.occupy(x, z, 7);
+      }
+  }
+  const group = new T.Group();
+  group.name = 'Venue kit crane gantries';
+  if (steel.length) group.add(kitMesh(mergeGeometries(steel, false)!, crane, 'Portal cranes'));
+  if (lamps.length)
+    group.add(kitMesh(mergeGeometries(lamps, false)!, m.lamp, 'Crane floodlights', false));
+  boxes.forEach((list, i) => {
+    if (list.length)
+      group.add(kitMesh(mergeGeometries(list, false)!, containerShared[i], `Containers ${i + 1}`));
+  });
+  if (group.children.length) kit.add(group);
 }

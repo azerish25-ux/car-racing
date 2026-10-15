@@ -15,7 +15,7 @@ export function buildScatter(kit: VenueKitContext) {
     random = new Random(0x51c4 + Math.round(track.length)),
     p = trackPoint(),
     tile = 320;
-  const desert = kit.meta.theme === 'desert';
+  const desert = !!kit.style.desertScrub;
   const shrubMaterial = new T.MeshStandardMaterial({
     color: desert ? 0x8b7a4e : 0x4f5d32,
     roughness: 0.95,

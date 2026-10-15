@@ -13,11 +13,13 @@ import {
 export type CircuitFinish = 'asphalt' | 'grass' | 'terrain' | 'concrete' | 'paint' | 'kerb';
 
 /** Linear tone gain of the racing asphalt over its byte-limited texels (P4
- * allows tone in the shader; the bytes stay inside the R<120 guard). Measured
- * under the P3 day lighting: sunlit off-line asphalt renders inside
- * #7d7a76-#938b83 with B/R ~0.92. The slightly cooler G/B gains offset the
- * warm sun on the warm-neutral palette. Effective linear albedo ~0.19. */
-export const ASPHALT_TONE = Object.freeze([1.58, 1.68, 1.72] as const);
+ * allows tone in the shader; the bytes stay inside the R<120 guard). Race
+ * asphalt is a dark, near-neutral grey: effective linear albedo ~0.095 (real
+ * surfaces 0.08-0.12), below the turf beside it (~0.11) and 6-8x below the
+ * line paint, so the road is the darkest large surface in a sunlit frame.
+ * The slightly cooler G/B gains keep the near-neutral texels from reading
+ * warm under the sun. */
+export const ASPHALT_TONE = Object.freeze([1.01, 1.04, 1.08] as const);
 
 /** Screen-space footprint in noise cells per pixel. Keep resolved construction
  * detail; converge to its mean before a pixel samples multiple unrelated cells. */
@@ -65,7 +67,7 @@ const finishes: Record<CircuitFinish, string> = {
     diffuseColor.rgb *= 1.0-.17*join;
   `,
   grass: `
-    // D19: olive circuit turf (#6c7438 albedo over the shared 89/101/53 texels)
+    // D19: mown summer turf (#566a43 albedo over the shared 89/101/53 texels)
     // with 25 m and 90 m regional variation and dry patches below.
     diffuseColor.rgb *= vec3(${GRASS_TINT.map((v) => v.toFixed(3)).join(',')});
     ${GRASS_DETAIL_GLSL}
@@ -74,7 +76,7 @@ const finishes: Record<CircuitFinish, string> = {
     float broad=finishFilteredNoise(vFinishWorld.xz*.018);
     float patches=finishFilteredNoise(vFinishWorld.xz*.48);
     float dry=smoothstep(.36,.80,broad*.85+patches*.15);
-    diffuseColor.rgb *= mix(vec3(.80,.88,.70),vec3(1.12,1.04,.85),dry);
+    diffuseColor.rgb *= mix(vec3(.84,.9,.78),vec3(1.06,1.03,.9),dry);
     diffuseColor.rgb *= .93+.10*patches;
     // Broad vegetation/soil regions survive distance without subpixel speckle.
     // Shared world coordinates keep the terrain/apron boundary continuous.
@@ -111,12 +113,12 @@ const finishes: Record<CircuitFinish, string> = {
     float tFine=finishFilteredNoise(vFinishWorld.xz*.21);
     float slope=1.0-clamp(normalize(vFinishNormal).y,0.0,1.0);
     float elevation=vFinishWorld.y;
-    // D19: the same olive turf tint as the apron, so their seam disappears.
+    // D19: the same turf tint as the apron, so their seam disappears.
     diffuseColor.rgb *= vec3(${GRASS_TINT.map((v) => v.toFixed(3)).join(',')});
     ${TURF_GLSL}
     diffuseColor.rgb *= .9+.18*tBroad;
     float dryLand=smoothstep(14.0,95.0,elevation+(tBroad-.5)*40.0);
-    diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*vec3(1.22,1.05,.72),dryLand*.8);
+    diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*vec3(1.12,1.04,.82),dryLand*.8);
     float scrub=smoothstep(.12,.3,slope+(tDetail-.5)*.18)*(1.0-dryLand*.4);
     diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.055,.068,.035)*(.8+.4*tFine),scrub*.55);
     float rock=smoothstep(.34,.56,slope+(tDetail-.5)*.22)+smoothstep(150.0,240.0,elevation)*.45;
@@ -189,7 +191,7 @@ export function installCircuitFinish(material: T.MeshStandardMaterial, kind: Cir
       .replace('#include <map_fragment>', '#include <map_fragment>\n' + finishes[kind]);
   };
   material.customProgramCacheKey = () =>
-    `${baseKey}:circuit-finish-v2-filtered:periodic-joints-v1:${kind}${kind === 'asphalt' ? ':binder-p4-v3' : ''}${kind === 'grass' ? ':regional-soil-v1:mown-v1:olive-d19-v1:turf-v1' : kind === 'terrain' ? ':landform-v1:olive-d19-v1:turf-v1' : ''}`;
+    `${baseKey}:circuit-finish-v2-filtered:periodic-joints-v1:${kind}${kind === 'asphalt' ? ':binder-p4-v4' : ''}${kind === 'grass' ? ':regional-soil-v1:mown-v1:olive-d19-v1:turf-v1:summer-v2' : kind === 'terrain' ? ':landform-v1:olive-d19-v1:turf-v1:summer-v2' : ''}`;
   material.name = `Original ${kind} construction finish`;
 }
 

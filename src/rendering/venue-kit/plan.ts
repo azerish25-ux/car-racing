@@ -125,7 +125,7 @@ export function catalogueVenuePlan(track: Track): VenuePlan {
       Object.freeze([{ endFraction: 1, canopyRatio: 0.84, species: 'broadleaf' }]),
     signs: Object.freeze([
       {
-        text: style.sponsor,
+        text: meta.signage ?? style.sponsor,
         s: 300,
         lateral: -(track.boundary(300, -1) + 6),
         width: 18,

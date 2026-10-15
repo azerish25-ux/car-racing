@@ -26,13 +26,15 @@ const track = (id: string) => {
 };
 
 describe('WP29/WP30 circuit catalogue', () => {
-  it('registers twenty layouts at twelve new venues in three menu groups', () => {
-    expect(CATALOGUE_CIRCUIT_IDS).toHaveLength(20);
+  it('registers forty layouts at twenty-nine new venues in three menu groups', () => {
+    // Wave 1: 20 layouts at 12 venues; wave 2 appends 20 layouts at 17 venues.
+    expect(CATALOGUE_CIRCUIT_IDS.length).toBeGreaterThanOrEqual(40);
+    expect(CATALOGUE_CIRCUIT_IDS.indexOf('poggio-alto')).toBe(20);
     const metas = CATALOGUE_CIRCUIT_IDS.map((id) => CIRCUITS[id].catalogue!);
     const venues = (group: string) =>
       new Set(metas.filter((m) => m.group === group).map((m) => m.venue));
-    expect(venues('real-world').size).toBe(6);
-    expect(venues('unconventional').size).toBe(6);
+    expect(venues('real-world').size).toBeGreaterThanOrEqual(21);
+    expect(venues('unconventional').size).toBeGreaterThanOrEqual(8);
     const html = circuitOptionsHtml();
     for (const label of ['Original', 'Real-world approximations', 'Unconventional'])
       expect(html).toContain(`<optgroup label="${label}">`);
@@ -123,7 +125,14 @@ describe('WP29/WP30 circuit catalogue', () => {
   }, 120000);
 
   it('stacks crossing roads as separate layers with bridge headroom', () => {
-    for (const id of ['kansai', 'dockyard', 'dockyard-reverse'] as const) {
+    const stacked = [
+      'kansai',
+      'dockyard',
+      'dockyard-reverse',
+      'gantry-point',
+      'gantry-point-reverse',
+    ] as const;
+    for (const id of stacked) {
       const t = track(id),
         crossings = CIRCUITS[id].catalogue!.dressing.crossings;
       expect(crossings).toHaveLength(1);
@@ -143,7 +152,7 @@ describe('WP29/WP30 circuit catalogue', () => {
     }
     // The other layouts never cross themselves.
     for (const id of CATALOGUE_CIRCUIT_IDS)
-      if (!['kansai', 'dockyard', 'dockyard-reverse'].includes(id))
+      if (!(stacked as readonly string[]).includes(id))
         expect(CIRCUITS[id].catalogue!.dressing.crossings).toEqual([]);
   });
 

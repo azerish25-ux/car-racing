@@ -7,6 +7,7 @@ import { installVenueFinish } from '../venue-materials.ts';
 import { installCarGrounding } from '../studio/car-grounding.ts';
 import { installLightPools } from '../studio/light-pools.ts';
 import { installGravelFinish } from '../studio/grass-gravel-finish.ts';
+import { chainShaderHook, injectAfter, injectDeclarations } from '../studio/shader-hooks.ts';
 import type { VenueThemeStyle } from './theme.ts';
 
 /** Procedural stratified rock: albedo and a derived tangent-space normal map
@@ -61,16 +62,83 @@ function rockTextures(tint: number) {
   return { albedo, normal };
 }
 
-/** Facade texture: one 4 x 8 storey tile of mullioned windows; the emissive
- * twin lights a deterministic subset of rooms at night. */
-function facadeTextures(seed: number, warm: boolean) {
+/** Night windows of the city frontage. A real night facade is mostly dark
+ * glass: about a third of the rooms are lit, at very different levels (a
+ * log-normal spread, median `median` of the brightest), mostly warm
+ * 2700-4500 K homes and a few cool offices (as a camera balanced near 4000 K
+ * records them), each lit from its ceiling (brighter at the top) and some
+ * behind blinds. `emissive` is the night emissive intensity of the facade
+ * (a lit pane's linear radiance is its luminance times this). */
+export const FACADE_WINDOWS = Object.freeze({
+  lit: 0.32,
+  /** Share of the unlit rooms with a faint glow (a hallway, a screen). */
+  dim: 0.18,
+  median: 0.25,
+  /** Log-normal sigma of the lit rooms' luminance, clamped to [min, 1]. */
+  sigma: 0.85,
+  min: 0.05,
+  blinds: 0.3,
+  emissive: 0.6,
+  /** Warm-to-cool colour of the rooms (sRGB) at 2700, 3500, 4500 K and a
+   * cool 6000 K office, under a ~4000 K white balance. */
+  temperatures: Object.freeze([
+    [255, 196, 140],
+    [255, 222, 190],
+    [255, 240, 225],
+    [222, 233, 255],
+  ] as const),
+});
+const toSrgbByte = (linear: number) => {
+  const c = Math.min(1, Math.max(0, linear));
+  return Math.round(255 * (c <= 0.0031308 ? c * 12.92 : 1.055 * c ** (1 / 2.4) - 0.055));
+};
+const toLinear = (byte: number) => {
+  const c = byte / 255;
+  return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+};
+/** Deterministic window plan for one facade tile: per pane a linear
+ * luminance (0 = dark) and a temperature index, plus blinds. */
+export function facadeWindowPlan(seed: number, warm: boolean, panes: number) {
   const random = new Random(seed),
-    w = 256,
+    w = FACADE_WINDOWS;
+  return Array.from({ length: panes }, () => {
+    const pick = random.next();
+    // Box-Muller from two uniform draws (the stream stays deterministic).
+    const u1 = Math.max(1e-6, random.next()),
+      u2 = random.next();
+    const gauss = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+    const tone = random.next(),
+      blinds = random.next() < w.blinds;
+    let luminance = 0;
+    if (pick < w.lit)
+      luminance = Math.min(1, Math.max(w.min, w.median * Math.exp(w.sigma * gauss)));
+    else if (pick < w.lit + w.dim) luminance = 0.012 + 0.02 * u2;
+    // Homes are warm; the cool building is mostly offices.
+    const temperature = warm
+      ? tone < 0.4
+        ? 0
+        : tone < 0.75
+          ? 1
+          : tone < 0.93
+            ? 2
+            : 3
+      : tone < 0.15
+        ? 1
+        : tone < 0.45
+          ? 2
+          : 3;
+    return { luminance, temperature, blinds };
+  });
+}
+
+/** Facade texture: one 4 x 8 storey tile of mullioned windows; the emissive
+ * twin lights a deterministic subset of rooms at night (FACADE_WINDOWS). */
+function facadeTextures(seed: number, warm: boolean) {
+  const w = 256,
     h = 512,
     cols = 4,
     rows = 8,
-    lit: boolean[] = [];
-  for (let i = 0; i < cols * rows; i++) lit.push(random.next() < 0.55);
+    plan = facadeWindowPlan(seed, warm, cols * rows);
   const draw = (emissive: boolean) =>
     canvasTexture(w, h, (c) => {
       c.fillStyle = emissive ? '#000000' : '#5d6266';
@@ -82,12 +150,20 @@ function facadeTextures(seed: number, warm: boolean) {
             ww = w / cols - 14,
             hh = h / rows - 20;
           if (emissive) {
-            if (!lit[r * cols + col]) continue;
-            const tone = warm ? (random.next() < 0.5 ? '#ffd79a' : '#ffe9c4') : '#bfe6ff';
-            c.fillStyle = tone;
-          } else c.fillStyle = '#26323a';
-          c.fillRect(x, y, ww, hh);
-          if (!emissive) {
+            const pane = plan[r * cols + col];
+            if (!(pane.luminance > 0)) continue;
+            const colour = FACADE_WINDOWS.temperatures[pane.temperature].map(toLinear);
+            // Ceiling-lit room: brighter at the top of the pane; blinds slat it.
+            for (let j = 0; j < hh; j++) {
+              const t = j / Math.max(1, hh - 1);
+              let k = pane.luminance * (1 - 0.45 * t);
+              if (pane.blinds) k *= j % 5 < 2 ? 0.25 : 0.85;
+              c.fillStyle = `rgb(${colour.map((v) => toSrgbByte(v * k)).join(',')})`;
+              c.fillRect(x, y + j, ww, 1);
+            }
+          } else {
+            c.fillStyle = '#26323a';
+            c.fillRect(x, y, ww, hh);
             c.fillStyle = '#8b939a';
             c.fillRect(x + ww / 2 - 1, y, 2, hh);
           }
@@ -97,6 +173,60 @@ function facadeTextures(seed: number, warm: boolean) {
     emissiveMap = draw(true);
   for (const t of [map, emissiveMap]) t.wrapS = t.wrapT = T.RepeatWrapping;
   return { map, emissiveMap };
+}
+
+/**
+ * Street light on the city frontage at night: the lamp rows along the road
+ * light the lower storeys of the buildings beside it, falling off with
+ * height above the street (`streetLevel` attribute, the road's height at the
+ * building). Irradiance (scene units) on vertical faces: `irradiance` up to
+ * `full` metres, halving `halve` metres higher. 0 by day. No lights, no draws.
+ */
+export const FACADE_STREET_LIGHT = Object.freeze({
+  irradiance: 2.4,
+  full: 4,
+  halve: 7,
+  colour: 0xffd6a8,
+});
+export const facadeStreetUniforms = Object.freeze({
+  facadeStreetLight: { value: 0 },
+  facadeStreetColour: { value: new T.Color(FACADE_STREET_LIGHT.colour) },
+});
+export function installFacadeStreetLight(material: T.MeshStandardMaterial) {
+  return chainShaderHook(material, 'facade-street-light-v1', (shader) => {
+    Object.assign(shader.uniforms, facadeStreetUniforms);
+    injectDeclarations(
+      shader,
+      'common',
+      'attribute float streetLevel;\nvarying float vStreetHeight;',
+      'vertex',
+    );
+    injectAfter(
+      shader,
+      'project_vertex',
+      'vStreetHeight = ( modelMatrix * vec4( transformed, 1.0 ) ).y - streetLevel;',
+      'vertex',
+    );
+    injectDeclarations(
+      shader,
+      'common',
+      'varying float vStreetHeight;\nuniform float facadeStreetLight;\nuniform vec3 facadeStreetColour;',
+      'fragment',
+    );
+    injectAfter(
+      shader,
+      'lights_fragment_end',
+      `if ( facadeStreetLight > 0.0 ) {
+	// Street lamps light the lower storeys; vertical faces only.
+	float streetRise = max( vStreetHeight - ${FACADE_STREET_LIGHT.full.toFixed(1)}, 0.0 ) / ${FACADE_STREET_LIGHT.halve.toFixed(1)};
+	float streetFall = 1.0 / ( 1.0 + streetRise * streetRise );
+	vec3 streetUp = normalize( ( viewMatrix * vec4( 0.0, 1.0, 0.0, 0.0 ) ).xyz );
+	float streetWall = 1.0 - abs( dot( normal, streetUp ) );
+	reflectedLight.directDiffuse += facadeStreetColour * ( facadeStreetLight * streetFall * streetWall ) * BRDF_Lambert( material.diffuseColor );
+}`,
+      'fragment',
+    );
+  });
 }
 
 export function venueKitMaterials(style: VenueThemeStyle) {
@@ -145,6 +275,7 @@ export function venueKitMaterials(style: VenueThemeStyle) {
       metalness: 0.15,
     });
     material.name = `Venue kit facade ${i + 1}`;
+    installFacadeStreetLight(material);
     return material;
   });
   const neon = [0xff2fa6, 0x22e4ff, 0xffd23a, 0x7c5cff].map(

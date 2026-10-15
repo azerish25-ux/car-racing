@@ -56,6 +56,7 @@ async function start(
   camera: 'chase' | 'trackside',
   night = false,
   holdOnGrid = false,
+  startSlot?: 'midfield' | 'back',
 ) {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
@@ -87,6 +88,7 @@ async function start(
   await page.locator('#opponents').selectOption('7');
   await page.locator('#weather').selectOption(weather);
   await page.locator('#compound').selectOption(weather === 'rain' ? 'wet' : 'medium');
+  if (startSlot) await page.locator('#startSlot').selectOption(startSlot);
   await page
     .getByRole('button', {
       name: holdOnGrid ? 'PREPARE GRID START PAUSED' : 'ENTER CIRCUIT',
@@ -302,26 +304,16 @@ test('27H.6 wet-night traffic: actual following, full lap, spray, replay and mea
   page,
 }, info) => {
   test.setTimeout(900000);
-  const errors = await start(page, 'rain', 'chase', true);
-  // Give rivals a real, recorded head start through ordinary controls. Do not
-  // move cars, inject a snapshot or change the simulation rate to stage a duel.
-  await page.keyboard.down('ArrowDown');
-  await expect.poll(async () => (await read(page)).frame?.[H.PHASE], { timeout: 90000 }).toBe(2);
-  await expect
-    .poll(
-      async () => {
-        const f = (await read(page)).frame;
-        if (!f) return false;
-        return Array.from({ length: 7 }, (_, n) => {
-          const ds = (f[carBase(n + 1) + F.S] - f[carBase(0) + F.S] + f[H.LENGTH]) % f[H.LENGTH];
-          return ds > 5 && ds < 45;
-        }).some(Boolean);
-      },
-      { timeout: 90000, intervals: [100, 250] },
-    )
-    .toBe(true);
-  await page.keyboard.up('ArrowDown');
+  // Rivals ahead through ordinary controls: the paddock START option puts the
+  // player at the back of the grid. No car is moved, no snapshot injected and
+  // the simulation rate is unchanged. Braking at pole until a rival passed left
+  // only a 5.8 s window with a rival 5-45 m ahead, which hosted software GL
+  // (several seconds per presented frame) could miss entirely (run
+  // 38773611672). From the back the AI follows a wet car for most of the first
+  // minute; tests/wet-night-traffic-start.test.ts replays this session.
+  const errors = await start(page, 'rain', 'chase', true, false, 'back');
   await auto(page);
+  await expect.poll(async () => (await read(page)).frame?.[H.PHASE], { timeout: 90000 }).toBe(2);
   await record(page, 'wet-night', 'full-lap');
   let following: Awaited<ReturnType<typeof read>> | null = null;
   await expect
