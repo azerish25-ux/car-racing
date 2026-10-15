@@ -8,9 +8,10 @@ categories, content validation, the F01 replay/GPU-gate fix, race radio with
 captions, accessibility switches, rumble, an EVENTS hub, a road-racing
 motorcycle discipline in normal sessions (GP-R1 prototype and SBK-1000
 superbike: lean dynamics, rider aids, crash/remount through race control, bike
-AI, procedural bike and rider), and isolated prototypes for deformable dirt,
-magnetic loops, moving surfaces, scoring, joker stages, creator import and an
-authoritative-server workload.
+AI, procedural bike and rider), an in-memory authoritative online race slice
+(`npm run test:online`, [docs/production/ONLINE_SLICE.md](docs/production/ONLINE_SLICE.md)),
+and isolated prototypes for deformable dirt, magnetic loops, moving surfaces,
+scoring, joker stages, creator import and an authoritative-server workload.
 Status (nothing is claimed beyond "integrated" without hardware or player
 evidence), decisions, risks and protocols: [docs/production](docs/production/README.md).
 

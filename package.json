@@ -23,6 +23,7 @@
     "test:catalogue-races": "node --experimental-transform-types scripts/catalogue-races.ts",
     "test:bikes": "node --experimental-transform-types scripts/bike-race.ts",
     "test:server": "node --experimental-transform-types scripts/server-prototype.ts",
+    "test:online": "node --experimental-transform-types scripts/online-slice.ts",
     "test:long-session": "node --expose-gc --experimental-transform-types scripts/long-session.ts",
     "test:dynamics": "node --experimental-transform-types scripts/dynamics-benchmark.ts",
     "test:race-control": "node --experimental-transform-types scripts/marshal-integration.ts",

@@ -36,7 +36,7 @@ Last reviewed against source: branch `claude/peaceful-einstein-dedc7t`, commits 
 | Procedural venue kit | integrated | `src/rendering/venue-kit/`, `tests/venue-kit.test.ts` | In-browser capture-suite review and art direction sign-off (§17.2); hardware frame timing | Environment art + rendering lead |
 | Tunnel rain shelter (roofed zones) | integrated | `Track.sheltered`/`isCovered`, `tests/circuit-catalogue.test.ts` | Spray, sky light and reflections inside tunnels | Weather/rendering |
 | Directed route graph, checkpoints, branches | prototype | `src/simulation/route-graph.ts`, `tests/route-graph.test.ts` | Drive a session from a RouteGraph venue | Track/tools lead |
-| Recorded-session identity & record categories | integrated | `src/core/session-identity.ts`, ghost/leaderboard keys | Public-board verification (WP52) | Runtime lead |
+| Recorded-session identity & record categories | integrated | `src/core/session-identity.ts`, ghost/leaderboard keys; online join agreement and `verifyRecord` reuse them (prototype) | A public board that accepts only verified records (WP52) | Runtime lead |
 | Snapshot schema descriptor | integrated | `SNAPSHOT_SCHEMA` v12 (appended `bike` block, both entity families), `snapshotIncompatibility` (version, length, vehicle index) | Recordings migration policy for v11 replays (rejected today) | Runtime lead |
 | Content validation | integrated (CI) | `npm run validate:content` in `npm run check` | Validate imported/creator content in-game | Tools lead |
 | Replay service (paged recording) | integrated | `src/storage/replay-pages.ts`, `tests/replay-clock.test.ts` | Close F01 on the hosted Mesa job | Runtime lead |
@@ -58,8 +58,9 @@ Last reviewed against source: branch `claude/peaceful-einstein-dedc7t`, commits 
 | Freestyle/drift scoring | prototype | `src/core/scoring.ts` | A playable challenge | Gameplay lead |
 | Rally stage / joker classification | prototype | `src/core/stage-rules.ts` | Point-to-point venue | Rally gameplay |
 | Creator content import | prototype | `src/simulation/content-import.ts` | Authoring UI, moderation (G8) | Security/platform |
-| Authoritative server workload | research | `scripts/server-prototype.ts`, `docs/server-prototype.json` | Prediction/reconciliation (WP50) | Network lead |
-| Online multiplayer service | absent | — | G7 network slice | Network lead |
+| Authoritative server workload | research | `scripts/server-prototype.ts`, `docs/server-prototype.json` | Server tick cost of the online slice on named reference hardware | Network lead |
+| Authoritative online race (in-memory slice) | prototype | `src/net/`, `tests/net-*.test.ts`, `npm run test:online` → `docs/online-slice.json`, [ONLINE_SLICE.md](ONLINE_SLICE.md) | A real transport and a player session that reaches it | Network lead |
+| Online multiplayer service | absent | No deployed service; only the in-memory slice above | Deployable transport, matchmaking, accounts (G7) | Network lead |
 | Force feedback | absent | — | Native bridge study (§21.2) | Input/platform lead |
 | Desktop/Steam package | absent | — | WP58 | Release/platform |
 | VR / split-screen | absent | — | WP62 separate feasibility | Platform R&D |
@@ -114,7 +115,11 @@ Last reviewed against source: branch `claude/peaceful-einstein-dedc7t`, commits 
 | WP45–WP47 | absent | Extreme slice acceptance, venue selection, presentation libraries. |
 | WP48 | prototype | Explainable scoring. |
 | WP49 | research | Server workload measurement. |
-| WP50–WP54 | absent | Prediction, lifecycle, records verification, lobbies, resilience. |
+| WP50 | prototype | Sequenced input commands (60 Hz sampling, 30 Hz send, every unacknowledged command repeated), 20 Hz compact per-recipient snapshots, authoritative 120 Hz server, local-car prediction with a learned input response and smoothed reconciliation, jitter-buffered Hermite interpolation of remote cars, explicit server collision authority. Corrections measured at 100 ms RTT / 2% loss (`tests/net-prediction.test.ts`, `docs/online-slice.json`: p95 0.15 m); the input lead starts from the keep-alive round trip and grows from late-command feedback (200/300 ms RTT tested). Full-world client re-simulation not done (no Simulation state restore); bot drivers, not human inputs; no player session. |
+| WP51 | prototype | lobby → grid → race → results → teardown over the `Transport` interface; joins present a `RecordedSessionIdentity` computed from local content and are rejected with the first version/hash mismatch (`tests/net-lifecycle.test.ts`). Crash/restart procedure documented; journal-replay restore tested; persistence, supervisor and address migration absent; host migration out of scope. |
+| WP52 | prototype | Records = seed + options + input journal + content hashes (+ exact 10 s state checkpoints, per-lap AI-assisted flags); headless re-simulation accepts only bit-identical classification, lap times, flags and checkpoints; forged lap time, invented checkpoints, tampered journal and mismatched content/physics version rejected; AI-driven laps never count as `categoryBest`; journal bound derived from the session (`tests/net-records.test.ts`). Not wired to time-trial boards; records unsigned; same-build determinism only. |
+| WP53 | prototype | Lobby directory create/list/join/leave, capacity, ready check, class/ruleset compatibility via `sessionIncompatibilities`, host kick/ban with moderation hooks, per-player and per-connection rate limits (`tests/net-lobby.test.ts`, `tests/net-resilience.test.ts`). No UI, no authenticated accounts. |
+| WP54 | prototype | Disconnect → AI takeover (or ghost classification), 250 ms input-starvation hold, token rejoin within 30 s (CSPRNG tokens bound to the account, never replacing a live connection, rate-limited; during the countdown too), loss/duplication/reordering tolerated, input sanity limits, message size limits, strikes and kick, server tick-budget monitor (`tests/net-resilience.test.ts`, slice run). No load shedding; ghosts are not contact-immune. |
 | WP55 | absent | Productized authoring tools. |
 | WP56 | prototype | Sandboxed creator import. |
 | WP57–WP60 | absent | Publishing, PC package, product acceptance, release packet. |
