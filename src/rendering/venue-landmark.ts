@@ -7,6 +7,7 @@ import { buildLighthouse, lighthouseSite } from './venue-lighthouse.ts';
 import { inStandFootprint } from './grandstand.ts';
 import { serviceSitePlan, inServiceFootprint, type ServiceSite } from './venue-service-plan.ts';
 import { districtPlan, inDistrictFootprint, type DistrictSite } from './venue-districts.ts';
+import { catalogueLandmark } from './venue-kit/plan.ts';
 
 /** One original event hall, not another circuit or a copied licensed building.
  * The lower sphere is cut where its shell meets the load-bearing facade ring. */
@@ -44,6 +45,20 @@ export function landmarkSitePlan(
   districts: readonly DistrictSite[] = districtPlan(track, services),
 ): LandmarkSite {
   if (venuePlan(track).landmark === 'lighthouse') return lighthouseSite(track);
+  if (track.circuit.catalogue) {
+    // Catalogue venues: the kit's levelled plaza behind the paddock.
+    const site = catalogueLandmark(track);
+    return {
+      x: site.x,
+      z: site.z,
+      s: site.s,
+      yaw: site.yaw,
+      deckY: site.y + 0.06,
+      bottomY: site.y - 0.25,
+      radius: LANDMARK.plazaRadius,
+      clearance: 45,
+    };
+  }
   const terrain = terrainFor(track);
   const point = trackPoint(),
     near = trackPoint();

@@ -444,9 +444,14 @@ test('27H.6 populated pit journey: approach, real service, exit and complete rep
   // playback slider uses seconds relative to replay.start, not wall time.
   const removal = report.rows.filter((row) => row[phaseColumn] === 3);
   expect(removal.length).toBeGreaterThan(0);
-  // Middle of the observed removal phase. When only one row was observed (a
-  // forced snapshot on the phase's first replay tick) this is that row.
-  const anchorTime = (removal[0][timeColumn] + removal[removal.length - 1][timeColumn]) / 2;
+  // Middle of the removal phase, bounded by its first observed row and the
+  // first later row in another phase. Report rows can be sparse (hosted run
+  // 38650854262 saw two rows 67 ms apart at the start of a 1.4 s phase), so the
+  // midpoint of the phase-3 rows alone can land on the recorded phase boundary.
+  const first = report.rows.findIndex((row) => row[phaseColumn] === 3);
+  const next = report.rows.slice(first).find((row) => row[phaseColumn] !== 3);
+  const removalEnd = next ? next[timeColumn] : removal[removal.length - 1][timeColumn];
+  const anchorTime = (removal[0][timeColumn] + removalEnd) / 2;
   await replay(page);
   const startTime = (await read(page)).replayStart;
   const anchor = await seek(page, anchorTime - startTime);

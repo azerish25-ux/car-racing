@@ -3,6 +3,7 @@ import { MarshalControl, yellowFlag } from './marshal.ts';
 import { DrsControl } from './drs.ts';
 import { SC_PHASE, SafetyCarDirector } from './safety-car.ts';
 import { safePitRelease } from './pit-safety.ts';
+import { bikeIncident } from './bike-vehicle.ts';
 import { mod, Random } from '../core/math.ts';
 import { rulesetFor, type RulesetDefinition } from './events.ts';
 import {
@@ -309,6 +310,14 @@ export class RaceDirector {
       const c = this.cars[i],
         lap = this.laps[i];
       lap.crossedFinish = false;
+      // A rider down (WP34): race control flags it and the lap cannot count.
+      const incident = bikeIncident(c);
+      if (incident) {
+        lap.invalidate();
+        this.control.report(i, c.s, incident, this.raceTime);
+        this.message = 'RIDER DOWN · YELLOW FLAG';
+        this.nextMessage = this.time + 4;
+      }
       if (!c.finishTime && !c.retired) {
         const outside = outsideTrack(c);
         const previousPenalty = lap.penalty;

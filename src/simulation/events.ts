@@ -1,6 +1,9 @@
 import { CIRCUIT_IDS, type CircuitId } from './circuits.ts';
 import type { Assist, Compound, SessionOptions, WeatherPreset } from './config.ts';
 import { VEHICLES, type VehicleClass } from './vehicles.ts';
+import { CATALOGUE_EVENTS as CIRCUIT_EVENTS } from './circuit-catalogue/events.ts';
+import { vehicleFamily } from './bike-definitions.ts';
+import { ALL_CLASSES, CATALOGUE_EVENTS, CATALOGUE_RULESETS } from './catalogue-events.ts';
 
 /** Composable sporting rules (WP09 / F07, masterplan §6.3). A session format
  * (practice, qualifying, race...) is separate from its ruleset (tyre, service,
@@ -27,10 +30,16 @@ export interface RulesetDefinition {
   points: readonly number[];
   drs: boolean;
   assists: readonly Assist[];
+  /** Every entrant must share one class (the catalogue's default grids). */
+  singleClass?: boolean;
+  /** 'per-class': classes share the road but are classified within class. */
+  classScoring?: 'overall' | 'per-class';
 }
 const DRY: readonly Compound[] = Object.freeze(['soft', 'medium', 'hard']);
 const ALL: readonly Compound[] = Object.freeze([...DRY, 'intermediate', 'wet']);
 const POINTS = Object.freeze([25, 18, 15, 12, 10, 8, 6, 4, 2, 1]);
+/** Motorcycle classes (WP36); cars and bikes never share a grid. */
+const BIKE_CLASSES: readonly VehicleClass[] = Object.freeze(['gp-bike', 'superbike'] as const);
 const base = {
   version: 1,
   tires: Object.freeze({ allowed: ALL, mandatoryCompoundChange: false, penaltySeconds: 0 }),
@@ -85,7 +94,22 @@ export const RULESETS: Readonly<Record<string, RulesetDefinition>> = Object.free
     id: 'open-exhibition',
     name: 'OPEN EXHIBITION',
     sessions: Object.freeze(['race', 'practice'] as const),
-    allowedClasses: Object.freeze(['formula', 'touring'] as const),
+    allowedClasses: ALL_CLASSES,
+    drs: false,
+  }),
+  /** Motorcycle sprint (WP36): no mandatory stop, no DRS; GP and superbike classes. */
+  'gp-motorcycle': Object.freeze({
+    ...base,
+    id: 'gp-motorcycle',
+    name: 'GP MOTORCYCLE SPRINT',
+    sessions: Object.freeze(['race'] as const),
+    allowedClasses: BIKE_CLASSES,
+    tires: Object.freeze({
+      allowed: Object.freeze(['soft', 'medium', 'hard', 'wet'] as const),
+      mandatoryCompoundChange: false,
+      penaltySeconds: 0,
+    }),
+    points: Object.freeze([25, 20, 16, 13, 11, 10, 9, 8, 7, 6, 5, 4]),
     drs: false,
   }),
   'open-practice': Object.freeze({
@@ -93,7 +117,7 @@ export const RULESETS: Readonly<Record<string, RulesetDefinition>> = Object.free
     id: 'open-practice',
     name: 'PRACTICE',
     sessions: Object.freeze(['practice'] as const),
-    allowedClasses: Object.freeze(['formula', 'touring'] as const),
+    allowedClasses: Object.freeze([...ALL_CLASSES, ...BIKE_CLASSES]),
     points: Object.freeze([]),
   }),
   qualifying: Object.freeze({
@@ -101,7 +125,7 @@ export const RULESETS: Readonly<Record<string, RulesetDefinition>> = Object.free
     id: 'qualifying',
     name: 'QUALIFYING',
     sessions: Object.freeze(['qualifying'] as const),
-    allowedClasses: Object.freeze(['formula', 'touring'] as const),
+    allowedClasses: Object.freeze([...ALL_CLASSES, ...BIKE_CLASSES]),
     points: Object.freeze([]),
   }),
   'time-trial': Object.freeze({
@@ -109,10 +133,11 @@ export const RULESETS: Readonly<Record<string, RulesetDefinition>> = Object.free
     id: 'time-trial',
     name: 'TIME TRIAL',
     sessions: Object.freeze(['time-trial'] as const),
-    allowedClasses: Object.freeze(['formula', 'touring'] as const),
+    allowedClasses: Object.freeze([...ALL_CLASSES, ...BIKE_CLASSES]),
     points: Object.freeze([]),
     service: Object.freeze({ pitStops: true }),
   }),
+  ...CATALOGUE_RULESETS,
 });
 /** The ruleset each legacy mode always implied. */
 export const DEFAULT_RULESET: Readonly<Record<SessionMode, string>> = Object.freeze({
@@ -142,6 +167,12 @@ export function sessionIncompatibilities(options: SessionOptions): string[] {
     if (def && !rules.allowedClasses.includes(def.classId))
       errors.push(`Car ${car + 1} (${def.name}) is not eligible for ${rules.name}`);
   });
+  const families = new Set(
+    vehicles.filter((id) => VEHICLES[id]).map((id) => vehicleFamily(VEHICLES[id])),
+  );
+  if (families.size > 1) errors.push('Cars and motorcycles cannot share a grid');
+  if (rules.singleClass && new Set(vehicles.map((id) => VEHICLES[id]?.classId)).size > 1)
+    errors.push(`${rules.name} runs single-class grids`);
   if (!options.vehicles && !rules.allowedClasses.includes('formula'))
     errors.push(`${rules.name} needs eligible vehicles; the default Formula field is not`);
   if (!rules.tires.allowed.includes(options.compound))
@@ -232,4 +263,34 @@ export const EVENTS: readonly EventDefinition[] = Object.freeze([
     compound: 'medium' as const,
     seed: 5202,
   }),
+  Object.freeze({
+    id: 'vellamar-gp-motorcycle-sprint',
+    version: 1,
+    name: 'VELLAMAR GP MOTORCYCLE SPRINT',
+    circuit: 'vellamar' as const,
+    mode: 'race' as const,
+    ruleset: 'gp-motorcycle',
+    laps: 4,
+    opponents: 7,
+    weather: 'clear' as const,
+    vehicles: 'gpr1',
+    compound: 'medium' as const,
+    seed: 3303,
+  }),
+  // Catalogue layouts (WP29-WP30).
+  ...CIRCUIT_EVENTS,
+  ...CATALOGUE_EVENTS,
 ]);
+/** Finishing position of every car within its own class (1-based), for
+ * per-class classification; `order` is the overall classification (car ids). */
+export function classPositions(order: readonly number[], vehicles: readonly string[]) {
+  const seen = new Map<string, number>(),
+    out = new Array<number>(vehicles.length).fill(0);
+  for (const car of order) {
+    const cls = VEHICLES[vehicles[car]]?.classId ?? 'formula';
+    const position = (seen.get(cls) ?? 0) + 1;
+    seen.set(cls, position);
+    out[car] = position;
+  }
+  return out;
+}

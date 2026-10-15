@@ -9,7 +9,11 @@ import {
   differentialTorques,
   LEGACY_AXLE,
   LOCKED,
+  lockingCapacity,
+  lsd,
   OPEN,
+  SPOOL,
+  OPEN_AXLE,
   resolveDifferential,
   TORSEN,
 } from '../src/simulation/differential.ts';
@@ -31,12 +35,12 @@ describe('differential models', () => {
     }
   });
   it('conserves torque and moves it toward the slower output for every model', () => {
-    for (const def of [OPEN, LOCKED, CLUTCH_LSD, TORSEN, LEGACY_AXLE]) {
+    for (const def of [OPEN_AXLE, SPOOL, CLUTCH_LSD, TORSEN, LEGACY_AXLE]) {
       differentialTorques(def, 1500, true, 100, 110, 1.8, 1.8, 1 / 240, out);
       expect(out.first + out.second).toBeCloseTo(1500, 9);
       expect(out.first).toBeGreaterThanOrEqual(out.second - 1e-9);
     }
-    differentialTorques(OPEN, 1500, true, 100, 300, 1.8, 1.8, 1 / 240, out);
+    differentialTorques(OPEN_AXLE, 1500, true, 100, 300, 1.8, 1.8, 1 / 240, out);
     expect(out.first).toBe(750);
   });
   it('limits a clutch pack to preload plus ramp locking, with separate power and coast ramps', () => {
@@ -63,7 +67,7 @@ describe('differential models', () => {
         b = 50;
       const inertia = 1.8;
       for (let i = 0; i < Math.round(2 / dt); i++) {
-        differentialTorques(LOCKED, 800, true, a, b, inertia, inertia, dt, out, -900, -300);
+        differentialTorques(SPOOL, 800, true, a, b, inertia, inertia, dt, out, -900, -300);
         // Unequal road reactions (split friction) on the two wheels.
         a += ((out.first - 900) * dt) / inertia;
         b += ((out.second - 300) * dt) / inertia;
@@ -79,7 +83,23 @@ describe('differential models', () => {
     expect(resolveDifferential('torsen', DEFAULT_SETUP).kind).toBe('torsen');
     expect(resolveDifferential('unknown', DEFAULT_SETUP).kind).toBe('viscous');
     expect(resolveDifferential({ kind: 'clutch', preload: 90 }, DEFAULT_SETUP).preload).toBe(90);
-    expect(() => differentialTorques(OPEN, NaN, true, 0, 0, 1, 1, 1 / 240, out)).toThrow();
+    expect(() => differentialTorques(OPEN_AXLE, NaN, true, 0, 0, 1, 1, 1 / 240, out)).toThrow();
+  });
+  it('evaluates a catalogue DifferentialSpec with the same locking capacity', () => {
+    const setup = { ...DEFAULT_SETUP, diffPower: 0.7, diffCoast: 0.15 };
+    const spec = lsd(80, 0.4, 0.3),
+      def = resolveDifferential(spec, setup);
+    expect(def.kind).toBe('clutch');
+    for (const input of [900, -600]) {
+      // A large speed difference saturates the stick torque at the capacity.
+      differentialTorques(def, input, input > 0, 0, 400, 1.2, 1.2, 1 / 240, out);
+      expect(Math.abs(out.locking)).toBeCloseTo(
+        lockingCapacity(spec, input, setup.diffPower, setup.diffCoast),
+        9,
+      );
+    }
+    expect(resolveDifferential(OPEN, setup).kind).toBe('open');
+    expect(resolveDifferential(LOCKED, setup)).toMatchObject({ kind: 'locked', maxLocking: 30000 });
   });
   it('splits a centre differential by its front share', () => {
     const centre = differential({ kind: 'open', split: 0.4 });
@@ -94,8 +114,8 @@ describe('differential models', () => {
       reaction = [0, 0, 0, 0];
     const line = (layout: 'rwd' | 'fwd' | 'awd') => ({
       layout,
-      front: OPEN,
-      rear: OPEN,
+      front: OPEN_AXLE,
+      rear: OPEN_AXLE,
       centre: differential({ kind: 'open', split: 0.4 }),
     });
     drivelineTorques(line('rwd'), 1000, true, omega, inertia, reaction, 1 / 240, wheels);
@@ -107,7 +127,7 @@ describe('differential models', () => {
     expect(wheels[2] + wheels[3]).toBeCloseTo(600, 9);
     // A locked centre ties the axle speeds, moving torque to the slower axle.
     drivelineTorques(
-      { ...line('awd'), centre: LOCKED },
+      { ...line('awd'), centre: SPOOL },
       1000,
       true,
       [40, 40, 60, 60],

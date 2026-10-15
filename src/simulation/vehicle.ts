@@ -2,6 +2,8 @@ import { RoadContactFrame } from './road-contact.ts';
 import { SkidContact, SKID_CONTACT } from './skid-contact.ts';
 import { MARSHAL } from './marshal.ts';
 import { FrictionClutch } from './clutch.ts';
+import { carrierOmega, distributeDrive, drivenInertiaFactor } from './differential.ts';
+import { TIRE_FAMILIES } from './tire-families.ts';
 import { DebrisPool } from './damage.ts';
 import { approach, clamp, G, Vec3 } from '../core/math.ts';
 import { aero, floorCentre, lagHeight, plungeDamping, type AeroForces } from './aero.ts';
@@ -52,7 +54,7 @@ export class Vehicle {
   readonly origins = [0, 1, 2, 3].map(() => new Vec3());
   readonly pointVelocities = [0, 1, 2, 3].map(() => new Vec3());
   readonly contactFrames = [0, 1, 2, 3].map(() => new RoadContactFrame());
-  readonly skid = new SkidContact();
+  readonly skid: SkidContact;
   readonly normalLoads = new Float64Array(4);
   /** Actual angles used by the tire solve, retained for telemetry and presentation. */
   readonly wheelSteering = new Float64Array(4);
@@ -69,8 +71,9 @@ export class Vehicle {
   battery: number;
   rpm: number;
   readonly clutch: FrictionClutch;
-  /** Tyre, suspension, powertrain, differential and aero-platform blocks. */
-  readonly dynamics: VehicleDynamics;
+  /** Tyre, suspension, powertrain, differential and aero-platform blocks
+   * (vehicle-dynamics.ts). Not `dynamics`: BikeVehicle uses that name. */
+  readonly physics: VehicleDynamics;
   /** Massless-hub suspension state (hub travel per corner). */
   readonly hub: HubSolver;
   /** Intake and turbo state of the engine. */
@@ -88,6 +91,11 @@ export class Vehicle {
   /** Driven wheel pair (rear for rwd, front for fwd). */
   private readonly drivenLeft: number;
   private readonly drivenRight: number;
+  /** AWD centre split (front share), null for a single driven axle. */
+  private readonly frontShare: number | null;
+  /** Per-wheel drive torque from a catalogue driveline (vehicle-catalogue). */
+  private readonly driveTorque = new Float64Array(4);
+  private readonly wheelOmega = new Float64Array(4);
   engineOutputTorque = 0;
   gear = 1;
   shiftClock = 0;
@@ -159,13 +167,36 @@ export class Vehicle {
     readonly definition: VehicleDefinition = FORMULA_APX01,
   ) {
     const spec = (this.spec = definition.spec);
+    const skid = definition.stations.skid;
+    this.skid = skid
+      ? new SkidContact(
+          [1, -1].flatMap((z) =>
+            [-1, 1].map((x) => [
+              x * skid[0],
+              definition.stations.floorY,
+              z > 0 ? skid[1] : skid[2],
+            ]),
+          ),
+        )
+      : new SkidContact();
     this.wheelPositions = definition.wheelPositions;
     this.setup =
       definition === FORMULA_APX01 ? { ...setup } : setupFor(definition, setup, DEFAULT_SETUP);
     this.battery = spec.maxBatteryJ * 0.8;
     this.rpm = spec.idleRPM;
-    const dynamics = (this.dynamics = vehicleDynamics(definition));
-    this.clutch = new FrictionClutch(spec.idleRPM, spec.wheelInertia, dynamics.engine.inertia);
+    const dynamics = (this.physics = vehicleDynamics(definition));
+    this.frontShare =
+      definition.drivetrain === 'awd' ? (definition.driveline?.centre?.frontShare ?? 0.5) : null;
+    // A catalogue power unit (spec.engine) carries its own clutch and inertia;
+    // otherwise the engine block of the vehicle's dynamics (powertrain.ts).
+    const engine = spec.engine;
+    this.clutch = new FrictionClutch(
+      spec.idleRPM,
+      spec.wheelInertia * drivenInertiaFactor(this.frontShare),
+      engine?.clutchCapacity ?? 760,
+      engine?.inertia ?? dynamics.engine.inertia,
+      engine?.engageRPM ?? spec.idleRPM,
+    );
     this.diff = resolveDifferential(dynamics.differential, this.setup);
     this.hub = new HubSolver(
       resolveSuspension(
@@ -177,6 +208,7 @@ export class Vehicle {
       ),
     );
     this.body.inertia.set(spec.inertia[0], spec.inertia[1], spec.inertia[2]);
+    if (definition.fuelLoad !== undefined) this.fuel = definition.fuelLoad;
     this.body.mass = spec.dryMass + this.fuel;
     this.drivenLeft = definition.drivetrain === 'fwd' ? 0 : 2;
     this.drivenRight = this.drivenLeft + 1;
@@ -186,7 +218,8 @@ export class Vehicle {
         i < 2 ? this.setup.frontPressure : this.setup.rearPressure,
         spec.wheelRadius,
         spec.wheelInertia,
-        definition.tireGrip,
+        i < 2 ? definition.tireGrip : (definition.tireGripRear ?? definition.tireGrip),
+        this.looseGrip,
         dynamics.tyre,
       ),
     );
@@ -196,7 +229,11 @@ export class Vehicle {
   place(track: Track, s: number, offset = 0) {
     track.at(s, this.trackPosition);
     const p = this.trackPosition;
-    this.body.position.set(p.x + p.nx * offset, p.y + p.bank * offset + 0.516, p.z + p.nz * offset);
+    this.body.position.set(
+      p.x + p.nx * offset,
+      p.y + p.bank * offset + (this.definition.restHeight ?? 0.516),
+      p.z + p.nz * offset,
+    );
     this.body.orientation.yaw(Math.atan2(p.tx, p.tz));
     this.body.velocity.set(0, 0, 0);
     this.body.omega.set(0, 0, 0);
@@ -215,30 +252,54 @@ export class Vehicle {
         i < 2 ? this.setup.frontPressure : this.setup.rearPressure,
         this.spec.wheelRadius,
         this.spec.wheelInertia,
-        this.definition.tireGrip,
-        this.dynamics.tyre,
+        i < 2
+          ? this.definition.tireGrip
+          : (this.definition.tireGripRear ?? this.definition.tireGrip),
+        this.looseGrip,
+        this.physics.tyre,
       );
+  }
+  private get looseGrip() {
+    const family = this.definition.tireFamily;
+    return family ? TIRE_FAMILIES[family].looseGrip : 0;
+  }
+  /** A gripping tyre ties its wheel to the vehicle: refer that share of the
+   * vehicle's inertia to the clutch while the driven tyres grip, the wheel's
+   * own while they spin (EngineSpec.clutchCoupling). Without it a light,
+   * low-inertia engine through a tall reduction slips a locked clutch. */
+  private coupleClutch(share: number) {
+    const t = this.tires,
+      slip =
+        this.frontShare === null
+          ? Math.max(Math.abs(t[this.drivenLeft].slip), Math.abs(t[this.drivenRight].slip))
+          : Math.max(...t.map((x) => Math.abs(x.slip))),
+      grip = clamp(1 - slip / 0.12, 0, 1),
+      wheels = this.frontShare === null ? 2 : 4,
+      vehicle = (this.body.mass * this.spec.wheelRadius ** 2) / wheels;
+    this.clutch.wheelInertia =
+      (this.spec.wheelInertia + share * grip * vehicle) * drivenInertiaFactor(this.frontShare);
+  }
+  /** Gearbox output speed: driven-axle mean, or the AWD centre carrier. */
+  private drivenOmega() {
+    if (this.frontShare === null)
+      return (this.tires[this.drivenLeft].omega + this.tires[this.drivenRight].omega) * 0.5;
+    for (let i = 0; i < 4; i++) this.wheelOmega[i] = this.tires[i].omega;
+    return carrierOmega(this.wheelOmega, this.frontShare);
   }
   shift(direction: number) {
     if (this.shiftClock > 0) return;
     const spec = this.spec,
       next = clamp(this.gear + Math.sign(direction), -1, spec.gearRatios.length - 2),
       ratio = spec.gearRatios[next + 1] * spec.finalDrive,
-      predicted = Math.abs(
-        ((this.tires[this.drivenLeft].omega + this.tires[this.drivenRight].omega) *
-          0.5 *
-          ratio *
-          60) /
-          (Math.PI * 2),
-      );
+      predicted = Math.abs((this.drivenOmega() * ratio * 60) / (Math.PI * 2));
     if (predicted > spec.limiterRPM || (next < 0 && this.speed > 2)) return;
     this.gear = next;
-    this.shiftClock = this.dynamics.gearbox.shiftTime;
+    this.shiftClock = this.physics.gearbox.shiftTime;
   }
   /** Ackermann, toe, damage and kinematic camber (static + gain in bump),
    * relative to the chassis; the tyre adds the chassis roll to the road. */
   private updateWheelAlignment() {
-    const suspension = this.dynamics.suspension;
+    const suspension = this.physics.suspension;
     for (let i = 0; i < 4; i++) {
       const side = i % 2 === 0 ? -1 : 1,
         axle = i < 2 ? suspension.front : suspension.rear,
@@ -268,7 +329,7 @@ export class Vehicle {
   private integrate(dt: number, track: Track) {
     const b = this.body,
       spec = this.spec,
-      dynamics = this.dynamics,
+      dynamics = this.physics,
       engineDef = dynamics.engine;
     b.mass = spec.dryMass + this.fuel - this.lostMass;
     this.debris.step(dt, track);
@@ -293,14 +354,19 @@ export class Vehicle {
       this.brake = 1;
     }
     if (this.assist === 'sport') {
-      // Traction control acts relative to the driven tyres' current peak slip
-      // (0.16 at the reference slick's 0.25), so it holds the same margin on a
-      // wet or loose surface whose force peaks at a smaller slip.
-      const a = this.tires[this.drivenLeft],
-        b = this.tires[this.drivenRight],
-        slip = Math.max(a.slip, b.slip),
-        limit = 0.16 * Math.min(slipScale(a), slipScale(b));
-      this.throttle /= 1 + Math.max(0, slip - limit) * 4.5;
+      // Traction control acts on the driven tyres (all four for AWD) relative
+      // to their current peak slip (0.16 at the reference slick's 0.25), so it
+      // holds the same margin on a wet or loose surface whose force peaks at a
+      // smaller slip.
+      const t = this.tires;
+      let slip = 0,
+        scale = 1.6;
+      for (let i = 0; i < 4; i++) {
+        if (this.frontShare === null && i !== this.drivenLeft && i !== this.drivenRight) continue;
+        slip = Math.max(slip, t[i].slip);
+        scale = Math.min(scale, slipScale(t[i]));
+      }
+      this.throttle /= 1 + Math.max(0, slip - 0.16 * scale) * 4.5;
     }
     if (this.input.reverse && this.speed < 1.5) this.gear = -1;
     else if (!this.input.reverse && this.gear < 0 && this.speed < 1.5) this.gear = 1;
@@ -311,8 +377,7 @@ export class Vehicle {
     }
     this.shiftClock = Math.max(0, this.shiftClock - dt);
     // Driven-axle speed (the name is historical: rear for the rwd Formula car).
-    const signedRearOmega =
-      (this.tires[this.drivenLeft].omega + this.tires[this.drivenRight].omega) * 0.5;
+    const signedRearOmega = this.drivenOmega();
     const rearOmega = Math.abs(signedRearOmega);
     this.rpm = Math.max(0, (this.clutch.engineOmega * 30) / Math.PI);
     if (this.autoShift && this.gear > 0 && !this.input.manualClutch) {
@@ -324,11 +389,18 @@ export class Vehicle {
     }
     const ratio = spec.gearRatios[this.gear + 1] * spec.finalDrive;
     const shaft = Math.max(0, this.clutch.engineOmega);
-    const internalFriction = frictionTorque(engineDef, shaft);
+    // A catalogue power unit (spec.engine) carries its own friction and idle
+    // governor ceiling; otherwise the dynamics engine block (powertrain.ts).
+    const engine = spec.engine;
+    const internalFriction = engine
+      ? engine.frictionBase + shaft * engine.frictionPerRad
+      : frictionTorque(engineDef, shaft);
     // Powered idle governor prevents unintended restart/stabilization without
     // fuel. It supplies real shaft torque rather than clamping engine RPM.
     const idleTorque =
-      this.fuel > 0 ? clamp(((spec.idleRPM * Math.PI) / 30 - shaft) * 3, 0, 180) : 0;
+      this.fuel > 0
+        ? clamp(((spec.idleRPM * Math.PI) / 30 - shaft) * 3, 0, engine ? engine.idleTorque : 180)
+        : 0;
     // Intake filling and turbo spool lag the pedal (powertrain.ts).
     this.engine.advance(engineDef, this.throttle, this.rpm, dt);
     let ice =
@@ -349,11 +421,18 @@ export class Vehicle {
     this.overtakeClock = Math.max(0, this.overtakeClock - dt);
     if (!this.definition.drs) this.drsOpen = false;
     this.drsFlap = clamp(this.drsFlap + (this.drsOpen ? dt : -dt) / DRS.travel, 0, 1);
+    // An axle motor (hybridAxle) drives its own wheels above its threshold
+    // speed instead of adding shaft torque; it regenerates on that axle.
+    const axleMotor = this.definition.hybridAxle;
     const motorPower =
-      this.gear > 0 && this.brake < 0.05 && this.shiftClock === 0 && shaft > 100
+      this.gear > 0 &&
+      this.brake < 0.05 &&
+      this.shiftClock === 0 &&
+      shaft > 100 &&
+      (!axleMotor || this.speed >= axleMotor.minSpeed)
         ? Math.min(spec.motorPowerW * deploy * this.throttle, (this.battery * 0.94) / dt)
         : 0;
-    const motor = motorPower / Math.max(shaft, 100);
+    const motor = axleMotor ? 0 : motorPower / Math.max(shaft, 100);
     const drag = Math.min(
       internalFriction,
       (Math.max(0, this.clutch.engineOmega) * this.clutch.inertia) / dt,
@@ -367,6 +446,7 @@ export class Vehicle {
       this.throttle < 0.02 &&
       (this.speed < 3 ||
         (this.brake > 0.02 && signedRearOmega * ratio < ((spec.idleRPM * Math.PI) / 30) * 0.9));
+    if (spec.engine?.clutchCoupling) this.coupleClutch(spec.engine.clutchCoupling);
     const wheelTorque = this.clutch.step(
       dt,
       ice + motor - drag,
@@ -383,28 +463,57 @@ export class Vehicle {
       0,
       this.fuel - ((Math.max(0, ice) * shaft) / (0.43 * 43e6) + (this.fuel > 0 ? 0.00045 : 0)) * dt,
     );
-    const rearFriction = spec.brakeTorque * (1 - this.setup.brakeBias) * this.brake * 0.5,
+    const frontOmega = axleMotor ? Math.abs((this.tires[0].omega + this.tires[1].omega) * 0.5) : 0;
+    const motorAxleOmega = axleMotor ? frontOmega : rearOmega;
+    const axleMotorTorque = axleMotor ? motorPower / Math.max(2 * frontOmega, 10) : 0;
+    const rearFriction =
+        spec.brakeTorque *
+        (axleMotor ? this.setup.brakeBias : 1 - this.setup.brakeBias) *
+        this.brake *
+        0.5,
       regenPower = Math.min(
         spec.regenPowerW * this.brake,
         (spec.maxBatteryJ - this.battery) / dt,
-        rearFriction * 2 * rearOmega * 0.65,
+        rearFriction * 2 * motorAxleOmega * 0.65,
       ),
-      regenTorque = regenPower / Math.max(2 * rearOmega, 10);
-    // Driven-axle differential (differential.ts): open/locked/viscous/LSD.
-    const split = differentialTorques(
-      this.diff,
-      wheelTorque,
-      this.input.throttle > 0.08,
-      this.tires[this.drivenLeft].omega,
-      this.tires[this.drivenRight].omega,
-      this.tires[this.drivenLeft].inertia,
-      this.tires[this.drivenRight].inertia,
-      dt,
-      this.diffOut,
-      // Road reactions of the last step predict the tyres' share (−Fx·r).
-      -this.tires[this.drivenLeft].fx * this.tires[this.drivenLeft].radius,
-      -this.tires[this.drivenRight].fx * this.tires[this.drivenRight].radius,
-    );
+      regenTorque = regenPower / Math.max(2 * motorAxleOmega, 10);
+    // A catalogue driveline (differential.ts: open/LSD/locked axles and an AWD
+    // centre) distributes the drive; otherwise the driven-axle differential of
+    // the vehicle's dynamics (the APX-01/TC-1 viscous axle, or an override).
+    const driveline = this.definition.driveline;
+    if (driveline) {
+      for (let i = 0; i < 4; i++) this.wheelOmega[i] = this.tires[i].omega;
+      distributeDrive(
+        this.driveTorque,
+        driveline,
+        this.definition.drivetrain,
+        wheelTorque,
+        this.wheelOmega,
+        spec.wheelInertia,
+        dt,
+        this.setup.diffPower,
+        this.setup.diffCoast,
+      );
+      if (axleMotor) {
+        this.driveTorque[0] += axleMotorTorque;
+        this.driveTorque[1] += axleMotorTorque;
+      }
+    } else
+      differentialTorques(
+        this.diff,
+        wheelTorque,
+        this.input.throttle > 0.08,
+        this.tires[this.drivenLeft].omega,
+        this.tires[this.drivenRight].omega,
+        this.tires[this.drivenLeft].inertia,
+        this.tires[this.drivenRight].inertia,
+        dt,
+        this.diffOut,
+        // Road reactions of the last step predict the tyres' share (−Fx·r).
+        -this.tires[this.drivenLeft].fx * this.tires[this.drivenLeft].radius,
+        -this.tires[this.drivenRight].fx * this.tires[this.drivenRight].radius,
+      );
+    const regenWheel = axleMotor ? 0 : 2;
     const hub = this.hub,
       tyreDef = dynamics.tyre;
     for (let i = 0; i < 4; i++) {
@@ -478,11 +587,19 @@ export class Vehicle {
       // torque untouched can keep a rear wheel locked while friction is released.
       const release =
         this.assist === 'sport' ? 1 / (1 + Math.max(0, -t.slip - 0.14 * slipScale(t)) * 9) : 1;
+      const regenerating = i >= regenWheel && i < regenWheel + 2;
       const friction =
-        Math.max(0, total - (i >= 2 ? regenTorque : 0)) * brakeEfficiency(t.discTemp) * release;
-      const driven =
-          i === this.drivenLeft ? split.first : i === this.drivenRight ? split.second : 0,
-        regen = i >= 2 ? regenTorque * release : 0;
+        Math.max(0, total - (regenerating ? regenTorque : 0)) *
+        brakeEfficiency(t.discTemp) *
+        release;
+      const driven = driveline
+          ? this.driveTorque[i]
+          : i === this.drivenLeft
+            ? this.diffOut.first
+            : i === this.drivenRight
+              ? this.diffOut.second
+              : 0,
+        regen = regenerating ? regenTorque * release : 0;
       const previousPickup = t.marblePickup;
       solveTire(
         t,

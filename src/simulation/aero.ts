@@ -47,6 +47,20 @@ export const TOURING_AERO_DYNAMICS: AeroDynamics = Object.freeze({
   wakeStrength: 0.3,
   towStrength: 1.15,
 });
+/** The former platform: floor load at the body origin, no convective lag or
+ * plunge damping, the original wake and tow for every leader. Catalogue
+ * definitions keep it until they carry their own block. */
+export const NEUTRAL_AERO_DYNAMICS: AeroDynamics = Object.freeze({
+  floorCentre: 0,
+  floorCentrePitch: 0,
+  floorCentreHeight: 0,
+  referencePitch: 0,
+  referenceHeight: 0.04,
+  lagLength: 0,
+  plungeArea: 0,
+  wakeStrength: 1,
+  towStrength: 1,
+});
 /** Floor centre of pressure (car-local z, m) at the given attitude, bounded
  * to the floor's length. */
 export function floorCentre(a: AeroDynamics, pitch: number, meanHeight: number, limit = 1.5) {
@@ -217,14 +231,14 @@ export function slipstreamOverlap(
  * lateral offset exceeds their radii. */
 export function wakeFields(
   follower: Pick<Vehicle, 'wake' | 'slipstream' | 'body' | 'forward'>,
-  cars: readonly Pick<Vehicle, 'body' | 'forward' | 'speed' | 'dynamics'>[],
+  cars: readonly Pick<Vehicle, 'body' | 'forward' | 'speed' | 'physics'>[],
 ) {
   let wake = 0,
     tow = 0;
   const position = follower.body.position;
   for (const other of cars)
     if (other !== follower && position.distanceSq(other.body.position) < 101 * 101) {
-      const leader = other.dynamics.aero,
+      const leader = other.physics.aero,
         at = other.body.position;
       wake = Math.max(
         wake,

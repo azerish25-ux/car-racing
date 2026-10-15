@@ -131,6 +131,16 @@ export class MarshalControl {
     if (this.events.length === MARSHAL.maximumEvents) this.events.shift();
     this.events.push({ sequence: ++this.sequence, time, kind, car, code, seconds });
   }
+  /** An incident race control sees directly (a rider down, WP34), wherever it
+   * ends up: a local yellow at lap distance `s`, cleared like any other. */
+  report(car: number, s: number, code: string, time: number) {
+    const incident = this.incidents[car];
+    this.emit(time, 'incident', car, code);
+    if (!incident.active) incident.severity = FLAG.YELLOW;
+    incident.active = true;
+    incident.s = s;
+    incident.clearedFor = 0;
+  }
   recordPenalty(car: number, seconds: number, code: string, time: number) {
     this.penaltyCount[car]++;
     this.emit(time, 'penalty', car, code, seconds);
@@ -295,7 +305,9 @@ export class MarshalControl {
           !b.finishTime &&
           !a.retired &&
           !b.retired &&
-          b.speed > 5;
+          b.speed > 5 &&
+          // A fallen rider's bike is a hazard, not a rival being overtaken.
+          (b as { riding?: boolean }).riding !== false;
         if (this.passDue[index] >= 0) {
           if (gap > 0.5)
             this.passDue[index] = -1; // Position returned in the grace interval.

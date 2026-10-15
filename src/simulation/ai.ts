@@ -35,7 +35,7 @@ export function lateralMarginAt(speed: number, env: CapabilityEnvelope = AI_ENVE
 export const ENVELOPE_STEP = 12;
 export const ENVELOPE_SAMPLES = 21;
 /** Distance (m) over which a start position's offset from the lane fades by 1/e. */
-export const LAUNCH_MERGE_LENGTH = 12;
+export const LAUNCH_MERGE_LENGTH = 50;
 /** Backward velocity profile over samples ENVELOPE_STEP apart: returns the
  * highest speed at sample 0 from which every later sample's corner speed can
  * be met, with braking limited to what the friction circle leaves after the
@@ -124,6 +124,9 @@ export class AIDriver {
    * from its lane, fading with distance travelled (see update). */
   private launch = 0;
   private placed = false;
+  /** Race time of the last update: a gap means the AI is taking a car back
+   * (a player handing over, a remounted rider). */
+  private lastUpdate = -Infinity;
   private desiredOffset = 0;
   private trafficSpeed = 100;
   private stuckTime = 0;
@@ -180,7 +183,9 @@ export class AIDriver {
     // room for a slide, so the line narrows towards the centreline (to 55% of
     // its width from about 0.8 mm of water under the car).
     const wetness = clamp(c.contacts[0].water / 0.8, 0, 1);
-    const width = 1 - 0.45 * wetness;
+    // A wider or less agile machine keeps further from the edges (its envelope's
+    // lineScale; absent: the full line).
+    const width = (1 - 0.45 * wetness) * (c.definition.ai.lineScale ?? 1);
     const lineAt = (s: number) => line.offsetAt(s) * width;
     if (this.tacticalClock > 1 / 12 && !c.inPit) {
       this.tacticalClock = 0;
@@ -215,15 +220,17 @@ export class AIDriver {
     // a fixed place on the track, not a distance from the line).
     const lineHere = lineAt(c.s);
     const corridor = pit || preparingPit;
-    // A car leaves its grid slot (or a rejoin point) on its own line: the
-    // start position's offset from the lane fades over LAUNCH_MERGE_LENGTH of
-    // distance travelled. The lane logic is unchanged, but there is no lateral
-    // demand at standstill, so the car does not launch at full lock across
-    // the grid, which spins a car without traction control.
-    if (!this.placed) {
+    // A car leaves its grid slot, or the point where the AI takes it (back)
+    // over, on its own line: that position's offset from the lane fades over
+    // LAUNCH_MERGE_LENGTH of distance travelled. The lane logic is unchanged,
+    // but there is no lateral demand at standstill, so the car does not
+    // launch at full lock across the track, which spins a car without
+    // traction control and lays a remounting rider over at walking pace.
+    if (!this.placed || race.time - this.lastUpdate > 0.5) {
       this.placed = true;
       this.launch = c.lateral - lineHere - this.tactical;
     }
+    this.lastUpdate = race.time;
     this.launch *= Math.exp((-Math.max(0, c.speed) * dt) / LAUNCH_MERGE_LENGTH);
     if (pit) {
       this.offset = approach(this.offset, this.pitLine(track, c.s), dt * 6);
@@ -235,7 +242,8 @@ export class AIDriver {
       this.tactical = approach(this.tactical, this.desiredOffset - lineHere, dt * 1.6);
       this.offset = lineHere + this.tactical + this.launch;
     }
-    let lookahead = clamp(6 + c.speed * 0.48, 8, 46);
+    const preview = c.definition.ai.lookahead;
+    let lookahead = clamp((preview?.[0] ?? 6) + c.speed * (preview?.[1] ?? 0.48), 8, 46);
     if (pit && c.pitPhase === 1 && boxGap < 35)
       lookahead = Math.min(lookahead, Math.max(1, boxGap));
     track.at(c.s + lookahead, this.target);

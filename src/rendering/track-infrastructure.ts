@@ -97,12 +97,18 @@ export function trackInfrastructurePlan(track: Track): TrackInfrastructurePlan {
     return siteAt(track, 'drain', s, side, lateral);
   });
 
-  const marshalPosts = MARSHAL_STATIONS.filter((s) => s < track.length - 60).map((s, i) => {
-    const preferred = preferredSide(track, s, i),
-      side = clearMarshalSide(track, s, preferred),
-      lateral = side * (track.boundary(s, side) + 4.4);
-    return siteAt(track, 'marshal', s, side, lateral);
-  });
+  // Catalogue layouts (any length): a post about every 240 m of the lap.
+  const stations = track.circuit.catalogue
+    ? Array.from({ length: Math.floor((track.length - 425) / 240) }, (_, i) => 365 + i * 240)
+    : MARSHAL_STATIONS;
+  const marshalPosts = stations
+    .filter((s) => s < track.length - 60)
+    .map((s, i) => {
+      const preferred = preferredSide(track, s, i),
+        side = clearMarshalSide(track, s, preferred),
+        lateral = side * (track.boundary(s, side) + 4.4);
+      return siteAt(track, 'marshal', s, side, lateral);
+    });
 
   const utilities: TrackDetailSite[] = [];
   for (let s = 395, i = 0; s < track.length - 260; s += UTILITY_SPACING_M, i++) {

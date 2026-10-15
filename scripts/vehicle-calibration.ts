@@ -10,13 +10,18 @@ import { clamp, G } from '../src/core/math.ts';
 import { DEFAULT_SETUP } from '../src/simulation/config.ts';
 import { Vehicle } from '../src/simulation/vehicle.ts';
 import { VEHICLES, type VehicleDefinition } from '../src/simulation/vehicles.ts';
+import { CATALOGUE_BANDS } from '../src/simulation/vehicle-catalogue/index.ts';
+import { vehicleHash } from '../src/core/session-identity.ts';
 import { DynamicsTrack } from './dynamics-fixtures.ts';
+import { BIKE_TARGETS, measureBike } from './bike-calibration.ts';
 
 const strict = process.argv.includes('--strict');
 type Band = readonly [number, number];
 /** Design-brief target bands. Formula: public F1 figures (reference-targets.ts).
- * TC-1: an original 1.3 t front-drive touring saloon on slicks. */
+ * TC-1: an original 1.3 t front-drive touring saloon on slicks. Catalogue
+ * vehicles carry their bands beside their sheets (vehicle-catalogue/). */
 const TARGETS: Record<string, Record<string, Band>> = {
+  ...Object.fromEntries(Object.entries(CATALOGUE_BANDS).map(([id, bands]) => [id, { ...bands }])),
   apx01: {
     accel0to100: [2.3, 3.2],
     topSpeed: [320, 360],
@@ -103,6 +108,22 @@ function braking(def: VehicleDefinition, dt: number, kmh: number) {
   }
   return { distanceM: fast.body.position.z - start, peakG };
 }
+/** (speed, deceleration) samples every 0.1 s of a full ABS stop. */
+function brakingCurve(def: VehicleDefinition, dt: number, kmh: number) {
+  const track = new DynamicsTrack('runway');
+  const car = rolling(def, track, dt, kmh / 3.6);
+  car.input.brake = 1;
+  const samples: (readonly [number, number])[] = [];
+  const window = Math.round(0.1 / dt);
+  let previous = car.speed;
+  for (let tick = 1; tick * dt < 30 && car.speed > 12; tick++) {
+    car.step(dt, track);
+    if (tick % window) continue;
+    if (tick * dt > 0.4) samples.push([(previous + car.speed) / 2, (previous - car.speed) / 0.1]);
+    previous = car.speed;
+  }
+  return samples;
+}
 /** Constant-speed ramp steer: peak filtered lateral acceleration. */
 function lateral(def: VehicleDefinition, dt: number, kmh: number) {
   const track = new DynamicsTrack();
@@ -140,9 +161,47 @@ function fit(points: readonly (readonly [number, number])[]) {
   const slope = Math.max(0, (n * sxy - sx * sy) / (n * sxx - sx * sx || 1));
   return { base: (sy - slope * sx) / n, aero: slope };
 }
+/** Steady straight-line aero at `kmh` (or 90% of top speed if lower):
+ * ClA, CdA and the front axle's share of downforce. */
+function aeroAt(def: VehicleDefinition, dt: number, kmh: number) {
+  const track = new DynamicsTrack();
+  const speed = kmh / 3.6;
+  const car = rolling(def, track, dt, speed);
+  let downforce = 0,
+    front = 0,
+    drag = 0,
+    n = 0;
+  const L = def.spec.wheelbase,
+    rearAxle = def.wheelPositions[2][2];
+  for (let t = 0; t < 4; t += dt) {
+    car.input.throttle = clamp((speed - car.speed) * 0.8 + 0.3, 0, 1);
+    car.step(dt, track);
+    if (t < 2) continue;
+    const a = car.aero,
+      total = a.front + a.rear + a.floor;
+    downforce += total;
+    front +=
+      (a.front * (def.aero.frontZ - rearAxle) +
+        a.rear * (def.aero.rearZ - rearAxle) +
+        a.floor * -rearAxle) /
+      L;
+    drag += a.drag;
+    n++;
+  }
+  const q = 0.5 * def.spec.airDensity * car.speed * car.speed;
+  return {
+    speedKmh: car.speed * 3.6,
+    clA: downforce / n / q,
+    cdA: drag / n / q,
+    balance: downforce > 0 ? front / downforce : null,
+  };
+}
 function measure(def: VehicleDefinition, dt: number) {
   const accel = acceleration(def, dt);
   const brake = braking(def, dt, 100);
+  // Braking envelope: deceleration along one full stop from high speed,
+  // fitted as base + aero·v² (the AI's braking model).
+  const stops = brakingCurve(def, dt, Math.min(250, accel.topSpeedKmh * 0.9));
   const speeds = [60, 80, 110, 150];
   const lat = speeds.map((kmh) => [kmh / 3.6, lateral(def, dt, kmh) * G] as const);
   return {
@@ -152,6 +211,8 @@ function measure(def: VehicleDefinition, dt: number) {
     braking100PeakG: brake.peakG,
     lateral80G: lat[1][1] / G,
     lateralFit: fit(lat),
+    brakingFit: fit(stops),
+    aero: aeroAt(def, dt, Math.min(200, accel.topSpeedKmh * 0.9)),
   };
 }
 const report: Record<string, unknown> = {
@@ -161,33 +222,58 @@ const report: Record<string, unknown> = {
 };
 let outside = 0;
 for (const def of Object.values(VEHICLES)) {
-  const fine = measure(def, 1 / 240),
-    coarse = measure(def, 1 / 120);
-  const targets = TARGETS[def.id] ?? {};
+  // Motorcycles run their own adapter on the same runway (bike-calibration.ts).
+  const run = def.dynamicsKind === 'bike' ? measureBike : measure;
+  const fine = run(def, 1 / 240),
+    coarse = run(def, 1 / 120);
+  const targets = TARGETS[def.id] ?? BIKE_TARGETS[def.id] ?? {};
   const comparison = Object.entries(targets).map(([metric, band]) => {
     const value = fine[metric as keyof typeof fine] as number | null,
       other = coarse[metric as keyof typeof coarse] as number | null;
     const within = value !== null && value >= band[0] && value <= band[1];
+    const coarseWithin = other !== null && other >= band[0] && other <= band[1];
     // Timestep agreement: a fragile solver changes results with dt.
     const drift = value !== null && other !== null ? Math.abs(value - other) / Math.abs(value) : 1;
-    if (!within) outside++;
-    return { metric, measured: value, coarseDt: other, band, within, timestepDrift: drift };
+    if (!within || !coarseWithin) outside++;
+    return {
+      metric,
+      measured: value,
+      coarseDt: other,
+      band,
+      within,
+      coarseWithin,
+      timestepDrift: drift,
+    };
   });
+  // Four-wheel runs also fit the braking envelope and measure the aero map;
+  // the bike adapter reports lateral fit only.
+  const braking = 'brakingFit' in fine ? fine.brakingFit : null,
+    aero = 'aero' in fine ? fine.aero : null;
   (report.vehicles as Record<string, unknown>)[def.id] = {
     name: def.name,
     version: def.version,
+    hash: vehicleHash(def),
     comparison,
     lateralEnvelopeFit: fine.lateralFit,
+    ...(braking ? { brakingEnvelopeFit: braking } : {}),
+    ...(aero ? { aero } : {}),
     aiEnvelope: def.ai,
   };
   console.log(`${def.name} (${def.id} v${def.version})`);
   for (const c of comparison)
     console.log(
-      `  ${c.within ? 'OK ' : 'OUT'} ${c.metric.padEnd(20)} ${c.measured?.toFixed(2)} [${c.band.join(', ')}] dt-drift ${(c.timestepDrift * 100).toFixed(1)}%`,
+      `  ${c.within && c.coarseWithin ? 'OK ' : 'OUT'} ${c.metric.padEnd(20)} ${c.measured?.toFixed(2)} / ${c.coarseDt?.toFixed(2)} [${c.band.join(', ')}] dt-drift ${(c.timestepDrift * 100).toFixed(1)}%`,
     );
   console.log(
-    `  lateral fit: base ${fine.lateralFit.base.toFixed(2)} m/s², aero ${fine.lateralFit.aero.toExponential(2)}`,
+    `  lateral fit: base ${fine.lateralFit.base.toFixed(2)} m/s², aero ${fine.lateralFit.aero.toExponential(2)}` +
+      (braking
+        ? ` · braking fit: base ${braking.base.toFixed(2)}, aero ${braking.aero.toExponential(2)}`
+        : ''),
   );
+  if (aero)
+    console.log(
+      `  aero @${aero.speedKmh.toFixed(0)} km/h: ClA ${aero.clA.toFixed(2)} m², CdA ${aero.cdA.toFixed(2)} m², front ${aero.balance === null ? '—' : (aero.balance * 100).toFixed(1) + '%'}`,
+    );
 }
 writeFileSync('docs/vehicle-calibration.json', JSON.stringify(report, null, 2) + '\n');
 if (strict && outside) process.exitCode = 1;

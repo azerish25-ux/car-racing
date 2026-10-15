@@ -51,8 +51,9 @@ prototype of the supplied player (open: WP07), authoring tools for constants eng
 
 **Days 61–90.** Finish G2 with normal-user integration (machine choice and EVENTS are in the menu),
 greybox the first new car venue with the new data contracts (open), re-run human and hardware
-acceptance (open). Bounded motorcycle experiment (done in isolation: `bike.ts`); go/no-go on bike R&D
-after its review.
+acceptance (open). Bounded motorcycle experiment (done: `bike.ts`), then integrated into sessions
+as WP33–WP36 (GP-R1, SBK-1000, bike AI, rider rig, `gp-motorcycle` event; procedural art); the
+go/no-go on the bike roster still waits for the human riding review (G4).
 
 ## 4. Modes roadmap (§11.2)
 
@@ -102,9 +103,12 @@ Stages: shared ghosts → private unranked → authoritative racing → rankings
 server owns accepted inputs, simulation, legal progress (RouteProgress), penalties and results.
 Physics tick (120 Hz), input cadence and network snapshot cadence are separate: the WP49 measurement
 shows a compact 20 Hz state is ~44 kbit/s per client for 8 cars versus ~8 Mbit/s for full render
-snapshots, at ~0.2 s CPU per simulated second per race on the measurement machine. Next: prediction
-and reconciliation with an explicit collision authority policy (WP50), lifecycle with content-version
-agreement using `RecordedSessionIdentity` hashes (WP51), verified records (WP52).
+snapshots, at ~0.2 s CPU per simulated second per race on the measurement machine. WP50–WP54 now
+exist as an in-memory prototype ([ONLINE_SLICE.md](ONLINE_SLICE.md)): redundant input commands,
+local-car prediction with smoothed reconciliation, server collision authority, content-version
+agreement on join, verified records by headless re-simulation, lobbies and resilience. Measured for 8
+clients at 100 ms RTT / 2% loss: ~60 kbit/s down and ~28 kbit/s up per client on the wire, local-car
+prediction error p95 ≈ 0.15 m. Next: a real transport and a player session reaching it.
 
 ## 9. Platform (§21.6, §23.7)
 

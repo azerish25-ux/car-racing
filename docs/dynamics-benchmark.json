@@ -1,5 +1,5 @@
 {
-  "sourceSHA256": "2d380bff155467bc8b41a0ab5016651d6e33f543d7029f31744cff198208bf74",
+  "sourceSHA256": "c66ef4911f5fd34a0a7b42907fab325478b6278cb6a46618f830f239f258e35a",
   "fixedDtSeconds": 0.004166666666666667,
   "fixture": "Isolated analytic runway/skidpad/kerbs with the production Vehicle solver",
   "passed": true,
@@ -8,16 +8,16 @@
       "name": "braking-100kmh",
       "passed": true,
       "measurements": {
-        "distanceM": 18.80723460361031,
-        "stopSeconds": 1.4333333333333333,
-        "lateralDriftM": -2.437795728497761e-17,
+        "distanceM": 19.087550965440727,
+        "stopSeconds": 1.45,
+        "lateralDriftM": 4.6133085693260823e-8,
         "minimumSlip": -1,
-        "peakLoadN": 3397.293927136497,
+        "peakLoadN": 3586.2533512724085,
         "discTemperaturesC": [
-          317.65481313824927,
-          317.65481313824927,
-          317.4821351305071,
-          317.4821351305071
+          317.60087757707083,
+          317.60087774223246,
+          317.4465667745707,
+          317.446566763434
         ]
       }
     },
@@ -25,16 +25,16 @@
       "name": "braking-200kmh",
       "passed": true,
       "measurements": {
-        "distanceM": 54.93700256111819,
-        "stopSeconds": 2.325,
-        "lateralDriftM": -2.8062458475372804e-18,
+        "distanceM": 55.665495255788976,
+        "stopSeconds": 2.3541666666666665,
+        "lateralDriftM": -0.000002863515819593122,
         "minimumSlip": -1,
-        "peakLoadN": 6488.71453613968,
+        "peakLoadN": 7263.238811848441,
         "discTemperaturesC": [
-          320.4440301219925,
-          320.4440301219925,
-          323.1989199087786,
-          323.1989199087786
+          319.74609986047733,
+          319.74603684467735,
+          323.1311394061639,
+          323.1311514569634
         ]
       }
     },
@@ -42,16 +42,16 @@
       "name": "braking-300kmh",
       "passed": true,
       "measurements": {
-        "distanceM": 96.401213892618,
-        "stopSeconds": 2.9208333333333334,
-        "lateralDriftM": -5.9505837929971895e-16,
+        "distanceM": 97.19459796992598,
+        "stopSeconds": 2.95,
+        "lateralDriftM": 0.00008720613516776041,
         "minimumSlip": -1,
-        "peakLoadN": 10893.167285634197,
+        "peakLoadN": 12441.22905663439,
         "discTemperaturesC": [
-          340.4000671533966,
-          340.4000671533966,
-          335.1371628781353,
-          335.1371628781353
+          339.24863917818936,
+          339.2485293618216,
+          335.1513761547716,
+          335.15138528414496
         ]
       }
     },
@@ -59,9 +59,9 @@
       "name": "braking-speed-order",
       "passed": true,
       "measurements": [
-        18.80723460361031,
-        54.93700256111819,
-        96.401213892618
+        19.087550965440727,
+        55.665495255788976,
+        97.19459796992598
       ]
     },
     {
@@ -69,10 +69,10 @@
       "passed": true,
       "measurements": {
         "commandedSpeedMps": 15,
-        "meanSpeedMps": 15.042892357715388,
-        "radialRmsErrorM": 0.04296956651418235,
-        "measuredLateralG": 0.2885897728313418,
-        "kinematicLateralG": 0.2885927149400761
+        "meanSpeedMps": 15.031791865348193,
+        "radialRmsErrorM": 0.0474744938290063,
+        "measuredLateralG": 0.2881804205568555,
+        "kinematicLateralG": 0.2881831905473917
       }
     },
     {
@@ -80,10 +80,10 @@
       "passed": true,
       "measurements": {
         "commandedSpeedMps": 25,
-        "meanSpeedMps": 24.978501098596645,
-        "radialRmsErrorM": 0.32379135109734436,
-        "measuredLateralG": 0.7919399709459544,
-        "kinematicLateralG": 0.7920778576089986
+        "meanSpeedMps": 24.945157070314774,
+        "radialRmsErrorM": 0.32129196877797495,
+        "measuredLateralG": 0.7898406825608589,
+        "kinematicLateralG": 0.7899891471632242
       }
     },
     {
@@ -91,10 +91,10 @@
       "passed": true,
       "measurements": {
         "commandedSpeedMps": 35,
-        "meanSpeedMps": 34.75933641579602,
-        "radialRmsErrorM": 1.0717594420460594,
-        "measuredLateralG": 1.5180281687551787,
-        "kinematicLateralG": 1.5196818651248265
+        "meanSpeedMps": 34.72674454359601,
+        "radialRmsErrorM": 1.110071197493838,
+        "measuredLateralG": 1.5142979781821335,
+        "kinematicLateralG": 1.516116892715517
       }
     },
     {
@@ -102,47 +102,47 @@
       "passed": true,
       "measurements": {
         "cyclePeakYawRadps": [
-          0.20033983736770286,
-          0.20027057838971268,
-          0.20027180565588013,
-          0.2002731941465287,
-          0.2002732287881357,
-          0.200273798542121
+          0.2024431219714255,
+          0.2023904151674476,
+          0.20238787904067407,
+          0.20238408213619272,
+          0.20238046146856842,
+          0.20237787876799027
         ],
-        "recoveredYawRadps": 0.0000013233080453120223
+        "recoveredYawRadps": 0.000002195671486958012
       }
     },
     {
       "name": "low-kerb",
       "passed": true,
       "measurements": {
-        "peakCompressionM": 0.02725310970625655,
-        "peakLoadN": 3861.1975875314733,
-        "peakVerticalG": 0.24087460303488853,
+        "peakCompressionM": 0.0292519230637594,
+        "peakLoadN": 4179.862705058458,
+        "peakVerticalG": 0.36900542742402975,
         "skidWorkJ": 0,
-        "finalHeightM": 0.5176578254875883
+        "finalHeightM": 0.5174612665130583
       }
     },
     {
       "name": "high-kerb",
       "passed": true,
       "measurements": {
-        "peakCompressionM": 0.037032075251186236,
-        "peakLoadN": 5916.707629444388,
-        "peakVerticalG": 0.44927010069311996,
+        "peakCompressionM": 0.03874751309546287,
+        "peakLoadN": 5876.173269832789,
+        "peakVerticalG": 0.6745150735693989,
         "skidWorkJ": 0,
-        "finalHeightM": 0.5176578585423596
+        "finalHeightM": 0.517461286907087
       }
     },
     {
       "name": "sausage-kerb",
       "passed": true,
       "measurements": {
-        "peakCompressionM": 0.0451826950434136,
-        "peakLoadN": 7644.13393383212,
-        "peakVerticalG": 0.7644582672294573,
+        "peakCompressionM": 0.049510936669596495,
+        "peakLoadN": 7701.904269724342,
+        "peakVerticalG": 1.5609095643588928,
         "skidWorkJ": 0,
-        "finalHeightM": 0.5176579168756112
+        "finalHeightM": 0.5174613324910806
       }
     }
   ]

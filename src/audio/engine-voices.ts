@@ -1,12 +1,17 @@
 import { F, carBase } from '../simulation/protocol.ts';
 import { clamp } from '../core/math.ts';
 import { SpatialAudioScene, type AudioView } from './spatial.ts';
+import {
+  SOUND_PROFILES,
+  frameCharacter,
+  type SoundFamily,
+  type SoundProfile,
+} from './sound-profiles.ts';
 
-const BAND_CENTRES_RPM = [4500, 8500, 12500] as const;
 const BAND_MULTIPLIER = [0.5, 1, 2] as const;
-const BAND_GAIN = [0.26, 0.22, 0.085] as const;
 interface Voice {
   id: number;
+  family: SoundFamily | null;
   osc: OscillatorNode[];
   bands: GainNode[];
   filter: BiquadFilterNode;
@@ -20,16 +25,11 @@ export class EngineVoices {
   readonly spatial = new SpatialAudioScene();
   private voices: Voice[] = [];
   private disposed = false;
-  constructor(context: BaseAudioContext, destination: AudioNode = context.destination) {
-    const waves = BAND_CENTRES_RPM.map((_, band) => {
-      const real = new Float32Array(40),
-        imag = new Float32Array(40);
-      for (let k = 1; k < 40; k++)
-        imag[k] =
-          (band === 0 ? (k % 2 ? 1 : 0.35) : band === 1 ? (k % 3 ? 0.6 : 1) : 0.65) /
-          k ** (1.8 - band * 0.35);
-      return context.createPeriodicWave(real, imag);
-    });
+  private waves = new Map<SoundFamily, PeriodicWave[]>();
+  constructor(
+    private context: BaseAudioContext,
+    destination: AudioNode = context.destination,
+  ) {
     for (let i = 0; i < 4; i++) {
       const gain = context.createGain(),
         filter = context.createBiquadFilter(),
@@ -44,15 +44,48 @@ export class EngineVoices {
       for (let j = 0; j < 3; j++) {
         const o = context.createOscillator(),
           g = context.createGain();
-        o.setPeriodicWave(waves[j]);
         g.gain.value = 0;
         o.connect(g).connect(gain);
-        o.start();
         osc.push(o);
         bands.push(g);
       }
-      this.voices.push({ id: -1, osc, bands, filter, gain, pan });
+      this.voices.push({ id: -1, family: null, osc, bands, filter, gain, pan });
     }
+    for (const voice of this.voices) {
+      this.assign(voice, SOUND_PROFILES['v6-turbo-hybrid']);
+      for (const o of voice.osc) o.start();
+    }
+  }
+  /** Harmonic spectrum per band from the family brief (odd/third emphasis, roll-off). */
+  private wavesFor(profile: SoundProfile) {
+    let waves = this.waves.get(profile.family);
+    if (!waves) {
+      waves = BAND_MULTIPLIER.map((_, band) => {
+        const real = new Float32Array(40),
+          imag = new Float32Array(40);
+        for (let k = 1; k < 40; k++)
+          imag[k] =
+            (band === 0
+              ? k % 2
+                ? 1
+                : profile.odd
+              : band === 1
+                ? k % 3
+                  ? profile.third
+                  : 1
+                : 0.65) /
+            k ** (profile.rolloff - band * 0.35);
+        return this.context.createPeriodicWave(real, imag);
+      });
+      this.waves.set(profile.family, waves);
+    }
+    return waves;
+  }
+  private assign(voice: Voice, profile: SoundProfile) {
+    if (voice.family === profile.family) return;
+    const waves = this.wavesFor(profile);
+    for (let j = 0; j < 3; j++) voice.osc[j].setPeriodicWave(waves[j]);
+    voice.family = profile.family;
   }
   update(frame: Float32Array, view: AudioView, time: number) {
     if (this.disposed) return;
@@ -71,26 +104,40 @@ export class EngineVoices {
         rpm = frame[o + F.RPM];
       if (!Number.isFinite(rpm + frame[o + F.ENGINE_TORQUE]))
         throw new Error('Invalid engine audio state');
-      const load = clamp(Math.abs(frame[o + F.ENGINE_TORQUE]) / 650, 0, 1);
-      const changed = voice.id !== id,
+      const character = frameCharacter(frame, id),
+        p = character.profile,
+        limiter = character.limiterRPM;
+      const load = clamp(Math.abs(frame[o + F.ENGINE_TORQUE]) / character.loadTorque, 0, 1);
+      const changed = voice.id !== id || voice.family !== p.family,
         at = changed ? time + 0.02 : time;
       if (changed) {
         voice.gain.gain.cancelScheduledValues(time);
         voice.gain.gain.setTargetAtTime(0, time, 0.003);
+        this.assign(voice, p);
       }
+      // Electric families have no firing order: the voice follows motor speed.
+      const electric = p.firingsPerRev === 0,
+        road = Math.max(0, frame[o + F.SPEED]);
       for (let band = 0; band < 3; band++) {
-        const hz = Math.max(50, (rpm / 60) * 3 * BAND_MULTIPLIER[band] * state.doppler);
+        const hz = Math.max(
+          50,
+          (electric ? road * p.motorHzPerMS * 0.25 : (rpm / 60) * p.firingsPerRev) *
+            BAND_MULTIPLIER[band] *
+            state.doppler,
+        );
         const frequency = voice.osc[band].frequency;
         if (changed) {
           frequency.cancelScheduledValues(at);
           frequency.setValueAtTime(hz, at);
         } else frequency.setTargetAtTime(hz, at, 0.035);
-        const weight = Math.exp(-(((rpm - BAND_CENTRES_RPM[band]) / 4300) ** 2));
-        voice.bands[band].gain.setTargetAtTime(
-          weight * BAND_GAIN[band] * (0.45 + load * 0.55),
-          at,
-          0.04,
-        );
+        const weight = electric
+          ? band === 1
+            ? clamp(road / 40, 0, 1)
+            : 0
+          : Math.exp(-(((rpm - p.bandCentres[band] * limiter) / (p.bandWidth * limiter)) ** 2)) *
+            (band === 0 ? 1 + p.burble * (1 - clamp(rpm / limiter, 0, 1)) : 1);
+        const gain = electric ? p.motorGain * 4 : p.bandGain[band];
+        voice.bands[band].gain.setTargetAtTime(weight * gain * (0.45 + load * 0.55), at, 0.04);
       }
       voice.gain.gain.setTargetAtTime(state.gain, at, 0.03);
       voice.pan.pan.setTargetAtTime(state.pan, at, 0.025);

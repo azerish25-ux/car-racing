@@ -15,7 +15,7 @@ the acceptance observation. Nothing below is player-accepted.
 | D004 | Aero surfaces show DRS/damage state | integrated | `R.DRS_FLAP`, health fields in replay |
 | D005 | Body pitch from acceleration/braking | integrated | rigid-body pitch in snapshot; next: camera-only-pitch audit |
 | D006 | Gear shift interrupts motion/sound | integrated | `shiftClock` torque cut; audio layers; next: event-window capture |
-| D007 | Powertrain-appropriate exhaust/electric cues | foundation | `MOTOR_POWER`/`REGEN_POWER`; TC-1 has no hybrid (definition) — next: per-family effects |
+| D007 | Powertrain-appropriate exhaust/electric cues | integrated | per-family synthesis (`sound-profiles.ts`): turbo only where fitted, crackle by family, electric motor whine; next: listening test |
 | D008 | Broken parts stay broken | integrated | health/detached state in snapshots |
 | D009 | Debris bounded lifetime/collision policy | integrated | `DebrisPool` (fixed 4 pieces/car) |
 | D010 | Lights obey class/event rules | foundation | rain light from brake input; headlight rules per class absent |
@@ -136,7 +136,7 @@ the acceptance observation. Nothing below is player-accepted.
 | D085 | Captions with speaker | integrated | `RadioCaption`, Accessibility toggle |
 | D086 | Penalty messages explain consequence | integrated | penalty caption states seconds and how to avoid more |
 | D087 | Fuel warnings with lead time | integrated | fuel caption while two laps' margin remains |
-| D088 | Separate controller feedback strengths | absent | no rumble output yet |
+| D088 | Separate controller feedback strengths | integrated | `src/input/rumble.ts` + rumble strength setting; next: per-channel (road/engine/contact) strengths |
 | D089 | Menu sound levels comfortable | foundation | listening test |
 | D090 | Cues survive muted play | partial | captions and visual flags; haptics absent |
 

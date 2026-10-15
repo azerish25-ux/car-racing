@@ -22,16 +22,32 @@ current version.
 | `tire.ts` | Tyre state, peak friction, implicit wheel-spin solve, wear/damage, ground contact terms |
 | `suspension.ts` | Massless-hub corners: springs, stops, dampers, bars, tyre radial; kinematics; geometric load transfer |
 | `powertrain.ts` | Engine torque map, throttle lag, turbo, friction/pumping; gearbox shift time |
-| `differential.ts` | Open, locked, viscous, clutch-pack LSD and Torsen; axle/centre driveline composition |
+| `differential.ts` | One module: the catalogue driveline (open/LSD/locked axles, AWD centre, `distributeDrive`) and the stick-torque model (open, spool, viscous, clutch-pack LSD, Torsen) |
 | `aero.ts`, `aero-map.ts` | Ride-height/pitch map, floor centre of pressure, convective lag, plunge damping, dirty air, slipstream |
 | `surface-material.ts` | Ground material table: friction, wetting, slip stiffness, sinkage, compaction, bulldozing, water drag |
 | `vehicle-dynamics.ts` | Per-vehicle parameter blocks resolved from a `VehicleDefinition` |
 | `vehicle.ts` | Call sites: substep cap, order of operations, force application |
 
 `VehicleDefinition.dynamics` (optional) overrides any block for one vehicle. Without it,
-`vehicleDynamics()` uses the registered block for the vehicle's class (formula, otherwise touring), so
-a newly added definition is always complete. The blocks are frozen data. The resolved object is
-cached per definition.
+`vehicleDynamics()` picks a package, so a newly added definition is always complete. The blocks are
+frozen data, and the resolved object is cached per definition. The packages are:
+
+* **APX-01 (`formula`) and TC-1 (`touring`):** the calibrated packages described below.
+* **Catalogue cars and motorcycles** (every `vehicle-catalogue/` sheet names a `tireFamily`; bikes
+  have `dynamicsKind: 'bike'`): a neutral package that keeps the behaviour their sheets were fitted
+  against. It has:
+  * the legacy-reproducing suspension geometry (`defaultSuspension()`);
+  * legacy throttle response and 0.09 s shifts;
+  * the former aero platform and wake (`NEUTRAL_AERO_DYNAMICS`);
+  * a tyre carcass by family: the Formula slick for `formula-slick`, otherwise `FAMILY_CARCASS`.
+    That is the closed-wheel carcass at the Formula slick's 2200 N load reference, because
+    `tireGrip` is relative to the Formula slick at that load.
+
+  Their power unit (`spec.engine`) and driveline come from the sheet. They share the combined-slip
+  law, thermal model, hub suspension, ground materials and integration with everything else.
+
+The vehicle field holding the resolved package is `Vehicle.physics`; `BikeVehicle` uses `dynamics`
+for its own two-wheel state.
 
 ## 0. Integration
 
@@ -277,7 +293,15 @@ boost: τ = spool time building, × dump fraction decaying; target smooth(rpm_lo
 * Shift time is per definition: Formula 0.06 s (formerly 0.09), TC-1 0.11 s.
 * The cut fraction is 1 for a dog box; 0 makes the box seamless, so the clutch stays engaged.
 
-**Differentials** (`differential.ts`):
+**Differentials** (`differential.ts`, a single module):
+
+* **Catalogue drivelines.** A definition with a `driveline` (open/`lsd()`/locked axles, an AWD
+  centre with `frontShare`) runs through `distributeDrive()`. That path is the catalogue's own
+  calibrated equal-speed projection, limited by `lockingCapacity()`, and is unchanged by this work.
+  It also feeds the AWD carrier speed (`carrierOmega()`) to the clutch.
+* **Everything else** runs the stick-torque model below. `fromSpec()` converts a catalogue
+  `DifferentialSpec` into it with the same capacity (unit test), so either content form can drive
+  either path.
 
 ```
 first = s·T + L,  second = (1−s)·T − L
@@ -292,10 +316,12 @@ L_stick = (β·Δω + dt·(((1−s)T + R2)/I2 − (sT + R1)/I1)) / (dt·(1/I1 + 
 * β under-relaxes only the speed-difference feedback.
 * Setup diffPower/diffCoast scale the locking around the definition's values.
 * `resolveDifferential()` also accepts model names ('open', 'locked'/'spool', 'lsd'/'clutch',
-  'viscous', 'torsen'), so another content source can declare one.
-* `drivelineTorques()` composes a centre differential (share `split` to the front) with the axle
-  differentials for 'rwd', 'fwd' or 'awd'. That is the intended wiring point for AWD.
-* **Defaults kept:** both shipped cars use `LEGACY_AXLE`, the former viscous coupling
+  'viscous', 'torsen') and catalogue specs, so another content source can declare one.
+* The stick-torque presets are `OPEN_AXLE`, `SPOOL`, `CLUTCH_LSD`, `TORSEN` and `LEGACY_AXLE`. The
+  names `OPEN` and `LOCKED` belong to the catalogue specs.
+* `drivelineTorques()` composes a stick-torque centre differential (share `split` to the front) with
+  the axle differentials for 'rwd', 'fwd' or 'awd'.
+* **Defaults kept:** APX-01 and TC-1 use `LEGACY_AXLE`, the former viscous coupling
   (55·setting N m s/rad, capped at 1050 N m). It is reproduced exactly (unit test).
 
 ## 4. Aerodynamics
@@ -371,7 +397,7 @@ F_drag = z·b·(k_b·min(1,|v|) + k_bv·v²)  +  100·b·depth·v²·(1 − 0.7�
   130 N of bulldozing drag per tyre.
 * Sinkage lowers the effective ground in the suspension geometry, so a car in gravel sits lower and
   can ground its floor.
-* Standing water costs about 4% of wet top speed (heavy-rain AI scenario: 293 → 282 km/h).
+* Standing water costs about 4% of wet top speed (heavy-rain AI scenario: 293 → 281 km/h).
 
 ### 5.3 Aquaplaning
 
@@ -406,9 +432,29 @@ tyre's actual state instead of the former fixed slip numbers.
   * The AI eases the throttle when the driven axle passes 0.9 utilization.
   * It eases the brake when the rear passes 0.9.
   * It eases the brake when the steered front passes 0.92 while turning.
-* **Grid start.** Each AI starts its lateral target from its own grid slot and merges toward the
-  racing line at the existing 1.6 m/s lateral rate. Previously it aimed across the grid at full lock
-  from standstill.
+* **Grid start and handover.** The lane logic is the former one. In addition, the car's offset
+  from its lane where the AI takes it fades with distance travelled:
+  `launch ← launch·exp(−v·dt/50 m)`. The AI takes a car at its grid slot, and again after more than
+  0.5 s without AI control (a player handing over, a remounted rider). Previously the car aimed
+  across the track at full lock from standstill. That spins a car without traction control (the
+  journey runs `assist: 'raw'`) and lays a remounting rider over at walking pace. Now there is no
+  lateral demand at standstill: a car holds its line and merges over the first 100–150 m. A
+  remounted motorcycle covers 340 m in its first 10 s (300 m required) instead of 286 m.
+* **Why 50 m.** Two start-sensitive scenario tests bound the length:
+  * the mid-field racing-line test needs the opening-lap reshuffle (player within 18 m of one rival
+    for ≥ 5 s);
+  * the wet-review test needs in-line following from the grid (≥ 3 s behind one car).
+
+  | Start behaviour | Mid-field, test seed | Mid-field, seeds 1–3 | Wet following (geometric) |
+  |---|---|---|---|
+  | Grid column held | 2.9 s | 2.6–2.7 s | 3.5 s |
+  | 12 m fade | 9.7 s | 10.5–10.7 s | 2.0 s |
+  | 30 m fade | 4.9 s | 8.3–9.1 s | 9.5 s |
+  | **50 m fade** | **8.3 s** | **5.2–8.5 s** | **5.5 s** |
+
+  The mid-field columns of the first two rows were measured before the integration merge.
+  Baseline physics with the full-lock start gave 9.5 s (3.4–7.9 s on seeds 1–3). The outcome is not
+  monotonic in the length, so these two tests remain sensitive to any change in start behaviour.
 
 ## 7. Calibration evidence
 
@@ -428,6 +474,20 @@ The APX-01's top speed was retuned into its band with the slick's carcass rollin
 (0.9) and a load-proportional longitudinal stiffness. The AI capability envelopes in
 `vehicles.ts` were left unchanged: the fitted limits moved by less than 3%.
 
+**Catalogue cars and motorcycles** (from the integration branch) all stay inside every band at both
+timesteps. Relative to that branch's own calibration:
+
+* braking distances are 0.9–1.6% longer;
+* lateral limits move by −2.4% to +1.0%;
+* 0–100 km/h and top speed change by at most 0.6%;
+* the motorcycles are unchanged (their adapter has its own tyre model).
+
+The tightest margins are SK-125 braking (18.67 m against an 18 m floor), DX-8 braking (39.28 m
+against 38 m) and APX-01 top speed (320.55 km/h against 320 km/h). A first pass gave the closed-wheel
+families the touring carcass's 3300 N load reference. That raised their peak friction by about 4%,
+and six cars stopped up to 0.5 m short of their braking floors. `FAMILY_CARCASS` restores the
+2200 N reference that `tireGrip` is defined against.
+
 `npm run test:dynamics` (isolated rigs), baseline → v2:
 
 | Rig | Measurement | Baseline | v2 |
@@ -444,11 +504,11 @@ Scenarios (`npm run test:physics`, 4 cars, 320 s) and the AI lap probe:
 
 | Measure | Baseline | v2 |
 |---|---|---|
-| Clear best laps | 49.4–51.0 s | 49.6–51.1 s |
-| Changeable best laps | 51.4–55.0 s | 51.4–55.8 s |
-| Rain best laps | 64.7–67.3 s | 66.0–69.0 s |
-| Rain top speed | 293 km/h | 282 km/h |
-| Wet pits, 10 cars on slicks, serviced | 240.9 s, zero impacts | 234.7 s, zero impacts |
+| Clear best laps | 49.4–51.0 s | 49.6–51.3 s |
+| Changeable best laps | 51.4–55.0 s | 51.4–55.6 s |
+| Rain best laps | 64.7–67.3 s | 66.0–69.2 s |
+| Rain top speed | 293 km/h | 281 km/h |
+| Wet pits, 10 cars on slicks, serviced | 240.9 s, zero impacts | 240.5 s, zero impacts |
 | AI lap: tyre surface temperature (F/R) | 82/93 °C | 81/91 °C |
 | AI lap: carcass temperature | 85–87 °C | 85–87 °C |
 | AI lap: hot pressure | 154/148 kPa | 153/146 kPa |
@@ -484,7 +544,8 @@ take about 10%. The lateral terms of the combined law are cached across the impl
 | `tests/tyre-model.test.ts` | Pure-slip equivalence, ellipse bound, combined weighting, load-saturating stiffness, low-μ peak slip, camber thrust/optimum, pressure, wear, relaxation (exact, low-speed fade), gravel contact, aquaplaning dependencies |
 | `tests/tyre-thermal.test.ts` | Exact heat conservation, unconditional stability/no overshoot, steady state, layer ordering, rain and speed cooling, brake heat into pressure, absolute gas law, worn tread |
 | `tests/suspension.test.ts` | Series ride rates, roll with bars, damper asymmetry/knee continuity, progression, bump stop, implicit stability with a 5 MN/m tyre at 1/30 s, unilateral contact, camber gain sign, road inclination, moment-equivalent geometric transfer, production-car roll vs roll centre |
-| `tests/differential.test.ts` | Exact former coupling, torque conservation, LSD capacity and ramps, Torsen bias, locked axle at 60–240 Hz, model names, centre split, rwd/fwd/awd composition |
+| `tests/differential.test.ts` | Exact former coupling, torque conservation, LSD capacity and ramps, Torsen bias, locked axle at 60–240 Hz, model names, centre split, rwd/fwd/awd composition, catalogue spec bridge (same capacity) |
+| `tests/drivetrain.test.ts` (catalogue) | Catalogue driveline: LSD capacity and ramps, torque conservation and AWD split, split-μ and AWD launches, gravel tyres, front-axle hybrid |
 | `tests/powertrain.test.ts` | Exact former torque, throttle lag, turbo spool/dump, torque table, pumping, shift cut vs seamless |
 | `tests/surface-material.test.ts` | Ids and former values, friction ordering, wet paint/grass, ice melt, sinkage, compaction, bulldozing, water drag, bike/terrain use, circuit samples |
 | `tests/aero-platform.test.ts` | Centre-of-pressure migration, exact lag, plunge damping, slipstream vs wake footprints, exact 101 m cull, channel independence, leader scaling, porpoising-safe heave at 60/120/240 Hz |
@@ -510,7 +571,12 @@ recorded angle includes camber gain.
   reference point. Roll-centre migration is linear in heave, with none in roll.
 * **Ground deformation.** Sinkage is per tyre and does not persist on the circuit (the terrain tiles
   in `terrain.ts` do persist). Bulldozing and water drag act longitudinally only.
-* **AWD not wired.** No shipped car uses AWD, LSD or turbo. The math and `drivelineTorques()` are
-  ready for the AWD definitions being added in `vehicles.ts`.
+* **Two differential paths.** Catalogue AWD/LSD cars use the catalogue's equal-speed projection
+  (`distributeDrive`), which has no road-reaction feedforward. The stick-torque model can evaluate
+  the same specs (`fromSpec`), but switching the catalogue to it would need a recalibration pass. No
+  car uses a turbo.
+* **Catalogue geometry.** Catalogue cars and motorcycles run the neutral package: no camber gain,
+  roll centre or anti-geometry, legacy throttle response, and the former aero platform. They gain the
+  tyre, thermal, hub and ground models. Per-car `dynamics` blocks are the next calibration step.
 * **AI tuning.** The AI capability envelopes were not refitted. The AI keeps its margins and
   friction-limit feedback.

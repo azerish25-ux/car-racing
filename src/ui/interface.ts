@@ -1,4 +1,5 @@
 import { installRaceDayHud, updateRaceDayHud } from './race-day-hud.ts';
+import { machineOptions, machineSelectOptions } from './machine-options.ts';
 import { installCompactRaceHud } from './compact-race-hud.ts';
 import {
   compoundOf,
@@ -51,7 +52,8 @@ import {
 import { rulesetFor, sessionIncompatibilities } from '../simulation/events.ts';
 import { F, H, W, WHEEL_BASE, WHEEL_STRIDE, WHEEL_NAMES, carBase } from '../simulation/protocol.ts';
 import { type Track } from '../simulation/track.ts';
-import { CIRCUIT_IDS, circuitDefinition, type CircuitId } from '../simulation/circuits.ts';
+import { circuitDefinition, type CircuitId } from '../simulation/circuits.ts';
+import { CIRCUIT_MENU_LABELS, circuitBlurb, circuitOptionsHtml } from './circuit-menu.ts';
 import {
   DEFAULT_CALENDAR,
   complete,
@@ -85,10 +87,7 @@ export const SESSION_TITLES: Readonly<Record<SessionOptions['mode'], string>> = 
   qualifying: 'Qualifying',
   endurance: 'Endurance',
 });
-export const CIRCUIT_MENU_LABELS: Readonly<Record<CircuitId, string>> = Object.freeze({
-  aurel: 'Aurel Grand Circuit · 2.97 km',
-  vellamar: 'Vellamar Coast Circuit · 4.00 km',
-});
+export { CIRCUIT_MENU_LABELS };
 /** Player-facing circuit name, e.g. "Aurel Grand Circuit". */
 export const circuitTitle = (id: CircuitId) =>
   (CIRCUIT_MENU_LABELS[id] ?? CIRCUIT_MENU_LABELS.aurel).split(' · ')[0];
@@ -155,31 +154,8 @@ function writeText(e: Element, value: string) {
 function writeWidth(e: HTMLElement, value: string) {
   if (e.style.width !== value) e.style.width = value;
 }
-/** Per-entry vehicles and the ruleset a MACHINE choice implies (WP22). */
-export function machineOptions(
-  options: SessionOptions,
-  machine: string,
-): Pick<SessionOptions, 'vehicles' | 'ruleset' | 'compound'> {
-  if (machine !== 'tc1' && machine !== 'mixed') return { compound: options.compound };
-  const count = options.opponents + 1;
-  const vehicles = Array.from({ length: count }, (_, i) =>
-    machine === 'mixed' ? (i % 2 ? 'apx01' : 'tc1') : 'tc1',
-  );
-  const ruleset =
-    machine === 'mixed'
-      ? options.mode === 'race' || options.mode === 'practice'
-        ? 'open-exhibition'
-        : undefined
-      : options.mode === 'race'
-        ? 'touring-sprint'
-        : undefined;
-  // Touring tyres are a single slick construction plus a wet.
-  const compound =
-    machine === 'tc1' && options.mode === 'race' && options.compound !== 'wet'
-      ? 'medium'
-      : options.compound;
-  return { vehicles, ...(ruleset ? { ruleset } : {}), compound };
-}
+/** Per-entry vehicles and the ruleset a MACHINE choice implies (WP22, WP30). */
+export { machineOptions } from './machine-options.ts';
 export class Interface {
   readonly menu: HTMLElement;
   readonly hud: HTMLElement;
@@ -234,11 +210,12 @@ export class Interface {
    <header class="masthead"><div class="brand">APEX<span>FORMULA</span></div><span class="edition">DRIVER <b id="menuDriver">${escapeHtml(this.playerName.toUpperCase())}</b></span></header>
    <div class="menu-body" tabindex="0" role="region" aria-label="Race setup and tools"><div class="eyebrow"><i></i> <span id="circuitEyebrow">AUREL · GRAND CIRCUIT</span></div><h1>EVERY INPUT.<br>EVERY FORCE.</h1><p class="intro">Four contact patches. One racing line.<br>Find the limit between them.</p>
    <form id="sessionForm" class="session-form">
-    <div class="form-row"><label>CIRCUIT<select id="circuit">${CIRCUIT_IDS.map((id) => `<option value="${id}">${CIRCUIT_MENU_LABELS[id]}</option>`).join('')}</select></label></div>
+    <div class="form-row"><label>CIRCUIT<select id="circuit">${circuitOptionsHtml()}</select></label></div>
+    <p class="session-rules circuit-blurb" id="circuitBlurb">${escapeHtml(circuitBlurb(track.circuit.id))}</p>
     <div class="form-row"><label>SESSION<select id="mode"><option value="race">Grand Prix</option><option value="practice">Free practice</option><option value="time-trial">Time trial · ghost</option><option value="qualifying">Race weekend · qualifying</option><option value="endurance">Endurance · mandatory stop</option></select></label><label>DISTANCE<select id="laps"><option value="1">1 lap · Sprint</option><option value="3" selected>3 laps · Standard</option><option value="5">5 laps</option><option value="10">10 laps</option><option value="15">15 laps · Endurance</option><option value="25">25 laps · Endurance</option></select></label></div>
     <div class="form-row"><label>WEATHER<select id="weather"><option value="clear">Clear / Dry</option><option value="changeable">Dry → Rain</option><option value="rain">Heavy rain</option></select></label><label>GRID<select id="opponents"><option value="0">Solo</option><option value="3">4 cars</option><option value="7" selected>8 cars</option><option value="11">12 cars</option></select></label></div>
     <div class="form-row"><label>TYRES<select id="compound"><option value="soft">Soft</option><option value="medium" selected>Medium</option><option value="hard">Hard</option><option value="intermediate">Intermediate</option><option value="wet">Full wet</option></select></label><label>ASSISTS<select id="assist"><option value="sport">ABS + TC</option><option value="raw">Off</option></select></label></div>
-    <div class="form-row"><label>START<select id="startSlot"><option value="pole" selected>Pole position</option><option value="midfield">Mid-field</option><option value="back">Back of the grid</option></select></label><label>MACHINE<select id="vehicle"><option value="apx01" selected>APX-01 Formula</option><option value="tc1">TC-1 Touring · front drive</option><option value="mixed">Mixed exhibition · Formula + Touring</option></select></label></div>
+    <div class="form-row"><label>START<select id="startSlot"><option value="pole" selected>Pole position</option><option value="midfield">Mid-field</option><option value="back">Back of the grid</option></select></label><label>MACHINE<select id="vehicle">${machineSelectOptions()}</select></label></div>
     <p class="session-rules" id="sessionRules" aria-live="polite"></p>
     <button class="primary enter" type="submit">ENTER CIRCUIT <span aria-hidden="true">↗</span></button>
     <button class="enter" type="submit" name="prepareGrid" value="yes">PREPARE GRID <span>START PAUSED</span></button>
@@ -708,6 +685,7 @@ export class Interface {
     this.get('circuitDrs').textContent = String(zones);
     this.get('circuitDrs').nextSibling!.textContent = ` DRS ${zones === 1 ? 'ZONE' : 'ZONES'}`;
     (this.get('circuit') as HTMLSelectElement).value = track.circuit.id;
+    this.get('circuitBlurb').textContent = circuitBlurb(track.circuit.id);
     this.mapFrame = minimapFrame(track);
   }
   private mapFrame: ReturnType<typeof minimapFrame> | null = null;
@@ -859,7 +837,7 @@ export class Interface {
       })
       .join('');
     this.modalContent(
-      `<header><div><span class="eyebrow">GARAGE / PREFERENCES</span><h2>Make it yours.</h2></div><button data-action="modalClose" aria-label="Close settings">✕</button></header><form id="settingsForm"><div class="settings-columns"><section><h3>Presentation</h3><label>RENDER QUALITY<select name="quality"><option value="low">Low · No shadows / crowd / particles</option><option value="medium">Medium · 2× MSAA / AO / bloom</option><option value="high">High · 4× MSAA / local reflections / specular AA</option></select></label>${presentationControls(settings)}${[
+      `<header><div><span class="eyebrow">GARAGE / PREFERENCES</span><h2>Make it yours.</h2></div><button data-action="modalClose" aria-label="Close settings">✕</button></header><form id="settingsForm"><div class="settings-columns"><section><h3>Presentation</h3><label>RENDER QUALITY<select name="quality"><option value="low">Low · No shadows / crowd / particles</option><option value="medium">Medium · 2× MSAA / AO / bloom</option><option value="high">High · 4× MSAA / local reflections / specular AA</option><option value="ultra">Ultra · TAA / SSR / 3 shadow cascades (opt-in, fast GPUs)</option></select></label>${presentationControls(settings)}${[
         ['volume', 'Volume', 0, 1, 0.01],
         ['shake', 'Camera vibration', 0, 1, 0.01],
         ['uiScale', 'Interface scale', 0.8, 1.35, 0.05],

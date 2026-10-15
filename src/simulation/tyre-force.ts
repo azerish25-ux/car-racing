@@ -137,6 +137,15 @@ export const TOURING_SLICK: TyreConstruction = Object.freeze({
   verticalDamping: 300,
   width: 0.27,
 });
+/** Catalogue tyre families other than the Formula slick (tire-families.ts):
+ * the closed-wheel carcass with the Formula slick's load reference and slip
+ * stiffness exponent, because a family's `tireGrip` is defined relative to the
+ * Formula slick at that reference load. */
+export const FAMILY_CARCASS: TyreConstruction = Object.freeze({
+  ...TOURING_SLICK,
+  nominalLoad: FORMULA_SLICK.nominalLoad,
+  stiffnessLoadExponent: FORMULA_SLICK.stiffnessLoadExponent,
+});
 
 const HALF_PI = Math.PI / 2;
 /** Normalized pure-slip curve: σ is slip divided by the reference slip X0/B

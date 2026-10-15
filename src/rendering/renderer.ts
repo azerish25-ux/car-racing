@@ -106,9 +106,12 @@ import {
   graphicsPreset,
   validateGraphics,
   bufferSize,
+  detailTier,
   type GraphicsOptions,
   type Quality,
+  type QualityPreset,
 } from './options.ts';
+import { UltraPipeline } from './ultra/pipeline.ts';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { FXAAShader } from 'three/addons/shaders/FXAAShader.js';
 import { Sky } from 'three/addons/objects/Sky.js';
@@ -130,7 +133,8 @@ import { AudioViewTracker } from '../audio/spatial.ts';
 import { Track, trackPoint } from '../simulation/track.ts';
 import { CAR_STRIDE, F, H, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../simulation/protocol.ts';
 import { clamp } from '../core/math.ts';
-import { TouringShells } from './touring-shell.ts';
+import { VehicleBodies } from './vehicle-bodies/index.ts';
+import { BIKE_CHASE_ROLL, BikeShells } from './bike.ts';
 export type CameraMode = 'chase' | 'cockpit' | 'pod' | 'trackside';
 /** Chase rig in metres, m/s and vertical-FOV degrees. */
 // P5 retuned to its own target (KPI 10 iteration): 1.65 m / 4.9 m framed the
@@ -166,7 +170,10 @@ export class RacingRenderer {
   readonly audioView = new AudioViewTracker();
   readonly effects = new Effects();
   readonly presented = new PresentedFrame();
-  readonly touringShells = new TouringShells();
+  /** Procedural exteriors of non-Formula definitions (WP30). */
+  readonly vehicleBodies = new VehicleBodies();
+  /** Motorcycle entrants (WP34): procedural bikes and riders over the snapshot pose. */
+  readonly bikeShells = new BikeShells();
   /** Accessibility master switch: no motion blur (camera vibration is set by the app). */
   reducedMotion = false;
   readonly studioFrame = new StudioFrame();
@@ -217,6 +224,8 @@ export class RacingRenderer {
   private hemisphere = new T.HemisphereLight(0x8fb6ea, 0x4a4237, 0.14);
   private sky = new Sky();
   private composer: EffectComposer;
+  /** ULTRA modules (SSR, temporal AO, sharpening, shafts, cascades, replay lens). */
+  readonly ultra: UltraPipeline;
   private exposure = new AdaptiveExposurePass();
   private atmosphere: LocalAtmosphere;
   private weatherPresentation = new WeatherPresentation();
@@ -251,7 +260,9 @@ export class RacingRenderer {
   private trackside: TracksideDirector;
   mode: CameraMode = 'chase';
   photo: PhotoSettings | null = null;
+  /** Detail tier of the preset (ULTRA draws High-tier scenery). */
   quality: Quality = 'medium';
+  preset: QualityPreset = 'medium';
   shake = 0.35;
   lookX = 0;
   lookY = 0;
@@ -339,7 +350,16 @@ export class RacingRenderer {
       this.photoStage.root,
       this.venueLighting.root,
     );
-    this.scene.add(this.debris.mesh, this.pitCrew.root, this.touringShells.root);
+    this.scene.add(this.debris.mesh, this.pitCrew.root, this.vehicleBodies.root);
+    this.scene.add(this.bikeShells.root);
+    // Catalogue bodies and bikes get the same material installers as the Formula cars.
+    this.vehicleBodies.onBuild = this.bikeShells.install = (root) => {
+      this.textures.register(root);
+      reflectInWetRoad(root);
+      this.weatherPresentation.install(root);
+      this.atmosphere.install(root);
+      installSpecularIBL(root);
+    };
     this.textures.register(this.pitCrew.root);
     this.renderer.info.autoReset = false;
     this.renderer.setOpaqueSort(frontToBackOpaque);
@@ -352,6 +372,7 @@ export class RacingRenderer {
     this.shadowProxies.shadowSubstitutes = () => [
       ...this.circuit.crowdClusters.map((c) => c.shadowSubstitute()),
       ...this.circuit.startFinish.shadowSubstitutes(),
+      ...this.vehicleBodies.shadowSubstitutes(),
     ];
     this.reflection.mirrorDetail = {
       before: (camera, height) => this.showMirrorDetail(camera, height),
@@ -386,6 +407,9 @@ export class RacingRenderer {
     // PCSS for the sun's 0.53° disc (studio/shadow-filter.ts reads it as radius).
     this.sun.shadow.radius = sunPenumbraScale(this.sun.shadow.camera);
     this.circuit = new CircuitScene(track, true);
+    // Catalogue tunnels are sheltered: no rain is born under a roof (WP30).
+    const kit = this.circuit.venueKit;
+    if (kit) this.effects.sheltered = (x, z) => kit.covers(x, z);
     this.reflection.probeDetail = this.circuit.probeDetail;
     // The far map covers the circuit and the planting and stands around it.
     const point = trackPoint();
@@ -439,6 +463,19 @@ export class RacingRenderer {
     this.composer.addPass(new OutputPass());
     this.composer.addPass(this.fxaa);
     this.composer.addPass(this.grade);
+    this.ultra = new UltraPipeline({
+      renderer: this.renderer,
+      scene: this.scene,
+      camera: this.camera,
+      composer: this.composer,
+      scenePass: this.scenePass,
+      bloom: this.bloom,
+      grade: this.grade,
+      sun: this.sun,
+      farShadow: this.farShadow,
+      wetReflection: this.circuit.wetReflection,
+      roadMaterial: this.circuit.roadMaterial,
+    });
     if (!deferred) {
       this.circuit.construction.runSynchronously();
       this.textures.register(this.circuit.group);
@@ -452,9 +489,11 @@ export class RacingRenderer {
     track: Track,
     progress: (value: BuildProgress) => void,
     cancelled: () => boolean,
-    initial?: { quality: Quality; graphics?: GraphicsOptions },
+    initial?: { quality: QualityPreset; graphics?: GraphicsOptions },
   ): Promise<RacingRenderer | null> {
     const renderer = new RacingRenderer(canvas, track, true);
+    // Night venues open floodlit (a live sky, if enabled, still overrides).
+    if (track.circuit.catalogue?.night) renderer.lighting = 'night';
     // The starting settings decide the far shadow map baked while loading;
     // applied later, a different map size would discard it and bake again on
     // the first rendered frame.
@@ -767,7 +806,7 @@ export class RacingRenderer {
    * the camera, car poses, physics, replay or recorded presentation clocks.
    * The application owns normal-frame exclusion for the whole transaction. */
   async prepareQuality(
-    quality: Quality,
+    quality: QualityPreset,
     graphics: GraphicsOptions,
     cancelled: () => boolean,
     yieldControl: () => Promise<void>,
@@ -782,9 +821,11 @@ export class RacingRenderer {
     await compileSceneTarget(this.renderer, this.scene, this.camera, this.composer.readBuffer);
     return !stopped();
   }
-  setQuality(q: Quality, options: GraphicsOptions = graphicsPreset(q)) {
+  setQuality(preset: QualityPreset, options: GraphicsOptions = graphicsPreset(preset)) {
+    this.preset = preset;
+    const q = detailTier(preset);
     this.quality = q;
-    this.graphics = validateGraphics(options, q);
+    this.graphics = this.ultra.deviceGraphics(validateGraphics(options, preset));
     const g = this.graphics;
     this.reflection.quality(g.mirrorQuality);
     this.circuit.wetReflection.setQuality(g.reflections === 'local' ? q : 'low');
@@ -817,6 +858,7 @@ export class RacingRenderer {
       g.textureSize,
       Math.min(g.anisotropy, this.renderer.capabilities.getMaxAnisotropy()),
     );
+    this.ultra.configure(preset, g);
     this.resize();
   }
   resize() {
@@ -973,6 +1015,7 @@ export class RacingRenderer {
       o = carBase(this.follow);
     const car = this.cars[this.follow],
       speed = b[o + F.SPEED];
+    const bikeFollow = !!this.bikeShells && BikeShells.isBike(b, this.follow);
     // The followed car always uses the near mesh. Its articulated subject is
     // needed to solve this frame's camera; every car is posed exactly once.
     car.setLod(0, this.quality, true, !!this.photo);
@@ -1122,6 +1165,11 @@ export class RacingRenderer {
         else this.direction.set(0, cameraMode === 'pod' ? TCAM_PITCH : -0.035, 1);
         this.direction.applyQuaternion(orientation).normalize();
         this.gaze.copy(this.desired).addScaledVector(this.direction, 40);
+        // A bike's onboard cameras are mounted on the bike and roll with it.
+        if (bikeFollow) {
+          this.bikeShells.onboard(car.root, this.desired, this.direction, cameraMode === 'pod');
+          this.gaze.copy(this.desired).addScaledVector(this.direction, 40);
+        }
       } else {
         // Close, low chase framing: the car fills more of the lower centre and
         // the horizon sits nearer mid-frame, as in modern broadcast-style games.
@@ -1187,6 +1235,13 @@ export class RacingRenderer {
       this.temporary.set(0, 1, 0).applyQuaternion(car.root.quaternion);
       this.camera.up.lerp(this.temporary, 0.2).normalize();
     }
+    if (bikeFollow && (!menu || !!this.photo) && (!this.photo || this.photo.view !== 'orbit')) {
+      // Chase rolls partly with the bike's lean; onboard views roll fully.
+      this.temporary.set(0, 1, 0).applyQuaternion(car.root.quaternion);
+      if (cameraMode === 'chase') this.camera.up.lerp(this.temporary, BIKE_CHASE_ROLL).normalize();
+      else if (cameraMode === 'cockpit' || cameraMode === 'pod')
+        this.camera.up.copy(this.temporary);
+    }
     this.camera.lookAt(this.gaze);
     if (this.photo) this.camera.rotateZ((this.photo.roll * Math.PI) / 180);
     this.camera.updateProjectionMatrix();
@@ -1200,6 +1255,7 @@ export class RacingRenderer {
     this.circuit.signalHardware?.update(this.camera, this.quality);
     this.circuit.trackBoards?.update(this.camera, this.quality);
     this.circuit.broadcastCameras?.update(this.camera, this.quality);
+    this.circuit.venueKit?.update(this.camera, this.night);
     this.circuit.vegetation?.update(this.camera, this.quality);
     this.circuit.quarry?.update(this.camera, this.quality);
     this.circuit.heroGarage?.update(this.camera, this.quality, illumination);
@@ -1233,8 +1289,10 @@ export class RacingRenderer {
       );
       this.cars[id].update(a, b, base, alpha, dt, time, false);
     }
-    // Non-Formula definitions are drawn by their own (provisional) bodies.
-    this.touringShells?.update(b, this.cars);
+    // Non-Formula definitions are drawn by their own procedural bodies;
+    // motorcycles by their bike and rider shells.
+    this.vehicleBodies?.update(a, b, alpha, this.cars, illumination !== 'day');
+    this.bikeShells?.update(a, b, alpha, this.cars, this.camera, this.quality, this.follow);
     this.ghost?.update(
       this.ghostActive && !replay && !menu && !this.photo ? this.ghostPose : null,
       this.camera,
@@ -1454,8 +1512,22 @@ export class RacingRenderer {
         cameraMode,
         speed,
       );
+      this.ultra.prepareFrame({
+        presented,
+        cars: this.cars,
+        subject: this.target,
+        cameraMode,
+        lighting: illumination,
+        studio,
+        menu,
+        photo: !!this.photo,
+        replay,
+        otherDof: !!this.photoFocus?.enabled,
+        cut: this.cameraClock.discontinuous,
+      });
       this.drawLedger.mark('composer');
       this.composer.render();
+      this.ultra.afterFrame();
       this.drawLedger.mark('other');
       if (this.photo && this.photo.survey !== 'off' && this.geometrySurvey) {
         if (this.geometrySurvey.dirty)
@@ -1913,6 +1985,8 @@ export class RacingRenderer {
       triangles: info.triangles,
       // Per-phase attribution of the same completed frame's counters.
       drawBreakdown: this.drawLedger.snapshot(),
+      // ULTRA modules: per-pass draws, fetch estimates and GPU timestamps.
+      ultra: this.ultra.diagnostics(),
       textures: this.renderer.info.memory.textures,
       geometries: this.renderer.info.memory.geometries,
     };
@@ -1970,6 +2044,7 @@ export class RacingRenderer {
     this.fxaa.dispose();
     this.scenePass.dispose();
     this.grade.dispose();
+    this.ultra.dispose();
     const geometries = new Set<T.BufferGeometry>(),
       materials = new Set<T.Material>(),
       textures = new Set<T.Texture>();

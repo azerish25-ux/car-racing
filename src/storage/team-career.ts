@@ -91,7 +91,10 @@ export interface TeamState {
 /** Onboarding text is derived from the content registry (F11), so it cannot
  * drift behind the circuits that actually exist. */
 export function foundingBriefing(
-  circuits: readonly string[] = CIRCUIT_IDS.map((id) => CIRCUITS[id].short),
+  // One name per venue: reverse and alternate layouts share their venue's.
+  circuits: readonly string[] = CIRCUIT_IDS.filter((id) => !CIRCUITS[id].catalogue?.variantOf).map(
+    (id) => CIRCUITS[id].short,
+  ),
 ) {
   const names = circuits.map((n) => n.charAt(0) + n.slice(1).toLowerCase());
   const list =
