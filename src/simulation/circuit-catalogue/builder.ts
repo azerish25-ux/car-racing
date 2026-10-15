@@ -403,14 +403,19 @@ function resample(dense: Dense, maxPoints = 480) {
 function smoothPeriodic(values: Float64Array, w: number) {
   const n = values.length;
   if (w < 1) return values;
+  w = Math.min(w, Math.floor((n - 1) / 2));
   let src = values;
   for (let pass = 0; pass < 2; pass++) {
     const out = new Float64Array(n);
     let sum = 0;
-    for (let k = -w; k <= w; k++) sum += src[mod(k, n)];
+    for (let k = -w; k <= w; k++) sum += src[(k + n) % n];
+    let add = w + 1,
+      remove = n - w;
     for (let i = 0; i < n; i++) {
       out[i] = sum / (2 * w + 1);
-      sum += src[mod(i + w + 1, n)] - src[mod(i - w, n)];
+      if (add >= n) add -= n;
+      if (remove >= n) remove -= n;
+      sum += src[add++] - src[remove++];
     }
     src = out;
   }
@@ -448,7 +453,7 @@ function findCrossings(
   height: (s: number) => number,
   L: number,
 ) {
-  const grid = new Map<string, number[]>(),
+  const grid = new Map<number, number[]>(),
     size = 40;
   for (let i = 0; i < TRACK_SAMPLES; i++) {
     const x0 = Math.floor(Math.min(sampled.x[i], sampled.x[i + 1]) / size),
@@ -457,7 +462,7 @@ function findCrossings(
       z1 = Math.floor(Math.max(sampled.z[i], sampled.z[i + 1]) / size);
     for (let gx = x0; gx <= x1; gx++)
       for (let gz = z0; gz <= z1; gz++) {
-        const key = `${gx},${gz}`,
+        const key = gx * 65536 + gz,
           list = grid.get(key);
         if (list) list.push(i);
         else grid.set(key, [i]);
@@ -535,9 +540,15 @@ export function defineCircuit(spec: CircuitSpec): CatalogueCircuit {
   if (scale !== 1) design = design.map(([x, z]) => [x * scale, z * scale]);
   // Centre the venue on the world origin: terrain, sea and shadow maps are
   // built around it.
-  const bx = [Math.min(...design.map((p) => p[0])), Math.max(...design.map((p) => p[0]))],
-    bz = [Math.min(...design.map((p) => p[1])), Math.max(...design.map((p) => p[1]))],
-    ox = Math.round((bx[0] + bx[1]) / 2),
+  const bx = [Infinity, -Infinity],
+    bz = [Infinity, -Infinity];
+  for (const [x, z] of design) {
+    bx[0] = Math.min(bx[0], x);
+    bx[1] = Math.max(bx[1], x);
+    bz[0] = Math.min(bz[0], z);
+    bz[1] = Math.max(bz[1], z);
+  }
+  const ox = Math.round((bx[0] + bx[1]) / 2),
     oz = Math.round((bz[0] + bz[1]) / 2);
   design = design.map(([x, z]) => [x - ox, z - oz]);
   const sampled = sampleControlPolygon(design),
@@ -576,42 +587,49 @@ export function defineCircuit(spec: CircuitSpec): CatalogueCircuit {
   // ---- per-metre property tables over lap distance ----
   const bins = Math.max(64, Math.ceil(L)),
     bin = L / bins;
-  const segAt = (s: number) => dense.segment[at(authored(s))];
+  // Forward authored dense index of every 1 m bin (one inverse map per bin).
+  const binDense = new Int32Array(bins);
+  for (let j = 0; j < bins; j++) binDense[j] = at(authored((j + 0.5) * bin));
   const elevation = new Float64Array(bins),
     width = new Float64Array(bins),
     bank = new Float64Array(bins);
-  // Elevation knots at segment ends (forward authored distance).
+  // Elevation knots at segment ends (forward authored distance), linearly
+  // interpolated on the dense 1 m grid in one sweep.
   const knots: [number, number][] = [[0, spec.y0 ?? 0]];
   raw.forEach((r, k) => {
     if (r.seg.y !== undefined) knots.push([dense.ends[k], r.seg.y]);
   });
   if (knots.at(-1)![0] < D - 1e-6) knots.push([D, spec.y0 ?? 0]);
-  const heightAt = (d: number) => {
-    let i = 0;
-    while (i < knots.length - 2 && knots[i + 1][0] <= d) i++;
-    const [d0, y0] = knots[i],
-      [d1, y1] = knots[i + 1];
-    return y0 + (y1 - y0) * clamp((d - d0) / (d1 - d0 || 1), 0, 1);
-  };
+  const denseHeight = new Float64Array(dense.count + 1),
+    denseStep = D / dense.count;
+  for (let i = 0, k = 0; i <= dense.count; i++) {
+    const d = i * denseStep;
+    while (k < knots.length - 2 && knots[k + 1][0] <= d) k++;
+    const [d0, y0] = knots[k],
+      [d1, y1] = knots[k + 1];
+    denseHeight[i] = y0 + (y1 - y0) * clamp((d - d0) / (d1 - d0 || 1), 0, 1);
+  }
   const crossFall = spec.crossFall ?? 0.012;
+  // Per segment: width and signed slope (positive raises the right edge, the
+  // outside of a left turn; reverse travel mirrors the hand of every corner).
+  const segmentWidth = raw.map((r) => r.seg.w ?? spec.halfWidth),
+    segmentBank = raw.map((r) => {
+      const hand = (r.hand || 1) * (reverse ? -1 : 1);
+      return r.seg.bank !== undefined ? hand * Math.tan(r.seg.bank * DEG) : hand * crossFall;
+    });
   for (let j = 0; j < bins; j++) {
-    const s = (j + 0.5) * bin,
-      d = authored(s),
-      r = raw[segAt(s)];
-    elevation[j] = heightAt(d);
-    width[j] = r.seg.w ?? spec.halfWidth;
-    // Signed slope: positive raises the right (+lateral) edge, the outside of
-    // a left turn. Reverse travel mirrors the hand of every corner.
-    const hand = (r.hand || 1) * (reverse ? -1 : 1),
-      degrees = r.seg.bank;
-    bank[j] = degrees !== undefined ? hand * Math.tan(degrees * DEG) : hand * crossFall;
+    const i = binDense[j],
+      k = dense.segment[i];
+    elevation[j] = denseHeight[i];
+    width[j] = segmentWidth[k];
+    bank[j] = segmentBank[k];
   }
   const smoothBins = (m: number) => Math.max(0, Math.round(m / bin));
   const E = smoothPeriodic(elevation, smoothBins(spec.elevationSmoothing ?? 60)),
     W = smoothPeriodic(width, smoothBins(30)),
     B = smoothPeriodic(bank, smoothBins(spec.bankSmoothing ?? 35));
-  // Reverse elevations come from the same forward knots (travel order).
-  const maxBank = Math.max(...B.map(Math.abs)) + 1e-6;
+  let maxBank = 1e-6;
+  for (let j = 0; j < bins; j++) maxBank = Math.max(maxBank, Math.abs(B[j]) + 1e-6);
   // ---- categorical per-side tables at 2 m ----
   const cell = 2,
     cells = Math.ceil(L / cell);
@@ -623,20 +641,17 @@ export function defineCircuit(spec: CircuitSpec): CatalogueCircuit {
     rock = [new Uint8Array(cells), new Uint8Array(cells)],
     drops = [new Uint8Array(cells), new Uint8Array(cells)],
     stands = [new Uint8Array(cells), new Uint8Array(cells)];
-  const sideIndex = (side: number) => (side > 0 ? 1 : 0);
-  // Physical side of travel: reversing swaps left and right.
-  const physical = (side: 1 | -1) => (reverse ? (-side as 1 | -1) : side);
   const defaults = {
     straight: spec.runoff?.straight ?? 'grass',
     outside: spec.runoff?.outside ?? 'gravel',
     inside: spec.runoff?.inside ?? 'grass',
   };
-  for (let c = 0; c < cells; c++) {
-    const s = (c + 0.5) * cell,
-      r = raw[segAt(Math.min(s, L - 1e-6))],
-      seg = r.seg;
+  // Resolve every segment's per-side properties once, indexed by the side of
+  // TRAVEL (reversing swaps left and right).
+  const perSegment = raw.map((r) => {
+    const seg = r.seg,
+      sides = [0, 1].map(() => ({ runoff: 0, offset: 0, kind: 0, flags: 0 }));
     for (const side of [-1, 1] as const) {
-      const p = sideIndex(physical(side));
       // Default run-off by geometry (gravel outside corners under 300 m).
       let kind: RunoffKind =
         r.kind === 'arc' && r.radius < 300
@@ -648,7 +663,6 @@ export function defineCircuit(spec: CircuitSpec): CatalogueCircuit {
       else if (seg.runoff)
         for (const [key, value] of Object.entries(seg.runoff) as [SideSpec, RunoffKind][])
           if (value && sidesOf(key, r.hand).includes(side)) kind = value;
-      runoff[p][c] = RUNOFF_CODE[kind];
       let offset = spec.barrier.offset,
         barrier: BarrierKind = spec.barrier.kind;
       const authoredBarriers = seg.barrier
@@ -661,14 +675,33 @@ export function defineCircuit(spec: CircuitSpec): CatalogueCircuit {
           offset = b.offset ?? offset;
           barrier = b.kind ?? barrier;
         }
-      barrierOffset[p][c] = offset;
-      barrierKind[p][c] = BARRIER_CODE[barrier];
-      if (sidesOf(seg.facades, r.hand).includes(side)) facades[p][c] = 1;
-      if (sidesOf(seg.rock, r.hand).includes(side)) rock[p][c] = 1;
-      if (sidesOf(seg.drop, r.hand).includes(side)) drops[p][c] = 1;
-      if (sidesOf(seg.stands, r.hand).includes(side)) stands[p][c] = 1;
+      const travelSide = reverse ? -side : side,
+        out = sides[travelSide > 0 ? 1 : 0];
+      out.runoff = RUNOFF_CODE[kind];
+      out.offset = offset;
+      out.kind = BARRIER_CODE[barrier];
+      out.flags =
+        (sidesOf(seg.facades, r.hand).includes(side) ? 1 : 0) |
+        (sidesOf(seg.rock, r.hand).includes(side) ? 2 : 0) |
+        (sidesOf(seg.drop, r.hand).includes(side) ? 4 : 0) |
+        (sidesOf(seg.stands, r.hand).includes(side) ? 8 : 0);
     }
-    if (seg.tunnel) covered[c] = 1;
+    return { sides, tunnel: !!seg.tunnel };
+  });
+  for (let c = 0; c < cells; c++) {
+    const j = Math.min(bins - 1, Math.floor(((c + 0.5) * cell) / bin)),
+      props = perSegment[dense.segment[binDense[j]]];
+    for (let p = 0; p < 2; p++) {
+      const side = props.sides[p];
+      runoff[p][c] = side.runoff;
+      barrierOffset[p][c] = side.offset;
+      barrierKind[p][c] = side.kind;
+      if (side.flags & 1) facades[p][c] = 1;
+      if (side.flags & 2) rock[p][c] = 1;
+      if (side.flags & 4) drops[p][c] = 1;
+      if (side.flags & 8) stands[p][c] = 1;
+    }
+    if (props.tunnel) covered[c] = 1;
   }
   // Walls close in gradually (30 m per 9 m of offset), never as a step.
   for (const table of barrierOffset)

@@ -64,7 +64,8 @@ describe('WP30 procedural venue kit', () => {
     }
   });
 
-  for (const id of ['riviera', 'neon-city', 'dockyard', 'alpine-pass', 'speedbowl'] as const)
+  // One venue per dressing family: street+tunnel, flyover+docks, mountain, oval.
+  for (const id of ['riviera', 'dockyard', 'alpine-pass', 'speedbowl'] as const)
     it(`dresses ${id} from its CircuitDefinition`, () => {
       const track = new Track('clear', false, undefined, CIRCUITS[id]);
       const circuit = new CircuitScene(track);

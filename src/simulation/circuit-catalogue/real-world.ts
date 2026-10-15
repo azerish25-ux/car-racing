@@ -174,7 +174,7 @@ const northfieldCommon = {
   winding: -1 as const,
   halfWidth: 7.6,
   elevationSmoothing: 100,
-  barrier: { kind: 'tyre' as const, offset: 11 },
+  barrier: { kind: 'armco' as const, offset: 11 },
   runoff: { straight: 'grass' as const, outside: 'asphalt' as const, inside: 'grass' as const },
 };
 /** Northfield: a fast former airfield perimeter with the infield arena loop. */

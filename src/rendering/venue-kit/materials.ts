@@ -103,7 +103,8 @@ export function venueKitMaterials(style: VenueThemeStyle) {
   const groundKind =
     style.ground === 'sand' ? 'gravel' : style.ground === 'grass' ? 'grass' : 'concrete';
   const ground = surfaceMaterial(groundKind, groundKind === 'concrete' ? 'concrete' : undefined);
-  ground.color.set(style.groundTint).multiplyScalar(style.ground === 'grass' ? 1.6 : 1.25);
+  // Grass keeps the circuit's original grass look; other grounds are tinted.
+  if (style.ground !== 'grass') ground.color.set(style.groundTint).multiplyScalar(1.25);
   if (groundKind === 'gravel') installGravelFinish(ground);
   const gravel = surfaceMaterial('gravel');
   installGravelFinish(gravel);

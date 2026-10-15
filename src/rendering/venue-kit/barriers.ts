@@ -33,6 +33,13 @@ const SAFER_SKIN: readonly (readonly [number, number])[] = [
   [-0.02, 1.05],
   [-0.02, 0.05],
 ];
+/** Conveyor belt bolted across the front of a tyre wall. */
+const BELT: readonly (readonly [number, number])[] = [
+  [-1.33, 0.05],
+  [-1.33, 0.95],
+  [-1.31, 0.95],
+  [-1.31, 0.05],
+];
 /** Canyon wall rising from the barrier line (heights jittered per row). */
 const ROCK_WALL: readonly (readonly [number, number])[] = [
   [-0.2, -0.1],
@@ -93,16 +100,16 @@ export function buildBarrierChunk(kit: VenueKitContext, from: number, to: number
         }
       }
       if (kind === 'tyre') {
-        // Two-deep tyre wall in front of the concrete, four tyres high.
+        // Two-deep wall of bolted tyre stacks (one instance per four-high
+        // stack) in front of the concrete, faced with a conveyor belt.
         for (let s = c0; s < c1; s += 0.64)
           for (const depth of [-0.38, -1.0]) {
             track.at(mod(s, L), p);
             const l = side * (track.boundaryAt(p, side) + depth);
-            for (let k = 0; k < 4; k++) {
-              const pos = venuePoint(track, s, l, 0.12 + k * 0.24, p);
-              tyres.push(mat.compose(pos, q.identity(), new T.Vector3(1, 1, 1)).clone());
-            }
+            const pos = venuePoint(track, s, l, 0.48, p);
+            tyres.push(mat.compose(pos, q.identity(), new T.Vector3(1, 1, 1)).clone());
           }
+        push(m.tyreBand, sweep(track, c0, c1, side, BELT, { step: 4 }));
       }
       if (kind === 'rock') push(m.rock, sweep(track, c0, c1, side, ROCK_WALL, { step: 3 }));
       // Catch fence over concrete, tyre and SAFER walls at speed and by stands.
@@ -181,7 +188,8 @@ let posts: T.BufferGeometry | null = null,
   tyre: T.BufferGeometry | null = null,
   fencePost: T.BufferGeometry | null = null;
 const postGeometry = () => (posts ??= new T.BoxGeometry(0.1, 1.05, 0.15));
-const tyreGeometry = () => (tyre ??= new T.TorusGeometry(0.24, 0.1, 6, 12).rotateX(Math.PI / 2));
+/** A stack of four tyres: grooved cylinder, 40 triangles. */
+const tyreGeometry = () => (tyre ??= new T.CylinderGeometry(0.31, 0.31, 0.96, 10, 4, false));
 const fencePostGeometry = () => (fencePost ??= new T.CylinderGeometry(0.05, 0.05, 3.6, 6));
 
 /** Barrier spans that cover lap distance `s` on `side` (diagnostics/tests). */
