@@ -32,6 +32,35 @@ export function aoNoiseOffset(index: number, out = new T.Vector2()) {
   const i = Math.max(0, Math.floor(index));
   return out.set(((i / g) % 1) * 64, ((i / (g * g)) % 1) * 64);
 }
+/** three's perspectiveDepthToViewZ (negative view-space z of a raw depth). */
+export function viewZFromDepth(depth: number, near: number, far: number) {
+  return (near * far) / ((far - near) * depth - far);
+}
+/**
+ * CPU reference of the static-world reprojection shared by TAA and temporal AO:
+ * the uv a pixel's surface occupied in the previous frame, from its current uv
+ * and raw depth, the current camera and the previous view-projection matrix.
+ * Returns null when the point was behind the previous camera.
+ */
+export function reprojectUv(
+  uv: T.Vector2,
+  depth: number,
+  camera: T.PerspectiveCamera,
+  previousViewProjection: T.Matrix4,
+  out = new T.Vector2(),
+) {
+  const z = viewZFromDepth(depth, camera.near, camera.far);
+  const e = camera.projectionMatrix.elements;
+  const world = new T.Vector4(
+    ((uv.x * 2 - 1) * -z) / e[0],
+    ((uv.y * 2 - 1) * -z) / e[5],
+    z,
+    1,
+  ).applyMatrix4(camera.matrixWorld);
+  const clip = world.applyMatrix4(previousViewProjection);
+  if (clip.w <= 1e-4) return null;
+  return out.set((clip.x / clip.w) * 0.5 + 0.5, (clip.y / clip.w) * 0.5 + 0.5);
+}
 /** CPU reference of the blend: history clamped to [lo, hi] then mixed. */
 export function accumulateAo(
   current: number,

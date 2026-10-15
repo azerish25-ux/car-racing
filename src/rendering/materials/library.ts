@@ -77,14 +77,14 @@ const WET_GLSL = /* glsl */ `
 float apexWetMask;
 float apexPuddle;
 {
-	float wet = apexSurfaceWetness * apexWetAmount;
+	float wet = clamp( apexSurfaceWetness * apexWetAmount, 0.0, 1.0 );
 	float noise = apexNoise( vApexWorld.xz * 0.35 ) * 0.65 + apexNoise( vApexWorld.xz * 1.3 ) * 0.35;
 	apexPuddle = wet > 0.25 ? smoothstep( 1.05 - wet * 0.75, 1.15 - wet * 0.75, noise ) * apexPuddleAmount : 0.0;
 	apexWetMask = max( smoothstep( 0.05, 0.6, wet ), apexPuddle );
 	diffuseColor.rgb *= 1.0 - 0.5 * apexPorosity * smoothstep( 0.0, 0.5, wet ) * ( 1.0 - apexPuddle * 0.3 );
 }`;
 const WET_ROUGHNESS = /* glsl */ `
-roughnessFactor = mix( roughnessFactor, min( roughnessFactor, 0.35 ), 0.7 * smoothstep( 0.05, 0.5, apexSurfaceWetness * apexWetAmount ) );`;
+roughnessFactor = mix( roughnessFactor, min( roughnessFactor, 0.35 ), 0.7 * smoothstep( 0.05, 0.5, clamp( apexSurfaceWetness * apexWetAmount, 0.0, 1.0 ) ) );`;
 const WET_COAT_NORMAL = /* glsl */ `
 #ifdef USE_CLEARCOAT
 if ( apexSurfaceRain > 0.001 && apexWetMask > 0.0 ) {
@@ -357,7 +357,7 @@ export interface ConcreteOptions {
 export function concrete(options: ConcreteOptions = {}) {
   const variant = options.variant ?? 'smooth';
   const recipe = `concrete-${variant}` as ProceduralRecipe;
-  const repeat = 1 / clamp(options.tile ?? 1.2, 0.05, 20);
+  const repeat = 1 / clamp(options.tile ?? 2.4, 0.05, 20);
   const material = new T.MeshPhysicalMaterial({
     name: `APEX library ${variant} concrete`,
     color: options.color ?? 0x8f8c86,
