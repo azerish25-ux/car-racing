@@ -35,7 +35,7 @@ test('reference depth: survey, focus and headquarters render without advancing t
   await page.locator('#photo-focusMode').selectOption('manual');
   await input(page, '#photo-focusDistance', '17');
   await expect.poll(async () => (await diag(page)).renderer!.photoFocus.focus).toBe(17);
-  expect((await diag(page)).renderer!.photoFocus.enabled).toBe(true);
+  expect((await diag(page)).renderer!.photoFocus).toMatchObject({ enabled: true, source: 'photo' });
   await page.locator('#photoBackdrop').selectOption('headquarters');
   await expect.poll(async () => (await diag(page)).renderer!.photo!.backdrop).toBe('headquarters');
   expect((await diag(page)).renderer!.geometrySurvey.active).toBe(false);
@@ -46,7 +46,10 @@ test('reference depth: survey, focus and headquarters render without advancing t
   });
   await page.keyboard.press('Escape');
   await expect(page.locator('#menu')).toBeVisible();
-  expect((await diag(page)).renderer!.photoFocus.enabled).toBe(false);
+  // Leaving photo mode releases its manual lens. The menu's own showroom lens
+  // (D29) may take the pass over on the next frame, so the pass is either off
+  // or owned by the subject lens, never still the photo lens.
+  expect((await diag(page)).renderer!.photoFocus.source).not.toBe('photo');
   expect((await diag(page)).renderer!.photo).toBeNull();
   expect((await diag(page)).frame).toEqual(original.frame);
   expect(errors).toEqual([]);
