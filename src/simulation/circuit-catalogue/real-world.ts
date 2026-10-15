@@ -5,7 +5,9 @@ import { A, S, compactPit, gpPit } from './dsl.ts';
  * sequence, straight lengths, radii and elevation where publicly known, scaled
  * to the published lap length. Names are neutral and original; no official
  * names, logos, branding or corner names are used (see ASSET_PROVENANCE.md).
- * These are not licensed reproductions. */
+ * These are not licensed reproductions. The permanent road courses (gravel
+ * outside the corners, barriers 11 m out) are assessed bike-safe; the
+ * harbour street circuit is not. */
 
 const parcoReale: CircuitSpec = {
   id: 'parco-reale',
@@ -18,6 +20,7 @@ const parcoReale: CircuitSpec = {
   description:
     'Temple of speed in a royal park: three chicanes break flat-out straights, the woodland pair and a long opening final curve.',
   theme: 'parkland',
+  bikeSafe: true,
   heading: 90,
   winding: -1,
   length: 5793,
@@ -85,6 +88,7 @@ const ardennes: CircuitSpec = {
   description:
     'Seven kilometres through Ardennes forest: the brook compression and ridge climb, a long uphill straight and a 100 m fall and rise.',
   theme: 'forest',
+  bikeSafe: true,
   heading: 70,
   winding: -1,
   length: 7004,
@@ -171,6 +175,7 @@ const northfieldCommon = {
   venue: 'northfield',
   venueName: 'Northfield Airfield GP',
   theme: 'airfield' as const,
+  bikeSafe: true,
   winding: -1 as const,
   halfWidth: 7.6,
   elevationSmoothing: 100,
@@ -277,6 +282,7 @@ const kansaiCommon = {
   venue: 'kansai',
   venueName: 'Kansai Figure-Eight',
   theme: 'hills' as const,
+  bikeSafe: true,
   halfWidth: 7.0,
   elevationSmoothing: 60,
   barrier: { kind: 'armco' as const, offset: 11 },
@@ -471,6 +477,7 @@ const texasHill: CircuitSpec = {
   description:
     'Anticlockwise: a steep climb to the hilltop hairpin, sweeping esses, a kilometre back straight and the stadium section.',
   theme: 'prairie',
+  bikeSafe: true,
   heading: 95,
   winding: 1,
   length: 5513,

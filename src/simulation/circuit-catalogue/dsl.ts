@@ -13,6 +13,43 @@ export const A = (
   props: Omit<Segment, 's' | 'r' | 'turn'> = {},
 ): Segment => ({ r: radius, turn, ...props });
 
+/** About `length` metres of road as a symmetric chain of bends (+angle,
+ * -2 angle, +angle, radius `r`) with short straights between: the heading and
+ * the line are the same at both ends, so a long country-road straight gains
+ * corners without disturbing the layout's closure. Elevation runs linearly
+ * from `from` to `to` (segment-end heights); `names` label the three bends. */
+export function bends(
+  length: number,
+  r: number,
+  angle: number,
+  from: number,
+  to: number,
+  names: readonly (string | undefined)[] = [],
+  props: Omit<Segment, 's' | 'r' | 'turn' | 'y' | 'name'> = {},
+): Segment[] {
+  const arc = (r * Math.abs(angle) * Math.PI) / 180,
+    rest = Math.max(40, length - 4 * arc),
+    pieces: [number, number?][] = [
+      [rest * 0.3],
+      [arc, angle],
+      [rest * 0.2],
+      [2 * arc, -2 * angle],
+      [rest * 0.2],
+      [arc, angle],
+      [rest * 0.3],
+    ],
+    total = pieces.reduce((a, [l]) => a + l, 0);
+  let travelled = 0,
+    bend = 0;
+  return pieces.map(([l, turn]) => {
+    travelled += l;
+    const y = Math.round((from + ((to - from) * travelled) / total) * 10) / 10;
+    if (turn === undefined) return S(Math.round(l), { ...props, y });
+    const name = names[bend++];
+    return A(r, turn, { ...props, y, ...(name ? { name } : {}) });
+  });
+}
+
 /** The validated grand-prix paddock template (circuits.ts STANDARD_PIT): the
  * straight must run from 220 m before the line to 330 m after it. Grid slots
  * keep the standard spacing so painted boxes and launch rubber agree. */

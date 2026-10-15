@@ -1,4 +1,4 @@
-import { CIRCUIT_IDS, type CircuitId } from './circuits.ts';
+import { CIRCUIT_IDS, circuitDefinition, type CircuitId } from './circuits.ts';
 import type { Assist, Compound, SessionOptions, WeatherPreset } from './config.ts';
 import { VEHICLES, type VehicleClass } from './vehicles.ts';
 import { CATALOGUE_EVENTS as CIRCUIT_EVENTS } from './circuit-catalogue/events.ts';
@@ -34,6 +34,8 @@ export interface RulesetDefinition {
   singleClass?: boolean;
   /** 'per-class': classes share the road but are classified within class. */
   classScoring?: 'overall' | 'per-class';
+  /** Runs only on circuits assessed bike-safe (`CircuitDefinition.bikeSafe`). */
+  bikeSafeCircuits?: boolean;
 }
 const DRY: readonly Compound[] = Object.freeze(['soft', 'medium', 'hard']);
 const ALL: readonly Compound[] = Object.freeze([...DRY, 'intermediate', 'wet']);
@@ -119,6 +121,7 @@ export const RULESETS: Readonly<Record<string, RulesetDefinition>> = Object.free
     }),
     points: Object.freeze([25, 20, 16, 13, 11, 10, 9, 8, 7, 6, 5, 4]),
     drs: false,
+    bikeSafeCircuits: true,
   }),
   /** Single-class motorcycle sprints for the supersport and classic classes. */
   'motorcycle-class-sprint': Object.freeze({
@@ -135,6 +138,7 @@ export const RULESETS: Readonly<Record<string, RulesetDefinition>> = Object.free
     points: Object.freeze([25, 20, 16, 13, 11, 10, 9, 8, 7, 6, 5, 4]),
     drs: false,
     singleClass: true,
+    bikeSafeCircuits: true,
   }),
   'open-practice': Object.freeze({
     ...base,
@@ -195,6 +199,10 @@ export function sessionIncompatibilities(options: SessionOptions): string[] {
     vehicles.filter((id) => VEHICLES[id]).map((id) => vehicleFamily(VEHICLES[id])),
   );
   if (families.size > 1) errors.push('Cars and motorcycles cannot share a grid');
+  if (rules.bikeSafeCircuits && !circuitDefinition(options.circuit).bikeSafe)
+    errors.push(
+      `${rules.name} needs a bike-safe circuit; ${circuitDefinition(options.circuit).name} is not`,
+    );
   if (rules.singleClass && new Set(vehicles.map((id) => VEHICLES[id]?.classId)).size > 1)
     errors.push(`${rules.name} runs single-class grids`);
   if (!options.vehicles && !rules.allowedClasses.includes('formula'))

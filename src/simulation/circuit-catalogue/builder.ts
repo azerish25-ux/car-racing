@@ -48,6 +48,8 @@ export interface Segment {
   stands?: SideSpec;
   /** Part of a DRS straight (consecutive flagged segments merge). */
   drs?: boolean;
+  /** Portal crane gantries span the road along the segment (visual only). */
+  gantry?: boolean;
 }
 export interface CircuitSpec {
   id: CatalogueCircuitId;
@@ -60,6 +62,12 @@ export interface CircuitSpec {
   description: string;
   theme: VenueTheme;
   night?: boolean;
+  /** Lit for day-to-night running (endurance venues). */
+  dayNight?: boolean;
+  /** Assessed safe for motorcycles; validate:content re-measures it. */
+  bikeSafe?: boolean;
+  /** Fictional trackside signage (the theme's default otherwise). */
+  signage?: string;
   seaLevel?: number | null;
   /** Initial heading (degrees, mathematical: 0 = +x east, 90 = +z north). */
   heading?: number;
@@ -93,6 +101,13 @@ export type CatalogueCircuit = CircuitDefinition & {
 const DEG = Math.PI / 180;
 /** Track's own sampling (track.ts): samples per lap and the spline. */
 const TRACK_SAMPLES = 1536;
+/** Laps authored longer than this get more Track samples and control points
+ * (every wave-1 layout is shorter, so its construction is unchanged). */
+const LONG_LAP = 9000;
+/** Track samples for a lap of `length` metres (about 4.5 m apart when long). */
+export function trackSamplesFor(length: number) {
+  return length > LONG_LAP ? Math.ceil(length / 4.5 / 256) * 256 : TRACK_SAMPLES;
+}
 const catmull = (a: number, b: number, c: number, d: number, t: number) =>
   0.5 *
   (2 * b +
@@ -100,17 +115,23 @@ const catmull = (a: number, b: number, c: number, d: number, t: number) =>
     (2 * a - 5 * b + 4 * c - d) * t * t +
     (-a + 3 * b - 3 * c + d) * t * t * t);
 /** Lap length exactly as Track computes it from a control polygon. */
-export function controlPolygonLength(design: readonly (readonly [number, number])[]) {
-  return sampleControlPolygon(design).length;
+export function controlPolygonLength(
+  design: readonly (readonly [number, number])[],
+  samples = TRACK_SAMPLES,
+) {
+  return sampleControlPolygon(design, samples).length;
 }
-function sampleControlPolygon(design: readonly (readonly [number, number])[]) {
+function sampleControlPolygon(
+  design: readonly (readonly [number, number])[],
+  samples = TRACK_SAMPLES,
+) {
   const n = design.length,
-    x = new Float64Array(TRACK_SAMPLES + 1),
-    z = new Float64Array(TRACK_SAMPLES + 1),
-    s = new Float64Array(TRACK_SAMPLES + 1);
+    x = new Float64Array(samples + 1),
+    z = new Float64Array(samples + 1),
+    s = new Float64Array(samples + 1);
   let distance = 0;
-  for (let i = 0; i <= TRACK_SAMPLES; i++) {
-    const t = (i / TRACK_SAMPLES) * n,
+  for (let i = 0; i <= samples; i++) {
+    const t = (i / samples) * n,
       k = Math.floor(t),
       f = t - k;
     const a = design[mod(k - 1, n)],
@@ -122,7 +143,7 @@ function sampleControlPolygon(design: readonly (readonly [number, number])[]) {
     if (i) distance += Math.hypot(x[i] - x[i - 1], z[i] - z[i - 1]);
     s[i] = distance;
   }
-  return { x, z, s, length: distance };
+  return { x, z, s, length: distance, samples };
 }
 
 interface Resolved {
@@ -454,8 +475,9 @@ function findCrossings(
   L: number,
 ) {
   const grid = new Map<number, number[]>(),
-    size = 40;
-  for (let i = 0; i < TRACK_SAMPLES; i++) {
+    size = 40,
+    samples = sampled.samples;
+  for (let i = 0; i < samples; i++) {
     const x0 = Math.floor(Math.min(sampled.x[i], sampled.x[i + 1]) / size),
       x1 = Math.floor(Math.max(sampled.x[i], sampled.x[i + 1]) / size),
       z0 = Math.floor(Math.min(sampled.z[i], sampled.z[i + 1]) / size),
@@ -475,7 +497,7 @@ function findCrossings(
       for (let b = a + 1; b < list.length; b++) {
         const i = Math.min(list[a], list[b]),
           j = Math.max(list[a], list[b]),
-          key = i * TRACK_SAMPLES + j;
+          key = i * samples + j;
         if (seen.has(key)) continue;
         seen.add(key);
         const ds = Math.abs(sampled.s[j] - sampled.s[i]);
@@ -533,9 +555,12 @@ export function defineCircuit(spec: CircuitSpec): CatalogueCircuit {
     ordered.z[i] = dense.z[j];
     ordered.radius[i] = dense.radius[j];
   }
-  let { design, distance } = resample(ordered);
+  const target = spec.length ?? D,
+    long = target > LONG_LAP,
+    samples = trackSamplesFor(target);
+  let { design, distance } = resample(ordered, long ? Math.ceil(target / 12) : 480);
   // Scale to the reference length: Catmull-Rom length scales linearly.
-  const authoredLength = controlPolygonLength(design);
+  const authoredLength = controlPolygonLength(design, samples);
   const scale = spec.length ? spec.length / authoredLength : 1;
   if (scale !== 1) design = design.map(([x, z]) => [x * scale, z * scale]);
   // Centre the venue on the world origin: terrain, sea and shadow maps are
@@ -551,15 +576,15 @@ export function defineCircuit(spec: CircuitSpec): CatalogueCircuit {
   const ox = Math.round((bx[0] + bx[1]) / 2),
     oz = Math.round((bz[0] + bz[1]) / 2);
   design = design.map(([x, z]) => [x - ox, z - oz]);
-  const sampled = sampleControlPolygon(design),
+  const sampled = sampleControlPolygon(design, samples),
     L = sampled.length,
     n = design.length;
   distance = distance.map((d) => d * scale);
   const Ds = D * scale;
   // Travel distance (scaled authored metres) at each Track sample, through t.
-  const sampleD = new Float64Array(TRACK_SAMPLES + 1);
-  for (let i = 0; i <= TRACK_SAMPLES; i++) {
-    const t = (i / TRACK_SAMPLES) * n,
+  const sampleD = new Float64Array(samples + 1);
+  for (let i = 0; i <= samples; i++) {
+    const t = (i / samples) * n,
       k = Math.min(n - 1, Math.floor(t)),
       f = t - k,
       a = distance[k],
@@ -640,7 +665,8 @@ export function defineCircuit(spec: CircuitSpec): CatalogueCircuit {
     facades = [new Uint8Array(cells), new Uint8Array(cells)],
     rock = [new Uint8Array(cells), new Uint8Array(cells)],
     drops = [new Uint8Array(cells), new Uint8Array(cells)],
-    stands = [new Uint8Array(cells), new Uint8Array(cells)];
+    stands = [new Uint8Array(cells), new Uint8Array(cells)],
+    gantries = new Uint8Array(cells);
   const defaults = {
     straight: spec.runoff?.straight ?? 'grass',
     outside: spec.runoff?.outside ?? 'gravel',
@@ -686,7 +712,7 @@ export function defineCircuit(spec: CircuitSpec): CatalogueCircuit {
         (sidesOf(seg.drop, r.hand).includes(side) ? 4 : 0) |
         (sidesOf(seg.stands, r.hand).includes(side) ? 8 : 0);
     }
-    return { sides, tunnel: !!seg.tunnel };
+    return { sides, tunnel: !!seg.tunnel, gantry: !!seg.gantry };
   });
   for (let c = 0; c < cells; c++) {
     const j = Math.min(bins - 1, Math.floor(((c + 0.5) * cell) / bin)),
@@ -702,6 +728,7 @@ export function defineCircuit(spec: CircuitSpec): CatalogueCircuit {
       if (side.flags & 8) stands[p][c] = 1;
     }
     if (props.tunnel) covered[c] = 1;
+    if (props.gantry) gantries[c] = 1;
   }
   // Walls close in gradually (30 m per 9 m of offset), never as a step.
   for (const table of barrierOffset)
@@ -777,6 +804,9 @@ export function defineCircuit(spec: CircuitSpec): CatalogueCircuit {
     length: L,
     theme: spec.theme,
     night: !!spec.night,
+    dayNight: !!spec.dayNight,
+    bikeSafe: !!spec.bikeSafe,
+    ...(spec.signage ? { signage: spec.signage } : {}),
     ...(spec.referenceLength ? { referenceLength: spec.referenceLength } : {}),
     ...(spec.variantOf ? { variantOf: spec.variantOf } : {}),
     seaLevel: spec.seaLevel ?? null,
@@ -788,6 +818,7 @@ export function defineCircuit(spec: CircuitSpec): CatalogueCircuit {
       drops: Object.freeze(segmentSpans(drops) as VenueSpan[]),
       stands: Object.freeze(standSpans),
       crossings: Object.freeze(crossings),
+      gantries: Object.freeze(spans(gantries, cell, L) as LapSpan[]),
     }),
     authoring: Object.freeze({
       authoredLength: D,
@@ -820,5 +851,7 @@ export function defineCircuit(spec: CircuitSpec): CatalogueCircuit {
     barrier: (s: number, side: number) => offsets[side > 0 ? 1 : 0][cellOf(s)],
     covered: (s: number) => covered[cellOf(s)] === 1,
     catalogue: meta,
+    bikeSafe: !!spec.bikeSafe,
+    ...(samples !== TRACK_SAMPLES ? { samples } : {}),
   }) as CatalogueCircuit;
 }

@@ -25,6 +25,27 @@ export const CATALOGUE_CIRCUIT_IDS = Object.freeze([
   'coastal-cliff-reverse',
   'dockyard',
   'dockyard-reverse',
+  // Wave 2 (appended; menu order within each group follows this list).
+  'poggio-alto',
+  'cape-wrenna',
+  'haarveld',
+  'montejaral',
+  'hochwald',
+  'loirette',
+  'loirette-club',
+  'serra-verde',
+  'mount-ardlow',
+  'arroyo-oro',
+  'fiume-verde',
+  'duinwijk',
+  'ramla-night',
+  'ramla-outer',
+  'mirvari',
+  'lantern-bay',
+  'lotus-hill',
+  'gantry-point',
+  'gantry-point-reverse',
+  'salt-flat',
 ] as const);
 export type CatalogueCircuitId = (typeof CATALOGUE_CIRCUIT_IDS)[number];
 
@@ -54,7 +75,20 @@ export type VenueTheme =
   | 'oval'
   | 'desert'
   | 'coastal-cliff'
-  | 'dockyard';
+  | 'dockyard'
+  // Wave 2.
+  | 'tuscan-hills'
+  | 'island-coast'
+  | 'heath'
+  | 'sierra'
+  | 'urban-bowl'
+  | 'highland'
+  | 'golden-hills'
+  | 'dunes'
+  | 'night-desert'
+  | 'caspian-city'
+  | 'bay-city'
+  | 'salt-flat';
 
 /** A lap-distance span on one side (+1 right of travel, -1 left). `from` may
  * exceed `to` when the span wraps through the start line. */
@@ -93,6 +127,9 @@ export interface CatalogueDressing {
   /** Authored spectator stands (length in m). */
   readonly stands: readonly (VenueSpan & { readonly length: number })[];
   readonly crossings: readonly RouteCrossing[];
+  /** Portal crane gantries spanning the road (container terminals); visual
+   * only, legs stand beyond both barriers. */
+  readonly gantries: readonly LapSpan[];
 }
 export interface CatalogueMeta {
   readonly group: CatalogueGroup;
@@ -106,6 +143,16 @@ export interface CatalogueMeta {
   readonly theme: VenueTheme;
   /** Floodlit night venue: emissive facades, light towers. */
   readonly night: boolean;
+  /** Lit along the whole lap for racing through day and night (endurance):
+   * light towers are built, but the venue opens in daylight. */
+  readonly dayNight: boolean;
+  /** Assessed for motorcycles: every corner has gravel or asphalt run-off
+   * and a distant barrier, kerbs are the low flat profile, no walls, tunnels
+   * or street frontage (`bikeSafetyReport`, re-checked by validate:content).
+   * The bike career and the motorcycle race rulesets use only these. */
+  readonly bikeSafe: boolean;
+  /** Fictional trackside signage text; the theme's default when absent. */
+  readonly signage?: string;
   /** Real-world reference length (m) the layout was scaled to, when it is an
    * approximation of public geometry. */
   readonly referenceLength?: number;

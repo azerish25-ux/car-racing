@@ -79,6 +79,33 @@ official circuit, corner or event name would require a licence; until then the
 layouts remain approximations under original names. The six unconventional
 venues are original designs.
 
+**Catalogue wave 2** adds twenty layouts at seventeen venues under the same
+rules. Fifteen venues (seventeen layouts) are approximations of famous
+circuits from public geometry, described only by character — Tuscan-hills,
+island cliff-top, Dutch "cathedral" and Andalusian motorcycle grand-prix
+circuits; a forest ring and a public-road endurance circuit (with its
+permanent club circuit); a city-bowl, a mountain, a coastal-hills, an Italian
+river-park, a Dutch dunes, a desert night (with its outer loop), a Caspian
+boulevard street, a bay night street and a harbour-hill street circuit. They
+are hand-authored turtle paths scaled to each published lap length, laid out
+from general public knowledge of the corner sequence, direction, straight
+lengths and elevation character; no map, survey, satellite image or
+third-party geometry was traced, copied or fetched. All venue, layout and
+corner names are original ("Poggio Alto Autodromo", "Cape Wrenna Island
+Circuit", "Haarveld Circuit", "Montejaral Circuit", "Hochwald Forest Ring",
+"Loirette Endurance Circuit", "Serra Verde Autódromo", "Mount Ardlow
+Circuit", "Arroyo Oro Raceway", "Autodromo Fiume Verde", "Duinwijk Circuit",
+"Ramla Desert Circuit", "Mirvari Boulevard Street Circuit", "Lantern Bay
+Street Circuit", "Lotus Hill Harbour Circuit"); the protected-name list in
+`content-validation.ts` was extended with the reference circuits, their
+corner names and associated series and brands, so none can enter catalogue
+copy. Licence status: **unlicensed approximations** — official circuit,
+corner, event or series names, logos, liveries and signage would each need a
+licence and none is used. The two unconventional venues ("Gantry Point
+Container Terminal", "Bright Basin Salt Flat Airbase") are original designs;
+their portal cranes, containers and hangar frontage are procedural geometry
+built at runtime by the venue kit. Trackside signage text is fictional.
+
 The procedural venue kit (`src/rendering/venue-kit/`) generates all of its
 geometry and textures at runtime: rock strata and normals from value noise,
 facade windows drawn on canvases, braking-board numerals in system fonts.

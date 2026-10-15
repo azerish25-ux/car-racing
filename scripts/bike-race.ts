@@ -1,4 +1,5 @@
-// Seeded AI motorcycle races (WP35): eight AI riders on each circuit, the
+// Seeded AI motorcycle races (WP35): eight AI riders on each circuit (bike-safe
+// circuits only: the motorcycle rulesets reject any other), the
 // production simulation at 120 Hz. Asserts every rider is classified, no
 // rider is ever parked for long, and incidents stay bounded. Writes
 // docs/bike-race.json; exits 1 when an assertion fails.
@@ -35,6 +36,19 @@ const races: Partial<SessionOptions>[] = [
     circuit: 'vellamar',
     vehicles: Array(8).fill('cr750'),
     seed: 8826,
+    ruleset: 'motorcycle-class-sprint',
+  },
+  // Catalogue wave 2: the motorcycle grand-prix circuits (bike-safe: gravel
+  // run-off, distant barriers, flat kerbs).
+  {
+    circuit: 'poggio-alto',
+    vehicles: Array.from({ length: 8 }, (_, i) => (i % 2 ? 'gpr2' : 'gpr1')),
+    seed: 30101,
+  },
+  {
+    circuit: 'montejaral',
+    vehicles: Array(8).fill('ss600'),
+    seed: 30103,
     ruleset: 'motorcycle-class-sprint',
   },
 ];

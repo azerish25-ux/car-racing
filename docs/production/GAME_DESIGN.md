@@ -165,9 +165,9 @@ Off-road: course cutting by route progress (RouteProgress), jump-landing contact
 
 | Group | Content | Purpose |
 |---|---|---|
-| Real-world-faithful | layouts approximating famous circuits from public geometry, neutral names until licensed | familiarity, benchmark comparisons |
+| Real-world-faithful | layouts approximating famous circuits from public geometry, neutral names until licensed: grand-prix circuits, motorcycle GP circuits (bike-safe), endurance mega-circuits (20.8 km forest ring, 13.6 km public-road circuit), street and night circuits | familiarity, benchmark comparisons |
 | Original circuits | Aurel, Vellamar and new originals | identity, art-direction showcases |
-| Unconventional | neon city with tunnels, alpine pass, high-banked oval, desert canyon, coastal cliffs, dockyard overpass | spectacle, new racing problems |
+| Unconventional | neon city with tunnels, alpine pass, high-banked oval, desert canyon, coastal cliffs, dockyard overpass, container-port night figure-eight, salt-flat airbase | spectacle, new racing problems |
 | Off-road | motocross terrain parks, rallycross mixed surface, rally stages | discipline-specific skills |
 | Festival region | open terrain with a road network, towns, mountain, coast, airfield | exploration and event discovery |
 

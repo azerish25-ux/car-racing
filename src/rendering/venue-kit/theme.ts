@@ -24,6 +24,14 @@ export interface VenueThemeStyle {
   stands: number;
   /** Floodlight towers along the lap (always lit at night venues). */
   lightTowers: boolean;
+  /** Street lamps both sides every 36 m instead of floodlight towers. */
+  streetLamps?: boolean;
+  /** High-rise frontage with neon blades instead of 3-7 storey blocks. */
+  tallFacades?: boolean;
+  /** Drops beside the road are sea cliffs (rock, a 55 m fall), not quays. */
+  cliffs?: boolean;
+  /** Dry desert scrub and more boulders. */
+  desertScrub?: boolean;
 }
 
 const BROADLEAF: readonly PlantingZoneSpec[] = Object.freeze([
@@ -39,6 +47,27 @@ const MEDITERRANEAN: readonly PlantingZoneSpec[] = Object.freeze([
   { endFraction: 0.4, canopyRatio: 1.13, species: 'umbrella-pine' },
   { endFraction: 0.7, canopyRatio: 1.0, species: 'olive' },
   { endFraction: 1, canopyRatio: 0.64, species: 'cypress' },
+]);
+/** Tuscan hillsides: cypress rows over olive groves. */
+const TUSCAN: readonly PlantingZoneSpec[] = Object.freeze([
+  { endFraction: 0.35, canopyRatio: 0.64, species: 'cypress' },
+  { endFraction: 0.75, canopyRatio: 1.0, species: 'olive' },
+  { endFraction: 1, canopyRatio: 1.13, species: 'umbrella-pine' },
+]);
+/** Wind-cut coastal planting: low spreading crowns and upright shelter belts. */
+const WINDSWEPT: readonly PlantingZoneSpec[] = Object.freeze([
+  { endFraction: 0.6, canopyRatio: 1.0, species: 'spreading' },
+  { endFraction: 1, canopyRatio: 0.64, species: 'upright' },
+]);
+/** Dry oak savanna. */
+const SAVANNA: readonly PlantingZoneSpec[] = Object.freeze([
+  { endFraction: 0.7, canopyRatio: 1.0, species: 'spreading' },
+  { endFraction: 1, canopyRatio: 0.84, species: 'broadleaf' },
+]);
+/** Dune pines. */
+const DUNE_PINES: readonly PlantingZoneSpec[] = Object.freeze([
+  { endFraction: 0.6, canopyRatio: 1.13, species: 'umbrella-pine' },
+  { endFraction: 1, canopyRatio: 0.64, species: 'upright' },
 ]);
 
 export const VENUE_THEMES: Readonly<Record<VenueTheme, VenueThemeStyle>> = Object.freeze({
@@ -132,6 +161,8 @@ export const VENUE_THEMES: Readonly<Record<VenueTheme, VenueThemeStyle>> = Objec
     sponsor: 'NEON / CITY',
     stands: 5,
     lightTowers: true,
+    streetLamps: true,
+    tallFacades: true,
   },
   alpine: {
     ground: 'grass',
@@ -171,6 +202,7 @@ export const VENUE_THEMES: Readonly<Record<VenueTheme, VenueThemeStyle>> = Objec
     sponsor: 'RED MESA',
     stands: 5,
     lightTowers: false,
+    desertScrub: true,
   },
   'coastal-cliff': {
     ground: 'grass',
@@ -184,6 +216,7 @@ export const VENUE_THEMES: Readonly<Record<VenueTheme, VenueThemeStyle>> = Objec
     sponsor: 'CAP LUMIÈRE',
     stands: 5,
     lightTowers: false,
+    cliffs: true,
   },
   dockyard: {
     ground: 'concrete',
@@ -197,5 +230,166 @@ export const VENUE_THEMES: Readonly<Record<VenueTheme, VenueThemeStyle>> = Objec
     sponsor: 'IRON QUAY',
     stands: 4,
     lightTowers: true,
+  },
+  // Wave 2 (catalogue growth).
+  'tuscan-hills': {
+    ground: 'grass',
+    groundTint: 0x667a3a,
+    landform: 'hills',
+    relief: 45,
+    planting: TUSCAN,
+    forestBelts: true,
+    scrub: 0,
+    rockTint: 0xa08e70,
+    sponsor: 'POGGIO ALTO',
+    stands: 6,
+    lightTowers: false,
+  },
+  'island-coast': {
+    ground: 'grass',
+    groundTint: 0x6b8146,
+    landform: 'coast',
+    relief: 25,
+    planting: WINDSWEPT,
+    forestBelts: false,
+    scrub: 180,
+    rockTint: 0x8f8778,
+    sponsor: 'CAPE WRENNA',
+    stands: 5,
+    lightTowers: false,
+    cliffs: true,
+  },
+  heath: {
+    ground: 'grass',
+    groundTint: 0x5d7a3a,
+    landform: 'flat',
+    relief: 2,
+    planting: BROADLEAF,
+    forestBelts: true,
+    scrub: 0,
+    rockTint: 0x8a8578,
+    sponsor: 'HAARVELD',
+    stands: 8,
+    lightTowers: false,
+  },
+  sierra: {
+    ground: 'grass',
+    groundTint: 0x8a8448,
+    landform: 'rolling',
+    relief: 14,
+    planting: MEDITERRANEAN,
+    forestBelts: false,
+    scrub: 160,
+    rockTint: 0xb4a07c,
+    sponsor: 'MONTEJARAL',
+    stands: 7,
+    lightTowers: false,
+  },
+  'urban-bowl': {
+    ground: 'grass',
+    groundTint: 0x5b7d38,
+    landform: 'hills',
+    relief: 30,
+    planting: BROADLEAF,
+    forestBelts: false,
+    scrub: 0,
+    rockTint: 0x9a7b62,
+    sponsor: 'SERRA VERDE',
+    stands: 7,
+    lightTowers: false,
+  },
+  highland: {
+    ground: 'grass',
+    groundTint: 0x77804a,
+    landform: 'hills',
+    relief: 70,
+    planting: SAVANNA,
+    forestBelts: true,
+    scrub: 140,
+    rockTint: 0x9c8c74,
+    sponsor: 'MOUNT ARDLOW',
+    stands: 5,
+    lightTowers: false,
+  },
+  'golden-hills': {
+    ground: 'grass',
+    groundTint: 0xa08c4e,
+    landform: 'hills',
+    relief: 55,
+    planting: SAVANNA,
+    forestBelts: false,
+    scrub: 220,
+    rockTint: 0xb39a72,
+    sponsor: 'ARROYO ORO',
+    stands: 5,
+    lightTowers: false,
+  },
+  dunes: {
+    ground: 'sand',
+    groundTint: 0xd8c08e,
+    landform: 'rolling',
+    relief: 16,
+    planting: DUNE_PINES,
+    forestBelts: false,
+    scrub: 260,
+    rockTint: 0xb8a684,
+    sponsor: 'DUINWIJK',
+    stands: 7,
+    lightTowers: false,
+  },
+  'night-desert': {
+    ground: 'sand',
+    groundTint: 0xc9a777,
+    landform: 'flat',
+    relief: 3,
+    planting: null,
+    forestBelts: false,
+    scrub: 160,
+    rockTint: 0xb08a62,
+    sponsor: 'RAMLA',
+    stands: 6,
+    lightTowers: true,
+    desertScrub: true,
+  },
+  'caspian-city': {
+    ground: 'pavement',
+    groundTint: 0xa29a8a,
+    landform: 'coast',
+    relief: 20,
+    planting: MEDITERRANEAN,
+    forestBelts: false,
+    scrub: 0,
+    rockTint: 0xc2ad86,
+    sponsor: 'MIRVARI',
+    stands: 5,
+    lightTowers: false,
+  },
+  'bay-city': {
+    ground: 'pavement',
+    groundTint: 0x74726c,
+    landform: 'flat',
+    relief: 0,
+    planting: BROADLEAF,
+    forestBelts: false,
+    scrub: 0,
+    rockTint: 0x74726c,
+    sponsor: 'LANTERN BAY',
+    stands: 6,
+    lightTowers: true,
+    streetLamps: true,
+    tallFacades: true,
+  },
+  'salt-flat': {
+    ground: 'sand',
+    groundTint: 0xe6e1d6,
+    landform: 'flat',
+    relief: 0.5,
+    planting: null,
+    forestBelts: false,
+    scrub: 0,
+    rockTint: 0xcfc8ba,
+    sponsor: 'BRIGHT BASIN',
+    stands: 4,
+    lightTowers: false,
   },
 });

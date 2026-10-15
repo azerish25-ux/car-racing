@@ -1,5 +1,5 @@
 import { CIRCUITS, STANDARD_PIT, type CircuitDefinition } from './circuits.ts';
-import { trackGeometryReport } from './circuit-catalogue/geometry-checks.ts';
+import { bikeSafetyReport, trackGeometryReport } from './circuit-catalogue/geometry-checks.ts';
 import { Track } from './track.ts';
 import { DEFAULT_OPTIONS, SETUP_LIMITS } from './config.ts';
 import { EVENTS, RULESETS, eventSession } from './events.ts';
@@ -162,7 +162,13 @@ function validateCatalogueFields(def: VehicleDefinition): string[] {
 export function validateCircuitDefinition(def: CircuitDefinition): string[] {
   const e: string[] = [],
     at = `circuit ${def.id}${def.short ? ` (${def.short})` : ''}`;
-  if (def.design.length < 8 || def.design.length > 512) e.push(`${at}: 8-512 control points`);
+  // Long laps (more Track samples) may carry up to 2048 control points, at
+  // least three samples per point so the spline is never skipped.
+  const maxPoints = def.samples ? Math.min(2048, Math.floor(def.samples / 3)) : 512;
+  if (def.design.length < 8 || def.design.length > maxPoints)
+    e.push(`${at}: 8-${maxPoints} control points`);
+  if (def.samples !== undefined && !(Number.isInteger(def.samples) && def.samples >= 1536))
+    e.push(`${at}: samples must be an integer of at least 1536`);
   def.design.forEach(([x, z], i) => {
     if (!finite(x) || !finite(z) || Math.abs(x) > 1e5 || Math.abs(z) > 1e5)
       e.push(`${at}: control point ${i} is not finite/in range`);
@@ -241,6 +247,102 @@ export const PROTECTED_NAMES = Object.freeze([
   'sainte devote',
   'casino',
   'mirabeau',
+  // Wave 2 references (circuits, corners, series and brands near them).
+  'mugello',
+  'arrabbiata',
+  'casanova',
+  'savelli',
+  'correntaio',
+  'biondetti',
+  'bucine',
+  'scarperia',
+  'materassi',
+  'phillip island',
+  'doohan',
+  'stoner',
+  'lukey heights',
+  'gardner',
+  'southern loop',
+  'assen',
+  'de strubben',
+  'ruskenhoek',
+  'stekkenwal',
+  'mandeveen',
+  'duikersloot',
+  'meeuwenmeer',
+  'ramshoek',
+  'geert timmer',
+  'jerez',
+  'angel nieto',
+  'dry sack',
+  'sito pons',
+  'nurburgring',
+  'nürburgring',
+  'nordschleife',
+  'green hell',
+  'karussell',
+  'flugplatz',
+  'fuchsröhre',
+  'adenauer forst',
+  'bergwerk',
+  'kesselchen',
+  'brünnchen',
+  'pflanzgarten',
+  'schwalbenschwanz',
+  'döttinger höhe',
+  'hatzenbach',
+  'quiddelbacher',
+  'wehrseifen',
+  'breidscheid',
+  'le mans',
+  'sarthe',
+  'mulsanne',
+  'hunaudières',
+  'hunaudieres',
+  'tertre rouge',
+  'arnage',
+  'bugatti',
+  'interlagos',
+  'senna',
+  'descida do lago',
+  'ferradura',
+  'pinheirinho',
+  'bico de pato',
+  'bathurst',
+  'mount panorama',
+  'conrod',
+  'mcphillamy',
+  'forrest',
+  'hell corner',
+  'griffins',
+  'laguna seca',
+  'corkscrew',
+  'andretti',
+  'rainey',
+  'imola',
+  'tamburello',
+  'villeneuve',
+  'tosa',
+  'piratella',
+  'acque minerali',
+  'rivazza',
+  'zandvoort',
+  'tarzan',
+  'hugenholtz',
+  'scheivlak',
+  'luyendyk',
+  'bahrain',
+  'sakhir',
+  'baku',
+  'azerbaijan',
+  'singapore',
+  'marina bay',
+  'macau',
+  'macao',
+  'guia',
+  'lisboa',
+  'motogp',
+  'worldsbk',
 ] as const);
 const protectedName = new RegExp(
   `(^|[^a-z0-9])(${PROTECTED_NAMES.map((n) => n.replace(/[-.]/g, '\\$&')).join('|')})([^a-z0-9]|$)`,
@@ -280,6 +382,8 @@ export function validateCircuitGeometry(def: CircuitDefinition): string[] {
   const track = new Track('clear', false, undefined, def),
     report = trackGeometryReport(track),
     e = [...report.errors];
+  // Motorcycle safety is measured, not declared.
+  if (def.bikeSafe) e.push(...bikeSafetyReport(track).errors);
   const reference = def.catalogue?.referenceLength;
   if (reference && Math.abs(track.length - reference) / reference > 0.03)
     e.push(
