@@ -100,7 +100,8 @@ export class TouringShells {
       const o = carBase(id),
         definition = vehicleAt(Math.round(frame[o + RACE_BASE + R.VEHICLE]));
       let shell = this.shells.get(id);
-      if (definition.classId === 'formula') {
+      // Formula cars draw themselves; motorcycles are drawn by BikeShells.
+      if (definition.classId === 'formula' || definition.dynamicsKind === 'bike') {
         if (shell?.root.visible) {
           shell.root.visible = false;
           cars[id].root.visible = true;
