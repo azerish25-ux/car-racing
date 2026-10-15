@@ -1692,7 +1692,7 @@ export class GameApp {
     else if (route.destination === 'team') this.openTeam(route.hub);
     else {
       this.suspendPlayback();
-      if (route.destination === 'settings') this.ui.settings(this.settings);
+      if (route.destination === 'settings') this.ui.settings(this.settings, this.setupMachine());
       else this.ui.controls(this.settings.bindings);
     }
     this.ui.toast(`Reference ${String(id).padStart(3, '0')}: ${route.instruction}`);
@@ -1993,7 +1993,7 @@ export class GameApp {
         break;
       case 'settings':
         if (this.state === 'driving') this.pause();
-        this.ui.settings(this.settings);
+        this.ui.settings(this.settings, this.setupMachine());
         break;
       case 'controls':
         this.ui.controls(this.settings.bindings);
@@ -2376,6 +2376,17 @@ export class GameApp {
       }
     }
   }
+  /** The machine whose setup GARAGE & SETTINGS edits: the player's entry of
+   * the session on track, or (null) the MACHINE menu choice. */
+  private setupMachine() {
+    const inSession =
+      this.state === 'driving' ||
+      this.state === 'paused' ||
+      this.state === 'results' ||
+      this.state === 'replay' ||
+      this.state === 'pregame';
+    return inSession ? (this.options.vehicles?.[0] ?? null) : null;
+  }
   private async applySettings(settings: Settings) {
     if (this.savingSettings || this.disposed || this.errorStopped) return;
     const form = document.querySelector<HTMLFormElement>('#settingsForm');
@@ -2463,7 +2474,7 @@ export class GameApp {
       const value = JSON.parse(await file.text()) as { version: unknown; setup: unknown };
       if (value.version !== 1) throw new Error('Unsupported setup version.');
       this.settings.setup = validateSetup(value.setup);
-      this.ui.settings(this.settings);
+      this.ui.settings(this.settings, this.setupMachine());
       this.ui.toast('Setup imported. Apply & Save to retain it.');
     } catch (e) {
       this.ui.toast(`Import rejected: ${e instanceof Error ? e.message : String(e)}`);

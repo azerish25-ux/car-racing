@@ -1,5 +1,6 @@
 import { installRaceDayHud, updateRaceDayHud } from './race-day-hud.ts';
 import { machineOptions, machineSelectOptions } from './machine-options.ts';
+import { applySetupScreen, setupMachine, setupSectionHtml } from './setup-screen.ts';
 import { installCompactRaceHud } from './compact-race-hud.ts';
 import {
   compoundOf,
@@ -36,7 +37,6 @@ import { TELEMETRY_VIEWS, type TelemetryView } from '../storage/telemetry-plots.
 import {
   COMPOUNDS,
   DEFAULT_OPTIONS,
-  DEFAULT_SETUP,
   DRIVERS,
   LIVERIES,
   QUALIFYING_TIMED_LAPS,
@@ -824,33 +824,12 @@ export class Interface {
     const key = (this.get('telemetryView') as HTMLSelectElement).value;
     return Object.hasOwn(TELEMETRY_VIEWS, key) ? (key as TelemetryView) : 'driver';
   }
-  settings(settings: Settings) {
-    const descriptions: Record<keyof Setup, string> = {
-      frontWing: 'Front wing',
-      rearWing: 'Rear wing',
-      brakeBias: 'Front brake bias',
-      diffPower: 'Differential · power',
-      diffCoast: 'Differential · coast',
-      frontSpring: 'Front spring · N/m',
-      rearSpring: 'Rear spring · N/m',
-      frontARB: 'Front anti-roll · N/m',
-      rearARB: 'Rear anti-roll · N/m',
-      frontRide: 'Front ride height · m',
-      rearRide: 'Rear ride height · m',
-      frontPressure: 'Front pressure · kPa',
-      rearPressure: 'Rear pressure · kPa',
-      frontCamber: 'Front camber · rad',
-      rearCamber: 'Rear camber · rad',
-      frontToe: 'Front toe · rad',
-      rearToe: 'Rear toe · rad',
-    };
-    const setupRows = (Object.keys(DEFAULT_SETUP) as (keyof Setup)[])
-      .map((key) => {
-        const [min, max] = SETUP_LIMITS[key],
-          step = setupControlStep(key, settings.setup[key]);
-        return `<label class="range-row">${descriptions[key]}<output>${settings.setup[key]}</output><input name="${key}" data-setup type="range" min="${min}" max="${max}" step="${step}" value="${settings.setup[key]}"></label>`;
-      })
-      .join('');
+  /** GARAGE & SETTINGS. The vehicle setup section shows the active machine's
+   * own parameters (setup-screen.ts): `machine` names it explicitly (a running
+   * session's entry); otherwise the MACHINE menu choice decides. */
+  settings(settings: Settings, machine?: string | null) {
+    const menuChoice = document.querySelector<HTMLSelectElement>('#vehicle')?.value ?? null;
+    const vehicle = setupMachine(machine, menuChoice, this.options);
     this.modalContent(
       `<header><div><span class="eyebrow">GARAGE / PREFERENCES</span><h2>Make it yours.</h2></div><button data-action="modalClose" aria-label="Close settings">✕</button></header><form id="settingsForm"><div class="settings-columns"><section><h3>Presentation</h3><label>RENDER QUALITY<select name="quality"><option value="low">Low · No shadows / crowd / particles</option><option value="medium">Medium · 2× MSAA / AO / bloom</option><option value="high">High · 4× MSAA / local reflections / specular AA</option><option value="ultra">Ultra · TAA / SSR / 3 shadow cascades (opt-in, fast GPUs)</option></select></label>${presentationControls(settings)}${[
         ['volume', 'Volume', 0, 1, 0.01],
@@ -898,7 +877,7 @@ export class Interface {
         )
         .join(
           '',
-        )}</div></section><section><h3>Vehicle setup</h3><p class="small-note">Physical setup changes take effect at the next session start. Rendering and audio changes apply immediately.</p>${setupRows}<div class="setup-files"><button type="button" id="exportSetup">EXPORT SETUP</button><label class="file-label">IMPORT SETUP<input id="importSetup" type="file" accept=".json,application/json" hidden></label></div></section></div><footer><button type="button" data-action="modalClose">CANCEL</button><button class="primary" type="submit">APPLY & SAVE</button></footer></form>`,
+        )}</div></section><section><h3>Vehicle setup</h3>${setupSectionHtml(vehicle, settings.setup)}<div class="setup-files"><button type="button" id="exportSetup">EXPORT SETUP</button><label class="file-label">IMPORT SETUP<input id="importSetup" type="file" accept=".json,application/json" hidden></label></div></section></div><footer><button type="button" data-action="modalClose">CANCEL</button><button class="primary" type="submit">APPLY & SAVE</button></footer></form>`,
     );
     const form = document.getElementById('settingsForm') as HTMLFormElement;
     this.deviceCalibration = new DeviceCalibrationPanel(
@@ -971,8 +950,7 @@ export class Interface {
         next.rumble[key] = Number(value(`rumble_${key}`));
       next.quickStart = (form.elements.namedItem('quickStart') as HTMLInputElement).checked;
       for (const key of ['volume', 'shake', 'uiScale'] as const) next[key] = Number(value(key));
-      for (const key of Object.keys(DEFAULT_SETUP) as (keyof Setup)[])
-        next.setup[key] = Number(value(key));
+      next.setup = applySetupScreen(vehicle, settings.setup, (key) => Number(value(key)));
       for (const key of [
         'steerAxis',
         'throttleAxis',

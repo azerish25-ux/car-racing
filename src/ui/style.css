@@ -964,6 +964,13 @@ dialog:has(#settingsForm) {
   font-family: monospace;
   color: #edcd99;
 }
+/* Per-car setup screen: the plain-language effect under each slider. */
+.range-row .setup-hint {
+  grid-column: 1/-1;
+  opacity: 0.72;
+  line-height: 1.5;
+  letter-spacing: 0;
+}
 .small-note {
   font-size: 10px !important;
   line-height: 1.7 !important;
