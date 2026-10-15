@@ -43,44 +43,54 @@ export function buildOpenWheel(
   detail: Detail,
   lod: BuiltLod,
 ): Link[] {
-  const modern = s.era === 'modern';
+  const modern = s.era === 'modern',
+    historic = s.era === 'historic',
+    seventies = s.era === 'seventies',
+    eighties = s.era === 'eighties';
+  /** Value by era: 1970s cars default to the historic shape, 1980s cars to
+   * the modern one (so the original two eras keep their exact geometry). */
+  const pick = (m: number, h: number, s70 = h, s80 = m) =>
+    modern ? m : historic ? h : seventies ? s70 : s80;
   const zNose = f.frontAxle + s.overhang[0],
-    zTail = f.rearAxle - s.overhang[1] + (modern ? 0.25 : 0.1),
+    zTail = f.rearAxle - s.overhang[1] + pick(0.25, 0.1, 0.12, 0.2),
     zCockpit = f.z(s.cockpit),
     y = f.y;
   const [tubW, tubTop] = s.tub;
+  // The 1970s wedge carries a broad, thin chisel nose; the 1980s car a
+  // narrow pointed one.
   const width = new Track([
-    [zTail, modern ? 0.1 : 0.12],
-    [f.rearAxle, modern ? 0.14 : 0.2],
-    [zCockpit - 0.6, modern ? 0.26 : tubW * 0.95],
+    [zTail, pick(0.1, 0.12, 0.14, 0.12)],
+    [f.rearAxle, pick(0.14, 0.2, 0.22, 0.18)],
+    [zCockpit - 0.6, pick(0.26, tubW * 0.95, tubW * 0.95, 0.3)],
     [zCockpit, tubW],
     [zCockpit + 0.5, tubW * 0.9],
-    [f.frontAxle, modern ? 0.13 : 0.22],
-    [zNose - 0.2, modern ? 0.09 : 0.17],
-    [zNose, modern ? 0.07 : 0.14],
+    [f.frontAxle, pick(0.13, 0.22, 0.3, 0.14)],
+    [zNose - 0.2, pick(0.09, 0.17, 0.32, 0.1)],
+    [zNose, pick(0.07, 0.14, 0.3, 0.08)],
   ]);
   const top = new Track([
-    [zTail, y(modern ? 0.48 : 0.5)],
-    [f.rearAxle, y(modern ? 0.55 : 0.58)],
-    [zCockpit - 0.7, y(modern ? 0.92 : 0.66)],
-    [zCockpit - 0.25, y(modern ? 1.0 : tubTop + 0.04)],
+    [zTail, y(pick(0.48, 0.5, 0.55, 0.5))],
+    [f.rearAxle, y(pick(0.55, 0.58, 0.62, 0.6))],
+    [zCockpit - 0.7, y(pick(0.92, 0.66, 0.78, 0.72))],
+    [zCockpit - 0.25, y(pick(1.0, tubTop + 0.04, tubTop + 0.06, 0.8))],
     [zCockpit - 0.05, y(tubTop - 0.04)],
     [zCockpit + 0.35, y(tubTop - 0.06)],
-    [zCockpit + 0.75, y(modern ? tubTop - 0.04 : tubTop - 0.02)],
-    [f.frontAxle, y(modern ? 0.5 : 0.48)],
+    [zCockpit + 0.75, y(pick(tubTop - 0.04, tubTop - 0.02))],
+    [f.frontAxle, y(pick(0.5, 0.48, 0.42, 0.46))],
     [zNose - 0.15, y(s.noseHeight + 0.06)],
     [zNose, y(s.noseHeight)],
   ]);
   const bottom = new Track([
-    [zTail, y(modern ? 0.2 : 0.16)],
+    [zTail, y(pick(0.2, 0.16, 0.16, 0.18))],
     [f.rearAxle, y(0.06)],
-    [f.frontAxle, y(modern ? 0.12 : 0.1)],
-    [zNose, y(s.noseHeight - (modern ? 0.1 : 0.12))],
+    [f.frontAxle, y(pick(0.12, 0.1, 0.1, 0.1))],
+    [zNose, y(s.noseHeight - pick(0.1, 0.12, 0.06, 0.1))],
   ]);
   const pod = (z: number) => {
-    if (!modern || s.sidepod <= 0) return 0;
-    const a = f.frontAxle - 0.85,
-      b = f.rearAxle + 0.5;
+    if (historic || s.sidepod <= 0) return 0;
+    // 1980s pods run almost to the rear axle; 1970s radiator pods are wedges.
+    const a = f.frontAxle - pick(0.85, 0.85, 1.0, 0.95),
+      b = f.rearAxle + pick(0.5, 0.5, 0.55, 0.15);
     if (z > a || z < b) return 0;
     const u = (z - b) / (a - b);
     return (
@@ -93,8 +103,8 @@ export function buildOpenWheel(
       b = Math.min(bottom.at(z), t - 0.08),
       p = pod(z),
       podW = hw + (s.sidepod - hw) * p,
-      podTop = b + 0.08 + p * 0.3,
-      round = modern ? 0.04 : (t - b) * 0.32;
+      podTop = b + 0.08 + p * pick(0.3, 0.3, 0.24, 0.22),
+      round = pick(0.04, (t - b) * 0.32, (t - b) * 0.25, 0.05);
     const ctrl: Pt[] = [
       [0, b],
       [Math.max(hw * 0.6, podW * 0.9 - 0.02), b],
@@ -134,10 +144,10 @@ export function buildOpenWheel(
   // Driver.
   const seatY = y(0.12),
     seatZ = zCockpit - 0.1;
-  addDriver(parts, mats, 0, seatY, seatZ, 0.92, zCockpit + 0.36, !modern);
+  addDriver(parts, mats, 0, seatY, seatZ, 0.92, zCockpit + 0.36, historic);
   if (detail < 2) {
     // Headrest / roll structure.
-    if (modern)
+    if (modern || eighties)
       parts.add(
         roundedBox(0.36, 0.14, 0.2, 0.05, 2),
         mats.paint,
@@ -221,10 +231,92 @@ export function buildOpenWheel(
     g.rotateY(Math.PI / 2).translate(-0.005, y(0.55), zCockpit - 0.5);
     parts.add(g, mats.paint);
   }
+  if (seventies && s.airbox && detail < 2) {
+    // Tall periscope airbox over the driver's head, intake facing forward.
+    const za = zCockpit - 0.5;
+    parts.add(
+      roundedBox(0.3, 0.34, 0.56, 0.08, 3),
+      mats.paint,
+      placed(0, y(tubTop + 0.26), za, -0.08),
+    );
+    parts.add(
+      roundedBox(0.22, 0.2, 0.02, 0.03, 2),
+      sharedMaterials.grille(),
+      placed(0, y(tubTop + 0.3), za + 0.28, -0.08),
+    );
+  }
+  if ((seventies || eighties) && detail < 2) {
+    // Wedge/flat-bottom era: wings on simple mounts, a single-plane front
+    // wing either side of the nose and a big rear wing.
+    const carbon70 = seventies ? mats.paint : carbon;
+    if (s.frontWing) {
+      const span = s.frontWingSpan ?? 1.5,
+        zw = zNose - (seventies ? 0.18 : 0.1),
+        yw = y(seventies ? 0.17 : 0.1);
+      const front = new Parts();
+      front.add(
+        aerofoil(seventies ? 0.36 : 0.3, 0.1, 0.05, span, detail === 0 ? 12 : 6),
+        carbon70,
+        placed(0, yw, zw, seventies ? 0.12 : 0.06),
+      );
+      for (const side of [-1, 1])
+        front.add(
+          roundedBox(0.012, 0.16, 0.4, 0.004, 1),
+          carbon70,
+          placed(side * (span / 2), yw + 0.04, zw - 0.12),
+        );
+      const g = new T.Group();
+      g.name = 'Front wing (detachable)';
+      front.build(g, detail === 0);
+      lod.group.add(g);
+      lod.front.push(g);
+    }
+    if (s.rearWing) {
+      const w = s.rearWingAt ?? { behind: 0.5, height: 0.9, span: 1.0, chord: 0.45 };
+      const zw = f.rearAxle - w.behind,
+        yw = y(w.height);
+      const rear = new Parts();
+      rear.add(
+        aerofoil(w.chord, 0.12, 0.07, w.span, detail === 0 ? 14 : 6),
+        carbon70,
+        placed(0, yw, zw, 0.14),
+      );
+      rear.add(
+        aerofoil(w.chord * 0.45, 0.1, 0.05, w.span * 0.98, 8),
+        carbon70,
+        placed(0, yw + 0.08, zw - w.chord * 0.85, 0.5),
+      );
+      for (const side of [-1, 1])
+        rear.add(
+          roundedBox(0.012, 0.36, w.chord * 1.5, 0.006, 1),
+          carbon70,
+          placed(side * (w.span / 2 + 0.006), yw - 0.05, zw - w.chord * 0.45),
+        );
+      if (seventies)
+        // One central pylon from the gearbox.
+        rear.add(
+          roundedBox(0.03, yw - y(0.5), 0.16, 0.01, 1),
+          sharedMaterials.steel(),
+          placed(0, (yw + y(0.5)) / 2, zw - 0.1),
+        );
+      else
+        for (const side of [-1, 1])
+          rear.add(
+            roundedBox(0.02, yw - y(0.55), 0.12, 0.008, 1),
+            carbon,
+            placed(side * w.span * 0.3, (yw + y(0.55)) / 2, zw - 0.08),
+          );
+      const g = new T.Group();
+      g.name = 'Rear wing (detachable)';
+      rear.build(g, detail === 0);
+      lod.group.add(g);
+      lod.rear.push(g);
+    }
+  }
   if (modern && s.frontWing) {
     const zw = zNose - 0.05,
       yw = y(0.1),
-      span = 1.75;
+      span = s.frontWingSpan ?? 1.75;
     const front = new Parts();
     front.add(
       aerofoil(0.32, 0.1, 0.06, span, detail === 0 ? 14 : 6),
@@ -262,12 +354,12 @@ export function buildOpenWheel(
     lod.front.push(g);
   }
   if (modern && s.rearWing) {
-    const zw = f.rearAxle - 0.42,
-      yw = y(0.92),
-      span = 1.0;
+    const zw = f.rearAxle - (s.rearWingAt?.behind ?? 0.42),
+      yw = y(s.rearWingAt?.height ?? 0.92),
+      span = s.rearWingAt?.span ?? 1.0;
     const rear = new Parts();
     rear.add(
-      aerofoil(0.36, 0.12, 0.07, span, detail === 0 ? 14 : 6),
+      aerofoil(s.rearWingAt?.chord ?? 0.36, 0.12, 0.07, span, detail === 0 ? 14 : 6),
       carbon,
       placed(0, yw, zw, 0.15),
     );
@@ -296,7 +388,7 @@ export function buildOpenWheel(
     lod.group.add(g);
     lod.rear.push(g);
   }
-  if (modern && detail < 2) {
+  if ((modern || eighties) && detail < 2) {
     // Floor plate with edges, and the diffuser.
     const len = f.frontAxle - f.rearAxle - 0.6;
     parts.add(
@@ -327,7 +419,15 @@ export function buildOpenWheel(
     }
     parts.add(roundedBox(0.18, 0.05, 0.03, 0.01, 1), mats.tail, placed(0, y(0.32), zTail - 0.02));
   }
-  if (!modern && detail < 2) {
+  if (eighties && detail < 2)
+    // Turbo era: the engine hides under its cover; one wastegate pipe and a
+    // central exhaust exit at the tail.
+    parts.add(
+      new T.CylinderGeometry(0.05, 0.06, 0.18, 14).rotateX(Math.PI / 2),
+      sharedMaterials.exhaust(),
+      placed(0, y(0.36), zTail - 0.06),
+    );
+  if ((historic || seventies) && detail < 2) {
     // Exposed engine, gearbox and swept exhausts.
     const ze = f.rearAxle + 0.45;
     parts.add(roundedBox(0.44, 0.3, 0.62, 0.05, 2), sharedMaterials.steel(), placed(0, y(0.3), ze));
@@ -360,12 +460,13 @@ export function buildOpenWheel(
         sharedMaterials.exhaust(),
         placed(side * 0.22, y(0.44), zTail - 0.1),
       );
-    // Nose intake.
-    parts.add(
-      new T.CircleGeometry(0.1, detail === 0 ? 24 : 12),
-      sharedMaterials.grille(),
-      placed(0, y(s.noseHeight) - 0.04, zNose + 0.003),
-    );
+    // Nose intake (the 1960s radiator; the 1970s wedge has none).
+    if (historic)
+      parts.add(
+        new T.CircleGeometry(0.1, detail === 0 ? 24 : 12),
+        sharedMaterials.grille(),
+        placed(0, y(s.noseHeight) - 0.04, zNose + 0.003),
+      );
     for (const side of [-1, 1]) {
       parts.add(
         roundedBox(0.1, 0.05, 0.05, 0.015, 2),
@@ -407,7 +508,10 @@ export function buildKart(
   detail: Detail,
   lod: BuiltLod,
 ) {
-  void s;
+  const compact = s.nose === 'compact',
+    short = s.pods === 'short',
+    air = s.cooling === 'air',
+    enclosed = s.bumper === 'enclosed';
   const parts = new Parts(),
     y = f.y,
     steel = sharedMaterials.steel(),
@@ -428,11 +532,12 @@ export function buildKart(
   rail([-0.3, y(0.05), zF - 0.35], [0.3, y(0.05), zF - 0.35]);
   rail([-tw * 0.9, y(0.12), zR - 0.05], [tw * 0.9, y(0.12), zR - 0.05], 0.018);
   if (detail < 2) {
-    // Nose fairing and front panel (number board).
+    // Nose fairing and front panel (number board); a compact sprint nose is
+    // narrower, shorter and higher.
     parts.add(
-      roundedBox(0.95, 0.12, 0.3, 0.05, 3),
+      compact ? roundedBox(0.72, 0.14, 0.22, 0.05, 3) : roundedBox(0.95, 0.12, 0.3, 0.05, 3),
       mats.paint,
-      placed(0, y(0.12), zF + 0.28, 0.12),
+      compact ? placed(0, y(0.13), zF + 0.22, 0.2) : placed(0, y(0.12), zF + 0.28, 0.12),
     );
     parts.add(
       roundedBox(0.4, 0.3, 0.02, 0.03, 2),
@@ -443,12 +548,14 @@ export function buildKart(
     // Side pods between the wheels.
     for (const side of [-1, 1])
       parts.add(
-        roundedBox(0.2, 0.16, 0.62, 0.06, 3),
+        short ? roundedBox(0.22, 0.2, 0.46, 0.07, 3) : roundedBox(0.2, 0.16, 0.62, 0.06, 3),
         mats.paint,
-        placed(side * (tw - 0.06), y(0.14), (zF + zR) / 2 - 0.05),
+        placed(side * (tw - 0.06), y(short ? 0.15 : 0.14), (zF + zR) / 2 - (short ? 0.12 : 0.05)),
       );
-    // Rear bumper.
-    parts.add(roundedBox(1.25, 0.1, 0.12, 0.04, 2), plastic, placed(0, y(0.16), zR - 0.32));
+    // Rear bumper: a tube bar, or a full-width enclosed plastic bumper.
+    if (enclosed)
+      parts.add(roundedBox(1.42, 0.2, 0.22, 0.08, 3), plastic, placed(0, y(0.18), zR - 0.34));
+    else parts.add(roundedBox(1.25, 0.1, 0.12, 0.04, 2), plastic, placed(0, y(0.16), zR - 0.32));
     // Floor tray.
     parts.add(roundedBox(0.5, 0.01, 0.85, 0.004, 1), plastic, placed(0, y(0.06), zF - 0.35));
     // Engine, cylinder and exhaust.
@@ -458,6 +565,17 @@ export function buildKart(
       sharedMaterials.chrome(),
       placed(0.26, y(0.4), zR + 0.17),
     );
+    // An air-cooled engine wears cooling fins on its cylinder and a large
+    // intake silencer ahead of it instead of the side radiator.
+    if (air) {
+      for (let k = 0; k < 5; k++)
+        parts.add(
+          new T.CylinderGeometry(0.095, 0.095, 0.008, 14),
+          sharedMaterials.chrome(),
+          placed(0.26, y(0.34 + k * 0.025), zR + 0.17),
+        );
+      parts.add(roundedBox(0.16, 0.18, 0.3, 0.06, 2), plastic, placed(0.12, y(0.3), zR + 0.45));
+    }
     parts.add(
       tubeGeometry(
         [
@@ -472,11 +590,12 @@ export function buildKart(
       ),
       sharedMaterials.exhaust(),
     );
-    parts.add(
-      roundedBox(0.04, 0.24, 0.3, 0.01, 1),
-      sharedMaterials.grille(),
-      placed(-0.28, y(0.3), zR + 0.2),
-    );
+    if (!air)
+      parts.add(
+        roundedBox(0.04, 0.24, 0.3, 0.01, 1),
+        sharedMaterials.grille(),
+        placed(-0.28, y(0.3), zR + 0.2),
+      );
   }
   // Seat and driver.
   const seatZ = zR + 0.3,

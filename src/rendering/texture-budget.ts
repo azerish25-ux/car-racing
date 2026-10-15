@@ -69,7 +69,13 @@ export class TextureBudget {
         image = document.createElement('canvas');
         image.width = width;
         image.height = height;
-        const context = image.getContext('2d');
+        // The presented copy of a skin that diagnostics read back stays
+        // CPU-backed like its source (car-livery flankLivery): an accelerated
+        // copy makes getImageData wait behind every queued GPU submission.
+        const context = image.getContext(
+          '2d',
+          texture.userData.cpuReadback === true ? { willReadFrequently: true } : undefined,
+        );
         if (!context) throw new Error('Texture resampling requires Canvas 2D');
         context.drawImage(source, 0, 0, width, height);
       }

@@ -37,11 +37,9 @@ import {
   type Payout,
 } from './economy.ts';
 import {
+  championshipPrize,
   disciplineEvents,
-  disciplineTiers,
   licenceAvailability,
-  tierVehicles,
-  vehiclePrice,
   type CareerEvent,
 } from './ladder.ts';
 import {
@@ -618,17 +616,9 @@ export class CareerController {
       });
     return true;
   }
-  /** Championship prize: the cheapest unowned machine of the next tier up. */
+  /** Championship prize: the cheapest unowned, raceable machine of a tier up. */
   private prizeFor(event: NonNullable<CareerSession['event']>) {
     if (event.kind !== 'championship') return null;
-    const tiers = disciplineTiers(this.registry, event.discipline),
-      index = tiers.findIndex((t) => t.id === event.tier);
-    for (const t of tiers.slice(index + 1)) {
-      const prize = tierVehicles(this.registry, t)
-        .filter((v) => !this.save.owned.some((o) => o.id === v.id))
-        .sort((a, b) => vehiclePrice(this.registry, a) - vehiclePrice(this.registry, b))[0];
-      if (prize) return prize.id;
-    }
-    return null;
+    return championshipPrize(this.registry, event.discipline, event.tier, this.save.owned);
   }
 }

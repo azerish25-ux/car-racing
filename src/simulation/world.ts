@@ -192,7 +192,7 @@ export class Simulation {
     out[H.SC_PHASE] = sc.phase;
     out[H.SC_S] = sc.s;
     out[H.SC_SPEED] = sc.phase >= 2 ? sc.speed : 0;
-    out[H.DRS_ENABLED] = Number(this.race.drs.enabled);
+    out[H.DRS_ENABLED] = Number(this.race.drsActive);
     let leaderLaps = 0;
     for (const lap of this.race.laps) leaderLaps = Math.max(leaderLaps, lap.completed);
     out[H.LAP_LEADER] = leaderLaps + 1;

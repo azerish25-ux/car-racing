@@ -27,7 +27,8 @@ export const MOTO_POINTS = Object.freeze([
 ]);
 export const OFFROAD_CLASSES = Object.freeze({
   bikes: Object.freeze(['motocross', 'supermoto'] as const),
-  cars: Object.freeze(['rallycross', 'rally', 'offroad'] as const),
+  // Historic rally cars run on gravel tyres and take the stages too.
+  cars: Object.freeze(['rallycross', 'rally', 'offroad', 'historic-rally'] as const),
 });
 const TYRES: readonly Compound[] = Object.freeze(['medium', 'wet']);
 const ruleset = (
@@ -68,23 +69,23 @@ export const OFFROAD_RULESETS: Readonly<Record<string, RulesetDefinition>> = Obj
     motoPoints: MOTO_POINTS,
     motos: 2,
   }),
-  'rallycross-joker': ruleset(
-    'rallycross-joker',
-    'RALLYCROSS HEAT · JOKER',
-    ['rallycross', 'rally', 'offroad'],
+  'rallycross-joker': ruleset('rallycross-joker', 'RALLYCROSS HEAT · JOKER', OFFROAD_CLASSES.cars, {
+    kind: 'rallycross',
+    start: 'lights',
+    jumpStartPenalty: 5,
+    joker: { required: 1, penaltySeconds: 30 },
+  }),
+  'rally-stage': ruleset(
+    'rally-stage',
+    'RALLY SPECIAL STAGE',
+    ['rally', 'rallycross', 'offroad', 'historic-rally'],
     {
-      kind: 'rallycross',
-      start: 'lights',
-      jumpStartPenalty: 5,
-      joker: { required: 1, penaltySeconds: 30 },
+      kind: 'stage',
+      start: 'staggered',
+      jumpStartPenalty: 10,
+      stage: { interval: 20, maxSeconds: 600 },
     },
   ),
-  'rally-stage': ruleset('rally-stage', 'RALLY SPECIAL STAGE', ['rally', 'rallycross', 'offroad'], {
-    kind: 'stage',
-    start: 'staggered',
-    jumpStartPenalty: 10,
-    stage: { interval: 20, maxSeconds: 600 },
-  }),
 });
 const event = (e: EventDefinition): EventDefinition => Object.freeze({ ...e });
 export const OFFROAD_EVENTS: readonly EventDefinition[] = Object.freeze([

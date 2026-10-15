@@ -13,6 +13,7 @@ export type TireFamilyId =
   | 'all-terrain'
   | 'kart'
   | 'historic'
+  | 'historic-slick'
   | 'knobby'
   | 'supermoto';
 export interface TireFamily {
@@ -47,6 +48,9 @@ export const TIRE_FAMILIES: Readonly<Record<TireFamilyId, TireFamily>> = Object.
   kart: family('kart', 'Kart slick', [0.85, 1.1], 0),
   /** Narrow 1960s cross-ply racing tyre. */
   historic: family('historic', 'Historic cross-ply', [0.5, 0.7], 0.05),
+  /** 1970s-80s racing slick: wide bias-ply or early radial construction, far
+   * more grip than a cross-ply but less than a modern slick. */
+  'historic-slick': family('historic-slick', 'Historic slick', [0.68, 0.9], 0),
   /** Off-road motorcycle knobby: tall square blocks that bite into loam,
    * sand and mud (bike definitions carry their own peak μ; tireGrip 1). */
   knobby: family('knobby', 'Motocross knobby', [0.6, 1.1], 0.8),

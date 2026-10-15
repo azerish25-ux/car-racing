@@ -132,4 +132,26 @@ describe('WP11 route graph and legal progress', () => {
     drive(progress, line(P(0, -1, 9.5), P(0, -99, 9.5), 30));
     expect(progress.finished).toBe(true);
   });
+  it('passes a gate at the very end of an edge when the next sample is already on the successor', () => {
+    const chain: RouteSpec = {
+      id: 'chain',
+      version: 1,
+      closed: false,
+      start: 'a',
+      edges: [
+        { id: 'a', kind: 'main', points: line(P(0, 0), P(0, 100)), next: ['b'] },
+        { id: 'b', kind: 'main', points: line(P(0, 100), P(0, 200)), next: [] },
+      ],
+      // Two gates inside the last metre of edge a, then the finish on b.
+      checkpoints: [
+        { edge: 'a', s: 99.4 },
+        { edge: 'a', s: 99.8 },
+        { edge: 'b', s: 90 },
+      ],
+    };
+    const progress = new RouteProgress(new RouteGraph(chain), 10);
+    // 4 m steps: 98 on a, then 102 already on b.
+    drive(progress, line(P(0, 2), P(0, 198), 49));
+    expect(progress.finished).toBe(true);
+  });
 });

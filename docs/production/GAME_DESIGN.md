@@ -19,10 +19,10 @@ mechanic below names the system that implements it, so design and code cannot dr
 
 | Discipline | Machines (families) | Venues | Core skill | Session formats |
 |---|---|---|---|---|
-| **Circuit cars** | Formula, junior formula, historic formula, hypercar/prototype, GT3, GT4, touring, club, kart | real-world-faithful and original circuits | braking points, tyre and energy management, racecraft | practice, qualifying, sprint, grand prix, endurance (lap and timed), multi-class |
-| **Road motorcycles** | GP prototype, superbike | circuits flagged bike-safe (run-off, kerb profile) | lean angle, trail braking, body position, front/rear brake split | practice, qualifying, sprint, race |
-| **Off-road** | motocross, rally, rallycross, trophy truck | dirt/terrain venues, stages, rallycross mixed-surface | throttle on loose ground, jump take-off/landing, ruts and berms | motos, heats, stages, joker-lap rallycross |
-| **Festival (open world)** | road supercars, electric hypercars, plus any unlocked race machine | open festival region with road network | exploration, point-to-point, speed traps, drift zones | free roam, road race, sprint, speed zone, drift zone, showcase |
+| **Circuit cars** | Formula, feeder and entry formula, historic formula (1960s, 1970s, 1980s turbo), historic sports prototype, hypercar/prototype, GT3, GT4, touring, club, vintage club, kart, experimental | real-world-faithful and original circuits | braking points, tyre and energy management, racecraft | practice, qualifying, sprint, grand prix, endurance (lap and timed), multi-class |
+| **Road motorcycles** | GP prototype, superbike, supersport, classic racer (the road-only naked roadster rides in the festival) | circuits flagged bike-safe (run-off, kerb profile) | lean angle, trail braking, body position, front/rear brake split | practice, qualifying, sprint, race |
+| **Off-road** | motocross, rally, historic rally, rallycross, trophy truck, desert buggy | dirt/terrain venues, stages, rallycross mixed-surface | throttle on loose ground, jump take-off/landing, ruts and berms | motos, heats, stages, joker-lap rallycross |
+| **Festival (open world)** | road supercars, electric hypercars, hot hatch, sports sedan, muscle coupe, classic grand tourer, pickup, rally-bred road car, luxury GT, roadster, naked roadster bike, plus any unlocked race machine | open festival region with road network | exploration, point-to-point, speed traps, drift zones | free roam, road race, sprint, speed zone, drift zone, showcase |
 
 Disciplines share profile, input, garage, replay, photo, audio, accessibility and save systems.
 They never share one tyre model, one progress algorithm or one rule set (masterplan §4.2).
@@ -51,18 +51,21 @@ explicit `family` field, else its dynamics adapter, else its class; a discipline
 venue or race ruleset is shown **COMING** with the missing items listed, never hard-coded. With the
 current catalogues, circuit cars and road bikes are open (the superbike and GP bike race under the
 motorcycle ruleset; no circuit declares bike safety yet, so bike events use every paved circuit and
-say so); off-road is open (see below) and festival is coming (road machines exist, no region
-does). Circuit-car tiers: club and touring → grand touring → Formula ladder → endurance prototypes;
-bike and festival tiers exist as data and fill when their classes are registered. A registered class
-that no tier names joins an automatic open tier.
+say so); off-road is open (see below) and festival is coming (road machines exist and the Solvane
+region runs as free roam, section 8.1, but the region is not yet registered as a career venue).
+Circuit-car tiers: club, vintage and touring → grand touring → Formula ladder (entry, feeder, junior,
+the three historic eras, top tier) → endurance prototypes (incl. the historic sports prototype) →
+unlimited experimental; bike and festival tiers exist as data and fill when their classes are
+registered. A registered class that no tier names joins an automatic open tier.
 
 **Off-road (implemented, WP37–WP42).** Tiers motocross and supercross (MX-450, MX-250, SM-450) →
-rallycross (RCX-6) → rally and trophy trucks (RL-2, DX-8). A terrain venue names the classes it
-admits and the formats it is built for, so a tier only races where its machines are admitted and an
-event takes the venue's own format (gate motos at Valley Ridge and Arena Nord, the joker heat at
-Kestrel, the timed stage at Pinewood). The recovery meeting and the jump-landing licence run on the
-MX-250 loaner at Valley Ridge; the authored off-road events (two Valley Ridge motos, the Arena Nord
-main, a supermoto race, the Kestrel heat, the Pinewood stage) appear in their tiers.
+rallycross (RCX-6, RX-E) → rally and trophy trucks (RL-2, DX-8, BG-2, and the historic RL-7 and
+GB-4). A terrain venue names the classes it admits and the formats it is built for, so a tier only
+races where its machines are admitted and an event takes the venue's own format (gate motos at
+Valley Ridge and Arena Nord, the joker heat at Kestrel, the timed stage at Pinewood). The recovery
+meeting and the jump-landing licence run on the MX-250 loaner at Valley Ridge; the authored off-road
+events (two Valley Ridge motos, the Arena Nord main, a supermoto race, the Kestrel heat, the
+Pinewood stage) appear in their tiers.
 
 | Licence | Measured from the snapshot | Gold / silver / bronze | State |
 |---|---|---|---|
@@ -139,9 +142,11 @@ Locks, writes from all tabs are also serialised. A first career is seeded once f
 Team HQ reputation above its founding value, classified `championship:v1` rounds, paid session ids and
 the garage setup as a preset. The team and championship saves are never rewritten by the career.
 
-**Designed, not yet implemented.** Festival free roam and events found by driving to them; bike and
-off-road setup parameters; performance upgrades and a per-class performance index; showing setup
-effects in telemetry (the plain-language hints exist); a choice of licence venue (tests use the first
+**Designed, not yet implemented.** The career reading festival results (festival free roam and events
+found by driving to them are integrated, section 8.1, and emit typed results the career does not yet
+consume); bike and off-road setup parameters; performance upgrades and a per-class performance
+index; showing setup effects in telemetry (the plain-language hints exist); a choice of licence
+venue (tests use the first
 admitted venue); championship qualifying (career rounds start the player fifth); rival identity
 across career seasons; one result identity shared with Team HQ (WP23). The full-application journey
 (menu → career session → results) is covered by unit tests and a DOM-only browser test, not yet by a
@@ -186,6 +191,24 @@ Off-road (implemented in `src/simulation/offroad/session.ts`, rules in `formats.
 | Unconventional | neon city with tunnels, alpine pass, high-banked oval, desert canyon, coastal cliffs, dockyard overpass | spectacle, new racing problems |
 | Off-road | motocross terrain parks, rallycross mixed surface, rally stages — implemented: Valley Ridge (outdoor motocross), Arena Nord (indoor supercross), Kestrel (rallycross), Pinewood (gravel stage) | discipline-specific skills |
 | Festival region | open terrain with a road network, towns, mountain, coast, airfield | exploration and event discovery |
+
+### 8.1 Festival region: implemented vs designed
+
+Implemented (state **integrated**, details in [OPEN_WORLD.md](OPEN_WORLD.md)): the fictional
+Solvane Coast region (8.19 km square; coast, Varda mountain, Ashvale valley, Port Ilse town,
+Kestrel airfield, forests) with a 70.9 km road network of highways, country roads, mountain
+switchbacks, town streets, dirt tracks and a runway. SESSION → *Festival · open world* starts free
+roam in any four-wheel registry machine. Physics reads the real surface everywhere through the
+`OpenWorldTrack` adapter (soft boundaries, no laps); reset puts the car back on the nearest road.
+Thirteen events are discovered by driving near their markers and start in place after a card:
+road race, circuits built from road routes, sprints, speed traps, speed zones, drift zones scored
+by `scoring.ts`, and a showcase against the fastest registry machine. Rivals follow the route with
+the circuit AI's envelope; legal progress is `RouteProgress`, so shortcuts earn nothing. Each event
+emits a typed `FestivalResult` for the career hook.
+
+Designed, not implemented: ambient traffic, festival career and reputation (results are emitted,
+not consumed), motorcycles and off-road machines in the region, seasons,
+online free roam, photo challenges, destructible scenery.
 
 ## 9. Presentation
 

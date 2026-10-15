@@ -285,8 +285,11 @@ boost: τ = spool time building, × dump fraction decaying; target smooth(rpm_lo
   table (bilinear).
 * Pumping loss is 0.01 N m s on the Formula car and 0.03 on TC-1.
 * Crank inertia comes from the block: 0.34 Formula, 0.21 TC-1.
-* Turbo lag is available. Neither shipped car uses it (the Formula car's energy recovery removes
-  lag).
+* Turbo lag is available. Neither original car uses it (the Formula car's energy recovery removes
+  lag). Four catalogue cars whose briefs name it do (`CatalogueSheet.turbo` on the legacy engine
+  block): HF-86 (boost share 0.55, spool 0.8 s), GB-4 (0.5, 0.5 s), RR-4 (0.4, 0.45 s) and PR-3
+  (0.4, 0.3 s), dump fraction 0.3–0.35. Their spool thresholds sit below the working range, so the
+  steady full-load curve is unchanged and the lag is the transient after a lift.
 
 **Gearbox:**
 
@@ -353,6 +356,18 @@ L_stick = (β·Δω + dt·(((1−s)T + R2)/I2 − (sT + R1)/I1)) / (dt·(1/I1 + 
   * Both channels are exactly zero beyond 100 m, so the world's 101 m proximity cull stays exact
     (property test).
   * `wakeFields()` in `aero.ts` computes both for the world loop.
+* **Fan-assisted floor** (`VehicleDefinition.fan`, only the experimental XF-2). An auxiliary
+  engine's fans evacuate a skirted floor, so the suction does not scale with V²: `F_fan =
+  F·clamp(1 − (h − h_seal)/fade, 0, 1)·floorHealth`, applied at the fan station with the measured
+  (not flow-lagged) mean floor clearance, because the skirts leak the moment the floor lifts. XF-2:
+  F = 7 kN, h_seal = static clearance + 12 mm, fade 50 mm. It is reported apart from ClA
+  (`aero.fanN` in `docs/vehicle-calibration.json`). Every other definition lacks the field, so their
+  physics and content hashes are unchanged.
+  * The AI envelope separates the fan's share of its base limits (`CapabilityEnvelope.fanBase`):
+    the calibration fits the lateral and braking envelopes again with the fan removed, and the
+    difference of the bases is the share (`fanEnvelopeShare` in the report; XF-2 7.63 m/s² lateral,
+    12.80 m/s² braking). `floorEnvelope` in `ai.ts` scales that share with floor health, as the
+    solver scales the suction, so a damaged XF-2 plans its braking on the grip it has left.
 
 ## 5. Ground materials
 
@@ -455,6 +470,23 @@ tyre's actual state instead of the former fixed slip numbers.
   The mid-field columns of the first two rows were measured before the integration merge.
   Baseline physics with the full-lock start gave 9.5 s (3.4–7.9 s on seeds 1–3). The outcome is not
   monotonic in the length, so these two tests remain sensitive to any change in start behaviour.
+* **Hosted wet-following session.** The hosted wet-following review (e2e/29) records one
+  deterministic session: Aurel, test seed, 8 cars, rain, full wets, AI driving the player, five laps.
+  The browser worker reproduces it tick for tick. Its recorder needs 3 s of same-leader wet following.
+  Frames more than 1 s apart break the run, and hosted software rendering has exceeded that near the
+  launch. The longest following starting at least 15 s after the green, sampled at 30 Hz:
+
+  | Start behaviour | Mid-field slot | Back slot |
+  |---|---|---|
+  | Baseline (53b6130) | 9.3 s | 9.5 s |
+  | 0 / 12 / 35 m fade | 10.3 / 7.0 / 10.5 s | 6.3 / 10.2 / 3.8 s |
+  | 40 / 60 / 75 / 100 m fade | none / none / none / none | none / 4.7 / none / 8.6 s |
+  | **50 m fade** | **3.4 s** (9.3 s only at the launch) | **8.9 s** (and 8.1 s) |
+
+  Run 38685156128 finished both mid-field views unqualified. The review therefore starts from the back
+  slot (`REVIEW_START_SLOTS`), and `tests/wet-review-start.test.ts` replays that session. The test
+  requires following after the launch at a 0.9 s cadence. A change in start or racing behaviour that
+  fails it needs a re-measured slot, not a relaxed review.
 
 ## 7. Calibration evidence
 
@@ -581,8 +613,8 @@ recorded angle includes camber gain.
   in `terrain.ts` do persist). Bulldozing and water drag act longitudinally only.
 * **Two differential paths.** Catalogue AWD/LSD cars use the catalogue's equal-speed projection
   (`distributeDrive`), which has no road-reaction feedforward. The stick-torque model can evaluate
-  the same specs (`fromSpec`), but switching the catalogue to it would need a recalibration pass. No
-  car uses a turbo.
+  the same specs (`fromSpec`), but switching the catalogue to it would need a recalibration pass.
+  Turbo boost has no rpm × load map: it follows engine speed and throttle only.
 * **Catalogue geometry.** Catalogue cars and motorcycles run the neutral package: no camber gain,
   roll centre or anti-geometry, legacy throttle response, and the former aero platform. They gain the
   tyre, thermal, hub and ground models. Per-car `dynamics` blocks are the next calibration step.

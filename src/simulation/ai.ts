@@ -32,6 +32,24 @@ export function lateralMarginAt(speed: number, env: CapabilityEnvelope = AI_ENVE
   const t = clamp((speed - 20) / 30, 0, 1);
   return env.slowLateralMargin + (env.lateralMargin - env.slowLateralMargin) * t * t * (3 - 2 * t);
 }
+/** The envelope for the car's present floor. A fan-assisted floor's suction
+ * scales with floor health (vehicle.ts), and so does its share of the base
+ * limits (`fanBase`); downforce terms keep their own damage scaling. Without a
+ * fan share the definition's envelope is returned unchanged. `scratch` is
+ * overwritten and returned (no allocation per step). */
+export function floorEnvelope(
+  env: CapabilityEnvelope,
+  floorHealth: number,
+  scratch: CapabilityEnvelope = { ...env },
+): CapabilityEnvelope {
+  const fan = env.fanBase;
+  if (!fan) return env;
+  const lost = 1 - clamp(floorHealth, 0, 1);
+  Object.assign(scratch, env);
+  scratch.lateralBase = env.lateralBase - fan.lateral * lost;
+  scratch.brakingBase = env.brakingBase - fan.braking * lost;
+  return scratch;
+}
 export const ENVELOPE_STEP = 12;
 export const ENVELOPE_SAMPLES = 21;
 /** Distance (m) over which a start position's offset from the lane fades by 1/e. */
@@ -133,6 +151,8 @@ export class AIDriver {
   private preparingPit = false;
   private readonly curvatures = new Float64Array(ENVELOPE_SAMPLES);
   private readonly corners = new Float64Array(ENVELOPE_SAMPLES);
+  /** Scratch envelope of a fan-floor car with floor damage (floorEnvelope). */
+  private readonly floorEnv: CapabilityEnvelope;
   private planner = new TrafficPlanner();
   readonly personality: DriverPersonality;
   readonly brain: DriverBrain;
@@ -144,6 +164,7 @@ export class AIDriver {
   ) {
     this.personality = personality(seed, car.id);
     this.brain = new DriverBrain(this.personality, seed, car.id);
+    this.floorEnv = { ...car.definition.ai };
   }
   update(dt: number, track: Track, cars: Vehicle[], race: RaceDirector) {
     const c = this.car,
@@ -266,7 +287,8 @@ export class AIDriver {
       ),
       speedSteer = c.assist === 'sport' ? 1 / (1 + c.speed * 0.018) : 1;
     command.steer = clamp(purePursuit / (c.spec.maxSteer * speedSteer), -1, 1);
-    const env = c.definition.ai;
+    // A damaged fan floor seals less: its share of the limits goes with it.
+    const env = floorEnvelope(c.definition.ai, c.floorHealth, this.floorEnv);
     let desired = env.topSpeed * this.skill;
     const grip = clamp(
         peakGrip(c.tires[0], 2500, c.contacts[0], Math.max(c.speed, 38)) / env.referenceMu,

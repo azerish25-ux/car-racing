@@ -27,6 +27,34 @@ export const BIKE_TARGETS: Record<string, Record<string, Band>> = {
     braking100Distance: [32, 45],
     lateral80G: [1.1, 1.45],
   },
+  // A second prototype (inline four, more wing and drag than GP-R1).
+  gpr2: {
+    accel0to100: [2.4, 3.4],
+    topSpeed: [330, 360],
+    braking100Distance: [30, 42],
+    lateral80G: [1.15, 1.55],
+  },
+  // ~95 kW / 175 kg 600 cc supersport on road-legal racing tyres.
+  ss600: {
+    accel0to100: [2.9, 4.0],
+    topSpeed: [250, 280],
+    braking100Distance: [36, 48],
+    lateral80G: [1.05, 1.4],
+  },
+  // ~88 kW naked roadster: upright (draggy), wheelie-limited, road tyres.
+  nr900: {
+    accel0to100: [2.9, 4.2],
+    topSpeed: [210, 240],
+    braking100Distance: [36, 50],
+    lateral80G: [0.9, 1.2],
+  },
+  // ~75 kW 1970s two-stroke racer: narrow tyres, lean-limited, weak brakes.
+  cr750: {
+    accel0to100: [3.2, 4.6],
+    topSpeed: [230, 265],
+    braking100Distance: [40, 56],
+    lateral80G: [0.85, 1.15],
+  },
   // Off-road machines (WP37) on the same asphalt runway: knobby tyres, short
   // gearing and a ~120-150 km/h top end; the supermoto on treaded road tyres.
   // Acceleration is wheelie-limited: with the rider seated the combined CG

@@ -48,12 +48,20 @@ export interface RulesetDefinition {
 const DRY: readonly Compound[] = Object.freeze(['soft', 'medium', 'hard']);
 const ALL: readonly Compound[] = Object.freeze([...DRY, 'intermediate', 'wet']);
 const POINTS = Object.freeze([25, 18, 15, 12, 10, 8, 6, 4, 2, 1]);
-/** Motorcycle classes (WP36); cars and bikes never share a grid. */
+/** Motorcycle classes (WP36); cars and bikes never share a grid. The GP
+ * ruleset keeps its two classes; every bike class may practise, qualify and
+ * run a time trial, including the open-world road bike. */
 const BIKE_CLASSES: readonly VehicleClass[] = Object.freeze(['gp-bike', 'superbike'] as const);
+const ALL_BIKE_CLASSES: readonly VehicleClass[] = Object.freeze([
+  ...BIKE_CLASSES,
+  'supersport',
+  'classic-bike',
+  'road-bike',
+] as const);
 /** Every class a practice, qualifying or time-trial session admits. */
 const SOLO_CLASSES: readonly VehicleClass[] = Object.freeze([
   ...ALL_CLASSES,
-  ...BIKE_CLASSES,
+  ...ALL_BIKE_CLASSES,
   ...OFFROAD_CLASSES.bikes,
 ]);
 const base = {
@@ -127,6 +135,22 @@ export const RULESETS: Readonly<Record<string, RulesetDefinition>> = Object.free
     }),
     points: Object.freeze([25, 20, 16, 13, 11, 10, 9, 8, 7, 6, 5, 4]),
     drs: false,
+  }),
+  /** Single-class motorcycle sprints for the supersport and classic classes. */
+  'motorcycle-class-sprint': Object.freeze({
+    ...base,
+    id: 'motorcycle-class-sprint',
+    name: 'MOTORCYCLE CLASS SPRINT',
+    sessions: Object.freeze(['race'] as const),
+    allowedClasses: Object.freeze(['supersport', 'classic-bike'] as const),
+    tires: Object.freeze({
+      allowed: Object.freeze(['soft', 'medium', 'hard', 'wet'] as const),
+      mandatoryCompoundChange: false,
+      penaltySeconds: 0,
+    }),
+    points: Object.freeze([25, 20, 16, 13, 11, 10, 9, 8, 7, 6, 5, 4]),
+    drs: false,
+    singleClass: true,
   }),
   'open-practice': Object.freeze({
     ...base,
@@ -202,7 +226,11 @@ export function sessionIncompatibilities(options: SessionOptions): string[] {
   if (!options.vehicles && venue.offroad) errors.push(`${venue.name} needs off-road machines`);
   if (rules.format?.kind === 'stage' && !venue.offroad)
     errors.push(`${rules.name} needs a stage venue`);
-  if (rules.format?.kind === 'rallycross' && rules.format.joker && venue.offroad?.kind !== 'rallycross')
+  if (
+    rules.format?.kind === 'rallycross' &&
+    rules.format.joker &&
+    venue.offroad?.kind !== 'rallycross'
+  )
     errors.push(`${rules.name} needs a venue with a joker road`);
   if (!rules.tires.allowed.includes(options.compound))
     errors.push(`${options.compound} tyres are not permitted by ${rules.name}`);

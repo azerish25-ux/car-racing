@@ -20,6 +20,7 @@ import { buildClosedBody, ClosedBodyModel } from './closed-body.ts';
 import { carMaterials, emptyLod, type BuiltLod, type CarMaterials } from './common.ts';
 import { bodyFrame, type BodyFrame } from './frame.ts';
 import { buildKart, buildOpenWheel, type Link } from './open-wheel.ts';
+import { buildBuggy } from './buggy.ts';
 import { sharedMaterials } from './materials.ts';
 import { WheelAssembly, type Detail } from './wheel.ts';
 import { installMudOn, mudUniforms, type MudUniforms } from '../offroad/mud.ts';
@@ -75,6 +76,7 @@ export function buildVehicleBody(id: number, definition: VehicleDefinition, shee
     else if (sheet.kind === 'open-wheel')
       lodLinks = buildOpenWheel(frame, sheet, materials, detail, lod);
     else if (sheet.kind === 'kart') buildKart(frame, sheet, materials, detail, lod);
+    else if (sheet.kind === 'buggy') lodLinks = buildBuggy(frame, sheet, materials, detail, lod);
     const corners = definition.wheelPositions.map((p, i) => {
       const assembly = new WheelAssembly(
         frame.radius,
@@ -88,7 +90,10 @@ export function buildVehicleBody(id: number, definition: VehicleDefinition, shee
       return assembly;
     });
     const meshes = lodLinks.map((link) => {
-      const mesh = new T.Mesh(linkGeometry, sharedMaterials.carbon());
+      const mesh = new T.Mesh(
+        linkGeometry,
+        sheet.kind === 'buggy' ? sharedMaterials.steel() : sharedMaterials.carbon(),
+      );
       mesh.castShadow = detail === 0;
       mesh.name = 'Suspension link';
       lod.group.add(mesh);
