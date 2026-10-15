@@ -231,6 +231,9 @@ export function treesForTile(
   iz: number,
   structures: StructureGrid | null,
   density = 1,
+  /** Thin only trees without a trunk collider (shrubs): every tree the
+   * physics collides with stays, whatever the render density. */
+  keepColliders = false,
 ): Float32Array {
   const field = world.field,
     region = world.region,
@@ -254,7 +257,9 @@ export function treesForTile(
       // Forest stands: about one tree per 8 m cell at full density; open
       // ground: rare field trees and shrubs.
       const chance = forest > 0.25 ? forest * 0.62 : 0.022;
-      if (pick > chance * density) continue;
+      if (pick > chance) continue;
+      const thinned = pick > chance * density;
+      if (thinned && !keepColliders) continue;
       if (Math.abs(x) > region.half + 1200 || Math.abs(z) > region.half + 1200) continue;
       const height = field.height(x, z),
         slope = Math.hypot(field.height(x + 2, z) - height, field.height(x, z + 2) - height) / 2;
@@ -280,6 +285,7 @@ export function treesForTile(
         species === TREE_SPECIES.SHRUB
           ? 1.2 + ((r2 >>> 4) % 100) / 60
           : (conifer ? 11 : 9) + ((r2 >>> 4) % 1000) / 1000 * (conifer ? 13 : 9);
+      if (thinned && trunkRadius(species, size) <= 0) continue;
       out.push(x, z, size, species, ((r2 >>> 14) % 628) / 100, ((r2 >>> 22) % 100) / 100);
     }
   return Float32Array.from(out);

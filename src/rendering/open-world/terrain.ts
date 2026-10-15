@@ -16,7 +16,8 @@ export interface TerrainBudget {
   maxTiles: number;
   /** Tile requests in flight to the worker. */
   inFlight: number;
-  /** Tree planting density for the near levels (0..1). */
+  /** Tree planting density for the near levels (0..1): it thins the far
+   * level and, on the finest level, only trees without a trunk collider. */
   trees: number;
 }
 export const TERRAIN_BUDGETS: Readonly<Record<'low' | 'medium' | 'high', TerrainBudget>> = Object.freeze({
@@ -202,6 +203,9 @@ export class TerrainStreamer {
       size,
       res: res(t.level),
       trees: t.level <= 1 ? this.budget.trees : 0,
+      // The finest level carries every collider tree (density thins the
+      // shrubs and the far level only).
+      colliders: t.level === 0,
     };
     this.worker.postMessage(message);
     return true;

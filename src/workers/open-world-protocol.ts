@@ -32,6 +32,10 @@ export interface TileRequest {
   res: number;
   /** Trees for LOD0/LOD1 tiles (render density 0..1; 0 = none). */
   trees: number;
+  /** Keep every tree with a trunk collider whatever `trees` is (the
+   * finest level, where the car can reach them): physics collides with
+   * every trunk, so each must be drawn. */
+  colliders?: boolean;
 }
 export type ToTileWorker = TileRequest | { type: 'cancel'; id: number };
 /** A built terrain tile: positions are local to the tile origin. */

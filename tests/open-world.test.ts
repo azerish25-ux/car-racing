@@ -6,7 +6,15 @@ import { VEHICLES } from '../src/simulation/vehicles.ts';
 import { resolveEvents } from '../src/simulation/open-world/festival-events.ts';
 import { OpenWorldTrack, RUN_OUT, WORLD_SURFACE } from '../src/simulation/open-world/open-world-track.ts';
 import { sharedPointErrors } from '../src/simulation/open-world/region-validation.ts';
-import { regionStructures, treesForTile, TREE_STRIDE } from '../src/simulation/open-world/placement.ts';
+import {
+  regionStructures,
+  StructureGrid,
+  treesForTile,
+  trunkRadius,
+  TREE_STRIDE,
+} from '../src/simulation/open-world/placement.ts';
+import { buildTileData, TILE_TREE_STRIDE } from '../src/rendering/open-world/tile-data.ts';
+import { TERRAIN_BUDGETS } from '../src/rendering/open-world/terrain.ts';
 import { ROAD_CLASSES, SOLVANE, type RegionDefinition } from '../src/simulation/open-world/region-data.ts';
 import { ROAD_FLAG, ROAD_LAYER_GAP, RoadNetwork, roadCandidates } from '../src/simulation/open-world/road-network.ts';
 import { pathPoint, planRoute, RoutePath } from '../src/simulation/open-world/route-path.ts';
@@ -461,6 +469,45 @@ describe('festival placement and machines', () => {
       b = treesForTile(world, 6, 12, null);
     expect(a.length).toBeGreaterThan(TREE_STRIDE * 50);
     expect(Array.from(a)).toEqual(Array.from(b));
+  });
+  it('draws every tree the physics collides with, at every quality tier and vegetation density', () => {
+    const grid = new StructureGrid(regionStructures(world));
+    // Forest tiles (the most trunks) and open ground with shrubs.
+    const tiles: [number, number][] = [];
+    for (let ix = -16; ix < 16 && tiles.length < 6; ix += 3)
+      for (let iz = -16; iz < 16 && tiles.length < 6; iz += 3) {
+        const trees = treesForTile(world, ix, iz, grid, 1);
+        let trunks = 0;
+        for (let i = 0; i < trees.length; i += TREE_STRIDE) if (trunkRadius(trees[i + 3], trees[i + 2]) > 0) trunks++;
+        if (trunks > 150) tiles.push([ix, iz]);
+      }
+    expect(tiles.length).toBe(6);
+    let thinned = 0;
+    for (const [ix, iz] of tiles) {
+      const colliders = treesForTile(world, ix, iz, grid, 1),
+        full = colliders.length / TREE_STRIDE;
+      for (const tier of ['low', 'medium', 'high'] as const)
+        for (const vegetation of [0, 0.5, 1]) {
+          const data = buildTileData(world, grid, {
+            type: 'tile',
+            id: 1,
+            x0: ix * TILE_SIZE,
+            z0: iz * TILE_SIZE,
+            size: TILE_SIZE,
+            res: 16,
+            trees: TERRAIN_BUDGETS[tier].trees * vegetation,
+            colliders: true,
+          });
+          const drawn = new Set<string>();
+          for (let i = 0; i < data.trees.length; i += TILE_TREE_STRIDE) drawn.add(`${data.trees[i]},${data.trees[i + 1]}`);
+          for (let i = 0; i < colliders.length; i += TREE_STRIDE)
+            if (trunkRadius(colliders[i + 3], colliders[i + 2]) > 0)
+              expect(drawn.has(`${colliders[i]},${colliders[i + 1]}`)).toBe(true);
+          if (drawn.size < full) thinned++;
+        }
+    }
+    // Lower densities still thin what has no collider (shrubs).
+    expect(thinned).toBeGreaterThan(0);
   });
   it('offers every four-wheel registry vehicle except karts, road cars first (data-driven)', () => {
     const list = festivalVehicles(),

@@ -81,11 +81,13 @@ export function buildTileData(world: OpenWorld, structures: StructureGrid, req: 
     }
   // Trees on the near levels, grounded on this tile's own surface.
   let trees = new Float32Array(0);
-  if (req.trees > 0 && size <= TILE_SIZE * 2) {
+  if ((req.trees > 0 || req.colliders) && size <= TILE_SIZE * 2) {
     const parts: Float32Array[] = [];
     for (let tz = z0; tz < z0 + size; tz += TILE_SIZE)
       for (let tx = x0; tx < x0 + size; tx += TILE_SIZE)
-        parts.push(treesForTile(world, Math.floor(tx / TILE_SIZE), Math.floor(tz / TILE_SIZE), structures, req.trees));
+        parts.push(
+          treesForTile(world, Math.floor(tx / TILE_SIZE), Math.floor(tz / TILE_SIZE), structures, req.trees, !!req.colliders),
+        );
     const count = parts.reduce((n, p) => n + p.length / TREE_STRIDE, 0);
     trees = new Float32Array(count * TILE_TREE_STRIDE);
     let o = 0;
