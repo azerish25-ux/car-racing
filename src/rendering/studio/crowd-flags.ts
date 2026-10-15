@@ -5,34 +5,83 @@ import { useStudioUniforms } from './studio-frame.ts';
 /**
  * Crowd colour and flags (D21 crowd-grandstands).
  *
- * Palette: half of the shirts in team colours (fans in their team's kit), the
- * rest in everyday neutrals, so a stand reads as a speckled, colourful mass
- * instead of one maroon block. Cohorts (friends sitting together) share a
- * colour 75 % of the time.
+ * Palette: a real grandstand is mostly dark and neutral everyday clothing
+ * (black, navy, charcoal, denim, khaki; white tees about one in ten) with team
+ * kit mixed in. `TEAM_SHARE` of the shirts are team kit, muted to dyed-cotton
+ * values (`fanColour`: 40 % toward their luminance, no channel above 0.55
+ * linear), so a stand reads as a dark speckled mass, not confetti. Cohorts
+ * (friends sitting together) share a colour `COHORT_SHARE` of the time, small
+ * patches rather than solid kit blocks.
  *
  * Flags: one waving team flag per `FLAG_EVERY` spectators, held 1.5 m above
  * the person, one instanced draw per stand, waving with `studioWind` and
  * presented time (deterministic), drawn only where the geometric crowd LODs
- * are (`FLAG_RANGE` m).
+ * are (`FLAG_RANGE` m). Printed polyester keeps more of the kit colour.
  */
-export const CROWD_TEAM_COLOURS = Object.freeze([
+/** Authored team kit hues (sRGB). Shirts and flags derive from these. */
+export const CROWD_TEAM_KITS = Object.freeze([
   0xc8102e, 0xff8000, 0x1e3a8a, 0xf2f2f2, 0x0b6e4f, 0xffd200, 0x111111, 0xe5007d,
 ] as const);
-export const CROWD_NEUTRALS = Object.freeze([
-  0xe8e8e6, 0x3a4f6e, 0x1c1c1e, 0x6b7a86, 0x8a7a62, 0xb9b2a4,
+/** Linear albedo ceiling of dyed cloth (a white cotton tee is about 0.55). */
+export const CLOTH_ALBEDO_MAX = 0.55;
+/** Desaturate an sRGB kit colour by `desaturate` (toward its linear luminance)
+ * and cap its brightest linear channel at `cap`. Returns sRGB hex. */
+export function fanColour(hex: number, desaturate = 0.4, cap = CLOTH_ALBEDO_MAX) {
+  const c = new T.Color().setHex(hex);
+  const y = 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
+  let r = c.r + (y - c.r) * desaturate,
+    g = c.g + (y - c.g) * desaturate,
+    b = c.b + (y - c.b) * desaturate;
+  const top = Math.max(r, g, b);
+  if (top > cap) {
+    const k = cap / top;
+    r *= k;
+    g *= k;
+    b *= k;
+  }
+  return c.setRGB(r, g, b).getHex();
+}
+/** Fan shirts in team kit: muted dyed cotton. */
+export const CROWD_TEAM_COLOURS = Object.freeze(CROWD_TEAM_KITS.map((c) => fanColour(c)));
+/** Team flags: printed polyester, lightly muted. */
+export const CROWD_FLAG_COLOURS = Object.freeze(CROWD_TEAM_KITS.map((c) => fanColour(c, 0.15, 0.7)));
+/** Everyday clothing (sRGB) and its share of the neutral picks, weighted dark. */
+export const CROWD_NEUTRAL_MIX = Object.freeze([
+  [0x1c1c1e, 0.2], // black
+  [0x1f2a40, 0.16], // navy
+  [0x3a3c40, 0.14], // charcoal
+  [0x3a4f6e, 0.12], // denim
+  [0x6b6e72, 0.09], // heather grey
+  [0x7d7258, 0.08], // khaki
+  [0x4b5040, 0.06], // olive
+  [0x5a3a30, 0.04], // brown
+  [0xc4c2bc, 0.11], // white tee
 ] as const);
-/** 14 colours: 8 team colours (50 % of picks) and 6 neutrals. */
+export const CROWD_NEUTRALS = Object.freeze(CROWD_NEUTRAL_MIX.map(([c]) => c));
+/** Every shirt colour a spectator can wear. */
 export const CROWD_PALETTE = Object.freeze([...CROWD_TEAM_COLOURS, ...CROWD_NEUTRALS]);
-export const COHORT_SHARE = 0.75;
+/** Share of spectators in team kit. */
+export const TEAM_SHARE = 0.22;
+export const COHORT_SHARE = 0.35;
 export const MAIN_STAND_OCCUPANCY = 0.9;
 export const FLAG_EVERY = 13;
 export const FLAG_RANGE = 240;
 
-/** Deterministic palette pick: `u`, `v` in [0, 1). Team colours half the time. */
+/** Deterministic palette pick: `u`, `v` in [0, 1). Team kit `TEAM_SHARE` of
+ * the time, otherwise a weighted everyday neutral. */
 export function crowdColour(u: number, v: number) {
-  const team = u < 0.5;
-  const list = team ? CROWD_TEAM_COLOURS : CROWD_NEUTRALS;
-  return list[Math.min(list.length - 1, Math.floor(v * list.length))];
+  if (u < TEAM_SHARE)
+    return CROWD_TEAM_COLOURS[
+      Math.min(CROWD_TEAM_COLOURS.length - 1, Math.floor(v * CROWD_TEAM_COLOURS.length))
+    ];
+  let total = 0;
+  for (const [, w] of CROWD_NEUTRAL_MIX) total += w;
+  let acc = 0;
+  for (const [c, w] of CROWD_NEUTRAL_MIX) {
+    acc += w / total;
+    if (v < acc) return c;
+  }
+  return CROWD_NEUTRALS[CROWD_NEUTRALS.length - 1];
 }
 
 /** A 0.9 × 0.6 m flag on its own pole, origin at the hand. */
@@ -135,7 +184,7 @@ export function buildCrowdFlags(
     lift.makeRotationY(((h % 628) / 100) * 0.35 - 0.6).setPosition(0.12, 0.55, 0);
     m.multiplyMatrices(matrix, lift);
     mesh.setMatrixAt(i, m);
-    mesh.setColorAt(i, colour.setHex(CROWD_TEAM_COLOURS[h % CROWD_TEAM_COLOURS.length]));
+    mesh.setColorAt(i, colour.setHex(CROWD_FLAG_COLOURS[h % CROWD_FLAG_COLOURS.length]));
   });
   mesh.castShadow = false;
   mesh.receiveShadow = true;
