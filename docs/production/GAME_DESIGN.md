@@ -44,6 +44,31 @@ licence teaches one skill at a time (braking, cornering, wet, lean, jump landing
 measured skill (distance error at a braking marker, line deviation, landing pitch), never by finishing
 position alone.
 
+**Implemented (`src/career/`, CAREER in the paddock menu).** The four disciplines, their tiers and
+every event are derived from the registries (`VEHICLES`, `CIRCUIT_IDS`, `RULESETS`, `EVENTS`, the
+snapshot protocol) by `src/career/registry.ts` and `ladder.ts`: a machine's family comes from an
+explicit `family` field, else its dynamics adapter, else its class; a discipline with no machine,
+venue or race ruleset is shown **COMING** with the missing items listed, never hard-coded. With the
+current catalogues, circuit cars and road bikes are open (the superbike and GP bike race under the
+motorcycle ruleset; no circuit declares bike safety yet, so bike events use every paved circuit and
+say so); off-road is coming (rally, rallycross and off-road machines exist, no dirt venue does) and
+festival is coming (road machines exist, no region does). Circuit-car tiers: club and touring →
+grand touring → Formula ladder → endurance prototypes; bike, off-road and festival tiers exist as data
+and fill when their classes are registered. A registered class that no tier names joins an automatic
+open tier.
+
+| Licence | Measured from the snapshot | Gold / silver / bronze | State |
+|---|---|---|---|
+| Braking marker | stopping distance from a marker at the end of the venue's longest straight, after a gate at 45 % of the machine's top speed | ≤ 1.5 / 4 / 8 m | integrated |
+| Cornering line | mean distance from the AI racing line through the tightest named corner, at ≥ 62 % of the grip-limited corner speed; measured only on a lap still valid when the corner starts (an earlier breach waits for the next lap), and a track-limits breach inside the corner voids the attempt | ≤ 0.75 / 1.5 / 2.5 m | integrated |
+| Wet control | peak body slide angle on a valid heavy-rain flying lap at ≥ 30 % of top speed; an invalid or slow lap is not measured and the next lap is another try | ≤ 4 / 7 / 11° | integrated |
+| Lean and trail braking (bikes) | share of corner entry braking while leaned > 10°, lean read from the protocol v12 bike block (`BIKE_BASE + B.LEAN`) | ≥ 50 / 35 / 20 % | integrated: open with the registered superbike, scored from a real bike practice session in tests |
+| Jump landing (off-road) | pitch error at touchdown in the surveyed landing zone, against that jump's declared landing slope (a venue's `jumps` entries with `takeoff`, `landing`, `landingLength` and `landingPitch`); touchdowns elsewhere are not scored | ≤ 3 / 6 / 10° | scorer tested; coming until a dirt venue declares a surveyed jump |
+
+Thresholds are provisional design targets: the production AI scores gold on the cornering, wet and
+lean tests, so human calibration in the playtest protocol is the next step. Licences run solo on the
+player's active machine or a loaned entry machine; attempts driven by the AI earn nothing.
+
 ## 4. Progression and economy
 
 * **Credits** are earned by completion, improvement over the player's own previous result, clean
@@ -56,6 +81,28 @@ position alone.
   class keeps balance visible; restricted classes cap it.
 * **No pay-to-win and no loot boxes.** Nothing that changes performance is sold.
 
+**Implemented (`src/career/economy.ts`).** A career race pays the `rewardIncome` lines scaled by the
+tier's pay rate, plus low contact (≤ 5 kJ absorbed, measured from the snapshot impact channel by
+`ContactMeter`), improvement on the player's own best position and best lap at that event, and
+objectives (podium; two places gained from a fifth-place start). The itemised lines are shown under
+the classification and booked once per session id (`paidSessions`); AI-driven or unclassified
+sessions are settled with nothing paid and the reason shown. Licence medals pay once per level.
+Reputation is per discipline, capped at 100, earned only by results and medals. Prices follow class
+(`CLASS_PRICES`; an unlisted class is priced by its tier). The dealership lists every registered
+machine but sells only those that can race in this build: a machine whose discipline is coming, or
+whose class no race ruleset admits, shows what is missing instead of a price button, and the purchase
+is refused if requested directly. A championship win pays a bonus and awards the cheapest unowned
+machine of the next tier, but only when every round was the player's own driving: AI-driven rounds
+count in the table and are marked on the calendar, and a season with any of them earns no title,
+bonus or prize (the results screen says so). A season keeps the calendar and the machine it started
+with; changing the active machine never restarts it, and ending a season early is an explicit
+ABANDON SEASON choice that names the rounds lost. The championship card lists the calendar (venue,
+weather and laps of every round) and describes the round raced next. The **club meeting** (two laps, four cars, loaned
+machine, quarter rates) is always open when a discipline has content, so a driver with no credits and
+no machine can rebuild. Career sessions pay the career wallet, not the Team HQ ledger, which keeps
+paying every other racing session. **Upgrades are not implemented**: the dealership sells stock
+definitions only, because an upgrade must create a new `VehicleDefinition` hash and record category.
+
 ## 5. Garage, setup and tuning
 
 Setup exposes only what a machine genuinely has (`setupFor`). Car: wings, ride height, springs,
@@ -63,6 +110,35 @@ dampers, anti-roll bars, camber/toe, brake bias, differential preload/ramp, gear
 Bike: preload, compression/rebound, steering damper, gearing, traction/wheelie/engine-brake maps.
 Off-road: suspension travel and sag, tyre type. Every change shows its expected effect in plain
 language and in telemetry.
+
+**Implemented (`src/career/economy.ts`, Garage page).** Owned machines, one active machine per
+discipline, and up to six setup presets per machine saved from the current GARAGE & SETTINGS values;
+a preset stores only the machine's `setupKeys` (the `setupFor` keys) and the selected preset is the
+setup of that machine's career sessions. Every non-default value is explained in plain language
+(`SETUP_EFFECTS`). Bike and off-road setup parameters do not exist yet in `Setup`.
+
+**Persistence (`src/career/save.ts`, `controller.ts`).** The career is one versioned save (`career`,
+version 1, a migration table for later versions) written with `SaveStore.writeWithBackup`; the primary
+and its backup are read and chosen with `recoverSave`. A corrupt primary falls back to the backup;
+with neither usable a new career starts, the player is told, and the unreadable copy is kept under
+`career:unreadable` before the first overwrite, so the backup rotation cannot discard it. A career
+saved by a **newer build** is never overwritten: this build shows what it can read (an older backup,
+else a new career), saves nothing and says so on the CAREER screen; the player may choose SAVE IN THIS
+BUILD, which first copies the newer career to `career:newer`. If storage cannot be read at all, the
+career is played for the session without saving. Every write carries a revision: a write first
+re-reads the stored career and, when another tab has saved a different revision, applies the change
+to that copy (so purchases, medals and rounds from both tabs survive); where the browser offers Web
+Locks, writes from all tabs are also serialised. A first career is seeded once from existing saves:
+Team HQ reputation above its founding value, classified `championship:v1` rounds, paid session ids and
+the garage setup as a preset. The team and championship saves are never rewritten by the career.
+
+**Designed, not yet implemented.** Festival free roam and events found by driving to them; bike and
+off-road setup parameters; performance upgrades and a per-class performance index; showing setup
+effects in telemetry (the plain-language hints exist); a choice of licence venue (tests use the first
+admitted venue); championship qualifying (career rounds start the player fifth); rival identity
+across career seasons; one result identity shared with Team HQ (WP23). The full-application journey
+(menu → career session → results) is covered by unit tests and a DOM-only browser test, not yet by a
+rendered end-to-end run or a human playtest.
 
 ## 6. Racecraft and AI
 
