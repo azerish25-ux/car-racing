@@ -264,8 +264,12 @@ describe('catalogue wave 2 review', () => {
       races: { event?: string; crashes: number[]; finishTimes: number[] }[];
     }>('docs/bike-race.json');
     expect(doc.passed).toBe(true);
-    const bikeEvents = EVENTS.filter((e) =>
-      [e.vehicles].flat().some((id) => vehicleFamily(VEHICLES[id]) === 'bike'),
+    // Road-racing motorcycle events; off-road motos have their own evidence
+    // (docs/offroad-races.json, npm run test:offroad).
+    const bikeEvents = EVENTS.filter(
+      (e) =>
+        !CIRCUITS[e.circuit].offroad &&
+        [e.vehicles].flat().some((id) => vehicleFamily(VEHICLES[id]) === 'bike'),
     );
     expect(bikeEvents.length).toBeGreaterThanOrEqual(11);
     for (const e of bikeEvents) {

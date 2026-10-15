@@ -166,8 +166,9 @@ describe('catalogue wave 2', () => {
         circuit: 'riviera',
       }),
     ).toEqual([]);
-    // Every built-in motorcycle event is on a bike-safe circuit.
-    const bikeEvents = EVENTS.filter((e) => ridden(e.vehicles));
+    // Every built-in road-racing motorcycle event is on a bike-safe circuit
+    // (off-road motos run on terrain venues under their own formats).
+    const bikeEvents = EVENTS.filter((e) => ridden(e.vehicles) && !CIRCUITS[e.circuit].offroad);
     expect(bikeEvents.length).toBeGreaterThanOrEqual(10);
     for (const event of bikeEvents) expect(CIRCUITS[event.circuit].bikeSafe, event.id).toBe(true);
     // The bike career reads the flag: only assessed circuits, no caveat.
