@@ -1,6 +1,6 @@
 {
-  "sourceSHA256": "2afe749f518ff2aa35be17ad777211def583aab7a6331f1f2c49f42c9374c8fa",
-  "simulationSHA256": "ab4e62703447e492903344d0a082ebb7c1e23730f3b213402e70a033a1dc99f6",
+  "sourceSHA256": "40e44112da0b2cb0926a9d7d704cb4f5155c3d82bd4ef0889960b77ce262d2d9",
+  "simulationSHA256": "beb68865bf4a4b51b754736446b5a5dc7d4039604c9145e568bec6643b1f20ed",
   "fingerprintVersion": 2,
   "scriptSHA256": "065847a7c74f810bd0a40e8f6a2f1736e5c5301899b90f1552846a30ee676721",
   "scope": "Continuous production-physics/input, numeric replay and CSV fixture. NOT the complete manual audiovisual section-146 acceptance.",
@@ -151,7 +151,7 @@
   "replay": {
     "frames": 9275,
     "durationSeconds": 618.2666463181376,
-    "maximumResidentBytes": 14524320,
+    "maximumResidentBytes": 15100320,
     "seeks": [
       {
         "index": 40,

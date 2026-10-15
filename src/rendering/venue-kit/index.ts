@@ -8,6 +8,7 @@ import {
   buildBoards,
   buildBridges,
   buildFacades,
+  buildGantries,
   buildLightTowers,
   buildPaddock,
   buildRockAndDrops,
@@ -50,7 +51,9 @@ export class VenueKit {
       queue.add('Venue kit cuttings, cliffs and quays', 2, () => buildRockAndDrops(kit));
     if (kit.meta.dressing.facades.length)
       queue.add('Venue kit city frontage', 3, () => buildFacades(kit));
-    if (kit.style.lightTowers || kit.meta.night)
+    if (kit.meta.dressing.gantries.length)
+      queue.add('Venue kit crane gantries', 2, () => buildGantries(kit));
+    if (kit.style.lightTowers || kit.meta.night || kit.meta.dayNight)
       queue.add('Venue kit light towers', 3, () => buildLightTowers(kit));
     queue.add('Venue kit braking boards', 3, () => buildBoards(kit));
     queue.add('Venue kit scatter', 3, () => buildScatter(kit));
@@ -93,6 +96,8 @@ export class VenueKit {
       layout: meta.layout,
       theme: meta.theme,
       night: meta.night,
+      dayNight: meta.dayNight,
+      gantries: meta.dressing.gantries.length,
       meshes,
       instances,
       detailCells: this.context.cells.length,

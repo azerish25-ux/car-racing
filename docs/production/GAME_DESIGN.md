@@ -20,7 +20,7 @@ mechanic below names the system that implements it, so design and code cannot dr
 | Discipline | Machines (families) | Venues | Core skill | Session formats |
 |---|---|---|---|---|
 | **Circuit cars** | Formula, feeder and entry formula, historic formula (1960s, 1970s, 1980s turbo), historic sports prototype, hypercar/prototype, GT3, GT4, touring, club, vintage club, kart, experimental | real-world-faithful and original circuits | braking points, tyre and energy management, racecraft | practice, qualifying, sprint, grand prix, endurance (lap and timed), multi-class |
-| **Road motorcycles** | GP prototype, superbike, supersport, classic racer (the road-only naked roadster rides in the festival) | circuits flagged bike-safe (run-off, kerb profile) | lean angle, trail braking, body position, front/rear brake split | practice, qualifying, sprint, race |
+| **Road motorcycles** | GP prototype, superbike, supersport, classic racer (the road-only naked roadster rides in the festival) | circuits flagged bike-safe (run-off, kerb profile) where the class has passed a seeded race | lean angle, trail braking, body position, front/rear brake split | practice, qualifying, sprint, race |
 | **Off-road** | motocross, rally, historic rally, rallycross, trophy truck, desert buggy | dirt/terrain venues, stages, rallycross mixed-surface | throttle on loose ground, jump take-off/landing, ruts and berms | motos, heats, stages, joker-lap rallycross |
 | **Festival (open world)** | road supercars, electric hypercars, hot hatch, sports sedan, muscle coupe, classic grand tourer, pickup, rally-bred road car, luxury GT, roadster, naked roadster bike, plus any unlocked race machine | open festival region with road network | exploration, point-to-point, speed traps, drift zones | free roam, road race, sprint, speed zone, drift zone, showcase |
 
@@ -186,9 +186,9 @@ Off-road (implemented in `src/simulation/offroad/session.ts`, rules in `formats.
 
 | Group | Content | Purpose |
 |---|---|---|
-| Real-world-faithful | layouts approximating famous circuits from public geometry, neutral names until licensed | familiarity, benchmark comparisons |
+| Real-world-faithful | layouts approximating famous circuits from public geometry, neutral names until licensed: grand-prix circuits, motorcycle GP circuits (bike-safe), endurance mega-circuits (20.8 km forest ring, 13.6 km public-road circuit), street and night circuits | familiarity, benchmark comparisons |
 | Original circuits | Aurel, Vellamar and new originals | identity, art-direction showcases |
-| Unconventional | neon city with tunnels, alpine pass, high-banked oval, desert canyon, coastal cliffs, dockyard overpass | spectacle, new racing problems |
+| Unconventional | neon city with tunnels, alpine pass, high-banked oval, desert canyon, coastal cliffs, dockyard overpass, container-port night figure-eight, salt-flat airbase | spectacle, new racing problems |
 | Off-road | motocross terrain parks, rallycross mixed surface, rally stages — implemented: Valley Ridge (outdoor motocross), Arena Nord (indoor supercross), Kestrel (rallycross), Pinewood (gravel stage) | discipline-specific skills |
 | Festival region | open terrain with a road network, towns, mountain, coast, airfield | exploration and event discovery |
 

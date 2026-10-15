@@ -4,8 +4,11 @@ import {
   RaceDirector,
   PHASE,
   FINISH_GRACE_SECONDS,
+  FINISH_GRACE_PACE,
+  finishGraceSeconds,
   outsideTrack,
 } from '../src/simulation/race.ts';
+import { CIRCUITS } from '../src/simulation/circuits.ts';
 import { DEFAULT_OPTIONS } from '../src/simulation/config.ts';
 import { Track } from '../src/simulation/track.ts';
 import { Vehicle } from '../src/simulation/vehicle.ts';
@@ -69,8 +72,7 @@ describe('timing and four-wheel boundaries', () => {
   });
 });
 
-function finishingField() {
-  const track = new Track();
+function finishingField(track = new Track()) {
   const cars = [new Vehicle(0), new Vehicle(1)];
   for (const car of cars) car.place(track, track.length - 2);
   const race = new RaceDirector(cars, track, { ...DEFAULT_OPTIONS, laps: 2, mode: 'race' });
@@ -138,6 +140,32 @@ describe('whole-field classification', () => {
     expect(race.phase).toBe(PHASE.FINISHED);
     expect(cars[0].retired).toBe(true);
     expect(cars[0].finishTime).toBe(0);
+  });
+  it('keeps the fixed grace on ordinary laps and one slow lap on the endurance rings', () => {
+    // Every lap up to 4.5 km keeps the 180 s grace (Aurel, Vellamar, ...).
+    expect(finishGraceSeconds(2973)).toBe(FINISH_GRACE_SECONDS);
+    expect(finishGraceSeconds(FINISH_GRACE_SECONDS * FINISH_GRACE_PACE)).toBe(FINISH_GRACE_SECONDS);
+    // A 13.6 km lap: a lapped GT car five minutes from the line still finishes.
+    expect(finishGraceSeconds(13626)).toBeGreaterThan(500);
+    expect(finishGraceSeconds(20832)).toBeGreaterThan(800);
+  });
+  it('classifies a lapped car still circulating on a long lap after 180 s', () => {
+    const track = new Track('clear', false, undefined, CIRCUITS.loirette);
+    const { cars, race } = finishingField(track);
+    expect(race.finishGrace).toBeCloseTo(track.length / FINISH_GRACE_PACE, 6);
+    cars[1].s = 2;
+    race.step(0.1);
+    expect(race.finishStartedAt).toBeGreaterThan(0);
+    // Car 0 is still running when the fixed grace would have expired...
+    for (let i = 0; i < FINISH_GRACE_SECONDS + 60; i++) race.step(1);
+    expect(cars[0].retired).toBe(false);
+    expect(race.phase).toBe(PHASE.RACING);
+    // ...and takes the flag at its next crossing.
+    race.laps[0].lastS = track.length - 1;
+    cars[0].s = 1;
+    race.step(0.1);
+    expect(cars[0].finishTime).toBeGreaterThan(0);
+    expect(race.phase).toBe(PHASE.FINISHED);
   });
   it('ends an all-retired race without inventing a winner', () => {
     const { cars, race } = finishingField();

@@ -2,7 +2,7 @@ import { circuitDefinition, type CircuitDefinition } from './circuits.ts';
 import { K, SKID_BASE } from './protocol.ts';
 import { clamp } from '../core/math.ts';
 import type { AIDriver } from './ai.ts';
-import { writeBikeBlock } from './bike-vehicle.ts';
+import { BikeVehicle, writeBikeBlock } from './bike-vehicle.ts';
 import { createEntrantDriver } from './offroad/ai.ts';
 import { OffroadSession, createEntrant, writeOffroadBlock } from './offroad/session.ts';
 import { wakeFields } from './aero.ts';
@@ -39,6 +39,12 @@ import { Track } from './track.ts';
 import type { Vehicle } from './vehicle.ts';
 import { vehicleDefinition, vehicleIndex } from './vehicles.ts';
 const COMPOUND_IDS = Object.keys(COMPOUNDS);
+/** Marshal help for an AI car that cannot get going (wedged against a
+ * barrier on a narrow verge, beached): asking for drive yet covering less
+ * than `progress` metres for `seconds`, it is placed back at the track edge
+ * facing the course, as for an upturned car or a stranded bike. The AI's own
+ * reverse-out recovery runs several times first. */
+export const MARSHAL_RECOVERY = Object.freeze({ seconds: 30, progress: 20 });
 export class Simulation {
   readonly options: SessionOptions;
   readonly track: Track;
@@ -50,6 +56,10 @@ export class Simulation {
   readonly offroad: OffroadSession | null;
   tick = 0;
   autoPlayer = false;
+  /** Marshal recoveries of stranded AI cars, per car. */
+  readonly recoveries: Uint16Array;
+  private readonly strandClock: Float64Array;
+  private readonly strandS: Float64Array;
 
   /** `venue` overrides the registry circuit for validated development venues
    * (e.g. the left-pit and route-graph test courses); players use `circuit`. */
@@ -93,6 +103,9 @@ export class Simulation {
     this.ai = this.cars.map((c) =>
       createEntrantDriver(c, 0.92 + (c.id % 4) * 0.014, this.options.seed, this.track, this.options.laps),
     );
+    this.recoveries = new Uint16Array(count);
+    this.strandClock = new Float64Array(count);
+    this.strandS = Float64Array.from(this.cars, (c) => c.s);
     this.race = new RaceDirector(this.cars, this.track, this.options);
     this.offroad = OffroadSession.create(this.track, this.cars, this.race, this.options);
     if (this.options.mode === 'endurance') {
@@ -164,10 +177,50 @@ export class Simulation {
       this.collisions.solve(this.cars, this.track);
     }
     for (const c of this.cars) c.recoverIfUpset(dt, this.track);
+    this.recoverStranded(dt);
     for (const c of this.cars) updatePit(c, this.track, dt, this.cars);
     this.offroad?.afterPhysics(dt);
     this.track.evolve(dt, Math.max(0, this.race.time - this.race.greenAt));
     this.race.step(dt);
+  }
+  /** MARSHAL_RECOVERY for AI-driven four-wheel cars (bikes have their own). */
+  private recoverStranded(dt: number) {
+    const length = this.track.length;
+    for (let i = 0; i < this.cars.length; i++) {
+      const c = this.cars[i];
+      const driven = i > 0 || this.autoPlayer || c.pitRequested || c.finishTime > 0;
+      if (
+        !driven ||
+        c instanceof BikeVehicle ||
+        c.retired ||
+        c.inPit ||
+        this.race.phase !== PHASE.RACING ||
+        !(c.input.throttle > 0.2 || c.input.reverse)
+      ) {
+        this.strandClock[i] = 0;
+        this.strandS[i] = c.s;
+        continue;
+      }
+      const moved = Math.abs(((c.s - this.strandS[i] + length * 1.5) % length) - length / 2);
+      if (moved >= MARSHAL_RECOVERY.progress) {
+        this.strandClock[i] = 0;
+        this.strandS[i] = c.s;
+        continue;
+      }
+      this.strandClock[i] += dt;
+      if (this.strandClock[i] < MARSHAL_RECOVERY.seconds) continue;
+      const p = c.trackPosition;
+      this.track.nearest(c.body.position.x, c.body.position.z, p, c.body.position.y);
+      const half = Math.max(0, p.width - 1.2);
+      c.place(this.track, p.s, clamp(c.lateral, -half, half));
+      for (const t of c.tires) t.omega = 0;
+      c.gear = 1;
+      this.race.laps[i].invalidate();
+      this.race.control.recordRecovery(i, this.race.raceTime);
+      this.recoveries[i]++;
+      this.strandClock[i] = 0;
+      this.strandS[i] = c.s;
+    }
   }
   writeFrame(out: Float32Array, stepMs = 0, dropped = 0) {
     if (out.length !== HEADER + this.cars.length * CAR_STRIDE)

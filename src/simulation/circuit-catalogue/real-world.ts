@@ -1,14 +1,17 @@
 import type { CircuitSpec } from './builder.ts';
-import { A, S, compactPit, gpPit } from './dsl.ts';
+import { A, ALL_BIKE_CLASSES, MODERN_BIKE_CLASSES, S, compactPit, gpPit } from './dsl.ts';
 
 /** Approximations of famous real-world layouts from public geometry: corner
  * sequence, straight lengths, radii and elevation where publicly known, scaled
  * to the published lap length. Names are neutral and original; no official
  * names, logos, branding or corner names are used (see ASSET_PROVENANCE.md).
- * These are not licensed reproductions. */
+ * These are not licensed reproductions. The permanent road courses (gravel
+ * outside the corners, barriers 11 m out) are assessed bike-safe; the
+ * harbour street circuit is not. */
 
 const parcoReale: CircuitSpec = {
   id: 'parco-reale',
+  bikeClasses: ALL_BIKE_CLASSES,
   name: 'PARCO REALE / AUTODROMO',
   short: 'PARCO REALE',
   group: 'real-world',
@@ -18,6 +21,7 @@ const parcoReale: CircuitSpec = {
   description:
     'Temple of speed in a royal park: three chicanes break flat-out straights, the woodland pair and a long opening final curve.',
   theme: 'parkland',
+  bikeSafe: true,
   heading: 90,
   winding: -1,
   length: 5793,
@@ -76,6 +80,7 @@ const parcoReale: CircuitSpec = {
  * the woods and climbs back on flat-out curves. Pit lane on the left. */
 const ardennes: CircuitSpec = {
   id: 'ardennes',
+  bikeClasses: MODERN_BIKE_CLASSES,
   name: 'ARDENNES / FOREST CIRCUIT',
   short: 'ARDENNES',
   group: 'real-world',
@@ -85,6 +90,7 @@ const ardennes: CircuitSpec = {
   description:
     'Seven kilometres through Ardennes forest: the brook compression and ridge climb, a long uphill straight and a 100 m fall and rise.',
   theme: 'forest',
+  bikeSafe: true,
   heading: 70,
   winding: -1,
   length: 7004,
@@ -171,6 +177,7 @@ const northfieldCommon = {
   venue: 'northfield',
   venueName: 'Northfield Airfield GP',
   theme: 'airfield' as const,
+  bikeSafe: true,
   winding: -1 as const,
   halfWidth: 7.6,
   elevationSmoothing: 100,
@@ -181,6 +188,7 @@ const northfieldCommon = {
 const northfield: CircuitSpec = {
   ...northfieldCommon,
   id: 'northfield',
+  bikeClasses: ALL_BIKE_CLASSES,
   name: 'NORTHFIELD / AIRFIELD GP',
   short: 'NORTHFIELD',
   layout: 'Grand Prix',
@@ -230,6 +238,7 @@ const northfield: CircuitSpec = {
 const northfieldClassic: CircuitSpec = {
   ...northfieldCommon,
   id: 'northfield-classic',
+  bikeClasses: ALL_BIKE_CLASSES,
   name: 'NORTHFIELD / CLASSIC',
   short: 'NFLD CLASSIC',
   layout: 'Classic',
@@ -277,6 +286,7 @@ const kansaiCommon = {
   venue: 'kansai',
   venueName: 'Kansai Figure-Eight',
   theme: 'hills' as const,
+  bikeSafe: true,
   halfWidth: 7.0,
   elevationSmoothing: 60,
   barrier: { kind: 'armco' as const, offset: 11 },
@@ -287,6 +297,7 @@ const kansaiCommon = {
 const kansai: CircuitSpec = {
   ...kansaiCommon,
   id: 'kansai',
+  bikeClasses: MODERN_BIKE_CLASSES,
   name: 'KANSAI / FIGURE-EIGHT',
   short: 'KANSAI',
   layout: 'Grand Prix',
@@ -347,6 +358,7 @@ const kansai: CircuitSpec = {
 const kansaiEast: CircuitSpec = {
   ...kansaiCommon,
   id: 'kansai-east',
+  bikeClasses: ALL_BIKE_CLASSES,
   name: 'KANSAI / EAST COURSE',
   short: 'KANSAI EAST',
   layout: 'East Course',
@@ -462,6 +474,7 @@ const riviera: CircuitSpec = {
  * section with a long triple-apex right. Pit lane on the left. */
 const texasHill: CircuitSpec = {
   id: 'texas-hill',
+  bikeClasses: MODERN_BIKE_CLASSES,
   name: 'TEXAS HILL / COUNTRY CIRCUIT',
   short: 'TEXAS HILL',
   group: 'real-world',
@@ -471,6 +484,7 @@ const texasHill: CircuitSpec = {
   description:
     'Anticlockwise: a steep climb to the hilltop hairpin, sweeping esses, a kilometre back straight and the stadium section.',
   theme: 'prairie',
+  bikeSafe: true,
   heading: 95,
   winding: 1,
   length: 5513,

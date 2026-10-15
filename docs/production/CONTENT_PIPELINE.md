@@ -402,6 +402,16 @@ curvature, racing line, reference length, protected names), a seeded **AI race s
 (`src/rendering/venue-kit/`). Still missing: visual editors, surface painter, AI lane overlay, camera
 previewer, performance heat map (§14.4), and person-time records for the stages (§14.7).
 
+Catalogue wave 2 adds a **bike-safety measurement** (`bikeSafetyReport`: run-off surface and barrier
+distance outside corners, kerb rise, banking, tunnels and frontage) that validate:content applies to
+every circuit declaring `bikeSafe`, **dense sampling for long laps** (`trackSamplesFor`, up to 2048
+control points), `dayNight` venues, `bends` chains, crane `gantry` spans and twelve venue-kit
+themes. Review additions: per-class motorcycle clearance (`bikeClasses`, evidenced by `npm run
+test:bike-clearance` → `docs/bike-clearance.json` and required on every bike-safe circuit), the
+built-in motorcycle events in `npm run test:bikes`, the catalogue endurance events raced to the flag
+(`npm run test:endurance-events` → `docs/endurance-event-races.json`) and protected-name checks on
+trackside signage.
+
 ### 2.3 Venue vision (§15)
 
 | ID | Venue | Status |
@@ -410,6 +420,10 @@ previewer, performance heat map (§14.4), and person-time records for the stages
 | T02 | Vellamar | integrated |
 | C01–C06 | Real-world approximations under neutral names: Parco Reale Autodromo, Ardennes Forest Circuit, Northfield Airfield GP (+ Classic), Kansai Figure-Eight (+ East Course), Riviera Harbour Street Circuit, Texas Hill Country Circuit | integrated (greybox + procedural venue kit); approximations from public geometry, pending a licence for official names; no art, hardware or player acceptance |
 | C07–C12 | Unconventional originals: Neon City night streets with tunnels (+ reverse), Col d’Argent mountain pass (ascent/descent), Mesa Speedbowl 31° tri-oval (+ infield road course), Red Mesa canyon (+ reverse), Cap Lumière cliff road (+ reverse), Iron Quay docklands flyover (+ reverse) | integrated (greybox + procedural venue kit); seeded 6-car AI races pass on all 20 layouts; no art, hardware or player acceptance |
+| C13–C16 | Motorcycle grand-prix approximations, bike-safe: Poggio Alto Autodromo (Tuscan hills), Cape Wrenna Island Circuit (cliff-top), Haarveld Circuit (flat flowing), Montejaral Circuit (tight technical) | integrated (greybox + procedural venue kit); bike-safety measured in validate:content; seeded car races pass; a seeded bike race per class on each (classic class cleared on Cape Wrenna and Haarveld only) and every built-in bike event raced; no art, hardware or player acceptance |
+| C17–C18 | Endurance approximations, day-night lit: Hochwald Forest Ring (20.8 km, 274 m elevation range, blind crests), Loirette Endurance Circuit (13.6 km public roads + chicanes; + bike-safe Club Circuit) | integrated (greybox + procedural venue kit); dense long-lap sampling; seeded car races pass; both multi-class endurance events run to the flag with every car classified (`test:endurance-events`); venue-kit build cost on these lengths not measured |
+| C19–C29 | Real-world approximations: Serra Verde (bowl), Mount Ardlow (mountain), Arroyo Oro (corkscrew drop; bike-safe), Fiume Verde (chicanes and lake; bike-safe), Duinwijk (banked dunes), Ramla (desert night + Outer), Mirvari (Caspian streets, 8.6 m fortress section), Lantern Bay (bay night streets), Lotus Hill (harbour hill streets) | integrated (greybox + procedural venue kit); approximations from public geometry under neutral names, unlicensed; seeded car races pass; no art, hardware or player acceptance |
+| C30–C31 | Unconventional originals: Gantry Point container terminal at night (figure-eight flyover, crane gantries; + reverse), Bright Basin salt-flat airbase high-speed course | integrated (greybox + procedural venue kit); seeded car races pass; no art, hardware or player acceptance |
 | T03–T06 | Lowmere Harbour, High Valley, Solar Basin, Cinderstone Ring | proposed launch venues; not started |
 | T07–T12 | Pine Ridge, Black Fen, Redcut, Atlas, Whitewater, Frostline | dirt/surface programme; not started |
 | T13–T24 | Tidal Dry Dock … Neon Switchback | extraordinary venues; engineering prerequisites prototyped (layer-aware progress, moving surfaces, magnetic frames) |
@@ -428,11 +442,13 @@ joker road) and Pinewood (gravel special stage, ~2.8 km, three crests, two split
 classes (motorcycles at motocross/supercross, cars at rallycross/stages). Not done: art pass beyond
 the procedural venue kit, human races, performance capture, §15.3 approval.
 
-Catalogue layouts C01–C12 (20 layouts, [roster and limits](../CIRCUIT_CATALOGUE.md)) have passed the
-greybox lap and AI race stages (`docs/circuit-catalogue-races.json`), and the operational pass for
-pit/service (venue-owned pit side, a left-hand street pit stop test), marshal posts, run-off and
-cameras. Not yet done for any of them: crash/recovery demonstration, human races, rough performance
-capture on reference hardware, the art pass beyond the procedural kit, and §15.3 approval.
+Catalogue layouts C01–C31 (40 layouts at 29 venues, [roster and limits](../CIRCUIT_CATALOGUE.md))
+have passed the greybox lap and AI race stages (`docs/circuit-catalogue-races.json`: seeded 6-car,
+2-lap races, every car classified, none stuck), and the operational pass for pit/service
+(venue-owned pit side, a left-hand street pit stop test), marshal posts, run-off and cameras; the
+wave-2 layouts also have events. Not yet done for any of them: crash/recovery demonstration, human
+races, rough performance capture on reference hardware, the art pass beyond the procedural kit, and
+§15.3 approval.
 
 ## 3. Art direction: target board and capture suite (§17.2, WP27)
 

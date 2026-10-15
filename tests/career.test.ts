@@ -645,13 +645,19 @@ describe('unlocks and availability are derived from the registries', () => {
     expect(disciplineStatus(live, 'festival').state).toBe('coming');
   });
   it('opens the bike career when a bike and a ruleset for it are registered', () => {
-    // A registry without bikes (whatever the live content has), so the test
-    // shows the unlock itself rather than today's catalogue.
+    // A registry without bikes or bike-safety assessments (whatever the live
+    // content has), so the test shows the unlock itself rather than today's
+    // catalogue.
     const twoWheel = new Set(
       live.vehicles.filter((v) => vehicleFamily(v) === 'bike').map((v) => v.classId),
     );
     const noBikes: CareerRegistry = {
       ...live,
+      venues: live.venues.map((v) => ({
+        ...v,
+        bikeSafe: undefined,
+        catalogue: v.catalogue && { ...v.catalogue, bikeSafe: undefined },
+      })),
       vehicles: live.vehicles.filter((v) => vehicleFamily(v) !== 'bike'),
       rulesets: live.rulesets.map((r) => ({
         ...r,

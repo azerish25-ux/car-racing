@@ -54,6 +54,9 @@ export const ENVELOPE_STEP = 12;
 export const ENVELOPE_SAMPLES = 21;
 /** Distance (m) over which a start position's offset from the lane fades by 1/e. */
 export const LAUNCH_MERGE_LENGTH = 50;
+/** A car stuck for 5 s backs out for `reverseSeconds` at `throttle`, below
+ * `speed` (m/s). */
+export const AI_RECOVERY = Object.freeze({ reverseSeconds: 4, throttle: 0.25, speed: 3 });
 /** Backward velocity profile over samples ENVELOPE_STEP apart: returns the
  * highest speed at sample 0 from which every later sample's corner speed can
  * be met, with braking limited to what the friction circle leaves after the
@@ -148,6 +151,11 @@ export class AIDriver {
   private desiredOffset = 0;
   private trafficSpeed = 100;
   private stuckTime = 0;
+  /** Seconds left of a latched reverse-out manoeuvre (cars). */
+  private recoveryTime = 0;
+  /** Reverse gear exists (a car): a stuck car backs out under a latched
+   * manoeuvre. A bike has no reverse; it keeps the original short push. */
+  protected readonly reverseRecovery: boolean = true;
   private preparingPit = false;
   private readonly curvatures = new Float64Array(ENVELOPE_SAMPLES);
   private readonly corners = new Float64Array(ENVELOPE_SAMPLES);
@@ -470,16 +478,46 @@ export class AIDriver {
       command.throttle = 0;
       command.brake = 1;
     }
-    if (!pit && c.speed < 0.7 && desired > 6) this.stuckTime += dt;
-    else this.stuckTime = 0;
-    if (this.stuckTime > 5 && this.stuckTime < 9) {
-      command.reverse = true;
-      command.throttle = 0.25;
-      command.brake = 0;
-      command.steer = -command.steer;
-      this.decision = 'RECOVERY';
+    if (this.reverseRecovery) {
+      // Stuck (nose against a barrier, beached on a verge): back out along
+      // mirrored steering, which swings the nose towards the lane. Once begun
+      // the manoeuvre runs its full time: the reversing car's own speed must
+      // not cancel it, or it never clears the barrier it is pressed against.
+      if (this.recoveryTime > 0) this.recoveryTime = Math.max(0, this.recoveryTime - dt);
+      else {
+        if (!pit && c.speed < 0.7 && desired > 6) this.stuckTime += dt;
+        else this.stuckTime = 0;
+        if (this.stuckTime > 5) {
+          this.stuckTime = 0;
+          this.recoveryTime = AI_RECOVERY.reverseSeconds;
+        }
+      }
+      if (this.recoveryTime > 0) {
+        command.reverse = true;
+        // Walking pace backwards: enough to clear the barrier and turn.
+        command.throttle = c.speed < AI_RECOVERY.speed ? AI_RECOVERY.throttle : 0;
+        command.brake = 0;
+        command.steer = -command.steer;
+        this.decision = 'RECOVERY';
+      } else if (c.gear < 0) {
+        // Reverse is still engaged until the car stops (vehicle gear logic):
+        // stop first, or the throttle would drive it backwards round the lap.
+        command.throttle = 0;
+        command.brake = 1;
+        this.decision = 'RECOVERY';
+      }
+    } else {
+      if (!pit && c.speed < 0.7 && desired > 6) this.stuckTime += dt;
+      else this.stuckTime = 0;
+      if (this.stuckTime > 5 && this.stuckTime < 9) {
+        command.reverse = true;
+        command.throttle = 0.25;
+        command.brake = 0;
+        command.steer = -command.steer;
+        this.decision = 'RECOVERY';
+      }
+      if (this.stuckTime >= 10) this.stuckTime = 0;
     }
-    if (this.stuckTime >= 10) this.stuckTime = 0;
     this.brain.errors.apply(
       dt,
       command,
