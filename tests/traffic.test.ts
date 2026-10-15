@@ -87,3 +87,45 @@ it('predicts a rival alongside along the racing line, so a parallel lane stays c
   expect(plan.decision).toBe('RACING LINE');
   expect(plan.offset).toBeCloseTo(0, 6);
 });
+it('commits to one pass target, aborts when no longer closing, then waits before retrying', () => {
+  const track = new Track(),
+    car = new Vehicle(0),
+    other = new Vehicle(1),
+    planner = new TrafficPlanner(),
+    traits = personality(4417, 0);
+  car.place(track, 1000, 0);
+  other.place(track, 1030, 0);
+  car.speed = 60;
+  other.speed = 50;
+  const plan = (now: number) => planner.evaluate(car, [car, other], track, now, 8, traits, false);
+  expect(Math.abs(plan(10).offset)).toBeGreaterThan(1);
+  expect(planner.passTarget).toBe(1);
+  expect(plan(10.1).decision).toBe('PASS / COMMITTED');
+  other.speed = 66;
+  let t = 10.2;
+  while (planner.passTarget >= 0 && t < 12) plan((t += 0.1));
+  expect(planner.aborts).toBe(1);
+  expect(planner.lastAbort).toBe('NOT CLOSING');
+  other.speed = 50;
+  plan(t + 0.5);
+  expect(planner.passTarget).toBe(-1);
+});
+it('records a completed pass once clear ahead of the target', () => {
+  const track = new Track(),
+    car = new Vehicle(0),
+    other = new Vehicle(1),
+    planner = new TrafficPlanner(),
+    traits = personality(4417, 0);
+  car.place(track, 1000, 0);
+  other.place(track, 1030, 0);
+  car.speed = 60;
+  other.speed = 50;
+  planner.evaluate(car, [car, other], track, 10, 8, traits, false);
+  expect(planner.passTarget).toBe(1);
+  car.place(track, 1040, 3.5);
+  car.speed = 60;
+  expect(planner.evaluate(car, [car, other], track, 10.1, 8, traits, false).decision).toBe(
+    'PASS / COMPLETE',
+  );
+  expect(planner.passes).toBe(1);
+});

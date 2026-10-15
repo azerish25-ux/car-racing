@@ -39,6 +39,16 @@ export class TrafficPlanner {
   private holdUntil = 0;
   private preferred = 0;
   private candidates = new Float64Array(6);
+  /** Explicit passing commitment (masterplan §13.4, WP20): the car being
+   * passed, when the attempt began and since when it stopped closing. */
+  passTarget = -1;
+  private passSince = 0;
+  private notClosingSince = -1;
+  /** After an abort, lanes off the line cost more until this time (hysteresis). */
+  private retryAfter = 0;
+  passes = 0;
+  aborts = 0;
+  lastAbort = '';
   evaluate(
     car: Vehicle,
     cars: readonly Vehicle[],
@@ -82,7 +92,10 @@ export class TrafficPlanner {
       // A service approach is a merge, not a new passing attempt. When its
       // destination corridor is occupied, hold and yield longitudinally rather
       // than taking an apparently clear overtaking lane away from the entry.
-      if (approachingPit && Math.abs(candidate - preferredOffset) > Math.abs(closest - preferredOffset) + 0.1)
+      if (
+        approachingPit &&
+        Math.abs(candidate - preferredOffset) > Math.abs(closest - preferredOffset) + 0.1
+      )
         continue;
       // Queueing behind cars that are themselves slowing for the entry is the
       // purpose of that corridor, so slower traffic ahead in it is not a reason
@@ -94,6 +107,7 @@ export class TrafficPlanner {
         Math.abs(candidate - preferredOffset) * 1.0 +
         Math.abs(candidate - closest) * (0.2 + (1 - traits.overtakingSkill) * 0.45);
       if (now < this.holdUntil && Math.abs(candidate - held) > 0.6) score += 6;
+      if (now < this.retryAfter && Math.abs(candidate - lineOffset) > 1) score += 4;
       let safe = true;
       for (const other of cars) {
         if (
@@ -162,6 +176,7 @@ export class TrafficPlanner {
       this.heldOffset = bestOffset - lineOffset;
       this.holdUntil = now + 3;
     }
+    this.trackPass(car, cars, track, now, found, lineOffset, traits);
     for (const other of cars) {
       if (
         other === car ||
@@ -190,5 +205,70 @@ export class TrafficPlanner {
       if (gap < 7) result.speedLimit = Math.min(result.speedLimit, Math.max(0, other.speed - 4));
     }
     return result;
+  }
+  /** Commit to one target per attempt; complete when clear ahead, abort when
+   * the gap opens, closing speed is lost for a second, the defender covers the
+   * chosen lane before overlap, or no lane is safe. */
+  private trackPass(
+    car: Vehicle,
+    cars: readonly Vehicle[],
+    track: Track,
+    now: number,
+    found: boolean,
+    lineOffset: number,
+    traits: DriverPersonality,
+  ) {
+    const result = this.result;
+    const gapTo = (other: Vehicle) =>
+      mod(other.s - car.s + track.length / 2, track.length) - track.length / 2;
+    if (this.passTarget < 0) {
+      if (!found || Math.abs(result.offset - lineOffset) <= 1 || now < this.retryAfter) return;
+      let target: Vehicle | null = null,
+        nearest = 70;
+      for (const other of cars) {
+        if (other === car || other.inPit || other.retired || other.finishTime) continue;
+        const gap = gapTo(other);
+        if (gap > 0 && gap < nearest && Math.abs(other.lateral - car.lateral) < 3) {
+          nearest = gap;
+          target = other;
+        }
+      }
+      if (!target) return;
+      this.passTarget = target.id;
+      this.passSince = now;
+      this.notClosingSince = -1;
+      return;
+    }
+    const target = cars.find((other) => other.id === this.passTarget);
+    const gap = target ? gapTo(target) : Infinity;
+    if (target && gap < -6.5) {
+      this.passes++;
+      this.passTarget = -1;
+      result.decision = 'PASS / COMPLETE';
+      return;
+    }
+    let reason = '';
+    if (!target || target.inPit || target.retired) reason = 'TARGET GONE';
+    else if (!found) reason = 'NO SAFE LANE';
+    else if (gap > 45) reason = 'GAP OPENED';
+    else {
+      if (car.speed - target.speed < -0.5) {
+        if (this.notClosingSince < 0) this.notClosingSince = now;
+      } else this.notClosingSince = -1;
+      if (this.notClosingSince >= 0 && now - this.notClosingSince > 1) reason = 'NOT CLOSING';
+      else if (gap > 7 && gap < 25 && Math.abs(target.lateral - result.offset) < 2)
+        reason = 'COVERED';
+      else if (now - this.passSince > 12) reason = 'TIMED OUT';
+    }
+    if (!reason) {
+      result.decision = 'PASS / COMMITTED';
+      return;
+    }
+    this.aborts++;
+    this.lastAbort = reason;
+    this.passTarget = -1;
+    this.holdUntil = 0;
+    this.retryAfter = now + 2.5 + (1 - traits.overtakingSkill) * 2;
+    result.decision = `PASS / ABORT ${reason}`;
   }
 }
