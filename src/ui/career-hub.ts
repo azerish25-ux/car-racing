@@ -27,6 +27,7 @@ import {
 } from '../career/registry.ts';
 import type { CareerSave } from '../career/save.ts';
 import { escapeHtml } from './team-hub.ts';
+import { meetingEvent } from './offroad-meeting.ts';
 
 /** Career screens (GAME_DESIGN §3–§5): discipline hub, licences, events,
  * garage and dealership. Plain buttons with data-action, in reading order,
@@ -137,11 +138,17 @@ function eventCard(event: CareerEvent, save: CareerSave, registry: CareerRegistr
           true,
         )
       : '';
+  // A two-moto format also runs as a full meeting (qualifying, gate pick,
+  // both motos), paid once on the combined points.
+  const meeting =
+    event.status === 'open' && def && event.kind !== 'championship' && meetingEvent(def)
+      ? button('RUN TWO-MOTO MEETING', `career:meeting:${event.key}`)
+      : '';
   const abandon =
     event.kind === 'championship' && running && season.season.results.length
       ? button('ABANDON SEASON', `career:abandon:${event.key}`)
       : '';
-  return `<article class="career-event" data-kind="${event.kind}" data-status="${event.status}"><header><span class="eyebrow">${event.kind === 'recovery' ? 'RECOVERY SERIES · ALWAYS OPEN' : event.kind.toUpperCase()}</span>${stateTag(event.status)}</header><h4>${escapeHtml(event.name)}</h4><p>${escapeHtml(event.description)}</p>${detail}${objectives}${championship}${event.status !== 'open' ? `<p class="career-needs">${event.status === 'coming' ? 'Coming — missing from this build:' : 'Requires:'}</p>${reasonsList(event.reasons)}` : ''}${action}${abandon}</article>`;
+  return `<article class="career-event" data-kind="${event.kind}" data-status="${event.status}"><header><span class="eyebrow">${event.kind === 'recovery' ? 'RECOVERY SERIES · ALWAYS OPEN' : event.kind.toUpperCase()}</span>${stateTag(event.status)}</header><h4>${escapeHtml(event.name)}</h4><p>${escapeHtml(event.description)}</p>${detail}${objectives}${championship}${event.status !== 'open' ? `<p class="career-needs">${event.status === 'coming' ? 'Coming — missing from this build:' : 'Requires:'}</p>${reasonsList(event.reasons)}` : ''}${action}${meeting}${abandon}</article>`;
 }
 function eventsPage(save: CareerSave, registry: CareerRegistry, view: CareerView) {
   const events = disciplineEvents(registry, save, view.discipline);

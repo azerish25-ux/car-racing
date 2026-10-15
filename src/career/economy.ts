@@ -541,6 +541,51 @@ export const SETUP_EFFECTS: Readonly<
     up: 'more toe-in: a planted rear, more drag and heat',
     down: 'less toe-in: freer rotation, less stable',
   },
+  frontPreload: {
+    name: 'Fork preload',
+    up: 'less dive and a higher centre of mass: quicker steering, earlier stoppies',
+    down: 'more sag and a lower centre of mass: calmer on the brakes',
+  },
+  rearPreload: {
+    name: 'Shock preload',
+    up: 'the rear sits up and the centre of mass rises: sharper turn-in, earlier wheelies',
+    down: 'more rear sag: more stable and more drive grip, slower to turn',
+  },
+  frontDamping: {
+    name: 'Fork damping',
+    up: 'firmer: steadier lean and pitch, skips over kerbs and bumps',
+    down: 'softer: more grip over kerbs, a floatier chassis',
+  },
+  rearDamping: {
+    name: 'Shock damping',
+    up: 'firmer: steadier chassis, less rear grip over bumps',
+    down: 'softer: more rear grip over kerbs, a wallowing chassis',
+  },
+  steeringDamper: {
+    name: 'Steering damper',
+    up: 'calmer bars: slower direction changes',
+    down: 'lighter bars: quicker direction changes, less shake resistance',
+  },
+  gearing: {
+    name: 'Final drive',
+    up: 'shorter gearing: stronger drive, lower top speed',
+    down: 'longer gearing: higher top speed, softer drive',
+  },
+  tractionMap: {
+    name: 'Traction control map',
+    up: 'more intervention: safer drive out of corners, slower exits',
+    down: 'less intervention: harder drive, rear slides and highside risk',
+  },
+  wheelieMap: {
+    name: 'Wheelie control map',
+    up: 'the front stays down: less drive on hard acceleration',
+    down: 'more wheelie allowed: harder drive, the front goes light',
+  },
+  engineBrakeMap: {
+    name: 'Engine braking map',
+    up: 'more engine braking off the throttle: shorter braking, a busier rear',
+    down: 'freer coasting: a calmer rear into corners, longer braking',
+  },
 });
 /** The differences from the default setup, explained for each exposed key. */
 export function presetEffects(vehicle: Pick<CareerVehicle, 'setupKeys'>, values: Partial<Setup>) {

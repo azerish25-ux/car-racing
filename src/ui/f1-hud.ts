@@ -18,6 +18,8 @@ import {
   carBase,
 } from '../simulation/protocol.ts';
 import { FLAG, yellowFlag } from '../simulation/marshal.ts';
+import { vehicleAt } from '../simulation/vehicles.ts';
+import { CAR_PIT_SERVICE, pitServicePlan, type PitServicePlan } from '../simulation/pit-service.ts';
 import type { SectorBoard, SectorState } from './sector-timing.ts';
 import { Vector3, type Camera } from 'three';
 
@@ -125,16 +127,13 @@ export interface RaceBanner {
   /** Text for the polite live region (#raceMessage). */
   text: string;
 }
-const PIT_PHASES = [
-  '',
-  'PIT ENTRY · APPROACHING BOX',
-  'STOPPED · CAR JACKED',
-  'TYRE CHANGE',
-  'NEW TYRES FITTED',
-  'FRONT WING REPAIR',
-  'RELEASED · PIT EXIT',
-];
-export const pitPhaseLabel = (phase: number) => PIT_PHASES[Math.round(phase)] ?? '';
+/** Pit-phase text from the entrant family's service plan (car jacks or
+ * motorcycle stands); the car plan by default. */
+export const pitPhaseLabel = (phase: number, plan: PitServicePlan = CAR_PIT_SERVICE) =>
+  plan.labels[Math.round(phase)] ?? '';
+/** The service plan of entrant `id` in a snapshot. */
+const servicePlanAt = (frame: Float32Array, o: number) =>
+  pitServicePlan(vehicleAt(Math.round(frame[o + RACE_BASE + R.VEHICLE])));
 function banner(
   kind: BannerKind,
   swatch: string,
@@ -187,7 +186,7 @@ export function raceBanner(frame: Float32Array, auto: boolean): RaceBanner {
   }
   if (auto) return banner('info', 'info', 'AI DEMONSTRATION', 'PRESS G TO TAKE CONTROL');
   const pit = Math.round(frame[o + F.PIT_PHASE]);
-  if (pit > 0) return banner('pit', 'pit', 'PIT LANE', pitPhaseLabel(pit));
+  if (pit > 0) return banner('pit', 'pit', 'PIT LANE', pitPhaseLabel(pit, servicePlanAt(frame, o)));
   if (frame[o + F.FRONT_HEALTH] < 0.6)
     return banner('warn', 'warn', 'FRONT WING DAMAGE', 'REQUEST PIT SERVICE');
   if (frame[H.DRS_ENABLED] > 0 && frame[H.LAP_LEADER] === 3)
@@ -667,7 +666,7 @@ export class F1Hud {
     if (inPit && this.pitSince >= 0) {
       set(this.pitLane, Math.max(0, time - this.pitSince).toFixed(1));
       set(this.pitStop, pitPhase >= 2 ? frame[o + F.PIT_CLOCK].toFixed(1) : '—');
-      set(this.pitPhase, pitPhaseLabel(pitPhase));
+      set(this.pitPhase, pitPhaseLabel(pitPhase, servicePlanAt(frame, o)));
     }
   }
   /** Every presented frame: stamp race-control changes with the frame's

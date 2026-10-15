@@ -25,6 +25,14 @@ import { bikeSheetFor } from './bike-sheet.ts';
 import { isDirtBike } from '../simulation/offroad/dirt-bikes.ts';
 import { DirtBikeModel } from './offroad/dirt-bike-model.ts';
 import { mudUniforms } from './offroad/mud.ts';
+import {
+  BikeServicePose,
+  BikeServiceRig,
+  BikeWheelTask,
+  bikeServiceGeometry,
+  forkLocalOffset,
+} from './bike-pit-service.ts';
+import { pitServiceActive } from './pit-presentation.ts';
 
 /** Procedural road-racing motorcycle (WP34 presentation, masterplan §17).
  * Original design, no real manufacturer or team: a lofted fairing in
@@ -1304,6 +1312,16 @@ export class BikeModel {
     this.forkLower.position.y = -(FORK_LENGTH + this.sag.fork - v.fork);
     this.frontSpin.rotation.x = v.frontRotation;
     this.rearSpin.rotation.x = v.rearRotation;
+    // Pit service: the rear wheel rolls back out of the swingarm and the
+    // front drops out of the fork while the axles are drawn (bike-pit-service).
+    this.rearWheel.position.copy(this.rearAxle);
+    this.rearWheel.position.z -= v.rearWheelOut ?? 0;
+    forkLocalOffset(
+      this.scratch.set(0, -(v.frontWheelDrop ?? 0), 0),
+      RAKE,
+      v.steer,
+      this.frontSpin.position,
+    ).z += FORK_OFFSET;
     this.spring.scale.y = T.MathUtils.clamp(1 - (v.shock - this.sag.shock) * 3, 0.6, 1.2);
     // Swingarm from the (moving) pivot to the rear axle on the road.
     this.sprung.updateMatrix();
@@ -1361,12 +1379,18 @@ export interface BikePoseValues {
   body?: number;
   mud?: number;
   mudWet?: number;
+  /** Pit service (bike frame, m): rear wheel out of the swingarm (backwards)
+   * and front wheel out of the fork (down), from the shared service pose. */
+  rearWheelOut?: number;
+  frontWheelDrop?: number;
 }
 interface Entry {
   definition: VehicleDefinition;
   materials: BikeMaterials;
   levels: (BikeModel | DirtBikeModel)[];
   level: number;
+  /** Paddock stands and carried wheels, shown only during a pit service. */
+  rig: BikeServiceRig;
 }
 const COMPOUND_COLOURS = Object.values(COMPOUNDS).map((c) => c.color);
 /** Chase-camera roll as a fraction of the followed bike's lean. */
@@ -1402,6 +1426,9 @@ export class BikeShells {
     riding: true,
   };
   private readonly position = new T.Vector3();
+  private readonly service = new BikeServicePose();
+  private readonly serviceTask = new BikeWheelTask();
+  private readonly lift = new T.Vector3();
   constructor() {
     this.root.name = 'Motorcycles (procedural)';
   }
@@ -1432,7 +1459,10 @@ export class BikeShells {
       level.root.visible = false;
     }
     for (const level of levels) this.install(level.root);
-    return { definition, materials, levels, level: -1 };
+    const rig = new BikeServiceRig(bikeServiceGeometry(definition));
+    this.root.add(rig.root);
+    this.install(rig.root);
+    return { definition, materials, levels, level: -1, rig };
   }
   private dispose(entry: Entry) {
     for (const level of entry.levels) {
@@ -1440,7 +1470,28 @@ export class BikeShells {
       if (level.rider.root.parent) level.rider.root.parent.remove(level.rider.root);
       level.dispose();
     }
+    this.root.remove(entry.rig.root);
+    entry.rig.dispose();
     entry.materials.dispose();
+  }
+  /** The service rig of entrant `id` (diagnostics and tests), if it is a bike. */
+  serviceRig(id: number) {
+    return this.entries.get(id)?.rig ?? null;
+  }
+  /** Shared service pose of a stopped bike from the discrete snapshot fields
+   * the crew presentation reads (phase, service clock, stand lift); null when
+   * the entrant is not in an active service. */
+  private servicePose(frame: Float32Array, id: number, definition: VehicleDefinition) {
+    const o = carBase(id),
+      phase = frame[o + F.PIT_PHASE],
+      clock = frame[o + F.PIT_CLOCK];
+    if (!frame[o + F.IN_PIT] || !pitServiceActive(phase, clock, frame[o + F.SPEED])) return null;
+    return this.service.set(
+      bikeServiceGeometry(definition),
+      phase,
+      clock,
+      frame[o + F.JACK_HEIGHT],
+    );
   }
   update(
     a: Float32Array,
@@ -1471,8 +1522,14 @@ export class BikeShells {
       car.visible = false;
       if (id >= b[H.CARS]) {
         for (const level of entry.levels) level.root.visible = false;
+        entry.rig.update(null, this.serviceTask, car.position, car.quaternion);
         continue;
       }
+      // Discrete service fields as the presented frame carries them.
+      const service = this.servicePose(alpha < 1 ? a : b, id, definition);
+      entry.rig.update(service, this.serviceTask, car.position, car.quaternion);
+      this.values.rearWheelOut = service ? service.hubs[1].z - service.mounted[1].z : 0;
+      this.values.frontWheelDrop = service ? service.hubs[0].y - service.mounted[0].y : 0;
       // LOD by lens-corrected distance; the followed bike is always near.
       const scale = quality === 'high' ? 1.25 : quality === 'low' ? 0.7 : 1;
       const distance =
@@ -1491,6 +1548,10 @@ export class BikeShells {
       const model = entry.levels[level];
       model.root.position.copy(car.position);
       model.root.quaternion.copy(car.quaternion);
+      // On the stands the whole machine (and its seated rider) rises by the
+      // recorded lift along its own up axis; the stands stay on the floor.
+      if (service)
+        model.root.position.add(this.lift.set(0, service.lift, 0).applyQuaternion(car.quaternion));
       this.pose(model, a, b, alpha, id);
     }
   }

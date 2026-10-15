@@ -23,6 +23,24 @@ export interface Setup {
   rearCamber: number;
   frontToe: number;
   rearToe: number;
+  /** Motorcycles (BikeVehicle; cars never expose these). Spring preload
+   * beyond the machine's calibrated base (m): less sag and a higher centre
+   * of mass in the dynamics. */
+  frontPreload: number;
+  rearPreload: number;
+  /** Damping clicks, 0 soft .. 1 firm; 0.5 is the calibrated base. */
+  frontDamping: number;
+  rearDamping: number;
+  /** Steering damper, 0 off .. 1 firm; 0.5 is the calibrated base. */
+  steeringDamper: number;
+  /** Final-drive (sprocket) ratio multiplier; 1 is the calibrated gearing. */
+  gearing: number;
+  /** Rider-aid maps (Sport rider aids): 1 least .. 6 (traction) / 5 (wheelie)
+   * most intervention; 3 is the calibrated map. */
+  tractionMap: number;
+  wheelieMap: number;
+  /** Closed-throttle engine braking map: 0 free-wheel (as calibrated) .. 3 strong. */
+  engineBrakeMap: number;
 }
 export const DEFAULT_SETUP: Setup = {
   frontWing: 0.55,
@@ -42,6 +60,15 @@ export const DEFAULT_SETUP: Setup = {
   rearCamber: -0.023,
   frontToe: -0.001,
   rearToe: 0.002,
+  frontPreload: 0,
+  rearPreload: 0,
+  frontDamping: 0.5,
+  rearDamping: 0.5,
+  steeringDamper: 0.5,
+  gearing: 1,
+  tractionMap: 3,
+  wheelieMap: 3,
+  engineBrakeMap: 0,
 };
 export const SETUP_LIMITS: Record<keyof Setup, readonly [number, number]> = {
   frontWing: [0, 1],
@@ -61,6 +88,15 @@ export const SETUP_LIMITS: Record<keyof Setup, readonly [number, number]> = {
   rearCamber: [-0.05, 0],
   frontToe: [-0.005, 0.005],
   rearToe: [-0.005, 0.005],
+  frontPreload: [-0.005, 0.01],
+  rearPreload: [-0.005, 0.01],
+  frontDamping: [0, 1],
+  rearDamping: [0, 1],
+  steeringDamper: [0, 1],
+  gearing: [0.92, 1.08],
+  tractionMap: [1, 6],
+  wheelieMap: [1, 5],
+  engineBrakeMap: [0, 3],
 };
 export function validateSetup(value: unknown): Setup {
   if (!value || typeof value !== 'object') throw new Error('Setup must be an object');
@@ -98,6 +134,9 @@ export interface SessionOptions {
   opponents: number;
   /** Starting order as car ids, pole first. Absent: car order (player on pole). */
   grid?: number[];
+  /** Motocross start-gate slot per car id, as a meeting's gate pick chose
+   * them (offroad/meeting.ts). Absent: the session picks in `grid` order. */
+  gates?: number[];
   /** Per-entry vehicle definition ids (index = car id). Absent: every entrant
    * runs the Formula APX-01 (older saves and callers). WP08. */
   vehicles?: string[];
@@ -162,6 +201,16 @@ function validGrid(value: unknown, cars: number): number[] | null {
   }
   return [...value];
 }
+/** One distinct gate slot (0..31) per entrant; anything else is ignored. */
+function validGates(value: unknown, cars: number): number[] | null {
+  if (!Array.isArray(value) || value.length !== cars) return null;
+  const seen = new Set<number>();
+  for (const slot of value) {
+    if (!Number.isInteger(slot) || slot < 0 || slot > 31 || seen.has(slot)) return null;
+    seen.add(slot);
+  }
+  return [...value];
+}
 /** One known vehicle id per entrant; anything else is ignored (all Formula). */
 function validVehicles(value: unknown, cars: number): string[] | null {
   if (!Array.isArray(value) || value.length !== cars) return null;
@@ -174,6 +223,7 @@ export function validateOptions(v: unknown): SessionOptions {
   const opponents =
     o.mode === 'time-trial' ? 0 : clamp(Math.round(Number(o.opponents) || 0), 0, 11);
   const grid = validGrid(o.grid, opponents + 1);
+  const gates = validGates(o.gates, opponents + 1);
   const vehicles = validVehicles(o.vehicles, opponents + 1);
   return {
     circuit: circuitDefinition(o.circuit).id,
@@ -191,6 +241,7 @@ export function validateOptions(v: unknown): SessionOptions {
     ),
     opponents,
     ...(grid ? { grid } : {}),
+    ...(gates ? { gates } : {}),
     ...(vehicles ? { vehicles } : {}),
     ...(typeof o.ruleset === 'string' && Object.hasOwn(RULESETS, o.ruleset)
       ? { ruleset: o.ruleset }

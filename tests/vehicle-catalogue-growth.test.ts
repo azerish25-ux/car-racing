@@ -41,8 +41,12 @@ const report = JSON.parse(readFileSync('docs/vehicle-calibration.json', 'utf8'))
 const FROZEN: Readonly<Record<string, string>> = {
   apx01: 'eb95ef70',
   tc1: 'b2abb13d',
-  gpr1: '9bdbbf3b',
-  sbk1000: 'cb3f914d',
+  // The two original bikes changed once, deliberately: their exposed setup
+  // became the motorcycle parameters (preload, damping, steering damper,
+  // gearing, rider-aid maps) instead of an unused brake bias. Dynamics at
+  // the default setup are unchanged (docs/vehicle-calibration.json).
+  gpr1: 'acdbb92a',
+  sbk1000: '7593a112',
   jf2: 'a3c619ff',
   hf67: 'ceea2a89',
   hy9: '3f9538dd',

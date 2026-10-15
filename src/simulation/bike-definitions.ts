@@ -1,5 +1,6 @@
 import { clamp, G } from '../core/math.ts';
 import type { BikeParameters } from './bike.ts';
+import type { Setup } from './config.ts';
 import type { CapabilityEnvelope, VehicleDefinition } from './vehicles.ts';
 import type { OffroadBikeSpec } from './offroad/types.ts';
 
@@ -152,6 +153,90 @@ export function bikeEnvelope(
     downforceReference: mass,
   });
 }
+/** Setup parameters a motorcycle exposes (masterplan §7.3, `setupFor`):
+ * suspension, steering damper and gearing on the road racers, plus the
+ * rider-aid maps on machines with electronics; a naked roadster has no
+ * steering damper or wheelie map, a classic only its twin-shock preload,
+ * clickers and sprockets. Brake balance is the rider's (two levers), not a
+ * setup value. */
+export const BIKE_SETUP_KEYS = Object.freeze({
+  electronic: Object.freeze([
+    'frontPreload',
+    'rearPreload',
+    'frontDamping',
+    'rearDamping',
+    'steeringDamper',
+    'gearing',
+    'tractionMap',
+    'wheelieMap',
+    'engineBrakeMap',
+  ] as const),
+  roadster: Object.freeze([
+    'frontPreload',
+    'rearPreload',
+    'frontDamping',
+    'rearDamping',
+    'gearing',
+    'tractionMap',
+    'engineBrakeMap',
+  ] as const),
+  classic: Object.freeze(['rearPreload', 'frontDamping', 'rearDamping', 'gearing'] as const),
+  offroad: Object.freeze(['rearPreload', 'frontDamping', 'rearDamping', 'gearing'] as const),
+} satisfies Record<string, readonly (keyof Setup)[]>);
+/** Traction-control slip margin per map (index = map 1..6): the share of the
+ * rear friction circle left for drive after the cornering force. Map 3 is
+ * the calibrated aid (0.92). */
+export const TRACTION_MAPS: readonly number[] = Object.freeze([
+  0.92, 1, 0.96, 0.92, 0.88, 0.84, 0.8,
+]);
+/** Wheelie-control map (index = map 1..5): pitch limit scale and the share of
+ * static front load it keeps. Map 3 is the calibrated aid. */
+export const WHEELIE_MAPS: readonly { readonly limit: number; readonly keep: number }[] =
+  Object.freeze([
+    { limit: 1, keep: 0.2 },
+    { limit: 1.6, keep: 0.08 },
+    { limit: 1.3, keep: 0.14 },
+    { limit: 1, keep: 0.2 },
+    { limit: 0.75, keep: 0.26 },
+    { limit: 0.5, keep: 0.32 },
+  ]);
+/** Closed-throttle engine braking per map (index 0..3) as a share of the
+ * wide-open torque at the current rpm. Map 0 free-wheels, as calibrated. */
+export const ENGINE_BRAKE_MAPS: readonly number[] = Object.freeze([0, 0.06, 0.12, 0.18]);
+/** Damping firmness: 2^(2·(click − 0.5)), so the calibrated 0.5 click is
+ * exactly 1 and the range is half to double. */
+export const dampingFirmness = (click: number) => 2 ** (2 * (click - 0.5));
+const mapLevel = (value: number, max: number) => Math.min(max, Math.max(0, Math.round(value)));
+/** Dynamics-core parameters with the exposed motorcycle setup applied
+ * (`setup` is already `setupFor` the machine: unexposed keys are defaults).
+ * Every term is the calibrated value at the default setup, bit for bit:
+ * preload raises the centre of mass (Δh weighted by the axle loads), the
+ * steering damper scales the bar slew rate, damping scales roll damping,
+ * and the maps select the traction margin and the wheelie limit/front load
+ * kept. Gearing, engine braking and suspension travel are applied by the
+ * session adapter (BikeVehicle), which owns the drivetrain and the springs. */
+export function bikeSetupParameters(
+  params: BikeParameters,
+  def: VehicleDefinition,
+  setup: Setup,
+): BikeParameters {
+  const b = def.bike;
+  if (!b) throw new Error(`${def.id} is not a motorcycle definition`);
+  const L = def.spec.wheelbase,
+    wheelie = WHEELIE_MAPS[mapLevel(setup.wheelieMap, 5)];
+  return {
+    ...params,
+    cgHeight:
+      params.cgHeight +
+      setup.frontPreload * (b.cgToRear / L) +
+      setup.rearPreload * (b.cgToFront / L),
+    steerRate: params.steerRate * (1 + (0.5 - setup.steeringDamper) * 0.4),
+    wheelieLimit: (params.wheelieLimit ?? 0.12) * wheelie.limit,
+    wheelieKeep: wheelie.keep,
+    tractionMargin: TRACTION_MAPS[mapLevel(setup.tractionMap, 6)],
+    rollDamping: 1.2 * dampingFirmness((setup.frontDamping + setup.rearDamping) / 2),
+  };
+}
 const GP_BIKE: BikeSpec = Object.freeze({
   riderMass: 72,
   fuel: 16,
@@ -282,7 +367,7 @@ export const GP_R1: VehicleDefinition = Object.freeze({
   tireGrip: 1,
   hybrid: false,
   drs: false,
-  setupKeys: Object.freeze(['brakeBias'] as const),
+  setupKeys: BIKE_SETUP_KEYS.electronic,
   ai: bikeEnvelope(GP_BIKE, 1.45, 157 + GP_BIKE.riderMass + GP_BIKE.fuel, 99),
   bike: GP_BIKE,
 });
@@ -334,7 +419,7 @@ export const SBK_1000: VehicleDefinition = Object.freeze({
   tireGrip: 1,
   hybrid: false,
   drs: false,
-  setupKeys: Object.freeze(['brakeBias'] as const),
+  setupKeys: BIKE_SETUP_KEYS.electronic,
   ai: bikeEnvelope(SUPERBIKE, 1.44, 200 + SUPERBIKE.riderMass + SUPERBIKE.fuel, 87),
   bike: SUPERBIKE,
 });
@@ -364,6 +449,8 @@ function roadBike(sheet: {
   halfExtents: readonly [number, number, number];
   topSpeed: number;
   aiMargins?: Parameters<typeof bikeEnvelope>[4];
+  /** Exposed setup (absent: a racer with electronics). */
+  setupKeys?: readonly (keyof Setup)[];
 }): VehicleDefinition {
   const b = sheet.bike,
     wheelbase = b.cgToFront + b.cgToRear,
@@ -408,7 +495,7 @@ function roadBike(sheet: {
     tireGrip: 1,
     hybrid: false,
     drs: false,
-    setupKeys: Object.freeze(['brakeBias'] as const),
+    setupKeys: sheet.setupKeys ?? BIKE_SETUP_KEYS.electronic,
     ai: bikeEnvelope(b, wheelbase, mass + b.fuel, sheet.topSpeed, sheet.aiMargins),
     bike: b,
   });
@@ -567,6 +654,7 @@ export const NR_900: VehicleDefinition = roadBike({
   ],
   halfExtents: [0.42, 0.58, 1.02],
   topSpeed: 62,
+  setupKeys: BIKE_SETUP_KEYS.roadster,
 });
 /** An original 1970s-style 750 cc two-stroke triple road racer: about 75 kW
  * in a narrow power band, twin-shock frame, drum-era geometry with a single
@@ -627,6 +715,7 @@ export const CR_750: VehicleDefinition = roadBike({
   topSpeed: 66,
   // Narrow tyres and drum-era brakes: the rider brakes earlier and leans less.
   aiMargins: { lateralMargin: 0.8, slowLateralMargin: 0.74, brakingMargin: 0.66 },
+  setupKeys: BIKE_SETUP_KEYS.classic,
 });
 /** Bikes registered after the car catalogue (vehicles.ts appends them, so
  * existing snapshot indices are unchanged). Append only. */

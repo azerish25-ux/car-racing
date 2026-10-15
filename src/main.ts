@@ -42,10 +42,14 @@ import { circuitDefinition, type CircuitId } from './simulation/circuits.ts';
 import {
   controls,
   DEFAULT_OPTIONS,
+  DRIVERS,
   racingSession,
   validateSetup,
   type SessionOptions,
 } from './simulation/config.ts';
+import { meetingFromEvent } from './ui/offroad-meeting.ts';
+import { MeetingFlow } from './ui/meeting-flow.ts';
+import { vehicleDefinition } from './simulation/vehicles.ts';
 import { F, H, carBase } from './simulation/protocol.ts';
 import { safetyCarPose } from './rendering/studio/safety-car.ts';
 import { RacingRenderer } from './rendering/renderer.ts';
@@ -136,6 +140,8 @@ export class GameApp {
   private programme = new PracticeProgramme();
   /** Driver career (src/career): licences, events, garage and payments. */
   private career: CareerController;
+  /** A two-moto off-road meeting in progress (EVENTS or CAREER). */
+  private meetings: MeetingFlow;
   private inspectedReference: number | null = null;
   private referenceEvidence = ReferenceEvidenceStore.browser();
   private referenceSession: ReferenceSessionReview;
@@ -276,6 +282,21 @@ export class GameApp {
     });
     this.replayHud = new ReplayHud(element);
     this.radioCaption = new RadioCaption(element);
+    this.meetings = new MeetingFlow({
+      modal: (html) => this.ui.modalContent(html),
+      focus: (selector) =>
+        this.ui.get('modalContent').querySelector<HTMLElement>(selector)?.focus(),
+      closeModal: () => this.ui.closeModal(),
+      toast: (message) => this.ui.toast(message),
+      start: (options, career) =>
+        this.start(options, false, false, career).catch((e) => this.fail(e)),
+      riderName: (id) => (id === 0 ? this.ui.playerName : (DRIVERS[id] ?? `RIDER ${id + 1}`)),
+      resultsExtra: () => this.ui.resultsExtra,
+      opened: () => {
+        this.championshipRound = -1;
+        this.ui.championshipNote = '';
+      },
+    });
     this.career = new CareerController({
       store: this.store,
       modal: (html) => this.ui.modalContent(html),
@@ -290,6 +311,7 @@ export class GameApp {
         this.ui.championshipNote = '';
         void this.start(options, false, false, career).catch((e) => this.fail(e));
       },
+      meeting: (options, career, name) => this.meetings.open(name, options, career),
       pause: () => this.pause(),
       state: () => this.state,
       track: () => this.track,
@@ -600,6 +622,8 @@ export class GameApp {
       return;
     }
     if (this.state === 'loading' && this.worker) return;
+    // Any session the meeting did not start itself ends the meeting.
+    this.meetings.sessionStarting();
     this.gridClock.reset();
     this.gridAutomatic = false;
     this.gridBriefingOpen = false;
@@ -1379,7 +1403,7 @@ export class GameApp {
     this.state = this.photoReturn;
     this.ui.showMode(this.state);
     if (this.state === 'paused') this.ui.pause();
-    else if (this.state === 'results' && this.current) this.ui.results(this.current);
+    else if (this.state === 'results') this.showResults();
     else if (this.state === 'replay') {
       this.replayClock.playing = false;
       this.input.setEnabled(true);
@@ -1505,10 +1529,24 @@ export class GameApp {
     this.audio.stop();
     this.ui.showMode('results');
     this.recordChampionshipRace(frame);
+    const meeting = this.meetings.record(frame, {
+      mode: this.options.mode,
+      grid: this.options.grid,
+      demonstration: this.usedDemonstration,
+      sessionId: this.sessionId,
+      track: this.track,
+    });
     // Career sessions are paid to the career wallet (itemised under the
     // classification); the team ledger pays every other racing session.
-    const careerSession = this.career.finish(frame, this.options.grid);
+    const careerSession = this.career.finish(
+      frame,
+      this.options.grid,
+      meeting.outcome ?? undefined,
+    );
     this.ui.results(frame);
+    // A meeting session continues on the meeting screen (gate pick, next
+    // moto, combined classification) instead of the plain results card.
+    this.meetings.showResults();
     if (racingSession(this.options.mode) && !careerSession) {
       const next = rewardRace(this.team, {
         session: this.sessionId,
@@ -1646,7 +1684,7 @@ export class GameApp {
     this.input.setEnabled(false);
     this.renderer?.reset();
     this.ui.showMode(this.state);
-    if (this.state === 'results' && this.current) this.ui.results(this.current);
+    if (this.state === 'results') this.showResults();
     else this.ui.pause();
   }
   private openAcademy() {
@@ -1692,10 +1730,40 @@ export class GameApp {
     else if (route.destination === 'team') this.openTeam(route.hub);
     else {
       this.suspendPlayback();
-      if (route.destination === 'settings') this.ui.settings(this.settings);
+      if (route.destination === 'settings') this.ui.settings(this.settings, this.setupVehicle());
       else this.ui.controls(this.settings.bindings);
     }
     this.ui.toast(`Reference ${String(id).padStart(3, '0')}: ${route.instruction}`);
+  }
+  /** `meeting:…` actions: a two-moto EVENTS card opens a meeting, the
+   * meeting screen's own actions go to the meeting. */
+  private meetingAction(name: string) {
+    const [, command, arg] = name.split(':');
+    if (command !== 'event') return this.meetings.action(name);
+    const event = EVENTS[Number(arg)];
+    if (!event || this.state !== 'menu') return;
+    try {
+      const race = eventSession(event, { ...DEFAULT_OPTIONS, setup: this.settings.setup });
+      const meeting = meetingFromEvent(event, EVENTS);
+      this.meetings.open(meeting.name, race, null, meeting.id, meeting.moto2Weather);
+    } catch (error) {
+      this.ui.toast(error instanceof Error ? error.message : String(error));
+    }
+  }
+  /** Back on the results state after a modal, the replay, telemetry or the
+   * photo studio closes: a meeting between its sessions owns that state
+   * (its screen leads to the gate pick, the next moto and the combined
+   * result), else the plain results card. */
+  private showResults() {
+    if (!this.current) return;
+    if (!this.meetings.showResults()) this.ui.results(this.current);
+  }
+  /** The machine whose setup the garage shows: the session's own machine
+   * while one runs, else (undefined) the menu's MACHINE choice. */
+  private setupVehicle() {
+    return this.state === 'menu' || this.state === 'loading'
+      ? undefined
+      : vehicleDefinition(this.options.vehicles?.[0]);
   }
   private action(name: string) {
     if (this.festival?.action(name)) return;
@@ -1755,6 +1823,10 @@ export class GameApp {
     if (this.state === 'photo') {
       if (name === 'pause') this.closePhoto();
       else if (name === 'deviceLost') this.ui.toast(this.input.deviceStatus);
+      return;
+    }
+    if (name.startsWith('meeting:')) {
+      this.meetingAction(name);
       return;
     }
     if (name.startsWith('event:') && this.state === 'menu') {
@@ -1969,6 +2041,7 @@ export class GameApp {
         this.resume();
         break;
       case 'menu':
+        this.meetings.end();
         this.gridBriefingOpen = false;
         this.gridAutomatic = false;
         this.renderer?.gridPerformance.reset();
@@ -1987,13 +2060,16 @@ export class GameApp {
         this.renderer?.setLivery(this.team.livery);
         break;
       case 'restart':
-        void this.start(this.options, false, false, this.career.restartContext()).catch((e) =>
-          this.fail(e),
-        );
+        // A meeting's running session reruns as that session of the meeting;
+        // a session the meeting already recorded returns to its screen.
+        if (this.meetings.restart() === 'meeting') break;
+        void this.start(this.options, false, false, this.career.restartContext())
+          .catch((e) => this.fail(e))
+          .finally(() => this.meetings.sessionStarted());
         break;
       case 'settings':
         if (this.state === 'driving') this.pause();
-        this.ui.settings(this.settings);
+        this.ui.settings(this.settings, this.setupVehicle());
         break;
       case 'controls':
         this.ui.controls(this.settings.bindings);
@@ -2002,7 +2078,7 @@ export class GameApp {
         this.gridBriefingOpen = false;
         this.ui.closeModal();
         if (this.state === 'paused') this.ui.pause();
-        else if (this.state === 'results' && this.current) this.ui.results(this.current);
+        else if (this.state === 'results') this.showResults();
         break;
       case 'camera':
         this.referenceSession.interrupt('Camera changed.');
@@ -2073,8 +2149,7 @@ export class GameApp {
         break;
       case 'replayPlay':
         if (this.state !== 'replay') break;
-        if (this.replay && this.replayClock.position >= this.replay.duration)
-          this.seekReplay(0);
+        if (this.replay && this.replayClock.position >= this.replay.duration) this.seekReplay(0);
         this.replayClock.playing = !this.replayClock.playing;
         if (!this.replayClock.playing) this.audio.stop();
         break;
@@ -2100,7 +2175,7 @@ export class GameApp {
       case 'telemetryClose':
         if (!this.ui.telemetryModal.open) break;
         this.ui.telemetryModal.close();
-        if (this.telemetryReturn === 'results' && this.current) this.ui.results(this.current);
+        if (this.telemetryReturn === 'results') this.showResults();
         else if (this.telemetryReturn === 'replay') {
           this.input.setEnabled(true);
           (document.activeElement as HTMLElement)?.blur();
@@ -2463,7 +2538,7 @@ export class GameApp {
       const value = JSON.parse(await file.text()) as { version: unknown; setup: unknown };
       if (value.version !== 1) throw new Error('Unsupported setup version.');
       this.settings.setup = validateSetup(value.setup);
-      this.ui.settings(this.settings);
+      this.ui.settings(this.settings, this.setupVehicle());
       this.ui.toast('Setup imported. Apply & Save to retain it.');
     } catch (e) {
       this.ui.toast(`Import rejected: ${e instanceof Error ? e.message : String(e)}`);

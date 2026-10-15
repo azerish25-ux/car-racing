@@ -125,7 +125,13 @@ export class OffroadSession {
     this.route = this.buildRoute();
     if (this.format?.start === 'gate' && this.course.spec.gate) {
       const slots = gateSlots(track, this.course, cars.length),
-        picks = pickGates(options.grid ?? cars.map((c) => c.id), slots.preference);
+        chosen = options.gates,
+        // A meeting's gate pick (every slot on this gate) stands; otherwise
+        // the riders pick in grid order here.
+        picks =
+          chosen && chosen.length === cars.length && chosen.every((s) => s < slots.lateral.length)
+            ? new Map(chosen.map((slot, id) => [id, slot]))
+            : pickGates(options.grid ?? cars.map((c) => c.id), slots.preference);
       for (const c of cars) {
         const e = this.entrants[c.id];
         e.slot = picks.get(c.id)!;

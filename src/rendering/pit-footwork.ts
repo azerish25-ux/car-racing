@@ -89,10 +89,30 @@ export class PitWheelTask {
 /** Alternating, fixed car-space support contacts. A swing only occurs when its
  * next landing actually differs. Stance feet do not inherit translating roots.
  * This is procedural endpoint correction over authored whole-body actions. */
+/** An actor route with the PitWheelTask signature (root and yaw on the floor). */
+export interface PitFootRoute {
+  set(
+    role: PitRole,
+    wheel: number,
+    phase: number,
+    time: number,
+    load: number,
+    hubY: number,
+    floor: number,
+  ): { readonly root: T.Vector3; readonly yaw: number };
+}
+/** A lift device withdrawn along `axis` (unit, car-local) by `distance` once
+ * its recorded `height` is down (motorcycle stands). */
+export interface PitStandWithdrawal {
+  readonly axis: T.Vector3;
+  readonly distance: number;
+  readonly height: number;
+}
 export class PitFootwork {
   readonly feet: [T.Vector3, T.Vector3] = [new T.Vector3(), new T.Vector3()];
   readonly planted: [boolean, boolean] = [true, true];
   private readonly route = new PitWheelTask();
+  private custom: PitFootRoute | undefined;
   private readonly start = new T.Vector3();
   private readonly end = new T.Vector3();
   private readonly up = new T.Vector3(0, 1, 0);
@@ -108,7 +128,15 @@ export class PitFootwork {
     out: T.Vector3,
   ) {
     const scheduled = time < 0.8 ? 2 : time < 2.2 ? 3 : time < 3.5 ? 4 : 5;
-    const route = this.route.set(role, wheel, Math.min(phase, scheduled), time, load, 0, floor);
+    const route = (this.custom ?? this.route).set(
+      role,
+      wheel,
+      Math.min(phase, scheduled),
+      time,
+      load,
+      0,
+      floor,
+    );
     return out
       .set(foot === 0 ? -0.14 : 0.14, 0.055, spread + 0.035)
       .applyAxisAngle(this.up, route.yaw)
@@ -123,10 +151,13 @@ export class PitFootwork {
     floor: number,
     spread: number,
     root: T.Matrix4,
+    route?: PitFootRoute,
+    stand?: PitStandWithdrawal,
   ) {
+    this.custom = route;
     if (role === 'front-jack' || role === 'rear-jack') {
       const side = role === 'front-jack' ? 1 : -1;
-      const clearance = pitJackClearance(phase, clock, -floor - 0.43);
+      const clearance = pitJackClearance(phase, clock, stand ? stand.height : -floor - 0.43);
       const t = clearance > 0 ? clamp((clock - 4.72) / (5.15 - 4.72), 0, 1) : 0;
       const step = Math.min(3, Math.floor(t * 4)),
         u = clamp(t * 4 - step, 0, 1);
@@ -136,7 +167,10 @@ export class PitFootwork {
         const from = smooth(0, 1, Math.max(0, (previous + 1) / 4)) * 1.55;
         const to = smooth(0, 1, (step + 1) / 4) * 1.55;
         this.feet[foot].set(foot === 0 ? -0.14 : 0.14, 0.055, spread + 0.035).applyMatrix4(root);
-        this.feet[foot].x += side * (active ? from + (to - from) * smooth(0, 1, u) : from);
+        const travel = active ? from + (to - from) * smooth(0, 1, u) : from;
+        // Car jacks are drawn out sideways; motorcycle stands along their own axis.
+        if (stand) this.feet[foot].addScaledVector(stand.axis, (travel / 1.55) * stand.distance);
+        else this.feet[foot].x += side * travel;
         if (active)
           this.feet[foot].y += Math.min(0.06, (to - from) * 0.3) * Math.sin(Math.PI * u) ** 2;
         this.planted[foot] = !active || u === 0 || u === 1;

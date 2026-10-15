@@ -41,7 +41,6 @@ import { TELEMETRY_VIEWS, type TelemetryView } from '../storage/telemetry-plots.
 import {
   COMPOUNDS,
   DEFAULT_OPTIONS,
-  DEFAULT_SETUP,
   DRIVERS,
   LIVERIES,
   QUALIFYING_TIMED_LAPS,
@@ -55,6 +54,12 @@ import {
   type StartSlot,
 } from '../simulation/config.ts';
 import { sessionIncompatibilities } from '../simulation/events.ts';
+import {
+  DEFAULT_VEHICLE_ID,
+  vehicleDefinition,
+  type VehicleDefinition,
+} from '../simulation/vehicles.ts';
+import { setupRows, setupStep } from './setup-page.ts';
 import { F, H, W, WHEEL_BASE, WHEEL_STRIDE, WHEEL_NAMES, carBase } from '../simulation/protocol.ts';
 import { type Track } from '../simulation/track.ts';
 import { circuitDefinition, type CircuitId } from '../simulation/circuits.ts';
@@ -138,10 +143,7 @@ export const shortTime = (seconds: number) =>
     .padStart(2, '0')}`;
 /** Keep useful slider increments without rounding a valid researched/imported setup. */
 export function setupControlStep(key: keyof Setup, value: number): number | 'any' {
-  const [min, max] = SETUP_LIMITS[key];
-  const preferred = max > 1000 ? 500 : max > 100 ? 1 : max <= 0.01 ? 0.0005 : 0.001;
-  const steps = (value - min) / preferred;
-  return Math.abs(steps - Math.round(steps)) < 1e-9 ? preferred : 'any';
+  return setupStep(key, value, SETUP_LIMITS[key]);
 }
 interface Callbacks {
   action: (name: string) => void;
@@ -820,32 +822,23 @@ export class Interface {
     const key = (this.get('telemetryView') as HTMLSelectElement).value;
     return Object.hasOwn(TELEMETRY_VIEWS, key) ? (key as TelemetryView) : 'driver';
   }
-  settings(settings: Settings) {
-    const descriptions: Record<keyof Setup, string> = {
-      frontWing: 'Front wing',
-      rearWing: 'Rear wing',
-      brakeBias: 'Front brake bias',
-      diffPower: 'Differential · power',
-      diffCoast: 'Differential · coast',
-      frontSpring: 'Front spring · N/m',
-      rearSpring: 'Rear spring · N/m',
-      frontARB: 'Front anti-roll · N/m',
-      rearARB: 'Rear anti-roll · N/m',
-      frontRide: 'Front ride height · m',
-      rearRide: 'Rear ride height · m',
-      frontPressure: 'Front pressure · kPa',
-      rearPressure: 'Rear pressure · kPa',
-      frontCamber: 'Front camber · rad',
-      rearCamber: 'Rear camber · rad',
-      frontToe: 'Front toe · rad',
-      rearToe: 'Rear toe · rad',
-    };
-    const setupRows = (Object.keys(DEFAULT_SETUP) as (keyof Setup)[])
-      .map((key) => {
-        const [min, max] = SETUP_LIMITS[key],
-          step = setupControlStep(key, settings.setup[key]);
-        return `<label class="range-row">${descriptions[key]}<output>${settings.setup[key]}</output><input name="${key}" data-setup type="range" min="${min}" max="${max}" step="${step}" value="${settings.setup[key]}"></label>`;
-      })
+  /** The machine the MACHINE select would put the player on (its first entry). */
+  selectedVehicle(): VehicleDefinition {
+    const select = document.getElementById('vehicle') as HTMLSelectElement | null;
+    if (!select) return vehicleDefinition(DEFAULT_VEHICLE_ID);
+    return vehicleDefinition(machineOptions({ ...DEFAULT_OPTIONS }, select.value).vehicles?.[0]);
+  }
+  /** Garage & Settings. The vehicle setup section lists only the parameters
+   * `vehicle` exposes (a motorcycle's preload, damping, steering damper,
+   * gearing and maps; a car's aero and chassis), at the values its session
+   * uses; the other machines' values in the shared setup are kept. */
+  settings(settings: Settings, vehicle: VehicleDefinition = this.selectedVehicle()) {
+    const rows = setupRows(vehicle, settings.setup);
+    const setupRowsHtml = rows
+      .map(
+        (row) =>
+          `<label class="range-row">${row.label}<output>${row.value}</output><input name="${row.key}" data-setup type="range" min="${row.min}" max="${row.max}" step="${row.step}" value="${row.value}"></label>`,
+      )
       .join('');
     this.modalContent(
       `<header><div><span class="eyebrow">GARAGE / PREFERENCES</span><h2>Make it yours.</h2></div><button data-action="modalClose" aria-label="Close settings">✕</button></header><form id="settingsForm"><div class="settings-columns"><section><h3>Presentation</h3><label>RENDER QUALITY<select name="quality"><option value="low">Low · No shadows / crowd / particles</option><option value="medium">Medium · 2× MSAA / AO / bloom</option><option value="high">High · 4× MSAA / local reflections / specular AA</option><option value="ultra">Ultra · TAA / SSR / 3 shadow cascades (opt-in, fast GPUs)</option></select></label>${presentationControls(settings)}${[
@@ -894,7 +887,7 @@ export class Interface {
         )
         .join(
           '',
-        )}</div></section><section><h3>Vehicle setup</h3><p class="small-note">Physical setup changes take effect at the next session start. Rendering and audio changes apply immediately.</p>${setupRows}<div class="setup-files"><button type="button" id="exportSetup">EXPORT SETUP</button><label class="file-label">IMPORT SETUP<input id="importSetup" type="file" accept=".json,application/json" hidden></label></div></section></div><footer><button type="button" data-action="modalClose">CANCEL</button><button class="primary" type="submit">APPLY & SAVE</button></footer></form>`,
+        )}</div></section><section><h3>Vehicle setup</h3><p class="small-note" id="setupMachine" data-vehicle="${escapeHtml(vehicle.id)}">${escapeHtml(vehicle.name)} · ${rows.length} parameter${rows.length === 1 ? '' : 's'} this machine exposes. Physical setup changes take effect at the next session start. Rendering and audio changes apply immediately.</p>${setupRowsHtml}<div class="setup-files"><button type="button" id="exportSetup">EXPORT SETUP</button><label class="file-label">IMPORT SETUP<input id="importSetup" type="file" accept=".json,application/json" hidden></label></div></section></div><footer><button type="button" data-action="modalClose">CANCEL</button><button class="primary" type="submit">APPLY & SAVE</button></footer></form>`,
     );
     const form = document.getElementById('settingsForm') as HTMLFormElement;
     this.deviceCalibration = new DeviceCalibrationPanel(
@@ -967,8 +960,13 @@ export class Interface {
         next.rumble[key] = Number(value(`rumble_${key}`));
       next.quickStart = (form.elements.namedItem('quickStart') as HTMLInputElement).checked;
       for (const key of ['volume', 'shake', 'uiScale'] as const) next[key] = Number(value(key));
-      for (const key of Object.keys(DEFAULT_SETUP) as (keyof Setup)[])
-        next.setup[key] = Number(value(key));
+      // Only the machine's own parameters are on the page, shown at the values
+      // its session uses; a row the player moved is saved, the rest of the
+      // shared setup (other machines' baselines included) is kept as it was.
+      for (const row of rows) {
+        const chosen = Number(value(row.key));
+        if (chosen !== row.value) next.setup[row.key] = chosen;
+      }
       for (const key of [
         'steerAxis',
         'throttleAxis',

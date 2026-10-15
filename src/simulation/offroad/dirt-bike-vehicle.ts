@@ -120,20 +120,25 @@ export class DirtBikeVehicle extends BikeVehicle {
       load = (m * G * (front ? b.cgToRear : b.cgToFront)) / L;
     return this.springForceInverse(load, front);
   }
-  /** Compression at which the rising-rate spring carries `force`. */
+  /** Compression at which the rising-rate spring carries `force`. Preload
+   * (setup, m) is spring compression already wound in: it takes sag out. */
   private springForceInverse(force: number, front: boolean) {
     const b = this.bikeSpec,
       k = front ? b.forkRate : b.shockRate,
       T = front ? b.forkTravel : b.shockTravel;
     let c = force / k;
     for (let i = 0; i < 6; i++) c = force / (k * (1 + this.air.progression * (c / T) ** 2));
-    return c;
+    return Math.max(0, c - this.preload(front));
   }
   private spring(c: number, front: boolean) {
     const b = this.bikeSpec,
       k = front ? b.forkRate : b.shockRate,
-      T = front ? b.forkTravel : b.shockTravel;
-    return k * c * (1 + this.air.progression * (c / T) ** 2);
+      T = front ? b.forkTravel : b.shockTravel,
+      wound = c + this.preload(front);
+    return k * wound * (1 + this.air.progression * (wound / T) ** 2);
+  }
+  private preload(front: boolean) {
+    return front ? this.setup.frontPreload : this.setup.rearPreload;
   }
   override place(track: Track, s: number, offset = 0) {
     super.place(track, s, offset);
@@ -368,7 +373,9 @@ export class DirtBikeVehicle extends BikeVehicle {
     this.riderBody = approach(this.riderBody, assisted ? clamp(-wanted * 0.9, -1, 1) : 0, dt * 4);
     // Rear wheel: the engine spins it up toward the limiter in this gear;
     // the rear brake stops it. The chassis takes the reaction torque.
-    const ratio = spec.gearRatios[this.gear + 1] * spec.finalDrive,
+    // The engaged ratio through the setup's gearing, as on the ground
+    // (BikeVehicle.drive), so the engine note does not step at take-off.
+    const ratio = spec.gearRatios[this.gear + 1] * spec.finalDrive * this.gearing,
       limit = (spec.limiterRPM * Math.PI) / 30 / ratio,
       previous = this.rearSpin;
     this.rearSpin = clamp(
@@ -578,7 +585,10 @@ export class DirtBikeVehicle extends BikeVehicle {
     const end = (c: number, rate: number, front: boolean) => {
       if (c <= 0) return 0;
       const T = front ? spec.forkTravel : spec.shockTravel,
-        C = (front ? a.forkDamping : a.shockDamping) * damping,
+        C =
+          (front ? a.forkDamping : a.shockDamping) *
+          damping *
+          (front ? this.forkFirmness : this.shockFirmness),
         k = front ? spec.forkRate : spec.shockRate;
       // Rebound (extension) is damped harder than compression at low speed.
       const damper = (C * rate * (rate < 0 ? 2.2 : 1)) / (1 + Math.abs(rate) / a.damperKnee);

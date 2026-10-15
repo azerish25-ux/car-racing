@@ -1,6 +1,7 @@
 import { F, carBase } from '../simulation/protocol.ts';
 import { clamp } from '../core/math.ts';
 import { SpatialAudioScene, type AudioView } from './spatial.ts';
+import { engineUnload } from './airborne-audio.ts';
 import {
   SOUND_PROFILES,
   frameCharacter,
@@ -107,7 +108,10 @@ export class EngineVoices {
       const character = frameCharacter(frame, id),
         p = character.profile,
         limiter = character.limiterRPM;
-      const load = clamp(Math.abs(frame[o + F.ENGINE_TORQUE]) / character.loadTorque, 0, 1);
+      // In the air nothing resists the drive: the note unloads (D047).
+      const load =
+        clamp(Math.abs(frame[o + F.ENGINE_TORQUE]) / character.loadTorque, 0, 1) *
+        engineUnload(frame, id);
       const changed = voice.id !== id || voice.family !== p.family,
         at = changed ? time + 0.02 : time;
       if (changed) {

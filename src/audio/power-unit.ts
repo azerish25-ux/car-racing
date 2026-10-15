@@ -1,6 +1,7 @@
 import { F, carBase } from '../simulation/protocol.ts';
 import { clamp, Random } from '../core/math.ts';
 import { frameCharacter, type EngineCharacter } from './sound-profiles.ts';
+import { engineUnload } from './airborne-audio.ts';
 
 /** Turbo-hybrid power-unit character layered over the harmonic engine bands:
  * turbocharger whistle, straight-cut transmission whine, overrun crackle and a
@@ -69,7 +70,7 @@ export function powerUnitMix(
     throw new Error('Invalid power-unit audio state');
   const p = character.profile,
     limiter = character.limiterRPM;
-  const load = clamp(Math.max(0, torque) / character.loadTorque, 0, 1);
+  const load = clamp(Math.max(0, torque) / character.loadTorque, 0, 1) * engineUnload(frame, car);
   const boost = p.turbo
     ? clamp(load * clamp((rpm - p.turbo.fromRPM) / (limiter * (8000 / 13700)), 0, 1), 0, 1)
     : 0;
