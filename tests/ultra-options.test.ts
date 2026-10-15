@@ -115,8 +115,9 @@ describe('ULTRA preset', () => {
     expect(ultra.shadowCascades).toBe(3);
     expect(ultra.physicalBloom && ultra.lightShafts && ultra.replayDof).toBe(true);
     expect(ultra.chromaticAberration).toBe(true);
-    // Tone mapping stays the calibrated ACES; AgX/Neutral are user choices.
-    expect(ultra.toneMapper).toBe('aces');
+    // ULTRA displays through AgX (with its own restrained grade); Low/Medium/
+    // High keep the calibrated ACES.
+    expect(ultra.toneMapper).toBe('agx');
     expect(QUALITY_PRESETS).toEqual(['low', 'medium', 'high', 'ultra']);
     expect(isQualityPreset('ultra')).toBe(true);
     expect(isQualityPreset('epic')).toBe(false);

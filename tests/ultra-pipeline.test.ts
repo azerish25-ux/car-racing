@@ -256,6 +256,16 @@ describe('ULTRA pipeline wiring', () => {
     expect(h.renderer.toneMapping).toBe(T.AgXToneMapping);
     h.configure('ultra', { ...graphicsPreset('ultra'), toneMapper: 'neutral' });
     expect(h.renderer.toneMapping).toBe(TONE_MAPPING.neutral);
+    // ULTRA's default is AgX with the restrained filmic grade; ACES keeps the
+    // broadcast grade it was tuned over.
+    h.configure('ultra');
+    expect(h.renderer.toneMapping).toBe(T.AgXToneMapping);
+    expect(h.grade.filmic).toBe(true);
+    h.configure('ultra', { ...graphicsPreset('ultra'), toneMapper: 'aces' });
+    expect(h.grade.filmic).toBe(false);
+    h.configure('high', graphicsPreset('high'));
+    expect(h.renderer.toneMapping).toBe(T.ACESFilmicToneMapping);
+    expect(h.grade.filmic).toBe(false);
   });
   it('focuses the replay lens only on recorded broadcast and chase views', () => {
     const h = host();

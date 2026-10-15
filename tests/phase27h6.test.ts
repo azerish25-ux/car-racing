@@ -389,13 +389,15 @@ describe('27H.6 conforming wet road film', () => {
       expect(s.uniforms.trackState.value).toBe(texture);
       expect(s.uniforms.surfaceDeposits.value).toBe(1);
       expect(s.fragmentShader).toContain('wet * mix(0.35, 0.9, puddle)');
+      // TEST-UPDATE (photoreal pass): water depth drives a continuous sheet
+      // (roadSheet = max(puddle, depth)); damp aggregate stays separated.
       expect(s.fragmentShader).toContain(
-        'clearcoatNormal = normalize(mix(roadFilmNormal, clearcoatNormal, puddle))',
+        'clearcoatNormal = normalize(mix(roadFilmNormal, clearcoatNormal, roadSheet))',
       );
-      expect(s.fragmentShader).toContain('mix(0.22, 0.055, puddle)');
-      expect(s.fragmentShader).toContain('roadRippleGain = puddle * min(1.,roadWeather.x/18.)');
+      expect(s.fragmentShader).toContain('mix(0.22, 0.065, roadSheet)');
+      expect(s.fragmentShader).toContain('roadRippleGain = roadSheet * min(1.,roadWeather.x/18.)');
       expect(s.fragmentShader).toContain('surfaceDeposits');
-      expect(m.customProgramCacheKey()).toContain('v5-conforming-film');
+      expect(m.customProgramCacheKey()).toContain('v6-water-sheet');
     } finally {
       m.dispose();
       texture.dispose();

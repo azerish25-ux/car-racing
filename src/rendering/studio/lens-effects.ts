@@ -33,6 +33,9 @@ export const LENS = Object.freeze({
   flareInnerDeg: 8,
   /** Bloom gain on the dirtiest texels (1 + dirt · mask). */
   dirt: 0.9,
+  /** ULTRA (energy-conserving bloom): a clean broadcast lens. The dirt gain
+   * multiplied the wide veil into the into-the-sun frames. */
+  physicalDirt: 0.3,
   /** Rain (mm/h) where drops start / reach full density. */
   rainStart: 0.3,
   rainFull: 8,
@@ -175,6 +178,7 @@ export class LensEffects {
     speed: number,
     sunDirection: T.Vector3,
     night: boolean,
+    physical = false,
   ) {
     const u = this.uniforms;
     u.lensTime.value = Number.isFinite(presented[H.TIME]) ? presented[H.TIME] : 0;
@@ -187,7 +191,8 @@ export class LensEffects {
     const exterior = view !== 'cockpit';
     const angle = this.forward.angleTo(sunDirection);
     u.lensFlare.value = night ? 0 : LENS.flare * flareWeight(angle);
-    u.lensDirt.value = exterior ? LENS.dirt : LENS.dirt * 0.35;
+    const dirt = physical ? LENS.physicalDirt : LENS.dirt;
+    u.lensDirt.value = exterior ? dirt : dirt * 0.35;
     u.lensRain.value = exterior ? lensRainAmount(presented[H.RAIN]) : 0;
     u.lensStreak.value = smooth(8, LENS.streakSpeed, Math.abs(speed));
   }
@@ -323,5 +328,6 @@ export function postLensFrame(
     speed,
     studioUniforms.studioSunDir.value,
     profile === 'night',
+    bloom.energyConserving,
   );
 }

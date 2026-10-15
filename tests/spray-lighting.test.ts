@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import * as T from 'three';
-import { SprayClouds } from '../src/rendering/spray-clouds.ts';
+import { SPRAY_SIGNAL, SprayClouds, spraySignalTint } from '../src/rendering/spray-clouds.ts';
+import {
+  REAR_LAMP,
+  REAR_LAMP_PHYSICAL_GAIN,
+  rearLampIntensity,
+  rearSignalIntensity,
+} from '../src/rendering/rear-signal.ts';
 import { Effects, EFFECT_CAPACITY } from '../src/rendering/effects.ts';
 import { VenueLighting, VENUE_LIGHT_INTENSITY, venueLightWeight } from '../src/rendering/venue-lighting.ts';
 import { Track, trackPoint } from '../src/simulation/track.ts';
@@ -84,5 +90,61 @@ describe('lit spray and spatial floodlight continuity', () => {
       previous = irradiance;
     }
     dispose(venue.root);
+  });
+});
+
+describe('rain-light in-scatter on the spray', () => {
+  it('is a bounded, forward-scattered tint near the lamp, never a red fog', () => {
+    // Braking (signal 2.5), puff 0.5 m straight behind, camera behind it.
+    const near = spraySignalTint(2.5, 0.5, 1, 1, 1, 0.47);
+    expect(near).toBeGreaterThan(0);
+    // Never more than half of the puff's own ambient light.
+    expect(spraySignalTint(2.5, 0, 1, 1, 1, 0.1)).toBeCloseTo(0.05, 10);
+    expect(near).toBeLessThanOrEqual(0.5 * 0.47);
+    // Half at about 0.7 m; nothing worth seeing 2 m away.
+    expect(
+      spraySignalTint(2.5, 0.7, 1, 1, 1, 10) / spraySignalTint(2.5, 0, 1, 1, 1, 10),
+    ).toBeCloseTo(Math.exp(-0.49 * SPRAY_SIGNAL.falloff), 6);
+    expect(spraySignalTint(2.5, 2, 1, 1, 1, 10)).toBeLessThan(0.002);
+    // Puffs beside the lamp (outside its beam) and back-scatter stay dark.
+    expect(spraySignalTint(2.5, 0.5, 0.2, 1, 1, 10)).toBe(0);
+    expect(spraySignalTint(2.5, 0.5, 1, -1, 1, 10)).toBeLessThan(0.03 * near);
+    // Thin puffs scatter less than dense ones.
+    expect(spraySignalTint(2.5, 0.5, 1, 1, 0.2, 10)).toBeCloseTo(
+      0.2 * spraySignalTint(2.5, 0.5, 1, 1, 1, 10),
+      10,
+    );
+    // The old isotropic term put 0.34 * 2.5 = 0.85 of red on every puff at the lamp.
+    expect(spraySignalTint(2.5, 0, 1, 1, 1, 10)).toBeLessThan(0.2);
+  });
+  it('compiles the bounded term into the spray vertex shader', () => {
+    const spray = new SprayClouds(
+      new Float32Array(3),
+      new Float32Array(3),
+      new Float32Array(1),
+      new Float32Array(1),
+      new Uint8Array(1),
+    );
+    const v = spray.material.vertexShader;
+    expect(v).toContain('dot(ray,toCamera)');
+    expect(v).toContain(`exp(-d2*${SPRAY_SIGNAL.falloff.toFixed(2)})`);
+    expect(v).not.toContain('vec3(0.34,0.004,0.001)');
+    expect(v).toContain(`${SPRAY_SIGNAL.ceiling.toFixed(2)}*ambient`);
+    spray.material.dispose();
+    spray.geometry.dispose();
+  });
+});
+
+describe('rain lights in physical radiance on ULTRA', () => {
+  it('scales only the visible lamp, never the spray signal', () => {
+    expect(REAR_LAMP.gain).toBe(1);
+    expect(rearLampIntensity(0.5, 1)).toBe(rearSignalIntensity(0.5, 1));
+    REAR_LAMP.gain = REAR_LAMP_PHYSICAL_GAIN;
+    try {
+      expect(rearLampIntensity(0.5, 1)).toBe(rearSignalIntensity(0.5, 1) * REAR_LAMP_PHYSICAL_GAIN);
+      expect(rearSignalIntensity(0.5, 1)).toBe(2.5);
+    } finally {
+      REAR_LAMP.gain = 1;
+    }
   });
 });
