@@ -11,6 +11,7 @@ import { DEFAULT_SETUP } from '../src/simulation/config.ts';
 import { Vehicle } from '../src/simulation/vehicle.ts';
 import { VEHICLES, type VehicleDefinition } from '../src/simulation/vehicles.ts';
 import { DynamicsTrack } from './dynamics-fixtures.ts';
+import { BIKE_TARGETS, measureBike } from './bike-calibration.ts';
 
 const strict = process.argv.includes('--strict');
 type Band = readonly [number, number];
@@ -161,9 +162,11 @@ const report: Record<string, unknown> = {
 };
 let outside = 0;
 for (const def of Object.values(VEHICLES)) {
-  const fine = measure(def, 1 / 240),
-    coarse = measure(def, 1 / 120);
-  const targets = TARGETS[def.id] ?? {};
+  // Motorcycles run their own adapter on the same runway (bike-calibration.ts).
+  const run = def.dynamicsKind === 'bike' ? measureBike : measure;
+  const fine = run(def, 1 / 240),
+    coarse = run(def, 1 / 120);
+  const targets = TARGETS[def.id] ?? BIKE_TARGETS[def.id] ?? {};
   const comparison = Object.entries(targets).map(([metric, band]) => {
     const value = fine[metric as keyof typeof fine] as number | null,
       other = coarse[metric as keyof typeof coarse] as number | null;

@@ -270,8 +270,10 @@ export class Bike {
     // Stoppie assist (with the wheelie assist): like lift-mitigating ABS, cap
     // front force at the deceleration where the rear would leave the road.
     const brakeR = p.rearBrake * rear * (v > 0.2 ? 1 : 0);
+    // What the rear can actually take (a light rear locks and slides).
+    const rearHeld = Math.min(brakeR, mu * this.rearLoad);
     const liftLimit = a.wheelie
-      ? Math.max(0, ((p.stoppieMargin ?? 0.92) * staticRear * p.wheelbase) / p.cgHeight - brakeR)
+      ? Math.max(0, ((p.stoppieMargin ?? 0.92) * staticRear * p.wheelbase) / p.cgHeight - rearHeld)
       : Infinity;
     let brakeF = Math.min(liftLimit, p.frontBrake * front) * (v > 0.2 ? 1 : 0);
     if (a.abs) {
@@ -281,7 +283,7 @@ export class Bike {
       brakeF = Math.min(
         brakeF,
         0.95 * Math.sqrt(Math.max(0, (mu * this.frontLoad) ** 2 - frontLatNow ** 2)),
-        Math.max(0, ((staticRear - rearLatKeep) * p.wheelbase) / p.cgHeight - brakeR),
+        Math.max(0, ((staticRear - rearLatKeep) * p.wheelbase) / p.cgHeight - rearHeld),
       );
     }
     const rearForce = drive - brakeR;

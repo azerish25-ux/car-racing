@@ -136,6 +136,138 @@
         "referenceMu": 1.82,
         "downforceReference": 0
       }
+    },
+    "gpr1": {
+      "name": "GP-R1 PROTOTYPE",
+      "version": 1,
+      "comparison": [
+        {
+          "metric": "accel0to100",
+          "measured": 3.029166666666712,
+          "coarseDt": 3.024999999999992,
+          "band": [
+            2.4,
+            3.4
+          ],
+          "within": true,
+          "timestepDrift": 0.0013755158184495524
+        },
+        {
+          "metric": "topSpeed",
+          "measured": 353.6784178449591,
+          "coarseDt": 353.66988917839484,
+          "band": [
+            335,
+            365
+          ],
+          "within": true,
+          "timestepDrift": 0.000024114184337887287
+        },
+        {
+          "metric": "braking100Distance",
+          "measured": 35.99561143826447,
+          "coarseDt": 35.933753214384126,
+          "band": [
+            30,
+            42
+          ],
+          "within": true,
+          "timestepDrift": 0.0017184934887530606
+        },
+        {
+          "metric": "lateral80G",
+          "measured": 1.3087940384869645,
+          "coarseDt": 1.3087949662971257,
+          "band": [
+            1.15,
+            1.5
+          ],
+          "within": true,
+          "timestepDrift": 7.089046357644564e-7
+        }
+      ],
+      "lateralEnvelopeFit": {
+        "base": 12.83488505752819,
+        "aero": 0
+      },
+      "aiEnvelope": {
+        "lateralBase": 12.97,
+        "lateralAero": 0,
+        "brakingBase": 10.19,
+        "brakingAero": 0.001036,
+        "lateralMargin": 0.86,
+        "slowLateralMargin": 0.8,
+        "brakingMargin": 0.78,
+        "topSpeed": 99,
+        "referenceMu": 1.82,
+        "downforceReference": 245
+      }
+    },
+    "sbk1000": {
+      "name": "SBK-1000 SUPERBIKE",
+      "version": 1,
+      "comparison": [
+        {
+          "metric": "accel0to100",
+          "measured": 3.162500000000052,
+          "coarseDt": 3.1583333333333248,
+          "band": [
+            2.7,
+            3.8
+          ],
+          "within": true,
+          "timestepDrift": 0.0013175230566726329
+        },
+        {
+          "metric": "topSpeed",
+          "measured": 307.6343977696598,
+          "coarseDt": 307.63779613451004,
+          "band": [
+            285,
+            320
+          ],
+          "within": true,
+          "timestepDrift": 0.000011046764844455616
+        },
+        {
+          "metric": "braking100Distance",
+          "measured": 38.63712623874883,
+          "coarseDt": 38.61896648449893,
+          "band": [
+            32,
+            45
+          ],
+          "within": true,
+          "timestepDrift": 0.00047000789183146647
+        },
+        {
+          "metric": "lateral80G",
+          "measured": 1.2037200205529697,
+          "coarseDt": 1.2037209925344565,
+          "band": [
+            1.1,
+            1.45
+          ],
+          "within": true,
+          "timestepDrift": 8.074813663114125e-7
+        }
+      ],
+      "lateralEnvelopeFit": {
+        "base": 11.80446093955578,
+        "aero": 0
+      },
+      "aiEnvelope": {
+        "lateralBase": 11.93,
+        "lateralAero": 0,
+        "brakingBase": 9.52,
+        "brakingAero": 0.000819,
+        "lateralMargin": 0.86,
+        "slowLateralMargin": 0.8,
+        "brakingMargin": 0.78,
+        "topSpeed": 87,
+        "referenceMu": 1.82,
+        "downforceReference": 287
+      }
     }
   }
 }
