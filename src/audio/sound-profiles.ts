@@ -226,6 +226,8 @@ export const SOUND_PROFILES: Readonly<Record<SoundFamily, SoundProfile>> = Objec
 const BY_VEHICLE: Readonly<Record<string, SoundFamily>> = {
   apx01: 'v6-turbo-hybrid',
   tc1: 'i4-turbo',
+  gpr1: 'v4-bike',
+  sbk1000: 'i4-bike',
 };
 
 export function soundFamilyFor(definition: VehicleDefinition): SoundFamily {
@@ -234,6 +236,8 @@ export function soundFamilyFor(definition: VehicleDefinition): SoundFamily {
   if (definition.classId === 'formula') return definition.hybrid ? 'v6-turbo-hybrid' : 'v8-na';
   if (definition.classId === 'gt') return 'v8-crossplane-turbo';
   if (definition.classId === 'club') return 'i4-na';
+  if (definition.classId === 'gp-bike') return 'v4-bike';
+  if (definition.classId === 'superbike') return 'i4-bike';
   return 'i4-turbo';
 }
 
