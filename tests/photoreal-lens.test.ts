@@ -18,6 +18,7 @@ import { Track } from '../src/simulation/track.ts';
 import { HEADER } from '../src/simulation/protocol.ts';
 import {
   BroadcastGradePass,
+  FILMIC_BLACK,
   FILMIC_GRADE_PROFILES,
   GRADE_PROFILES,
 } from '../src/rendering/broadcast-grade.ts';
@@ -140,11 +141,19 @@ describe('photoreal lens: tight glare, little veil', () => {
     const u = (grade as unknown as Internals).material.uniforms;
     grade.apply('day');
     expect(u.contrast.value).toBe(GRADE_PROFILES.day.contrast);
+    const material = (grade as unknown as Internals).material;
+    expect(material.defines?.FILMIC_BLACK).toBeUndefined();
     grade.filmic = true;
+    expect(material.defines.FILMIC_BLACK).toBe(FILMIC_BLACK.toFixed(4));
+    expect(material.fragmentShader).toContain('#ifdef FILMIC_BLACK');
+    expect(FILMIC_BLACK).toBeGreaterThan(0);
+    expect(FILMIC_BLACK).toBeLessThan(0.05);
     grade.apply('day');
     expect(u.contrast.value).toBe(FILMIC_GRADE_PROFILES.day.contrast);
     expect(u.vibrance.value).toBe(FILMIC_GRADE_PROFILES.day.vibrance);
     expect(u.gradeLut.value).toBeTruthy();
+    grade.filmic = false;
+    expect(material.defines.FILMIC_BLACK).toBeUndefined();
     grade.dispose();
   });
 });

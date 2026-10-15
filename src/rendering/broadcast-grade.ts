@@ -86,6 +86,12 @@ export const FILMIC_GRADE_PROFILES: Readonly<
   studio: { ...GRADE_PROFILES.studio, contrast: 0.07, saturation: 1.03, vibrance: 0.04 },
 });
 
+/** Display black point over a filmic transform: AgX maps linear 0.01 to sRGB
+ * ~17/255 (ACES ~7), which read as milky shadows (5th-percentile luma rose
+ * from ~5 to ~25 in the capture board); 0.03 brings it to ~10 and moves mid
+ * grey by under 2 %. */
+export const FILMIC_BLACK = 0.03;
+
 /** CPU reference of the shader's tone curve; used by tests and documentation. */
 export function gradeCurve(value: number, contrast: number) {
   if (!Number.isFinite(value) || !Number.isFinite(contrast)) throw new Error('Invalid grade input');
@@ -156,6 +162,11 @@ const fragmentShader = /* glsl */ `
       color += clamp(detail * sharpen, -0.06, 0.06);
     }
     color = clamp(color, 0.0, 1.0);
+    #ifdef FILMIC_BLACK
+    // Filmic transforms (AgX) lift the toe: set the display black point so
+    // shadow cores stay dark (only compiled over a filmic transform).
+    color = max(color - FILMIC_BLACK, 0.0) / (1.0 - FILMIC_BLACK);
+    #endif
     // Filmic S-curve around display mid-grey.
     vec3 s = color * color * (3.0 - 2.0 * color);
     color = mix(color, s, contrast);
@@ -228,8 +239,20 @@ export class BroadcastGradePass extends Pass {
   /** ULTRA restrained lateral chromatic aberration, added to the profile's
    * fringe (0 on every other preset; never applied over a photo look). */
   lensFringe = 0;
-  /** True over a filmic display transform (AgX/Neutral): FILMIC_GRADE_PROFILES. */
-  filmic = false;
+  private filmicLook = false;
+  /** True over a filmic display transform (AgX/Neutral): FILMIC_GRADE_PROFILES
+   * and the FILMIC_BLACK display black point (a define: the broadcast grade's
+   * program is unchanged on every other transform). */
+  get filmic() {
+    return this.filmicLook;
+  }
+  set filmic(on: boolean) {
+    if (on === this.filmicLook) return;
+    this.filmicLook = on;
+    if (on) this.material.defines.FILMIC_BLACK = FILMIC_BLACK.toFixed(4);
+    else delete this.material.defines.FILMIC_BLACK;
+    this.material.needsUpdate = true;
+  }
   /** Seed must come from presented state so pause, photo and replay hold grain.
    * `wet` (0..1, standing water) blends the profile LUT toward the wet LUT. */
   apply(profile: LightingMode | 'studio', seed = 0, wet = 0) {
