@@ -326,10 +326,7 @@ export class Interface {
       Object.assign(this.options, machineOptions(this.options, select('vehicle')));
       // Reject incompatible machine/ruleset/tyre combinations with reasons
       // (the festival picks its own road machine and has no circuit rules).
-      const problems =
-        select('mode') === 'festival'
-          ? []
-          : sessionIncompatibilities(validateOptions(this.options));
+      const problems = select('mode') === 'festival' ? [] : sessionIncompatibilities(validateOptions(this.options));
       if (problems.length) {
         this.get('sessionRules').textContent = `Cannot start: ${problems.join('; ')}.`;
         return;

@@ -589,17 +589,11 @@ export class GameApp {
               this.audio.update(frame, cockpit, playing, view, liveHuman),
           },
           // Career hook: a typed FestivalResult per finished/abandoned event.
-          onResult: (result) =>
-            window.dispatchEvent(new CustomEvent('festival-result', { detail: result })),
+          onResult: (result) => window.dispatchEvent(new CustomEvent('festival-result', { detail: result })),
           load: () => this.store.read(FESTIVAL_SAVE_KEY),
           save: (state) => this.store.write(FESTIVAL_SAVE_KEY, state),
         },
-        {
-          vehicle: options.vehicles?.[0],
-          weather: options.weather,
-          assist: options.assist,
-          seed: options.seed,
-        },
+        { vehicle: options.vehicles?.[0], weather: options.weather, assist: options.assist, seed: options.seed },
       );
       this.input.setEnabled(true);
     } catch (error) {
@@ -771,11 +765,7 @@ export class GameApp {
         if (this.state !== 'replay')
           this.renderer?.circuit.updateSurface(message.water, message.rubber, message.marbles);
         // Terrain venues: rut keyframes, kept for replays (WP41).
-        this.renderer?.circuit.offroad?.record(
-          message.terrain,
-          message.time,
-          this.state !== 'replay',
-        );
+        this.renderer?.circuit.offroad?.record(message.terrain, message.time, this.state !== 'replay');
         return;
       }
       if (message.type === 'flashback') {
@@ -870,9 +860,7 @@ export class GameApp {
   private presentGhost(a: Float32Array, b: Float32Array, alpha: number) {
     if (!this.renderer) return;
     this.renderer.setGhost(
-      this.state === 'driving' || this.state === 'paused'
-        ? this.records.ghostAt(a, b, alpha)
-        : null,
+      this.state === 'driving' || this.state === 'paused' ? this.records.ghostAt(a, b, alpha) : null,
     );
   }
   private accept(buffer: ArrayBuffer) {
