@@ -1,5 +1,6 @@
 import * as T from 'three';
 import { carbonMaterial } from '../materials.ts';
+import { glass as libraryGlass } from '../materials/library.ts';
 import {
   applyPaintFinish,
   installPaintFinish,
@@ -81,26 +82,16 @@ function shared<M extends T.Material>(key: string, make: () => M): M {
 export const sharedMaterials = {
   carbon: () => shared('carbon', () => carbonMaterial('lacquered')),
   carbonSatin: () => shared('carbon-satin', () => carbonMaterial('satin')),
-  /** Laminated glass: a thin tinted layer with full Fresnel reflection. It is
-   * blended rather than screen-space transmissive, so it never triggers an
-   * extra opaque transmission pass per view (frame budget, §17). */
-  glass: () =>
-    shared(
-      'glass',
-      () =>
-        new T.MeshPhysicalMaterial({
-          color: 0x0d1418,
-          metalness: 0,
-          roughness: 0.03,
-          transparent: true,
-          opacity: 0.46,
-          ior: 1.52,
-          specularIntensity: 1,
-          clearcoat: 1,
-          clearcoatRoughness: 0.02,
-          side: T.FrontSide,
-        }),
-    ),
+  /** Race glazing (polycarbonate side and rear windows, laminated screen)
+   * from the shared material library: Fresnel-weighted, premultiplied
+   * transmission, so reflections are never dimmed by the transmitted share and
+   * grazing angles reflect more and transmit less. Blended, not screen-space
+   * transmissive: no extra opaque transmission pass per view (frame budget,
+   * section 17). Double-sided in one pass so the inner face is seen from the
+   * cockpit; it writes no depth, so it never hides what lies behind it. */
+  glass: () => shared('glass', () => cabinGlass(0x6f7c84, 0.86, 0.035, 'race')),
+  /** Road glazing: laminated green-tinted glass, a little less transmissive. */
+  roadGlass: () => shared('road-glass', () => cabinGlass(0x5a7268, 0.8, 0.02, 'road')),
   /** Gloss black trims, window rubbers, mirror stalks. */
   trim: () =>
     shared(
@@ -129,6 +120,18 @@ export const sharedMaterials = {
     shared(
       'interior',
       () => new T.MeshStandardMaterial({ color: 0x1a1b1d, roughness: 0.85, metalness: 0 }),
+    ),
+  /** Seat-belt webbing (race harness and road belts). */
+  harness: () =>
+    shared(
+      'harness',
+      () => new T.MeshStandardMaterial({ color: 0x8e1018, roughness: 0.82, metalness: 0 }),
+    ),
+  /** Road-car seat and door leather. */
+  leather: () =>
+    shared(
+      'leather',
+      () => new T.MeshStandardMaterial({ color: 0x2b2420, roughness: 0.52, metalness: 0 }),
     ),
   steel: () =>
     shared(
@@ -183,6 +186,18 @@ export const sharedMaterials = {
       () => new T.MeshStandardMaterial({ color, roughness: 0.82, metalness: 0 }),
     ),
 };
+/** Cabin glazing from the library glass: tint, normal-incidence
+ * transmission and roughness; double-sided in a single pass. The tint is the
+ * colour of the absorbed share's in-scatter, kept dark: clean glazing barely
+ * scatters, so a bright tint would read as a milky haze in sunlight. */
+function cabinGlass(tint: number, transmission: number, roughness: number, kind: string) {
+  const material = libraryGlass({ tint, transmission, roughness });
+  material.name = `Vehicle ${kind} glass`;
+  material.side = T.DoubleSide;
+  material.forceSinglePass = true;
+  material.userData.vehicleGlass = kind;
+  return material;
+}
 /** Honeycomb mesh: dark cells with lit edges, filtered to a mean when small. */
 function grilleMaterial() {
   const material = new T.MeshStandardMaterial({ color: 0x08090a, roughness: 0.6, metalness: 0.4 });

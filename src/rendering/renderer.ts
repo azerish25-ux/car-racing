@@ -131,9 +131,28 @@ import { StudioFrame } from './studio/studio-frame.ts';
 import { EffectPlayback } from './effect-playback.ts';
 import { AudioViewTracker } from '../audio/spatial.ts';
 import { Track, trackPoint } from '../simulation/track.ts';
-import { CAR_STRIDE, F, H, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../simulation/protocol.ts';
+import {
+  CAR_STRIDE,
+  F,
+  H,
+  R,
+  RACE_BASE,
+  W,
+  WHEEL_BASE,
+  WHEEL_STRIDE,
+  carBase,
+} from '../simulation/protocol.ts';
+import { vehicleAt } from '../simulation/vehicles.ts';
 import { clamp } from '../core/math.ts';
 import { VehicleBodies } from './vehicle-bodies/index.ts';
+import {
+  cabinDirection,
+  cabinEye,
+  cabinFor,
+  cabinFov,
+  mountFov,
+  type CabinLayout,
+} from './vehicle-bodies/cabin.ts';
 import { BIKE_CHASE_ROLL, BikeShells } from './bike.ts';
 export type CameraMode = 'chase' | 'cockpit' | 'pod' | 'trackside';
 /** Chase rig in metres, m/s and vertical-FOV degrees. */
@@ -302,6 +321,13 @@ export class RacingRenderer {
   private eyeLocal = new T.Vector3();
   private reflectionMaterials: T.MeshStandardMaterial[][] = [];
   private reflectionFollow = -1;
+  /** Rear-view surfaces bound to the mirror feeds, and the root that orients
+   * them (the followed catalogue body's own mirrors, else the Formula car's). */
+  private mirrorSurfaces: readonly T.Mesh[] = [];
+  private mirrorsFromBody = false;
+  private mirrorRoot: T.Object3D | null = null;
+  /** The followed machine's cabin (null: the Formula car or a motorcycle). */
+  private cabin: CabinLayout | null = null;
   private probeHidden: T.Object3D[] = [];
   private mirrorHidden: T.Object3D[] = [];
   readonly engineeringView = new EngineeringView();
@@ -695,6 +721,7 @@ export class RacingRenderer {
       this.reflectionMaterials.push([...car.reflectivePaint, this.circuit.roadMaterial]);
       if (car.id === 0) {
         this.reflection.attachMirrors(car.mirrors);
+        this.mirrorSurfaces = car.mirrors;
         this.reflection.quality(this.graphics.mirrorQuality);
         this.reflectionFollow = 0;
       }
@@ -1033,9 +1060,16 @@ export class RacingRenderer {
     const reflectionMaterials = this.reflectionMaterials[this.follow];
     if (this.reflectionFollow !== this.follow) {
       this.reflection.attachMirrors(car.mirrors);
+      this.mirrorSurfaces = car.mirrors;
+      this.mirrorsFromBody = false;
       this.reflection.invalidate();
       this.reflectionFollow = this.follow;
     }
+    // Per-vehicle cabin (cars loose ends 1): a catalogue machine's own eye,
+    // onboard mount and lenses; the Formula car keeps its supplied cockpit.
+    const cabin = (this.cabin = bikeFollow
+      ? null
+      : cabinFor(vehicleAt(Math.round(b[o + RACE_BASE + R.VEHICLE]))));
     const studio = !!this.photo && this.photo.backdrop !== 'circuit';
     const illumination: LightingMode = studio ? 'day' : this.lighting;
     const daylight = circuitLightState(presented[H.CLOUD], presented[H.RAIN], illumination);
@@ -1141,7 +1175,11 @@ export class RacingRenderer {
             b[o + F.IMPACT],
             this.shake,
           );
-        if (car.suppliedPlayer) {
+        if (cabin) {
+          if (cameraMode === 'cockpit') cabinEye(cabin, this.inertia.offset, this.desired);
+          else this.desired.set(...cabin.mount.eye).add(this.inertia.offset);
+          this.desired.applyQuaternion(car.root.quaternion).add(car.root.position);
+        } else if (car.suppliedPlayer) {
           if (cameraMode === 'cockpit')
             cockpitEye(car.suppliedPlayer.eye, this.inertia.offset, this.desired);
           // T-cam: sit slightly above the authored airbox socket so the
@@ -1161,7 +1199,9 @@ export class RacingRenderer {
           );
         }
         const orientation = this.viewOrientation.update(car.root.quaternion, cameraDt);
-        if (cameraMode === 'cockpit' && car.suppliedPlayer) cockpitDirection(this.direction);
+        if (cabin)
+          cabinDirection(cameraMode === 'cockpit' ? cabin.cockpit : cabin.mount, this.direction);
+        else if (cameraMode === 'cockpit' && car.suppliedPlayer) cockpitDirection(this.direction);
         else this.direction.set(0, cameraMode === 'pod' ? TCAM_PITCH : -0.035, 1);
         this.direction.applyQuaternion(orientation).normalize();
         this.gaze.copy(this.desired).addScaledVector(this.direction, 40);
@@ -1198,11 +1238,15 @@ export class RacingRenderer {
         this.gaze.copy(this.desired).addScaledVector(this.direction, 30);
       }
       this.camera.fov =
-        cameraMode === 'cockpit' && car.suppliedPlayer
-          ? cockpitFov(this.graphics.cockpitFov)
-          : cameraMode === 'chase'
-            ? CHASE.fov + Math.min(CHASE.fovGain, speed * 0.06)
-            : tcamFov(speed);
+        cabin && seated
+          ? cameraMode === 'cockpit'
+            ? cabinFov(cabin, this.graphics.cockpitFov)
+            : mountFov(cabin, speed)
+          : cameraMode === 'cockpit' && car.suppliedPlayer
+            ? cockpitFov(this.graphics.cockpitFov)
+            : cameraMode === 'chase'
+              ? CHASE.fov + Math.min(CHASE.fovGain, speed * 0.06)
+              : tcamFov(speed);
     }
     if (!this.initialized || cameraMode !== 'chase' || menu || this.photo || pregame) {
       this.camera.position.copy(this.desired);
@@ -1291,7 +1335,25 @@ export class RacingRenderer {
     }
     // Non-Formula definitions are drawn by their own procedural bodies;
     // motorcycles by their bike and rider shells.
-    this.vehicleBodies?.update(a, b, alpha, this.cars, illumination !== 'day');
+    this.vehicleBodies?.update(a, b, alpha, this.cars, illumination !== 'day', {
+      follow: this.follow,
+      cockpit:
+        (!this.photo || this.photo.view === 'cockpit') &&
+        (!menu || !!this.photo) &&
+        cameraMode === 'cockpit',
+      camera: this.camera.position,
+    });
+    // A catalogue body's door/pod mirrors carry the rear-view feeds; back to
+    // the Formula car's own when the followed entrant has none.
+    const bodyMirrors = this.vehicleBodies?.mirrorsFor(this.follow) ?? null;
+    if (bodyMirrors ? bodyMirrors.surfaces !== this.mirrorSurfaces : this.mirrorsFromBody) {
+      const surfaces = bodyMirrors?.surfaces ?? car.mirrors;
+      this.reflection.attachMirrors(surfaces);
+      this.reflection.invalidate();
+      this.mirrorSurfaces = surfaces;
+      this.mirrorsFromBody = !!bodyMirrors;
+    }
+    this.mirrorRoot = bodyMirrors?.root ?? car.root;
     this.bikeShells?.update(a, b, alpha, this.cars, this.camera, this.quality, this.follow);
     this.ghost?.update(
       this.ghostActive && !replay && !menu && !this.photo ? this.ghostPose : null,
@@ -1439,7 +1501,7 @@ export class RacingRenderer {
         this.sky.material.uniforms.probeSkyIntensity,
       );
       this.drawLedger.mark('mirrors');
-      this.reflection.renderMirrors(this.renderer, this.scene, car.root, dt);
+      this.reflection.renderMirrors(this.renderer, this.scene, this.mirrorRoot ?? car.root, dt);
       this.drawLedger.mark('wet');
       // Planar reflection about the road under the followed car, only while the
       // track carries water; the film's own masks decide where it shows.
@@ -1968,6 +2030,15 @@ export class RacingRenderer {
       },
       localProbeActive: this.reflection.localProbeActive,
       reflectionSubject: this.reflectionFollow,
+      cabin: this.cabin
+        ? {
+            vehicle: this.cabin.id,
+            family: this.cabin.family,
+            eye: this.cabin.eye,
+            mount: this.cabin.mount.kind,
+            cockpitFov: this.cabin.cockpit.fov,
+          }
+        : null,
       reflectionIntensity: this.reflectionMaterials[this.follow]?.[0]?.envMapIntensity ?? null,
       visibleSkyIntensity: this.sky.material.uniforms.probeSkyIntensity.value,
       motionBlur: this.motionBlur.diagnostics(),
