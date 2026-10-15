@@ -87,7 +87,7 @@ Last reviewed against source: branch `claude/peaceful-einstein-dedc7t`, commits 
 | WP | State | What exists / what remains |
 |---|---|---|
 | WP01 | integrated | Mechanism reproduced: the GPU frame gate waited forever for a fence the browser does not refresh while no frames are submitted; the replay director also followed another car during the pit visit. Fixes and regressions: `gpu-frame-gate.test.ts`, `replay-photo.test.ts`, `replay-clock.test.ts`. Causal note: `REPLAY_CLOCKS_AND_F01.md`. |
-| WP02 | integrated | Full journey assertions unchanged; diagnostics added. Passed on the hosted Mesa shard (run 38637809713, shard 6, 6.9 min). Whole-workflow green is still required for WP03. |
+| WP02 | integrated | Full journey assertions unchanged; service playback is a liveness check (no progress for 30 s fails). Passed on hosted Mesa on the fully merged source (run 38685156128, shard 6). Whole-workflow green is still required for WP03. |
 | WP03 | absent | Publication of the corrected artifact is a release-owner action after green CI. |
 | WP04 | integrated | This register. |
 | WP05 | research | Protocol in `HARDWARE_DEVICE_PLAYTEST_PROTOCOLS.md`; no hardware captured. |

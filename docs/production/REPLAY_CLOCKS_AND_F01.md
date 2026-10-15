@@ -93,8 +93,8 @@ must be ranked explicitly in the director.
 |---|---|
 | Mechanism understood | yes (above) |
 | Smallest useful regression fails before / passes after | yes: the deadlock test fails with the bound disabled; replay-director test fails without `pitSubject` |
-| Full affected journey works | yes on hosted Mesa: run 38637809713 (commit 5c1795d), browser shard 6, `27H.6 populated pit journey` passed in 6.9 min; the replay-clock witness showed pages resident and the position advancing through the service window |
-| Unrelated contracts intact | unit suite green; the same run's only browser failures were menu focus-count tests stale after the MACHINE select and EVENTS action (fixed in 3164b6d); re-run pending |
+| Full affected journey works | yes on hosted Mesa: run 38685156128 (b509815, all programmes merged), browser shard 6 passed all 28 tests including `27H.6 populated pit journey` with seek, anchored removal, held crew framing and service playback through the post-service checkpoint |
+| Unrelated contracts intact | unit suite, scenarios, wet presentation and shards 1, 3–6 green on b509815; shards 7–8 have two regressions from the multi-discipline merges (wet-following review, Aurel grid load), under repair |
 | Corrected artifact published through the release route | pending (WP03) |
 
 F01 is therefore **not closed** until the hosted Build and validation run is green on this source and
