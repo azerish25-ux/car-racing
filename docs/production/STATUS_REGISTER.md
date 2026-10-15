@@ -34,7 +34,7 @@ Last reviewed against source: branch `claude/peaceful-einstein-dedc7t`, commits 
 | Layer-aware 3-D track progress | integrated | `Track.nearest(.., y)`, `tests/route-overpass.test.ts` | First stacked-road venue in production | Track/tools lead |
 | Directed route graph, checkpoints, branches | prototype | `src/simulation/route-graph.ts`, `tests/route-graph.test.ts` | Drive a session from a RouteGraph venue | Track/tools lead |
 | Recorded-session identity & record categories | integrated | `src/core/session-identity.ts`, ghost/leaderboard keys | Public-board verification (WP52) | Runtime lead |
-| Snapshot schema descriptor | integrated | `SNAPSHOT_SCHEMA`, `snapshotIncompatibility` | Entity-type blocks for bikes (G4) | Runtime lead |
+| Snapshot schema descriptor | integrated | `SNAPSHOT_SCHEMA` v12 (appended `bike` block, both entity families), `snapshotIncompatibility` (version, length, vehicle index) | Recordings migration policy for v11 replays (rejected today) | Runtime lead |
 | Content validation | integrated (CI) | `npm run validate:content` in `npm run check` | Validate imported/creator content in-game | Tools lead |
 | Replay service (paged recording) | integrated | `src/storage/replay-pages.ts`, `tests/replay-clock.test.ts` | Close F01 on the hosted Mesa job | Runtime lead |
 | Replay playback clock | integrated | `src/session/replay-clock.ts` | — | Runtime lead |
@@ -46,7 +46,9 @@ Last reviewed against source: branch `claude/peaceful-einstein-dedc7t`, commits 
 | Save backup and recovery | integrated | `SaveStore.writeWithBackup`, `recoverSave` | Abrupt-termination test on hardware (§12.5) | Persistence owner |
 | Transparent race rewards | integrated | `rewardIncome` | Economy review (§12.3) | Design lead |
 | Championship and team career | integrated | `src/core/championship.ts`, `src/storage/team-career.ts` | One result identity across both (WP23) | Gameplay lead |
-| Motorcycle (road) dynamics | prototype | `src/simulation/bike.ts`, `tests/bike.test.ts` | G4 vertical slice: rig, AI, track, audio | Motorcycle lead |
+| Motorcycle (road) dynamics | integrated | `bike.ts` core, `bike-vehicle.ts` adapter, `bike-definitions.ts` (GP-R1, SBK-1000), `tests/bike.test.ts`, `tests/bike-session.test.ts`, calibration lab | Human riding-feel review with pad and keyboard; hardware capture (G4) | Motorcycle lead |
+| Motorcycle AI and events | integrated | `bike-ai.ts`, `gp-motorcycle` ruleset, Vellamar bike event, seeded AI races (`npm run test:bikes` → `docs/bike-race.json`, `tests/bike-session.test.ts`) | Overtaking/defending tuned for bikes; incident review over long races | Gameplay lead |
+| Motorcycle and rider presentation | integrated (procedural art) | `src/rendering/bike.ts`, `src/rendering/rider.ts`, onboard/chase cameras | Art-director review, authored asset with rights, rider animation polish, own engine sound | Vehicle art lead |
 | Deformable dirt terrain | prototype | `src/simulation/terrain.ts`, `tests/terrain.test.ts` | Couple to a dirt bike (G5) | Terrain/physics lead |
 | Magnetic local-frame vehicles | prototype | `src/simulation/local-frame.ts` | Engineering course (§16.5) | Extreme gameplay |
 | Moving surfaces | prototype | `src/simulation/moving-surface.ts` | Couple to vehicle contact | Physics/runtime |
@@ -96,8 +98,10 @@ Last reviewed against source: branch `claude/peaceful-einstein-dedc7t`, commits 
 | WP30 | absent | Twelve-car/six-venue scope. |
 | WP31 | research | Device matrix template; no certification. |
 | WP32 | integrated (partial) | Captions, reduced motion, engineer mute added; matrix review open. |
-| WP33 | prototype | Rider-bike model and control contract. |
-| WP34–WP36 | absent | Rider rig, bike AI/event, slice acceptance. |
+| WP33 | integrated | Rider-bike model and control contract in sessions: lean intent with counter-steer controller, separate front/rear brake (rear on the clutch binding), TC/wheelie/stoppie/cornering ABS on the Sport assist; GP-R1 and SBK-1000 definitions with calibration bands. Human feel review open. |
+| WP34 | integrated (procedural art) | BikeVehicle adapter (slim OBB, contact feedback, crash → separation → remount reported to race control), snapshot v12 bike block, procedural bike and rider rig with LODs, onboard/chase cameras. Authored art, damage variants and own audio absent. |
+| WP35 | integrated | Bike AI on the shared race craft with lean-limited envelopes and a lean-aware path tracker; seeded AI race completes with bounded incidents (test). Bike-specific overtaking not tuned. |
+| WP36 | integrated (partial) | MACHINE choices, all-bike grid, `gp-motorcycle` ruleset, Vellamar bike event card, mixed car/bike grids rejected. Slice acceptance (players, hardware) open; nothing accepted. |
 | WP37–WP38 | prototype | Terrain tiles with checkpoints. |
 | WP39–WP41 | absent | Dirt bike, AI lines, motocross slice. |
 | WP42 | prototype | Stage/joker classification on RouteGraph. |

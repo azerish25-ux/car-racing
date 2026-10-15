@@ -20,7 +20,7 @@ expensive it would be to change course later.
 | D10 | **Branding**: original names, liveries, riders and series identities only; licensed content needs documented clearance (§18.6). | adopted | — | `docs/ASSET_PROVENANCE.md` | — | per asset |
 | D11 | **Ongoing-funding services** (online racing, UGC moderation, cloud saves) are not launch dependencies of the offline car release. | proposed | Launch with online | §5.3 | medium | G3 |
 | D12 | Presentation gates must have a bounded wait with an expiry counter (F01). | adopted | Unbounded fence wait | `REPLAY_CLOCKS_AND_F01.md` | low | — |
-| D13 | Vehicle physics content is data (`VehicleDefinition`); a new family that cannot be expressed in the four-wheel solver gets its own dynamics adapter, never optional Formula fields. | adopted | One universal interface | `bike.ts` prototype kept separate | medium | G4 |
+| D13 | Vehicle physics content is data (`VehicleDefinition`); a new family that cannot be expressed in the four-wheel solver gets its own dynamics adapter, never optional Formula fields. | adopted | One universal interface | Bikes run `BikeVehicle` over the `bike.ts` core; the definition carries a `bike` block, not Formula fields | medium | G4 |
 
 ## 2. Non-negotiable decisions (§28.1) and where they stand
 

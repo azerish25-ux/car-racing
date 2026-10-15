@@ -5,9 +5,12 @@ TC-1 touring car), composable rulesets and events (including timed
 endurance), venue-owned pit/grid geometry, layer-aware 3-D track progress and
 a directed route graph, recorded-session identity and versioned record
 categories, content validation, the F01 replay/GPU-gate fix, race radio with
-captions, accessibility switches, rumble, an EVENTS hub, and isolated
-prototypes for motorcycles, deformable dirt, magnetic loops, moving surfaces,
-scoring, joker stages, creator import and an authoritative-server workload.
+captions, accessibility switches, rumble, an EVENTS hub, a road-racing
+motorcycle discipline in normal sessions (GP-R1 prototype and SBK-1000
+superbike: lean dynamics, rider aids, crash/remount through race control, bike
+AI, procedural bike and rider), and isolated prototypes for deformable dirt,
+magnetic loops, moving surfaces, scoring, joker stages, creator import and an
+authoritative-server workload.
 Status (nothing is claimed beyond "integrated" without hardware or player
 evidence), decisions, risks and protocols: [docs/production](docs/production/README.md).
 
@@ -308,6 +311,8 @@ The production output is in `dist/`. Deploy that directory to a static HTTPS hos
 | **Double-click in cockpit** | Optional mouse look                                              |
 
 Standard gamepads use the left stick and triggers, with shoulder-button manual shifting. Automatic shifting remains active until a manual shift is requested; restarting the session restores it.
+
+**Motorcycles** (MACHINE → GP-R1, SBK-1000 or the motorcycle grid): steering states the lean you want and the rider aid counter-steers to reach it. The brake input is the **front brake**; the **rear brake is the clutch binding** (Left Shift by default, or the gamepad clutch axis/button when mapped). **Sport** adds traction control, wheelie and stoppie control, combined brakes and cornering ABS; **Unassisted** removes them (the lean controller stays, as the control contract). The rider tucks and hangs off automatically; a crash separates the rider, who remounts at the track edge after a bounded delay. The cockpit camera is an on-board screen view and the pod camera a tail view, both rolling with the bike; the chase camera rolls partly with the lean.
 
 Choose **Sport** for filtered steering, traction control, and ABS, or **Unassisted** for the raw tire model. Garage setup changes apply to the **next session**; graphics, audio, and interface changes apply immediately. Heavy-rain sessions select full-wet tires by default; slicks in heavy rain are deliberately much harder to drive.
 
