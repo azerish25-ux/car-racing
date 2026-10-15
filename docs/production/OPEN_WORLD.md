@@ -15,13 +15,15 @@ map data is used.
 | World surface for physics | `open-world-track.ts`: `OpenWorldTrack` answers every `Track` member (conformance test) — road surface with crown/bank, markings, shoulders, rails one-sided at the guardrail face; off road: grass, soil, rock, sand, snow, town paving, water depth; layer-aware on bridges; weather and wetness. Soft boundaries, no laps. | surface, bridge, ray-cast and rail tests |
 | Free roam session | `session.ts` (`OpenWorldSimulation`), `src/workers/open-world.worker.ts` (120 Hz fixed step, 2 substeps), `src/session/free-roam.ts` (host glue), `src/ui/festival-hud.ts` | reset to the nearest road (upturned, drowned, fallen, out of region), time of day and weather, autopilot cruise, fast travel to discovered events, world map |
 | Events (13) | `festival-events.ts`, `route-path.ts`: road race (coast to summit, 10.2 km), circuits built from road routes (18.2 km grand loop, Port Ilse streets, Kestrel airfield), sprints (valley, Thornwood dirt stage), speed traps, speed zones (average speed), drift zones (`scoring.ts`), runway showcase | events are discovered within 380 m; stopping at the marker opens the card; races start in place with a grid and route-following rivals; legal progress via `RouteProgress` (no shortcut credit test) |
-| Route AI | `route-driver.ts`: pure pursuit on a minimum-curvature line inside the road, the circuit AI's capability envelope (`envelopeCornerSpeed`, `envelopeProfile`, `peakGrip` of the real contact), crest and loose-road speed reserves, follow/pass, reverse-out recovery, reset request | `npm run test:open-world` drives 10.17 km asphalt and 5.14 km dirt without stalls, resets or off-route time |
+| Route AI | `route-driver.ts`: pure pursuit on a minimum-curvature line inside the road, scaled by the understeer measured from the car's own yaw rate; the circuit AI's capability envelope (`envelopeCornerSpeed`, `envelopeProfile`, `peakGrip` of the real contact); crest and loose-road speed reserves; lifts when running wide; follow/pass, reverse-out recovery, reset request | `npm run test:open-world` drives 10.17 km of asphalt and a 5.14 km dirt stage in the default road car without stalls, resets or off-route time; a development sweep drove both routes cleanly in every festival class (road, GT, club, touring, rally, off-road, prototype, Formula) |
 | Result for career | `FestivalResult` (kind `festival-result`, version 1): event, vehicle, completed/abandoned, position/entrants, time, trap speed, average speed, drift score and lines, stars, legal distance, off-route seconds, standings, assisted | dispatched as a `festival-result` window event and kept in the festival save (`festival:v1`); the career module does not consume it yet |
 | Rendering | `src/rendering/open-world/`: quadtree terrain LOD (levels 0–6 over 16 km, skirts, tile worker), PBR splat blending (grass/rock/soil/sand/snow with wetness and snow tint), road ribbons with markings, verges, runway thresholds, bridge decks/piers/parapets, W-beam guardrails, town lamps; instanced vegetation (broadleaf, conifer, shrubs) with near/mid LOD; procedural town buildings with emissive windows at night; sea and river water; event markers; reuses the circuit sky, daylight palette, clouds, environment, post stack and the ULTRA pipeline | type-checked and built; not yet captured on reference hardware |
 
-Vehicles are read from the registry (`festivalVehicles()`: every four-wheel definition, road/GT
-first); rivals are chosen from the same list. Motorcycles are not offered until their own
-dynamics adapter exposes the festival contact contract.
+Vehicles are read from the registry (`festivalVehicles()`: every four-wheel definition except
+karts, road cars first) and drawn by the shared procedural body library; a road machine chosen in
+MACHINE starts the festival. Rivals are drawn from the player's class (the showcase pace car is the
+fastest registry machine). Motorcycles are not offered until their dynamics adapter is validated
+on open-world surfaces.
 
 ## 2. Streaming budgets
 
@@ -47,7 +49,9 @@ dynamics adapter exposes the festival contact contract.
 * Rendering has not been captured on reference hardware; frame time, draw calls and memory under
   the budgets above are unmeasured. Software-rasteriser (CI) loading is slow.
 * AI keeps a reserve on loose roads (41 m/s cap) and over crests; it is not a rally driver and does
-  not use the full width of narrow gravel at speed.
+  not use the full width of narrow gravel at speed. Road cars reach over 300 km/h on the coast road;
+  there is no speed limit enforcement or police mechanic.
+* Karts are not offered (no road clearance); motorcycles are not offered yet.
 * Building interiors, pedestrians, parked cars, road signs and destructible scenery are absent;
   buildings and trunks are static collision only.
 * Career consumes no festival results yet (event hook only); online play is not supported.

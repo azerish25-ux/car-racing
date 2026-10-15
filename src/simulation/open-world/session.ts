@@ -48,16 +48,29 @@ import { TILE_SIZE } from './terrain-tiles.ts';
 import { openWorld, type OpenWorld } from './world.ts';
 
 const COMPOUND_IDS = Object.keys(COMPOUNDS);
+/** Festival order of vehicle classes: road cars, then GT and club cars,
+ * then saloon and loose-surface machines, then prototypes and single-seaters
+ * (any class not listed comes last). */
+const FESTIVAL_CLASS_ORDER: readonly (readonly string[])[] = [
+  ['road', 'street'],
+  ['gt', 'gt-sport', 'club'],
+  ['touring', 'rally', 'rallycross', 'offroad'],
+  ['hypercar', 'prototype'],
+];
+/** Classes the festival does not offer: karts have no ground clearance or
+ * road-going steering for public roads, kerbs and junction crowns. */
+const FESTIVAL_EXCLUDED_CLASSES: readonly string[] = ['kart'];
 /** Vehicles that can run in the festival: every four-wheel definition in the
- * registry, road and GT classes first (data-driven: definitions added to
+ * registry except karts, road cars first (data-driven: definitions added to
  * vehicles.ts appear here without code changes). */
 export function festivalVehicles(): VehicleDefinition[] {
   const rank = (d: VehicleDefinition) => {
-    const c = String(d.classId);
-    return /road|super|hyper|street|gt/.test(c) ? 0 : /touring|club|rally|awd/.test(c) ? 1 : 2;
+    const c = String(d.classId),
+      i = FESTIVAL_CLASS_ORDER.findIndex((group) => group.includes(c));
+    return i < 0 ? FESTIVAL_CLASS_ORDER.length : i;
   };
   return Object.values(VEHICLES)
-    .filter((d) => d.dynamicsKind === 'four-wheel')
+    .filter((d) => d.dynamicsKind === 'four-wheel' && !FESTIVAL_EXCLUDED_CLASSES.includes(String(d.classId)))
     .sort((a, b) => rank(a) - rank(b) || a.id.localeCompare(b.id));
 }
 /** Default festival machine: the first road/GT-class car, else the first

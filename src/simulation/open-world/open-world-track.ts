@@ -338,10 +338,13 @@ export class OpenWorldTrack {
       x = origin.x + down.x * t;
       z = origin.z + down.z * t;
     }
-    if (t > maximum) return Infinity;
+    // Like Track's mesh ray cast, a ray never reports a hit behind its
+    // origin (callers treat distances as non-negative); an origin just
+    // below the ground reads as touching it, one far below misses.
+    if (t > maximum || t < -0.4) return Infinity;
     const hit = this.castPoint.copy(origin).addScaled(down, t);
     out.height = hit.y;
-    return Math.max(-0.4, t);
+    return Math.max(0, t);
   }
   /** Ground height only (spawning, recovery, scripts). */
   groundHeight(x: number, z: number, y?: number) {

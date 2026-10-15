@@ -32,6 +32,10 @@ export class RouteDriver {
   /** Set when the driver asks the session to put it back on the route. */
   wantsReset = false;
   private tactical = 0;
+  /** Measured understeer: road-wheel angle over the geometric angle the
+   * car's actual yaw rate implies (1 = neutral). Pure pursuit is geometric;
+   * this scales it so a car that runs wide at speed still holds the line. */
+  private understeer = 1;
   private stuck = 0;
   private recovery = 0;
   private trafficSpeed = Infinity;
@@ -110,7 +114,13 @@ export class RouteDriver {
         Math.max(10, this.local.x * this.local.x + this.local.z * this.local.z),
       ),
       speedSteer = c.assist === 'sport' ? 1 / (1 + c.speed * 0.018) : 1;
-    command.steer = clamp(purePursuit / (c.spec.maxSteer * speedSteer), -1, 1);
+    // Learn the understeer from the yaw rate actually achieved (positive yaw
+    // and steer are both to the left) while cornering with grip in hand.
+    const yawCurvature = (c.body.omega.x * c.up.x + c.body.omega.y * c.up.y + c.body.omega.z * c.up.z) / Math.max(1, c.speed),
+      geometric = Math.atan(c.spec.wheelbase * yawCurvature);
+    if (c.speed > 15 && Math.abs(geometric) > 0.002 && Math.sign(geometric) === Math.sign(c.steer) && this.recovery <= 0)
+      this.understeer = approach(this.understeer, clamp(c.steer / geometric, 0.9, 2.5), dt * 0.8);
+    command.steer = clamp((purePursuit * this.understeer) / (c.spec.maxSteer * speedSteer), -1, 1);
     // Envelope speed profile along the route ahead (the race line's own
     // curvature, or the centreline's for a lane-keeping driver).
     const grip = clamp(peakGrip(c.tires[0], 2500, c.contacts[0], Math.max(c.speed, 38)) / env.referenceMu, 0.1, 1);
@@ -140,8 +150,10 @@ export class RouteDriver {
     else if (remaining < 260) desired = Math.min(desired, Math.sqrt(2 * 5 * remaining));
     // A finished car eases off.
     if (finished) desired = Math.min(desired, Math.max(0, c.speed - 4), 16);
-    // Far off the road: slow down while steering back.
+    // Running wide of the line: lift (more front grip, less lateral demand);
+    // far off the road: slow down while steering back.
     const off = Math.abs(this.lateral - offset);
+    if (off > 1.2) desired = Math.min(desired, c.speed * (1 - 0.05 * Math.min(4, off - 1.2)));
     if (off > 6) desired = Math.min(desired, Math.max(8, 30 - off));
     c.aiTarget = desired;
     c.aiOffset = offset;

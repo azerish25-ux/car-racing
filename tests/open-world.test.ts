@@ -9,7 +9,7 @@ import { regionStructures, treesForTile, TREE_STRIDE } from '../src/simulation/o
 import { ROAD_CLASSES, SOLVANE, type RegionDefinition } from '../src/simulation/open-world/region-data.ts';
 import { ROAD_FLAG, ROAD_LAYER_GAP, RoadNetwork } from '../src/simulation/open-world/road-network.ts';
 import { pathPoint, planRoute, RoutePath } from '../src/simulation/open-world/route-path.ts';
-import { festivalVehicles } from '../src/simulation/open-world/session.ts';
+import { festivalDefaultVehicle, festivalVehicles } from '../src/simulation/open-world/session.ts';
 import { TerrainField } from '../src/simulation/open-world/terrain-field.ts';
 import { gridHeight, TerrainTileCache, TILE_RES, TILE_SIZE, TILE_STEP } from '../src/simulation/open-world/terrain-tiles.ts';
 import { openWorld } from '../src/simulation/open-world/world.ts';
@@ -303,8 +303,17 @@ describe('festival placement and machines', () => {
     expect(a.length).toBeGreaterThan(TREE_STRIDE * 50);
     expect(Array.from(a)).toEqual(Array.from(b));
   });
-  it('offers every four-wheel registry vehicle (data-driven)', () => {
-    const ids = festivalVehicles().map((v) => v.id);
-    for (const def of Object.values(VEHICLES)) if (def.dynamicsKind === 'four-wheel') expect(ids).toContain(def.id);
+  it('offers every four-wheel registry vehicle except karts, road cars first (data-driven)', () => {
+    const list = festivalVehicles(),
+      ids = list.map((v) => v.id);
+    for (const def of Object.values(VEHICLES))
+      if (def.dynamicsKind === 'four-wheel' && def.classId !== 'kart') expect(ids).toContain(def.id);
+      else expect(ids).not.toContain(def.id);
+    // A road-class car (when the registry has one) leads and is the default.
+    const road = list.findIndex((v) => v.classId === 'road');
+    if (road >= 0) {
+      expect(road).toBe(0);
+      expect(festivalDefaultVehicle()).toBe(list[0].id);
+    }
   });
 });

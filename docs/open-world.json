@@ -5,7 +5,7 @@
     "name": "Solvane Coast",
     "sizeKm": 8.192,
     "seed": 330270,
-    "buildMs": 479
+    "buildMs": 955
   },
   "network": {
     "totalKm": 70.92,
@@ -142,47 +142,47 @@
   "drives": [
     {
       "route": "coast-to-summit",
-      "vehicle": "tc1",
+      "vehicle": "eh3",
       "lengthKm": 10.17,
       "finished": true,
-      "timeS": 276.3,
-      "averageKmh": 132.2,
-      "topKmh": 208.3,
+      "timeS": 226.8,
+      "averageKmh": 161,
+      "topKmh": 311.8,
       "legalKm": 10.14,
       "offRouteS": 0,
       "longestStallS": 0,
       "resetRequests": 0,
       "surfacesS": {
-        "road marking": 103,
-        "asphalt": 173.5
+        "road marking": 39.8,
+        "asphalt": 187.3
       },
       "tiles": {
         "resident": 24,
         "peakResident": 24,
         "budget": 24,
-        "generated": 67,
-        "evicted": 43,
+        "generated": 66,
+        "evicted": 42,
         "stalls": 0,
-        "prefetched": 67,
-        "generationMs": 411.44784699999764,
-        "worstGenerationMs": 22.00812599999972
+        "prefetched": 66,
+        "generationMs": 418.0182009999962,
+        "worstGenerationMs": 21.47090399999979
       },
-      "wallMs": 4690
+      "wallMs": 4529
     },
     {
       "route": "thornwood-rally",
-      "vehicle": "tc1",
+      "vehicle": "eh3",
       "lengthKm": 5.14,
       "finished": true,
-      "timeS": 150.3,
-      "averageKmh": 121.9,
-      "topKmh": 132.9,
+      "timeS": 143,
+      "averageKmh": 128.2,
+      "topKmh": 134,
       "legalKm": 5.09,
       "offRouteS": 0,
       "longestStallS": 0,
       "resetRequests": 0,
       "surfacesS": {
-        "dirt road": 150.5
+        "dirt road": 143.3
       },
       "tiles": {
         "resident": 24,
@@ -192,10 +192,10 @@
         "evicted": 19,
         "stalls": 0,
         "prefetched": 43,
-        "generationMs": 186.0415550000016,
-        "worstGenerationMs": 7.672475999999733
+        "generationMs": 184.3391449999981,
+        "worstGenerationMs": 8.009933999999703
       },
-      "wallMs": 2094
+      "wallMs": 2172
     }
   ],
   "race": {
@@ -203,30 +203,30 @@
     "completed": true,
     "position": 4,
     "entrants": 4,
-    "timeS": 52.4,
+    "timeS": 39.9,
     "standings": [
       {
-        "name": "TC-1 TOURING",
-        "vehicle": "tc1",
-        "timeS": 48.4
+        "name": "SC-7 SUPERCAR",
+        "vehicle": "sc7",
+        "timeS": 36.47
       },
       {
-        "name": "TC-1 TOURING",
-        "vehicle": "tc1",
-        "timeS": 49.73
+        "name": "EH-3 ELECTRIC HYPERCAR",
+        "vehicle": "eh3",
+        "timeS": 37.5
       },
       {
-        "name": "TC-1 TOURING",
-        "vehicle": "tc1",
-        "timeS": 50.97
+        "name": "SC-7 SUPERCAR",
+        "vehicle": "sc7",
+        "timeS": 39
       },
       {
         "name": "YOU",
-        "vehicle": "tc1",
-        "timeS": 52.4
+        "vehicle": "eh3",
+        "timeS": 39.93
       }
     ]
   },
   "failures": [],
-  "wallMs": 11433
+  "wallMs": 11885
 }
