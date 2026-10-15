@@ -383,6 +383,10 @@ uniform sampler2D tTrace;
 uniform vec2 fullResolution;
 uniform float environmentIntensity;
 uniform float hasEnvironment;
+// The followed car's local probe (when it owns the road and paint envMaps).
+uniform samplerCube probeCube;
+uniform float probeActive;
+uniform float probeLod;
 #ifdef ENVMAP_TYPE_CUBE_UV
 uniform sampler2D envMap;
 #endif
@@ -429,13 +433,14 @@ void main() {
 	float nov = clamp( dot( n, v ), 0.0, 1.0 );
 	float f90 = max( 1.0 - roughness, ${SSR.f0.toFixed(3)} );
 	float fresnel = ${SSR.f0.toFixed(3)} + ( f90 - ${SSR.f0.toFixed(3)} ) * pow( 1.0 - nov, 5.0 );
+	// The environment term the forward pass added: the local probe where it owns
+	// the glossy materials, else the sky PMREM at its specular scale.
 	vec3 probe = vec3( 0.0 );
+	vec3 reflected = normalize( mix( reflect( - v, n ), n, roughness * roughness ) );
+	vec3 worldDir = normalize( ( cameraWorld * vec4( reflected, 0.0 ) ).xyz );
+	if ( probeActive > 0.5 ) probe = textureLod( probeCube, worldDir, roughness * probeLod ).rgb;
 	#ifdef ENVMAP_TYPE_CUBE_UV
-	if ( hasEnvironment > 0.5 ) {
-		vec3 reflected = normalize( mix( reflect( - v, n ), n, roughness * roughness ) );
-		vec3 worldDir = normalize( ( cameraWorld * vec4( reflected, 0.0 ) ).xyz );
-		probe = textureCubeUV( envMap, worldDir, roughness ).rgb * environmentIntensity;
-	}
+	else if ( hasEnvironment > 0.5 ) probe = textureCubeUV( envMap, worldDir, roughness ).rgb * environmentIntensity;
 	#endif
 	vec3 delta = fresnel * confidence * ( reflection - probe );
 	gl_FragColor = vec4( scene.rgb + max( delta, - 0.5 * scene.rgb ), 1.0 );
@@ -558,12 +563,19 @@ export class ScreenSpaceReflections {
       environmentIntensity: { value: 1 },
       hasEnvironment: { value: 0 },
       envMap: { value: null },
+      probeCube: { value: null },
+      probeActive: { value: 0 },
+      probeLod: { value: 6 },
     });
   }
   /** The scene whose environment the probe term reads. */
   bindScene(scene: T.Scene) {
     this.scene = scene;
   }
+  /** Where the glossy materials' environment comes from this frame: a local
+   * probe cubemap (radiance at scale 1) or null for the scene's sky PMREM at
+   * `skyScale` (environment intensity x specular IBL gain). */
+  environment: { probe: T.Texture | null; skyScale: number } = { probe: null, skyScale: 1 };
   /** Per frame: `live` is false for menu, studio and frames without a scene. */
   prepare(live: boolean) {
     this.live = live;
@@ -607,7 +619,14 @@ export class ScreenSpaceReflections {
     }
     u.envMap.value = height >= 16 ? environment : null;
     u.hasEnvironment.value = height >= 16 ? 1 : 0;
-    u.environmentIntensity.value = this.scene?.environmentIntensity ?? 1;
+    u.environmentIntensity.value = this.environment.skyScale;
+    const probe = this.environment.probe as (T.Texture & { isCubeTexture?: boolean }) | null;
+    const cube = probe && probe.isCubeTexture ? probe : null;
+    u.probeCube.value = cube;
+    u.probeActive.value = cube ? 1 : 0;
+    const size = (cube?.image as { width?: number }[] | undefined)?.[0]?.width ?? 256;
+    // Box-filtered mips approximate the GGX lobe of glossy (r < 0.6) finishes.
+    u.probeLod.value = Math.max(1, Math.log2(Math.max(1, size)) - 2);
   }
   /** Returns the scene colour with reflections (or `color` when inactive). */
   render(context: SceneStageContext): T.Texture {
@@ -661,6 +680,7 @@ export class ScreenSpaceReflections {
       // Full-screen quads per frame while active: pyramid + trace + resolve.
       extraDraws: this.active ? HIZ.levels + 2 : 0,
       environmentProbe: this.envHeight > 0,
+      localProbe: !!this.environment.probe,
     };
   }
   /** GLSL sources (read-only, for tests and QA tooling). */

@@ -15,6 +15,7 @@ import {
 } from '../options.ts';
 import type { SceneAmbientPass } from '../scene-ambient-pass.ts';
 import { surfaceDampness } from '../weather-presentation.ts';
+import { iblUniforms } from '../studio/ibl-energy.ts';
 import type { WetRoadReflection } from '../wet-reflection.ts';
 import { H } from '../../simulation/protocol.ts';
 import { AO_TEMPORAL, TemporalObscurance } from './ao-temporal.ts';
@@ -197,6 +198,12 @@ export class UltraPipeline {
       for (const car of frame.cars) for (const m of car.reflectivePaint) this.patch(m);
     this.ssr.rain = frame.studio ? 0 : rain01;
     this.ssr.prepare(true);
+    // The road and the followed car share the local probe while it owns them.
+    const road = this.host.roadMaterial as T.MeshStandardMaterial;
+    const probe = road.envMap && (road.envMap as T.CubeTexture).isCubeTexture ? road.envMap : null;
+    this.ssr.environment.probe = probe;
+    this.ssr.environment.skyScale =
+      (this.host.scene.environmentIntensity ?? 1) * iblUniforms.apexSpecularIBL.value;
     // Static fetch estimates (upper bounds) at the current drawing-buffer size.
     const size = this.host.renderer.getDrawingBufferSize(this.size);
     const full = size.x * size.y,

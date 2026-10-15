@@ -50,13 +50,15 @@ export function shaftStrength(
   const haze = (1 + 1.5 * c * (1 - c) + 0.6 * r) * (1 - Math.max(0, c - 0.7) / 0.3);
   return LIGHT_SHAFTS.strength[mode] * Math.max(0, haze);
 }
-/** Screen position (uv) of a world direction, and whether it is in front. */
+const clipScratch = new T.Vector4();
+/** Screen position (uv) of a world direction, and whether it is in front (z). */
 export function sunScreenPosition(
   camera: T.PerspectiveCamera,
   direction: T.Vector3,
   out = new T.Vector3(),
 ) {
-  const clip = new T.Vector4(direction.x, direction.y, direction.z, 0)
+  const clip = clipScratch
+    .set(direction.x, direction.y, direction.z, 0)
     .normalize()
     .applyMatrix4(camera.matrixWorldInverse)
     .applyMatrix4(camera.projectionMatrix);

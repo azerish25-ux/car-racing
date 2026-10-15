@@ -1,9 +1,10 @@
 # Rendering pipeline: presets, passes, costs and fallbacks
 
 Masterplan §17 (art direction, §17.3 priorities, §17.5 material library, §17.6 temporal
-stability), WP27–WP28. Three.js 0.180 on WebGL2 only; no new dependencies. Everything here is
-**integrated** in the sense of `STATUS_REGISTER.md`: reachable in a session and covered by automated
-tests. None of it is performance accepted — no named reference-hardware capture exists yet.
+stability), WP27–WP28. Three.js 0.180 on WebGL2 only; no new dependencies. The ULTRA modules are
+**integrated** in the sense of `STATUS_REGISTER.md` (reachable in a session, covered by automated
+tests); the shared material library is a **prototype** until a vehicle or venue kit is built from it.
+Nothing here is performance accepted — no named reference-hardware capture exists yet.
 
 ## 1. Presets
 
@@ -70,7 +71,8 @@ only inside the main scene draw of an ULTRA frame; everywhere else `mix(a, code,
 6-level conservative closest-depth pyramid of the raw (screen-affine) depth drives a Hi-Z traversal
 (≤ 56 iterations) of a GGX-importance-sampled ray about the depth-reconstructed normal, perturbed by
 procedural rain ripples on upward water films. The resolve reuses the four nearest rays with depth
-weights, limits fireflies, and replaces the environment probe's share:
+weights, limits fireflies, and replaces the environment probe's share (the local probe cubemap
+while it owns the road and the followed car, else the sky PMREM):
 `out = scene + F_schlick-roughness · confidence · (ssr − probe)`, fading to the probe at screen edges,
 for rays toward the camera, at the iteration limit and with roughness. TAA accumulates the stochastic
 rays.
@@ -149,7 +151,9 @@ The draw ledger's fixed phases are unchanged (ULTRA quads count in `composer`, t
   texel balance, Hi-Z traversal vs a linear march, SSR encoding, Fresnel/GGX, thin lens, HG phase),
   `tests/ultra-pipeline.test.ts` (per-preset gating, pass order, stage hooks, mid-cascade patch,
   bloom/grade/DOF variants, pass ledger), `tests/material-library.test.ts`;
-  `e2e/58-ultra-pipeline.spec.ts` (controlled GPU set; a saved ULTRA preference in a live session).
+  `e2e/58-ultra-pipeline.spec.ts` (the controlled GPU set in every browser run; a saved ULTRA
+  preference in a live session with `APEX_ULTRA_LIVE=1`, opt-in because a software-rendered ULTRA
+  session takes 10–20 minutes and would change the CI shard workload).
 
 ## 6. Shared material library (for car bodies, bikes and venue kits)
 
@@ -194,9 +198,10 @@ Factories return ordinary three.js materials — callers own and dispose them.
 
 - SSR normals are reconstructed from depth (no MRT G-buffer): tessellated curvature can show as
   faceted reflections on low-polygon bodies; normal-mapped detail is not reflected. Single bounce;
-  off-screen and camera-facing rays fall back to the probe. The probe term subtracted in the resolve
-  is the scene's sky PMREM, not the material's local probe, so reflections of dark local scenery can
-  be slightly over-darkened before the confidence fade.
+  off-screen and camera-facing rays fall back to the probe. The probe term the resolve replaces is
+  the followed car's local probe (box-filtered mips) while it owns the road and paint, otherwise the
+  sky PMREM at its specular scale; rivals' paint uses its own environment, so its replacement is
+  approximate.
 - The roughness mask shares the HDR alpha with transparent blending; spray and glass over a glossy
   surface raise alpha and suppress SSR there (by design, not a physical result).
 - TAA and temporal AO reproject cars rigidly; wheels, particles and skinned crew have no

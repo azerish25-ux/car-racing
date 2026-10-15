@@ -11,6 +11,7 @@ import { WetRoadReflection } from '../src/rendering/wet-reflection.ts';
 import { DepthOfFieldPass } from '../src/rendering/studio/dof-pass.ts';
 import { studioHookKeys } from '../src/rendering/studio/shader-hooks.ts';
 import { studioUniforms } from '../src/rendering/studio/studio-frame.ts';
+import { iblUniforms } from '../src/rendering/studio/ibl-energy.ts';
 import {
   graphicsPreset,
   type GraphicsOptions,
@@ -212,6 +213,24 @@ describe('ULTRA pipeline wiring', () => {
     // The mid cascade waits for the far map (it must be directional shadow 2).
     expect(h.ultra.mid.enabled).toBe(true);
     expect(h.ultra.mid.light.visible).toBe(false);
+  });
+  it('replaces the local probe while it owns the road, else the sky at its specular scale', () => {
+    const h = host();
+    h.configure('ultra');
+    h.scene.environmentIntensity = 0.5;
+    h.frame();
+    expect(h.ultra.ssr.environment.probe).toBeNull();
+    expect(h.ultra.ssr.environment.skyScale).toBeCloseTo(
+      0.5 * iblUniforms.apexSpecularIBL.value,
+      12,
+    );
+    const probe = new T.WebGLCubeRenderTarget(64).texture;
+    h.roadMaterial.envMap = probe;
+    h.frame();
+    expect(h.ultra.ssr.environment.probe).toBe(probe);
+    h.roadMaterial.envMap = null;
+    h.frame();
+    expect(h.ultra.ssr.environment.probe).toBeNull();
   });
   it('patches car paint as cars appear, once', () => {
     const h = host();
