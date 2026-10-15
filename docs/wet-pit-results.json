@@ -1,5 +1,5 @@
 {
-  "sourceSHA256": "d318527dac9867aa9cb2cf7a9387ef209c2335e6f4fdf20ea7d4d23cff9b9d63",
+  "sourceSHA256": "308199b982c22add332827f5a6981090623e018e5139b85e3ceaf59b75482d79",
   "scenario": {
     "seed": 4417,
     "cars": 10,
@@ -11,7 +11,7 @@
       "compound": "wet",
       "passed": true,
       "failures": [],
-      "simulatedSeconds": 167,
+      "simulatedSeconds": 160.58333333333334,
       "zeroImpact": true,
       "cars": [
         {
@@ -100,8 +100,8 @@
       "compound": "medium",
       "passed": true,
       "failures": [],
-      "simulatedSeconds": 240.93333333333334,
-      "zeroImpact": true,
+      "simulatedSeconds": 223.50833333333333,
+      "zeroImpact": false,
       "cars": [
         {
           "id": 0,
@@ -124,8 +124,8 @@
           "entered": true,
           "exited": true,
           "stops": 1,
-          "maximumImpact": 0,
-          "minimumHealth": 1
+          "maximumImpact": 0.0000022236735847269236,
+          "minimumHealth": 0.9986331478019438
         },
         {
           "id": 3,
@@ -164,8 +164,8 @@
           "entered": true,
           "exited": true,
           "stops": 1,
-          "maximumImpact": 0,
-          "minimumHealth": 1
+          "maximumImpact": 0.0000022236735847269236,
+          "minimumHealth": 0.999987708136624
         },
         {
           "id": 8,

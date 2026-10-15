@@ -83,7 +83,7 @@ Last reviewed against source: branch `claude/peaceful-einstein-dedc7t`, commits 
 | WP17 | integrated | Calibration lab with design-brief bands and timestep drift. |
 | WP18 | integrated (provisional) | TC-1 mechanics, AI, setup, snapshot identity; final art absent. |
 | WP19 | integrated | Per-definition AI envelopes, zero-downforce braking fix. |
-| WP20 | absent | Overtake/defend commitment work not started beyond existing tactics. |
+| WP20 | integrated | Explicit pass commitment in `TrafficPlanner`: one target per attempt, abort on gap opening, lost closing speed (>1 s), defender covering before overlap, no safe lane or 12 s timeout; skill-dependent retry hysteresis; passes/aborts counted with reason (`tests/traffic.test.ts`). Unit suite and `test:physics` green. QA-suite measurements (§13.7) open. |
 | WP21 | absent | Needs human sessions on named devices. |
 | WP22 | integrated (partial) | EVENTS hub, machine choice with explained rejections; full controller audit open. |
 | WP23 | integrated (partial) | Idempotent, explained rewards; one result identity across championship/team open. |
