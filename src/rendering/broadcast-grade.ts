@@ -208,6 +208,9 @@ export class BroadcastGradePass extends Pass {
   /** Photo mode's look (photo-camera.ts photoGrade), or null for the gameplay
    * profile. Set by the renderer only while the photo studio is open. */
   photoOverride: Readonly<GradeProfile> | null = null;
+  /** ULTRA restrained lateral chromatic aberration, added to the profile's
+   * fringe (0 on every other preset; never applied over a photo look). */
+  lensFringe = 0;
   /** Seed must come from presented state so pause, photo and replay hold grain.
    * `wet` (0..1, standing water) blends the profile LUT toward the wet LUT. */
   apply(profile: LightingMode | 'studio', seed = 0, wet = 0) {
@@ -220,7 +223,7 @@ export class BroadcastGradePass extends Pass {
     (u.shadowTint.value as T.Vector3).set(...p.shadowTint);
     (u.highlightTint.value as T.Vector3).set(...p.highlightTint);
     u.vignette.value = p.vignette;
-    u.fringe.value = p.fringe;
+    u.fringe.value = p.fringe + (this.photoOverride ? 0 : Math.max(0, this.lensFringe));
     u.grain.value = p.grain;
     u.sharpen.value = p.sharpen;
     u.seed.value = Number.isFinite(seed) ? seed % 97 : 0;

@@ -223,6 +223,14 @@ export class TemporalAA {
     this.material.uniforms.resolution.value.set(this.width, this.height);
     this.reset();
   }
+  /** Jitter index of the current (or last) resolved frame. */
+  get jitterIndex() {
+    return this.index;
+  }
+  /** This frame is jittered and resolved (read after the scene pass began it). */
+  get resolving() {
+    return this.active;
+  }
   /** Cut, seek, resize or settings change: the next frame starts a new history. */
   reset() {
     this.valid = false;

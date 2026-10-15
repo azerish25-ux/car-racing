@@ -3,6 +3,7 @@ import { Pass, FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
 import type { MotionBlur } from './motion-blur.ts';
 import { MOTION_BLUR, MOTION_VELOCITY_GLSL, createMotionUniforms } from './studio/velocity.ts';
 import { TemporalAA } from './studio/temporal-aa.ts';
+import { studioUniforms } from './studio/studio-frame.ts';
 
 /** Scalable ambient obscurance tuning. World-space radius in metres; the screen
  * radius is clamped so a cockpit surface 30 cm from the eye cannot black out.
@@ -111,6 +112,7 @@ const obscuranceFragment = /* glsl */ `
   uniform vec2 sunShadowTexel;
   uniform float sunShadowBias;
   uniform float sunShadowed;
+  uniform vec2 noiseOffset;
   varying vec2 vUv;
   #ifndef GTAO_SLICES
     #define GTAO_SLICES 2
@@ -216,7 +218,8 @@ const obscuranceFragment = /* glsl */ `
     vec3 dy = abs(pu.z - p.z) < abs(p.z - pd.z) ? pu - p : p - pd;
     vec3 n = normalize(cross(dx, dy));
     if (dot(n, p) > 0.0) n = -n;
-    vec2 pixel = floor(vUv * resolution);
+    // noiseOffset is (0, 0) except for ULTRA temporal AO, which rotates it per frame.
+    vec2 pixel = floor(vUv * resolution) + noiseOffset;
     float noise = interleavedNoise(pixel);
     float jitter = interleavedNoise(pixel + vec2(5.0, 11.0));
     float ao = 1.0;
@@ -345,6 +348,38 @@ export const SCENE_AMBIENT_GLSL = Object.freeze({
   composite: compositeFragment,
 });
 
+/** A scene-linear stage between the scene draw and the temporal resolve (e.g.
+ * ULTRA screen-space reflections). Inactive stages cost nothing. */
+export interface SceneStage {
+  readonly active: boolean;
+  /** Around the main scene draw only (not mirrors, probes or shadows). */
+  beforeScene?(): void;
+  afterScene?(): void;
+  /** Full scene-pass size. */
+  setSize?(width: number, height: number): void;
+  render(context: {
+    renderer: T.WebGLRenderer;
+    camera: T.PerspectiveCamera;
+    color: T.Texture;
+    depth: T.DepthTexture;
+    temporal: boolean;
+    index: number;
+  }): T.Texture;
+}
+/** Post-blur obscurance stage (ULTRA temporal AO). */
+export interface ObscuranceStage {
+  noiseOffset(advancing: boolean, out: T.Vector2): T.Vector2;
+  /** Half-resolution obscurance size. */
+  setSize?(width: number, height: number): void;
+  render(context: {
+    renderer: T.WebGLRenderer;
+    camera: T.PerspectiveCamera;
+    obscurance: T.Texture;
+    depth: T.DepthTexture;
+    advancing: boolean;
+  }): T.Texture;
+}
+
 /** Renders the linear scene into an optionally multisampled target with a float
  * depth attachment, then composites half-resolution GTAO with sun contact
  * shadows (`attach(motion, sun)`'s light) and the depth-reprojected camera
@@ -378,6 +413,12 @@ export class SceneAmbientPass extends Pass {
   lateScene:
     | ((renderer: T.WebGLRenderer, target: T.WebGLRenderTarget, depth: T.DepthTexture) => void)
     | null = null;
+  /** ULTRA stages (screen-space reflections); empty on every other preset. */
+  readonly sceneStages: SceneStage[] = [];
+  /** ULTRA temporal obscurance, or null. */
+  obscuranceStage: ObscuranceStage | null = null;
+  /** GTAO slice count override (ULTRA), or null for gtaoSlices(samples). */
+  private sliceOverride: number | null = null;
   private sun: T.DirectionalLight | null = null;
   private readonly sunDirection = new T.Vector3();
   private readonly sunTarget = new T.Vector3();
@@ -445,6 +486,7 @@ export class SceneAmbientPass extends Pass {
       sunShadowTexel: { value: new T.Vector2(1, 1) },
       sunShadowBias: { value: 0 },
       sunShadowed: { value: 0 },
+      noiseOffset: { value: new T.Vector2() },
     });
     this.obscuranceMaterial.defines.GTAO_SLICES = gtaoSlices(samples);
     this.blurMaterial = material('APEX depth-aware obscurance blur', blurFragment, {
@@ -481,7 +523,17 @@ export class SceneAmbientPass extends Pass {
     // Sample count is immutable per framebuffer; release it so Three re-creates it.
     this.target.samples = samples;
     this.target.dispose();
-    const slices = gtaoSlices(samples);
+    this.applySlices();
+  }
+  /** ULTRA: more GTAO slices regardless of the multisample count (null restores). */
+  setSliceOverride(slices: number | null) {
+    if (slices !== null && !(Number.isInteger(slices) && slices >= 1 && slices <= 8))
+      throw new Error('Invalid GTAO slice count');
+    this.sliceOverride = slices;
+    this.applySlices();
+  }
+  private applySlices() {
+    const slices = this.sliceOverride ?? gtaoSlices(this.target.samples);
     if (this.obscuranceMaterial.defines.GTAO_SLICES !== slices) {
       this.obscuranceMaterial.defines.GTAO_SLICES = slices;
       this.obscuranceMaterial.needsUpdate = true;
@@ -499,6 +551,18 @@ export class SceneAmbientPass extends Pass {
     this.compositeMaterial.uniforms.colorResolution.value.set(this.width, this.height);
     this.motion?.setSize(this.width, this.height);
     this.temporal.setSize(this.width, this.height);
+    for (const stage of this.sceneStages) stage.setSize?.(this.width, this.height);
+    this.obscuranceStage?.setSize?.(small.width, small.height);
+  }
+  /** Attach an ULTRA stage and size it to the current pass. */
+  addSceneStage(stage: SceneStage) {
+    if (!this.sceneStages.includes(stage)) this.sceneStages.push(stage);
+    stage.setSize?.(this.width, this.height);
+  }
+  setObscuranceStage(stage: ObscuranceStage | null) {
+    this.obscuranceStage = stage;
+    const small = obscuranceSize(this.width, this.height);
+    stage?.setSize?.(small.width, small.height);
   }
   /** Test and QA oracle: the composite writes (streak uv, linear depth, geometry)
    * instead of colour. Needs a float output target. */
@@ -554,24 +618,46 @@ export class SceneAmbientPass extends Pass {
       renderer.autoClear = true;
       renderer.setRenderTarget(this.target);
       // High opt-in TAA: sub-pixel jitter for the scene draw only.
-      this.temporal.begin(this.camera, this.motion?.live ?? true);
+      const live = this.motion?.live ?? true;
+      const temporal = this.temporal.begin(this.camera, live);
+      const stages = this.sceneStages;
       try {
-        renderer.render(this.scene, this.camera);
+        for (const stage of stages) if (stage.active) stage.beforeScene?.();
+        try {
+          renderer.render(this.scene, this.camera);
+        } finally {
+          for (const stage of stages) stage.afterScene?.();
+        }
         this.lateScene?.(renderer, this.target, this.target.depthTexture!);
       } finally {
         this.temporal.end(this.camera);
       }
       const depth = this.target.depthTexture!;
+      let color: T.Texture = this.target.texture;
+      for (const stage of stages)
+        if (stage.active)
+          color = stage.render({
+            renderer,
+            camera: this.camera,
+            color,
+            depth,
+            temporal,
+            index: this.temporal.jitterIndex,
+          });
       this.compositeMaterial.uniforms.tColor.value = this.temporal.resolve(
         renderer,
         this.camera,
-        this.target.texture,
+        color,
         depth,
       );
       const occlude = this.ambientOcclusion;
       // The composite reconstructs depth for the motion blur even without AO.
       this.syncCamera(renderer.shadowMap?.enabled !== false);
       if (occlude) {
+        const advancing = live && studioUniforms.studioFrameDt.value > 0;
+        const offset = this.obscuranceMaterial.uniforms.noiseOffset.value as T.Vector2;
+        if (this.obscuranceStage) this.obscuranceStage.noiseOffset(advancing, offset);
+        else offset.set(0, 0);
         this.quad.material = this.obscuranceMaterial;
         renderer.setRenderTarget(this.obscurance);
         this.quad.render(renderer);
@@ -585,7 +671,15 @@ export class SceneAmbientPass extends Pass {
         this.blurMaterial.uniforms.direction.value.set(0, 1 / small.y);
         renderer.setRenderTarget(this.obscurance);
         this.quad.render(renderer);
-        this.compositeMaterial.uniforms.tObscurance.value = this.obscurance.texture;
+        this.compositeMaterial.uniforms.tObscurance.value = this.obscuranceStage
+          ? this.obscuranceStage.render({
+              renderer,
+              camera: this.camera,
+              obscurance: this.obscurance.texture,
+              depth,
+              advancing,
+            })
+          : this.obscurance.texture;
       }
       this.compositeMaterial.uniforms.enabled.value = occlude ? 1 : 0;
       this.quad.material = this.compositeMaterial;

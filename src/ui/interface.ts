@@ -859,7 +859,7 @@ export class Interface {
       })
       .join('');
     this.modalContent(
-      `<header><div><span class="eyebrow">GARAGE / PREFERENCES</span><h2>Make it yours.</h2></div><button data-action="modalClose" aria-label="Close settings">✕</button></header><form id="settingsForm"><div class="settings-columns"><section><h3>Presentation</h3><label>RENDER QUALITY<select name="quality"><option value="low">Low · No shadows / crowd / particles</option><option value="medium">Medium · 2× MSAA / AO / bloom</option><option value="high">High · 4× MSAA / local reflections / specular AA</option></select></label>${presentationControls(settings)}${[
+      `<header><div><span class="eyebrow">GARAGE / PREFERENCES</span><h2>Make it yours.</h2></div><button data-action="modalClose" aria-label="Close settings">✕</button></header><form id="settingsForm"><div class="settings-columns"><section><h3>Presentation</h3><label>RENDER QUALITY<select name="quality"><option value="low">Low · No shadows / crowd / particles</option><option value="medium">Medium · 2× MSAA / AO / bloom</option><option value="high">High · 4× MSAA / local reflections / specular AA</option><option value="ultra">Ultra · TAA / SSR / 3 shadow cascades (opt-in, fast GPUs)</option></select></label>${presentationControls(settings)}${[
         ['volume', 'Volume', 0, 1, 0.01],
         ['shake', 'Camera vibration', 0, 1, 0.01],
         ['uiScale', 'Interface scale', 0.8, 1.35, 0.05],
