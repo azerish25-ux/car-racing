@@ -27,7 +27,7 @@ the acceptance observation. Nothing below is player-accepted.
 | D011 | Flat-spot feedback | foundation | `W.FLAT`, radius modulation; vibration/sound strength review |
 | D012 | Dirt pickup and clearing | integrated | `W.DIRT` history in tyre model |
 | D013 | Marbles where deposited | integrated | track marble field + `MARBLE_PICKUP_*` |
-| D014 | Squeal by slip and surface | integrated | `src/audio/surface-audio.ts`; next: grass vs asphalt listening test |
+| D014 | Squeal by slip and surface | integrated | `src/audio/surface-audio.ts`: asphalt, grass, gravel, kerb and (terrain/open-world material ids) dirt, mud, sand and snow layers; slip on loose ground throws soil instead of squealing (`tests/airborne-audio.test.ts`); next: per-material listening test |
 | D015 | Kerb vs rough asphalt | integrated | `W.SURFACE` per wheel, kerb heights |
 | D016 | Wet trails from tyres | integrated | per-wheel spray/trail emitters; next: capture |
 | D017 | Wheel rotation stable at replay speeds | foundation | `W.ROTATION` recorded; next: ¼× replay review |
@@ -72,11 +72,11 @@ the acceptance observation. Nothing below is player-accepted.
 | D041 | Roost follows rear contact/slip | integrated (presentation) | `src/rendering/offroad/roost.ts` emits from driven wheels by recorded load, slip and surface; never written back to the soil (by design) |
 | D042 | Mud by exposed region | integrated (procedural art) | per-entrant `O.MUD` coat (`mud.ts`) heavier on low parts; dry dust vs wet mud by `O.MOISTURE`; next: art review of coverage |
 | D043 | Standing pose for rough sections | integrated (procedural art) | `O.STANDING` (whoops, rollers, jump faces, flight) and `O.DAB` drive the rider (`rider.ts`) |
-| D044 | Suspension bottoming visible | foundation | full fork/shock stroke is shown and `O.BOTTOM` is recorded; no dedicated visual or audio cue |
+| D044 | Suspension bottoming visible | foundation | full fork/shock stroke is shown and `O.BOTTOM` is recorded; a bump-stop clack plays as it rises (`surface-audio.ts`); no dedicated visual cue |
 | D045 | Rut edges influence lines | integrated | physics ruts change grip; dirt-bike AI chooses lines by `lineCost()` |
 | D046 | Wet vs dry berm | integrated | moisture term in soil contact grip and softness; rain soaks the session soil |
-| D047 | Airborne audio stops on lift-off | absent | airborne state is in the snapshot (`O.AIRBORNE`); audio not wired (WP47) |
-| D048 | Landing effects at contacting wheel | foundation | landing record (pitch error, impact speed) in `O.LANDING_*`; no landing effect drawn |
+| D047 | Airborne audio stops on lift-off | integrated | unloaded wheels make no ground sound; with `O.AIRBORNE` (dirt bikes, cars on terrain venues) the engine voices and power-unit layers unload to a quarter of their load while the revs follow the free-spinning wheel (`src/audio/airborne-audio.ts`, `tests/airborne-audio.test.ts`); next: listening test |
+| D048 | Landing effects at contacting wheel | foundation | landing record (pitch error, impact speed) in `O.LANDING_*`; a touchdown thump scaled by the impact speed plays on the contact bus (`landingThump`); no landing effect drawn |
 | D049 | Start gate synchronized | integrated | one release for every slot, jump-start detection judged once by the format (`session.ts`, `tests/offroad.test.ts`); hinged gate model falls from race time and has a panel for every rider the session lines up (`start-gate.ts`) |
 | D050 | Track reset restores whole terrain | integrated | a new session resets the course terrain; the worker's first keyframe replaces the rendered field (`terrain-view.ts`) |
 
@@ -103,7 +103,7 @@ the acceptance observation. Nothing below is player-accepted.
 | D062 | One authority for lights and control | integrated | race director phases |
 | D063 | Pit-entry commitment understandable | partial | radio message on entry; commitment line now venue data |
 | D064 | Pit speed guidance before the limit | integrated | "PIT LANE · 80 KM/H" message + limiter radio caption |
-| D065 | Crew tools contact service points | integrated | A31/A32 contact tests |
+| D065 | Crew tools contact service points | integrated | A31/A32 contact tests (cars); a motorcycle crew's hands, stands and carried wheels share one `BikeServicePose` (`tests/bike-pit-service.test.ts`), without contact witnesses of its own |
 | D066 | Tyre selection matches fitted state | integrated | `NEXT_COMPOUND`/`COMPOUND` fields |
 | D067 | Unsafe release policy shared | integrated | `safePitRelease` for AI and player |
 | D068 | Repairs alter recorded component | integrated | `repairFrontWing` during phase 5 |
