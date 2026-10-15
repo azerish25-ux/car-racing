@@ -9,25 +9,35 @@ import { chainShaderHook, injectAfter, injectDeclarations } from './shader-hooks
  * Kerbs (P9): anti-aliased 1.1 m stripes (a 2.2 m red/white pair; a blue/white
  * complex and a yellow/green corner from `kerbStyle`), ignoring the 3 m vertex
  * colours. The physics ridges (0.65 m period, `kerbHeight` untouched) shade
- * through a derivative normal across the 0.12-0.98 m band. Paint roughness
- * fresh 0.68 to 0.88 worn; tyre rubber #2a2a2a over the track-side 30 %, weighted by
- * racing-line usage (`kerbUsage`), with chips where usage is high.
+ * through a derivative normal across the 0.12-0.98 m band, with brown dust
+ * settled in their troughs. Paint roughness fresh 0.82 to 0.92 worn; tyre
+ * rubber #2a2a2a over the track-side 30 %, weighted by racing-line usage
+ * (`kerbUsage`) above a `wearFloor` every kerb carries (cars put wheels on
+ * every kerb), with chips where usage is high. Real kerb paint: an oxide red
+ * #a82a26 and an off-white #cfccc3 (linear ~0.61), never ink-pure, with stripe
+ * edges softened by `edgeOverlap` of rolled paint.
  *
  * Run-off (w+1.1 to w+4): grey asphalt #6f6c68 with a 1.5-2 m painted band in
- * the corner's colour and white chevrons, or astroturf #3f9a55 with fibre
- * noise (`runoffStyle`), plus 0.35 m worn-soil seams where the run-off meets
- * the kerb (edge 1.1 m) and the grass (edge 4 m).
+ * the corner's colour and white chevrons, or astroturf with fibre noise
+ * (`runoffStyle`), plus 0.35 m worn-soil seams where the run-off meets the
+ * kerb (edge 1.1 m) and the grass (edge 4 m). Paint and chevrons are worn
+ * through where cars run over them, and tyre dirt is sprayed off the kerb.
  */
 export const KERB = Object.freeze({
   pair: 2.2,
   colours: Object.freeze([
-    // P9's #c4222a is the rendered red: in the day sun, with the white stripes
-    // filtered in at distance, the albedo #bc0a14 renders about #c4222a
-    // (#c4222a itself rendered #c74146, shots/kpi-iteration-v2 KPI 11).
-    [0xbc0a14, 0xecebe6],
-    [0x2a4fa0, 0xecebe6],
-    [0xe8c43a, 0x2f8f52],
+    // Photoreal pass: the KPI 11 albedo #bc0a14 (linear 0.50/0.003/0.007) is a
+    // pigment no road paint has and read as candy; #ecebe6 (0.84) as paper.
+    [0xa82a26, 0xcfccc3],
+    [0x2c4a86, 0xcfccc3],
+    [0xc9a53a, 0x3f6e4c],
   ] as const),
+  /** Rubber every kerb carries over its track-side 30 %, off the line too. */
+  wearFloor: 0.18,
+  /** Stripe boundary softness (m): rolled paint overlaps the next colour. */
+  edgeOverlap: 0.012,
+  /** Brown dust settled in the ridge troughs. */
+  dust: 0x5e4c38,
   rubber: 0x2a2a2a,
   // Shading amplitude of the 1.6 cm physics corrugation: the full slope reads
   // as hard bands at chase distance, so the visual relief is softened.
@@ -40,8 +50,8 @@ export const RUNOFF = Object.freeze({
   from: 1.1,
   to: 4,
   base: 0x6f6c68,
-  bands: Object.freeze([0x3b8a50, 0xb33a32, 0x2e57a8, 0xd9b23a] as const),
-  turf: 0x3f9a55,
+  bands: Object.freeze([0x3f6e4c, 0xa03a33, 0x34548c, 0xc4a244] as const),
+  turf: 0x3f7f50,
   /** Painted band across the run-off, edge metres. */
   band: Object.freeze([1.25, 3.0] as const),
   chevronPitch: 4,
@@ -69,8 +79,8 @@ vec3 apexReliefNormal(vec3 n, float h) {
 	return normalize( max( abs( det ), 1e-10 ) * n - grad );
 }`;
 
-export const KERB_HOOK = 'kerb-finish-v1';
-export const RUNOFF_HOOK = 'runoff-finish-v1';
+export const KERB_HOOK = 'kerb-finish-v2';
+export const RUNOFF_HOOK = 'runoff-finish-v2';
 
 /** Install on the kerb ribbon material (after `installCircuitFinish(m, 'kerb')`). */
 export function installKerbFinish(material: T.MeshStandardMaterial) {
@@ -99,7 +109,9 @@ export function installKerbFinish(material: T.MeshStandardMaterial) {
       `{
 	// D15 kerb paint: 1.1 m anti-aliased stripes in the corner's scheme.
 	float stripePhase = vFinishMetres.y / ${f(KERB.pair)};
-	float second = apexStripeCoverage( stripePhase, fwidth( stripePhase ), .25 );
+	// Hand-rolled edges: a centimetre of overlap and a few millimetres of waver.
+	float stripeWaver = ( finishFilteredNoise( vFinishWorld.xz * vec2( 5.3, 4.1 ) ) - .5 ) * ${f(0.008 / KERB.pair)};
+	float second = apexStripeCoverage( stripePhase + stripeWaver, max( fwidth( stripePhase ), ${f(KERB.edgeOverlap / KERB.pair)} ), .25 );
 	vec3 first = vKerbStyle > 1.5 ? ${v3(KERB.colours[2][0])} : vKerbStyle > .5 ? ${v3(KERB.colours[1][0])} : ${v3(KERB.colours[0][0])};
 	vec3 other = vKerbStyle > 1.5 ? ${v3(KERB.colours[2][1])} : ${v3(KERB.colours[0][1])};
 	vec3 paint = mix( first, other, second );
@@ -107,13 +119,20 @@ export function installKerbFinish(material: T.MeshStandardMaterial) {
 	float across = clamp( vKerbAcross / ${f(KERB.width)}, 0.0, 1.0 );
 	float trackSide = 1.0 - smoothstep( .18, .42, across );
 	float grime = finishFilteredNoise( vFinishWorld.xz * vec2( 3.1, 0.8 ) );
-	kerbWear = clamp( vKerbUsage * trackSide * ( .55 + .6 * grime ), 0.0, 1.0 );
+	float kerbUse = max( vKerbUsage, ${f(KERB.wearFloor)} );
+	kerbWear = clamp( kerbUse * trackSide * ( .55 + .6 * grime ), 0.0, 1.0 );
 	// Rolled paint over cast concrete: fine grit, and chips through to the
 	// grey concrete where tyres strike the kerb, plus dust in the grooves.
 	float grit = finishFilteredNoise( vFinishWorld.xz * 41.0 );
 	paint *= .9 + .2 * grit;
 	float chip = smoothstep( .74, .84, finishFilteredNoise( vFinishWorld.xz * 9.0 + vec2( 3.3, 1.7 ) ) * .7 + grit * .3 );
-	paint = mix( paint, vec3( .32, .31, .29 ) * ( .85 + .3 * grit ), chip * ( .25 + .6 * vKerbUsage ) );
+	paint = mix( paint, vec3( .32, .31, .29 ) * ( .85 + .3 * grit ), chip * ( .25 + .6 * kerbUse ) );
+	// Brown dust in the ridge troughs (the same 0.65 m phase as the relief),
+	// converged to its mean before the ridges alias.
+	float dustBand = smoothstep( ${f(KERB.ridge.from)}, ${f(KERB.ridge.from + 0.06)}, vKerbAcross ) * ( 1.0 - smoothstep( ${f(KERB.ridge.to - 0.06)}, ${f(KERB.ridge.to)}, vKerbAcross ) );
+	float dustPhase = vFinishMetres.y * ${f((2 * Math.PI) / KERB.ridge.period)};
+	float dustTrough = mix( .3, smoothstep( .2, 1.0, - sin( dustPhase ) ), 1.0 - smoothstep( .8, 2.5, fwidth( dustPhase ) ) );
+	paint = mix( paint, ${v3(KERB.dust)} * ( .8 + .4 * grime ), dustBand * dustTrough * ( .22 + .25 * grime ) );
 	paint = mix( paint, ${v3(KERB.rubber)}, kerbWear * .78 );
 	kerbPaint = paint;
 	diffuseColor.rgb = paint;
@@ -192,8 +211,14 @@ export function installRunoffFinish(material: T.MeshStandardMaterial) {
 		// Road paint is rolled onto the asphalt: the chips carry it, the voids
 		// between them stay darker, so the aggregate reads through the colour.
 		float paintTex = clamp( tex, .8, 1.16 );
-		surface = mix( base, bandColour * ( .92 + .14 * grain ) * paintTex, band * .92 );
-		surface = mix( surface, vec3( .82 ) * paintTex, chevron * .85 );
+		// Rolled paint that cars drive over: worn through in broken patches
+		// (more on the chevrons), never a fresh vinyl print.
+		float paintWear = smoothstep( .5, .85, finishFilteredNoise( vFinishWorld.xz * 1.3 + vec2( 7.1, 2.9 ) ) * .6 + finishFilteredNoise( vFinishWorld.xz * 11.0 ) * .4 );
+		surface = mix( base, bandColour * ( .92 + .14 * grain ) * paintTex, band * .92 * ( 1.0 - .35 * paintWear ) );
+		surface = mix( surface, vec3( .62 ) * paintTex, chevron * .85 * ( 1.0 - .55 * paintWear ) );
+		// Tyre dirt sprayed off the kerb across the first metre or so.
+		float spray = ( 1.0 - smoothstep( ${f(RUNOFF.from)}, ${f(RUNOFF.from + 1.6)}, e ) ) * smoothstep( .35, .8, finishFilteredNoise( vFinishWorld.xz * vec2( 3.7, 1.1 ) ) );
+		surface = mix( surface, vec3( .07, .065, .06 ), spray * .35 );
 		// Rubber laid by cars running wide: dark arcs along the lap that start
 		// at the kerb and fade across the run-off, in sparse corner groups.
 		float wideRun = smoothstep( .55, .78, finishFilteredNoise( vec2( vFinishMetres.y * .045, 3.7 ) ) );

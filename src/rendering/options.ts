@@ -19,8 +19,11 @@ export function isQualityPreset(value: unknown): value is QualityPreset {
 export function detailTier(preset: QualityPreset): Quality {
   return preset === 'ultra' ? 'high' : preset;
 }
-/** Display transform after exposure. ACES is the calibrated default on every
- * preset; AgX and Khronos Neutral are opt-in alternatives (three 0.180). */
+/** Display transform after exposure. ACES is the calibrated default on Low,
+ * Medium and High; ULTRA defaults to AgX (a soft highlight roll-off without
+ * ACES's hue skews and second contrast curve, matched to ACES at mid grey) with
+ * its own lighter grade (broadcast-grade.ts FILMIC_GRADE_PROFILES). Khronos
+ * Neutral is an opt-in alternative (three 0.180). */
 export type ToneMapper = 'aces' | 'agx' | 'neutral';
 export const TONE_MAPPERS: readonly ToneMapper[] = Object.freeze(['aces', 'agx', 'neutral']);
 /** Seated-driver lens: vertical degrees (producer decision P6). */
@@ -115,10 +118,12 @@ export function graphicsPreset(preset: QualityPreset): GraphicsOptions {
 }
 /** ULTRA: High plus temporal AA (complementing 4x MSAA) with sharpening, SSR,
  * temporal GTAO, a 4096 near sun map inside three cascades, energy-conserving
- * bloom, sun shafts, restrained lens fringe and replay depth of field. */
+ * bloom, sun shafts, restrained lens fringe, replay depth of field and the AgX
+ * display transform with a restrained grade. */
 function ultraPreset(): GraphicsOptions {
   return {
     ...graphicsPreset('high'),
+    toneMapper: 'agx',
     shadowSize: 4096,
     temporalAA: true,
     ssr: true,

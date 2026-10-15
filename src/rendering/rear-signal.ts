@@ -8,6 +8,17 @@ export function rearSignalIntensity(brake: number, time: number) {
   return brake > 0.1 ? 2.5 : Math.sin(time * 12) > 0 ? 1.4 : 0.1;
 }
 
+/** Radiance gain of the visible rain lights (not their spray tint). ULTRA's
+ * energy-conserving bloom only redistributes a few per cent of a pixel, so the
+ * lamp carries a physical LED radiance there and its own glare draws the glow;
+ * the threshold bloom presets keep 1. Set by the renderer per frame. */
+export const REAR_LAMP = { gain: 1 };
+export const REAR_LAMP_PHYSICAL_GAIN = 6;
+/** Emissive intensity of a car's visible rain light. */
+export function rearLampIntensity(brake: number, time: number) {
+  return rearSignalIntensity(brake, time) * REAR_LAMP.gain;
+}
+
 /** All supported cars fit in a fixed twelve-source uniform array. Keeping their
  * identities stable avoids nearest-light switching/pop at a pack boundary.
  * This is bounded, unshadowed single-scatter tint, not a volumetric light solver. */

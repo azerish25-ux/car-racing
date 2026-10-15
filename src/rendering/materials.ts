@@ -12,6 +12,16 @@ import carbonNormal from '../shaders/carbon-normal.frag?raw';
 // The physical track-water field and tire equations are untouched.
 export const ROAD_FILM_IOR = 1.333;
 export const ROAD_FILM_F0 = ((ROAD_FILM_IOR - 1) / (ROAD_FILM_IOR + 1)) ** 2;
+/** Wet road film (photoreal pass): water depth (mm, the simulation's cell
+ * water) over which a damp film becomes a continuous sheet, the sheet's coat
+ * roughness and the extra roughness of heavy rain on it. A heavy-rain track
+ * (0.9 mm) was a 0.58-strength, ~0.22-roughness satin outside the puddle
+ * mask, with no reflections of the cars, their rain lights or the sky. */
+export const ROAD_FILM = Object.freeze({
+  sheetMm: Object.freeze([0.3, 0.55] as const),
+  sheetRoughness: 0.065,
+  rainRoughness: 0.02,
+});
 
 /** Carbon finishes (ART_BIBLE_A §6.2, D06): lacquered bodywork carbon under a
  * clear coat with a +-18 % weave, and raw satin carbon (floor underside) with
@@ -142,7 +152,11 @@ export function installWetRoad(
     );
     shader.fragmentShader = shader.fragmentShader.replace(
       '#include <roughnessmap_fragment>',
-      '#include <roughnessmap_fragment>\nroughnessFactor=mix(roughnessFactor,mix(0.22,0.08,puddle),wet);',
+      `#include <roughnessmap_fragment>
+      // Water depth, not only the puddle mask, drives the film: from about
+      // ${ROAD_FILM.sheetMm[1]} mm the racing surface carries a continuous sheet of water.
+      float roadSheet = max(puddle, smoothstep(${ROAD_FILM.sheetMm[0].toFixed(2)}, ${ROAD_FILM.sheetMm[1].toFixed(2)}, waterMm));
+      roughnessFactor=mix(roughnessFactor,mix(0.22,0.08,roadSheet),wet);`,
     );
     shader.fragmentShader = shader.fragmentShader.replace(
       '#include <normal_fragment_maps>',
@@ -156,7 +170,7 @@ export function installWetRoad(
       // Dry cells and rain-free standing water do not animate independently.
       vec2 roadRippleP = vRoadMetres * vec2(19.,23.);
       float roadRippleResolved = 1.-smoothstep(.5,2.,length(fwidth(roadRippleP)));
-      float roadRippleGain = puddle * min(1.,roadWeather.x/18.) * roadRippleResolved * .009;
+      float roadRippleGain = roadSheet * min(1.,roadWeather.x/18.) * roadRippleResolved * .009;
       vec2 roadRipple = vec2(sin(roadRippleP.x + roadRippleP.y*.37 - roadWeather.y*7. + roadWeather.z*.07),
         cos(roadRippleP.y - roadRippleP.x*.23 - roadWeather.y*9. + roadWeather.w*.07));
       vec3 roadRippleX = mat3(viewMatrix)*vec3(1.,0.,0.);
@@ -170,7 +184,7 @@ export function installWetRoad(
       #ifdef USE_CLEARCOAT
         // The thin coat conforms to the SAME retained surface normal. Standing
         // water tends to the geometric plane; apply the ripple exactly once.
-        clearcoatNormal = normalize(mix(roadFilmNormal, clearcoatNormal, puddle));
+        clearcoatNormal = normalize(mix(roadFilmNormal, clearcoatNormal, roadSheet));
         clearcoatNormal = normalize(clearcoatNormal + roadRippleGain *
           (roadRippleSlope - clearcoatNormal * dot(clearcoatNormal, roadRippleSlope)));
       #endif`,
@@ -182,14 +196,17 @@ export function installWetRoad(
       '#include <lights_physical_fragment>',
       `#include <lights_physical_fragment>
       #ifdef USE_CLEARCOAT
-        material.clearcoat = wet * mix(0.58, 1.0, puddle);
+        // A sheet of water is a full, smooth coat (roughness ~${ROAD_FILM.sheetRoughness}, ripples
+        // on top); a damp film and the emerging dry line (wet ~0.55 there)
+        // stay a weaker, broader lobe (~0.15).
+        material.clearcoat = wet * mix(0.58, 1.0, roadSheet);
         // Stock clearcoat represents a 1.5-IOR varnish. This lobe is water,
         // whose normal-incidence Fresnel response is approximately half as large.
         material.clearcoatF0 = vec3(${ROAD_FILM_F0.toFixed(9)});
-        material.clearcoatRoughness = mix(0.26, mix(0.22, 0.055, puddle), wet);
-        // Rain-disturbed film broadens the highlight instead of making every wet
-        // cell a perfect mirror. Existing cell water alone still owns coverage.
-        material.clearcoatRoughness += min(1.,roadWeather.x/18.)*puddle*.045;
+        material.clearcoatRoughness = mix(0.26, mix(0.22, ${ROAD_FILM.sheetRoughness.toFixed(3)}, roadSheet), wet);
+        // Rain-disturbed water broadens the highlight a little; the ripple
+        // normals carry most of the disturbance.
+        material.clearcoatRoughness += min(1.,roadWeather.x/18.)*roadSheet*${ROAD_FILM.rainRoughness.toFixed(3)};
         // Do not erase Three's geometric specular filtering when replacing its
         // coat roughness. Add bounded normal-footprint variance for unresolved
         // aggregate/ripples; no frame history, exposure trick or extra sampling.
@@ -234,7 +251,7 @@ export function installWetRoad(
       );
   };
   material.customProgramCacheKey = () =>
-    `${previousKey}|apex-physical-asphalt-v5-conforming-film|water-fresnel-footprint-v1|venue-lamp-footprint-v1|road-macro-v1${reflection ? '|wet-planar-v1' : ''}`;
+    `${previousKey}|apex-physical-asphalt-v6-water-sheet|water-fresnel-footprint-v1|venue-lamp-footprint-v1|road-macro-v1${reflection ? '|wet-planar-v1' : ''}`;
 }
 
 /** At grazing angles, collapsed screen derivatives can make the stock bump

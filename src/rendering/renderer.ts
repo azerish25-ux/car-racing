@@ -36,8 +36,11 @@ import { readRaceReviewFrame } from './race-review.ts';
 import { GhostCar } from './ghost-car.ts';
 import { SafetyCarView } from './studio/safety-car.ts';
 import { LightPools } from './studio/light-pools.ts';
+import { setBrandLedLighting } from './studio/trackside-branding.ts';
+import { REAR_LAMP, REAR_LAMP_PHYSICAL_GAIN } from './rear-signal.ts';
+import { setAerialExtinction } from './studio/aerial-perspective.ts';
 import { MENU_CAR_DATUM, SHOWROOM } from './menu-preview.ts';
-import { focusOnSubject, subjectLens } from './studio/subject-focus.ts';
+import { focusOnSubject, subjectLens, type SubjectLens } from './studio/subject-focus.ts';
 import { reflectInWetRoad } from './wet-reflection.ts';
 import { ghostPose, type GhostPose } from '../core/ghost-lap.ts';
 import { WeatherPresentation } from './weather-presentation.ts';
@@ -81,6 +84,7 @@ import {
   bindSkyCelestial,
   lightingDirection,
   lightingMode,
+  urbanFogColor,
   type LightingMode,
 } from './daylight.ts';
 import { prewarmSky, skySunKey } from './sky-light.ts';
@@ -155,6 +159,21 @@ export const CHASE = Object.freeze({
   lookLift: -0.25,
   fov: 50,
   fovGain: 4,
+});
+/** Chase rig while the followed car stands in its pit box (pit phases 2-5, or
+ * 1 and 6 below `speed` m/s): raised and pulled back over the crew, moved to
+ * the lane side by `yawDeg` so the gaze crosses the car toward the garage (a
+ * three-quarter pit-box view, pitched ~14 degrees down), eased in and out
+ * with a `ease` s time constant of presented time. The normal chase put the
+ * lens 0.8 m behind the rear-jack operator's helmet. */
+export const CHASE_PIT = Object.freeze({
+  height: 2.6,
+  distance: 7.5,
+  yawDeg: 18,
+  lookAhead: 1.5,
+  lookLift: 0.4,
+  speed: 2,
+  ease: 0.45,
 });
 /** T-cam lift above the authored pod socket and its downward gaze slope (P7). */
 export const TCAM_LIFT_M = 0.09;
@@ -237,6 +256,8 @@ export class RacingRenderer {
   private scenePass: SceneAmbientPass;
   private grade = new BroadcastGradePass();
   private photoFocus: DepthOfFieldPass | null = null;
+  /** Trackside broadcast telephoto: a thin-lens pass (studio/subject-focus.ts). */
+  private broadcastFocus: DepthOfFieldPass | null = null;
   private geometrySurvey: GeometrySurvey | null = null;
   private motionBlur: MotionBlur;
   private fxaa = new ShaderPass(FXAAShader);
@@ -303,6 +324,10 @@ export class RacingRenderer {
   private previousAnchor = new T.Vector3();
   private temporary = new T.Vector3();
   private chaseBasis = new T.Quaternion();
+  /** 0..1 blend of the chase rig toward CHASE_PIT (eased in presented time). */
+  private pitView = 0;
+  private readonly pitPoint = trackPoint();
+  private readonly pitSide = new T.Vector3();
   private chaseEuler = new T.Euler();
   private eyeLocal = new T.Vector3();
   private reflectionMaterials: T.MeshStandardMaterial[][] = [];
@@ -1079,7 +1104,9 @@ export class RacingRenderer {
       car.root.position,
       illumination === 'sunset' ? 0.18 : 1,
     );
-    this.lightPools.update(studio ? 'day' : illumination);
+    this.lightPools.update(studio ? 'day' : illumination, this.bloom.energyConserving);
+    REAR_LAMP.gain = this.bloom.energyConserving ? REAR_LAMP_PHYSICAL_GAIN : 1;
+    setBrandLedLighting(studio ? 'day' : illumination);
     applyCircuitLightPalette(this.sun, this.hemisphere, daylight.cover, illumination);
     this.sun.intensity = daylight.sun;
     this.hemisphere.intensity = daylight.fill;
@@ -1099,7 +1126,17 @@ export class RacingRenderer {
     this.renderer.toneMappingExposure = daylight.exposure * 2 ** (this.photo?.exposure ?? 0);
     const fog = this.scene.fog as T.FogExp2;
     fog.density = daylight.fogDensity;
+    // The local atmosphere's extinction: the sky's own air plus rain.
+    const rainRate = presented[H.RAIN];
+    setAerialExtinction(daylight.haze, studio || !Number.isFinite(rainRate) ? 0 : rainRate);
     fog.color.setRGB(daylight.fogRed, daylight.fogGreen, daylight.fogBlue);
+    // Catalogue night cities: urban skyglow on the dome and in the haze.
+    const urban = illumination === 'night' && !studio && !!this.circuit.venueKit?.urban;
+    this.sky.material.uniforms.urbanGlow.value = urban ? 1 : 0;
+    if (urban) {
+      urbanFogColor(fog.color);
+      urbanFogColor(this.nightFog);
+    }
     this.sky.material.uniforms.cloudCover.value = daylight.cover;
     this.sky.material.uniforms.skyRadiance.value = daylight.skyRadiance;
     this.sky.material.uniforms.nightAmount.value = illumination === 'night' ? 1 : 0;
@@ -1218,17 +1255,50 @@ export class RacingRenderer {
         this.chaseBasis.setFromEuler(
           this.chaseEuler.set(-pitch, Math.atan2(this.direction.x, this.direction.z), 0, 'YXZ'),
         );
-        this.desired
-          .set(
-            0,
+        // In the pit box the rig rises over the crew into a three-quarter view.
+        const phase = presented[o + F.PIT_PHASE];
+        const boxed =
+          !bikeFollow &&
+          ((phase >= 2 && phase <= 5) ||
+            ((phase === 1 || phase === 6) && Math.abs(speed) < CHASE_PIT.speed));
+        if (!this.initialized || menu || this.photo || pregame) this.pitView = boxed ? 1 : 0;
+        else if (cameraDt > 0)
+          this.pitView +=
+            ((boxed ? 1 : 0) - this.pitView) * -Math.expm1(-cameraDt / CHASE_PIT.ease);
+        const pit = this.pitView * this.pitView * (3 - 2 * this.pitView);
+        // Garage side in the chase frame (+1: the car's local +X).
+        let garage = 0;
+        if (pit > 0) {
+          const track = this.circuit.track;
+          track.nearest(this.target.x, this.target.z, this.pitPoint);
+          this.pitSide.set(1, 0, 0).applyQuaternion(this.chaseBasis);
+          garage =
+            Math.sign(track.boxLateral()) *
+              Math.sign(this.pitPoint.nx * this.pitSide.x + this.pitPoint.nz * this.pitSide.z) || 1;
+        }
+        const yaw = (pit * CHASE_PIT.yawDeg * Math.PI) / 180,
+          height = T.MathUtils.lerp(
             CHASE.height + speed * CHASE.heightPerMS,
-            -CHASE.distance - speed * CHASE.distancePerMS,
-          )
+            CHASE_PIT.height,
+            pit,
+          ),
+          distance = T.MathUtils.lerp(
+            CHASE.distance + speed * CHASE.distancePerMS,
+            CHASE_PIT.distance,
+            pit,
+          );
+        this.desired
+          .set(-garage * distance * Math.sin(yaw), height, -distance * Math.cos(yaw))
           .applyQuaternion(this.chaseBasis)
           .add(this.target);
         this.direction.set(0, 0, 1).applyQuaternion(this.chaseBasis);
-        this.gaze.copy(this.target).addScaledVector(this.direction, CHASE.lookAhead);
-        this.gaze.y += CHASE.lookLift;
+        this.gaze
+          .copy(this.target)
+          .addScaledVector(
+            this.direction,
+            T.MathUtils.lerp(CHASE.lookAhead, CHASE_PIT.lookAhead, pit),
+          );
+        this.gaze.y += T.MathUtils.lerp(CHASE.lookLift, CHASE_PIT.lookLift, pit);
       }
       if (this.lookX || this.lookY) {
         this.direction
@@ -1294,7 +1364,7 @@ export class RacingRenderer {
     this.circuit.signalHardware?.update(this.camera, this.quality);
     this.circuit.trackBoards?.update(this.camera, this.quality);
     this.circuit.broadcastCameras?.update(this.camera, this.quality);
-    this.circuit.venueKit?.update(this.camera, this.night);
+    this.circuit.venueKit?.update(this.camera, this.night, this.bloom.energyConserving);
     this.circuit.vegetation?.update(this.camera, this.quality);
     this.circuit.quarry?.update(this.camera, this.quality);
     this.circuit.heroGarage?.update(this.camera, this.quality, illumination);
@@ -1497,11 +1567,22 @@ export class RacingRenderer {
       );
       this.motionBlur.prepareFrame(presented, this.camera, this.follow, cameraMode, replay);
       // D29/D30: depth of field on the subject car (showroom, broadcast telephoto).
-      const lens =
+      const lens: SubjectLens | null =
         pregame && this.gridShot.maxblur > 0
           ? this.gridShot
           : subjectLens(menu, !!this.photo, cameraMode, this.camera.fov);
-      if (lens) {
+      if (lens?.thinLens) {
+        this.broadcastFocus ??= new DepthOfFieldPass(
+          this.camera,
+          { focus: 10, aperture: 0, maxblur: lens.maxblur },
+          this.scenePass.target.depthTexture!,
+          { thinLens: true },
+        );
+        if (!this.composer.passes.includes(this.broadcastFocus))
+          this.composer.insertPass(this.broadcastFocus, 1);
+        focusOnSubject(this.broadcastFocus, this.camera, this.target, lens, this.temporary);
+        if (this.photoFocus && !this.photo?.depthOfField) this.photoFocus.enabled = false;
+      } else if (lens) {
         this.photoFocus ??= new DepthOfFieldPass(
           this.camera,
           { focus: 10, ...lens },
@@ -1517,6 +1598,7 @@ export class RacingRenderer {
           this.temporary,
         );
       } else if (this.photoFocus && !this.photo?.depthOfField) this.photoFocus.enabled = false;
+      if (this.broadcastFocus && !lens?.thinLens) this.broadcastFocus.enabled = false;
       if (this.photoFocus?.enabled && this.photo) {
         // Optical-axis depth, rather than Euclidean distance, matches the depth shader.
         this.camera.updateMatrixWorld();
@@ -1561,7 +1643,7 @@ export class RacingRenderer {
         menu,
         photo: !!this.photo,
         replay,
-        otherDof: !!this.photoFocus?.enabled,
+        otherDof: !!this.photoFocus?.enabled || !!this.broadcastFocus?.enabled,
         cut: this.cameraClock.discontinuous,
       });
       this.drawLedger.mark('composer');
@@ -1936,6 +2018,12 @@ export class RacingRenderer {
         // lens outside photo mode (D29 showroom, D30 broadcast telephoto).
         source: !this.photoFocus?.enabled ? 'off' : this.photo?.depthOfField ? 'photo' : 'subject',
       },
+      // Trackside broadcast telephoto: thin lens on a 2/3-inch gate.
+      broadcastFocus: {
+        enabled: this.broadcastFocus?.enabled ?? false,
+        focus: this.broadcastFocus?.materialBokeh.uniforms.focus.value ?? null,
+        backgroundBlur: this.broadcastFocus?.materialBokeh.uniforms.lensK?.value ?? null,
+      },
       night: this.night,
       guide: this.guide.diagnostics(),
       gridPreparation: this.gridPreparation.diagnostics(),
@@ -2082,6 +2170,7 @@ export class RacingRenderer {
     this.exposure.dispose();
     this.weatherPresentation.dispose();
     this.photoFocus?.dispose();
+    this.broadcastFocus?.dispose();
     this.geometrySurvey?.dispose();
     this.bloom.dispose();
     this.fxaa.dispose();

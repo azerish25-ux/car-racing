@@ -30,7 +30,8 @@ import {
 } from '../simulation/protocol.ts';
 import { WHEEL_POSITIONS } from '../simulation/vehicle.ts';
 import { PEOPLE_ASSET, CREW_BONES, CREW_REST, peopleGeometry } from './people-asset.ts';
-import { crewTeamColour, installCrewHelmetFinish } from './crew-geometry.ts';
+import { crewRoleColour, installCrewHelmetFinish } from './crew-geometry.ts';
+import { installNearFade } from './crew-suit.ts';
 import { CrewPose, CREW_THIGH, CREW_SHIN, installCrewSkin } from './crew-pose.ts';
 
 /** Removal requires an unloaded hub. These offsets are also consumed by the
@@ -194,6 +195,9 @@ export class PitCrewView {
       return batch;
     };
     this.cloth = [makeCloth('crew_high', 0), makeCloth('crew_mid', 1)];
+    // A lens inside the crew dissolves the nearest fabric instead of filling
+    // the frame with a helmet (screen-door fade under 1.2 m of view depth).
+    for (const batch of this.cloth) installNearFade(batch.material as T.Material);
     this.heads = this.batch(crewPerformanceGeometry('helmet'), ACTORS, 0.35, 0.08);
     installCrewHelmetFinish(this.heads.material as T.MeshStandardMaterial);
     // D23: helmets in the team colour, allocated now so the instancing-colour
@@ -206,6 +210,7 @@ export class PitCrewView {
       this.batch(crewPerformanceGeometry('glove', true), ACTORS, 0.85),
       this.batch(crewPerformanceGeometry('glove'), ACTORS, 0.85),
     ];
+    for (const batch of [this.heads, ...this.gloves]) installNearFade(batch.material as T.Material);
     this.guns = this.batch(peopleGeometry('wheel_gun'), MAX_PIT_CREWS * 4, 0.37, 0.55);
     this.jacks = this.batch(peopleGeometry('jack_base'), MAX_PIT_CREWS * 2, 0.4, 0.65);
     this.handles = this.batch(
@@ -426,8 +431,8 @@ export class PitCrewView {
     this.slots[detail].setX(cloth.count, this.actorSlot++);
     cloth.setColorAt(
       cloth.count,
-      // D23: every crew member wears the team's kit.
-      crewTeamColour(car),
+      // D23: every crew member wears the team's kit, role-coded.
+      crewRoleColour(car, role, this.activeActors),
     );
     this.put(cloth, this.actor.matrix);
     this.actorWorld.multiplyMatrices(this.car.matrix, this.actor.matrix);
@@ -437,7 +442,7 @@ export class PitCrewView {
     this.prop.updateMatrix();
     this.prop.matrix.premultiply(this.actor.matrix);
     this.put(this.heads, this.prop.matrix);
-    this.heads.setColorAt(this.heads.count - 1, crewTeamColour(car));
+    this.heads.setColorAt(this.heads.count - 1, crewRoleColour(car, role, this.activeActors, true));
     let wristError = 0,
       gripError = 0;
     for (let i = 0; i < 2; i++) {
