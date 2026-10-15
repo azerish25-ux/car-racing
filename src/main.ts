@@ -550,6 +550,9 @@ export class GameApp {
           },
           toast: (message) => this.ui.toast(message),
           exit: () => this.exitFestival(),
+          // Driving input off while a festival menu is open (keyboard focus
+          // reaches its buttons), as in the circuit pause.
+          driving: (on) => this.input.setEnabled(on),
           audio: {
             start: () => this.audio.start(),
             stop: () => this.audio.stop(),

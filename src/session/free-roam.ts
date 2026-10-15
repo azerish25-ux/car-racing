@@ -16,6 +16,7 @@ import { FestivalRenderer } from '../rendering/open-world/festival-renderer.ts';
 import type { GraphicsOptions, QualityPreset } from '../rendering/options.ts';
 import type { AudioView } from '../audio/spatial.ts';
 import { FestivalHud } from '../ui/festival-hud.ts';
+import { FestivalControls } from './festival-controls.ts';
 import type { FromOpenWorld, ToOpenWorld } from '../workers/open-world-protocol.ts';
 import OpenWorldWorker from '../workers/open-world.worker.ts?worker&inline';
 import TileWorker from '../workers/open-world-tiles.worker.ts?worker&inline';
@@ -35,6 +36,9 @@ export interface FestivalHost {
   toast(message: string): void;
   /** Leave the festival (the host restores its own presentation). */
   exit(): void;
+  /** Driving input on or off: off while a festival menu is open, so the
+   * keyboard reaches its buttons (the host's InputController). */
+  driving?(on: boolean): void;
   /** Driving audio from the festival's frames (engine voices, contacts, wind). */
   audio?: {
     start(): Promise<void>;
@@ -89,7 +93,7 @@ export class FestivalSession {
   private receivedAt = 0;
   private lastTime = 0;
   private status: FestivalStatus | null = null;
-  private paused = false;
+  private controls: FestivalControls | null = null;
   /** Fast travel in progress: the simulation is held and frames are not
    * drawn while the destination streams in behind the loading screen. */
   private travelling = false;
@@ -98,18 +102,6 @@ export class FestivalSession {
   private readyResolve: (() => void) | null = null;
   private readyReject: ((e: Error) => void) | null = null;
   private save: FestivalSave;
-  private readonly keydown = (e: KeyboardEvent) => {
-    if (e.code !== 'Enter' && e.code !== 'NumpadEnter') return;
-    const hud = this.hud;
-    if (!hud || hud.menuOpen) return;
-    if (hud.cardOpen && this.status?.card) {
-      e.preventDefault();
-      this.command({ type: 'start', event: this.status.card.id });
-    } else if (hud.resultsOpen) {
-      e.preventDefault();
-      this.command({ type: 'continue' });
-    }
-  };
   private constructor(
     private readonly host: FestivalHost,
     save: FestivalSave | null,
@@ -119,7 +111,6 @@ export class FestivalSession {
     this.tiles = new TileWorker();
     this.worker.onmessage = (event: MessageEvent<FromOpenWorld>) => this.receive(event.data);
     this.worker.onerror = (event) => this.fail(new Error(event.message || 'Festival worker failed'));
-    window.addEventListener('keydown', this.keydown);
   }
   static async start(host: FestivalHost, options: FestivalStartOptions = {}) {
     host.loading('Building the Solvane festival region…');
@@ -180,6 +171,24 @@ export class FestivalSession {
         this.command({ type: 'autopilot', value: on });
         this.setPaused(false);
       },
+    });
+    const hud = this.hud;
+    this.controls = new FestivalControls(hud, {
+      pause: (value) => this.post({ type: 'pause', value }),
+      driving: (on) => host.driving?.(on),
+      menuState: () => {
+        const status = this.status;
+        return {
+          lighting: this.renderer?.lighting ?? 'day',
+          vehicle: status?.vehicleId ?? this.save.vehicle,
+          discovered: status?.discovered ?? this.save.discovered,
+          autopilot: status?.autopilot ?? false,
+          inEvent: !!status?.event,
+        };
+      },
+      card: () => (hud.cardOpen ? (this.status?.card?.id ?? null) : null),
+      start: (id) => this.command({ type: 'start', event: id }),
+      continue: () => this.command({ type: 'continue' }),
     });
     host.loading('Starting the festival simulation…');
     const ready = new Promise<void>((resolve, reject) => {
@@ -327,27 +336,17 @@ export class FestivalSession {
     }
   }
   input(input: Controls) {
-    if (!this.paused) this.post({ type: 'input', input: { ...input } });
+    if (!this.isPaused) this.post({ type: 'input', input: { ...input } });
   }
   private openMenu() {
-    const status = this.status;
-    this.hud?.showMenu(true, {
-      lighting: this.renderer?.lighting ?? 'day',
-      vehicle: status?.vehicleId ?? this.save.vehicle,
-      discovered: status?.discovered ?? this.save.discovered,
-      autopilot: status?.autopilot ?? false,
-      inEvent: !!status?.event,
-    });
+    this.controls?.openMenu();
   }
+  /** Pause (menu open, driving input off) or resume (FestivalControls). */
   setPaused(value: boolean) {
-    this.paused = value;
-    this.post({ type: 'pause', value });
-    if (value) this.openMenu();
-    else this.hud?.showMenu(false);
-    if (!value && this.hud?.mapOpen) this.hud.showMap(false);
+    this.controls?.setPaused(value);
   }
   get isPaused() {
-    return this.paused;
+    return this.controls?.paused ?? false;
   }
   /** Application actions while the festival drives; true when consumed. */
   action(name: string) {
@@ -355,8 +354,7 @@ export class FestivalSession {
     if (this.travelling) return name !== 'mute';
     switch (name) {
       case 'pause':
-        if (this.hud?.mapOpen) this.hud.showMap(false);
-        else this.setPaused(!this.paused);
+        this.controls?.togglePause();
         return true;
       case 'camera':
         this.renderer?.changeCamera();
@@ -380,7 +378,7 @@ export class FestivalSession {
         return true;
       case 'blur':
       case 'deviceLost':
-        if (!this.paused) this.setPaused(true);
+        if (!this.isPaused) this.setPaused(true);
         return true;
       default:
         return name !== 'mute';
@@ -419,7 +417,7 @@ export class FestivalSession {
     this.host.audio?.update(
       presented,
       renderer.mode === 'hood',
-      !this.paused && !document.hidden,
+      !this.isPaused && !document.hidden,
       renderer.audioView.value,
       false,
     );
@@ -430,7 +428,7 @@ export class FestivalSession {
   dispose() {
     if (this.disposed) return;
     this.disposed = true;
-    window.removeEventListener('keydown', this.keydown);
+    this.controls?.dispose();
     this.host.audio?.stop();
     this.worker.terminate();
     this.tiles.terminate();
