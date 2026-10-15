@@ -21,7 +21,7 @@ export const BIKE_REAR_WHEEL = 2;
 const RIGHT = -1;
 /** Rear wheel out of the swingarm slots (m, backwards); front out of the fork (m, down). */
 export const BIKE_REAR_OUT = 0.3;
-export const BIKE_FRONT_DROP = 0.075;
+export const BIKE_FRONT_DROP = 0.07;
 /** Paddock stand lever: handle length (m), raised / pushed-down angles (rad). */
 const HANDLE = 0.95,
   HANDLE_UP = 0.62,

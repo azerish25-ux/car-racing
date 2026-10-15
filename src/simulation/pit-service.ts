@@ -55,7 +55,7 @@ export const BIKE_PIT_SERVICE: PitServicePlan = Object.freeze({
   ends: Object.freeze([1.2, 3.8, 6.6, 8] as const),
   crew: 9,
   lift: 'stands',
-  liftHeight: 0.045,
+  liftHeight: 0.08,
   labels: Object.freeze([
     '',
     'PIT ENTRY · APPROACHING BOX',

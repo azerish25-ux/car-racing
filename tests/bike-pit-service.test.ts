@@ -28,6 +28,7 @@ import { Vehicle } from '../src/simulation/vehicle.ts';
 import { vehicleDefinition, vehicleIndex } from '../src/simulation/vehicles.ts';
 import { Simulation } from '../src/simulation/world.ts';
 import {
+  BIKE_FRONT_DROP,
   BIKE_FRONT_WHEEL,
   BIKE_REAR_WHEEL,
   BikeServicePose,
@@ -212,7 +213,9 @@ describe('motorcycle pit service: crew presentation', () => {
       pose.set(geometry, 3, 3.7, bikeStandLift(3, 3.7));
       expect(pose.out).toBeGreaterThan(0.99);
       expect(pose.mounted[1].z).toBeCloseTo(pose.hubs[1].z - 0.3, 6);
-      expect(pose.mounted[0].y).toBeLessThan(pose.hubs[0].y - 0.07);
+      expect(pose.mounted[0].y).toBeCloseTo(pose.hubs[0].y - BIKE_FRONT_DROP, 6);
+      // The dropped front tyre rests on (not through) the floor.
+      expect(pose.mounted[0].y - geometry.frontRadius).toBeGreaterThanOrEqual(pose.floor);
       expect(pose.hubs[1].y).toBeCloseTo(geometry.rearRadius - geometry.height + pose.lift, 9);
       // The stand handle is pushed down at full lift, raised at none.
       const lowered = pose.rearStand.grip.y;
@@ -276,6 +279,44 @@ describe('motorcycle pit service: crew presentation', () => {
       6,
     );
     vi.unstubAllGlobals();
+  });
+});
+
+describe('motorcycle pit service: every machine, the whole service', () => {
+  it('keeps every bike crew reachable and planted and every wheel above the floor', () => {
+    const bad: string[] = [];
+    for (const vehicle of ['gpr1', 'sbk1000', 'cr750', 'mx450', 'sm450']) {
+      const def = vehicleDefinition(vehicle),
+        pose = new BikeServicePose(),
+        crew = new PitCrewView();
+      try {
+        for (let clock = 0; clock < BIKE_PIT_SERVICE.ends[3]; clock += 0.1) {
+          const phase = servicePhaseAt(BIKE_PIT_SERVICE, clock),
+            lift = bikeStandLift(phase, clock),
+            g = bikeServiceGeometry(def);
+          pose.set(g, phase, clock, lift);
+          if (
+            pose.mounted[0].y - g.frontRadius < pose.floor - 1e-9 ||
+            pose.mounted[1].y - g.rearRadius < pose.floor - 1e-9
+          )
+            bad.push(`${vehicle} ${clock.toFixed(1)} s: a wheel below the floor`);
+          const frame = bikeFrame(phase, clock, lift, vehicle);
+          frame[carBase(0) + F.Y] = g.height;
+          crew.update(frame, new T.Vector3(3, 1.5, 0));
+          for (const r of crew.diagnostics().roles)
+            if (
+              !r.reachable.every(Boolean) ||
+              !r.feetReachable.every(Boolean) ||
+              r.wristError > 1e-5 ||
+              !r.planted.some(Boolean)
+            )
+              bad.push(`${vehicle} ${clock.toFixed(1)} s: ${r.role} wheel ${r.wheel}`);
+        }
+      } finally {
+        crew.dispose();
+      }
+    }
+    expect(bad).toEqual([]);
   });
 });
 
