@@ -494,8 +494,9 @@ export class CareerController {
     if (!this.host.festival) return this.fail(new Error('The festival is not available here.'));
     this.host.festival({ vehicle: machine.vehicle.id, travel, loaner: machine.loaner });
   }
-  /** main.ts: a festival session started; `loaner` is the machine the career
-   * lent for it (null when started outside the career or in an owned one). */
+  /** main.ts: a festival session started; `career` when it was entered from
+   * CAREER, `loaner` the machine the career lent for it (null when started
+   * outside the career or in an owned one). */
   beginFestival(context: FestivalContext) {
     this.festivalContext = context;
   }
@@ -539,6 +540,9 @@ export class CareerController {
     if (!settled) return null;
     const { payout, result } = settled;
     if (result) this.festivalDiscovered.add(result.eventId);
+    // Not a career run (entered outside the career, in a machine the career
+    // does not own): nothing was written and nothing is said.
+    if (settled.ignored) return payout;
     if (result && payout.paid)
       this.host.toast(
         `Career · ${result.eventName}: ${credits(payout.total)}${payout.reputation ? ` · festival reputation +${payout.reputation}` : ''}${this.saving ? '' : ' (this session only)'}`,

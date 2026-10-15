@@ -20,7 +20,7 @@ import type { AudioView } from '../audio/spatial.ts';
 import { FestivalHud } from '../ui/festival-hud.ts';
 import { minimapHeading } from '../ui/festival-map.ts';
 import { FestivalControls } from './festival-controls.ts';
-import { FESTIVAL_SAVE_KEY, validateFestivalSave, type FestivalSave } from './festival-save.ts';
+import { FESTIVAL_SAVE_KEY, festivalMachineChoice, validateFestivalSave, type FestivalSave } from './festival-save.ts';
 import type { FromOpenWorld, ToOpenWorld } from '../workers/open-world-protocol.ts';
 import OpenWorldWorker from '../workers/open-world.worker.ts?worker&inline';
 import TileWorker from '../workers/open-world-tiles.worker.ts?worker&inline';
@@ -65,6 +65,9 @@ export interface FestivalStartOptions {
   /** Fast-travel to this discovered event once the region has streamed in
    * (a career start). */
   travel?: string;
+  /** The machine is the career's loan: driven this session, but not saved
+   * as the festival's machine (it was not the player's choice). */
+  loaner?: boolean;
 }
 export { FESTIVAL_SAVE_KEY, validateFestivalSave, type FestivalSave };
 
@@ -143,12 +146,9 @@ export class FestivalSession {
     this.riders = new FestivalRiders();
     renderer.scene.add(this.traffic.root, this.riders.root);
     const vehicles = festivalVehicles();
-    // A road machine chosen in the MACHINE menu (a car or a road motorcycle)
-    // wins over the festival save; the Formula default falls back to the
-    // saved festival machine.
-    const chosen = vehicles.find((v) => v.id === options.vehicle && v.classId !== 'formula');
-    const vehicle = chosen?.id ?? (vehicles.some((v) => v.id === this.save.vehicle) ? this.save.vehicle : festivalDefaultVehicle());
-    this.save.vehicle = vehicle;
+    const machine = festivalMachineChoice(options, this.save.vehicle);
+    const vehicle = machine.drive;
+    this.save.vehicle = machine.save;
     this.hud = new FestivalHud(host.element, world, events, vehicles, {
       start: (id) => this.command({ type: 'start', event: id }),
       continue: () => this.command({ type: 'continue' }),

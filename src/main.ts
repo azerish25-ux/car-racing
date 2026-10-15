@@ -550,7 +550,10 @@ export class GameApp {
     // Each festival session has its own identity: results carry run ids
     // under it, and the career pays each run once.
     const session = crypto.randomUUID();
-    this.career.beginFestival({ loaner: career?.loaner ? (options.vehicles?.[0] ?? null) : null });
+    this.career.beginFestival({
+      career: !!career,
+      loaner: career?.loaner ? (options.vehicles?.[0] ?? null) : null,
+    });
     try {
       const { FestivalSession, FESTIVAL_SAVE_KEY } = await import('./session/free-roam.ts');
       this.ui.showMode('loading');
@@ -591,6 +594,8 @@ export class GameApp {
           seed: options.seed,
           session,
           travel: career?.travel ?? undefined,
+          // The career's loan is not the player's choice of festival machine.
+          loaner: career?.loaner ?? false,
         },
       );
       this.input.setEnabled(true);

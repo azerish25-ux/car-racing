@@ -4,17 +4,27 @@ import { buyVehicle } from '../src/career/economy.ts';
 import {
   FESTIVAL_LOANER_STAKES,
   FESTIVAL_RULES,
+  eventReputation,
   festivalEvents,
   festivalKey,
+  festivalLoaner,
+  festivalMachine,
   festivalRunKey,
   settleFestival,
   validateFestivalResult,
 } from '../src/career/festival.ts';
-import { disciplineEvents, purchaseReasons } from '../src/career/ladder.ts';
-import { disciplineStatus, liveRegistry, venueKind } from '../src/career/registry.ts';
+import { disciplineEvents, purchaseReasons, recoveryEvent } from '../src/career/ladder.ts';
+import {
+  disciplineStatus,
+  liveRegistry,
+  vehicleDiscipline,
+  venueKind,
+  type CareerRegistry,
+} from '../src/career/registry.ts';
 import { CAREER_KEY, newCareer, validateCareer, type CareerSave } from '../src/career/save.ts';
-import { FESTIVAL_SAVE_KEY } from '../src/session/festival-save.ts';
+import { FESTIVAL_SAVE_KEY, festivalMachineChoice } from '../src/session/festival-save.ts';
 import { controls } from '../src/simulation/config.ts';
+import { festivalDefaultVehicle } from '../src/simulation/open-world/festival-machines.ts';
 import type { FestivalResult } from '../src/simulation/open-world/festival-result.ts';
 import { RouteDriver } from '../src/simulation/open-world/route-driver.ts';
 import { OpenWorldSimulation } from '../src/simulation/open-world/session.ts';
@@ -135,13 +145,22 @@ describe('festival results into the career economy', () => {
     ];
     cases.forEach(([change, reason], i) => {
       const run = { ...result, ...change, runId: `refused:${i}` };
-      const settled = settleFestival(save, live, run);
+      // Entered from CAREER (so even the machine it does not own is its run).
+      const settled = settleFestival(save, live, run, { loaner: null, career: true });
       expect(settled.payout.paid).toBe(false);
       expect(settled.payout.reason).toContain(reason);
       expect(settled.save.credits).toBe(save.credits);
       // Settled: buying the machine later does not make this run payable.
       expect(settled.save.paidSessions).toContain(festivalRunKey(run.runId));
     });
+    // Outside the career in a machine the career does not own: not a career
+    // run at all, so nothing is settled, written or said.
+    const outside = settleFestival(save, live, { ...result, vehicleId: 'sc7', runId: 'outside:1' });
+    expect(outside.ignored).toBe(true);
+    expect(outside.save).toBe(save);
+    expect(outside.payout.paid).toBe(false);
+    // ...but a run in an owned machine is the career's wherever it started.
+    expect(settleFestival(save, live, { ...result, runId: 'outside:2' }).payout.paid).toBe(true);
     const race = { ...result, eventId: 'coast-to-summit', eventKind: 'road-race' as const, position: 1, entrants: 6, runId: 'refused:race' };
     const locked = settleFestival(save, live, race);
     expect(locked.payout.paid).toBe(false);
@@ -156,6 +175,80 @@ describe('festival results into the career economy', () => {
     expect(loaned.payout.paid).toBe(true);
     expect(loaned.payout.total).toBeLessThan(owned.payout.total);
     expect(loaned.payout.reputation).toBeLessThanOrEqual(1);
+  });
+  it('keeps loaned runs apart: a later run in your own machine still earns the stars, first completion and reputation', () => {
+    const key = festivalKey(region.id, 'coast-trap'),
+      three = { ...result, stars: 3 };
+    // Never loaned: the full-rate reference.
+    const direct = settleFestival(owning('rs5'), live, { ...three, runId: 'direct:1' });
+    expect(direct.payout.reputation).toBe(eventReputation(3, true));
+    // A new career in the loaned machine first, then buys one and runs again.
+    const loan = settleFestival(newCareer(), live, { ...three, vehicleId: 'eh3', runId: 'loan:1' }, { loaner: 'eh3', career: true });
+    expect(loan.payout.paid).toBe(true);
+    expect(loan.payout.reputation).toBe(1);
+    expect(loan.save.festival[key]).toMatchObject({ stars: 0, runs: 0, reputation: 1, loaner: { stars: 3, runs: 1 } });
+    // Another loaned run of the same event: no new star, no second first
+    // completion, no reputation.
+    const again = settleFestival(loan.save, live, { ...three, vehicleId: 'eh3', runId: 'loan:2' }, { loaner: 'eh3', career: true });
+    expect(again.payout.reputation).toBe(0);
+    expect(again.payout.lines.map((l) => l.label).join(' ')).not.toContain('First completion');
+    expect(again.payout.lines.find((l) => l.label.includes('no star above'))!.amount).toBe(0);
+    const bought = buyVehicle({ ...again.save, credits: 1e6 }, live, 'rs5');
+    const own = settleFestival(bought, live, { ...three, runId: 'own:1' });
+    expect(own.payout.paid).toBe(true);
+    // The star money and the first completion are paid at the full rate, as
+    // on the career that never borrowed...
+    const labels = (p: typeof own.payout) => p.lines.map((l) => [l.label, l.amount]);
+    expect(labels(own.payout)).toEqual(labels(direct.payout));
+    expect(own.payout.total).toBe(direct.payout.total);
+    expect(own.payout.lines.find((l) => l.label.startsWith('New stars'))!.amount).toBeGreaterThan(0);
+    // ...and the event's reputation in all is what it gives, never more.
+    expect(own.payout.reputation).toBe(eventReputation(3, true) - 1);
+    expect(own.save.reputation.festival).toBe(direct.save.reputation.festival);
+    expect(own.save.festival[key]).toMatchObject({ stars: 3, runs: 1, reputation: eventReputation(3, true), loaner: { stars: 3, runs: 2 } });
+    // Afterwards neither kind of run pays reputation for the same stars.
+    expect(settleFestival(own.save, live, { ...three, runId: 'own:2' }).payout.reputation).toBe(0);
+    // The records survive validation as written.
+    expect(validateCareer(own.save).festival[key]).toEqual(own.save.festival[key]);
+  });
+  it('lends a car for the festival, not the cheapest machine (the road motorcycle)', () => {
+    const loaner = festivalLoaner(live)!;
+    expect(loaner.id).toBe(festivalDefaultVehicle());
+    expect(loaner.dynamicsKind).toBe('four-wheel');
+    expect(festivalMachine(live, newCareer())).toMatchObject({ vehicle: { id: loaner.id }, loaner: true });
+    for (const e of festivalEvents(live, newCareer(), new Set())) expect(e.vehicle).toBe(loaner.id);
+    // Without the festival's default machine: the cheapest car of the tier;
+    // with only a motorcycle: the motorcycle.
+    const without = { ...live, vehicles: live.vehicles.filter((v) => v.id !== loaner.id) };
+    const car = festivalLoaner(without)!;
+    expect(car.dynamicsKind).toBe('four-wheel');
+    expect(car.id).not.toBe(loaner.id);
+    const bikesOnly = { ...live, vehicles: live.vehicles.filter((v) => vehicleDiscipline(v) !== 'festival' || v.id === 'nr900') };
+    expect(festivalLoaner(bikesOnly)?.id).toBe('nr900');
+  });
+  it('drives the career loan without saving it as the festival machine', () => {
+    // A career start on the loan: driven, but the festival save keeps the
+    // player's own machine.
+    expect(festivalMachineChoice({ vehicle: 'eh3', loaner: true }, 'rs5')).toEqual({ drive: 'eh3', save: 'rs5' });
+    // A machine of the player's own choice is saved.
+    expect(festivalMachineChoice({ vehicle: 'nr900' }, 'rs5')).toEqual({ drive: 'nr900', save: 'nr900' });
+    // No choice (the Formula default): the saved machine, or the default.
+    expect(festivalMachineChoice({ vehicle: 'apx01' }, 'rs5')).toEqual({ drive: 'rs5', save: 'rs5' });
+    expect(festivalMachineChoice({ loaner: true, vehicle: 'eh3' }, 'gone')).toEqual({ drive: 'eh3', save: festivalDefaultVehicle() });
+  });
+  it('lists festival events as coming, with the reason, when no festival region is a venue', () => {
+    const noVenue: CareerRegistry = { ...live, venues: live.venues.filter((v) => venueKind(v) !== 'festival') };
+    expect(disciplineStatus(noVenue, 'festival').state).toBe('coming');
+    const events = festivalEvents(noVenue, newCareer(), new Set(region.events.map((e) => e.id)));
+    expect(events).toHaveLength(region.events.length);
+    for (const e of events) {
+      expect(e.status).toBe('coming');
+      expect(e.reasons.length).toBeGreaterThan(0);
+      expect(e.reasons).toEqual(disciplineStatus(noVenue, 'festival').reasons);
+    }
+    // The festival has no circuit recovery event to offer instead.
+    expect(recoveryEvent(noVenue, newCareer(), 'festival')).toBeNull();
+    expect(disciplineEvents(noVenue, newCareer(), 'festival')).toEqual([]);
   });
   it('consumes festival-result events through the controller, once per run, and lists discoveries', async () => {
     const data = new Map<string, unknown>();
@@ -207,6 +300,55 @@ describe('festival results into the career economy', () => {
     expect(started).toHaveLength(2);
     expect(toasts.at(-1)).toContain('Discover it first');
   });
+  it('leaves festival runs outside the career alone: no career written, no career toast', async () => {
+    const data = new Map<string, unknown>();
+    const toasts: string[] = [];
+    const host = {
+      store: {
+        read: async (k: string) => structuredClone(data.get(k)),
+        write: async (k: string, v: unknown) => void data.set(k, structuredClone(v)),
+        writeWithBackup: async (k: string, v: unknown) => void data.set(k, structuredClone(v)),
+      },
+      toast: (m: string) => toasts.push(m),
+      modal: () => undefined,
+      modalRoot: () => ({ querySelector: () => null }) as unknown as HTMLElement,
+      state: () => 'menu',
+      pause: () => undefined,
+    } as unknown as CareerHost;
+    const career = new CareerController(host, live);
+    await career.load({});
+    const before = toasts.length;
+    expect(data.has(CAREER_KEY)).toBe(false);
+    // FESTIVAL from SESSION select in the festival's default machine, which
+    // a new career does not own: every kind of result is ignored.
+    career.beginFestival({ loaner: null, career: false });
+    for (const [i, change] of [{}, { assisted: true }, { completed: false }].entries()) {
+      const payout = await career.festivalResult({ ...result, ...change, vehicleId: festivalDefaultVehicle(), runId: `outside:${i}` });
+      expect(payout?.paid).toBe(false);
+    }
+    expect(data.has(CAREER_KEY)).toBe(false);
+    expect(toasts.length).toBe(before);
+    career.endFestival();
+    // Entered from CAREER on the loan: the run is the career's, so the
+    // reason it was not paid is shown and the run is settled.
+    career.beginFestival({ loaner: festivalDefaultVehicle(), career: true });
+    await career.festivalResult({ ...result, vehicleId: festivalDefaultVehicle(), runId: 'career:1', assisted: true });
+    expect(toasts.at(-1)).toContain('autopilot');
+    expect((data.get(CAREER_KEY) as CareerSave).paidSessions).toContain(festivalRunKey('career:1'));
+  });
+  it('gives star results a text alternative in the hub and plain words in the ledger', () => {
+    const paid = settleFestival(owning('rs5'), live, { ...result, stars: 2, runId: 'stars:1' });
+    const label = paid.save.ledger.at(-1)!.label;
+    expect(label).toContain('2 of 3 stars');
+    expect(label).not.toMatch(/[★☆]/);
+    for (const line of paid.payout.lines) expect(line.label).not.toMatch(/[★☆]/);
+    const html = careerHub(paid.save, live, {
+      page: 'events',
+      discipline: 'festival',
+      festival: { discovered: ['coast-trap'] },
+    });
+    expect(html).toContain('role="img" aria-label="2 of 3 stars">★★☆</span>');
+  });
   it('migrates a version 1 career save to version 2 with empty festival records', () => {
     const v1 = { ...newCareer(), version: 1 } as Record<string, unknown>;
     delete v1.festival;
@@ -218,7 +360,21 @@ describe('festival results into the career economy', () => {
       festival: { 'festival.x.y': { stars: 9, bestTime: -3, bestValue: 'x', runs: 2 }, other: { stars: 1 } },
     });
     expect(hostile.festival).toEqual({
-      'festival.x.y': { stars: 3, bestTime: null, bestValue: null, bestPosition: null, runs: 2 },
+      // Written before the reputation count: its stars and completion paid.
+      'festival.x.y': { stars: 3, bestTime: null, bestValue: null, bestPosition: null, runs: 2, reputation: 7 },
+    });
+    const lent = validateCareer({
+      ...newCareer(),
+      festival: { 'festival.x.y': { stars: 0, runs: 0, reputation: 99, loaner: { stars: 2, bestTime: 30, runs: -4 } } },
+    });
+    expect(lent.festival['festival.x.y']).toEqual({
+      stars: 0,
+      bestTime: null,
+      bestValue: null,
+      bestPosition: null,
+      runs: 0,
+      reputation: 7,
+      loaner: { stars: 2, bestTime: 30, bestValue: null, bestPosition: null, runs: 0 },
     });
     // Rendering the hub never needs the festival session itself.
     expect(careerHub(newCareer(), live, { page: 'events', discipline: 'festival' })).toContain('ENTER THE FESTIVAL');

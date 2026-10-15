@@ -5,18 +5,27 @@ import {
   type FestivalResult,
 } from '../simulation/open-world/festival-result.ts';
 import type { FestivalEventKind } from '../simulation/open-world/region-data.ts';
+import { festivalDefaultVehicle } from '../simulation/open-world/festival-machines.ts';
 import { book, markPaid, type Payout, type PayoutLine } from './economy.ts';
-import { disciplineTiers, loanerVehicle, tierEntry, tierOf, type ProgressView } from './ladder.ts';
+import {
+  disciplineTiers,
+  tierEntry,
+  tierOf,
+  tierVehicles,
+  vehiclePrice,
+  type ProgressView,
+} from './ladder.ts';
 import {
   DISCIPLINES,
   disciplineStatus,
+  machineCanRace,
   vehicleDiscipline,
   type CareerFestivalEvent,
   type CareerFestivalRegion,
   type CareerRegistry,
   type CareerVehicle,
 } from './registry.ts';
-import type { CareerSave, FestivalRecord } from './save.ts';
+import type { CareerSave, FestivalBest, FestivalRecord } from './save.ts';
 
 /** The festival discipline of the career (GAME_DESIGN §3–§4): the open-world
  * region is the venue, its authored events are the ladder, and the typed
@@ -84,8 +93,26 @@ export function festivalMachine(registry: CareerRegistry, view: ProgressView) {
   );
   const active = owned.find((v) => v.id === view.active.festival) ?? owned[0] ?? null;
   if (active) return { vehicle: active, loaner: false, stakes: stakesFor(registry, active) };
-  const loaner = loanerVehicle(registry, 'festival');
+  const loaner = festivalLoaner(registry);
   return { vehicle: loaner, loaner: true, stakes: FESTIVAL_LOANER_STAKES };
+}
+/** The machine the career lends for the festival, chosen deliberately rather
+ * than by price alone (the cheapest festival machine is a road motorcycle):
+ * in the lowest festival tier that has a machine, the festival's own default
+ * machine (what the festival opens with outside the career), else that
+ * tier's cheapest car, else its cheapest machine. */
+export function festivalLoaner(registry: CareerRegistry): CareerVehicle | null {
+  const byPrice = (a: CareerVehicle, b: CareerVehicle) =>
+    vehiclePrice(registry, a) - vehiclePrice(registry, b) || a.id.localeCompare(b.id);
+  for (const t of disciplineTiers(registry, 'festival')) {
+    const machines = tierVehicles(registry, t).filter((v) => machineCanRace(registry, v));
+    if (!machines.length) continue;
+    const preferred = machines.find((v) => v.id === festivalDefaultVehicle());
+    if (preferred) return preferred;
+    const cars = machines.filter((v) => v.dynamicsKind === 'four-wheel');
+    return [...(cars.length ? cars : machines)].sort(byPrice)[0];
+  }
+  return null;
 }
 const stakesFor = (registry: CareerRegistry, v: CareerVehicle) => tierOf(registry, v)?.payScale ?? 0.7;
 /** Every festival event the career lists, with its status and the exact
@@ -167,7 +194,8 @@ export function validateFestivalResult(value: unknown): FestivalResult | null {
   return value as FestivalResult;
 }
 const scale = (amount: number, stakes: number) => Math.round((amount * stakes) / 10) * 10;
-const starText = (n: number) => `${'★'.repeat(n)}${'☆'.repeat(Math.max(0, 3 - n))}`;
+/** Stars as words: ledger and payment lines are read aloud and logged. */
+export const starWords = (n: number) => `${n} of 3 star${n === 1 ? '' : 's'}`;
 const none = (reason: string): Payout => ({
   lines: [],
   total: 0,
@@ -178,10 +206,37 @@ const none = (reason: string): Payout => ({
 });
 /** The measure a skill challenge is scored on (higher is better), if any. */
 const measureOf = (r: FestivalResult) => r.trapKmh ?? r.averageKmh ?? r.driftScore ?? null;
+/** Festival reputation an event has to give: two per star and one for
+ * completing it (seven at most). */
+export const eventReputation = (stars: number, completed: boolean) =>
+  stars * FESTIVAL_PAY.starReputation + (completed ? FESTIVAL_PAY.firstReputation : 0);
+const NO_BEST: FestivalBest = Object.freeze({
+  stars: 0,
+  bestTime: null,
+  bestValue: null,
+  bestPosition: null,
+  runs: 0,
+});
+const lower = (a: number | null, b: number | null) => (a === null ? b : b === null ? a : Math.min(a, b));
+const higher = (a: number | null, b: number | null) => (a === null ? b : b === null ? a : Math.max(a, b));
+/** The better of two records, field by field. */
+function bestOf(a: FestivalBest, b: FestivalBest): FestivalBest {
+  return {
+    stars: Math.max(a.stars, b.stars),
+    bestTime: lower(a.bestTime, b.bestTime),
+    bestValue: higher(a.bestValue, b.bestValue),
+    bestPosition: lower(a.bestPosition, b.bestPosition),
+    runs: a.runs + b.runs,
+  };
+}
 /** Who may be paid for a festival run: a festival machine the player owns,
- * or the machine the career lent when it started this festival session. */
+ * or the machine the career lent when it started this festival session.
+ * `career` is set when the session was entered from CAREER (a loaner implies
+ * it); a run from SESSION select in a machine the career does not own is not
+ * a career run at all and is left alone. */
 export interface FestivalContext {
   loaner: string | null;
+  career?: boolean;
 }
 /**
  * Settle one festival run: paid at most once per run id (an unpaid run — AI
@@ -190,21 +245,43 @@ export interface FestivalContext {
  * completion (races: plus each rival beaten), new stars above your best on
  * the event, a first completion, a personal best, staying on the route.
  * Reputation comes from new stars and first completions only, so repeating
- * an event pays credits but does not farm reputation. Returns the unchanged
- * save object when the run was already settled.
+ * an event pays credits but does not farm reputation.
+ *
+ * Runs in your own machine are measured against your own-machine record
+ * only; runs in the loaned machine (a quarter of the rate, at most one
+ * reputation) against both, and they keep their own record, so a loaned run
+ * never takes the star, first-completion or reputation pay of a later run in
+ * your own machine. An event pays at most `eventReputation` in all.
+ *
+ * Returns the unchanged save object when the run was already settled, and
+ * with `ignored` when the run is not a career run (started outside the
+ * career, in a machine the career does not own).
  */
 export function settleFestival(
   save: CareerSave,
   registry: CareerRegistry,
   raw: unknown,
   context: FestivalContext = { loaner: null },
-): { save: CareerSave; payout: Payout; result: FestivalResult | null } {
+): { save: CareerSave; payout: Payout; result: FestivalResult | null; ignored?: true } {
   const result = validateFestivalResult(raw);
   if (!result)
     return { save, payout: none('The festival result could not be read.'), result: null };
   const runKey = festivalRunKey(result.runId);
   if (save.paidSessions.includes(runKey))
     return { save, payout: none('This festival run has already been paid.'), result };
+  const vehicle = registry.vehicles.find((v) => v.id === result.vehicleId);
+  const owned =
+    !!vehicle &&
+    vehicleDiscipline(vehicle) === 'festival' &&
+    save.owned.some((o) => o.id === vehicle.id);
+  const loaned = !owned && !!vehicle && context.loaner === vehicle.id;
+  if (!owned && !context.career && context.loaner === null)
+    return {
+      save,
+      payout: none('Not a career run: entered outside the career in a machine the career does not own.'),
+      result,
+      ignored: true,
+    };
   const settle = (reason: string) => {
     const next = structuredClone(save);
     markPaid(next, runKey);
@@ -215,12 +292,6 @@ export function settleFestival(
   if (!region || !event) return settle('This festival event is not a career event in this build.');
   if (disciplineStatus(registry, 'festival').state !== 'open')
     return settle('The festival career is not open in this build.');
-  const vehicle = registry.vehicles.find((v) => v.id === result.vehicleId);
-  const owned =
-    !!vehicle &&
-    vehicleDiscipline(vehicle) === 'festival' &&
-    save.owned.some((o) => o.id === vehicle.id);
-  const loaned = !!vehicle && context.loaner === vehicle.id;
   if (result.assisted)
     return settle(
       'The autopilot drove part of this run; festival payments need your own driving.',
@@ -239,7 +310,11 @@ export function settleFestival(
     );
   const stakes = owned ? stakesFor(registry, vehicle) : FESTIVAL_LOANER_STAKES;
   const key = festivalKey(region.id, event.id),
-    previous = save.festival[key] ?? null,
+    record = save.festival[key] ?? null,
+    own: FestivalBest = record ?? NO_BEST,
+    lent: FestivalBest = record?.loaner ?? NO_BEST,
+    // What this run is measured against (see above).
+    previous = owned ? own : bestOf(own, lent),
     lines: PayoutLine[] = [];
   const label = (s: string) => (stakes === 1 ? s : `${s} × ${stakes}`);
   const race = isRace(event.kind);
@@ -258,15 +333,15 @@ export function settleFestival(
       label: label(`${EVENT_KIND_LABEL[event.kind]} completed`),
       amount: scale(rule.completion, stakes),
     });
-  const before = previous?.stars ?? 0,
+  const before = previous.stars,
     gained = Math.max(0, result.stars - before);
   lines.push({
     label: gained
-      ? `New star${gained === 1 ? '' : 's'} ${starText(result.stars)} (best was ${starText(before)})`
-      : `${starText(result.stars)}: no star above your best (${starText(before)})`,
+      ? `New star${gained === 1 ? '' : 's'}: ${starWords(result.stars)} (best was ${starWords(before)})`
+      : `${starWords(result.stars)}: no star above your best (${starWords(before)})`,
     amount: scale(gained * FESTIVAL_PAY.star, stakes),
   });
-  const first = !previous || previous.runs === 0;
+  const first = previous.runs === 0;
   const measure = measureOf(result);
   if (first)
     lines.push({
@@ -296,28 +371,43 @@ export function settleFestival(
       : `Off the route for ${result.offRouteSeconds.toFixed(1)} s`,
     amount: clean ? scale(FESTIVAL_PAY.clean, stakes) : 0,
   });
-  let reputation = gained * FESTIVAL_PAY.starReputation + (first ? FESTIVAL_PAY.firstReputation : 0);
-  if (!owned) reputation = Math.min(1, reputation);
+  // Reputation already paid by this event (older records: their own stars
+  // and first completion, as they were paid).
+  const repPaid = record?.reputation ?? eventReputation(own.stars, own.runs > 0);
+  const reputation = owned
+    ? // Your own machine: what the event gives for your own-machine best,
+      // less what it has already paid (a loaned run's share included).
+      Math.max(0, eventReputation(Math.max(own.stars, result.stars), true) - repPaid)
+    : Math.min(1, gained * FESTIVAL_PAY.starReputation + (first ? FESTIVAL_PAY.firstReputation : 0));
   const total = lines.reduce((sum, l) => sum + l.amount, 0);
   const next = structuredClone(save);
   markPaid(next, runKey);
-  book(next, `Festival · ${event.name}: ${starText(result.stars)}`, total);
+  book(next, `Festival · ${event.name}: ${starWords(result.stars)}`, total);
   next.reputation.festival = Math.min(100, next.reputation.festival + reputation);
-  next.festival[key] = {
-    stars: Math.max(before, result.stars),
+  // The run improves its own kind of record only.
+  const base = owned ? own : lent;
+  const improved: FestivalBest = {
+    stars: Math.max(base.stars, result.stars),
     bestTime:
-      result.time !== null && (previous?.bestTime == null || result.time < previous.bestTime)
+      result.time !== null && (base.bestTime === null || result.time < base.bestTime)
         ? result.time
-        : (previous?.bestTime ?? null),
+        : base.bestTime,
     bestValue:
-      measure !== null && (previous?.bestValue == null || measure > previous.bestValue)
+      measure !== null && (base.bestValue === null || measure > base.bestValue)
         ? measure
-        : (previous?.bestValue ?? null),
+        : base.bestValue,
     bestPosition:
       race && result.position !== null
-        ? Math.min(previous?.bestPosition ?? 99, result.position)
-        : (previous?.bestPosition ?? null),
-    runs: (previous?.runs ?? 0) + 1,
+        ? Math.min(base.bestPosition ?? 99, result.position)
+        : base.bestPosition,
+    runs: base.runs + 1,
+  };
+  const ownRecord: FestivalBest = owned ? improved : { ...own };
+  const loanerRecord = owned ? record?.loaner : improved;
+  next.festival[key] = {
+    ...ownRecord,
+    reputation: repPaid + reputation,
+    ...(loanerRecord ? { loaner: { ...loanerRecord } } : {}),
   };
   return {
     save: next,

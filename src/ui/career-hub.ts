@@ -6,6 +6,7 @@ import {
   festivalEvents,
   festivalRoamKey,
   festivalSummary,
+  starWords,
   type FestivalCareerEvent,
 } from '../career/festival.ts';
 import { EVENT_KIND_LABEL, isRace } from '../simulation/open-world/festival-result.ts';
@@ -33,7 +34,7 @@ import {
   type CareerRegistry,
   type DisciplineId,
 } from '../career/registry.ts';
-import type { CareerSave } from '../career/save.ts';
+import type { CareerSave, FestivalBest } from '../career/save.ts';
 import { escapeHtml } from './team-hub.ts';
 
 /** Career screens (GAME_DESIGN §3–§5): discipline hub, licences, events,
@@ -153,7 +154,9 @@ function eventCard(event: CareerEvent, save: CareerSave, registry: CareerRegistr
       : '';
   return `<article class="career-event" data-kind="${event.kind}" data-status="${event.status}"><header><span class="eyebrow">${event.kind === 'recovery' ? 'RECOVERY SERIES · ALWAYS OPEN' : event.kind.toUpperCase()}</span>${stateTag(event.status)}</header><h4>${escapeHtml(event.name)}</h4><p>${escapeHtml(event.description)}</p>${detail}${objectives}${championship}${event.status !== 'open' ? `<p class="career-needs">${event.status === 'coming' ? 'Coming — missing from this build:' : 'Requires:'}</p>${reasonsList(event.reasons)}` : ''}${action}${abandon}</article>`;
 }
-const starLine = (n: number) => `${'★'.repeat(n)}${'☆'.repeat(Math.max(0, 3 - n))}`;
+/** Star glyphs with a text alternative (as the festival results card). */
+const starLine = (n: number) =>
+  `<span class="career-stars" role="img" aria-label="${starWords(n)}">${'★'.repeat(n)}${'☆'.repeat(Math.max(0, 3 - n))}</span>`;
 const clockText = (seconds: number) => {
   const m = Math.floor(seconds / 60);
   return `${m}:${(seconds - m * 60).toFixed(2).padStart(5, '0')}`;
@@ -171,9 +174,13 @@ function festivalCard(e: FestivalCareerEvent, registry: CareerRegistry) {
     : race
       ? '<dt>Stars</dt><dd>3 win · 2 podium · 1 finish</dd>'
       : '';
-  const best = rec
-    ? `<dt>Your best</dt><dd>${starLine(rec.stars)}${rec.bestPosition !== null ? ` · P${rec.bestPosition}` : ''}${rec.bestTime !== null && race ? ` · ${clockText(rec.bestTime)}` : ''}${rec.bestValue !== null ? ` · ${Math.round(rec.bestValue)}${ev.kind === 'drift-zone' ? ' pts' : ' km/h'}` : ''} · ${rec.runs} paid run${rec.runs === 1 ? '' : 's'}</dd>`
-    : '';
+  const bestLine = (title: string, b: FestivalBest | undefined) =>
+    b && b.runs > 0
+      ? `<dt>${title}</dt><dd>${starLine(b.stars)}${b.bestPosition !== null ? ` · P${b.bestPosition}` : ''}${b.bestTime !== null && race ? ` · ${clockText(b.bestTime)}` : ''}${b.bestValue !== null ? ` · ${Math.round(b.bestValue)}${ev.kind === 'drift-zone' ? ' pts' : ' km/h'}` : ''} · ${b.runs} paid run${b.runs === 1 ? '' : 's'}</dd>`
+      : '';
+  // Your own machines' best, and the loaned machine's apart (its runs do not
+  // count against the full-rate star and first-completion pay).
+  const best = rec ? `${bestLine('Your best', rec)}${bestLine('Loaned machine best', rec.loaner)}` : '';
   const facts = `<dl class="career-facts"><dt>Format</dt><dd>${escapeHtml(EVENT_KIND_LABEL[ev.kind])}${race ? ` · ${ev.rivals} rival${ev.rivals === 1 ? '' : 's'}` : ''}${ev.laps > 1 ? ` · ${ev.laps} laps` : ''}</dd>${targets}<dt>Needs</dt><dd>${FESTIVAL_RULES[ev.kind].reputation} festival reputation · discovered</dd><dt>Machine</dt><dd>${escapeHtml(vehicleName(registry, e.vehicle))}${e.loaner ? ' · loaned' : ''}</dd><dt>Pay rate</dt><dd>× ${e.stakes}</dd>${best}</dl>`;
   const action =
     e.status === 'open' ? button('DRIVE TO EVENT', `career:start:${e.key}`, true) : '';

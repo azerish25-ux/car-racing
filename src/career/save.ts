@@ -39,8 +39,8 @@ export interface EventRecord {
   bestLap: number;
   starts: number;
 }
-/** Best result of a festival event (career key `festival.<region>.<event>`). */
-export interface FestivalRecord {
+/** Best results of a festival event over one kind of paid run. */
+export interface FestivalBest {
   stars: number;
   /** Best elapsed time (s) and best measure (trap / zone km/h, drift points). */
   bestTime: number | null;
@@ -48,6 +48,16 @@ export interface FestivalRecord {
   /** Races: best finishing position. */
   bestPosition: number | null;
   runs: number;
+}
+/** A festival event's career record (key `festival.<region>.<event>`). The
+ * top-level bests are runs in your own machines, paid at the full rate;
+ * `loaner` holds runs in the career's loaned machine, so a loaned run never
+ * uses up the star, first-completion and reputation pay of a later run in
+ * your own machine. `reputation` is the festival reputation the event has
+ * paid so far (at most two per star and one for completing it). */
+export interface FestivalRecord extends FestivalBest {
+  reputation: number;
+  loaner?: FestivalBest;
 }
 export interface CareerChampionship {
   vehicle: string;
@@ -261,19 +271,30 @@ export function validateCareer(value: unknown): CareerSave {
         : [],
     };
   }
+  const positive = (v: unknown) => {
+    const n = finite(v);
+    return n !== null && n >= 0 ? n : null;
+  };
+  const festivalBest = (e: Record<string, unknown>): FestivalBest => ({
+    stars: int(e.stars, 0, 0, 3),
+    bestTime: positive(e.bestTime),
+    bestValue: positive(e.bestValue),
+    bestPosition:
+      e.bestPosition === null || e.bestPosition === undefined ? null : int(e.bestPosition, 99, 1, 99),
+    runs: int(e.runs, 0, 0, 1e6),
+  });
   for (const [key, r] of Object.entries(record(raw.festival)).slice(0, 200)) {
     const e = record(r);
     if (key.length > 120 || !key.startsWith('festival.')) continue;
-    const positive = (v: unknown) => {
-      const n = finite(v);
-      return n !== null && n >= 0 ? n : null;
-    };
+    const own = festivalBest(e),
+      loaner = e.loaner && typeof e.loaner === 'object' ? festivalBest(record(e.loaner)) : null;
+    // A record without the reputation count (written before it existed)
+    // has paid its own stars and first completion.
+    const paid = 2 * own.stars + (own.runs > 0 ? 1 : 0);
     out.festival[key] = {
-      stars: int(e.stars, 0, 0, 3),
-      bestTime: positive(e.bestTime),
-      bestValue: positive(e.bestValue),
-      bestPosition: e.bestPosition === null || e.bestPosition === undefined ? null : int(e.bestPosition, 99, 1, 99),
-      runs: int(e.runs, 0, 0, 1e6),
+      ...own,
+      reputation: int(e.reputation, paid, 0, 7),
+      ...(loaner ? { loaner } : {}),
     };
   }
   if (Array.isArray(raw.paidSessions))

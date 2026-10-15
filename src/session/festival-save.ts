@@ -1,3 +1,8 @@
+import {
+  festivalVehicles,
+  festivalDefaultVehicle,
+} from '../simulation/open-world/festival-machines.ts';
+
 /** Persisted festival state (`festival:v1`): discovered events, best results,
  * the chosen machine and the ambient traffic setting. A light module so the
  * career reads discoveries without loading the festival session. */
@@ -21,4 +26,19 @@ export function validateFestivalSave(value: unknown): FestivalSave | null {
     vehicle: v.vehicle,
     traffic: typeof v.traffic === 'boolean' ? v.traffic : true,
   };
+}
+/** The machine a festival session drives, and the one the festival save
+ * keeps. A road machine chosen in the MACHINE menu (a car or a road
+ * motorcycle) wins over the save; the Formula default falls back to the
+ * saved festival machine. The career's loan is driven but never saved: the
+ * save keeps the player's own choice. */
+export function festivalMachineChoice(
+  options: { vehicle?: string; loaner?: boolean },
+  saved: string,
+): { drive: string; save: string } {
+  const vehicles = festivalVehicles();
+  const chosen = vehicles.find((v) => v.id === options.vehicle && v.classId !== 'formula');
+  const kept = vehicles.some((v) => v.id === saved) ? saved : festivalDefaultVehicle();
+  const drive = chosen?.id ?? kept;
+  return { drive, save: options.loaner ? kept : drive };
 }

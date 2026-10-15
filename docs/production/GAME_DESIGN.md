@@ -147,11 +147,18 @@ the garage setup as a preset. The team and championship saves are never rewritte
 (`festival-result`, version 2, with a run id) is paid once — completion (races: plus rivals beaten),
 new stars above your best, a first completion, a personal best and staying on the route, at the
 machine's tier rate (the career's loaned machine at a quarter); reputation comes from new stars and
-first completions only. Events unlock by kind (festival reputation 0 for skill challenges and
-sprints, 6 road races, 12 circuits, 20 the showcase) and the career sends you only to events you have
-discovered in free roam; the FESTIVAL tab lists every event with its state, discovery and your best.
-A run the autopilot drove, an unfinished run, a machine not in your garage or a locked event pays
-nothing and is still recorded as settled.
+first completions only, at most two per star and one for completing an event. The loaned machine is
+a car (the festival's own default machine), not the cheapest festival machine, and it is never saved
+as the festival's machine. Loaned runs keep their own record: they are measured against every run of
+the event, but a later run in your own machine is measured against your own-machine record only, so
+borrowing never uses up an event's full-rate star, first-completion or reputation pay (a loaned run's
+reputation, one at most, counts towards the event's total). Events unlock by kind (festival
+reputation 0 for skill challenges and sprints, 6 road races, 12 circuits, 20 the showcase) and the
+career sends you only to events you have discovered in free roam; the FESTIVAL tab lists every event
+with its state, discovery and your best (stars with a text alternative). A run the autopilot drove,
+an unfinished run, a machine not in your garage or a locked event pays nothing and is still recorded
+as settled. A festival entered from SESSION select in a machine the career does not own is not a
+career run: the career ignores it, writes nothing and shows nothing.
 
 **Designed, not yet implemented.** Festival seasons; bike and off-road setup parameters; performance upgrades and a per-class performance
 index; showing setup effects in telemetry (the plain-language hints exist); a choice of licence
