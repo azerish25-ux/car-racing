@@ -28,11 +28,14 @@ import { cabinLayout } from './cabin.ts';
 import { CABIN_DETAIL_DISTANCE, CABIN_GLASS_ORDER } from './interior.ts';
 
 /** Who is looking: the followed entrant, whether the camera sits in its
- * cockpit, and the camera position (cabin detail distance). */
+ * cockpit, the camera position and the distance (m) within which a rival's
+ * cabin detail is drawn (default CABIN_DETAIL_DISTANCE; 0: the followed car's
+ * only, see cabinDetailDistance). */
 export interface BodyView {
   follow: number;
   cockpit: boolean;
   camera: T.Vector3 | null;
+  detailDistance?: number;
 }
 
 /** Procedural exteriors for every non-Formula definition (WP30), replacing
@@ -58,6 +61,11 @@ interface Built {
   materials: CarMaterials;
   frame: BodyFrame;
   level: number;
+  /** The coarser LOD the last rear-view feed pass showed (null: none); its
+   * wheels are posed too, so the feed never shows a stale wheel set. */
+  feedLevel: number | null;
+  /** The main view's cabin detail state (restored after a feed pass). */
+  near: boolean;
   /** Off-road mud coat (WP41), installed once the car first picks up mud. */
   mud?: MudUniforms;
 }
@@ -130,14 +138,18 @@ export function buildVehicleBody(id: number, definition: VehicleDefinition, shee
     materials,
     frame,
     level: 0,
+    feedLevel: null,
+    near: false,
   } satisfies Built;
 }
-/** Faces that let sunlight into the cabin: glazing and the dark lid under it. */
+/** Faces that let sunlight into the cabin: glazing and the dark lid under it
+ * (sharedMaterials.cabinLid). Seats and trim in the interior finish are solid
+ * and keep casting (a buggy's seats sit in an open frame). */
 function admitsLight(material: T.Material | undefined) {
   return (
     !material ||
     material.transparent ||
-    material === sharedMaterials.interior() ||
+    !!material.userData.cabinLid ||
     !!material.userData.vehicleGlass
   );
 }
@@ -221,6 +233,9 @@ export class VehicleBodies {
     headlights = false,
     view: BodyView = { follow: 0, cockpit: false, camera: null },
   ) {
+    // Feeds refresh at 10-30 Hz; half a second without one (chase view,
+    // mirrors off) stops posing the feed LODs' wheels.
+    if (++this.framesSinceFeed > 30) for (const body of this.bodies.values()) body.feedLevel = null;
     for (let id = 0; id < cars.length; id++) {
       const o = carBase(id),
         definition = vehicleAt(Math.round(b[o + RACE_BASE + R.VEHICLE]));
@@ -258,35 +273,40 @@ export class VehicleBodies {
         body.lods.forEach((lod, i) => (lod.group.visible = i === level));
         body.level = level;
       }
-      const lod = body.lods[level];
       const front = b[o + F.FRONT_HEALTH] > 0.08,
         rear = b[o + F.REAR_HEALTH] > 0.08;
-      for (const e of lod.front) e.visible = front;
-      for (const e of lod.rear) e.visible = rear;
       const brake = lerp(a[o + F.BRAKE], b[o + F.BRAKE], alpha);
       body.materials.tail.emissiveIntensity = brake > 0.05 ? 3.2 : headlights ? 1.1 : 0.55;
       body.materials.head.emissiveIntensity = headlights ? 2.6 : 0.35;
       const positions = body.definition.wheelPositions;
-      body.wheels[level].forEach((wheel, i) => {
-        const p = o + WHEEL_BASE + i * WHEEL_STRIDE;
-        wheel.update(
-          positions[i][1] - wheelTravel(a, b, p, alpha),
-          lerp(a[p + W.STEER], b[p + W.STEER], alpha),
-          lerp(a[p + W.CAMBER], b[p + W.CAMBER], alpha),
-          wheelPhase(a, b, o, p, alpha),
-          lerp(a[p + W.LOAD], b[p + W.LOAD], alpha),
-          lerp(a[p + W.PRESSURE], b[p + W.PRESSURE], alpha),
-          b[p + W.DISC_TEMP],
-        );
-      });
-      for (const { mesh, link } of body.links[level]) {
-        const wheel = body.wheels[level][link.wheel].pivot;
-        this.hub.copy(link.offset).applyEuler(wheel.rotation).add(wheel.position);
-        this.end.copy(this.hub).sub(link.inboard);
-        const length = this.end.length();
-        mesh.position.copy(link.inboard).addScaledVector(this.end, 0.5);
-        mesh.quaternion.setFromUnitVectors(this.up, this.end.normalize());
-        mesh.scale.set(1, length, 1);
+      // The main view's LOD, and the coarser one a rear-view feed shows.
+      for (const shown of body.feedLevel !== null && body.feedLevel !== level
+        ? [level, body.feedLevel]
+        : [level]) {
+        const lod = body.lods[shown];
+        for (const e of lod.front) e.visible = front;
+        for (const e of lod.rear) e.visible = rear;
+        body.wheels[shown].forEach((wheel, i) => {
+          const p = o + WHEEL_BASE + i * WHEEL_STRIDE;
+          wheel.update(
+            positions[i][1] - wheelTravel(a, b, p, alpha),
+            lerp(a[p + W.STEER], b[p + W.STEER], alpha),
+            lerp(a[p + W.CAMBER], b[p + W.CAMBER], alpha),
+            wheelPhase(a, b, o, p, alpha),
+            lerp(a[p + W.LOAD], b[p + W.LOAD], alpha),
+            lerp(a[p + W.PRESSURE], b[p + W.PRESSURE], alpha),
+            b[p + W.DISC_TEMP],
+          );
+        });
+        for (const { mesh, link } of body.links[shown]) {
+          const wheel = body.wheels[shown][link.wheel].pivot;
+          this.hub.copy(link.offset).applyEuler(wheel.rotation).add(wheel.position);
+          this.end.copy(this.hub).sub(link.inboard);
+          const length = this.end.length();
+          mesh.position.copy(link.inboard).addScaledVector(this.end, 0.5);
+          mesh.quaternion.setFromUnitVectors(this.up, this.end.normalize());
+          mesh.scale.set(1, length, 1);
+        }
       }
       this.poseCabin(body, id, level, a, b, o, alpha, view);
     }
@@ -308,13 +328,15 @@ export class VehicleBodies {
     const cabin = body.lods[0].cabin;
     if (!cabin) return;
     const followed = id === view.follow,
-      own = followed && view.cockpit;
+      own = followed && view.cockpit,
+      reach = view.detailDistance ?? CABIN_DETAIL_DISTANCE;
     const near =
       level === 0 &&
       (followed ||
         (!!view.camera &&
-          view.camera.distanceToSquared(body.root.position) <
-            CABIN_DETAIL_DISTANCE * CABIN_DETAIL_DISTANCE));
+          reach > 0 &&
+          view.camera.distanceToSquared(body.root.position) < reach * reach));
+    body.near = near;
     cabin.detail.visible = near;
     for (const part of cabin.wheelDetail) part.visible = near;
     cabin.head.visible = !own;
@@ -324,6 +346,48 @@ export class VehicleBodies {
       -lerp(a[o + F.STEER], b[o + F.STEER], alpha) * cabin.layout.wheel.ratio;
     // Only the followed car redraws its instruments (a canvas upload each tick).
     if (followed) cabin.display?.update(b, o);
+  }
+  private readonly feedShown: Built[] = [];
+  private framesSinceFeed = 0;
+  /** One rear-view feed pass (renderer mirror detail): every shown body at
+   * the coarser of its main-view LOD and `choose(position, previous)` (its
+   * size in that feed, with the feed's own hysteresis), and no cabin detail
+   * (instruments, cages and harnesses are sub-pixel in a feed). The host
+   * Formula representation is hidden for these bodies, so the renderer's own
+   * feed LOD never reached them. `restoreFeedDetail` returns the main view. */
+  showFeedDetail(choose: (position: T.Vector3, previous: number) => number) {
+    this.restoreFeedDetail();
+    this.framesSinceFeed = 0;
+    for (const body of this.bodies.values()) {
+      if (!body.root.visible) continue;
+      const level = Math.max(
+        body.level,
+        Math.max(
+          0,
+          Math.min(2, Math.round(choose(body.root.position, body.feedLevel ?? body.level))),
+        ),
+      );
+      body.feedLevel = level;
+      const cabin = body.lods[0].cabin;
+      if (level === body.level && !(level === 0 && cabin?.detail.visible)) continue;
+      body.lods.forEach((lod, i) => (lod.group.visible = i === level));
+      if (cabin) {
+        cabin.detail.visible = false;
+        for (const part of cabin.wheelDetail) part.visible = false;
+      }
+      this.feedShown.push(body);
+    }
+  }
+  restoreFeedDetail() {
+    for (const body of this.feedShown) {
+      body.lods.forEach((lod, i) => (lod.group.visible = i === body.level));
+      const cabin = body.lods[0].cabin;
+      if (cabin) {
+        cabin.detail.visible = body.near;
+        for (const part of cabin.wheelDetail) part.visible = body.near;
+      }
+    }
+    this.feedShown.length = 0;
   }
   /** The followed body's rear-view feed surfaces and the root that orients
    * them, while it is drawn near (null: none, or not a catalogue body). */

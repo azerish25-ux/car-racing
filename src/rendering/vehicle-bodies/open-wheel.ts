@@ -142,7 +142,7 @@ export function buildOpenWheel(
   const parts = new Parts();
   parts.addGrouped(
     tub,
-    [mats.paint, sharedMaterials.interior(), mats.accent, sharedMaterials.carbonSatin()],
+    [mats.paint, sharedMaterials.cabinLid(), mats.accent, sharedMaterials.carbonSatin()],
     'Monocoque (lofted)',
   );
   const carbon = sharedMaterials.carbon(),

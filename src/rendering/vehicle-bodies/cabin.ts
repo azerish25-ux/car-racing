@@ -123,6 +123,20 @@ export function cabinEye(layout: CabinLayout, motion: T.Vector3, out: T.Vector3)
     z + clamp(motion.z, -m[2], m[2]),
   );
 }
+/** The onboard mount's camera point. A mounted camera is bolted to the car,
+ * so the inertial offset is bounded like the seat motion: it can never carry
+ * the lens into the bodywork in front of it (light bar, wheel rim, headrest). */
+export function mountEye(layout: CabinLayout, motion: T.Vector3, out: T.Vector3) {
+  const [x, y, z] = layout.mount.eye,
+    m = CABIN_MOTION_LIMIT;
+  if (![motion.x, motion.y, motion.z].every(Number.isFinite))
+    throw new Error('Invalid onboard mount motion');
+  return out.set(
+    x + clamp(motion.x, -m[0], m[0]),
+    y + clamp(motion.y, -m[1], m[1]),
+    z + clamp(motion.z, -m[2], m[2]),
+  );
+}
 /** Unit gaze direction of a view (car frame). */
 export function cabinDirection(view: CabinView, out: T.Vector3) {
   return out.set(0, Math.sin(view.pitch), Math.cos(view.pitch));
@@ -172,7 +186,9 @@ export function cabinLayout(def: VehicleDefinition, sheet: BodySheet): CabinLayo
           ? v3(0, f.y(tubTop + 0.43) + 0.09, zCockpit - 0.5)
           : s.era === 'historic' || s.era === 'seventies'
             ? v3(0, f.y(tubTop + 0.32) + 0.1, zCockpit - 0.36)
-            : v3(0, f.y(tubTop + 0.36), zCockpit - 0.34);
+            : // No airbox (modern electric): above the headrest bulkhead,
+              // not inside it.
+              v3(0, f.y(tubTop + 0.48), zCockpit - 0.34);
     return Object.freeze<CabinLayout>({
       id: def.id,
       family: 'open-wheel',
@@ -217,10 +233,11 @@ export function cabinLayout(def: VehicleDefinition, sheet: BodySheet): CabinLayo
       roof: null,
       hoop: null,
       cockpit: { eye, pitch: -0.08, fov: CABIN_FOV.kart },
-      // A nose camera above the steering column.
+      // A nose camera ahead of the steering wheel's rim (the rim's top
+      // reaches about 3 cm past the front axle).
       mount: {
         kind: 'bonnet',
-        eye: v3(0, f.y(0.5), f.frontAxle + 0.02),
+        eye: v3(0, f.y(0.5), f.frontAxle + 0.1),
         pitch: -0.06,
         fov: MOUNT_FOV.bonnet,
       },
@@ -250,9 +267,11 @@ export function cabinLayout(def: VehicleDefinition, sheet: BodySheet): CabinLayo
     roof: f.y(sheet.roof) - 0.03,
     hoop: null,
     cockpit: { eye, pitch: -0.06, fov: CABIN_FOV.buggy },
+    // At the front of the roof, ahead of the front roof hoop and the light
+    // bar (zCockpit + 0.5 ± 0.04), never behind the bar's rear face.
     mount: {
       kind: 'roof',
-      eye: v3(0, f.y(sheet.roof) + 0.12, zCockpit + 0.45),
+      eye: v3(0, f.y(sheet.roof) + 0.12, zCockpit + 0.62),
       pitch: -0.1,
       fov: MOUNT_FOV.roof,
     },

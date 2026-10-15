@@ -121,6 +121,20 @@ export const sharedMaterials = {
       'interior',
       () => new T.MeshStandardMaterial({ color: 0x1a1b1d, roughness: 0.85, metalness: 0 }),
     ),
+  /** The dark lid under the glass of a far LOD (parcel shelf, engine cover,
+   * tonneau, a single-seater's cockpit opening): the interior's finish, but
+   * tagged so the shadow proxy lets sunlight through it into the near
+   * cabin. Seats and other solid trim keep `interior` and cast shadows. */
+  cabinLid: () =>
+    shared('cabin-lid', () => {
+      const material = new T.MeshStandardMaterial({
+        color: 0x1a1b1d,
+        roughness: 0.85,
+        metalness: 0,
+      });
+      material.userData.cabinLid = true;
+      return material;
+    }),
   /** Seat-belt webbing (race harness and road belts). */
   harness: () =>
     shared(

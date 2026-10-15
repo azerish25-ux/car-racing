@@ -587,7 +587,8 @@ export function buildClosedBody(
       sharedMaterials.plastic(),
       sharedMaterials.carbonSatin(),
       mats.accent,
-      sharedMaterials.interior(),
+      // M.interior: the lid under the glass / an open cockpit's deck.
+      sharedMaterials.cabinLid(),
     ],
     'Body (lofted)',
   );

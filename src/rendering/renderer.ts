@@ -145,11 +145,13 @@ import {
 import { vehicleAt } from '../simulation/vehicles.ts';
 import { clamp } from '../core/math.ts';
 import { VehicleBodies } from './vehicle-bodies/index.ts';
+import { cabinDetailDistance } from './vehicle-bodies/interior.ts';
 import {
   cabinDirection,
   cabinEye,
   cabinFor,
   cabinFov,
+  mountEye,
   mountFov,
   type CabinLayout,
 } from './vehicle-bodies/cabin.ts';
@@ -1177,7 +1179,7 @@ export class RacingRenderer {
           );
         if (cabin) {
           if (cameraMode === 'cockpit') cabinEye(cabin, this.inertia.offset, this.desired);
-          else this.desired.set(...cabin.mount.eye).add(this.inertia.offset);
+          else mountEye(cabin, this.inertia.offset, this.desired);
           this.desired.applyQuaternion(car.root.quaternion).add(car.root.position);
         } else if (car.suppliedPlayer) {
           if (cameraMode === 'cockpit')
@@ -1342,6 +1344,7 @@ export class RacingRenderer {
         (!menu || !!this.photo) &&
         cameraMode === 'cockpit',
       camera: this.camera.position,
+      detailDistance: cabinDetailDistance(this.quality),
     });
     // A catalogue body's door/pod mirrors carry the rear-view feeds; back to
     // the Formula car's own when the followed entrant has none.
@@ -1699,10 +1702,27 @@ export class RacingRenderer {
       car.showDetail(level);
       this.mirrorDetailShown.push(car);
     }
+    // Catalogue bodies (their host representation is hidden) take the same
+    // per-feed detail, and draw no cabin detail in a feed.
+    this.vehicleBodies?.showFeedDetail((position, previous) =>
+      carLod(
+        feedDetailDistance(
+          position.distanceTo(camera.position),
+          camera.fov,
+          camera.aspect,
+          height,
+          this.renderHeight,
+        ),
+        previous,
+        this.quality,
+        false,
+      ),
+    );
   }
   private restoreMirrorDetail() {
     for (const car of this.mirrorDetailShown) car.showDetail(car.lodLevel);
     this.mirrorDetailShown.length = 0;
+    this.vehicleBodies?.restoreFeedDetail();
   }
   private refreshReflectionExclusions(subject: FormulaCar) {
     const smallDetail = [

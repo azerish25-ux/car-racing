@@ -53,6 +53,11 @@ export interface CabinOpening {
 }
 /** Distance (m) within which a rival's cabin detail is drawn. */
 export const CABIN_DETAIL_DISTANCE = 15;
+/** The detail distance of a render detail tier: the low tier draws the
+ * followed car's cabin detail only. */
+export function cabinDetailDistance(quality: 'low' | 'medium' | 'high') {
+  return quality === 'low' ? 0 : CABIN_DETAIL_DISTANCE;
+}
 /** Transparent sort group of the followed car's glazing in its cockpit view:
  * drawn after every world transparent (guides, ghost, marks, particles), as
  * the glass is the surface nearest the eye. */
