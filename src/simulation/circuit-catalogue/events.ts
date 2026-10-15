@@ -58,13 +58,15 @@ const WAVE_TWO: readonly WaveTwoEvent[] = [
     30104,
     'clear',
   ],
+  // The classic class is not cleared for the club circuit's hairpins
+  // (docs/bike-clearance.json): its sprint is for the supersport class.
   [
-    'loirette-club-classic-bike',
-    'LOIRETTE CLUB CLASSIC MOTORCYCLES',
+    'loirette-club-supersport',
+    'LOIRETTE CLUB SUPERSPORT',
     'loirette-club',
     'motorcycle-class-sprint',
     4,
-    'cr750',
+    'ss600',
     30105,
     'clear',
   ],

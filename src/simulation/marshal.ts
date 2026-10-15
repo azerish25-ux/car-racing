@@ -141,6 +141,10 @@ export class MarshalControl {
     incident.s = s;
     incident.clearedFor = 0;
   }
+  /** Marshals put a stranded car back on the track edge (Simulation). */
+  recordRecovery(car: number, time: number) {
+    this.emit(time, 'clear', car, 'CAR_RECOVERED');
+  }
   recordPenalty(car: number, seconds: number, code: string, time: number) {
     this.penaltyCount[car]++;
     this.emit(time, 'penalty', car, code, seconds);

@@ -2,16 +2,16 @@
   "description": "Seeded AI races on every circuit-catalogue layout (WP29/WP30). Production simulation, AI and race control; no assists beyond the default sport setting. Lap times are AI pace, not reference lap records.",
   "generatedBy": "npm run test:catalogue-races",
   "sources": {
-    "src/simulation/circuits.ts": "893b05361e80ba8cad8f7db80d5bf266f201497a69dc58bc4acd52ef86434c29",
+    "src/simulation/circuits.ts": "7869c50a522a43c4129ad349100c231dcef44383d5b89bc3849f76181faefcf2",
     "src/simulation/track.ts": "334eff884b81212a135348a51c1e4beb8db7fa4c7cc69e3be33a4e8b4ae30f5a",
-    "src/simulation/ai.ts": "eb618529b1a526cafa8e1df3f66473d23689836e3f5f56991f8ff1bd4b6c27d2",
-    "src/simulation/circuit-catalogue/builder.ts": "53116be8db6d1c52b2d5f3dc82907f2810aacf4c89035b5fe3c03536d06b497c",
-    "src/simulation/circuit-catalogue/real-world.ts": "1c7fcdab5ec8bfee7cd63c630b6e638220cc29fcfac1b8091ed1843622bc9710",
+    "src/simulation/ai.ts": "867ff36c029c275084063c6c60fcca27b60beab3dfca4e59f76a19a5d7d44026",
+    "src/simulation/circuit-catalogue/builder.ts": "e99d95cea513015172c7498cb4a53f909b382a4d4c60efb8ddd1beec9bc16456",
+    "src/simulation/circuit-catalogue/real-world.ts": "09daee5348767edae8aef65ad920d79403d1807f4b2ae41fa11ef7ffe23bcecc",
     "src/simulation/circuit-catalogue/unconventional.ts": "a6d5b3b91b0faf02d0b7ac0d38fc719649ac8cb6526465621d6372ae2f5439c5",
-    "src/simulation/circuit-catalogue/motorcycle-gp.ts": "3a24b86047033b999b8081b3d12215862f8577c01903718d1af60907f08235cc",
-    "src/simulation/circuit-catalogue/endurance.ts": "066553ef2efa2d80d2c671f146b1813859980afb4dbf560955f713014568d07e",
-    "src/simulation/circuit-catalogue/real-world-classics.ts": "7210ced295a8b9e00c84e9f2e0203fa68a4f9beccbbe4ef16c24073d5911a7ab",
-    "src/simulation/circuit-catalogue/night-and-street.ts": "2ab344053c4438bb56584e0580e74155b9319277c82e4ddfa7bf9ff3c93757fb",
+    "src/simulation/circuit-catalogue/motorcycle-gp.ts": "8dd2de0842929ed80bb876b6cb5a8760ec2896841da86560f1cf4909d66fed15",
+    "src/simulation/circuit-catalogue/endurance.ts": "0d5a4c8914d3b214fbb6dc1ade62946a7c995aa81d8a57022b97f7aee0ace261",
+    "src/simulation/circuit-catalogue/real-world-classics.ts": "562832bea489c70327f09db1e493808d803ac1b8c1a972811ea003be04241c68",
+    "src/simulation/circuit-catalogue/night-and-street.ts": "4833619d220db7bf321c18510df4e83aef5cbea8ec088f40636379e9feb74d37",
     "src/simulation/circuit-catalogue/industrial.ts": "38c6ac91871dbc636fa79c9813612dae189d1ba3176c574b60fa65412d8bd0cb"
   },
   "criteria": {
@@ -41,7 +41,7 @@
       "maximumSpeedKmh": 299.3,
       "maximumImpact": 0,
       "airborneCarSeconds": 0,
-      "wallSeconds": 32.6,
+      "wallSeconds": 101.1,
       "classification": [
         {
           "id": 1,
@@ -123,7 +123,7 @@
       "maximumSpeedKmh": 297.9,
       "maximumImpact": 0,
       "airborneCarSeconds": 1.69,
-      "wallSeconds": 43.6,
+      "wallSeconds": 115.4,
       "classification": [
         {
           "id": 0,
@@ -205,7 +205,7 @@
       "maximumSpeedKmh": 296.4,
       "maximumImpact": 0,
       "airborneCarSeconds": 0,
-      "wallSeconds": 34.1,
+      "wallSeconds": 107.6,
       "classification": [
         {
           "id": 0,
@@ -287,7 +287,7 @@
       "maximumSpeedKmh": 296.2,
       "maximumImpact": 0,
       "airborneCarSeconds": 0,
-      "wallSeconds": 30.4,
+      "wallSeconds": 94.6,
       "classification": [
         {
           "id": 0,
@@ -369,7 +369,7 @@
       "maximumSpeedKmh": 289.8,
       "maximumImpact": 0,
       "airborneCarSeconds": 0,
-      "wallSeconds": 36,
+      "wallSeconds": 100.5,
       "classification": [
         {
           "id": 0,
@@ -451,7 +451,7 @@
       "maximumSpeedKmh": 286,
       "maximumImpact": 0,
       "airborneCarSeconds": 0,
-      "wallSeconds": 19.7,
+      "wallSeconds": 31.6,
       "classification": [
         {
           "id": 0,
@@ -533,7 +533,7 @@
       "maximumSpeedKmh": 288.7,
       "maximumImpact": 0,
       "airborneCarSeconds": 0,
-      "wallSeconds": 37.2,
+      "wallSeconds": 67.4,
       "classification": [
         {
           "id": 0,
@@ -615,7 +615,7 @@
       "maximumSpeedKmh": 302.7,
       "maximumImpact": 0,
       "airborneCarSeconds": 0,
-      "wallSeconds": 37,
+      "wallSeconds": 75.7,
       "classification": [
         {
           "id": 1,
@@ -697,7 +697,7 @@
       "maximumSpeedKmh": 294.1,
       "maximumImpact": 0,
       "airborneCarSeconds": 0,
-      "wallSeconds": 33.2,
+      "wallSeconds": 54.9,
       "classification": [
         {
           "id": 0,
@@ -779,7 +779,7 @@
       "maximumSpeedKmh": 295.6,
       "maximumImpact": 0.005,
       "airborneCarSeconds": 0,
-      "wallSeconds": 31.7,
+      "wallSeconds": 35.8,
       "classification": [
         {
           "id": 1,
@@ -861,7 +861,7 @@
       "maximumSpeedKmh": 297,
       "maximumImpact": 0,
       "airborneCarSeconds": 0,
-      "wallSeconds": 60.9,
+      "wallSeconds": 62.3,
       "classification": [
         {
           "id": 1,
@@ -943,7 +943,7 @@
       "maximumSpeedKmh": 304,
       "maximumImpact": 0,
       "airborneCarSeconds": 0,
-      "wallSeconds": 58.7,
+      "wallSeconds": 63.6,
       "classification": [
         {
           "id": 0,
@@ -1025,7 +1025,7 @@
       "maximumSpeedKmh": 298.6,
       "maximumImpact": 0,
       "airborneCarSeconds": 0,
-      "wallSeconds": 20.3,
+      "wallSeconds": 18.6,
       "classification": [
         {
           "id": 1,
@@ -1107,7 +1107,7 @@
       "maximumSpeedKmh": 303.8,
       "maximumImpact": 0,
       "airborneCarSeconds": 0,
-      "wallSeconds": 27.9,
+      "wallSeconds": 29.1,
       "classification": [
         {
           "id": 1,
@@ -1189,7 +1189,7 @@
       "maximumSpeedKmh": 302.3,
       "maximumImpact": 0,
       "airborneCarSeconds": 0,
-      "wallSeconds": 30.7,
+      "wallSeconds": 30.8,
       "classification": [
         {
           "id": 0,
@@ -1271,7 +1271,7 @@
       "maximumSpeedKmh": 304.4,
       "maximumImpact": 0,
       "airborneCarSeconds": 0,
-      "wallSeconds": 29.6,
+      "wallSeconds": 31.5,
       "classification": [
         {
           "id": 1,
@@ -1353,7 +1353,7 @@
       "maximumSpeedKmh": 301,
       "maximumImpact": 0,
       "airborneCarSeconds": 0,
-      "wallSeconds": 30.1,
+      "wallSeconds": 29.7,
       "classification": [
         {
           "id": 1,
@@ -1435,7 +1435,7 @@
       "maximumSpeedKmh": 305.8,
       "maximumImpact": 0,
       "airborneCarSeconds": 0,
-      "wallSeconds": 30.7,
+      "wallSeconds": 33.5,
       "classification": [
         {
           "id": 0,
@@ -1517,7 +1517,7 @@
       "maximumSpeedKmh": 282.7,
       "maximumImpact": 0,
       "airborneCarSeconds": 0,
-      "wallSeconds": 29.3,
+      "wallSeconds": 31.3,
       "classification": [
         {
           "id": 0,
@@ -1599,7 +1599,7 @@
       "maximumSpeedKmh": 278.8,
       "maximumImpact": 0,
       "airborneCarSeconds": 0,
-      "wallSeconds": 30.8,
+      "wallSeconds": 27.3,
       "classification": [
         {
           "id": 1,
@@ -1681,7 +1681,7 @@
       "maximumSpeedKmh": 296.9,
       "maximumImpact": 0,
       "airborneCarSeconds": 0,
-      "wallSeconds": 30.1,
+      "wallSeconds": 29.8,
       "classification": [
         {
           "id": 0,
@@ -1763,7 +1763,7 @@
       "maximumSpeedKmh": 300.4,
       "maximumImpact": 0.052,
       "airborneCarSeconds": 0,
-      "wallSeconds": 27.4,
+      "wallSeconds": 26.8,
       "classification": [
         {
           "id": 1,
@@ -1845,7 +1845,7 @@
       "maximumSpeedKmh": 293.9,
       "maximumImpact": 0,
       "airborneCarSeconds": 0,
-      "wallSeconds": 29.4,
+      "wallSeconds": 25.2,
       "classification": [
         {
           "id": 0,
@@ -1927,7 +1927,7 @@
       "maximumSpeedKmh": 297.5,
       "maximumImpact": 0.018,
       "airborneCarSeconds": 0,
-      "wallSeconds": 31.7,
+      "wallSeconds": 29.1,
       "classification": [
         {
           "id": 1,
@@ -2002,72 +2002,72 @@
       "seed": 29030,
       "passed": true,
       "failures": [],
-      "bestLapS": 334.6814106315208,
-      "slowestBestLapS": 343.464139562304,
+      "bestLapS": 334.6704865220768,
+      "slowestBestLapS": 343.4012923489728,
       "bestLapAverageKmh": "224.1",
-      "raceTimeS": 701.36,
+      "raceTimeS": 701.42,
       "maximumSpeedKmh": 306,
-      "maximumImpact": 0.01,
+      "maximumImpact": 0.009,
       "airborneCarSeconds": 0,
-      "wallSeconds": 97,
+      "wallSeconds": 93.9,
       "classification": [
         {
           "id": 0,
           "laps": 2,
-          "best": 334.6814106315208,
-          "finishTime": 682.7754938601947,
+          "best": 334.6704865220768,
+          "finishTime": 677.7773047344986,
           "retired": false,
-          "penalty": 5,
+          "penalty": 0,
           "warnings": 0,
           "worstStuckSeconds": 0
         },
         {
           "id": 1,
           "laps": 2,
-          "best": 339.4066825082971,
-          "finishTime": 687.7666009525918,
+          "best": 339.4366857768204,
+          "finishTime": 682.7627293333534,
           "retired": false,
-          "penalty": 5,
+          "penalty": 0,
           "warnings": 0,
           "worstStuckSeconds": 0
         },
         {
           "id": 3,
           "laps": 2,
-          "best": 341.02397950125925,
-          "finishTime": 691.9551834456765,
+          "best": 341.069242497234,
+          "finishTime": 686.9639620289347,
           "retired": false,
-          "penalty": 5,
+          "penalty": 0,
           "warnings": 0,
           "worstStuckSeconds": 0
         },
         {
           "id": 5,
           "laps": 2,
-          "best": 341.25184204175434,
-          "finishTime": 696.8044623202671,
+          "best": 341.2991247369943,
+          "finishTime": 691.8146087017828,
           "retired": false,
-          "penalty": 5,
+          "penalty": 0,
           "warnings": 0,
           "worstStuckSeconds": 0
         },
         {
           "id": 2,
           "laps": 2,
-          "best": 342.5836335938223,
-          "finishTime": 701.308661204038,
+          "best": 342.5363518049979,
+          "finishTime": 696.2961284549131,
           "retired": false,
-          "penalty": 5,
+          "penalty": 0,
           "warnings": 0,
           "worstStuckSeconds": 0
         },
         {
           "id": 4,
           "laps": 2,
-          "best": 343.464139562304,
-          "finishTime": 706.353384742454,
+          "best": 343.4012923489728,
+          "finishTime": 701.4141908243919,
           "retired": false,
-          "penalty": 5,
+          "penalty": 0,
           "warnings": 0,
           "worstStuckSeconds": 0
         }
@@ -2173,7 +2173,7 @@
       "maximumSpeedKmh": 290.8,
       "maximumImpact": 0.031,
       "airborneCarSeconds": 0.02,
-      "wallSeconds": 31.1,
+      "wallSeconds": 28.4,
       "classification": [
         {
           "id": 0,
@@ -2255,7 +2255,7 @@
       "maximumSpeedKmh": 303.3,
       "maximumImpact": 0,
       "airborneCarSeconds": 0,
-      "wallSeconds": 27.8,
+      "wallSeconds": 27.2,
       "classification": [
         {
           "id": 1,
@@ -2337,7 +2337,7 @@
       "maximumSpeedKmh": 306.2,
       "maximumImpact": 0,
       "airborneCarSeconds": 0,
-      "wallSeconds": 32.4,
+      "wallSeconds": 33.1,
       "classification": [
         {
           "id": 1,
@@ -2412,20 +2412,20 @@
       "seed": 29030,
       "passed": true,
       "failures": [],
-      "bestLapS": 72.34542075623142,
-      "slowestBestLapS": 79.71733992997612,
-      "bestLapAverageKmh": "179.2",
-      "raceTimeS": 167.63,
-      "maximumSpeedKmh": 289.7,
-      "maximumImpact": 0,
+      "bestLapS": 73.50241017761778,
+      "slowestBestLapS": 80.55059865563243,
+      "bestLapAverageKmh": "176.4",
+      "raceTimeS": 169.38,
+      "maximumSpeedKmh": 291,
+      "maximumImpact": 0.007,
       "airborneCarSeconds": 0,
-      "wallSeconds": 25.3,
+      "wallSeconds": 25.5,
       "classification": [
         {
           "id": 1,
           "laps": 2,
-          "best": 72.34542075623142,
-          "finishTime": 147.95795697976683,
+          "best": 73.50241017761778,
+          "finishTime": 150.26869593113798,
           "retired": false,
           "penalty": 0,
           "warnings": 0,
@@ -2434,8 +2434,8 @@
         {
           "id": 0,
           "laps": 2,
-          "best": 73.10554138693045,
-          "finishTime": 152.58470198039655,
+          "best": 74.59699368605486,
+          "finishTime": 155.13693074697824,
           "retired": false,
           "penalty": 0,
           "warnings": 0,
@@ -2444,8 +2444,8 @@
         {
           "id": 3,
           "laps": 2,
-          "best": 74.85214322391198,
-          "finishTime": 156.69205200237144,
+          "best": 76.1697568262859,
+          "finishTime": 159.08030743273912,
           "retired": false,
           "penalty": 0,
           "warnings": 0,
@@ -2454,8 +2454,8 @@
         {
           "id": 2,
           "laps": 2,
-          "best": 76.65610004241069,
-          "finishTime": 160.75666482484075,
+          "best": 77.79514885848995,
+          "finishTime": 162.87438640953891,
           "retired": false,
           "penalty": 0,
           "warnings": 0,
@@ -2464,8 +2464,8 @@
         {
           "id": 5,
           "laps": 2,
-          "best": 78.3410558647488,
-          "finishTime": 164.43955993306474,
+          "best": 79.32435780654205,
+          "finishTime": 166.33139121970265,
           "retired": false,
           "penalty": 0,
           "warnings": 0,
@@ -2474,8 +2474,8 @@
         {
           "id": 4,
           "laps": 2,
-          "best": 79.71733992997612,
-          "finishTime": 167.62425021824,
+          "best": 80.55059865563243,
+          "finishTime": 169.3798153378984,
           "retired": false,
           "penalty": 0,
           "warnings": 0,
@@ -2501,7 +2501,7 @@
       "maximumSpeedKmh": 302.3,
       "maximumImpact": 0,
       "airborneCarSeconds": 0,
-      "wallSeconds": 29.4,
+      "wallSeconds": 29.9,
       "classification": [
         {
           "id": 1,
@@ -2576,20 +2576,20 @@
       "seed": 29030,
       "passed": true,
       "failures": [],
-      "bestLapS": 82.49422320637596,
-      "slowestBestLapS": 90.04529845797826,
-      "bestLapAverageKmh": "185.9",
-      "raceTimeS": 187.11,
-      "maximumSpeedKmh": 297,
+      "bestLapS": 91.10067189639567,
+      "slowestBestLapS": 98.25470665563,
+      "bestLapAverageKmh": "168.3",
+      "raceTimeS": 204.9,
+      "maximumSpeedKmh": 292.1,
       "maximumImpact": 0,
       "airborneCarSeconds": 0,
-      "wallSeconds": 25.7,
+      "wallSeconds": 28.9,
       "classification": [
         {
           "id": 0,
           "laps": 2,
-          "best": 82.49422320637596,
-          "finishTime": 168.4076239204402,
+          "best": 91.10067189639567,
+          "finishTime": 185.29637641097676,
           "retired": false,
           "penalty": 0,
           "warnings": 0,
@@ -2598,8 +2598,8 @@
         {
           "id": 1,
           "laps": 2,
-          "best": 83.4477217565516,
-          "finishTime": 172.56886813599516,
+          "best": 91.81535297310253,
+          "finishTime": 189.7802727600627,
           "retired": false,
           "penalty": 0,
           "warnings": 0,
@@ -2608,8 +2608,8 @@
         {
           "id": 3,
           "laps": 2,
-          "best": 85.03264953373778,
-          "finishTime": 176.24972929420431,
+          "best": 93.38434495955067,
+          "finishTime": 193.73475955256754,
           "retired": false,
           "penalty": 0,
           "warnings": 0,
@@ -2618,8 +2618,8 @@
         {
           "id": 2,
           "laps": 2,
-          "best": 86.7003467579762,
-          "finishTime": 180.06187634671352,
+          "best": 94.98509034577357,
+          "finishTime": 197.67189683899065,
           "retired": false,
           "penalty": 0,
           "warnings": 0,
@@ -2628,8 +2628,8 @@
         {
           "id": 5,
           "laps": 2,
-          "best": 88.40216326796298,
-          "finishTime": 183.7186487412249,
+          "best": 96.73323544356006,
+          "finishTime": 201.42775071955506,
           "retired": false,
           "penalty": 0,
           "warnings": 0,
@@ -2638,8 +2638,8 @@
         {
           "id": 4,
           "laps": 2,
-          "best": 90.04529845797826,
-          "finishTime": 187.10576837291939,
+          "best": 98.25470665563,
+          "finishTime": 204.90036813930297,
           "retired": false,
           "penalty": 0,
           "warnings": 0,
@@ -2658,20 +2658,20 @@
       "seed": 29030,
       "passed": true,
       "failures": [],
-      "bestLapS": 106.57673801702109,
-      "slowestBestLapS": 114.30643202511743,
-      "bestLapAverageKmh": "182.8",
-      "raceTimeS": 238.65,
-      "maximumSpeedKmh": 294,
+      "bestLapS": 101.08205332274652,
+      "slowestBestLapS": 108.48470364268898,
+      "bestLapAverageKmh": "192.7",
+      "raceTimeS": 225.66,
+      "maximumSpeedKmh": 294.4,
       "maximumImpact": 0,
       "airborneCarSeconds": 0,
-      "wallSeconds": 32.6,
+      "wallSeconds": 30.6,
       "classification": [
         {
           "id": 0,
           "laps": 2,
-          "best": 106.57673801702109,
-          "finishTime": 216.69195552400518,
+          "best": 101.08205332274652,
+          "finishTime": 205.56054140214331,
           "retired": false,
           "penalty": 0,
           "warnings": 0,
@@ -2680,8 +2680,8 @@
         {
           "id": 1,
           "laps": 2,
-          "best": 107.66556539340131,
-          "finishTime": 221.93532082569445,
+          "best": 102.11561137765202,
+          "finishTime": 210.2513067325468,
           "retired": false,
           "penalty": 0,
           "warnings": 0,
@@ -2690,8 +2690,8 @@
         {
           "id": 2,
           "laps": 2,
-          "best": 109.20711453351345,
-          "finishTime": 226.5691841736131,
+          "best": 103.32297708897737,
+          "finishTime": 214.2854167346096,
           "retired": false,
           "penalty": 0,
           "warnings": 0,
@@ -2700,8 +2700,8 @@
         {
           "id": 3,
           "laps": 2,
-          "best": 110.72712124477734,
-          "finishTime": 230.4432814304441,
+          "best": 104.99136302119739,
+          "finishTime": 218.0405336734597,
           "retired": false,
           "penalty": 0,
           "warnings": 0,
@@ -2710,8 +2710,8 @@
         {
           "id": 4,
           "laps": 2,
-          "best": 112.27052814597579,
-          "finishTime": 234.73534289462305,
+          "best": 106.77563561550687,
+          "finishTime": 222.056619030143,
           "retired": false,
           "penalty": 0,
           "warnings": 0,
@@ -2720,8 +2720,8 @@
         {
           "id": 5,
           "laps": 2,
-          "best": 114.30643202511743,
-          "finishTime": 238.64627017609834,
+          "best": 108.48470364268898,
+          "finishTime": 225.65458261047763,
           "retired": false,
           "penalty": 0,
           "warnings": 0,
@@ -2747,7 +2747,7 @@
       "maximumSpeedKmh": 295.6,
       "maximumImpact": 0,
       "airborneCarSeconds": 0,
-      "wallSeconds": 22.7,
+      "wallSeconds": 20.7,
       "classification": [
         {
           "id": 0,
@@ -2829,7 +2829,7 @@
       "maximumSpeedKmh": 305.3,
       "maximumImpact": 0,
       "airborneCarSeconds": 0,
-      "wallSeconds": 35.7,
+      "wallSeconds": 36.4,
       "classification": [
         {
           "id": 1,
@@ -2911,7 +2911,7 @@
       "maximumSpeedKmh": 298.3,
       "maximumImpact": 0.02,
       "airborneCarSeconds": 0,
-      "wallSeconds": 38,
+      "wallSeconds": 35.5,
       "classification": [
         {
           "id": 1,
@@ -2993,7 +2993,7 @@
       "maximumSpeedKmh": 303.9,
       "maximumImpact": 0,
       "airborneCarSeconds": 0,
-      "wallSeconds": 39.1,
+      "wallSeconds": 37.3,
       "classification": [
         {
           "id": 0,
@@ -3075,7 +3075,7 @@
       "maximumSpeedKmh": 288.5,
       "maximumImpact": 0,
       "airborneCarSeconds": 0,
-      "wallSeconds": 32.6,
+      "wallSeconds": 29.4,
       "classification": [
         {
           "id": 0,
@@ -3157,7 +3157,7 @@
       "maximumSpeedKmh": 292.9,
       "maximumImpact": 0,
       "airborneCarSeconds": 0,
-      "wallSeconds": 33.5,
+      "wallSeconds": 31,
       "classification": [
         {
           "id": 1,
@@ -3239,7 +3239,7 @@
       "maximumSpeedKmh": 305.7,
       "maximumImpact": 0,
       "airborneCarSeconds": 0,
-      "wallSeconds": 28.2,
+      "wallSeconds": 27.7,
       "classification": [
         {
           "id": 0,

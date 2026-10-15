@@ -1,5 +1,10 @@
 import { installRaceDayHud, updateRaceDayHud } from './race-day-hud.ts';
-import { machineOptions, machineSelectOptions } from './machine-options.ts';
+import {
+  SESSION_RULES_FIELDS,
+  machineOptions,
+  machineSelectOptions,
+  sessionRulesSummary,
+} from './machine-options.ts';
 import { installCompactRaceHud } from './compact-race-hud.ts';
 import {
   compoundOf,
@@ -49,9 +54,7 @@ import {
   type Setup,
   type StartSlot,
 } from '../simulation/config.ts';
-import { rulesetFor, sessionIncompatibilities } from '../simulation/events.ts';
-import { gridDrs } from '../simulation/drs.ts';
-import { DEFAULT_VEHICLE_ID, VEHICLES } from '../simulation/vehicles.ts';
+import { sessionIncompatibilities } from '../simulation/events.ts';
 import { F, H, W, WHEEL_BASE, WHEEL_STRIDE, WHEEL_NAMES, carBase } from '../simulation/protocol.ts';
 import { type Track } from '../simulation/track.ts';
 import { circuitDefinition, type CircuitId } from '../simulation/circuits.ts';
@@ -331,28 +334,21 @@ export class Interface {
     });
     const describeRules = () => {
       const select = (id: string) => (this.get(id) as HTMLSelectElement).value;
-      const options = validateOptions({
-        ...DEFAULT_OPTIONS,
-        mode: select('mode') as SessionOptions['mode'],
-        opponents: Number(select('opponents')),
-        compound: select('compound') as SessionOptions['compound'],
-      });
-      const resolved = { ...options, ...machineOptions(options, select('vehicle')) };
-      const rules = rulesetFor(resolved),
-        problems = sessionIncompatibilities(validateOptions(resolved)),
-        grid = (resolved.vehicles ?? [DEFAULT_VEHICLE_ID]).map((id) => VEHICLES[id]),
-        drs = gridDrs(rules.drs, grid);
       if (select('mode') === 'festival') {
         this.get('sessionRules').textContent =
           'Festival: free roam in the Solvane region, events found by driving to them. Weather and assists apply; a road machine chosen in MACHINE is used, otherwise pick one in the festival menu.';
         return;
       }
-      this.get('sessionRules').textContent = problems.length
-        ? `Unavailable: ${problems.join('; ')}.`
-        : `${rules.name}: ${rules.tires.mandatoryCompoundChange ? 'two dry compounds required' : 'no mandatory stop'} · DRS ${drs ? 'on' : 'off'} · ${rules.points.length ? 'points scored' : 'no points'}.`;
+      // The circuit matters: the motorcycle rulesets need a bike-safe one.
+      this.get('sessionRules').textContent = sessionRulesSummary({
+        mode: select('mode') as SessionOptions['mode'],
+        opponents: Number(select('opponents')),
+        compound: select('compound') as SessionOptions['compound'],
+        vehicle: select('vehicle'),
+        circuit: select('circuit') as CircuitId,
+      });
     };
-    for (const id of ['mode', 'vehicle', 'compound', 'opponents'])
-      this.get(id).addEventListener('change', describeRules);
+    for (const id of SESSION_RULES_FIELDS) this.get(id).addEventListener('change', describeRules);
     describeRules();
     this.get('weather').addEventListener('change', () => {
       if ((this.get('weather') as HTMLSelectElement).value === 'rain')

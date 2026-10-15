@@ -22,6 +22,8 @@
     "test:vehicles": "node --experimental-transform-types scripts/vehicle-calibration.ts",
     "test:catalogue-races": "node --experimental-transform-types scripts/catalogue-races.ts",
     "test:bikes": "node --experimental-transform-types scripts/bike-race.ts",
+    "test:bike-clearance": "node --experimental-transform-types scripts/bike-clearance.ts",
+    "test:endurance-events": "node --experimental-transform-types scripts/endurance-event-races.ts",
     "test:server": "node --experimental-transform-types scripts/server-prototype.ts",
     "test:online": "node --experimental-transform-types scripts/online-slice.ts",
     "test:long-session": "node --expose-gc --experimental-transform-types scripts/long-session.ts",

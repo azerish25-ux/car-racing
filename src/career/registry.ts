@@ -28,6 +28,9 @@ export interface CareerVenue {
   corners: readonly { s: number; name: string }[];
   /** Optional venue metadata other content may declare. */
   bikeSafe?: boolean;
+  /** Motorcycle race classes cleared at a bike-safe circuit (a passing seeded
+   * race each); absent means the venue states no per-class limit. */
+  bikeClasses?: readonly string[];
   surface?: string;
   venueKind?: string;
   catalogue?: { group?: string; bikeSafe?: boolean };
@@ -243,6 +246,16 @@ export function disciplineVenues(registry: CareerRegistry, discipline: Disciplin
   const kind = registry.venues.filter((v) => venueKind(v) === def.venue);
   if (discipline !== 'road-bikes' || !kind.some(declaresBikeSafety)) return kind;
   return kind.filter(isBikeSafe);
+}
+/** Whether `vehicle` may race at `venue`: a motorcycle races only where its
+ * class is cleared, when the venue names its cleared classes
+ * (CircuitDefinition.bikeClasses). Other machines are not affected. */
+export function venueAdmits(venue: CareerVenue, vehicle: CareerVehicle) {
+  return (
+    vehicleDiscipline(vehicle) !== 'road-bikes' ||
+    !Array.isArray(venue.bikeClasses) ||
+    venue.bikeClasses.includes(vehicle.classId)
+  );
 }
 export function venueCaveat(registry: CareerRegistry, discipline: DisciplineId): string | null {
   if (discipline !== 'road-bikes') return null;

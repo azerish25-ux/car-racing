@@ -1,5 +1,5 @@
 import type { CircuitSpec } from './builder.ts';
-import { A, S, gpPit } from './dsl.ts';
+import { A, ALL_BIKE_CLASSES, MODERN_BIKE_CLASSES, S, gpPit } from './dsl.ts';
 
 /** More real-world-faithful layouts (catalogue wave 2): approximations of
  * famous circuits from public geometry — corner sequence and direction,
@@ -157,6 +157,7 @@ const mountArdlow: CircuitSpec = {
  * a few car lengths, then a sweeping downhill left and a slow final left. */
 const arroyoOro: CircuitSpec = {
   id: 'arroyo-oro',
+  bikeClasses: MODERN_BIKE_CLASSES,
   name: 'ARROYO ORO / RACEWAY',
   short: 'ARROYO ORO',
   group: 'real-world',
@@ -186,31 +187,32 @@ const arroyoOro: CircuitSpec = {
       barrier: { kind: 'concrete', side: 'left' },
     }),
     A(300, 20, { name: 'CREST', y: 6 }),
-    S(150, { y: 3 }),
+    // Braking runs straight from the crest kink into the hairpin.
+    S(260, { y: 3 }),
     A(30, 160, {
       name: 'LONG HAIRPIN',
       y: 0,
       barrier: { side: 'out', offset: 22, kind: 'tyre' },
       stands: 'out',
     }),
-    S(250, { y: -2 }),
+    S(272, { y: -2 }),
     A(60, -40, { name: 'GULCH', y: -3 }),
-    S(250, { y: -3 }),
+    S(275, { y: -3 }),
     A(60, -50, { name: 'MEADOW', y: -1, stands: 'out' }),
-    S(500, { y: 12 }),
+    S(513, { y: 12 }),
     A(70, 90, { name: 'THE CLIMB', y: 12 }),
-    S(313, { y: 36 }),
+    S(335, { y: 36 }),
     A(80, 80, { name: 'UPPER', y: 42 }),
-    S(80, { y: 45 }),
+    S(71, { y: 45 }),
     A(70, -10, { name: 'HILLTOP', y: 47 }),
-    S(80, { y: 47 }),
+    S(75, { y: 47 }),
     A(28, 40, { name: 'THE PLUNGE', y: 42, stands: 'in' }),
     A(30, -40, { y: 35 }),
-    S(80, { y: 29 }),
+    S(75, { y: 29 }),
     A(110, 40, { name: 'DESCENDER', y: 20, runoff: { out: 'gravel' } }),
-    S(402, { y: 13 }),
+    S(382, { y: 13 }),
     A(60, -40, { name: 'TEN', y: 8 }),
-    S(40, { y: 6 }),
+    S(150, { y: 6 }),
     A(30, 110, {
       name: 'FINAL TURN',
       y: 5,
@@ -227,6 +229,7 @@ const arroyoOro: CircuitSpec = {
  * straight. A lake lies beside the straight. */
 const fiumeVerde: CircuitSpec = {
   id: 'fiume-verde',
+  bikeClasses: ALL_BIKE_CLASSES,
   name: 'FIUME VERDE / AUTODROMO',
   short: 'FIUME VERDE',
   group: 'real-world',
@@ -290,16 +293,18 @@ const fiumeVerde: CircuitSpec = {
     S(60, { y: 7 }),
     A(70, 90, { y: 4, stands: 'out' }),
     S(450, { drop: 'right', y: 2 }),
-    A(25, -40, { name: 'VARIANTE BASSA', y: 2, runoff: { out: 'asphalt', in: 'asphalt' } }),
+    A(25, -40, { name: 'VARIANTE DEI PIOPPI', y: 2, runoff: { out: 'asphalt', in: 'asphalt' } }),
     S(15),
     A(25, 40, { runoff: { out: 'asphalt', in: 'asphalt' } }),
     S(250, { drs: true, w: 7.2, y: 2, drop: 'right', barrier: { kind: 'concrete', side: 'left' } }),
   ],
 };
 
-/** Dunes circuit: clockwise between the sand dunes, a hairpin at the end of
- * the straight, a 19-degree banked right hairpin, a blind crest over a dune,
- * a fast plunge and an 18-degree banked final right onto the straight. */
+/** Dunes circuit: clockwise between the sand dunes — a right hairpin at the
+ * end of the straight, a left and a 19-degree banked left hairpin, the climb
+ * to a blind crest over a dune, fast downhill rights round the back of the
+ * dunes, a left-right, a long run behind the dunes and an 18-degree banked
+ * final right onto the straight. */
 const duinwijk: CircuitSpec = {
   id: 'duinwijk',
   name: 'DUINWIJK / DUNES CIRCUIT',
@@ -309,7 +314,7 @@ const duinwijk: CircuitSpec = {
   venueName: 'Duinwijk Circuit',
   layout: 'Grand Prix',
   description:
-    'Among the sand dunes: a hairpin, a 19-degree banked right, a blind crest over a dune and an 18-degree banked final corner.',
+    'Among the sand dunes: a right hairpin, a 19-degree banked left, a blind crest over a dune and an 18-degree banked final right.',
   theme: 'dunes',
   heading: 0,
   winding: -1,
@@ -323,29 +328,36 @@ const duinwijk: CircuitSpec = {
   runoff: { straight: 'grass', outside: 'gravel', inside: 'grass' },
   pit: gpPit(1),
   path: [
-    S(400, { drs: true, w: 7, y: 8, stands: 'left', barrier: { kind: 'concrete', side: 'left' } }),
-    A(40, -120, {
+    S(380, { drs: true, w: 7, y: 8, stands: 'left', barrier: { kind: 'concrete', side: 'left' } }),
+    A(40, -175, {
       name: 'HAARSPELD',
       y: 6,
       runoff: { out: 'gravel' },
       barrier: { side: 'out', offset: 14, kind: 'tyre' },
       stands: 'both',
     }),
-    S(300, { y: 4 }),
-    A(70, 60, { name: 'DUINPAN', y: 3 }),
-    S(200, { y: 2 }),
-    A(45, -160, { name: 'KUIPBOCHT', y: 2, bank: 19, stands: 'out' }),
-    S(250, { y: 8 }),
-    A(120, 40, { name: 'HELMGRAS', y: 15 }),
-    S(300, { y: 8 }),
-    A(80, 70, { name: 'ZEEWIND', y: 6 }),
-    S(250, { y: 2 }),
-    A(60, -70, { name: 'STRANDPAD', y: 1, stands: 'out' }),
-    S(150, { y: 0 }),
-    A(50, -90, { name: 'BUNKER', y: 0 }),
-    S(628, { y: 2 }),
-    A(80, -90, { name: 'DUINBOCHT', y: 4, bank: 18, stands: 'out' }),
-    S(589, { drs: true, w: 7, y: 8, barrier: { kind: 'concrete', side: 'left' } }),
+    S(120, { y: 4 }),
+    A(70, 50, { name: 'DUINPAN', y: 3 }),
+    S(100, { y: 2 }),
+    // The banked bowl: a left hairpin with its outside (right) edge raised.
+    A(45, 155, { name: 'KUIPBOCHT', y: 2, bank: 19, stands: 'out' }),
+    S(360, { y: 9 }),
+    A(100, 40, { name: 'HELMGRAS', y: 13 }),
+    S(120, { y: 12 }),
+    A(110, -60, { name: 'ZEEWIND', y: 10 }),
+    S(80, { y: 8 }),
+    A(90, -100, { name: 'SCHELPENBOCHT', y: 4 }),
+    S(350, { y: 3 }),
+    A(60, -90, { name: 'STRANDPAD', y: 2, stands: 'out' }),
+    S(300, { y: 1 }),
+    A(50, 50, { name: 'BUNKER', y: 0 }),
+    S(40, { y: 0 }),
+    A(50, -50, { y: 0 }),
+    S(878, { y: 2 }),
+    A(70, -90, { name: 'NOLLEN', y: 3 }),
+    S(252, { y: 5 }),
+    A(80, -90, { name: 'DUINBOCHT', y: 6, bank: 18, stands: 'out' }),
+    S(450, { drs: true, w: 7, y: 8, barrier: { kind: 'concrete', side: 'left' } }),
   ],
 };
 

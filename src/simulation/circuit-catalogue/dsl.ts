@@ -1,6 +1,16 @@
 import type { PitLaneDefinition } from '../circuits.ts';
 import type { Segment } from './builder.ts';
 
+/** Motorcycle race classes a bike-safe circuit clears (`bikeClasses`): each
+ * listed class has a passing seeded race there (docs/bike-clearance.json). */
+export const ALL_BIKE_CLASSES = Object.freeze([
+  'gp-bike',
+  'superbike',
+  'supersport',
+  'classic-bike',
+] as const);
+/** The modern classes only: the classic class falls in tight hairpins. */
+export const MODERN_BIKE_CLASSES = Object.freeze(['gp-bike', 'superbike', 'supersport'] as const);
 /** Authoring shorthand: a straight of `length` metres. */
 export const S = (length: number, props: Omit<Segment, 's' | 'r' | 'turn'> = {}): Segment => ({
   s: length,

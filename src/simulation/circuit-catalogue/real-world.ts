@@ -1,5 +1,5 @@
 import type { CircuitSpec } from './builder.ts';
-import { A, S, compactPit, gpPit } from './dsl.ts';
+import { A, ALL_BIKE_CLASSES, MODERN_BIKE_CLASSES, S, compactPit, gpPit } from './dsl.ts';
 
 /** Approximations of famous real-world layouts from public geometry: corner
  * sequence, straight lengths, radii and elevation where publicly known, scaled
@@ -11,6 +11,7 @@ import { A, S, compactPit, gpPit } from './dsl.ts';
 
 const parcoReale: CircuitSpec = {
   id: 'parco-reale',
+  bikeClasses: ALL_BIKE_CLASSES,
   name: 'PARCO REALE / AUTODROMO',
   short: 'PARCO REALE',
   group: 'real-world',
@@ -79,6 +80,7 @@ const parcoReale: CircuitSpec = {
  * the woods and climbs back on flat-out curves. Pit lane on the left. */
 const ardennes: CircuitSpec = {
   id: 'ardennes',
+  bikeClasses: MODERN_BIKE_CLASSES,
   name: 'ARDENNES / FOREST CIRCUIT',
   short: 'ARDENNES',
   group: 'real-world',
@@ -186,6 +188,7 @@ const northfieldCommon = {
 const northfield: CircuitSpec = {
   ...northfieldCommon,
   id: 'northfield',
+  bikeClasses: ALL_BIKE_CLASSES,
   name: 'NORTHFIELD / AIRFIELD GP',
   short: 'NORTHFIELD',
   layout: 'Grand Prix',
@@ -235,6 +238,7 @@ const northfield: CircuitSpec = {
 const northfieldClassic: CircuitSpec = {
   ...northfieldCommon,
   id: 'northfield-classic',
+  bikeClasses: ALL_BIKE_CLASSES,
   name: 'NORTHFIELD / CLASSIC',
   short: 'NFLD CLASSIC',
   layout: 'Classic',
@@ -293,6 +297,7 @@ const kansaiCommon = {
 const kansai: CircuitSpec = {
   ...kansaiCommon,
   id: 'kansai',
+  bikeClasses: MODERN_BIKE_CLASSES,
   name: 'KANSAI / FIGURE-EIGHT',
   short: 'KANSAI',
   layout: 'Grand Prix',
@@ -353,6 +358,7 @@ const kansai: CircuitSpec = {
 const kansaiEast: CircuitSpec = {
   ...kansaiCommon,
   id: 'kansai-east',
+  bikeClasses: ALL_BIKE_CLASSES,
   name: 'KANSAI / EAST COURSE',
   short: 'KANSAI EAST',
   layout: 'East Course',
@@ -468,6 +474,7 @@ const riviera: CircuitSpec = {
  * section with a long triple-apex right. Pit lane on the left. */
 const texasHill: CircuitSpec = {
   id: 'texas-hill',
+  bikeClasses: MODERN_BIKE_CLASSES,
   name: 'TEXAS HILL / COUNTRY CIRCUIT',
   short: 'TEXAS HILL',
   group: 'real-world',

@@ -39,8 +39,9 @@ const ramlaOpening = (run: number): Segment[] => [
   A(35, -60, { name: 'WAHA', y: 10, stands: 'out' }),
 ];
 /** Desert night circuit: floodlit, clockwise — a long straight, a slow
- * first right, sweeping esses, a hairpin, a downhill double left, a long
- * back straight and two rights onto the straight. Asphalt run-off. */
+ * first right, flowing esses, a right hairpin, a downhill double left, a long
+ * left, three rights, a long diagonal straight and a last right onto the
+ * straight. Asphalt run-off. */
 const ramlaNight: CircuitSpec = {
   ...ramla,
   id: 'ramla-night',
@@ -54,24 +55,25 @@ const ramlaNight: CircuitSpec = {
   path: [
     ...ramlaOpening(1000),
     S(134, { y: 10 }),
-    A(40, -90, { name: 'SAHRA', y: 11 }),
-    S(300, { y: 12 }),
-    A(30, 180, { name: 'HILAL', y: 13, stands: 'out' }),
-    S(300, { y: 12 }),
-    A(40, -90, { name: 'DAHAB', y: 11 }),
-    S(100, { y: 11 }),
     A(80, 40, { name: 'KATHIB', y: 11 }),
-    A(70, -50, { y: 12 }),
-    A(80, 30, { y: 13 }),
-    S(94, { y: 14 }),
-    A(25, -110, { name: 'FANAR', y: 14, stands: 'out' }),
-    S(263, { y: 12 }),
-    A(80, 40, { name: 'QAMAR', y: 8 }),
-    A(60, -40, { y: 5 }),
-    S(711, { drs: true, y: 3 }),
-    A(100, -40, { name: 'NAJMA', y: 3 }),
-    S(300, { y: 4 }),
-    A(40, -50, { name: 'BURJ', y: 5, stands: 'out' }),
+    A(70, -40, { y: 12 }),
+    A(80, 40, { y: 13 }),
+    S(60, { y: 14 }),
+    A(25, -120, { name: 'FANAR', y: 14, stands: 'out' }),
+    S(572, { y: 13 }),
+    // The downhill double left.
+    A(80, 30, { name: 'QAMAR', y: 11 }),
+    S(60, { y: 9 }),
+    A(35, 40, { name: 'HILAL', y: 7, stands: 'out' }),
+    S(150, { y: 5 }),
+    A(100, 90, { name: 'SAHRA', y: 4 }),
+    A(100, -60, { y: 3 }),
+    S(80, { y: 3 }),
+    A(40, -90, { name: 'DAHAB', y: 4, stands: 'out' }),
+    S(150, { y: 4 }),
+    A(60, -60, { name: 'NAJMA', y: 4 }),
+    S(850, { drs: true, y: 5 }),
+    A(80, -50, { name: 'BURJ', y: 5, stands: 'out' }),
     S(500, { drs: true, w: 8, y: 6, barrier: { kind: 'concrete', side: 'right' } }),
   ],
 };
@@ -275,7 +277,7 @@ const lotusHillPath: Segment[] = [
   S(250, { y: 26, w: 4.8, drop: 'left' }),
   A(14, -170, { name: 'GANCHO', y: 24, w: 5.6, stands: 'out' }),
   S(150, { y: 20, w: 4.8, rock: 'right' }),
-  A(14, 170, { name: 'PESCADOR', y: 17, w: 5.6 }),
+  A(14, 170, { name: 'MARÉ', y: 17, w: 5.6 }),
   ...bends(1300, 120, 25, 17, 10, ['SOLAR', undefined, 'JARDIM'], { facades: 'both' }),
   A(30, -70, { name: 'CURVA DO PORTO', y: 6, facades: 'out' }),
   S(719, { y: 4, facades: 'both' }),

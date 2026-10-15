@@ -75,13 +75,13 @@ character; names are original.
 | Montejaral Circuit (`montejaral`) | real-world | 4423 | 4423 | 13 | 2 | right | 8 | 2.2% | 1° | bike-safe; Andalusian tight technical, final left hairpin |
 | Hochwald Forest Ring — Forest Ring (`hochwald`) | real-world | 20832 | 20832 | 33 | 1 | right | 274 | 9.3% | 16° | day-night lit; forest ring, blind crests, banked hairpin; 4864 samples |
 | Loirette Endurance Circuit — Endurance (`loirette`) | real-world | 13626 | 13626 | 14 | 3 | right | 26 | 2.1% | 1° | day-night lit; closed public roads with two chicanes; 3072 samples |
-| Loirette Endurance Circuit — Club Circuit (`loirette-club`) | real-world | 4185 | 4185 | 8 | 1 | right | 9 | 2.0% | 1° | bike-safe, day-night lit; permanent club loop |
+| Loirette Endurance Circuit — Club Circuit (`loirette-club`) | real-world | 4185 | 4185 | 8 | 1 | right | 9 | 2.0% | 1° | bike-safe, day-night lit; permanent club loop, a right and a left hairpin |
 | Serra Verde Autódromo (`serra-verde`) | real-world | 4309 | 4309 | 10 | 2 | left | 31 | 8.2% | 1° | anticlockwise bowl, uphill final climb |
 | Mount Ardlow Circuit — Mountain Circuit (`mount-ardlow`) | real-world | 6213 | 6213 | 12 | 3 | left | 172 | 14.5% | 1° | steep climb, walled ridge, plunge, 1.7 km straight |
-| Arroyo Oro Raceway (`arroyo-oro`) | real-world | 3602 | 3602 | 11 | 1 | left | 50 | 16.7% | 1° | bike-safe; corkscrew-like blind left-right drop |
+| Arroyo Oro Raceway (`arroyo-oro`) | real-world | 3602 | 3602 | 11 | 1 | left | 49 | 17.4% | 1° | bike-safe; corkscrew-like blind left-right drop |
 | Autodromo Fiume Verde (`fiume-verde`) | real-world | 4909 | 4909 | 8 | 1 | left | 31 | 11.1% | 1° | bike-safe; old-school chicanes, river lake by the straight |
-| Duinwijk Circuit (`duinwijk`) | real-world | 4259 | 4259 | 8 | 1 | right | 14 | 6.3% | 19° | dunes; 19° and 18° banked rights, blind crest |
-| Ramla Desert Circuit (`ramla-night`) | real-world | 5412 | 5412 | 11 | 3 | right | 11 | 4.8% | 1° | night, floodlit desert, asphalt run-off |
+| Duinwijk Circuit (`duinwijk`) | real-world | 4259 | 4259 | 10 | 1 | right | 13 | 4.3% | 19° | dunes; right hairpin, 19° banked left hairpin, blind crest, 18° banked final right |
+| Ramla Desert Circuit (`ramla-night`) | real-world | 5412 | 5412 | 11 | 3 | right | 11 | 3.8% | 1° | night, floodlit desert, downhill double left, asphalt run-off |
 | Ramla Desert Circuit — Outer Circuit (`ramla-outer`) | real-world | 3543 | 3543 | 7 | 2 | right | 6 | 1.2% | 1° | night, short outer loop |
 | Mirvari Boulevard Street Circuit (`mirvari`) | real-world | 6003 | 6003 | 9 | 3 | left | 24 | 5.3% | 1° | Caspian-style streets: ~2 km flat-out, 8.6 m fortress section |
 | Lantern Bay Street Circuit (`lantern-bay`) | real-world | 4940 | 4940 | 10 | 3 | left | 1 | 0.9% | 1° | night street circuit, river bridge, bayfront |
@@ -116,8 +116,31 @@ Consumers: the `gp-motorcycle` and `motorcycle-class-sprint` rulesets declare
 any other circuit (practice, qualifying and time trial stay open everywhere);
 every built-in motorcycle event is on a flagged circuit; the career's
 `disciplineVenues(…, 'road-bikes')` now lists only flagged circuits and the
-"not assessed" caveat is gone. Seeded bike races on Poggio Alto (GP-R1/GP-R2)
-and Montejaral (SS-600) were added to `npm run test:bikes`.
+"not assessed" caveat is gone.
+
+**Per-class clearance (`bikeClasses`).** Safe run-off does not show that a
+class can ride a circuit: in seeded races the classic class (CR-750) fell
+12–30 times in three laps on the hairpin circuits while the GP, superbike and
+supersport classes rode them cleanly. Every flagged circuit therefore also
+declares `CircuitDefinition.bikeClasses`, the motorcycle race classes with a
+passing seeded race there. `npm run test:bike-clearance` races every class
+(8 riders, 3 laps, test:bikes criteria: finished, every rider classified, no
+rider parked 20 s, at most 6 falls) on every flagged circuit, writes
+[`bike-clearance.json`](bike-clearance.json) and fails when a declared class
+fails or a passing class is not declared; validate:content requires the list
+exactly on bike-safe circuits. The motorcycle rulesets refuse a class that is
+not cleared ("Classic motorcycle riders are not cleared for …"), and the bike
+career builds its generated invitationals and championships only on venues
+that clear every machine of the tier. All four classes are cleared on Aurel,
+Vellamar, Parco Reale, Northfield (both), Kansai East, Cape Wrenna, Haarveld
+and Fiume Verde; the classic class is not cleared on Ardennes, Kansai, Texas
+Hill, Poggio Alto, Montejaral, Loirette Club and Arroyo Oro. `npm run
+test:bikes` now also races every built-in motorcycle event as it loads (its own
+field, laps and weather); the Loirette Club event is a supersport sprint (the
+classic class is not cleared there), and Arroyo Oro's straights before the long
+hairpin and the final turn were lengthened (260 m and 150 m authored) so a
+superbike field brakes upright instead of running wide (14 falls in the
+five-lap event before, none after).
 
 ### Long laps and day-night venues
 
@@ -145,13 +168,33 @@ sections and of the flyover.
 ### Events
 
 Twenty wave-2 events (`circuit-catalogue/events.ts`): GP motorcycle,
-superbike, supersport and classic-bike races on the bike-safe circuits;
+superbike and supersport races on the bike-safe circuits;
 45-minute and one-hour multi-class endurance races on Hochwald and Loirette;
 formula grands prix at Serra Verde, Duinwijk, Ramla (night, two rule sets),
 Mirvari and Lantern Bay (night, changeable); touring at Mount Ardlow; GT at
 Arroyo Oro; historic masters at Fiume Verde; feeder formula at Ramla Outer and
 Lotus Hill; a hypercar night sprint at Gantry Point and the unlimited showcase
 at Bright Basin. All resolve through `eventSession` in validate:content.
+
+`npm run test:endurance-events` runs every catalogue endurance event as the
+player loads it (own mixed-class field, duration, weather and seed) to the
+flag and writes [`endurance-event-races.json`](endurance-event-races.json):
+the race must finish, every car must be classified, no car may be parked for
+30 s and no marshal recovery may be needed. Two faults it guards against were
+found in review. A GT car spun on the forest ring's narrow verge and pressed
+its nose against the armco; the AI's reverse-out recovery cancelled itself as
+soon as the reversing car exceeded 0.7 m/s, so it never cleared the barrier
+and the safety car stayed out for the rest of the race. The manoeuvre now runs
+its full four seconds (cars only; a bike has no reverse), the car stops before
+leaving reverse gear, and as a backstop marshals place an AI car that has
+asked for drive yet covered under 20 m in 30 s back at the track edge
+(`MARSHAL_RECOVERY`, race-control event `CAR_RECOVERED`). Second, lapped cars
+were classified DNF 180 s after the winner although a GT lap of the 13.6 km
+circuit takes over five minutes: the finish grace is now one lap at 25 m/s
+where that is longer (`finishGraceSeconds`; laps up to 4.5 km keep 180 s).
+The forest ring's grid also sat on a 4.6–4.9 % climb, so every car rolled back
+during the lights and took a jump-start penalty; the climb now ends 400 m
+before the line (grid ~1 %).
 
 ## Authoring format
 
@@ -197,9 +240,11 @@ has ≥ 6.5 m bridge headroom, the paddock straight is straighter than R150 m,
 the racing line solves inside the road, real-world layouts are within 3 % of
 their reference length and were authored within 0.85–1.2× of it before
 scaling, tunnels shelter at least one water row, banking stays ≤ 33°, no
-protected name appears (the list gained the wave-2 reference circuits, their
-corners and nearby brands), every circuit declaring `bikeSafe` passes
-`bikeSafetyReport`, long laps carry at least three Track samples per control
+protected name appears in names, descriptions, corners or trackside signage
+(the list gained the wave-2 reference circuits, their corners and sections and
+nearby brands), every circuit declaring `bikeSafe` passes `bikeSafetyReport`
+and names its cleared motorcycle classes, long laps carry at least three Track
+samples per control
 point, and every built-in event — motorcycle events included, which need a
 bike-safe circuit — resolves.
 
@@ -214,7 +259,11 @@ shelter, authored run-off/barriers, events, recorded race evidence, live AI
 laps), `tests/circuit-catalogue-wave2.test.ts` (wave-2 registry, dense long-lap
 sampling, bike-safety measurement, the motorcycle-ruleset and career
 consumers, crane gantries and night/day-night flags, events and race
-evidence), `tests/venue-kit.test.ts` and `tests/venue-kit-wave2.test.ts`
+evidence), `tests/circuit-catalogue-wave2-review.test.ts` (protected corner
+names and signage, the dunes bowl's direction and banking, the desert double
+left, the club hairpins, the forest-ring grid gradient and jump starts, the
+wedged-car recovery and marshal backstop, per-class bike clearance, the bike
+and endurance event evidence, the rules preview), `tests/venue-kit.test.ts` and `tests/venue-kit-wave2.test.ts`
 (terrain/plaza plans for every layout; scene builds of the container terminal,
 island cliffs and a day-night venue).
 
@@ -247,15 +296,15 @@ Recorded run (seed 29030, 6 cars, 2 laps; AI pace on the default setup, not refe
 | cape-wrenna | 4448 | 1:21.587 | 196.3 km/h | 1:28.950 |
 | haarveld | 4542 | 1:24.218 | 194.2 km/h | 1:30.755 |
 | montejaral | 4423 | 1:32.435 | 172.3 km/h | 1:40.318 |
-| hochwald | 20832 | 5:34.681 | 224.1 km/h | 5:43.464 |
+| hochwald | 20832 | 5:34.670 | 224.1 km/h | 5:43.401 |
 | loirette | 13626 | 3:42.973 | 220.0 km/h | 3:49.591 |
 | loirette-club | 4185 | 1:31.535 | 164.6 km/h | 1:37.550 |
 | serra-verde | 4309 | 1:26.602 | 179.1 km/h | 1:34.576 |
 | mount-ardlow | 6213 | 1:53.183 | 197.6 km/h | 2:01.219 |
-| arroyo-oro | 3602 | 1:12.345 | 179.2 km/h | 1:19.717 |
+| arroyo-oro | 3602 | 1:13.502 | 176.4 km/h | 1:20.551 |
 | fiume-verde | 4909 | 1:26.106 | 205.2 km/h | 1:33.445 |
-| duinwijk | 4259 | 1:22.494 | 185.9 km/h | 1:30.045 |
-| ramla-night | 5412 | 1:46.577 | 182.8 km/h | 1:54.306 |
+| duinwijk | 4259 | 1:31.101 | 168.3 km/h | 1:38.255 |
+| ramla-night | 5412 | 1:41.082 | 192.7 km/h | 1:48.485 |
 | ramla-outer | 3543 | 1:00.543 | 210.7 km/h | 1:08.036 |
 | mirvari | 6003 | 2:05.676 | 172.0 km/h | 2:13.498 |
 | lantern-bay | 4940 | 1:56.498 | 152.7 km/h | 2:03.897 |
@@ -314,8 +363,12 @@ batching, probe-detail survey and far-shadow bake apply unchanged.
 - `bikeSafe` is a geometric assessment, not a homologation: there is no air-
   fence, run-off depth beyond the barrier distance or rider-impact model, and
   every circuit shares the same 41 mm flat rumble kerb (no per-venue raised
-  kerbs exist to exclude). Seeded bike races cover Aurel, Vellamar, Poggio
-  Alto and Montejaral; the other flagged circuits are flagged by measurement.
+  kerbs exist to exclude). Per-class clearance rests on one seeded AI race per
+  circuit and class (3 laps): it shows the AI can ride the class there, not
+  that a human can, and the classic class's hairpin falls are an AI
+  braking-lag limit (it reaches hairpins several m/s above its target), not
+  fixed — the bike AI was left unchanged so existing seeded bike races stay
+  identical.
 - Long laps: the water/rubber grid keeps 512 rows per lap (40 m rows on the
   forest ring); venue-kit build cost on the 13.6 km and 20.8 km laps has not
   been measured on hardware. Day-night venues have floodlights but no time-of-

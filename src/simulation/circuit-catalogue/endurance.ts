@@ -1,5 +1,5 @@
 import type { CircuitSpec, Segment } from './builder.ts';
-import { A, S, bends, gpPit } from './dsl.ts';
+import { A, MODERN_BIKE_CLASSES, S, bends, gpPit } from './dsl.ts';
 
 /** Endurance mega-circuits (catalogue wave 2): approximations of the two
  * famous endurance venues from public geometry, under neutral original names
@@ -57,7 +57,7 @@ const hochwald: CircuitSpec = {
     S(500, { y: 4 }),
     A(300, -25, { y: -8 }),
     S(400, { y: -30 }),
-    A(90, -45, { name: 'SPRUNGHÜGEL', y: -33 }),
+    A(90, -45, { name: 'LERCHENKUPPE', y: -33 }),
     ...bends(1900, 230, 18, -33, -60, ['HOHLWEG', undefined, 'RABENSTEIN']),
     A(250, 20, { name: 'KREUZWEG', y: -63 }),
     ...bends(1000, 160, 20, -63, -70, [undefined, 'WOLFSSCHLUCHT']),
@@ -124,7 +124,9 @@ const hochwald: CircuitSpec = {
     A(150, -20, { name: 'SPRUNGFELD', y: -80 }),
     S(450, { y: -76 }),
     A(30, -165, { name: 'KLEINER TRICHTER', y: -74, bank: 8, stands: 'out' }),
-    S(1522, { drs: true, w: 6, y: -20 }),
+    // The climb ends before the grid: the last 400 m (start line, grid and
+    // pit straight) rise only 1%, so a car held on the brakes cannot roll.
+    S(1522, { drs: true, w: 6, y: -4 }),
     S(400, { drs: true, w: 7, y: 0, stands: 'left', barrier: { offset: 11 } }),
   ],
 };
@@ -246,15 +248,16 @@ const loiretteEndurance: CircuitSpec = {
   ],
 };
 /** Club circuit: the pit straight and opening chicane, then a tight infield
- * loop with two right hairpins; laid out for motorcycles. */
+ * loop with a right and a left hairpin; laid out for motorcycles. */
 const loiretteClub: CircuitSpec = {
   ...loirette,
   id: 'loirette-club',
+  bikeClasses: MODERN_BIKE_CLASSES,
   name: 'LOIRETTE / CLUB CIRCUIT',
   short: 'LOIRETTE CLUB',
   layout: 'Club Circuit',
   description:
-    'The permanent club circuit: the pit straight and bridge chicane, then an infield of esses and two slow right hairpins.',
+    'The permanent club circuit: the pit straight and bridge chicane, then an infield of esses, a slow right and a slow left hairpin.',
   variantOf: 'loirette',
   bikeSafe: true,
   halfWidth: 6.8,
@@ -265,10 +268,10 @@ const loiretteClub: CircuitSpec = {
   path: [
     ...loiretteStart(20),
     S(250, { y: 9 }),
-    A(60, -125, { name: 'CHAPELLE', y: 8, stands: 'out' }),
+    A(60, -125, { name: 'PRIEURÉ', y: 8, stands: 'out' }),
     S(750, { y: 4 }),
     A(32, -180, {
-      name: 'GARAGE VERT',
+      name: 'PIGEONNIER',
       y: 2,
       barrier: { side: 'out', offset: 22, kind: 'tyre' },
       stands: 'out',
@@ -281,14 +284,14 @@ const loiretteClub: CircuitSpec = {
       stands: 'out',
     }),
     S(300, { y: 3 }),
-    A(50, -60, { name: 'MUSÉE', y: 2 }),
+    A(50, -60, { name: 'ORANGERIE', y: 2 }),
     S(50, { y: 2 }),
     A(50, 60, { y: 1 }),
     S(400, { y: 0 }),
-    A(80, -90, { name: 'GARAGE BLEU', y: 0 }),
+    A(80, -90, { name: 'LAVOIR', y: 0 }),
     S(88, { y: 0 }),
     A(45, -90, {
-      name: 'RACCORD',
+      name: 'RETOUR',
       y: 0,
       barrier: { side: 'out', offset: 22, kind: 'tyre' },
       stands: 'out',

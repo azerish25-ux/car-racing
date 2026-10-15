@@ -1,0 +1,363 @@
+{
+  "description": "Seeded runs of the built-in catalogue endurance events as the player loads them (own field, duration, weather and seed): production simulation, AI and race control to the flag.",
+  "generatedBy": "npm run test:endurance-events",
+  "criteria": {
+    "parkedSecondsBelow": 30,
+    "everyCarClassified": true,
+    "marshalRecoveries": 0
+  },
+  "reports": [
+    {
+      "event": "kansai-endurance",
+      "circuit": "kansai",
+      "ruleset": "formula-endurance",
+      "weather": "clear",
+      "seed": 29104,
+      "durationSeconds": null,
+      "lengthM": 5807,
+      "finishGraceSeconds": 232.3,
+      "passed": true,
+      "failures": [],
+      "raceSeconds": 1438.54,
+      "safetyCarDeployments": 0,
+      "neutralisedSeconds": 0,
+      "longestNeutralisedSeconds": 0,
+      "incidents": 0,
+      "marshalRecoveries": 0,
+      "longestStopSeconds": 0.37,
+      "wallSeconds": 710.6,
+      "classification": [
+        {
+          "id": 0,
+          "vehicle": "apx01",
+          "laps": 12,
+          "bestLapS": 110.057,
+          "finishTime": 1397.94,
+          "retired": false,
+          "penalty": 0,
+          "longestStopSeconds": 0.34,
+          "marshalRecoveries": 0
+        },
+        {
+          "id": 3,
+          "vehicle": "apx01",
+          "laps": 12,
+          "bestLapS": 111.612,
+          "finishTime": 1403.21,
+          "retired": false,
+          "penalty": 0,
+          "longestStopSeconds": 0.3,
+          "marshalRecoveries": 0
+        },
+        {
+          "id": 1,
+          "vehicle": "apx01",
+          "laps": 12,
+          "bestLapS": 110.959,
+          "finishTime": 1408.66,
+          "retired": false,
+          "penalty": 0,
+          "longestStopSeconds": 0.33,
+          "marshalRecoveries": 0
+        },
+        {
+          "id": 2,
+          "vehicle": "apx01",
+          "laps": 12,
+          "bestLapS": 110.86,
+          "finishTime": 1413.62,
+          "retired": false,
+          "penalty": 0,
+          "longestStopSeconds": 0.37,
+          "marshalRecoveries": 0
+        },
+        {
+          "id": 7,
+          "vehicle": "apx01",
+          "laps": 12,
+          "bestLapS": 110.346,
+          "finishTime": 1420.14,
+          "retired": false,
+          "penalty": 0,
+          "longestStopSeconds": 0.33,
+          "marshalRecoveries": 0
+        },
+        {
+          "id": 5,
+          "vehicle": "apx01",
+          "laps": 12,
+          "bestLapS": 111.588,
+          "finishTime": 1426.49,
+          "retired": false,
+          "penalty": 0,
+          "longestStopSeconds": 0.36,
+          "marshalRecoveries": 0
+        },
+        {
+          "id": 4,
+          "vehicle": "apx01",
+          "laps": 12,
+          "bestLapS": 112.689,
+          "finishTime": 1433.71,
+          "retired": false,
+          "penalty": 0,
+          "longestStopSeconds": 0.33,
+          "marshalRecoveries": 0
+        },
+        {
+          "id": 6,
+          "vehicle": "apx01",
+          "laps": 12,
+          "bestLapS": 112.121,
+          "finishTime": 1438.53,
+          "retired": false,
+          "penalty": 0,
+          "longestStopSeconds": 0.35,
+          "marshalRecoveries": 0
+        }
+      ]
+    },
+    {
+      "event": "hochwald-multi-class",
+      "circuit": "hochwald",
+      "ruleset": "multi-class-endurance",
+      "weather": "changeable",
+      "seed": 30107,
+      "durationSeconds": 2700,
+      "lengthM": 20832,
+      "finishGraceSeconds": 833.3,
+      "passed": true,
+      "failures": [],
+      "raceSeconds": 3383.34,
+      "safetyCarDeployments": 0,
+      "neutralisedSeconds": 0,
+      "longestNeutralisedSeconds": 0,
+      "incidents": 4,
+      "marshalRecoveries": 0,
+      "longestStopSeconds": 5.28,
+      "wallSeconds": 1107.2,
+      "classification": [
+        {
+          "id": 1,
+          "vehicle": "hy11",
+          "laps": 6,
+          "bestLapS": 404.38,
+          "finishTime": 2948.06,
+          "retired": false,
+          "penalty": 0,
+          "longestStopSeconds": 0.38,
+          "marshalRecoveries": 0
+        },
+        {
+          "id": 0,
+          "vehicle": "hy9",
+          "laps": 6,
+          "bestLapS": 402.428,
+          "finishTime": 2957.14,
+          "retired": false,
+          "penalty": 0,
+          "longestStopSeconds": 0.39,
+          "marshalRecoveries": 0
+        },
+        {
+          "id": 3,
+          "vehicle": "pr3",
+          "laps": 6,
+          "bestLapS": 410.835,
+          "finishTime": 2995.66,
+          "retired": false,
+          "penalty": 0,
+          "longestStopSeconds": 0.37,
+          "marshalRecoveries": 0
+        },
+        {
+          "id": 2,
+          "vehicle": "pr2",
+          "laps": 6,
+          "bestLapS": 411.032,
+          "finishTime": 2999,
+          "retired": false,
+          "penalty": 0,
+          "longestStopSeconds": 0.33,
+          "marshalRecoveries": 0
+        },
+        {
+          "id": 5,
+          "vehicle": "gt10m",
+          "laps": 6,
+          "bestLapS": 460.041,
+          "finishTime": 3337.79,
+          "retired": false,
+          "penalty": 0,
+          "longestStopSeconds": 0.33,
+          "marshalRecoveries": 0
+        },
+        {
+          "id": 4,
+          "vehicle": "gt8f",
+          "laps": 6,
+          "bestLapS": 456.375,
+          "finishTime": 3344.33,
+          "retired": false,
+          "penalty": 0,
+          "longestStopSeconds": 0.38,
+          "marshalRecoveries": 0
+        },
+        {
+          "id": 7,
+          "vehicle": "gt6r",
+          "laps": 6,
+          "bestLapS": 464.036,
+          "finishTime": 3383.34,
+          "retired": false,
+          "penalty": 0,
+          "longestStopSeconds": 5.28,
+          "marshalRecoveries": 0
+        },
+        {
+          "id": 6,
+          "vehicle": "gs4",
+          "laps": 5,
+          "bestLapS": 526.794,
+          "finishTime": 3180.66,
+          "retired": false,
+          "penalty": 0,
+          "longestStopSeconds": 0.53,
+          "marshalRecoveries": 0
+        }
+      ]
+    },
+    {
+      "event": "loirette-dusk-endurance",
+      "circuit": "loirette",
+      "ruleset": "multi-class-endurance",
+      "weather": "clear",
+      "seed": 30108,
+      "durationSeconds": 3600,
+      "lengthM": 13626,
+      "finishGraceSeconds": 545,
+      "passed": true,
+      "failures": [],
+      "raceSeconds": 4153.1,
+      "safetyCarDeployments": 0,
+      "neutralisedSeconds": 0,
+      "longestNeutralisedSeconds": 0,
+      "incidents": 0,
+      "marshalRecoveries": 0,
+      "longestStopSeconds": 0.39,
+      "wallSeconds": 1406.5,
+      "classification": [
+        {
+          "id": 1,
+          "vehicle": "hy11",
+          "laps": 14,
+          "bestLapS": 249.56,
+          "finishTime": 3808.58,
+          "retired": false,
+          "penalty": 0,
+          "longestStopSeconds": 0.38,
+          "marshalRecoveries": 0
+        },
+        {
+          "id": 0,
+          "vehicle": "hy9",
+          "laps": 14,
+          "bestLapS": 251.196,
+          "finishTime": 3817.87,
+          "retired": false,
+          "penalty": 5,
+          "longestStopSeconds": 0.38,
+          "marshalRecoveries": 0
+        },
+        {
+          "id": 3,
+          "vehicle": "pr2",
+          "laps": 14,
+          "bestLapS": 253.064,
+          "finishTime": 3821.73,
+          "retired": false,
+          "penalty": 0,
+          "longestStopSeconds": 0.36,
+          "marshalRecoveries": 0
+        },
+        {
+          "id": 2,
+          "vehicle": "hy9",
+          "laps": 14,
+          "bestLapS": 251.396,
+          "finishTime": 3831.83,
+          "retired": false,
+          "penalty": 5,
+          "longestStopSeconds": 0.33,
+          "marshalRecoveries": 0
+        },
+        {
+          "id": 5,
+          "vehicle": "pr2",
+          "laps": 14,
+          "bestLapS": 255.085,
+          "finishTime": 3921.98,
+          "retired": false,
+          "penalty": 0,
+          "longestStopSeconds": 0.33,
+          "marshalRecoveries": 0
+        },
+        {
+          "id": 4,
+          "vehicle": "pr3",
+          "laps": 14,
+          "bestLapS": 262.941,
+          "finishTime": 3965.29,
+          "retired": false,
+          "penalty": 0,
+          "longestStopSeconds": 0.39,
+          "marshalRecoveries": 0
+        },
+        {
+          "id": 7,
+          "vehicle": "gt10m",
+          "laps": 13,
+          "bestLapS": 274.414,
+          "finishTime": 3825.85,
+          "retired": false,
+          "penalty": 0,
+          "longestStopSeconds": 0.3,
+          "marshalRecoveries": 0
+        },
+        {
+          "id": 6,
+          "vehicle": "gt8f",
+          "laps": 13,
+          "bestLapS": 279.846,
+          "finishTime": 3952.15,
+          "retired": false,
+          "penalty": 0,
+          "longestStopSeconds": 0.33,
+          "marshalRecoveries": 0
+        },
+        {
+          "id": 8,
+          "vehicle": "gt6s",
+          "laps": 13,
+          "bestLapS": 284.717,
+          "finishTime": 4051.51,
+          "retired": false,
+          "penalty": 0,
+          "longestStopSeconds": 0.38,
+          "marshalRecoveries": 0
+        },
+        {
+          "id": 9,
+          "vehicle": "gs6m",
+          "laps": 12,
+          "bestLapS": 315.233,
+          "finishTime": 4153.1,
+          "retired": false,
+          "penalty": 0,
+          "longestStopSeconds": 0.39,
+          "marshalRecoveries": 0
+        }
+      ]
+    }
+  ]
+}

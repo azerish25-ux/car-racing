@@ -21,6 +21,7 @@ export class BikeAIDriver extends AIDriver {
   private readonly preview = trackPoint();
   private readonly ahead = trackPoint();
   private pitCorridor = false;
+  protected override readonly reverseRecovery = false;
   constructor(
     readonly bike: BikeVehicle,
     skill = 0.96,

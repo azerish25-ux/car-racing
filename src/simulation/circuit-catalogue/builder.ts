@@ -66,6 +66,8 @@ export interface CircuitSpec {
   dayNight?: boolean;
   /** Assessed safe for motorcycles; validate:content re-measures it. */
   bikeSafe?: boolean;
+  /** Motorcycle race classes with a passing seeded race here (CircuitDefinition). */
+  bikeClasses?: readonly string[];
   /** Fictional trackside signage (the theme's default otherwise). */
   signage?: string;
   seaLevel?: number | null;
@@ -852,6 +854,7 @@ export function defineCircuit(spec: CircuitSpec): CatalogueCircuit {
     covered: (s: number) => covered[cellOf(s)] === 1,
     catalogue: meta,
     bikeSafe: !!spec.bikeSafe,
+    ...(spec.bikeClasses ? { bikeClasses: Object.freeze([...spec.bikeClasses]) } : {}),
     ...(samples !== TRACK_SAMPLES ? { samples } : {}),
   }) as CatalogueCircuit;
 }

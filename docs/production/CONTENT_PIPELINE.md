@@ -399,7 +399,11 @@ Catalogue wave 2 adds a **bike-safety measurement** (`bikeSafetyReport`: run-off
 distance outside corners, kerb rise, banking, tunnels and frontage) that validate:content applies to
 every circuit declaring `bikeSafe`, **dense sampling for long laps** (`trackSamplesFor`, up to 2048
 control points), `dayNight` venues, `bends` chains, crane `gantry` spans and twelve venue-kit
-themes.
+themes. Review additions: per-class motorcycle clearance (`bikeClasses`, evidenced by `npm run
+test:bike-clearance` → `docs/bike-clearance.json` and required on every bike-safe circuit), the
+built-in motorcycle events in `npm run test:bikes`, the catalogue endurance events raced to the flag
+(`npm run test:endurance-events` → `docs/endurance-event-races.json`) and protected-name checks on
+trackside signage.
 
 ### 2.3 Venue vision (§15)
 
@@ -409,8 +413,8 @@ themes.
 | T02 | Vellamar | integrated |
 | C01–C06 | Real-world approximations under neutral names: Parco Reale Autodromo, Ardennes Forest Circuit, Northfield Airfield GP (+ Classic), Kansai Figure-Eight (+ East Course), Riviera Harbour Street Circuit, Texas Hill Country Circuit | integrated (greybox + procedural venue kit); approximations from public geometry, pending a licence for official names; no art, hardware or player acceptance |
 | C07–C12 | Unconventional originals: Neon City night streets with tunnels (+ reverse), Col d’Argent mountain pass (ascent/descent), Mesa Speedbowl 31° tri-oval (+ infield road course), Red Mesa canyon (+ reverse), Cap Lumière cliff road (+ reverse), Iron Quay docklands flyover (+ reverse) | integrated (greybox + procedural venue kit); seeded 6-car AI races pass on all 20 layouts; no art, hardware or player acceptance |
-| C13–C16 | Motorcycle grand-prix approximations, bike-safe: Poggio Alto Autodromo (Tuscan hills), Cape Wrenna Island Circuit (cliff-top), Haarveld Circuit (flat flowing), Montejaral Circuit (tight technical) | integrated (greybox + procedural venue kit); bike-safety measured in validate:content; seeded car races pass; seeded bike races on Poggio Alto and Montejaral; no art, hardware or player acceptance |
-| C17–C18 | Endurance approximations, day-night lit: Hochwald Forest Ring (20.8 km, 274 m elevation range, blind crests), Loirette Endurance Circuit (13.6 km public roads + chicanes; + bike-safe Club Circuit) | integrated (greybox + procedural venue kit); dense long-lap sampling; seeded car races pass; venue-kit build cost on these lengths not measured |
+| C13–C16 | Motorcycle grand-prix approximations, bike-safe: Poggio Alto Autodromo (Tuscan hills), Cape Wrenna Island Circuit (cliff-top), Haarveld Circuit (flat flowing), Montejaral Circuit (tight technical) | integrated (greybox + procedural venue kit); bike-safety measured in validate:content; seeded car races pass; a seeded bike race per class on each (classic class cleared on Cape Wrenna and Haarveld only) and every built-in bike event raced; no art, hardware or player acceptance |
+| C17–C18 | Endurance approximations, day-night lit: Hochwald Forest Ring (20.8 km, 274 m elevation range, blind crests), Loirette Endurance Circuit (13.6 km public roads + chicanes; + bike-safe Club Circuit) | integrated (greybox + procedural venue kit); dense long-lap sampling; seeded car races pass; both multi-class endurance events run to the flag with every car classified (`test:endurance-events`); venue-kit build cost on these lengths not measured |
 | C19–C29 | Real-world approximations: Serra Verde (bowl), Mount Ardlow (mountain), Arroyo Oro (corkscrew drop; bike-safe), Fiume Verde (chicanes and lake; bike-safe), Duinwijk (banked dunes), Ramla (desert night + Outer), Mirvari (Caspian streets, 8.6 m fortress section), Lantern Bay (bay night streets), Lotus Hill (harbour hill streets) | integrated (greybox + procedural venue kit); approximations from public geometry under neutral names, unlicensed; seeded car races pass; no art, hardware or player acceptance |
 | C30–C31 | Unconventional originals: Gantry Point container terminal at night (figure-eight flyover, crane gantries; + reverse), Bright Basin salt-flat airbase high-speed course | integrated (greybox + procedural venue kit); seeded car races pass; no art, hardware or player acceptance |
 | T03–T06 | Lowmere Harbour, High Valley, Solar Basin, Cinderstone Ring | proposed launch venues; not started |

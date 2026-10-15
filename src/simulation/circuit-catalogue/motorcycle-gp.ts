@@ -1,5 +1,5 @@
 import type { CircuitSpec } from './builder.ts';
-import { A, S, gpPit } from './dsl.ts';
+import { A, ALL_BIKE_CLASSES, MODERN_BIKE_CLASSES, S, gpPit } from './dsl.ts';
 
 /** Motorcycle grand-prix style circuits (catalogue wave 2): approximations of
  * famous bike venues from public geometry, under neutral original names (no
@@ -24,6 +24,7 @@ const bikeGp = {
 const poggioAlto: CircuitSpec = {
   ...bikeGp,
   id: 'poggio-alto',
+  bikeClasses: MODERN_BIKE_CLASSES,
   name: 'POGGIO ALTO / AUTODROMO',
   short: 'POGGIO ALTO',
   venue: 'poggio-alto',
@@ -98,6 +99,7 @@ const poggioAlto: CircuitSpec = {
 const capeWrenna: CircuitSpec = {
   ...bikeGp,
   id: 'cape-wrenna',
+  bikeClasses: ALL_BIKE_CLASSES,
   name: 'CAPE WRENNA / ISLAND CIRCUIT',
   short: 'CAPE WRENNA',
   venue: 'cape-wrenna',
@@ -146,6 +148,7 @@ const capeWrenna: CircuitSpec = {
 const haarveld: CircuitSpec = {
   ...bikeGp,
   id: 'haarveld',
+  bikeClasses: ALL_BIKE_CLASSES,
   name: 'HAARVELD / TT CIRCUIT',
   short: 'HAARVELD',
   venue: 'haarveld',
@@ -209,6 +212,7 @@ const haarveld: CircuitSpec = {
 const montejaral: CircuitSpec = {
   ...bikeGp,
   id: 'montejaral',
+  bikeClasses: MODERN_BIKE_CLASSES,
   name: 'MONTEJARAL / CIRCUITO',
   short: 'MONTEJARAL',
   venue: 'montejaral',

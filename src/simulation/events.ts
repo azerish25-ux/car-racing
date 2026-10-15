@@ -3,6 +3,7 @@ import type { Assist, Compound, SessionOptions, WeatherPreset } from './config.t
 import { VEHICLES, type VehicleClass } from './vehicles.ts';
 import { CATALOGUE_EVENTS as CIRCUIT_EVENTS } from './circuit-catalogue/events.ts';
 import { vehicleFamily } from './bike-definitions.ts';
+import { classInfo } from './vehicle-classes.ts';
 import { ALL_CLASSES, CATALOGUE_EVENTS, CATALOGUE_RULESETS } from './catalogue-events.ts';
 
 /** Composable sporting rules (WP09 / F07, masterplan §6.3). A session format
@@ -34,7 +35,8 @@ export interface RulesetDefinition {
   singleClass?: boolean;
   /** 'per-class': classes share the road but are classified within class. */
   classScoring?: 'overall' | 'per-class';
-  /** Runs only on circuits assessed bike-safe (`CircuitDefinition.bikeSafe`). */
+  /** Runs only on circuits assessed bike-safe (`CircuitDefinition.bikeSafe`),
+   * and only the classes cleared there (`CircuitDefinition.bikeClasses`). */
   bikeSafeCircuits?: boolean;
 }
 const DRY: readonly Compound[] = Object.freeze(['soft', 'medium', 'hard']);
@@ -44,6 +46,13 @@ const POINTS = Object.freeze([25, 18, 15, 12, 10, 8, 6, 4, 2, 1]);
  * ruleset keeps its two classes; every bike class may practise, qualify and
  * run a time trial, including the open-world road bike. */
 const BIKE_CLASSES: readonly VehicleClass[] = Object.freeze(['gp-bike', 'superbike'] as const);
+/** Every motorcycle class a race ruleset admits: the classes a bike-safe
+ * circuit's clearance (`CircuitDefinition.bikeClasses`) is measured for. */
+export const BIKE_RACE_CLASSES: readonly VehicleClass[] = Object.freeze([
+  ...BIKE_CLASSES,
+  'supersport',
+  'classic-bike',
+] as const);
 const ALL_BIKE_CLASSES: readonly VehicleClass[] = Object.freeze([
   ...BIKE_CLASSES,
   'supersport',
@@ -199,10 +208,17 @@ export function sessionIncompatibilities(options: SessionOptions): string[] {
     vehicles.filter((id) => VEHICLES[id]).map((id) => vehicleFamily(VEHICLES[id])),
   );
   if (families.size > 1) errors.push('Cars and motorcycles cannot share a grid');
-  if (rules.bikeSafeCircuits && !circuitDefinition(options.circuit).bikeSafe)
-    errors.push(
-      `${rules.name} needs a bike-safe circuit; ${circuitDefinition(options.circuit).name} is not`,
-    );
+  if (rules.bikeSafeCircuits) {
+    const circuit = circuitDefinition(options.circuit);
+    if (!circuit.bikeSafe)
+      errors.push(`${rules.name} needs a bike-safe circuit; ${circuit.name} is not`);
+    else
+      for (const cls of new Set(vehicles.map((id) => VEHICLES[id]?.classId)))
+        if (cls && !circuit.bikeClasses?.includes(cls))
+          errors.push(
+            `${classInfo(cls).name} riders are not cleared for ${circuit.name} (no passing seeded race)`,
+          );
+  }
   if (rules.singleClass && new Set(vehicles.map((id) => VEHICLES[id]?.classId)).size > 1)
     errors.push(`${rules.name} runs single-class grids`);
   if (!options.vehicles && !rules.allowedClasses.includes('formula'))

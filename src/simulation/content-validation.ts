@@ -2,7 +2,7 @@ import { CIRCUITS, STANDARD_PIT, type CircuitDefinition } from './circuits.ts';
 import { bikeSafetyReport, trackGeometryReport } from './circuit-catalogue/geometry-checks.ts';
 import { Track } from './track.ts';
 import { DEFAULT_OPTIONS, SETUP_LIMITS } from './config.ts';
-import { EVENTS, RULESETS, eventSession } from './events.ts';
+import { BIKE_RACE_CLASSES, EVENTS, RULESETS, eventSession } from './events.ts';
 import { VEHICLES, type VehicleDefinition } from './vehicles.ts';
 import { isBike, validateBikeDefinition } from './bike-definitions.ts';
 import { TIRE_FAMILIES } from './tire-families.ts';
@@ -188,6 +188,16 @@ export function validateCircuitDefinition(def: CircuitDefinition): string[] {
     if (Math.abs(def.crossFall(i / 64, false)) > Math.max(def.maxBank, 0.03) + 1e-6)
       e.push(`${at}: authored cross-fall at u=${i / 64} exceeds maxBank`);
   if (def.catalogue) e.push(...validateCatalogueEntry(def));
+  // Motorcycle clearance: a bike-safe circuit names the race classes with a
+  // passing seeded race there, and only a bike-safe circuit names any.
+  const cleared = def.bikeClasses ?? [];
+  if (def.bikeSafe && !cleared.length)
+    e.push(`${at}: a bike-safe circuit must name its cleared motorcycle classes (bikeClasses)`);
+  if (!def.bikeSafe && cleared.length)
+    e.push(`${at}: motorcycle classes are cleared but the circuit is not bike-safe`);
+  for (const cls of cleared)
+    if (!BIKE_RACE_CLASSES.includes(cls as (typeof BIKE_RACE_CLASSES)[number]))
+      e.push(`${at}: ${cls} is not a motorcycle race class`);
   const p = def.pit ?? STANDARD_PIT;
   if (p.side !== 1 && p.side !== -1) e.push(`${at}: pit side must be 1 or -1`);
   if (!(p.divergeEnd < p.divergeStart))
@@ -343,6 +353,84 @@ export const PROTECTED_NAMES = Object.freeze([
   'lisboa',
   'motogp',
   'worldsbk',
+  // Wave 2 review: corner and section names of the reference circuits that
+  // the first list missed (and nearby series, sponsor and tyre brands).
+  'garage vert',
+  'garage bleu',
+  'chapelle',
+  'la chapelle',
+  'musée',
+  'musee',
+  'raccordement',
+  'chemin aux boeufs',
+  'chemin aux bœufs',
+  'dunlop',
+  'michelin',
+  'maison blanche',
+  'virages porsche',
+  'porsche curves',
+  'esses de la forêt',
+  'sprunghügel',
+  'sprunghugel',
+  'hohe acht',
+  'wippermann',
+  'eschbach',
+  'klostertal',
+  'steilstrecke',
+  'caracciola',
+  'galgenkopf',
+  'antoniusbuche',
+  'tiergarten',
+  'hohenrain',
+  'schwedenkreuz',
+  'aremberg',
+  'metzgesfeld',
+  'kallenhard',
+  'ex-mühle',
+  'mutkurve',
+  'kottenborn',
+  'hocheichen',
+  'eiskurve',
+  'bellof',
+  'variante bassa',
+  'variante alta',
+  'rettifilo',
+  'roggia',
+  'laranjinha',
+  'mergulho',
+  'junção',
+  'subida dos boxes',
+  'curva do sol',
+  'reta oposta',
+  'gerlach',
+  'hunserug',
+  'slotemaker',
+  'hans ernst',
+  'the cutting',
+  'reid park',
+  'sulman park',
+  'the dipper',
+  'rahal',
+  'fishermen',
+  'pescadores',
+  'melco',
+  'mandarin',
+  'maternity',
+  'maternidade',
+  'moorish',
+  'siberia',
+  'hayshed',
+  'san donato',
+  'poggio secco',
+  'palagio',
+  'haarbocht',
+  'madijk',
+  'ossebroeken',
+  'veenslang',
+  'hoge heide',
+  'expo 92',
+  'peluqui',
+  'crivillé',
 ] as const);
 const protectedName = new RegExp(
   `(^|[^a-z0-9])(${PROTECTED_NAMES.map((n) => n.replace(/[-.]/g, '\\$&')).join('|')})([^a-z0-9]|$)`,
@@ -358,6 +446,8 @@ function validateCatalogueEntry(def: CircuitDefinition): string[] {
     meta.venueName,
     meta.layout,
     meta.description,
+    // Player-visible trackside boards and gantry text.
+    ...(meta.signage ? [meta.signage] : []),
     ...def.corners.map((c) => c.name),
   ];
   for (const text of texts)

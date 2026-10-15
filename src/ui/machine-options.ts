@@ -1,5 +1,12 @@
-import type { SessionOptions } from '../simulation/config.ts';
-import { RULESETS, TIMED_LIMITS } from '../simulation/events.ts';
+import type { CircuitId } from '../simulation/circuits.ts';
+import { DEFAULT_OPTIONS, validateOptions, type SessionOptions } from '../simulation/config.ts';
+import { gridDrs } from '../simulation/drs.ts';
+import {
+  RULESETS,
+  TIMED_LIMITS,
+  rulesetFor,
+  sessionIncompatibilities,
+} from '../simulation/events.ts';
 import { classInfo, vehiclesByClass } from '../simulation/vehicle-classes.ts';
 import { DEFAULT_VEHICLE_ID, VEHICLES } from '../simulation/vehicles.ts';
 import { BIKE_MACHINES, bikeMachineOptions } from './bike-machines.ts';
@@ -121,4 +128,40 @@ export function machineOptions(
     ...(durationSeconds !== undefined ? { durationSeconds } : {}),
     compound: compoundFor(ruleset, options.compound),
   };
+}
+/** The session menu fields the rules preview reads. */
+export interface SessionRulesFields {
+  mode: SessionOptions['mode'];
+  opponents: number;
+  compound: SessionOptions['compound'];
+  vehicle: string;
+  circuit: CircuitId;
+}
+/** Menu ids whose change re-runs the rules preview: every field it reads
+ * (the circuit too, since the motorcycle rulesets need a bike-safe one). */
+export const SESSION_RULES_FIELDS = Object.freeze([
+  'mode',
+  'vehicle',
+  'compound',
+  'opponents',
+  'circuit',
+] as const satisfies readonly (keyof SessionRulesFields)[]);
+/** The rules line under the session menu: the resolved ruleset's summary, or
+ * why the selection cannot start (the same check the START button runs). */
+export function sessionRulesSummary(fields: SessionRulesFields) {
+  const options = validateOptions({
+    ...DEFAULT_OPTIONS,
+    mode: fields.mode,
+    opponents: fields.opponents,
+    compound: fields.compound,
+    circuit: fields.circuit,
+  });
+  const resolved = { ...options, ...machineOptions(options, fields.vehicle) };
+  const rules = rulesetFor(resolved),
+    problems = sessionIncompatibilities(validateOptions(resolved)),
+    grid = (resolved.vehicles ?? [DEFAULT_VEHICLE_ID]).map((id) => VEHICLES[id]),
+    drs = gridDrs(rules.drs, grid);
+  return problems.length
+    ? `Unavailable: ${problems.join('; ')}.`
+    : `${rules.name}: ${rules.tires.mandatoryCompoundChange ? 'two dry compounds required' : 'no mandatory stop'} · DRS ${drs ? 'on' : 'off'} · ${rules.points.length ? 'points scored' : 'no points'}.`;
 }
