@@ -1,7 +1,7 @@
 {
   "version": 1,
   "budgetBytes": 157286400,
-  "totalBytes": 11498600,
+  "totalBytes": 29509465,
   "tools": {
     "hdrify": "1.3.0",
     "jpeg-js": "0.4.4",
@@ -1226,15 +1226,768 @@
       ],
       "texture": {
         "metres": 2,
-        "normalConvention": "gl"
+        "normalConvention": "gl",
+        "meanColor": [
+          0.37121,
+          0.21981,
+          0.11837
+        ],
+        "meanRoughness": 0.79251
+      }
+    },
+    {
+      "id": "ground-lawn",
+      "kind": "texture",
+      "area": "ground",
+      "title": "Grass 001",
+      "author": "ambientCG",
+      "licence": "CC0-1.0",
+      "attribution": "\"Grass 001\" texture by ambientCG (CC0 1.0)",
+      "sourceUrl": "https://raw.githubusercontent.com/pmndrs/market-assets/c9cfa0236a012093edd5affe200808752375bd90/files/materials/grass/Grass001_1K_Color.jpg",
+      "homepage": "https://ambientcg.com/view?id=Grass001",
+      "files": [
+        {
+          "path": "assets/third-party/ground/ground-lawn/ground-lawn_color.webp",
+          "bytes": 148186,
+          "sha256": "526b374c6b60b9e88e59c771b3383bd496cb015c52c4c0718d4cb81d86bc9fc0",
+          "role": "color",
+          "format": "webp",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/ground/ground-lawn/ground-lawn_color.ktx2",
+          "bytes": 235219,
+          "sha256": "4659b8ff9ec530866245a6e9c27e6377a97dcd9d120126e7bbdb196ab6d2ccb6",
+          "role": "color",
+          "format": "ktx2",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/ground/ground-lawn/ground-lawn_normal.webp",
+          "bytes": 243886,
+          "sha256": "b49d5c6f323a00b590572dd4f5a59516b676e79372a952d8dc13d2c1270cca03",
+          "role": "normal",
+          "format": "webp",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/ground/ground-lawn/ground-lawn_normal.ktx2",
+          "bytes": 1313799,
+          "sha256": "054bbbb61d9084d125ed5ae63df015a3f72d529ccd1495bb4873b6591c32d119",
+          "role": "normal",
+          "format": "ktx2",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/ground/ground-lawn/ground-lawn_orm.webp",
+          "bytes": 309636,
+          "sha256": "4aeb3eba6dd8bf5c0b7710c0db1fd2ed78dbe13d3c0f9bb804a43d3d488124c1",
+          "role": "orm",
+          "format": "webp",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/ground/ground-lawn/ground-lawn_orm.ktx2",
+          "bytes": 236443,
+          "sha256": "2a536c78320ae0b34446dc05c5fc57b2125ee9808263c78324e4c2897d0c524c",
+          "role": "orm",
+          "format": "ktx2",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "linear"
+        }
+      ],
+      "texture": {
+        "metres": 1.6,
+        "normalConvention": "gl",
+        "meanColor": [
+          0.05949,
+          0.1078,
+          0.02269
+        ],
+        "meanRoughness": 0.54406
+      }
+    },
+    {
+      "id": "ground-meadow",
+      "kind": "texture",
+      "area": "ground",
+      "title": "Aerial Grass Rock",
+      "author": "Poly Haven",
+      "licence": "CC0-1.0",
+      "attribution": "\"Aerial Grass Rock\" texture from Poly Haven (CC0 1.0)",
+      "sourceUrl": "https://registry.npmjs.org/aframe-enviropacks/-/aframe-enviropacks-0.10.0.tgz",
+      "homepage": "https://polyhaven.com/a/aerial_grass_rock",
+      "files": [
+        {
+          "path": "assets/third-party/ground/ground-meadow/ground-meadow_color.webp",
+          "bytes": 181224,
+          "sha256": "aadd78595f90a83a836f43056a432211a8ed863cc1a5d8335a1d55de0e29038c",
+          "role": "color",
+          "format": "webp",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/ground/ground-meadow/ground-meadow_color.ktx2",
+          "bytes": 248025,
+          "sha256": "47aad9f421b4e597c9c483d8e53ed663fcbdf9c465ea6315054218fdd207e587",
+          "role": "color",
+          "format": "ktx2",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/ground/ground-meadow/ground-meadow_normal.webp",
+          "bytes": 148230,
+          "sha256": "4c1deabb83e7a8e8d1d153e0870a7f3674d606cdd832b2a99f83730dadcc0783",
+          "role": "normal",
+          "format": "webp",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/ground/ground-meadow/ground-meadow_normal.ktx2",
+          "bytes": 1175366,
+          "sha256": "2da79e466133ccd2d9177f9de69e54df778befb9cef9624ce01c7850707b682f",
+          "role": "normal",
+          "format": "ktx2",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/ground/ground-meadow/ground-meadow_orm.webp",
+          "bytes": 96260,
+          "sha256": "3f58b87c895a3e429f4736943ffcfdba290fc407ae0c1d2a4048c826bf0c9c5e",
+          "role": "orm",
+          "format": "webp",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/ground/ground-meadow/ground-meadow_orm.ktx2",
+          "bytes": 224070,
+          "sha256": "31a33d38a600f71460be6d005f2422970162724873ca72cf45fb26a2c3da3ceb",
+          "role": "orm",
+          "format": "ktx2",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "linear"
+        }
+      ],
+      "texture": {
+        "metres": 3,
+        "normalConvention": "gl",
+        "meanColor": [
+          0.17013,
+          0.1227,
+          0.02923
+        ],
+        "meanRoughness": 0.80672
+      }
+    },
+    {
+      "id": "ground-forest-floor",
+      "kind": "texture",
+      "area": "ground",
+      "title": "Forest Ground 03",
+      "author": "Poly Haven",
+      "licence": "CC0-1.0",
+      "attribution": "\"Forest Ground 03\" texture from Poly Haven (CC0 1.0)",
+      "sourceUrl": "https://registry.npmjs.org/aframe-enviropacks/-/aframe-enviropacks-0.10.0.tgz",
+      "homepage": "https://polyhaven.com/a/forrest_ground_03",
+      "files": [
+        {
+          "path": "assets/third-party/ground/ground-forest-floor/ground-forest-floor_color.webp",
+          "bytes": 329566,
+          "sha256": "ac2c35ad36eea0a3b5a8afdc5f4eb996d112b16e6c312c794237673f926f6dc7",
+          "role": "color",
+          "format": "webp",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/ground/ground-forest-floor/ground-forest-floor_color.ktx2",
+          "bytes": 239240,
+          "sha256": "cdeef38d117bf40a7d7e5139842d0d1be0e9357e92f2bd0e638cc7203195b68e",
+          "role": "color",
+          "format": "ktx2",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/ground/ground-forest-floor/ground-forest-floor_normal.webp",
+          "bytes": 321246,
+          "sha256": "25533435ea08c67e242c337a7646a358e17fe3c9490b8d3dd3201fc0939f5f9f",
+          "role": "normal",
+          "format": "webp",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/ground/ground-forest-floor/ground-forest-floor_normal.ktx2",
+          "bytes": 1294550,
+          "sha256": "80ce90a1c0a5341b4e95d15448e287f64c89bddec64cd4c01744ec0bd64e30fd",
+          "role": "normal",
+          "format": "ktx2",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/ground/ground-forest-floor/ground-forest-floor_orm.webp",
+          "bytes": 138900,
+          "sha256": "93aef4368d7e8ffc08f8356ae495c0507a64471e6a5091cee46a4e0ec2feede4",
+          "role": "orm",
+          "format": "webp",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/ground/ground-forest-floor/ground-forest-floor_orm.ktx2",
+          "bytes": 234038,
+          "sha256": "1b3eda426e38d938c3e766d698c4bb817f2170d3d32c09b701f701449a358937",
+          "role": "orm",
+          "format": "ktx2",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "linear"
+        }
+      ],
+      "texture": {
+        "metres": 2.5,
+        "normalConvention": "gl",
+        "meanColor": [
+          0.35365,
+          0.23188,
+          0.14554
+        ],
+        "meanRoughness": 0.88293
+      }
+    },
+    {
+      "id": "ground-dry-earth",
+      "kind": "texture",
+      "area": "ground",
+      "title": "Sandstone Cracks",
+      "author": "Poly Haven",
+      "licence": "CC0-1.0",
+      "attribution": "\"Sandstone Cracks\" texture from Poly Haven (CC0 1.0)",
+      "sourceUrl": "https://registry.npmjs.org/aframe-enviropacks/-/aframe-enviropacks-0.10.0.tgz",
+      "homepage": "https://polyhaven.com/a/sandstone_cracks",
+      "files": [
+        {
+          "path": "assets/third-party/ground/ground-dry-earth/ground-dry-earth_color.webp",
+          "bytes": 202772,
+          "sha256": "a5f410e0e6c7603c7db00fea448e1728238dbab4eb3e3fc9fe093353544ad20c",
+          "role": "color",
+          "format": "webp",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/ground/ground-dry-earth/ground-dry-earth_color.ktx2",
+          "bytes": 226716,
+          "sha256": "71b6dad177f004d762eb18d30148293213a2e511adb6ad6a564314c61bb3fb1c",
+          "role": "color",
+          "format": "ktx2",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/ground/ground-dry-earth/ground-dry-earth_normal.webp",
+          "bytes": 207134,
+          "sha256": "66ab6ca3ad2a5ec2807626198650ceee9748cfa908555f5a1f140bfcc4b7029d",
+          "role": "normal",
+          "format": "webp",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/ground/ground-dry-earth/ground-dry-earth_normal.ktx2",
+          "bytes": 1219866,
+          "sha256": "fc08fa7621f37b5cdcd11d81c27fdfc3188a3c3623027adb138cb1d0e55cacca",
+          "role": "normal",
+          "format": "ktx2",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/ground/ground-dry-earth/ground-dry-earth_orm.webp",
+          "bytes": 97598,
+          "sha256": "22f3dd61a7a84dc10367c4c877c36e3eca7dcc8709803c583cc06262d399e002",
+          "role": "orm",
+          "format": "webp",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/ground/ground-dry-earth/ground-dry-earth_orm.ktx2",
+          "bytes": 224835,
+          "sha256": "e161287dc582d175fc1b7b29cec91e4d7b8801dd6b268c20c4ad62051529b253",
+          "role": "orm",
+          "format": "ktx2",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "linear"
+        }
+      ],
+      "texture": {
+        "metres": 2.5,
+        "normalConvention": "gl",
+        "meanColor": [
+          0.64056,
+          0.35942,
+          0.17816
+        ],
+        "meanRoughness": 0.90597
+      }
+    },
+    {
+      "id": "ground-asphalt",
+      "kind": "texture",
+      "area": "ground",
+      "title": "Asphalt 02",
+      "author": "hinndia",
+      "licence": "CC-BY-4.0",
+      "attribution": "\"Asphalt 02\" texture from Poly Haven (CC0 1.0), as shipped with the glTF sample model \"Traffic Cone\" by hinndia (CC BY 4.0); re-synthesised without its cracks",
+      "sourceUrl": "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/edc7c9e67c639d230715049ee31f9a96a6babbbe/Models/TrafficCone/glTF/asphalt_02_diff_1k.jpg",
+      "homepage": "https://polyhaven.com/a/asphalt_02",
+      "files": [
+        {
+          "path": "assets/third-party/ground/ground-asphalt/ground-asphalt_color.webp",
+          "bytes": 319402,
+          "sha256": "e57d85bcf2d5136c4004dc0b0b223478a358cb289f062c0d2e07ee5c2019b3c2",
+          "role": "color",
+          "format": "webp",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/ground/ground-asphalt/ground-asphalt_color.ktx2",
+          "bytes": 225271,
+          "sha256": "560e7f99e5c31ad3974bd5448ac98a685a39f821b06fa5a4b3d1e54a486dd8af",
+          "role": "color",
+          "format": "ktx2",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/ground/ground-asphalt/ground-asphalt_normal.webp",
+          "bytes": 212372,
+          "sha256": "0aa08bbbb73d9e7dcf26d84e2354d54272a267f0760fcbb31354b9efab4d979a",
+          "role": "normal",
+          "format": "webp",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/ground/ground-asphalt/ground-asphalt_normal.ktx2",
+          "bytes": 1176567,
+          "sha256": "b02911b9695c2b369aea8fc3cd46d3c32df499d0c623b953e224f990a2bcff8d",
+          "role": "normal",
+          "format": "ktx2",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/ground/ground-asphalt/ground-asphalt_orm.webp",
+          "bytes": 152580,
+          "sha256": "a19447863b3f1f43fe9307d8a17e7561d776626b746017517d99afc317a3c1bc",
+          "role": "orm",
+          "format": "webp",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/ground/ground-asphalt/ground-asphalt_orm.ktx2",
+          "bytes": 197797,
+          "sha256": "607ebfd6a634dc2fab4641e3b95f58f97a79525acfbb3af03255d11e34469cec",
+          "role": "orm",
+          "format": "ktx2",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "linear"
+        }
+      ],
+      "texture": {
+        "metres": 1.6,
+        "normalConvention": "gl",
+        "meanColor": [
+          0.10987,
+          0.10834,
+          0.09629
+        ],
+        "meanRoughness": 0.77107
+      }
+    },
+    {
+      "id": "ground-wet-earth",
+      "kind": "texture",
+      "area": "ground",
+      "title": "Pavement Ground Wet",
+      "author": "Amazon Lumberyard",
+      "licence": "CC-BY-4.0",
+      "attribution": "\"Pavement Ground Wet\" texture from the Amazon Lumberyard Bistro scene (NVIDIA ORCA), Amazon Lumberyard, CC BY 4.0",
+      "sourceUrl": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/bistro/textures/Pavement_Ground_Wet_BaseColor.png",
+      "homepage": "https://developer.nvidia.com/orca/amazon-lumberyard-bistro",
+      "files": [
+        {
+          "path": "assets/third-party/ground/ground-wet-earth/ground-wet-earth_color.webp",
+          "bytes": 117824,
+          "sha256": "5be74660d192d183aee31d120082917f650c5cb66e91bd8834003e4ace9adbe8",
+          "role": "color",
+          "format": "webp",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/ground/ground-wet-earth/ground-wet-earth_color.ktx2",
+          "bytes": 209770,
+          "sha256": "7e1f50dabe0e9fe6ca58bf126e0babfd41d428ab4842fb7934e9879f77489fbb",
+          "role": "color",
+          "format": "ktx2",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/ground/ground-wet-earth/ground-wet-earth_normal.webp",
+          "bytes": 234970,
+          "sha256": "30725b9adb16e22509e690a028decefe39819201fc02c5bc519346a53ec69b60",
+          "role": "normal",
+          "format": "webp",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/ground/ground-wet-earth/ground-wet-earth_normal.ktx2",
+          "bytes": 1213924,
+          "sha256": "d9ee4e77333289adc8a4a85854451f917bef92ba7dbb9b28fd7dad5e7ac98554",
+          "role": "normal",
+          "format": "ktx2",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/ground/ground-wet-earth/ground-wet-earth_orm.webp",
+          "bytes": 78806,
+          "sha256": "427b104de4d7c9ea008184ea630d65243748f899f2e06db8ea04b0ab13c51c48",
+          "role": "orm",
+          "format": "webp",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/ground/ground-wet-earth/ground-wet-earth_orm.ktx2",
+          "bytes": 187234,
+          "sha256": "eda27b41c8cd216c07304640a0c14575b7155e1a04ea16938a2e7d7e9bf67e02",
+          "role": "orm",
+          "format": "ktx2",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "linear"
+        }
+      ],
+      "texture": {
+        "metres": 2.5,
+        "normalConvention": "gl",
+        "meanColor": [
+          0.0502,
+          0.03817,
+          0.02872
+        ],
+        "meanRoughness": 0.62
+      }
+    },
+    {
+      "id": "ground-concrete",
+      "kind": "texture",
+      "area": "ground",
+      "title": "Concrete Plaster",
+      "author": "Amazon Lumberyard",
+      "licence": "CC-BY-4.0",
+      "attribution": "\"Concrete Plaster\" texture from the Amazon Lumberyard Bistro scene (NVIDIA ORCA), Amazon Lumberyard, CC BY 4.0",
+      "sourceUrl": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/bistro/textures/MASTER_Concrete_Plaster_BaseColor.png",
+      "homepage": "https://developer.nvidia.com/orca/amazon-lumberyard-bistro",
+      "files": [
+        {
+          "path": "assets/third-party/ground/ground-concrete/ground-concrete_color.webp",
+          "bytes": 60070,
+          "sha256": "aedae17ce7e3af64104e7bccfd787e975eeb6aafe7bec900fb94a61356a58683",
+          "role": "color",
+          "format": "webp",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/ground/ground-concrete/ground-concrete_color.ktx2",
+          "bytes": 194735,
+          "sha256": "365f099051a242e873e995d6b458dc2c6eb570b27199314c9e06a9e4b177e74b",
+          "role": "color",
+          "format": "ktx2",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/ground/ground-concrete/ground-concrete_normal.webp",
+          "bytes": 35678,
+          "sha256": "4f68e05633ab0cd2a12321fe04700f92b45399966cbefd2a00eaac4ba40d90e8",
+          "role": "normal",
+          "format": "webp",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/ground/ground-concrete/ground-concrete_normal.ktx2",
+          "bytes": 784649,
+          "sha256": "35ff299225277ada08c3fc4976f84d04faf8d5a2347298e4750734e219707aca",
+          "role": "normal",
+          "format": "ktx2",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/ground/ground-concrete/ground-concrete_orm.webp",
+          "bytes": 22786,
+          "sha256": "f61af0e1984c4dba8445e2a8df863506994724821ae94d052f94c1f0b42e545b",
+          "role": "orm",
+          "format": "webp",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/ground/ground-concrete/ground-concrete_orm.ktx2",
+          "bytes": 161308,
+          "sha256": "fb4ae5b9d918006f3f6a9112c40e1258417b2c8e1f4f5a8ae9495f3acd2066c9",
+          "role": "orm",
+          "format": "ktx2",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "linear"
+        }
+      ],
+      "texture": {
+        "metres": 3,
+        "normalConvention": "gl",
+        "meanColor": [
+          0.30611,
+          0.30315,
+          0.28396
+        ],
+        "meanRoughness": 0.78002
+      }
+    },
+    {
+      "id": "ground-rock",
+      "kind": "texture",
+      "area": "ground",
+      "title": "Rock 020",
+      "author": "ambientCG",
+      "licence": "CC0-1.0",
+      "attribution": "\"Rock 020\" texture by ambientCG (CC0 1.0)",
+      "sourceUrl": "https://raw.githubusercontent.com/pmndrs/market-assets/c9cfa0236a012093edd5affe200808752375bd90/files/materials/rock/Rock020_1K_Color.jpg",
+      "homepage": "https://ambientcg.com/view?id=Rock020",
+      "files": [
+        {
+          "path": "assets/third-party/ground/ground-rock/ground-rock_color.webp",
+          "bytes": 152518,
+          "sha256": "7ff1830edbfe24ae4d36da197f6d2d41b5e8a6785896e6b5c490628966a61d9c",
+          "role": "color",
+          "format": "webp",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/ground/ground-rock/ground-rock_color.ktx2",
+          "bytes": 232979,
+          "sha256": "3deef111fe86445784e44e4d4d43eb50d217bd584453138a503aa717d1f4778a",
+          "role": "color",
+          "format": "ktx2",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/ground/ground-rock/ground-rock_normal.webp",
+          "bytes": 195732,
+          "sha256": "0a99d48ffd8f9e0138902eeb8486339c29f9ce8581ce8f80858bd213fc24ecdf",
+          "role": "normal",
+          "format": "webp",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/ground/ground-rock/ground-rock_normal.ktx2",
+          "bytes": 1125277,
+          "sha256": "8bdeb5b6a717ec9703f5d40135b20d686bfdab3f667b734abe233b7a1338f6e8",
+          "role": "normal",
+          "format": "ktx2",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/ground/ground-rock/ground-rock_orm.webp",
+          "bytes": 28266,
+          "sha256": "6a5e072211de3088c0f57559009ffe90650a99aabed9e233448d1985e9ae00f8",
+          "role": "orm",
+          "format": "webp",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/ground/ground-rock/ground-rock_orm.ktx2",
+          "bytes": 163103,
+          "sha256": "95196caee3f0b82e12e67ad2bc346a22f44f56bd732ef36456a4462373a6a2de",
+          "role": "orm",
+          "format": "ktx2",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "linear"
+        }
+      ],
+      "texture": {
+        "metres": 3,
+        "normalConvention": "gl",
+        "meanColor": [
+          0.08273,
+          0.08083,
+          0.0676
+        ],
+        "meanRoughness": 0.5146
+      }
+    },
+    {
+      "id": "ground-snow",
+      "kind": "texture",
+      "area": "ground",
+      "title": "Snow 004",
+      "author": "ambientCG",
+      "licence": "CC0-1.0",
+      "attribution": "\"Snow 004\" texture by ambientCG (CC0 1.0)",
+      "sourceUrl": "https://registry.npmjs.org/aframe-enviropacks/-/aframe-enviropacks-0.10.0.tgz",
+      "homepage": "https://ambientcg.com/view?id=Snow004",
+      "files": [
+        {
+          "path": "assets/third-party/ground/ground-snow/ground-snow_color.webp",
+          "bytes": 6096,
+          "sha256": "d2377e1c7050e0bbc67a7d8a4523e2abfbc9e67044c64089abf19f1de1a705ae",
+          "role": "color",
+          "format": "webp",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/ground/ground-snow/ground-snow_color.ktx2",
+          "bytes": 136193,
+          "sha256": "d594366f9dab8c7c5017c7ed9eb222a818b1104d6721b7c766035c8c100943d2",
+          "role": "color",
+          "format": "ktx2",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "srgb"
+        },
+        {
+          "path": "assets/third-party/ground/ground-snow/ground-snow_normal.webp",
+          "bytes": 19906,
+          "sha256": "fecfa347cc2eda11dc613806d93ece005fed228ee12fc0c17f63a674e581808b",
+          "role": "normal",
+          "format": "webp",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/ground/ground-snow/ground-snow_normal.ktx2",
+          "bytes": 709318,
+          "sha256": "2ea366ed4ece17403e0301b6be4b4151662a4355d75afff2cc6f93e0accc69da",
+          "role": "normal",
+          "format": "ktx2",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/ground/ground-snow/ground-snow_orm.webp",
+          "bytes": 157918,
+          "sha256": "5c20803d0728dbaaf13972fd5ec27792d2ef1ad8855e5b021aad5b1b1e2bed56",
+          "role": "orm",
+          "format": "webp",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "linear"
+        },
+        {
+          "path": "assets/third-party/ground/ground-snow/ground-snow_orm.ktx2",
+          "bytes": 195969,
+          "sha256": "ad0b00244e3d4a2e7046fd66d5905314347467ac639c3cb1256c78c9b6a18789",
+          "role": "orm",
+          "format": "ktx2",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "linear"
+        }
+      ],
+      "texture": {
+        "metres": 3,
+        "normalConvention": "gl",
+        "meanColor": [
+          0.84136,
+          0.89214,
+          0.9438
+        ],
+        "meanRoughness": 0.61225
       }
     }
   ],
   "documents": [
     {
       "path": "assets/third-party/CREDITS.txt",
-      "bytes": 5965,
-      "sha256": "f028a97d6a3b76f9555c046c1e9a5190f2623c01ccb9fa0964466c33f0f6d984",
+      "bytes": 11007,
+      "sha256": "d3d84691c861f52475f6cfb0778dfbe607f3cde0af699643842f647b15d29e4f",
       "role": "credits",
       "format": "text"
     }

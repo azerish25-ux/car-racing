@@ -62,10 +62,18 @@ export interface TextureSetInfo {
   /** Physical size one texture repeat covers (metres). */
   metres: number;
   normalConvention: 'gl';
+  /** Linear-light mean of the shipped colour map (the albedo a fully
+   * mip-filtered sample converges to); shaders normalise by it so a set's
+   * structure can carry an art-directed albedo. */
+  meanColor?: [number, number, number];
+  /** Mean of the ORM map's roughness (G) channel. */
+  meanRoughness?: number;
 }
 export interface ShippedAsset {
   id: string;
   kind: ThirdPartyKind;
+  /** Department namespace of the shipped directory (register `area`). */
+  area?: string;
   title: string;
   author: string;
   licence: Licence;

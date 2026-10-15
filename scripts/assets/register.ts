@@ -45,10 +45,33 @@ export interface PbrRecipe {
   normal: 'gl' | 'dx';
   /** Metres one repeat covers. */
   metres: number;
+  /** Subtract the mean slope of the normal map (a tileable height field has
+   * none; old exports carry a tilt that would lean the whole surface). */
+  recentreNormal?: boolean;
+  /** Re-synthesise a seamless tile from source regions (texture-ops.ts
+   * `synthesizeTile`): drops features that must not repeat (cracks) and makes
+   * a non-tileable crop tile. Every map of the set gets the same patches. */
+  synth?: {
+    /** Output tile size before the final resize (px). */
+    size: number;
+    /** Patch window (px); patches overlap by half. */
+    patch: number;
+    /** Source rectangles [x, y, width, height] (px) patches are drawn from. */
+    regions: [number, number, number, number][];
+    seed: number;
+  };
+  /** No normal map in the source: derive one from the colour's luminance
+   * (treated as relief) with this slope gain. */
+  normalFromColor?: number;
+  /** No roughness map in the source: roughness = base - gain * (luminance - mean). */
+  roughnessFromColor?: [number, number];
 }
 export interface SourceEntry {
   id: string;
   kind: ThirdPartyKind;
+  /** Department namespace: ships under public/assets/third-party/<area>/<id>/
+   * instead of <kind>/<id>/ (e.g. 'ground' for the track and terrain sets). */
+  area?: string;
   title: string;
   author: string;
   licence: Licence;
@@ -67,6 +90,9 @@ export interface SourceRegister {
 }
 
 export const REGISTER_PATH = 'assets/third-party/sources.json';
+/** Department fragments of the register (`{ "sources": [...] }` per file),
+ * appended in file-name order after REGISTER_PATH's own sources. */
+export const REGISTER_FRAGMENTS = 'assets/third-party/sources';
 export const SHIPPED_ROOT = 'public/assets/third-party';
 export const MANIFEST_PATH = 'src/rendering/assets/third-party-manifest.json';
 /** Hosts a source may be fetched from; each URL must pin a commit or an
@@ -93,7 +119,22 @@ export function forbiddenNameIn(text: string) {
 }
 
 export function readRegister(root: string): SourceRegister {
-  return JSON.parse(readFileSync(join(root, REGISTER_PATH), 'utf8')) as SourceRegister;
+  const register = JSON.parse(readFileSync(join(root, REGISTER_PATH), 'utf8')) as SourceRegister;
+  const fragments = join(root, REGISTER_FRAGMENTS);
+  if (existsSync(fragments))
+    for (const name of readdirSync(fragments)
+      .filter((n) => n.endsWith('.json'))
+      .sort()) {
+      const fragment = JSON.parse(readFileSync(join(fragments, name), 'utf8')) as {
+        sources: SourceEntry[];
+      };
+      register.sources.push(...fragment.sources);
+    }
+  return register;
+}
+/** Shipped directory of a source, relative to the third-party root. */
+export function sourceDirectory(source: Pick<SourceEntry, 'id' | 'kind' | 'area'>) {
+  return `${source.area ?? source.kind}/${source.id}`;
 }
 
 /** Register rules: licences, attribution, pinned sources, unique ids, no brands. */
@@ -108,6 +149,11 @@ export function validateRegister(register: SourceRegister): string[] {
     if (ids.has(s.id)) errors.push(`${at}: duplicate id`);
     ids.add(s.id);
     if (!['hdri', 'texture', 'mesh'].includes(s.kind)) errors.push(`${at}: unknown kind ${s.kind}`);
+    if (
+      s.area !== undefined &&
+      (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(s.area) || ['hdri', 'texture', 'mesh'].includes(s.area))
+    )
+      errors.push(`${at}: area must be a kebab-case name other than a kind`);
     if (!isAllowedLicence(s.licence)) errors.push(`${at}: licence ${s.licence} is not allowed`);
     else if (LICENCE_INFO[s.licence].attribution && !s.attribution.includes(s.author))
       errors.push(`${at}: ${s.licence} attribution must name the author`);
@@ -141,6 +187,14 @@ export function validateRegister(register: SourceRegister): string[] {
       errors.push(`${at}: skyline must be 0-15 degrees`);
     if (s.recipe.type === 'pbr' && s.kind !== 'texture')
       errors.push(`${at}: pbr recipe on a ${s.kind}`);
+    if (s.recipe.type === 'pbr' && s.recipe.synth) {
+      const synth = s.recipe.synth;
+      if (!(synth.patch >= 16 && synth.size % (synth.patch / 2) === 0))
+        errors.push(`${at}: synth size must be a multiple of half the patch`);
+      for (const [, , w, h] of synth.regions)
+        if (w < synth.patch || h < synth.patch)
+          errors.push(`${at}: synth region smaller than the patch`);
+    }
   }
   return errors;
 }

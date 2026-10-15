@@ -1,0 +1,353 @@
+{
+  "note": "Ground department fragment of the source register (scripts/assets/register.ts REGISTER_FRAGMENTS): scanned track, run-off, terrain and off-road surfaces. Ships under public/assets/third-party/ground/<id>/. Metres are estimated from the photographed features (blades, chips, needles, crack plates), not published dimensions.",
+  "sources": [
+    {
+      "id": "ground-lawn",
+      "kind": "texture",
+      "area": "ground",
+      "title": "Grass 001",
+      "author": "ambientCG",
+      "licence": "CC0-1.0",
+      "attribution": "\"Grass 001\" texture by ambientCG (CC0 1.0)",
+      "homepage": "https://ambientcg.com/view?id=Grass001",
+      "licenceEvidence": "ambientCG publishes every asset under CC0 1.0 (https://docs.ambientcg.com/license/); the 1K set is redistributed unchanged in pmndrs/market-assets at the pinned commit.",
+      "notes": "mown turf for circuit verges and aprons, festival short grass and off-road turf; the normal map is DirectX (measured: curl of the Y-flipped field is lower).",
+      "files": [
+        {
+          "url": "https://raw.githubusercontent.com/pmndrs/market-assets/c9cfa0236a012093edd5affe200808752375bd90/files/materials/grass/Grass001_1K_Color.jpg",
+          "sha256": "b423da9b6a20730cdb29dd52fb31162465475d316b6e49acf80cbc0106e1d135",
+          "bytes": 217035,
+          "role": "color"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/pmndrs/market-assets/c9cfa0236a012093edd5affe200808752375bd90/files/materials/grass/Grass001_1K_Normal.jpg",
+          "sha256": "0a59d895f88a68c895c6daa6e1d3b89476606c8492d8ee75aa1d5dd0804d1066",
+          "bytes": 323302,
+          "role": "normal"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/pmndrs/market-assets/c9cfa0236a012093edd5affe200808752375bd90/files/materials/grass/Grass001_1K_Roughness.jpg",
+          "sha256": "289fa2ed13f789623e4ec48fde8130937abf7dc79ae10f514eb37f65aaa6b0ec",
+          "bytes": 290290,
+          "role": "roughness"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/pmndrs/market-assets/c9cfa0236a012093edd5affe200808752375bd90/files/materials/grass/Grass001_1K_AmbientOcclusion.jpg",
+          "sha256": "095ed064db085b776a7df8cf5f84d4a42b31364a935ea415ec5c38947686949e",
+          "bytes": 366807,
+          "role": "ao"
+        }
+      ],
+      "recipe": { "type": "pbr", "size": 1024, "normal": "dx", "metres": 1.6, "recentreNormal": true }
+    },
+    {
+      "id": "ground-meadow",
+      "kind": "texture",
+      "area": "ground",
+      "title": "Aerial Grass Rock",
+      "author": "Poly Haven",
+      "licence": "CC0-1.0",
+      "attribution": "\"Aerial Grass Rock\" texture from Poly Haven (CC0 1.0)",
+      "homepage": "https://polyhaven.com/a/aerial_grass_rock",
+      "licenceEvidence": "Poly Haven publishes every texture under CC0 1.0; the aframe-enviropacks 0.10.0 npm package (pinned by version and SHA-256) ships the 2K JPEG set and its README states the Texture Haven textures are CC0.",
+      "notes": "rough grass with soil and stones: distant circuit terrain, off-road infields, festival meadows.",
+      "files": [
+        {
+          "url": "https://registry.npmjs.org/aframe-enviropacks/-/aframe-enviropacks-0.10.0.tgz",
+          "sha256": "ce5772095da479c237e311cbd4a364f24e7bdacc00a7f7a1d22eb48aa9f139bd",
+          "bytes": 90171385,
+          "member": "package/asset/aerial_grass_rock_2k_jpg/aerial_grass_rock_diff_2k.jpg",
+          "role": "color"
+        },
+        {
+          "url": "https://registry.npmjs.org/aframe-enviropacks/-/aframe-enviropacks-0.10.0.tgz",
+          "sha256": "ce5772095da479c237e311cbd4a364f24e7bdacc00a7f7a1d22eb48aa9f139bd",
+          "bytes": 90171385,
+          "member": "package/asset/aerial_grass_rock_2k_jpg/aerial_grass_rock_nor_2k.jpg",
+          "role": "normal"
+        },
+        {
+          "url": "https://registry.npmjs.org/aframe-enviropacks/-/aframe-enviropacks-0.10.0.tgz",
+          "sha256": "ce5772095da479c237e311cbd4a364f24e7bdacc00a7f7a1d22eb48aa9f139bd",
+          "bytes": 90171385,
+          "member": "package/asset/aerial_grass_rock_2k_jpg/aerial_grass_rock_rough_2k.jpg",
+          "role": "roughness"
+        },
+        {
+          "url": "https://registry.npmjs.org/aframe-enviropacks/-/aframe-enviropacks-0.10.0.tgz",
+          "sha256": "ce5772095da479c237e311cbd4a364f24e7bdacc00a7f7a1d22eb48aa9f139bd",
+          "bytes": 90171385,
+          "member": "package/asset/aerial_grass_rock_2k_jpg/aerial_grass_rock_ao_2k.jpg",
+          "role": "ao"
+        }
+      ],
+      "recipe": { "type": "pbr", "size": 1024, "normal": "gl", "metres": 3, "recentreNormal": true }
+    },
+    {
+      "id": "ground-forest-floor",
+      "kind": "texture",
+      "area": "ground",
+      "title": "Forest Ground 03",
+      "author": "Poly Haven",
+      "licence": "CC0-1.0",
+      "attribution": "\"Forest Ground 03\" texture from Poly Haven (CC0 1.0)",
+      "homepage": "https://polyhaven.com/a/forrest_ground_03",
+      "licenceEvidence": "Poly Haven publishes every texture under CC0 1.0; the aframe-enviropacks 0.10.0 npm package (pinned by version and SHA-256) ships the 2K JPEG set and its README states the Texture Haven textures are CC0.",
+      "notes": "loose loam with needles and grit: off-road loam, festival soil and forest floor. Its normal map leans about 6 degrees; the build recentres it.",
+      "files": [
+        {
+          "url": "https://registry.npmjs.org/aframe-enviropacks/-/aframe-enviropacks-0.10.0.tgz",
+          "sha256": "ce5772095da479c237e311cbd4a364f24e7bdacc00a7f7a1d22eb48aa9f139bd",
+          "bytes": 90171385,
+          "member": "package/asset/forrest_ground_03_2k_jpg/forrest_ground_03_diff_2k.jpg",
+          "role": "color"
+        },
+        {
+          "url": "https://registry.npmjs.org/aframe-enviropacks/-/aframe-enviropacks-0.10.0.tgz",
+          "sha256": "ce5772095da479c237e311cbd4a364f24e7bdacc00a7f7a1d22eb48aa9f139bd",
+          "bytes": 90171385,
+          "member": "package/asset/forrest_ground_03_2k_jpg/forrest_ground_03_nor_2k.jpg",
+          "role": "normal"
+        },
+        {
+          "url": "https://registry.npmjs.org/aframe-enviropacks/-/aframe-enviropacks-0.10.0.tgz",
+          "sha256": "ce5772095da479c237e311cbd4a364f24e7bdacc00a7f7a1d22eb48aa9f139bd",
+          "bytes": 90171385,
+          "member": "package/asset/forrest_ground_03_2k_jpg/forrest_ground_03_rough_2k.jpg",
+          "role": "roughness"
+        },
+        {
+          "url": "https://registry.npmjs.org/aframe-enviropacks/-/aframe-enviropacks-0.10.0.tgz",
+          "sha256": "ce5772095da479c237e311cbd4a364f24e7bdacc00a7f7a1d22eb48aa9f139bd",
+          "bytes": 90171385,
+          "member": "package/asset/forrest_ground_03_2k_jpg/forrest_ground_03_AO_2k.jpg",
+          "role": "ao"
+        }
+      ],
+      "recipe": { "type": "pbr", "size": 1024, "normal": "gl", "metres": 2.5, "recentreNormal": true }
+    },
+    {
+      "id": "ground-dry-earth",
+      "kind": "texture",
+      "area": "ground",
+      "title": "Sandstone Cracks",
+      "author": "Poly Haven",
+      "licence": "CC0-1.0",
+      "attribution": "\"Sandstone Cracks\" texture from Poly Haven (CC0 1.0)",
+      "homepage": "https://polyhaven.com/a/sandstone_cracks",
+      "licenceEvidence": "Poly Haven publishes every texture under CC0 1.0; the aframe-enviropacks 0.10.0 npm package (pinned by version and SHA-256) ships the 2K JPEG set and its README states the Texture Haven textures are CC0.",
+      "notes": "sun-dried cracked crust: off-road hardpack, arid verges and run-off.",
+      "files": [
+        {
+          "url": "https://registry.npmjs.org/aframe-enviropacks/-/aframe-enviropacks-0.10.0.tgz",
+          "sha256": "ce5772095da479c237e311cbd4a364f24e7bdacc00a7f7a1d22eb48aa9f139bd",
+          "bytes": 90171385,
+          "member": "package/asset/sandstone_cracks_2k_jpg/sandstone_cracks_diff_2k.jpg",
+          "role": "color"
+        },
+        {
+          "url": "https://registry.npmjs.org/aframe-enviropacks/-/aframe-enviropacks-0.10.0.tgz",
+          "sha256": "ce5772095da479c237e311cbd4a364f24e7bdacc00a7f7a1d22eb48aa9f139bd",
+          "bytes": 90171385,
+          "member": "package/asset/sandstone_cracks_2k_jpg/sandstone_cracks_nor_2k.jpg",
+          "role": "normal"
+        },
+        {
+          "url": "https://registry.npmjs.org/aframe-enviropacks/-/aframe-enviropacks-0.10.0.tgz",
+          "sha256": "ce5772095da479c237e311cbd4a364f24e7bdacc00a7f7a1d22eb48aa9f139bd",
+          "bytes": 90171385,
+          "member": "package/asset/sandstone_cracks_2k_jpg/sandstone_cracks_rough_2k.jpg",
+          "role": "roughness"
+        },
+        {
+          "url": "https://registry.npmjs.org/aframe-enviropacks/-/aframe-enviropacks-0.10.0.tgz",
+          "sha256": "ce5772095da479c237e311cbd4a364f24e7bdacc00a7f7a1d22eb48aa9f139bd",
+          "bytes": 90171385,
+          "member": "package/asset/sandstone_cracks_2k_jpg/sandstone_cracks_AO_2k.jpg",
+          "role": "ao"
+        }
+      ],
+      "recipe": { "type": "pbr", "size": 1024, "normal": "gl", "metres": 2.5, "recentreNormal": true }
+    },
+    {
+      "id": "ground-asphalt",
+      "kind": "texture",
+      "area": "ground",
+      "title": "Asphalt 02",
+      "author": "hinndia",
+      "licence": "CC-BY-4.0",
+      "attribution": "\"Asphalt 02\" texture from Poly Haven (CC0 1.0), as shipped with the glTF sample model \"Traffic Cone\" by hinndia (CC BY 4.0); re-synthesised without its cracks",
+      "homepage": "https://polyhaven.com/a/asphalt_02",
+      "licenceEvidence": "The KhronosGroup/glTF-Sample-Assets TrafficCone LICENSE.md (pinned commit) licenses the model's files CC-BY-4.0 and CC0-1.0; the texture is Poly Haven's asphalt_02 (CC0). Credited under the stricter CC-BY-4.0 terms.",
+      "notes": "dense-graded aggregate for the racing surface, pit lane and roads: a seamless 1.6 m tile synthesised from the two crack-free bands of the photo; no normal map in the source, one is derived from the aggregate relief.",
+      "files": [
+        {
+          "url": "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/edc7c9e67c639d230715049ee31f9a96a6babbbe/Models/TrafficCone/glTF/asphalt_02_diff_1k.jpg",
+          "sha256": "1aa5ce99f58a625c71d48cfc3e68b65ca85ccb00f39e045c0a928608a0ea25ed",
+          "bytes": 731707,
+          "role": "color"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/edc7c9e67c639d230715049ee31f9a96a6babbbe/Models/TrafficCone/glTF/asphalt_02_rough_1k.jpg",
+          "sha256": "70ba3edc65525eb4dc366cf010ca7ae0bd34e0251ff0225c2dad627a873d0712",
+          "bytes": 544032,
+          "role": "roughness"
+        }
+      ],
+      "recipe": {
+        "type": "pbr",
+        "size": 1024,
+        "normal": "gl",
+        "metres": 1.6,
+        "synth": {
+          "size": 1024,
+          "patch": 128,
+          "regions": [
+            [176, 0, 300, 1024],
+            [860, 0, 160, 1024]
+          ],
+          "seed": 20260
+        },
+        "normalFromColor": 3.2,
+        "recentreNormal": true
+      }
+    },
+    {
+      "id": "ground-wet-earth",
+      "kind": "texture",
+      "area": "ground",
+      "title": "Pavement Ground Wet",
+      "author": "Amazon Lumberyard",
+      "licence": "CC-BY-4.0",
+      "attribution": "\"Pavement Ground Wet\" texture from the Amazon Lumberyard Bistro scene (NVIDIA ORCA), Amazon Lumberyard, CC BY 4.0",
+      "homepage": "https://developer.nvidia.com/orca/amazon-lumberyard-bistro",
+      "licenceEvidence": "mmp/pbrt-v4-scenes bistro/LICENSE.txt at the pinned commit is the CC BY 4.0 legal code for the Bistro scene and its textures.",
+      "notes": "dark, damp compacted ground with embedded grit: off-road mud and ruts, wet tracks. No roughness map in the source; one is derived from the colour.",
+      "files": [
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/bistro/textures/Pavement_Ground_Wet_BaseColor.png",
+          "sha256": "3cdda132f5a17894a049342860ab2b5c1fcd1c96e184b00147246209e8e17843",
+          "bytes": 6669104,
+          "role": "color"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/bistro/textures/Pavement_Ground_Wet_Normal.png",
+          "sha256": "1d4fc0533d5226fafb0150e180077ca3a82eeef25260b2d4fa6eab84ab184121",
+          "bytes": 8790371,
+          "role": "normal"
+        }
+      ],
+      "recipe": {
+        "type": "pbr",
+        "size": 1024,
+        "normal": "dx",
+        "metres": 2.5,
+        "roughnessFromColor": [0.62, 1.2],
+        "recentreNormal": true
+      }
+    },
+    {
+      "id": "ground-concrete",
+      "kind": "texture",
+      "area": "ground",
+      "title": "Concrete Plaster",
+      "author": "Amazon Lumberyard",
+      "licence": "CC-BY-4.0",
+      "attribution": "\"Concrete Plaster\" texture from the Amazon Lumberyard Bistro scene (NVIDIA ORCA), Amazon Lumberyard, CC BY 4.0",
+      "homepage": "https://developer.nvidia.com/orca/amazon-lumberyard-bistro",
+      "licenceEvidence": "mmp/pbrt-v4-scenes bistro/LICENSE.txt at the pinned commit is the CC BY 4.0 legal code for the Bistro scene and its textures.",
+      "notes": "weathered cast concrete: pit lane and aprons, concrete run-off, painted-kerb substrate, city venue paving. No roughness map in the source; one is derived from the colour.",
+      "files": [
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/bistro/textures/MASTER_Concrete_Plaster_BaseColor.png",
+          "sha256": "066a6102b05ddcdf3acdb54c76abefee634f5205c9d298ad6e872ea605f422a6",
+          "bytes": 3724755,
+          "role": "color"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/mmp/pbrt-v4-scenes/30cf4a0346ae5a80a2d7a530a3ef7d0fa4f70572/bistro/textures/MASTER_Concrete_Plaster_Normal.png",
+          "sha256": "e2b46aa2a4742c71275ce1e5ae2329ba17b77b562d27620af38da137f91d667b",
+          "bytes": 5732278,
+          "role": "normal"
+        }
+      ],
+      "recipe": {
+        "type": "pbr",
+        "size": 1024,
+        "normal": "dx",
+        "metres": 3,
+        "roughnessFromColor": [0.78, 0.9],
+        "recentreNormal": true
+      }
+    },
+    {
+      "id": "ground-rock",
+      "kind": "texture",
+      "area": "ground",
+      "title": "Rock 020",
+      "author": "ambientCG",
+      "licence": "CC0-1.0",
+      "attribution": "\"Rock 020\" texture by ambientCG (CC0 1.0)",
+      "homepage": "https://ambientcg.com/view?id=Rock020",
+      "licenceEvidence": "ambientCG publishes every asset under CC0 1.0 (https://docs.ambientcg.com/license/); the 1K set is redistributed unchanged in pmndrs/market-assets at the pinned commit.",
+      "notes": "weathered rock face: steep terrain, cuttings and boulders (triplanar). DirectX normal map.",
+      "files": [
+        {
+          "url": "https://raw.githubusercontent.com/pmndrs/market-assets/c9cfa0236a012093edd5affe200808752375bd90/files/materials/rock/Rock020_1K_Color.jpg",
+          "sha256": "2d35c2c926464c9f1856bf08554a764d5ae96dd2ef9e1a9c64dce348a1306749",
+          "bytes": 1330247,
+          "role": "color"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/pmndrs/market-assets/c9cfa0236a012093edd5affe200808752375bd90/files/materials/rock/Rock020_1K_Normal.jpg",
+          "sha256": "ce0bd239beb34d77539900285c0e527db44b51848edfab826ecbee80d44c7d3a",
+          "bytes": 1934473,
+          "role": "normal"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/pmndrs/market-assets/c9cfa0236a012093edd5affe200808752375bd90/files/materials/rock/Rock020_1K_Roughness.jpg",
+          "sha256": "8c4922d03104a03337373aade6080b8aeb6098a3a69a5f51ddf98211f32052b8",
+          "bytes": 585699,
+          "role": "roughness"
+        }
+      ],
+      "recipe": { "type": "pbr", "size": 1024, "normal": "dx", "metres": 3, "recentreNormal": true }
+    },
+    {
+      "id": "ground-snow",
+      "kind": "texture",
+      "area": "ground",
+      "title": "Snow 004",
+      "author": "ambientCG",
+      "licence": "CC0-1.0",
+      "attribution": "\"Snow 004\" texture by ambientCG (CC0 1.0)",
+      "homepage": "https://ambientcg.com/view?id=Snow004",
+      "licenceEvidence": "ambientCG publishes every asset under CC0 1.0 (https://docs.ambientcg.com/license/); the aframe-enviropacks 0.10.0 npm package (pinned by version and SHA-256) ships the 2K JPEG set and its README states the CC0 Textures sets are CC0.",
+      "notes": "wind-packed snow for the festival's high ground. DirectX normal map.",
+      "files": [
+        {
+          "url": "https://registry.npmjs.org/aframe-enviropacks/-/aframe-enviropacks-0.10.0.tgz",
+          "sha256": "ce5772095da479c237e311cbd4a364f24e7bdacc00a7f7a1d22eb48aa9f139bd",
+          "bytes": 90171385,
+          "member": "package/asset/Snow004_2K-JPG/Snow004_2K_Color.jpg",
+          "role": "color"
+        },
+        {
+          "url": "https://registry.npmjs.org/aframe-enviropacks/-/aframe-enviropacks-0.10.0.tgz",
+          "sha256": "ce5772095da479c237e311cbd4a364f24e7bdacc00a7f7a1d22eb48aa9f139bd",
+          "bytes": 90171385,
+          "member": "package/asset/Snow004_2K-JPG/Snow004_2K_Normal.jpg",
+          "role": "normal"
+        },
+        {
+          "url": "https://registry.npmjs.org/aframe-enviropacks/-/aframe-enviropacks-0.10.0.tgz",
+          "sha256": "ce5772095da479c237e311cbd4a364f24e7bdacc00a7f7a1d22eb48aa9f139bd",
+          "bytes": 90171385,
+          "member": "package/asset/Snow004_2K-JPG/Snow004_2K_Roughness.jpg",
+          "role": "roughness"
+        }
+      ],
+      "recipe": { "type": "pbr", "size": 1024, "normal": "dx", "metres": 3, "recentreNormal": true }
+    }
+  ]
+}

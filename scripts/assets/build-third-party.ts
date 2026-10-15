@@ -64,6 +64,7 @@ import {
   readRegister,
   sha256,
   SHIPPED_ROOT,
+  sourceDirectory,
   validateRegister,
   type HdriRecipe,
   type PbrRecipe,
@@ -76,6 +77,16 @@ import type {
   ThirdPartyManifest,
 } from '../../src/rendering/assets/third-party.ts';
 import { LICENCE_INFO } from '../../src/rendering/assets/licences.ts';
+import {
+  meanChannel,
+  meanLinear,
+  normalFromColor,
+  readRgb,
+  recentreNormal,
+  roughnessFromColor,
+  synthesizeTile,
+  writeRgb,
+} from './texture-ops.ts';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const argv = process.argv.slice(2);
@@ -381,15 +392,42 @@ function buildPbr(source: SourceEntry, recipe: PbrRecipe, toktx: ReturnType<type
   mkdirSync(work, { recursive: true });
   const role = (name: string) => {
     const file = source.files.find((f) => f.role === name);
-    return file ? cached(file) : null;
+    if (!file) return null;
+    const path = cached(file);
+    if (!file.member) return path;
+    // A map inside an archive (an npm tarball): extracted beside the work.
+    const out = join(work, `member-${name}${file.member.slice(file.member.lastIndexOf('.'))}`);
+    writeFileSync(out, extractMember(path, file.member));
+    return out;
   };
   const size = `${recipe.size}x${recipe.size}!`;
-  const color = role('color'),
+  let color = role('color'),
     normal = role('normal'),
-    roughness = role('roughness'),
-    ao = role('ao'),
+    roughness = role('roughness');
+  const ao = role('ao'),
     metal = role('metalness');
   if (!color) throw new Error(`${source.id}: a texture set needs a color map`);
+  if (recipe.synth) {
+    // Re-synthesise one seamless tile from the clean source regions; every
+    // map gets the same patches (DirectX normals are flipped first).
+    const inputs = [color, roughness, normal].filter((p): p is string => !!p);
+    const images = inputs.map((p) => readRgb(p));
+    if (normal && recipe.normal === 'dx') {
+      const n = images[inputs.indexOf(normal)];
+      for (let i = 1; i < n.data.length; i += 3) n.data[i] = 1 - n.data[i];
+    }
+    const out = synthesizeTile(images, recipe.synth, normal ? [inputs.indexOf(normal)] : []);
+    const written = inputs.map((p, i) => {
+      const path = join(work, `synth-${i}.png`);
+      writeRgb(out[i], path);
+      return path;
+    });
+    color = written[0];
+    if (roughness) roughness = written[inputs.indexOf(roughness)];
+    if (normal) normal = written[inputs.indexOf(normal)];
+    log(`${source.id}: synthesised a ${recipe.synth.size} px seamless tile`);
+  }
+  const normalIsDx = recipe.normal === 'dx' && !recipe.synth;
   const maps: { name: string; png: string; srgb: boolean; uastc: boolean }[] = [];
   const convert = (args: string[]) => execFileSync('convert', args, { stdio: 'inherit' });
   // Colour: sRGB, resized with a linear-light filter.
@@ -411,7 +449,7 @@ function buildPbr(source: SourceEntry, recipe: PbrRecipe, toktx: ReturnType<type
   maps.push({ name: 'color', png: colorPng, srgb: true, uastc: false });
   if (normal) {
     const normalPng = join(work, 'normal.png');
-    const flip = recipe.normal === 'dx' ? ['-channel', 'G', '-negate', '+channel'] : [];
+    const flip = normalIsDx ? ['-channel', 'G', '-negate', '+channel'] : [];
     convert([
       normal,
       '-strip',
@@ -428,6 +466,24 @@ function buildPbr(source: SourceEntry, recipe: PbrRecipe, toktx: ReturnType<type
       `PNG24:${normalPng}`,
     ]);
     maps.push({ name: 'normal', png: normalPng, srgb: false, uastc: true });
+  } else if (recipe.normalFromColor) {
+    // No scanned normal: the colour's relief, derived at the shipped size.
+    const normalPng = join(work, 'normal.png');
+    writeRgb(normalFromColor(readRgb(colorPng), recipe.normalFromColor), normalPng);
+    maps.push({ name: 'normal', png: normalPng, srgb: false, uastc: true });
+  }
+  if (recipe.recentreNormal) {
+    const normalMap = maps.find((m) => m.name === 'normal');
+    if (normalMap) {
+      const image = readRgb(normalMap.png);
+      const { slope } = recentreNormal(image);
+      writeRgb(image, normalMap.png);
+      log(`${source.id}: normal recentred by slope ${slope.map((v) => v.toFixed(3)).join(', ')}`);
+    }
+  }
+  if (!roughness && recipe.roughnessFromColor) {
+    roughness = join(work, 'roughness-derived.png');
+    writeRgb(roughnessFromColor(readRgb(colorPng), ...recipe.roughnessFromColor), roughness);
   }
   if (roughness || ao || metal) {
     // ORM: R = ambient occlusion, G = roughness, B = metalness (glTF layout,
@@ -472,7 +528,7 @@ function buildPbr(source: SourceEntry, recipe: PbrRecipe, toktx: ReturnType<type
   }
   const files: ShippedFile[] = [];
   for (const map of maps) {
-    const base = `assets/third-party/texture/${source.id}/${source.id}_${map.name}`;
+    const base = `assets/third-party/${sourceDirectory(source)}/${source.id}_${map.name}`;
     const webp = join(work, `${map.name}.webp`);
     convert([
       map.png,
@@ -528,8 +584,20 @@ function buildPbr(source: SourceEntry, recipe: PbrRecipe, toktx: ReturnType<type
         .join(', ')}`,
     );
   }
+  // Linear means a shader normalises by (TextureSetInfo.meanColor).
+  const meanColor = meanLinear(readRgb(colorPng));
+  const ormMap = maps.find((m) => m.name === 'orm');
+  const meanRoughness = ormMap ? meanChannel(readRgb(ormMap.png), 1) : undefined;
   rmSync(work, { recursive: true, force: true });
-  return { files, texture: { metres: recipe.metres, normalConvention: 'gl' as const } };
+  return {
+    files,
+    texture: {
+      metres: recipe.metres,
+      normalConvention: 'gl' as const,
+      meanColor,
+      ...(meanRoughness !== undefined ? { meanRoughness } : {}),
+    },
+  };
 }
 
 // ------------------------------------------------------------------ credits
@@ -595,13 +663,14 @@ async function main() {
       continue;
     }
     // A rebuilt asset replaces its whole directory.
-    rmSync(join(PUBLIC, 'assets/third-party', source.kind, source.id), {
+    rmSync(join(PUBLIC, 'assets/third-party', sourceDirectory(source)), {
       recursive: true,
       force: true,
     });
     const common = {
       id: source.id,
       kind: source.kind,
+      ...(source.area ? { area: source.area } : {}),
       title: source.title,
       author: source.author,
       licence: source.licence,
@@ -614,11 +683,13 @@ async function main() {
     else assets.push({ ...common, ...buildPbr(source, source.recipe, toktx) });
   }
   // Directories of assets no longer in the register are removed.
-  for (const kind of ['hdri', 'texture', 'mesh']) {
-    const dir = join(PUBLIC, 'assets/third-party', kind);
+  const shipped = new Set(assets.map((a) => sourceDirectory(a)));
+  const groups = new Set(['hdri', 'texture', 'mesh', ...assets.map((a) => a.area ?? a.kind)]);
+  for (const group of groups) {
+    const dir = join(PUBLIC, 'assets/third-party', group);
     if (!existsSync(dir)) continue;
     for (const name of readdirSync(dir))
-      if (!assets.some((a) => a.kind === kind && a.id === name))
+      if (!shipped.has(`${group}/${name}`))
         rmSync(join(dir, name), { recursive: true, force: true });
   }
   const credits = writeShipped('assets/third-party/CREDITS.txt', creditsText(assets), {
