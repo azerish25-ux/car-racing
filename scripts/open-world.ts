@@ -3,9 +3,14 @@
 // long road-network routes on the real world surface (asserting legal
 // progress without getting stuck and the physics tile budget), runs one
 // race against route-following rivals, and writes docs/open-world.json.
+// Those drives and the race run with ambient traffic off (the session's
+// headless default), so their results do not depend on it; traffic and
+// motorcycles are measured separately afterwards.
 import { writeFileSync } from 'node:fs';
 import { CollisionSolver } from '../src/simulation/collision.ts';
 import { resolveEvents, type FestivalEvent } from '../src/simulation/open-world/festival-events.ts';
+import { TRAFFIC } from '../src/simulation/open-world/ambient-traffic.ts';
+import { BikeVehicle } from '../src/simulation/bike-vehicle.ts';
 import { asTrack, OpenWorldTrack, WORLD_SURFACE_NAMES } from '../src/simulation/open-world/open-world-track.ts';
 import { RouteDriver } from '../src/simulation/open-world/route-driver.ts';
 import { pathPoint } from '../src/simulation/open-world/route-path.ts';
@@ -153,6 +158,125 @@ for (let i = 0; i < 120 * 200 && !race; i++) {
 check(!!race?.completed, 'valley sprint race completed with a typed result');
 check((race?.standings.filter((s) => s.time !== null).length ?? 0) >= (race?.entrants ?? 1) - 1, 'rivals finished the race route');
 
+// --- Ambient traffic (measured separately: free roam, autopilot cruise) ---
+function trafficDrive(seconds: number, seed = 73021) {
+  const sim = new OpenWorldSimulation({ vehicle, traffic: true, seed, tileBudget: 24 });
+  const traffic = sim.traffic;
+  let trafficMs = 0,
+    stepMs = 0,
+    peak = 0,
+    closest = Infinity,
+    overCap = 0;
+  const seen = new Set<number>();
+  const step = traffic.step.bind(traffic);
+  traffic.step = (dt, player) => {
+    const t = performance.now();
+    step(dt, player);
+    trafficMs += performance.now() - t;
+  };
+  sim.command({ type: 'autopilot', value: true });
+  for (let i = 0; i < seconds * 120; i++) {
+    const t = performance.now();
+    sim.step(1 / 120);
+    stepMs += performance.now() - t;
+    if (!sim.autopilot && i % 600 === 0) sim.command({ type: 'autopilot', value: true });
+    const p = sim.player.body.position;
+    peak = Math.max(peak, traffic.cars.length);
+    for (const c of traffic.cars)
+      if (!seen.has(c.id)) {
+        seen.add(c.id);
+        closest = Math.min(closest, Math.hypot(c.position.x - p.x, c.position.z - p.z));
+      }
+    if (i % 60 === 0)
+      for (const [key, n] of traffic.tileCounts()) overCap = Math.max(overCap, n - traffic.capOf(key));
+  }
+  const steps = seconds * 120;
+  return {
+    seconds,
+    peakCars: peak,
+    capCars: TRAFFIC.maxCars,
+    perTileCap: TRAFFIC.perTile,
+    worstOverTileCap: overCap,
+    spawned: traffic.spawned,
+    despawned: traffic.despawned,
+    collisions: traffic.collisions,
+    closestSpawnM: round(closest),
+    trafficMsPerStep: round(trafficMs / steps, 4),
+    sessionMsPerStep: round(stepMs / steps, 4),
+    digest: traffic.digest(),
+  };
+}
+const trafficReport = trafficDrive(120);
+const repeat = trafficDrive(30),
+  repeatAgain = trafficDrive(30);
+console.log(
+  `traffic: peak ${trafficReport.peakCars}/${trafficReport.capCars} cars, ${trafficReport.spawned} spawned, closest spawn ${trafficReport.closestSpawnM} m, ${trafficReport.collisions} collisions, ${trafficReport.trafficMsPerStep} ms/step traffic of ${trafficReport.sessionMsPerStep} ms/step session`,
+);
+check(trafficReport.peakCars > 0 && trafficReport.peakCars <= TRAFFIC.maxCars, `traffic within the total cap (peak ${trafficReport.peakCars}/${TRAFFIC.maxCars})`);
+check(trafficReport.closestSpawnM >= TRAFFIC.spawnMin - 2, `traffic spawns beyond ${TRAFFIC.spawnMin} m of the player (closest ${trafficReport.closestSpawnM} m)`);
+check(repeat.digest === repeatAgain.digest, `traffic is deterministic (digest ${repeat.digest} twice)`);
+check(trafficReport.trafficMsPerStep < 0.25, `traffic is cheap (${trafficReport.trafficMsPerStep} ms per 120 Hz step in Node)`);
+
+// --- Motorcycles (measured separately) -----------------------------------
+function bikeRace(bike: string, eventId: string) {
+  const sim = new OpenWorldSimulation({ vehicle: bike, tileBudget: 24 });
+  sim.command({ type: 'autopilot', value: true });
+  sim.command({ type: 'start', event: eventId });
+  const falls = sim.cars.map(() => 0),
+    riding = sim.cars.map(() => true);
+  let result = null;
+  for (let i = 0; i < 120 * 400 && !result; i++) {
+    sim.step(1 / 120);
+    sim.cars.forEach((c, k) => {
+      const now = c instanceof BikeVehicle ? c.riding : true;
+      if (riding[k] && !now) falls[k]++;
+      riding[k] = now;
+    });
+    result = sim.takeResult();
+  }
+  return {
+    bike,
+    event: eventId,
+    completed: !!result?.completed,
+    timeS: result?.time != null ? round(result.time) : null,
+    finishers: result?.standings.filter((s) => s.time !== null).length ?? 0,
+    entrants: result?.entrants ?? 0,
+    playerFalls: falls[0],
+    rivalFalls: falls.slice(1).reduce((a, b) => a + b, 0),
+  };
+}
+function bikeRoam(bike: string, seconds: number) {
+  const sim = new OpenWorldSimulation({ vehicle: bike, tileBudget: 24 });
+  sim.command({ type: 'autopilot', value: true });
+  let falls = 0,
+    riding = true,
+    distance = 0,
+    last = { x: sim.player.body.position.x, z: sim.player.body.position.z };
+  for (let i = 0; i < seconds * 120; i++) {
+    sim.step(1 / 120);
+    if (!sim.autopilot && i % 600 === 0) sim.command({ type: 'autopilot', value: true });
+    const b = sim.player as BikeVehicle,
+      p = b.body.position;
+    distance += Math.hypot(p.x - last.x, p.z - last.z);
+    last = { x: p.x, z: p.z };
+    if (riding && !b.riding) falls++;
+    riding = b.riding;
+  }
+  return { bike, seconds, distanceKm: round(distance / 1000, 2), falls };
+}
+const bikes = {
+  roam: ['sbk1000', 'nr900', 'sm450'].map((b) => bikeRoam(b, 120)),
+  races: [bikeRace('sbk1000', 'valley-sprint'), bikeRace('sm450', 'thornwood-rally')],
+};
+for (const r of bikes.roam) {
+  console.log(`bike roam ${r.bike}: ${r.distanceKm} km in ${r.seconds} s, ${r.falls} falls`);
+  check(r.falls === 0, `${r.bike}: rode ${r.seconds} s of free roam on the autopilot without a fall`);
+}
+for (const r of bikes.races) {
+  console.log(`bike race ${r.bike} ${r.event}: ${r.completed ? `${r.timeS} s` : 'not completed'}, ${r.finishers}/${r.entrants} finished, falls ${r.playerFalls} + ${r.rivalFalls}`);
+  check(r.completed && r.finishers === r.entrants, `${r.bike}: ${r.event} completed by every rider`);
+}
+
 const report = {
   generatedBy: 'npm run test:open-world',
   region: {
@@ -180,6 +304,8 @@ const report = {
     timeS: race.time && round(race.time),
     standings: race.standings.map((s) => ({ name: s.name, vehicle: s.vehicleId, timeS: s.time && round(s.time, 2) })),
   },
+  traffic: { drive: trafficReport, repeatDigests: [repeat.digest, repeatAgain.digest] },
+  bikes,
   failures,
   wallMs: Math.round(performance.now() - started),
 };

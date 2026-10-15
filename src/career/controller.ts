@@ -8,11 +8,13 @@ import {
 import { eventSession } from '../simulation/events.ts';
 import { F, H, carBase } from '../simulation/protocol.ts';
 import type { Track } from '../simulation/track.ts';
+import { FESTIVAL_SAVE_KEY, validateFestivalSave } from '../session/festival-save.ts';
 import { backupKey, recoverSave } from '../storage/data.ts';
 import {
   CAREER_PAGES,
   abandonPrompt,
   careerHub,
+  credits,
   licenceBriefing,
   licenceResult,
   payoutPanel,
@@ -22,6 +24,13 @@ import {
   type PaymentState,
 } from '../ui/career-hub.ts';
 import { ContactMeter } from './contact.ts';
+import {
+  festivalEvents,
+  festivalMachine,
+  festivalRoamKey,
+  settleFestival,
+  type FestivalContext,
+} from './festival.ts';
 import { licenceCourse } from './course.ts';
 import {
   abandonChampionship,
@@ -96,8 +105,18 @@ export interface MeetingOutcome {
   /** Qualifying position (0-based), the meeting's grid slot. */
   gridSlot: number;
 }
+/** A festival session the career asks the shell to start. */
+export interface FestivalStart {
+  vehicle: string;
+  /** Fast-travel to this discovered event on arrival (null: free roam). */
+  travel: string | null;
+  /** The machine is the career's loan (paid at the recovery rate). */
+  loaner: boolean;
+}
 /** What the career needs from the application shell (main.ts). */
 export interface CareerHost {
+  /** Start the festival free roam for a career run (main.ts). */
+  festival?(start: FestivalStart): void;
   /** The SaveStore: raw reads (recovery and other tabs' writes), a plain
    * write (copies kept aside) and the backup-before-overwrite write. */
   store: {
@@ -155,6 +174,10 @@ export class CareerController {
   private persistence: Persistence = { saving: true };
   /** An unreadable primary to keep aside before the first overwrite. */
   private quarantine: unknown = undefined;
+  /** Festival events discovered in free roam (read from the festival save). */
+  readonly festivalDiscovered = new Set<string>();
+  /** The festival session the career started (its loaned machine), if any. */
+  private festivalContext: FestivalContext | null = null;
   constructor(
     private readonly host: CareerHost,
     registry: CareerRegistry = liveRegistry(),
@@ -165,6 +188,10 @@ export class CareerController {
    * saves. A career this build cannot safely overwrite (written by a newer
    * build, or storage that could not be read) is played without saving. */
   async load(legacy: LegacySaves) {
+    await this.loadCareer(legacy);
+    await this.refreshFestival();
+  }
+  private async loadCareer(legacy: LegacySaves) {
     let primary: unknown, backup: unknown;
     try {
       primary = await this.host.store.read(CAREER_KEY);
@@ -290,6 +317,7 @@ export class CareerController {
       page,
       status,
       unsaved: p.saving ? undefined : { reason: p.reason, replaceable: !!p.keep },
+      festival: { discovered: [...this.festivalDiscovered] },
     };
     this.host.modal(careerHub(this.save, this.registry, this.view));
     // Keep keyboard focus on the section the player is in after a re-render.
@@ -319,6 +347,8 @@ export class CareerController {
         this.view.discipline = a as DisciplineId;
         return this.open(b ? pageOf(b) : 'events');
       }
+      if (command === 'start' && a?.startsWith('festival.'))
+        return this.startFestival(name.slice('career:start:'.length));
       if (command === 'start')
         return void this.startEvent(name.slice('career:start:'.length)).catch((error) =>
           this.fail(error),
@@ -498,6 +528,88 @@ export class CareerController {
       },
       `${definition.name} · TWO-MOTO MEETING`,
     );
+  }
+  /** Festival: enter free roam (the roam key) or go to a discovered event,
+   * in the active festival machine or the loaner. */
+  private startFestival(key: string) {
+    if (!this.canStart()) return;
+    const machine = festivalMachine(this.registry, this.save);
+    if (!machine.vehicle)
+      return this.fail(new Error('No festival machine is registered in this build.'));
+    const roam = (this.registry.festival ?? []).some((r) => festivalRoamKey(r.id) === key);
+    let travel: string | null = null;
+    if (!roam) {
+      const event = festivalEvents(this.registry, this.save, this.festivalDiscovered).find(
+        (e) => e.key === key,
+      );
+      if (!event) return this.fail(new Error('Unknown festival event.'));
+      if (event.status !== 'open')
+        return this.fail(new Error(`${event.event.name}: ${event.reasons.join(' ')}`));
+      travel = event.event.id;
+    }
+    if (!this.host.festival) return this.fail(new Error('The festival is not available here.'));
+    this.host.festival({ vehicle: machine.vehicle.id, travel, loaner: machine.loaner });
+  }
+  /** main.ts: a festival session started; `career` when it was entered from
+   * CAREER, `loaner` the machine the career lent for it (null when started
+   * outside the career or in an owned one). */
+  beginFestival(context: FestivalContext) {
+    this.festivalContext = context;
+  }
+  /** main.ts: the festival session ended (discoveries may have changed). */
+  endFestival() {
+    this.festivalContext = null;
+    void this.refreshFestival();
+  }
+  /** Re-read the festival save's discoveries (best effort). */
+  async refreshFestival() {
+    const before = this.festivalDiscovered.size;
+    try {
+      const save = validateFestivalSave(await this.host.store.read(FESTIVAL_SAVE_KEY));
+      if (save) for (const id of save.discovered) this.festivalDiscovered.add(id);
+    } catch {
+      /* The festival tab then lists what this session has seen. */
+    }
+    if (this.festivalDiscovered.size !== before) this.refresh();
+  }
+  /** Consume the festival's typed results (`festival-result` events on
+   * `target`, the window in the application). */
+  listen(target: EventTarget) {
+    const handler = (event: Event) => void this.festivalResult((event as CustomEvent).detail);
+    target.addEventListener('festival-result', handler);
+    return () => target.removeEventListener('festival-result', handler);
+  }
+  /** Settle one festival result into the career (each run id once). */
+  async festivalResult(detail: unknown) {
+    const context = this.festivalContext ?? { loaner: null };
+    let outcome: ReturnType<typeof settleFestival> | null = null;
+    try {
+      await this.transact((s) => {
+        outcome = settleFestival(s, this.registry, detail, context);
+        return outcome.save;
+      });
+    } catch (error) {
+      this.host.toast(`Festival result not saved to the career: ${message(error)}`);
+      return null;
+    }
+    const settled = outcome as ReturnType<typeof settleFestival> | null;
+    if (!settled) return null;
+    const { payout, result } = settled;
+    if (result) this.festivalDiscovered.add(result.eventId);
+    // Not a career run (entered outside the career, in a machine the career
+    // does not own): nothing was written and nothing is said.
+    if (settled.ignored) return payout;
+    if (result && payout.paid)
+      this.host.toast(
+        `Career · ${result.eventName}: ${credits(payout.total)}${payout.reputation ? ` · festival reputation +${payout.reputation}` : ''}${this.saving ? '' : ' (this session only)'}`,
+      );
+    else if (
+      result &&
+      payout.reason &&
+      payout.reason !== 'This festival run has already been paid.'
+    )
+      this.host.toast(`Career · ${result.eventName}: not paid. ${payout.reason}`);
+    return payout;
   }
   private briefLicence(id: LicenceId) {
     const a = licenceAvailability(this.registry, this.save, id);

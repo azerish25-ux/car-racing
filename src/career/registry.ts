@@ -1,5 +1,7 @@
 import { CIRCUITS, CIRCUIT_IDS } from '../simulation/circuits.ts';
 import { EVENTS, RULESETS, type EventDefinition } from '../simulation/events.ts';
+import { festivalClasses } from '../simulation/open-world/festival-machines.ts';
+import { SOLVANE, type FestivalEventKind, type RegionDefinition } from '../simulation/open-world/region-data.ts';
 import * as protocol from '../simulation/protocol.ts';
 import { VEHICLES, VEHICLE_IDS, type VehicleDefinition } from '../simulation/vehicles.ts';
 
@@ -94,6 +96,26 @@ export interface CareerRuleset {
   /** Off-road format (gate motos, joker heats, timed stages), if any. */
   format?: { kind: string };
 }
+/** A festival event as the career reads it (region data, no route planning). */
+export interface CareerFestivalEvent {
+  id: string;
+  name: string;
+  kind: FestivalEventKind;
+  blurb: string;
+  laps: number;
+  rivals: number;
+  /** One-, two- and three-star targets of a skill challenge or showcase. */
+  stars: readonly number[] | null;
+}
+/** An open-world festival region registered as a career venue. */
+export interface CareerFestivalRegion {
+  id: string;
+  name: string;
+  short: string;
+  events: readonly CareerFestivalEvent[];
+  /** Machine classes the region admits (the festival's own machine rule). */
+  classes: readonly string[];
+}
 export interface CareerRegistry {
   vehicles: readonly CareerVehicle[];
   venues: readonly CareerVenue[];
@@ -101,6 +123,46 @@ export interface CareerRegistry {
   events: readonly EventDefinition[];
   /** Snapshot channels a licence can measure (see `snapshotChannels`). */
   channels: readonly string[];
+  /** Festival regions (each is also a `venueKind: 'festival'` venue). */
+  festival?: readonly CareerFestivalRegion[];
+}
+/** The career's view of a festival region, from its authored data: every
+ * event (so an event added to the region data appears in the career) and the
+ * machine classes the festival admits. */
+export function festivalRegion(
+  region: RegionDefinition = SOLVANE,
+  classes: readonly string[] = festivalClasses(),
+): CareerFestivalRegion {
+  return Object.freeze({
+    id: region.id,
+    name: region.name,
+    short: region.name.split(/\s+/)[0].toUpperCase(),
+    classes: Object.freeze([...classes]),
+    events: Object.freeze(
+      region.events.map((e) =>
+        Object.freeze({
+          id: e.id,
+          name: e.name,
+          kind: e.kind,
+          blurb: e.blurb,
+          laps: e.kind === 'circuit' ? Math.max(1, e.laps ?? 1) : 1,
+          rivals: e.rivals ?? 0,
+          stars: e.stars ? Object.freeze([...e.stars]) : null,
+        }),
+      ),
+    ),
+  });
+}
+/** A festival region as a career venue (its own venue kind, admitted classes). */
+export function festivalVenue(region: CareerFestivalRegion): CareerVenue {
+  return Object.freeze({
+    id: region.id,
+    name: region.name,
+    short: region.short,
+    corners: [],
+    venueKind: 'festival',
+    classes: region.classes,
+  });
 }
 /** Channels in the live snapshot protocol. Car channels are the F block;
  * a two-wheel block (lean) is detected by name when the protocol exports it,
@@ -120,12 +182,14 @@ export function snapshotChannels(module: Record<string, unknown> = protocol): st
   return [...channels];
 }
 export function liveRegistry(): CareerRegistry {
+  const festival = [festivalRegion()];
   return {
     vehicles: VEHICLE_IDS.map((id) => VEHICLES[id] as VehicleDefinition),
-    venues: CIRCUIT_IDS.map((id) => CIRCUITS[id] as CareerVenue),
+    venues: [...CIRCUIT_IDS.map((id) => CIRCUITS[id] as CareerVenue), ...festival.map(festivalVenue)],
     rulesets: Object.values(RULESETS),
     events: EVENTS,
     channels: snapshotChannels(),
+    festival,
   };
 }
 
@@ -279,6 +343,15 @@ export function rulesetsFor(registry: CareerRegistry, classId: string, session: 
     .filter((r) => r.sessions.includes(session) && r.allowedClasses.includes(classId))
     .sort((a, b) => a.allowedClasses.length - b.allowedClasses.length || a.id.localeCompare(b.id));
 }
+/** Can `vehicle` race in its discipline in this build? A festival machine
+ * needs a festival region that admits its class; any other a race ruleset. */
+export function machineCanRace(registry: CareerRegistry, vehicle: CareerVehicle) {
+  if (DISCIPLINES[vehicleDiscipline(vehicle)].venue === 'festival')
+    return registry.venues.some(
+      (v) => venueKind(v) === 'festival' && (!v.classes || v.classes.includes(vehicle.classId)),
+    );
+  return rulesetsFor(registry, vehicle.classId, 'race').length > 0;
+}
 export interface DisciplineStatus {
   id: DisciplineId;
   state: 'open' | 'coming';
@@ -298,9 +371,13 @@ export function disciplineStatus(registry: CareerRegistry, id: DisciplineId): Di
     reasons: string[] = [];
   if (!vehicles.length) reasons.push(`No ${def.machineNoun} is registered yet.`);
   if (!venues.length) reasons.push(`No ${def.venueNoun} is registered yet.`);
-  if (vehicles.length && !vehicles.some((v) => rulesetsFor(registry, v.classId, 'race').length))
+  // The festival races on its own region with its own machine rule; the
+  // other disciplines need a circuit race ruleset for the class.
+  if (vehicles.length && !vehicles.some((v) => machineCanRace(registry, v)))
     reasons.push(
-      `No race ruleset admits ${[...new Set(vehicles.map((v) => v.classId))].join(', ')} yet.`,
+      def.venue === 'festival'
+        ? `No festival region admits ${[...new Set(vehicles.map((v) => v.classId))].join(', ')} yet.`
+        : `No race ruleset admits ${[...new Set(vehicles.map((v) => v.classId))].join(', ')} yet.`,
     );
   return {
     id,

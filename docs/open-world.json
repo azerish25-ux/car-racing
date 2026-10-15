@@ -5,7 +5,7 @@
     "name": "Solvane Coast",
     "sizeKm": 8.192,
     "seed": 330270,
-    "buildMs": 1467
+    "buildMs": 1651
   },
   "network": {
     "totalKm": 70.92,
@@ -164,10 +164,10 @@
         "evicted": 43,
         "stalls": 0,
         "prefetched": 67,
-        "generationMs": 798.2563209999994,
-        "worstGenerationMs": 79.88797900000009
+        "generationMs": 703.7104219999992,
+        "worstGenerationMs": 42.100884999999835
       },
-      "wallMs": 8821
+      "wallMs": 9646
     },
     {
       "route": "thornwood-rally",
@@ -192,10 +192,10 @@
         "evicted": 19,
         "stalls": 0,
         "prefetched": 43,
-        "generationMs": 307.18679000000157,
-        "worstGenerationMs": 35.58353999999963
+        "generationMs": 359.6997739999824,
+        "worstGenerationMs": 80.99992399999974
       },
-      "wallMs": 3669
+      "wallMs": 4813
     }
   ],
   "race": {
@@ -203,30 +203,94 @@
     "completed": true,
     "position": 4,
     "entrants": 4,
-    "timeS": 39.8,
+    "timeS": 56.9,
     "standings": [
       {
-        "name": "SC-7 SUPERCAR",
-        "vehicle": "sc7",
-        "timeS": 36.83
+        "name": "RM-8 MUSCLE COUPE",
+        "vehicle": "rm8",
+        "timeS": 43.47
       },
       {
-        "name": "EH-3 ELECTRIC HYPERCAR",
-        "vehicle": "eh3",
-        "timeS": 37.93
+        "name": "RP-6 DESERT PICKUP",
+        "vehicle": "rp6",
+        "timeS": 55.4
       },
       {
-        "name": "SC-7 SUPERCAR",
-        "vehicle": "sc7",
-        "timeS": 38.83
+        "name": "RR-4 RALLY-BRED ROAD CAR",
+        "vehicle": "rr4",
+        "timeS": 56.47
       },
       {
         "name": "YOU",
         "vehicle": "eh3",
-        "timeS": 39.83
+        "timeS": 56.87
+      }
+    ]
+  },
+  "traffic": {
+    "drive": {
+      "seconds": 120,
+      "peakCars": 24,
+      "capCars": 24,
+      "perTileCap": 3,
+      "worstOverTileCap": 1,
+      "spawned": 130,
+      "despawned": 107,
+      "collisions": 0,
+      "closestSpawnM": 182.8,
+      "trafficMsPerStep": 0.0422,
+      "sessionMsPerStep": 0.4622,
+      "digest": 4042140241
+    },
+    "repeatDigests": [
+      3037811142,
+      3037811142
+    ]
+  },
+  "bikes": {
+    "roam": [
+      {
+        "bike": "sbk1000",
+        "seconds": 120,
+        "distanceKm": 1.67,
+        "falls": 0
+      },
+      {
+        "bike": "nr900",
+        "seconds": 120,
+        "distanceKm": 1.66,
+        "falls": 0
+      },
+      {
+        "bike": "sm450",
+        "seconds": 120,
+        "distanceKm": 1.55,
+        "falls": 0
+      }
+    ],
+    "races": [
+      {
+        "bike": "sbk1000",
+        "event": "valley-sprint",
+        "completed": true,
+        "timeS": 79.5,
+        "finishers": 4,
+        "entrants": 4,
+        "playerFalls": 0,
+        "rivalFalls": 0
+      },
+      {
+        "bike": "sm450",
+        "event": "thornwood-rally",
+        "completed": true,
+        "timeS": 178.4,
+        "finishers": 4,
+        "entrants": 4,
+        "playerFalls": 0,
+        "rivalFalls": 0
       }
     ]
   },
   "failures": [],
-  "wallMs": 22081
+  "wallMs": 52435
 }

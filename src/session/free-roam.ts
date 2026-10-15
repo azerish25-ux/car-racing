@@ -13,11 +13,14 @@ import { F, H, R, RACE_BASE, carBase } from '../simulation/protocol.ts';
 import { vehicleAt } from '../simulation/vehicles.ts';
 import type { LightingMode } from '../rendering/daylight.ts';
 import { FestivalRenderer } from '../rendering/open-world/festival-renderer.ts';
+import { FestivalRiders } from '../rendering/festival-riders.ts';
+import { TrafficCars } from '../rendering/traffic-cars.ts';
 import type { GraphicsOptions, QualityPreset } from '../rendering/options.ts';
 import type { AudioView } from '../audio/spatial.ts';
 import { FestivalHud } from '../ui/festival-hud.ts';
 import { minimapHeading } from '../ui/festival-map.ts';
-import { FestivalControls } from './festival-controls.ts';
+import { FestivalControls, festivalMenuState } from './festival-controls.ts';
+import { FESTIVAL_SAVE_KEY, festivalMachineChoice, validateFestivalSave, type FestivalSave } from './festival-save.ts';
 import type { FromOpenWorld, ToOpenWorld } from '../workers/open-world-protocol.ts';
 import OpenWorldWorker from '../workers/open-world.worker.ts?worker&inline';
 import TileWorker from '../workers/open-world-tiles.worker.ts?worker&inline';
@@ -52,30 +55,21 @@ export interface FestivalHost {
   load?(): Promise<unknown>;
   save?(state: FestivalSave): Promise<void>;
 }
-export interface FestivalSave {
-  version: 1;
-  discovered: string[];
-  best: Record<string, { stars: number; time: number | null; value: number | null }>;
-  vehicle: string;
-}
 export interface FestivalStartOptions {
   vehicle?: string;
   weather?: WeatherPreset;
   assist?: Assist;
   seed?: number;
+  /** Session identity for result run ids (the career pays each run once). */
+  session?: string;
+  /** Fast-travel to this discovered event once the region has streamed in
+   * (a career start). */
+  travel?: string;
+  /** The machine is the career's loan: driven this session, but not saved
+   * as the festival's machine (it was not the player's choice). */
+  loaner?: boolean;
 }
-export const FESTIVAL_SAVE_KEY = 'festival:v1';
-export function validateFestivalSave(value: unknown): FestivalSave | null {
-  if (!value || typeof value !== 'object') return null;
-  const v = value as Partial<FestivalSave>;
-  if (v.version !== 1 || !Array.isArray(v.discovered) || typeof v.vehicle !== 'string') return null;
-  return {
-    version: 1,
-    discovered: v.discovered.filter((d): d is string => typeof d === 'string').slice(0, 256),
-    best: v.best && typeof v.best === 'object' ? v.best : {},
-    vehicle: v.vehicle,
-  };
-}
+export { FESTIVAL_SAVE_KEY, validateFestivalSave, type FestivalSave };
 
 /**
  * The festival session controller: owns the open-world simulation worker,
@@ -94,6 +88,11 @@ export class FestivalSession {
   private receivedAt = 0;
   private lastTime = 0;
   private status: FestivalStatus | null = null;
+  /** Ambient traffic blocks paired with `previous`/`current`. */
+  private trafficPrevious: Float32Array | null = null;
+  private trafficCurrent: Float32Array | null = null;
+  private traffic: TrafficCars | null = null;
+  private riders: FestivalRiders | null = null;
   private controls: FestivalControls | null = null;
   /** Fast travel in progress: the simulation is held and frames are not
    * drawn while the destination streams in behind the loading screen. */
@@ -107,7 +106,7 @@ export class FestivalSession {
     private readonly host: FestivalHost,
     save: FestivalSave | null,
   ) {
-    this.save = save ?? { version: 1, discovered: [], best: {}, vehicle: festivalDefaultVehicle() };
+    this.save = save ?? { version: 1, discovered: [], best: {}, vehicle: festivalDefaultVehicle(), traffic: true };
     this.worker = new OpenWorldWorker();
     this.tiles = new TileWorker();
     this.worker.onmessage = (event: MessageEvent<FromOpenWorld>) => this.receive(event.data);
@@ -141,12 +140,15 @@ export class FestivalSession {
     renderer.setQuality(host.quality, host.graphics);
     renderer.lighting = host.lighting;
     for (const id of this.save.discovered) renderer.discovered.add(id);
+    // Ambient traffic (instanced) and motorcycles (the bike presentation)
+    // share the festival scene; both are posed before each draw.
+    this.traffic = new TrafficCars();
+    this.riders = new FestivalRiders();
+    renderer.scene.add(this.traffic.root, this.riders.root);
     const vehicles = festivalVehicles();
-    // A road machine chosen in the MACHINE menu wins over the festival save;
-    // the Formula default (and bikes) fall back to the saved festival car.
-    const chosen = vehicles.find((v) => v.id === options.vehicle && v.classId !== 'formula');
-    const vehicle = chosen?.id ?? (vehicles.some((v) => v.id === this.save.vehicle) ? this.save.vehicle : festivalDefaultVehicle());
-    this.save.vehicle = vehicle;
+    const machine = festivalMachineChoice(options, this.save.vehicle);
+    const vehicle = machine.drive;
+    this.save.vehicle = machine.save;
     this.hud = new FestivalHud(host.element, world, events, vehicles, {
       start: (id) => this.command({ type: 'start', event: id }),
       continue: () => this.command({ type: 'continue' }),
@@ -172,21 +174,18 @@ export class FestivalSession {
         this.command({ type: 'autopilot', value: on });
         this.setPaused(false);
       },
+      traffic: (on) => {
+        this.save.traffic = on;
+        this.command({ type: 'traffic', value: on });
+        void this.persist();
+        this.openMenu();
+      },
     });
     const hud = this.hud;
     this.controls = new FestivalControls(hud, {
       pause: (value) => this.post({ type: 'pause', value }),
       driving: (on) => host.driving?.(on),
-      menuState: () => {
-        const status = this.status;
-        return {
-          lighting: this.renderer?.lighting ?? 'day',
-          vehicle: status?.vehicleId ?? this.save.vehicle,
-          discovered: status?.discovered ?? this.save.discovered,
-          autopilot: status?.autopilot ?? false,
-          inEvent: !!status?.event,
-        };
-      },
+      menuState: () => festivalMenuState(this.status, this.save, this.renderer?.lighting ?? 'day'),
       card: () => (hud.cardOpen ? (this.status?.card?.id ?? null) : null),
       start: (id) => this.command({ type: 'start', event: id }),
       continue: () => this.command({ type: 'continue' }),
@@ -204,6 +203,8 @@ export class FestivalSession {
         assist: options.assist ?? 'sport',
         seed: options.seed ?? 73021,
         discovered: this.save.discovered,
+        session: options.session,
+        traffic: this.save.traffic !== false,
       },
     });
     await ready;
@@ -224,6 +225,9 @@ export class FestivalSession {
     await host.audio?.start().catch(() => undefined);
     host.loaded();
     this.post({ type: 'pause', value: false });
+    // A career start goes straight to its event (discovered: the card opens
+    // on arrival, a skill challenge starts at its entry gate).
+    if (options.travel && this.save.discovered.includes(options.travel)) await this.travel(options.travel);
   }
   private post(message: ToOpenWorld, transfer: Transferable[] = []) {
     if (!this.disposed) this.worker.postMessage(message, transfer);
@@ -248,6 +252,8 @@ export class FestivalSession {
           this.post({ type: 'recycle', buffer: this.previous.buffer as ArrayBuffer }, [this.previous.buffer as ArrayBuffer]);
         this.previous = this.current ?? frame;
         this.current = frame;
+        this.trafficPrevious = this.trafficCurrent;
+        this.trafficCurrent = msg.traffic ? new Float32Array(msg.traffic) : null;
         this.receivedAt = performance.now();
         if (this.readyResolve) {
           this.readyResolve();
@@ -395,6 +401,9 @@ export class FestivalSession {
     this.lastTime = time;
     const span = Math.max(8, (b[H.TIME] - a[H.TIME]) * 1000),
       alpha = Math.min(1, Math.max(0, (performance.now() - this.receivedAt) / span));
+    // Posed before the draw, from the same interpolation as the cars.
+    this.riders?.update(a, b, alpha, renderer.camera, this.host.quality);
+    this.traffic?.update(this.trafficPrevious, this.trafficCurrent, alpha, renderer.night, b[H.TIME]);
     renderer.draw(a, b, alpha, Math.min(0.08, wall));
     const o = carBase(0),
       presented = renderer.presented.value;
@@ -433,6 +442,10 @@ export class FestivalSession {
     this.host.audio?.stop();
     this.worker.terminate();
     this.tiles.terminate();
+    this.traffic?.dispose();
+    this.traffic = null;
+    this.riders?.dispose();
+    this.riders = null;
     this.renderer?.dispose();
     this.hud?.dispose();
     this.renderer = null;

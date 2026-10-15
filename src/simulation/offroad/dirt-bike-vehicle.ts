@@ -144,6 +144,10 @@ export class DirtBikeVehicle extends BikeVehicle {
     super.place(track, s, offset);
     this.settle();
   }
+  override placeFree(track: Track, x: number, z: number, heading: number, groundY: number) {
+    super.placeFree(track, x, z, heading, groundY);
+    this.settle();
+  }
   /** Static equilibrium on the ground under both wheels. */
   private settle() {
     const b = this.bikeSpec,

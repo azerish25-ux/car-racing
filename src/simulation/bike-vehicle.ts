@@ -165,6 +165,21 @@ export class BikeVehicle extends Vehicle {
     this.groundY = p.y;
     this.writeBody(track, 0);
   }
+  /** At rest at a world point (x, z) facing `heading` (rad from +z), on the
+   * ground of height `groundY` (the layer to sample: a bridge deck or the
+   * road below it). For surfaces without lap distance (the festival region);
+   * circuit sessions use `place`. */
+  placeFree(track: Track, x: number, z: number, heading: number, groundY: number) {
+    const d = this.dynamics;
+    d.x = x;
+    d.z = z;
+    d.heading = heading;
+    d.speed = d.lean = d.leanRate = d.steer = d.pitch = 0;
+    this.slide = this.yawKick = 0;
+    this.stuckClock = 0;
+    this.groundY = groundY;
+    this.writeBody(track, 0);
+  }
   /** Seamless (or quickshifted) sequential gearbox; no reverse or neutral in a session. */
   override shift(direction: number) {
     if (this.shiftClock > 0) return;

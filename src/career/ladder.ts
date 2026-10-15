@@ -7,6 +7,7 @@ import {
   DISCIPLINE_IDS,
   disciplineStatus,
   disciplineVehicles,
+  machineCanRace,
   rulesetsFor,
   surveyedJumps,
   vehicleDiscipline,
@@ -270,9 +271,7 @@ export function vehiclePrice(registry: CareerRegistry, vehicle: CareerVehicle) {
  * cheapest registered vehicle of its lowest tier that has one. */
 export function loanerVehicle(registry: CareerRegistry, discipline: DisciplineId) {
   for (const t of disciplineTiers(registry, discipline)) {
-    const machines = tierVehicles(registry, t).filter(
-      (v) => rulesetsFor(registry, v.classId, 'race').length,
-    );
+    const machines = tierVehicles(registry, t).filter((v) => machineCanRace(registry, v));
     if (machines.length)
       return [...machines].sort(
         (a, b) => vehiclePrice(registry, a) - vehiclePrice(registry, b) || a.id.localeCompare(b.id),
@@ -336,10 +335,12 @@ export interface CareerEvent {
 /** Why a machine cannot be bought: its discipline or class cannot race in
  * this build, so credits spent on it would buy nothing usable. */
 export function purchaseReasons(registry: CareerRegistry, vehicle: CareerVehicle): string[] {
-  const status = disciplineStatus(registry, vehicleDiscipline(vehicle));
+  const discipline = vehicleDiscipline(vehicle),
+    status = disciplineStatus(registry, discipline);
   if (status.state !== 'open') return status.reasons;
-  return rulesetsFor(registry, vehicle.classId, 'race').length
-    ? []
+  if (machineCanRace(registry, vehicle)) return [];
+  return DISCIPLINES[discipline].venue === 'festival'
+    ? [`No festival region admits ${vehicle.classId} yet.`]
     : [`No race ruleset admits ${vehicle.classId} yet.`];
 }
 /** Championship prize: the cheapest machine of a higher tier the player does
@@ -465,6 +466,9 @@ export function disciplineEvents(
   view: ProgressView,
   discipline: DisciplineId,
 ): CareerEvent[] {
+  // The festival's events are open-world events driven in the festival
+  // session, not circuit sessions: see career/festival.ts (festivalEvents).
+  if (DISCIPLINES[discipline].venue === 'festival') return [];
   const status = disciplineStatus(registry, discipline);
   const events: CareerEvent[] = [];
   const venues = status.venues;

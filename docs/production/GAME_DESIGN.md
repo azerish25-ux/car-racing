@@ -51,8 +51,9 @@ explicit `family` field, else its dynamics adapter, else its class; a discipline
 venue or race ruleset is shown **COMING** with the missing items listed, never hard-coded. With the
 current catalogues, circuit cars and road bikes are open (the superbike and GP bike race under the
 motorcycle ruleset; no circuit declares bike safety yet, so bike events use every paved circuit and
-say so); off-road is open (see below) and festival is coming (road machines exist and the Solvane
-region runs as free roam, section 8.1, but the region is not yet registered as a career venue).
+say so); off-road is open (see below) and festival is open: the Solvane region is registered as a
+career venue (venue kind `festival`), so the road machines and the road-only motorcycle race there
+(section 8.1).
 Circuit-car tiers: club, vintage and touring → grand touring → Formula ladder (entry, feeder, junior,
 the three historic eras, top tier) → endurance prototypes (incl. the historic sports prototype) →
 unlimited experimental; bike and festival tiers exist as data and fill when their classes are
@@ -142,9 +143,24 @@ Locks, writes from all tabs are also serialised. A first career is seeded once f
 Team HQ reputation above its founding value, classified `championship:v1` rounds, paid session ids and
 the garage setup as a preset. The team and championship saves are never rewritten by the career.
 
-**Designed, not yet implemented.** The career reading festival results (festival free roam and events
-found by driving to them are integrated, section 8.1, and emit typed results the career does not yet
-consume); bike and off-road setup parameters; performance upgrades and a per-class performance
+**Festival discipline (integrated).** The career consumes the festival's typed results: each run
+(`festival-result`, version 2, with a run id) is paid once — completion (races: plus rivals beaten),
+new stars above your best, a first completion, a personal best and staying on the route, at the
+machine's tier rate (the career's loaned machine at a quarter); reputation comes from new stars and
+first completions only, at most two per star and one for completing an event. The loaned machine is
+a car (the festival's own default machine), not the cheapest festival machine, and it is never saved
+as the festival's machine. Loaned runs keep their own record: they are measured against every run of
+the event, but a later run in your own machine is measured against your own-machine record only, so
+borrowing never uses up an event's full-rate star, first-completion or reputation pay (a loaned run's
+reputation, one at most, counts towards the event's total). Events unlock by kind (festival
+reputation 0 for skill challenges and sprints, 6 road races, 12 circuits, 20 the showcase) and the
+career sends you only to events you have discovered in free roam; the FESTIVAL tab lists every event
+with its state, discovery and your best (stars with a text alternative). A run the autopilot drove,
+an unfinished run, a machine not in your garage or a locked event pays nothing and is still recorded
+as settled. A festival entered from SESSION select in a machine the career does not own is not a
+career run: the career ignores it, writes nothing and shows nothing.
+
+**Designed, not yet implemented.** Festival seasons; bike and off-road setup parameters; performance upgrades and a per-class performance
 index; showing setup effects in telemetry (the plain-language hints exist); a choice of licence
 venue (tests use the first
 admitted venue); championship qualifying (career rounds start the player fifth); rival identity
@@ -197,18 +213,20 @@ Off-road (implemented in `src/simulation/offroad/session.ts`, rules in `formats.
 Implemented (state **integrated**, details in [OPEN_WORLD.md](OPEN_WORLD.md)): the fictional
 Solvane Coast region (8.19 km square; coast, Varda mountain, Ashvale valley, Port Ilse town,
 Kestrel airfield, forests) with a 70.9 km road network of highways, country roads, mountain
-switchbacks, town streets, dirt tracks and a runway. SESSION → *Festival · open world* starts free
-roam in any four-wheel registry machine. Physics reads the real surface everywhere through the
+switchbacks, town streets, dirt tracks and a runway. SESSION → *Festival · open world* (or CAREER →
+FESTIVAL) starts free roam in any four-wheel registry machine except karts, any road motorcycle or
+the supermoto (the bike adapter on the open-world surface). Physics reads the real surface everywhere through the
 `OpenWorldTrack` adapter (soft boundaries, no laps); reset puts the car back on the nearest road.
 Thirteen events are discovered by driving near their markers and start in place after a card:
 road race, circuits built from road routes, sprints, speed traps, speed zones, drift zones scored
 by `scoring.ts`, and a showcase against the fastest registry machine. Rivals follow the route with
 the circuit AI's envelope; legal progress is `RouteProgress`, so shortcuts earn nothing. Each event
-emits a typed `FestivalResult` for the career hook.
+emits a typed `FestivalResult`, which the career pays once per run (section 4). Ambient traffic
+(kinematic, deterministic, capped per tile, off during events, toggled in the festival menu) drives
+the highways, country roads and towns; the player collides with it.
 
-Designed, not implemented: ambient traffic, festival career and reputation (results are emitted,
-not consumed), motorcycles and off-road machines in the region, seasons,
-online free roam, photo challenges, destructible scenery.
+Designed, not implemented: knobby off-road machines in the region, seasons, traffic lane changes
+and pedestrians, online free roam, photo challenges, destructible scenery.
 
 ## 9. Presentation
 

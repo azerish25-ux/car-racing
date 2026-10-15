@@ -1,4 +1,6 @@
 import type { LightingMode } from '../rendering/daylight.ts';
+import type { FestivalStatus } from '../simulation/open-world/session.ts';
+import type { FestivalSave } from './festival-save.ts';
 
 /** The HUD surface the festival controls drive (FestivalHud). */
 export interface FestivalMenus {
@@ -15,6 +17,26 @@ export interface FestivalMenuState {
   discovered: readonly string[];
   autopilot: boolean;
   inEvent: boolean;
+  /** Ambient traffic setting. */
+  traffic: boolean;
+}
+/** What the pause menu shows, from the worker's last status and the
+ * session's own settings. Settings the menu changes itself (ambient traffic)
+ * are read from the local save: the status was sent before the change and
+ * the menu is redrawn at once, before the worker's next status arrives. */
+export function festivalMenuState(
+  status: FestivalStatus | null,
+  save: Pick<FestivalSave, 'vehicle' | 'discovered' | 'traffic'>,
+  lighting: LightingMode,
+): FestivalMenuState {
+  return {
+    lighting,
+    vehicle: status?.vehicleId ?? save.vehicle,
+    discovered: status?.discovered ?? save.discovered,
+    autopilot: status?.autopilot ?? false,
+    inEvent: !!status?.event,
+    traffic: save.traffic !== false,
+  };
 }
 export interface FestivalControlHooks {
   /** Hold or release the simulation (the worker's pause). */
@@ -35,7 +57,7 @@ export interface FestivalControlHooks {
  * Pause and keyboard ownership of the festival session. While the festival
  * menu is open the driving input is off and the festival owns Escape (it
  * resumes, or closes the map first), so every menu action (resume, reset,
- * abandon, exit, time of day, machine, autopilot, travel) is reachable with
+ * abandon, exit, time of day, machine, autopilot, traffic, travel) is reachable with
  * Tab and Space or Enter. While driving, Enter starts the race card or
  * continues from the results; a gamepad's pause button pauses and resumes.
  */

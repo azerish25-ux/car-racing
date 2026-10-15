@@ -10,7 +10,8 @@ import { DISCIPLINE_IDS, type DisciplineId } from './registry.ts';
  * readRecovered, so a corrupt primary falls back to the previous copy. The
  * team (`team:v1`) and championship (`championship:v1`) saves are never
  * rewritten by the career: their data is read once to seed a new career. */
-export const CAREER_VERSION = 1;
+/** Version 2 added the festival records (`festival`). */
+export const CAREER_VERSION = 2;
 export const CAREER_KEY = 'career';
 /** Copies kept aside before this build overwrites a career it cannot read:
  * one saved by a newer build, or one that failed validation. */
@@ -38,6 +39,26 @@ export interface EventRecord {
   bestLap: number;
   starts: number;
 }
+/** Best results of a festival event over one kind of paid run. */
+export interface FestivalBest {
+  stars: number;
+  /** Best elapsed time (s) and best measure (trap / zone km/h, drift points). */
+  bestTime: number | null;
+  bestValue: number | null;
+  /** Races: best finishing position. */
+  bestPosition: number | null;
+  runs: number;
+}
+/** A festival event's career record (key `festival.<region>.<event>`). The
+ * top-level bests are runs in your own machines, paid at the full rate;
+ * `loaner` holds runs in the career's loaned machine, so a loaned run never
+ * uses up the star, first-completion and reputation pay of a later run in
+ * your own machine. `reputation` is the festival reputation the event has
+ * paid so far (at most two per star and one for completing it). */
+export interface FestivalRecord extends FestivalBest {
+  reputation: number;
+  loaner?: FestivalBest;
+}
 export interface CareerChampionship {
   vehicle: string;
   season: Championship;
@@ -58,7 +79,9 @@ export interface CareerSave {
   selected: Record<string, number>;
   results: Record<string, EventRecord>;
   championships: Record<string, CareerChampionship>;
-  /** Sessions already paid (most recent 200). */
+  /** Festival event records (paid runs only). */
+  festival: Record<string, FestivalRecord>;
+  /** Sessions already paid (most recent 200); festival runs as `festival:<run id>`. */
   paidSessions: string[];
   ledger: { label: string; amount: number }[];
   /** Which legacy saves seeded this career. */
@@ -79,6 +102,7 @@ export function newCareer(): CareerSave {
     selected: {},
     results: {},
     championships: {},
+    festival: {},
     paidSessions: [],
     ledger: [{ label: 'Career starting credits', amount: STARTING_CREDITS }],
     migratedFrom: [],
@@ -150,7 +174,10 @@ const record = (v: unknown): Record<string, unknown> =>
  * first; the table is where a future shape change lands. */
 export const CAREER_MIGRATIONS: Readonly<
   Record<number, (save: Record<string, unknown>) => Record<string, unknown>>
-> = Object.freeze({});
+> = Object.freeze({
+  // 1 → 2: festival records start empty; everything else is unchanged.
+  1: (save: Record<string, unknown>) => ({ ...save, version: 2, festival: {} }),
+});
 /** The stored version of a career written by a newer build, else null. */
 export function newerCareerVersion(value: unknown): number | null {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
@@ -242,6 +269,32 @@ export function validateCareer(value: unknown): CareerSave {
             .filter((s): s is string => typeof s === 'string' && s.length <= 80)
             .slice(-24)
         : [],
+    };
+  }
+  const positive = (v: unknown) => {
+    const n = finite(v);
+    return n !== null && n >= 0 ? n : null;
+  };
+  const festivalBest = (e: Record<string, unknown>): FestivalBest => ({
+    stars: int(e.stars, 0, 0, 3),
+    bestTime: positive(e.bestTime),
+    bestValue: positive(e.bestValue),
+    bestPosition:
+      e.bestPosition === null || e.bestPosition === undefined ? null : int(e.bestPosition, 99, 1, 99),
+    runs: int(e.runs, 0, 0, 1e6),
+  });
+  for (const [key, r] of Object.entries(record(raw.festival)).slice(0, 200)) {
+    const e = record(r);
+    if (key.length > 120 || !key.startsWith('festival.')) continue;
+    const own = festivalBest(e),
+      loaner = e.loaner && typeof e.loaner === 'object' ? festivalBest(record(e.loaner)) : null;
+    // A record without the reputation count (written before it existed)
+    // has paid its own stars and first completion.
+    const paid = 2 * own.stars + (own.runs > 0 ? 1 : 0);
+    out.festival[key] = {
+      ...own,
+      reputation: int(e.reputation, paid, 0, 7),
+      ...(loaner ? { loaner } : {}),
     };
   }
   if (Array.isArray(raw.paidSessions))

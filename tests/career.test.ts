@@ -642,7 +642,21 @@ describe('unlocks and availability are derived from the registries', () => {
       expect(disciplineStatus(live, 'off-road').reasons.join(' ')).toContain(
         'dirt or mixed-surface venue',
       );
-    expect(disciplineStatus(live, 'festival').state).toBe('coming');
+    // The festival region is registered as a career venue: the festival opens.
+    expect(disciplineStatus(live, 'festival').state).toBe('open');
+    expect(disciplineStatus(live, 'festival').venues.map((v) => v.id)).toEqual(
+      live.festival!.map((r) => r.id),
+    );
+    // Without a region it is coming, and says so.
+    const noRegion: CareerRegistry = {
+      ...live,
+      venues: live.venues.filter((v) => venueKind(v) !== 'festival'),
+      festival: [],
+    };
+    expect(disciplineStatus(noRegion, 'festival').state).toBe('coming');
+    expect(disciplineStatus(noRegion, 'festival').reasons.join(' ')).toContain(
+      'open festival region',
+    );
   });
   it('opens the bike career when a bike and a ruleset for it are registered', () => {
     // A registry without bikes or bike-safety assessments (whatever the live
@@ -946,14 +960,24 @@ describe('a broke driver can always recover', () => {
     expect(paid.payout.reputation).toBeLessThanOrEqual(1);
   });
   it('names the missing content instead of offering a recovery event that cannot run', () => {
-    const recovery = disciplineEvents(live, newCareer(), 'festival').find(
+    // A discipline with no machine in this registry (road bikes without a
+    // two-wheel machine), whatever the live content holds: its recovery
+    // event is listed as coming, with the reason, and is never offered.
+    const noBikes: CareerRegistry = {
+      ...live,
+      vehicles: live.vehicles.filter((v) => vehicleFamily(v) !== 'bike'),
+    };
+    expect(disciplineStatus(noBikes, 'road-bikes').state).toBe('coming');
+    const recovery = disciplineEvents(noBikes, newCareer(), 'road-bikes').find(
       (e) => e.kind === 'recovery',
-    )!;
-    if (disciplineStatus(live, 'festival').state === 'coming') {
-      expect(recovery.status).toBe('coming');
-      expect(recovery.reasons.length).toBeGreaterThan(0);
-      expect(recoveryEvent(live, newCareer(), 'festival')).toBeNull();
-    }
+    );
+    expect(recovery).toBeDefined();
+    expect(recovery!.status).toBe('coming');
+    expect(recovery!.reasons).toContain('No two-wheel road machine is registered yet.');
+    expect(recovery!.definition).toBeNull();
+    expect(recoveryEvent(noBikes, newCareer(), 'road-bikes')).toBeNull();
+    // The live road-bike career has content, so its recovery event is open.
+    expect(recoveryEvent(live, newCareer(), 'road-bikes')?.status).toBe('open');
   });
 });
 
