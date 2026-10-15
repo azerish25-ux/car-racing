@@ -32,6 +32,7 @@ import {
   standingStart,
 } from '../src/simulation/offroad/jump-rig.ts';
 import { DirtBikeVehicle } from '../src/simulation/offroad/dirt-bike-vehicle.ts';
+import { BIKE_RECOVERY } from '../src/simulation/bike-vehicle.ts';
 import { flightDistance, takeoffSpeed } from '../src/simulation/offroad/profile.ts';
 import { GATE_DROP_SECONDS, gateSlots } from '../src/simulation/offroad/session.ts';
 import { OFFROAD_CIRCUITS, offroadCourse, venueAdmits } from '../src/simulation/offroad/venues.ts';
@@ -612,6 +613,68 @@ describe('off-road integration guards', () => {
     expect(new Simulation(kestrel).offroad!.format!.joker!.required).toBe(1);
     // A paved circuit keeps the class's own ruleset.
     expect(resolve('aurel', 'rcx6').ruleset).toBe('rallycross-heat');
+  });
+  it('restarts a stopped machine off a jump face it could not climb', () => {
+    const track = rigTrack('valley-ridge-mx'),
+      course = offroadCourse(track.circuit)!,
+      L = track.length,
+      triple = jump('valley-ridge-mx', 'SKY TRIPLE'),
+      table = jump('valley-ridge-mx', 'RIDGE TABLE'),
+      past = mod(triple.end + 3, L);
+    // On the take-off face, at the gap floor and on the middle mound: past
+    // the feature. On a deck, a landing face or plain ground: where it is.
+    for (const s of [triple.start + 1, triple.rollEnd + 0.5, triple.rollEnd + 3])
+      expect(course.restartS(s), `${s}`).toBeCloseTo(past, 6);
+    for (const s of [triple.landing, table.takeoff + 3, 50])
+      expect(course.restartS(s), `${s}`).toBeCloseTo(s, 6);
+    // The climb still ahead: the middle mound from the gap floor, nothing on a deck.
+    expect(course.climbAhead(triple.rollEnd + 0.5)).toBeGreaterThan(2);
+    expect(course.climbAhead(table.takeoff + 3)).toBeCloseTo(0, 6);
+    expect(course.climbAhead(50)).toBe(0);
+    // A bike stalled on the triple's take-off face — the part throttle a
+    // slow rider holds there carries the grade and no more — is restarted
+    // by the marshals past the feature, not back on the same face.
+    const bike = rigBike(MX, track, triple.start + 1.6, 0),
+      dt = 1 / 120;
+    bike.gear = 1;
+    let restarted = -1;
+    for (let t = 0; t < BIKE_RECOVERY.stuckSeconds + 1 && restarted < 0; t += dt) {
+      rideLine(bike, track, 0);
+      bike.input.throttle = 0.37;
+      bike.input.brake = 0;
+      bike.step(dt, track);
+      if (bike.recoverIfUpset(dt, track)) restarted = t;
+    }
+    expect(restarted).toBeGreaterThan(BIKE_RECOVERY.stuckSeconds - 0.1);
+    expect(mod(bike.s - triple.end + L / 2, L) - L / 2).toBeGreaterThan(1);
+    expect(Math.abs(bike.lateral)).toBeLessThan(track.at(bike.s, trackPoint()).width);
+    expect(bike.riding && !bike.airborne).toBe(true);
+    // From there it rides on.
+    const s0 = bike.s;
+    for (let t = 0; t < 3; t += dt) {
+      rideLine(bike, track, 6);
+      bike.step(dt, track);
+    }
+    expect(mod(bike.s - s0, L)).toBeGreaterThan(5);
+  });
+  it('pushes a rider who fell in a gap over the mound before remounting', () => {
+    const track = rigTrack('valley-ridge-mx'),
+      L = track.length,
+      triple = jump('valley-ridge-mx', 'SKY TRIPLE'),
+      bike = rigBike(MX, track, triple.rollEnd + 0.8, 2),
+      dt = 1 / 120;
+    bike.dynamics.fall('lowside');
+    let back = -1;
+    for (let t = 0; t < 25 && back < 0; t += dt) {
+      bike.input.throttle = bike.input.brake = bike.input.steer = 0;
+      bike.step(dt, track);
+      if (bike.riding) back = t;
+    }
+    // Bounded: slide, separation, the jog back, the push and the remount.
+    expect(back).toBeGreaterThan(0);
+    expect(back).toBeLessThan(BIKE_RECOVERY.maxJog + 2 + BIKE_RECOVERY.maxPush + 4);
+    expect(mod(bike.s - triple.end + L / 2, L) - L / 2).toBeGreaterThan(1);
+    expect(bike.crashCauses.length).toBe(1);
   });
   it('builds a start-gate panel for every rider the session lines up', () => {
     const track = rigTrack('valley-ridge-mx'),

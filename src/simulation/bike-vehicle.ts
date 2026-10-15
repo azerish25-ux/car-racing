@@ -701,15 +701,30 @@ export class BikeVehicle extends Vehicle {
     if (from.terrain !== undefined) to.terrain = from.terrain;
   }
   /** Marshal help for a riding bike that cannot move (e.g. nosed into a
-   * barrier): after a hold it is placed at the track edge, facing the course. */
+   * barrier): after a hold it is placed at the track edge, facing the course.
+   * The hold counts while the rider asks for drive (the throttle input: an
+   * aid that trims the drive it delivers, such as wheelie control, does not
+   * make a stuck bike any less stuck). */
   override recoverIfUpset(dt: number, track: Track) {
     const d = this.dynamics;
-    if (this.retired || !this.riding || d.speed > 0.5 || this.throttle < 0.3 || this.inPit) {
+    if (
+      this.retired ||
+      !this.riding ||
+      d.speed > 0.5 ||
+      clamp(this.input.throttle, 0, 1) < 0.3 ||
+      this.inPit
+    ) {
       this.stuckClock = 0;
       return false;
     }
     this.stuckClock += dt;
     if (this.stuckClock < BIKE_RECOVERY.stuckSeconds) return false;
+    this.restart(track);
+    return true;
+  }
+  /** Marshal restart: the bike at rest and upright at its remount point. */
+  restart(track: Track) {
+    const d = this.dynamics;
     this.planRemount(track);
     d.x = this.remount.x;
     d.z = this.remount.z;
@@ -719,7 +734,6 @@ export class BikeVehicle extends Vehicle {
     this.slide = this.yawKick = 0;
     this.stuckClock = 0;
     this.writeBody(track, 0);
-    return true;
   }
 }
 /** The dynamics adapter for a definition's family (§6.3 / D13). */

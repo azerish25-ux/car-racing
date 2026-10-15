@@ -1,6 +1,6 @@
 import { approach, clamp, G, lerp, mod, Vec3 } from '../../core/math.ts';
 import { NOVICE } from '../bike.ts';
-import { BikeVehicle, bikeOrientation } from '../bike-vehicle.ts';
+import { BIKE_RECOVERY, BikeVehicle, bikeOrientation } from '../bike-vehicle.ts';
 import { chassisLean } from '../bike-definitions.ts';
 import { COMPOUNDS, DEFAULT_SETUP, type Assist, type Compound, type Setup } from '../config.ts';
 import { MARSHAL } from '../marshal.ts';
@@ -170,6 +170,10 @@ export class DirtBikeVehicle extends BikeVehicle {
   /** Speed (m/s) of the chassis as it left the ground on the last flight. */
   get lastTakeoff() {
     return this.takeoffSpeed;
+  }
+  /** Ground slope between the contact patches (rad, nose-up +: climbing). */
+  get groundPitch() {
+    return this.roadPitch;
   }
   override step(dt: number, track: Track) {
     this.lastTrack = track;
@@ -906,9 +910,28 @@ export class DirtBikeVehicle extends BikeVehicle {
       this.moisture = t.moistureAt(t.cellIndex(this.contacts[2].lateral, this.contacts[2].s));
     }
   }
-  override recoverIfUpset(dt: number, track: Track) {
-    const recovered = super.recoverIfUpset(dt, track);
-    if (recovered) this.settle();
-    return recovered;
+  override restart(track: Track) {
+    super.restart(track);
+    this.settle();
+  }
+  /** The remount (and marshal restart) point: the road bike's — on the
+   * course inside its edge, facing the course — moved past a jump whose face
+   * is still to be climbed (OffroadCourse.restartS): a machine restarted at
+   * a standstill on a take-off face or in a gap cannot climb out of it, so
+   * the rider pushes it over to the flat ground beyond the feature. */
+  protected override planRemount(track: Track) {
+    super.planRemount(track);
+    const course = offroadCourse(track.circuit),
+      p = this.remountPoint;
+    if (!course || this.inPit) return;
+    const s = course.restartS(p.s);
+    if (s === mod(p.s, track.length)) return;
+    const lateral = (this.remount.x - p.x) * p.nx + (this.remount.z - p.z) * p.nz;
+    track.at(s, p);
+    const edge = Math.max(0, p.width - BIKE_RECOVERY.edgeInset),
+      side = clamp(lateral, -edge, edge);
+    this.remount.x = p.x + p.nx * side;
+    this.remount.z = p.z + p.nz * side;
+    this.remount.heading = Math.atan2(p.tx, p.tz);
   }
 }

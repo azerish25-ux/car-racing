@@ -110,6 +110,11 @@ const TAPE_MARGIN = 0.8;
 /** Legal width a berm adds on its outside (m). */
 const BERM_ALLOWANCE = 1.6;
 export const BAND_MARGIN = 6;
+/** Profile slope (rise per metre, ~11°) a standing restart must not face on
+ * a jump, and how far past a feature's end (beyond its 2.4 m run-out
+ * fillet) a restart moved off it is placed (m). */
+const RESTART_CLIMB = 0.2,
+  RESTART_CLEARANCE = 3;
 export const COURSE_CELL = Object.freeze({ lateral: 0.25, along: 0.5 });
 /** A built course: static geometry queries shared by physics, AI and render. */
 export class OffroadCourse {
@@ -271,6 +276,42 @@ export class OffroadCourse {
   jumpAt(s: number) {
     s = mod(s, this.length);
     return this.jumps.find((j) => s >= j.start - 1 && s <= j.end + 1) ?? null;
+  }
+  /** Jump-profile height above the base ground at lap distance s (m). */
+  profileHeight(s: number) {
+    return this.profile.evaluate(mod(s, this.length), this.scratch).h;
+  }
+  /** Height (m) still to climb from s before the jump covering s ends: the
+   * highest ground ahead on its profile above the ground here (0 off a jump,
+   * on a deck or on a landing face). */
+  climbAhead(s: number) {
+    const j = this.jumpAt(s);
+    if (!j) return 0;
+    const L = this.length,
+      at = mod(s, L),
+      here = this.profile.evaluate(at, this.scratch).h,
+      span = mod(j.end - at + L / 2, L) - L / 2;
+    let top = here;
+    for (let x = 0.5; x <= span; x += 0.5)
+      top = Math.max(top, this.profile.evaluate(mod(at + x, L), this.scratch).h);
+    return top - here;
+  }
+  /** Lap distance where a machine stopped at s restarts (a remount, a
+   * marshal's push): s itself, unless a face of the jump covering s is still
+   * to be climbed (its take-off face, a middle or landing mound beyond a
+   * gap) — from a standstill on 30° of loose soil the drive the knobby tyre
+   * and the wheelie balance allow barely carries the grade — then the flat
+   * ground just past the feature's end. */
+  restartS(s: number) {
+    const j = this.jumpAt(s),
+      L = this.length,
+      at = mod(s, L);
+    if (!j) return at;
+    const span = mod(j.end - at + L / 2, L) - L / 2;
+    for (let x = 0; x <= span; x += 0.5)
+      if (this.profile.evaluate(mod(at + x, L), this.scratch).dh > RESTART_CLIMB)
+        return mod(j.end + RESTART_CLEARANCE, L);
+    return at;
   }
   /** Next jump take-off foot at or after s (wrapping), with its distance. */
   nextJump(s: number) {
