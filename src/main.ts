@@ -54,6 +54,7 @@ import { ghostPose } from './core/ghost-lap.ts';
 import { selectedPitCompound } from './ui/race-day-hud.ts';
 import { ReplayDirector, ReplayHud } from './ui/replay-hud.ts';
 import { FlashbackPanel, flashbackAllowed } from './ui/flashback.ts';
+import { setupContext } from './ui/setup-screen.ts';
 import { FLASHBACK } from './core/flashback.ts';
 import { TimeTrialRecords } from './session/time-trial-records.ts';
 import { ReplayClock } from './session/replay-clock.ts';
@@ -560,11 +561,17 @@ export class GameApp {
               this.audio.update(frame, cockpit, playing, view, liveHuman),
           },
           // Career hook: a typed FestivalResult per finished/abandoned event.
-          onResult: (result) => window.dispatchEvent(new CustomEvent('festival-result', { detail: result })),
+          onResult: (result) =>
+            window.dispatchEvent(new CustomEvent('festival-result', { detail: result })),
           load: () => this.store.read(FESTIVAL_SAVE_KEY),
           save: (state) => this.store.write(FESTIVAL_SAVE_KEY, state),
         },
-        { vehicle: options.vehicles?.[0], weather: options.weather, assist: options.assist, seed: options.seed },
+        {
+          vehicle: options.vehicles?.[0],
+          weather: options.weather,
+          assist: options.assist,
+          seed: options.seed,
+        },
       );
       this.input.setEnabled(true);
     } catch (error) {
@@ -733,7 +740,11 @@ export class GameApp {
         if (this.state !== 'replay')
           this.renderer?.circuit.updateSurface(message.water, message.rubber, message.marbles);
         // Terrain venues: rut keyframes, kept for replays (WP41).
-        this.renderer?.circuit.offroad?.record(message.terrain, message.time, this.state !== 'replay');
+        this.renderer?.circuit.offroad?.record(
+          message.terrain,
+          message.time,
+          this.state !== 'replay',
+        );
         return;
       }
       if (message.type === 'flashback') {
@@ -828,7 +839,9 @@ export class GameApp {
   private presentGhost(a: Float32Array, b: Float32Array, alpha: number) {
     if (!this.renderer) return;
     this.renderer.setGhost(
-      this.state === 'driving' || this.state === 'paused' ? this.records.ghostAt(a, b, alpha) : null,
+      this.state === 'driving' || this.state === 'paused'
+        ? this.records.ghostAt(a, b, alpha)
+        : null,
     );
   }
   private accept(buffer: ArrayBuffer) {
@@ -1692,7 +1705,7 @@ export class GameApp {
     else if (route.destination === 'team') this.openTeam(route.hub);
     else {
       this.suspendPlayback();
-      if (route.destination === 'settings') this.ui.settings(this.settings, this.setupMachine());
+      if (route.destination === 'settings') this.ui.settings(this.settings, this.setupContext());
       else this.ui.controls(this.settings.bindings);
     }
     this.ui.toast(`Reference ${String(id).padStart(3, '0')}: ${route.instruction}`);
@@ -1993,7 +2006,7 @@ export class GameApp {
         break;
       case 'settings':
         if (this.state === 'driving') this.pause();
-        this.ui.settings(this.settings, this.setupMachine());
+        this.ui.settings(this.settings, this.setupContext());
         break;
       case 'controls':
         this.ui.controls(this.settings.bindings);
@@ -2073,8 +2086,7 @@ export class GameApp {
         break;
       case 'replayPlay':
         if (this.state !== 'replay') break;
-        if (this.replay && this.replayClock.position >= this.replay.duration)
-          this.seekReplay(0);
+        if (this.replay && this.replayClock.position >= this.replay.duration) this.seekReplay(0);
         this.replayClock.playing = !this.replayClock.playing;
         if (!this.replayClock.playing) this.audio.stop();
         break;
@@ -2376,16 +2388,17 @@ export class GameApp {
       }
     }
   }
-  /** The machine whose setup GARAGE & SETTINGS edits: the player's entry of
-   * the session on track, or (null) the MACHINE menu choice. */
-  private setupMachine() {
+  /** What GARAGE & SETTINGS edits: the player's entry of the session on track
+   * (the Formula car when the session lists no vehicles) and the career
+   * garage preset it races, or (null) the MACHINE menu choice. */
+  private setupContext() {
     const inSession =
       this.state === 'driving' ||
       this.state === 'paused' ||
       this.state === 'results' ||
       this.state === 'replay' ||
       this.state === 'pregame';
-    return inSession ? (this.options.vehicles?.[0] ?? null) : null;
+    return setupContext(inSession, this.options.vehicles, this.career.sessionSetup());
   }
   private async applySettings(settings: Settings) {
     if (this.savingSettings || this.disposed || this.errorStopped) return;
@@ -2474,7 +2487,7 @@ export class GameApp {
       const value = JSON.parse(await file.text()) as { version: unknown; setup: unknown };
       if (value.version !== 1) throw new Error('Unsupported setup version.');
       this.settings.setup = validateSetup(value.setup);
-      this.ui.settings(this.settings, this.setupMachine());
+      this.ui.settings(this.settings, this.setupContext());
       this.ui.toast('Setup imported. Apply & Save to retain it.');
     } catch (e) {
       this.ui.toast(`Import rejected: ${e instanceof Error ? e.message : String(e)}`);

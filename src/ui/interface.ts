@@ -5,7 +5,13 @@ import {
   machineSelectOptions,
   sessionRulesSummary,
 } from './machine-options.ts';
-import { applySetupScreen, setupMachine, setupSectionHtml } from './setup-screen.ts';
+import {
+  applySetupScreen,
+  setupMachine,
+  setupSaveNote,
+  setupSectionHtml,
+  type SetupContext,
+} from './setup-screen.ts';
 import { installCompactRaceHud } from './compact-race-hud.ts';
 import {
   compoundOf,
@@ -327,7 +333,10 @@ export class Interface {
       Object.assign(this.options, machineOptions(this.options, select('vehicle')));
       // Reject incompatible machine/ruleset/tyre combinations with reasons
       // (the festival picks its own road machine and has no circuit rules).
-      const problems = select('mode') === 'festival' ? [] : sessionIncompatibilities(validateOptions(this.options));
+      const problems =
+        select('mode') === 'festival'
+          ? []
+          : sessionIncompatibilities(validateOptions(this.options));
       if (problems.length) {
         this.get('sessionRules').textContent = `Cannot start: ${problems.join('; ')}.`;
         return;
@@ -821,11 +830,13 @@ export class Interface {
     return Object.hasOwn(TELEMETRY_VIEWS, key) ? (key as TelemetryView) : 'driver';
   }
   /** GARAGE & SETTINGS. The vehicle setup section shows the active machine's
-   * own parameters (setup-screen.ts): `machine` names it explicitly (a running
-   * session's entry); otherwise the MACHINE menu choice decides. */
-  settings(settings: Settings, machine?: string | null) {
+   * own parameters (setup-screen.ts): `context.machine` names it explicitly (a
+   * running session's entry); otherwise the MACHINE menu choice decides. A
+   * career session racing a garage preset (`context.preset`) shows it read-only. */
+  settings(settings: Settings, context?: SetupContext) {
     const menuChoice = document.querySelector<HTMLSelectElement>('#vehicle')?.value ?? null;
-    const vehicle = setupMachine(machine, menuChoice, this.options);
+    const vehicle = setupMachine(context?.machine, menuChoice, this.options),
+      preset = context?.preset ?? null;
     this.modalContent(
       `<header><div><span class="eyebrow">GARAGE / PREFERENCES</span><h2>Make it yours.</h2></div><button data-action="modalClose" aria-label="Close settings">✕</button></header><form id="settingsForm"><div class="settings-columns"><section><h3>Presentation</h3><label>RENDER QUALITY<select name="quality"><option value="low">Low · No shadows / crowd / particles</option><option value="medium">Medium · 2× MSAA / AO / bloom</option><option value="high">High · 4× MSAA / local reflections / specular AA</option><option value="ultra">Ultra · TAA / SSR / 3 shadow cascades (opt-in, fast GPUs)</option></select></label>${presentationControls(settings)}${[
         ['volume', 'Volume', 0, 1, 0.01],
@@ -873,7 +884,7 @@ export class Interface {
         )
         .join(
           '',
-        )}</div></section><section><h3>Vehicle setup</h3>${setupSectionHtml(vehicle, settings.setup)}<div class="setup-files"><button type="button" id="exportSetup">EXPORT SETUP</button><label class="file-label">IMPORT SETUP<input id="importSetup" type="file" accept=".json,application/json" hidden></label></div></section></div><footer><button type="button" data-action="modalClose">CANCEL</button><button class="primary" type="submit">APPLY & SAVE</button></footer></form>`,
+        )}</div></section><section><h3>Vehicle setup</h3>${setupSectionHtml(vehicle, settings.setup, preset)}<div class="setup-files"><button type="button" id="exportSetup">EXPORT SETUP</button><label class="file-label">IMPORT SETUP<input id="importSetup" type="file" accept=".json,application/json" hidden></label></div></section></div><footer><button type="button" data-action="modalClose">CANCEL</button><button class="primary" type="submit">APPLY & SAVE</button></footer></form>`,
     );
     const form = document.getElementById('settingsForm') as HTMLFormElement;
     this.deviceCalibration = new DeviceCalibrationPanel(
@@ -889,6 +900,17 @@ export class Interface {
       const input = e.target as HTMLInputElement;
       const output = input.parentElement?.querySelector('output');
       if (output) output.value = input.value;
+      // The one value a machine reads as its own baseline saves as its neighbour.
+      if (input.dataset.setup !== undefined) {
+        const note = form.querySelector<HTMLElement>(`#note-${input.name}`);
+        if (note)
+          note.textContent = setupSaveNote(
+            vehicle,
+            input.name as keyof Settings['setup'],
+            Number(input.value),
+            Number(input.dataset.shown),
+          );
+      }
     });
     form.querySelectorAll<HTMLButtonElement>('[data-bind]').forEach((button) =>
       button.addEventListener('click', () => {
@@ -946,7 +968,7 @@ export class Interface {
         next.rumble[key] = Number(value(`rumble_${key}`));
       next.quickStart = (form.elements.namedItem('quickStart') as HTMLInputElement).checked;
       for (const key of ['volume', 'shake', 'uiScale'] as const) next[key] = Number(value(key));
-      next.setup = applySetupScreen(vehicle, settings.setup, (key) => Number(value(key)));
+      next.setup = applySetupScreen(vehicle, settings.setup, (key) => Number(value(key)), preset);
       for (const key of [
         'steerAxis',
         'throttleAxis',
