@@ -61,6 +61,8 @@ function stubCanvas() {
 }
 afterEach(() => vi.unstubAllGlobals());
 
+const definesOf = (material: T.Material) =>
+  (material as T.Material & { defines?: Record<string, string> }).defines ?? {};
 const compile = (material: T.Material) => {
   const shader = {
     uniforms: {},
@@ -165,7 +167,7 @@ describe('scanned ground shaders', () => {
     expect(installScannedAsphalt(road)).toBe(false);
     expect(studioHookKeys(road)).toEqual(['road-detail-v5', 'scanned-asphalt-v1']);
     // Node: nothing loads, no define, every block compiled out.
-    expect('APEX_SCAN' in (road.defines ?? {})).toBe(false);
+    expect('APEX_SCAN' in definesOf(road)).toBe(false);
     const f = compile(road).fragmentShader;
     expect(f).toContain('#ifdef APEX_SCAN');
     // The asphalt scan follows the micro fade it cancels and precedes the
@@ -188,16 +190,16 @@ describe('scanned ground shaders', () => {
     });
     expect(store.diagnostics().scanned).toBe(0);
     store.adopt('lawn', fakeSet('ground-lawn'));
-    expect(grass.defines?.APEX_SCAN).toBeUndefined();
+    expect(definesOf(grass).APEX_SCAN).toBeUndefined();
     store.adopt('meadow', fakeSet('ground-meadow'));
-    expect(grass.defines?.APEX_SCAN).toBe('');
-    expect(grass.defines?.APEX_SCAN_HEX).toBe('');
+    expect(definesOf(grass).APEX_SCAN).toBe('');
+    expect(definesOf(grass).APEX_SCAN_HEX).toBe('');
     expect(grass.map).toBeNull();
     store.setPreset('medium');
-    expect(grass.defines?.APEX_SCAN).toBe('');
-    expect(grass.defines?.APEX_SCAN_HEX).toBeUndefined();
+    expect(definesOf(grass).APEX_SCAN).toBe('');
+    expect(definesOf(grass).APEX_SCAN_HEX).toBeUndefined();
     store.setPreset('low');
-    expect(grass.defines?.APEX_SCAN).toBeUndefined();
+    expect(definesOf(grass).APEX_SCAN).toBeUndefined();
     expect(grass.map).toBe(map);
     expect(swaps).toBe(2);
     // Uniforms carry the set's scale and mean.

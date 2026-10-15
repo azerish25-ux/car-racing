@@ -62,7 +62,7 @@ export const SCANNED_GROUND = Object.freeze({
   lawnReach: Object.freeze([24, 52] as const),
   /** Meadow macro tap: frequency relative to its tile and strength. */
   macroScale: 0.11,
-  macroStrength: 0.45,
+  macroStrength: 0.6,
   /** Share of the mown verge given to rough meadow patches. */
   patchShare: 0.55,
   /** Hex lattice cells per tile (higher: more breakup, softer detail). */
@@ -71,12 +71,14 @@ export const SCANNED_GROUND = Object.freeze({
   turfRelief: 1.1,
   asphaltRelief: 1.0,
   gravelRelief: 1.15,
-  kerbRelief: 0.9,
+  kerbRelief: 1.4,
   rockRelief: 1.2,
   /** Share of the scan's chroma kept on asphalt (neutral binder). */
   asphaltChroma: 0.55,
+  /** Broad asphalt stain contrast (concrete macro tap). */
+  asphaltStains: 0.45,
   /** Kerb: share of the concrete tone through the paint; wear threshold. */
-  kerbThrough: 0.4,
+  kerbThrough: 0.6,
   /** Terrain rock: the terrain finish's slope band. */
   rockSlope: Object.freeze([0.47, 0.62] as const),
 });
@@ -170,7 +172,7 @@ function turfGlsl(distance: string, relief: number) {
 	vec3 apexMeadowRatio = mix( vec3( dot( apexMeadow.ratio, ${LUMA} ) ), apexMeadow.ratio, 0.55 );
 	vec3 apexRatio = mix( apexMeadowRatio, apexLawn.ratio, apexLawnW );
 	vec3 apexMacro = ${scanMacroCall('meadow', 'vScanWorld.xz', S.macroScale)};
-	apexMacro = mix( vec3( dot( apexMacro, ${LUMA} ) ), apexMacro, 0.5 );
+	apexMacro = mix( vec3( dot( apexMacro, ${LUMA} ) ), apexMacro, 0.8 );
 	apexRatio *= mix( vec3( 1.0 ), apexMacro, ${f(S.macroStrength)} );
 	diffuseColor.rgb *= ${v3(S.turfMean)} * apexRatio * mix( 1.0, mix( apexMeadow.ao, apexLawn.ao, apexLawnW ), 0.35 );
 	apexScanN = apexScanMixNormal( apexMeadow.n, apexLawn.n, apexLawnW );
@@ -302,7 +304,7 @@ export function installScannedAsphalt(material: T.MeshStandardMaterial) {
   const S = SCANNED_GROUND;
   return scanHook(material, {
     key: 'scanned-asphalt-v1',
-    layers: ['asphalt'],
+    layers: ['asphalt', 'concrete'],
     edit: (shader) => {
       if (!shader.fragmentShader.includes('float apexMicro'))
         throw new Error('Scanned asphalt needs the asphalt detail');
@@ -322,9 +324,10 @@ ApexScanSample apexAsphalt = ${scanLayerCall('asphalt', 'vScanWorld.xz', 'apexSc
 	diffuseColor.rgb *= pow( ${v3(means.albedo)} / max( sampledDiffuseColor.rgb, vec3( 0.003 ) ), vec3( apexMicro * ${f(means.contrast)} ) );
 	#endif
 	vec3 apexRatio = mix( vec3( dot( apexAsphalt.ratio, ${LUMA} ) ), apexAsphalt.ratio, ${f(S.asphaltChroma)} );
-	// Broad tone at 1/7 of the tile: mottling beyond the reach of the chips.
-	vec3 apexBroad = ${scanMacroCall('asphalt', 'vScanWorld.xz', 1 / 7)};
-	apexRatio *= 1.0 + 0.5 * ( dot( apexBroad, ${LUMA} ) - 1.0 );
+	// Broad stains and binder-rich patches (the weathered concrete scan's
+	// blotches at ~13 m): mottling the chip tile cannot carry at range.
+	vec3 apexBroad = ${scanMacroCall('concrete', 'vScanWorld.xz', 1 / 4.5)};
+	apexRatio *= 1.0 + ${f(S.asphaltStains)} * ( dot( apexBroad, ${LUMA} ) - 1.0 );
 	diffuseColor.rgb *= apexRatio;
 	apexScanN = apexAsphalt.n;
 	apexScanRough = clamp( apexAsphalt.rough, 0.7, 1.35 );
@@ -383,6 +386,43 @@ export function installScannedKerb(material: T.MeshStandardMaterial) {
 	apexScanN = apexK.n;
 	apexScanRough = mix( 1.0, clamp( apexK.rough, 0.85, 1.15 ), 0.5 + 0.5 * apexBare );
 	apexScanRelief = ${f(S.kerbRelief)};
+}
+#endif`,
+        'fragment',
+      );
+      injectAfter(shader, 'roughnessmap_fragment', ROUGHNESS, 'fragment');
+      injectAfter(shader, 'normal_fragment_maps', PERTURB, 'fragment');
+    },
+  });
+}
+
+/** A set's detail over a surface whose colour stage is already final (e.g.
+ * the festival's dirt tracks and verges): ratio x `strength` on the colour
+ * (chroma kept at `chroma`), its relief and relative roughness. */
+export function installScannedDetail(
+  material: T.MeshStandardMaterial,
+  layer: ScanLayer,
+  options: { strength?: number; chroma?: number; relief?: number } = {},
+) {
+  const strength = options.strength ?? 1,
+    chroma = options.chroma ?? 0.6,
+    relief = options.relief ?? 1;
+  return scanHook(material, {
+    key: 'scanned-detail-v1',
+    layers: [layer],
+    edit: (shader) => {
+      injectAfter(
+        shader,
+        'color_fragment',
+        `#ifdef APEX_SCAN
+{
+	${PLANAR_DERIVATIVES}
+	ApexScanSample apexD = ${scanLayerCall(layer, 'vScanWorld.xz', 'apexScanDx', 'apexScanDy', SCANNED_GROUND.density)};
+	vec3 apexRatio = mix( vec3( dot( apexD.ratio, ${LUMA} ) ), apexD.ratio, ${f(chroma)} );
+	diffuseColor.rgb *= mix( vec3( 1.0 ), apexRatio * mix( 1.0, apexD.ao, 0.35 ), ${f(strength)} );
+	apexScanN = apexD.n;
+	apexScanRough = apexD.rough;
+	apexScanRelief = ${f(relief)};
 }
 #endif`,
         'fragment',

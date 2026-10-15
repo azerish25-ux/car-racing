@@ -79,6 +79,17 @@ interface Registration {
   on: boolean;
 }
 
+function proceduralRequested() {
+  try {
+    return (
+      typeof location !== 'undefined' &&
+      new URLSearchParams(location.search).get('ground') === 'procedural'
+    );
+  } catch {
+    return false;
+  }
+}
+
 export class ScanStore {
   readonly uniforms: Readonly<Record<ScanLayer, ScanLayerUniforms>>;
   private preset: QualityPreset = 'high';
@@ -113,9 +124,10 @@ export class ScanStore {
     }
     return out;
   }
-  /** Scanned surfaces on this preset (Medium and above). */
+  /** Scanned surfaces on this preset (Medium and above); `?ground=procedural`
+   * in the page URL keeps the procedural surfaces for A/B look-dev captures. */
   get enabled() {
-    return this.preset !== 'low';
+    return this.preset !== 'low' && !proceduralRequested();
   }
   get hex() {
     return this.preset === 'high' || this.preset === 'ultra';

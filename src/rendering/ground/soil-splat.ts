@@ -130,8 +130,12 @@ function splatGlsl(slots: readonly ScanLayer[]) {
 		apexRough = mix( apexRough, apexSide.rough, apexSteep );
 	}`);
   // Macro breakup from the first (most used) set.
+  // Two scales (~25 m and ~90 m tiles): dry and damp, dusty and packed
+  // regions, with a little of the set's own hue shift.
   lines.push(`vec3 apexMacro = ${scanMacroCall(slots[0], 'vScanWorld.xz', 0.09)};
-	apexRatio *= 1.0 + 0.4 * ( dot( apexMacro, ${LUMA} ) - 1.0 );`);
+	vec3 apexMacroFar = ${scanMacroCall(slots[0], 'vScanWorld.xz', 0.027)};
+	vec3 apexMacroMix = mix( vec3( dot( apexMacro, ${LUMA} ) ), apexMacro, 0.6 );
+	apexRatio *= mix( vec3( 1.0 ), apexMacroMix, 0.6 ) * ( 1.0 + 0.45 * ( dot( apexMacroFar, ${LUMA} ) - 1.0 ) );`);
   lines.push(`diffuseColor.rgb *= apexRatio * mix( 1.0, apexAo, 0.4 );
 	// Packed by wheels: smoother relief, a little gloss; fresh ruts stay rough.
 	float apexPacked = clamp( vApexSoil.y, 0.0, 1.0 ) * ( 1.0 - clamp( vApexSoil.z * 8.0, 0.0, 1.0 ) );
