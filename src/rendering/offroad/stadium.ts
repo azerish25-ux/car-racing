@@ -100,7 +100,7 @@ export class Stadium {
           m.setPosition(x, top, z);
           seats.push(m);
           colours.push(
-            new T.Color().setHSL(r.next(), 0.25 + 0.4 * r.next(), 0.18 + 0.4 * r.next()),
+            new T.Color().setHSL(r.next(), 0.08 + 0.3 * r.next(), 0.1 + 0.28 * r.next()),
           );
         }
       }

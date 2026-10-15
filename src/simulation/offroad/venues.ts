@@ -277,7 +277,8 @@ const ARENA_NORD = venue(
     halfWidth: 4.2,
     elevationSmoothing: 10,
     crossFall: 0.005,
-    barrier: { kind: 'concrete', offset: 1.2 },
+    // Tuff-block walls behind the berm faces (a wall at the edge would cut them).
+    barrier: { kind: 'concrete', offset: 1.8 },
     runoff: { straight: 'grass', outside: 'grass', inside: 'grass' },
     pit: mechanicsArea(1, { offset: 12, boxLateral: 14 }),
     path: arenaPath,

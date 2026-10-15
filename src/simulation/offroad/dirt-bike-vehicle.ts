@@ -246,11 +246,13 @@ export class DirtBikeVehicle extends BikeVehicle {
           }
         }
         // Over-leaned on loose ground the rear steps out and stands the bike
-        // up (a slide, not a fall): the lean beyond the aid's limit is bled off.
-        const over = Math.abs(d.lean) - (d.leanLimit + 0.12);
+        // up (a slide, not a fall): lean the tyres cannot hold (the aid's
+        // friction budget, 0.8 mu) is bled off before it runs away.
+        const hold = Math.atan(0.8 * d.p.mu * d.grip),
+          over = Math.abs(d.lean) - Math.min(d.leanLimit + 0.06, hold - 0.02);
         if (over > 0 && Math.sign(d.leanRate) === Math.sign(d.lean)) {
           d.leanRate *= Math.exp(-12 * dt);
-          d.lean -= Math.sign(d.lean) * Math.min(over, 0.6 * dt);
+          d.lean -= Math.sign(d.lean) * Math.min(over, 1.2 * dt);
           d.speed = Math.max(0, d.speed - 1.5 * dt);
         }
       }
@@ -262,9 +264,7 @@ export class DirtBikeVehicle extends BikeVehicle {
         fromLanding =
           landing && landing.outcome.startsWith('crash') && this.clock - landing.time < 0.5;
       this.crashCauses.push({
-        cause: fromLanding
-          ? landing.outcome
-          : this.crashReason || `grip-${d.state}`,
+        cause: fromLanding ? landing.outcome : this.crashReason || `grip-${d.state}`,
         s: this.s,
         time: this.clock,
       });
@@ -646,7 +646,9 @@ export class DirtBikeVehicle extends BikeVehicle {
             : 0;
     // A dry moto leaves a film of dust over several laps; mud and spin coat
     // a machine within a lap or two.
-    const pick = this.airborne ? 0 : wetSoil * (0.0004 * d.speed + 0.012 * Math.abs(d.rearSlip)) * dt;
+    const pick = this.airborne
+      ? 0
+      : wetSoil * (0.0004 * d.speed + 0.012 * Math.abs(d.rearSlip)) * dt;
     this.mud = clamp(this.mud + pick - 0.0015 * dt * this.mud, 0, 1);
   }
   protected override updateSuspensionAndTyres(dt: number) {

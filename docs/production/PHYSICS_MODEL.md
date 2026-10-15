@@ -603,7 +603,10 @@ up, the rear brake stops it and pitches the nose down). The AI's (and the Sport 
 aims a little nose-up of the predicted landing slope. A touchdown is judged once: a nose-down or
 nose-up error beyond the machine's limits with a real impact crashes, and the bump-stop shaft speed
 over the first quarter second bottoms (a speed loss) or crashes. Hops at walking pace are never
-judged on pitch. Calibration: 0–60 m from the gate, the flight distance against the ballistic
+judged on pitch. On the ground, grip is smoothed over a third of a second (a hop or a rut edge does
+not change the lean budget within a step), a berm's bank adds the friction it supports, and lean
+the tyres cannot hold inside the aid's 0.8 µ budget is bled off as a rear slide that stands the
+bike up instead of a lean that runs away. Calibration: 0–60 m from the gate, the flight distance against the ballistic
 distance of the measured take-off speed (0.85–1.15) and the landing windows per surveyed jump
 (`npm run test:offroad`, `docs/offroad-calibration.json`); asphalt runway bands in
 `docs/vehicle-calibration.json` (acceleration is wheelie-limited with a 0.86 m combined CG).

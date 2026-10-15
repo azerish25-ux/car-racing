@@ -298,9 +298,9 @@ export class Rider {
     if (detail !== 'far' && mx) {
       // Off-road helmet: a peak over the eye port, a chin bar and goggles
       // on their strap in place of a visor.
-      const peak = part(this.head, new T.BoxGeometry(0.2, 0.012, 0.13), helmet);
-      peak.position.set(0, 0.26, 0.16);
-      peak.rotation.x = -0.32;
+      const peak = part(this.head, new T.BoxGeometry(0.19, 0.012, 0.12), helmet);
+      peak.position.set(0, 0.235, 0.17);
+      peak.rotation.x = -0.2;
       const chin = part(this.head, new T.BoxGeometry(0.12, 0.06, 0.08), helmet);
       chin.position.set(0, 0.05, 0.17);
       chin.rotation.x = 0.5;

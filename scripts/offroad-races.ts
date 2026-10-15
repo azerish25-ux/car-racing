@@ -75,7 +75,11 @@ const RACES: Race[] = [
   },
 ];
 const failures: string[] = [];
-const results = RACES.map((race) => {
+// OFFROAD_RACE=<text> runs only the races whose label contains it.
+const only = process.env.OFFROAD_RACE;
+const results = RACES.filter(
+  (r) => !only || r.label.toLowerCase().includes(only.toLowerCase()),
+).map((race) => {
   const options: SessionOptions = {
     ...DEFAULT_OPTIONS,
     mode: 'race',

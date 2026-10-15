@@ -35,6 +35,12 @@ const smooth = (x: number) => {
   const t = clamp(x, 0, 1);
   return t * t * (3 - 2 * t);
 };
+/** Speed shortfall (m/s) of the AI's other limits under the lip speed that
+ * aborts a committed jump (traffic or an incident on the run-up). */
+const ABORT_MARGIN = 2.5;
+/** Heading error to the course direction (rad) beyond which a rider only
+ * steers back toward it. */
+const HEADING_LIMIT = 0.5;
 /** Seconds after the gate drop the field launches flat out. */
 const LAUNCH_SECONDS = 1.6;
 /** Seconds a riding bike may sit still before the marshals push it out. */
@@ -61,7 +67,7 @@ export class DirtBikeAIDriver extends BikeAIDriver {
   private biasTarget = 0;
   private lineClock = 0;
   private plan: { jump: JumpSurvey; clear: boolean; locked: boolean } | null = null;
-  readonly decisions = { clears: 0, rolls: 0, pushes: 0 };
+  readonly decisions = { clears: 0, rolls: 0, aborts: 0, pushes: 0 };
   constructor(
     readonly rider: DirtBikeVehicle,
     skill = 0.94,
@@ -78,6 +84,7 @@ export class DirtBikeAIDriver extends BikeAIDriver {
     this.rutBias = approach(this.rutBias, this.biasTarget, dt * 1.2);
     super.update(dt, track, cars, race);
     this.governJump(track);
+    this.headingGuard(track);
     this.gateLaunch(track, race);
     this.unstick(dt, track, race);
   }
@@ -89,6 +96,21 @@ export class DirtBikeAIDriver extends BikeAIDriver {
     if (offroadSessionFor(track)?.format?.start !== 'gate' || race.laps[c.id].completed > 0) return;
     c.input.throttle = 1;
     c.input.brake = 0;
+  }
+  /** A rider rejoining from wide of a berm turns back toward the line at a
+   * bounded angle: the lean-aware tracker, given metres of lateral error at
+   * walking pace, can otherwise lay the bike across the track and ride into
+   * the far wall. Beyond HEADING_LIMIT off the course direction the lean
+   * intent only steers the heading back. */
+  private headingGuard(track: Track) {
+    const c = this.rider,
+      d = c.dynamics;
+    if (!c.riding || c.airborne || c.speed < 2) return;
+    track.at(c.s, squarePoint);
+    const error =
+      mod(Math.atan2(squarePoint.tx, squarePoint.tz) - d.heading + Math.PI, Math.PI * 2) - Math.PI;
+    if (Math.abs(error) < HEADING_LIMIT) return;
+    c.input.steer = clamp(error * 2.2 - d.lean * 0.4, -0.6, 0.6);
   }
   private stuck = 0;
   /** Marshal assistance: a bike pinned against a tyre wall or beached on a
@@ -282,8 +304,17 @@ export class DirtBikeAIDriver extends BikeAIDriver {
         Math.sqrt(ROLL_SPEED * ROLL_SPEED + 2 * 0.45 * G * Math.max(0, toFace - 1)),
       );
     }
-    // Committed: the lip speed is the target (traffic waits for the landing).
-    if (plan.locked) return onFace ? Math.max(hold, c.speed) : hold;
+    // Committed: the lip speed is the target, small traffic and corner
+    // limits wait for the landing; a real obstruction ahead (a slower or
+    // stopped machine on the run-up) aborts the jump: brake and roll it.
+    if (plan.locked) {
+      if (!onFace && desired < hold - ABORT_MARGIN) {
+        plan.clear = false;
+        this.decisions.aborts++;
+        return desired;
+      }
+      return onFace ? Math.max(hold, c.speed) : hold;
+    }
     return Math.min(desired, Math.sqrt(hold * hold + 2 * 0.45 * G * Math.max(0, toFace - 1)));
   }
 }
