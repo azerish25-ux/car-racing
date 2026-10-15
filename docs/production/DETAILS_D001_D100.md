@@ -41,7 +41,7 @@ the acceptance observation. Nothing below is player-accepted.
 |---|---|---|---|
 | D021 | Instruments agree with HUD | integrated | both read the same snapshot (`drawSteeringDisplay`); catalogue dashes, binnacles and wheel displays read `steeringReadout` on the same simulation-time clock, scaled to each engine (`cabin-display.ts`); followed car only |
 | D022 | Night instrument brightness adjustable | absent | next: brightness setting |
-| D023 | Mirrors useful in close racing | integrated | mirror quality setting; catalogue door and pod mirrors carry the same rear-view feeds (karts and buggies have none); next: close-racing capture |
+| D023 | Mirrors useful in close racing | integrated | mirror quality setting; catalogue door and pod mirrors carry the same rear-view feeds (karts and buggies have none), at the Formula cockpit's feed cost; catalogue rivals are drawn at feed detail in each feed pass, with no cabin detail (`VehicleBodies.showFeedDetail`); next: close-racing capture |
 | D024 | Seat/eye position preference | partial | per-vehicle eye derived from each body sheet with a class lens; `cockpitFov` moves it relative to the class default; no player eye-position adjustment yet |
 | D025 | Look left/right/rear on controller | foundation | look offsets exist (`lookX`); controller binding audit |
 | D026 | Prompts follow active device | foundation | device selection exists; prompt audit open |

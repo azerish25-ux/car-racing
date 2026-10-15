@@ -95,7 +95,8 @@ follow the turning wheel; the festival hood camera still uses its fixed point; t
 is limited by the shared solver (≈0.13 m bump, ≈5 cm droop) so it is not a long-travel truck yet;
 the EV draws energy from the fuel-mass proxy; dirt machines race on asphalt until a dirt venue
 exists; the setup screen shows each car's own parameters and limits but edits the one shared
-setup (a default value resolves to the car's own baseline); in seeded 4-car traffic AI incident rates are ≈0–0.17 per lap for most cars but
+setup (a default value resolves to the car's own baseline, so on such a key that exact value saves
+as its neighbouring step; a career preset session is shown read-only); in seeded 4-car traffic AI incident rates are ≈0–0.17 per lap for most cars but
 ≈0.3–0.4 for GS-4 and SC-7; no engine-sound families (WP26) and no handling sign-off.
 
 **GP-R1 Prototype (gpr1 v1).** Original 1000 cc prototype-class racing motorcycle: ~300 hp
