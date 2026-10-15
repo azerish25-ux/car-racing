@@ -246,7 +246,8 @@
 }
 .fest-message {
   position: absolute;
-  top: 18%;
+  /* Below the event panel on short viewports. */
+  top: max(18%, calc(136px * var(--ui-scale, 1)));
   left: 50%;
   transform: translateX(-50%);
   background: var(--fest-panel);

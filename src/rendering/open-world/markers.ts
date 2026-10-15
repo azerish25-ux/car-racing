@@ -14,23 +14,37 @@ export const EVENT_COLOURS: Readonly<Record<FestivalEventKind, number>> = Object
 });
 const beamVertex = /* glsl */ `
 varying float vHeight;
+varying float vDepth;
 void main() {
   vHeight = uv.y;
-  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  vec4 view = modelViewMatrix * vec4(position, 1.0);
+  vDepth = -view.z;
+  gl_Position = projectionMatrix * view;
 }`;
 const beamFragment = /* glsl */ `
 uniform vec3 colour;
 uniform float strength;
 uniform float time;
+uniform vec2 nearFade;
 varying float vHeight;
+varying float vDepth;
 void main() {
   float fade = (1.0 - vHeight) * (1.0 - vHeight);
   float pulse = 0.8 + 0.2 * sin(time * 2.4 - vHeight * 9.0);
-  gl_FragColor = vec4(colour * strength * pulse * fade * 2.2, 1.0);
+  // A column the camera stands in (the player waiting at a start, a gate
+  // being driven through) fades out instead of washing over the view.
+  float near = nearFade.y > 0.0 ? smoothstep(nearFade.x, nearFade.y, vDepth) : 1.0;
+  gl_FragColor = vec4(colour * strength * pulse * fade * near * 2.2, 1.0);
 }`;
-function beamMaterial(colour: number) {
+/** Light column (fades within `near` metres of the camera) or ground ring. */
+function beamMaterial(colour: number, near: readonly [number, number] = [0, 0]) {
   return new T.ShaderMaterial({
-    uniforms: { colour: { value: new T.Color(colour) }, strength: { value: 1 }, time: { value: 0 } },
+    uniforms: {
+      colour: { value: new T.Color(colour) },
+      strength: { value: 1 },
+      time: { value: 0 },
+      nearFade: { value: new T.Vector2(near[0], near[1]) },
+    },
     vertexShader: beamVertex,
     fragmentShader: beamFragment,
     transparent: true,
@@ -44,7 +58,10 @@ interface Marker {
   event: FestivalEvent;
   root: T.Group;
   beam: T.ShaderMaterial;
+  ring: T.ShaderMaterial;
 }
+/** Columns fade between these camera distances (m). */
+const COLUMN_FADE: readonly [number, number] = [14, 48];
 /**
  * World markers: a light column and ground ring at every event start
  * (coloured by format, dim until discovered), the speed-trap cameras, and
@@ -54,7 +71,7 @@ export class EventMarkers {
   readonly root = new T.Group();
   private readonly markers: Marker[] = [];
   private readonly gate: T.Mesh;
-  private readonly gateMaterial = beamMaterial(0x46e0ff);
+  private readonly gateMaterial = beamMaterial(0x46e0ff, COLUMN_FADE);
   private readonly geometry = new T.CylinderGeometry(2.6, 2.6, 90, 20, 1, true).translate(0, 45, 0);
   private readonly ring = new T.RingGeometry(6.2, 7.4, 48).rotateX(-Math.PI / 2);
   constructor(events: readonly FestivalEvent[], groundHeight: (x: number, z: number) => number) {
@@ -67,16 +84,17 @@ export class EventMarkers {
       const colour = EVENT_COLOURS[event.spec.kind];
       const root = new T.Group();
       root.name = `Marker ${event.spec.id}`;
-      const beam = beamMaterial(colour);
+      const beam = beamMaterial(colour, COLUMN_FADE),
+        ringMaterial = beamMaterial(colour);
       const column = new T.Mesh(this.geometry, beam);
       column.frustumCulled = false;
-      const ring = new T.Mesh(this.ring, beam);
+      const ring = new T.Mesh(this.ring, ringMaterial);
       ring.position.y = 0.25;
       root.add(column, ring);
       const m = event.marker;
       root.position.set(m.x, groundHeight(m.x, m.z), m.z);
       this.root.add(root);
-      this.markers.push({ event, root, beam });
+      this.markers.push({ event, root, beam, ring: ringMaterial });
       if (event.spec.kind === 'speed-trap') {
         // The camera at the trap line, on the right-hand verge.
         event.path.at(event.path.finishDistance, p);
@@ -105,10 +123,12 @@ export class EventMarkers {
     groundHeight: (x: number, z: number) => number,
   ) {
     for (const m of this.markers) {
-      m.beam.uniforms.time.value = time;
       const known = discovered.has(m.event.spec.id);
       m.root.visible = !active;
-      m.beam.uniforms.strength.value = known ? 1 : 0.3;
+      for (const material of [m.beam, m.ring]) {
+        material.uniforms.time.value = time;
+        material.uniforms.strength.value = known ? 1 : 0.3;
+      }
     }
     this.gateMaterial.uniforms.time.value = time;
     this.gate.visible = !!gate;
@@ -117,7 +137,10 @@ export class EventMarkers {
   dispose() {
     this.geometry.dispose();
     this.ring.dispose();
-    for (const m of this.markers) m.beam.dispose();
+    for (const m of this.markers) {
+      m.beam.dispose();
+      m.ring.dispose();
+    }
     this.gateMaterial.dispose();
   }
 }
