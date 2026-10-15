@@ -201,15 +201,17 @@ function addBelts(parts: Parts, layout: CabinLayout, x: number, anchor: T.Vector
     );
     return;
   }
-  // Road: diagonal from the pillar anchor over the outer shoulder, and a lap belt.
-  const top = anchor ?? new T.Vector3(x + 0.24, shoulderY + 0.12, z - 0.12);
-  const lap = new T.Vector3(x - 0.18, hipY + 0.02, front - 0.02);
+  // Road: diagonal from the pillar anchor over the outer shoulder to an
+  // inboard buckle, and a lap belt (mirrored for a seat right of centre).
+  const o = Math.sign(x) || 1;
+  const top = anchor ?? new T.Vector3(x + o * 0.24, shoulderY + 0.12, z - 0.12);
+  const lap = new T.Vector3(x - o * 0.18, hipY + 0.02, front - 0.02);
   parts.add(
     tubeGeometry(
       [
         [top.x, top.y, top.z],
-        [x + 0.12, shoulderY + 0.05, front - 0.01],
-        [x - 0.02, (shoulderY + hipY) / 2, front + 0.005],
+        [x + o * 0.12, shoulderY + 0.05, front - 0.01],
+        [x - o * 0.02, (shoulderY + hipY) / 2, front + 0.005],
         [lap.x, lap.y, lap.z],
       ],
       r,
@@ -221,8 +223,8 @@ function addBelts(parts: Parts, layout: CabinLayout, x: number, anchor: T.Vector
   parts.add(
     tubeGeometry(
       [
-        [x + 0.22, seatY + 0.04, z - 0.02],
-        [x + 0.05, hipY + 0.03, front],
+        [x + o * 0.22, seatY + 0.04, z - 0.02],
+        [x + o * 0.05, hipY + 0.03, front],
         [lap.x, lap.y, lap.z],
       ],
       r,
