@@ -119,6 +119,16 @@ describe('festival free-roam session', () => {
     expect(status.mode).toBe('card');
     expect(status.card?.id).toBe('valley-sprint');
     expect(status.discovered).toContain('valley-sprint');
+    // "Not now" keeps it closed while the player stays at the marker...
+    sim.command({ type: 'cancel' });
+    for (let i = 0; i < 60; i++) sim.step(1 / 120);
+    expect(sim.status().mode).toBe('free');
+    // ...and it offers itself again after the player has left and returned.
+    sim.placeAt(sim.player, event.marker.x + 200, event.marker.z, event.marker.heading);
+    for (let i = 0; i < 12; i++) sim.step(1 / 120);
+    sim.placeAt(sim.player, event.marker.x, event.marker.z, event.marker.heading, event.marker.y + 1);
+    for (let i = 0; i < 60; i++) sim.step(1 / 120);
+    expect(sim.status().mode).toBe('card');
   });
 });
 

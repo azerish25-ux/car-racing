@@ -185,6 +185,9 @@ export class OpenWorldSimulation {
   autopilot = false;
   private autopilotDriver: RouteDriver | null = null;
   private cardEvent: FestivalEvent | null = null;
+  /** A race card the player declined ("not now"): it stays closed until the
+   * player has left its marker. */
+  private declined: string | null = null;
   private run: Run | null = null;
   private lastResult: FestivalResult | null = null;
   private resultClock = 0;
@@ -324,6 +327,7 @@ export class OpenWorldSimulation {
       case 'cancel':
         if (this.run) this.abandon();
         else if (this.mode === 'card') {
+          this.declined = this.cardEvent?.spec.id ?? null;
           this.mode = 'free';
           this.cardEvent = null;
         }
@@ -560,6 +564,10 @@ export class OpenWorldSimulation {
           dz = event.marker.z - pos.z,
           d2 = dx * dx + dz * dz;
         if (isRace(event.spec.kind)) {
+          if (event.spec.id === this.declined) {
+            if (d2 > 30 * 30) this.declined = null;
+            continue;
+          }
           if (d2 < 16 * 16 && this.player.speed < 22) card = event;
           continue;
         }

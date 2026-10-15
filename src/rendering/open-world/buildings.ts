@@ -99,7 +99,8 @@ varying vec4 vFacade;
 ${OW_NOISE_GLSL}
 float owGlass;
 float owLit;
-float owRib;`,
+float owRib;
+vec3 owLamp;`,
       )
       .replace(
         '#include <color_fragment>',
@@ -107,7 +108,7 @@ float owRib;`,
 {
   float style = vFacade.x, kind = vFacade.y, height = vFacade.w;
   vec2 q = vUv;
-  owGlass = 0.0; owLit = 0.0; owRib = 0.0;
+  owGlass = 0.0; owLit = 0.0; owRib = 0.0; owLamp = vec3(1.0, 0.7, 0.42);
   bool shed = kind > 4.5 && kind < 5.5 || kind > 8.5;
   bool roof = vFacade.z < 0.0;
   // Weathering: rain streaks down from sills, grime near the ground.
@@ -137,7 +138,12 @@ float owRib;`,
     owGlass = inside * underRoof * (1.0 - blind);
     float reveal = (1.0 - inside) * step(lo.x - 0.05, f.x) * step(f.x, hi.x + 0.05) * step(lo.y - 0.05, f.y) * step(f.y, hi.y + 0.05);
     diffuseColor.rgb *= 1.0 - 0.35 * reveal * underRoof;
-    owLit = step(0.45, owHash(id + vec2(style * 97.0, 3.0))) * owGlass;
+    // About a third of the rooms are lit, each at its own brightness and
+    // lamp colour (warm tungsten to cool fluorescent), dimmer deeper in.
+    float room = owHash(id + vec2(style * 97.0, 3.0));
+    owLit = step(0.64, room) * owGlass * (0.3 + 0.7 * owHash(id + vec2(5.0, style * 11.0)));
+    owLamp = mix(vec3(1.0, 0.66, 0.36), vec3(0.86, 0.9, 1.0), step(0.85, owHash(id + vec2(17.0, style))));
+    owLit *= 0.65 + 0.35 * smoothstep(0.0, 0.5, min(f.x - lo.x, hi.x - f.x) / (hi.x - lo.x));
   }
   vec3 glass = vec3(0.025, 0.03, 0.035) + vec3(0.02) * owNoise(q * 3.0);
   diffuseColor.rgb = mix(diffuseColor.rgb, glass, owGlass);
@@ -157,10 +163,10 @@ if (abs(owRib) > 0.001) normal = normalize(normal + (viewMatrix * vec4(0.0, 0.0,
       .replace(
         '#include <emissivemap_fragment>',
         `#include <emissivemap_fragment>
-totalEmissiveRadiance += vec3(1.0, 0.72, 0.42) * owLit * owNight * 2.4;`,
+totalEmissiveRadiance += owLamp * owLit * owNight * 0.9;`,
       );
   };
-  material.customProgramCacheKey = () => 'festival-facades-v1';
+  material.customProgramCacheKey = () => 'festival-facades-v2';
   return material;
 }
 
