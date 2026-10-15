@@ -2,6 +2,8 @@ import { RoadContactFrame } from './road-contact.ts';
 import { SkidContact, SKID_CONTACT } from './skid-contact.ts';
 import { MARSHAL } from './marshal.ts';
 import { FrictionClutch } from './clutch.ts';
+import { carrierOmega, distributeDrive, drivenInertiaFactor } from './differential.ts';
+import { TIRE_FAMILIES } from './tire-families.ts';
 import { DebrisPool } from './damage.ts';
 import { approach, clamp, G, lerp, Vec3 } from '../core/math.ts';
 import { aero, type AeroForces } from './aero.ts';
@@ -42,7 +44,7 @@ export class Vehicle {
   readonly origins = [0, 1, 2, 3].map(() => new Vec3());
   readonly pointVelocities = [0, 1, 2, 3].map(() => new Vec3());
   readonly contactFrames = [0, 1, 2, 3].map(() => new RoadContactFrame());
-  readonly skid = new SkidContact();
+  readonly skid: SkidContact;
   readonly normalLoads = new Float64Array(4);
   /** Actual angles used by the tire solve, retained for telemetry and presentation. */
   readonly wheelSteering = new Float64Array(4);
@@ -62,6 +64,11 @@ export class Vehicle {
   /** Driven wheel pair (rear for rwd, front for fwd). */
   private readonly drivenLeft: number;
   private readonly drivenRight: number;
+  /** AWD centre split (front share), null for a single driven axle. */
+  private readonly frontShare: number | null;
+  /** Per-wheel drive torque from a catalogue driveline (vehicle-catalogue). */
+  private readonly driveTorque = new Float64Array(4);
+  private readonly wheelOmega = new Float64Array(4);
   engineOutputTorque = 0;
   gear = 1;
   shiftClock = 0;
@@ -131,13 +138,36 @@ export class Vehicle {
     readonly definition: VehicleDefinition = FORMULA_APX01,
   ) {
     const spec = (this.spec = definition.spec);
+    const skid = definition.stations.skid;
+    this.skid = skid
+      ? new SkidContact(
+          [1, -1].flatMap((z) =>
+            [-1, 1].map((x) => [
+              x * skid[0],
+              definition.stations.floorY,
+              z > 0 ? skid[1] : skid[2],
+            ]),
+          ),
+        )
+      : new SkidContact();
     this.wheelPositions = definition.wheelPositions;
     this.setup =
       definition === FORMULA_APX01 ? { ...setup } : setupFor(definition, setup, DEFAULT_SETUP);
     this.battery = spec.maxBatteryJ * 0.8;
     this.rpm = spec.idleRPM;
-    this.clutch = new FrictionClutch(spec.idleRPM, spec.wheelInertia);
+    this.frontShare =
+      definition.drivetrain === 'awd' ? (definition.driveline?.centre?.frontShare ?? 0.5) : null;
+    this.clutch = spec.engine
+      ? new FrictionClutch(
+          spec.idleRPM,
+          spec.wheelInertia * drivenInertiaFactor(this.frontShare),
+          spec.engine.clutchCapacity,
+          spec.engine.inertia,
+          spec.engine.engageRPM ?? spec.idleRPM,
+        )
+      : new FrictionClutch(spec.idleRPM, spec.wheelInertia);
     this.body.inertia.set(spec.inertia[0], spec.inertia[1], spec.inertia[2]);
+    if (definition.fuelLoad !== undefined) this.fuel = definition.fuelLoad;
     this.body.mass = spec.dryMass + this.fuel;
     this.drivenLeft = definition.drivetrain === 'fwd' ? 0 : 2;
     this.drivenRight = this.drivenLeft + 1;
@@ -147,7 +177,8 @@ export class Vehicle {
         i < 2 ? this.setup.frontPressure : this.setup.rearPressure,
         spec.wheelRadius,
         spec.wheelInertia,
-        definition.tireGrip,
+        i < 2 ? definition.tireGrip : (definition.tireGripRear ?? definition.tireGrip),
+        this.looseGrip,
       ),
     );
     this.compoundsUsed.add(compound);
@@ -156,7 +187,11 @@ export class Vehicle {
   place(track: Track, s: number, offset = 0) {
     track.at(s, this.trackPosition);
     const p = this.trackPosition;
-    this.body.position.set(p.x + p.nx * offset, p.y + p.bank * offset + 0.516, p.z + p.nz * offset);
+    this.body.position.set(
+      p.x + p.nx * offset,
+      p.y + p.bank * offset + (this.definition.restHeight ?? 0.516),
+      p.z + p.nz * offset,
+    );
     this.body.orientation.yaw(Math.atan2(p.tx, p.tz));
     this.body.velocity.set(0, 0, 0);
     this.body.omega.set(0, 0, 0);
@@ -172,21 +207,45 @@ export class Vehicle {
         i < 2 ? this.setup.frontPressure : this.setup.rearPressure,
         this.spec.wheelRadius,
         this.spec.wheelInertia,
-        this.definition.tireGrip,
+        i < 2
+          ? this.definition.tireGrip
+          : (this.definition.tireGripRear ?? this.definition.tireGrip),
+        this.looseGrip,
       );
+  }
+  private get looseGrip() {
+    const family = this.definition.tireFamily;
+    return family ? TIRE_FAMILIES[family].looseGrip : 0;
+  }
+  /** A gripping tyre ties its wheel to the vehicle: refer that share of the
+   * vehicle's inertia to the clutch while the driven tyres grip, the wheel's
+   * own while they spin (EngineSpec.clutchCoupling). Without it a light,
+   * low-inertia engine through a tall reduction slips a locked clutch. */
+  private coupleClutch(share: number) {
+    const t = this.tires,
+      slip =
+        this.frontShare === null
+          ? Math.max(Math.abs(t[this.drivenLeft].slip), Math.abs(t[this.drivenRight].slip))
+          : Math.max(...t.map((x) => Math.abs(x.slip))),
+      grip = clamp(1 - slip / 0.12, 0, 1),
+      wheels = this.frontShare === null ? 2 : 4,
+      vehicle = (this.body.mass * this.spec.wheelRadius ** 2) / wheels;
+    this.clutch.wheelInertia =
+      (this.spec.wheelInertia + share * grip * vehicle) * drivenInertiaFactor(this.frontShare);
+  }
+  /** Gearbox output speed: driven-axle mean, or the AWD centre carrier. */
+  private drivenOmega() {
+    if (this.frontShare === null)
+      return (this.tires[this.drivenLeft].omega + this.tires[this.drivenRight].omega) * 0.5;
+    for (let i = 0; i < 4; i++) this.wheelOmega[i] = this.tires[i].omega;
+    return carrierOmega(this.wheelOmega, this.frontShare);
   }
   shift(direction: number) {
     if (this.shiftClock > 0) return;
     const spec = this.spec,
       next = clamp(this.gear + Math.sign(direction), -1, spec.gearRatios.length - 2),
       ratio = spec.gearRatios[next + 1] * spec.finalDrive,
-      predicted = Math.abs(
-        ((this.tires[this.drivenLeft].omega + this.tires[this.drivenRight].omega) *
-          0.5 *
-          ratio *
-          60) /
-          (Math.PI * 2),
-      );
+      predicted = Math.abs((this.drivenOmega() * ratio * 60) / (Math.PI * 2));
     if (predicted > spec.limiterRPM || (next < 0 && this.speed > 2)) return;
     this.gear = next;
     this.shiftClock = 0.09;
@@ -232,7 +291,11 @@ export class Vehicle {
       this.brake = 1;
     }
     if (this.assist === 'sport') {
-      const slip = Math.max(this.tires[2].slip, this.tires[3].slip);
+      const t = this.tires,
+        slip =
+          this.frontShare === null
+            ? Math.max(t[2].slip, t[3].slip)
+            : Math.max(t[0].slip, t[1].slip, t[2].slip, t[3].slip);
       this.throttle /= 1 + Math.max(0, slip - 0.16) * 4.5;
     }
     if (this.input.reverse && this.speed < 1.5) this.gear = -1;
@@ -244,8 +307,7 @@ export class Vehicle {
     }
     this.shiftClock = Math.max(0, this.shiftClock - dt);
     // Driven-axle speed (the name is historical: rear for the rwd Formula car).
-    const signedRearOmega =
-      (this.tires[this.drivenLeft].omega + this.tires[this.drivenRight].omega) * 0.5;
+    const signedRearOmega = this.drivenOmega();
     const rearOmega = Math.abs(signedRearOmega);
     this.rpm = Math.max(0, (this.clutch.engineOmega * 30) / Math.PI);
     if (this.autoShift && this.gear > 0 && !this.input.manualClutch) {
@@ -257,11 +319,16 @@ export class Vehicle {
     }
     const ratio = spec.gearRatios[this.gear + 1] * spec.finalDrive;
     const shaft = Math.max(0, this.clutch.engineOmega);
-    const frictionTorque = 12 + shaft * 0.04;
+    const engine = spec.engine;
+    const frictionTorque = engine
+      ? engine.frictionBase + shaft * engine.frictionPerRad
+      : 12 + shaft * 0.04;
     // Powered idle governor prevents unintended restart/stabilization without
     // fuel. It supplies real shaft torque rather than clamping engine RPM.
     const idleTorque =
-      this.fuel > 0 ? clamp(((spec.idleRPM * Math.PI) / 30 - shaft) * 3, 0, 180) : 0;
+      this.fuel > 0
+        ? clamp(((spec.idleRPM * Math.PI) / 30 - shaft) * 3, 0, engine ? engine.idleTorque : 180)
+        : 0;
     let ice = this.fuel > 0 ? engineTorque(this.rpm, spec) * this.throttle + idleTorque : 0;
     if (this.shiftClock > 0 || this.rpm > spec.limiterRPM) ice = 0;
     const deploy =
@@ -275,11 +342,18 @@ export class Vehicle {
     this.overtakeClock = Math.max(0, this.overtakeClock - dt);
     if (!this.definition.drs) this.drsOpen = false;
     this.drsFlap = clamp(this.drsFlap + (this.drsOpen ? dt : -dt) / DRS.travel, 0, 1);
+    // An axle motor (hybridAxle) drives its own wheels above its threshold
+    // speed instead of adding shaft torque; it regenerates on that axle.
+    const axleMotor = this.definition.hybridAxle;
     const motorPower =
-      this.gear > 0 && this.brake < 0.05 && this.shiftClock === 0 && shaft > 100
+      this.gear > 0 &&
+      this.brake < 0.05 &&
+      this.shiftClock === 0 &&
+      shaft > 100 &&
+      (!axleMotor || this.speed >= axleMotor.minSpeed)
         ? Math.min(spec.motorPowerW * deploy * this.throttle, (this.battery * 0.94) / dt)
         : 0;
-    const motor = motorPower / Math.max(shaft, 100);
+    const motor = axleMotor ? 0 : motorPower / Math.max(shaft, 100);
     const drag = Math.min(
       frictionTorque,
       (Math.max(0, this.clutch.engineOmega) * this.clutch.inertia) / dt,
@@ -293,6 +367,7 @@ export class Vehicle {
       this.throttle < 0.02 &&
       (this.speed < 3 ||
         (this.brake > 0.02 && signedRearOmega * ratio < ((spec.idleRPM * Math.PI) / 30) * 0.9));
+    if (spec.engine?.clutchCoupling) this.coupleClutch(spec.engine.clutchCoupling);
     const wheelTorque = this.clutch.step(
       dt,
       ice + motor - drag,
@@ -309,19 +384,46 @@ export class Vehicle {
       0,
       this.fuel - ((ice * shaft) / (0.43 * 43e6) + (this.fuel > 0 ? 0.00045 : 0)) * dt,
     );
-    const rearFriction = spec.brakeTorque * (1 - this.setup.brakeBias) * this.brake * 0.5,
+    const frontOmega = axleMotor ? Math.abs((this.tires[0].omega + this.tires[1].omega) * 0.5) : 0;
+    const motorAxleOmega = axleMotor ? frontOmega : rearOmega;
+    const axleMotorTorque = axleMotor ? motorPower / Math.max(2 * frontOmega, 10) : 0;
+    const rearFriction =
+        spec.brakeTorque *
+        (axleMotor ? this.setup.brakeBias : 1 - this.setup.brakeBias) *
+        this.brake *
+        0.5,
       regenPower = Math.min(
         spec.regenPowerW * this.brake,
         (spec.maxBatteryJ - this.battery) / dt,
-        rearFriction * 2 * rearOmega * 0.65,
+        rearFriction * 2 * motorAxleOmega * 0.65,
       ),
-      regenTorque = regenPower / Math.max(2 * rearOmega, 10),
+      regenTorque = regenPower / Math.max(2 * motorAxleOmega, 10),
       diff = this.input.throttle > 0.08 ? this.setup.diffPower : this.setup.diffCoast,
       locking = clamp(
         (this.tires[this.drivenRight].omega - this.tires[this.drivenLeft].omega) * diff * 55,
         -1050,
         1050,
       );
+    const driveline = this.definition.driveline;
+    if (driveline) {
+      for (let i = 0; i < 4; i++) this.wheelOmega[i] = this.tires[i].omega;
+      distributeDrive(
+        this.driveTorque,
+        driveline,
+        this.definition.drivetrain,
+        wheelTorque,
+        this.wheelOmega,
+        spec.wheelInertia,
+        dt,
+        this.setup.diffPower,
+        this.setup.diffCoast,
+      );
+      if (axleMotor) {
+        this.driveTorque[0] += axleMotorTorque;
+        this.driveTorque[1] += axleMotorTorque;
+      }
+    }
+    const regenWheel = axleMotor ? 0 : 2;
     for (let i = 0; i < 4; i++) {
       const pos = this.wheelPositions[i],
         t = this.tires[i],
@@ -380,15 +482,19 @@ export class Vehicle {
       // ABS must release *both* sources of wheel braking. Leaving generator
       // torque untouched can keep a rear wheel locked while friction is released.
       const release = this.assist === 'sport' ? 1 / (1 + Math.max(0, -t.slip - 0.14) * 9) : 1;
+      const regenerating = i >= regenWheel && i < regenWheel + 2;
       const friction =
-        Math.max(0, total - (i >= 2 ? regenTorque : 0)) * brakeEfficiency(t.discTemp) * release;
-      const driven =
-          i === this.drivenLeft
+        Math.max(0, total - (regenerating ? regenTorque : 0)) *
+        brakeEfficiency(t.discTemp) *
+        release;
+      const driven = driveline
+          ? this.driveTorque[i]
+          : i === this.drivenLeft
             ? wheelTorque * 0.5 + locking
             : i === this.drivenRight
               ? wheelTorque * 0.5 - locking
               : 0,
-        regen = i >= 2 ? regenTorque * release : 0;
+        regen = regenerating ? regenTorque * release : 0;
       const previousPickup = t.marblePickup;
       solveTire(
         t,

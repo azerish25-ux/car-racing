@@ -228,6 +228,21 @@ const BY_VEHICLE: Readonly<Record<string, SoundFamily>> = {
   tc1: 'i4-turbo',
   gpr1: 'v4-bike',
   sbk1000: 'i4-bike',
+  jf2: 'v6-turbo-hybrid',
+  hf67: 'v8-na',
+  hy9: 'v6-turbo-hybrid',
+  pr2: 'v8-na',
+  gt8f: 'v8-crossplane-turbo',
+  gt10m: 'v10-na',
+  gs4: 'flat6-na',
+  tc2: 'i4-turbo',
+  cr1: 'i4-na',
+  rl2: 'i4-turbo',
+  rcx6: 'i4-turbo',
+  dx8: 'v8-na',
+  sk125: 'two-stroke-kart',
+  eh3: 'electric',
+  sc7: 'v12-na',
 };
 
 export function soundFamilyFor(definition: VehicleDefinition): SoundFamily {

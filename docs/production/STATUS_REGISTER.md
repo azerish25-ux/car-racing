@@ -26,7 +26,11 @@ Last reviewed against source: branch `claude/peaceful-einstein-dedc7t`, commits 
 |---|---|---|---|---|
 | Formula vehicle dynamics (APX-01) | integrated | `src/simulation/vehicle.ts`, `tests/physics.test.ts`, `scripts/vehicle-calibration.ts` | Human full-stint feel review (§7.6) | Physics lead |
 | Per-entry vehicle definitions | integrated | `src/simulation/vehicles.ts`, `tests/vehicle-definitions.test.ts` | Hardware/AI review of a mixed grid | Technical director |
-| TC-1 touring car (front drive) | integrated (provisional art) | `TOURING_TC1`, `docs/vehicle-calibration.json`, `src/rendering/touring-shell.ts` | Final exterior/interior, audio identity, handling sign-off (§10.2) | Vehicle gameplay |
+| TC-1 touring car (front drive) | integrated (procedural art) | `TOURING_TC1`, `docs/vehicle-calibration.json`, `src/rendering/vehicle-bodies/` | Interior, audio identity, handling sign-off (§10.2) | Vehicle gameplay |
+| Multi-class catalogue (15 machines) | integrated | `src/simulation/vehicle-catalogue/`, `tests/vehicle-catalogue.test.ts`, `docs/vehicle-calibration.json` | Per-class target review, audio, dirt venue, hardware/AI review of mixed grids | Vehicle gameplay |
+| AWD and per-axle differentials | integrated | `src/simulation/differential.ts`, `tests/drivetrain.test.ts` | Human feel review on split-μ and loose surfaces | Physics lead |
+| Procedural vehicle bodies (3 LODs + shadow proxy) | integrated | `src/rendering/vehicle-bodies/`, `tests/vehicle-bodies.test.ts` | Art-director review, LOD/material timings on reference hardware (§18.3) | Vehicle art |
+| Class-grouped MACHINE menu and class events | integrated | `src/ui/machine-options.ts`, `src/simulation/catalogue-events.ts`, `tests/catalogue-menu-events.test.ts` | Controller/accessibility audit of the grouped list | Gameplay lead |
 | Vehicle calibration laboratory | integrated (CI) | `npm run test:vehicles`, two-timestep drift report | Independent target review per class | Physics lead |
 | Event / ruleset definitions | integrated | `src/simulation/events.ts`, `tests/events.test.ts` | Designer-authored events for G3 | Gameplay lead |
 | Timed endurance classification | integrated (event only) | `timed-endurance` ruleset, timed race test | Fuel/service choices, stint persistence (§11.4) | Gameplay lead |
@@ -88,8 +92,8 @@ Last reviewed against source: branch `claude/peaceful-einstein-dedc7t`, commits 
 | WP14 | integrated | `npm run validate:content`. |
 | WP15 | absent | Load/residency/teardown measurement needs hardware captures. |
 | WP16 | research | Proposed decision record in `DECISIONS_AND_RISKS.md`; needs producer sign-off. |
-| WP17 | integrated | Calibration lab with design-brief bands and timestep drift. |
-| WP18 | integrated (provisional) | TC-1 mechanics, AI, setup, snapshot identity; final art absent. |
+| WP17 | integrated | Calibration lab with design-brief bands and timestep drift; AWD with centre split, open/LSD/locked axle differentials, tyre families. Every catalogue machine in band at both timesteps (APX-01 top speed 319.8 vs 320 km/h floor is a pre-existing exception). Human feel review open. |
+| WP18 | integrated (provisional) | TC-1 plus fifteen catalogue machines: mechanics, AI envelopes, setup limits, snapshot identity, procedural exteriors. Interiors, audio families, damage variants and sign-off absent. |
 | WP19 | integrated | Per-definition AI envelopes, zero-downforce braking fix. |
 | WP20 | integrated | Explicit pass commitment in `TrafficPlanner`: one target per attempt, abort on gap opening, lost closing speed (>1 s), defender covering before overlap, no safe lane or 12 s timeout; skill-dependent retry hysteresis; passes/aborts counted with reason (`tests/traffic.test.ts`). Unit suite and `test:physics` green. QA-suite measurements (§13.7) open. |
 | WP21 | absent | Needs human sessions on named devices. |
@@ -101,7 +105,7 @@ Last reviewed against source: branch `claude/peaceful-einstein-dedc7t`, commits 
 | WP27 | research | Capture-suite definition in `CONTENT_PIPELINE.md`; art director approval open. |
 | WP28 | absent | Temporal clarity work needs the capture suite. |
 | WP29 | integrated (partial) | Twenty catalogue layouts reached greybox, AI race (seeded 6-car races, all pass) and an operational pass with a procedural venue kit; layer-aware overpasses (Kansai, Iron Quay) and tunnels in production venues. Open: crash/recovery demonstration, human races, art pass and performance capture (§14.3 stages 4–6), person-time records (§14.7). |
-| WP30 | integrated (partial) | Venue side: 12 new venues / 20 layouts selectable (Original / Real-world / Unconventional), six events use them. Real-world layouts are approximations under neutral names pending a licence. The twelve-car side belongs to the vehicle programme. No layout is performance-, player- or release-accepted. |
+| WP30 | integrated (partial) | Venue side: 12 new venues / 20 layouts selectable (Original / Real-world / Unconventional), six events use them. Real-world layouts are approximations under neutral names pending a licence. The twelve-car side belongs to the vehicle programme. No layout is performance-, player- or release-accepted. Car side: 17 machines across 11 families with procedural bodies, class-grouped menu, multi-class endurance ruleset and GT/hypercar/touring/kart/rallycross events. Six-venue scope, dirt venue, audio and art acceptance open. |
 | WP31 | research | Device matrix template; no certification. |
 | WP32 | integrated (partial) | Captions, reduced motion, engineer mute added; matrix review open. |
 | WP33 | integrated | Rider-bike model and control contract in sessions: lean intent with counter-steer controller, separate front/rear brake (rear on the clutch binding), TC/wheelie/stoppie/cornering ABS on the Sport assist; GP-R1 and SBK-1000 definitions with calibration bands. Human feel review open. |

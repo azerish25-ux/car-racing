@@ -133,7 +133,7 @@ import { AudioViewTracker } from '../audio/spatial.ts';
 import { Track, trackPoint } from '../simulation/track.ts';
 import { CAR_STRIDE, F, H, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../simulation/protocol.ts';
 import { clamp } from '../core/math.ts';
-import { TouringShells } from './touring-shell.ts';
+import { VehicleBodies } from './vehicle-bodies/index.ts';
 import { BIKE_CHASE_ROLL, BikeShells } from './bike.ts';
 export type CameraMode = 'chase' | 'cockpit' | 'pod' | 'trackside';
 /** Chase rig in metres, m/s and vertical-FOV degrees. */
@@ -170,7 +170,8 @@ export class RacingRenderer {
   readonly audioView = new AudioViewTracker();
   readonly effects = new Effects();
   readonly presented = new PresentedFrame();
-  readonly touringShells = new TouringShells();
+  /** Procedural exteriors of non-Formula definitions (WP30). */
+  readonly vehicleBodies = new VehicleBodies();
   /** Motorcycle entrants (WP34): procedural bikes and riders over the snapshot pose. */
   readonly bikeShells = new BikeShells();
   /** Accessibility master switch: no motion blur (camera vibration is set by the app). */
@@ -349,9 +350,10 @@ export class RacingRenderer {
       this.photoStage.root,
       this.venueLighting.root,
     );
-    this.scene.add(this.debris.mesh, this.pitCrew.root, this.touringShells.root);
+    this.scene.add(this.debris.mesh, this.pitCrew.root, this.vehicleBodies.root);
     this.scene.add(this.bikeShells.root);
-    this.bikeShells.install = (root) => {
+    // Catalogue bodies and bikes get the same material installers as the Formula cars.
+    this.vehicleBodies.onBuild = this.bikeShells.install = (root) => {
       this.textures.register(root);
       reflectInWetRoad(root);
       this.weatherPresentation.install(root);
@@ -370,6 +372,7 @@ export class RacingRenderer {
     this.shadowProxies.shadowSubstitutes = () => [
       ...this.circuit.crowdClusters.map((c) => c.shadowSubstitute()),
       ...this.circuit.startFinish.shadowSubstitutes(),
+      ...this.vehicleBodies.shadowSubstitutes(),
     ];
     this.reflection.mirrorDetail = {
       before: (camera, height) => this.showMirrorDetail(camera, height),
@@ -1236,7 +1239,8 @@ export class RacingRenderer {
       // Chase rolls partly with the bike's lean; onboard views roll fully.
       this.temporary.set(0, 1, 0).applyQuaternion(car.root.quaternion);
       if (cameraMode === 'chase') this.camera.up.lerp(this.temporary, BIKE_CHASE_ROLL).normalize();
-      else if (cameraMode === 'cockpit' || cameraMode === 'pod') this.camera.up.copy(this.temporary);
+      else if (cameraMode === 'cockpit' || cameraMode === 'pod')
+        this.camera.up.copy(this.temporary);
     }
     this.camera.lookAt(this.gaze);
     if (this.photo) this.camera.rotateZ((this.photo.roll * Math.PI) / 180);
@@ -1285,8 +1289,9 @@ export class RacingRenderer {
       );
       this.cars[id].update(a, b, base, alpha, dt, time, false);
     }
-    // Non-Formula definitions are drawn by their own (provisional) bodies.
-    this.touringShells?.update(b, this.cars);
+    // Non-Formula definitions are drawn by their own procedural bodies;
+    // motorcycles by their bike and rider shells.
+    this.vehicleBodies?.update(a, b, alpha, this.cars, illumination !== 'day');
     this.bikeShells?.update(a, b, alpha, this.cars, this.camera, this.quality, this.follow);
     this.ghost?.update(
       this.ghostActive && !replay && !menu && !this.photo ? this.ghostPose : null,
