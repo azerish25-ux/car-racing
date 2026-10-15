@@ -83,12 +83,19 @@ carbon, emissive lamps, panel-gap lines, number boards, tyres with sidewall bulg
 rims with discs and calipers, three LODs and a depth-only shadow proxy; wheels, steer, travel and
 lamps follow the snapshot; front/rear damage hides aero parts. APX-01 keeps the supplied asset.
 
-Known limits (catalogue): glass is blended, not transmissive; interiors are a seat, driver and
-dash only; the cockpit camera uses the Formula socket for every car; trophy-truck suspension travel
+Cabins (`cabin.ts`, `interior.ts`): each body sheet yields a seat, eye point, steering wheel, dash
+and onboard mount (roof camera on roofed race cars, bonnet camera on road cars and open cockpits,
+airbox camera on single-seaters) with a class lens; the near LOD opens the deck under the glass
+and carries the cabin (cell, dash, seats with harness or belts, legs, turning wheel, instruments,
+roll cage in roofed race cars, mirrors), the far LODs a dark lid. Glazing is the library glass.
+
+Known limits (catalogue): glass is blended (Fresnel premultiplied, scalar transmission; the tint
+colours only the in-scatter), not refractive; interiors are procedural and unreviewed, hands do not
+follow the turning wheel; the festival hood camera still uses its fixed point; trophy-truck suspension travel
 is limited by the shared solver (≈0.13 m bump, ≈5 cm droop) so it is not a long-travel truck yet;
 the EV draws energy from the fuel-mass proxy; dirt machines race on asphalt until a dirt venue
-exists; per-car setup limits share the global setup screen (a default setup resolves to the car's
-own baseline); in seeded 4-car traffic AI incident rates are ≈0–0.17 per lap for most cars but
+exists; the setup screen shows each car's own parameters and limits but edits the one shared
+setup (a default value resolves to the car's own baseline); in seeded 4-car traffic AI incident rates are ≈0–0.17 per lap for most cars but
 ≈0.3–0.4 for GS-4 and SC-7; no engine-sound families (WP26) and no handling sign-off.
 
 **GP-R1 Prototype (gpr1 v1).** Original 1000 cc prototype-class racing motorcycle: ~300 hp
