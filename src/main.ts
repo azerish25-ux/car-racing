@@ -114,6 +114,7 @@ import { requestObserver, storedObserver } from './rendering/sky-ephemeris.ts';
 import { PracticeProgramme } from './simulation/practice-programme.ts';
 import { CareerController, type CareerSession } from './career/controller.ts';
 import type { GuideMode } from './rendering/driving-guide.ts';
+import type { FestivalSession } from './session/free-roam.ts';
 type State = 'menu' | 'loading' | 'driving' | 'paused' | 'results' | 'replay' | 'photo' | 'pregame';
 export class GameApp {
   private readonly gridClock = new GridPresentationClock();
@@ -129,6 +130,9 @@ export class GameApp {
   private teamBusy = false;
   private sessionId = '';
   private usedDemonstration = false;
+  /** Festival free roam: while set it owns input, frames and the canvas. */
+  private festival: FestivalSession | null = null;
+  private festivalStarting = false;
   private programme = new PracticeProgramme();
   /** Driver career (src/career): licences, events, garage and payments. */
   private career: CareerController;
@@ -240,6 +244,10 @@ export class GameApp {
     this.ui = new Interface(element, this.track, {
       action: (name) => this.action(name),
       start: (options, holdOnGrid) => {
+        if ((options.mode as string) === 'festival') {
+          void this.startFestival(options).catch((e) => this.fail(e));
+          return;
+        }
         // A session started from the paddock form is outside the championship.
         this.championshipRound = -1;
         this.ui.championshipNote = '';
@@ -326,6 +334,15 @@ export class GameApp {
     this.input = new InputController(this.settings, (name) => this.action(name));
     this.inputPump = new InputPump((dt) => {
       if (this.errorStopped || document.hidden) return;
+      if (this.festival) {
+        if (this.festival.isPaused) this.input.pollActions(['pause']);
+        else {
+          const input = this.input.update(dt);
+          this.festival.input(input);
+          input.shift = 0;
+        }
+        return;
+      }
       if (this.state !== 'driving') {
         if (this.state === 'replay' && !this.ui.telemetryModal.open && !this.ui.modal.open)
           this.input.pollActions(['pause', 'camera', 'replay', 'mute', 'debug']);
@@ -360,6 +377,7 @@ export class GameApp {
       // Quality preparation owns render targets until its save settles. Apply
       // the latest viewport once afterward, not concurrently with compilation.
       if (this.savingSettings) this.settingsResizePending = true;
+      else if (this.festival) this.festival.resize();
       else this.renderer?.resize();
       this.viewportRedrawPending = true;
       this.renderedState = null; // Restore a resized backdrop once, including behind an editor.
@@ -505,6 +523,69 @@ export class GameApp {
       message.type === 'pause' ? this.workerPause.request(message.value) : message,
       transfer,
     );
+  }
+  /** FESTIVAL (SESSION select): the open-world region on the same canvas
+   * and GL context. The circuit presentation stays loaded and idle; the
+   * festival module and its workers load on demand. */
+  private async startFestival(options: SessionOptions) {
+    if (this.festival || this.festivalStarting || !this.renderer || !this.canvas) return;
+    this.festivalStarting = true;
+    const renderer = this.renderer;
+    try {
+      const { FestivalSession, FESTIVAL_SAVE_KEY } = await import('./session/free-roam.ts');
+      this.ui.showMode('loading');
+      this.festival = await FestivalSession.start(
+        {
+          canvas: this.canvas,
+          renderer: renderer.renderer,
+          element: document.getElementById('app')!,
+          quality: this.settings.quality,
+          graphics: this.settings.graphics,
+          lighting: renderer.lighting,
+          loading: (text) => this.ui.loading(text),
+          loaded: () => {
+            const screen = this.ui.get('loading');
+            screen.hidden = true;
+            screen.setAttribute('aria-busy', 'false');
+          },
+          toast: (message) => this.ui.toast(message),
+          exit: () => this.exitFestival(),
+          // Driving input off while a festival menu is open (keyboard focus
+          // reaches its buttons), as in the circuit pause.
+          driving: (on) => this.input.setEnabled(on),
+          audio: {
+            start: () => this.audio.start(),
+            stop: () => this.audio.stop(),
+            update: (frame, cockpit, playing, view, liveHuman) =>
+              this.audio.update(frame, cockpit, playing, view, liveHuman),
+          },
+          // Career hook: a typed FestivalResult per finished/abandoned event.
+          onResult: (result) => window.dispatchEvent(new CustomEvent('festival-result', { detail: result })),
+          load: () => this.store.read(FESTIVAL_SAVE_KEY),
+          save: (state) => this.store.write(FESTIVAL_SAVE_KEY, state),
+        },
+        { vehicle: options.vehicles?.[0], weather: options.weather, assist: options.assist, seed: options.seed },
+      );
+      this.input.setEnabled(true);
+    } catch (error) {
+      this.festival = null;
+      this.exitFestival();
+      throw error;
+    } finally {
+      this.festivalStarting = false;
+    }
+  }
+  private exitFestival() {
+    this.festival?.dispose();
+    this.festival = null;
+    this.input.setEnabled(false);
+    this.audio.stop();
+    // The festival shared the GL context: restore the circuit presentation.
+    this.renderer?.setQuality(this.settings.quality, this.settings.graphics);
+    this.state = 'menu';
+    this.renderedState = null;
+    this.ui.ready();
+    this.ui.showMode('menu');
   }
   private async start(
     options: SessionOptions,
@@ -795,6 +876,10 @@ export class GameApp {
   }
   private frame = (time: number) => {
     this.timer = requestAnimationFrame(this.frame);
+    if (this.festival) {
+      this.festival.frame(time);
+      return;
+    }
     this.observeSession();
     // LIVE sky: the moon and stars move every few seconds; the lighting
     // follows the real sun across sunrise and sunset.
@@ -1609,6 +1694,7 @@ export class GameApp {
     this.ui.toast(`Reference ${String(id).padStart(3, '0')}: ${route.instruction}`);
   }
   private action(name: string) {
+    if (this.festival?.action(name)) return;
     // Do not replace a renderer or resume simulation while it owns a graphics
     // transition. Closing the editor, muting, losing focus and reload remain
     // available; closing does not cancel an already submitted preference save.
@@ -2498,6 +2584,8 @@ export class GameApp {
     this.exporter.cancel();
     if (this.replay) void this.replay.dispose();
     this.inputPump.dispose();
+    this.festival?.dispose();
+    this.festival = null;
     cancelAnimationFrame(this.timer);
     clearTimeout(this.initTimeout);
     this.worker?.terminate();
