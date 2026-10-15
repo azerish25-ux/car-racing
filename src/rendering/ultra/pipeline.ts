@@ -148,6 +148,7 @@ export class UltraPipeline {
     this.graphics = graphics;
     const { renderer, scenePass, bloom, wetReflection } = this.host;
     renderer.toneMapping = TONE_MAPPING[graphics.toneMapper];
+    this.host.grade.filmic = graphics.toneMapper !== 'aces';
     this.sharpen.strength = graphics.taaSharpen;
     this.sharpenWanted = graphics.temporalAA && graphics.taaSharpen > 0;
     this.ssr.enabled = graphics.ssr;

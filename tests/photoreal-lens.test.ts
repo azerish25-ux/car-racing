@@ -16,6 +16,11 @@ import { LENS, LensEffects, createLensUniforms } from '../src/rendering/studio/l
 import { LIGHT_POOLS, LightPools } from '../src/rendering/studio/light-pools.ts';
 import { Track } from '../src/simulation/track.ts';
 import { HEADER } from '../src/simulation/protocol.ts';
+import {
+  BroadcastGradePass,
+  FILMIC_GRADE_PROFILES,
+  GRADE_PROFILES,
+} from '../src/rendering/broadcast-grade.ts';
 
 function renderer() {
   return {
@@ -120,5 +125,25 @@ describe('photoreal lens: tight glare, little veil', () => {
     expect(LIGHT_POOLS.physicalHeadGain).toBeGreaterThan(10 * LIGHT_POOLS.headGain);
     pools.update('day');
     expect(head.color.r).toBeCloseTo(white.r * LIGHT_POOLS.headGain, 6);
+  });
+  it('grades lightly over the filmic transform and keeps the hue-selective LUT', () => {
+    for (const mode of ['day', 'sunset', 'night'] as const) {
+      const p = FILMIC_GRADE_PROFILES[mode];
+      expect(p.contrast).toBeLessThanOrEqual(0.08);
+      expect(p.saturation).toBeLessThanOrEqual(1.02);
+      expect(p.vibrance).toBeLessThanOrEqual(0.04);
+      expect(p.contrast).toBeLessThan(GRADE_PROFILES[mode].contrast);
+    }
+    const grade = new BroadcastGradePass();
+    type Internals = { material: T.ShaderMaterial };
+    const u = (grade as unknown as Internals).material.uniforms;
+    grade.apply('day');
+    expect(u.contrast.value).toBe(GRADE_PROFILES.day.contrast);
+    grade.filmic = true;
+    grade.apply('day');
+    expect(u.contrast.value).toBe(FILMIC_GRADE_PROFILES.day.contrast);
+    expect(u.vibrance.value).toBe(FILMIC_GRADE_PROFILES.day.vibrance);
+    expect(u.gradeLut.value).toBeTruthy();
+    grade.dispose();
   });
 });

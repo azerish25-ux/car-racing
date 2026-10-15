@@ -69,6 +69,21 @@ export const GRADE_PROFILES: Readonly<Record<LightingMode | 'studio', Readonly<G
     },
   });
 
+/** Grade over a filmic display transform (AgX or Khronos Neutral; ULTRA's
+ * default). The broadcast profiles above were tuned over ACES, which already
+ * adds contrast and saturation; on top of a neutral transform they read as a
+ * 'game-punchy' second curve that pushes exactly the muted natural materials
+ * (grass, sky, asphalt, foliage). Here the S-curve is light, saturation is
+ * neutral and vibrance a hint; tints, vignette and the hue-selective LUT stay. */
+export const FILMIC_GRADE_PROFILES: Readonly<
+  Record<LightingMode | 'studio', Readonly<GradeProfile>>
+> = Object.freeze({
+  day: { ...GRADE_PROFILES.day, contrast: 0.08, saturation: 1.0, vibrance: 0.04 },
+  sunset: { ...GRADE_PROFILES.sunset, contrast: 0.08, saturation: 1.02, vibrance: 0.04 },
+  night: { ...GRADE_PROFILES.night, contrast: 0.07, saturation: 1.0, vibrance: 0.04 },
+  studio: { ...GRADE_PROFILES.studio, contrast: 0.07, saturation: 1.0, vibrance: 0.04 },
+});
+
 /** CPU reference of the shader's tone curve; used by tests and documentation. */
 export function gradeCurve(value: number, contrast: number) {
   if (!Number.isFinite(value) || !Number.isFinite(contrast)) throw new Error('Invalid grade input');
@@ -211,11 +226,13 @@ export class BroadcastGradePass extends Pass {
   /** ULTRA restrained lateral chromatic aberration, added to the profile's
    * fringe (0 on every other preset; never applied over a photo look). */
   lensFringe = 0;
+  /** True over a filmic display transform (AgX/Neutral): FILMIC_GRADE_PROFILES. */
+  filmic = false;
   /** Seed must come from presented state so pause, photo and replay hold grain.
    * `wet` (0..1, standing water) blends the profile LUT toward the wet LUT. */
   apply(profile: LightingMode | 'studio', seed = 0, wet = 0) {
     this.profile = profile;
-    const p = this.photoOverride ?? GRADE_PROFILES[profile];
+    const p = this.photoOverride ?? (this.filmic ? FILMIC_GRADE_PROFILES : GRADE_PROFILES)[profile];
     const u = this.material.uniforms;
     u.contrast.value = p.contrast;
     u.saturation.value = p.saturation;
