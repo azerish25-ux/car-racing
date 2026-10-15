@@ -63,8 +63,10 @@ describe('front-end showroom and speed tunnel', () => {
     expect(css).toContain('--apex-flame: #fc4854;');
     const template = readFileSync('src/ui/interface.ts', 'utf8');
     const actions = template.match(/<div class="menu-actions"[^>]*>(.*?)<\/div>/)![1];
-    // Player actions only, including the EVENTS hub (masterplan §21.4).
-    expect(actions.match(/<button data-action=/g)).toHaveLength(7);
+    // Player actions only, including the CAREER entry (GAME_DESIGN §3) and the
+    // EVENTS hub (masterplan §21.4). CAREER leads the paddock list.
+    expect(actions.match(/<button data-action=/g)).toHaveLength(8);
+    expect(actions.startsWith('<button data-action="career">CAREER</button>')).toBe(true);
     expect(actions).toContain('data-action="events"');
     for (const dev of ['references', 'sessionReview', 'performance', 'visualReview'])
       expect(actions).not.toContain(`data-action="${dev}"`);

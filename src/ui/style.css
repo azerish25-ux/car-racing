@@ -4187,3 +4187,210 @@ dialog .error-detail {
 .event-card dt {
   opacity: 0.7;
 }
+/* Career (src/ui/career-hub.ts): the team hub's layout and tokens, flat
+ * panels and text states; no motion, so reduced motion has nothing to stop. */
+#modal:has(.career-hub) {
+  width: min(1120px, 94vw);
+  max-width: 1120px;
+  padding: 0;
+}
+/* Same frame as the team hub, under its own class so team-only code never
+ * mistakes the career for Team HQ. */
+.career-hub {
+  padding: clamp(18px, 3vw, 36px);
+}
+.career-hub > header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 20px;
+}
+.career-hub > header h2 {
+  margin: 8px 0 22px;
+}
+.career-hub > nav {
+  display: flex;
+  gap: 5px;
+  border-bottom: 1px solid #ffffff20;
+  padding-bottom: 12px;
+  overflow: auto;
+}
+.career-hub > nav button {
+  flex: 1;
+  padding: 12px;
+  white-space: nowrap;
+}
+.career-hub > nav button[aria-pressed='true'] {
+  background: #d69b69;
+  color: #171e22;
+  border-color: #d69b69;
+}
+.career-hub .team-cards {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+}
+.career-hub .team-cards article p {
+  flex: 0 0 auto;
+}
+.career-hub article header,
+.career-event header,
+.career-licence header,
+.career-vehicle header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.career-state {
+  align-self: flex-start;
+  white-space: nowrap;
+  font: 600 10px var(--font-data, monospace);
+  letter-spacing: 0.12em;
+  padding: 3px 7px;
+  border: 1px solid #ffffff30;
+  color: #b0b8bb;
+}
+.career-state[data-state='open'] {
+  border-color: #91c4b8;
+  color: #91c4b8;
+}
+.career-state[data-state='locked'] {
+  border-color: #d69b69;
+  color: #d69b69;
+}
+.career-disciplines-nav,
+.career-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 14px 0;
+}
+.career-disciplines-nav button[aria-pressed='true'],
+.career-presets button[aria-pressed='true'] {
+  background: #d69b69;
+  color: #171e22;
+  border-color: #d69b69;
+}
+.career-presets {
+  border: 1px solid #ffffff18;
+  padding: 10px;
+}
+.career-presets legend {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: #a3adb0;
+}
+.career-preset {
+  display: inline-flex;
+  gap: 2px;
+}
+.career-events,
+.career-licences,
+.career-garage {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: 14px;
+  margin: 12px 0;
+}
+.career-event,
+.career-licence,
+.career-vehicle {
+  background: #ffffff04;
+  border: 1px solid #ffffff18;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.career-event[data-kind='recovery'] {
+  border-color: #91c4b860;
+}
+.career-event > button,
+.career-licence > button,
+.career-vehicle > button,
+.career-disciplines article > button {
+  margin-top: auto;
+  align-self: start;
+}
+.career-tier {
+  border-top: 1px solid #ffffff20;
+  margin-top: 22px;
+  padding-top: 6px;
+}
+.career-facts {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 3px 12px;
+  margin: 8px 0 12px;
+  font-size: 12px;
+}
+.career-facts dt {
+  color: #879095;
+}
+.career-facts dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+.career-reasons {
+  margin: 4px 0 12px;
+  padding-left: 18px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #b0b8bb;
+}
+.career-needs,
+.career-caveat,
+.career-objectives,
+.career-season {
+  font-size: 12px;
+  color: #b0b8bb;
+  margin: 6px 0;
+}
+.career-thresholds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font: 11px var(--font-data, monospace);
+  letter-spacing: 0.04em;
+}
+.career-thresholds span {
+  border-left: 3px solid #ffffff40;
+  padding: 2px 8px;
+}
+.career-thresholds [data-medal='gold'] {
+  border-color: #c9a55a;
+}
+.career-thresholds [data-medal='silver'] {
+  border-color: #aab4b8;
+}
+.career-thresholds [data-medal='bronze'] {
+  border-color: #a7704b;
+}
+.career-price,
+.career-measure {
+  font-size: 22px;
+  font-variant-numeric: tabular-nums;
+  margin: 6px 0 12px;
+}
+.career-measure b {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: #a3adb0;
+}
+.career-effects {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #b0b8bb;
+}
+.career-payout {
+  margin: 14px 0;
+}
+.career-payout table td:last-child {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.career-briefing {
+  max-width: 720px;
+}
