@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { installScannedMaps, libraryAlbedo } from '../ground/scanned-ground.ts';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { ROAD_FLAG, type RoadEdge, type RoadNetwork } from '../../simulation/open-world/road-network.ts';
 import type { TrackPoint } from '../../simulation/track.ts';
@@ -121,6 +122,8 @@ export class RoadMeshes {
     const asphaltMajor = materials.asphalt({ variant: 'fresh', color: 0x3c3d3e });
     const asphalt = materials.asphalt({ variant: 'worn' });
     const town = materials.asphalt({ variant: 'patched', color: 0x48484a });
+    // Photographed asphalt on Medium and above (ground/scanned-ground.ts).
+    for (const m of [asphaltMajor, asphalt, town]) installScannedMaps(m, 'asphalt', libraryAlbedo(m));
     for (const [m, units] of [
       [asphaltMajor, -4],
       [asphalt, -3],

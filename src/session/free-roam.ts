@@ -1,4 +1,5 @@
 import type * as T from 'three';
+import { scannedGround } from '../rendering/ground/scan-store.ts';
 import type { Assist, Controls, WeatherPreset } from '../simulation/config.ts';
 import { resolveEvents, type FestivalEvent, type FestivalResult } from '../simulation/open-world/festival-events.ts';
 import { regionStructures } from '../simulation/open-world/placement.ts';
@@ -224,6 +225,10 @@ export class FestivalSession {
     if (renderer.photoSky.enabled) {
       host.loading('Loading the photographed sky…');
       await renderer.photoSky.ready(frame[H.CLOUD], renderer.lighting);
+    }
+    if (scannedGround.enabled) {
+      host.loading('Loading photographed ground…');
+      await scannedGround.ready();
     }
     await host.audio?.start().catch(() => undefined);
     host.loaded();

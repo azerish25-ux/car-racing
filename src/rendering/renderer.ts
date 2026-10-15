@@ -89,6 +89,7 @@ import {
 } from './daylight.ts';
 import { prewarmSky, skySunKey } from './sky-light.ts';
 import { PhotoSky } from './assets/photo-sky.ts';
+import { scannedGround } from './ground/scan-store.ts';
 import { skyPaletteFor } from './assets/sky-catalogue.ts';
 import { aerialFogColor } from './studio/aerial-perspective.ts';
 import { SKY_CLOUDS, SkyClouds } from './studio/sky-clouds.ts';
@@ -530,6 +531,7 @@ export class RacingRenderer {
     // applied later, a different map size would discard it and bake again on
     // the first rendered frame.
     if (initial) renderer.setQuality(initial.quality, initial.graphics);
+    else scannedGround.attach(renderer.renderer, renderer.preset);
     renderer.circuit.construction.add('Player car and live instruments', 1, () =>
       renderer.setCars(1),
     );
@@ -537,6 +539,9 @@ export class RacingRenderer {
       // The showroom and a clear session open under the venue's clear sky.
       progress({ completed: 0, total: 1, fraction: 0, label: 'Loading photographed sky' });
       await renderer.photoSky.ready(0, renderer.lighting, 15000);
+      // Photographed track, verge and terrain surfaces (Medium and above).
+      progress({ completed: 0, total: 1, fraction: 0, label: 'Loading photographed ground' });
+      await scannedGround.ready(20000);
       progress({ completed: 0, total: 1, fraction: 0, label: 'Loading Blender-authored bodywork' });
       renderer.heroShells = await loadHeroShells(cancelled);
       renderer.rivalLevels = await loadRivalLevels(cancelled);
@@ -656,6 +661,8 @@ export class RacingRenderer {
         return null;
       }
       renderer.textures.register(renderer.circuit.group);
+      // Sets first requested by construction tasks (the far terrain's rock).
+      await scannedGround.ready(10000);
       // Large, bright or near-edge scenery mirrors in standing water; small
       // props, people, planting and the road ribbons themselves do not.
       reflectInWetRoad(renderer.circuit.props);
@@ -793,6 +800,11 @@ export class RacingRenderer {
         await this.photoSky.ready(frame[H.CLOUD], this.lighting);
         if (cancelled()) return false;
       }
+      if (scannedGround.enabled) {
+        progress('Loading photographed ground…');
+        await scannedGround.ready();
+        if (cancelled()) return false;
+      }
       progress('Compiling circuit and vehicle materials…');
       await yieldFrame();
       if (cancelled()) return false;
@@ -871,6 +883,7 @@ export class RacingRenderer {
     this.circuit.wetReflection.setQuality(g.reflections === 'local' ? q : 'low');
     this.environment.highDetail = g.reflections === 'local';
     this.photoSky?.setQuality(preset);
+    scannedGround.attach(this.renderer, preset);
     this.renderer.shadowMap.enabled = g.shadowSize > 0;
     this.configureFarShadow();
     if (this.sun.shadow.mapSize.x !== g.shadowSize && g.shadowSize > 0) {
@@ -2085,6 +2098,7 @@ export class RacingRenderer {
       shadowCasterBytes: this.shadowProxies.bytes,
       skyEnvironmentUpdates: this.environment.captures,
       photoSky: this.photoSky?.diagnostics() ?? null,
+      scannedGround: scannedGround.diagnostics(),
       lighting: this.lighting,
       vegetationTrees: this.circuit.vegetationGroup.userData.treeCount,
       infrastructureDetail: this.circuit.infrastructureDiagnostics(),
@@ -2125,6 +2139,7 @@ export class RacingRenderer {
   dispose() {
     if (this.disposed) return;
     this.disposed = true;
+    scannedGround.detach(this.renderer);
     // Restore immutable source images before any asset owner closes its bitmap.
     this.textures.dispose();
     // Each kit removes its owned root before the generic scene disposer, so

@@ -8,6 +8,14 @@ import { installCarGrounding } from '../studio/car-grounding.ts';
 import { installLightPools } from '../studio/light-pools.ts';
 import { installGravelFinish } from '../studio/grass-gravel-finish.ts';
 import { chainShaderHook, injectAfter, injectDeclarations } from '../studio/shader-hooks.ts';
+import {
+  albedoOf,
+  installScannedAsphalt,
+  installScannedConcrete,
+  installScannedGravel,
+  installScannedMaps,
+  installScannedTurf,
+} from '../ground/scanned-ground.ts';
 import type { VenueThemeStyle } from './theme.ts';
 
 /** Procedural stratified rock: albedo and a derived tangent-space normal map
@@ -298,6 +306,14 @@ export function venueKitMaterials(style: VenueThemeStyle) {
     installCarGrounding(m);
     installLightPools(m);
   }
+  // Photographed ground (ground/scanned-ground.ts): verge, trap, run-off, rock.
+  if (groundKind === 'grass') installScannedTurf(ground);
+  else if (groundKind === 'gravel') installScannedGravel(ground);
+  else installScannedConcrete(ground);
+  installScannedGravel(gravel);
+  installScannedAsphalt(runoff);
+  const rockAlbedo = albedoOf(style.rockTint).map((v) => v * 0.9) as [number, number, number];
+  installScannedMaps(rock, 'rock', rockAlbedo, 1);
   return {
     ground,
     gravel,

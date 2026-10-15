@@ -82,8 +82,11 @@ export const TURF_GLSL = /* glsl */ `{
     vec2 tw = vFinishWorld.xz;
     float tClump = turfFiltered(tw * 3.1 + vec2(13.1, 7.3)) * .6 + turfFiltered(tw * 9.7 + vec2(3.7, 21.1)) * .4;
     diffuseColor.rgb *= mix(${t3(TURF.clumpCool)}, ${t3(TURF.clumpWarm)}, tClump);
+    // Photographed turf (ground/scanned-ground.ts) carries its own blades.
+#ifndef APEX_SCAN
     float tTuft = turfFiltered(tw * 31.0) * .55 + turfFiltered(tw * 67.0 + vec2(5.1, 2.3)) * .45;
     diffuseColor.rgb *= 1. + ${TURF.tuft.toFixed(3)} * (tTuft - .5) * 2.;
+#endif
     float tClover = smoothstep(${TURF.clover.toFixed(3)}, ${(TURF.clover + 0.08).toFixed(3)}, turfFiltered(tw * 2.3 + vec2(41., 9.)));
     diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * ${t3(TURF.cloverTint)}, tClover * .7);
     // Grazing sheen: blade sides and the sky in their cuticle wax.

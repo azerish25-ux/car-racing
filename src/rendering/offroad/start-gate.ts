@@ -5,6 +5,7 @@ import { GATE_DROP_SECONDS, gateSlots } from '../../simulation/offroad/session.t
 import { H } from '../../simulation/protocol.ts';
 import { PHASE } from '../../simulation/race.ts';
 import { trackPoint, type Track } from '../../simulation/track.ts';
+import { installScannedMaps, libraryAlbedo } from '../ground/scanned-ground.ts';
 import { materials } from '../materials/index.ts';
 
 /** Gate panel (m): a perforated steel grate hinged at its foot. */
@@ -41,6 +42,7 @@ export class StartGate {
     const p = trackPoint();
     track.at(gate.s, p);
     this.root.name = 'Start gate';
+    installScannedMaps(this.pad, 'concrete', libraryAlbedo(this.pad));
     this.root.position.set(p.x, p.y, p.z);
     // Local +Z along the lap, +X along the track normal (lateral).
     this.root.rotation.y = Math.atan2(p.tx, p.tz);

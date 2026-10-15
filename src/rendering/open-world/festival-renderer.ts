@@ -39,6 +39,7 @@ import { SKY_CLOUDS, SkyClouds } from '../studio/sky-clouds.ts';
 import { studioUniforms } from '../studio/studio-frame.ts';
 import { UltraPipeline } from '../ultra/pipeline.ts';
 import { PhotoSky } from '../assets/photo-sky.ts';
+import { scannedGround } from '../ground/scan-store.ts';
 import { FESTIVAL_PALETTE } from '../assets/sky-catalogue.ts';
 import { aerialFogColor } from '../studio/aerial-perspective.ts';
 import { WetRoadReflection } from '../wet-reflection.ts';
@@ -208,6 +209,7 @@ export class FestivalRenderer {
     this.terrain.budget = { ...budget, trees: budget.trees * clamp(g.vegetationDensity, 0, 1) };
     this.environment.highDetail = g.reflections === 'local';
     this.photoSky.setQuality(preset);
+    scannedGround.attach(this.renderer, preset);
     this.ultra.configure(preset, g);
     this.resize();
   }
@@ -388,6 +390,7 @@ export class FestivalRenderer {
   dispose() {
     if (this.disposed) return;
     this.disposed = true;
+    scannedGround.detach(this.renderer);
     this.terrain.dispose();
     this.roads.dispose();
     this.buildings.dispose();

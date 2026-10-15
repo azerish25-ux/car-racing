@@ -46,6 +46,13 @@ import {
   type TrackInfrastructurePlan,
 } from './track-infrastructure.ts';
 import { surfaceMaterial } from './surface-detail.ts';
+import {
+  installScannedAsphalt,
+  installScannedGravel,
+  installScannedKerb,
+  installScannedTerrain,
+  installScannedTurf,
+} from './ground/scanned-ground.ts';
 import { installGravelFinish } from './studio/grass-gravel-finish.ts';
 import * as T from 'three';
 import { BuildQueue } from './build-queue.ts';
@@ -191,6 +198,11 @@ export class CircuitScene {
     for (const m of [this.roadMaterial, grass, runOff, gravel]) installCarGrounding(m);
     // D28: night floodlight pools on every track ribbon (lap-space lamp rows).
     for (const m of [this.roadMaterial, grass, runOff, gravel]) installLightPools(m);
+    // Photographed ground (Medium and above, once resident; ground/scan-store.ts).
+    installScannedAsphalt(this.roadMaterial);
+    installScannedAsphalt(runOff);
+    installScannedTurf(grass);
+    installScannedGravel(gravel);
     // The grass apron plus D17's skirt onto the terrain, both sides, as one
     // ribbon (D32: the skirt shares the apron's chunks, 0 extra draws).
     const ground = terrainFor(track);
@@ -247,6 +259,7 @@ export class CircuitScene {
       installCarGrounding(m);
       installLightPools(m);
     }
+    installScannedKerb(kerb);
     for (const side of paved ? [-1, 1] : []) {
       this.queueRibbon(kerb, {
         offset: (s, t) => {
@@ -282,6 +295,7 @@ export class CircuitScene {
       this.wetReflection.uniforms,
     );
     installCarGrounding(pitMat);
+    installScannedAsphalt(pitMat);
     for (const [start, end] of [
       [track.length - track.pit.divergeStart, track.length],
       [0, track.pit.mergeEnd],
@@ -335,6 +349,7 @@ export class CircuitScene {
         terrain.setAttribute('shore', new T.BufferAttribute(shore, 1));
         installShoreline(land, model.seaLevel);
       }
+      installScannedTerrain(land);
       // D32: culled per tile (same vertices), not one always-visible plane.
       for (const tile of splitTerrainGrid(terrain, segments))
         reflectInWetRoad(mesh(this.surfaces, tile, land));
