@@ -18,7 +18,7 @@ import {
 } from '../src/simulation/surface-drainage.ts';
 import { Effects, PARTICLE_KIND } from '../src/rendering/effects.ts';
 import { inStandFootprint } from '../src/rendering/grandstand.ts';
-import { installWetRoad } from '../src/rendering/materials.ts';
+import { ROAD_FILM, installWetRoad } from '../src/rendering/materials.ts';
 import {
   buildTrackInfrastructure,
   safetyPanelAppearance,
@@ -150,10 +150,18 @@ it('adds a water-film clearcoat lobe on physical wet asphalt while keeping dry c
     fragmentShader: T.ShaderLib.physical.fragmentShader,
   };
   material.onBeforeCompile(shader as T.WebGLProgramParametersWithUniforms, {} as T.WebGLRenderer);
-  expect(shader.fragmentShader).toContain('material.clearcoat = wet * mix(0.58, 1.0, puddle)');
+  // TEST-UPDATE (photoreal pass): water depth drives a continuous sheet (coat 1,
+  // roughness ~0.065 from ~0.55 mm), not only the puddle mask.
+  expect(shader.fragmentShader).toContain('material.clearcoat = wet * mix(0.58, 1.0, roadSheet)');
   expect(shader.fragmentShader).toContain(
-    'material.clearcoatRoughness = mix(0.26, mix(0.22, 0.055, puddle), wet)',
+    `material.clearcoatRoughness = mix(0.26, mix(0.22, ${ROAD_FILM.sheetRoughness.toFixed(3)}, roadSheet), wet)`,
   );
+  expect(shader.fragmentShader).toContain(
+    `float roadSheet = max(puddle, smoothstep(${ROAD_FILM.sheetMm[0].toFixed(2)}, ${ROAD_FILM.sheetMm[1].toFixed(2)}, waterMm));`,
+  );
+  expect(ROAD_FILM.sheetRoughness).toBeGreaterThanOrEqual(0.05);
+  expect(ROAD_FILM.sheetRoughness).toBeLessThanOrEqual(0.08);
+  expect(ROAD_FILM.sheetMm[1]).toBeLessThanOrEqual(0.6);
   expect(shader.fragmentShader).toContain('roughnessFactor=mix');
   expect(shader.fragmentShader).toContain(
     'normal = normalize(mix(normal, dryRoadNormal, wet * mix(0.35, 0.9, puddle)))',

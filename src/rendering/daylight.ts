@@ -99,10 +99,11 @@ export function daylightState(cloud: number, rain: number, skyMode: LightingMode
     haze: lerp(SKY_LIGHT.haze.day[0], SKY_LIGHT.haze.day[2], cover),
     /** Sky-view radiance scale: the dome in scene units. */
     skyRadiance: sky.skyScale,
-    // P12 aerial perspective (studio/aerial-perspective.ts): FogExp2 density
-    // at the circuit datum, thinning with altitude in the fog chunk. Clear
-    // 0.00055 (26 % contrast loss at 1 km), overcast 0.0008, the 24 mm/h rain
-    // preset about 0.0017. The colour is the sky's own horizon radiance away
+    // FogExp2 density for materials without the local atmosphere (unlit signs
+    // and screens near the track): clear 0.00055, overcast 0.0008, the 24 mm/h
+    // rain preset about 0.0017. The local atmosphere's aerial perspective uses
+    // the sky's own extinction instead (studio/aerial-perspective.ts, from
+    // `haze` and the rain). The colour is the sky's own horizon radiance away
     // from the sun (greying to the deck and rain); the sun side adds its glow.
     fogDensity: 0.00055 + cover * 0.00025 + precipitation * 0.0000375,
     fogRed: fog[0],
@@ -212,6 +213,27 @@ export const SKY_DOME = Object.freeze({
   sunAngularRadius: ATMOSPHERE.sunAngularRadius,
 });
 const vec3 = (c: readonly number[]) => `vec3(${c.map((v) => v.toFixed(4)).join(',')})`;
+
+/** Urban skyglow over catalogue night city venues (linear radiance): a warm
+ * grey dome brightest at the horizon, which leaves only the brightest stars
+ * (`stars` of their light) and lifts the night haze to the same glow. */
+export const URBAN_SKYGLOW = Object.freeze({
+  horizon: 0.03,
+  zenith: 0.004,
+  /** Exponential falloff with elevation (radians): ~0.0043 at 30 degrees. */
+  falloff: 0.12,
+  colour: Object.freeze([1, 0.86, 0.7] as const),
+  stars: 0.05,
+});
+/** Night haze colour of an urban venue: the skyglow's horizon. */
+export function urbanFogColor(out: T.Color) {
+  const [r, g, b] = URBAN_SKYGLOW.colour;
+  return out.setRGB(
+    Math.max(out.r, URBAN_SKYGLOW.horizon * r),
+    Math.max(out.g, URBAN_SKYGLOW.horizon * g),
+    Math.max(out.b, URBAN_SKYGLOW.horizon * b),
+  );
+}
 
 /**
  * The celestial sky (sky-ephemeris.ts): moon, stars, Milky Way and twilight,
@@ -441,6 +463,7 @@ uniform float cloudCover;
 uniform float probeSkyIntensity;
 uniform float nightAmount;
 uniform float sunsetAmount;
+uniform float urbanGlow;
 ${SKY_CLOUD_UNIFORMS}${SKY_CLOUD_SAMPLE}${SKY_CLOUD_LIGHTING}${SKY_GROUND_UNIFORMS}${CELESTIAL_GLSL}
 const float SKY_PI = 3.141592653589793;
 const vec2 SKY_VIEW_SIZE = vec2(${SKY_DOME.size[0].toFixed(1)}, ${SKY_DOME.size[1].toFixed(1)});
@@ -502,6 +525,10 @@ void main() {
     // Faint green airglow ten degrees up; warm venue glow on the horizon.
     nightSky += vec3(.0003, .0009, .0002) * exp(-pow((elevation - .17) / .12, 2.0));
     nightSky += vec3(.004, .003, .002) * pow(1.0 - elevation, 10.0);
+    // Urban skyglow over a night city venue: warm grey light pollution,
+    // ${URBAN_SKYGLOW.horizon} at the horizon falling to ~${URBAN_SKYGLOW.zenith} by 30 degrees.
+    nightSky += ${vec3(URBAN_SKYGLOW.colour)} * urbanGlow * (${URBAN_SKYGLOW.zenith.toFixed(4)} +
+      ${(URBAN_SKYGLOW.horizon - URBAN_SKYGLOW.zenith).toFixed(4)} * exp(-asin(elevation) / ${URBAN_SKYGLOW.falloff.toFixed(3)}));
     if (sunDiscAmount > 0.0 && direction.y > 0.0) {
       nightSky += twilightGlow(direction) * twilightAmount;
       // Moonlight scattered by the air: a faint blue dome under a bright moon.
@@ -514,7 +541,7 @@ void main() {
         vec3 stars = starField(cel, pixelAngle, scintillation) +
           milkyWay(cel) * ${CELESTIAL.milkyWay.toFixed(4)};
         nightSky += stars * celestialExtinction(direction.y) * starAmount *
-          (1.0 - 0.85 * cloudCover);
+          (1.0 - 0.85 * cloudCover) * mix(1.0, ${URBAN_SKYGLOW.stars.toFixed(3)}, urbanGlow);
       }
     }
     nightSky += moon * (1.0 - 0.85 * cloudCover);
@@ -544,6 +571,7 @@ export function configureSky(sky: Sky) {
   u.cloudCover = { value: 0 };
   u.nightAmount = { value: 0 };
   u.sunsetAmount = { value: 0 };
+  u.urbanGlow = { value: 0 };
   u.skyRadiance = { value: daylightState(0, 0).skyRadiance };
   u.skyViewLow = { value: null };
   u.skyViewHigh = { value: null };

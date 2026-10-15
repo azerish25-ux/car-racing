@@ -15,18 +15,29 @@ import { FullScreenQuad, Pass } from 'three/addons/postprocessing/Pass.js';
  *  3. Additive composite scaled by the scattering strength of the lighting and
  *     air (haze from cloud and rain, much stronger low sun at sunset). Off at
  *     night, in studio backdrops, and when the sun is behind the camera; it
- *     fades as the sun leaves the frame.
+ *     fades as the sun leaves the frame. Near occluders (a canopy, a stand)
+ *     keep their dark core between the beams: the in-scatter in front of
+ *     them is a short path of air, so the composite keeps `occluded` of the
+ *     beam on geometry nearer than `clearDistance` m (full beyond it).
+ *
+ * Photoreal pass (sunset into the sun read milky): a narrow mask (g 0.9, the
+ * beams start at the disc and its aureole, about 8 degrees), a shorter gather
+ * (decay 0.94) and a third of the sunset strength.
  */
 export const LIGHT_SHAFTS = Object.freeze({
   taps: 24,
   /** Fraction of the distance to the sun covered by the first gather. */
   density: 0.9,
-  decay: 0.965,
+  decay: 0.94,
   /** HG asymmetry of the mask lobe (Mie forward scattering). */
-  g: 0.76,
+  g: 0.9,
   /** Radiance ceiling of masked sky (linear HDR). */
   limit: 40,
-  strength: Object.freeze({ day: 0.05, sunset: 0.16 }),
+  strength: Object.freeze({ day: 0.04, sunset: 0.06 }),
+  /** Share of the beam composited over near geometry, and the view distance
+   * (m) where geometry counts as open air again. */
+  occluded: 0.15,
+  clearDistance: Object.freeze([150, 1500] as const),
   /** Sun screen distance (uv) beyond which shafts are fully faded. */
   fadeOutside: 0.6,
 });
@@ -116,10 +127,27 @@ void main() {
 	gl_FragColor = vec4( sum / total, 1.0 );
 }`;
 const compositeShader = /* glsl */ `
+#include <packing>
 uniform sampler2D tSource;
+uniform sampler2D tDepth;
+uniform vec2 sourceTexel;
 uniform float strength;
+uniform float cameraNear;
+uniform float cameraFar;
 varying vec2 vUv;
-void main() { gl_FragColor = vec4( texture2D( tSource, vUv ).rgb * strength, 1.0 ); }`;
+float openAir( vec2 uv ) {
+	float depth = texture2D( tDepth, uv ).x;
+	if ( depth >= 0.99999 ) return 1.0;
+	float distance = - perspectiveDepthToViewZ( depth, cameraNear, cameraFar );
+	return smoothstep( ${LIGHT_SHAFTS.clearDistance[0].toFixed(1)}, ${LIGHT_SHAFTS.clearDistance[1].toFixed(1)}, distance );
+}
+void main() {
+	// Occluder share over a 4-tap footprint, so beam edges stay soft.
+	float open = 0.25 * ( openAir( vUv + vec2( -1.5, -1.5 ) * sourceTexel ) + openAir( vUv + vec2( 1.5, -1.5 ) * sourceTexel )
+		+ openAir( vUv + vec2( -1.5, 1.5 ) * sourceTexel ) + openAir( vUv + vec2( 1.5, 1.5 ) * sourceTexel ) );
+	float keep = mix( ${LIGHT_SHAFTS.occluded.toFixed(3)}, 1.0, open );
+	gl_FragColor = vec4( texture2D( tSource, vUv ).rgb * strength * keep, 1.0 );
+}`;
 
 function shader(
   name: string,
@@ -190,7 +218,14 @@ export class LightShaftsPass extends Pass {
     this.composite = shader(
       'APEX sun shaft composite',
       compositeShader,
-      { tSource: { value: null }, strength: { value: 0 } },
+      {
+        tSource: { value: null },
+        tDepth: { value: null },
+        sourceTexel: { value: new T.Vector2() },
+        strength: { value: 0 },
+        cameraNear: { value: 0.1 },
+        cameraFar: { value: 1000 },
+      },
       true,
     );
   }
@@ -213,6 +248,7 @@ export class LightShaftsPass extends Pass {
       h = Math.max(1, Math.round(height / 4));
     for (const t of this.targets) t.setSize(w, h);
     this.mask.uniforms.sourceTexel.value.set(1 / Math.max(1, width), 1 / Math.max(1, height));
+    this.composite.uniforms.sourceTexel.value.set(1 / Math.max(1, width), 1 / Math.max(1, height));
     this.gather.uniforms.resolution.value.set(w, h);
   }
   override render(
@@ -244,8 +280,12 @@ export class LightShaftsPass extends Pass {
     gu.tSource.value = b.texture;
     gu.stepScale.value = LIGHT_SHAFTS.density / LIGHT_SHAFTS.taps;
     draw(this.gather, a);
-    this.composite.uniforms.tSource.value = a.texture;
-    this.composite.uniforms.strength.value = this.strength;
+    const cu = this.composite.uniforms;
+    cu.tSource.value = a.texture;
+    cu.tDepth.value = depth;
+    cu.cameraNear.value = this.camera.near;
+    cu.cameraFar.value = this.camera.far;
+    cu.strength.value = this.strength;
     draw(this.composite, this.renderToScreen ? null : readBuffer);
     renderer.autoClear = autoClear;
     this.frames++;

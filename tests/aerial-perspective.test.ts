@@ -14,12 +14,16 @@ import {
   AERIAL_PERSPECTIVE_FRAGMENT,
   AERIAL_PERSPECTIVE_PARS,
   aerialAmount,
+  aerialExtinction,
   aerialFogColor,
   aerialHeightMean,
   aerialSunGlow,
   aerialUniforms,
+  setAerialExtinction,
   setAerialPerspective,
 } from '../src/rendering/studio/aerial-perspective.ts';
+import { ATMOSPHERE } from '../src/rendering/atmosphere.ts';
+import { SKY_LIGHT } from '../src/rendering/sky-light.ts';
 import { studioUniforms } from '../src/rendering/studio/studio-frame.ts';
 import { Track } from '../src/simulation/track.ts';
 
@@ -27,7 +31,9 @@ const v = (x: number, y: number, z: number) => new T.Vector3(x, y, z);
 
 describe('P12 aerial perspective', () => {
   const clear = daylightState(0, 0).fogDensity;
-  it('sets the P12 densities by weather and lighting', () => {
+  // Green-channel extinction of the clear-day air the sky is baked from.
+  const air = aerialExtinction(daylightState(0, 0).haze).y;
+  it('keeps the FogExp2 densities for materials without the local atmosphere', () => {
     expect(clear).toBeCloseTo(0.00055, 10);
     expect(daylightState(1, 0).fogDensity).toBeCloseTo(0.0008, 10);
     // The 24 mm/h rain preset (cover 0.95).
@@ -37,37 +43,66 @@ describe('P12 aerial perspective', () => {
     expect(circuitLightState(0, 0, 'sunset').fogDensity).toBeCloseTo(0.00065, 5);
     expect(circuitLightState(0, 0, 'night').fogDensity).toBeCloseTo(0.0004, 4);
   });
-  it('loses 25-30 % contrast at 1 km on the flat and keeps the near field crisp', () => {
+  it('extinguishes with the air the sky is baked from: Rayleigh, aerosols and rain', () => {
+    const e = aerialExtinction(SKY_LIGHT.haze.day[0]);
+    // A clear summer day: ~1e-4 per metre at 550 nm (40 km visibility), blue
+    // extinguished more than red.
+    expect(e.y).toBeGreaterThan(0.8e-4);
+    expect(e.y).toBeLessThan(1.4e-4);
+    expect(e.z).toBeGreaterThan(e.y);
+    expect(e.y).toBeGreaterThan(e.x);
+    expect(3.912 / e.y / 1000).toBeGreaterThan(30);
+    // Overcast air is hazier; 24 mm/h of rain adds ~1.5e-3 of grey extinction.
+    expect(aerialExtinction(SKY_LIGHT.haze.day[2]).y).toBeGreaterThan(1.5 * e.y);
+    const wet = aerialExtinction(SKY_LIGHT.haze.day[0], 24);
+    expect(wet.y - e.y).toBeCloseTo(1.5e-3, 6);
+    expect(wet.x - e.x).toBeCloseTo(wet.z - e.z, 12);
+    expect(() => aerialExtinction(NaN)).toThrow();
+    // The renderer writes the presented level into the shared uniform.
+    setAerialExtinction(SKY_LIGHT.haze.day[1], 0);
+    expect(aerialUniforms.apexAerialExtinction.value.y).toBeCloseTo(
+      aerialExtinction(SKY_LIGHT.haze.day[1]).y,
+      12,
+    );
+    setAerialExtinction(SKY_LIGHT.haze.day[0], 0);
+  });
+  it('keeps ridges 2-5 km out in continuous air, not pale cut-outs', () => {
     const eye = v(0, 1.2, 0);
-    const at = (d: number, y = 0.5) => aerialAmount(eye, v(d, y, 0), clear);
-    expect(at(1000)).toBeGreaterThanOrEqual(0.25);
-    expect(at(1000)).toBeLessThanOrEqual(0.3);
-    expect(at(150)).toBeLessThan(0.01);
-    expect(at(500)).toBeLessThan(0.1);
-    // Elevated ridges 2-3 km out keep their shape in blue haze (55-65 % at 3 km
-    // for a 150 m ridge), where a flat valley floor at 3 km is nearly gone.
-    expect(at(3000, 150)).toBeGreaterThan(0.55);
-    expect(at(3000, 150)).toBeLessThan(0.7);
-    expect(at(3000, 0)).toBeGreaterThan(0.85);
-    expect(at(2000, 120)).toBeGreaterThan(0.35);
-    expect(at(2000, 120)).toBeLessThan(0.6);
+    const at = (d: number, y = 0.5) => aerialAmount(eye, v(d, y, 0), air);
+    // Beer-Lambert: the near field is crisp, 1 km loses under a tenth.
+    expect(at(150)).toBeLessThan(0.02);
+    expect(at(1000)).toBeGreaterThan(0.05);
+    expect(at(1000)).toBeLessThan(0.12);
+    // Ridges keep 60-80 % of their contrast (the squared response put them at
+    // 50-95 % haze), and the haze keeps growing with distance.
+    expect(at(3000, 150)).toBeGreaterThan(0.18);
+    expect(at(3000, 150)).toBeLessThan(0.35);
+    expect(at(5000, 300)).toBeGreaterThan(at(3000, 150));
+    expect(at(5000, 300)).toBeLessThan(0.42);
+    expect(at(3000, 0)).toBeGreaterThan(at(3000, 150));
+    // Rain closes the view: the 24 mm/h preset hazes 1 km by three quarters.
+    const rain = aerialExtinction(daylightState(0.95, 24).haze, 24).y;
+    expect(aerialAmount(eye, v(1000, 0.5, 0), rain)).toBeGreaterThan(0.7);
   });
   it('thins with altitude along the sightline, continuously through a level ray', () => {
     // Valley floors haze more than ridgelines at the same distance.
     const eye = v(0, 20, 0);
-    expect(aerialAmount(eye, v(1500, 0, 0), clear)).toBeGreaterThan(
-      aerialAmount(eye, v(1500, 200, 0), clear),
+    expect(aerialAmount(eye, v(1500, 0, 0), air)).toBeGreaterThan(
+      aerialAmount(eye, v(1500, 200, 0), air),
     );
     // A sightline down into the valley hazes more than a level one up high,
     // and a ray and its reverse cross the same air.
     expect(aerialHeightMean(100, -100)).toBeGreaterThan(aerialHeightMean(100, 0));
     expect(aerialHeightMean(100, -100)).toBeCloseTo(aerialHeightMean(0, 100), 12);
     for (const rise of [-1e-3, -1e-5, 0, 1e-5, 1e-3])
-      expect(aerialHeightMean(5, rise)).toBeCloseTo(Math.exp(-5 / 150), 4);
-    // The datum and scale height of the producer decision.
-    expect(AERIAL_PERSPECTIVE.scaleHeight).toBe(150);
-    expect(aerialAmount(eye, eye, clear)).toBe(0);
-    expect(() => aerialAmount(eye, v(NaN, 0, 0), clear)).toThrow();
+      expect(aerialHeightMean(5, rise)).toBeCloseTo(
+        Math.exp(-5 / AERIAL_PERSPECTIVE.scaleHeight),
+        4,
+      );
+    // The atmosphere's aerosol scale height.
+    expect(AERIAL_PERSPECTIVE.scaleHeight).toBe(ATMOSPHERE.mieScaleHeight);
+    expect(aerialAmount(eye, eye, air)).toBe(0);
+    expect(() => aerialAmount(eye, v(NaN, 0, 0), air)).toThrow();
   });
   it('colours the haze by view: anti-sun blue, sun-side glow, one grey under cloud', () => {
     const c = AERIAL_PERSPECTIVE.colors;
@@ -125,6 +160,7 @@ describe('P12 aerial perspective', () => {
     );
     expect(shader.uniforms.apexAerialSunGlow).toBe(aerialUniforms.apexAerialSunGlow);
     expect(shader.uniforms.apexAerialFalloff).toBe(aerialUniforms.apexAerialFalloff);
+    expect(shader.uniforms.apexAerialExtinction).toBe(aerialUniforms.apexAerialExtinction);
     expect(shader.uniforms.studioSunDir).toBe(studioUniforms.studioSunDir);
     expect(m.customProgramCacheKey()).toContain('v4-vector-quadrature:transformed');
     expect(m.customProgramCacheKey()).toContain('|apex-aerial-perspective-v1');

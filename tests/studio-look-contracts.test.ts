@@ -86,11 +86,12 @@ describe('studio look contracts', () => {
     ]);
   });
 
-  it('P9: 1.1 m kerb stripes rendering #c4222a / #ecebe6', () => {
+  it('P9: 1.1 m kerb stripes in real kerb paint (#a82a26 / #cfccc3)', () => {
     expect(KERB.width).toBe(1.1);
     expect(KERB.pair).toBe(2.2);
-    // The albedo #bc0a14 renders P9's #c4222a in the day sun (KPI 11).
-    expect(KERB.colours[0].map(hex)).toEqual(['#bc0a14', '#ecebe6']);
+    // TEST-UPDATE (photoreal pass): the KPI 11 albedo #bc0a14 / #ecebe6 read as
+    // candy-cane ink and paper; oxide red and an off-white near 0.6 linear.
+    expect(KERB.colours[0].map(hex)).toEqual(['#a82a26', '#cfccc3']);
   });
 
   it('P10/P11/P12: motion blur, bloom and haze', () => {

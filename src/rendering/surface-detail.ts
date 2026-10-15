@@ -8,9 +8,9 @@ import { installAsphaltDetail } from './studio/road-detail.ts';
 
 export type SurfaceKind = 'asphalt' | 'grass' | 'gravel' | 'concrete';
 const palette: Record<SurfaceKind, readonly [number, number, number]> = {
-  // Warm-neutral binder and aggregate (P4): sRGB #6a6560, B/R 0.91. The old
-  // [79,81,83] was blue-biased and rendered a stop too dark beside the refs.
-  asphalt: [106, 101, 96],
+  // Near-neutral binder and aggregate: sRGB #646361, B/R 0.97. The finish's
+  // ASPHALT_TONE sets the rendered albedo (~0.095 linear, real race asphalt).
+  asphalt: [100, 99, 97],
   grass: [89, 101, 53],
   gravel: [150, 138, 114],
   concrete: [172, 172, 162],

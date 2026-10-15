@@ -32,8 +32,11 @@ export const LIGHT_POOLS = Object.freeze({
   /** Lamp intensity (cd-like units in the renderer's linear scale). */
   intensity: 300,
   colour: 0xf4f0e8,
-  /** Lamp-head radiance (x linear white) for the bloom halo. */
+  /** Lamp-head radiance (x linear white) for the threshold bloom's halo. */
   headGain: 12,
+  /** ULTRA (energy-conserving bloom): the head in physical radiance, about
+   * 25x sunlit white, so the lens's glare draws a halo around it. */
+  physicalHeadGain: 300,
   /** Pole clearance outside the track boundary (m) and arm reach toward the road. */
   clearance: 2.5,
   arm: 2.2,
@@ -194,8 +197,15 @@ export class LightPools {
     this.root.add(this.poles, this.heads);
     this.root.visible = false;
   }
-  /** Lighting mode and venue strength (the renderer's venue lighting update). */
-  update(mode: 'day' | 'sunset' | 'night') {
+  private headGain: number = LIGHT_POOLS.headGain;
+  /** Lighting mode and venue strength (the renderer's venue lighting update).
+   * `physical`: the energy-conserving bloom draws the heads' glare. */
+  update(mode: 'day' | 'sunset' | 'night', physical = false) {
+    const gain = physical ? LIGHT_POOLS.physicalHeadGain : LIGHT_POOLS.headGain;
+    if (gain !== this.headGain) {
+      this.headGain = gain;
+      this.headMaterial?.color.setHex(LIGHT_POOLS.colour).multiplyScalar(gain);
+    }
     const strength = POOL_STRENGTH[mode];
     lightPoolUniforms.lightPoolStrength.value = strength;
     lightPoolUniforms.lightPoolKeyShare.value = RIBBON_KEY_SHARE[mode];

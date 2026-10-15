@@ -66,11 +66,20 @@ describe('kerb and run-off plan', () => {
 describe('kerb and run-off finishes', () => {
   it('paints P9 kerbs: 1.1 m stripes, ridges by normal, rubber and wear', () => {
     expect(KERB.pair).toBe(2.2);
-    // TEST-UPDATE (KPI 11 iteration): albedo #c4222a rendered #c74146.
-    expect(hex(KERB.colours[0][0])).toBe('#bc0a14');
-    expect(hex(KERB.colours[0][1])).toBe('#ecebe6');
-    expect(hex(KERB.colours[1][0])).toBe('#2a4fa0');
-    expect(KERB.colours[2].map(hex)).toEqual(['#e8c43a', '#2f8f52']);
+    // TEST-UPDATE (photoreal pass): real kerb paint, not ink-pure red and paper
+    // white. The red keeps a little green/blue; the white sits near 0.6 linear.
+    expect(hex(KERB.colours[0][0])).toBe('#a82a26');
+    expect(hex(KERB.colours[0][1])).toBe('#cfccc3');
+    expect(hex(KERB.colours[1][0])).toBe('#2c4a86');
+    expect(KERB.colours[2].map(hex)).toEqual(['#c9a53a', '#3f6e4c']);
+    const red = new T.Color(KERB.colours[0][0]),
+      white = new T.Color(KERB.colours[0][1]);
+    expect(red.g).toBeGreaterThan(0.015);
+    expect(red.r).toBeLessThan(0.45);
+    expect(white.r).toBeLessThan(0.66);
+    expect(white.r).toBeGreaterThan(0.55);
+    expect(KERB.wearFloor).toBeGreaterThanOrEqual(0.15);
+    expect(KERB.wearFloor).toBeLessThanOrEqual(0.2);
     const kerb = new T.MeshStandardMaterial({ vertexColors: true, roughness: 0.85 });
     installCircuitFinish(kerb, 'kerb');
     expect(installKerbFinish(kerb)).toBe(true);
@@ -80,7 +89,12 @@ describe('kerb and run-off finishes', () => {
     expect(shader.vertexShader).toContain('attribute float kerbStyle;');
     const f = shader.fragmentShader;
     expect(f).toContain('float stripePhase = vFinishMetres.y / 2.2000;');
-    expect(f).toContain('apexStripeCoverage( stripePhase, fwidth( stripePhase ), .25 )');
+    expect(f).toContain(
+      'apexStripeCoverage( stripePhase + stripeWaver, max( fwidth( stripePhase ), 0.0055 ), .25 )',
+    );
+    // Every kerb carries some rubber; dust settles in the ridge troughs.
+    expect(f).toContain('float kerbUse = max( vKerbUsage, 0.1800 );');
+    expect(f).toContain('float dustTrough =');
     // TEST-UPDATE (KPI 11 iteration): rougher paint, less sky sheen on the red.
     expect(f).toContain('roughnessFactor = mix( 0.8200, 0.9200, kerbWear );');
     expect(f).toContain('normal = apexReliefNormal(');
@@ -97,9 +111,9 @@ describe('kerb and run-off finishes', () => {
     const f = compile(runoff).fragmentShader;
     expect(f).toContain('D15 run-off');
     expect(f).toContain('if ( style == 4 )');
-    expect(RUNOFF.bands.map(hex)).toEqual(['#3b8a50', '#b33a32', '#2e57a8', '#d9b23a']);
+    expect(RUNOFF.bands.map(hex)).toEqual(['#3f6e4c', '#a03a33', '#34548c', '#c4a244']);
     expect(hex(RUNOFF.base)).toBe('#6f6c68');
-    expect(hex(RUNOFF.turf)).toBe('#3f9a55');
+    expect(hex(RUNOFF.turf)).toBe('#3f7f50');
     expect(RUNOFF.band[1] - RUNOFF.band[0]).toBeGreaterThanOrEqual(1.5);
     expect(RUNOFF.band[1] - RUNOFF.band[0]).toBeLessThanOrEqual(2);
   });
