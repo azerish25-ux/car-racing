@@ -43,9 +43,17 @@ Last reviewed against source: branch `claude/peaceful-einstein-dedc7t`, commits 
 | Race radio & captions | integrated | `src/core/radio.ts`, `src/ui/radio-caption.ts` | Voice assets, priority review with players | Audio lead |
 | Accessibility: captions, reduced motion | integrated | Settings → Accessibility | Accessibility matrix review (WP32) | Accessibility + QA |
 | EVENTS hub / machine choice | integrated | `src/ui/event-cards.ts`, MACHINE select | Controller-only journey review (WP22) | UI/UX lead |
-| Save backup and recovery | integrated | `SaveStore.writeWithBackup`, `recoverSave` | Abrupt-termination test on hardware (§12.5) | Persistence owner |
-| Transparent race rewards | integrated | `rewardIncome` | Economy review (§12.3) | Design lead |
+| Save backup and recovery | integrated | `SaveStore.writeWithBackup`, `recoverSave`; career save recovery in `tests/career.test.ts` | Abrupt-termination test on hardware (§12.5) | Persistence owner |
+| Transparent race rewards | integrated | `rewardIncome`; itemised career payment under the classification (`src/career/economy.ts`) | Economy review (§12.3) | Design lead |
 | Championship and team career | integrated | `src/core/championship.ts`, `src/storage/team-career.ts` | One result identity across both (WP23) | Gameplay lead |
+| Driver career: disciplines, tiers, invitationals, tier championships | integrated | `src/career/registry.ts`, `src/career/ladder.ts`, CAREER menu (`src/ui/career-hub.ts`), `tests/career.test.ts`, `tests/career-session.test.ts`, `e2e/59-career-hub.spec.ts` (DOM-only) | Rendered end-to-end career session in CI; human journey review (WP22) | Design lead + gameplay lead |
+| Registry-derived discipline availability (bikes, off-road, festival shown as coming) | integrated | `disciplineStatus`, `licenceAvailability`; synthetic-registry unlock tests | Re-check when the bike, catalogue and circuit work merges | Gameplay lead |
+| Licence tests, circuit cars (braking marker, cornering line, wet control) | integrated | `src/career/licences.ts`, `src/career/course.ts`; scored from snapshots of a production practice session in `tests/career-session.test.ts` | Calibrate the provisional medal limits with human players | Design lead |
+| Licence tests, bikes (lean/trail braking) and off-road (jump landing) | prototype | Scorers tested on recorded samples; coming until a lean channel/bike and a surveyed jump venue exist | Couple to the G4/G5 slices | Motorcycle lead / terrain lead |
+| Career economy: credits, per-discipline reputation, class prices, recovery series | integrated | `racePayout`, `settleRace`, `settleLicence`, `buyVehicle`, `recoveryEvent`; once-per-session tests | Economy balance review with players (§12.3) | Design lead |
+| Garage: owned machines, active per discipline, per-vehicle setup presets | integrated | `savePreset`/`careerSetup` (setupKeys only), `SETUP_EFFECTS` hints | Show setup effects in telemetry; bike/off-road parameters | Vehicle gameplay |
+| Vehicle upgrades | absent | Not offered: an upgrade must create a new definition hash and record category | Upgrade definitions with their own record categories | Vehicle gameplay |
+| Versioned career save with migration and recovery | integrated | `src/career/save.ts` (`validateCareer`, `careerFromLegacy`, migration table), `writeWithBackup`/`readRecovered` | Corruption/quota/termination suite on hardware (WP24) | Persistence owner |
 | Motorcycle (road) dynamics | prototype | `src/simulation/bike.ts`, `tests/bike.test.ts` | G4 vertical slice: rig, AI, track, audio | Motorcycle lead |
 | Deformable dirt terrain | prototype | `src/simulation/terrain.ts`, `tests/terrain.test.ts` | Couple to a dirt bike (G5) | Terrain/physics lead |
 | Magnetic local-frame vehicles | prototype | `src/simulation/local-frame.ts` | Engineering course (§16.5) | Extreme gameplay |
@@ -87,10 +95,10 @@ Last reviewed against source: branch `claude/peaceful-einstein-dedc7t`, commits 
 | WP19 | integrated | Per-definition AI envelopes, zero-downforce braking fix. |
 | WP20 | integrated | Explicit pass commitment in `TrafficPlanner`: one target per attempt, abort on gap opening, lost closing speed (>1 s), defender covering before overlap, no safe lane or 12 s timeout; skill-dependent retry hysteresis; passes/aborts counted with reason (`tests/traffic.test.ts`). Unit suite and `test:physics` green. QA-suite measurements (§13.7) open. |
 | WP21 | absent | Needs human sessions on named devices. |
-| WP22 | integrated (partial) | EVENTS hub, machine choice with explained rejections; full controller audit open. |
-| WP23 | integrated (partial) | Idempotent, explained rewards; one result identity across championship/team open. |
-| WP24 | integrated (partial) | Backup-on-write and recovery; corruption/quota/termination suite on hardware open. |
-| WP25 | absent | Academy per vehicle family. |
+| WP22 | integrated (partial) | EVENTS hub, machine choice with explained rejections; CAREER hub is native buttons in reading order with focus kept on the active section (DOM-only browser test); full controller audit open. |
+| WP23 | integrated (partial) | Idempotent, explained rewards (team ledger and career wallet, each session paid by one of them); one result identity across championship/team/career open. |
+| WP24 | integrated (partial) | Backup-on-write and recovery, including the versioned career save and its legacy-save migration; corruption/quota/termination suite on hardware open. |
+| WP25 | integrated (partial) | Licence tests per vehicle family: circuit-car braking, cornering and wet licences are reachable from CAREER and scored from snapshots; bike lean and off-road landing scorers are prototypes until those families have machines, channels and venues. |
 | WP26 | integrated | Powertrain sound families (`src/audio/sound-profiles.ts`): firing order, harmonic emphasis, rev range, induction, transmission and electric-motor briefs for 13 families; engine voices and the player power-unit layer follow the recorded vehicle (`tests/sound-profiles.test.ts`). APX-01 output is unchanged; TC-1 has its own four-cylinder turbo voice. Listening review open. |
 | WP27 | research | Capture-suite definition in `CONTENT_PIPELINE.md`; art director approval open. |
 | WP28 | absent | Temporal clarity work needs the capture suite. |

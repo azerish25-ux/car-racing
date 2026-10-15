@@ -77,6 +77,10 @@ Dirt (rallycross or bike development), Extreme (optional invitations). Players c
 or team management. Rewards: completion, improvement and clean racing, with the calculation shown
 (`rewardIncome`); transactional, idempotent per session; no pay-to-win; a recovery route for broke
 teams (reduced-stakes events). Saves: versioned, backed up before overwrite, recoverable.
+*In source:* the driver career (`src/career/`, CAREER menu) implements licences scored from
+telemetry, registry-derived disciplines and tiers, invitationals, tier championships, the
+recovery club meeting, class prices, garage presets and a versioned, recoverable save; what remains
+designed only is listed in `GAME_DESIGN.md` §5.
 
 ## 6. AI programme (§13)
 
