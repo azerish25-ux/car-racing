@@ -22,6 +22,9 @@ export const PUDDLES = Object.freeze({
   edgeBias: 0.28,
   /** Puddle suppression on the racing line. */
   lineBias: 0.3,
+  /** Extra puddle bias as the water deepens over `depthMm`. */
+  depthBias: 0.25,
+  depthMm: Object.freeze([0.8, 1.6] as const),
 });
 export const DRY_LINE = Object.freeze({
   sigma: 0.85,
@@ -38,12 +41,14 @@ const GLSL = /* glsl */ `{
 	float puddleField = 0.65 * apexRoadNoise( vRoadMetres / ${f(PUDDLES.scales[0])} ) + 0.35 * apexRoadNoise( vRoadMetres / ${f(PUDDLES.scales[1])} + vec2( 7.1, 3.3 ) );
 	puddleField += ${f(PUDDLES.edgeBias)} * wetEdge - ${f(PUDDLES.lineBias)} * wetLine;
 	float wetBefore = wet;
+	// Coverage grows with depth: deeper water joins the hollows into sheets.
+	puddleField += ${f(PUDDLES.depthBias)} * smoothstep( ${f(PUDDLES.depthMm[0])}, ${f(PUDDLES.depthMm[1])}, waterMm );
 	puddle *= smoothstep( 0.42, 0.62, puddleField + 0.35 * ( puddle - 0.5 ) );
 	wet *= mix( 1.0, ${f(DRY_LINE.depth)}, wetLine * smoothstep( ${f(DRY_LINE.mm[0])}, ${f(DRY_LINE.mm[1])}, waterMm ) * ( 1.0 - puddle ) );
 	diffuseColor.rgb *= mix( 1.0, 0.6, wet ) / mix( 1.0, 0.58, wetBefore );
 }`;
 
-export const WET_DETAIL_HOOK = 'wet-detail-v1';
+export const WET_DETAIL_HOOK = 'wet-detail-v2';
 /** Chain onto the road material after installWetRoad and installRoadDetail. */
 export function installWetDetail(material: T.Material) {
   return chainShaderHook(material, WET_DETAIL_HOOK, (shader) => {

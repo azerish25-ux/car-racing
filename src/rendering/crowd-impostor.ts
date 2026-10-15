@@ -60,6 +60,7 @@ export function installCrowdImpostorShader(material: T.MeshStandardMaterial, ran
       '#include <color_fragment>',
       `
       #include <color_fragment>
+      vec3 shirt = diffuseColor.rgb;
       vec2 p = vPerson;
       p.x /= vSpectatorStyle.x;
       if (p.y > .1) p.y = .1 + (p.y-.1) / vSpectatorStyle.y;
@@ -70,13 +71,22 @@ export function installCrowdImpostorShader(material: T.MeshStandardMaterial, ran
       float lap = personEllipse(p,vec2(0.,.12+rise*.9),vec2(.2,.08));
       float leftLeg = personEllipse(p,vec2(-.1,-.1+stand*.22),vec2(.06,.24+stand*.22));
       float rightLeg = personEllipse(p,vec2(.1,-.1+stand*.22),vec2(.06,.24+stand*.22));
-      float shape = min(head,min(torso,min(lap,min(leftLeg,rightLeg))));
+      // Caps on the same spectators as the geometric LODs (style.w > .55):
+      // a crown over the scalp and a short brim; a few wide sun hats.
+      float capped = step(.55, vSpectatorStyle.w);
+      float sunHat = capped * step(.93, fract(vCrowdRank * 37.1));
+      float crown = personEllipse(p,vec2(0.,.725+rise),vec2(.088,.05));
+      float brim = personEllipse(p,vec2(0.,.705+rise),mix(vec2(.11,.016),vec2(.16,.018),sunHat));
+      float hat = mix(1.,min(crown,brim),capped);
+      float shape = min(min(head,hat),min(torso,min(lap,min(leftLeg,rightLeg))));
       float aa = max(fwidth(shape),.0001);
       diffuseColor.a *= 1.-smoothstep(-aa,aa,shape);
       float headMask = 1.-smoothstep(-aa,aa,head);
       diffuseColor.rgb = mix(diffuseColor.rgb, vSkin, headMask);
       float scalp = headMask * smoothstep(.71+rise,.74+rise,p.y);
       diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.025,.018,.012),scalp);
+      float hatMask = capped * (1.-smoothstep(-aa,aa,hat));
+      diffuseColor.rgb=mix(diffuseColor.rgb,mix(shirt*.7,vec3(.5,.45,.36),sunHat),hatMask);
       if(p.y < .17+rise) diffuseColor.rgb *= vec3(.22,.25,.28);`,
     );
     shader.fragmentShader = shader.fragmentShader.replace(
@@ -86,5 +96,5 @@ export function installCrowdImpostorShader(material: T.MeshStandardMaterial, ran
       #include <alphatest_fragment>`,
     );
   };
-  material.customProgramCacheKey = () => 'apex-procedural-impostor-v4-standing';
+  material.customProgramCacheKey = () => 'apex-procedural-impostor-v5-caps';
 }

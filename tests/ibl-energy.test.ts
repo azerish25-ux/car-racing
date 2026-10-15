@@ -303,10 +303,11 @@ describe('PMREM ground hemisphere', () => {
     const s = SKY_IRRADIANCE_SATURATION.day,
       l = 0.2126 * sky.r + 0.7152 * sky.g + 0.0722 * sky.b;
     const balanced = (l + (sky.b - l) * s) / (l + (sky.r - l) * s);
-    // The cloud-free physical dome is about B/R 3 (bright, whitish horizon and
-    // aureole included); the clear preset's sunlit cumulus whiten it further.
+    // The cloud-free physical dome is about B/R 2.3 under summer aerosols
+    // (bright, whitish horizon and aureole included); the clear preset's
+    // sunlit cumulus whiten it further. TEST-UPDATE (photoreal pass): AOD 0.09.
     const cloudless = skyCosineRadiance(0, 'day');
-    expect(cloudless.b / cloudless.r).toBeGreaterThan(2.5);
+    expect(cloudless.b / cloudless.r).toBeGreaterThan(2.0);
     expect(cloudless.b / cloudless.r).toBeLessThan(3.6);
     expect(sky.b / sky.r).toBeGreaterThan(1.3);
     expect(balanced).toBeGreaterThan(1.2);

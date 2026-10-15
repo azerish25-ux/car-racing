@@ -5,7 +5,7 @@ import type { BroadcastGradePass } from '../broadcast-grade.ts';
 import { lightingDirection, type LightingMode } from '../daylight.ts';
 import type { FarShadow } from '../far-shadow.ts';
 import type { LensBloomPass } from '../lens-bloom.ts';
-import { PHYSICAL_BLOOM } from '../lens-bloom.ts';
+import { physicalBloomMix } from '../lens-bloom.ts';
 import { prepareMaterials, materialDiagnostics, setSurfaceWeather } from '../materials/library.ts';
 import {
   detailTier,
@@ -148,6 +148,7 @@ export class UltraPipeline {
     this.graphics = graphics;
     const { renderer, scenePass, bloom, wetReflection } = this.host;
     renderer.toneMapping = TONE_MAPPING[graphics.toneMapper];
+    this.host.grade.filmic = graphics.toneMapper !== 'aces';
     this.sharpen.strength = graphics.taaSharpen;
     this.sharpenWanted = graphics.temporalAA && graphics.taaSharpen > 0;
     this.ssr.enabled = graphics.ssr;
@@ -197,6 +198,7 @@ export class UltraPipeline {
     if (this.ssr.enabled && this.ssr.supported)
       for (const car of frame.cars) for (const m of car.reflectivePaint) this.patch(m);
     this.ssr.rain = frame.studio ? 0 : rain01;
+    this.ssr.wet = frame.studio ? 0 : wet;
     this.ssr.prepare(true);
     // The road and the followed car share the local probe while it owns them.
     const road = this.host.roadMaterial as T.MeshStandardMaterial;
@@ -216,7 +218,7 @@ export class UltraPipeline {
     // Lens: restrained fringe on live and replay views only.
     grade.lensFringe =
       g.chromaticAberration && !frame.menu && !frame.photo && !frame.studio ? ULTRA_FRINGE : 0;
-    bloom.energyMix = PHYSICAL_BLOOM.mix + (PHYSICAL_BLOOM.wetMix - PHYSICAL_BLOOM.mix) * wet;
+    bloom.energyMix = physicalBloomMix(frame.studio ? 'day' : frame.lighting, wet);
     // Sun shafts.
     this.sunDirection.copy(lightingDirection(frame.lighting));
     const mode = frame.studio ? 'studio' : frame.lighting;

@@ -51,6 +51,12 @@ export const SSR = Object.freeze({
   lobeBias: 0.7,
   /** Water/varnish F0. */
   f0: 0.04,
+  /** Wet upward surfaces: reflections stretch along the screen direction to
+   * their hit (the view-projected normal) by up to this share of that
+   * distance, with `streakTaps` jittered taps per reused ray, so rain lights
+   * and the bright horizon become long streaks as on a real wet road. */
+  streak: 0.3,
+  streakTaps: 4,
 });
 
 /** Hi-Z level sizes: level 0 is ceil(size / 2), each next level ceil(previous / 2). */
@@ -387,6 +393,8 @@ uniform float hasEnvironment;
 uniform samplerCube probeCube;
 uniform float probeActive;
 uniform float probeLod;
+// 0..1 surface wetness: streak length on upward wet surfaces.
+uniform float streak;
 #ifdef ENVMAP_TYPE_CUBE_UV
 uniform sampler2D envMap;
 #endif
@@ -407,6 +415,9 @@ void main() {
 	vec3 n = viewNormal( vUv, texel, p );
 	vec3 v = normalize( - p );
 	float centreZ = - p.z;
+	// Wet road streaks: upward surfaces only, jittered per pixel (TAA resolves).
+	float stretch = streak * ${SSR.streak.toFixed(3)} * smoothstep( 0.8, 0.95, ( cameraWorld * vec4( n, 0.0 ) ).y );
+	float streakJitter = fract( 52.9829189 * fract( dot( gl_FragCoord.xy, vec2( 0.06711056, 0.00583715 ) ) ) );
 	// Ray reuse: the four nearest half-resolution rays, depth-weighted.
 	vec2 traceSize = vec2( textureSize( tTrace, 0 ) );
 	vec2 grid = vUv * traceSize - 0.5;
@@ -423,7 +434,21 @@ void main() {
 			considered += similar;
 			if ( ray.z <= 0.0 ) continue;
 			float w = ray.z * similar;
-			sum += limited( texture2D( tColor, ray.xy ).rgb ) * w;
+			vec3 hitColour = limited( texture2D( tColor, ray.xy ).rgb );
+			if ( stretch > 0.001 ) {
+				// Tent-weighted taps along the direction to the hit.
+				vec2 axis = ( ray.xy - vUv ) * stretch;
+				vec3 streaked = hitColour;
+				float streakWeight = 1.0;
+				for ( int k = 0; k < ${SSR.streakTaps}; k ++ ) {
+					float t = ( ( float( k ) + streakJitter ) / ${SSR.streakTaps.toFixed(1)} ) * 2.0 - 1.0;
+					float tw = 1.0 - abs( t );
+					streaked += limited( texture2D( tColor, clamp( ray.xy + axis * t, vec2( 0.0 ), vec2( 1.0 ) ) ).rgb ) * tw;
+					streakWeight += tw;
+				}
+				hitColour = streaked / streakWeight;
+			}
+			sum += hitColour * w;
 			weight += w;
 			coverage += w;
 		}
@@ -488,6 +513,8 @@ export class ScreenSpaceReflections {
   readonly supported: boolean;
   /** Per frame (pipeline.prepare): rain 0..1 for ripples. */
   rain = 0;
+  /** Per frame (pipeline.prepare): surface wetness 0..1 for wet-road streaks. */
+  wet = 0;
   frames = 0;
   private live = false;
   private readonly levels: T.WebGLRenderTarget[] = [];
@@ -566,6 +593,7 @@ export class ScreenSpaceReflections {
       probeCube: { value: null },
       probeActive: { value: 0 },
       probeLod: { value: 6 },
+      streak: { value: 0 },
     });
   }
   /** The scene whose environment the probe term reads. */
@@ -663,6 +691,7 @@ export class ScreenSpaceReflections {
     t.rain.value = Math.min(Math.max(this.rain, 0), 1);
     draw(this.traceMaterial, this.trace);
     this.syncEnvironment();
+    this.resolveMaterial.uniforms.streak.value = Math.min(Math.max(this.wet, 0), 1);
     draw(this.resolveMaterial, this.output);
     this.frames++;
     return this.output.texture;

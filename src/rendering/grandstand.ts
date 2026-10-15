@@ -206,7 +206,7 @@ export function buildGrandstand(
   const seatGeometry = stadiumSeatGeometry(2);
   // Weathered stadium plastic: oxblood, slate, grey and navy blocks, not toy red.
   const seatPalette = [0x6a2b28, 0x34414b, 0x7f8589, 0x26313b];
-  // D21: shirts from CROWD_PALETTE (half team kits, half neutrals) in 75 % cohorts.
+  // D21: shirts from CROWD_PALETTE (mostly dark neutrals, muted team kit) in small cohorts.
   for (let row = 0; row < rows; row++)
     for (let col = 0; col < columns; col++) {
       const z = (col - (columns - 1) / 2) * 0.65;

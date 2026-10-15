@@ -62,7 +62,8 @@ describe('physical atmosphere (Hillaire 2020)', () => {
     const zenith = day.radiance(new T.Vector3(0, 1, 0)),
       horizon = at(1, 120),
       mid = at(25, 90);
-    expect(zenith[2] / zenith[0]).toBeGreaterThan(3);
+    // TEST-UPDATE (photoreal pass): summer aerosol depth 0.09 (was 0.03).
+    expect(zenith[2] / zenith[0]).toBeGreaterThan(2.6);
     expect(saturation(zenith)).toBeGreaterThan(saturation(horizon) + 0.2);
     expect(luminance(horizon)).toBeGreaterThan(2 * luminance(zenith));
     expect(mid[2]).toBeGreaterThan(mid[1]);
@@ -96,7 +97,8 @@ describe('physical atmosphere (Hillaire 2020)', () => {
 describe('scene light from the sky', () => {
   it('derives the key and its 52 degree clear-day strength from the transmittance', () => {
     const light = skyLight(0, 'day');
-    expect(light.sunIrradiance).toBeGreaterThan(3.7);
+    // TEST-UPDATE (photoreal pass): a little more aerosol extinction.
+    expect(light.sunIrradiance).toBeGreaterThan(3.55);
     expect(light.sunIrradiance).toBeLessThan(4);
     expect(daylightState(0, 0).sun).toBeCloseTo(light.sunIrradiance, 10);
     expect(Math.max(...light.sunColor)).toBe(1);

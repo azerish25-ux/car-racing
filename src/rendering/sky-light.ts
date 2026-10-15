@@ -38,10 +38,13 @@ export type LightingMode = 'day' | 'sunset' | 'night';
  */
 export const SKY_LIGHT = Object.freeze({
   /** Aerosol haze (multiples of ATMOSPHERE.mieScattering) at cover 0, 0.5, 1:
-   * aerosol optical depth 0.04, 0.06 and 0.09 by day; a hazier 0.07-0.11 dusk. */
+   * aerosol optical depth (550 nm) about 0.09, 0.12 and 0.18 by day, a typical
+   * summer 0.1-0.2 (the old 0.03-0.08 was alpine-clean, saturated blue to the
+   * horizon); a hazier 0.11-0.17 dusk. The aerial perspective's extinction
+   * reads the same level, so distant ridges dissolve into this horizon. */
   haze: Object.freeze({
-    day: Object.freeze([7, 11, 16] as const),
-    sunset: Object.freeze([13, 16, 20] as const),
+    day: Object.freeze([18, 26, 38] as const),
+    sunset: Object.freeze([22, 28, 36] as const),
   }),
   /** Sky luminance factor (Unreal's SkyLuminanceFactor): measured clear-sky
    * diffuse fractions (15-20 % of global irradiance at a 50 degree sun) sit a

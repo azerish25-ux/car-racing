@@ -15,6 +15,7 @@ import {
   buildTunnels,
 } from './structures.ts';
 import { chunks } from './sweep.ts';
+import { FACADE_STREET_LIGHT, FACADE_WINDOWS, facadeStreetUniforms } from './materials.ts';
 
 /** Procedural venue kit (WP30): dresses ANY catalogue CircuitDefinition from
  * its data — verges and run-off where physics reads them, barriers by kind on
@@ -27,7 +28,7 @@ export class VenueKit {
   readonly context: VenueKitContext;
   private readonly camera = new T.Vector3();
   private readonly point = trackPoint();
-  private nightState: boolean | null = null;
+  private nightState: string | null = null;
   constructor(readonly track: Track) {
     this.context = new VenueKitContext(track);
   }
@@ -59,17 +60,27 @@ export class VenueKit {
     queue.add('Venue kit scatter', 3, () => buildScatter(kit));
     queue.add('Seal venue kit transforms', 6, () => this.root.sealTransforms());
   }
-  /** Distance LOD and night emission. Cheap: one distance per detail cell. */
-  update(camera: T.Camera, night: boolean) {
+  /** A city venue: frontage lines the circuit (urban skyglow at night). */
+  get urban() {
+    return this.context.meta.dressing.facades.length > 0;
+  }
+  /** Distance LOD and night emission. Cheap: one distance per detail cell.
+   * `physical`: the energy-conserving bloom draws the lamp heads' glare, so
+   * they carry physical radiance. */
+  update(camera: T.Camera, night: boolean, physical = false) {
     camera.getWorldPosition(this.camera);
     for (const cell of this.context.cells)
       cell.object.visible = cell.centre.distanceTo(this.camera) < cell.range;
-    if (night === this.nightState) return;
-    this.nightState = night;
+    const state = `${night}:${physical}`;
+    if (state === this.nightState) return;
+    this.nightState = state;
     const m = this.context.materials;
-    for (const f of m.facades) f.emissiveIntensity = night ? 1.6 : 0;
+    // Windows: FACADE_WINDOWS (log-normal rooms); the street lights the
+    // lower storeys (FACADE_STREET_LIGHT).
+    for (const f of m.facades) f.emissiveIntensity = night ? FACADE_WINDOWS.emissive : 0;
+    facadeStreetUniforms.facadeStreetLight.value = night ? FACADE_STREET_LIGHT.irradiance : 0;
     for (const n of m.neon) n.emissiveIntensity = night ? 4 : 0.5;
-    m.lamp.emissiveIntensity = night ? 8 : 0.05;
+    m.lamp.emissiveIntensity = night ? (physical ? 150 : 8) : 0.05;
   }
   /** Planting exclusion: structures, stands and paddock footprints. */
   blocks(x: number, z: number, padding = 0) {
