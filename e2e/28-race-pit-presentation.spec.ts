@@ -559,26 +559,39 @@ test('27H.6 populated pit journey: approach, real service, exit and complete rep
   ).toBeGreaterThan(requiredEnd + 0.1);
   await seek(page, serviceStart - 0.2 - startTime);
   await page.locator('#replayPlay').click();
-  await expect
-    .poll(
-      async () => {
-        const state = await read(page);
-        const replayedTime = state.renderer!.pitState.time;
-        if (!state.replayPlaying && replayedTime <= requiredEnd)
-          throw new Error(
-            `Replay stopped at ${replayedTime}s before recorded service checkpoint ${requiredEnd}s`,
-          );
-        // Replay-clock witness: report page residency instead of an opaque timeout.
-        if (state.replayPages?.failed.length)
-          throw new Error(`Replay page read failed: ${JSON.stringify(state.replayPages)}`);
-        console.log(
-          `[replay-clock] t=${replayedTime} pos=${state.replayPosition} stall=${JSON.stringify(state.replayStall)} pages=${JSON.stringify(state.replayPages)}`,
-        );
-        return replayedTime;
-      },
-      { timeout: 120000, intervals: [500] },
-    )
-    .toBeGreaterThan(requiredEnd);
+  // Liveness, not a wall-clock deadline: F01 was a replay that stopped
+  // advancing while still "playing". Fail as soon as playback makes no
+  // progress for 30 s; otherwise allow a software GPU that presents one
+  // 0.5 s replay step every ~10 s (hosted runs 38662457092, 38671039493) to
+  // reach the checkpoint. The 300 s cap only bounds a pathological crawl.
+  let replayedTime = -Infinity,
+    progressAt = Date.now();
+  const playbackStart = Date.now();
+  while (replayedTime <= requiredEnd) {
+    const state = await read(page);
+    const now = state.renderer!.pitState.time;
+    if (!state.replayPlaying && now <= requiredEnd)
+      throw new Error(
+        `Replay stopped at ${now}s before recorded service checkpoint ${requiredEnd}s`,
+      );
+    // Replay-clock witness: report page residency instead of an opaque timeout.
+    if (state.replayPages?.failed.length)
+      throw new Error(`Replay page read failed: ${JSON.stringify(state.replayPages)}`);
+    console.log(
+      `[replay-clock] t=${now} pos=${state.replayPosition} stall=${JSON.stringify(state.replayStall)} pages=${JSON.stringify(state.replayPages)}`,
+    );
+    if (now > replayedTime) {
+      replayedTime = now;
+      progressAt = Date.now();
+    }
+    expect(
+      Date.now() - progressAt,
+      `Replay made no progress from ${replayedTime}s for 30 s: ${JSON.stringify(state.replayStall)}`,
+    ).toBeLessThan(30000);
+    expect(Date.now() - playbackStart, 'Replay playback crawl exceeded 300 s').toBeLessThan(300000);
+    await page.waitForTimeout(500);
+  }
+  expect(replayedTime).toBeGreaterThan(requiredEnd);
   await page.locator('#replayPlay').click();
   expect((await read(page)).replayPlaying).toBe(false);
   const rewind = await seek(page, removalTime - startTime);
