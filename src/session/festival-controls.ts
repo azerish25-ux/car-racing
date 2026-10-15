@@ -1,4 +1,6 @@
 import type { LightingMode } from '../rendering/daylight.ts';
+import type { FestivalStatus } from '../simulation/open-world/session.ts';
+import type { FestivalSave } from './festival-save.ts';
 
 /** The HUD surface the festival controls drive (FestivalHud). */
 export interface FestivalMenus {
@@ -17,6 +19,24 @@ export interface FestivalMenuState {
   inEvent: boolean;
   /** Ambient traffic setting. */
   traffic: boolean;
+}
+/** What the pause menu shows, from the worker's last status and the
+ * session's own settings. Settings the menu changes itself (ambient traffic)
+ * are read from the local save: the status was sent before the change and
+ * the menu is redrawn at once, before the worker's next status arrives. */
+export function festivalMenuState(
+  status: FestivalStatus | null,
+  save: Pick<FestivalSave, 'vehicle' | 'discovered' | 'traffic'>,
+  lighting: LightingMode,
+): FestivalMenuState {
+  return {
+    lighting,
+    vehicle: status?.vehicleId ?? save.vehicle,
+    discovered: status?.discovered ?? save.discovered,
+    autopilot: status?.autopilot ?? false,
+    inEvent: !!status?.event,
+    traffic: save.traffic !== false,
+  };
 }
 export interface FestivalControlHooks {
   /** Hold or release the simulation (the worker's pause). */

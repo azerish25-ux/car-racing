@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { festivalMenuState } from '../src/session/festival-controls.ts';
 import { DEFAULT_SETUP } from '../src/simulation/config.ts';
 import {
   AmbientTraffic,
@@ -95,6 +96,24 @@ describe('festival ambient traffic', () => {
     for (let i = 0; i < 120 * 2; i++) sim.step(1 / 120);
     expect(sim.traffic.cars.length).toBe(0);
     expect(sim.status().traffic.enabled).toBe(false);
+  });
+  it('shows the traffic choice in the redrawn menu before the worker reports it', () => {
+    // FestivalSession redraws the pause menu as soon as the toggle is
+    // pressed; the last status it holds was sent before the change.
+    const sim = new OpenWorldSimulation({ vehicle: 'tc1', traffic: true, tileBudget: 24 });
+    const stale = sim.status();
+    expect(stale.traffic.enabled).toBe(true);
+    const save = { vehicle: 'tc1', discovered: [], traffic: true };
+    expect(festivalMenuState(stale, save, 'day').traffic).toBe(true);
+    save.traffic = false;
+    expect(festivalMenuState(stale, save, 'day').traffic).toBe(false);
+    // Once the worker has applied it, its status agrees.
+    sim.command({ type: 'traffic', value: false });
+    expect(sim.status().traffic.enabled).toBe(festivalMenuState(sim.status(), save, 'day').traffic);
+    // The rest still follows the worker's status (machine, discoveries, events).
+    const menu = festivalMenuState(stale, { ...save, vehicle: 'rs5' }, 'night');
+    expect(menu).toMatchObject({ lighting: 'night', vehicle: stale.vehicleId, inEvent: false, autopilot: false });
+    expect(festivalMenuState(null, { ...save, vehicle: 'rs5' }, 'day').vehicle).toBe('rs5');
   });
   it('drives the right-hand lane, follows the car ahead and the player, and writes its snapshot block', () => {
     const world = openWorld(),

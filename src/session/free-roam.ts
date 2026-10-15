@@ -19,7 +19,7 @@ import type { GraphicsOptions, QualityPreset } from '../rendering/options.ts';
 import type { AudioView } from '../audio/spatial.ts';
 import { FestivalHud } from '../ui/festival-hud.ts';
 import { minimapHeading } from '../ui/festival-map.ts';
-import { FestivalControls } from './festival-controls.ts';
+import { FestivalControls, festivalMenuState } from './festival-controls.ts';
 import { FESTIVAL_SAVE_KEY, festivalMachineChoice, validateFestivalSave, type FestivalSave } from './festival-save.ts';
 import type { FromOpenWorld, ToOpenWorld } from '../workers/open-world-protocol.ts';
 import OpenWorldWorker from '../workers/open-world.worker.ts?worker&inline';
@@ -185,17 +185,7 @@ export class FestivalSession {
     this.controls = new FestivalControls(hud, {
       pause: (value) => this.post({ type: 'pause', value }),
       driving: (on) => host.driving?.(on),
-      menuState: () => {
-        const status = this.status;
-        return {
-          lighting: this.renderer?.lighting ?? 'day',
-          vehicle: status?.vehicleId ?? this.save.vehicle,
-          discovered: status?.discovered ?? this.save.discovered,
-          autopilot: status?.autopilot ?? false,
-          inEvent: !!status?.event,
-          traffic: status?.traffic.enabled ?? this.save.traffic !== false,
-        };
-      },
+      menuState: () => festivalMenuState(this.status, this.save, this.renderer?.lighting ?? 'day'),
       card: () => (hud.cardOpen ? (this.status?.card?.id ?? null) : null),
       start: (id) => this.command({ type: 'start', event: id }),
       continue: () => this.command({ type: 'continue' }),
@@ -454,7 +444,7 @@ export class FestivalSession {
     this.tiles.terminate();
     this.traffic?.dispose();
     this.traffic = null;
-    this.riders?.root.removeFromParent();
+    this.riders?.dispose();
     this.riders = null;
     this.renderer?.dispose();
     this.hud?.dispose();

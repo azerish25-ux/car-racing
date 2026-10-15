@@ -1442,6 +1442,12 @@ export class BikeShells {
     }
     entry.materials.dispose();
   }
+  /** Dispose every bike built so far (an owner that outlives its renderer's
+   * use of them, such as a festival session). */
+  disposeAll() {
+    for (const entry of this.entries.values()) this.dispose(entry);
+    this.entries.clear();
+  }
   update(
     a: Float32Array,
     b: Float32Array,

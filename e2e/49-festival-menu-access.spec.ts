@@ -61,6 +61,10 @@ test('festival menu access: every pause-menu action is reachable with the keyboa
   await page.keyboard.press('Space');
   await expect(log).toContainText('traffic:false;');
   await expect(menu).toBeVisible();
+  // The redrawn menu states the new choice at once (before the worker's
+  // next status), so a screen reader hears the right one.
+  await expect(menu.getByRole('button', { name: 'Traffic off', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await expect(menu.getByRole('button', { name: 'Traffic on', exact: true })).toHaveAttribute('aria-pressed', 'false');
   await tabTo(
     await page
       .locator('#festMenu [data-fest="travel"]')

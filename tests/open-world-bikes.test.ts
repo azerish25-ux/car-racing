@@ -1,4 +1,6 @@
-import { describe, expect, it } from 'vitest';
+import * as T from 'three';
+import { describe, expect, it, vi } from 'vitest';
+import { FestivalRiders } from '../src/rendering/festival-riders.ts';
 import { BikeVehicle } from '../src/simulation/bike-vehicle.ts';
 import { BIKE_STATES } from '../src/simulation/bike.ts';
 import { controls } from '../src/simulation/config.ts';
@@ -85,5 +87,55 @@ describe('festival motorcycles', () => {
     sim.command({ type: 'start', event: 'valley-sprint' });
     expect(sim.cars.length).toBeGreaterThan(1);
     expect(sim.cars.every((c) => c instanceof BikeVehicle)).toBe(true);
+  });
+  it('disposes every motorcycle it built when the festival session ends (the renderer outlives it)', () => {
+    // Canvas textures (paint, carbon, plates) are stubbed: what is measured
+    // is that each geometry, material and texture built is released.
+    const ctx = new Proxy(
+      {},
+      {
+        get: (_, key) =>
+          key === 'createLinearGradient' || key === 'createRadialGradient'
+            ? () => ({ addColorStop: () => undefined })
+            : key === 'measureText'
+              ? () => ({ width: 10 })
+              : () => undefined,
+        set: () => true,
+      },
+    );
+    vi.stubGlobal('document', { createElement: () => ({ width: 0, height: 0, getContext: () => ctx }) });
+    try {
+      const sim = new OpenWorldSimulation({ vehicle: 'sbk1000', tileBudget: 24 });
+      sim.step(1 / 120);
+      const frame = sim.makeFrame();
+      const riders = new FestivalRiders(),
+        scene = new T.Scene(),
+        camera = new T.PerspectiveCamera(60, 16 / 9, 0.1, 5000);
+      scene.add(riders.root);
+      riders.update(frame, frame, 1, camera, 'high');
+      type Disposable = T.BufferGeometry | T.Material | T.Texture;
+      const owned = new Set<Disposable>();
+      riders.root.traverse((o) => {
+        if (!(o instanceof T.Mesh)) return;
+        owned.add(o.geometry);
+        for (const m of [o.material].flat()) {
+          owned.add(m);
+          for (const value of Object.values(m)) if (value instanceof T.Texture) owned.add(value);
+        }
+      });
+      expect(owned.size).toBeGreaterThan(20);
+      const released = new Set<unknown>();
+      for (const item of owned)
+        (item as T.EventDispatcher<{ dispose: object }>).addEventListener('dispose', () => released.add(item));
+      riders.dispose();
+      expect(released.size).toBe(owned.size);
+      expect(riders.root.parent).toBeNull();
+      expect(riders.root.children).toHaveLength(0);
+      // A later frame (none arrives once disposed, but it must be harmless).
+      riders.update(frame, frame, 1, camera, 'high');
+      riders.dispose();
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });

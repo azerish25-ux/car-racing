@@ -1,5 +1,5 @@
 import { InputController } from '../../src/input/controller.ts';
-import { FestivalControls } from '../../src/session/festival-controls.ts';
+import { FestivalControls, festivalMenuState } from '../../src/session/festival-controls.ts';
 import { resolveEvents } from '../../src/simulation/open-world/festival-events.ts';
 import { festivalVehicles } from '../../src/simulation/open-world/session.ts';
 import { openWorld } from '../../src/simulation/open-world/world.ts';
@@ -25,6 +25,16 @@ export function mountFestivalMenu() {
     events = resolveEvents(world),
     vehicles = festivalVehicles();
   let controls: FestivalControls | null = null;
+  // FestivalSession's state: the worker's last status (it never answers
+  // here, so it stays as it was before any toggle) and the local save.
+  const save = { vehicle: vehicles[0].id, discovered: [events[0].spec.id], traffic: true };
+  const status = {
+    vehicleId: vehicles[0].id,
+    discovered: [events[0].spec.id],
+    autopilot: false,
+    event: null,
+    traffic: { enabled: true, cars: 0 },
+  };
   // GameApp routes application actions to the festival first.
   const input = new InputController(structuredClone(DEFAULT_SETTINGS), (name) => {
     record(`action:${name}`);
@@ -58,6 +68,7 @@ export function mountFestivalMenu() {
     },
     traffic: (on) => {
       record(`traffic:${on}`);
+      save.traffic = on;
       controls?.openMenu();
     },
   });
@@ -67,14 +78,7 @@ export function mountFestivalMenu() {
       input.setEnabled(on);
       record(`driving:${on}`);
     },
-    menuState: () => ({
-      lighting: 'day',
-      vehicle: vehicles[0].id,
-      discovered: [events[0].spec.id],
-      autopilot: false,
-      inEvent: false,
-      traffic: true,
-    }),
+    menuState: () => festivalMenuState(status as never, save, 'day'),
     card: () => null,
     start: (id) => record(`start:${id}`),
     continue: () => record('continue'),

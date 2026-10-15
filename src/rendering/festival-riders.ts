@@ -43,4 +43,12 @@ export class FestivalRiders {
     }
     this.shells.update(a, b, t, this.hosts, camera, quality === 'ultra' ? 'high' : quality, 0);
   }
+  /** Release every bike built for this session (models, riders, materials
+   * and their textures) and detach the root: the festival shares the
+   * application's WebGL renderer, which outlives it. */
+  dispose() {
+    this.shells.disposeAll();
+    this.shells.root.removeFromParent();
+    this.active = false;
+  }
 }
