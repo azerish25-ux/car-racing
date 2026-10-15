@@ -34,6 +34,8 @@ export function lateralMarginAt(speed: number, env: CapabilityEnvelope = AI_ENVE
 }
 export const ENVELOPE_STEP = 12;
 export const ENVELOPE_SAMPLES = 21;
+/** Distance (m) over which a start position's offset from the lane fades by 1/e. */
+export const LAUNCH_MERGE_LENGTH = 12;
 /** Backward velocity profile over samples ENVELOPE_STEP apart: returns the
  * highest speed at sample 0 from which every later sample's corner speed can
  * be met, with braking limited to what the friction circle leaves after the
@@ -118,7 +120,9 @@ export class AIDriver {
   private offset = 0;
   /** Lateral distance from the racing line (passing/defending lanes). */
   private tactical = 0;
-  /** The first update starts the lateral target at the car's own position. */
+  /** Lateral distance of the car's start position (grid slot or rejoin point)
+   * from its lane, fading with distance travelled (see update). */
+  private launch = 0;
   private placed = false;
   private desiredOffset = 0;
   private trafficSpeed = 100;
@@ -211,14 +215,16 @@ export class AIDriver {
     // a fixed place on the track, not a distance from the line).
     const lineHere = lineAt(c.s);
     const corridor = pit || preparingPit;
-    // A car leaves its grid slot (or a rejoin point) on its own line and
-    // merges toward the racing line at the finite lateral rate below, rather
-    // than aiming across the track from standstill with full lock.
+    // A car leaves its grid slot (or a rejoin point) on its own line: the
+    // start position's offset from the lane fades over LAUNCH_MERGE_LENGTH of
+    // distance travelled. The lane logic is unchanged, but there is no lateral
+    // demand at standstill, so the car does not launch at full lock across
+    // the grid, which spins a car without traction control.
     if (!this.placed) {
       this.placed = true;
-      this.tactical = c.lateral - lineHere;
-      this.desiredOffset = c.lateral;
+      this.launch = c.lateral - lineHere - this.tactical;
     }
+    this.launch *= Math.exp((-Math.max(0, c.speed) * dt) / LAUNCH_MERGE_LENGTH);
     if (pit) {
       this.offset = approach(this.offset, this.pitLine(track, c.s), dt * 6);
       this.tactical = this.offset - lineHere;
@@ -227,7 +233,7 @@ export class AIDriver {
       this.tactical = this.offset - lineHere;
     } else {
       this.tactical = approach(this.tactical, this.desiredOffset - lineHere, dt * 1.6);
-      this.offset = lineHere + this.tactical;
+      this.offset = lineHere + this.tactical + this.launch;
     }
     let lookahead = clamp(6 + c.speed * 0.48, 8, 46);
     if (pit && c.pitPhase === 1 && boxGap < 35)
@@ -238,7 +244,7 @@ export class AIDriver {
       ? this.pitLine(track, c.s + lookahead)
       : corridor
         ? this.offset
-        : clamp(lineAt(c.s + lookahead) + this.tactical, -reach, reach);
+        : clamp(lineAt(c.s + lookahead) + this.tactical + this.launch, -reach, reach);
     this.delta.set(
       this.target.x + this.target.nx * pathOffset - c.body.position.x,
       0,

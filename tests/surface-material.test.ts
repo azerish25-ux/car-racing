@@ -34,10 +34,13 @@ describe('ground material table', () => {
     expect(grip(MATERIAL.SNOW)).toBeGreaterThan(grip(MATERIAL.ICE));
   });
   it('makes wet paint and grass far slicker than wet asphalt, and ice near 0 °C', () => {
-    const wet = (id: number) => materialGrip(surfaceMaterial(id), 2, 20) / surfaceMaterial(id).grip;
-    expect(wet(MATERIAL.ASPHALT)).toBe(1);
-    expect(wet(MATERIAL.PAINT)).toBeLessThan(0.9);
-    expect(wet(MATERIAL.GRASS)).toBeLessThan(wet(MATERIAL.PAINT));
+    const wet = (id: number) => materialGrip(surfaceMaterial(id), 2, 20),
+      loss = (id: number) => wet(id) / surfaceMaterial(id).grip;
+    expect(loss(MATERIAL.ASPHALT)).toBe(1);
+    expect(loss(MATERIAL.PAINT)).toBeLessThan(0.9);
+    expect(loss(MATERIAL.GRASS)).toBeLessThan(0.9);
+    expect(wet(MATERIAL.GRASS)).toBeLessThan(wet(MATERIAL.PAINT) * 0.7);
+    expect(wet(MATERIAL.PAINT)).toBeLessThan(wet(MATERIAL.ASPHALT) * 0.9);
     const ice = surfaceMaterial(MATERIAL.ICE);
     expect(materialGrip(ice, 0, 0)).toBeLessThan(materialGrip(ice, 0, -15) * 0.7);
   });
