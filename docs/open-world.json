@@ -5,7 +5,7 @@
     "name": "Solvane Coast",
     "sizeKm": 8.192,
     "seed": 330270,
-    "buildMs": 955
+    "buildMs": 555
   },
   "network": {
     "totalKm": 70.92,
@@ -164,10 +164,10 @@
         "evicted": 42,
         "stalls": 0,
         "prefetched": 66,
-        "generationMs": 418.0182009999962,
-        "worstGenerationMs": 21.47090399999979
+        "generationMs": 393.52057599999534,
+        "worstGenerationMs": 14.393302999999833
       },
-      "wallMs": 4529
+      "wallMs": 3978
     },
     {
       "route": "thornwood-rally",
@@ -192,10 +192,10 @@
         "evicted": 19,
         "stalls": 0,
         "prefetched": 43,
-        "generationMs": 184.3391449999981,
-        "worstGenerationMs": 8.009933999999703
+        "generationMs": 193.72903900000438,
+        "worstGenerationMs": 10.210417000000234
       },
-      "wallMs": 2172
+      "wallMs": 2095
     }
   ],
   "race": {
@@ -228,5 +228,5 @@
     ]
   },
   "failures": [],
-  "wallMs": 11885
+  "wallMs": 10226
 }
