@@ -50,6 +50,8 @@ import {
   type StartSlot,
 } from '../simulation/config.ts';
 import { rulesetFor, sessionIncompatibilities } from '../simulation/events.ts';
+import { gridDrs } from '../simulation/drs.ts';
+import { DEFAULT_VEHICLE_ID, VEHICLES } from '../simulation/vehicles.ts';
 import { F, H, W, WHEEL_BASE, WHEEL_STRIDE, WHEEL_NAMES, carBase } from '../simulation/protocol.ts';
 import { type Track } from '../simulation/track.ts';
 import { circuitDefinition, type CircuitId } from '../simulation/circuits.ts';
@@ -336,10 +338,12 @@ export class Interface {
       });
       const resolved = { ...options, ...machineOptions(options, select('vehicle')) };
       const rules = rulesetFor(resolved),
-        problems = sessionIncompatibilities(validateOptions(resolved));
+        problems = sessionIncompatibilities(validateOptions(resolved)),
+        grid = (resolved.vehicles ?? [DEFAULT_VEHICLE_ID]).map((id) => VEHICLES[id]),
+        drs = gridDrs(rules.drs, grid);
       this.get('sessionRules').textContent = problems.length
         ? `Unavailable: ${problems.join('; ')}.`
-        : `${rules.name}: ${rules.tires.mandatoryCompoundChange ? 'two dry compounds required' : 'no mandatory stop'} · DRS ${rules.drs ? 'on' : 'off'} · ${rules.points.length ? 'points scored' : 'no points'}.`;
+        : `${rules.name}: ${rules.tires.mandatoryCompoundChange ? 'two dry compounds required' : 'no mandatory stop'} · DRS ${drs ? 'on' : 'off'} · ${rules.points.length ? 'points scored' : 'no points'}.`;
     };
     for (const id of ['mode', 'vehicle', 'compound', 'opponents'])
       this.get(id).addEventListener('change', describeRules);

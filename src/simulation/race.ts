@@ -157,6 +157,13 @@ export class RaceDirector {
   readonly order: number[];
   readonly control: MarshalControl;
   readonly drs: DrsControl;
+  /** Some machine on the grid carries a DRS flap. */
+  readonly drsFitted: boolean;
+  /** DRS is enabled and some car could use it (the race message and the
+   * HUD's DRS ENABLED flag: a grid without a flap never announces it). */
+  get drsActive() {
+    return this.drs.enabled && this.drsFitted;
+  }
   readonly safetyCar: SafetyCarDirector;
   /** Per car and sector of the current lap: 0 none, 1 slower, 2 personal best, 3 overall best. */
   readonly sectorStatus: Uint8Array;
@@ -194,7 +201,9 @@ export class RaceDirector {
       track.length,
       cars.length,
       cars.map((c) => c.s),
+      cars.map((c) => c.definition.drs),
     );
+    this.drsFitted = cars.some((c) => c.definition.drs);
     this.safetyCar = new SafetyCarDirector(track.length, track.pit.entry);
     this.sectorStatus = new Uint8Array(cars.length * 3);
     this.stintStart = new Int32Array(cars.length);
@@ -257,7 +266,7 @@ export class RaceDirector {
       this.sectorStatus[k] = status;
       if (done === 0) this.sectorStatus.fill(0, i * 3 + 1, i * 3 + 3);
     }
-    if (racing && this.drs.enabled && !this.drsAnnounced) {
+    if (racing && this.drsActive && !this.drsAnnounced) {
       this.drsAnnounced = true;
       this.message = 'DRS ENABLED';
       this.nextMessage = this.time + 5;

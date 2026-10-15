@@ -159,7 +159,7 @@ export const TIERS: readonly TierDefinition[] = Object.freeze([
     id: 'festival-road',
     discipline: 'festival',
     name: 'Festival road series',
-    classes: ['road', 'supercar', 'electric-hypercar', 'road-car'],
+    classes: ['road', 'supercar', 'electric-hypercar', 'road-car', 'road-bike'],
     licences: [],
     reputation: 0,
     championshipReputation: 10,
@@ -327,6 +327,25 @@ export function purchaseReasons(registry: CareerRegistry, vehicle: CareerVehicle
   return rulesetsFor(registry, vehicle.classId, 'race').length
     ? []
     : [`No race ruleset admits ${vehicle.classId} yet.`];
+}
+/** Championship prize: the cheapest machine of a higher tier the player does
+ * not own and can race in this build (a machine still waiting for its race
+ * ruleset or discipline is never awarded). */
+export function championshipPrize(
+  registry: CareerRegistry,
+  discipline: DisciplineId,
+  tierId: string,
+  owned: readonly { id: string }[],
+): string | null {
+  const tiers = disciplineTiers(registry, discipline),
+    index = tiers.findIndex((t) => t.id === tierId);
+  for (const t of tiers.slice(index + 1)) {
+    const prize = tierVehicles(registry, t)
+      .filter((v) => !owned.some((o) => o.id === v.id) && !purchaseReasons(registry, v).length)
+      .sort((a, b) => vehiclePrice(registry, a) - vehiclePrice(registry, b))[0];
+    if (prize) return prize.id;
+  }
+  return null;
 }
 const seedOf = (text: string) => {
   let h = 2166136261;
@@ -512,16 +531,22 @@ export function disciplineEvents(
         round: season?.round ?? -1,
       });
     };
-    // Authored events (events.ts) whose machine class belongs to this tier.
+    // Authored events (events.ts) with an entrant of this tier's classes. A
+    // grid of several classes (per-class scoring, multi-class racing) is
+    // filed under every tier it has entrants in and admits each of them: the
+    // player takes the place of the first entrant of their own class.
     for (const e of registry.events) {
-      const first = typeof e.vehicles === 'string' ? e.vehicles : e.vehicles[0];
-      const machine = registry.vehicles.find((v) => v.id === first);
-      if (
-        !machine ||
-        !t.classes.includes(machine.classId) ||
-        vehicleDiscipline(machine) !== discipline
-      )
-        continue;
+      const ids = typeof e.vehicles === 'string' ? [e.vehicles] : e.vehicles;
+      const entrants = ids.map((id) => registry.vehicles.find((v) => v.id === id));
+      const classes = [
+        ...new Set(
+          entrants
+            .filter((m): m is CareerVehicle => !!m && vehicleDiscipline(m) === discipline)
+            .map((m) => m.classId)
+            .filter((c) => t.classes.includes(c)),
+        ),
+      ];
+      if (!classes.length) continue;
       if (!venues.some((v) => v.id === e.circuit)) continue;
       add(
         `${discipline}.${t.id}.event.${e.id}`,
@@ -529,12 +554,16 @@ export function disciplineEvents(
         e.name,
         'Authored event with its own rules, raced in your machine.',
         (player) => {
-          if (player.classId !== machine.classId)
-            return { definition: null, reason: `${e.name} is for ${machine.classId} machines.` };
+          const slot = entrants.findIndex((m) => m?.classId === player.classId);
+          if (slot < 0)
+            return {
+              definition: null,
+              reason: `${e.name} is for ${classes.join(' / ')} machines.`,
+            };
           const vehicles =
             typeof e.vehicles === 'string'
               ? [player.id, ...Array.from({ length: e.opponents }, () => e.vehicles as string)]
-              : [player.id, ...e.vehicles.slice(1)];
+              : [player.id, ...e.vehicles.filter((_, i) => i !== slot)];
           return { definition: Object.freeze({ ...e, vehicles }), reason: null };
         },
       );

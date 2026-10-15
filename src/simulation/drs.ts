@@ -1,6 +1,7 @@
 import { mod } from '../core/math.ts';
 import type { DrsZone } from './circuits.ts';
 import type { Vehicle } from './vehicle.ts';
+import type { VehicleDefinition } from './vehicles.ts';
 
 /** Original session rules for the drag-reduction flap (not a claim of any
  * sporting regulation). Distances metres, times seconds. */
@@ -40,6 +41,14 @@ export function crossed(last: number, s: number, gate: number, length: number) {
   );
 }
 
+/** DRS is in use on a grid only where the rules permit it and at least one
+ * machine carries the flap (a grid of cars without one never sees it). */
+export function gridDrs(
+  rulesDrs: boolean,
+  vehicles: readonly (Pick<VehicleDefinition, 'drs'> | undefined)[],
+) {
+  return rulesDrs && vehicles.some((v) => v?.drs === true);
+}
 export interface DrsContext {
   /** Race or endurance (the 1.0 s rule and lap-3 activation apply). */
   racing: boolean;
@@ -60,7 +69,9 @@ export interface DrsContext {
  * car is eligible. Availability also needs the global enable (race lap 3, dry,
  * not neutralised) and no yellow at the car. The flap opens on a request
  * (`Vehicle.drsRequest`: the player's key, or the AI when available) and closes
- * on the brake, at the zone end or when availability is lost.
+ * on the brake, at the zone end or when availability is lost. A car built
+ * without the flap (`fitted` false: `VehicleDefinition.drs`) is never
+ * eligible, so its state stays OFF (the HUD shows nothing for it).
  */
 export class DrsControl {
   enabled = false;
@@ -74,6 +85,8 @@ export class DrsControl {
     readonly length: number,
     readonly count: number,
     initialS: readonly number[],
+    /** Per car: does the machine carry a DRS flap? Absent: every car does. */
+    readonly fitted: readonly boolean[] = [],
   ) {
     this.state = new Uint8Array(count);
     this.eligibleZone = new Int8Array(count).fill(-1);
@@ -109,7 +122,8 @@ export class DrsControl {
           const other = this.crossing[z * this.count + j];
           if (other <= at) gap = Math.min(gap, at - other);
         }
-        this.eligibleZone[i] = !context.racing || gap < DRS.gap ? z : -1;
+        this.eligibleZone[i] =
+          this.fitted[i] !== false && (!context.racing || gap < DRS.gap) ? z : -1;
       }
     }
     for (let i = 0; i < cars.length; i++) {
