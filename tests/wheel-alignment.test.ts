@@ -1,4 +1,7 @@
 import {
+  B,
+  BIKE_BASE,
+  BIKE_STRIDE,
   H,
   K,
   R,
@@ -64,7 +67,7 @@ it('records the exact Ackermann, toe and camber angles used by each physical tir
 it('initial garage snapshots contain alignment and protocol regions never overlap', () => {
   const sim = new Simulation({ ...DEFAULT_OPTIONS, opponents: 11 });
   const frame = sim.makeFrame();
-  expect(PROTOCOL_VERSION).toBe(11);
+  expect(PROTOCOL_VERSION).toBe(12);
   expect(frame.length).toBe(HEADER + CAR_STRIDE * 12);
   expect(new Set(Object.values(W)).size).toBe(Object.keys(W).length);
   expect(Math.max(...Object.values(F))).toBeLessThan(WHEEL_BASE);
@@ -74,7 +77,11 @@ it('initial garage snapshots contain alignment and protocol regions never overla
   expect(Math.max(...Object.values(K))).toBeLessThan(SKID_STRIDE);
   expect(SKID_BASE + SKID_STRIDE).toBe(RACE_BASE);
   expect(Math.max(...Object.values(R))).toBeLessThan(RACE_STRIDE);
-  expect(SKID_BASE + SKID_STRIDE + RACE_STRIDE).toBe(CAR_STRIDE);
+  // v12 appends the motorcycle block after the v11 race tail.
+  expect(SKID_BASE + SKID_STRIDE + RACE_STRIDE).toBe(BIKE_BASE);
+  expect(new Set(Object.values(B)).size).toBe(Object.keys(B).length);
+  expect(Math.max(...Object.values(B))).toBeLessThan(BIKE_STRIDE);
+  expect(BIKE_BASE + BIKE_STRIDE).toBe(CAR_STRIDE);
   expect(Math.max(...Object.values(H))).toBeLessThan(HEADER);
   for (let id = 0; id < 12; id++)
     for (let i = 0; i < 4; i++) {

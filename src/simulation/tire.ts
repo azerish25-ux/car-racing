@@ -1,6 +1,6 @@
 import { clamp, G, smooth } from '../core/math.ts';
 import { COMPOUNDS, VEHICLE, type Compound } from './config.ts';
-import type { SurfaceSample } from './track.ts';
+import { SURFACE, type SurfaceSample } from './track.ts';
 import { updateContamination } from './contamination.ts';
 export interface Tire {
   compound: Compound;
@@ -34,6 +34,9 @@ export interface Tire {
   inertia: number;
   /** Tyre-family grip relative to the Formula slick construction (1). */
   gripScale: number;
+  /** Share of loose-surface (grass/gravel) grip loss the construction
+   * recovers (tire-families.ts); absent or 0 for racing slicks. */
+  looseGrip?: number;
 }
 export function makeTire(
   compound: Compound,
@@ -41,6 +44,7 @@ export function makeTire(
   nominalRadius: number = VEHICLE.wheelRadius,
   inertia: number = VEHICLE.wheelInertia,
   gripScale = 1,
+  looseGrip = 0,
 ): Tire {
   const temp = COMPOUNDS[compound].ideal - 5;
   return {
@@ -73,7 +77,15 @@ export function makeTire(
     nominalRadius,
     inertia,
     gripScale,
+    ...(looseGrip > 0 ? { looseGrip } : {}),
   };
+}
+/** Surface friction this tyre sees: loose-surface constructions keep part of
+ * the grip grass and gravel remove from a slick. */
+function surfaceGrip(t: Tire, s: SurfaceSample) {
+  const loose = t.looseGrip;
+  if (!loose || (s.surface !== SURFACE.GRASS && s.surface !== SURFACE.GRAVEL)) return s.grip;
+  return s.grip + (1 - s.grip) * loose;
 }
 export function magic(x: number, stiffness: number, shape = 1.35, curvature = 0.15) {
   const bx = stiffness * x;
@@ -107,7 +119,7 @@ export function peakGrip(t: Tire, load: number, s: SurfaceSample, speed: number)
     c.mu *
     t.gripScale *
     loadRatio ** -0.105 *
-    s.grip *
+    surfaceGrip(t, s) *
     temperatureGrip(t.compound, t.carcassTemp) *
     (1 - wetPenalty) *
     (1 - hydro * 0.62) *

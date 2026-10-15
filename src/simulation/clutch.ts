@@ -9,11 +9,17 @@ export class FrictionClutch {
   transmittedTorque = 0;
   slipPower = 0;
   engagement = 0;
-  readonly inertia = 0.34; // crankshaft + motor reflected rotational inertia, kg m²
-  readonly capacity = 760; // shaft friction capacity, N m
   constructor(
-    private readonly idleRPM: number = VEHICLE.idleRPM,
-    private readonly wheelInertia: number = VEHICLE.wheelInertia,
+    idleRPM: number = VEHICLE.idleRPM,
+    /** Driven-side inertia per wheel (kg m²) the clutch synchronizes. */
+    public wheelInertia: number = VEHICLE.wheelInertia,
+    /** Shaft friction capacity, N m (per power unit; Formula 760). */
+    readonly capacity = 760,
+    /** Crankshaft + motor reflected rotational inertia, kg m² (Formula 0.34). */
+    readonly inertia = 0.34,
+    /** Automatic engagement reference speed (rpm): idle for most power units;
+     * a peaky two-stroke launches on a higher-revving centrifugal clutch. */
+    private readonly engageRPM: number = idleRPM,
   ) {
     this.engineOmega = (idleRPM * Math.PI) / 30;
   }
@@ -32,7 +38,7 @@ export class FrictionClutch {
     )
       throw new Error('Invalid clutch state');
     const free = this.engineOmega + (sourceTorque * dt) / this.inertia;
-    const idle = (this.idleRPM * Math.PI) / 30;
+    const idle = (this.engageRPM * Math.PI) / 30;
     this.engagement =
       ratio === 0 || shifting
         ? 0

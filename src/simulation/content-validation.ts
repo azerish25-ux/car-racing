@@ -1,7 +1,12 @@
 import { CIRCUITS, STANDARD_PIT, type CircuitDefinition } from './circuits.ts';
+import { trackGeometryReport } from './circuit-catalogue/geometry-checks.ts';
+import { Track } from './track.ts';
 import { DEFAULT_OPTIONS, SETUP_LIMITS } from './config.ts';
 import { EVENTS, RULESETS, eventSession } from './events.ts';
 import { VEHICLES, type VehicleDefinition } from './vehicles.ts';
+import { isBike, validateBikeDefinition } from './bike-definitions.ts';
+import { TIRE_FAMILIES } from './tire-families.ts';
+import type { DifferentialSpec } from './differential.ts';
 
 /** Content contracts (WP14, masterplan §6.3/§14.4): every definition is
  * checked at build time with explicit units and bounds, and each failure says
@@ -11,6 +16,7 @@ const finite = (v: unknown): v is number => typeof v === 'number' && Number.isFi
 const inRange = (v: unknown, lo: number, hi: number) => finite(v) && v >= lo && v <= hi;
 
 export function validateVehicleDefinition(def: VehicleDefinition): string[] {
+  if (isBike(def)) return validateBikeDefinition(def);
   const e: string[] = [],
     at = `vehicle ${def.id}`,
     s = def.spec;
@@ -68,6 +74,71 @@ export function validateVehicleDefinition(def: VehicleDefinition): string[] {
     if (!inRange(ai[key], 0.1, 1)) e.push(`${at}: ai.${key} must be in 0.1-1`);
   if ((ai.lateralAero > 0 || ai.brakingAero > 0) !== ai.downforceReference > 0)
     e.push(`${at}: AI aero terms need a downforce reference (and vice versa)`);
+  e.push(...validateCatalogueFields(def));
+  return e;
+}
+/** Driveline, tyre family, power unit and setup baseline (catalogue fields). */
+function validateCatalogueFields(def: VehicleDefinition): string[] {
+  const e: string[] = [],
+    at = `vehicle ${def.id}`;
+  const diff = (d: DifferentialSpec | undefined, name: string) => {
+    if (!d) return;
+    if (!['open', 'lsd', 'locked'].includes(d.type)) e.push(`${at}: ${name} type ${d.type}`);
+    if (!inRange(d.preload, 0, 2000)) e.push(`${at}: ${name} preload outside 0-2000 N m`);
+    if (!inRange(d.power, 0, 1) || !inRange(d.coast, 0, 1))
+      e.push(`${at}: ${name} ramp ratios must be in 0-1`);
+  };
+  const line = def.driveline;
+  if (line) {
+    diff(line.front, 'front differential');
+    diff(line.rear, 'rear differential');
+    diff(line.centre, 'centre differential');
+    if (line.centre && !inRange(line.centre.frontShare, 0.05, 0.95))
+      e.push(`${at}: centre frontShare outside 0.05-0.95`);
+    if (def.drivetrain === 'awd' && !line.centre) e.push(`${at}: awd needs a centre differential`);
+    if (def.drivetrain !== 'awd' && line.centre) e.push(`${at}: centre differential without awd`);
+  } else if (def.drivetrain === 'awd') e.push(`${at}: awd needs a driveline`);
+  if (def.hybridAxle) {
+    if (!def.hybrid) e.push(`${at}: an axle motor needs the hybrid flag`);
+    if (!line) e.push(`${at}: an axle motor needs a driveline`);
+    if (!inRange(def.hybridAxle.minSpeed, 0, 100))
+      e.push(`${at}: axle motor speed outside 0-100 m/s`);
+  }
+  if (def.tireFamily) {
+    const family = TIRE_FAMILIES[def.tireFamily];
+    if (!family) e.push(`${at}: unknown tyre family ${def.tireFamily}`);
+    else
+      for (const [name, grip] of [
+        ['tireGrip', def.tireGrip],
+        ['tireGripRear', def.tireGripRear ?? def.tireGrip],
+      ] as const)
+        if (!inRange(grip, family.grip[0], family.grip[1] * 1.2))
+          e.push(`${at}: ${name} ${grip} outside the ${family.name} range`);
+  }
+  const engine = def.spec.engine;
+  if (engine) {
+    if (!inRange(engine.inertia, 0.001, 2)) e.push(`${at}: engine inertia outside 0.001-2 kg m²`);
+    if (!inRange(engine.clutchCapacity, 10, 5000))
+      e.push(`${at}: clutch capacity outside 10-5000 N m`);
+    if (!inRange(engine.frictionBase, 0, 200) || !inRange(engine.frictionPerRad, 0, 1))
+      e.push(`${at}: engine friction out of range`);
+    const peak = Math.max(...def.spec.torqueCurve.map((p) => p[1]));
+    if (peak > engine.clutchCapacity * 1.6) e.push(`${at}: clutch capacity far below peak torque`);
+  }
+  if (def.restHeight !== undefined && !inRange(def.restHeight, 0.1, 2))
+    e.push(`${at}: restHeight outside 0.1-2 m`);
+  if (def.fuelLoad !== undefined && !inRange(def.fuelLoad, 0, 200))
+    e.push(`${at}: fuelLoad outside 0-200 kg`);
+  for (const [key, value] of Object.entries(def.setupDefaults ?? {})) {
+    if (!Object.hasOwn(SETUP_LIMITS, key)) e.push(`${at}: unknown setup default ${key}`);
+    else if (!finite(value)) e.push(`${at}: setup default ${key} not finite`);
+  }
+  for (const [key, limit] of Object.entries(def.setupLimits ?? {})) {
+    const global = SETUP_LIMITS[key as keyof typeof SETUP_LIMITS];
+    if (!global) e.push(`${at}: unknown setup limit ${key}`);
+    else if (!limit || !(limit[0] <= limit[1]) || limit[0] < global[0] || limit[1] > global[1])
+      e.push(`${at}: setup limit ${key} must lie within ${global[0]}-${global[1]}`);
+  }
   return e;
 }
 export function validateCircuitDefinition(def: CircuitDefinition): string[] {
@@ -87,7 +158,12 @@ export function validateCircuitDefinition(def: CircuitDefinition): string[] {
     if (!finite(def.crossFall(u, false)) || !finite(def.bankGain(u)))
       e.push(`${at}: banking profile at u=${u} not finite`);
   }
-  if (!inRange(def.maxBank, 0, 0.3)) e.push(`${at}: maxBank outside 0-0.3 rad`);
+  // Slope of the steepest banking: 0.65 is a 33-degree oval turn.
+  if (!inRange(def.maxBank, 0, 0.65)) e.push(`${at}: maxBank outside 0-0.65`);
+  for (let i = 0; i < 64; i++)
+    if (Math.abs(def.crossFall(i / 64, false)) > Math.max(def.maxBank, 0.03) + 1e-6)
+      e.push(`${at}: authored cross-fall at u=${i / 64} exceeds maxBank`);
+  if (def.catalogue) e.push(...validateCatalogueEntry(def));
   const p = def.pit ?? STANDARD_PIT;
   if (p.side !== 1 && p.side !== -1) e.push(`${at}: pit side must be 1 or -1`);
   if (!(p.divergeEnd < p.divergeStart))
@@ -106,11 +182,106 @@ export function validateCircuitDefinition(def: CircuitDefinition): string[] {
     if (![zone.detect, zone.start, zone.end].every(finite)) e.push(`${at}: DRS zone not finite`);
   return e;
 }
+/** Real circuit, series and corner names (and brands) that catalogue
+ * approximations must not use: neutral names only, pending a licence. */
+export const PROTECTED_NAMES = Object.freeze([
+  'monza',
+  'spa',
+  'francorchamps',
+  'silverstone',
+  'suzuka',
+  'monaco',
+  'monte carlo',
+  'monte-carlo',
+  'circuit of the americas',
+  'cota',
+  'austin',
+  'daytona',
+  'talladega',
+  'indianapolis',
+  'formula 1',
+  'formula one',
+  'f1',
+  'fia',
+  'eau rouge',
+  'raidillon',
+  'blanchimont',
+  'parabolica',
+  'ascari',
+  'lesmo',
+  'maggotts',
+  'becketts',
+  'copse',
+  'stowe',
+  'luffield',
+  'degner',
+  'spoon',
+  'casio',
+  'rascasse',
+  'loews',
+  'fairmont',
+  'sainte devote',
+  'casino',
+  'mirabeau',
+] as const);
+const protectedName = new RegExp(
+  `(^|[^a-z0-9])(${PROTECTED_NAMES.map((n) => n.replace(/[-.]/g, '\\$&')).join('|')})([^a-z0-9]|$)`,
+  'i',
+);
+function validateCatalogueEntry(def: CircuitDefinition): string[] {
+  const e: string[] = [],
+    meta = def.catalogue!,
+    at = `circuit ${def.id}`;
+  const texts = [
+    def.name,
+    def.short,
+    meta.venueName,
+    meta.layout,
+    meta.description,
+    ...def.corners.map((c) => c.name),
+  ];
+  for (const text of texts)
+    if (protectedName.test(text)) e.push(`${at}: "${text}" uses a protected real-world name`);
+  if (!meta.description || meta.description.length > 160)
+    e.push(`${at}: description must be 1-160 characters`);
+  if (!['real-world', 'original', 'unconventional'].includes(meta.group))
+    e.push(`${at}: unknown menu group ${meta.group}`);
+  if (meta.group === 'real-world' && !meta.referenceLength)
+    e.push(`${at}: a real-world approximation must state its reference length`);
+  if (meta.authoring.scale < 0.85 || meta.authoring.scale > 1.2)
+    e.push(
+      `${at}: authored layout was scaled by ${meta.authoring.scale.toFixed(3)} (outside 0.85-1.2)`,
+    );
+  if (meta.variantOf && !Object.hasOwn(CIRCUITS, meta.variantOf))
+    e.push(`${at}: variant of unknown layout ${meta.variantOf}`);
+  return e;
+}
+/** Physical geometry of a built track: section clearance, bridge headroom,
+ * pit straight, racing line, lap length against the reference. */
+export function validateCircuitGeometry(def: CircuitDefinition): string[] {
+  const track = new Track('clear', false, undefined, def),
+    report = trackGeometryReport(track),
+    e = [...report.errors];
+  const reference = def.catalogue?.referenceLength;
+  if (reference && Math.abs(track.length - reference) / reference > 0.03)
+    e.push(
+      `circuit ${def.id}: lap ${track.length.toFixed(0)} m is not within 3% of the reference ${reference} m`,
+    );
+  const covered = def.covered ? track.sheltered.reduce((a, v) => a + v, 0) : 0;
+  if (def.catalogue?.dressing.tunnels.length && covered === 0)
+    e.push(`circuit ${def.id}: tunnels are authored but no surface row is sheltered`);
+  return e;
+}
 /** Validate every registry entry and cross-reference; empty means valid. */
 export function validateContent(): string[] {
   const errors: string[] = [];
   for (const def of Object.values(VEHICLES)) errors.push(...validateVehicleDefinition(def));
-  for (const def of Object.values(CIRCUITS)) errors.push(...validateCircuitDefinition(def));
+  for (const def of Object.values(CIRCUITS)) {
+    const definition = validateCircuitDefinition(def);
+    errors.push(...definition);
+    // Geometry needs a buildable definition.
+    if (!definition.length) errors.push(...validateCircuitGeometry(def));
+  }
   const classes = new Set(Object.values(VEHICLES).map((v) => v.classId));
   for (const rules of Object.values(RULESETS))
     for (const cls of rules.allowedClasses)

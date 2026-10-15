@@ -7,7 +7,13 @@ import {
   frameCharacter,
   soundFamilyFor,
 } from '../src/audio/sound-profiles.ts';
-import { FORMULA_APX01, TOURING_TC1, vehicleIndex } from '../src/simulation/vehicles.ts';
+import {
+  FORMULA_APX01,
+  TOURING_TC1,
+  VEHICLES,
+  vehicleDefinition,
+  vehicleIndex,
+} from '../src/simulation/vehicles.ts';
 
 const o = carBase(0);
 function frame(vehicle: string, rpm: number, torque: number, throttle: number, speed: number) {
@@ -56,5 +62,19 @@ describe('powertrain sound families (WP26)', () => {
       expect(profile.bandCentres.every((c) => c > 0 && c < 1)).toBe(true);
       expect(Number.isFinite(profile.crackleFraction) || profile.crackleMaxRate === 0).toBe(true);
     }
+  });
+  it('gives motorcycles their own engine families', () => {
+    expect(soundFamilyFor(vehicleDefinition('gpr1'))).toBe('v4-bike');
+    expect(soundFamilyFor(vehicleDefinition('sbk1000'))).toBe('i4-bike');
+    expect(frameCharacter(frame('gpr1', 14000, 100, 1, 60), 0).limiterRPM).toBe(
+      vehicleDefinition('gpr1').spec.limiterRPM,
+    );
+  });
+  it('gives every registered machine an explicit family', () => {
+    for (const definition of Object.values(VEHICLES))
+      expect(SOUND_PROFILES[soundFamilyFor(definition)].family).toBe(soundFamilyFor(definition));
+    expect(soundFamilyFor(vehicleDefinition('gt10m'))).toBe('v10-na');
+    expect(soundFamilyFor(vehicleDefinition('eh3'))).toBe('electric');
+    expect(soundFamilyFor(vehicleDefinition('sk125'))).toBe('two-stroke-kart');
   });
 });

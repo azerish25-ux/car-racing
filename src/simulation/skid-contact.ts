@@ -56,13 +56,16 @@ export class SkidContact {
   private cross = new Vec3();
   private inertia = new Vec3();
   private sample = surfaceSample();
+  /** Pad positions in body coordinates; the Formula floor by default. A
+   * catalogue vehicle supplies its own floor plane and footprint. */
+  constructor(private readonly points: readonly (readonly number[])[] = SKID_POINTS) {}
 
   apply(body: RigidBody, track: Pick<Track, 'cast'>, dt: number) {
     if (!Number.isFinite(dt) || dt <= 0 || !Number.isFinite(body.mass) || body.mass <= 0)
       throw new Error('Invalid skid-contact timestep or mass');
     this.contacts = this.normalLoad = this.slidingPower = this.dampingPower = this.sparkPower = 0;
     let strongestSpark = 0;
-    for (const coordinates of SKID_POINTS) {
+    for (const coordinates of this.points) {
       this.local.set(coordinates[0], coordinates[1], coordinates[2]);
       body.orientation.rotate(this.local, this.pad).add(body.position);
       this.origin.copy(this.pad);
@@ -79,8 +82,8 @@ export class SkidContact {
       if (penetration <= 0) continue;
       body.pointVelocity(this.contact, this.speed);
       const vn = this.speed.dot(n);
-      const spring = (SKID_CONTACT.stiffness * penetration) / SKID_POINTS.length;
-      const damping = SKID_CONTACT.damping / SKID_POINTS.length;
+      const spring = (SKID_CONTACT.stiffness * penetration) / this.points.length;
+      const damping = SKID_CONTACT.damping / this.points.length;
       const load = Math.max(0, spring - damping * vn);
       if (load === 0) continue; // No attractive force while a pad separates.
       this.tangent.copy(this.speed).addScaled(n, -vn);
@@ -97,7 +100,7 @@ export class SkidContact {
         // their combined work (including rotational coupling); no reversal at rest.
         friction = Math.min(
           SKID_CONTACT.friction * load,
-          slidingSpeed / (SKID_POINTS.length * dt * inverseMass),
+          slidingSpeed / (this.points.length * dt * inverseMass),
         );
       }
       this.force.copy(n).scale(load).addScaled(this.tangent, -friction);

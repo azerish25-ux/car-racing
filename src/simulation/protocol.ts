@@ -1,6 +1,6 @@
 import type { Compound, Controls, SessionOptions } from './config.ts';
 export const HEADER = 24,
-  CAR_STRIDE = 257,
+  CAR_STRIDE = 277,
   WHEEL_BASE = 96,
   WHEEL_STRIDE = 26,
   DEBRIS_BASE = 200,
@@ -8,8 +8,11 @@ export const HEADER = 24,
   SKID_BASE = 232,
   SKID_STRIDE = 17,
   RACE_BASE = 249,
-  RACE_STRIDE = 8;
-export const PROTOCOL_VERSION = 11;
+  RACE_STRIDE = 8,
+  BIKE_BASE = 257,
+  BIKE_STRIDE = 20;
+/** v12 appends the motorcycle block (BIKE_BASE); every v11 offset is unchanged. */
+export const PROTOCOL_VERSION = 12;
 /** Race-rules tail per car (protocol v11). DRS: 0 off, 1 available, 2 open. */
 export const R = {
   DRS: 0,
@@ -21,6 +24,39 @@ export const R = {
   DRS_FLAP: 6,
   /** Vehicle definition index (vehicles.ts VEHICLE_IDS); 0 is the Formula APX-01. */
   VEHICLE: 7,
+} as const;
+/** Motorcycle tail per entrant (protocol v12, WP34). Zero for four-wheel
+ * vehicles. A bike writes its front tyre to wheels 0/1 and its rear tyre to
+ * wheels 2/3, so wheel consumers keep working. Angles in rad (lean + left),
+ * lengths in m, loads in N; RIDER_* is the rider's world pose while separated. */
+export const B = {
+  LEAN: 0,
+  LEAN_RATE: 1,
+  /** Handlebar steer angle (rad). */
+  STEER: 2,
+  /** Rider hang-off from the bike centreline (m, + left). */
+  RIDER_OFFSET: 3,
+  /** BIKE_STATES index: riding, lowside, highside, separated, remount. */
+  STATE: 4,
+  STATE_CLOCK: 5,
+  FRONT_LOAD: 6,
+  REAR_LOAD: 7,
+  /** Wheelie (+) / stoppie (-) pitch (rad). */
+  PITCH: 8,
+  FORK: 9,
+  SHOCK: 10,
+  RIDER_X: 11,
+  RIDER_Y: 12,
+  RIDER_Z: 13,
+  /** Rider tuck behind the screen, 0..1. */
+  TUCK: 14,
+  REAR_BRAKE: 15,
+  CRASHES: 16,
+  /** Traction/wheelie-control intervention 0..1. */
+  INTERVENTION: 17,
+  /** Separated rider's heading / tumble (rad). */
+  RIDER_HEADING: 18,
+  RIDER_TUMBLE: 19,
 } as const;
 // +Z is the nose, +Y up and +X the driver's left; negative-X hubs are right-side wheels.
 export const WHEEL_NAMES = ['FR', 'FL', 'RR', 'RL'] as const;
@@ -227,30 +263,40 @@ export const carBase = (id: number) => HEADER + id * CAR_STRIDE;
 /** Versioned snapshot schema (WP12 / F08, masterplan §6.5): every per-car
  * block with its offset, stride and count, so new entity families add blocks
  * instead of mutating magic offsets, and decoders can reject what they do not
- * understand. The v11 layout is unchanged; R.VEHICLE occupies a slot that was
- * always written as 0, which is index 0 (the Formula APX-01), so every older
- * snapshot and recording decodes to the vehicle it actually was. */
+ * understand. v12 appends the 'bike' entity block after the v11 blocks; v11
+ * recordings are rejected explicitly by version (their stride differs), never
+ * re-read at the wrong offsets. R.VEHICLE selects the entity family. */
 export const SNAPSHOT_SCHEMA = Object.freeze({
   version: PROTOCOL_VERSION,
   header: HEADER,
   carStride: CAR_STRIDE,
-  entity: 'four-wheel' as const,
+  entities: Object.freeze(['four-wheel', 'bike'] as const),
   blocks: Object.freeze([
     { name: 'chassis', offset: 0, stride: 1, count: WHEEL_BASE },
     { name: 'wheels', offset: WHEEL_BASE, stride: WHEEL_STRIDE, count: 4 },
     { name: 'debris', offset: DEBRIS_BASE, stride: DEBRIS_STRIDE, count: 4 },
     { name: 'skid', offset: SKID_BASE, stride: SKID_STRIDE, count: 1 },
     { name: 'race', offset: RACE_BASE, stride: RACE_STRIDE, count: 1 },
+    { name: 'bike', offset: BIKE_BASE, stride: BIKE_STRIDE, count: 1 },
   ]),
 });
 /** Reason a snapshot cannot be decoded by this build, or null. Unknown
  * schemas are rejected explicitly, never decoded into corrupted animation. */
-export function snapshotIncompatibility(frame: Float32Array, version = PROTOCOL_VERSION) {
+export function snapshotIncompatibility(
+  frame: Float32Array,
+  version = PROTOCOL_VERSION,
+  vehicleCount = 256,
+) {
   if (version !== SNAPSHOT_SCHEMA.version)
     return `snapshot format v${version} is not supported (this build reads v${SNAPSHOT_SCHEMA.version})`;
   const cars = frame[H.CARS];
   if (!Number.isInteger(cars) || cars < 1 || cars > 32) return 'snapshot car count is invalid';
   if (frame.length !== HEADER + cars * CAR_STRIDE)
     return 'snapshot length does not match its car count';
+  for (let id = 0; id < cars; id++) {
+    const vehicle = frame[carBase(id) + RACE_BASE + R.VEHICLE];
+    if (!Number.isInteger(vehicle) || vehicle < 0 || vehicle >= vehicleCount)
+      return `snapshot entrant ${id + 1} names an unknown vehicle`;
+  }
   return null;
 }

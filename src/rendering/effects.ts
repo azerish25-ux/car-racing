@@ -98,6 +98,8 @@ export class Effects {
   );
   private viewport = new T.Vector4();
   private rainEmission = 0;
+  /** Roofed ground (tunnels) where no rain is born; null everywhere open. */
+  sheltered: ((x: number, z: number) => boolean) | null = null;
   private windX = 0;
   private windZ = 0;
   enabled = true;
@@ -455,18 +457,15 @@ export class Effects {
       this.rainEmission += clamp(frame[H.RAIN], 0, 100) * dt * 40 * density;
       const births = Math.min(this.count, Math.floor(this.rainEmission + 1e-9));
       this.rainEmission = Math.max(0, this.rainEmission - births);
-      for (let i = 0; i < births; i++)
-        this.spawn(
-          frame[o] + (r.next() - 0.5) * 40,
+      for (let i = 0; i < births; i++) {
+        const x = frame[o] + (r.next() - 0.5) * 40,
           // Cover eye/road level even when heavy rain recycles this bounded pool
           // faster than a droplet can fall from the top of the volume.
-          frame[o + 1] + r.next() * 14,
-          frame[o + 2] + (r.next() - 0.5) * 40,
-          this.windX,
-          -15,
-          this.windZ,
-          PARTICLE_KIND.RAIN,
-        );
+          y = frame[o + 1] + r.next() * 14,
+          z = frame[o + 2] + (r.next() - 0.5) * 40;
+        if (this.sheltered?.(x, z)) continue;
+        this.spawn(x, y, z, this.windX, -15, this.windZ, PARTICLE_KIND.RAIN);
+      }
     } else if (emit) this.rainEmission = 0;
     const entrainment = -Math.expm1(-dt * 0.65);
     // Only live particles change (a dead one already holds zero opacity, set

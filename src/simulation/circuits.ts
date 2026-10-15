@@ -1,8 +1,20 @@
 import { clamp, mod, TAU } from '../core/math.ts';
+import { CATALOGUE_CIRCUITS } from './circuit-catalogue/index.ts';
+import {
+  CATALOGUE_CIRCUIT_IDS,
+  type CatalogueCircuitId,
+  type CatalogueMeta,
+  type RunoffCode,
+} from './circuit-catalogue/venue-data.ts';
 
-/** Identifies an original circuit. Aurel remains the default everywhere. */
-export type CircuitId = 'aurel' | 'vellamar';
-export const CIRCUIT_IDS: readonly CircuitId[] = Object.freeze(['aurel', 'vellamar']);
+/** Identifies a circuit layout. Aurel remains the default everywhere; the
+ * catalogue layouts (WP29-WP30, circuit-catalogue/) follow the two originals. */
+export type CircuitId = 'aurel' | 'vellamar' | CatalogueCircuitId;
+export const CIRCUIT_IDS: readonly CircuitId[] = Object.freeze([
+  'aurel',
+  'vellamar',
+  ...CATALOGUE_CIRCUIT_IDS,
+]);
 
 /** One consistent source for a circuit's centreline and cross-section. The
  * physical contact ribbon, rendering ribbons, collision boundary, AI racing
@@ -40,6 +52,16 @@ export interface CircuitDefinition {
   drsZones: readonly DrsZone[];
   /** Pit lane and grid; STANDARD_PIT when absent. */
   pit?: PitLaneDefinition;
+  /** Authored run-off beyond the paint band (RUNOFF code) at lap distance `s`
+   * on `side` (+1 right of travel). Absent: gravel outside tighter corners,
+   * grass elsewhere (Aurel and Vellamar). */
+  runoff?(s: number, side: number): RunoffCode;
+  /** Barrier face distance beyond the asphalt edge (m); 11 when absent. */
+  barrier?(s: number, side: number): number;
+  /** Roofed road (tunnels): rain does not reach the surface there. */
+  covered?(s: number): boolean;
+  /** Catalogue layouts: venue, menu and dressing data (circuit-catalogue/). */
+  catalogue?: CatalogueMeta;
 }
 /** Venue-owned pit lane, grid and service geometry (WP10 / F06). Distances
  * are lap metres measured from the start line (the lane straddles it), the
@@ -283,6 +305,7 @@ export const VELLAMAR: CircuitDefinition = Object.freeze({
 export const CIRCUITS: Readonly<Record<CircuitId, CircuitDefinition>> = Object.freeze({
   aurel: AUREL,
   vellamar: VELLAMAR,
+  ...CATALOGUE_CIRCUITS,
 });
 export function circuitDefinition(id: unknown): CircuitDefinition {
   return typeof id === 'string' && Object.hasOwn(CIRCUITS, id) ? CIRCUITS[id as CircuitId] : AUREL;

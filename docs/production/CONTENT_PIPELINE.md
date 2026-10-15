@@ -39,29 +39,98 @@ compliance, contact tolerance, traction out of slow corners. Weaknesses: front-t
 understeer on power (front drive), weight transfer under late braking, no downforce at speed. Sound:
 four-cylinder turbo identity (not yet produced). Silhouette: closed-wheel saloon. Event role: touring
 sprint, exhibition. Measured (`docs/vehicle-calibration.json`): 0–100 km/h ≈ 5.1 s, top ≈ 232 km/h,
-100–0 ≈ 29 m, 1.30 g at 80 km/h; within design bands at both timesteps. Known limits: provisional
-greybox exterior (`touring-shell.ts`), no interior, damage variants, LODs or own engine sound.
+100–0 ≈ 29 m, 1.30 g at 80 km/h; within design bands at both timesteps. Exterior: the procedural
+closed-body generator (below) replaced the greybox shell; physics and content hash unchanged
+(`b2abb13d`). Known limits: simple cockpit only, no damage geometry variants, own engine sound absent.
+
+**Catalogue machines (WP17/WP30).** Fifteen generic machines are defined from physical target
+sheets in `src/simulation/vehicle-catalogue/` (`CATALOGUE`, full briefs in `CATALOGUE_BRIEFS`, bands
+in `CATALOGUE_BANDS`). The builder derives wheel centres from weight split and wheelbase, body
+placement from CoG height, the aero map from ClA/CdA/balance and the torque curve from net output.
+Each brief states skill, strengths and exploitable weaknesses; `tests/vehicle-catalogue.test.ts`
+requires it. Measured at 1/240 s (`docs/vehicle-calibration.json`; every value also inside its
+band at 1/120 s, drift < 10%):
+
+| Id | Class | Drive (diff) | 0–100 s | Top km/h | 100–0 m | g @ 80 |
+|---|---|---|---:|---:|---:|---:|
+| JF-2 junior formula | formula-junior | RWD (LSD) | 2.68 | 308 | 20.5 | 1.74 |
+| HF-67 historic formula | historic | RWD (LSD) | 4.13 | 274 | 33.4 | 1.03 |
+| HY-9 hypercar | hypercar | RWD + front e-axle > 190 km/h | 2.96 | 334 | 22.5 | 1.57 |
+| PR-2 prototype | prototype | RWD (LSD) | 2.96 | 312 | 22.4 | 1.57 |
+| GT-8F front-engine GT | gt | RWD (LSD) | 3.46 | 279 | 25.1 | 1.37 |
+| GT-10M mid-engine GT | gt | RWD (LSD) | 3.32 | 279 | 24.5 | 1.36 |
+| GS-4 GT sport | gt-sport | RWD (LSD) | 3.89 | 259 | 28.4 | 1.24 |
+| TC-2 touring | touring | RWD (LSD) | 4.13 | 240 | 27.6 | 1.34 |
+| CR-1 club roadster | club | RWD (LSD) | 4.41 | 199 | 28.9 | 1.28 |
+| RL-2 rally | rally | AWD (locked 50:50, LSD front/rear) | 4.25 | 192 | 33.0 | 1.08 |
+| RCX-6 rallycross | rallycross | AWD (LSD centre 45:55, LSD axles) | 2.55 | 237 | 31.8 | 1.12 |
+| DX-8 trophy truck | offroad | RWD (high-preload LSD) | 5.40 | 210 | 38.6 | 0.94 |
+| SK-125 shifter kart | kart | RWD (locked axle) | 4.05 | 137 | 18.4 | 1.92 |
+| EH-3 electric hypercar | road | AWD (LSD centre 45:55) | 2.38 | 348 | 28.5 | 1.19 |
+| SC-7 supercar | road | RWD (LSD) | 3.26 | 331 | 28.6 | 1.17 |
+
+Drivetrain model (`src/simulation/differential.ts`): open / clutch-pack LSD (preload + power/coast
+ramps, scaled by the setup differential settings) / locked couplings, each an impulse that
+equalises output speeds bounded by its friction capacity; AWD splits drive at a centre coupling
+with a static front share. Definitions without a `driveline` (APX-01, TC-1) take the previous code
+path unchanged. Tyre families (`src/simulation/tire-families.ts`): Formula slick, slick, semi-slick,
+road, gravel, all-terrain, kart and historic cross-ply; untagged tyres see surface grip unchanged.
+
+Exteriors (`src/rendering/vehicle-bodies/`, WP30): every catalogue machine and TC-1 has a body
+sheet (`body-sheet.ts`) consumed by family generators (closed body incl. truck/roadster styles,
+open-wheel incl. historic, kart). Smooth lofted panels with clearcoat flake paint, tinted glass,
+carbon, emissive lamps, panel-gap lines, number boards, tyres with sidewall bulge and tread, spoked
+rims with discs and calipers, three LODs and a depth-only shadow proxy; wheels, steer, travel and
+lamps follow the snapshot; front/rear damage hides aero parts. APX-01 keeps the supplied asset.
+
+Known limits (catalogue): glass is blended, not transmissive; interiors are a seat, driver and
+dash only; the cockpit camera uses the Formula socket for every car; trophy-truck suspension travel
+is limited by the shared solver (≈0.13 m bump, ≈5 cm droop) so it is not a long-travel truck yet;
+the EV draws energy from the fuel-mass proxy; dirt machines race on asphalt until a dirt venue
+exists; per-car setup limits share the global setup screen (a default setup resolves to the car's
+own baseline); in seeded 4-car traffic AI incident rates are ≈0–0.17 per lap for most cars but
+≈0.3–0.4 for GS-4 and SC-7; no engine-sound families (WP26) and no handling sign-off.
+
+**GP-R1 Prototype (gpr1 v1).** Original 1000 cc prototype-class racing motorcycle: ~300 hp
+(224 kW), 157 kg plus a 72 kg rider, carbon wings (front-biased downforce), seamless six-speed.
+Intended skill: intermediate–expert. Strengths: braking stability, top speed (~350 km/h), drive
+out of slow corners under wheelie control. Weaknesses: lean-limited mid-corner speed, rear
+overload when trail-braking hard, contact intolerance. Measured (`docs/vehicle-calibration.json`):
+0–100 ≈ 3.0 s, top ≈ 354 km/h, 100–0 ≈ 36 m (stoppie-limited), 1.31 g at 80 km/h, within bands.
+Event role: GP motorcycle sprint. Known limits: procedural bike/rider art (`rendering/bike.ts`,
+`rendering/rider.ts`), no damage variants or authored LOD assets, shared engine voice, the pit
+crew still animates a four-wheel service.
+
+**SBK-1000 Superbike (sbk1000 v1).** Original production-based 1000 cc superbike: ~215 hp
+(160 kW), 200 kg plus rider, no wings, quickshifter six-speed. Intended skill: novice–intermediate.
+Measured: 0–100 ≈ 3.2 s, top ≈ 308 km/h, 100–0 ≈ 39 m, 1.20 g at 80 km/h, within bands.
+Known limits as GP-R1.
 
 ### 1.4 Destination catalogue (§10.1, 48 models)
 
 | Family | Models | Delivery | Present |
 |---|---:|---|---|
-| Formula | 3 | car launch | 1 (APX-01) |
-| GT | 4 | car launch | 0 |
-| Touring | 3 | car launch | 1 (TC-1, provisional art) |
-| Lightweight club | 2 | car launch | 0 |
-| Endurance prototype | 3 | circuit expansion | 0 |
-| Historic | 3 | circuit expansion | 0 |
-| Rally | 3 | dirt expansion | 0 |
-| Rallycross | 3 | dirt expansion | 0 |
-| Off-road truck/buggy | 3 | dirt expansion | 0 |
-| Kart | 2 | small-vehicle slice | 0 |
-| Road sport motorcycle | 3 | bike expansion | 0 (prototype model only) |
-| Prototype GP-style motorcycle | 3 | bike expansion | 0 |
+| Formula | 3 | car launch | 2 (APX-01, JF-2) |
+| GT | 4 | car launch | 3 (GT-8F, GT-10M, GS-4) |
+| Touring | 3 | car launch | 2 (TC-1, TC-2) |
+| Lightweight club | 2 | car launch | 1 (CR-1) |
+| Endurance prototype | 3 | circuit expansion | 2 (HY-9, PR-2) |
+| Historic | 3 | circuit expansion | 1 (HF-67) |
+| Rally | 3 | dirt expansion | 1 (RL-2; no dirt venue yet) |
+| Rallycross | 3 | dirt expansion | 1 (RCX-6; no dirt venue yet) |
+| Off-road truck/buggy | 3 | dirt expansion | 1 (DX-8; limited suspension travel) |
+| Kart | 2 | small-vehicle slice | 1 (SK-125) |
+| Road sport motorcycle | 3 | bike expansion | 1 (SBK-1000, integrated, procedural art) |
+| Prototype GP-style motorcycle | 3 | bike expansion | 1 (GP-R1, integrated, procedural art) |
 | Motocross | 4 | dirt-bike expansion | 0 |
 | Supermoto | 3 | after bike/dirt gates | 0 |
 | Flat-track | 2 | after bike/dirt gates | 0 |
 | Experimental | 4 | extreme expansion | 0 |
+
+"Present" means integrated (definition, calibration, AI envelope, procedural exterior, menu
+entry); none of these meets the §1.1 definition of done (no audio identity, damage variants,
+authored source assets or sign-off). Two road machines (EH-3, SC-7) exist outside the 48-model
+destination list for open-world use.
 
 ### 1.5 Customization (§10.4)
 
@@ -91,8 +160,17 @@ Record person-time and elapsed time for each stage of the first and second venue
 Pit/grid geometry as data (`STANDARD_PIT`, left-pit test course), layer-aware progress and a
 RouteGraph with validation naming disconnected edges, unknown transitions, zero-length segments and
 bounds, content validation for vehicles/circuits/events, sandboxed creator import, development
-venues (`src/simulation/test-venues.ts`). Missing: visual editors, surface painter, AI lane overlay,
-camera previewer, performance heat map (§14.4).
+venues (`src/simulation/test-venues.ts`).
+
+WP29–WP30 add a **layout authoring builder** (`src/simulation/circuit-catalogue/`: straights and arcs
+with elevation, width, banking, run-off, barrier, tunnel, frontage, rock, drop, stand and DRS
+properties; closure by least-squares straight adjustment; scaling to a reference length; reverse
+layouts), `Track` hooks for authored run-off, barrier offset and roofed (rain-sheltered) rows,
+**geometry validation** in `validate:content` (section-corridor overlap, bridge headroom, pit-straight
+curvature, racing line, reference length, protected names), a seeded **AI race script per layout**
+(`npm run test:catalogue-races` → `docs/circuit-catalogue-races.json`) and a **procedural venue kit**
+(`src/rendering/venue-kit/`). Still missing: visual editors, surface painter, AI lane overlay, camera
+previewer, performance heat map (§14.4), and person-time records for the stages (§14.7).
 
 ### 2.3 Venue vision (§15)
 
@@ -100,12 +178,20 @@ camera previewer, performance heat map (§14.4).
 |---|---|---|
 | T01 | Aurel | integrated |
 | T02 | Vellamar | integrated |
+| C01–C06 | Real-world approximations under neutral names: Parco Reale Autodromo, Ardennes Forest Circuit, Northfield Airfield GP (+ Classic), Kansai Figure-Eight (+ East Course), Riviera Harbour Street Circuit, Texas Hill Country Circuit | integrated (greybox + procedural venue kit); approximations from public geometry, pending a licence for official names; no art, hardware or player acceptance |
+| C07–C12 | Unconventional originals: Neon City night streets with tunnels (+ reverse), Col d’Argent mountain pass (ascent/descent), Mesa Speedbowl 31° tri-oval (+ infield road course), Red Mesa canyon (+ reverse), Cap Lumière cliff road (+ reverse), Iron Quay docklands flyover (+ reverse) | integrated (greybox + procedural venue kit); seeded 6-car AI races pass on all 20 layouts; no art, hardware or player acceptance |
 | T03–T06 | Lowmere Harbour, High Valley, Solar Basin, Cinderstone Ring | proposed launch venues; not started |
 | T07–T12 | Pine Ridge, Black Fen, Redcut, Atlas, Whitewater, Frostline | dirt/surface programme; not started |
 | T13–T24 | Tidal Dry Dock … Neon Switchback | extraordinary venues; engineering prerequisites prototyped (layer-aware progress, moving surfaces, magnetic frames) |
 
 Selection (§15.3): rank by new racing created, reuse, readability, vehicle fit and risk; approve
 only after a greybox lap, an AI race, a recovery demonstration and a rough performance capture.
+
+Catalogue layouts C01–C12 (20 layouts, [roster and limits](../CIRCUIT_CATALOGUE.md)) have passed the
+greybox lap and AI race stages (`docs/circuit-catalogue-races.json`), and the operational pass for
+pit/service (venue-owned pit side, a left-hand street pit stop test), marshal posts, run-off and
+cameras. Not yet done for any of them: crash/recovery demonstration, human races, rough performance
+capture on reference hardware, the art pass beyond the procedural kit, and §15.3 approval.
 
 ## 3. Art direction: target board and capture suite (§17.2, WP27)
 

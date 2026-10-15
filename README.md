@@ -5,11 +5,24 @@ TC-1 touring car), composable rulesets and events (including timed
 endurance), venue-owned pit/grid geometry, layer-aware 3-D track progress and
 a directed route graph, recorded-session identity and versioned record
 categories, content validation, the F01 replay/GPU-gate fix, race radio with
-captions, accessibility switches, rumble, an EVENTS hub, and isolated
-prototypes for motorcycles, deformable dirt, magnetic loops, moving surfaces,
+captions, accessibility switches, rumble, an EVENTS hub, a road-racing
+motorcycle discipline in normal sessions (GP-R1 prototype and SBK-1000
+superbike: lean dynamics, rider aids, crash/remount through race control, bike
+AI, procedural bike and rider), an in-memory authoritative online race slice
+(`npm run test:online`, [docs/production/ONLINE_SLICE.md](docs/production/ONLINE_SLICE.md)),
+and isolated prototypes for deformable dirt, magnetic loops, moving surfaces,
 scoring, joker stages, creator import and an authoritative-server workload.
 Status (nothing is claimed beyond "integrated" without hardware or player
 evidence), decisions, risks and protocols: [docs/production](docs/production/README.md).
+
+## Circuit catalogue (WP29–WP30)
+
+Twenty new layouts at twelve venues, selectable from CIRCUIT (grouped Original /
+Real-world / Unconventional): six approximations of famous circuits from public
+geometry under neutral names, plus a night street circuit with dry tunnels, an
+alpine pass, a 31° tri-oval and infield road course, a desert canyon, a cliff
+road and a dockyard flyover. A procedural venue kit dresses every layout from
+its data. [Roster, rights, validation and limits](docs/CIRCUIT_CATALOGUE.md).
 
 ## A12 secondary grandstands
 
@@ -309,6 +322,8 @@ The production output is in `dist/`. Deploy that directory to a static HTTPS hos
 
 Standard gamepads use the left stick and triggers, with shoulder-button manual shifting. Automatic shifting remains active until a manual shift is requested; restarting the session restores it.
 
+**Motorcycles** (MACHINE → GP-R1, SBK-1000 or the motorcycle grid): steering states the lean you want and the rider aid counter-steers to reach it. The brake input is the **front brake**; the **rear brake is the clutch binding** (Left Shift by default, or the gamepad clutch axis/button when mapped). **Sport** adds traction control, wheelie and stoppie control, combined brakes and cornering ABS; **Unassisted** removes them (the lean controller stays, as the control contract). The rider tucks and hangs off automatically; a crash separates the rider, who remounts at the track edge after a bounded delay. The cockpit camera is an on-board screen view and the pod camera a tail view, both rolling with the bike; the chase camera rolls partly with the lean.
+
 Choose **Sport** for filtered steering, traction control, and ABS, or **Unassisted** for the raw tire model. Garage setup changes apply to the **next session**; graphics, audio, and interface changes apply immediately. Heavy-rain sessions select full-wet tires by default; slicks in heavy rain are deliberately much harder to drive.
 
 ## 🛠️ Tech stack
@@ -438,6 +453,8 @@ The original validation results below are historical baseline measurements, not 
 npm run check            # ESLint + Vitest + TypeScript + Vite production build
 npm run test:physics     # Four-car dry, changing-weather, and wet scenarios
 npm run test:endurance   # 100-lap single-car endurance fixture
+npm run test:vehicles    # Calibration lab: every car and motorcycle against its design bands
+npm run test:bikes       # Seeded eight-rider AI motorcycle races (docs/bike-race.json)
 npx playwright install chromium
 npm run test:e2e         # Chromium workflows, screenshots, and traces
 ```
