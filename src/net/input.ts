@@ -210,7 +210,12 @@ export interface Slot {
   first: boolean;
 }
 /** Server side, one per driver: dedups redundant copies, rejects commands
- * outside the accepted window, and yields the command for each tick. */
+ * outside the accepted window, and yields the command for each tick.
+ *
+ * Bounded whatever a peer sends: a rejected command is never remembered,
+ * every remembered sequence number lies in (contiguousSeq, contiguousSeq +
+ * LIMITS.seqWindow], and every pending slot lies within LIMITS.leadTicksMax
+ * (+ one command) of the server tick. */
 export class ServerInputQueue {
   private pending = new Map<number, Slot>();
   /** seq → first tick, for received commands above the contiguous ack. */
@@ -227,27 +232,40 @@ export class ServerInputQueue {
     missingTicks: 0,
     appliedTicks: 0,
   };
-  /** Accept a decoded command run at server tick `now` (next tick to simulate). */
+  /** Accept a decoded command run at server tick `now` (next tick to
+   * simulate). Returns how many commands were rejected (outside the tick or
+   * sequence window): a well-behaved client never sends one. */
   accept(commands: readonly InputCommand[], now: number) {
     this.stats.packets++;
+    let rejected = 0;
     for (const c of commands) {
       if (c.seq <= this.contiguousSeq || this.seen.has(c.seq)) {
         this.stats.duplicates++;
         continue;
       }
-      if (c.tick > now + LIMITS.leadTicksMax || c.ticks < 1 || c.ticks > LIMITS.commandTicksMax) {
+      if (
+        c.seq > this.contiguousSeq + LIMITS.seqWindow ||
+        c.tick > now + LIMITS.leadTicksMax ||
+        c.ticks < 1 ||
+        c.ticks > LIMITS.commandTicksMax
+      ) {
+        // Not remembered: a legitimate resend may still be accepted later,
+        // and a flood of far-away commands cannot grow `seen`.
         this.stats.rejected++;
-        this.mark(c.seq, c.tick);
+        rejected++;
         continue;
       }
       this.stats.commands++;
       this.mark(c.seq, c.tick);
+      // Margin of this command's first tick, negative when it arrived late:
+      // a client whose lead is too short learns it from this alone (a fully
+      // late command is never applied, so nothing else would tell it).
+      this.slack = Math.min(this.slack, c.tick - now);
       if (c.tick + c.ticks <= now) {
         this.stats.late++;
         this.stats.lateTicks += c.ticks;
         continue;
       }
-      this.slack = Math.min(this.slack, c.tick - now);
       for (let t = c.tick; t < c.tick + c.ticks; t++) {
         if (t < now) {
           this.stats.lateTicks++;
@@ -257,25 +275,37 @@ export class ServerInputQueue {
           this.pending.set(t, { controls: c.controls, first: t === c.tick });
       }
     }
+    return rejected;
   }
   private mark(seq: number, tick: number) {
     this.seen.set(seq, tick);
     while (this.seen.has(this.contiguousSeq + 1)) this.seen.delete(++this.contiguousSeq);
+  }
+  /** Lowest remembered sequence number. Every key lies in (contiguousSeq,
+   * contiguousSeq + seqWindow], so the scan is bounded by the window and is
+   * normally a step or two (the next command or a short loss gap). */
+  private lowestSeen() {
+    let seq = this.contiguousSeq + 1;
+    while (!this.seen.has(seq)) seq++;
+    return seq;
   }
   /** The command slot for `tick`, or null when none arrived in time. */
   take(tick: number): Slot | null {
     const slot = this.pending.get(tick) ?? null;
     for (const t of this.pending.keys()) if (t <= tick) this.pending.delete(t);
     // A gap whose successor already started is in the past: never wait on it.
-    for (;;) {
-      let next = Infinity;
-      for (const seq of this.seen.keys()) next = Math.min(next, seq);
-      if (next === Infinity || (this.seen.get(next) as number) > tick) break;
+    while (this.seen.size) {
+      const next = this.lowestSeen();
+      if ((this.seen.get(next) as number) > tick) break;
       this.contiguousSeq = next - 1;
       while (this.seen.has(this.contiguousSeq + 1)) this.seen.delete(++this.contiguousSeq);
     }
     if (slot) this.stats.appliedTicks++;
     return slot;
+  }
+  /** Remembered sequence numbers above the contiguous acknowledgement. */
+  get remembered() {
+    return this.seen.size;
   }
   /** Smallest margin (ticks) by which a new command beat its first tick since
    * the last call; Infinity when nothing new arrived. */

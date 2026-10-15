@@ -1,7 +1,13 @@
 import { sessionIdentity, type RecordedSessionIdentity } from '../core/session-identity.ts';
 import { PHASE } from '../simulation/race.ts';
 import { AuthoritativeWorld } from './authority.ts';
-import { decodeClientMessage, encodeControl, encodeSnapshot } from './codec.ts';
+import {
+  chunkMessages,
+  decodeClientMessage,
+  encodeControl,
+  encodeSnapshot,
+  sizeLimit,
+} from './codec.ts';
 import {
   NET_PROTOCOL_VERSION,
   RATES,
@@ -10,7 +16,7 @@ import {
   TIMEOUTS,
   type Timeouts,
 } from './constants.ts';
-import { NetRandom, type EventLoop } from './event-loop.ts';
+import type { EventLoop } from './event-loop.ts';
 import { TickBudgetMonitor, TokenBucket } from './guards.ts';
 import { identityMismatch, joinIdentity } from './identity.ts';
 import { ServerInputQueue, type InputPacket, type QueueStats } from './input.ts';
@@ -50,6 +56,8 @@ export interface RaceServerConfig {
   wallClock?: () => number;
   /** Start the grid as soon as the lobby's ready check passes. */
   autoStart?: boolean;
+  /** Kept for configuration compatibility; nothing in the server is seeded
+   * (session tokens come from the platform CSPRNG). */
   seed?: number;
   /** Harness hook after every physics tick. */
   onTick?: (world: AuthoritativeWorld) => void;
@@ -73,9 +81,13 @@ interface Connection {
 }
 interface Player {
   id: string;
+  /** Platform account presented on join; a rejoin must present it again. */
+  account: string | null;
   name: string;
   vehicle: string;
   token: string;
+  /** Rejoin attempts with this player's token. */
+  rejoinBucket: TokenBucket;
   car: number | null;
   connection: Connection | null;
   queue: ServerInputQueue;
@@ -106,6 +118,27 @@ export interface ServerStats {
   rejoins: { car: number; at: number; afterMs: number }[];
   /** Episodes where a connected driver's commands stopped arriving. */
   starvations: number;
+  /** Outbound control messages over the peer's size limit (never sent).
+   * Variable-length payloads are chunked, so this stays 0. */
+  oversizeMessages: number;
+}
+
+/** Anonymous players get ids outside the account namespace (an account id
+ * matches /^[A-Za-z0-9_-]{1,32}$/ and can never contain ':'), so a client
+ * cannot claim, collide with or inherit the bans of a server-assigned id. */
+export const GUEST_PREFIX = 'guest:';
+
+/** Compare two strings in time independent of where they first differ. */
+export function constantTimeEqual(a: string, b: string) {
+  let diff = a.length ^ b.length;
+  for (let i = 0; i < Math.max(a.length, b.length); i++)
+    diff |= (a.charCodeAt(i) || 0) ^ (b.charCodeAt(i) || 0);
+  return diff === 0;
+}
+/** 128 bits from the platform CSPRNG (Web Crypto, in browsers and Node). */
+export function sessionToken() {
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
 }
 
 /** Authoritative race server (WP50–WP54): lobby → grid → race → results →
@@ -135,14 +168,16 @@ export class RaceServer {
     takeovers: [],
     rejoins: [],
     starvations: 0,
+    oversizeMessages: 0,
   };
   private readonly connections = new Set<Connection>();
   private readonly players = new Map<string, Player>();
   private readonly byCar: (Player | null)[] = [];
   private readonly events: RaceEvent[] = [];
   private pendingEvents: RaceEvent[] = [];
-  private readonly random: NetRandom;
   private readonly wall: () => number;
+  /** Loop time the first physics tick runs (set when the grid starts). */
+  private raceStartsAt = Infinity;
   private nextConnection = 1;
   private nextPlayer = 1;
   private stopTicks: (() => void) | null = null;
@@ -154,7 +189,6 @@ export class RaceServer {
   constructor(readonly config: RaceServerConfig) {
     this.timeouts = { ...TIMEOUTS, ...config.timeouts };
     this.starveTicks = Math.round(this.timeouts.inputStarvationMs / TICK_MS);
-    this.random = new NetRandom(config.seed ?? 4242);
     this.wall = config.wallClock ?? (() => performance.now());
     this.stats.phases[0].at = config.loop.now;
     // Lobby/grid liveness: silent members are dropped (race ticks check their own).
@@ -202,8 +236,52 @@ export class RaceServer {
       if (!conn.player && !conn.closed) this.close(conn, 'no join received');
     });
   }
+  /** Send one reliable control message, never over the size the client
+   * accepts (it would drop it silently). Callers chunk variable-length data. */
   private send(conn: Connection, message: ServerControl) {
-    if (!conn.closed) conn.transport.send(encodeControl(message), 'reliable');
+    if (conn.closed) return;
+    const data = encodeControl(message);
+    if (data.length > sizeLimit('reliable', true)) {
+      this.stats.oversizeMessages++;
+      return;
+    }
+    conn.transport.send(data, 'reliable');
+  }
+  /** Race events in as many `events` messages as the size limit needs. */
+  private sendEvents(conn: Connection, events: readonly RaceEvent[]) {
+    for (const message of this.eventMessages(events)) this.send(conn, message);
+  }
+  private eventMessages(events: readonly RaceEvent[]): ServerControl[] {
+    if (!events.length) return [];
+    return chunkMessages(
+      events,
+      (part) => ({ kind: 'events', events: part }),
+      () => this.stats.oversizeMessages++,
+    );
+  }
+  /** The results, with lap times sent ahead in chunks when the whole
+   * classification would not fit one message (long races, full fields). */
+  private resultMessages(results: RaceResults): ServerControl[] {
+    const whole: ServerControl = { kind: 'results', results };
+    if (encodeControl(whole).length <= sizeLimit('reliable', true)) return [whole];
+    const out: ServerControl[] = [];
+    for (const row of results.classification)
+      out.push(
+        ...chunkMessages(
+          row.lapTimes,
+          (times, from) => ({ kind: 'lapTimes', car: row.car, from, times }),
+          () => this.stats.oversizeMessages++,
+        ),
+      );
+    out.push({
+      kind: 'results',
+      results: {
+        ...results,
+        lapTimesSeparate: true,
+        classification: results.classification.map((row) => ({ ...row, lapTimes: [] })),
+      },
+    });
+    return out;
   }
   private close(conn: Connection, reason: string) {
     if (conn.closed) return;
@@ -243,7 +321,9 @@ export class RaceServer {
     conn.echoAt = this.loop.now;
     const player = conn.player;
     if (!player || player.car === null || !this.world || this.phase !== 'race') return;
-    player.queue.accept(packet.commands, this.world.tick);
+    // Commands outside the tick or sequence window never come from a
+    // well-behaved client: each such packet is a strike.
+    if (player.queue.accept(packet.commands, this.world.tick) > 0) this.strike(conn, 'invalid');
   }
   private control(conn: Connection, message: ClientControl) {
     switch (message.kind) {
@@ -294,15 +374,17 @@ export class RaceServer {
     if (mismatch) return this.reject(conn, `content mismatch: ${mismatch}`);
     // A platform account id (authenticated by the platform, not here) makes
     // bans and rejoins stick to a person; otherwise the server assigns one.
-    const id = message.account ?? `p${this.nextPlayer++}`;
+    const id = message.account ?? `${GUEST_PREFIX}${this.nextPlayer++}`;
     if (this.players.has(id)) return this.reject(conn, 'this account is already in the session');
     const joined = this.lobby.join({ player: id, name: message.name, vehicle: message.vehicle });
     if (!joined.ok) return this.reject(conn, joined.reason);
     const player: Player = {
       id,
+      account: message.account ?? null,
       name: message.name,
       vehicle: message.vehicle,
-      token: this.token(),
+      token: sessionToken(),
+      rejoinBucket: new TokenBucket(RATES.rejoin.perSecond, RATES.rejoin.burst, this.loop.now),
       car: null,
       connection: conn,
       queue: new ServerInputQueue(),
@@ -327,28 +409,33 @@ export class RaceServer {
     this.broadcastLobby();
     this.maybeStart();
   }
-  private token() {
-    // Seeded for reproducible tests; a deployment draws from a CSPRNG.
-    let out = '';
-    for (let i = 0; i < 4; i++)
-      out += Math.floor(this.random.next() * 0x100000000)
-        .toString(16)
-        .padStart(8, '0');
-    return out;
-  }
   private rejoin(conn: Connection, message: Extract<ClientControl, { kind: 'join' }>) {
-    const player = [...this.players.values()].find((p) => p.token === message.token);
+    const token = message.token as string,
+      now = this.loop.now;
+    // Every token is compared (no early exit) in constant time.
+    let player: Player | undefined;
+    for (const p of this.players.values()) if (constantTimeEqual(p.token, token)) player = p;
     if (!player || player.forfeited) return this.reject(conn, 'unknown or forfeited session token');
+    if (!player.rejoinBucket.take(now)) return this.reject(conn, 'too many rejoin attempts');
+    // A token is bound to the account it was issued to, when there is one.
+    if (player.account !== null && message.account !== player.account)
+      return this.reject(conn, 'this session token belongs to another account');
     if (this.phase !== 'race' && this.phase !== 'grid')
       return this.reject(conn, 'the session is no longer running');
     if (
       player.disconnectedAt !== null &&
-      this.loop.now - player.disconnectedAt > this.timeouts.rejoinWindowMs
+      now - player.disconnectedAt > this.timeouts.rejoinWindowMs
     )
       return this.reject(conn, 'the rejoin window has expired');
+    // Never take a car from a connection that is still live: a restarted
+    // client whose old connection the server has not yet lost retries after
+    // the disconnect timeout instead.
+    const holder = player.connection;
+    if (holder && !holder.closed && now - holder.lastHeard <= this.timeouts.disconnectMs)
+      return this.reject(conn, 'this driver is still connected');
     const mismatch = identityMismatch(this.expectedIdentity(player.vehicle), message.identity);
     if (mismatch) return this.reject(conn, `content mismatch: ${mismatch}`);
-    if (player.connection) this.close(player.connection, 'replaced by a new connection');
+    if (holder) this.close(holder, 'replaced by a new connection');
     const away = player.disconnectedAt === null ? 0 : this.loop.now - player.disconnectedAt;
     player.connection = conn;
     conn.player = player;
@@ -371,14 +458,27 @@ export class RaceServer {
       token: player.token,
       lobby: this.lobby.view(this.phase),
     });
-    if (this.grid && player.car !== null)
+    if (!this.grid || player.car === null) return;
+    if (this.phase === 'grid') {
+      // Still counting down: the same grid every driver got, with the time left.
       this.send(conn, {
         ...this.grid,
         car: player.car,
-        serverTick: this.world?.tick ?? 0,
-        startInMs: 0,
-        events: [...this.events],
+        startInMs: Math.max(0, this.raceStartsAt - now),
       });
+      return;
+    }
+    // Racing: an empty `events` list marks the race as running and resets the
+    // client's history, which follows in size-limited chunks. Events not yet
+    // broadcast go out with the next snapshot, as for every other driver.
+    this.send(conn, {
+      ...this.grid,
+      car: player.car,
+      serverTick: this.world?.tick ?? 0,
+      startInMs: 0,
+      events: [],
+    });
+    this.sendEvents(conn, this.events.slice(0, this.events.length - this.pendingEvents.length));
   }
   private broadcastLobby() {
     const view = this.lobby.view(this.phase);
@@ -427,10 +527,12 @@ export class RaceServer {
     };
     for (const p of this.players.values())
       if (p.connection && p.car !== null) this.send(p.connection, { ...this.grid, car: p.car });
+    this.raceStartsAt = this.loop.now + this.timeouts.gridCountdownMs;
     this.loop.after(this.timeouts.gridCountdownMs, () => this.beginRace());
   }
   private beginRace() {
     if (this.phase !== 'grid') return;
+    this.raceStartsAt = this.loop.now;
     this.setPhase('race');
     this.stopTicks = this.loop.every(TICK_MS, () => this.tick());
   }
@@ -471,7 +573,12 @@ export class RaceServer {
             world.setMode(player.car, 'ai');
           }
         }
-        if (now - player.connection.lastHeard > this.timeouts.disconnectMs)
+        // Silence counts from the first physics tick at the earliest: a driver
+        // who (re)joined during the countdown has no snapshot, so no inputs, yet.
+        if (
+          now - Math.max(player.connection.lastHeard, this.raceStartsAt) >
+          this.timeouts.disconnectMs
+        )
           this.disconnect(player, 'connection timed out');
       }
     }
@@ -521,10 +628,11 @@ export class RaceServer {
     }
     world.clearContacts();
     if (this.pendingEvents.length) {
-      const events = this.pendingEvents;
+      const messages = this.eventMessages(this.pendingEvents);
       this.pendingEvents = [];
       for (const p of this.players.values())
-        if (p.connection && p.car !== null) this.send(p.connection, { kind: 'events', events });
+        if (p.connection && p.car !== null)
+          for (const message of messages) this.send(p.connection, message);
     }
   }
   /** Connection lost (timeout, close, sever): AI takeover or ghost. */
@@ -536,6 +644,8 @@ export class RaceServer {
         this.lobby.leave(player.id);
         this.players.delete(player.id);
         this.broadcastLobby();
+        // The one member nobody was waiting for may just have gone.
+        this.maybeStart();
       }
       return;
     }
@@ -558,6 +668,7 @@ export class RaceServer {
       if (player.connection) this.close(player.connection, reason);
       player.connection = null;
       this.broadcastLobby();
+      this.maybeStart();
       return;
     }
     player.forfeited = true;
@@ -620,8 +731,9 @@ export class RaceServer {
       recordDigest: this.record.digest,
       progressDisputes: world.audit.disputes(),
     };
+    const messages = this.resultMessages(this.results);
     for (const p of this.players.values())
-      if (p.connection) this.send(p.connection, { kind: 'results', results: this.results });
+      if (p.connection) for (const message of messages) this.send(p.connection, message);
     this.loop.after(this.timeouts.resultsLingerMs, () => this.teardown());
   }
   /** Results → teardown: close every connection and stop all timers. */

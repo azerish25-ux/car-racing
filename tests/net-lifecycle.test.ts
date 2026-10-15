@@ -3,6 +3,8 @@ import { SIMULATION_VERSION } from '../src/core/session-identity.ts';
 import { encodeControl } from '../src/net/codec.ts';
 import { NET_PROTOCOL_VERSION } from '../src/net/constants.ts';
 import { joinIdentity } from '../src/net/identity.ts';
+import { validateClientControl } from '../src/net/messages.ts';
+import { GUEST_PREFIX } from '../src/net/server.ts';
 import { onlineFixture } from './net-helpers.ts';
 
 describe('session lifecycle with content-version agreement (WP51)', () => {
@@ -101,5 +103,57 @@ describe('session lifecycle with content-version agreement (WP51)', () => {
     expect(f.server.phase).toBe('grid');
     f.loop.runUntil(5000);
     expect(f.server.phase).toBe('race');
+  });
+  it('starts the grid when the only unready member leaves, is kicked or times out', () => {
+    const scenarios: [string, (f: ReturnType<typeof onlineFixture>, c: Slow) => void][] = [
+      ['leaves', (_, c) => c.client.leave()],
+      ['is kicked', (f, c) => f.server.kick(c.client.player, 'idle')],
+      [
+        'times out',
+        (_, c) => {
+          c.client.dispose();
+          c.link.sever();
+        },
+      ],
+    ];
+    type Slow = ReturnType<ReturnType<typeof onlineFixture>['connect']>;
+    for (const [what, depart] of scenarios) {
+      const f = onlineFixture({ capacity: 3, minPlayers: 2 });
+      f.connect('A');
+      f.connect('B');
+      const c = f.connect('C', { autoReady: false });
+      f.loop.runUntil(1000);
+      expect(f.lobby.readyCheck().reasons, what).toEqual(['Waiting for C']);
+      depart(f, c);
+      f.loop.runUntil(f.loop.now + 6000);
+      expect(
+        f.lobby.members.map((m) => m.name),
+        what,
+      ).toEqual(['A', 'B']);
+      expect(['grid', 'race', 'results', 'teardown'], what).toContain(f.server.phase);
+    }
+  });
+  it('keeps server-assigned ids outside the account namespace', () => {
+    const f = onlineFixture({ capacity: 3 });
+    // An account named like the old anonymous ids collides with nobody.
+    const squatter = f.connect('Squatter', { account: 'p2' }),
+      anon = [f.connect('One'), f.connect('Two')];
+    f.loop.runUntil(1000);
+    expect(squatter.client.player).toBe('p2');
+    for (const { client } of anon) {
+      expect(client.state).not.toBe('rejected');
+      expect(client.player.startsWith(GUEST_PREFIX)).toBe(true);
+    }
+    expect(f.lobby.members.map((m) => m.player)).toEqual(['p2', 'guest:1', 'guest:2']);
+    // And no client can present a server-style id as its account.
+    const join = {
+      kind: 'join',
+      net: NET_PROTOCOL_VERSION,
+      name: 'X',
+      vehicle: 'apx01',
+      identity: joinIdentity(f.session, 'apx01'),
+    };
+    expect(typeof validateClientControl({ ...join, account: 'guest:1' })).toBe('string');
+    expect(typeof validateClientControl({ ...join, account: 'guest-1' })).toBe('object');
   });
 });

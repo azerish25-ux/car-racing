@@ -5,6 +5,7 @@ import { decodeJournal, encodeJournal, type JournalEntry } from '../src/net/auth
 import { ByteReader, ByteWriter, DecodeError, fromBase64, toBase64 } from '../src/net/bytes.ts';
 import {
   MSG,
+  chunkMessages,
   decodeClientMessage,
   decodeServerMessage,
   encodeControl,
@@ -13,6 +14,7 @@ import {
 } from '../src/net/codec.ts';
 import { LIMITS, NET_PROTOCOL_VERSION } from '../src/net/constants.ts';
 import { NetRandom } from '../src/net/event-loop.ts';
+import type { RaceEvent } from '../src/net/messages.ts';
 import {
   quantizeControls,
   readInputPacket,
@@ -269,5 +271,54 @@ describe('online codec: journals and base64', () => {
       ).toEqual(Array.from(new Uint8Array(length).map((_, i) => i * 37)));
     expect(() => fromBase64('abc')).toThrow(DecodeError);
     expect(() => fromBase64('a=bc')).toThrow(DecodeError);
+  });
+});
+
+describe('online codec: size-limited chunks of server messages', () => {
+  it('splits a list so every message fits the limit the client enforces', () => {
+    const events: RaceEvent[] = Array.from({ length: 3000 }, (_, i) => ({
+      type: 'lap',
+      car: i % 12,
+      lap: 1 + Math.floor(i / 12),
+      time: 51.689896971517314 + i / 1e3,
+      valid: i % 5 !== 0,
+      tick: 6200 * (1 + Math.floor(i / 12)),
+    }));
+    expect(encodeControl({ kind: 'events', events }).length).toBeGreaterThan(LIMITS.resultBytes);
+    const messages = chunkMessages(events, (part) => ({ kind: 'events', events: part }));
+    expect(messages.length).toBeGreaterThan(1);
+    const sizes = messages.map((m) => encodeControl(m).length);
+    for (const size of sizes) expect(size).toBeLessThanOrEqual(LIMITS.resultBytes);
+    // Tight packing: every chunk but the last is within one event of full.
+    for (const size of sizes.slice(0, -1)) expect(size).toBeGreaterThan(LIMITS.resultBytes - 120);
+    const decoded = messages.map((m) => {
+      const d = decodeServerMessage(encodeControl(m), 'reliable');
+      if (!d.ok || d.value.type !== 'control' || d.value.control.kind !== 'events')
+        throw new Error('chunk did not decode');
+      return d.value.control.events;
+    });
+    expect(decoded.flat()).toEqual(events);
+    // Offsets let the receiver place each part; an item that can never fit is reported.
+    const times = Array.from({ length: 5000 }, (_, i) => 50 + i / 7),
+      parts = chunkMessages(times, (part, from) => ({
+        kind: 'lapTimes',
+        car: 3,
+        from,
+        times: part,
+      }));
+    const rebuilt: number[] = [];
+    for (const m of parts)
+      if (m.kind === 'lapTimes') rebuilt.splice(m.from, m.times.length, ...m.times);
+    expect(rebuilt).toEqual(times);
+    let oversize = 0;
+    const huge = 'x'.repeat(LIMITS.resultBytes);
+    expect(
+      chunkMessages(
+        [{ type: 'driver', car: 0, mode: 'ai', reason: huge, tick: 0 } as RaceEvent],
+        (part) => ({ kind: 'events', events: part }),
+        () => oversize++,
+      ),
+    ).toEqual([]);
+    expect(oversize).toBe(1);
   });
 });

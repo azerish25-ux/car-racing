@@ -37,6 +37,38 @@ export function encodeControl(message: ClientControl | ServerControl) {
   return out;
 }
 
+const byteLength = (value: unknown) => encoder.encode(JSON.stringify(value)).length;
+/** Split a list into control messages that each fit `limit` once encoded
+ * (`wrap(part, from)` builds the message for items[from, from + part.length)).
+ * A single item too large for any message is skipped and reported. */
+export function chunkMessages<T, M extends ClientControl | ServerControl>(
+  items: readonly T[],
+  wrap: (part: T[], from: number) => M,
+  onOversize: () => void = () => {},
+  limit = sizeLimit('reliable', true),
+): M[] {
+  const out: M[] = [];
+  let i = 0;
+  while (i < items.length) {
+    const from = i,
+      part: T[] = [];
+    // JSON arrays have no whitespace: size = empty message + items + commas.
+    let size = 1 + byteLength(wrap([], from));
+    while (i < items.length) {
+      const add = byteLength(items[i]) + (part.length ? 1 : 0);
+      if (size + add > limit) break;
+      size += add;
+      part.push(items[i++]);
+    }
+    if (part.length) out.push(wrap(part, from));
+    else {
+      onOversize();
+      i++;
+    }
+  }
+  return out;
+}
+
 /** Size limit per channel and direction (WP54 message size limits). */
 export function sizeLimit(channel: Channel, fromServer: boolean) {
   if (channel === 'unreliable') return LIMITS.datagramBytes;

@@ -31,6 +31,18 @@ export const DT = TICK_MS / 1000;
  * at the first divergent checkpoint instead of at the end of the session. */
 export const CHECKPOINT_TICKS = 1200;
 export type DriverMode = 'human' | 'ai';
+/** A pit request toggles at most once per this many ticks (0.5 s): faster
+ * toggling is ignored, so one client cannot inflate the journal with it. */
+export const PIT_TOGGLE_MIN_TICKS = 60;
+/** Most journal entries the live server can write for one car in one tick:
+ * one level-control change, one overtake edge, one pit toggle and up to
+ * three driver-mode changes (rejoin hold, first command, timeout). */
+export const JOURNAL_ENTRIES_PER_CAR_TICK = 6;
+/** Upper bound on the journal of a session of `endTick` ticks and `cars`
+ * cars; a verifier rejects anything longer before decoding it. */
+export function journalEntryLimit(endTick: number, cars: number) {
+  return Math.max(0, endTick) * Math.max(1, cars) * JOURNAL_ENTRIES_PER_CAR_TICK;
+}
 
 /** Apply one driver's controls to its car exactly as `Simulation.setInput`
  * does for the local player (sanitizing every field), plus the grid hold the
@@ -67,17 +79,43 @@ export function applyControls(car: Vehicle, input: Controls, phase: number, edge
 export class NetDriver extends AIDriver {
   mode: DriverMode = 'human';
   controls: Controls = holdControls();
+  /** An overtake request applies on the next update only. */
   edge = false;
+  /** The server AI drove this car at some tick of the current lap. */
+  assisted = false;
+  /** Whether the next update follows the network controls. */
+  get followsControls() {
+    const c = this.car;
+    return this.mode === 'human' && !c.pitRequested && !c.inPit && !(c.finishTime > 0);
+  }
   update(dt: number, track: Track, cars: Vehicle[], race: RaceDirector) {
-    const c = this.car,
-      edge = this.edge;
+    const edge = this.edge;
     this.edge = false;
-    if (this.mode === 'ai' || c.pitRequested || c.inPit || c.finishTime > 0) {
+    if (!this.followsControls) {
+      this.assisted = true;
       super.update(dt, track, cars, race);
       return;
     }
-    applyControls(c, this.controls, race.phase, edge);
+    // Level controls never carry the one-shot overtake; the edge does.
+    applyControls(
+      this.car,
+      edge ? { ...this.controls, overtake: true } : this.controls,
+      race.phase,
+      edge,
+    );
   }
+}
+/** Whether an overtake edge applied now would start the overtake boost: the
+ * same test `applyControls` makes, on state nothing changes before the next
+ * driver update. An edge that cannot act is not journaled. */
+function overtakeWouldStart(driver: NetDriver) {
+  const c = driver.car;
+  return (
+    driver.followsControls &&
+    c.definition.hybrid &&
+    c.overtakeClock <= 0 &&
+    c.battery >= c.spec.maxBatteryJ * OVERTAKE.minBattery
+  );
 }
 
 export type JournalEntry =
@@ -99,6 +137,10 @@ export class AuthoritativeWorld {
   readonly journal: JournalEntry[] = [];
   readonly lapTimes: number[][];
   readonly lapValid: boolean[][];
+  /** Per completed lap: the server AI drove the car at some tick of it
+   * (server AI entrant, disconnect takeover, input starvation, pit lane). */
+  readonly lapAssisted: boolean[][];
+  private readonly lastPitToggle: number[];
   readonly audit: LegalProgressAudit;
   private readonly history: Float64Array;
   private readonly impact: Float64Array;
@@ -117,6 +159,8 @@ export class AuthoritativeWorld {
     const n = this.sim.cars.length;
     this.lapTimes = Array.from({ length: n }, () => []);
     this.lapValid = Array.from({ length: n }, () => []);
+    this.lapAssisted = Array.from({ length: n }, () => []);
+    this.lastPitToggle = Array.from({ length: n }, () => -Infinity);
     this.history = new Float64Array(n * 4 * 3);
     this.impact = new Float64Array(n);
     this.contact = new Uint8Array(n);
@@ -131,7 +175,10 @@ export class AuthoritativeWorld {
     return this.sim.cars.length;
   }
   /** Level controls for `car` from this tick on; `first` applies the
-   * command's one-shot controls (overtake, pit request) on this tick. */
+   * command's one-shot controls (pit request, overtake) on this tick. A pit
+   * toggle within PIT_TOGGLE_MIN_TICKS of the last one is ignored, and an
+   * overtake edge is journaled only when it will start the boost, so edges
+   * add at most a few journal entries per lap whatever a client sends. */
   setControls(car: number, input: Controls, first: boolean) {
     const driver = this.drivers[car],
       level = quantizeControls({ ...input, overtake: false, pit: false });
@@ -139,11 +186,12 @@ export class AuthoritativeWorld {
       driver.controls = level;
       this.journal.push({ tick: this.tick, car, kind: 'controls', controls: level });
     }
-    if (first && input.overtake) {
+    if (first && input.pit && this.tick - this.lastPitToggle[car] >= PIT_TOGGLE_MIN_TICKS)
+      this.requestPit(car);
+    if (first && input.overtake && overtakeWouldStart(driver)) {
       driver.edge = true;
       this.journal.push({ tick: this.tick, car, kind: 'overtake' });
     }
-    if (first && input.pit) this.requestPit(car);
   }
   setMode(car: number, mode: DriverMode) {
     if (this.drivers[car].mode === mode) return;
@@ -156,6 +204,7 @@ export class AuthoritativeWorld {
       track = this.sim.track,
       ruleset = this.sim.race.ruleset;
     this.journal.push({ tick: this.tick, car, kind: 'pit', ...(compound ? { compound } : {}) });
+    this.lastPitToggle[car] = this.tick;
     c.pitRequested = !c.pitRequested;
     if (compound && Object.hasOwn(COMPOUNDS, compound)) {
       c.nextCompound = compound;
@@ -197,10 +246,14 @@ export class AuthoritativeWorld {
       h[o + 2] = v.z;
       if (c.impact > this.impact[i] + 1e-9) this.contact[i] = 1;
       this.impact[i] = c.impact;
-      const lap = this.sim.race.laps[i];
+      const lap = this.sim.race.laps[i],
+        driver = this.drivers[i];
       while (this.lapTimes[i].length < lap.completed) {
         this.lapTimes[i].push(lap.last);
         this.lapValid[i].push(lap.lastValid && lap.lastPenalty === 0);
+        // This tick's driving counts to the lap it completed.
+        this.lapAssisted[i].push(driver.assisted);
+        driver.assisted = false;
         this.events.push({
           type: 'lap',
           car: i,
@@ -343,10 +396,17 @@ export function encodeJournal(entries: readonly JournalEntry[]) {
   }
   return w.finish();
 }
-export function decodeJournal(data: Uint8Array, maxEntries = 2_000_000): JournalEntry[] {
+/** Decode a journal. `maxEntries` is the caller's bound (a verifier passes
+ * journalEntryLimit for the claimed session); every entry takes at least
+ * 3 bytes, so a count the data cannot hold is refused before decoding. */
+export function decodeJournal(
+  data: Uint8Array,
+  maxEntries = Number.MAX_SAFE_INTEGER,
+): JournalEntry[] {
   const r = new ByteReader(data),
     n = r.varint();
-  if (n > maxEntries) throw new DecodeError('Journal is too long');
+  if (n > maxEntries) throw new DecodeError('Journal is too long for the session');
+  if (n * 3 > r.remaining) throw new DecodeError('Journal is truncated');
   const out: JournalEntry[] = [];
   let tick = 0;
   for (let i = 0; i < n; i++) {

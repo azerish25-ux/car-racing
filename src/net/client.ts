@@ -52,6 +52,8 @@ export interface ClientView {
 }
 /** Silence after which the view reports the connection as stalled. */
 export const STALL_MS = 250;
+/** Most lap times per car a client accepts in results (6 h of 10 s laps). */
+const MAX_RESULT_LAPS = 2160;
 
 export interface RaceClientConfig {
   loop: EventLoop;
@@ -140,6 +142,11 @@ export class RaceClient {
   /** Ticks the client's commands run ahead of the newest observed tick. */
   lead = 16;
   private srtt = -1;
+  /** Smallest keep-alive round trip (ms): seeds the input lead before any
+   * input packet has been echoed. */
+  pingRttMs = Infinity;
+  private echoed = false;
+  private lapTimeParts = new Map<number, number[]>();
   private lastControls: Controls = neutralControls();
   private timers: (() => void)[] = [];
   private pingTimer: (() => void) | null = null;
@@ -168,11 +175,16 @@ export class RaceClient {
       ...(this.token ? { token: this.token } : {}),
       ...(this.config.account ? { account: this.config.account } : {}),
     });
-    // Keep-alive in lobby/grid; the race keeps the link alive with inputs.
+    // Keep-alive until inputs flow (they keep the link alive in the race).
     this.pingTimer = this.config.loop.every(500, () => {
-      if (this.state === 'lobby' || this.state === 'grid' || this.state === 'connecting')
-        this.sendControl({ kind: 'ping', t: this.now });
+      if (this.needsKeepAlive) this.sendControl({ kind: 'ping', t: this.now });
     });
+  }
+  /** Lobby and grid, and a race this client is not sending inputs to yet
+   * (no snapshot so far, e.g. it just rejoined): silence would be a timeout. */
+  get needsKeepAlive() {
+    if (this.state === 'connecting' || this.state === 'lobby' || this.state === 'grid') return true;
+    return this.state === 'race' && !this.commands.started;
   }
   setReady(ready: boolean) {
     this.sendControl({ kind: 'ready', ready });
@@ -233,15 +245,53 @@ export class RaceClient {
       case 'events':
         this.events.push(...message.events);
         return;
-      case 'results':
-        this.results = message.results;
+      case 'lapTimes':
+        this.onLapTimes(message);
+        return;
+      case 'results': {
+        const results = message.results;
+        this.results = results.lapTimesSeparate
+          ? {
+              ...results,
+              classification: results.classification.map((row) => ({
+                ...row,
+                lapTimes: [...(this.lapTimeParts.get(row.car) ?? [])],
+              })),
+            }
+          : results;
         this.state = 'results';
         for (const stop of this.timers) stop();
         this.timers = [];
         return;
-      case 'pong':
+      }
+      case 'pong': {
+        const rtt = this.now - message.t;
+        if (Number.isFinite(rtt) && rtt >= 0 && rtt < 5000) {
+          this.pingRttMs = Math.min(this.pingRttMs, rtt);
+          if (!this.echoed) this.srtt = this.pingRttMs;
+        }
         return;
+      }
     }
+  }
+  private onLapTimes(message: Extract<ServerControl, { kind: 'lapTimes' }>) {
+    const { car, from, times } = message;
+    if (
+      !Number.isInteger(car) ||
+      car < 0 ||
+      car >= LIMITS.carsPerSnapshot ||
+      !Number.isInteger(from) ||
+      from < 0 ||
+      !Array.isArray(times) ||
+      from + times.length > MAX_RESULT_LAPS ||
+      !times.every((t) => typeof t === 'number')
+    ) {
+      this.stats.invalidMessages++;
+      return;
+    }
+    let list = this.lapTimeParts.get(car);
+    if (!list) this.lapTimeParts.set(car, (list = []));
+    times.forEach((t, i) => ((list as number[])[from + i] = t));
   }
   /** Every vehicle in the field must match local content too, or this
    * client could not present the race it is shown. */
@@ -357,7 +407,8 @@ export class RaceClient {
     if (s.echo) {
       const rtt = (((Math.floor(now) >>> 0) - s.echo) >>> 0) - s.hold;
       if (rtt >= 0 && rtt < 5000) {
-        this.srtt = this.srtt < 0 ? rtt : this.srtt + (rtt - this.srtt) / 8;
+        this.srtt = this.echoed ? this.srtt + (rtt - this.srtt) / 8 : rtt;
+        this.echoed = true;
         this.stats.rttMs.push(rtt);
       }
     }
@@ -370,7 +421,10 @@ export class RaceClient {
   }
   /** Input lead control: keep the measured slack (how early new commands
    * reach the server) near a target that grows with arrival jitter. Fast to
-   * grow (late inputs are mispredictions), slow to shrink. */
+   * grow (late inputs are mispredictions), slow to shrink. The initial lead
+   * comes from the keep-alive round trip; a command that arrives after its
+   * ticks were simulated reports negative slack, so a lead that started too
+   * short still grows. */
   private adjustLead(s: Snapshot) {
     const target = 1.5 + 2 * this.clock.jitterTicks;
     if (this.stats.snapshots === 1 || (!this.commands.started && this.srtt >= 0))

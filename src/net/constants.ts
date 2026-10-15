@@ -32,6 +32,12 @@ export const LIMITS = Object.freeze({
   commandTicksMax: 8,
   /** Commands further than this ahead of the server clock are rejected. */
   leadTicksMax: 240,
+  /** Commands more than this many sequence numbers above the contiguous
+   * acknowledgement are rejected (and never remembered): a client issues at
+   * most 60 commands/s and nothing in flight is older than the lead window,
+   * so 8 s of commands is generous, and the server's per-driver dedup state
+   * stays bounded whatever a peer sends. */
+  seqWindow: 480,
   /** Unacknowledged commands repeated in every input packet. */
   inputRedundancy: 12,
   nameLength: 24,
@@ -62,6 +68,10 @@ export type Timeouts = { [K in keyof typeof TIMEOUTS]: number };
 export const RATES = Object.freeze({
   control: { perSecond: 8, burst: 16 },
   input: { perSecond: 75, burst: 40 },
+  /** Rejoin attempts per session token (a hijack attempt needs the token;
+   * this bounds retries with it). Per-source limits need a network address,
+   * which the transport abstraction does not expose. */
+  rejoin: { perSecond: 1, burst: 5 },
   strikesToKick: 40,
 });
 

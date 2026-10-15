@@ -1,5 +1,5 @@
 // Authoritative online racing slice (WP50–WP54, masterplan §22). Runs one
-// in-memory race server and eight networked clients for 60 s of racing on a
+// in-memory race server and eight networked clients for 70 s of racing on a
 // simulated 100 ms RTT / 2% loss link (with jitter, duplication and
 // reordering), cuts one client's link mid-race and reconnects it with its
 // token, then verifies the archived record by headless re-simulation and
@@ -11,7 +11,9 @@ import { recordDigest, verifyRecord, type SessionRecord } from '../src/net/recor
 import { runOnlineSlice } from '../src/net/slice.ts';
 import { TARGET_LINK } from '../src/net/transport.ts';
 
-const RACE_SECONDS = Number(process.argv[2] ?? 60),
+// 70 s: the standing-start first lap takes 54-59 s depending on how the
+// pack sorts itself out, and the forged-lap check needs a completed lap.
+const RACE_SECONDS = Number(process.argv[2] ?? 70),
   CLIENTS = 8,
   started = performance.now();
 const { report, server } = runOnlineSlice({
@@ -57,6 +59,7 @@ const checks = {
   predictionCleanP95BelowHalfMetre: report.prediction.positionErrorCleanM.p95 < 0.5,
   downlinkBelow100Kbit: report.bandwidth.perClientDownWireKbit.max < 100,
   noRejectedInputs: report.inputs.rejected === 0,
+  noOversizeMessages: report.resilience.oversizeMessages === 0,
 };
 const output = {
   ...report,

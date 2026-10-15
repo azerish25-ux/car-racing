@@ -65,6 +65,26 @@ describe('local-car prediction and smoothing (WP50)', () => {
     expect(p.stats.snaps).toBe(1);
     expect(poseDistance(p.render(201), p.predictedAt(24) ?? far)).toBeLessThan(1e-9);
   });
+  it('blends identically whatever the local clock reads, negative included', () => {
+    const run = (t0: number) => {
+      const p = new LocalCarPredictor();
+      p.reconcile(circle(0), 0, steady, 12, t0);
+      p.render(t0);
+      p.render(t0 + 50);
+      p.reconcile({ ...circle(6), x: circle(6).x + 1 }, 6, steady, 18, t0 + 50);
+      const residual = [50, 100, 150, 400].map((dt) =>
+        poseDistance(p.render(t0 + dt), p.predictedAt(18) ?? circle(18)),
+      );
+      return { residual, frames: p.stats.visualStep.length };
+    };
+    const reference = run(0);
+    expect(reference.residual[3]).toBeLessThan(0.05);
+    for (const t0 of [-250_000, -1e6, -1, 250_000]) {
+      const r = run(t0);
+      expect(r.frames).toBe(reference.frames);
+      r.residual.forEach((d, i) => expect(d).toBeCloseTo(reference.residual[i], 9));
+    }
+  });
   it("contacts are the server's: a CONTACT flag only makes the blend faster", () => {
     const run = (flags: number) => {
       const p = new LocalCarPredictor();

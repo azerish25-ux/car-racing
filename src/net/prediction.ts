@@ -208,7 +208,9 @@ export class LocalCarPredictor {
   private rotOffset = new Float64Array(3);
   private contactUntil = -Infinity;
   private lastContactTick = -Infinity;
-  private lastRender = -1;
+  /** Local time of the last render or decay; NaN before the first (local
+   * clocks are arbitrary and may be negative). */
+  private lastRender = NaN;
   private lastAuth: { tick: number; state: CarNetState } | null = null;
   constructor(options: Partial<PredictorOptions> = {}) {
     this.options = { ...DEFAULT_PREDICTOR, ...options };
@@ -373,13 +375,13 @@ export class LocalCarPredictor {
       }
     }
   }
-  /** Pose to draw now: prediction plus the decaying correction offset. */
   /** Decay the smoothing offset up to `now`; returns how far it moved. */
   private decay(now: number) {
-    if (this.lastRender < 0 || now <= this.lastRender) {
-      this.lastRender = Math.max(this.lastRender, now);
+    if (Number.isNaN(this.lastRender)) {
+      this.lastRender = now;
       return 0;
     }
+    if (now <= this.lastRender) return 0;
     const dt = (now - this.lastRender) / 1000,
       tau =
         now < this.contactUntil
@@ -394,9 +396,10 @@ export class LocalCarPredictor {
     this.lastRender = now;
     return before * (1 - k);
   }
+  /** Pose to draw now: prediction plus the decaying correction offset. */
   render(now: number): Pose {
     const pose = this.pose(),
-      first = this.lastRender < 0,
+      first = Number.isNaN(this.lastRender),
       step = this.decay(now);
     if (!first) this.stats.visualStep.push(step);
     this.lastRender = now;

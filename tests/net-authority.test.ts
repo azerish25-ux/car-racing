@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_OPTIONS, controls, validateOptions } from '../src/simulation/config.ts';
 import { Simulation } from '../src/simulation/world.ts';
-import { AuthoritativeWorld, applyControls } from '../src/net/authority.ts';
+import { OVERTAKE } from '../src/simulation/drs.ts';
+import { AuthoritativeWorld, PIT_TOGGLE_MIN_TICKS, applyControls } from '../src/net/authority.ts';
 import { ShadowPilot } from '../src/net/bots.ts';
 import { quantizeControls } from '../src/net/input.ts';
 
@@ -55,6 +56,35 @@ describe('authoritative world (WP50 server simulation)', () => {
       a.cars[0].pitRequested,
       a.cars[0].nextCompound,
     ]);
+  });
+  it('an overtake request starts the boost; edges that cannot act and fast pit toggles are not journaled', () => {
+    const options = validateOptions({ ...DEFAULT_OPTIONS, mode: 'race', opponents: 0, seed: 314 });
+    const world = new AuthoritativeWorld(options),
+      car = world.sim.cars[0];
+    expect(car.definition.hybrid).toBe(true);
+    for (let t = 0; t < 10; t++) world.step();
+    world.setControls(0, { ...controls(), overtake: true }, true);
+    world.step();
+    expect(car.overtakeClock).toBeCloseTo(OVERTAKE.seconds - 1 / 120, 9);
+    // A modified client sends one-tick commands flipping every edge and the
+    // throttle each tick for 2 s: only real state changes reach the journal.
+    const before = world.journal.length;
+    for (let t = 0; t < 240; t++) {
+      world.setControls(
+        0,
+        { ...controls(), throttle: 1 - (t % 2), overtake: true, pit: true },
+        true,
+      );
+      world.step();
+    }
+    const added = world.journal.slice(before);
+    expect(added.filter((e) => e.kind === 'overtake')).toHaveLength(0);
+    expect(added.filter((e) => e.kind === 'pit')).toHaveLength(240 / PIT_TOGGLE_MIN_TICKS);
+    expect(added.filter((e) => e.kind === 'controls')).toHaveLength(240);
+    expect(added.length).toBeLessThan(240 * 1.1);
+    // The replay reproduces the boost and the toggles exactly.
+    const replayed = AuthoritativeWorld.replay(options, world.journal, world.tick);
+    expect(replayed.stateHash()).toBe(world.stateHash());
   });
   it('the shadow pilot leaves no trace in the world it reads', () => {
     const plain = new Simulation(OPTIONS);

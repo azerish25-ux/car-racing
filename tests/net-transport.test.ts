@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { controls } from '../src/simulation/config.ts';
+import { LIMITS } from '../src/net/constants.ts';
 import { EventLoop } from '../src/net/event-loop.ts';
 import { TickBudgetMonitor, TokenBucket, distribution } from '../src/net/guards.ts';
 import {
@@ -135,6 +136,42 @@ describe('input commands: server queue and client log', () => {
     p.accept([cmd(0, 99, 4)], 101);
     expect(p.stats.lateTicks).toBe(2);
     expect(p.take(101)?.first).toBe(false);
+  });
+  it('reports negative slack for a fully late command, so a short lead can grow', () => {
+    const q = new ServerInputQueue();
+    q.accept([cmd(0, 80)], 100);
+    expect(q.stats.late).toBe(1);
+    expect(q.takeSlack()).toBe(-20);
+    q.accept([cmd(1, 98, 4)], 100);
+    expect(q.takeSlack()).toBe(-2);
+  });
+  it('never remembers rejected commands: a far-away flood leaves the queue bounded', () => {
+    const q = new ServerInputQueue();
+    let seq = 5_000_000;
+    // 75 packets/s × 16 commands for 60 s, far beyond the sequence window and
+    // the lead window, with gaps so a contiguous walk could never absorb them.
+    for (let p = 0; p < 75 * 60; p++, seq += 17) {
+      const run = Array.from({ length: 16 }, (_, k) => cmd(seq + k, 0xfff00000 + k, 1));
+      expect(q.accept(run, 100)).toBe(16);
+    }
+    expect(q.stats.rejected).toBe(75 * 60 * 16);
+    expect(q.remembered).toBe(0);
+    // In the tick window but beyond the sequence window: rejected too.
+    expect(q.accept([cmd(LIMITS.seqWindow + 1, 120)], 100)).toBe(1);
+    expect(q.remembered).toBe(0);
+    // A legitimate stream with losses still flows, and dedup state stays
+    // within the window.
+    for (let i = 0; i < 2000; i++) {
+      if (i % 7 !== 3) q.accept([cmd(i, 100 + 2 * i)], 100 + 2 * i - 10);
+      expect(q.remembered).toBeLessThanOrEqual(LIMITS.seqWindow);
+      q.take(100 + 2 * i - 10);
+    }
+    expect(q.contiguousSeq).toBeGreaterThan(1980);
+    // A command beyond the lead window is not remembered: its resend counts.
+    const r = new ServerInputQueue();
+    expect(r.accept([cmd(0, 400)], 100)).toBe(1);
+    expect(r.accept([cmd(0, 400)], 200)).toBe(0);
+    expect(r.stats.commands).toBe(1);
   });
   it('client log resends only unacknowledged future commands and finds controls by tick', () => {
     const log = new ClientCommandLog();

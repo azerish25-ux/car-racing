@@ -162,6 +162,8 @@ export interface SliceReport {
     rateLimited: number;
     kicks: number;
     inputStarvations: number;
+    /** Control messages the server refused to send over the client's limit. */
+    oversizeMessages: number;
   };
   classification: {
     position: number;
@@ -483,6 +485,7 @@ export function runOnlineSlice(config: SliceConfig): SliceRun {
       rateLimited: server.stats.rateLimited,
       kicks: server.stats.kicks.length,
       inputStarvations: server.stats.starvations,
+      oversizeMessages: server.stats.oversizeMessages,
     },
     classification: (server.results?.classification ?? []).map((r) => ({
       position: r.position,

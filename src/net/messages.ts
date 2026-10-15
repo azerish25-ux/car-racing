@@ -68,6 +68,9 @@ export interface RaceResults {
   recordDigest: string;
   /** Legal-progress audit disagreements (RouteProgress vs lap counter). */
   progressDisputes: number[];
+  /** Every row's lapTimes is empty here: they were sent ahead in `lapTimes`
+   * messages because the whole classification would not fit one message. */
+  lapTimesSeparate?: boolean;
 }
 export type ServerControl =
   | { kind: 'welcome'; player: string; token: string; lobby: LobbyView }
@@ -84,10 +87,14 @@ export type ServerControl =
       serverTick: number;
       /** Server ms until `startTick` is simulated (countdown). */
       startInMs: number;
-      /** Present on a rejoin: every race event so far. */
+      /** Present (empty) on a rejoin while the race runs: resets the
+       * client's event history, which follows in `events` messages. */
       events?: RaceEvent[];
     }
   | { kind: 'events'; events: RaceEvent[] }
+  /** Lap times of `car` from lap index `from`, ahead of a `results` message
+   * with `lapTimesSeparate`. */
+  | { kind: 'lapTimes'; car: number; from: number; times: number[] }
   | { kind: 'results'; results: RaceResults }
   | { kind: 'kicked'; reason: string }
   | { kind: 'pong'; t: number; serverTick: number };
