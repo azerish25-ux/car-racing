@@ -8,6 +8,7 @@ import {
   type Track,
   type TrackPoint,
 } from '../track.ts';
+import { MATERIAL } from '../surface-material.ts';
 import { advanceWater, weatherKeyframes, WeatherTimeline, type WeatherKeyframe } from '../weather.ts';
 import { ROAD_FLAG } from './road-network.ts';
 import { BIOME, type Biome } from './terrain-field.ts';
@@ -15,8 +16,10 @@ import type { TerrainTileCache } from './terrain-tiles.ts';
 import type { OpenWorld } from './world.ts';
 
 /** Fine-grained ground classes of the festival region. Physics reads them
- * through the existing SURFACE codes (audio, dust and tyre contamination keep
- * working) plus grip and rolling resistance of their own. */
+ * through the shared ground-material ids (surface-material.ts: the circuit
+ * codes 0-5 plus dirt, mud, sand and snow) with grip and rolling resistance
+ * of their own; the tyre takes stiffness, fall-off and sinkage from the
+ * material. */
 export const WORLD_SURFACE = Object.freeze({
   ASPHALT: 0,
   MARKING: 1,
@@ -48,23 +51,25 @@ export const WORLD_SURFACE_NAMES: readonly string[] = Object.freeze([
   'water',
   'airfield grass',
 ]);
-/** Physics properties per world surface: SURFACE code, grip, rolling
- * resistance and how much standing water it holds relative to a road. */
+/** Physics properties per world surface: material id, grip, rolling
+ * resistance and how much standing water it holds relative to a road. A
+ * compacted dirt road or shoulder is dirt, not a gravel trap; ploughed and
+ * forest ground is dirt; beaches sand; the river and sea bed mud. */
 export const SURFACE_PHYSICS: Readonly<
   Record<WorldSurface, { code: number; grip: number; resistance: number; water: number }>
 > = Object.freeze({
   [WORLD_SURFACE.ASPHALT]: { code: SURFACE.ASPHALT, grip: 1, resistance: 0.015, water: 1 },
   [WORLD_SURFACE.MARKING]: { code: SURFACE.PAINT, grip: 0.93, resistance: 0.015, water: 1 },
-  [WORLD_SURFACE.DIRT_ROAD]: { code: SURFACE.GRAVEL, grip: 0.66, resistance: 0.045, water: 1.3 },
-  [WORLD_SURFACE.SHOULDER]: { code: SURFACE.GRAVEL, grip: 0.62, resistance: 0.06, water: 1.1 },
+  [WORLD_SURFACE.DIRT_ROAD]: { code: MATERIAL.DIRT, grip: 0.66, resistance: 0.045, water: 1.3 },
+  [WORLD_SURFACE.SHOULDER]: { code: MATERIAL.DIRT, grip: 0.62, resistance: 0.06, water: 1.1 },
   [WORLD_SURFACE.PAVEMENT]: { code: SURFACE.ASPHALT, grip: 0.86, resistance: 0.016, water: 0.9 },
   [WORLD_SURFACE.MEADOW]: { code: SURFACE.GRASS, grip: 0.56, resistance: 0.075, water: 0.7 },
-  [WORLD_SURFACE.FARMLAND]: { code: SURFACE.GRAVEL, grip: 0.52, resistance: 0.11, water: 1.2 },
-  [WORLD_SURFACE.FOREST]: { code: SURFACE.GRASS, grip: 0.54, resistance: 0.085, water: 0.6 },
-  [WORLD_SURFACE.SAND]: { code: SURFACE.GRAVEL, grip: 0.48, resistance: 0.15, water: 0.5 },
+  [WORLD_SURFACE.FARMLAND]: { code: MATERIAL.DIRT, grip: 0.52, resistance: 0.11, water: 1.2 },
+  [WORLD_SURFACE.FOREST]: { code: MATERIAL.DIRT, grip: 0.54, resistance: 0.085, water: 0.6 },
+  [WORLD_SURFACE.SAND]: { code: MATERIAL.SAND, grip: 0.48, resistance: 0.15, water: 0.5 },
   [WORLD_SURFACE.ROCK]: { code: SURFACE.ASPHALT, grip: 0.74, resistance: 0.022, water: 0.6 },
-  [WORLD_SURFACE.SNOW]: { code: SURFACE.GRASS, grip: 0.36, resistance: 0.07, water: 0.4 },
-  [WORLD_SURFACE.WATER]: { code: SURFACE.GRAVEL, grip: 0.3, resistance: 0.4, water: 3 },
+  [WORLD_SURFACE.SNOW]: { code: MATERIAL.SNOW, grip: 0.36, resistance: 0.07, water: 0.4 },
+  [WORLD_SURFACE.WATER]: { code: MATERIAL.MUD, grip: 0.3, resistance: 0.4, water: 3 },
   [WORLD_SURFACE.AIRFIELD]: { code: SURFACE.GRASS, grip: 0.58, resistance: 0.07, water: 0.7 },
 });
 const BIOME_SURFACE: Readonly<Record<Biome, WorldSurface>> = Object.freeze({

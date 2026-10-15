@@ -5,7 +5,7 @@
     "name": "Solvane Coast",
     "sizeKm": 8.192,
     "seed": 330270,
-    "buildMs": 555
+    "buildMs": 422
   },
   "network": {
     "totalKm": 70.92,
@@ -145,44 +145,44 @@
       "vehicle": "eh3",
       "lengthKm": 10.17,
       "finished": true,
-      "timeS": 226.8,
-      "averageKmh": 161,
+      "timeS": 215,
+      "averageKmh": 169.9,
       "topKmh": 311.8,
-      "legalKm": 10.14,
+      "legalKm": 10.15,
       "offRouteS": 0,
       "longestStallS": 0,
       "resetRequests": 0,
       "surfacesS": {
-        "road marking": 39.8,
-        "asphalt": 187.3
+        "road marking": 30.3,
+        "asphalt": 185
       },
       "tiles": {
         "resident": 24,
         "peakResident": 24,
         "budget": 24,
-        "generated": 66,
-        "evicted": 42,
+        "generated": 67,
+        "evicted": 43,
         "stalls": 0,
-        "prefetched": 66,
-        "generationMs": 393.52057599999534,
-        "worstGenerationMs": 14.393302999999833
+        "prefetched": 67,
+        "generationMs": 385.4422269999993,
+        "worstGenerationMs": 19.152874000000338
       },
-      "wallMs": 3978
+      "wallMs": 4030
     },
     {
       "route": "thornwood-rally",
       "vehicle": "eh3",
       "lengthKm": 5.14,
       "finished": true,
-      "timeS": 143,
-      "averageKmh": 128.2,
-      "topKmh": 134,
+      "timeS": 141.8,
+      "averageKmh": 129.3,
+      "topKmh": 133.9,
       "legalKm": 5.09,
       "offRouteS": 0,
       "longestStallS": 0,
       "resetRequests": 0,
       "surfacesS": {
-        "dirt road": 143.3
+        "dirt road": 142
       },
       "tiles": {
         "resident": 24,
@@ -192,10 +192,10 @@
         "evicted": 19,
         "stalls": 0,
         "prefetched": 43,
-        "generationMs": 193.72903900000438,
-        "worstGenerationMs": 10.210417000000234
+        "generationMs": 174.97425699999803,
+        "worstGenerationMs": 5.89885299999969
       },
-      "wallMs": 2095
+      "wallMs": 2245
     }
   ],
   "race": {
@@ -203,30 +203,30 @@
     "completed": true,
     "position": 4,
     "entrants": 4,
-    "timeS": 39.9,
+    "timeS": 39.8,
     "standings": [
       {
         "name": "SC-7 SUPERCAR",
         "vehicle": "sc7",
-        "timeS": 36.47
+        "timeS": 36.33
       },
       {
         "name": "EH-3 ELECTRIC HYPERCAR",
         "vehicle": "eh3",
-        "timeS": 37.5
+        "timeS": 37.4
       },
       {
         "name": "SC-7 SUPERCAR",
         "vehicle": "sc7",
-        "timeS": 39
+        "timeS": 38.87
       },
       {
         "name": "YOU",
         "vehicle": "eh3",
-        "timeS": 39.93
+        "timeS": 39.8
       }
     ]
   },
   "failures": [],
-  "wallMs": 10226
+  "wallMs": 10640
 }

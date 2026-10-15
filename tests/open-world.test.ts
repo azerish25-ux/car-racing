@@ -13,6 +13,7 @@ import { festivalDefaultVehicle, festivalVehicles } from '../src/simulation/open
 import { TerrainField } from '../src/simulation/open-world/terrain-field.ts';
 import { gridHeight, TerrainTileCache, TILE_RES, TILE_SIZE, TILE_STEP } from '../src/simulation/open-world/terrain-tiles.ts';
 import { openWorld } from '../src/simulation/open-world/world.ts';
+import { MATERIAL, surfaceMaterial } from '../src/simulation/surface-material.ts';
 
 const world = openWorld();
 const net = world.network;
@@ -130,13 +131,15 @@ describe('festival world surface (physics adapter)', () => {
     net.pointOnSegment(d, 0, p);
     track.sample(p.x, p.z, s, p.y + 0.5);
     expect(track.query.surface).toBe(WORLD_SURFACE.DIRT_ROAD);
-    expect(s.surface).toBe(SURFACE.GRAVEL);
+    // A compacted dirt road is the dirt ground material, not a gravel trap.
+    expect(s.surface).toBe(MATERIAL.DIRT);
+    expect(surfaceMaterial(s.surface).loose).toBe(true);
     expect(s.grip).toBeLessThan(0.75);
   });
   it('reads natural ground off the road: grass, sea water, town paving', () => {
     track.sample(2600, 600, s);
     expect(track.query.onRoad).toBe(false);
-    expect([SURFACE.GRASS, SURFACE.GRAVEL]).toContain(s.surface);
+    expect([MATERIAL.GRASS, MATERIAL.DIRT]).toContain(s.surface);
     expect(s.grip).toBeLessThan(0.7);
     expect(s.resistance).toBeGreaterThan(0.04);
     track.sample(0, -3600, s);

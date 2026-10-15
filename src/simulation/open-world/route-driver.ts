@@ -150,10 +150,10 @@ export class RouteDriver {
     else if (remaining < 260) desired = Math.min(desired, Math.sqrt(2 * 5 * remaining));
     // A finished car eases off.
     if (finished) desired = Math.min(desired, Math.max(0, c.speed - 4), 16);
-    // Running wide of the line: lift (more front grip, less lateral demand);
-    // far off the road: slow down while steering back.
+    // Far off the road: slow down while steering back. (Lifting whenever the
+    // car runs a little wide was tried: at speed the throttle chatter it
+    // causes excites a yaw weave, so line errors are left to the steering.)
     const off = Math.abs(this.lateral - offset);
-    if (off > 1.2) desired = Math.min(desired, c.speed * (1 - 0.05 * Math.min(4, off - 1.2)));
     if (off > 6) desired = Math.min(desired, Math.max(8, 30 - off));
     c.aiTarget = desired;
     c.aiOffset = offset;
