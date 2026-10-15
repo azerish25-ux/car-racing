@@ -3,6 +3,7 @@ import { MarshalControl, yellowFlag } from './marshal.ts';
 import { DrsControl } from './drs.ts';
 import { SC_PHASE, SafetyCarDirector } from './safety-car.ts';
 import { safePitRelease } from './pit-safety.ts';
+import { pitServicePlan } from './pit-service.ts';
 import { bikeIncident } from './bike-vehicle.ts';
 import { mod, Random } from '../core/math.ts';
 import { rulesetFor, type RulesetDefinition } from './events.ts';
@@ -483,13 +484,15 @@ export function updatePit(
     car.pitClock = 0;
   }
   if (car.pitPhase >= 2 && car.pitPhase <= 5) {
+    // The family's service plan (car jacks or motorcycle stands) times the stop.
+    const [lift, off, on, lower] = pitServicePlan(car.definition).ends;
     car.pitClock += dt;
-    if (car.pitClock < 0.8) car.pitPhase = 2;
-    else if (car.pitClock < 2.2) car.pitPhase = 3;
-    else if (car.pitClock < 3.5) {
+    if (car.pitClock < lift) car.pitPhase = 2;
+    else if (car.pitClock < off) car.pitPhase = 3;
+    else if (car.pitClock < on) {
       if (car.pitPhase === 3) car.replaceTires(car.nextCompound);
       car.pitPhase = 4;
-    } else if (car.pitClock < 5.2) {
+    } else if (car.pitClock < lower) {
       car.pitPhase = 5;
       car.repairFrontWing(dt);
     } else if (safePitRelease(car, traffic, track)) {

@@ -3,6 +3,7 @@ import { BIKE_STATES, Bike, EXPERT, NOVICE, type BikeAssists } from './bike.ts';
 import { bikeParameters, chassisLean, isBike, type BikeSpec } from './bike-definitions.ts';
 import { COMPOUNDS, DEFAULT_SETUP, type Assist, type Compound, type Setup } from './config.ts';
 import { MARSHAL } from './marshal.ts';
+import { bikeStandLift } from './pit-service.ts';
 import { B, BIKE_STRIDE } from './protocol.ts';
 import { peakGrip } from './tire.ts';
 import { SURFACE, surfaceSample, trackPoint, type Track } from './track.ts';
@@ -295,6 +296,9 @@ export class BikeVehicle extends Vehicle {
     this.updateSkid(dt);
     this.writeBody(track, dt);
     this.impact = Math.max(0, this.impact - dt * 2);
+    // Paddock-stand lift for the crew presentation, from the service clock;
+    // recorded in the snapshot (F.JACK_HEIGHT) and never fed to the dynamics.
+    this.jackHeight = this.inPit ? bikeStandLift(this.pitPhase, this.pitClock) : 0;
     if (b.position.y < this.groundY - 4) this.retired = true;
   }
   /** Fold collision-solver impulses and position corrections into the bike state. */

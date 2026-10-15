@@ -16,6 +16,7 @@ import {
 import { liveryScheme } from '../car-livery.ts';
 import { Rider, type RiderDetail } from '../rider.ts';
 import { installMudOn, type MudUniforms } from './mud.ts';
+import { forkLocalOffset } from '../bike-pit-service.ts';
 
 /** Off-road motorcycle geometry (m): a 27 degree rake, a long fork with
  * ~300 mm of travel between the axle and the lower clamp, and the rider's
@@ -500,6 +501,15 @@ export class DirtBikeModel {
     this.forkLower.position.y = -(FORK + this.sag.fork - v.fork);
     this.frontSpin.rotation.x = v.frontRotation;
     this.rearSpin.rotation.x = v.rearRotation;
+    // Pit service wheel exchange (see BikeModel.pose).
+    this.rearWheel.position.copy(this.rearAxle);
+    this.rearWheel.position.z -= v.rearWheelOut ?? 0;
+    forkLocalOffset(
+      this.scratch.set(0, -(v.frontWheelDrop ?? 0), 0),
+      RAKE,
+      v.steer,
+      this.frontSpin.position,
+    ).z += OFFSET;
     this.spring.scale.y = T.MathUtils.clamp(1 - (v.shock - this.sag.shock) * 2.2, 0.5, 1.2);
     this.sprung.updateMatrix();
     const p = this.scratch.copy(this.pivot).applyMatrix4(this.sprung.matrix);
