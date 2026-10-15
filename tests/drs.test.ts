@@ -13,6 +13,7 @@ import {
   DRS,
   DRS_STATE,
   DrsControl,
+  gridDrs,
   OVERTAKE,
   crossed,
   onArc,
@@ -20,6 +21,9 @@ import {
 } from '../src/simulation/drs.ts';
 import { H, R, RACE_BASE, carBase } from '../src/simulation/protocol.ts';
 import { Simulation } from '../src/simulation/world.ts';
+import { EVENTS } from '../src/simulation/events.ts';
+import { VEHICLES } from '../src/simulation/vehicles.ts';
+import { eventCard } from '../src/ui/event-cards.ts';
 import type { Vehicle } from '../src/simulation/vehicle.ts';
 import { DEFAULT_BINDINGS, validateBindings } from '../src/input/bindings.ts';
 import { defaultButtonActions, validateButtonActions } from '../src/input/button-actions.ts';
@@ -185,6 +189,57 @@ describe('DRS and ERS overtake in the simulation', () => {
     expect(flapAtOpen).toBeLessThan(0.1);
     for (let tick = 0; tick < 18; tick++) sim.step(1 / 120);
     if (car.drsOpen) expect(car.drsFlap).toBe(1);
+  });
+
+  it('keeps DRS off for a car built without the flap, on any grid and in the HUD', () => {
+    // Unit: the unfitted follower is within 1.0 s and asks for the flap.
+    const control = new DrsControl(AUREL_ZONE, LENGTH, 2, [2150, 2150 - 0.8 * 70], [true, false]);
+    const cars = [stub(2150), stub(2150 - 0.8 * 70)];
+    run(
+      control,
+      cars,
+      [70, 70],
+      5,
+      context({ leaderLaps: 3 }),
+      0,
+      () => (cars[1].drsRequest = true),
+    );
+    expect(control.eligibleZone[1]).toBe(-1);
+    expect(control.state[1]).toBe(DRS_STATE.OFF);
+    expect(cars[1].drsOpen).toBe(false);
+    // Simulation: the FE-4 practice benchmark that opens the APX-01's flap.
+    const sim = new Simulation({
+      ...DEFAULT_OPTIONS,
+      mode: 'practice',
+      opponents: 0,
+      vehicles: ['fe4'],
+    });
+    sim.autoPlayer = true;
+    const car = sim.cars[0];
+    expect(car.definition.drs).toBe(false);
+    car.place(sim.track, 2050, 0);
+    const frame = sim.makeFrame();
+    const r = carBase(0) + RACE_BASE;
+    let state = 0;
+    for (let tick = 0; tick < 20 * 120; tick++) {
+      sim.setInput({ ...controls(), drs: true });
+      sim.step(1 / 120);
+      sim.writeFrame(frame);
+      state = Math.max(state, frame[r + R.DRS]);
+    }
+    expect(sim.race.drs.enabled).toBe(true);
+    expect(sim.race.drsActive).toBe(false);
+    expect(state).toBe(DRS_STATE.OFF);
+    expect(frame[H.DRS_ENABLED]).toBe(0);
+    // Event cards and the setup line state DRS per grid.
+    const entry = EVENTS.find((e) => e.id === 'vellamar-entry-formula-sprint')!,
+      feeder = EVENTS.find((e) => e.id === 'aurel-feeder-formula-sprint')!;
+    expect(entry.ruleset).toBe(feeder.ruleset);
+    expect(eventCard(entry, 0)).toMatch(/DRS off/);
+    expect(eventCard(feeder, 0)).toMatch(/DRS on/);
+    expect(gridDrs(true, [VEHICLES.fe4, VEHICLES.fr3])).toBe(true);
+    expect(gridDrs(true, [VEHICLES.fe4])).toBe(false);
+    expect(gridDrs(false, [VEHICLES.fr3])).toBe(false);
   });
 
   it('gives a 4 s overtake boost once the battery allows it', () => {

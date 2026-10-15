@@ -5,14 +5,14 @@ import { combustion, KEYS } from './common.ts';
 /** Production-based GT racing cars (§10.1 GT family). The two top-class cars
  * share a performance window but differ in layout: a front-mid V8 with a
  * transaxle against a mid-engined V10 with a rearward weight bias. */
-const GT_LIMITS = {
+export const GT_LIMITS = {
   frontSpring: [90000, 165000],
   rearSpring: [90000, 175000],
   frontRide: [0.055, 0.1],
   rearRide: [0.06, 0.11],
 } as const;
 /** Slick-shod top GTs stop from 100 km/h at about 1.5-1.6 g (24-27 m). */
-const GT_BANDS = {
+export const GT_BANDS = {
   accel0to100: [3.0, 4.2],
   topSpeed: [265, 300],
   braking100Distance: [24, 36],

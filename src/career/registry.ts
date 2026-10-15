@@ -126,6 +126,7 @@ export type VenueKind = 'circuit' | 'dirt' | 'festival';
  * machines. Any other class is a circuit car by default. */
 const OFF_ROAD_CLASSES = new Set([
   'rally',
+  'historic-rally',
   'rallycross',
   'offroad',
   'off-road',
@@ -135,7 +136,9 @@ const OFF_ROAD_CLASSES = new Set([
   'dirt-bike',
   'enduro',
 ]);
-const ROAD_CLASSES = new Set(['road', 'supercar', 'electric-hypercar', 'road-car']);
+/** Road machines, two-wheeled ones included: a road-only motorcycle belongs
+ * to the festival, not to the circuit motorcycle ladder. */
+const ROAD_CLASSES = new Set(['road', 'supercar', 'electric-hypercar', 'road-car', 'road-bike']);
 const FAMILY_ALIASES: Readonly<Record<string, MachineFamily>> = Object.freeze({
   car: 'car',
   'circuit-car': 'car',
@@ -150,14 +153,14 @@ const FAMILY_ALIASES: Readonly<Record<string, MachineFamily>> = Object.freeze({
   festival: 'road',
 });
 /** Machine family from registry fields: an explicit `family` wins, then the
- * dynamics adapter (two-wheel), then the class. */
+ * loose-surface and road classes, then the dynamics adapter (two-wheel). */
 export function vehicleFamily(vehicle: CareerVehicle): MachineFamily {
   if (typeof vehicle.family === 'string' && Object.hasOwn(FAMILY_ALIASES, vehicle.family))
     return FAMILY_ALIASES[vehicle.family];
   const twoWheel = /bike|two-wheel|motorcycle/.test(vehicle.dynamicsKind);
   if (OFF_ROAD_CLASSES.has(vehicle.classId)) return 'off-road';
-  if (twoWheel) return 'bike';
   if (ROAD_CLASSES.has(vehicle.classId)) return 'road';
+  if (twoWheel) return 'bike';
   return 'car';
 }
 export function venueKind(venue: CareerVenue): VenueKind {

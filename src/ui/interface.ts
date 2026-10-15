@@ -50,6 +50,8 @@ import {
   type StartSlot,
 } from '../simulation/config.ts';
 import { rulesetFor, sessionIncompatibilities } from '../simulation/events.ts';
+import { gridDrs } from '../simulation/drs.ts';
+import { DEFAULT_VEHICLE_ID, VEHICLES } from '../simulation/vehicles.ts';
 import { F, H, W, WHEEL_BASE, WHEEL_STRIDE, WHEEL_NAMES, carBase } from '../simulation/protocol.ts';
 import { type Track } from '../simulation/track.ts';
 import { circuitDefinition, type CircuitId } from '../simulation/circuits.ts';
@@ -337,7 +339,9 @@ export class Interface {
       });
       const resolved = { ...options, ...machineOptions(options, select('vehicle')) };
       const rules = rulesetFor(resolved),
-        problems = sessionIncompatibilities(validateOptions(resolved));
+        problems = sessionIncompatibilities(validateOptions(resolved)),
+        grid = (resolved.vehicles ?? [DEFAULT_VEHICLE_ID]).map((id) => VEHICLES[id]),
+        drs = gridDrs(rules.drs, grid);
       if (select('mode') === 'festival') {
         this.get('sessionRules').textContent =
           'Festival: free roam in the Solvane region, events found by driving to them. Weather and assists apply; a road machine chosen in MACHINE is used, otherwise pick one in the festival menu.';
@@ -345,7 +349,7 @@ export class Interface {
       }
       this.get('sessionRules').textContent = problems.length
         ? `Unavailable: ${problems.join('; ')}.`
-        : `${rules.name}: ${rules.tires.mandatoryCompoundChange ? 'two dry compounds required' : 'no mandatory stop'} · DRS ${rules.drs ? 'on' : 'off'} · ${rules.points.length ? 'points scored' : 'no points'}.`;
+        : `${rules.name}: ${rules.tires.mandatoryCompoundChange ? 'two dry compounds required' : 'no mandatory stop'} · DRS ${drs ? 'on' : 'off'} · ${rules.points.length ? 'points scored' : 'no points'}.`;
     };
     for (const id of ['mode', 'vehicle', 'compound', 'opponents'])
       this.get(id).addEventListener('change', describeRules);

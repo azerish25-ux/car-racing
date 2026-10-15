@@ -18,6 +18,25 @@ const races: Partial<SessionOptions>[] = [
     seed: 2024,
     weather: 'rain',
   },
+  // Catalogue growth: the second prototype against the first, and the
+  // supersport and classic classes under their own single-class sprint.
+  {
+    circuit: 'vellamar',
+    vehicles: Array.from({ length: 8 }, (_, i) => (i % 2 ? 'gpr2' : 'gpr1')),
+    seed: 8624,
+  },
+  {
+    circuit: 'aurel',
+    vehicles: Array(8).fill('ss600'),
+    seed: 8725,
+    ruleset: 'motorcycle-class-sprint',
+  },
+  {
+    circuit: 'vellamar',
+    vehicles: Array(8).fill('cr750'),
+    seed: 8826,
+    ruleset: 'motorcycle-class-sprint',
+  },
 ];
 const failures: string[] = [];
 const results = races.map((race) => {

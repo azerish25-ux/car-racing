@@ -74,6 +74,15 @@ export function validateVehicleDefinition(def: VehicleDefinition): string[] {
     if (!inRange(ai[key], 0.1, 1)) e.push(`${at}: ai.${key} must be in 0.1-1`);
   if ((ai.lateralAero > 0 || ai.brakingAero > 0) !== ai.downforceReference > 0)
     e.push(`${at}: AI aero terms need a downforce reference (and vice versa)`);
+  if (ai.fanBase && !def.fan) e.push(`${at}: ai.fanBase without a fan-assisted floor`);
+  if (
+    ai.fanBase &&
+    !(
+      inRange(ai.fanBase.lateral, 0, ai.lateralBase - 0.1) &&
+      inRange(ai.fanBase.braking, 0, ai.brakingBase - 0.1)
+    )
+  )
+    e.push(`${at}: ai.fanBase must be a share of the base limits`);
   e.push(...validateCatalogueFields(def));
   return e;
 }
@@ -124,6 +133,15 @@ function validateCatalogueFields(def: VehicleDefinition): string[] {
       e.push(`${at}: engine friction out of range`);
     const peak = Math.max(...def.spec.torqueCurve.map((p) => p[1]));
     if (peak > engine.clutchCapacity * 1.6) e.push(`${at}: clutch capacity far below peak torque`);
+  }
+  if (def.fan) {
+    const fan = def.fan;
+    if (!inRange(fan.force, 0, 3 * def.spec.dryMass * 9.81))
+      e.push(`${at}: fan suction outside 0-3 g of the car's weight`);
+    if (!inRange(fan.sealHeight, 0, 0.3) || !inRange(fan.fade, 0.005, 0.5))
+      e.push(`${at}: fan seal height or fade out of range`);
+    if (!inRange(fan.z, def.wheelPositions[2][2], def.wheelPositions[0][2]))
+      e.push(`${at}: fan station must lie between the axles`);
   }
   if (def.restHeight !== undefined && !inRange(def.restHeight, 0.1, 2))
     e.push(`${at}: restHeight outside 0.1-2 m`);

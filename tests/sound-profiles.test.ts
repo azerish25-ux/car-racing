@@ -4,6 +4,7 @@ import { POWER_UNIT, newPowerUnitMix, powerUnitMix } from '../src/audio/power-un
 import {
   SOUND_PROFILES,
   engineCharacter,
+  explicitSoundFamily,
   frameCharacter,
   soundFamilyFor,
 } from '../src/audio/sound-profiles.ts';
@@ -76,5 +77,17 @@ describe('powertrain sound families (WP26)', () => {
     expect(soundFamilyFor(vehicleDefinition('gt10m'))).toBe('v10-na');
     expect(soundFamilyFor(vehicleDefinition('eh3'))).toBe('electric');
     expect(soundFamilyFor(vehicleDefinition('sk125'))).toBe('two-stroke-kart');
+  });
+  it('names a family for every registered machine instead of a class fallback', () => {
+    for (const definition of Object.values(VEHICLES))
+      expect(explicitSoundFamily(definition.id), definition.id).not.toBeNull();
+    // Catalogue growth: the powertrain decides the voice.
+    expect(soundFamilyFor(vehicleDefinition('xh3'))).toBe('fuel-cell');
+    expect(soundFamilyFor(vehicleDefinition('gb4'))).toBe('i5-turbo');
+    expect(soundFamilyFor(vehicleDefinition('sp71'))).toBe('flat12-na');
+    expect(soundFamilyFor(vehicleDefinition('cr750'))).toBe('two-stroke-bike');
+    expect(SOUND_PROFILES['i5-turbo'].firingsPerRev).toBe(2.5);
+    expect(SOUND_PROFILES['fuel-cell'].firingsPerRev).toBe(0);
+    expect(SOUND_PROFILES['fuel-cell'].motorGain).toBeGreaterThan(0);
   });
 });

@@ -34,4 +34,23 @@ describe('WP22 machine choice resolves to a valid or explained session', () => {
     expect(resolve('race', 'gpr1', 'intermediate').compound).toBe('wet');
     expect(sessionIncompatibilities(resolve('endurance', 'gpr1')).join()).toMatch(/not eligible/);
   });
+  it('races each further bike class under its own ruleset; the road bike only practises', () => {
+    expect(resolve('race', 'gpr2').ruleset).toBe('gp-motorcycle');
+    for (const machine of ['ss600', 'cr750']) {
+      const race = resolve('race', machine);
+      expect(race.ruleset).toBe('motorcycle-class-sprint');
+      expect(sessionIncompatibilities(race)).toEqual([]);
+    }
+    expect(sessionIncompatibilities(resolve('race', 'nr900')).join()).toMatch(/not eligible/);
+    expect(sessionIncompatibilities(resolve('practice', 'nr900'))).toEqual([]);
+    expect(sessionIncompatibilities(resolve('time-trial', 'nr900'))).toEqual([]);
+    // A supersport and a classic racer never share a single-class grid.
+    const mixed = validateOptions({
+      ...DEFAULT_OPTIONS,
+      opponents: 1,
+      ruleset: 'motorcycle-class-sprint',
+      vehicles: ['ss600', 'cr750'],
+    });
+    expect(sessionIncompatibilities(mixed).join()).toMatch(/single-class/);
+  });
 });

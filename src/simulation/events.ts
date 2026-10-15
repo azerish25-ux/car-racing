@@ -38,8 +38,16 @@ export interface RulesetDefinition {
 const DRY: readonly Compound[] = Object.freeze(['soft', 'medium', 'hard']);
 const ALL: readonly Compound[] = Object.freeze([...DRY, 'intermediate', 'wet']);
 const POINTS = Object.freeze([25, 18, 15, 12, 10, 8, 6, 4, 2, 1]);
-/** Motorcycle classes (WP36); cars and bikes never share a grid. */
+/** Motorcycle classes (WP36); cars and bikes never share a grid. The GP
+ * ruleset keeps its two classes; every bike class may practise, qualify and
+ * run a time trial, including the open-world road bike. */
 const BIKE_CLASSES: readonly VehicleClass[] = Object.freeze(['gp-bike', 'superbike'] as const);
+const ALL_BIKE_CLASSES: readonly VehicleClass[] = Object.freeze([
+  ...BIKE_CLASSES,
+  'supersport',
+  'classic-bike',
+  'road-bike',
+] as const);
 const base = {
   version: 1,
   tires: Object.freeze({ allowed: ALL, mandatoryCompoundChange: false, penaltySeconds: 0 }),
@@ -112,12 +120,28 @@ export const RULESETS: Readonly<Record<string, RulesetDefinition>> = Object.free
     points: Object.freeze([25, 20, 16, 13, 11, 10, 9, 8, 7, 6, 5, 4]),
     drs: false,
   }),
+  /** Single-class motorcycle sprints for the supersport and classic classes. */
+  'motorcycle-class-sprint': Object.freeze({
+    ...base,
+    id: 'motorcycle-class-sprint',
+    name: 'MOTORCYCLE CLASS SPRINT',
+    sessions: Object.freeze(['race'] as const),
+    allowedClasses: Object.freeze(['supersport', 'classic-bike'] as const),
+    tires: Object.freeze({
+      allowed: Object.freeze(['soft', 'medium', 'hard', 'wet'] as const),
+      mandatoryCompoundChange: false,
+      penaltySeconds: 0,
+    }),
+    points: Object.freeze([25, 20, 16, 13, 11, 10, 9, 8, 7, 6, 5, 4]),
+    drs: false,
+    singleClass: true,
+  }),
   'open-practice': Object.freeze({
     ...base,
     id: 'open-practice',
     name: 'PRACTICE',
     sessions: Object.freeze(['practice'] as const),
-    allowedClasses: Object.freeze([...ALL_CLASSES, ...BIKE_CLASSES]),
+    allowedClasses: Object.freeze([...ALL_CLASSES, ...ALL_BIKE_CLASSES]),
     points: Object.freeze([]),
   }),
   qualifying: Object.freeze({
@@ -125,7 +149,7 @@ export const RULESETS: Readonly<Record<string, RulesetDefinition>> = Object.free
     id: 'qualifying',
     name: 'QUALIFYING',
     sessions: Object.freeze(['qualifying'] as const),
-    allowedClasses: Object.freeze([...ALL_CLASSES, ...BIKE_CLASSES]),
+    allowedClasses: Object.freeze([...ALL_CLASSES, ...ALL_BIKE_CLASSES]),
     points: Object.freeze([]),
   }),
   'time-trial': Object.freeze({
@@ -133,7 +157,7 @@ export const RULESETS: Readonly<Record<string, RulesetDefinition>> = Object.free
     id: 'time-trial',
     name: 'TIME TRIAL',
     sessions: Object.freeze(['time-trial'] as const),
-    allowedClasses: Object.freeze([...ALL_CLASSES, ...BIKE_CLASSES]),
+    allowedClasses: Object.freeze([...ALL_CLASSES, ...ALL_BIKE_CLASSES]),
     points: Object.freeze([]),
     service: Object.freeze({ pitStops: true }),
   }),

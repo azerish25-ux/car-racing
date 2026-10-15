@@ -110,10 +110,16 @@ export function bikeParameters(def: VehicleDefinition, mass = def.spec.dryMass):
  * mass as the downforce reference. */
 export function bikeEnvelope(
   spec: Pick<BikeSpec, 'maxLean' | 'mu' | 'cgHeight' | 'cgToFront' | 'stoppieMargin' | 'drag'> &
-    Pick<BikeSpec, 'downforce' | 'downforceFront' | 'crownRadius' | 'riderOffsetMax'>,
+    Pick<BikeSpec, 'downforce' | 'downforceFront' | 'crownRadius' | 'riderOffsetMax'> &
+    Partial<Pick<BikeSpec, 'frontBrake' | 'rearBrake'>>,
   wheelbase: number,
   mass: number,
   topSpeed: number,
+  /** Margins for a machine the rider must treat more gently (absent: the
+   * road-racing defaults below). */
+  margins: Partial<
+    Pick<CapabilityEnvelope, 'lateralMargin' | 'slowLateralMargin' | 'brakingMargin'>
+  > = {},
 ): CapabilityEnvelope {
   const gain = (spec.riderOffsetMax * 0.25) / spec.cgHeight;
   const lean = Math.min(
@@ -121,7 +127,12 @@ export function bikeEnvelope(
     Math.atan(Math.max(0.2, 0.72 * spec.mu - gain)),
   );
   const lateralBase = G * Math.min(Math.tan(lean) + gain / Math.cos(lean), 0.8 * spec.mu);
-  const brakingBase = ((G * spec.cgToFront) / spec.cgHeight) * spec.stoppieMargin;
+  // Stoppie-limited, unless the brakes themselves cannot reach that (a
+  // classic machine's drum-era brakes).
+  const brakingBase = Math.min(
+    ((G * spec.cgToFront) / spec.cgHeight) * spec.stoppieMargin,
+    ((spec.frontBrake ?? Infinity) + (spec.rearBrake ?? 0)) / mass,
+  );
   const rearWing = spec.downforce * (1 - spec.downforceFront);
   const brakingAero =
     (spec.drag + (spec.stoppieMargin * rearWing * wheelbase) / spec.cgHeight) / mass;
@@ -130,9 +141,9 @@ export function bikeEnvelope(
     lateralAero: 0,
     brakingBase: Math.round(brakingBase * 100) / 100,
     brakingAero: Math.round(brakingAero * 1e6) / 1e6,
-    lateralMargin: 0.86,
-    slowLateralMargin: 0.8,
-    brakingMargin: 0.78,
+    lateralMargin: margins.lateralMargin ?? 0.86,
+    slowLateralMargin: margins.slowLateralMargin ?? 0.8,
+    brakingMargin: margins.brakingMargin ?? 0.78,
     topSpeed,
     referenceMu: 1.82,
     downforceReference: mass,
@@ -328,6 +339,299 @@ export const SBK_1000: VehicleDefinition = Object.freeze({
 export const BIKE_VEHICLES: Readonly<Record<string, VehicleDefinition>> = Object.freeze({
   gpr1: GP_R1,
   sbk1000: SBK_1000,
+});
+/** A road motorcycle definition from its bike block and power-unit sheet
+ * (the same layout as GP-R1 and SBK-1000 above). */
+function roadBike(sheet: {
+  id: string;
+  name: string;
+  classId: VehicleDefinition['classId'];
+  bike: BikeSpec;
+  machineMass: number;
+  wheelInertia: number;
+  inertia: readonly [number, number, number];
+  finalDrive: number;
+  gearRatios: readonly number[];
+  idleRPM: number;
+  shiftRPM: number;
+  downshiftRPM: number;
+  limiterRPM: number;
+  powerW: number;
+  torqueCurve: readonly (readonly [number, number])[];
+  halfExtents: readonly [number, number, number];
+  topSpeed: number;
+  aiMargins?: Parameters<typeof bikeEnvelope>[4];
+}): VehicleDefinition {
+  const b = sheet.bike,
+    wheelbase = b.cgToFront + b.cgToRear,
+    mass = sheet.machineMass + b.riderMass;
+  return Object.freeze({
+    id: sheet.id,
+    version: 1,
+    name: sheet.name,
+    classId: sheet.classId,
+    dynamicsKind: 'bike' as const,
+    spec: Object.freeze({
+      dryMass: mass,
+      wheelRadius: b.rearWheelRadius,
+      wheelInertia: sheet.wheelInertia,
+      wheelbase,
+      track: 0,
+      inertia: Object.freeze([...sheet.inertia] as const),
+      restLength: 0.3,
+      linkCentreHeight: 0.3,
+      travel: b.forkTravel,
+      maxSteer: b.maxSteer,
+      finalDrive: sheet.finalDrive,
+      gearRatios: Object.freeze([...sheet.gearRatios]),
+      idleRPM: sheet.idleRPM,
+      shiftRPM: sheet.shiftRPM,
+      downshiftRPM: sheet.downshiftRPM,
+      limiterRPM: sheet.limiterRPM,
+      maxBatteryJ: 0,
+      motorPowerW: sheet.powerW,
+      regenPowerW: 0,
+      brakeTorque: b.frontBrake * b.frontWheelRadius,
+      airDensity: 1.225,
+      torqueCurve: Object.freeze(
+        sheet.torqueCurve.map((p) => Object.freeze([p[0], p[1]] as const)),
+      ),
+    }),
+    wheelPositions: wheels(b),
+    drivetrain: 'rwd' as const,
+    aero: Object.freeze({ downforce: 0, drag: 1, frontZ: 0.55, rearZ: -0.55 }),
+    halfExtents: Object.freeze([...sheet.halfExtents] as const),
+    stations: bikeStations,
+    tireGrip: 1,
+    hybrid: false,
+    drs: false,
+    setupKeys: Object.freeze(['brakeBias'] as const),
+    ai: bikeEnvelope(b, wheelbase, mass + b.fuel, sheet.topSpeed, sheet.aiMargins),
+    bike: b,
+  });
+}
+/** A second prototype-class bike: an inline-four "screamer" with a ducted,
+ * ground-effect lower fairing and box wings instead of GP-R1's V4 and
+ * stacked wings. The trade against GP-R1: its mass sits further back, so it
+ * stands on its nose later and brakes shorter but lifts the front sooner;
+ * with the weaker bottom end and the draggier fairing it gives away launch
+ * and top speed. Generic design. */
+export const GP_R2: VehicleDefinition = roadBike({
+  id: 'gpr2',
+  name: 'GP-R2 PROTOTYPE',
+  classId: 'gp-bike',
+  bike: Object.freeze({
+    ...GP_BIKE,
+    cgHeight: 0.61,
+    cgToFront: 0.72,
+    cgToRear: 0.73,
+    maxLean: 1.13,
+    frontBrake: 7700,
+    drag: 0.25,
+    tuckDrag: 0.09,
+    downforce: 0.062,
+    downforceFront: 0.7,
+    launchRPM: 9000,
+    wheelieLimit: 0.09,
+  }),
+  machineMass: 157,
+  wheelInertia: 0.9,
+  inertia: [61, 54, 24],
+  finalDrive: 2.6,
+  gearRatios: [0, 0, 4.6, 3.8, 3.2, 2.82, 2.53, 2.34],
+  idleRPM: 4300,
+  shiftRPM: 18000,
+  downshiftRPM: 11800,
+  limiterRPM: 18500,
+  powerW: 216000,
+  torqueCurve: [
+    [4000, 46],
+    [8000, 76],
+    [11000, 98],
+    [14000, 116],
+    [16500, 124],
+    [17800, 117],
+    [18500, 100],
+  ],
+  halfExtents: [0.37, 0.56, 1.02],
+  topSpeed: 96,
+});
+/** An original 600 cc four-cylinder supersport: about 95 kW at 14 500 rpm,
+ * 175 kg, road-legal racing tyres, quickshifter six-speed. Generic design. */
+export const SS_600: VehicleDefinition = roadBike({
+  id: 'ss600',
+  name: 'SS-600 SUPERSPORT',
+  classId: 'supersport',
+  bike: Object.freeze({
+    ...SUPERBIKE,
+    fuel: 13,
+    cgHeight: 0.6,
+    cgToFront: 0.66,
+    cgToRear: 0.71,
+    frontWheelRadius: 0.3,
+    rearWheelRadius: 0.315,
+    crownRadius: 0.08,
+    steerRate: 2.3,
+    maxLean: 1.05,
+    mu: 1.55,
+    frontBrake: 6200,
+    rearBrake: 1500,
+    drag: 0.215,
+    tuckDrag: 0.09,
+    launchRPM: 9000,
+    wheelieLimit: 0.12,
+    forkRate: 26000,
+    shockRate: 32000,
+    crashEnergy: 2600,
+  }),
+  machineMass: 175,
+  wheelInertia: 0.8,
+  inertia: [60, 52, 23],
+  finalDrive: 2.85,
+  gearRatios: [0, 0, 5.2, 4.1, 3.45, 3.0, 2.7, 2.48],
+  idleRPM: 1800,
+  shiftRPM: 15600,
+  downshiftRPM: 10000,
+  limiterRPM: 16000,
+  powerW: 95000,
+  torqueCurve: [
+    [4000, 30],
+    [8000, 46],
+    [11000, 58],
+    [13000, 63],
+    [14500, 62.5],
+    [15500, 57],
+    [16000, 52],
+  ],
+  halfExtents: [0.35, 0.56, 1.0],
+  topSpeed: 74,
+});
+/** An original 890 cc three-cylinder naked roadster for the open world:
+ * about 88 kW, upright riding position, no fairing, road tyres. Generic. */
+export const NR_900: VehicleDefinition = roadBike({
+  id: 'nr900',
+  name: 'NR-900 NAKED ROADSTER',
+  classId: 'road-bike',
+  bike: Object.freeze({
+    ...SUPERBIKE,
+    riderMass: 75,
+    fuel: 11,
+    cgHeight: 0.66,
+    cgToFront: 0.68,
+    cgToRear: 0.75,
+    frontWheelRadius: 0.3,
+    rearWheelRadius: 0.315,
+    crownRadius: 0.085,
+    maxSteer: 0.62,
+    steerRate: 2.6,
+    maxLean: 0.96,
+    mu: 1.3,
+    frontBrake: 5600,
+    rearBrake: 1500,
+    drag: 0.3,
+    tuckDrag: 0.04,
+    rolling: 0.017,
+    riderOffsetMax: 0.2,
+    drivelineEfficiency: 0.9,
+    shiftCut: 0.04,
+    launchRPM: 6500,
+    wheelieLimit: 0.14,
+    stoppieMargin: 0.88,
+    forkTravel: 0.13,
+    forkRate: 22000,
+    shockTravel: 0.13,
+    shockRate: 28000,
+    crashEnergy: 2400,
+  }),
+  machineMass: 182,
+  wheelInertia: 0.85,
+  inertia: [66, 58, 26],
+  finalDrive: 2.9,
+  gearRatios: [0, 0, 4.4, 3.4, 2.8, 2.4, 2.15, 1.97],
+  idleRPM: 1300,
+  shiftRPM: 10600,
+  downshiftRPM: 6000,
+  limiterRPM: 11000,
+  powerW: 88000,
+  torqueCurve: [
+    [2000, 55],
+    [4000, 78],
+    [7000, 93],
+    [9000, 88],
+    [10000, 84],
+    [10500, 76],
+    [11000, 68],
+  ],
+  halfExtents: [0.42, 0.58, 1.02],
+  topSpeed: 62,
+});
+/** An original 1970s-style 750 cc two-stroke triple road racer: about 75 kW
+ * in a narrow power band, twin-shock frame, drum-era geometry with a single
+ * front disc, narrow treaded racing tyres, round-nosed fairing. Generic. */
+export const CR_750: VehicleDefinition = roadBike({
+  id: 'cr750',
+  name: 'CR-750 CLASSIC RACER',
+  classId: 'classic-bike',
+  bike: Object.freeze({
+    ...SUPERBIKE,
+    fuel: 18,
+    cgHeight: 0.58,
+    cgToFront: 0.7,
+    cgToRear: 0.72,
+    frontWheelRadius: 0.31,
+    rearWheelRadius: 0.315,
+    crownRadius: 0.065,
+    steerRate: 2.0,
+    maxLean: 0.9,
+    mu: 1.25,
+    // Single front disc and a rear drum: brake-limited, not stoppie-limited.
+    frontBrake: 1700,
+    rearBrake: 650,
+    drag: 0.24,
+    tuckDrag: 0.1,
+    rolling: 0.018,
+    riderOffsetMax: 0.2,
+    drivelineEfficiency: 0.9,
+    shiftCut: 0.09,
+    launchRPM: 7500,
+    wheelieLimit: 0.15,
+    stoppieMargin: 0.86,
+    forkRate: 18000,
+    shockTravel: 0.09,
+    shockRate: 26000,
+    crashEnergy: 2200,
+  }),
+  machineMass: 160,
+  wheelInertia: 0.8,
+  inertia: [58, 50, 22],
+  finalDrive: 2.4,
+  gearRatios: [0, 0, 3.4, 2.75, 2.35, 2.1, 1.94],
+  idleRPM: 1500,
+  shiftRPM: 9600,
+  downshiftRPM: 6800,
+  limiterRPM: 10000,
+  powerW: 75000,
+  torqueCurve: [
+    [4000, 45],
+    [6000, 62],
+    [7500, 76],
+    [8500, 80],
+    [9000, 79],
+    [9500, 70],
+    [10000, 58],
+  ],
+  halfExtents: [0.34, 0.55, 1.0],
+  topSpeed: 66,
+  // Narrow tyres and drum-era brakes: the rider brakes earlier and leans less.
+  aiMargins: { lateralMargin: 0.8, slowLateralMargin: 0.74, brakingMargin: 0.66 },
+});
+/** Bikes registered after the car catalogue (vehicles.ts appends them, so
+ * existing snapshot indices are unchanged). Append only. */
+export const BIKE_ADDITIONS: Readonly<Record<string, VehicleDefinition>> = Object.freeze({
+  gpr2: GP_R2,
+  ss600: SS_600,
+  nr900: NR_900,
+  cr750: CR_750,
 });
 /** Content contract for the bike family (WP14 style: unit-checked, each
  * failure names what and where). Four-wheel rules (track, four distinct hubs,

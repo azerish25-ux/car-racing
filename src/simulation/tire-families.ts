@@ -12,7 +12,8 @@ export type TireFamilyId =
   | 'gravel'
   | 'all-terrain'
   | 'kart'
-  | 'historic';
+  | 'historic'
+  | 'historic-slick';
 export interface TireFamily {
   id: TireFamilyId;
   name: string;
@@ -45,5 +46,8 @@ export const TIRE_FAMILIES: Readonly<Record<TireFamilyId, TireFamily>> = Object.
   kart: family('kart', 'Kart slick', [0.85, 1.1], 0),
   /** Narrow 1960s cross-ply racing tyre. */
   historic: family('historic', 'Historic cross-ply', [0.5, 0.7], 0.05),
+  /** 1970s-80s racing slick: wide bias-ply or early radial construction, far
+   * more grip than a cross-ply but less than a modern slick. */
+  'historic-slick': family('historic-slick', 'Historic slick', [0.68, 0.9], 0),
 });
 export const TIRE_FAMILY_IDS = Object.freeze(Object.keys(TIRE_FAMILIES) as TireFamilyId[]);

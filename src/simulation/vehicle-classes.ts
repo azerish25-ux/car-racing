@@ -18,6 +18,7 @@ export type VehicleFamily =
   | 'kart'
   | 'road'
   | 'motorcycle'
+  | 'experimental'
   | 'other';
 export interface VehicleClassInfo {
   name: string;
@@ -70,6 +71,64 @@ export const VEHICLE_CLASSES: Readonly<Partial<Record<VehicleClass, VehicleClass
       raceRuleset: 'gp-motorcycle',
     },
     superbike: { name: 'Superbike', family: 'motorcycle', order: 15, raceRuleset: 'gp-motorcycle' },
+    // Catalogue growth: fractional orders slot each new class beside its
+    // family without renumbering the classes above.
+    'formula-feeder': {
+      name: 'Feeder formula',
+      family: 'formula',
+      order: 1.3,
+      raceRuleset: 'feeder-formula-sprint',
+    },
+    'formula-entry': {
+      name: 'Entry formula',
+      family: 'formula',
+      order: 1.6,
+      raceRuleset: 'feeder-formula-sprint',
+    },
+    'historic-aero': {
+      name: 'Historic formula · 1970s',
+      family: 'historic',
+      order: 2.3,
+      raceRuleset: 'heritage-sprint',
+    },
+    'historic-turbo': {
+      name: 'Historic formula · 1980s turbo',
+      family: 'historic',
+      order: 2.6,
+      raceRuleset: 'heritage-sprint',
+    },
+    'historic-prototype': {
+      name: 'Historic sports prototype',
+      family: 'historic',
+      order: 4.5,
+      raceRuleset: 'heritage-sprint',
+    },
+    vintage: { name: 'Vintage club', family: 'club', order: 8.5, raceRuleset: 'heritage-sprint' },
+    'historic-rally': {
+      name: 'Historic rally',
+      family: 'rally',
+      order: 9.5,
+      raceRuleset: 'historic-rally-heat',
+    },
+    experimental: {
+      name: 'Experimental',
+      family: 'experimental',
+      order: 12.5,
+      raceRuleset: 'unlimited-showcase',
+    },
+    supersport: {
+      name: 'Supersport',
+      family: 'motorcycle',
+      order: 15.3,
+      raceRuleset: 'motorcycle-class-sprint',
+    },
+    'classic-bike': {
+      name: 'Classic motorcycle',
+      family: 'motorcycle',
+      order: 15.6,
+      raceRuleset: 'motorcycle-class-sprint',
+    },
+    'road-bike': { name: 'Road motorcycle (open-world)', family: 'motorcycle', order: 15.8 },
   });
 const OTHER: VehicleClassInfo = Object.freeze({ name: 'Other', family: 'other', order: 99 });
 export function classInfo(classId: string): VehicleClassInfo {
