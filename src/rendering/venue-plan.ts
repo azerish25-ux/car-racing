@@ -1,4 +1,5 @@
 import type { Track } from '../simulation/track.ts';
+import { catalogueVenuePlan } from './venue-kit/plan.ts';
 
 /** Per-circuit authored venue content. Every site is expressed in the
  * circuit's own lap distance and side (+1 = right of travel, the pit side), so
@@ -138,6 +139,7 @@ export const VELLAMAR_VENUE: VenuePlan = Object.freeze({
 } as VenuePlan);
 
 export function venuePlan(track: Track): VenuePlan {
+  if (track.circuit.catalogue) return catalogueVenuePlan(track);
   return track.circuit.id === 'vellamar' ? VELLAMAR_VENUE : AUREL_VENUE;
 }
 

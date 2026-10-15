@@ -1,0 +1,1662 @@
+{
+  "description": "Seeded AI races on every circuit-catalogue layout (WP29/WP30). Production simulation, AI and race control; no assists beyond the default sport setting. Lap times are AI pace, not reference lap records.",
+  "generatedBy": "npm run test:catalogue-races",
+  "sources": {
+    "src/simulation/circuits.ts": "8516281c4f5cc8e0cb0f71bb783041835facd1975588823734e81dc06f05f9b2",
+    "src/simulation/track.ts": "1b129b4054333000029abd1455a25c2c845f50c20d4d079a185e6141c045c0ed",
+    "src/simulation/ai.ts": "48303a386ee1e4cfb671368f072ad77064447989437ac1f0d0f3f3ee022f58e4",
+    "src/simulation/circuit-catalogue/builder.ts": "0caca0292389476ed97e0e1eb39f121da6b73ec2fc19eb4d42e7e72346882a11",
+    "src/simulation/circuit-catalogue/real-world.ts": "da7e0212414a8aca4ef2e7ad6217062699d56361116e960a7b15f21823999d78",
+    "src/simulation/circuit-catalogue/unconventional.ts": "a6d5b3b91b0faf02d0b7ac0d38fc719649ac8cb6526465621d6372ae2f5439c5"
+  },
+  "criteria": {
+    "everyCarCompletesLaps": 2,
+    "stuckSecondsAtMost": 8,
+    "bestLapAverageKmh": [
+      90,
+      320
+    ]
+  },
+  "reports": [
+    {
+      "id": "parco-reale",
+      "name": "PARCO REALE / AUTODROMO",
+      "group": "real-world",
+      "lengthM": 5793,
+      "referenceLengthM": 5793,
+      "laps": 2,
+      "cars": 6,
+      "seed": 29030,
+      "passed": true,
+      "failures": [],
+      "bestLapS": 97.12595671771702,
+      "slowestBestLapS": 104.71442894534363,
+      "bestLapAverageKmh": "214.7",
+      "raceTimeS": 217.07,
+      "maximumSpeedKmh": 298.3,
+      "maximumImpact": 0,
+      "airborneCarSeconds": 0.28,
+      "wallSeconds": 24.6,
+      "classification": [
+        {
+          "id": 0,
+          "laps": 2,
+          "best": 97.12595671771702,
+          "finishTime": 198.49677981963873,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 1,
+          "laps": 2,
+          "best": 97.91000942709684,
+          "finishTime": 202.51122483864256,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 2,
+          "laps": 2,
+          "best": 99.40151608878462,
+          "finishTime": 206.26651793317853,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 3,
+          "laps": 2,
+          "best": 101.2618319712902,
+          "finishTime": 209.86316968834328,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 5,
+          "laps": 2,
+          "best": 103.00057708143461,
+          "finishTime": 213.532493780926,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 4,
+          "laps": 2,
+          "best": 104.71442894534363,
+          "finishTime": 217.06035570039836,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        }
+      ]
+    },
+    {
+      "id": "ardennes",
+      "name": "ARDENNES / FOREST CIRCUIT",
+      "group": "real-world",
+      "lengthM": 7004,
+      "referenceLengthM": 7004,
+      "laps": 2,
+      "cars": 6,
+      "seed": 29030,
+      "passed": true,
+      "failures": [],
+      "bestLapS": 135.789956240215,
+      "slowestBestLapS": 141.94451717145475,
+      "bestLapAverageKmh": "185.7",
+      "raceTimeS": 296.66,
+      "maximumSpeedKmh": 299.4,
+      "maximumImpact": 0,
+      "airborneCarSeconds": 0,
+      "wallSeconds": 33.9,
+      "classification": [
+        {
+          "id": 0,
+          "laps": 2,
+          "best": 135.789956240215,
+          "finishTime": 274.4320525563695,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 1,
+          "laps": 2,
+          "best": 137.02759859582488,
+          "finishTime": 279.951261340525,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 3,
+          "laps": 2,
+          "best": 137.94466331349912,
+          "finishTime": 284.3012419095338,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 2,
+          "laps": 2,
+          "best": 139.1013704370869,
+          "finishTime": 288.7151344821478,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 4,
+          "laps": 2,
+          "best": 140.57089441657448,
+          "finishTime": 293.124741567416,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 5,
+          "laps": 2,
+          "best": 141.94451717145475,
+          "finishTime": 296.6541334670028,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        }
+      ]
+    },
+    {
+      "id": "northfield",
+      "name": "NORTHFIELD / AIRFIELD GP",
+      "group": "real-world",
+      "lengthM": 5891,
+      "referenceLengthM": 5891,
+      "laps": 2,
+      "cars": 6,
+      "seed": 29030,
+      "passed": true,
+      "failures": [],
+      "bestLapS": 111.60951687117308,
+      "slowestBestLapS": 117.65774349146821,
+      "bestLapAverageKmh": "190.0",
+      "raceTimeS": 246.6,
+      "maximumSpeedKmh": 295.4,
+      "maximumImpact": 0,
+      "airborneCarSeconds": 0.17,
+      "wallSeconds": 28.1,
+      "classification": [
+        {
+          "id": 0,
+          "laps": 2,
+          "best": 111.60951687117308,
+          "finishTime": 226.8705101254665,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 1,
+          "laps": 2,
+          "best": 112.30756419909845,
+          "finishTime": 231.33648514230373,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 2,
+          "laps": 2,
+          "best": 113.16560023092995,
+          "finishTime": 235.31053460787598,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 3,
+          "laps": 2,
+          "best": 114.66799557644582,
+          "finishTime": 239.12960203256472,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 4,
+          "laps": 2,
+          "best": 115.84808026686316,
+          "finishTime": 243.0354685306065,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 5,
+          "laps": 2,
+          "best": 117.65774349146821,
+          "finishTime": 246.5991546975924,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        }
+      ]
+    },
+    {
+      "id": "northfield-national",
+      "name": "NORTHFIELD / CLASSIC",
+      "group": "real-world",
+      "lengthM": 5141,
+      "referenceLengthM": 5141,
+      "laps": 2,
+      "cars": 6,
+      "seed": 29030,
+      "passed": true,
+      "failures": [],
+      "bestLapS": 93.97183654512841,
+      "slowestBestLapS": 100.37124824658802,
+      "bestLapAverageKmh": "196.9",
+      "raceTimeS": 209.92,
+      "maximumSpeedKmh": 299.7,
+      "maximumImpact": 0,
+      "airborneCarSeconds": 0.34,
+      "wallSeconds": 22.5,
+      "classification": [
+        {
+          "id": 0,
+          "laps": 2,
+          "best": 93.97183654512841,
+          "finishTime": 191.91449884609034,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 1,
+          "laps": 2,
+          "best": 94.91912146637658,
+          "finishTime": 196.33993120030235,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 2,
+          "laps": 2,
+          "best": 96.35818764588986,
+          "finishTime": 200.0668191635995,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 3,
+          "laps": 2,
+          "best": 97.9032747903453,
+          "finishTime": 203.49285298197782,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 4,
+          "laps": 2,
+          "best": 98.91495306093796,
+          "finishTime": 207.10611335545158,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 5,
+          "laps": 2,
+          "best": 100.37124824658802,
+          "finishTime": 209.9153195722377,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        }
+      ]
+    },
+    {
+      "id": "kansai",
+      "name": "KANSAI / FIGURE-EIGHT",
+      "group": "real-world",
+      "lengthM": 5807,
+      "referenceLengthM": 5807,
+      "laps": 2,
+      "cars": 6,
+      "seed": 29030,
+      "passed": true,
+      "failures": [],
+      "bestLapS": 109.28720069469175,
+      "slowestBestLapS": 116.51283540315727,
+      "bestLapAverageKmh": "191.3",
+      "raceTimeS": 244.5,
+      "maximumSpeedKmh": 288.3,
+      "maximumImpact": 0,
+      "airborneCarSeconds": 0.07,
+      "wallSeconds": 26.5,
+      "classification": [
+        {
+          "id": 0,
+          "laps": 2,
+          "best": 109.28720069469175,
+          "finishTime": 222.6304847596857,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 1,
+          "laps": 2,
+          "best": 110.20306330073223,
+          "finishTime": 228.0531475024727,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 2,
+          "laps": 2,
+          "best": 111.74627693877682,
+          "finishTime": 232.43493424809458,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 3,
+          "laps": 2,
+          "best": 113.32148821780848,
+          "finishTime": 236.5137142867307,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 4,
+          "laps": 2,
+          "best": 114.74281789506273,
+          "finishTime": 240.8349685785756,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 5,
+          "laps": 2,
+          "best": 116.51283540315727,
+          "finishTime": 244.49579580788634,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        }
+      ]
+    },
+    {
+      "id": "kansai-east",
+      "name": "KANSAI / EAST COURSE",
+      "group": "real-world",
+      "lengthM": 2243,
+      "referenceLengthM": 2243,
+      "laps": 2,
+      "cars": 6,
+      "seed": 29030,
+      "passed": true,
+      "failures": [],
+      "bestLapS": 43.64645727131465,
+      "slowestBestLapS": 48.47299224786917,
+      "bestLapAverageKmh": "185.0",
+      "raceTimeS": 103.9,
+      "maximumSpeedKmh": 285.5,
+      "maximumImpact": 0,
+      "airborneCarSeconds": 0,
+      "wallSeconds": 14.6,
+      "classification": [
+        {
+          "id": 0,
+          "laps": 2,
+          "best": 43.64645727131465,
+          "finishTime": 91.65749111088284,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 1,
+          "laps": 2,
+          "best": 45.375771013326144,
+          "finishTime": 95.51304214795454,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 2,
+          "laps": 2,
+          "best": 46.51261127713743,
+          "finishTime": 98.09830855963207,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 3,
+          "laps": 2,
+          "best": 47.24180796323504,
+          "finishTime": 100.057889379801,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 4,
+          "laps": 2,
+          "best": 47.94101843355666,
+          "finishTime": 102.23774556661418,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 5,
+          "laps": 2,
+          "best": 48.47299224786917,
+          "finishTime": 103.89606247075042,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        }
+      ]
+    },
+    {
+      "id": "riviera",
+      "name": "RIVIERA / HARBOUR STREETS",
+      "group": "real-world",
+      "lengthM": 3337,
+      "referenceLengthM": 3337,
+      "laps": 2,
+      "cars": 6,
+      "seed": 29030,
+      "passed": true,
+      "failures": [],
+      "bestLapS": 91.1002980910239,
+      "slowestBestLapS": 97.908306307961,
+      "bestLapAverageKmh": "131.9",
+      "raceTimeS": 206.95,
+      "maximumSpeedKmh": 287.5,
+      "maximumImpact": 0.01,
+      "airborneCarSeconds": 0,
+      "wallSeconds": 30.1,
+      "classification": [
+        {
+          "id": 0,
+          "laps": 2,
+          "best": 91.1002980910239,
+          "finishTime": 186.1231771261033,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 1,
+          "laps": 2,
+          "best": 92.03627577550083,
+          "finishTime": 191.12042169128722,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 3,
+          "laps": 2,
+          "best": 93.37186271866216,
+          "finishTime": 195.33885195481793,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 2,
+          "laps": 2,
+          "best": 94.90890408811717,
+          "finishTime": 199.42511369802213,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 5,
+          "laps": 2,
+          "best": 96.50303519506794,
+          "finishTime": 203.3936149609909,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 4,
+          "laps": 2,
+          "best": 97.908306307961,
+          "finishTime": 206.9503467076256,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        }
+      ]
+    },
+    {
+      "id": "texas-hill",
+      "name": "TEXAS HILL / COUNTRY CIRCUIT",
+      "group": "real-world",
+      "lengthM": 5513,
+      "referenceLengthM": 5513,
+      "laps": 2,
+      "cars": 6,
+      "seed": 29030,
+      "passed": true,
+      "failures": [],
+      "bestLapS": 115.91638850342048,
+      "slowestBestLapS": 123.19038083940657,
+      "bestLapAverageKmh": "171.2",
+      "raceTimeS": 258.92,
+      "maximumSpeedKmh": 305.5,
+      "maximumImpact": 0.003,
+      "airborneCarSeconds": 0,
+      "wallSeconds": 32.6,
+      "classification": [
+        {
+          "id": 1,
+          "laps": 2,
+          "best": 115.91638850342048,
+          "finishTime": 235.20530665460444,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 0,
+          "laps": 2,
+          "best": 117.11711154022836,
+          "finishTime": 241.43948689088876,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 3,
+          "laps": 2,
+          "best": 118.2976315419951,
+          "finishTime": 245.93059898266446,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 2,
+          "laps": 2,
+          "best": 119.83421457327213,
+          "finishTime": 250.42019788691184,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 4,
+          "laps": 2,
+          "best": 121.42190738253325,
+          "finishTime": 255.05275023719926,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 5,
+          "laps": 2,
+          "best": 123.19038083940657,
+          "finishTime": 258.91116728374783,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        }
+      ]
+    },
+    {
+      "id": "neon-city",
+      "name": "NEON CITY / NIGHT STREETS",
+      "group": "unconventional",
+      "lengthM": 4874,
+      "referenceLengthM": null,
+      "laps": 2,
+      "cars": 6,
+      "seed": 29030,
+      "passed": true,
+      "failures": [],
+      "bestLapS": 102.73256311410881,
+      "slowestBestLapS": 109.57883390166172,
+      "bestLapAverageKmh": "170.8",
+      "raceTimeS": 233.05,
+      "maximumSpeedKmh": 292.4,
+      "maximumImpact": 0,
+      "airborneCarSeconds": 0,
+      "wallSeconds": 25.2,
+      "classification": [
+        {
+          "id": 0,
+          "laps": 2,
+          "best": 102.73256311410881,
+          "finishTime": 209.26030305605948,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 1,
+          "laps": 2,
+          "best": 103.29388849526785,
+          "finishTime": 214.6688404360779,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 3,
+          "laps": 2,
+          "best": 104.81949383487236,
+          "finishTime": 219.69777764701035,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 2,
+          "laps": 2,
+          "best": 106.07072120441657,
+          "finishTime": 224.41815172805002,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 4,
+          "laps": 2,
+          "best": 107.88473258787498,
+          "finishTime": 229.0203687608162,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 5,
+          "laps": 2,
+          "best": 109.57883390166172,
+          "finishTime": 233.05009251939643,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        }
+      ]
+    },
+    {
+      "id": "neon-city-reverse",
+      "name": "NEON CITY / REVERSE",
+      "group": "unconventional",
+      "lengthM": 4874,
+      "referenceLengthM": null,
+      "laps": 2,
+      "cars": 6,
+      "seed": 29030,
+      "passed": true,
+      "failures": [],
+      "bestLapS": 102.20565875751718,
+      "slowestBestLapS": 108.63364967540988,
+      "bestLapAverageKmh": "171.7",
+      "raceTimeS": 232.13,
+      "maximumSpeedKmh": 293.9,
+      "maximumImpact": 0,
+      "airborneCarSeconds": 0,
+      "wallSeconds": 25.4,
+      "classification": [
+        {
+          "id": 1,
+          "laps": 2,
+          "best": 102.20565875751718,
+          "finishTime": 208.01431192024341,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 0,
+          "laps": 2,
+          "best": 102.8839809141258,
+          "finishTime": 213.85974757395155,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 3,
+          "laps": 2,
+          "best": 104.1639029611431,
+          "finishTime": 218.97045805541833,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 2,
+          "laps": 2,
+          "best": 105.68779180105328,
+          "finishTime": 223.75994726867052,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 5,
+          "laps": 2,
+          "best": 107.19653569338318,
+          "finishTime": 228.1303685037647,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 4,
+          "laps": 2,
+          "best": 108.63364967540988,
+          "finishTime": 232.12229459065983,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        }
+      ]
+    },
+    {
+      "id": "alpine-pass",
+      "name": "COL D’ARGENT / MOUNTAIN PASS",
+      "group": "unconventional",
+      "lengthM": 7276,
+      "referenceLengthM": null,
+      "laps": 2,
+      "cars": 6,
+      "seed": 29030,
+      "passed": true,
+      "failures": [],
+      "bestLapS": 152.63291880805798,
+      "slowestBestLapS": 161.31095922079223,
+      "bestLapAverageKmh": "171.6",
+      "raceTimeS": 338.4,
+      "maximumSpeedKmh": 295.9,
+      "maximumImpact": 0,
+      "airborneCarSeconds": 0,
+      "wallSeconds": 46.4,
+      "classification": [
+        {
+          "id": 1,
+          "laps": 2,
+          "best": 152.63291880805798,
+          "finishTime": 308.82579124815373,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 0,
+          "laps": 2,
+          "best": 154.0166080472587,
+          "finishTime": 316.75988774940373,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 3,
+          "laps": 2,
+          "best": 155.92545594278238,
+          "finishTime": 322.97687212818886,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 2,
+          "laps": 2,
+          "best": 158.27750516614205,
+          "finishTime": 328.5581690627913,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 5,
+          "laps": 2,
+          "best": 159.80559523523155,
+          "finishTime": 333.8083347902889,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 4,
+          "laps": 2,
+          "best": 161.31095922079223,
+          "finishTime": 338.3952542143059,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        }
+      ]
+    },
+    {
+      "id": "alpine-pass-reverse",
+      "name": "COL D’ARGENT / DESCENT",
+      "group": "unconventional",
+      "lengthM": 7276,
+      "referenceLengthM": null,
+      "laps": 2,
+      "cars": 6,
+      "seed": 29030,
+      "passed": true,
+      "failures": [],
+      "bestLapS": 151.67041298688343,
+      "slowestBestLapS": 159.63795571149873,
+      "bestLapAverageKmh": "172.7",
+      "raceTimeS": 334.75,
+      "maximumSpeedKmh": 302.6,
+      "maximumImpact": 0,
+      "airborneCarSeconds": 0,
+      "wallSeconds": 51.2,
+      "classification": [
+        {
+          "id": 0,
+          "laps": 2,
+          "best": 151.67041298688343,
+          "finishTime": 306.1499379823735,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 1,
+          "laps": 2,
+          "best": 152.503679032899,
+          "finishTime": 313.0560541112953,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 2,
+          "laps": 2,
+          "best": 154.07786886101127,
+          "finishTime": 319.30792055119525,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 3,
+          "laps": 2,
+          "best": 155.75131256225532,
+          "finishTime": 324.6975357965202,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 5,
+          "laps": 2,
+          "best": 157.51859150306007,
+          "finishTime": 329.8739815293169,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 4,
+          "laps": 2,
+          "best": 159.63795571149873,
+          "finishTime": 334.745981928908,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        }
+      ]
+    },
+    {
+      "id": "speedbowl",
+      "name": "MESA SPEEDBOWL / OVAL",
+      "group": "unconventional",
+      "lengthM": 4005,
+      "referenceLengthM": null,
+      "laps": 2,
+      "cars": 6,
+      "seed": 29030,
+      "passed": true,
+      "failures": [],
+      "bestLapS": 48.55315285309706,
+      "slowestBestLapS": 51.568486012123245,
+      "bestLapAverageKmh": "296.9",
+      "raceTimeS": 110.32,
+      "maximumSpeedKmh": 298.6,
+      "maximumImpact": 0,
+      "airborneCarSeconds": 0,
+      "wallSeconds": 14,
+      "classification": [
+        {
+          "id": 1,
+          "laps": 2,
+          "best": 48.55315285309706,
+          "finishTime": 107.11626476537909,
+          "retired": false,
+          "penalty": 5,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 0,
+          "laps": 2,
+          "best": 49.48967932796093,
+          "finishTime": 109.29933631302421,
+          "retired": false,
+          "penalty": 5,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 3,
+          "laps": 2,
+          "best": 50.120914187100304,
+          "finishTime": 110.9359660154873,
+          "retired": false,
+          "penalty": 5,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 2,
+          "laps": 2,
+          "best": 50.67471072766635,
+          "finishTime": 112.48702083764128,
+          "retired": false,
+          "penalty": 5,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 5,
+          "laps": 2,
+          "best": 51.14337039829108,
+          "finishTime": 113.93202773635406,
+          "retired": false,
+          "penalty": 5,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 4,
+          "laps": 2,
+          "best": 51.568486012123245,
+          "finishTime": 115.31644212046379,
+          "retired": false,
+          "penalty": 5,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        }
+      ]
+    },
+    {
+      "id": "speedbowl-infield",
+      "name": "MESA SPEEDBOWL / INFIELD ROAD",
+      "group": "unconventional",
+      "lengthM": 4486,
+      "referenceLengthM": null,
+      "laps": 2,
+      "cars": 6,
+      "seed": 29030,
+      "passed": true,
+      "failures": [],
+      "bestLapS": 79.86955713020835,
+      "slowestBestLapS": 87.62971403770851,
+      "bestLapAverageKmh": "202.2",
+      "raceTimeS": 182.54,
+      "maximumSpeedKmh": 303.5,
+      "maximumImpact": 0.031,
+      "airborneCarSeconds": 0,
+      "wallSeconds": 22.6,
+      "classification": [
+        {
+          "id": 1,
+          "laps": 2,
+          "best": 79.86955713020835,
+          "finishTime": 168.48474035354857,
+          "retired": false,
+          "penalty": 5,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 0,
+          "laps": 2,
+          "best": 81.22374717580072,
+          "finishTime": 173.85718337464618,
+          "retired": false,
+          "penalty": 5,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 3,
+          "laps": 2,
+          "best": 83.21701032477428,
+          "finishTime": 177.41120205016648,
+          "retired": false,
+          "penalty": 5,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 2,
+          "laps": 2,
+          "best": 84.33611559171472,
+          "finishTime": 180.9677519208768,
+          "retired": false,
+          "penalty": 5,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 4,
+          "laps": 2,
+          "best": 86.01959803612105,
+          "finishTime": 184.59896639219656,
+          "retired": false,
+          "penalty": 5,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 5,
+          "laps": 2,
+          "best": 87.62971403770851,
+          "finishTime": 187.5352125664883,
+          "retired": false,
+          "penalty": 5,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        }
+      ]
+    },
+    {
+      "id": "desert-canyon",
+      "name": "RED MESA / CANYON CIRCUIT",
+      "group": "unconventional",
+      "lengthM": 5604,
+      "referenceLengthM": null,
+      "laps": 2,
+      "cars": 6,
+      "seed": 29030,
+      "passed": true,
+      "failures": [],
+      "bestLapS": 99.61647140345823,
+      "slowestBestLapS": 106.30920040009953,
+      "bestLapAverageKmh": "202.5",
+      "raceTimeS": 223.42,
+      "maximumSpeedKmh": 302.1,
+      "maximumImpact": 0,
+      "airborneCarSeconds": 0,
+      "wallSeconds": 29.2,
+      "classification": [
+        {
+          "id": 0,
+          "laps": 2,
+          "best": 99.61647140345823,
+          "finishTime": 202.91743992096846,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 1,
+          "laps": 2,
+          "best": 100.35940903253706,
+          "finishTime": 207.81976161874854,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 2,
+          "laps": 2,
+          "best": 101.59802701902736,
+          "finishTime": 212.15483738198316,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 5,
+          "laps": 2,
+          "best": 102.94612220145872,
+          "finishTime": 216.20523862003125,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 3,
+          "laps": 2,
+          "best": 104.86714453957076,
+          "finishTime": 219.82163386252816,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 4,
+          "laps": 2,
+          "best": 106.30920040009953,
+          "finishTime": 223.41536172101186,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        }
+      ]
+    },
+    {
+      "id": "desert-canyon-reverse",
+      "name": "RED MESA / REVERSE",
+      "group": "unconventional",
+      "lengthM": 5604,
+      "referenceLengthM": null,
+      "laps": 2,
+      "cars": 6,
+      "seed": 29030,
+      "passed": true,
+      "failures": [],
+      "bestLapS": 98.69571390534627,
+      "slowestBestLapS": 106.25504779329869,
+      "bestLapAverageKmh": "204.4",
+      "raceTimeS": 222.84,
+      "maximumSpeedKmh": 303.6,
+      "maximumImpact": 0,
+      "airborneCarSeconds": 0.28,
+      "wallSeconds": 28.7,
+      "classification": [
+        {
+          "id": 1,
+          "laps": 2,
+          "best": 98.69571390534627,
+          "finishTime": 201.1412054722563,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 0,
+          "laps": 2,
+          "best": 99.82850387058501,
+          "finishTime": 206.97553426575405,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 3,
+          "laps": 2,
+          "best": 101.80587901928679,
+          "finishTime": 210.92369400830108,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 2,
+          "laps": 2,
+          "best": 103.17139626350685,
+          "finishTime": 215.06558728385392,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 4,
+          "laps": 2,
+          "best": 104.39104981776346,
+          "finishTime": 219.01142929900539,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 5,
+          "laps": 2,
+          "best": 106.25504779329869,
+          "finishTime": 222.8355274991984,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        }
+      ]
+    },
+    {
+      "id": "coastal-cliff",
+      "name": "CAP LUMIÈRE / CLIFF ROAD",
+      "group": "unconventional",
+      "lengthM": 4710,
+      "referenceLengthM": null,
+      "laps": 2,
+      "cars": 6,
+      "seed": 29030,
+      "passed": true,
+      "failures": [],
+      "bestLapS": 89.29873612879314,
+      "slowestBestLapS": 97.41639120723069,
+      "bestLapAverageKmh": "189.9",
+      "raceTimeS": 204.6,
+      "maximumSpeedKmh": 300.4,
+      "maximumImpact": 0,
+      "airborneCarSeconds": 0,
+      "wallSeconds": 24.2,
+      "classification": [
+        {
+          "id": 1,
+          "laps": 2,
+          "best": 89.29873612879314,
+          "finishTime": 182.35565559011104,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 0,
+          "laps": 2,
+          "best": 90.50621752990398,
+          "finishTime": 188.36414844106943,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 3,
+          "laps": 2,
+          "best": 92.57608248498691,
+          "finishTime": 192.77682806852576,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 2,
+          "laps": 2,
+          "best": 94.01587345606397,
+          "finishTime": 196.86686178701243,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 5,
+          "laps": 2,
+          "best": 95.7600948868468,
+          "finishTime": 200.86604219460096,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 4,
+          "laps": 2,
+          "best": 97.41639120723069,
+          "finishTime": 204.5951963121652,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        }
+      ]
+    },
+    {
+      "id": "coastal-cliff-reverse",
+      "name": "CAP LUMIÈRE / REVERSE",
+      "group": "unconventional",
+      "lengthM": 4710,
+      "referenceLengthM": null,
+      "laps": 2,
+      "cars": 6,
+      "seed": 29030,
+      "passed": true,
+      "failures": [],
+      "bestLapS": 89.70635115451837,
+      "slowestBestLapS": 96.86382967517456,
+      "bestLapAverageKmh": "189.0",
+      "raceTimeS": 204.34,
+      "maximumSpeedKmh": 303,
+      "maximumImpact": 0,
+      "airborneCarSeconds": 0.07,
+      "wallSeconds": 25.4,
+      "classification": [
+        {
+          "id": 0,
+          "laps": 2,
+          "best": 89.70635115451837,
+          "finishTime": 183.09760430149376,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 1,
+          "laps": 2,
+          "best": 90.34795746524374,
+          "finishTime": 188.06605965354288,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 2,
+          "laps": 2,
+          "best": 91.73046858373559,
+          "finishTime": 192.46856887039536,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 5,
+          "laps": 2,
+          "best": 93.25734892874328,
+          "finishTime": 196.70532935483988,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 3,
+          "laps": 2,
+          "best": 95.24193165569348,
+          "finishTime": 200.46794132206048,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 4,
+          "laps": 2,
+          "best": 96.86382967517456,
+          "finishTime": 204.33744446716463,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        }
+      ]
+    },
+    {
+      "id": "dockyard",
+      "name": "IRON QUAY / DOCKLANDS",
+      "group": "unconventional",
+      "lengthM": 4600,
+      "referenceLengthM": null,
+      "laps": 2,
+      "cars": 6,
+      "seed": 29030,
+      "passed": true,
+      "failures": [],
+      "bestLapS": 89.45473869169498,
+      "slowestBestLapS": 96.09970729999289,
+      "bestLapAverageKmh": "185.1",
+      "raceTimeS": 204.07,
+      "maximumSpeedKmh": 280.9,
+      "maximumImpact": 0,
+      "airborneCarSeconds": 0,
+      "wallSeconds": 25.7,
+      "classification": [
+        {
+          "id": 0,
+          "laps": 2,
+          "best": 89.45473869169498,
+          "finishTime": 182.51797276087052,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 1,
+          "laps": 2,
+          "best": 90.14166858868903,
+          "finishTime": 187.69129196490476,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 2,
+          "laps": 2,
+          "best": 91.55370743901362,
+          "finishTime": 192.33366963620824,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 3,
+          "laps": 2,
+          "best": 92.6844350508689,
+          "finishTime": 196.27814984022478,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 4,
+          "laps": 2,
+          "best": 94.34803648480856,
+          "finishTime": 200.31654178719126,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 5,
+          "laps": 2,
+          "best": 96.09970729999289,
+          "finishTime": 204.0635981559504,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        }
+      ]
+    },
+    {
+      "id": "dockyard-reverse",
+      "name": "IRON QUAY / REVERSE",
+      "group": "unconventional",
+      "lengthM": 4600,
+      "referenceLengthM": null,
+      "laps": 2,
+      "cars": 6,
+      "seed": 29030,
+      "passed": true,
+      "failures": [],
+      "bestLapS": 89.24553769726455,
+      "slowestBestLapS": 96.31555164598474,
+      "bestLapAverageKmh": "185.6",
+      "raceTimeS": 204.58,
+      "maximumSpeedKmh": 278.7,
+      "maximumImpact": 0.009,
+      "airborneCarSeconds": 0,
+      "wallSeconds": 30,
+      "classification": [
+        {
+          "id": 1,
+          "laps": 2,
+          "best": 89.24553769726455,
+          "finishTime": 181.83644453713225,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 0,
+          "laps": 2,
+          "best": 90.03584635710953,
+          "finishTime": 187.44603973108215,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 3,
+          "laps": 2,
+          "best": 91.2560064822035,
+          "finishTime": 192.12570543212908,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 2,
+          "laps": 2,
+          "best": 92.98079957546683,
+          "finishTime": 196.60658651702627,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 5,
+          "laps": 2,
+          "best": 94.71366789270739,
+          "finishTime": 200.80549872989081,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        },
+        {
+          "id": 4,
+          "laps": 2,
+          "best": 96.31555164598474,
+          "finishTime": 204.57754217536316,
+          "retired": false,
+          "penalty": 0,
+          "warnings": 0,
+          "worstStuckSeconds": 0
+        }
+      ]
+    }
+  ]
+}

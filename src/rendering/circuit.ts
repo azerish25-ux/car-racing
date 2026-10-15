@@ -62,6 +62,7 @@ import { installKerbFinish, installRunoffFinish, kerbUsage } from './studio/kerb
 import { installCarGrounding } from './studio/car-grounding.ts';
 import { installLightPools } from './studio/light-pools.ts';
 import { buildForestBelts } from './studio/forest-belts.ts';
+import { venueKitFor, type VenueKit } from './venue-kit/index.ts';
 import { batchScene, box, canvasTexture, label, mesh, unprintedBack } from './geometry.ts';
 /** Lit start lamp emission (D28: bright enough to bloom at night and in daylight). */
 export const START_LAMP_EMISSIVE = 25;
@@ -122,6 +123,8 @@ export class CircuitScene {
   readonly trackInfrastructure: TrackInfrastructurePlan;
   readonly serviceSites: ReturnType<typeof serviceSitePlan>;
   readonly districts: ReturnType<typeof districtPlan>;
+  /** Procedural dressing for catalogue venues (WP30); null for Aurel/Vellamar. */
+  readonly venueKit: VenueKit | null;
   readonly safetyPanel = new T.MeshStandardMaterial({
     color: 0x2a5636,
     emissive: 0x2a5636,
@@ -142,7 +145,9 @@ export class CircuitScene {
     this.staff = new MarshalStaffView(this.trackInfrastructure.marshalPosts);
     this.serviceSites = serviceSitePlan(track);
     this.districts = districtPlan(track, this.serviceSites);
+    this.venueKit = venueKitFor(track);
     this.group.add(this.props, this.crowd, this.vegetationGroup, this.surfaces);
+    if (this.venueKit) this.group.add(this.venueKit.root);
     this.surfaces.name = 'Immutable circuit surfaces and barriers';
     this.vegetationGroup.name = 'Planting, groves and treelines';
     this.crowd.name = 'Spectators and marshal staff';
@@ -182,26 +187,29 @@ export class CircuitScene {
     // The grass apron plus D17's skirt onto the terrain, both sides, as one
     // ribbon (D32: the skirt shares the apron's chunks, 0 extra draws).
     const ground = terrainFor(track);
-    this.queueRibbon(
-      grass,
-      apronWithSkirt(
-        track,
-        (x, z) => ground.height(x, z),
-        (s) => track.at(s, this.temp).width,
-      ),
-    );
-    this.queueRibbon(gravel, {
-      offset: (s, t) => {
-        track.at(s, this.temp);
-        return (t * 2 - 1) * (this.temp.width + 10);
-      },
-      height: () => -0.027,
-      columns: 12,
-      include: (s, lateral) => {
-        track.at(s, this.temp);
-        return Math.abs(lateral) > this.temp.width + 4 && this.temp.curvature * lateral < -0.009;
-      },
-    });
+    // Catalogue venues: the kit lays verges, run-off and skirts from data.
+    if (!this.venueKit)
+      this.queueRibbon(
+        grass,
+        apronWithSkirt(
+          track,
+          (x, z) => ground.height(x, z),
+          (s) => track.at(s, this.temp).width,
+        ),
+      );
+    if (!this.venueKit)
+      this.queueRibbon(gravel, {
+        offset: (s, t) => {
+          track.at(s, this.temp);
+          return (t * 2 - 1) * (this.temp.width + 10);
+        },
+        height: () => -0.027,
+        columns: 12,
+        include: (s, lateral) => {
+          track.at(s, this.temp);
+          return Math.abs(lateral) > this.temp.width + 4 && this.temp.curvature * lateral < -0.009;
+        },
+      });
     this.queueRibbon(runOff, {
       offset: (s, t) => {
         track.at(s, this.temp);
@@ -266,8 +274,8 @@ export class CircuitScene {
     );
     installCarGrounding(pitMat);
     for (const [start, end] of [
-      [track.length - 220, track.length],
-      [0, 330],
+      [track.length - track.pit.divergeStart, track.length],
+      [0, track.pit.mergeEnd],
     ]) {
       this.queueRibbon(pitMat, {
         start,
@@ -329,7 +337,8 @@ export class CircuitScene {
       }
     });
     const barriers = barrierMaterials();
-    const spans = Math.ceil(track.length / 80);
+    const spans = this.venueKit ? 0 : Math.ceil(track.length / 80);
+    this.venueKit?.enqueue(this);
     for (let i = 0; i < spans; i++)
       this.construction.add('Profiled barriers and filtered catch fencing', 2, () => {
         const before = this.surfaces.children.length;
@@ -350,6 +359,7 @@ export class CircuitScene {
       });
     // Fictional sponsor vinyl on every concrete run, and banner bridges (D13).
     this.construction.add('Trackside sponsor branding', 3, () => {
+      if (this.venueKit) return;
       this.branding = buildTracksideBranding(
         track,
         this.surfaces,
@@ -390,12 +400,16 @@ export class CircuitScene {
     this.construction.add('Rule-placed layered foliage', 3, () => {
       const excluded = (x: number, z: number, padding: number) =>
         (this.recoveryGates?.blocksVegetation(x, z, padding) ?? false) ||
-        (this.quarry?.blocksPlanting(track, x, z, padding) ?? false);
+        (this.quarry?.blocksPlanting(track, x, z, padding) ?? false) ||
+        (this.venueKit?.blocks(x, z, padding) ?? false);
+      const style = this.venueKit?.context.style;
+      if (style && !style.planting) return;
       if (this.vegetation)
         this.vegetation.build(track, this.vegetationGroup, this.serviceSites, excluded);
       else buildVegetation(track, this.vegetationGroup, this.serviceSites, excluded);
       // Continuous woodland 30-120 m behind the boundary (D11).
-      buildForestBelts(track, this.vegetationGroup, this.serviceSites, excluded);
+      if (!style || style.forestBelts)
+        buildForestBelts(track, this.vegetationGroup, this.serviceSites, excluded);
     });
     this.construction.add('Grid and finish markings', 0, () => this.grid());
     this.construction.add('Spatial geometry batches', 4, () =>
@@ -693,7 +707,8 @@ export class CircuitScene {
     const paddock = paddockMaterials();
     const { concrete, steel: dark, cladding: roof, glass } = paddock;
     // Paddock follows the main straight. Each garage has a separate bay and service box.
-    for (let i = 0; i < 12; i++) {
+    // Catalogue venues build their own paddock on the venue's pit side.
+    for (let i = 0; i < (this.venueKit ? 0 : 12); i++) {
       this.construction.add(`Garage ${i + 1} / 12`, 2, () => {
         const s = 70 + i * 9,
           p = this.track.at(s, trackPoint()),
@@ -730,12 +745,12 @@ export class CircuitScene {
       });
     }
     this.construction.add('A21 hero pit-building frontage', 2, () => {
-      if (!this.pitBuildingFrontage) return;
+      if (!this.pitBuildingFrontage || this.venueKit) return;
       this.props.add(this.pitBuildingFrontage.root);
       this.pitBuildingFrontage.place(this.track, this.sightlines);
     });
     this.construction.add('A24 pit-wall command station', 2, () => {
-      if (!this.pitWallStation) return;
+      if (!this.pitWallStation || this.venueKit) return;
       const site = pitWallPlacement(this.track);
       const root = this.pitWallStation.root;
       root.position.set(site.x, site.y, site.z);
@@ -805,6 +820,7 @@ export class CircuitScene {
         );
         lamp.rotation.x = Math.PI / 2;
       }
+      if (this.venueKit) return;
       const tower = new T.Group();
       tower.position.copy(this.at(235, 38));
       this.props.add(tower);

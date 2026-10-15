@@ -1,6 +1,7 @@
 import { CIRCUIT_IDS, type CircuitId } from './circuits.ts';
 import type { Assist, Compound, SessionOptions, WeatherPreset } from './config.ts';
 import { VEHICLES, type VehicleClass } from './vehicles.ts';
+import { CATALOGUE_EVENTS } from './circuit-catalogue/events.ts';
 
 /** Composable sporting rules (WP09 / F07, masterplan §6.3). A session format
  * (practice, qualifying, race...) is separate from its ruleset (tyre, service,
@@ -232,4 +233,6 @@ export const EVENTS: readonly EventDefinition[] = Object.freeze([
     compound: 'medium' as const,
     seed: 5202,
   }),
+  // Catalogue layouts (WP29-WP30).
+  ...CATALOGUE_EVENTS,
 ]);

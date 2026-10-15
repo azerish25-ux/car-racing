@@ -1,6 +1,7 @@
 import type { Track } from '../simulation/track.ts';
 import { terrainHeight, valueNoise, ridgedNoise } from './terrain-profile.ts';
 import { TrackDistanceField } from './track-field.ts';
+import { catalogueTerrain } from './venue-kit/terrain.ts';
 
 /** Ground height model for one circuit's venue. `seaLevel` is null for inland
  * venues. Terrain is visual ground only; physics uses the contact ribbon. */
@@ -52,7 +53,9 @@ export function terrainFor(track: Track): Terrain {
   const known = cache.get(track);
   if (known) return known;
   let terrain: Terrain = AUREL_TERRAIN;
-  if (track.circuit.id === 'vellamar') {
+  // Catalogue venues (WP30): the venue kit's data-driven landform.
+  if (track.circuit.catalogue) terrain = catalogueTerrain(track);
+  else if (track.circuit.id === 'vellamar') {
     const field = new TrackDistanceField(track);
     const sample = { distance: Infinity, height: NaN };
     terrain = Object.freeze({

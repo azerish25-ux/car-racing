@@ -533,6 +533,13 @@ export function defineCircuit(spec: CircuitSpec): CatalogueCircuit {
   const authoredLength = controlPolygonLength(design);
   const scale = spec.length ? spec.length / authoredLength : 1;
   if (scale !== 1) design = design.map(([x, z]) => [x * scale, z * scale]);
+  // Centre the venue on the world origin: terrain, sea and shadow maps are
+  // built around it.
+  const bx = [Math.min(...design.map((p) => p[0])), Math.max(...design.map((p) => p[0]))],
+    bz = [Math.min(...design.map((p) => p[1])), Math.max(...design.map((p) => p[1]))],
+    ox = Math.round((bx[0] + bx[1]) / 2),
+    oz = Math.round((bz[0] + bz[1]) / 2);
+  design = design.map(([x, z]) => [x - ox, z - oz]);
   const sampled = sampleControlPolygon(design),
     L = sampled.length,
     n = design.length;
