@@ -62,7 +62,7 @@ the acceptance observation. Nothing below is player-accepted.
 | D036 | Chain follows drive state | absent | chain runs are static geometry |
 | D037 | Knee/boot scrape needs contact | absent | slider pucks are drawn; no contact effect |
 | D038 | Stable optional horizon | absent | chase roll is a fixed fraction of lean (`BIKE_CHASE_ROLL`); no player option |
-| D039 | Crash keeps rider/bike identity | integrated | one `BikeVehicle` owns crash → separated → remount, reported to race control; dirt bikes add landing crashes |
+| D039 | Crash keeps rider/bike identity | integrated | one `BikeVehicle` owns crash → separated → remount, reported to race control; dirt bikes add landing crashes; in the festival the same adapter recovers a rider in free roam and events (the session resets only a rider down over 20 s; `tests/open-world-bikes.test.ts`) |
 | D040 | Remount and control return agree | integrated | inputs ignored until remount completes (`tests/bike.test.ts`) |
 
 ## 19.5 Dirt and jumps
@@ -119,7 +119,7 @@ the acceptance observation. Nothing below is player-accepted.
 | D073 | Fence stability in motion | foundation | capture suite moving sequence |
 | D074 | Varied, event-driven crowd reactions | integrated | `crowdResponse` per cluster |
 | D075 | Marshals react to local incidents | integrated | marshal posts follow local flags |
-| D076 | Service vehicles outside racing | integrated | no service traffic on track |
+| D076 | Service vehicles outside racing | integrated | no service traffic on circuits; festival ambient traffic is cleared when an event starts and returns in free roam (`ambient-traffic.ts`, `tests/open-world-traffic.test.ts`) |
 | D077 | Landmarks support navigation | foundation | review per sector |
 | D078 | Wear placed where used | integrated | rubber field along racing line |
 | D079 | Moving machinery has declared role | integrated (policy) | moving surfaces must be authoritative (`moving-surface.ts`) |
@@ -130,7 +130,7 @@ the acceptance observation. Nothing below is player-accepted.
 | ID | Detail | State | Evidence / next |
 |---|---|---|---|
 | D081 | Engine tone responds to load | integrated | engine voices take throttle/torque |
-| D082 | Pass-bys follow listener position | integrated | spatial listener follows presented camera |
+| D082 | Pass-bys follow listener position | integrated | spatial listener follows presented camera; festival ambient traffic is not voiced yet (next: traffic pass-by voices) |
 | D083 | Tunnel acoustics | absent | no tunnels |
 | D084 | Radio priority and interruption | integrated | `RadioArbiter` |
 | D085 | Captions with speaker | integrated | `RadioCaption`, Accessibility toggle |
@@ -149,7 +149,7 @@ the acceptance observation. Nothing below is player-accepted.
 | D093 | Replay seek lands on intended event | integrated | `ReplayClock` seek; F01 fix |
 | D094 | Replay pause freezes animation | integrated | presented-time clocks (effects, crowd, clouds) |
 | D095 | Photo mode restores session | integrated | photo tests |
-| D096 | Rewards applied once | integrated | `paidSessions` idempotence, `rewardIncome` shown |
+| D096 | Rewards applied once | integrated | `paidSessions` idempotence, `rewardIncome` shown; festival runs paid once per run id (`festival:<run id>`; refused runs settled too), itemised in a toast (`tests/festival-career.test.ts`); next: the festival results card shows the career payment |
 | D097 | Restart restores declared state | integrated | restart rebuilds from options/seed |
 | D098 | Safe area, text scale, long translations | partial | `--ui-scale`; captions honour safe-area; localization absent |
 | D099 | Save failures visible/recoverable | integrated | save toasts; backup/recovery |
