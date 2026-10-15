@@ -64,6 +64,9 @@ export const FAN_CAR_XF2 = defineVehicle({
     lateralAero: 0.00329,
     brakingBase: 28.56,
     brakingAero: 0.0019,
+    // The fan's share of the bases (fan-on fit less fan-off fit): lost with
+    // the floor, so a damaged XF-2's AI plans on its mechanical grip.
+    fanBase: { lateral: 7.63, braking: 12.8 },
     lateralMargin: 0.72,
     slowLateralMargin: 0.64,
     brakingMargin: 0.74,

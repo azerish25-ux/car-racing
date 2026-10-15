@@ -285,8 +285,11 @@ boost: τ = spool time building, × dump fraction decaying; target smooth(rpm_lo
   table (bilinear).
 * Pumping loss is 0.01 N m s on the Formula car and 0.03 on TC-1.
 * Crank inertia comes from the block: 0.34 Formula, 0.21 TC-1.
-* Turbo lag is available. Neither shipped car uses it (the Formula car's energy recovery removes
-  lag).
+* Turbo lag is available. Neither original car uses it (the Formula car's energy recovery removes
+  lag). Four catalogue cars whose briefs name it do (`CatalogueSheet.turbo` on the legacy engine
+  block): HF-86 (boost share 0.55, spool 0.8 s), GB-4 (0.5, 0.5 s), RR-4 (0.4, 0.45 s) and PR-3
+  (0.4, 0.3 s), dump fraction 0.3–0.35. Their spool thresholds sit below the working range, so the
+  steady full-load curve is unchanged and the lag is the transient after a lift.
 
 **Gearbox:**
 
@@ -360,6 +363,11 @@ L_stick = (β·Δω + dt·(((1−s)T + R2)/I2 − (sT + R1)/I1)) / (dt·(1/I1 + 
   F = 7 kN, h_seal = static clearance + 12 mm, fade 50 mm. It is reported apart from ClA
   (`aero.fanN` in `docs/vehicle-calibration.json`). Every other definition lacks the field, so their
   physics and content hashes are unchanged.
+  * The AI envelope separates the fan's share of its base limits (`CapabilityEnvelope.fanBase`):
+    the calibration fits the lateral and braking envelopes again with the fan removed, and the
+    difference of the bases is the share (`fanEnvelopeShare` in the report; XF-2 7.63 m/s² lateral,
+    12.80 m/s² braking). `floorEnvelope` in `ai.ts` scales that share with floor health, as the
+    solver scales the suction, so a damaged XF-2 plans its braking on the grip it has left.
 
 ## 5. Ground materials
 
@@ -588,8 +596,8 @@ recorded angle includes camber gain.
   in `terrain.ts` do persist). Bulldozing and water drag act longitudinally only.
 * **Two differential paths.** Catalogue AWD/LSD cars use the catalogue's equal-speed projection
   (`distributeDrive`), which has no road-reaction feedforward. The stick-torque model can evaluate
-  the same specs (`fromSpec`), but switching the catalogue to it would need a recalibration pass. No
-  car uses a turbo.
+  the same specs (`fromSpec`), but switching the catalogue to it would need a recalibration pass.
+  Turbo boost has no rpm × load map: it follows engine speed and throttle only.
 * **Catalogue geometry.** Catalogue cars and motorcycles run the neutral package: no camber gain,
   roll centre or anti-geometry, legacy throttle response, and the former aero platform. They gain the
   tyre, thermal, hub and ground models. Per-car `dynamics` blocks are the next calibration step.

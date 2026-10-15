@@ -74,6 +74,15 @@ export function validateVehicleDefinition(def: VehicleDefinition): string[] {
     if (!inRange(ai[key], 0.1, 1)) e.push(`${at}: ai.${key} must be in 0.1-1`);
   if ((ai.lateralAero > 0 || ai.brakingAero > 0) !== ai.downforceReference > 0)
     e.push(`${at}: AI aero terms need a downforce reference (and vice versa)`);
+  if (ai.fanBase && !def.fan) e.push(`${at}: ai.fanBase without a fan-assisted floor`);
+  if (
+    ai.fanBase &&
+    !(
+      inRange(ai.fanBase.lateral, 0, ai.lateralBase - 0.1) &&
+      inRange(ai.fanBase.braking, 0, ai.brakingBase - 0.1)
+    )
+  )
+    e.push(`${at}: ai.fanBase must be a share of the base limits`);
   e.push(...validateCatalogueFields(def));
   return e;
 }

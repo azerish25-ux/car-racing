@@ -1688,31 +1688,31 @@
     "fr3": {
       "name": "FR-3 FEEDER FORMULA",
       "version": 1,
-      "hash": "72bfd3b2",
+      "hash": "16d666e1",
       "comparison": [
         {
           "metric": "accel0to100",
-          "measured": 2.829166666666702,
-          "coarseDt": 2.8249999999999926,
+          "measured": 2.970833333333376,
+          "coarseDt": 2.966666666666659,
           "band": [
             2.8,
             3.8
           ],
           "within": true,
           "coarseWithin": true,
-          "timestepDrift": 0.0014727540500887614
+          "timestepDrift": 0.0014025245441964644
         },
         {
           "metric": "topSpeed",
-          "measured": 267.1877716025079,
-          "coarseDt": 267.19751150836146,
+          "measured": 267.20642548604036,
+          "coarseDt": 267.1967044482136,
           "band": [
             255,
             295
           ],
           "within": true,
           "coarseWithin": true,
-          "timestepDrift": 0.00003645341175289364
+          "timestepDrift": 0.00003638025473776769
         },
         {
           "metric": "braking100Distance",
@@ -1744,8 +1744,8 @@
         "aero": 0.0038510445181732396
       },
       "brakingEnvelopeFit": {
-        "base": 16.316856393774007,
-        "aero": 0.004517343273072224
+        "base": 16.31698798035323,
+        "aero": 0.00451718705111983
       },
       "aero": {
         "speedKmh": 199.22599199901032,
@@ -1946,31 +1946,31 @@
     "hf86": {
       "name": "HF-86 TURBO FORMULA",
       "version": 1,
-      "hash": "0a3f1351",
+      "hash": "992ed033",
       "comparison": [
         {
           "metric": "accel0to100",
-          "measured": 2.6791666666666947,
-          "coarseDt": 2.674999999999993,
+          "measured": 3.000000000000044,
+          "coarseDt": 2.999999999999992,
           "band": [
             2.5,
             3.6
           ],
           "within": true,
           "coarseWithin": true,
-          "timestepDrift": 0.0015552099533566914
+          "timestepDrift": 1.731947918415219e-14
         },
         {
           "metric": "topSpeed",
-          "measured": 321.44552473676595,
-          "coarseDt": 321.45052311627,
+          "measured": 321.4445615593712,
+          "coarseDt": 321.4535414986234,
           "band": [
             305,
             345
           ],
           "within": true,
           "coarseWithin": true,
-          "timestepDrift": 0.000015549693865397915
+          "timestepDrift": 0.00002793619904042715
         },
         {
           "metric": "braking100Distance",
@@ -1986,30 +1986,30 @@
         },
         {
           "metric": "lateral80G",
-          "measured": 1.5246282886150415,
-          "coarseDt": 1.5246305722034759,
+          "measured": 1.5193909741165528,
+          "coarseDt": 1.5193934629245593,
           "band": [
             1.4,
             2
           ],
           "within": true,
           "coarseWithin": true,
-          "timestepDrift": 0.0000014978001204628092
+          "timestepDrift": 0.0000016380300060821173
         }
       ],
       "lateralEnvelopeFit": {
-        "base": 12.618264186474551,
-        "aero": 0.004402779969830364
+        "base": 12.583484928715,
+        "aero": 0.0043853100201076784
       },
       "brakingEnvelopeFit": {
         "base": 16.161368949848384,
         "aero": 0.005664563823956035
       },
       "aero": {
-        "speedKmh": 200.0248783569031,
-        "clA": 3.0077789631173264,
-        "cdA": 1.1519675496482742,
-        "balance": 0.37992738433357137
+        "speedKmh": 199.4234200735147,
+        "clA": 3.009737529795046,
+        "cdA": 1.151893087917553,
+        "balance": 0.3799347978946167
       },
       "aiEnvelope": {
         "lineScale": 0.85,
@@ -2017,8 +2017,8 @@
           5,
           0.38
         ],
-        "lateralBase": 12.62,
-        "lateralAero": 0.0044,
+        "lateralBase": 12.58,
+        "lateralAero": 0.00439,
         "brakingBase": 16.16,
         "brakingAero": 0.00566,
         "lateralMargin": 0.72,
@@ -2118,31 +2118,31 @@
     "pr3": {
       "name": "PR-3 OPEN PROTOTYPE",
       "version": 1,
-      "hash": "158c0bd9",
+      "hash": "156c1da4",
       "comparison": [
         {
           "metric": "accel0to100",
-          "measured": 2.900000000000039,
-          "coarseDt": 2.8999999999999924,
+          "measured": 3.095833333333382,
+          "coarseDt": 3.0916666666666583,
           "band": [
             2.8,
             4
           ],
           "within": true,
           "coarseWithin": true,
-          "timestepDrift": 1.6079092080777913e-14
+          "timestepDrift": 0.0013458950202068322
         },
         {
           "metric": "topSpeed",
-          "measured": 295.1161079979495,
-          "coarseDt": 295.13435673772875,
+          "measured": 295.13525624083275,
+          "coarseDt": 295.1331552463044,
           "band": [
             280,
             320
           ],
           "within": true,
           "coarseWithin": true,
-          "timestepDrift": 0.00006183579711411006
+          "timestepDrift": 0.00000711875143318588
         },
         {
           "metric": "braking100Distance",
@@ -2158,30 +2158,30 @@
         },
         {
           "metric": "lateral80G",
-          "measured": 1.557194333295808,
-          "coarseDt": 1.5571843900114848,
+          "measured": 1.5536556650632183,
+          "coarseDt": 1.5536456877782112,
           "band": [
             1.45,
             2.2
           ],
           "within": true,
           "coarseWithin": true,
-          "timestepDrift": 0.0000063853843483997736
+          "timestepDrift": 0.00000642181226601576
         }
       ],
       "lateralEnvelopeFit": {
-        "base": 13.131527387451642,
-        "aero": 0.003758765233443304
+        "base": 13.077367265067721,
+        "aero": 0.003775741483048431
       },
       "brakingEnvelopeFit": {
         "base": 15.558547255345868,
         "aero": 0.004386905070008755
       },
       "aero": {
-        "speedKmh": 199.51379662901078,
-        "clA": 4.0010919599826895,
-        "cdA": 1.0515250495250115,
-        "balance": 0.4201596648647437
+        "speedKmh": 199.06981211652126,
+        "clA": 4.003544098889615,
+        "cdA": 1.0515190914747352,
+        "balance": 0.42016666057583946
       },
       "aiEnvelope": {
         "lineScale": 0.85,
@@ -2189,8 +2189,8 @@
           5,
           0.38
         ],
-        "lateralBase": 13.13,
-        "lateralAero": 0.00376,
+        "lateralBase": 13.08,
+        "lateralAero": 0.00378,
         "brakingBase": 15.56,
         "brakingAero": 0.00439,
         "lateralMargin": 0.72,
@@ -2892,31 +2892,31 @@
     "gb4": {
       "name": "GB-4 GROUP RALLY",
       "version": 1,
-      "hash": "75f14cb8",
+      "hash": "53ae100d",
       "comparison": [
         {
           "metric": "accel0to100",
-          "measured": 2.900000000000039,
-          "coarseDt": 2.8999999999999924,
+          "measured": 3.500000000000069,
+          "coarseDt": 3.4999999999999902,
           "band": [
             2.6,
             3.8
           ],
           "within": true,
           "coarseWithin": true,
-          "timestepDrift": 1.6079092080777913e-14
+          "timestepDrift": 2.2458225755274152e-14
         },
         {
           "metric": "topSpeed",
-          "measured": 221.0895609092289,
-          "coarseDt": 221.1033701707166,
+          "measured": 221.0856994920382,
+          "coarseDt": 221.10404396161064,
           "band": [
             205,
             235
           ],
           "within": true,
           "coarseWithin": true,
-          "timestepDrift": 0.00006246003398307652
+          "timestepDrift": 0.00008297447376555003
         },
         {
           "metric": "braking100Distance",
@@ -2932,30 +2932,30 @@
         },
         {
           "metric": "lateral80G",
-          "measured": 1.1424927118671038,
-          "coarseDt": 1.142493223106667,
+          "measured": 1.141779263706945,
+          "coarseDt": 1.1417802087938307,
           "band": [
             1,
             1.35
           ],
           "within": true,
           "coarseWithin": true,
-          "timestepDrift": 4.4747730801051963e-7
+          "timestepDrift": 8.277316953291057e-7
         }
       ],
       "lateralEnvelopeFit": {
-        "base": 10.67108530908806,
-        "aero": 0.0007897317532808222
+        "base": 10.647509786219054,
+        "aero": 0.0008009949497133326
       },
       "brakingEnvelopeFit": {
-        "base": 11.813530160318466,
-        "aero": 0.0008165372048360028
+        "base": 11.813532924934611,
+        "aero": 0.0008165363458660852
       },
       "aero": {
-        "speedKmh": 198.80733393302575,
-        "clA": 0.5047126872430072,
-        "cdA": 0.9510012849341295,
-        "balance": 0.3505335567244751
+        "speedKmh": 198.25725633981685,
+        "clA": 0.504688821038913,
+        "cdA": 0.9509922395715414,
+        "balance": 0.3505308938180123
       },
       "aiEnvelope": {
         "lineScale": 0.8,
@@ -2963,12 +2963,12 @@
           5,
           0.38
         ],
-        "lateralBase": 10.67,
-        "lateralAero": 0.00079,
+        "lateralBase": 10.65,
+        "lateralAero": 0.0008,
         "brakingBase": 11.81,
         "brakingAero": 0.00082,
-        "lateralMargin": 0.7,
-        "slowLateralMargin": 0.64,
+        "lateralMargin": 0.68,
+        "slowLateralMargin": 0.6,
         "brakingMargin": 0.7,
         "topSpeed": 61,
         "referenceMu": 1.82,
@@ -3064,7 +3064,7 @@
     "bg2": {
       "name": "BG-2 DESERT BUGGY",
       "version": 1,
-      "hash": "602abdac",
+      "hash": "943b6dda",
       "comparison": [
         {
           "metric": "accel0to100",
@@ -3092,15 +3092,15 @@
         },
         {
           "metric": "braking100Distance",
-          "measured": 36.11695699456573,
-          "coarseDt": 36.11747095711168,
+          "measured": 38.573815244290344,
+          "coarseDt": 38.57424521555453,
           "band": [
             36,
             56
           ],
           "within": true,
           "coarseWithin": true,
-          "timestepDrift": 0.000014230505245009075
+          "timestepDrift": 0.000011146713423585214
         },
         {
           "metric": "lateral80G",
@@ -3120,8 +3120,8 @@
         "aero": 0.00042751943703489114
       },
       "brakingEnvelopeFit": {
-        "base": 10.344246304122624,
-        "aero": 0.0006573541430675958
+        "base": 10.366814625675113,
+        "aero": 0.00006488196128435751
       },
       "aero": {
         "speedKmh": 171.26993855303985,
@@ -3137,7 +3137,7 @@
         ],
         "lateralBase": 9.48,
         "lateralAero": 0,
-        "brakingBase": 10.34,
+        "brakingBase": 10.37,
         "brakingAero": 0,
         "lateralMargin": 0.68,
         "slowLateralMargin": 0.62,
@@ -3236,7 +3236,7 @@
     "xf2": {
       "name": "XF-2 FAN PROTOTYPE",
       "version": 1,
-      "hash": "34d489e9",
+      "hash": "61bc68c7",
       "comparison": [
         {
           "metric": "accel0to100",
@@ -3302,6 +3302,18 @@
         "balance": 0.4537239648214558,
         "fanN": 7000
       },
+      "fanEnvelopeShare": {
+        "lateralFanOff": {
+          "base": 13.098216653136177,
+          "aero": 0.0024421573012009972
+        },
+        "brakingFanOff": {
+          "base": 15.75923747148193,
+          "aero": 0.0019906039955463746
+        },
+        "lateral": 7.630187938012277,
+        "braking": 12.796474292472338
+      },
       "aiEnvelope": {
         "lineScale": 0.85,
         "lookahead": [
@@ -3312,6 +3324,10 @@
         "lateralAero": 0.00329,
         "brakingBase": 28.56,
         "brakingAero": 0.0019,
+        "fanBase": {
+          "lateral": 7.63,
+          "braking": 12.8
+        },
         "lateralMargin": 0.72,
         "slowLateralMargin": 0.64,
         "brakingMargin": 0.74,
@@ -3581,70 +3597,70 @@
     "rh3": {
       "name": "RH-3 HOT HATCH",
       "version": 1,
-      "hash": "621e6c81",
+      "hash": "f07b2652",
       "comparison": [
         {
           "metric": "accel0to100",
-          "measured": 5.000000000000036,
-          "coarseDt": 5.000000000000038,
+          "measured": 5.2041666666666915,
+          "coarseDt": 5.200000000000048,
           "band": [
             5,
             6.6
           ],
           "within": true,
           "coarseWithin": true,
-          "timestepDrift": 3.552713678800475e-16
+          "timestepDrift": 0.0008006405124054412
         },
         {
           "metric": "topSpeed",
-          "measured": 259.7897101485654,
-          "coarseDt": 259.8058409707609,
+          "measured": 259.6359766427609,
+          "coarseDt": 259.6191555229686,
           "band": [
             245,
             275
           ],
           "within": true,
           "coarseWithin": true,
-          "timestepDrift": 0.00006209184415462905
+          "timestepDrift": 0.00006478732265779235
         },
         {
           "metric": "braking100Distance",
-          "measured": 32.3604178134827,
-          "coarseDt": 32.36043263938722,
+          "measured": 33.02642109165547,
+          "coarseDt": 33.02644094643735,
           "band": [
             30,
             42
           ],
           "within": true,
           "coarseWithin": true,
-          "timestepDrift": 4.581493541676497e-7
+          "timestepDrift": 6.011787296114613e-7
         },
         {
           "metric": "lateral80G",
-          "measured": 1.1812568423325305,
-          "coarseDt": 1.1812594878023528,
+          "measured": 1.0941033313657726,
+          "coarseDt": 1.0941055093068865,
           "band": [
             0.95,
             1.2
           ],
           "within": true,
           "coarseWithin": true,
-          "timestepDrift": 0.000002239538199915705
+          "timestepDrift": 0.0000019906173863691617
         }
       ],
       "lateralEnvelopeFit": {
-        "base": 11.52437831698186,
-        "aero": 0.0001487229945834865
+        "base": 10.704272314513018,
+        "aero": 0.0001066960105934672
       },
       "brakingEnvelopeFit": {
-        "base": 11.944465496355704,
-        "aero": 0.00025949810278483716
+        "base": 11.747139826339554,
+        "aero": 0.0002530215847858954
       },
       "aero": {
-        "speedKmh": 199.39325964076056,
-        "clA": 0.15050974622672578,
-        "cdA": 0.7406872493671712,
-        "balance": 0.5003473718795095
+        "speedKmh": 199.39276369866047,
+        "clA": 0.15050973924489913,
+        "cdA": 0.740687232094583,
+        "balance": 0.5003473703945112
       },
       "aiEnvelope": {
         "lineScale": 0.8,
@@ -3655,10 +3671,10 @@
         "lateralMargin": 0.74,
         "slowLateralMargin": 0.66,
         "brakingMargin": 0.74,
-        "lateralBase": 11.52,
-        "lateralAero": 0.00015,
-        "brakingBase": 11.94,
-        "brakingAero": 0.00026,
+        "lateralBase": 10.7,
+        "lateralAero": 0.00011,
+        "brakingBase": 11.75,
+        "brakingAero": 0.00025,
         "topSpeed": 72,
         "referenceMu": 1.82,
         "downforceReference": 1524
@@ -4011,31 +4027,31 @@
     "rr4": {
       "name": "RR-4 RALLY-BRED ROAD CAR",
       "version": 1,
-      "hash": "6680e74b",
+      "hash": "2ca3840c",
       "comparison": [
         {
           "metric": "accel0to100",
-          "measured": 4.612500000000058,
-          "coarseDt": 4.608333333333352,
+          "measured": 4.979166666666704,
+          "coarseDt": 4.975000000000037,
           "band": [
             4.4,
             5.8
           ],
           "within": true,
           "coarseWithin": true,
-          "timestepDrift": 0.0009033423667656033
+          "timestepDrift": 0.0008368200836821329
         },
         {
           "metric": "topSpeed",
-          "measured": 265.4784549737689,
-          "coarseDt": 265.46306891227056,
+          "measured": 265.477650693027,
+          "coarseDt": 265.46094270107676,
           "band": [
             240,
             270
           ],
           "within": true,
           "coarseWithin": true,
-          "timestepDrift": 0.00005795597047557649
+          "timestepDrift": 0.00006293558763463153
         },
         {
           "metric": "braking100Distance",
@@ -4051,30 +4067,30 @@
         },
         {
           "metric": "lateral80G",
-          "measured": 1.0953483088401743,
-          "coarseDt": 1.0953498658392098,
+          "measured": 1.09461911386271,
+          "coarseDt": 1.0946199580712501,
           "band": [
             0.95,
             1.2
           ],
           "within": true,
           "coarseWithin": true,
-          "timestepDrift": 0.0000014214647732717772
+          "timestepDrift": 7.712349706793519e-7
         }
       ],
       "lateralEnvelopeFit": {
-        "base": 10.422490666998495,
-        "aero": 0.0004775788760637013
+        "base": 10.409284080516757,
+        "aero": 0.0004866443237833947
       },
       "brakingEnvelopeFit": {
-        "base": 11.340262175003758,
-        "aero": 0.0004759673258373448
+        "base": 11.340265389696096,
+        "aero": 0.0004759668637461555
       },
       "aero": {
-        "speedKmh": 199.11072867065383,
-        "clA": 0.10050033061452908,
-        "cdA": 0.8007555648011354,
-        "balance": 0.5002144294661269
+        "speedKmh": 198.68464643466191,
+        "clA": 0.10048796781856553,
+        "cdA": 0.8006655331303333,
+        "balance": 0.5002139957400947
       },
       "aiEnvelope": {
         "lineScale": 0.8,
@@ -4085,8 +4101,8 @@
         "lateralMargin": 0.74,
         "slowLateralMargin": 0.66,
         "brakingMargin": 0.74,
-        "lateralBase": 10.42,
-        "lateralAero": 0.00048,
+        "lateralBase": 10.41,
+        "lateralAero": 0.00049,
         "brakingBase": 11.34,
         "brakingAero": 0.00048,
         "topSpeed": 74,
@@ -4097,70 +4113,70 @@
     "lx12": {
       "name": "LX-12 LUXURY GT",
       "version": 1,
-      "hash": "2342bd0c",
+      "hash": "cddd2b77",
       "comparison": [
         {
           "metric": "accel0to100",
-          "measured": 4.025000000000092,
-          "coarseDt": 4.02499999999999,
+          "measured": 4.037500000000091,
+          "coarseDt": 4.0333333333333234,
           "band": [
             3.2,
             4.2
           ],
           "within": true,
           "coarseWithin": true,
-          "timestepDrift": 2.5376526277145856e-14
+          "timestepDrift": 0.0010319917440910435
         },
         {
           "metric": "topSpeed",
-          "measured": 342.30699313325783,
-          "coarseDt": 342.31207380694406,
+          "measured": 332.519584840374,
+          "coarseDt": 332.5191073774321,
           "band": [
             310,
             345
           ],
           "within": true,
           "coarseWithin": true,
-          "timestepDrift": 0.000014842447826489214
+          "timestepDrift": 0.000001435894196047434
         },
         {
           "metric": "braking100Distance",
-          "measured": 32.50526681251927,
-          "coarseDt": 32.505649964943885,
+          "measured": 35.537337657469166,
+          "coarseDt": 35.53772971144184,
           "band": [
             32,
             40
           ],
           "within": true,
           "coarseWithin": true,
-          "timestepDrift": 0.000011787395157466947
+          "timestepDrift": 0.00001103217062723726
         },
         {
           "metric": "lateral80G",
-          "measured": 0.9995599852657301,
-          "coarseDt": 0.9995555686400898,
+          "measured": 0.9995069712028336,
+          "coarseDt": 0.9995025323327289,
           "band": [
             0.95,
             1.2
           ],
           "within": true,
           "coarseWithin": true,
-          "timestepDrift": 0.0000044185698761743295
+          "timestepDrift": 0.000004441059675015723
         }
       ],
       "lateralEnvelopeFit": {
-        "base": 9.508337601629421,
-        "aero": 0.00041637196191222236
+        "base": 9.50755676386934,
+        "aero": 0.00041699175865423586
       },
       "brakingEnvelopeFit": {
-        "base": 11.289662142395827,
-        "aero": 0.000435379937232805
+        "base": 10.950877540006022,
+        "aero": 0.0001738901473161937
       },
       "aero": {
-        "speedKmh": 199.56752716936467,
-        "clA": 0.1505060614539058,
-        "cdA": 0.8006485435325066,
-        "balance": 0.45004857448407465
+        "speedKmh": 199.4365631618589,
+        "clA": 0.15050007682433084,
+        "cdA": 0.8807331853121518,
+        "balance": 0.4500492240896999
       },
       "aiEnvelope": {
         "lineScale": 0.8,
@@ -4173,9 +4189,9 @@
         "brakingMargin": 0.74,
         "lateralBase": 9.51,
         "lateralAero": 0.00042,
-        "brakingBase": 11.29,
-        "brakingAero": 0.00044,
-        "topSpeed": 95,
+        "brakingBase": 10.95,
+        "brakingAero": 0.00017,
+        "topSpeed": 92,
         "referenceMu": 1.82,
         "downforceReference": 2104
       }
@@ -4269,70 +4285,70 @@
     "gpr2": {
       "name": "GP-R2 PROTOTYPE",
       "version": 1,
-      "hash": "9a4b6832",
+      "hash": "9bf4f27f",
       "comparison": [
         {
           "metric": "accel0to100",
-          "measured": 2.962500000000042,
-          "coarseDt": 2.9583333333333255,
+          "measured": 3.070833333333381,
+          "coarseDt": 3.0666666666666584,
           "band": [
             2.4,
             3.4
           ],
           "within": true,
           "coarseWithin": true,
-          "timestepDrift": 0.0014064697609169799
+          "timestepDrift": 0.0013568521031388833
         },
         {
           "metric": "topSpeed",
-          "measured": 353.9514826727417,
-          "coarseDt": 353.94271545618716,
+          "measured": 342.50722768914466,
+          "coarseDt": 342.52631927546736,
           "band": [
             330,
             360
           ],
           "within": true,
           "coarseWithin": true,
-          "timestepDrift": 0.000024769543238889117
+          "timestepDrift": 0.00005574068159527776
         },
         {
           "metric": "braking100Distance",
-          "measured": 34.32435529914151,
-          "coarseDt": 34.2828110894311,
+          "measured": 34.33308882617773,
+          "coarseDt": 34.2996525421601,
           "band": [
             30,
             42
           ],
           "within": true,
           "coarseWithin": true,
-          "timestepDrift": 0.0012103420253154217
+          "timestepDrift": 0.0009738792855751298
         },
         {
           "metric": "lateral80G",
-          "measured": 1.3117925811319127,
-          "coarseDt": 1.311793077671622,
+          "measured": 1.310935417617025,
+          "coarseDt": 1.3109358853526567,
           "band": [
             1.15,
             1.55
           ],
           "within": true,
           "coarseWithin": true,
-          "timestepDrift": 3.7851998592705297e-7
+          "timestepDrift": 3.56795327592828e-7
         }
       ],
       "lateralEnvelopeFit": {
-        "base": 12.86429071575727,
+        "base": 12.855884813173997,
         "aero": 0
       },
       "aiEnvelope": {
         "lateralBase": 12.98,
         "lateralAero": 0,
-        "brakingBase": 10.68,
-        "brakingAero": 0.001091,
+        "brakingBase": 10.65,
+        "brakingAero": 0.001186,
         "lateralMargin": 0.86,
         "slowLateralMargin": 0.8,
         "brakingMargin": 0.78,
-        "topSpeed": 98,
+        "topSpeed": 96,
         "referenceMu": 1.82,
         "downforceReference": 245
       }

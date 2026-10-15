@@ -111,6 +111,7 @@ export const FEEDER_FR3 = defineVehicle({
   downshiftRPM: 5200,
   limiterRPM: 8500,
   torqueCurve: [
+    [2000, 150],
     [3500, 290],
     [5000, 370],
     [6000, 400],
@@ -324,6 +325,10 @@ export const HISTORIC_HF86 = defineVehicle({
     [12000, 420],
   ],
   engine: combustion(1.5, 900, 0.12),
+  // Boost arrives late: lift and it dumps, open up and it takes most of a
+  // second to build again. The spool threshold sits below the working range,
+  // so the steady full-load curve is unchanged; the lag is the transient.
+  turbo: { boostShare: 0.55, spoolTime: 0.8, dumpFraction: 0.35, spoolRPM: [1000, 2000] },
   brakeTorque: 8500,
   aero: { clA: 3.2, cdA: 1.15, balance: 0.38 },
   tireFamily: 'historic-slick',
@@ -334,8 +339,8 @@ export const HISTORIC_HF86 = defineVehicle({
   setupKeys: KEYS.winged,
   elementMass: [3, 6],
   ai: {
-    lateralBase: 12.62,
-    lateralAero: 0.0044,
+    lateralBase: 12.58,
+    lateralAero: 0.00439,
     brakingBase: 16.16,
     brakingAero: 0.00566,
     lateralMargin: 0.72,

@@ -75,6 +75,11 @@ export interface CapabilityEnvelope {
   lineScale?: number;
   /** Steering preview distance base (m) and per m/s; absent: 6 + 0.48 v. */
   lookahead?: readonly [number, number];
+  /** Share of lateralBase / brakingBase (m/s²) a fan-assisted floor supplies
+   * with the floor intact: the fan-on fit less a fan-off fit
+   * (scripts/vehicle-calibration.ts). The AI scales it with floor health, as
+   * the solver scales the suction (floorEnvelope in ai.ts). */
+  fanBase?: { readonly lateral: number; readonly braking: number };
 }
 export type VehicleClass =
   | 'formula'

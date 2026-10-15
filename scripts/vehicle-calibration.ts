@@ -7,7 +7,7 @@
 // docs/vehicle-calibration.json; --strict exits 1 when a metric is out of band.
 // --only=id,id measures just those definitions (authoring loop) and writes
 // nothing, so the committed report always covers the whole registry.
-import { writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { clamp, G } from '../src/core/math.ts';
 import { DEFAULT_SETUP } from '../src/simulation/config.ts';
 import { Vehicle } from '../src/simulation/vehicle.ts';
@@ -16,6 +16,12 @@ import { CATALOGUE_BANDS } from '../src/simulation/vehicle-catalogue/index.ts';
 import { vehicleHash } from '../src/core/session-identity.ts';
 import { DynamicsTrack } from './dynamics-fixtures.ts';
 import { BIKE_TARGETS, measureBike } from './bike-calibration.ts';
+import {
+  nearEdgeTable,
+  PRE_GROWTH_IDS,
+  withNearEdgeTable,
+  type CalibrationReport,
+} from './calibration-margins.ts';
 
 const strict = process.argv.includes('--strict');
 const only = process.argv
@@ -206,23 +212,48 @@ function aeroAt(def: VehicleDefinition, dt: number, kmh: number) {
     ...(def.fan ? { fanN: fan / n } : {}),
   };
 }
+const ENVELOPE_SPEEDS = [60, 80, 110, 150];
+/** Lateral and braking envelope fits (the AI's base + aero·v² model). */
+function envelopeFits(def: VehicleDefinition, dt: number, topSpeedKmh: number) {
+  // Braking envelope: deceleration along one full stop from high speed.
+  const stops = brakingCurve(def, dt, Math.min(250, topSpeedKmh * 0.9));
+  const lat = ENVELOPE_SPEEDS.map((kmh) => [kmh / 3.6, lateral(def, dt, kmh) * G] as const);
+  return { lat, lateralFit: fit(lat), brakingFit: fit(stops) };
+}
+/** A fan-assisted floor's share of the base limits: the fan-on fit less the
+ * same fit with the fan removed (CapabilityEnvelope.fanBase; the AI scales
+ * it with floor health as the solver scales the suction). */
+function fanShare(
+  def: VehicleDefinition,
+  dt: number,
+  topSpeedKmh: number,
+  on: ReturnType<typeof envelopeFits>,
+) {
+  const bare: VehicleDefinition = { ...def };
+  delete (bare as { fan?: unknown }).fan;
+  const off = envelopeFits(bare, dt, topSpeedKmh);
+  return {
+    lateralFanOff: off.lateralFit,
+    brakingFanOff: off.brakingFit,
+    lateral: on.lateralFit.base - off.lateralFit.base,
+    braking: on.brakingFit.base - off.brakingFit.base,
+  };
+}
 function measure(def: VehicleDefinition, dt: number) {
   const accel = acceleration(def, dt);
   const brake = braking(def, dt, 100);
-  // Braking envelope: deceleration along one full stop from high speed,
-  // fitted as base + aero·v² (the AI's braking model).
-  const stops = brakingCurve(def, dt, Math.min(250, accel.topSpeedKmh * 0.9));
-  const speeds = [60, 80, 110, 150];
-  const lat = speeds.map((kmh) => [kmh / 3.6, lateral(def, dt, kmh) * G] as const);
+  const fits = envelopeFits(def, dt, accel.topSpeedKmh),
+    lat = fits.lat;
   return {
     accel0to100: accel.to100s,
     topSpeed: accel.topSpeedKmh,
     braking100Distance: brake.distanceM,
     braking100PeakG: brake.peakG,
     lateral80G: lat[1][1] / G,
-    lateralFit: fit(lat),
-    brakingFit: fit(stops),
+    lateralFit: fits.lateralFit,
+    brakingFit: fits.brakingFit,
     aero: aeroAt(def, dt, Math.min(200, accel.topSpeedKmh * 0.9)),
+    ...(def.fan ? { fanShare: fanShare(def, dt, accel.topSpeedKmh, fits) } : {}),
   };
 }
 const report: Record<string, unknown> = {
@@ -259,7 +290,8 @@ for (const def of Object.values(VEHICLES)) {
   // Four-wheel runs also fit the braking envelope and measure the aero map;
   // the bike adapter reports lateral fit only.
   const braking = 'brakingFit' in fine ? fine.brakingFit : null,
-    aero = 'aero' in fine ? fine.aero : null;
+    aero = 'aero' in fine ? fine.aero : null,
+    fan = 'fanShare' in fine ? fine.fanShare : null;
   (report.vehicles as Record<string, unknown>)[def.id] = {
     name: def.name,
     version: def.version,
@@ -268,6 +300,7 @@ for (const def of Object.values(VEHICLES)) {
     lateralEnvelopeFit: fine.lateralFit,
     ...(braking ? { brakingEnvelopeFit: braking } : {}),
     ...(aero ? { aero } : {}),
+    ...(fan ? { fanEnvelopeShare: fan } : {}),
     aiEnvelope: def.ai,
   };
   console.log(`${def.name} (${def.id} v${def.version})`);
@@ -281,10 +314,21 @@ for (const def of Object.values(VEHICLES)) {
         ? ` · braking fit: base ${braking.base.toFixed(2)}, aero ${braking.aero.toExponential(2)}`
         : ''),
   );
+  if (fan)
+    console.log(
+      `  fan share of the base limits: lateral ${fan.lateral.toFixed(2)} m/s², braking ${fan.braking.toFixed(2)} m/s²`,
+    );
   if (aero)
     console.log(
       `  aero @${aero.speedKmh.toFixed(0)} km/h: ClA ${aero.clA.toFixed(2)} m², CdA ${aero.cdA.toFixed(2)} m², front ${aero.balance === null ? '—' : (aero.balance * 100).toFixed(1) + '%'}`,
     );
 }
-if (!only) writeFileSync('docs/vehicle-calibration.json', JSON.stringify(report, null, 2) + '\n');
+if (!only) {
+  writeFileSync('docs/vehicle-calibration.json', JSON.stringify(report, null, 2) + '\n');
+  // The near-edge disclosure (CONTENT_PIPELINE.md §1.3) is generated here.
+  const doc = 'docs/production/CONTENT_PIPELINE.md';
+  const table = nearEdgeTable(report as unknown as CalibrationReport, new Set(PRE_GROWTH_IDS));
+  writeFileSync(doc, withNearEdgeTable(readFileSync(doc, 'utf8'), table));
+  console.log(`\n${table}`);
+}
 if (strict && outside) process.exitCode = 1;

@@ -412,23 +412,26 @@ function roadBike(sheet: {
 }
 /** A second prototype-class bike: an inline-four "screamer" with a ducted,
  * ground-effect lower fairing and box wings instead of GP-R1's V4 and
- * stacked wings. Generic design. */
+ * stacked wings. The trade against GP-R1: its mass sits further back, so it
+ * stands on its nose later and brakes shorter but lifts the front sooner;
+ * with the weaker bottom end and the draggier fairing it gives away launch
+ * and top speed. Generic design. */
 export const GP_R2: VehicleDefinition = roadBike({
   id: 'gpr2',
   name: 'GP-R2 PROTOTYPE',
   classId: 'gp-bike',
   bike: Object.freeze({
     ...GP_BIKE,
-    cgHeight: 0.6,
-    cgToFront: 0.71,
-    cgToRear: 0.74,
+    cgHeight: 0.61,
+    cgToFront: 0.72,
+    cgToRear: 0.73,
     maxLean: 1.13,
     frontBrake: 7700,
-    drag: 0.226,
+    drag: 0.25,
     tuckDrag: 0.09,
     downforce: 0.062,
     downforceFront: 0.7,
-    launchRPM: 9500,
+    launchRPM: 9000,
     wheelieLimit: 0.09,
   }),
   machineMass: 157,
@@ -442,16 +445,16 @@ export const GP_R2: VehicleDefinition = roadBike({
   limiterRPM: 18500,
   powerW: 216000,
   torqueCurve: [
-    [4000, 52],
-    [8000, 86],
-    [11000, 106],
-    [14000, 118],
+    [4000, 46],
+    [8000, 76],
+    [11000, 98],
+    [14000, 116],
     [16500, 124],
     [17800, 117],
     [18500, 100],
   ],
   halfExtents: [0.37, 0.56, 1.02],
-  topSpeed: 98,
+  topSpeed: 96,
 });
 /** An original 600 cc four-cylinder supersport: about 95 kW at 14 500 rpm,
  * 175 kg, road-legal racing tyres, quickshifter six-speed. Generic design. */

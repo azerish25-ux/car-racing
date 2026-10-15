@@ -115,6 +115,7 @@ export const PROTOTYPE_PR3 = defineVehicle({
     [8000, 450],
   ],
   engine: combustion(3.5, 950, 0.22),
+  turbo: { boostShare: 0.4, spoolTime: 0.3, dumpFraction: 0.3, spoolRPM: [1000, 2000] },
   brakeTorque: 12000,
   aero: { clA: 4.2, cdA: 1.05, balance: 0.42 },
   tireFamily: 'slick',
@@ -125,8 +126,8 @@ export const PROTOTYPE_PR3 = defineVehicle({
   setupKeys: KEYS.winged,
   elementMass: [5, 6],
   ai: {
-    lateralBase: 13.13,
-    lateralAero: 0.00376,
+    lateralBase: 13.08,
+    lateralAero: 0.00378,
     brakingBase: 15.56,
     brakingAero: 0.00439,
     lateralMargin: 0.72,

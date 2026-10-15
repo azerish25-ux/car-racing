@@ -132,12 +132,12 @@ value inside its band at 1/120 s as well, largest timestep drift 0.24 %):
 | Machine | Class | Drive (diff) | 0–100 s | Top km/h | 100–0 m | g @ 80 | Sound family |
 |---|---|---|---:|---:|---:|---:|---|
 | FX-26 formula | formula | RWD (LSD) | 2.40 | 341 | 18.8 | 1.91 | v6-turbo-hybrid |
-| FR-3 feeder formula | formula-feeder | RWD (LSD) | 2.83 | 267 | 21.5 | 1.66 | v6-na |
+| FR-3 feeder formula | formula-feeder | RWD (LSD) | 2.97 | 267 | 21.5 | 1.66 | v6-na |
 | FE-4 entry formula | formula-entry | RWD (LSD) | 3.61 | 208 | 23.2 | 1.59 | i4-turbo |
 | HF-76 historic formula | historic-aero | RWD (LSD) | 3.14 | 285 | 25.2 | 1.35 | v8-na |
-| HF-86 turbo formula | historic-turbo | RWD (LSD) | 2.68 | 321 | 21.2 | 1.52 | v6-turbo |
+| HF-86 turbo formula | historic-turbo | RWD (LSD) | 3.00 | 321 | 21.2 | 1.52 | v6-turbo |
 | HY-11 hypercar | hypercar | RWD (LSD) | 2.93 | 318 | 22.5 | 1.56 | v8-crossplane-turbo |
-| PR-3 open prototype | prototype | RWD (LSD) | 2.90 | 295 | 22.4 | 1.56 | v6-turbo |
+| PR-3 open prototype | prototype | RWD (LSD) | 3.10 | 295 | 22.4 | 1.55 | v6-turbo |
 | SP-71 long-tail prototype | historic-prototype | RWD (LSD) | 3.47 | 336 | 28.7 | 1.08 | flat12-na |
 | GT-6R rear-engine GT | gt | RWD (LSD) | 3.53 | 291 | 24.6 | 1.33 | flat6-na |
 | GT-6S straight-six GT | gt | RWD (LSD) | 3.55 | 281 | 25.8 | 1.36 | i6-turbo |
@@ -146,23 +146,23 @@ value inside its band at 1/120 s as well, largest timestep drift 0.24 %):
 | HH-2 hot-hatch racer | club | FWD (LSD) | 4.83 | 229 | 31.0 | 1.16 | i4-turbo |
 | VC-62 vintage roadster | vintage | RWD (LSD) | 6.40 | 193 | 35.4 | 1.04 | i4-na |
 | RL-7 classic rally | historic-rally | RWD (LSD) | 5.49 | 185 | 34.0 | 1.09 | i4-na |
-| GB-4 group rally | historic-rally | AWD (LSD centre 35:65, LSD/LSD axles) | 2.90 | 221 | 31.7 | 1.14 | i5-turbo |
+| GB-4 group rally | historic-rally | AWD (LSD centre 35:65, LSD/LSD axles) | 3.50 | 221 | 31.7 | 1.14 | i5-turbo |
 | RX-E electric rallycross | rallycross | AWD (locked 50:50, LSD/LSD axles) | 2.50 | 226 | 32.7 | 1.09 | electric |
-| BG-2 desert buggy | offroad | RWD (LSD) | 4.60 | 191 | 36.1 | 1.01 | v6-turbo |
+| BG-2 desert buggy | offroad | RWD (LSD) | 4.60 | 191 | 38.6 | 1.01 | v6-turbo |
 | DK-100 direct-drive kart | kart | RWD (locked axle) | 9.39 | 117 | 41.1 | 1.77 | two-stroke-kart |
 | XF-2 fan prototype | experimental | RWD (LSD) | 2.61 | 316 | 14.7 | 2.33 | v8-na |
 | XE-1 electric time attack | experimental | AWD (LSD centre 45:55, LSD/LSD axles) | 2.17 | 256 | 19.7 | 1.75 | electric |
 | XH-3 hydrogen prototype | experimental | AWD (LSD centre 35:65, LSD/LSD axles) | 2.96 | 316 | 23.5 | 1.46 | fuel-cell |
 | XT-1 track hypercar | experimental | RWD (LSD) | 2.54 | 355 | 22.4 | 1.48 | v12-na |
-| RH-3 hot hatch | road | FWD (LSD) | 5.00 | 260 | 32.4 | 1.18 | i4-turbo |
+| RH-3 hot hatch | road | FWD (LSD) | 5.20 | 260 | 33.0 | 1.09 | i4-turbo |
 | RS-5 sports sedan | road | AWD (LSD centre 30:70, LSD/LSD axles) | 3.48 | 302 | 31.7 | 1.09 | i6-turbo |
 | RM-8 muscle coupe | road | RWD (LSD) | 4.76 | 295 | 32.5 | 1.08 | v8-na |
 | RG-63 classic grand tourer | road | RWD (LSD) | 6.15 | 267 | 38.1 | 0.96 | v12-na |
 | RP-6 desert pickup | road | AWD (LSD centre 40:60, open/LSD axles) | 5.15 | 187 | 40.6 | 0.88 | v6-turbo |
-| RR-4 rally-bred road car | road | AWD (LSD centre 41:59, LSD/LSD axles) | 4.61 | 265 | 32.6 | 1.10 | flat4-turbo |
-| LX-12 luxury GT | road | RWD (LSD) | 4.03 | 342 | 32.5 | 1.00 | v12-turbo |
+| RR-4 rally-bred road car | road | AWD (LSD centre 41:59, LSD/LSD axles) | 4.98 | 265 | 32.6 | 1.09 | flat4-turbo |
+| LX-12 luxury GT | road | RWD (LSD) | 4.04 | 333 | 35.5 | 1.00 | v12-turbo |
 | RD-2 roadster | road | RWD (LSD) | 6.32 | 233 | 34.4 | 1.17 | i4-na |
-| GP-R2 prototype | gp-bike | chain, rear | 2.96 | 354 | 34.3 | 1.31 | i4-bike |
+| GP-R2 prototype | gp-bike | chain, rear | 3.07 | 343 | 34.3 | 1.31 | i4-bike |
 | SS-600 supersport | supersport | chain, rear | 3.48 | 265 | 37.9 | 1.15 | i4-bike |
 | NR-900 naked roadster | road-bike | chain, rear | 3.34 | 224 | 40.7 | 0.95 | i3-bike |
 | CR-750 classic racer | classic-bike | chain, rear | 4.21 | 237 | 48.1 | 0.92 | two-stroke-bike |
@@ -176,6 +176,29 @@ tyre stagger (SP-71 1.25, XT-1 1.14, RG-63 1.08 with a 0.62 forward brake bias) 
 margins (SP-71, GB-4, BG-2, XT-1, RS-5, RM-8, RG-63, CR-750). Six seeded bike races
 (`npm run test:bikes`, now including GP-R1 vs GP-R2, an SS-600 grid and a CR-750 grid) finish with
 no crash.
+
+Review pass (definitions moved, bands unchanged; the figures above are the re-measured ones):
+RH-3 had sat on its 0–100 floor (5.000 s) with more grip than the HH-2 racer, so its road tyres
+drop from 0.78 to 0.72 (1.09 g against HH-2's 1.16 g); BG-2's brakes drop to 7.2 kN m and LX-12's
+to 8.2 kN m with a CdA of 0.88 (both had been within 1 % of an edge, and "long braking" is in both
+briefs); FR-3's race engine gains a weak bottom end below its idle speed, which the clutch launch
+reaches (0–100 2.97 s, from 1 % over its floor). HF-86, GB-4, RR-4 and PR-3 now simulate the turbo
+lag their briefs name (`CatalogueSheet.turbo`, PHYSICS_MODEL.md §3), which moves their 0–100
+toward the briefs (3.00, 3.50, 4.98 and 3.10 s). GP-R2 had beaten GP-R1 on every metric: its mass
+now sits further back (it brakes 1.7 m shorter but lifts its front wheel sooner), and the weaker
+bottom end and draggier fairing cost it 0.04 s to 100 km/h and 11 km/h at the top. Eight-bike
+fields of either machine lap Aurel and Vellamar within 0.1 s of each other; in the alternating
+GP-R1/GP-R2 race GP-R2 still finishes ahead in three of four pairs (its braking passes in
+traffic). XF-2's AI envelope carries the fan's share of its limits, so the AI plans on the grip a
+damaged floor leaves (`fanBase`). GB-4 drives with gentler AI corner margins (0.68 / 0.60) after
+its turbo lag; four-car AI practice of every changed machine on Aurel and Vellamar runs without
+a retirement, and the only stranded car is a BG-2 in a Vellamar gravel trap, as before the review.
+Rules and career: a car built without a DRS flap (FE-4 on the feeder-formula sprint) is never
+eligible for DRS, and the event card, the setup line, the race message and the HUD flag say DRS
+only when a car on the grid carries one (`gridDrs`, `RaceDirector.drsActive`); the career admits
+every class an authored grid lists (HF-76 and HF-67 owners now enter the historic masters), files
+the road-only NR-900 under the festival instead of an open circuit-bike tier, and never awards a
+championship prize that cannot race in this build.
 
 Briefs, bands, sound, body and events (the full brief strings live in `CATALOGUE_BRIEFS`):
 
@@ -261,12 +284,45 @@ differ from modern ones only by family grip and loose-surface share; BG-2 and RP
 like DX-8; DK-100 carries a nominal reverse ratio the validator requires (a direct-drive kart has
 none) and brakes on the rear axle through a fixed bias outside the setup screen; the lateral-g
 ramp of the laboratory ends at 72 % steering input, so FX-26, XE-1 and XF-2 report lower bounds;
-several cars sit within 1.6–3 % of a band floor (braking: RR-4, RM-8, LX-12, GS-6M, RS-5, GT-6R,
-SP-71; lateral: GT-6R, SP-71, XT-1); FE-4 tops out at 208 km/h, 2 km/h under its brief's 210–230 km/h (inside its
-200–235 band), GT-6R at 291 km/h against its brief's 280–290; in four-car AI practice RS-5 and RM-8
-still touch occasionally on Vellamar, and loose-surface machines can still beach in a gravel trap
-as DX-8 and GS-4 already did; bike art shares one rider and rider pose, CR-750's twin shocks are
-static; the naked roadster has no festival region to ride in yet.
+every growth machine keeps at least 1.5 % of each band edge at both timesteps
+(`tests/vehicle-catalogue-growth.test.ts`), and the machines closer than 3 % to an edge are listed
+in the generated table below; FE-4 tops out at 208 km/h, 2 km/h under its brief's 210–230 km/h
+(inside its 200–235 band), GT-6R at 291 km/h against its brief's 280–290, RH-3's launch beats its
+brief (5.2 s against about 5.7 s: a front-drive launch on the shared traction control); turbo lag
+(HF-86, GB-4, RR-4, PR-3) is a spool-time transient with no rpm × load boost map, its spool
+threshold set below the ~2 200 rpm the shared clutch launch drags these engines to; in four-car AI
+practice RS-5 and RM-8 still touch occasionally on Vellamar, and
+loose-surface machines can still beach in a gravel trap as DX-8 and GS-4 already did; bike art
+shares one rider and rider pose, CR-750's twin shocks are static; the naked roadster has no
+festival region to ride in yet (the career files it under the festival, not the circuit motorcycle
+ladder).
+
+<!-- near-edge:begin (generated by npm run test:vehicles) -->
+Metrics within 3 % of a band edge at either timestep (from `docs/vehicle-calibration.json`; † predates the catalogue growth and is frozen):
+
+| Machine | Metric | Edge | Measured | Band edge | Margin |
+|---|---|---|---:|---:|---:|
+| APX-01 FORMULA † | top speed | floor | 320.5 km/h | 320 km/h | 0.17 % |
+| RM-8 MUSCLE COUPE | 100–0 | floor | 32.52 m | 32 m | 1.64 % |
+| RM-8 MUSCLE COUPE | top speed | ceiling | 295.0 km/h | 300 km/h | 1.67 % |
+| RR-4 RALLY-BRED ROAD CAR | top speed | ceiling | 265.5 km/h | 270 km/h | 1.67 % |
+| RP-6 DESERT PICKUP | top speed | ceiling | 186.8 km/h | 190 km/h | 1.68 % |
+| RR-4 RALLY-BRED ROAD CAR | 100–0 | floor | 32.59 m | 32 m | 1.85 % |
+| XT-1 TRACK HYPERCAR | g at 80 km/h | floor | 1.477 g | 1.45 g | 1.85 % |
+| GS-6M MID-ENGINE GT SPORT | 100–0 | floor | 28.58 m | 28 m | 2.09 % |
+| RS-5 SPORTS SEDAN | 100–0 | floor | 31.68 m | 31 m | 2.21 % |
+| GT-6R REAR-ENGINE GT | 100–0 | floor | 24.58 m | 24 m | 2.41 % |
+| GT-6R REAR-ENGINE GT | g at 80 km/h | floor | 1.332 g | 1.3 g | 2.43 % |
+| HY-11 HYPERCAR | top speed | floor | 318.1 km/h | 310 km/h | 2.60 % |
+| RS-5 SPORTS SEDAN | top speed | ceiling | 301.8 km/h | 310 km/h | 2.65 % |
+| SP-71 LONG-TAIL PROTOTYPE | 100–0 | floor | 28.75 m | 28 m | 2.67 % |
+| RD-2 ROADSTER | g at 80 km/h | ceiling | 1.167 g | 1.2 g | 2.78 % |
+| TC-1 TOURING † | 0–100 | floor | 4.93 s | 4.8 s | 2.78 % |
+| GT-10M MID-ENGINE GT † | g at 80 km/h | floor | 1.337 g | 1.3 g | 2.81 % |
+| GS-4 GT SPORT † | 100–0 | floor | 28.81 m | 28 m | 2.89 % |
+| TC-2 TOURING † | 0–100 | floor | 4.12 s | 4 s | 2.92 % |
+| RD-2 ROADSTER | top speed | ceiling | 232.8 km/h | 240 km/h | 2.99 % |
+<!-- near-edge:end -->
 
 ### 1.4 Destination catalogue (§10.1, 48 models)
 

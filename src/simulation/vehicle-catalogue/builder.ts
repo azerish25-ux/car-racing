@@ -1,5 +1,6 @@
 import { G } from '../../core/math.ts';
 import { sampleAeroMap } from '../aero-map.ts';
+import { LEGACY_ENGINE, type TurboDefinition } from '../powertrain.ts';
 import type { Setup } from '../config.ts';
 import type { DrivelineSpec } from '../differential.ts';
 import { TIRE_FAMILIES, type TireFamilyId } from '../tire-families.ts';
@@ -81,6 +82,12 @@ export interface CatalogueSheet {
    * builder adds the solver's engine friction so the delivered torque matches. */
   torqueCurve: readonly (readonly [number, number])[];
   engine: EngineSpec;
+  /** Turbocharger response (powertrain.ts): boost builds over `spoolTime`
+   * after the throttle opens and dumps on a lift, so the boost share of the
+   * full-load curve arrives late out of a corner. Absent: instant response.
+   * With `spoolRPM` below the working range the steady full-load curve above
+   * it is unchanged; the lag is the transient. */
+  turbo?: TurboDefinition;
   hybrid?: {
     motorPowerW: number;
     regenPowerW: number;
@@ -191,6 +198,7 @@ export function defineVehicle(sheet: CatalogueSheet): CatalogueEntry {
     lineScale: 0.85,
     lookahead: Object.freeze([5, 0.38] as const),
     ...sheet.ai,
+    ...(sheet.ai.fanBase ? { fanBase: Object.freeze({ ...sheet.ai.fanBase }) } : {}),
     referenceMu: 1.82,
     downforceReference:
       sheet.ai.lateralAero > 0 || sheet.ai.brakingAero > 0 ? sheet.mass + fuel : 0,
@@ -287,6 +295,21 @@ export function defineVehicle(sheet: CatalogueSheet): CatalogueEntry {
         }
       : {}),
     powertrain: sheet.powertrain ?? (hybrid ? 'hybrid' : 'combustion'),
+    // Turbo lag on the catalogue's legacy engine block (instant intake,
+    // linear part load): the only engine-response change a sheet can make.
+    ...(sheet.turbo
+      ? {
+          dynamics: Object.freeze({
+            engine: Object.freeze({
+              ...LEGACY_ENGINE,
+              turbo: Object.freeze({
+                ...sheet.turbo,
+                spoolRPM: tuple([sheet.turbo.spoolRPM[0], sheet.turbo.spoolRPM[1]] as const),
+              }),
+            }),
+          }),
+        }
+      : {}),
     // Skirts seal up to 12 mm above the static floor and lose suction over
     // the next 50 mm (a crest, kerb or rake change breaks the seal).
     ...(sheet.fan
