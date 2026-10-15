@@ -174,7 +174,9 @@ export class AIDriver {
     // room for a slide, so the line narrows towards the centreline (to 55% of
     // its width from about 0.8 mm of water under the car).
     const wetness = clamp(c.contacts[0].water / 0.8, 0, 1);
-    const width = 1 - 0.45 * wetness;
+    // A wider or less agile machine keeps further from the edges (its envelope's
+    // lineScale; absent: the full line).
+    const width = (1 - 0.45 * wetness) * (c.definition.ai.lineScale ?? 1);
     const lineAt = (s: number) => line.offsetAt(s) * width;
     if (this.tacticalClock > 1 / 12 && !c.inPit) {
       this.tacticalClock = 0;
@@ -219,7 +221,8 @@ export class AIDriver {
       this.tactical = approach(this.tactical, this.desiredOffset - lineHere, dt * 1.6);
       this.offset = lineHere + this.tactical;
     }
-    let lookahead = clamp(6 + c.speed * 0.48, 8, 46);
+    const preview = c.definition.ai.lookahead;
+    let lookahead = clamp((preview?.[0] ?? 6) + c.speed * (preview?.[1] ?? 0.48), 8, 46);
     if (pit && c.pitPhase === 1 && boxGap < 35)
       lookahead = Math.min(lookahead, Math.max(1, boxGap));
     track.at(c.s + lookahead, this.target);

@@ -92,6 +92,24 @@ describe('bounded asynchronous GPU frame submissions', () => {
     expect(gate.diagnostics().pending).toBe(false);
     expect(gate.diagnostics().latencyMs).toBe(learned);
   });
+  it('does not grow its own wait on a host that never refreshes fence status', () => {
+    const { gate, gl, state, clock } = fixture();
+    // Fast frames, but the status is never refreshed and each drain costs a
+    // few milliseconds of driver overhead (software GL). The gate's own wait
+    // must not be mistaken for GPU latency.
+    state.wait = gl.TIMEOUT_EXPIRED;
+    state.finishCost = 5;
+    let longest = 0;
+    for (let i = 0; i < 20; i++) {
+      gate.submittedFrame();
+      const start = clock.now;
+      while (!gate.ready()) clock.now += 16;
+      longest = Math.max(longest, clock.now - start);
+    }
+    expect(gate.waitBoundMs).toBe(1000);
+    expect(longest).toBeLessThan(1100);
+    expect(gate.diagnostics().expiredFences).toBe(20);
+  });
   it('ignores completions first observed after an idle period and caps the bound', () => {
     const { gate, gl, state, clock } = fixture();
     gate.submittedFrame();

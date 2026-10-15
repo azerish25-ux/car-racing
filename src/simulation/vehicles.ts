@@ -1,4 +1,8 @@
 import type { Setup } from './config.ts';
+import { BIKE_VEHICLES, type BikeSpec } from './bike-definitions.ts';
+import type { DrivelineSpec } from './differential.ts';
+import type { TireFamilyId } from './tire-families.ts';
+import { CATALOGUE } from './vehicle-catalogue/index.ts';
 
 /** Per-vehicle content contract (WP08 / F04, masterplan §6.3). Every entrant is
  * built from one of these; nothing in the solver reads a global vehicle. Units
@@ -30,6 +34,26 @@ export interface VehicleSpec {
   brakeTorque: number;
   airDensity: number;
   torqueCurve: readonly (readonly [number, number])[];
+  /** Power-unit friction, inertia, idle governor and clutch; absent: the
+   * Formula power unit's values (12 + 0.04·ω N m, 0.34 kg m², 180, 760 N m). */
+  engine?: EngineSpec;
+}
+export interface EngineSpec {
+  frictionBase: number;
+  /** Friction torque per rad/s of crankshaft speed (N m s). */
+  frictionPerRad: number;
+  /** Crankshaft + flywheel (+ motor) inertia (kg m²). */
+  inertia: number;
+  /** Idle governor torque ceiling (N m). */
+  idleTorque: number;
+  /** Clutch friction capacity at the crankshaft (N m). */
+  clutchCapacity: number;
+  /** Automatic clutch full-engagement reference (rpm); absent: idle. */
+  engageRPM?: number;
+  /** Share (0-1) of the road-coupled vehicle inertia the clutch synchronizes
+   * against while the driven tyres grip; absent: 0 (wheels only, as the
+   * Formula car). */
+  clutchCoupling?: number;
 }
 /** AI capability envelope: base + aero·v² limits in m/s² (masterplan §13.5). */
 export interface CapabilityEnvelope {
@@ -46,18 +70,40 @@ export interface CapabilityEnvelope {
   referenceMu: number;
   /** Downforce reference (N at unit normalization) divided by mass at runtime. */
   downforceReference: number;
+  /** Share of the racing line's lateral offset this machine uses (1 = all). */
+  lineScale?: number;
+  /** Steering preview distance base (m) and per m/s; absent: 6 + 0.48 v. */
+  lookahead?: readonly [number, number];
 }
-export type VehicleClass = 'formula' | 'touring' | 'gt' | 'club';
-/** Driven axle. All-wheel drive needs a centre differential model first. */
-export type Drivetrain = 'rwd' | 'fwd';
+export type VehicleClass =
+  | 'formula'
+  | 'formula-junior'
+  | 'historic'
+  | 'hypercar'
+  | 'prototype'
+  | 'gt'
+  | 'gt-sport'
+  | 'touring'
+  | 'club'
+  | 'rally'
+  | 'rallycross'
+  | 'offroad'
+  | 'kart'
+  | 'road'
+  | 'gp-bike'
+  | 'superbike';
+/** Driven axle(s); 'awd' splits torque through `driveline.centre`. */
+export type Drivetrain = 'rwd' | 'fwd' | 'awd';
 export interface VehicleDefinition {
   id: string;
   version: number;
   name: string;
   classId: VehicleClass;
-  /** Dynamics adapter family. Only the four-wheel solver exists today; bikes
-   * and deformable-terrain vehicles need their own (masterplan §8, §9). */
-  dynamicsKind: 'four-wheel';
+  /** Dynamics adapter family (masterplan §8, §9, D13): 'four-wheel' runs
+   * Vehicle; 'bike' runs BikeVehicle (bike-vehicle.ts) and carries `bike`. */
+  dynamicsKind: 'four-wheel' | 'bike';
+  /** Two-wheel family block (bike-definitions.ts); present iff a 'bike'. */
+  bike?: BikeSpec;
   spec: VehicleSpec;
   /** Car-local wheel centres: FR, FL, RR, RL (+Z nose, +X driver's left). */
   wheelPositions: readonly (readonly [number, number, number])[];
@@ -75,6 +121,9 @@ export interface VehicleDefinition {
     rearElement: readonly [number, number];
     jackZ: readonly [number, number];
     jackX: number;
+    /** Floor skid footprint (half width, front z, rear z) at floorY; absent:
+     * the Formula plank (skid-contact.ts). */
+    skid?: readonly [number, number, number];
   };
   /** Tyre family grip relative to the Formula slick construction. */
   tireGrip: number;
@@ -83,6 +132,26 @@ export interface VehicleDefinition {
   /** Setup parameters this car genuinely exposes; others stay at default. */
   setupKeys: readonly (keyof Setup)[];
   ai: CapabilityEnvelope;
+  /** Catalogue fields (WP17/WP30, src/simulation/vehicle-catalogue/). Absent
+   * on APX-01 and TC-1, whose behaviour and content hashes stay unchanged. */
+  /** Differentials; absent: the original viscous axle coupling. */
+  driveline?: DrivelineSpec;
+  /** Hybrid motor on its own axle instead of the crankshaft, deploying only
+   * above `minSpeed` (m/s); regeneration then uses that axle too. */
+  hybridAxle?: { axle: 'front'; minSpeed: number };
+  tireFamily?: TireFamilyId;
+  /** Rear tyre grip when the car runs a staggered (wider) rear fitment;
+   * absent: tireGrip on all four corners. */
+  tireGripRear?: number;
+  /** Body-origin height above the road when placed (m); absent: 0.516. */
+  restHeight?: number;
+  /** Fuel (kg) aboard at the start of a sprint session; absent: 24. */
+  fuelLoad?: number;
+  /** The car's own setup baseline (keys it does not expose keep these). */
+  setupDefaults?: Partial<Setup>;
+  /** Per-car limits for exposed setup keys. */
+  setupLimits?: Partial<Record<keyof Setup, readonly [number, number]>>;
+  powertrain?: 'combustion' | 'hybrid' | 'electric';
 }
 const FORMULA_SPEC: VehicleSpec = Object.freeze<VehicleSpec>({
   dryMass: 770,
@@ -270,9 +339,12 @@ export const TOURING_TC1: VehicleDefinition = Object.freeze({
     downforceReference: 0,
   }),
 });
+/** Registry order is the snapshot index (R.VEHICLE): append only. */
 export const VEHICLES: Readonly<Record<string, VehicleDefinition>> = Object.freeze({
   apx01: FORMULA_APX01,
   tc1: TOURING_TC1,
+  ...BIKE_VEHICLES,
+  ...CATALOGUE,
 });
 export const VEHICLE_IDS = Object.freeze(Object.keys(VEHICLES));
 export const DEFAULT_VEHICLE_ID = 'apx01';
@@ -287,9 +359,17 @@ export function vehicleAt(index: number): VehicleDefinition {
   return vehicleDefinition(VEHICLE_IDS[index]);
 }
 /** Class-specific setup: parameters a car does not expose keep defaults so a
- * touring car cannot silently carry a rear-wing value (masterplan §7.3). */
+ * touring car cannot silently carry a rear-wing value (masterplan §7.3). A
+ * car's own baseline (setupDefaults) replaces the shared default; an exposed
+ * value the player left at the shared default also takes the car's baseline,
+ * and exposed values are clamped to the car's setupLimits. */
 export function setupFor(definition: VehicleDefinition, setup: Setup, defaults: Setup): Setup {
-  const out = { ...defaults };
-  for (const key of definition.setupKeys) out[key] = setup[key];
+  const own = definition.setupDefaults;
+  const out = { ...defaults, ...own };
+  for (const key of definition.setupKeys) {
+    const limit = definition.setupLimits?.[key],
+      value = own?.[key] !== undefined && setup[key] === defaults[key] ? own[key] : setup[key];
+    out[key] = limit ? Math.max(limit[0], Math.min(limit[1], value)) : value;
+  }
   return out;
 }

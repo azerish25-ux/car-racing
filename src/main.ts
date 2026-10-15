@@ -529,7 +529,7 @@ export class GameApp {
           load: () => this.store.read(FESTIVAL_SAVE_KEY),
           save: (state) => this.store.write(FESTIVAL_SAVE_KEY, state),
         },
-        { weather: options.weather, assist: options.assist, seed: options.seed },
+        { vehicle: options.vehicles?.[0], weather: options.weather, assist: options.assist, seed: options.seed },
       );
       this.input.setEnabled(true);
     } catch (error) {

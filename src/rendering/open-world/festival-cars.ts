@@ -2,21 +2,21 @@ import * as T from 'three';
 import { F, H, R, RACE_BASE, carBase } from '../../simulation/protocol.ts';
 import { vehicleAt } from '../../simulation/vehicles.ts';
 import { FormulaCar } from '../car.ts';
-import { TouringShells } from '../touring-shell.ts';
+import { VehicleBodies } from '../vehicle-bodies/index.ts';
 
 /**
  * Car presentation for the festival: every entrant is posed from the
  * interpolated snapshot; Formula definitions use the full FormulaCar (built
- * on first use), every other definition goes through the shared body hook
- * the circuit renderer uses for non-Formula vehicles (TouringShells today;
- * the vehicle-body library replaces it there and here in one place, see
- * `bodies`). Night adds dipped headlights to the followed car.
+ * on first use), every other definition is drawn by the procedural
+ * catalogue body library the circuit renderer uses (`VehicleBodies`), so a
+ * new registry car appears here without festival code. Night lights the
+ * body lamps and adds dipped headlights to the followed car.
  */
 export class FestivalCars {
   readonly root = new T.Group();
-  /** Non-Formula bodies (the circuit renderer's hook). */
-  readonly bodies = new TouringShells();
-  private readonly holders: { root: T.Object3D }[] = [];
+  /** Non-Formula bodies (the circuit renderer's library). */
+  readonly bodies = new VehicleBodies();
+  private readonly holders: { root: T.Object3D; lodLevel: number }[] = [];
   private readonly formula = new Map<number, FormulaCar>();
   private readonly headlight = new T.SpotLight(0xfff2dc, 0, 150, 0.52, 0.55, 1.6);
   readonly reflectivePaint: T.Material[] = [];
@@ -37,7 +37,7 @@ export class FestivalCars {
       const holder = new T.Object3D();
       holder.name = `Festival entrant ${this.holders.length + 1}`;
       this.root.add(holder);
-      this.holders.push({ root: holder });
+      this.holders.push({ root: holder, lodLevel: this.holders.length ? 1 : 0 });
     }
     for (let id = 0; id < this.holders.length; id++) {
       const holder = this.holders[id].root,
@@ -69,13 +69,16 @@ export class FestivalCars {
         holder.quaternion.set(presented[o + F.QX], presented[o + F.QY], presented[o + F.QZ], presented[o + F.QW]);
       }
     }
-    // The body hook reads the latest snapshot and the posed holders; Formula
-    // entrants keep their own representation (the hook hides theirs).
-    // Entrants beyond the current field read as Formula (no vehicle slot in
-    // the snapshot), which hides any body left over from a finished event.
+    // The body library reads the snapshots and the posed holders; Formula
+    // entrants keep their own representation. Entrants beyond the current
+    // field read as Formula (no vehicle slot in the snapshot), which hides
+    // any body left over from a finished event.
     this.bodies.update(
+      a,
       b,
+      alpha,
       this.holders.map((h, id) => this.formula.get(id) ?? h),
+      night > 0.05,
     );
     for (let id = 0; id < this.holders.length; id++) {
       const formula = this.formula.get(id);

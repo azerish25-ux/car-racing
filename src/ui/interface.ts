@@ -1,4 +1,5 @@
 import { installRaceDayHud, updateRaceDayHud } from './race-day-hud.ts';
+import { machineOptions, machineSelectOptions } from './machine-options.ts';
 import { installCompactRaceHud } from './compact-race-hud.ts';
 import {
   compoundOf,
@@ -153,31 +154,8 @@ function writeText(e: Element, value: string) {
 function writeWidth(e: HTMLElement, value: string) {
   if (e.style.width !== value) e.style.width = value;
 }
-/** Per-entry vehicles and the ruleset a MACHINE choice implies (WP22). */
-export function machineOptions(
-  options: SessionOptions,
-  machine: string,
-): Pick<SessionOptions, 'vehicles' | 'ruleset' | 'compound'> {
-  if (machine !== 'tc1' && machine !== 'mixed') return { compound: options.compound };
-  const count = options.opponents + 1;
-  const vehicles = Array.from({ length: count }, (_, i) =>
-    machine === 'mixed' ? (i % 2 ? 'apx01' : 'tc1') : 'tc1',
-  );
-  const ruleset =
-    machine === 'mixed'
-      ? options.mode === 'race' || options.mode === 'practice'
-        ? 'open-exhibition'
-        : undefined
-      : options.mode === 'race'
-        ? 'touring-sprint'
-        : undefined;
-  // Touring tyres are a single slick construction plus a wet.
-  const compound =
-    machine === 'tc1' && options.mode === 'race' && options.compound !== 'wet'
-      ? 'medium'
-      : options.compound;
-  return { vehicles, ...(ruleset ? { ruleset } : {}), compound };
-}
+/** Per-entry vehicles and the ruleset a MACHINE choice implies (WP22, WP30). */
+export { machineOptions } from './machine-options.ts';
 export class Interface {
   readonly menu: HTMLElement;
   readonly hud: HTMLElement;
@@ -237,7 +215,7 @@ export class Interface {
     <div class="form-row"><label>SESSION<select id="mode"><option value="race">Grand Prix</option><option value="practice">Free practice</option><option value="time-trial">Time trial · ghost</option><option value="qualifying">Race weekend · qualifying</option><option value="endurance">Endurance · mandatory stop</option><option value="festival">Festival · open world</option></select></label><label>DISTANCE<select id="laps"><option value="1">1 lap · Sprint</option><option value="3" selected>3 laps · Standard</option><option value="5">5 laps</option><option value="10">10 laps</option><option value="15">15 laps · Endurance</option><option value="25">25 laps · Endurance</option></select></label></div>
     <div class="form-row"><label>WEATHER<select id="weather"><option value="clear">Clear / Dry</option><option value="changeable">Dry → Rain</option><option value="rain">Heavy rain</option></select></label><label>GRID<select id="opponents"><option value="0">Solo</option><option value="3">4 cars</option><option value="7" selected>8 cars</option><option value="11">12 cars</option></select></label></div>
     <div class="form-row"><label>TYRES<select id="compound"><option value="soft">Soft</option><option value="medium" selected>Medium</option><option value="hard">Hard</option><option value="intermediate">Intermediate</option><option value="wet">Full wet</option></select></label><label>ASSISTS<select id="assist"><option value="sport">ABS + TC</option><option value="raw">Off</option></select></label></div>
-    <div class="form-row"><label>START<select id="startSlot"><option value="pole" selected>Pole position</option><option value="midfield">Mid-field</option><option value="back">Back of the grid</option></select></label><label>MACHINE<select id="vehicle"><option value="apx01" selected>APX-01 Formula</option><option value="tc1">TC-1 Touring · front drive</option><option value="mixed">Mixed exhibition · Formula + Touring</option></select></label></div>
+    <div class="form-row"><label>START<select id="startSlot"><option value="pole" selected>Pole position</option><option value="midfield">Mid-field</option><option value="back">Back of the grid</option></select></label><label>MACHINE<select id="vehicle">${machineSelectOptions()}</select></label></div>
     <p class="session-rules" id="sessionRules" aria-live="polite"></p>
     <button class="primary enter" type="submit">ENTER CIRCUIT <span aria-hidden="true">↗</span></button>
     <button class="enter" type="submit" name="prepareGrid" value="yes">PREPARE GRID <span>START PAUSED</span></button>
@@ -338,8 +316,9 @@ export class Interface {
         if (grid) this.options.grid = grid;
       }
       Object.assign(this.options, machineOptions(this.options, select('vehicle')));
-      // Reject incompatible machine/ruleset/tyre combinations with reasons.
-      const problems = sessionIncompatibilities(validateOptions(this.options));
+      // Reject incompatible machine/ruleset/tyre combinations with reasons
+      // (the festival picks its own road machine and has no circuit rules).
+      const problems = select('mode') === 'festival' ? [] : sessionIncompatibilities(validateOptions(this.options));
       if (problems.length) {
         this.get('sessionRules').textContent = `Cannot start: ${problems.join('; ')}.`;
         return;
@@ -361,7 +340,7 @@ export class Interface {
         problems = sessionIncompatibilities(validateOptions(resolved));
       if (select('mode') === 'festival') {
         this.get('sessionRules').textContent =
-          'Festival: free roam in the Solvane region, events found by driving to them. Weather and assists apply; pick a machine in the festival menu.';
+          'Festival: free roam in the Solvane region, events found by driving to them. Weather and assists apply; a road machine chosen in MACHINE is used, otherwise pick one in the festival menu.';
         return;
       }
       this.get('sessionRules').textContent = problems.length

@@ -145,7 +145,11 @@ export class FestivalSession {
     renderer.lighting = host.lighting;
     for (const id of this.save.discovered) renderer.discovered.add(id);
     const vehicles = festivalVehicles();
-    const vehicle = options.vehicle && vehicles.some((v) => v.id === options.vehicle) ? options.vehicle : this.save.vehicle;
+    // A road machine chosen in the MACHINE menu wins over the festival save;
+    // the Formula default (and bikes) fall back to the saved festival car.
+    const chosen = vehicles.find((v) => v.id === options.vehicle && v.classId !== 'formula');
+    const vehicle = chosen?.id ?? (vehicles.some((v) => v.id === this.save.vehicle) ? this.save.vehicle : festivalDefaultVehicle());
+    this.save.vehicle = vehicle;
     this.hud = new FestivalHud(host.element, world, events, vehicles, {
       start: (id) => this.command({ type: 'start', event: id }),
       continue: () => this.command({ type: 'continue' }),
