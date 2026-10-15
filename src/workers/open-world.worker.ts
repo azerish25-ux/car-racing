@@ -18,14 +18,23 @@ let simulation: OpenWorldSimulation | null = null,
   lastSent = -1,
   lastStatus = -Infinity;
 const clock = new FixedStepper();
-let pool: ArrayBuffer[] = [];
+/** Transferable frame buffers of the current field size. The field grows
+ * when an event adds rivals and shrinks when it ends: the pool is refilled at
+ * the new size then, because buffers of the old size coming back from the
+ * main thread are dropped and would otherwise leave it empty for good. */
+const POOL_SIZE = 4;
+let pool: ArrayBuffer[] = [],
+  poolBytes = 0;
 const send = (msg: FromOpenWorld, transfer: Transferable[] = []) => scope.postMessage(msg, transfer);
 const frameBytes = () => (HEADER + (simulation?.cars.length ?? 1) * CAR_STRIDE) * 4;
+function fillPool(bytes: number) {
+  pool = Array.from({ length: POOL_SIZE }, () => new ArrayBuffer(bytes));
+  poolBytes = bytes;
+}
 function snapshot(required = false) {
   if (!simulation) return;
   const bytes = frameBytes();
-  // The field grows and shrinks with event rivals: drop buffers of another size.
-  pool = pool.filter((b) => b.byteLength === bytes);
+  if (bytes !== poolBytes) fillPool(bytes);
   if (!pool.length && !required) return;
   const buffer = pool.pop() ?? new ArrayBuffer(bytes);
   simulation.writeFrame(new Float32Array(buffer), stepMs, clock.droppedSeconds);
@@ -50,7 +59,7 @@ scope.onmessage = (event: MessageEvent<ToOpenWorld>) => {
         paused = true;
         previous = performance.now();
         lastInput = previous;
-        pool = Array.from({ length: 4 }, () => new ArrayBuffer(frameBytes()));
+        fillPool(frameBytes());
         lastSent = -1;
         send({ type: 'ready', buildMs: performance.now() - start, vehicle: simulation.player.definition.id });
         snapshot(true);
@@ -80,7 +89,8 @@ scope.onmessage = (event: MessageEvent<ToOpenWorld>) => {
         break;
       }
       case 'recycle':
-        if (simulation && msg.buffer.byteLength === frameBytes() && pool.length < 6) pool.push(msg.buffer);
+        // A buffer of a previous field size is dropped (the pool was refilled).
+        if (simulation && msg.buffer.byteLength === poolBytes && pool.length < POOL_SIZE + 2) pool.push(msg.buffer);
         break;
     }
   } catch (error) {

@@ -232,7 +232,9 @@ export class FestivalSession {
         break;
       case 'frame': {
         const frame = new Float32Array(msg.buffer);
-        if (this.previous && this.previous.length === this.current?.length && this.previous !== this.current)
+        // Every superseded buffer goes back, whatever its size: the worker
+        // keeps those of the current field size and drops the rest.
+        if (this.previous && this.previous !== this.current && this.previous.buffer.byteLength > 0)
           this.post({ type: 'recycle', buffer: this.previous.buffer as ArrayBuffer }, [this.previous.buffer as ArrayBuffer]);
         this.previous = this.current ?? frame;
         this.current = frame;
