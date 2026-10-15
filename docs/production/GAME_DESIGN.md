@@ -52,9 +52,11 @@ venue or race ruleset is shown **COMING** with the missing items listed, never h
 current catalogues, circuit cars and road bikes are open (the superbike and GP bike race under the
 motorcycle ruleset; no circuit declares bike safety yet, so bike events use every paved circuit and
 say so); off-road is coming (rally, rallycross and off-road machines exist, no dirt venue does) and
-festival is coming (road machines exist, no region does). Circuit-car tiers: club, vintage and touring →
+festival is coming (road machines exist and the Solvane region runs as free roam, section 8.1, but the
+region is not yet registered as a career venue). Circuit-car tiers: club, vintage and touring →
 grand touring → Formula ladder (entry, feeder, junior, the three historic eras, top tier) →
-endurance prototypes (incl. the historic sports prototype) → unlimited experimental; bike, off-road and festival tiers exist as data
+endurance prototypes (incl. the historic sports prototype) → unlimited experimental; bike, off-road
+and festival tiers exist as data
 and fill when their classes are registered. A registered class that no tier names joins an automatic
 open tier.
 
@@ -133,9 +135,11 @@ Locks, writes from all tabs are also serialised. A first career is seeded once f
 Team HQ reputation above its founding value, classified `championship:v1` rounds, paid session ids and
 the garage setup as a preset. The team and championship saves are never rewritten by the career.
 
-**Designed, not yet implemented.** Festival free roam and events found by driving to them; bike and
-off-road setup parameters; performance upgrades and a per-class performance index; showing setup
-effects in telemetry (the plain-language hints exist); a choice of licence venue (tests use the first
+**Designed, not yet implemented.** The career reading festival results (festival free roam and events
+found by driving to them are integrated, section 8.1, and emit typed results the career does not yet
+consume); bike and off-road setup parameters; performance upgrades and a per-class performance
+index; showing setup effects in telemetry (the plain-language hints exist); a choice of licence
+venue (tests use the first
 admitted venue); championship qualifying (career rounds start the player fifth); rival identity
 across career seasons; one result identity shared with Team HQ (WP23). The full-application journey
 (menu → career session → results) is covered by unit tests and a DOM-only browser test, not yet by a
@@ -166,6 +170,24 @@ Off-road: course cutting by route progress (RouteProgress), jump-landing contact
 | Unconventional | neon city with tunnels, alpine pass, high-banked oval, desert canyon, coastal cliffs, dockyard overpass | spectacle, new racing problems |
 | Off-road | motocross terrain parks, rallycross mixed surface, rally stages | discipline-specific skills |
 | Festival region | open terrain with a road network, towns, mountain, coast, airfield | exploration and event discovery |
+
+### 8.1 Festival region: implemented vs designed
+
+Implemented (state **integrated**, details in [OPEN_WORLD.md](OPEN_WORLD.md)): the fictional
+Solvane Coast region (8.19 km square; coast, Varda mountain, Ashvale valley, Port Ilse town,
+Kestrel airfield, forests) with a 70.9 km road network of highways, country roads, mountain
+switchbacks, town streets, dirt tracks and a runway. SESSION → *Festival · open world* starts free
+roam in any four-wheel registry machine. Physics reads the real surface everywhere through the
+`OpenWorldTrack` adapter (soft boundaries, no laps); reset puts the car back on the nearest road.
+Thirteen events are discovered by driving near their markers and start in place after a card:
+road race, circuits built from road routes, sprints, speed traps, speed zones, drift zones scored
+by `scoring.ts`, and a showcase against the fastest registry machine. Rivals follow the route with
+the circuit AI's envelope; legal progress is `RouteProgress`, so shortcuts earn nothing. Each event
+emits a typed `FestivalResult` for the career hook.
+
+Designed, not implemented: ambient traffic, festival career and reputation (results are emitted,
+not consumed), motorcycles and off-road machines in the region, seasons,
+online free roam, photo challenges, destructible scenery.
 
 ## 9. Presentation
 
