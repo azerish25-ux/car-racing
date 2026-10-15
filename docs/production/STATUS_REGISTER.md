@@ -146,7 +146,7 @@ Last reviewed against source: branch `claude/peaceful-einstein-dedc7t`, commits 
 
 | Gate | Status | Blocking evidence |
 |---|---|---|
-| G0 Stable baseline | open | Hosted CI green on the corrected source; publication and rollback evidence. |
+| G0 Stable baseline | open (CI met) | Hosted Build and validation fully green on the corrected, fully merged source (run 38731013547, e592b1a). Remaining: publication of that artifact from `main` and a rehearsed rollback (release owner). |
 | G1 Golden race | open | Human full races, hardware profiles. |
 | G2 Generalized car/track platform | open, technically substantially met | Mechanically distinct second car, left-pit venue, overpass tests and record policy exist; G1 first. |
 | G3–G9 | not started | Depend on G1/G2 acceptance. |

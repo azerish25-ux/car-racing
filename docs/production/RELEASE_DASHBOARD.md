@@ -11,7 +11,7 @@ timings with consumer performance.
 |---|---|---|
 | Source commit and artifact hash | menu `BUILD /` identity; CI artifact digest | — |
 | Last validated release | release log | unchanged since the audited failure |
-| Required CI | Build and validation (all shards), simulation scenarios, wet presentation | pending on this branch |
+| Required CI | Build and validation (all shards), simulation scenarios, wet presentation | green on e592b1a (run 38731013547, 12/12 jobs) |
 | Open blockers | `STATUS_REGISTER.md` G0 row | F01 publication |
 | Hardware captures accepted | `HARDWARE_DEVICE_PLAYTEST_PROTOCOLS.md` §2 | none |
 | Human-play findings | playtest notes | none |
