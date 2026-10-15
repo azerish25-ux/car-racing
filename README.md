@@ -443,6 +443,8 @@ The original validation results below are historical baseline measurements, not 
 npm run check            # ESLint + Vitest + TypeScript + Vite production build
 npm run test:physics     # Four-car dry, changing-weather, and wet scenarios
 npm run test:endurance   # 100-lap single-car endurance fixture
+npm run test:vehicles    # Calibration lab: every car and motorcycle against its design bands
+npm run test:bikes       # Seeded eight-rider AI motorcycle races (docs/bike-race.json)
 npx playwright install chromium
 npm run test:e2e         # Chromium workflows, screenshots, and traces
 ```

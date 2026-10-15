@@ -77,6 +77,9 @@ export class BikeVehicle extends Vehicle {
   private aiSteps = 0;
   private readonly riderAids: BikeAssists;
   private stuckClock = 0;
+  /** Dynamics state at the end of the last step: transitions are detected
+   * against it, so a fall started outside step() still separates the rider. */
+  private lastState: Bike['state'] = 'riding';
   private yawKick = 0;
   private roadPitch = 0;
   private groundY = 0;
@@ -241,7 +244,7 @@ export class BikeVehicle extends Vehicle {
     const hang =
       d.speed > 10 ? clamp(1.3 * this.input.steer + 1.1 * d.lean, -1, 1) * (1 - this.tuck) : 0;
     const force = this.drive(dt, throttle);
-    const was = d.state;
+    const was = this.lastState;
     d.riderReady = this.riderReady();
     if (this.contactCrash) {
       this.contactCrash = false;
@@ -259,6 +262,7 @@ export class BikeVehicle extends Vehicle {
       dt,
     );
     if (was === 'riding' && d.state !== 'riding') this.separate();
+    this.lastState = d.state;
     if (was === 'separated' && d.state === 'remount') this.planRemount(track);
     if (d.state === 'remount') this.pushToRemount(dt);
     if (was === 'remount' && d.state === 'riding') {
@@ -272,6 +276,7 @@ export class BikeVehicle extends Vehicle {
       if (Math.abs(this.slide) > 5.5 && this.riding) {
         d.fall('lowside');
         this.separate();
+        this.lastState = d.state;
       }
     }
     const h = d.heading;

@@ -153,6 +153,18 @@ describe('WP34 motorcycles in real sessions', () => {
       expect(Number.isFinite(b.dynamics.lean + b.dynamics.speed)).toBe(true);
     }
   });
+  it('race control penalises a bike jump start like any entrant', () => {
+    const sim = bikeSession({ mode: 'race', ruleset: 'gp-motorcycle', opponents: 1 });
+    const b = bike(sim);
+    for (let i = 0; i < 120 * 3; i++) {
+      sim.setInput({ ...b.input, throttle: 1, brake: 0, steer: 0 });
+      sim.step(DT);
+    }
+    expect(b.speed).toBeGreaterThan(0.8);
+    expect(sim.race.laps[0].jumped).toBe(true);
+    expect(sim.race.laps[0].penalty).toBe(5);
+    expect(sim.race.control.events.some((e) => e.code === 'JUMP_START')).toBe(true);
+  });
   it('rear brake is the secondary (clutch) input and decelerates on its own', () => {
     const run = (clutch: number) => {
       const sim = bikeSession({ assist: 'raw' });
