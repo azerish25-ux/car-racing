@@ -130,7 +130,7 @@ import { AudioViewTracker } from '../audio/spatial.ts';
 import { Track, trackPoint } from '../simulation/track.ts';
 import { CAR_STRIDE, F, H, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../simulation/protocol.ts';
 import { clamp } from '../core/math.ts';
-import { TouringShells } from './touring-shell.ts';
+import { VehicleBodies } from './vehicle-bodies/index.ts';
 export type CameraMode = 'chase' | 'cockpit' | 'pod' | 'trackside';
 /** Chase rig in metres, m/s and vertical-FOV degrees. */
 // P5 retuned to its own target (KPI 10 iteration): 1.65 m / 4.9 m framed the
@@ -166,7 +166,8 @@ export class RacingRenderer {
   readonly audioView = new AudioViewTracker();
   readonly effects = new Effects();
   readonly presented = new PresentedFrame();
-  readonly touringShells = new TouringShells();
+  /** Procedural exteriors of non-Formula definitions (WP30). */
+  readonly vehicleBodies = new VehicleBodies();
   /** Accessibility master switch: no motion blur (camera vibration is set by the app). */
   reducedMotion = false;
   readonly studioFrame = new StudioFrame();
@@ -339,7 +340,15 @@ export class RacingRenderer {
       this.photoStage.root,
       this.venueLighting.root,
     );
-    this.scene.add(this.debris.mesh, this.pitCrew.root, this.touringShells.root);
+    this.scene.add(this.debris.mesh, this.pitCrew.root, this.vehicleBodies.root);
+    // Catalogue bodies get the same material installers as the Formula cars.
+    this.vehicleBodies.onBuild = (root) => {
+      reflectInWetRoad(root);
+      this.weatherPresentation.install(root);
+      this.atmosphere.install(root);
+      installSpecularIBL(root);
+      this.textures.register(root);
+    };
     this.textures.register(this.pitCrew.root);
     this.renderer.info.autoReset = false;
     this.renderer.setOpaqueSort(frontToBackOpaque);
@@ -352,6 +361,7 @@ export class RacingRenderer {
     this.shadowProxies.shadowSubstitutes = () => [
       ...this.circuit.crowdClusters.map((c) => c.shadowSubstitute()),
       ...this.circuit.startFinish.shadowSubstitutes(),
+      ...this.vehicleBodies.shadowSubstitutes(),
     ];
     this.reflection.mirrorDetail = {
       before: (camera, height) => this.showMirrorDetail(camera, height),
@@ -1233,8 +1243,8 @@ export class RacingRenderer {
       );
       this.cars[id].update(a, b, base, alpha, dt, time, false);
     }
-    // Non-Formula definitions are drawn by their own (provisional) bodies.
-    this.touringShells?.update(b, this.cars);
+    // Non-Formula definitions are drawn by their own procedural bodies.
+    this.vehicleBodies?.update(a, b, alpha, this.cars, illumination !== 'day');
     this.ghost?.update(
       this.ghostActive && !replay && !menu && !this.photo ? this.ghostPose : null,
       this.camera,

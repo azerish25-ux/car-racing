@@ -50,9 +50,9 @@ export const TOURING_TC2 = defineVehicle({
   driveline: { rear: lsd(70, 0.4, 0.25) },
   setupKeys: KEYS.closed,
   ai: {
-    lateralBase: 12.62,
-    lateralAero: 0.00066,
-    brakingBase: 13.37,
+    lateralBase: 12.8,
+    lateralAero: 0.00064,
+    brakingBase: 13.57,
     brakingAero: 0.00075,
     lateralMargin: 0.74,
     slowLateralMargin: 0.66,
