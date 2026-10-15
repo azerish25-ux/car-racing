@@ -1,4 +1,6 @@
 import { CIRCUITS, STANDARD_PIT, type CircuitDefinition } from './circuits.ts';
+import { trackGeometryReport } from './circuit-catalogue/geometry-checks.ts';
+import { Track } from './track.ts';
 import { DEFAULT_OPTIONS, SETUP_LIMITS } from './config.ts';
 import { EVENTS, RULESETS, eventSession } from './events.ts';
 import { VEHICLES, type VehicleDefinition } from './vehicles.ts';
@@ -87,7 +89,12 @@ export function validateCircuitDefinition(def: CircuitDefinition): string[] {
     if (!finite(def.crossFall(u, false)) || !finite(def.bankGain(u)))
       e.push(`${at}: banking profile at u=${u} not finite`);
   }
-  if (!inRange(def.maxBank, 0, 0.3)) e.push(`${at}: maxBank outside 0-0.3 rad`);
+  // Slope of the steepest banking: 0.65 is a 33-degree oval turn.
+  if (!inRange(def.maxBank, 0, 0.65)) e.push(`${at}: maxBank outside 0-0.65`);
+  for (let i = 0; i < 64; i++)
+    if (Math.abs(def.crossFall(i / 64, false)) > Math.max(def.maxBank, 0.03) + 1e-6)
+      e.push(`${at}: authored cross-fall at u=${i / 64} exceeds maxBank`);
+  if (def.catalogue) e.push(...validateCatalogueEntry(def));
   const p = def.pit ?? STANDARD_PIT;
   if (p.side !== 1 && p.side !== -1) e.push(`${at}: pit side must be 1 or -1`);
   if (!(p.divergeEnd < p.divergeStart))
@@ -106,11 +113,97 @@ export function validateCircuitDefinition(def: CircuitDefinition): string[] {
     if (![zone.detect, zone.start, zone.end].every(finite)) e.push(`${at}: DRS zone not finite`);
   return e;
 }
+/** Real circuit, series and corner names (and brands) that catalogue
+ * approximations must not use: neutral names only, pending a licence. */
+export const PROTECTED_NAMES = Object.freeze([
+  'monza',
+  'spa',
+  'francorchamps',
+  'silverstone',
+  'suzuka',
+  'monaco',
+  'monte carlo',
+  'monte-carlo',
+  'circuit of the americas',
+  'cota',
+  'austin',
+  'daytona',
+  'talladega',
+  'indianapolis',
+  'formula 1',
+  'formula one',
+  'f1',
+  'fia',
+  'eau rouge',
+  'raidillon',
+  'blanchimont',
+  'parabolica',
+  'ascari',
+  'lesmo',
+  'maggotts',
+  'becketts',
+  'copse',
+  'stowe',
+  'luffield',
+  'degner',
+  'spoon',
+  'casio',
+  'rascasse',
+  'loews',
+  'fairmont',
+  'sainte devote',
+  'casino',
+  'mirabeau',
+] as const);
+const protectedName = new RegExp(
+  `(^|[^a-z0-9])(${PROTECTED_NAMES.map((n) => n.replace(/[-.]/g, '\\$&')).join('|')})([^a-z0-9]|$)`,
+  'i',
+);
+function validateCatalogueEntry(def: CircuitDefinition): string[] {
+  const e: string[] = [],
+    meta = def.catalogue!,
+    at = `circuit ${def.id}`;
+  const texts = [def.name, def.short, meta.venueName, meta.layout, meta.description, ...def.corners.map((c) => c.name)];
+  for (const text of texts)
+    if (protectedName.test(text)) e.push(`${at}: "${text}" uses a protected real-world name`);
+  if (!meta.description || meta.description.length > 160)
+    e.push(`${at}: description must be 1-160 characters`);
+  if (!['real-world', 'original', 'unconventional'].includes(meta.group))
+    e.push(`${at}: unknown menu group ${meta.group}`);
+  if (meta.group === 'real-world' && !meta.referenceLength)
+    e.push(`${at}: a real-world approximation must state its reference length`);
+  if (meta.authoring.scale < 0.85 || meta.authoring.scale > 1.2)
+    e.push(`${at}: authored layout was scaled by ${meta.authoring.scale.toFixed(3)} (outside 0.85-1.2)`);
+  if (meta.variantOf && !Object.hasOwn(CIRCUITS, meta.variantOf))
+    e.push(`${at}: variant of unknown layout ${meta.variantOf}`);
+  return e;
+}
+/** Physical geometry of a built track: section clearance, bridge headroom,
+ * pit straight, racing line, lap length against the reference. */
+export function validateCircuitGeometry(def: CircuitDefinition): string[] {
+  const track = new Track('clear', false, undefined, def),
+    report = trackGeometryReport(track),
+    e = [...report.errors];
+  const reference = def.catalogue?.referenceLength;
+  if (reference && Math.abs(track.length - reference) / reference > 0.03)
+    e.push(
+      `circuit ${def.id}: lap ${track.length.toFixed(0)} m is not within 3% of the reference ${reference} m`,
+    );
+  const covered = def.covered ? track.sheltered.reduce((a, v) => a + v, 0) : 0;
+  if (def.catalogue?.dressing.tunnels.length && covered === 0)
+    e.push(`circuit ${def.id}: tunnels are authored but no surface row is sheltered`);
+  return e;
+}
 /** Validate every registry entry and cross-reference; empty means valid. */
 export function validateContent(): string[] {
   const errors: string[] = [];
   for (const def of Object.values(VEHICLES)) errors.push(...validateVehicleDefinition(def));
-  for (const def of Object.values(CIRCUITS)) errors.push(...validateCircuitDefinition(def));
+  for (const def of Object.values(CIRCUITS)) {
+    const definition = validateCircuitDefinition(def);
+    errors.push(...definition);
+    // Geometry needs a buildable definition.
+    if (!definition.length) errors.push(...validateCircuitGeometry(def));
+  }
   const classes = new Set(Object.values(VEHICLES).map((v) => v.classId));
   for (const rules of Object.values(RULESETS))
     for (const cls of rules.allowedClasses)

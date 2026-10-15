@@ -71,7 +71,9 @@ describe('circuit definitions', () => {
     expect(validateOptions({ ...DEFAULT_OPTIONS, circuit: 'vellamar' }).circuit).toBe('vellamar');
     expect(validateOptions({ ...DEFAULT_OPTIONS, circuit: 'toString' }).circuit).toBe('aurel');
     expect(circuitDefinition('nope')).toBe(AUREL);
-    expect(CIRCUIT_IDS).toEqual(['aurel', 'vellamar']);
+    // Aurel and Vellamar lead the registry; catalogue layouts follow (WP29).
+    expect(CIRCUIT_IDS.slice(0, 2)).toEqual(['aurel', 'vellamar']);
+    expect(new Set(CIRCUIT_IDS).size).toBe(CIRCUIT_IDS.length);
   });
   it('labels the menu with the real lap lengths', () => {
     for (const id of CIRCUIT_IDS) {

@@ -51,7 +51,8 @@ import {
 import { rulesetFor, sessionIncompatibilities } from '../simulation/events.ts';
 import { F, H, W, WHEEL_BASE, WHEEL_STRIDE, WHEEL_NAMES, carBase } from '../simulation/protocol.ts';
 import { type Track } from '../simulation/track.ts';
-import { CIRCUIT_IDS, circuitDefinition, type CircuitId } from '../simulation/circuits.ts';
+import { circuitDefinition, type CircuitId } from '../simulation/circuits.ts';
+import { CIRCUIT_MENU_LABELS, circuitBlurb, circuitOptionsHtml } from './circuit-menu.ts';
 import {
   DEFAULT_CALENDAR,
   complete,
@@ -85,10 +86,7 @@ export const SESSION_TITLES: Readonly<Record<SessionOptions['mode'], string>> = 
   qualifying: 'Qualifying',
   endurance: 'Endurance',
 });
-export const CIRCUIT_MENU_LABELS: Readonly<Record<CircuitId, string>> = Object.freeze({
-  aurel: 'Aurel Grand Circuit · 2.97 km',
-  vellamar: 'Vellamar Coast Circuit · 4.00 km',
-});
+export { CIRCUIT_MENU_LABELS };
 /** Player-facing circuit name, e.g. "Aurel Grand Circuit". */
 export const circuitTitle = (id: CircuitId) =>
   (CIRCUIT_MENU_LABELS[id] ?? CIRCUIT_MENU_LABELS.aurel).split(' · ')[0];
@@ -234,7 +232,8 @@ export class Interface {
    <header class="masthead"><div class="brand">APEX<span>FORMULA</span></div><span class="edition">DRIVER <b id="menuDriver">${escapeHtml(this.playerName.toUpperCase())}</b></span></header>
    <div class="menu-body" tabindex="0" role="region" aria-label="Race setup and tools"><div class="eyebrow"><i></i> <span id="circuitEyebrow">AUREL · GRAND CIRCUIT</span></div><h1>EVERY INPUT.<br>EVERY FORCE.</h1><p class="intro">Four contact patches. One racing line.<br>Find the limit between them.</p>
    <form id="sessionForm" class="session-form">
-    <div class="form-row"><label>CIRCUIT<select id="circuit">${CIRCUIT_IDS.map((id) => `<option value="${id}">${CIRCUIT_MENU_LABELS[id]}</option>`).join('')}</select></label></div>
+    <div class="form-row"><label>CIRCUIT<select id="circuit">${circuitOptionsHtml()}</select></label></div>
+    <p class="session-rules circuit-blurb" id="circuitBlurb">${escapeHtml(circuitBlurb(track.circuit.id))}</p>
     <div class="form-row"><label>SESSION<select id="mode"><option value="race">Grand Prix</option><option value="practice">Free practice</option><option value="time-trial">Time trial · ghost</option><option value="qualifying">Race weekend · qualifying</option><option value="endurance">Endurance · mandatory stop</option></select></label><label>DISTANCE<select id="laps"><option value="1">1 lap · Sprint</option><option value="3" selected>3 laps · Standard</option><option value="5">5 laps</option><option value="10">10 laps</option><option value="15">15 laps · Endurance</option><option value="25">25 laps · Endurance</option></select></label></div>
     <div class="form-row"><label>WEATHER<select id="weather"><option value="clear">Clear / Dry</option><option value="changeable">Dry → Rain</option><option value="rain">Heavy rain</option></select></label><label>GRID<select id="opponents"><option value="0">Solo</option><option value="3">4 cars</option><option value="7" selected>8 cars</option><option value="11">12 cars</option></select></label></div>
     <div class="form-row"><label>TYRES<select id="compound"><option value="soft">Soft</option><option value="medium" selected>Medium</option><option value="hard">Hard</option><option value="intermediate">Intermediate</option><option value="wet">Full wet</option></select></label><label>ASSISTS<select id="assist"><option value="sport">ABS + TC</option><option value="raw">Off</option></select></label></div>
@@ -708,6 +707,7 @@ export class Interface {
     this.get('circuitDrs').textContent = String(zones);
     this.get('circuitDrs').nextSibling!.textContent = ` DRS ${zones === 1 ? 'ZONE' : 'ZONES'}`;
     (this.get('circuit') as HTMLSelectElement).value = track.circuit.id;
+    this.get('circuitBlurb').textContent = circuitBlurb(track.circuit.id);
     this.mapFrame = minimapFrame(track);
   }
   private mapFrame: ReturnType<typeof minimapFrame> | null = null;
