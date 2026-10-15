@@ -355,8 +355,14 @@ export function solveTire(
     vLong,
     dt,
   );
+  // Rigid rolling loss of this carcass (hysteresis falls as pressure rises)
+  // plus the compaction work of deformable ground.
   t.rolling =
-    surface.resistance - material.rolling + rollingCoefficient(material, t.sinkage, t.patchLength);
+    surface.resistance *
+      k.rollingResistance *
+      (k.nominalPressure / Math.max(60, t.pressure)) ** k.rollingPressureExponent +
+    rollingCoefficient(material, t.sinkage, t.patchLength) -
+    material.rolling;
   t.groundDrag =
     t.load < 1 ? 0 : groundDrag(material, t.sinkage, k.width, vLong, surface.water, t.aquaplane);
   // Force times slip-speed gives watts, not a cosmetic heating timer.

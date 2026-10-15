@@ -2,13 +2,14 @@
 // Twenty production Vehicles with production AI drivers run 60 simulated
 // seconds on Aurel at the worker's 120 Hz tick with two 240 Hz substeps, the
 // same order of operations as Simulation.step (whose session options cap the
-// field at twelve). Reports wall time per 120 Hz tick for the whole loop and
-// for Vehicle.step alone. Usage:
+// field at twelve). Reports wall and process-CPU time per 120 Hz tick for the
+// whole loop and wall time for Vehicle.step alone. Usage:
 //   node --experimental-transform-types scripts/physics-cost.ts [--repeat N] [--seconds S]
 // Timing is machine- and load-dependent; compare candidates on one machine,
-// interleaved, never against numbers recorded elsewhere.
+// interleaved, never against numbers recorded elsewhere. CPU time is the
+// steadier figure on a shared machine.
 import { AIDriver } from '../src/simulation/ai.ts';
-import { wakeFields } from '../src/simulation/aero.ts';
+import * as aero from '../src/simulation/aero.ts';
 import { CollisionSolver } from '../src/simulation/collision.ts';
 import { DEFAULT_OPTIONS } from '../src/simulation/config.ts';
 import { PHASE, RaceDirector, updatePit } from '../src/simulation/race.ts';
@@ -23,17 +24,28 @@ const CARS = 20,
   TICK = 1 / 120,
   seconds = argument('--seconds', 60),
   repeat = argument('--repeat', 3);
+// Both wake channels where the source has them (also runs on older trees).
+const wakes = (aero as { wakeFields?: (c: Vehicle, cars: Vehicle[]) => void }).wakeFields;
+function wake(c: Vehicle, cars: Vehicle[]) {
+  if (wakes) return wakes(c, cars);
+  c.wake = 0;
+  for (const other of cars)
+    if (other !== c && c.body.position.distanceSq(other.body.position) < 101 * 101)
+      c.wake = Math.max(
+        c.wake,
+        aero.wakeOverlap(c.body.position, other.body.position, other.forward, other.speed, c.forward),
+      );
+}
 
 function run() {
   const track = new Track('clear');
   const options = { ...DEFAULT_OPTIONS, mode: 'practice' as const, opponents: CARS - 1 };
   const cars = Array.from({ length: CARS }, (_, i) => {
     const car = new Vehicle(i, 'medium', options.setup, 'sport');
-    const slot = i;
     car.place(
       track,
-      track.length - track.pit.gridStart - Math.floor(slot / 2) * track.pit.gridRow,
-      slot % 2 === 0 ? -track.pit.gridColumn : track.pit.gridColumn,
+      track.length - track.pit.gridStart - Math.floor(i / 2) * track.pit.gridRow,
+      i % 2 === 0 ? -track.pit.gridColumn : track.pit.gridColumn,
     );
     return car;
   });
@@ -43,12 +55,13 @@ function run() {
   race.time = race.greenAt;
   const collisions = new CollisionSolver();
   let vehicleMs = 0;
-  const started = performance.now();
+  const started = performance.now(),
+    cpu = process.cpuUsage();
   const ticks = Math.round(seconds / TICK);
   for (let tick = 0; tick < ticks; tick++) {
     for (const c of cars) {
       ai[c.id].update(TICK, track, cars, race);
-      wakeFields(c, cars);
+      wake(c, cars);
     }
     for (let sub = 0; sub < 2; sub++) {
       const before = performance.now();
@@ -61,10 +74,12 @@ function run() {
     track.evolve(TICK, Math.max(0, race.time - race.greenAt));
     race.step(TICK);
   }
-  const totalMs = performance.now() - started;
+  const totalMs = performance.now() - started,
+    used = process.cpuUsage(cpu);
   const distance = cars.reduce((sum, c) => sum + race.laps[c.id].distance, 0) / CARS;
   return {
     tickMs: totalMs / ticks,
+    cpuTickMs: (used.user + used.system) / 1000 / ticks,
     vehicleStepMsPerTick: vehicleMs / ticks,
     vehicleStepUsPerCarSubstep: (vehicleMs * 1000) / (ticks * 2 * CARS),
     meanDistanceM: distance,
@@ -81,6 +96,7 @@ console.log(
       simulatedSeconds: seconds,
       repeats: repeat,
       medianTickMs: median('tickMs'),
+      medianCpuTickMs: median('cpuTickMs'),
       medianVehicleStepMsPerTick: median('vehicleStepMsPerTick'),
       medianVehicleStepUsPerCarSubstep: median('vehicleStepUsPerCarSubstep'),
       meanDistanceM: median('meanDistanceM'),

@@ -37,8 +37,14 @@ export interface TyreConstruction {
   readonly nominalLoad: number;
   /** Peak friction μ ∝ (Fz/Fz0)^-loadSensitivity. */
   readonly loadSensitivity: number;
-  /** Slip stiffness ∝ Fz·(Fz/Fz0)^-q: the peak slip angle grows with load. */
+  /** Cornering stiffness ∝ Fz·(Fz/Fz0)^-q: the peak slip angle grows with
+   * load. Longitudinal slip stiffness has its own (MF: close to ∝ Fz). */
   readonly stiffnessLoadExponent: number;
+  readonly longitudinalLoadExponent: number;
+  /** Rolling-resistance scale of this carcass on the ground's rigid
+   * coefficient, and its pressure exponent: c_rr ∝ (p_nominal/p)^n. */
+  readonly rollingResistance: number;
+  readonly rollingPressureExponent: number;
   /** Slip stiffness ∝ (μ/μref)^p; 1 reproduces a curve that scales with μ. */
   readonly frictionStiffnessCoupling: number;
   /** Friction at which `stiffness` values are quoted (dry medium slick). */
@@ -90,6 +96,9 @@ export const FORMULA_SLICK: TyreConstruction = Object.freeze({
   nominalLoad: 2200,
   loadSensitivity: 0.105,
   stiffnessLoadExponent: 0.12,
+  longitudinalLoadExponent: 0,
+  rollingResistance: 0.9,
+  rollingPressureExponent: 0.3,
   frictionStiffnessCoupling: 0.6,
   referenceFriction: 1.84,
   lateral: Object.freeze({ C: 1.28, E: 0.15, stiffness: 7.2 * 1.28 * 1.84 }),
@@ -119,6 +128,7 @@ export const TOURING_SLICK: TyreConstruction = Object.freeze({
   ...FORMULA_SLICK,
   nominalLoad: 3300,
   stiffnessLoadExponent: 0.15,
+  rollingResistance: 1,
   camberStiffness: 0.45,
   camberOptimum: 0.045,
   camberSensitivity: 7,
@@ -158,6 +168,18 @@ export interface SlipState {
   by2: number;
   bx1: number;
   bx2: number;
+  /** Lateral terms of the combined law, cached for the wheel solve: they
+   * depend only on the lateral slip, which is fixed during it. */
+  cache: {
+    stamp: number;
+    alpha: number;
+    dy: number;
+    alphaRef: number;
+    sy: number;
+    fy0: number;
+    by: number;
+  };
+  stamp: number;
   /** Cornering stiffness (N/rad) and longitudinal slip stiffness (N/unit). */
   corneringStiffness: number;
   slipStiffness: number;
@@ -180,6 +202,8 @@ export const slipState = (): SlipState => ({
   by2: 0,
   bx1: 0,
   bx2: 0,
+  cache: { stamp: -1, alpha: NaN, dy: NaN, alphaRef: NaN, sy: 0, fy0: 0, by: 0 },
+  stamp: 0,
 });
 /** Stiffness multiplier from pressure, wear and carcass temperature. */
 export function carcassStiffness(
@@ -213,10 +237,10 @@ export function prepareSlip(
     friction = Math.max(mu, 1e-3),
     common =
       fz *
-      ratio ** -c.stiffnessLoadExponent *
       (friction / c.referenceFriction) ** c.frictionStiffnessCoupling *
       stiffnessFactor *
       groundStiffness;
+  out.stamp++;
   out.dy = friction * fz;
   out.dx = out.dy * c.longitudinalFriction;
   out.by1 = c.combined.by1 * groundCoupling;
@@ -230,8 +254,8 @@ export function prepareSlip(
   out.ex = c.longitudinal.E;
   out.x0y = Math.tan(HALF_PI / out.cy);
   out.x0x = Math.tan(HALF_PI / out.cx);
-  out.corneringStiffness = c.lateral.stiffness * common;
-  out.slipStiffness = c.longitudinal.stiffness * common;
+  out.corneringStiffness = c.lateral.stiffness * common * ratio ** -c.stiffnessLoadExponent;
+  out.slipStiffness = c.longitudinal.stiffness * common * ratio ** -c.longitudinalLoadExponent;
   // BCD = stiffness ⇒ B = stiffness/(C·D); reference slip X0/B.
   out.alphaRef = (out.x0y * out.cy * out.dy) / Math.max(1e-6, out.corneringStiffness);
   out.kappaRef = (out.x0x * out.cx * out.dx) / Math.max(1e-6, out.slipStiffness);
@@ -272,14 +296,31 @@ export function pressureGrip(c: TyreConstruction, pressure: number) {
 function pure(peak: number, sigma: number, C: number, E: number, X0: number) {
   return sigma >= 0 ? peak * slipCurve(sigma, C, E, X0) : -peak * slipCurve(-sigma, C, E, X0);
 }
-/** Combined forces for normalized slips (sx, sy): MF weighting, then the
- * friction-ellipse bound. Writes fx (along +rolling) and fy (along +sy, i.e.
+/** Combined forces for normalized slips (sx, α/α*): MF weighting, then the
+ * friction-ellipse bound. Writes fx (along +rolling) and fy (along +α, i.e.
  * before the sign that opposes the lateral slip). */
-function combine(state: SlipState, sx: number, sy: number, out: { fx: number; fy: number }) {
-  const fx0 = pure(state.dx, sx, state.cx, state.ex, state.x0x),
-    fy0 = pure(state.dy, sy, state.cy, state.ey, state.x0y),
+function combine(state: SlipState, sx: number, out: { fx: number; fy: number }) {
+  const lateral = state.cache;
+  if (
+    lateral.stamp !== state.stamp ||
+    lateral.alpha !== state.alpha ||
+    lateral.dy !== state.dy ||
+    lateral.alphaRef !== state.alphaRef
+  ) {
+    const sigma = state.alpha / state.alphaRef;
+    lateral.stamp = state.stamp;
+    lateral.alpha = state.alpha;
+    lateral.dy = state.dy;
+    lateral.alphaRef = state.alphaRef;
+    lateral.sy = sigma;
+    lateral.fy0 = pure(state.dy, sigma, state.cy, state.ey, state.x0y);
     // cos(atan(x)) = 1/√(1+x²): the C = 1 weighting functions are algebraic.
-    by = state.by1 / Math.sqrt(1 + (state.by2 * sy) ** 2),
+    lateral.by = state.by1 / Math.sqrt(1 + (state.by2 * sigma) ** 2);
+  }
+  const sy = lateral.sy,
+    by = lateral.by,
+    fy0 = lateral.fy0,
+    fx0 = pure(state.dx, sx, state.cx, state.ex, state.x0x),
     bx = state.bx1 / Math.sqrt(1 + (state.bx2 * sx) ** 2),
     fy = fy0 / Math.sqrt(1 + (by * sx) ** 2),
     fx = fx0 / Math.sqrt(1 + (bx * sy) ** 2),
@@ -293,11 +334,11 @@ const SCRATCH = { fx: 0, fy: 0 };
 /** Longitudinal force (N) of the combined law at slip ratio κ with the
  * prepared lateral slip; used by the implicit wheel solve. */
 export function longitudinalForce(state: SlipState, kappa: number) {
-  return combine(state, kappa / state.kappaRef, state.alpha / state.alphaRef, SCRATCH).fx;
+  return combine(state, kappa / state.kappaRef, SCRATCH).fx;
 }
 /** Combined forces: Fx along +rolling, Fy opposing lateral slip. */
 export function combinedForces(state: SlipState, kappa: number, out: { fx: number; fy: number }) {
-  combine(state, kappa / state.kappaRef, state.alpha / state.alphaRef, out);
+  combine(state, kappa / state.kappaRef, out);
   // 0 - x, not -x: an unloaded or straight-running tyre reports +0.
   out.fy = 0 - out.fy;
   return out;

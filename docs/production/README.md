@@ -14,5 +14,6 @@ listed in `git log a8800c7..HEAD`; these documents hold what cannot be code.
 | [DETAILS_D001_D100.md](DETAILS_D001_D100.md) | §19 |
 | [PROGRAMME_PLAN.md](PROGRAMME_PLAN.md) | §4, §5, §11–§13, §20–§23, §25–§27 |
 | [ARCHITECTURE_SERVICES.md](ARCHITECTURE_SERVICES.md) | §6 |
+| [PHYSICS_MODEL.md](PHYSICS_MODEL.md) | §7 vehicle physics: tyres, suspension, drivetrain, aero, ground materials, integration (simulation v2) |
 
 Commands added: `npm run validate:content`, `npm run test:vehicles`, `npm run test:server`.
