@@ -235,7 +235,7 @@ describe('racing surface layer', () => {
     );
     expect(rough).toBeGreaterThan(f.indexOf('#include <roughnessmap_fragment>'));
     expect(rough).toBeLessThan(
-      f.indexOf('roughnessFactor=mix(roughnessFactor,mix(0.22,0.08,puddle),wet)'),
+      f.indexOf('roughnessFactor=mix(roughnessFactor,mix(0.22,0.08,roadSheet),wet)'),
     );
     // The macro noise is declared before the functions that call it.
     expect(f.indexOf('float apexRoadNoise(')).toBeLessThan(f.indexOf('float apexLapNoise('));

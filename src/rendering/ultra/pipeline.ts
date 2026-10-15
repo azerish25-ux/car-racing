@@ -198,6 +198,7 @@ export class UltraPipeline {
     if (this.ssr.enabled && this.ssr.supported)
       for (const car of frame.cars) for (const m of car.reflectivePaint) this.patch(m);
     this.ssr.rain = frame.studio ? 0 : rain01;
+    this.ssr.wet = frame.studio ? 0 : wet;
     this.ssr.prepare(true);
     // The road and the followed car share the local probe while it owns them.
     const road = this.host.roadMaterial as T.MeshStandardMaterial;
