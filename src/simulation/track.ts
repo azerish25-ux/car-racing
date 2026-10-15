@@ -120,7 +120,11 @@ export class Track {
   }
   cast(origin: Vec3, down: Vec3, maximum: number, out: SurfaceSample) {
     if (this.#offroad) return this.#offroad.cast(origin, down, maximum, out);
-    this.contactMesh ??= new TrackContactMesh(this);
+    // Long laps keep the standard ~0.9 m row spacing of the contact ribbon.
+    this.contactMesh ??= new TrackContactMesh(
+      this,
+      this.circuit.samples ? Math.max(8192, Math.ceil(this.length / 0.9)) : undefined,
+    );
     return this.contactMesh.cast(origin, down, maximum, out);
   }
   private queryPoint = trackPoint();
@@ -141,7 +145,7 @@ export class Track {
     this.pit = circuit.pit ?? STANDARD_PIT;
     this.weather = new WeatherTimeline(keyframes);
     this.weather.sample(0, this);
-    const count = 1536;
+    const count = circuit.samples ?? 1536;
     let distance = 0;
     for (let i = 0; i <= count; i++) {
       const t = (i / count) * DESIGN.length,

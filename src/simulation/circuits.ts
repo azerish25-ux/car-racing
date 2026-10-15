@@ -76,6 +76,19 @@ export interface CircuitDefinition {
   surface?: string;
   classes?: readonly string[];
   formats?: readonly string[];
+  /** Track centreline samples per lap; 1536 when absent. Laps longer than
+   * ~8 km declare more so tight corners keep ~4.5 m sample spacing. */
+  samples?: number;
+  /** Assessed for motorcycles (run-off, barrier distance, kerb profile);
+   * validate:content re-measures the geometry of every flagged circuit, and
+   * the motorcycle race rulesets and the bike career race only on these. */
+  bikeSafe?: boolean;
+  /** Motorcycle race classes cleared here: each has a passing seeded AI race
+   * on this circuit (`npm run test:bike-clearance`, docs/bike-clearance.json).
+   * The motorcycle race rulesets admit only these classes. Declared exactly
+   * when `bikeSafe` is: run-off can be safe while a class still cannot ride
+   * the corners (the classic class falls in tight hairpins). */
+  bikeClasses?: readonly string[];
 }
 /** Venue-owned pit lane, grid and service geometry (WP10 / F06). Distances
  * are lap metres measured from the start line (the lane straddles it), the
@@ -190,6 +203,9 @@ export const AUREL: CircuitDefinition = Object.freeze({
     { s: 2180, name: 'CONCOURSE' },
   ]),
   drsZones: Object.freeze([{ detect: 2180, start: 2300, end: 470 }]),
+  // Gravel outside every tighter corner, barriers 11 m beyond the asphalt.
+  bikeSafe: true,
+  bikeClasses: Object.freeze(['gp-bike', 'superbike', 'supersport', 'classic-bike']),
 });
 
 /** Periodic monotone-free cubic interpolation through (u, value) knots. */
@@ -314,6 +330,8 @@ export const VELLAMAR: CircuitDefinition = Object.freeze({
     { detect: 3330, start: 3420, end: 640 },
     { detect: 1800, start: 1900, end: 2720 },
   ]),
+  bikeSafe: true,
+  bikeClasses: Object.freeze(['gp-bike', 'superbike', 'supersport', 'classic-bike']),
 });
 
 export const CIRCUITS: Readonly<Record<CircuitId, CircuitDefinition>> = Object.freeze({

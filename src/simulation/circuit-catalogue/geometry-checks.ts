@@ -1,6 +1,6 @@
-import { mod } from '../../core/math.ts';
+import { clamp, mod } from '../../core/math.ts';
 import { racingLineFor } from '../racing-line.ts';
-import { ROUTE_LAYER_GAP, trackPoint, type Track } from '../track.ts';
+import { ROUTE_LAYER_GAP, SURFACE, surfaceSample, trackPoint, type Track } from '../track.ts';
 
 /** Road-surface separation a crossing needs: car height, structure depth
  * and headroom (m). */
@@ -157,5 +157,132 @@ export function trackGeometryReport(track: Track): GeometryReport {
     maximumGradient,
     maximumBank,
     minimumCrestRadius,
+  };
+}
+
+/** What a motorcycle-safe circuit needs (GAME_DESIGN §2 road motorcycles):
+ * a rider who falls slides into gravel or onto asphalt, not grass, with a
+ * distant barrier at every corner; kerbs are the low flat profile (no raised
+ * sausage elements); no walls close by, tunnels or street frontage. */
+export const BIKE_SAFETY = Object.freeze({
+  /** Corners tighter than this (m) need gravel or asphalt run-off outside. */
+  cornerRadius: 250,
+  /** Barrier face beyond the asphalt edge outside such corners (m). */
+  cornerBarrier: 10,
+  /** Barrier face beyond the asphalt edge anywhere else (m). */
+  barrier: 6,
+  /** Highest kerb rise above the road plane (m). */
+  kerbHeight: 0.05,
+  /** Steepest banking (slope). */
+  maxBank: 0.27,
+  /** A violation shorter than this (m) is a corner-transition artefact of the
+   * spline (run-off and barrier tables change at segment ends). */
+  tolerance: 16,
+});
+export interface BikeSafetyReport {
+  errors: string[];
+  /** Metres of lap inside corners tighter than BIKE_SAFETY.cornerRadius. */
+  cornerMetres: number;
+  /** Closest barrier beyond the asphalt outside those corners (m). */
+  minimumCornerBarrier: number;
+  /** Closest barrier beyond the asphalt anywhere (m). */
+  minimumBarrier: number;
+  /** Metres of tight corner whose outside run-off is grass. */
+  grassOutsideMetres: number;
+  /** Measured kerb rise above the road plane (m). */
+  maximumKerbHeight: number;
+  coveredMetres: number;
+  streetFrontage: boolean;
+}
+/** Measure a built track against BIKE_SAFETY from the same run-off, barrier
+ * and kerb data that contact and collision read. */
+export function bikeSafetyReport(track: Track): BikeSafetyReport {
+  const at = `circuit ${track.circuit.id}`,
+    errors: string[] = [],
+    step = 4,
+    count = Math.floor(track.length / step),
+    p = trackPoint(),
+    sample = surfaceSample(),
+    limit = 1 / BIKE_SAFETY.cornerRadius;
+  let cornerMetres = 0,
+    minimumCornerBarrier = Infinity,
+    minimumBarrier = Infinity,
+    grassOutsideMetres = 0,
+    maximumKerbHeight = 0,
+    coveredMetres = 0,
+    maximumBank = 0;
+  const runs = { grass: 0, corner: 0, barrier: 0 },
+    worst = { grass: 0, corner: 0, barrier: 0 },
+    where = { grass: 0, corner: 0, barrier: 0 };
+  const run = (key: keyof typeof runs, bad: boolean, s: number) => {
+    runs[key] = bad ? runs[key] + step : 0;
+    if (runs[key] > worst[key]) {
+      worst[key] = runs[key];
+      where[key] = s;
+    }
+  };
+  const q = trackPoint();
+  for (let i = 0; i < count; i++) {
+    const s = i * step;
+    track.at(s, p);
+    maximumBank = Math.max(maximumBank, Math.abs(p.bank));
+    if (track.isCovered(s)) coveredMetres += step;
+    const left = track.boundaryAt(p, -1) - p.width,
+      right = track.boundaryAt(p, 1) - p.width;
+    minimumBarrier = Math.min(minimumBarrier, left, right);
+    run('barrier', Math.min(left, right) < BIKE_SAFETY.barrier, s);
+    const corner = Math.abs(p.curvature) > limit,
+      outside = p.curvature < 0 ? 1 : -1,
+      gap = outside > 0 ? right : left;
+    let grass = false;
+    if (corner) {
+      cornerMetres += step;
+      minimumCornerBarrier = Math.min(minimumCornerBarrier, gap);
+      grass = track.runoffSurface(p, outside * (p.width + 6)) === SURFACE.GRASS;
+      if (grass) grassOutsideMetres += step;
+    }
+    run('grass', corner && grass, s);
+    run('corner', corner && gap < BIKE_SAFETY.cornerBarrier, s);
+    // Kerb band: rise of the contact surface above the road plane.
+    if (i % 8 === 0)
+      for (const side of [-1, 1])
+        for (let across = 0.05; across < 1.1; across += 0.1) {
+          const l = side * (p.width + across);
+          track.sample(p.x + p.nx * l, p.z + p.nz * l, sample, p.y);
+          track.at(sample.s, q);
+          maximumKerbHeight = Math.max(
+            maximumKerbHeight,
+            sample.height - (q.y + q.bank * clamp(sample.lateral, -12, 12)),
+          );
+        }
+  }
+  const tolerance = BIKE_SAFETY.tolerance;
+  if (worst.grass > tolerance)
+    errors.push(
+      `${at}: not bike-safe: ${worst.grass} m of corner with grass run-off outside near ${where.grass.toFixed(0)} m`,
+    );
+  if (worst.corner > tolerance)
+    errors.push(
+      `${at}: not bike-safe: corner barrier closer than ${BIKE_SAFETY.cornerBarrier} m for ${worst.corner} m near ${where.corner.toFixed(0)} m`,
+    );
+  if (worst.barrier > tolerance)
+    errors.push(
+      `${at}: not bike-safe: barrier closer than ${BIKE_SAFETY.barrier} m for ${worst.barrier} m near ${where.barrier.toFixed(0)} m`,
+    );
+  if (maximumKerbHeight > BIKE_SAFETY.kerbHeight)
+    errors.push(`${at}: not bike-safe: kerbs rise ${(maximumKerbHeight * 1000).toFixed(0)} mm`);
+  if (maximumBank > BIKE_SAFETY.maxBank) errors.push(`${at}: not bike-safe: banking too steep`);
+  if (coveredMetres > 0) errors.push(`${at}: not bike-safe: tunnels`);
+  const streetFrontage = !!track.circuit.catalogue?.dressing.facades.length;
+  if (streetFrontage) errors.push(`${at}: not bike-safe: street frontage beside the road`);
+  return {
+    errors,
+    cornerMetres,
+    minimumCornerBarrier,
+    minimumBarrier,
+    grassOutsideMetres,
+    maximumKerbHeight,
+    coveredMetres,
+    streetFrontage,
   };
 }

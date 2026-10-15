@@ -1,5 +1,5 @@
-// Seeded AI race on every circuit-catalogue layout (WP29/WP30 acceptance
-// evidence): the production simulation, AI, race control and lap timing drive
+// Seeded AI race on every circuit-catalogue layout (WP29/WP30 and catalogue
+// wave 2 acceptance evidence): the production simulation, AI, race control and lap timing drive
 // a full field with no teleport, grip bonus or pose override. Asserts every car
 // classifies, nothing is stuck, laps are valid-length and lap times plausible.
 // Writes docs/circuit-catalogue-races.json.
@@ -129,6 +129,11 @@ const sources = [
   'src/simulation/circuit-catalogue/builder.ts',
   'src/simulation/circuit-catalogue/real-world.ts',
   'src/simulation/circuit-catalogue/unconventional.ts',
+  'src/simulation/circuit-catalogue/motorcycle-gp.ts',
+  'src/simulation/circuit-catalogue/endurance.ts',
+  'src/simulation/circuit-catalogue/real-world-classics.ts',
+  'src/simulation/circuit-catalogue/night-and-street.ts',
+  'src/simulation/circuit-catalogue/industrial.ts',
 ];
 if (!requested) {
   const document = {

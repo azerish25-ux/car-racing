@@ -146,6 +146,15 @@ export function outsideTrack(car: Vehicle): boolean {
   );
 }
 export const FINISH_GRACE_SECONDS = 180;
+/** Slowest lap pace (m/s, 90 km/h) a still-circulating car is allowed when
+ * the flag falls: it needs up to one of its own laps to reach the line. */
+export const FINISH_GRACE_PACE = 25;
+/** Time after the first finisher before an unclassified car is a DNF: the
+ * fixed grace, or one lap at FINISH_GRACE_PACE on a long lap (over 4.5 km),
+ * so lapped cars on the 13-21 km endurance rings still take the flag. */
+export function finishGraceSeconds(length: number) {
+  return Math.max(FINISH_GRACE_SECONDS, length / FINISH_GRACE_PACE);
+}
 export class RaceDirector {
   phase: number = PHASE.GRID;
   time = 0;
@@ -153,6 +162,8 @@ export class RaceDirector {
   lights = 0;
   finishStartedAt = -1;
   readonly greenAt: number;
+  /** finishGraceSeconds for this track. */
+  readonly finishGrace: number;
   readonly laps: LapTracker[];
   readonly order: number[];
   readonly control: MarshalControl;
@@ -194,6 +205,7 @@ export class RaceDirector {
   ) {
     this.ruleset = rulesetFor(options);
     this.greenAt = 5.6 + new Random(options.seed).next() * 0.9;
+    this.finishGrace = finishGraceSeconds(track.length);
     this.laps = cars.map((c) => new LapTracker(track.length, c.s));
     this.order = cars.map((c) => c.id);
     this.control = new MarshalControl(
@@ -360,7 +372,7 @@ export class RaceDirector {
           if (this.finishStartedAt < 0) this.finishStartedAt = lap.lastCrossingTime;
         } else if (
           this.finishStartedAt >= 0 &&
-          this.raceTime - this.finishStartedAt >= FINISH_GRACE_SECONDS
+          this.raceTime - this.finishStartedAt >= this.finishGrace
         )
           car.retired = true;
       }
@@ -406,7 +418,7 @@ export class RaceDirector {
               this.penalize(i, this.ruleset.tires.penaltySeconds, 'MANDATORY_STOP');
             this.onFinish?.(i);
           }
-          else if (!car.finishTime && this.raceTime - this.finishStartedAt >= FINISH_GRACE_SECONDS)
+          else if (!car.finishTime && this.raceTime - this.finishStartedAt >= this.finishGrace)
             car.retired = true; // Explicit DNF, never a manufactured finishing time.
         }
       }

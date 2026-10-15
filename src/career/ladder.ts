@@ -10,6 +10,7 @@ import {
   rulesetsFor,
   surveyedJumps,
   vehicleDiscipline,
+  venueAdmits,
   type CareerRegistry,
   type CareerVehicle,
   type CareerVenue,
@@ -471,7 +472,10 @@ export function disciplineEvents(
   const tiers = disciplineTiers(registry, discipline);
   // Recovery: reduced stakes, loaned machine, no requirements.
   {
-    const venue = venues.find((v) => !loaner || venueTakes(v, loaner.classId)) ?? venues[0];
+    const venue =
+      (loaner
+        ? venues.find((v) => venueTakes(v, loaner.classId) && venueAdmits(v, loaner))
+        : undefined) ?? venues[0];
     const built =
       loaner && venue
         ? buildEvent(registry, {
@@ -508,8 +512,12 @@ export function disciplineEvents(
   }
   tiers.forEach((t, tierIndex) => {
     const machines = tierVehicles(registry, t);
-    // A tier races where its classes are admitted (terrain venues name theirs).
-    const venues = status.venues.filter((v) => t.classes.some((c) => venueTakes(v, c)));
+    // Generated events run where the tier's classes are admitted (terrain
+    // venues name theirs) and every machine of the tier is cleared to race
+    // (a motorcycle class rides only the circuits it has passed).
+    const tierVenueList = venues.filter(
+      (v) => t.classes.some((c) => venueTakes(v, c)) && machines.every((m) => venueAdmits(v, m)),
+    );
     const coming = [...status.reasons];
     if (!machines.length) coming.push(`No ${t.classes.join(' / ')} machine is registered yet.`);
     else if (!machines.some((m) => rulesetsFor(registry, m.classId, 'race').length))
@@ -609,7 +617,7 @@ export function disciplineEvents(
       );
     }
     // Generated invitationals on venues spread across the registry.
-    tierVenues(venues, tierIndex, INVITATIONALS_PER_TIER).forEach((venue, i) => {
+    tierVenues(tierVenueList, tierIndex, INVITATIONALS_PER_TIER).forEach((venue, i) => {
       const weather = WEATHER_CYCLE[(tierIndex + i) % 2];
       add(
         `${discipline}.${t.id}.inv.${venue.id}`,
@@ -632,12 +640,14 @@ export function disciplineEvents(
     // The tier championship: a calendar across the registry's venues. A
     // season in progress keeps its own calendar and the machine it started
     // in, so changing the active machine never restarts it.
-    if (venues.length) {
+    if (tierVenueList.length) {
       const key = `${discipline}.${t.id}.championship`;
       const saved = view.championships?.[key];
       const running =
         saved && saved.season.results.length < saved.season.rounds.length ? saved : null;
-      const calendar = running ? running.season.rounds : championshipCalendar(venues, tierIndex, t);
+      const calendar = running
+        ? running.season.rounds
+        : championshipCalendar(tierVenueList, tierIndex, t);
       const round = running ? running.season.results.length : 0;
       const spec = calendar[round];
       const extra =
@@ -658,6 +668,10 @@ export function disciplineEvents(
       }
       if (!venues.some((v) => v.id === spec.circuit))
         extra.push(`round ${round + 1} venue ${spec.circuit}, which is not in this build`);
+      else if (seasonEntry && !venueAdmits(venues.find((v) => v.id === spec.circuit)!, seasonEntry))
+        extra.push(
+          `round ${round + 1} venue ${spec.circuit}, where your ${seasonEntry.name} class is not cleared to race`,
+        );
       add(
         key,
         'championship',
