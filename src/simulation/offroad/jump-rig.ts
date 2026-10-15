@@ -29,6 +29,9 @@ export function rideLine(bike: DirtBikeVehicle, track: Track, speed: number) {
   const e = speed - d.speed;
   bike.input.throttle = clamp(e * 0.5 + 0.2, 0, 1);
   bike.input.brake = clamp(-e * 0.3, 0, 1);
+  // The rear brake (clutch channel) is the airborne pitch aid's: released
+  // on the ground, as the production AI does every tick.
+  bike.input.clutch = 0;
 }
 export function rigBike(def: VehicleDefinition, track: Track, s: number, speed: number) {
   const bike = new DirtBikeVehicle(0, 'medium', DEFAULT_SETUP, 'sport', def);
@@ -109,6 +112,46 @@ export function jumpRun(
     outcome: landing?.outcome ?? (bike.riding ? 'none' : 'crash-ground'),
     crashes: bike.dynamics.crashes,
     landingS: landing?.s ?? 0,
+  };
+}
+export interface RollRunResult {
+  /** Rode past the feature's end still on the bike. */
+  passed: boolean;
+  crashes: number;
+  /** Lap distance reached and the seconds it took. */
+  endS: number;
+  seconds: number;
+}
+/** Roll feature `j` at `speed` (walking pace) from `runUp` m before its foot
+ * down into any gap, up the landing and on to 3 m past its end; the time
+ * allowed follows from the distance, so the run always reaches the end
+ * unless the bike stalls or falls. */
+export function rollRun(
+  def: VehicleDefinition,
+  venue: CircuitId,
+  j: JumpSurvey,
+  speed: number,
+  dt = 1 / 240,
+  runUp = 12,
+): RollRunResult {
+  const track = rigTrack(venue),
+    L = track.length;
+  const bike = rigBike(def, track, j.start - runUp, speed);
+  const s0 = bike.s,
+    span = runUp + mod(j.end - j.start, L) + 3,
+    limit = (2 * span) / Math.max(0.5, speed) + 4;
+  let travelled = 0,
+    t = 0;
+  for (; t < limit && bike.riding && travelled < span; t += dt) {
+    rideLine(bike, track, speed);
+    bike.step(dt, track);
+    travelled = mod(bike.s - s0 + L / 2, L) - L / 2;
+  }
+  return {
+    passed: travelled >= span && bike.riding,
+    crashes: bike.dynamics.crashes,
+    endS: bike.s,
+    seconds: t,
   };
 }
 /** Standing start from the gate line on a venue: seconds to cover `metres`. */

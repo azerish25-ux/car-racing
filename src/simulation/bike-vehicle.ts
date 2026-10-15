@@ -630,6 +630,7 @@ export class BikeVehicle extends Vehicle {
     to.resistance = from.resistance;
     to.cell = from.cell;
     to.pit = from.pit;
+    if (from.terrain !== undefined) to.terrain = from.terrain;
   }
   /** Marshal help for a riding bike that cannot move (e.g. nosed into a
    * barrier): after a hold it is placed at the track edge, facing the course. */

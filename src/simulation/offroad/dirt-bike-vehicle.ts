@@ -14,6 +14,9 @@ import type { OffroadBikeSpec } from './types.ts';
 const TAU = Math.PI * 2;
 /** Take-off speed (m/s) below which a flight is a rolling hop. */
 const ROLLING_HOP = 6.5;
+/** How far (m) the rider's body moves fore/aft over the pegs at full lean;
+ * on the ground that shifts the system CG (a weight-shift pitch torque). */
+const RIDER_REACH = 0.25;
 /** Nose-up margin (rad) the pitch aid aims for over the landing slope. */
 const LANDING_NOSE_UP = 0.1;
 /** Where the last flight ended, for the landing licence, snapshot and tests. */
@@ -174,7 +177,17 @@ export class DirtBikeVehicle extends BikeVehicle {
     d.mass = b.mass;
     let throttle = clamp(this.input.throttle, 0, 1);
     let brake = clamp(this.input.brake, 0, 1);
-    const rear = clamp(this.input.clutch, 0, 1);
+    let rear = clamp(this.input.clutch, 0, 1);
+    // Wheelie control reads the sprung chassis here: the core's aid knows
+    // only flat-ground load transfer, but a front lifted by a face, a bounce
+    // or the drive is the sprung model's. With the front off the ground and
+    // the nose up over the ground, the aid closes the throttle, and covers
+    // the rear brake as the lift nears the balance point.
+    if (d.assists.wheelie && this.riding && !this.airborne && this.frontLight > 0.25) {
+      const lift = this.pitch - Math.max(this.rearSlope, this.roadPitch);
+      throttle *= 1 - clamp((lift - 0.3) / 0.25, 0, 1);
+      rear = Math.max(rear, clamp((lift - 0.45) / 0.2, 0, 1));
+    }
     if (this.inPit && track.pitSpeedZone(this.s))
       throttle *= clamp((MARSHAL.pitSpeed - this.speed) / 0.8, 0, 1);
     if (this.retired) {
@@ -211,6 +224,7 @@ export class DirtBikeVehicle extends BikeVehicle {
       d.fall(Math.abs(this.slide) > 6 || d.speed > 30 ? 'highside' : 'lowside');
     }
     if (this.airborne && d.state === 'riding') this.flight(dt, throttle, rear, brake, ai);
+    else if (this.airborne) this.coast(dt);
     else {
       const x0 = d.x,
         z0 = d.z;
@@ -372,8 +386,48 @@ export class DirtBikeVehicle extends BikeVehicle {
     this.longitudinal = 0;
     void brake;
   }
+  /** A machine whose rider came off in the air (a contact crash): no
+   * inputs and no pitch aid; it keeps its flight speed until it lands. */
+  private coast(dt: number) {
+    const d = this.dynamics;
+    this.airTime += dt;
+    this.flightSpeed = Math.max(
+      0,
+      this.flightSpeed - ((d.p.drag * this.flightSpeed ** 2) / d.mass) * dt,
+    );
+    d.speed = this.flightSpeed;
+    d.x += Math.sin(d.heading) * this.flightSpeed * dt;
+    d.z += Math.cos(d.heading) * this.flightSpeed * dt;
+    this.rearSpin = Math.max(0, this.rearSpin - 2 * dt);
+    this.airTorque = 0;
+    d.steer = approach(d.steer, 0, dt * 2);
+    d.driveForce = d.frontBrakeForce = d.rearBrakeForce = 0;
+    this.longitudinal = 0;
+  }
   private airTorque = 0;
   private crashReason = '';
+  /** Seconds the front wheel has been unloaded on the ground (a wheelie),
+   * and the pitch torque (N m, nose-up +) of the last step with a wheel down. */
+  private frontLight = 0;
+  private noseTorque = 0;
+  /** Ground slope under the rear tyre at its last contact (rad, nose-up +). */
+  private rearSlope = 0;
+  /** Wheelie angle (sprung chassis pitch over the ground, rad) past which
+   * further nose-up rotation about the CG no longer presses the rear tyre
+   * into the ground: the balance point of a wheelie, beyond which the bike
+   * goes over. Measured over the ground, as the core's own loop-out limit
+   * is, not against the horizon. */
+  private loopOutPitch() {
+    const spec = this.bikeSpec;
+    return Math.atan(spec.cgToRear / (spec.cgHeight + this.sag(false)));
+  }
+  /** A wheelie past its balance point: the rider loops out on the ground. */
+  private loopOut() {
+    this.crashReason = 'loop-out';
+    this.dynamics.fall('highside');
+    this.freeSteps = 0;
+    this.frontLight = 0;
+  }
   /** Where and at what slope the current flight will land (10 Hz). */
   private predictLanding() {
     const d = this.dynamics,
@@ -441,7 +495,11 @@ export class DirtBikeVehicle extends BikeVehicle {
         (next !== null && next.distance < Math.max(12, d.speed * 1.4)) ||
         course.jumpAt(this.s) !== null;
     }
-    const standUp = this.airborne || (d.speed > 7 && Math.abs(d.lean) < 0.42 && rough);
+    // Rolling a steep up-face slowly (into a gap, over a landing mound) the
+    // rider stands and leans over the bars to keep the front down.
+    const climb = clamp((7 - d.speed) / 3, 0, 1) * clamp((this.roadPitch - 0.2) / 0.25, 0, 1);
+    const standUp =
+      this.airborne || (d.speed > 7 && Math.abs(d.lean) < 0.42 && rough) || climb > 0.5;
     this.standing = approach(this.standing, standUp ? 1 : 0, dt * 3.5);
     const slow =
       d.speed < a.dabSpeed && (Math.abs(d.lean) > a.dabLean * 0.6 || Math.abs(d.steer) > 0.32);
@@ -453,7 +511,7 @@ export class DirtBikeVehicle extends BikeVehicle {
     if (!this.airborne)
       this.riderBody = approach(
         this.riderBody,
-        clamp(0.45 * this.throttle - 0.55 * this.brake, -1, 1),
+        clamp(0.45 * this.throttle - 0.55 * this.brake + climb, -1, 1),
         dt * 3,
       );
     void track;
@@ -468,6 +526,22 @@ export class DirtBikeVehicle extends BikeVehicle {
       fa = spec.cgToFront,
       ra = spec.cgToRear,
       m = d.mass;
+    if (!this.riding && this.airborne) {
+      // Riderless flight: ballistic until the machine is down at its lying
+      // height over the ground below, then laid there (never dropped mid-air).
+      this.vy -= G * dt;
+      this.cgY += this.vy * dt;
+      this.pitchRate *= Math.exp(-0.3 * dt);
+      this.pitch = clamp(this.pitch + this.pitchRate * dt, -1.2, 1.2);
+      this.forceFront = this.forceRear = 0;
+      const ground = lerp(this.contacts[2].height, this.contacts[0].height, ra / L);
+      if (this.cgY > ground + spec.cgHeight) return;
+      const n = this.contacts[2].normal,
+        slopeAt = Math.atan(-(n.x * Math.sin(d.heading) + n.z * Math.cos(d.heading)) / n.y);
+      // Only the speed along the ground survives the impact.
+      d.speed = Math.max(0, this.flightSpeed * Math.cos(slopeAt) + this.vy * Math.sin(slopeAt));
+      this.airborne = false;
+    }
     if (!this.riding) {
       // A fallen or pushed bike lies on the ground; no flight.
       const ground = lerp(this.contacts[2].height, this.contacts[0].height, ra / L);
@@ -521,7 +595,11 @@ export class DirtBikeVehicle extends BikeVehicle {
     const contact = FF > 0 || FR > 0;
     // Longitudinal tyre forces act at the ground, below the CG: squat and dive.
     const pitchMoment = contact ? this.longitudinal * spec.cgHeight : 0;
-    const torque = (FF * fa - FR * ra) * cos + pitchMoment + (this.airborne ? this.airTorque : 0);
+    // On the ground the rider's body fore/aft shifts the CG over the wheels
+    // (forward pitches nose-down); in the air it is a reaction torque only.
+    const bodyShift = contact ? -this.riderBody * RIDER_REACH * spec.riderMass * G * cos : 0;
+    const torque =
+      (FF * fa - FR * ra) * cos + pitchMoment + bodyShift + (this.airborne ? this.airTorque : 0);
     this.vy += ((FF + FR) / m - G) * dt;
     this.pitchRate += (torque / a.pitchInertia) * dt;
     // The rider's body damps pitch: strongly with a wheel down (more when
@@ -537,6 +615,25 @@ export class DirtBikeVehicle extends BikeVehicle {
     this.forceRear = FR;
     const load = (FF + FR) / (m * G);
     this.loadGrip += (clamp(load, 0.55, 1.3) - this.loadGrip) * Math.min(1, dt / 0.08);
+    this.frontLight = !this.airborne && FF <= 0 ? this.frontLight + dt : 0;
+    if (contact) this.noseTorque = torque;
+    if (FR > 0) this.rearSlope = Math.atan(slope(2));
+    // A held wheelie (front up for a while) past its balance point, over
+    // both the ground under the rear tyre and the line to the ground under
+    // the front, with the drive still rotating the nose up, loops the rider
+    // out on the ground (the sprung pitch, not the core's relative pitch,
+    // carries a wheelie on this adapter). A front hanging over a crest or a
+    // lip while the rear tyre's load brings the nose back, or one bounced off
+    // the next face in a gap, is not a wheelie.
+    const looping = (slope: number) =>
+      this.frontLight > 0.4 &&
+      this.pitchRate > 0 &&
+      this.noseTorque > 0 &&
+      this.pitch - Math.max(Math.atan(slope), this.roadPitch) > this.loopOutPitch();
+    if (!this.airborne && FR > 0 && looping(slope(2))) {
+      this.loopOut();
+      return;
+    }
     if (this.airborne) {
       if (contact) {
         // Touchdown: judged once both the speed split and pitch are known.
@@ -568,7 +665,8 @@ export class DirtBikeVehicle extends BikeVehicle {
       }
     } else if (!contact) {
       // Leaving the ground: both wheels unloaded for a few substeps.
-      if (++this.freeSteps > 2) {
+      if (++this.freeSteps > 2 && looping(this.faceSlope)) this.loopOut();
+      else if (this.freeSteps > 2) {
         this.airborne = true;
         this.airTime = 0;
         // The last wheel leaves along its own face: that slope splits the
@@ -577,8 +675,8 @@ export class DirtBikeVehicle extends BikeVehicle {
         this.takeoffSpeed = Math.hypot(this.flightSpeed, this.vy);
         this.takeoffX = d.x;
         this.takeoffZ = d.z;
-        // A wheelie in progress becomes the chassis pitch of the flight.
-        this.pitch += d.pitch;
+        // The sprung pitch is the flight pitch (it already carries any
+        // wheelie); the core's relative pitch has no say in the air.
         d.pitch = 0;
         this.rearSpin = d.speed / spec.rearWheelRadius;
         this.predictClock = 0;
@@ -732,7 +830,7 @@ export class DirtBikeVehicle extends BikeVehicle {
       this.compressionFront = this.sag(true);
       this.compressionRear = this.sag(false);
     }
-    const fallen = Math.abs(d.lean) > 1.2;
+    const fallen = !this.airborne && Math.abs(d.lean) > 1.2;
     // The sprung model carries squat, dive and wheelies itself; the core's
     // relative pitch only guards its own loop-out limit.
     const chassisPitch = fallen ? this.roadPitch : this.pitch + this.riderBody * 0.06;

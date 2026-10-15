@@ -8,12 +8,18 @@
 //   3. landing tolerance: every surveyed jump lands without a crash at the
 //      AI's hold speed, and a gap jump taken far too fast or far too slow
 //      ends on the ground (the window is real);
-//   4. rolling a gap jump at walking pace is never a crash.
+//   4. rolling a gap jump at walking pace (down into the gap, up the landing
+//      and past the feature's end) is never a crash.
 // Writes docs/offroad-calibration.json; exits 1 when a band fails.
 import { writeFileSync } from 'node:fs';
 import { jumpHoldSpeed, ROLL_SPEED, TAKEOFF_GAIN } from '../src/simulation/offroad/ai.ts';
 import { DIRT_BIKES } from '../src/simulation/offroad/dirt-bikes.ts';
-import { jumpRun, standingStart, type JumpRunResult } from '../src/simulation/offroad/jump-rig.ts';
+import {
+  jumpRun,
+  rollRun,
+  standingStart,
+  type JumpRunResult,
+} from '../src/simulation/offroad/jump-rig.ts';
 import { flightDistance } from '../src/simulation/offroad/profile.ts';
 import { OFFROAD_CIRCUITS, offroadCourse } from '../src/simulation/offroad/venues.ts';
 
@@ -81,9 +87,13 @@ for (const venue of ['valley-ridge-mx', 'arena-nord-sx'] as const) {
         if (!longOk) failures.push(`${label}: ${long.outcome} 3 m/s over the hold speed`);
         window = { short: short.outcome, long: long.outcome };
       }
-      // Rolling it at walking pace is never a crash.
-      const roll = jumpRun(def, venue, j, ROLL_SPEED, 1 / 240, runUp);
+      // Rolling it at walking pace, all the way past its end, is never a crash.
+      const roll = rollRun(def, venue, j, ROLL_SPEED, 1 / 240, runUp);
       if (roll.crashes) failures.push(`${label}: crashed rolling at ${ROLL_SPEED} m/s`);
+      else if (!roll.passed)
+        failures.push(
+          `${label}: rolling at ${ROLL_SPEED} m/s stopped at ${roll.endS.toFixed(1)} (end ${j.end.toFixed(1)})`,
+        );
       jumps.push({
         machine,
         venue,
@@ -94,7 +104,8 @@ for (const venue of ['valley-ridge-mx', 'arena-nord-sx'] as const) {
         ratio: Number.isFinite(ratio) ? +ratio.toFixed(3) : null,
         atHold: row(at, ballistic),
         window,
-        rolled: roll.crashes ? 'crash' : 'ok',
+        rolled: roll.crashes ? 'crash' : roll.passed ? 'ok' : 'stopped',
+        rollSeconds: +roll.seconds.toFixed(2),
       });
     }
   }

@@ -403,12 +403,15 @@ const KESTREL = venue(
         { from: 0, to: at(2, 10), soil: 'asphalt' },
       ],
       berms: [],
+      // The joker road runs wide of the hairpin with a turf island between
+      // the two roads (2.2 m from the lap's taped edge to the joker's), and
+      // inside the outer tyre wall (20 m out).
       joker: {
         from: at(2, 18),
         to: at(4, 42),
         side: -1,
-        offset: 13,
-        halfWidth: 4.5,
+        offset: 13.5,
+        halfWidth: 3.5,
         ramp: 22,
         soil: 'gravel',
       },

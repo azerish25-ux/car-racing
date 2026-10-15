@@ -1,7 +1,8 @@
+import { circuitDefinition } from '../simulation/circuits.ts';
 import type { SessionOptions } from '../simulation/config.ts';
 import { RULESETS, TIMED_LIMITS } from '../simulation/events.ts';
 import { classInfo, vehiclesByClass } from '../simulation/vehicle-classes.ts';
-import { DEFAULT_VEHICLE_ID, VEHICLES } from '../simulation/vehicles.ts';
+import { DEFAULT_VEHICLE_ID, VEHICLES, type VehicleClass } from '../simulation/vehicles.ts';
 import { BIKE_MACHINES, bikeMachineOptions } from './bike-machines.ts';
 import { isDirtBike } from '../simulation/offroad/dirt-bikes.ts';
 
@@ -50,7 +51,10 @@ export function machineChoices(): MachineGroup[] {
     label: 'Off-road motorcycles',
     options: Object.values(VEHICLES)
       .filter((v) => isDirtBike(v))
-      .map((v) => ({ value: v.id, label: `${v.name} · ${classInfo(v.classId).name.toLowerCase()}` })),
+      .map((v) => ({
+        value: v.id,
+        label: `${v.name} · ${classInfo(v.classId).name.toLowerCase()}`,
+      })),
   });
   groups.push({
     label: 'Mixed classes',
@@ -79,6 +83,23 @@ function compoundFor(ruleset: string | undefined, compound: SessionOptions['comp
   if (!ruleset) return compound;
   const allowed = RULESETS[ruleset].tires.allowed;
   return allowed.includes(compound) || compound === 'wet' ? compound : 'medium';
+}
+/** A terrain venue's own formatted race ruleset for a class (the joker heat
+ * at a rallycross venue, the special stage on a stage road, the moto at a
+ * motocross track), as the career picks it; null on paved circuits or when
+ * no formatted ruleset admits the class there. */
+function venueRaceRuleset(circuit: SessionOptions['circuit'], classId: VehicleClass) {
+  const venue = circuitDefinition(circuit);
+  if (!venue.offroad) return null;
+  const formats = venue.formats ?? [];
+  const rules = Object.values(RULESETS).find(
+    (r) =>
+      r.format &&
+      formats.includes(r.format.kind) &&
+      r.sessions.includes('race') &&
+      r.allowedClasses.includes(classId),
+  );
+  return rules?.id ?? null;
 }
 /** Per-entry vehicles, ruleset (and clock for timed rulesets) a MACHINE choice
  * implies. Unsupported combinations are left for sessionIncompatibilities to
@@ -115,7 +136,8 @@ export function machineOptions(
   const vehicles = Array.from({ length: count }, () => machine);
   let ruleset: string | undefined;
   let durationSeconds: number | undefined;
-  if (options.mode === 'race') ruleset = classInfo(def.classId).raceRuleset;
+  if (options.mode === 'race')
+    ruleset = venueRaceRuleset(options.circuit, def.classId) ?? classInfo(def.classId).raceRuleset;
   else if (
     options.mode === 'endurance' &&
     RULESETS['multi-class-endurance'].allowedClasses.includes(def.classId)

@@ -143,7 +143,7 @@ const results = RACES.filter(
     const order = options.grid ?? sim.cars.map((c) => c.id);
     order.forEach((id, k) => {
       const e = session.entrants[id];
-      const expected = 2 + k * format.stage!.interval;
+      const expected = session.stageStartTime(k);
       if (Math.abs(e.stageStart - expected) > 1e-6)
         failures.push(`${label}: car ${id} started at ${e.stageStart}`);
       if (e.jumped) failures.push(`${label}: car ${id} jumped the start`);

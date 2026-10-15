@@ -174,11 +174,11 @@ Off-road (implemented in `src/simulation/offroad/session.ts`, rules in `formats.
 
 | Rule | Implemented | Designed, not implemented |
 |---|---|---|
-| Synchronised start gate | one release for every slot; a machine pushing the gate in the last 0.4 s or creeping into it is a jump start (time penalty); the AI is held until the drop; the holeshot is the first machine past the first-corner line | gate-drop randomisation, a 30-second board |
+| Synchronised start gate | one release for every slot; a machine pushing the gate in the last 0.4 s or creeping into it is a jump start (the format's time penalty, judged by the format alone: the lights-phase check stands down for gate and stage-control starts); the AI is held until the drop; the holeshot is the first machine past the first-corner line; a field larger than the venue's slots widens the gate (sim and rendered gate alike) | gate-drop randomisation, a 30-second board |
 | Gate pick | slots chosen in qualifying order, inside of the first corner first (`pickGates`) | a player-facing pick screen |
 | Motos | moto points 25-22-20-18-16-15…1 and the combined classification of two motos (tie: the better last moto) as a tested function | a two-moto meeting session in the menu |
-| Rallycross joker | the joker is counted at the joker road's timing line; exactly one per heat, each missing or extra joker costs 30 s at the flag | semi-finals and finals, joker on the first lap rules |
-| Rally stage | staggered starts at the ruleset interval from a start control, a jump start at the control, two split checkpoints and the finish on the stage RouteGraph, a stop control and parking | a multi-stage rally with service parks and road sections |
+| Rallycross joker | a joker lap is the joker road's three checkpoints (a quarter, half and three quarters along it, where a turf island parts the roads) crossed on it in order; exactly one per heat, each missing or extra joker costs 30 s, applied as each car takes the flag (the last one included) | semi-finals and finals, joker on the first lap rules |
+| Rally stage | staggered starts at the ruleset interval from a start control (the first starter waits there through the lights and goes on the green; the others are called 4 s before their start), a countdown on the HUD, a jump start at the control, two split checkpoints and the finish on the stage RouteGraph, a stop control and parking | a multi-stage rally with service parks and road sections |
 | Course limits | a tape margin beyond the groomed width and berm faces count as track; track-limit warnings as for circuits | cutting by route progress, jump-landing contact rules |
 | Recovery | a fallen rider remounts (shared bike sequence); a machine pinned against a wall is pushed out by the marshals | flagged marshal posts on the course |
 

@@ -308,6 +308,7 @@ export class TrackTerrainSurface implements OffroadSurface {
     out.resistance = c.resistance;
     out.cell = cell;
     out.pit = false;
+    out.terrain = true;
     return true;
   }
   /** Heightfield ray cast by vertical projection (rays point nearly down):

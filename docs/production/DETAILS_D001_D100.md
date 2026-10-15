@@ -77,7 +77,7 @@ the acceptance observation. Nothing below is player-accepted.
 | D046 | Wet vs dry berm | integrated | moisture term in soil contact grip and softness; rain soaks the session soil |
 | D047 | Airborne audio stops on lift-off | absent | airborne state is in the snapshot (`O.AIRBORNE`); audio not wired (WP47) |
 | D048 | Landing effects at contacting wheel | foundation | landing record (pitch error, impact speed) in `O.LANDING_*`; no landing effect drawn |
-| D049 | Start gate synchronized | integrated | one release for every slot, jump-start detection (`session.ts`, `tests/offroad.test.ts`); hinged gate model falls from race time (`start-gate.ts`) |
+| D049 | Start gate synchronized | integrated | one release for every slot, jump-start detection judged once by the format (`session.ts`, `tests/offroad.test.ts`); hinged gate model falls from race time and has a panel for every rider the session lines up (`start-gate.ts`) |
 | D050 | Track reset restores whole terrain | integrated | a new session resets the course terrain; the worker's first keyframe replaces the rendered field (`terrain-view.ts`) |
 
 ## 19.6 Weather and atmosphere

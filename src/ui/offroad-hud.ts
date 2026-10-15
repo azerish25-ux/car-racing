@@ -15,7 +15,8 @@ function clock(seconds: number) {
  * over the race HUD on terrain venues. Motocross / supercross: the gate pick
  * while held, the release, a jump start, the holeshot and the last jump's
  * air time; rallycross: joker laps taken of those required; rally stage:
- * the start countdown and the running stage time. Hidden on paved circuits. */
+ * the countdown to this car's start (queued, then at the control), a jump
+ * start and the running stage time. Hidden on paved circuits. */
 export class OffroadHud {
   private element: HTMLElement | null = null;
   private airUntil = 0;
@@ -109,8 +110,15 @@ export class OffroadHud {
       parts.push(taken >= required ? `JOKER ${taken}/${required} ✓` : `JOKER ${taken}/${required}`);
     }
     if (format?.kind === 'stage') {
-      const t = frame[o + O.FORMAT];
-      parts.push(t >= 0 ? `STAGE ${clock(t)}` : 'STAGE · AT THE CONTROL');
+      // Before this car's start the block carries the countdown (negative).
+      const t = frame[o + O.FORMAT],
+        start = frame[o + O.START];
+      if (start > 2.5) parts.push('JUMP START');
+      parts.push(
+        t >= 0
+          ? `STAGE ${clock(t)}`
+          : `${start > 0.5 ? 'AT THE CONTROL' : 'QUEUED'} · START IN ${Math.ceil(-t)}`,
+      );
     }
     if (time < this.airUntil) parts.push(`AIR ${this.airTime.toFixed(2)} S`);
     const node = this.node();

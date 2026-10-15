@@ -17,96 +17,104 @@
         "mx450",
         "mx450"
       ],
-      "raceSeconds": 289.57,
-      "wallSeconds": 100.5,
+      "raceSeconds": 290.99,
+      "wallSeconds": 60.9,
       "finishTimes": [
-        273.81,
-        294.57,
-        238.27,
-        265.9,
-        262,
-        260.57,
-        240.68,
-        217.03
+        294,
+        291.27,
+        245.17,
+        249.89,
+        295.98,
+        280.17,
+        284.9,
+        241.59
       ],
       "bestLaps": [
-        71.07,
-        81.43,
-        78.9,
-        71.86,
-        72.6,
-        72.13,
-        79.55,
-        70.98
+        85.55,
+        0,
+        72.74,
+        70.47,
+        72.73,
+        0,
+        79.97,
+        72.6
       ],
       "crashes": [
         1,
-        3,
-        1,
-        0,
         2,
         1,
+        1,
+        2,
+        2,
         0,
         1
       ],
       "crashCauses": [
         [
-          "contact@118"
+          "contact@57"
         ],
         [
-          "contact@657",
-          "contact@836",
-          "crash-front@604"
+          "crash-front@594",
+          "contact@657"
         ],
         [
-          "contact@582"
-        ],
-        [],
-        [
-          "contact@590",
-          "crash-front@327"
+          "crash-front@595"
         ],
         [
+          "crash-front@595"
+        ],
+        [
+          "contact@650",
+          "contact@354"
+        ],
+        [
+          "contact@231",
           "crash-front@613"
         ],
         [],
         [
-          "contact@628"
+          "crash-front@326"
         ]
       ],
       "landings": [
-        66,
-        57,
-        72,
-        64,
-        63,
-        56,
-        71,
+        53,
+        59,
+        77,
+        60,
+        60,
+        67,
+        61,
         76
       ],
       "aiDecisions": [
         {
-          "clears": 19,
+          "clears": 18,
           "rolls": 1,
-          "aborts": 3,
-          "pushes": 0
-        },
-        {
-          "clears": 16,
-          "rolls": 2,
           "aborts": 2,
           "pushes": 0
         },
         {
+          "clears": 17,
+          "rolls": 2,
+          "aborts": 3,
+          "pushes": 0
+        },
+        {
           "clears": 22,
-          "rolls": 1,
+          "rolls": 0,
           "aborts": 1,
           "pushes": 0
         },
         {
           "clears": 19,
-          "rolls": 2,
-          "aborts": 0,
+          "rolls": 3,
+          "aborts": 2,
+          "pushes": 0
+        },
+        {
+          "clears": 15,
+          "rolls": 3,
+          "aborts": 3,
           "pushes": 0
         },
         {
@@ -116,35 +124,29 @@
           "pushes": 0
         },
         {
-          "clears": 19,
-          "rolls": 2,
-          "aborts": 0,
-          "pushes": 0
+          "clears": 16,
+          "rolls": 3,
+          "aborts": 2,
+          "pushes": 1
         },
         {
-          "clears": 21,
+          "clears": 22,
           "rolls": 1,
-          "aborts": 3,
-          "pushes": 0
-        },
-        {
-          "clears": 24,
-          "rolls": 0,
           "aborts": 0,
           "pushes": 0
         }
       ],
-      "longestStopSeconds": 9.65,
+      "longestStopSeconds": 10.14,
       "holeshot": 7,
       "log": [
         "14.9 car 7 HOLESHOT: HOLESHOT"
       ],
       "terrain": {
-        "cells": 38431,
-        "deepest": 0.06706371158361435,
-        "sequence": 1400679,
+        "cells": 40496,
+        "deepest": 0.0732646957039833,
+        "sequence": 1410858,
         "wetness": 0,
-        "hash": "2c254af2"
+        "hash": "7be48ec3"
       },
       "classification": {
         "kind": "moto",
@@ -191,9 +193,9 @@
         ],
         "stage": null,
         "terrain": {
-          "cells": 38431,
-          "deepest": 0.06706371158361435,
-          "sequence": 1400679,
+          "cells": 40496,
+          "deepest": 0.0732646957039833,
+          "sequence": 1410858,
           "wetness": 0
         }
       }
@@ -213,139 +215,141 @@
         "mx450",
         "mx450"
       ],
-      "raceSeconds": 294.62,
-      "wallSeconds": 98,
+      "raceSeconds": 286.55,
+      "wallSeconds": 82.1,
       "finishTimes": [
-        254.55,
-        276.64,
-        290.91,
-        255.6,
-        299.61,
-        283.37,
-        279.22,
-        258.58
+        291.55,
+        264.93,
+        272.55,
+        285.19,
+        282.03,
+        256.75,
+        283.33,
+        267.5
       ],
       "bestLaps": [
         0,
         0,
-        85.49,
         0,
         0,
-        87.41,
         0,
-        0
+        94.24,
+        78.76,
+        81.35
       ],
       "crashes": [
-        3,
+        1,
+        0,
+        4,
         2,
-        0,
-        1,
-        1,
-        0,
         3,
-        4
+        1,
+        1,
+        3
       ],
       "crashCauses": [
         [
-          "crash-front@458",
-          "contact@524",
+          "contact@391"
+        ],
+        [],
+        [
+          "contact@150",
+          "contact@413",
+          "crash-front@457",
+          "contact@341"
+        ],
+        [
+          "contact@451",
+          "contact@401"
+        ],
+        [
+          "crash-rear@150",
+          "contact@295",
+          "contact@443"
+        ],
+        [
           "crash-front@467"
         ],
         [
-          "contact@128",
-          "crash-front@475"
-        ],
-        [],
-        [
-          "contact@290"
+          "contact@545"
         ],
         [
-          "contact@541"
-        ],
-        [],
-        [
-          "contact@329",
-          "contact@291",
-          "contact@481"
-        ],
-        [
-          "crash-front@464",
-          "contact@339",
-          "contact@301",
-          "contact@391"
+          "contact@335",
+          "contact@432",
+          "contact@291"
         ]
       ],
       "landings": [
-        109,
-        85,
-        77,
-        87,
-        66,
-        61,
-        76,
-        88
+        41,
+        70,
+        63,
+        40,
+        52,
+        69,
+        37,
+        67
       ],
       "aiDecisions": [
         {
-          "clears": 11,
-          "rolls": 5,
+          "clears": 10,
+          "rolls": 3,
+          "aborts": 1,
+          "pushes": 0
+        },
+        {
+          "clears": 7,
+          "rolls": 7,
+          "aborts": 0,
+          "pushes": 0
+        },
+        {
+          "clears": 8,
+          "rolls": 4,
+          "aborts": 3,
+          "pushes": 0
+        },
+        {
+          "clears": 7,
+          "rolls": 6,
           "aborts": 1,
           "pushes": 0
         },
         {
           "clears": 8,
           "rolls": 5,
-          "aborts": 0,
-          "pushes": 0
-        },
-        {
-          "clears": 4,
-          "rolls": 9,
-          "aborts": 1,
-          "pushes": 2
-        },
-        {
-          "clears": 6,
-          "rolls": 9,
-          "aborts": 0,
-          "pushes": 0
-        },
-        {
-          "clears": 7,
-          "rolls": 8,
           "aborts": 1,
           "pushes": 0
         },
         {
-          "clears": 7,
-          "rolls": 6,
-          "aborts": 0,
-          "pushes": 0
-        },
-        {
-          "clears": 6,
+          "clears": 8,
           "rolls": 7,
           "aborts": 1,
           "pushes": 0
         },
         {
-          "clears": 10,
-          "rolls": 5,
+          "clears": 5,
+          "rolls": 8,
+          "aborts": 1,
+          "pushes": 0
+        },
+        {
+          "clears": 9,
+          "rolls": 4,
           "aborts": 0,
           "pushes": 0
         }
       ],
-      "longestStopSeconds": 11.73,
+      "longestStopSeconds": 12.66,
       "holeshot": 7,
       "log": [
         "14.9 car 7 HOLESHOT: HOLESHOT"
       ],
       "terrain": {
-        "cells": 31532,
-        "deepest": 0.013475509360432625,
-        "sequence": 1415928,
+        "cells": 28979,
+        "deepest": 0.024332191795110703,
+        "sequence": 1394184,
         "wetness": 0,
-        "hash": "9d574716"
+        "hash": "fe19d1d5"
       },
       "classification": {
         "kind": "moto",
@@ -392,9 +396,9 @@
         ],
         "stage": null,
         "terrain": {
-          "cells": 31532,
-          "deepest": 0.013475509360432625,
-          "sequence": 1415928,
+          "cells": 28979,
+          "deepest": 0.024332191795110703,
+          "sequence": 1394184,
           "wetness": 0
         }
       }
@@ -411,21 +415,21 @@
         "rcx6",
         "rcx6"
       ],
-      "raceSeconds": 245.51,
-      "wallSeconds": 111.4,
+      "raceSeconds": 246.59,
+      "wallSeconds": 106.4,
       "finishTimes": [
-        241.53,
-        243.03,
-        239.58,
-        235.71,
-        245.51
+        238.99,
+        241.83,
+        236.61,
+        244.08,
+        246.59
       ],
       "bestLaps": [
-        57.52,
-        58.05,
-        55.84,
-        55.37,
-        57.17
+        57,
+        57.8,
+        55.39,
+        57.82,
+        57.58
       ],
       "crashes": [],
       "crashCauses": [],
@@ -447,18 +451,18 @@
         1
       ],
       "log": [
-        "30.3 car 1 JOKER: JOKER LAP 1/1",
-        "86.4 car 0 JOKER: JOKER LAP 1/1",
-        "92.7 car 4 JOKER: JOKER LAP 1/1",
-        "143.6 car 3 JOKER: JOKER LAP 1/1",
-        "203.2 car 2 JOKER: JOKER LAP 1/1"
+        "37.2 car 1 JOKER: JOKER LAP 1/1",
+        "93.7 car 0 JOKER: JOKER LAP 1/1",
+        "100.2 car 4 JOKER: JOKER LAP 1/1",
+        "155.3 car 3 JOKER: JOKER LAP 1/1",
+        "206.4 car 2 JOKER: JOKER LAP 1/1"
       ],
       "terrain": {
-        "cells": 34290,
-        "deepest": 0.019309770315885544,
-        "sequence": 1190475,
+        "cells": 35887,
+        "deepest": 0.01825946755707264,
+        "sequence": 1187373,
         "wetness": 0,
-        "hash": "d2a88505"
+        "hash": "e4586575"
       },
       "classification": {
         "kind": "rallycross",
@@ -493,9 +497,9 @@
         ],
         "stage": null,
         "terrain": {
-          "cells": 34290,
-          "deepest": 0.019309770315885544,
-          "sequence": 1190475,
+          "cells": 35887,
+          "deepest": 0.01825946755707264,
+          "sequence": 1187373,
           "wetness": 0
         }
       }
@@ -511,13 +515,13 @@
         "rl2",
         "rl2"
       ],
-      "raceSeconds": 180.91,
-      "wallSeconds": 35.5,
+      "raceSeconds": 178.9,
+      "wallSeconds": 35.7,
       "finishTimes": [
-        121.17,
-        121.58,
-        120.61,
-        118.9
+        121.44,
+        121.57,
+        120.59,
+        118.89
       ],
       "bestLaps": [
         0,
@@ -538,58 +542,64 @@
       "holeshot": -1,
       "stage": [
         {
-          "start": 2,
-          "time": 121.17,
+          "start": 0,
+          "time": 121.44,
           "splits": [
-            44.71071114710607,
-            82.46071114712659,
-            121.16904448048851,
-            121.16904448048851
+            44.9690444804395,
+            82.71904448045854,
+            121.43571114715601,
+            121.43571114715601
           ]
         },
         {
-          "start": 22,
-          "time": 121.58,
+          "start": 20,
+          "time": 121.57,
           "splits": [
-            45.62737781377986,
-            83.11071114714302,
-            121.57737781380328,
-            121.57737781380328
+            45.61904448044493,
+            83.10237781380809,
+            121.56904448047177,
+            121.56904448047177
           ]
         },
         {
-          "start": 42,
-          "time": 120.61,
+          "start": 40,
+          "time": 120.59,
           "splits": [
-            45.18571114712876,
-            82.40237781382072,
-            120.6107111471193,
-            120.6107111471193
+            45.152377813793805,
+            82.37737781382256,
+            120.58571114712115,
+            120.58571114712115
           ]
         },
         {
-          "start": 62,
-          "time": 118.9,
+          "start": 60,
+          "time": 118.89,
           "splits": [
-            43.9607111471437,
-            80.95237781380385,
-            118.90237781376933,
-            118.90237781376933
+            43.960711147142106,
+            80.95237781380567,
+            118.89404448043783,
+            118.89404448043783
           ]
         }
       ],
       "log": [
-        "129.3 car 0 STAGE_FINISH: STAGE TIME 121.2 S",
-        "149.7 car 1 STAGE_FINISH: STAGE TIME 121.6 S",
-        "168.7 car 2 STAGE_FINISH: STAGE TIME 120.6 S",
-        "187.0 car 3 STAGE_FINISH: STAGE TIME 118.9 S"
+        "22.1 car 1 STAGE_CALL: TO THE START CONTROL · GO IN 4 S",
+        "26.1 car 1 STAGE_GO: GO",
+        "42.1 car 2 STAGE_CALL: TO THE START CONTROL · GO IN 4 S",
+        "46.1 car 2 STAGE_GO: GO",
+        "62.1 car 3 STAGE_CALL: TO THE START CONTROL · GO IN 4 S",
+        "66.1 car 3 STAGE_GO: GO",
+        "127.6 car 0 STAGE_FINISH: STAGE TIME 121.4 S",
+        "147.7 car 1 STAGE_FINISH: STAGE TIME 121.6 S",
+        "166.7 car 2 STAGE_FINISH: STAGE TIME 120.6 S",
+        "185.0 car 3 STAGE_FINISH: STAGE TIME 118.9 S"
       ],
       "terrain": {
-        "cells": 35614,
-        "deepest": 0.10570801049470901,
-        "sequence": 1057410,
+        "cells": 35637,
+        "deepest": 0.10572776943445206,
+        "sequence": 1045764,
         "wetness": 0,
-        "hash": "96b813de"
+        "hash": "f4a078be"
       },
       "classification": {
         "kind": "stage",
@@ -608,70 +618,70 @@
         ],
         "splits": [
           [
-            44.71071114710607,
-            82.46071114712659,
-            121.16904448048851,
-            121.16904448048851
+            44.9690444804395,
+            82.71904448045854,
+            121.43571114715601,
+            121.43571114715601
           ],
           [
-            45.62737781377986,
-            83.11071114714302,
-            121.57737781380328,
-            121.57737781380328
+            45.61904448044493,
+            83.10237781380809,
+            121.56904448047177,
+            121.56904448047177
           ],
           [
-            45.18571114712876,
-            82.40237781382072,
-            120.6107111471193,
-            120.6107111471193
+            45.152377813793805,
+            82.37737781382256,
+            120.58571114712115,
+            120.58571114712115
           ],
           [
-            43.9607111471437,
-            80.95237781380385,
-            118.90237781376933,
-            118.90237781376933
+            43.960711147142106,
+            80.95237781380567,
+            118.89404448043783,
+            118.89404448043783
           ]
         ],
         "stageTimes": [
-          121.16904448048851,
-          121.57737781380328,
-          120.6107111471193,
-          118.90237781376933
+          121.43571114715601,
+          121.56904448047177,
+          120.58571114712115,
+          118.89404448043783
         ],
         "stage": [
           {
             "position": 1,
             "id": 3,
-            "time": 118.90237781376933,
+            "time": 118.89404448043783,
             "penalties": 0,
             "reason": ""
           },
           {
             "position": 2,
             "id": 2,
-            "time": 120.6107111471193,
+            "time": 120.58571114712115,
             "penalties": 0,
             "reason": ""
           },
           {
             "position": 3,
             "id": 0,
-            "time": 121.16904448048851,
+            "time": 121.43571114715601,
             "penalties": 0,
             "reason": ""
           },
           {
             "position": 4,
             "id": 1,
-            "time": 121.57737781380328,
+            "time": 121.56904448047177,
             "penalties": 0,
             "reason": ""
           }
         ],
         "terrain": {
-          "cells": 35614,
-          "deepest": 0.10570801049470901,
-          "sequence": 1057410,
+          "cells": 35637,
+          "deepest": 0.10572776943445206,
+          "sequence": 1045764,
           "wetness": 0
         }
       }

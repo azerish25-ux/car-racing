@@ -45,6 +45,9 @@ export interface EntrantFormat {
   jumped: boolean;
   pushClock: number;
   jokers: number;
+  /** Joker checkpoints passed on the joker road this time round (entry,
+   * midpoint, exit in order; the third completes a joker lap). */
+  jokerLeg: number;
   jokerJudged: boolean;
   /** Lap distance at the last step (joker timing line crossings). */
   lastS: number;
@@ -62,6 +65,10 @@ export function offroadSessionFor(track: Track) {
 }
 /** The start gate's fall after the synchronised release (s). */
 export const GATE_DROP_SECONDS = 0.25;
+/** Stage starts: how far behind the start line the control is (m), and how
+ * long before its start a car is called there (s). */
+const STAGE_CONTROL_SETBACK = 2.2;
+const STAGE_CALL_SECONDS = 4;
 /** Off-road session layer (WP37-WP42): owns the authoritative terrain's
  * session lifecycle and the formats — the synchronised motocross gate with
  * jump-start detection and the holeshot, rallycross joker laps counted at
@@ -106,6 +113,7 @@ export class OffroadSession {
       jumped: false,
       pushClock: 0,
       jokers: 0,
+      jokerLeg: 0,
       jokerJudged: false,
       lastS: 0,
       stage: null,
@@ -128,6 +136,13 @@ export class OffroadSession {
     if (this.format?.start === 'staggered')
       (options.grid ?? cars.map((c) => c.id)).forEach((id, k) => (this.entrants[id].slot = k));
     for (const [id, c] of cars.entries()) this.entrants[id].lastS = c.s;
+    // One judge per start: the gate and the stage control are this layer's;
+    // a lights start stays with the race director.
+    if (this.format && this.format.start !== 'lights') race.formatJudgesStart = true;
+    // The joker requirement is enforced as each car takes the flag, before
+    // the race director closes the classification (the last car included).
+    if (this.format?.kind === 'rallycross' && this.course.spec.joker)
+      race.onFinish = (id) => this.judgeJoker(id);
     sessions.set(track, this);
   }
   static create(
@@ -158,9 +173,15 @@ export class OffroadSession {
         c.place(track, mod(course.spec.gate.s - reach, track.length), slots.lateral[k]);
       }
     } else if (format.start === 'staggered' && course.spec.stage) {
+      // The first starter waits at the start control (the lights are its
+      // countdown); the others queue behind it.
       const order = options.grid ?? cars.map((c) => c.id);
       order.forEach((id, k) =>
-        cars[id].place(track, mod(course.spec.stage!.start - 9 * (k + 1), track.length), 0),
+        cars[id].place(
+          track,
+          mod(course.spec.stage!.start - (k ? 9 * (k + 1) : STAGE_CONTROL_SETBACK), track.length),
+          0,
+        ),
       );
     }
   }
@@ -207,9 +228,10 @@ export class OffroadSession {
     }
     return null;
   }
-  /** Seconds after the green the starter `k` (stage start order) leaves. */
+  /** Seconds after the green the starter `k` (stage start order) leaves:
+   * the first on the green itself, then one every interval. */
   stageStartTime(order: number) {
-    return 2 + order * (this.format?.stage?.interval ?? 20);
+    return order * (this.format?.stage?.interval ?? 20);
   }
   /** Gate up (1) .. down (0) at race time `raceTime` (synchronised for every slot). */
   static gateAngle(raceTime: number) {
@@ -253,13 +275,17 @@ export class OffroadSession {
           c.input.steer = 0;
           return;
         }
-        if (e.start === 0 && race.phase === PHASE.RACING && now >= go - 4) {
-          // Called to the start control.
+        if (e.start === 0 && now >= go - STAGE_CALL_SECONDS) {
+          // Called to the start control (the first starter is already there
+          // and is called as the lights begin).
           const stage = this.course.spec.stage!;
-          c.place(this.track, mod(stage.start - 2.2, this.track.length), 0);
+          if (k > 0)
+            c.place(this.track, mod(stage.start - STAGE_CONTROL_SETBACK, this.track.length), 0);
           e.slotS = c.s;
           e.start = 1;
           e.stageStart = go;
+          if (k > 0)
+            this.note(id, 'STAGE_CALL', `TO THE START CONTROL · GO IN ${Math.round(go - now)} S`);
         }
         if (e.start <= 1 && now < go) {
           const atLine = e.start === 1;
@@ -272,6 +298,7 @@ export class OffroadSession {
         } else if (e.start === 1 && now >= go) {
           e.start = e.jumped ? 3 : 2;
           e.stage = competitor(id, new RouteProgress(this.route!, 10));
+          if (k > 0) this.note(id, 'STAGE_GO', 'GO');
         }
       });
     }
@@ -305,6 +332,7 @@ export class OffroadSession {
         if ((crept > 0.25 || e.pushClock > 0.15) && !e.jumped && race.time < race.greenAt) {
           e.jumped = true;
           e.start = 3;
+          race.laps[id].jumped = true;
           this.penalize(id, this.format!.jumpStartPenalty, 'JUMP_START', 'JUMP START AT THE GATE');
         }
         if (into > -0.02) c.place(this.track, e.slotS, e.slotLateral);
@@ -319,42 +347,59 @@ export class OffroadSession {
       }
     }
   }
-  /** Joker laps: a crossing of the joker road's timing line (half way
-   * along it, where the two roads are fully apart) on the joker road. */
+  /** Joker checkpoints along the joker road (lap distances): a quarter of
+   * the way along it (never inside its swing out), its midpoint and three
+   * quarters (never inside its swing back), all where the two roads are
+   * apart. A joker lap is all three crossed on the joker road, in order. */
+  jokerLines(): [number, number, number] {
+    const j = this.course.spec.joker!,
+      L = this.track.length,
+      span = mod(j.to - j.from, L),
+      quarter = Math.max(j.ramp, span / 4);
+    return [mod(j.from + quarter, L), mod(j.from + span / 2, L), mod(j.to - quarter, L)];
+  }
+  /** Joker laps: the three checkpoints crossed on the joker road (a token
+   * wide line on the main road never counts). Enforced at the flag. */
   private jokers() {
     const f = this.format!,
       race = this.race,
-      joker = this.course.spec.joker!,
       L = this.track.length,
-      line = mod(joker.from + mod(joker.to - joker.from, L) / 2, L);
+      lines = this.jokerLines();
     for (const [id, c] of this.cars.entries()) {
       const e = this.entrants[id];
       if (c.retired) continue;
       const delta = mod(c.s - e.lastS + L / 2, L) - L / 2;
-      if (
-        race.phase === PHASE.RACING &&
-        delta > 0 &&
-        delta < 15 &&
-        mod(line - e.lastS, L) <= delta &&
-        this.course.onJoker(line, c.lateral)
-      ) {
-        e.jokers++;
-        this.note(id, 'JOKER', `JOKER LAP ${e.jokers}/${f.joker!.required}`);
-      }
+      if (race.phase === PHASE.RACING && delta > 0 && delta < 15)
+        for (const [k, line] of lines.entries()) {
+          if (mod(line - e.lastS, L) > delta) continue;
+          const on = this.course.onJoker(line, c.lateral);
+          // The entry restarts the count; any checkpoint off the joker road,
+          // or out of order, abandons it.
+          e.jokerLeg = on && k === 0 ? 1 : on && k === e.jokerLeg ? k + 1 : 0;
+          if (e.jokerLeg === lines.length) {
+            e.jokerLeg = 0;
+            e.jokers++;
+            this.note(id, 'JOKER', `JOKER LAP ${e.jokers}/${f.joker!.required}`);
+          }
+        }
       e.lastS = c.s;
-      // At the flag: exactly the required joker laps, else time per difference.
-      if (c.finishTime > 0 && !e.jokerJudged) {
-        e.jokerJudged = true;
-        const missing = Math.abs(e.jokers - f.joker!.required);
-        if (missing)
-          this.penalize(
-            id,
-            missing * f.joker!.penaltySeconds,
-            'JOKER',
-            `JOKER TAKEN ${e.jokers}/${f.joker!.required} · +${missing * f.joker!.penaltySeconds} S`,
-          );
-      }
     }
+  }
+  /** At the flag: exactly the required joker laps, else time per difference
+   * (called by the race director as the car is given its finishing time). */
+  private judgeJoker(id: number) {
+    const e = this.entrants[id],
+      joker = this.format?.joker;
+    if (!e || !joker || e.jokerJudged) return;
+    e.jokerJudged = true;
+    const missing = Math.abs(e.jokers - joker.required);
+    if (missing)
+      this.penalize(
+        id,
+        missing * joker.penaltySeconds,
+        'JOKER',
+        `JOKER TAKEN ${e.jokers}/${joker.required} · +${missing * joker.penaltySeconds} S`,
+      );
   }
   private stage() {
     const race = this.race,
@@ -369,6 +414,7 @@ export class OffroadSession {
         const crept = mod(c.s - e.slotS + L / 2, L) - L / 2;
         if (crept > 0.5) {
           e.jumped = true;
+          race.laps[id].jumped = true;
           this.penalize(id, f.jumpStartPenalty, 'JUMP_START', 'JUMP START AT THE CONTROL');
         }
       }
@@ -527,12 +573,12 @@ export function writeOffroadBlock(
   out[base + O.JOKERS] = e.jokers;
   out[base + O.START] = e.jumped ? 3 : e.start;
   out[base + O.SLOT] = e.slot + 1;
+  // Stage: the final or running stage time, or, before the car's start, the
+  // seconds to its go as a negative countdown (queued and at the control).
   out[base + O.FORMAT] =
     session.format?.kind === 'stage'
       ? e.stageTime >= 0
         ? e.stageTime
-        : e.stage
-          ? session.race.time - session.race.greenAt - e.stageStart
-          : -1
+        : session.race.time - session.race.greenAt - session.stageStartTime(e.slot)
       : Number(session.holeshot === car.id);
 }

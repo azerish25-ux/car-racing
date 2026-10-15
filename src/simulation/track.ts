@@ -51,6 +51,10 @@ export interface SurfaceSample {
   resistance: number;
   cell: number;
   pit: boolean;
+  /** Set (true) only by a terrain venue's deformable ground (offroad/): its
+   * loose soils give loose-construction tyres their recovery. Absent or false
+   * elsewhere, where only grass and gravel do (festival dirt is unchanged). */
+  terrain?: boolean;
 }
 export const trackPoint = (): TrackPoint => ({
   s: 0,
@@ -406,6 +410,7 @@ export class Track {
       grip = 1,
       resistance = 0.015,
       kerb = 0;
+    if (this.#offroad) out.terrain = false;
     if (this.#offroad && !pit) {
       const row = Math.min(CELL_ROWS - 1, Math.floor((p.s / this.length) * CELL_ROWS)),
         col = clamp(Math.floor(((l / p.width) * 0.5 + 0.5) * CELL_COLS), 0, CELL_COLS - 1),
