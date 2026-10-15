@@ -7,6 +7,7 @@
 import { writeFileSync } from 'node:fs';
 import { DEFAULT_OPTIONS, type SessionOptions } from '../src/simulation/config.ts';
 import { vehicleFamily } from '../src/simulation/bike-definitions.ts';
+import { CIRCUITS } from '../src/simulation/circuits.ts';
 import type { BikeVehicle } from '../src/simulation/bike-vehicle.ts';
 import { EVENTS, eventSession } from '../src/simulation/events.ts';
 import { VEHICLES } from '../src/simulation/vehicles.ts';
@@ -56,10 +57,13 @@ const races: BikeRace[] = [
     seed: 30103,
     ruleset: 'motorcycle-class-sprint',
   },
-  // Every built-in motorcycle event, raced as the player would load it (its
-  // own field, laps, weather, ruleset and seed): the career offers them.
-  ...EVENTS.filter((e) =>
-    [e.vehicles].flat().some((id) => vehicleFamily(VEHICLES[id]) === 'bike'),
+  // Every built-in road-racing motorcycle event, raced as the player would
+  // load it (its own field, laps, weather, ruleset and seed): the career
+  // offers them. Off-road motos have their own suite (npm run test:offroad).
+  ...EVENTS.filter(
+    (e) =>
+      !CIRCUITS[e.circuit].offroad &&
+      [e.vehicles].flat().some((id) => vehicleFamily(VEHICLES[id]) === 'bike'),
   ).map((e): BikeRace => ({ ...eventSession(e, DEFAULT_OPTIONS), event: e.id })),
 ];
 const failures: string[] = [];
