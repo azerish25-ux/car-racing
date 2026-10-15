@@ -11,6 +11,15 @@ scoring, joker stages, creator import and an authoritative-server workload.
 Status (nothing is claimed beyond "integrated" without hardware or player
 evidence), decisions, risks and protocols: [docs/production](docs/production/README.md).
 
+## Circuit catalogue (WP29–WP30)
+
+Twenty new layouts at twelve venues, selectable from CIRCUIT (grouped Original /
+Real-world / Unconventional): six approximations of famous circuits from public
+geometry under neutral names, plus a night street circuit with dry tunnels, an
+alpine pass, a 31° tri-oval and infield road course, a desert canyon, a cliff
+road and a dockyard flyover. A procedural venue kit dresses every layout from
+its data. [Roster, rights, validation and limits](docs/CIRCUIT_CATALOGUE.md).
+
 ## A12 secondary grandstands
 
 Aurel's six retained secondary stands now use an original modular Blender/GLB

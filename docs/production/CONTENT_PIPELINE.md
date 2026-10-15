@@ -91,8 +91,17 @@ Record person-time and elapsed time for each stage of the first and second venue
 Pit/grid geometry as data (`STANDARD_PIT`, left-pit test course), layer-aware progress and a
 RouteGraph with validation naming disconnected edges, unknown transitions, zero-length segments and
 bounds, content validation for vehicles/circuits/events, sandboxed creator import, development
-venues (`src/simulation/test-venues.ts`). Missing: visual editors, surface painter, AI lane overlay,
-camera previewer, performance heat map (§14.4).
+venues (`src/simulation/test-venues.ts`).
+
+WP29–WP30 add a **layout authoring builder** (`src/simulation/circuit-catalogue/`: straights and arcs
+with elevation, width, banking, run-off, barrier, tunnel, frontage, rock, drop, stand and DRS
+properties; closure by least-squares straight adjustment; scaling to a reference length; reverse
+layouts), `Track` hooks for authored run-off, barrier offset and roofed (rain-sheltered) rows,
+**geometry validation** in `validate:content` (section-corridor overlap, bridge headroom, pit-straight
+curvature, racing line, reference length, protected names), a seeded **AI race script per layout**
+(`npm run test:catalogue-races` → `docs/circuit-catalogue-races.json`) and a **procedural venue kit**
+(`src/rendering/venue-kit/`). Still missing: visual editors, surface painter, AI lane overlay, camera
+previewer, performance heat map (§14.4), and person-time records for the stages (§14.7).
 
 ### 2.3 Venue vision (§15)
 
@@ -100,12 +109,20 @@ camera previewer, performance heat map (§14.4).
 |---|---|---|
 | T01 | Aurel | integrated |
 | T02 | Vellamar | integrated |
+| C01–C06 | Real-world approximations under neutral names: Parco Reale Autodromo, Ardennes Forest Circuit, Northfield Airfield GP (+ Classic), Kansai Figure-Eight (+ East Course), Riviera Harbour Street Circuit, Texas Hill Country Circuit | integrated (greybox + procedural venue kit); approximations from public geometry, pending a licence for official names; no art, hardware or player acceptance |
+| C07–C12 | Unconventional originals: Neon City night streets with tunnels (+ reverse), Col d’Argent mountain pass (ascent/descent), Mesa Speedbowl 31° tri-oval (+ infield road course), Red Mesa canyon (+ reverse), Cap Lumière cliff road (+ reverse), Iron Quay docklands flyover (+ reverse) | integrated (greybox + procedural venue kit); seeded 6-car AI races pass on all 20 layouts; no art, hardware or player acceptance |
 | T03–T06 | Lowmere Harbour, High Valley, Solar Basin, Cinderstone Ring | proposed launch venues; not started |
 | T07–T12 | Pine Ridge, Black Fen, Redcut, Atlas, Whitewater, Frostline | dirt/surface programme; not started |
 | T13–T24 | Tidal Dry Dock … Neon Switchback | extraordinary venues; engineering prerequisites prototyped (layer-aware progress, moving surfaces, magnetic frames) |
 
 Selection (§15.3): rank by new racing created, reuse, readability, vehicle fit and risk; approve
 only after a greybox lap, an AI race, a recovery demonstration and a rough performance capture.
+
+Catalogue layouts C01–C12 (20 layouts, [roster and limits](../CIRCUIT_CATALOGUE.md)) have passed the
+greybox lap and AI race stages (`docs/circuit-catalogue-races.json`), and the operational pass for
+pit/service (venue-owned pit side, a left-hand street pit stop test), marshal posts, run-off and
+cameras. Not yet done for any of them: crash/recovery demonstration, human races, rough performance
+capture on reference hardware, the art pass beyond the procedural kit, and §15.3 approval.
 
 ## 3. Art direction: target board and capture suite (§17.2, WP27)
 

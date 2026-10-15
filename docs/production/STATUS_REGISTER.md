@@ -32,6 +32,9 @@ Last reviewed against source: branch `claude/peaceful-einstein-dedc7t`, commits 
 | Timed endurance classification | integrated (event only) | `timed-endurance` ruleset, timed race test | Fuel/service choices, stint persistence (§11.4) | Gameplay lead |
 | Venue-owned pit/grid geometry | integrated | `PitLaneDefinition`, `tests/venue-pit-data.test.ts` | Rendering of a non-standard paddock | Track/tools lead |
 | Layer-aware 3-D track progress | integrated | `Track.nearest(.., y)`, `tests/route-overpass.test.ts` | First stacked-road venue in production | Track/tools lead |
+| Circuit catalogue: 20 layouts at 12 new venues | integrated | `src/simulation/circuit-catalogue/`, `tests/circuit-catalogue.test.ts`, `docs/circuit-catalogue-races.json`, [CIRCUIT_CATALOGUE.md](../CIRCUIT_CATALOGUE.md) | Human races, crash/recovery and performance capture per venue (§15.3); licence decision for official names | Track/tools lead |
+| Procedural venue kit | integrated | `src/rendering/venue-kit/`, `tests/venue-kit.test.ts` | In-browser capture-suite review and art direction sign-off (§17.2); hardware frame timing | Environment art + rendering lead |
+| Tunnel rain shelter (roofed zones) | integrated | `Track.sheltered`/`isCovered`, `tests/circuit-catalogue.test.ts` | Spray, sky light and reflections inside tunnels | Weather/rendering |
 | Directed route graph, checkpoints, branches | prototype | `src/simulation/route-graph.ts`, `tests/route-graph.test.ts` | Drive a session from a RouteGraph venue | Track/tools lead |
 | Recorded-session identity & record categories | integrated | `src/core/session-identity.ts`, ghost/leaderboard keys | Public-board verification (WP52) | Runtime lead |
 | Snapshot schema descriptor | integrated | `SNAPSHOT_SCHEMA`, `snapshotIncompatibility` | Entity-type blocks for bikes (G4) | Runtime lead |
@@ -92,8 +95,8 @@ Last reviewed against source: branch `claude/peaceful-einstein-dedc7t`, commits 
 | WP26 | absent | Distinct sound families (TC-1 currently uses the shared engine voice). |
 | WP27 | research | Capture-suite definition in `CONTENT_PIPELINE.md`; art director approval open. |
 | WP28 | absent | Temporal clarity work needs the capture suite. |
-| WP29 | absent | First new venue through the pipeline. |
-| WP30 | absent | Twelve-car/six-venue scope. |
+| WP29 | integrated (partial) | Twenty catalogue layouts reached greybox, AI race (seeded 6-car races, all pass) and an operational pass with a procedural venue kit; layer-aware overpasses (Kansai, Iron Quay) and tunnels in production venues. Open: crash/recovery demonstration, human races, art pass and performance capture (§14.3 stages 4–6), person-time records (§14.7). |
+| WP30 | integrated (partial) | Venue side: 12 new venues / 20 layouts selectable (Original / Real-world / Unconventional), six events use them. Real-world layouts are approximations under neutral names pending a licence. The twelve-car side belongs to the vehicle programme. No layout is performance-, player- or release-accepted. |
 | WP31 | research | Device matrix template; no certification. |
 | WP32 | integrated (partial) | Captions, reduced motion, engineer mute added; matrix review open. |
 | WP33 | prototype | Rider-bike model and control contract. |

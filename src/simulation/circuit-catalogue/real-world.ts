@@ -229,7 +229,7 @@ const northfield: CircuitSpec = {
  * starting on the old pit straight between the long right and the spinney. */
 const northfieldClassic: CircuitSpec = {
   ...northfieldCommon,
-  id: 'northfield-national',
+  id: 'northfield-classic',
   name: 'NORTHFIELD / CLASSIC',
   short: 'NFLD CLASSIC',
   layout: 'Classic',

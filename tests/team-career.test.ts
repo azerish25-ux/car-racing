@@ -167,7 +167,9 @@ describe('F11 data-driven onboarding text', () => {
   it('names every registered circuit instead of a stale count', () => {
     const venues = CIRCUIT_IDS.filter((id) => !CIRCUITS[id].catalogue?.variantOf);
     expect(foundingBriefing()).toMatch(
-      new RegExp(`^A new team\\. ${venues.length} circuits: Aurel, Vellamar, .+\\. Earn your first classified finish\\.$`),
+      new RegExp(
+        `^A new team\\. ${venues.length} circuits: Aurel, Vellamar, .+\\. Earn your first classified finish\\.$`,
+      ),
     );
     expect(foundingBriefing(['AUREL', 'VELLAMAR'])).toBe(
       'A new team. 2 circuits: Aurel and Vellamar. Earn your first classified finish.',

@@ -163,7 +163,14 @@ function validateCatalogueEntry(def: CircuitDefinition): string[] {
   const e: string[] = [],
     meta = def.catalogue!,
     at = `circuit ${def.id}`;
-  const texts = [def.name, def.short, meta.venueName, meta.layout, meta.description, ...def.corners.map((c) => c.name)];
+  const texts = [
+    def.name,
+    def.short,
+    meta.venueName,
+    meta.layout,
+    meta.description,
+    ...def.corners.map((c) => c.name),
+  ];
   for (const text of texts)
     if (protectedName.test(text)) e.push(`${at}: "${text}" uses a protected real-world name`);
   if (!meta.description || meta.description.length > 160)
@@ -173,7 +180,9 @@ function validateCatalogueEntry(def: CircuitDefinition): string[] {
   if (meta.group === 'real-world' && !meta.referenceLength)
     e.push(`${at}: a real-world approximation must state its reference length`);
   if (meta.authoring.scale < 0.85 || meta.authoring.scale > 1.2)
-    e.push(`${at}: authored layout was scaled by ${meta.authoring.scale.toFixed(3)} (outside 0.85-1.2)`);
+    e.push(
+      `${at}: authored layout was scaled by ${meta.authoring.scale.toFixed(3)} (outside 0.85-1.2)`,
+    );
   if (meta.variantOf && !Object.hasOwn(CIRCUITS, meta.variantOf))
     e.push(`${at}: variant of unknown layout ${meta.variantOf}`);
   return e;

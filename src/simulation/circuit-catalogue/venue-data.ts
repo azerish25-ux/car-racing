@@ -8,7 +8,7 @@ export const CATALOGUE_CIRCUIT_IDS = Object.freeze([
   'parco-reale',
   'ardennes',
   'northfield',
-  'northfield-national',
+  'northfield-classic',
   'kansai',
   'kansai-east',
   'riviera',

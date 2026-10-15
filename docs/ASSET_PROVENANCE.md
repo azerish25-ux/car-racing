@@ -61,3 +61,28 @@ geometry, commercial-game meshes, team logos or external font files. Built-in te
 is converted to mesh. Forty-three sockets are placement metadata only. Existing
 A22, A24, car, cockpit and driver payloads are unchanged. See [A21 scope, integration
 and validation boundaries](A21_HERO_PIT_BUILDING.md).
+
+## Circuit catalogue (WP29–WP30)
+
+The twenty catalogue layouts in `src/simulation/circuit-catalogue/` are
+hand-authored data (straights, arcs, elevation and width knots). Six venues are
+**approximations of famous real-world circuits from public geometry** — corner
+sequence and direction, approximate lengths and radii, the published lap length
+(each layout is scaled to it) and, where publicly known, the elevation
+character. No map tracing, survey data, third-party geometry file, official
+name, logo, livery, signage or branding is included or fetched. Venue, layout
+and corner names are neutral and original (e.g. "Parco Reale Autodromo",
+"Ardennes Forest Circuit", "Northfield Airfield GP", "Kansai Figure-Eight",
+"Riviera Harbour Street Circuit", "Texas Hill Country Circuit"), and
+`validate:content` rejects protected real names in catalogue copy. Using any
+official circuit, corner or event name would require a licence; until then the
+layouts remain approximations under original names. The six unconventional
+venues are original designs.
+
+The procedural venue kit (`src/rendering/venue-kit/`) generates all of its
+geometry and textures at runtime: rock strata and normals from value noise,
+facade windows drawn on canvases, braking-board numerals in system fonts.
+It reuses the repository's original asphalt, grass, gravel and concrete
+materials, garage bays, grandstands, catch-fence shader and concrete barrier
+profile. Trackside sponsor text is fictional. See
+[the catalogue scope and limits](CIRCUIT_CATALOGUE.md).
