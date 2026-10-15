@@ -4,10 +4,11 @@ import { RouteGraph, RouteProgress, validateRoute } from '../src/simulation/rout
 import { ROUTE_LAYER_GAP, SURFACE, Track, surfaceSample, trackPoint } from '../src/simulation/track.ts';
 import { VEHICLES } from '../src/simulation/vehicles.ts';
 import { resolveEvents } from '../src/simulation/open-world/festival-events.ts';
-import { OpenWorldTrack, WORLD_SURFACE } from '../src/simulation/open-world/open-world-track.ts';
+import { OpenWorldTrack, RUN_OUT, WORLD_SURFACE } from '../src/simulation/open-world/open-world-track.ts';
+import { sharedPointErrors } from '../src/simulation/open-world/region-validation.ts';
 import { regionStructures, treesForTile, TREE_STRIDE } from '../src/simulation/open-world/placement.ts';
 import { ROAD_CLASSES, SOLVANE, type RegionDefinition } from '../src/simulation/open-world/region-data.ts';
-import { ROAD_FLAG, ROAD_LAYER_GAP, RoadNetwork } from '../src/simulation/open-world/road-network.ts';
+import { ROAD_FLAG, ROAD_LAYER_GAP, RoadNetwork, roadCandidates } from '../src/simulation/open-world/road-network.ts';
 import { pathPoint, planRoute, RoutePath } from '../src/simulation/open-world/route-path.ts';
 import { festivalDefaultVehicle, festivalVehicles } from '../src/simulation/open-world/session.ts';
 import { TerrainField } from '../src/simulation/open-world/terrain-field.ts';
@@ -178,6 +179,161 @@ describe('festival world surface (physics adapter)', () => {
     track.nearest(p.x + p.nx * (face + 12), p.z + p.nz * (face + 12), trackPoint(), p.y + 0.5);
     expect(track.boundaryAt(p, 1)).toBeGreaterThan(1000);
     expect(track.pitSpeedZone()).toBe(false);
+  });
+});
+
+describe('festival road surface continuity', () => {
+  const track = new OpenWorldTrack(world, 'clear', undefined, 256);
+  const s = surfaceSample(),
+    p = trackPoint();
+  /** Ground height at (x, z) read as a car on it would (layer from the ground). */
+  const ground = (x: number, z: number) => track.sample(x, z, s, track.groundHeight(x, z) + 0.6).height;
+  /** Samples of an edge within `radius` of one of its end nodes. */
+  const mouth = (edge: number, node: number, radius: number) => {
+    const e = net.edges[edge],
+      n = net.nodes[node],
+      out: number[] = [];
+    for (let i = e.first; i < e.last; i++)
+      if (Math.hypot(net.x[i] - n.x, net.z[i] - n.z) < radius && !(net.flags[i] & ROAD_FLAG.BRIDGE)) out.push(i);
+    return out;
+  };
+  it('reads every junction mouth as the road: the carriageway of each road meeting there is road surface', () => {
+    const paved: number[] = [WORLD_SURFACE.ASPHALT, WORLD_SURFACE.MARKING];
+    let points = 0,
+      off: string[] = [],
+      loose: string[] = [];
+    for (const node of net.nodes) {
+      if (node.edges.length < 2) continue;
+      for (const edge of node.edges) {
+        const e = net.edges[edge],
+          hw = e.spec.halfWidth;
+        for (const i of mouth(edge, node.index, 30))
+          for (let f = 0; f < 1; f += 0.25) {
+            net.pointOnSegment(i, f, p);
+            for (let l = -hw + 0.1; l <= hw - 0.1; l += 0.5) {
+              track.sample(p.x + p.nx * l, p.z + p.nz * l, s, p.y + 0.6);
+              points++;
+              if (!track.query.onRoad) off.push(`${e.id} at node ${node.index}`);
+              else if (e.spec.surface !== 'dirt' && !paved.includes(track.query.surface))
+                loose.push(`${e.id} at node ${node.index}: ${track.query.surface}`);
+            }
+          }
+      }
+    }
+    off = [...new Set(off)];
+    loose = [...new Set(loose)];
+    expect(points).toBeGreaterThan(5000);
+    expect(off).toEqual([]);
+    // A paved carriageway is paved there, not a side road's dirt or verge.
+    expect(loose).toEqual([]);
+  });
+  it('has no steps in junction mouths where road surfaces overlap', () => {
+    let worst = 0,
+      at = '';
+    const step = 0.5;
+    for (const node of net.nodes) {
+      if (node.edges.length < 2) continue;
+      const n = Math.round(60 / step),
+        h = new Float64Array((n + 1) * (n + 1)).fill(NaN);
+      for (let j = 0; j <= n; j++)
+        for (let i = 0; i <= n; i++) {
+          const x = node.x - 30 + i * step,
+            z = node.z - 30 + j * step,
+            y = ground(x, z);
+          if (track.query.onRoad && !track.query.bridge) h[j * (n + 1) + i] = y;
+        }
+      for (let j = 0; j < n; j++)
+        for (let i = 0; i < n; i++) {
+          const a = h[j * (n + 1) + i];
+          for (const b of [h[j * (n + 1) + i + 1], h[(j + 1) * (n + 1) + i]])
+            if (Math.abs(b - a) > worst) {
+              worst = Math.abs(b - a);
+              at = `node ${node.index}`;
+            }
+        }
+    }
+    // Overlapping roads meet on a level junction pad; what remains is the
+    // crown of a highway under a side road's shoulder (no kerb-like step).
+    expect(worst, at).toBeLessThan(0.3);
+  });
+  it('meets the terrain beyond the shoulder without a step', () => {
+    const near = roadCandidates();
+    let worst = 0,
+      at = '',
+      checked = 0;
+    for (const e of net.edges) {
+      const edge = e.spec.halfWidth + e.spec.shoulder;
+      for (let i = e.first; i <= e.last; i += 2) {
+        if (net.flags[i] & (ROAD_FLAG.BRIDGE | ROAD_FLAG.JUNCTION)) continue;
+        const nx = net.tz[i],
+          nz = -net.tx[i];
+        for (const side of [-1, 1]) {
+          const x = net.x[i] + nx * side * edge,
+            z = net.z[i] + nz * side * edge;
+          // Where another road's footprint touches this one, the two roads
+          // meet there (a content question, not the terrain).
+          const count = net.covering(x, z, net.y[i] + 0.6, 0.5, near);
+          let alone = true;
+          for (let k = 0; k < count; k++) if (net.edgeOf[near.segment[k]] !== e.index) alone = false;
+          if (!alone) continue;
+          checked++;
+          track.sample(net.x[i] + nx * side * (edge - 0.05), net.z[i] + nz * side * (edge - 0.05), s, net.y[i] + 0.6);
+          const inside = s.height;
+          track.sample(net.x[i] + nx * side * (edge + 0.05), net.z[i] + nz * side * (edge + 0.05), s, net.y[i] + 0.6);
+          if (Math.abs(s.height - inside) > worst) {
+            worst = Math.abs(s.height - inside);
+            at = `${e.id} (${net.x[i].toFixed(0)}, ${net.z[i].toFixed(0)})`;
+          }
+        }
+      }
+    }
+    expect(checked).toBeGreaterThan(15000);
+    expect(worst, at).toBeLessThan(0.05);
+  });
+  it('ends a dead end at its end line: beyond it is the terrain, not a road plane', () => {
+    const candidates = roadCandidates();
+    let checked = 0;
+    for (const node of net.nodes) {
+      if (node.edges.length !== 1) continue;
+      const e = net.edges[node.edges[0]],
+        i = e.from === node.index ? e.first : e.last,
+        dir = e.from === node.index ? -1 : 1;
+      for (const beyond of [20, 60, 100]) {
+        const x = node.x + net.tx[i] * dir * beyond,
+          z = node.z + net.tz[i] * dir * beyond;
+        track.sample(x, z, s, net.y[i] + 0.6);
+        // Never the dead-end road itself past its end.
+        expect(track.query.onRoad && track.query.edge === e.index).toBe(false);
+        if (net.covering(x, z, net.y[i] + 0.6, RUN_OUT, candidates) === 0) {
+          expect(s.height).toBeCloseTo(track.tiles.height(x, z), 3);
+          checked++;
+        }
+      }
+    }
+    expect(checked).toBeGreaterThanOrEqual(6);
+  });
+  it('joins every road at a shared control point (the valley crossroads at Saltmarsh)', () => {
+    expect(sharedPointErrors(SOLVANE, net)).toEqual([]);
+    const node = net.nodes.find((n) => Math.hypot(n.x - 210, n.z + 430) < 3)!;
+    expect(node.edges.map((e) => net.edges[e].road.id).sort()).toEqual(['farm', 'orchard', 'valley', 'valley']);
+    // A route can turn there from the valley road onto the farm road.
+    const legs = planRoute(net, [[560, -930], [-2280, -900]], false);
+    expect(legs.some((l) => net.edges[l.edge].road.id === 'valley')).toBe(true);
+    expect(legs.some((l) => net.edges[l.edge].road.id === 'farm')).toBe(true);
+    // One surface across the crossroads: crowned, without the 35 cm step
+    // between the unconnected roads it used to have.
+    let step = 0,
+      low = Infinity,
+      high = -Infinity;
+    for (let dx = -4; dx <= 4; dx += 0.25)
+      for (let dz = -4; dz <= 4; dz += 0.25) {
+        const h = ground(210 + dx, -430 + dz);
+        low = Math.min(low, h);
+        high = Math.max(high, h);
+        step = Math.max(step, Math.abs(ground(210 + dx + 0.25, -430 + dz) - h), Math.abs(ground(210 + dx, -430 + dz + 0.25) - h));
+      }
+    expect(step).toBeLessThan(0.08);
+    expect(high - low).toBeLessThan(0.25);
   });
 });
 

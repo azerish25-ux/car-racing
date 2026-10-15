@@ -10,7 +10,9 @@ import {
 } from '../track.ts';
 import { MATERIAL } from '../surface-material.ts';
 import { advanceWater, weatherKeyframes, WeatherTimeline, type WeatherKeyframe } from '../weather.ts';
-import { ROAD_FLAG } from './road-network.ts';
+import { MAX_ROAD_CANDIDATES, ROAD_FLAG, roadCandidates } from './road-network.ts';
+import { smoothstep } from './noise.ts';
+import { TILE_STEP } from './terrain-tiles.ts';
 import { BIOME, type Biome } from './terrain-field.ts';
 import type { TerrainTileCache } from './terrain-tiles.ts';
 import type { OpenWorld } from './world.ts';
@@ -148,6 +150,18 @@ export class OpenWorldTrack {
   private lastSegment = 0;
   private lastLayer = true;
   private readonly point = trackPoint();
+  private readonly candidatePoint = trackPoint();
+  private readonly candidates = roadCandidates();
+  private readonly order = new Int32Array(MAX_ROAD_CANDIDATES);
+  private readonly candH = new Float64Array(MAX_ROAD_CANDIDATES);
+  private readonly candE = new Float64Array(MAX_ROAD_CANDIDATES);
+  private readonly candG = new Float64Array(4 * MAX_ROAD_CANDIDATES);
+  private roadH = 0;
+  private roadGx = 0;
+  private roadGz = 0;
+  private edgeH = 0;
+  private edgeGx = 0;
+  private edgeGz = 0;
   private readonly castPoint = new Vec3();
   private readonly normal = { x: 0, y: 1, z: 0 };
   readonly query: WorldQuery = {
@@ -239,13 +253,16 @@ export class OpenWorldTrack {
     return false;
   }
   // --- Surface ------------------------------------------------------------
-  /** Road surface class at a lateral offset (markings, shoulders). */
-  private roadSurface(edge: number, lateral: number): WorldSurface {
+  /** Road surface class at a lateral offset (markings, shoulders); a point
+   * further than the half-width from the centreline (a shoulder, or the
+   * rounded end of a piece at a junction) is shoulder. */
+  private roadSurface(edge: number, lateral: number, distance: number): WorldSurface {
     const e = this.network.edges[edge],
       spec = e.spec,
       a = Math.abs(lateral),
       hw = spec.halfWidth;
-    if (a > hw) return spec.surface === 'dirt' || e.roadClass !== 'highway' ? WORLD_SURFACE.SHOULDER : WORLD_SURFACE.ASPHALT;
+    if (Math.max(a, distance) > hw)
+      return spec.surface === 'dirt' || e.roadClass !== 'highway' ? WORLD_SURFACE.SHOULDER : WORLD_SURFACE.ASPHALT;
     if (spec.surface === 'dirt') return WORLD_SURFACE.DIRT_ROAD;
     if (spec.markings !== 'none') {
       // Edge lines, then the centre line (solid on mountain and town roads,
@@ -255,50 +272,216 @@ export class OpenWorldTrack {
     }
     return WORLD_SURFACE.ASPHALT;
   }
-  /** World ground under (x, z): fills a SurfaceSample (Track contract) and
-   * `query` (detailed class). `y` selects the road layer (bridges). */
+  /** Surface height and gradient of candidate `k` at (x, z): the cambered
+   * carriageway, then the shoulder falling to the verge edge the renderer
+   * draws (asphalt edge -5 mm to the shoulder edge). Fills `roadH`/`roadG*`,
+   * the shoulder-edge height `edgeH`/`edgeG*` and returns the lateral. */
+  private candidateSurface(k: number, x: number, z: number) {
+    const net = this.network,
+      c = this.candidates,
+      p = net.pointOnSegment(c.segment[k], c.t[k], this.candidatePoint),
+      spec = net.edges[net.edgeOf[c.segment[k]]].spec,
+      hw = spec.halfWidth,
+      shoulder = Math.max(0.05, spec.shoulder),
+      lateral = (x - p.x) * p.nx + (z - p.z) * p.nz,
+      l = clamp(lateral, -hw, hw),
+      crownLeft = Math.max(0, spec.crown - Math.abs(p.bank)),
+      base = p.y + p.bank * l - crownLeft * Math.abs(l),
+      slope = Math.abs(lateral) <= hw ? p.bank - crownLeft * Math.sign(lateral) : 0,
+      bx = p.tx * p.gradient + p.nx * slope,
+      bz = p.tz * p.gradient + p.nz * slope,
+      fall = 0.055 + 0.03 * spec.shoulder,
+      d = c.distance[k];
+    this.edgeH = base - 0.005 - fall;
+    this.edgeGx = bx;
+    this.edgeGz = bz;
+    this.roadH = base;
+    this.roadGx = bx;
+    this.roadGz = bz;
+    if (d > hw) {
+      const f = Math.min(1, (d - hw) / shoulder);
+      this.roadH -= 0.005 + fall * f;
+      if (f < 1) {
+        this.roadGx -= (fall / shoulder) * c.rx[k];
+        this.roadGz -= (fall / shoulder) * c.rz[k];
+      }
+    }
+    return lateral;
+  }
+  /**
+   * World ground under (x, z): fills a SurfaceSample (Track contract) and
+   * `query` (detailed class). `y` selects the road layer (bridges).
+   *
+   * The ground is one continuous surface:
+   *  - beside the roads, the carved terrain tile, pulled up or down to each
+   *    road's shoulder edge over a run-out of one tile step (the 4 m tile
+   *    cannot follow the shoulder exactly, so without it the ground would
+   *    step like a kerb where the shoulder ends);
+   *  - on the roads, every road whose footprint covers the point (by true
+   *    distance, so a dead end ends at its end line and the far side of a
+   *    junction mouth is the crossing road, not grass), lowest first, each
+   *    fading in across its shoulder: inside a carriageway the highest road
+   *    is the surface, which is also the ribbon the renderer shows on top
+   *    where two roads overlap. Bridge decks have no run-out or fade (a
+   *    parapet, then the drop).
+   * The class, grip and markings come from the road the point is on.
+   */
   sample(x: number, z: number, out: SurfaceSample, y?: number): SurfaceSample {
     const net = this.network,
       p = this.point,
       lateral = this.nearest(x, z, p, y),
-      i = this.lastSegment,
-      edge = net.edgeOf[i],
-      e = net.edges[edge],
-      spec = e.spec,
-      a = Math.abs(lateral),
-      bridge = (net.flags[i] & ROAD_FLAG.BRIDGE) !== 0,
-      onRoad = this.lastLayer && a <= spec.halfWidth + spec.shoulder;
+      c = this.candidates,
+      count = net.covering(x, z, y !== undefined && Number.isFinite(y) ? y : p.y, RUN_OUT, c);
     const q = this.query;
-    q.edge = edge;
-    q.layer = this.lastLayer;
-    q.bridge = bridge && onRoad;
-    q.onRoad = onRoad;
     q.waterDepth = 0;
     out.s = p.s;
     out.lateral = lateral;
-    out.width = spec.halfWidth;
     out.pit = false;
     out.cell = 0;
-    let surface: WorldSurface;
-    if (onRoad) {
-      const hw = spec.halfWidth,
-        l = clamp(lateral, -hw, hw),
-        crownLeft = Math.max(0, spec.crown - Math.abs(p.bank));
-      let height = p.y + p.bank * l - crownLeft * Math.abs(l),
-        slope = Math.abs(lateral) <= hw ? p.bank - crownLeft * Math.sign(lateral) : 0;
-      if (a > hw) {
-        height -= 0.06 + (a - hw) * 0.03;
-        slope -= 0.03 * Math.sign(lateral);
+    // Candidate heights: road surface (covered pieces) and shoulder edge.
+    const order = this.order,
+      roadH = this.candH,
+      edgeH = this.candE;
+    let covered = 0,
+      top = -1;
+    for (let k = 0; k < count; k++) {
+      this.candidateSurface(k, x, z);
+      roadH[k] = this.roadH;
+      edgeH[k] = this.edgeH;
+      this.candG[4 * k] = this.roadGx;
+      this.candG[4 * k + 1] = this.roadGz;
+      this.candG[4 * k + 2] = this.edgeGx;
+      this.candG[4 * k + 3] = this.edgeGz;
+      if (c.outside[k] === 0) {
+        covered++;
+        if (top < 0 || roadH[k] > roadH[top]) top = k;
       }
-      out.height = height;
-      // Lateral unit vector is (nx, nz); the road rises `slope` per metre of it.
-      out.normal.set(-p.tx * p.gradient - p.nx * slope, 1, -p.tz * p.gradient - p.nz * slope).normalize();
-      surface = this.roadSurface(edge, lateral);
+    }
+    let height: number, gx: number, gz: number;
+    const fade = (k: number) => {
+      const spec = net.edges[net.edgeOf[c.segment[k]]].spec,
+        margin = spec.halfWidth + spec.shoulder - c.distance[k];
+      return c.bridge[k] ? 1 : smoothstep(0, Math.max(0.05, spec.shoulder), margin);
+    };
+    if (top >= 0 && fade(top) >= 1) {
+      // Inside the highest road's carriageway: that road, exactly.
+      height = roadH[top];
+      gx = this.candG[4 * top];
+      gz = this.candG[4 * top + 1];
     } else {
-      const n = this.normal,
-        height = this.tiles.height(x, z, n);
-      out.height = height;
-      out.normal.set(n.x, n.y, n.z);
+      // Ground: the tile, pulled to the shoulder edges within the run-out,
+      // lowest edge first (order-independent where edges are level).
+      let n = 0;
+      for (let k = 0; k < count; k++) if (!c.bridge[k]) order[n++] = k;
+      sortBy(order, n, edgeH);
+      let first = 0;
+      for (let m = 0; m < n; m++) if (c.outside[order[m]] === 0) first = m + 1;
+      if (first > 0) {
+        const k = order[first - 1];
+        height = edgeH[k];
+        gx = this.candG[4 * k + 2];
+        gz = this.candG[4 * k + 3];
+      } else {
+        const normal = this.normal;
+        height = this.tiles.height(x, z, normal);
+        const ny = Math.max(0.05, normal.y);
+        gx = -normal.x / ny;
+        gz = -normal.z / ny;
+      }
+      for (let m = Math.max(0, first); m < n; m++) {
+        const k = order[m],
+          r = c.outside[k];
+        // The run-out ends where the next road's footprint begins (two
+        // roads side by side meet on the ground between them; inside a
+        // footprint only that road's own edge counts).
+        let gap = Infinity,
+          gapX = 0,
+          gapZ = 0;
+        for (let o = 0; o < n; o++) {
+          const other = order[o];
+          if (other !== k && c.outside[other] < gap) {
+            gap = c.outside[other];
+            gapX = c.ox[other];
+            gapZ = c.oz[other];
+          }
+        }
+        let u: number, ux: number, uz: number;
+        if (r + gap >= RUN_OUT) {
+          const du = -smoothstepSlope(0, RUN_OUT, r);
+          u = 1 - smoothstep(0, RUN_OUT, r);
+          ux = du * c.ox[k];
+          uz = du * c.oz[k];
+        } else {
+          const span = r + gap,
+            f = r / span,
+            du = -6 * f * (1 - f);
+          u = 1 - f * f * (3 - 2 * f);
+          // d(r / (r + gap)) = (gap dr - r dgap) / (r + gap)²
+          ux = (du * (gap * c.ox[k] - r * gapX)) / (span * span);
+          uz = (du * (gap * c.oz[k] - r * gapZ)) / (span * span);
+        }
+        const dh = edgeH[k] - height;
+        gx += (this.candG[4 * k + 2] - gx) * u + dh * ux;
+        gz += (this.candG[4 * k + 3] - gz) * u + dh * uz;
+        height += dh * u;
+      }
+      // Roads on top, lowest first, each fading in across its shoulder.
+      n = 0;
+      for (let k = 0; k < count; k++) if (c.outside[k] === 0) order[n++] = k;
+      sortBy(order, n, roadH);
+      for (let m = 0; m < n; m++) {
+        const k = order[m],
+          spec = net.edges[net.edgeOf[c.segment[k]]].spec,
+          ramp = Math.max(0.05, spec.shoulder),
+          margin = spec.halfWidth + spec.shoulder - c.distance[k],
+          w = fade(k),
+          // d(w)/d(margin) and margin falls along the radial direction.
+          dw = c.bridge[k] ? 0 : smoothstepSlope(0, ramp, margin),
+          dh = roadH[k] - height;
+        gx += (this.candG[4 * k] - gx) * w - dh * dw * c.rx[k];
+        gz += (this.candG[4 * k + 1] - gz) * w - dh * dw * c.rz[k];
+        height += dh * w;
+      }
+    }
+    // The road the point is on: of the roads at about the surface height
+    // (junction pads hold them within a crown of each other), one whose
+    // carriageway holds the point, paved before loose, then the one it lies
+    // furthest inside. A junction mouth is the through road's asphalt, not
+    // the side road's shoulder, and a side road's asphalt where it crosses
+    // the through road's shoulder; the renderer gives paved ribbons the
+    // same priority where they meet level.
+    let owner = -1,
+      rank = -Infinity;
+    for (let k = 0; k < count; k++) {
+      if (c.outside[k] !== 0 || Math.abs(roadH[k] - height) > OWNER_TOLERANCE) continue;
+      const spec = net.edges[net.edgeOf[c.segment[k]]].spec,
+        margin = spec.halfWidth + spec.shoulder - c.distance[k],
+        score = (c.distance[k] <= spec.halfWidth ? 2 : 0) + (spec.surface === 'dirt' ? 0 : 1) + margin / 100;
+      if (score > rank) {
+        rank = score;
+        owner = k;
+      }
+    }
+    if (owner < 0) owner = top;
+    const onRoad = covered > 0;
+    out.height = height;
+    out.normal.set(-gx, 1, -gz).normalize();
+    let surface: WorldSurface, edge: number;
+    if (onRoad && owner >= 0) {
+      const i = c.segment[owner],
+        roadLateral = this.candidateSurface(owner, x, z);
+      edge = net.edgeOf[i];
+      surface = this.roadSurface(edge, roadLateral, c.distance[owner]);
+      q.bridge = c.bridge[owner] === 1;
+      q.layer = true;
+    } else {
+      edge = net.edgeOf[this.lastSegment];
+      q.bridge = false;
+      q.layer = this.lastLayer;
+      const n = this.normal;
+      n.x = out.normal.x;
+      n.y = out.normal.y;
+      n.z = out.normal.z;
       const slope = Math.sqrt(Math.max(0, 1 - n.y * n.y)) / Math.max(0.05, n.y);
       surface = BIOME_SURFACE[this.field.biome(x, z, height, slope)];
       // Water stands above sea level and in the river channel.
@@ -309,6 +492,10 @@ export class OpenWorldTrack {
         surface = WORLD_SURFACE.WATER;
       }
     }
+    const spec = net.edges[edge].spec;
+    out.width = spec.halfWidth;
+    q.edge = edge;
+    q.onRoad = onRoad;
     q.surface = surface;
     const physics = SURFACE_PHYSICS[surface];
     out.surface = physics.code;
@@ -388,6 +575,29 @@ const SCRATCH: SurfaceSample = {
   cell: 0,
   pit: false,
 };
+/** Run-out beyond a road's shoulder edge (m) over which the ground meets
+ * the carved terrain tile: one tile step. */
+export const RUN_OUT = TILE_STEP;
+/** Height window (m) within which overlapping roads at a point compete
+ * for the surface class (a crown's worth). */
+const OWNER_TOLERANCE = 0.15;
+/** d/dx of smoothstep(a, b, x). */
+function smoothstepSlope(a: number, b: number, x: number) {
+  const t = (x - a) / (b - a);
+  return t <= 0 || t >= 1 ? 0 : (6 * t * (1 - t)) / (b - a);
+}
+/** Insertion sort of the first n indices by key (tiny arrays, no allocation). */
+function sortBy(order: Int32Array, n: number, key: Float64Array) {
+  for (let i = 1; i < n; i++) {
+    const v = order[i];
+    let j = i - 1;
+    while (j >= 0 && key[order[j]] > key[v]) {
+      order[j + 1] = order[j];
+      j--;
+    }
+    order[j + 1] = v;
+  }
+}
 /** The festival world handed to code typed against a circuit Track
  * (Vehicle, CollisionSolver, debris). See OpenWorldTrack. */
 export function asTrack(world: OpenWorldTrack): Track {

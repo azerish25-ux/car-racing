@@ -29,6 +29,8 @@ export const ROAD_CELL = 32;
  * the same value as track.ts ROUTE_LAYER_GAP (asserted by the unit tests),
  * duplicated so this module does not load the circuit catalogue. */
 export const ROAD_LAYER_GAP = 4;
+/** Longest level junction mouth along a branch (m). */
+const PLATEAU_MAX = 40;
 /** Vertical clearance of a grade-separated crossing (m). */
 const OVERPASS_CLEARANCE = 7.2;
 
@@ -55,6 +57,44 @@ export interface RoadEdge {
   /** Global station of the first sample. */
   offset: number;
   length: number;
+  /** Level junction pad (m along the edge) at its from and to ends. */
+  pads: readonly [number, number];
+}
+/** Roads around a query point (RoadNetwork.covering): one entry per road
+ * piece within reach of its footprint, on the queried layer. */
+export interface RoadCandidates {
+  count: number;
+  /** Segment (samples i, i + 1) and clamped fraction along it. */
+  segment: Int32Array;
+  t: Float64Array;
+  /** True distance to the clamped centreline point (m). */
+  distance: Float64Array;
+  /** Distance outside the road's footprint (carriageway and shoulder; a
+   * dead end stops at its end line), 0 inside; and its unit gradient. */
+  outside: Float64Array;
+  ox: Float64Array;
+  oz: Float64Array;
+  /** Unit vector from the clamped centreline point to the query point. */
+  rx: Float64Array;
+  rz: Float64Array;
+  /** Both samples of the segment are bridge deck. */
+  bridge: Uint8Array;
+}
+export const MAX_ROAD_CANDIDATES = 16;
+export function roadCandidates(): RoadCandidates {
+  const n = MAX_ROAD_CANDIDATES;
+  return {
+    count: 0,
+    segment: new Int32Array(n),
+    t: new Float64Array(n),
+    distance: new Float64Array(n),
+    outside: new Float64Array(n),
+    ox: new Float64Array(n),
+    oz: new Float64Array(n),
+    rx: new Float64Array(n),
+    rz: new Float64Array(n),
+    bridge: new Uint8Array(n),
+  };
 }
 interface CrossingPin {
   road: number;
@@ -176,6 +216,8 @@ export class RoadNetwork {
   lastLayerMatch = true;
   lastDistance = 0;
   private readonly lines: Polyline[] = [];
+  /** Level junction pads per line split (see plateaus()). */
+  private pads: { back: number; ahead: number; through: number }[][] = [];
 
   constructor(
     readonly region: RegionDefinition,
@@ -196,7 +238,15 @@ export class RoadNetwork {
     this.buildJunctions();
     for (const line of this.lines) this.insertSplitSamples(line);
     const pins = this.crossingPins();
-    const heights = this.lines.map((line, i) => this.profile(line, pins.filter((p) => p.road === i)));
+    const plateaus = this.plateaus();
+    this.pads = plateaus;
+    const heights = this.lines.map((line, i) =>
+      this.profile(
+        line,
+        pins.filter((p) => p.road === i),
+        plateaus[i],
+      ),
+    );
     this.assemble(heights, pins);
     this.totalStation = this.edges.reduce((sum, e) => Math.max(sum, e.offset + e.length + EDGE_GAP), 0);
     this.grid = this.buildGrid();
@@ -295,7 +345,12 @@ export class RoadNetwork {
           line.zs[k] = this.nodes[this.find(node)].z;
           split(other, existing?.arc ?? hit.arc, node);
           split(line, arc, node);
-        } else split(line, arc, this.addNode(x, z));
+          this.joinThrough(node, [i, hit.line]);
+        } else {
+          const node = this.addNode(x, z);
+          split(line, arc, node);
+          this.joinThrough(node, [i]);
+        }
       }
     });
     // 2. Interior crossings (segment intersections between different roads).
@@ -316,6 +371,36 @@ export class RoadNetwork {
       line.splits.sort((a, b) => a.arc - b.arc);
       for (const s of line.splits) s.node = this.find(s.node);
     }
+  }
+  /** A road end's node also joins every other road whose carriageway it
+   * lies on: two roads that end at the same point on a third (a crossroads
+   * authored as two ends at one of its control points) snap to each other,
+   * the nearest line, and would otherwise leave the third road unsplit,
+   * overlapping the junction without a connection. A node made only of road
+   * ends moves onto the through road, so that road keeps its line. */
+  private joinThrough(node: number, skip: readonly number[]) {
+    const lines = this.lines;
+    lines.forEach((other, j) => {
+      if (skip.includes(j)) return;
+      const root = this.find(node),
+        n = this.nodes[root];
+      if (other.splits.some((p) => this.find(p.node) === root)) return;
+      if (skip.some((i) => this.isOverpass(i, j))) return;
+      const p = this.project(other, n.x, n.z);
+      if (p.distance >= Math.max(2.5, other.spec.halfWidth)) return;
+      const total = other.closed ? other.length : other.arc[other.arc.length - 1];
+      const interior = (l: Polyline, arc: number) => l.closed || (arc > 0.5 && arc < l.arc[l.arc.length - 1] - 0.5);
+      const onThrough = lines.some((l) => l.splits.some((q) => this.find(q.node) === root && interior(l, q.arc)));
+      if (!onThrough && interior(other, p.arc) && p.arc <= total) {
+        const [px, pz] = this.pointAt(other, p.arc);
+        n.x = px;
+        n.z = pz;
+      }
+      const near = other.splits.find((q) => Math.abs(q.arc - p.arc) < 20);
+      if (near) {
+        if (this.find(near.node) !== root) this.mergeNodes(near.node, root);
+      } else other.splits.push({ arc: p.arc, node: root });
+    });
   }
   /** Put an exact sample at every junction so the edge ends are the node
    * points themselves (no forced kinks), dropping samples crowding them. */
@@ -476,8 +561,79 @@ export class RoadNetwork {
     }
     return pins;
   }
+  /** Level junction mouths: for every road branch leaving a junction, the
+   * distance (along it) over which another road's footprint still overlaps
+   * or touches it (a shallow fork runs alongside for tens of metres), and at
+   * least the other road's own footprint. Holding every branch at the node height
+   * there means overlapping roads in a mouth (a shallow fork, the inside of
+   * a sharp joint, a side road crossing a highway's lanes) agree to within
+   * their crowns instead of diverging with their own grades: the surface the
+   * renderer draws and the one physics reads are then the same level pad.
+   * Per line: one entry per split with the plateau reach behind and ahead. */
+  private plateaus() {
+    const lines = this.lines;
+    type Branch = { line: number; split: number; side: 1 | -1; foot: number };
+    const byNode = new Map<number, Branch[]>();
+    const out = lines.map((line) => line.splits.map(() => ({ back: 0, ahead: 0, through: -1 })));
+    lines.forEach((line, li) => {
+      const total = line.closed ? line.length : line.arc[line.arc.length - 1],
+        foot = line.spec.halfWidth + line.spec.shoulder;
+      line.splits.forEach((split, si) => {
+        const node = this.find(split.node);
+        for (const side of [-1, 1] as const) {
+          if (!line.closed && (side < 0 ? split.arc < 0.5 : split.arc > total - 0.5)) continue;
+          const list = byNode.get(node) ?? [];
+          list.push({ line: li, split: si, side, foot });
+          byNode.set(node, list);
+        }
+      });
+    });
+    for (const branches of byNode.values()) {
+      if (branches.length < 2) continue;
+      // The widest road through the node keeps its crowned cross-section;
+      // the others meet it on its surface.
+      const through = branches.reduce((a, b) => (b.foot > a.foot ? b : a)).line;
+      for (const b of branches) {
+        out[b.line][b.split].through = b.line === through ? -1 : through;
+        const line = lines[b.line],
+          split = line.splits[b.split],
+          total = line.closed ? line.length : line.arc[line.arc.length - 1];
+        // Walk the branch until it is clear of every other road at the node
+        // (footprints apart by a metre); a level pad at least across the
+        // other road's footprint.
+        let reach = 0;
+        for (const c of branches) {
+          if (c.line === b.line) continue;
+          const other = lines[c.line];
+          let clear = c.foot + 1;
+          for (let along = 1; along <= PLATEAU_MAX; along += 1) {
+            const [x, z] = this.pointAt(line, split.arc + b.side * along);
+            clear = along;
+            if (this.project(other, x, z).distance > b.foot + c.foot + 1) break;
+          }
+          reach = Math.max(reach, clear, c.foot + 1);
+        }
+        // Never more than PLATEAU_MAX, nor most of the way to the next split.
+        let room = b.side > 0 ? total - split.arc : split.arc;
+        for (const other of line.splits) {
+          if (other === split) continue;
+          let gap = (other.arc - split.arc) * b.side;
+          if (line.closed) gap = ((gap % total) + total) % total;
+          if (gap > 0) room = Math.min(room, gap);
+        }
+        reach = Math.min(reach, PLATEAU_MAX, room * 0.4);
+        if (b.side > 0) out[b.line][b.split].ahead = reach;
+        else out[b.line][b.split].back = reach;
+      }
+    }
+    return out;
+  }
   /** Grade-limited vertical profile pinned at junction nodes and crossings. */
-  private profile(line: Polyline, crossing: CrossingPin[]) {
+  private profile(
+    line: Polyline,
+    crossing: CrossingPin[],
+    plateau: readonly { back: number; ahead: number; through: number }[] = [],
+  ) {
     const n = line.xs.length,
       spec = line.spec,
       ground = new Float64Array(n);
@@ -511,14 +667,32 @@ export class RoadNetwork {
       }
       return arc - line.arc[lo] < line.arc[hi] - arc ? lo : hi;
     };
-    for (const s of line.splits) {
+    line.splits.forEach((s, k) => {
       const node = this.nodes[s.node];
       if (!node.y) {
         node.y = this.discHeight(node.x, node.z, Math.max(30, spec.smoothing / 2));
         node.kind = 'junction';
       }
-      pins.push({ i: index(s.arc), h: node.y });
-    }
+      const at = index(s.arc);
+      pins.push({ i: at, h: node.y });
+      // The level junction mouth around the node (see plateaus()): a side
+      // road follows the through road's crowned surface across it.
+      const { back, ahead, through } = plateau[k] ?? { back: 0, ahead: 0, through: -1 };
+      const total = line.closed ? line.length : line.arc[n - 1],
+        main = through >= 0 ? this.lines[through] : null;
+      for (let i = 0; i < n; i++) {
+        if (i === at) continue;
+        let along = line.arc[i] - s.arc;
+        if (line.closed) along = ((along % total) + total * 1.5) % total - total / 2;
+        if (!((along > 0 && along <= ahead) || (along < 0 && -along <= back))) continue;
+        let h = node.y;
+        if (main) {
+          const off = this.project(main, line.xs[i], line.zs[i]).distance;
+          h -= main.spec.crown * Math.min(off, main.spec.halfWidth);
+        }
+        pins.push({ i, h });
+      }
+    });
     for (const c of crossing) pins.push({ i: index(c.arc), h: c.height });
     pins.sort((a, b) => a.i - b.i);
     const y = Float64Array.from(target);
@@ -597,7 +771,7 @@ export class RoadNetwork {
   /** Fill the flat per-sample arrays, split roads into edges at nodes. */
   private assemble(profiles: { y: Float64Array; ground: Float64Array }[], pins: CrossingPin[]) {
     // Edges from consecutive split points of each road.
-    type Piece = { line: number; a: number; b: number; from: number; to: number };
+    type Piece = { line: number; a: number; b: number; from: number; to: number; pad: [number, number] };
     const pieces: Piece[] = [];
     const index = (line: Polyline, arc: number) => {
       let best = 0;
@@ -607,17 +781,33 @@ export class RoadNetwork {
     };
     this.lines.forEach((line, li) => {
       const idx = line.splits.map((s) => ({ i: index(line, s.arc), node: this.find(s.node) }));
-      const n = line.xs.length;
+      const n = line.xs.length,
+        pad = (k: number, side: 'back' | 'ahead') => this.pads[li]?.[k]?.[side] ?? 0;
       if (line.closed) {
         for (let k = 0; k < idx.length; k++) {
           const a = idx[k],
-            b = idx[(k + 1) % idx.length];
-          pieces.push({ line: li, a: a.i, b: b.i > a.i ? b.i : b.i + n, from: a.node, to: b.node });
+            next = (k + 1) % idx.length,
+            b = idx[next];
+          pieces.push({
+            line: li,
+            a: a.i,
+            b: b.i > a.i ? b.i : b.i + n,
+            from: a.node,
+            to: b.node,
+            pad: [pad(k, 'ahead'), pad(next, 'back')],
+          });
         }
       } else
         for (let k = 0; k < idx.length - 1; k++)
           if (idx[k + 1].i > idx[k].i)
-            pieces.push({ line: li, a: idx[k].i, b: idx[k + 1].i, from: idx[k].node, to: idx[k + 1].node });
+            pieces.push({
+              line: li,
+              a: idx[k].i,
+              b: idx[k + 1].i,
+              from: idx[k].node,
+              to: idx[k + 1].node,
+              pad: [pad(k, 'ahead'), pad(k + 1, 'back')],
+            });
     });
     let total = 0;
     for (const p of pieces) total += p.b - p.a + 1;
@@ -657,6 +847,7 @@ export class RoadNetwork {
         last: cursor + count - 1,
         offset: station,
         length: 0,
+        pads: p.pad,
       };
       let s = 0;
       for (let c = 0; c < count; c++) {
@@ -744,9 +935,15 @@ export class RoadNetwork {
         sum += bank[j];
         count++;
       }
-      // Junction mouths are flat so crossing roads meet level.
-      const fromEnd = Math.min(this.s[first + c] - this.s[first], this.s[last] - this.s[first + c]);
-      this.bank[first + c] = (sum / count) * clamp((fromEnd - 10) / 30, 0, 1);
+      // Junction mouths are flat (no superelevation across the level pad)
+      // so crossing roads meet level.
+      const fromStart = this.s[first + c] - this.s[first],
+        toEnd = this.s[last] - this.s[first + c],
+        level = Math.min(
+          clamp((fromStart - Math.max(10, e.pads[0])) / 30, 0, 1),
+          clamp((toEnd - Math.max(10, e.pads[1])) / 30, 0, 1),
+        );
+      this.bank[first + c] = (sum / count) * level;
     }
     // Advisory speed: comfortable lateral acceleration, capped by the class.
     for (let c = 0; c < n; c++) {
@@ -1048,6 +1245,90 @@ export class RoadNetwork {
     this.lastDistance = Math.sqrt(best);
     this.pointOnSegment(bestI, bestT, out);
     return (x - out.x) * out.nx + (z - out.z) * out.nz;
+  }
+  /** Every road piece whose footprint (carriageway and shoulder) lies
+   * within `reach` of (x, z) on the layer of height `y`, by true distance to
+   * each segment: a point beyond a road's end or past the outside of a
+   * junction mouth is not "on" that road just because its centreline is the
+   * nearest one. A dead end stops at its end line. Adjacent segments of
+   * one edge count once (the closer). Returns the candidate count. */
+  covering(x: number, z: number, y: number, reach: number, out: RoadCandidates) {
+    const g = this.grid,
+      cx = Math.floor((x - g.x0) / ROAD_CELL),
+      cz = Math.floor((z - g.z0) / ROAD_CELL);
+    out.count = 0;
+    if (cx < 0 || cz < 0 || cx >= g.cols || cz >= g.rows) return 0;
+    const cell = cz * g.cols + cx,
+      layered = Number.isFinite(y);
+    for (let k = g.start[cell]; k < g.start[cell + 1]; k++) {
+      const i = g.items[k],
+        j = i + 1,
+        e = this.edges[this.edgeOf[i]],
+        spec = e.spec,
+        footprint = spec.halfWidth + spec.shoulder,
+        ax = this.x[i],
+        az = this.z[i],
+        dx = this.x[j] - ax,
+        dz = this.z[j] - az,
+        len2 = dx * dx + dz * dz || 1,
+        len = Math.sqrt(len2),
+        u = ((x - ax) * dx + (z - az) * dz) / len2,
+        t = clamp(u, 0, 1),
+        px = ax + dx * t,
+        pz = az + dz * t,
+        d = Math.hypot(x - px, z - pz),
+        lateral = ((x - ax) * dz - (z - az) * dx) / len;
+      // Quick reject before the exact footprint test.
+      if (d > footprint + reach + 1) continue;
+      // A dead end stops square at its end line, as its ribbon does. At a
+      // junction the piece's rounded end also covers the outside corner of
+      // a bend where it meets the next piece.
+      const before = i === e.first && u * len < -1e-6 && this.nodes[e.from].edges.length === 1,
+        after = j === e.last && (u - 1) * len > 1e-6 && this.nodes[e.to].edges.length === 1;
+      let outside: number, ox: number, oz: number;
+      if (before || after) {
+        // Beyond the end line: outside by the distance past it.
+        const along = (before ? -u : u - 1) * len,
+          side = Math.max(0, Math.abs(lateral) - footprint),
+          sign = before ? -1 : 1;
+        outside = Math.hypot(along, side);
+        const inv = outside > 1e-9 ? 1 / outside : 0;
+        ox = ((along * sign * dx) / len + (side * Math.sign(lateral) * dz) / len) * inv;
+        oz = ((along * sign * dz) / len - (side * Math.sign(lateral) * dx) / len) * inv;
+      } else {
+        outside = Math.max(0, d - footprint);
+        ox = d > 1e-9 ? (x - px) / d : 0;
+        oz = d > 1e-9 ? (z - pz) / d : 0;
+      }
+      if (outside > reach) continue;
+      if (layered) {
+        const road = this.y[i] + (this.y[j] - this.y[i]) * t,
+          bank = this.bank[i] + (this.bank[j] - this.bank[i]) * t;
+        if (Math.abs(y - road - bank * clamp(lateral, -12, 12)) > ROAD_LAYER_GAP) continue;
+      }
+      // One entry per piece of road: neighbouring segments of an edge keep
+      // the closer (a hairpin's other leg is a separate entry).
+      let slot = out.count;
+      for (let c = 0; c < out.count; c++) {
+        const other = out.segment[c];
+        if (this.edgeOf[other] === e.index && Math.abs(other - i) <= 3) {
+          slot = d < out.distance[c] ? c : -1;
+          break;
+        }
+      }
+      if (slot < 0 || slot >= MAX_ROAD_CANDIDATES) continue;
+      if (slot === out.count) out.count++;
+      out.segment[slot] = i;
+      out.t[slot] = t;
+      out.distance[slot] = d;
+      out.outside[slot] = outside;
+      out.ox[slot] = ox;
+      out.oz[slot] = oz;
+      out.rx[slot] = d > 1e-9 ? (x - px) / d : 0;
+      out.rz[slot] = d > 1e-9 ? (z - pz) / d : 0;
+      out.bridge[slot] = Number((this.flags[i] & ROAD_FLAG.BRIDGE) !== 0 && (this.flags[j] & ROAD_FLAG.BRIDGE) !== 0);
+    }
+    return out.count;
   }
   /** Road surface height at a resolved point and lateral offset (camber:
    * superelevation plus the crown that remains on gentle bends). */

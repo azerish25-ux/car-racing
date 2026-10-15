@@ -1,6 +1,7 @@
 import { validateRoute } from '../route-graph.ts';
 import { resolveEvents } from './festival-events.ts';
 import { ROAD_CLASSES, SOLVANE, type RegionDefinition } from './region-data.ts';
+import type { RoadNetwork } from './road-network.ts';
 import { OpenWorld } from './world.ts';
 
 /** Minimum drivable extent (m) and road length (km) of a festival region. */
@@ -56,6 +57,48 @@ export function validateRegionDefinition(region: RegionDefinition): string[] {
   return errors;
 }
 
+/** Control points shared by two or more roads are junctions: the built
+ * network must join every road branch there (an end is one branch, a
+ * through road two). Catches a crossroads authored as two road ends on a
+ * third road's control point that the snapping leaves unconnected. */
+export function sharedPointErrors(region: RegionDefinition, network: RoadNetwork): string[] {
+  const errors: string[] = [],
+    shared = new Map<string, { x: number; z: number; roads: string[]; branches: number }>();
+  for (const road of region.roads)
+    road.points.forEach(([x, z], i) => {
+      const key = `${x},${z}`,
+        end = !road.closed && (i === 0 || i === road.points.length - 1),
+        entry = shared.get(key) ?? { x, z, roads: [], branches: 0 };
+      if (entry.roads.includes(road.id)) return;
+      entry.roads.push(road.id);
+      entry.branches += end ? 1 : 2;
+      shared.set(key, entry);
+    });
+  for (const point of shared.values()) {
+    if (point.roads.length < 2) continue;
+    // Authored grade separations share no junction.
+    const overpass = region.overpasses.some((o) => point.roads.includes(o.over) && point.roads.includes(o.under));
+    if (overpass) continue;
+    let node: RoadNetwork['nodes'][number] | null = null,
+      best = 8;
+    for (const n of network.nodes) {
+      const d = Math.hypot(n.x - point.x, n.z - point.z);
+      if (n.edges.length && d < best) {
+        best = d;
+        node = n;
+      }
+    }
+    // A loop edge (from and to the same node) is two branches.
+    const branches = node
+      ? node.edges.reduce((sum, e) => sum + (network.edges[e].from === network.edges[e].to ? 2 : 1), 0)
+      : 0;
+    if (branches !== point.branches)
+      errors.push(
+        `roads ${point.roads.join(', ')} share (${point.x}, ${point.z}) but the junction there joins ${branches} of ${point.branches} road branches`,
+      );
+  }
+  return errors;
+}
 /** Full check: the definition, then the built network as one valid
  * RouteGraph of at least REGION_MIN_ROAD_KM, and every event route. */
 export function validateRegion(region: RegionDefinition = SOLVANE): string[] {
@@ -67,6 +110,7 @@ export function validateRegion(region: RegionDefinition = SOLVANE): string[] {
       stats = world.network.stats();
     if (stats.totalKm < REGION_MIN_ROAD_KM) errors.push(`${at}: ${stats.totalKm} km of road is below ${REGION_MIN_ROAD_KM} km`);
     for (const error of validateRoute(world.network.routeSpec())) errors.push(`${at} network: ${error}`);
+    for (const error of sharedPointErrors(region, world.network)) errors.push(`${at} network: ${error}`);
     resolveEvents(world);
   } catch (error) {
     errors.push(`${at}: ${error instanceof Error ? error.message : String(error)}`);
