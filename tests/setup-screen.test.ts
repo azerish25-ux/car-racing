@@ -15,6 +15,7 @@ import {
   setupScreenValues,
   setupSectionHtml,
   setupStep,
+  SETUP_LABELS,
 } from '../src/ui/setup-screen.ts';
 
 const inputs = (html: string) =>
@@ -205,12 +206,25 @@ describe('cars loose ends: per-car setup screen', () => {
   it('keeps each hint out of its slider label so it is described once, not named', () => {
     const def = VEHICLES.apx01,
       html = setupSectionHtml(def, DEFAULT_SETUP);
-    const labels = [...html.matchAll(/<label class="range-row">([\s\S]*?)<\/label>/g)];
+    const labels = [
+      ...html.matchAll(/<label class="range-row" for="setup-(\w+)">([\s\S]*?)<\/label>/g),
+    ];
     expect(labels).toHaveLength(setupScreenKeys(def).length);
-    for (const [, inner] of labels) {
+    for (const [, key, inner] of labels) {
       expect(inner).not.toContain('setup-hint');
       expect(inner).not.toContain('▲');
       expect(inner).not.toContain('▼');
+      // Named by its label text alone: the label targets the slider, not the
+      // (also labelable) <output>, which is hidden as a repeat of the value.
+      expect(inner).toContain(
+        `<span id="setup-name-${key}">${SETUP_LABELS[key as keyof Setup]}</span>`,
+      );
+      expect(inner).toContain('<output aria-hidden="true">');
+      expect(inner).toMatch(
+        new RegExp(
+          `<input name="${key}"[^>]* id="setup-${key}" aria-labelledby="setup-name-${key}"`,
+        ),
+      );
     }
     for (const key of setupScreenKeys(def)) {
       expect(html).toContain(`aria-describedby="hint-${key} note-${key}"`);

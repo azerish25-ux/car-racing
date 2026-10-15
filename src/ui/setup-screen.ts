@@ -161,7 +161,10 @@ export function setupSectionHtml(def: VehicleDefinition, setup: Setup, preset?: 
       const [min, max] = setupRange(def, key),
         value = shown[key],
         hint = setupHint(key);
-      return `<div class="setup-row"><label class="range-row">${escapeHtml(SETUP_LABELS[key])}<output>${value}</output><input name="${key}" data-setup type="range" min="${min}" max="${max}" step="${setupStep(def, key, value)}" value="${value}" data-shown="${value}"${preset ? ' disabled' : ''} aria-describedby="hint-${key} note-${key}"></label><small class="setup-hint" id="hint-${key}"><span aria-hidden="true">▲</span><span class="visually-hidden">Higher:</span> ${escapeHtml(hint.up)} · <span aria-hidden="true">▼</span><span class="visually-hidden">Lower:</span> ${escapeHtml(hint.down)}</small><small class="setup-note" id="note-${key}" aria-live="polite"></small></div>`;
+      // The label names the slider (`for`: an <output> is labelable too, and
+      // would otherwise take the label); the output repeats the slider's own
+      // value, so it is hidden from assistive technology.
+      return `<div class="setup-row"><label class="range-row" for="setup-${key}"><span id="setup-name-${key}">${escapeHtml(SETUP_LABELS[key])}</span><output aria-hidden="true">${value}</output><input name="${key}" data-setup type="range" min="${min}" max="${max}" step="${setupStep(def, key, value)}" value="${value}" data-shown="${value}"${preset ? ' disabled' : ''} id="setup-${key}" aria-labelledby="setup-name-${key}" aria-describedby="hint-${key} note-${key}"></label><small class="setup-hint" id="hint-${key}"><span aria-hidden="true">▲</span><span class="visually-hidden">Higher:</span> ${escapeHtml(hint.up)} · <span aria-hidden="true">▼</span><span class="visually-hidden">Lower:</span> ${escapeHtml(hint.down)}</small><small class="setup-note" id="note-${key}" aria-live="polite"></small></div>`;
     })
     .join('');
   const fixed = total - keys.length;
