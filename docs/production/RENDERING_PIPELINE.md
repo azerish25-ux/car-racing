@@ -317,6 +317,60 @@ node, so unit tests and LOW keep the procedural paths. To add an asset: add a re
 `node --experimental-transform-types scripts/assets/build-third-party.ts --tools <node_modules with
 hdrify> [--toktx <path>]`, commit the register, the manifest and `public/assets/third-party/`.
 
+## 8b. Scanned ground (D14.1)
+
+Every ground material — racing asphalt, pit lane, run-off, kerbs, verges and aprons, gravel traps,
+the far terrain, venue-kit paving and rock, the off-road course soil, the festival terrain and its
+roads — takes its structure (colour variation, relief, roughness) from photographed CC0 / CC BY 4.0
+sets (`docs/ASSET_PROVENANCE.md`) on MEDIUM and above. The calibrated albedos, finishes and every
+simulation-driven layer stay in charge: a scan enters as a **ratio to its set's mean colour**
+(recorded by the build), so it adds the photograph's detail and hue variation without moving a
+surface's measured albedo, the exposure or the IBL balance.
+
+**Store** (`src/rendering/ground/scan-store.ts`). Ten layers — `lawn`, `meadow`, `forest`,
+`dryEarth`, `asphalt`, `wetEarth`, `concrete`, `rock`, `snow` (sets under
+`public/assets/third-party/ground/`) and `gravel` (`sandy-gravel-01`). Materials register the layers
+they sample; once a renderer is attached (`setQuality`) the store loads those layers with
+`loadPbrSet` (KTX2, WebP fallback, anisotropy 16), binds them to shared uniforms and defines
+`APEX_SCAN` (plus `APEX_SCAN_HEX` on HIGH/ULTRA) on every material whose layers are resident; maps
+the scan supersedes (procedural albedo, bump and roughness on turf, gravel and concrete; the library
+soil's maps) are swapped out and restored on LOW. The race renderer, the menu and the festival wait
+for the sets behind the loading screen (`scannedGround.ready`); `apexDiagnostics().renderer.scannedGround`
+lists residents, formats and switched materials. Node, LOW and any load failure keep the procedural
+surfaces (`console.warn`).
+
+**Sampling** (`ground-glsl.ts`). World-planar, uv = (x, −z) / metres, so each set keeps its
+photographed scale and an OpenGL normal map's frame on the ground is right-handed. HIGH/ULTRA: hex
+tiling — a triangle lattice (1.5–1.6 cells per tile) whose vertices each pick a random offset and
+rotation; the three taps of a pixel's triangle blend with barycentrics sharpened by their own
+luminance (Mikkelsen, JCGT 2022), so no repetition reads at any distance and transitions are
+grain-on-grain rather than blurred. MEDIUM: the tile plus a rotated 0.37× tap. Gradients come from
+the unrotated uv (rotated per tap, `textureGrad`), so filtering is that of one plain lookup. Steep
+faces use a slope-aligned projection (u along the contour, v up the face).
+
+| Surface | Layers | What the scan does |
+|---|---|---|
+| Racing surface, pit lane, run-off (`installScannedAsphalt`) | asphalt | replaces the procedural chip tile exactly where the micro fade applies it (colour, chip normal, roughness); a 1/7-scale tap mottles the binder; meso tone, racing line, launch rubber, repairs, sealant, glints and the wet film are untouched |
+| Verges, aprons, skirts, kit grass (`installScannedTurf`) | lawn, meadow | mown lawn within 24–52 m of the centre line, meadow beyond and in metre-scale patches through the mown verge, meadow macro tap (9 m tile ×0.11); mowing bands and regional tint from the D19 finish stay; procedural tufts are compiled out |
+| Far terrain (`installScannedTerrain`) | lawn, meadow, rock | the turf blend by distance to the circuit; rock on slopes 0.47–0.62 (slope-aligned); the canopy carpet keeps its crowns |
+| Gravel traps (`installScannedGravel`) | gravel | the scan under the D19 river-gravel colour with dust/damp patches |
+| Kerbs (`installScannedKerb`) | concrete | paint follows the concrete's tone (40 %) and relief; its high points are scrubbed to the substrate first, more where tyres strike (`kerbWear`) |
+| Kit paving, gate pad, stadium (`installScannedConcrete`, `installScannedMaps`) | concrete, rock | concrete / rock at their photographed scale |
+| Off-road soil (`soil-splat.ts`) | per course, ≤ 5 of dryEarth (hardpack), forest (loam), gravel (sand, gravel), wetEarth (mud), asphalt, meadow (turf) | one-hot `apexSoilLayers` per vertex; height-blended splat (each set's luminance lifts its weight at a boundary); the dominant set slope-aligned on berms and jump faces; simulated compaction smooths relief and gloss, ruts stay rough; vertex colour keeps the kind's albedo; moisture darkening and puddles as before |
+| Festival terrain, roads | meadow, rock, forest, gravel, snow; asphalt | each layer colour of the biome splat takes its set's ratio, normals blend by layer weight; library asphalt swaps its maps |
+
+**Cost.** Per pixel on HIGH/ULTRA: 9 texture fetches per sampled set (3 taps × colour, normal,
+ORM), 6 without ORM (splat slots, rock, festival layers), plus 1–2 macro taps. Turf: 2 sets (21
+fetches); terrain: 2–3; asphalt: 1 (+1 macro); off-road: the slots present at the pixel (one or two
+away from boundaries) plus a slope tap on steep faces. MEDIUM halves the tap count. Active samplers
+per program stay ≤ 15 (off-road soil 10 + shadows/environment), within the 16 of common GPUs.
+Memory: 10 sets × 3 maps at 1024² with mips; ETC1S/UASTC transcode to BC7/ASTC/ETC where
+supported (≈ 1.4 MB per map), RGBA8 otherwise (5.6 MB). All ten sets ship 14.8 MB of KTX2 plus
+4.8 MB of WebP fallbacks; a session downloads only the layers its materials use (6 at a paved
+circuit, up to 9 at an off-road venue). Shader cost when switching (SwiftShader, Valley Ridge):
+recompiling the 9 scanned programs takes 1.5 s (MEDIUM) / 2.6 s (HIGH/ULTRA) against 15.6 s for
+the whole scene's first compile.
+
 ## 9. Known limits
 
 - SSR normals are reconstructed from depth (no MRT G-buffer): tessellated curvature can show as
@@ -340,6 +394,11 @@ hdrify> [--toktx <path>]`, commit the register, the manifest and `public/assets/
   ground below the horizon is at infinity — wherever the venue's terrain ends inside the haze the
   photographed foreground can show through. 4k over 360° is about 11 px per degree, softer than
   the screen at 50–60° FOV.
+- Scanned ground is a single photographed tile per surface type at 1024 px (about 1.6 mm per
+  texel on asphalt and lawn, 3 mm on meadow and rock): no parallax/displacement, no per-venue
+  sets (an arid circuit's verges use the same lawn, tinted by the venue's finish), no material
+  for painted lines, and the kerb paint wear is authored, not scanned. The off-road splat is per
+  vertex (0.5 × 1 m cells), so soil-kind boundaries follow that grid softened by the height blend.
 - Software rendering (CI SwiftShader/Mesa) proves function only. ULTRA frame cost, memory headroom
   and image quality need captures on named reference hardware (`HARDWARE_DEVICE_PLAYTEST_PROTOCOLS.md`)
   before any row moves beyond *integrated*.
