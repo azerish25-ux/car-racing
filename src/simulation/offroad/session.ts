@@ -41,7 +41,8 @@ export interface EntrantFormat {
   pushClock: number;
   jokers: number;
   jokerJudged: boolean;
-  progress: RouteProgress | null;
+  /** Lap distance at the last step (joker timing line crossings). */
+  lastS: number;
   stage: StageCompetitor | null;
   /** Stage: start time (race seconds), running/final stage time, parked. */
   stageStart: number;
@@ -58,9 +59,10 @@ export function offroadSessionFor(track: Track) {
 export const GATE_DROP_SECONDS = 0.25;
 /** Off-road session layer (WP37-WP42): owns the authoritative terrain's
  * session lifecycle and the formats — the synchronised motocross gate with
- * jump-start detection and the holeshot, rallycross joker laps counted on a
- * RouteGraph and enforced at the flag, rally stages with staggered starts,
- * splits and a stop control — on top of the shared RaceDirector. */
+ * jump-start detection and the holeshot, rallycross joker laps counted at
+ * the joker road's timing line and enforced at the flag, rally stages with
+ * staggered starts, splits and a stop control on a RouteGraph — on top of
+ * the shared RaceDirector. */
 export class OffroadSession {
   readonly surface: TrackTerrainSurface;
   readonly terrain: CourseTerrain;
@@ -69,7 +71,7 @@ export class OffroadSession {
   readonly entrants: EntrantFormat[];
   /** Car id that reached the first corner first after the gate (-1: none yet). */
   holeshot = -1;
-  /** Joker route (rallycross) and the stage route (rally). */
+  /** The stage route (rally): start, split checkpoints, finish. */
   readonly route: RouteGraph | null;
   private readonly point = trackPoint();
   private parkedCount = 0;
@@ -99,7 +101,7 @@ export class OffroadSession {
       pushClock: 0,
       jokers: 0,
       jokerJudged: false,
-      progress: null,
+      lastS: 0,
       stage: null,
       stageStart: Infinity,
       stageTime: -1,
@@ -119,13 +121,7 @@ export class OffroadSession {
     }
     if (this.format?.start === 'staggered')
       (options.grid ?? cars.map((c) => c.id)).forEach((id, k) => (this.entrants[id].slot = k));
-    if (this.route && this.format?.kind === 'rallycross')
-      for (const [id, c] of cars.entries()) {
-        const progress = new RouteProgress(this.route, 9, (this.course.spec.joker?.ramp ?? 20) + 14);
-        const at = this.route.project('lap-b', c.body.position);
-        progress.s = at ? at.s : 0;
-        this.entrants[id].progress = progress;
-      }
+    for (const [id, c] of cars.entries()) this.entrants[id].lastS = c.s;
     sessions.set(track, this);
   }
   static create(track: Track, cars: readonly Vehicle[], race: RaceDirector, options: SessionOptions) {
@@ -169,28 +165,6 @@ export class OffroadSession {
       }
       return points;
     };
-    const joker = course.spec.joker;
-    if (joker && this.format?.kind === 'rallycross') {
-      const spec: RouteSpec = {
-        id: `${track.circuit.id}-joker`,
-        version: 1,
-        closed: true,
-        start: 'lap-b',
-        edges: [
-          { id: 'lap-a', kind: 'main', points: line(0, joker.from, () => 0), next: ['main', 'joker'] },
-          { id: 'main', kind: 'main', points: line(joker.from, joker.to, () => 0), next: ['lap-b'] },
-          {
-            id: 'joker',
-            kind: 'joker',
-            points: line(joker.from, joker.to, (s) => course.jokerCentre(s) ?? 0),
-            next: ['lap-b'],
-          },
-          { id: 'lap-b', kind: 'main', points: line(joker.to, L, () => 0), next: ['lap-a'] },
-        ],
-        checkpoints: [{ edge: 'lap-b', s: 1 }],
-      };
-      return new RouteGraph(spec);
-    }
     const stage = course.spec.stage;
     if (stage && this.format?.kind === 'stage') {
       const edge = line(stage.start, stage.finish, () => 0),
@@ -288,7 +262,7 @@ export class OffroadSession {
     const f = this.format;
     if (!f) return;
     if (f.start === 'gate') this.gate(dt);
-    if (f.kind === 'rallycross' && this.route) this.jokers();
+    if (f.kind === 'rallycross' && this.course.spec.joker) this.jokers();
     if (f.kind === 'stage' && this.route) this.stage();
   }
   private gate(dt: number) {
@@ -323,18 +297,29 @@ export class OffroadSession {
       }
     }
   }
+  /** Joker laps: a crossing of the joker road's timing line (half way
+   * along it, where the two roads are fully apart) on the joker road. */
   private jokers() {
     const f = this.format!,
-      race = this.race;
+      race = this.race,
+      joker = this.course.spec.joker!,
+      L = this.track.length,
+      line = mod(joker.from + mod(joker.to - joker.from, L) / 2, L);
     for (const [id, c] of this.cars.entries()) {
       const e = this.entrants[id];
-      if (!e.progress || c.retired) continue;
-      const before = e.progress.edge;
-      e.progress.update(c.body.position);
-      if (e.progress.edge === 'joker' && before !== 'joker' && race.phase === PHASE.RACING) {
+      if (c.retired) continue;
+      const delta = mod(c.s - e.lastS + L / 2, L) - L / 2;
+      if (
+        race.phase === PHASE.RACING &&
+        delta > 0 &&
+        delta < 15 &&
+        mod(line - e.lastS, L) <= delta &&
+        this.course.onJoker(line, c.lateral)
+      ) {
         e.jokers++;
         this.note(id, 'JOKER', `JOKER LAP ${e.jokers}/${f.joker!.required}`);
       }
+      e.lastS = c.s;
       // At the flag: exactly the required joker laps, else time per difference.
       if (c.finishTime > 0 && !e.jokerJudged) {
         e.jokerJudged = true;

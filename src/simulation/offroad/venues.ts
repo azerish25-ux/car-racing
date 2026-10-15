@@ -162,13 +162,12 @@ const VALLEY_RIDGE = venue(
   'motocross',
   (at, p, length) => {
     p.jump({ name: 'RIDGE TABLE', kind: 'tabletop', at: at(2, 22), height: 2.0, face: 28, gap: 11, landing: 18 });
-    p.jump({ name: 'BARN DOUBLE', kind: 'double', at: at(4, 14), height: 2.1, face: 29, gap: 15, landingHeight: 2.4, landing: 18 });
-    p.rollers({ at: at(4, 50), count: 3, spacing: 7, height: 0.7 });
+    p.jump({ name: 'BARN DOUBLE', kind: 'double', at: at(4, 22), height: 2.1, face: 29, gap: 15, landingHeight: 2.8, landing: 18 });
     p.jump({ name: 'CREEK KICKER', kind: 'kicker', at: at(6, 16), height: 1.0, face: 24, gap: 8 });
     p.whoops({ at: at(8, 14), count: 9, spacing: 5, height: 0.45 });
-    p.jump({ name: 'SKY TRIPLE', kind: 'triple', at: at(8, 78), height: 1.8, face: 31, gap: 18, landingHeight: 2.1, landing: 19 });
+    p.jump({ name: 'SKY TRIPLE', kind: 'triple', at: at(8, 78), height: 1.8, face: 31, gap: 18, landingHeight: 2.5, landing: 19 });
     p.jump({ name: 'SUMMIT TABLE', kind: 'tabletop', at: at(10, 18), height: 2.4, face: 29, gap: 13, landing: 18 });
-    p.jump({ name: 'VALLEY DOUBLE', kind: 'double', at: at(10, 68), height: 2.0, face: 28, gap: 14, landingHeight: 2.3, landing: 18 });
+    p.jump({ name: 'VALLEY DOUBLE', kind: 'double', at: at(10, 68), height: 2.0, face: 28, gap: 14, landingHeight: 2.7, landing: 18 });
     p.rollers({ at: at(10, 104), count: 3, spacing: 7, height: 0.6 });
     return {
       soil: 'loam',
@@ -228,12 +227,12 @@ const ARENA_NORD = venue(
   },
   'supercross',
   (at, p, length) => {
-    p.jump({ name: 'TRIPLE', kind: 'triple', at: at(2, 14), height: 1.6, face: 31, gap: 17, landingHeight: 1.8, landing: 19 });
-    p.jump({ name: 'LANE DOUBLE', kind: 'double', at: at(2, 50), height: 1.5, face: 29, gap: 11, landingHeight: 1.7, landing: 18 });
+    p.jump({ name: 'TRIPLE', kind: 'triple', at: at(2, 14), height: 1.6, face: 31, gap: 17, landingHeight: 2.2, landing: 19 });
+    p.jump({ name: 'LANE DOUBLE', kind: 'double', at: at(2, 50), height: 1.5, face: 29, gap: 11, landingHeight: 2.0, landing: 18 });
     p.whoops({ at: at(4, 12), count: 11, spacing: 4.2, height: 0.4 });
     p.jump({ name: 'TABLETOP', kind: 'tabletop', at: at(6, 14), height: 1.8, face: 29, gap: 9, landing: 18 });
     p.rollers({ at: at(6, 40), count: 4, spacing: 6, height: 0.6 });
-    p.jump({ name: 'FINISH TRIPLE', kind: 'triple', at: at(6, 78), height: 1.7, face: 31, gap: 17, landingHeight: 1.9, landing: 19 });
+    p.jump({ name: 'FINISH TRIPLE', kind: 'triple', at: at(6, 78), height: 1.7, face: 31, gap: 17, landingHeight: 2.2, landing: 19 });
     return {
       soil: 'hardpack',
       offTrack: 'hardpack',

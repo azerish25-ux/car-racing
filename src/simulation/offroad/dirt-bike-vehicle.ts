@@ -12,6 +12,10 @@ import { offroadCourse } from './venues.ts';
 import type { OffroadBikeSpec } from './types.ts';
 
 const TAU = Math.PI * 2;
+/** Take-off speed (m/s) below which a flight is a rolling hop. */
+const ROLLING_HOP = 6.5;
+/** Nose-up margin (rad) the pitch aid aims for over the landing slope. */
+const LANDING_NOSE_UP = 0.1;
 /** Where the last flight ended, for the landing licence, snapshot and tests. */
 export interface LandingRecord {
   /** Race-independent clock of the touchdown (adapter seconds). */
@@ -315,8 +319,10 @@ export class DirtBikeVehicle extends BikeVehicle {
       this.predictClock = 0.1;
       this.predictLanding();
     }
-    const chassis = this.pitch + this.riderBody * 0.06;
-    const wanted = (this.landingTarget - chassis) / Math.max(0.12, this.landingIn) - this.pitchRate;
+    // Riders land rear wheel first: aim a little nose-up of the slope.
+    const chassis = this.pitch + this.riderBody * 0.06,
+      target = this.landingTarget + LANDING_NOSE_UP;
+    const wanted = (target - chassis) / Math.max(0.12, this.landingIn) - this.pitchRate;
     const assisted = ai || this.assist === 'sport';
     let pedal = throttle,
       rearBrake = rear;
@@ -567,7 +573,10 @@ export class DirtBikeVehicle extends BikeVehicle {
     // Skimming whoops and rollers the rider expects the hops: wider limits.
     const course = this.lastTrack ? offroadCourse(this.lastTrack.circuit) : null,
       tolerance = course?.isRough(r.s) ? 1.5 : 1;
-    if (r.outcome === 'clean' && r.airTime > 0.12) {
+    // A hop at rolling pace (over a sharp crest, down a backside) is ridden
+    // out: pitch decides only a real jump or a hard touchdown.
+    const real = r.takeoffSpeed > ROLLING_HOP;
+    if (r.outcome === 'clean' && r.airTime > 0.12 && real) {
       if (r.pitchError < -a.noseDownLimit * tolerance && r.normalSpeed > 1.5) {
         r.outcome = 'crash-front';
         d.fall('highside');

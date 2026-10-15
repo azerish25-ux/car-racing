@@ -22,7 +22,7 @@ const MX_AIR: OffroadBikeSpec = Object.freeze({
   bodyTorque: 85,
   noseDownLimit: 0.46,
   noseUpLimit: 0.62,
-  bottomOutSpeed: 6.0,
+  bottomOutSpeed: 7.0,
   dabSpeed: 6.5,
   dabLean: 0.42,
 });
@@ -57,7 +57,8 @@ const MX450: BikeSpec = Object.freeze({
   forkRate: 9400,
   shockTravel: 0.3,
   shockRate: 9800,
-  crashEnergy: 1800,
+  // Bar-to-bar contact and soft tyre walls are part of racing in the dirt.
+  crashEnergy: 3200,
   offroad: MX_AIR,
 });
 const MX250: BikeSpec = Object.freeze({
@@ -96,7 +97,7 @@ const SM450: BikeSpec = Object.freeze({
   shockRate: 12000,
   wheelieLimit: 0.15,
   stoppieMargin: 0.9,
-  offroad: Object.freeze({ ...MX_AIR, noseDownLimit: 0.4, bottomOutSpeed: 5.5 }),
+  offroad: Object.freeze({ ...MX_AIR, noseDownLimit: 0.4, bottomOutSpeed: 6.5 }),
 });
 /** The road-bike envelope with off-road margins: loose ground, hops over
  * rollers (no braking in the air) and berms ask for earlier braking. */

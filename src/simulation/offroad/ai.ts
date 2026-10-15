@@ -2,7 +2,7 @@ import { approach, clamp, G, mod } from '../../core/math.ts';
 import { AIDriver, envelopeBrakingSpeed, envelopeCornerSpeed } from '../ai.ts';
 import { BikeAIDriver, createDriver } from '../bike-ai.ts';
 import { FLAG } from '../marshal.ts';
-import type { RaceDirector } from '../race.ts';
+import { PHASE, type RaceDirector } from '../race.ts';
 import { racingLineFor } from '../racing-line.ts';
 import { lineCost } from '../terrain.ts';
 import { surfaceSample, trackPoint, type Track } from '../track.ts';
@@ -20,13 +20,23 @@ import { offroadCourse } from './venues.ts';
  * terrain by scripts/offroad-calibration.ts (the AI's lip speeds there must
  * land on every surveyed landing face). */
 export const TAKEOFF_GAIN: Readonly<Record<JumpSurvey['kind'], number>> = Object.freeze({
-  tabletop: 0.45,
+  tabletop: 0.4,
   'step-up': 0.45,
   crest: 0.3,
   kicker: 1.0,
-  double: 0.65,
-  triple: 1.05,
+  double: 0.5,
+  triple: 0.78,
 });
+/** The line is held straight from this far before a jump's face (m) and
+ * blended in and out over JUMP_LINE_BLEND metres. */
+const JUMP_LINE_LEAD = 18,
+  JUMP_LINE_BLEND = 10;
+const smooth = (x: number) => {
+  const t = clamp(x, 0, 1);
+  return t * t * (3 - 2 * t);
+};
+/** Seconds a riding bike may sit still before the marshals push it out. */
+const STUCK_SECONDS = 4;
 /** Lip speed (m/s) a rider rolls a feature at: below it the bike stays on the ground. */
 export const ROLL_SPEED = 2.5;
 /** The speed to hold up the face of `j` so the flight lands on its landing
@@ -48,8 +58,8 @@ export class DirtBikeAIDriver extends BikeAIDriver {
   private rutBias = 0;
   private biasTarget = 0;
   private lineClock = 0;
-  private plan: { jump: JumpSurvey; clear: boolean } | null = null;
-  readonly decisions = { clears: 0, rolls: 0 };
+  private plan: { jump: JumpSurvey; clear: boolean; locked: boolean } | null = null;
+  readonly decisions = { clears: 0, rolls: 0, pushes: 0 };
   constructor(
     readonly rider: DirtBikeVehicle,
     skill = 0.94,
@@ -65,6 +75,52 @@ export class DirtBikeAIDriver extends BikeAIDriver {
     }
     this.rutBias = approach(this.rutBias, this.biasTarget, dt * 1.2);
     super.update(dt, track, cars, race);
+    this.governJump(track);
+    this.unstick(dt, track, race);
+  }
+  private stuck = 0;
+  /** Marshal assistance: a bike pinned against a tyre wall or beached on a
+   * berm's back (riding, but going nowhere) is pushed back onto the track. */
+  private unstick(dt: number, track: Track, race: RaceDirector) {
+    const c = this.rider;
+    if (race.phase === PHASE.RACING && race.raceTime > 5 && c.riding && !c.airborne && c.speed < 0.5 && c.aiTarget > 4)
+      this.stuck += dt;
+    else this.stuck = 0;
+    if (this.stuck < STUCK_SECONDS) return;
+    this.stuck = 0;
+    const w = track.at(c.s, previewPoint).width - 1;
+    c.place(track, c.s, clamp(c.lateral, -w, w));
+    this.decisions.pushes++;
+  }
+  /** On the last metres to a lip a rider meters the speed with a firm hand
+   * (the general controller's proportional pedal settles below its target)
+   * and drives up the face rather than coasting it. */
+  private governJump(track: Track) {
+    const c = this.rider,
+      plan = this.plan,
+      input = c.input;
+    if (!plan?.clear || !c.riding || c.airborne || input.reverse) return;
+    const j = plan.jump,
+      run = mod(j.takeoff - c.s, track.length);
+    if (run > 28 || run > track.length / 2) return;
+    const face = j.takeoff - j.start,
+      onFace = run < face + 0.5,
+      e = c.aiTarget - c.speed;
+    if (onFace) {
+      input.throttle = clamp(0.2 + 0.5 * Math.max(0, e), 0, 1);
+      input.brake = 0;
+    } else {
+      input.throttle = clamp(0.25 + 0.9 * e, 0, 1);
+      input.brake = clamp(-0.35 * e, 0, 1);
+    }
+    // Square to the lip and upright: from a few metres out the lean intent
+    // only aligns the heading with the face (the lateral is kept).
+    if (run < face + 10) {
+      track.at(c.s, squarePoint);
+      const d = c.dynamics,
+        error = mod(Math.atan2(squarePoint.tx, squarePoint.tz) - d.heading + Math.PI, Math.PI * 2) - Math.PI;
+      input.steer = clamp(error * 2.2 - d.lean * 0.4, -0.5, 0.5);
+    }
   }
   /** Lateral choice at the preview point: the terrain's line cost across a
    * band around the racing line, with a pull back toward the line. */
@@ -89,55 +145,111 @@ export class DirtBikeAIDriver extends BikeAIDriver {
     }
     this.biasTarget = best;
   }
+  /** The rut-biased racing line, held straight over a jump (from the run-up
+   * to the end of the landing): a bike leaves a lip upright and square to it,
+   * so the line's own swing across a straight for the next corner waits. */
   protected override lineOffset(track: Track, s: number, racing: number) {
-    void track;
-    void s;
-    return racing + this.rutBias;
+    const base = racing + this.rutBias,
+      course = offroadCourse(track.circuit);
+    if (!course) return base;
+    const L = track.length,
+      line = racingLineFor(track);
+    // Whoops and rollers are crossed straight too (a diagonal over bumps
+    // drifts on every hop), on the line the rider wants at their exit.
+    for (const r of course.rough) {
+      const from = r.from - 8,
+        rel = mod(s - from, L),
+        span = mod(r.to - from, L);
+      if (rel > span + JUMP_LINE_BLEND) continue;
+      const frozen = clamp(line.offsetAt(mod(r.to, L)), -2.5, 2.5),
+        w = rel < JUMP_LINE_BLEND ? smooth(rel / JUMP_LINE_BLEND) : rel > span ? 1 - smooth((rel - span) / JUMP_LINE_BLEND) : 1;
+      return base + (frozen - base) * w;
+    }
+    for (const j of course.jumps) {
+      const from = j.start - JUMP_LINE_LEAD,
+        rel = mod(s - from, L),
+        span = j.end + 2 - from;
+      if (rel > span + JUMP_LINE_BLEND) continue;
+      const frozen = clamp(line.offsetAt(mod(from, L)), -1.5, 1.5),
+        w = rel < JUMP_LINE_BLEND ? smooth(rel / JUMP_LINE_BLEND) : rel > span ? 1 - smooth((rel - span) / JUMP_LINE_BLEND) : 1;
+      return base + (frozen - base) * w;
+    }
+    return base;
   }
   /** A motorcycle needs about half a car's lateral room to pass or avoid. */
   protected override trafficScale() {
     return 0.5;
   }
+  /** Speed reachable from `v` over `run` metres on loose ground: the
+   * engine's power at the tyre (less drag) and ~0.4 g of traction, capped. */
+  private reach(v: number, run: number, cap: number) {
+    const c = this.rider,
+      spec = c.definition.spec,
+      mass = c.dynamics.mass,
+      power = 0.82 * spec.motorPowerW;
+    let speed = Math.max(1, v);
+    for (let x = 0; x < run && speed < cap; x += 1) {
+      const a = Math.min(0.4 * G, power / (mass * speed)) - (c.dynamics.p.drag * speed * speed) / mass;
+      speed = Math.sqrt(Math.max(1, speed * speed + 2 * a));
+    }
+    return Math.min(speed, cap);
+  }
   /** Jump speed control: hold the speed whose flight lands on the landing
-   * zone; when the run-up cannot reach it, take a forgiving feature as fast
-   * as possible and roll a gap jump. No braking on a face (it noses down). */
+   * zone; when the run-up cannot reach it, roll the feature. The choice is
+   * locked where the braking distance to the rolling speed runs out (a late
+   * change of mind arrives at the lip at neither speed; traffic then waits
+   * until the landing), and nobody brakes on a face (it noses down). A rider
+   * on the ground inside a gap (rolled, or remounted after a fall) rolls on
+   * over the landing mound. */
   protected override limitSpeed(desired: number, track: Track, race: RaceDirector) {
     const course = offroadCourse(track.circuit),
-      c = this.rider;
+      c = this.rider,
+      L = track.length;
     if (!course || c.airborne) return desired;
-    const next = course.nextJump(c.s - 3);
+    const inside = course.jumpAt(c.s);
+    if (inside && mod(c.s - inside.takeoff, L) < inside.end - inside.takeoff + 1 && mod(c.s - inside.start, L) > inside.takeoff - inside.start + 0.5) {
+      this.plan = null;
+      return inside.forgiving ? desired : Math.min(desired, ROLL_SPEED + 1.5);
+    }
+    const next = inside ? { jump: inside } : course.nextJump(c.s);
     if (!next) return desired;
     const j = next.jump,
-      run = mod(j.takeoff - c.s, track.length);
-    if (run > 160 || run > track.length / 2) {
+      run = mod(j.takeoff - c.s + 1, L) - 1;
+    if (run > 160 || run > L / 2) {
       this.plan = null;
       return desired;
     }
-    const hold = jumpHoldSpeed(j);
+    const hold = jumpHoldSpeed(j),
+      faceLength = j.takeoff - j.start,
+      toFace = run - faceLength,
+      onFace = toFace < 0.5;
     // Under a yellow flag nobody jumps: roll it. Otherwise clear the gap
-    // only when the run-up (dirt traction ~0.4 g) and every other limit
-    // (traffic, the corner before) leave the hold speed.
-    const yellow = race.control.flags[c.id] === FLAG.YELLOW || race.control.flags[c.id] === FLAG.DOUBLE_YELLOW;
-    const reachable = Math.min(desired + 0.5, Math.sqrt(c.speed * c.speed + 2 * 0.4 * G * Math.max(0, run - 4)));
-    const onFaceNow = mod(c.s - j.start, track.length) < j.takeoff - j.start + 0.5;
-    if (!this.plan || this.plan.jump !== j || !onFaceNow) {
-      const clear = !yellow && (j.forgiving || reachable >= hold - 0.3);
-      if (!this.plan || this.plan.jump !== j) {
+    // only when the run-up and every other limit leave the hold speed.
+    const flag = race.control.flags[c.id],
+      yellow = flag === FLAG.YELLOW || flag === FLAG.DOUBLE_YELLOW;
+    const brakeToRoll = (c.speed * c.speed - ROLL_SPEED * ROLL_SPEED) / (2 * 0.45 * G) + 4;
+    const same = this.plan?.jump === j;
+    if (!same || !this.plan!.locked || (yellow && this.plan!.clear && toFace > brakeToRoll - 2)) {
+      const reachable = this.reach(c.speed, Math.max(0, toFace - 1), c.definition.ai.topSpeed);
+      const clear = !yellow && reachable >= hold - (j.forgiving ? 0.8 : 0.25);
+      if (!same) {
         if (clear) this.decisions.clears++;
         else this.decisions.rolls++;
       }
-      this.plan = { jump: j, clear };
+      this.plan = { jump: j, clear, locked: onFace || toFace < brakeToRoll };
     }
-    const lip = this.plan.clear ? hold : ROLL_SPEED;
-    const onFace = mod(c.s - j.start, track.length) < j.takeoff - j.start + 0.5;
-    // On the face: hold, and above it only coast.
-    if (onFace) return Math.min(desired, Math.max(lip, c.speed - 0.2));
-    // Brake to the lip speed before the face with a dirt envelope (~0.45 g).
-    const toFace = Math.max(0, mod(j.start - c.s, track.length) - 1);
-    return Math.min(desired, Math.sqrt(lip * lip + 2 * 0.45 * G * toFace));
+    const plan = this.plan!;
+    if (!plan.clear) {
+      if (onFace) return Math.min(desired, Math.max(ROLL_SPEED, Math.min(c.speed, ROLL_SPEED + 1)));
+      return Math.min(desired, Math.sqrt(ROLL_SPEED * ROLL_SPEED + 2 * 0.45 * G * Math.max(0, toFace - 1)));
+    }
+    // Committed: the lip speed is the target (traffic waits for the landing).
+    if (plan.locked) return onFace ? Math.max(hold, c.speed) : hold;
+    return Math.min(desired, Math.sqrt(hold * hold + 2 * 0.45 * G * Math.max(0, toFace - 1)));
   }
 }
-const previewPoint = trackPoint();
+const previewPoint = trackPoint(),
+  squarePoint = trackPoint();
 /** Rally and rallycross AI on loose ground (WP40): corner and braking speeds
  * use the grip of the surface the line crosses ahead (asphalt to gravel, a
  * mud patch), crests are taken at a speed that keeps the car's flight inside
@@ -176,10 +288,24 @@ export class OffroadCarAIDriver extends AIDriver {
     const session = offroadSessionFor(track);
     if (!session || !this.raceRef || !this.wantsJoker(track, this.raceRef)) {
       // On the joker road already (it started early): stay on it.
-      const e = session?.entrants[this.car.id];
-      return e?.progress?.edge === 'joker' ? centre : racing;
+      return course.onJoker(this.car.s, this.car.lateral) ? centre : racing;
     }
     return centre;
+  }
+  /** On the joker road the car keeps its lane (the planner's lanes end at
+   * the main road's edge), and the path target may reach the joker road. */
+  protected override laneOverride(track: Track, s: number, planned: number) {
+    const course = offroadCourse(track.circuit),
+      centre = course?.jokerCentre(s) ?? null;
+    if (centre === null || !this.raceRef) return planned;
+    const on = course!.onJoker(s, this.car.lateral);
+    return on || this.wantsJoker(track, this.raceRef) ? centre : planned;
+  }
+  protected override laneReach(track: Track, s: number, reach: number) {
+    const course = offroadCourse(track.circuit),
+      centre = course?.jokerCentre(s) ?? null;
+    if (centre === null) return reach;
+    return Math.max(reach, Math.abs(centre) + course!.spec.joker!.halfWidth - 1.2);
   }
   private raceRef: RaceDirector | null = null;
   override update(dt: number, track: Track, cars: Vehicle[], race: RaceDirector) {

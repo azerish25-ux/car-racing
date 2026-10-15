@@ -158,9 +158,9 @@ export class ProfileBuilder {
       const deckEnd = lip + o.gap,
         down = landH / Math.tan(landAngle);
       if (Math.abs(landH - o.height) > 0.01) this.push(lip + 1.2, landH, 0.4);
-      this.push(deckEnd, landH, o.kind === 'crest' ? 4 : 0.6);
+      this.push(deckEnd, landH, o.kind === 'crest' ? 4 : 1.0);
       end = deckEnd + down;
-      this.push(end, 0, 1.4);
+      this.push(end, 0, 2.4);
       landing = deckEnd + down * 0.35;
       landingLength = down * 0.7;
       landingHeight = landH * 0.65;
@@ -195,9 +195,10 @@ export class ProfileBuilder {
         }
       }
       this.push(gapEnd - up, 0, 0.8);
-      this.push(gapEnd, landH, 0.45);
+      // A rounded knuckle and a long run-out transition at the foot.
+      this.push(gapEnd, landH, 1.0);
       end = gapEnd + down;
-      this.push(end, 0, 1.4);
+      this.push(end, 0, 2.4);
       landing = gapEnd + down * 0.4;
       landingLength = down * 0.7;
       landingHeight = landH * 0.6;

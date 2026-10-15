@@ -105,6 +105,10 @@ export interface OffroadCourseSpec {
   indoor?: boolean;
 }
 /** Lateral band (m) the deformable grid covers beyond the widest legal road. */
+/** Legal width beyond the groomed surface to the course tape (m). */
+const TAPE_MARGIN = 0.8;
+/** Legal width a berm adds on its outside (m). */
+const BERM_ALLOWANCE = 1.6;
 export const BAND_MARGIN = 6;
 export const COURSE_CELL = Object.freeze({ lateral: 0.25, along: 0.5 });
 /** A built course: static geometry queries shared by physics, AI and render. */
@@ -155,6 +159,15 @@ export class OffroadCourse {
   /** Legal half-width at (s, lateral): the main road, or the joker road a
    * wheel is on (so a car on the joker is not outside the track). */
   legalWidth(width: number, s: number, lateral: number) {
+    // The course is marked by tape and stakes beyond the groomed width, and
+    // a berm's face is track: riders use it to its lip.
+    width += TAPE_MARGIN;
+    const at = mod(s, this.length);
+    for (const b of this.spec.berms)
+      if (inSpan(at, b.from, b.to, this.length) && (b.side ?? 0) * lateral > 0) {
+        width += BERM_ALLOWANCE;
+        break;
+      }
     const c = this.jokerCentre(s);
     if (c === null) return width;
     const half = this.spec.joker!.halfWidth;

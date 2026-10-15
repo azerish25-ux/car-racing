@@ -286,7 +286,9 @@ export class Track {
       bestS = 0,
       other = Infinity,
       otherS = 0;
-    const layered = y !== undefined && Number.isFinite(y);
+    // A terrain venue has no stacked roads: a bike high over a jump is
+    // still on the road below it.
+    const layered = y !== undefined && Number.isFinite(y) && !this.offroad;
     const scan = (i: number) => {
       const a = this.points[i],
         b = this.points[i + 1],
