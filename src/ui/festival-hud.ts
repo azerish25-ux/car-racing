@@ -19,6 +19,8 @@ export interface FestivalHudCallbacks {
   vehicle(id: string): void;
   travel(id: string): void;
   autopilot(on: boolean): void;
+  /** Ambient traffic on or off (free roam; always off during events). */
+  traffic(on: boolean): void;
 }
 const colour = (hex: number) => `#${hex.toString(16).padStart(6, '0')}`;
 const clock = (seconds: number) => {
@@ -34,8 +36,8 @@ const stars = (n: number) => '★'.repeat(n) + '☆'.repeat(Math.max(0, 3 - n));
  * with event markers and the active route; the event card at a marker; the
  * running event (countdown, position, lap, time, progress, live trap/zone/
  * drift metric); results with stars and standings; messages; the pause menu
- * (resume, reset, time of day, machine from the vehicle registry, travel to
- * discovered events, exit) and a full world map.
+ * (resume, reset, time of day, machine from the vehicle registry, autopilot,
+ * ambient traffic, travel to discovered events, exit) and a full world map.
  */
 export class FestivalHud {
   readonly root: HTMLElement;
@@ -111,6 +113,9 @@ export class FestivalHud {
           break;
         case 'autopilot':
           this.callbacks.autopilot(value === 'on');
+          break;
+        case 'traffic':
+          this.callbacks.traffic(value === 'on');
           break;
         case 'mapClose':
           this.showMap(false);
@@ -341,8 +346,12 @@ export class FestivalHud {
       <table>${rows}</table>
       <button class="fest-primary" data-fest="continue">CONTINUE <kbd>ENTER</kbd></button>`;
   }
-  /** Pause menu (free roam): resume, reset, time of day, machine, travel, exit. */
-  showMenu(open: boolean, state?: { lighting: LightingMode; vehicle: string; discovered: readonly string[]; autopilot: boolean; inEvent: boolean }) {
+  /** Pause menu (free roam): resume, reset, time of day, machine, autopilot,
+   * traffic, travel, exit. */
+  showMenu(
+    open: boolean,
+    state?: { lighting: LightingMode; vehicle: string; discovered: readonly string[]; autopilot: boolean; inEvent: boolean; traffic?: boolean },
+  ) {
     this.menuOpen = open;
     const node = this.get('festMenu');
     node.hidden = !open;
@@ -358,6 +367,7 @@ export class FestivalHud {
       <section><h3>Time of day</h3><div class="fest-options">${lightings.map(([m, label]) => `<button data-fest="lighting" data-value="${m}" ${pressed(state.lighting === m)}>${label}</button>`).join('')}</div></section>
       <section><h3>Machine</h3><div class="fest-options">${this.vehicles.map((v) => `<button data-fest="vehicle" data-value="${escapeHtml(v.id)}" ${pressed(state.vehicle === v.id)}>${escapeHtml(v.name)}</button>`).join('')}</div></section>
       <section><h3>Autopilot</h3><div class="fest-options"><button data-fest="autopilot" data-value="on" ${pressed(state.autopilot)}>On</button><button data-fest="autopilot" data-value="off" ${pressed(!state.autopilot)}>Off</button></div></section>
+      <section><h3>Ambient traffic</h3><div class="fest-options"><button data-fest="traffic" data-value="on" ${pressed(state.traffic !== false)}>Traffic on</button><button data-fest="traffic" data-value="off" ${pressed(state.traffic === false)}>Traffic off</button>${state.inEvent ? '<span>Off while an event runs.</span>' : ''}</div></section>
       <section><h3>Travel to a discovered event</h3><div class="fest-options">${
         this.events
           .filter((e) => state.discovered.includes(e.spec.id))

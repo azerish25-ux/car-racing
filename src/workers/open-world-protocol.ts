@@ -16,7 +16,9 @@ export type ToOpenWorld =
 /** Messages from the festival simulation worker. */
 export type FromOpenWorld =
   | { type: 'ready'; buildMs: number; vehicle: string }
-  | { type: 'frame'; buffer: ArrayBuffer }
+  /** A snapshot in the circuit layout and, in free roam, the ambient
+   * traffic block (ambient-traffic.ts TRAFFIC_HEADER/TRAFFIC_STRIDE). */
+  | { type: 'frame'; buffer: ArrayBuffer; traffic?: ArrayBuffer }
   | { type: 'status'; status: FestivalStatus }
   | { type: 'result'; result: FestivalResult }
   | { type: 'error'; message: string };

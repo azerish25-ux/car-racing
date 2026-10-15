@@ -54,8 +54,13 @@ test('festival menu access: every pause-menu action is reachable with the keyboa
   await page.keyboard.press('Space');
   await expect(log).toContainText('lighting:night;');
   await expect(menu).toBeVisible();
-  // Machine, travel and autopilot are reachable too.
+  // Machine, autopilot, ambient traffic and travel are reachable too; the
+  // traffic toggle keeps the menu open.
   await tabTo('On');
+  await tabTo('Traffic off');
+  await page.keyboard.press('Space');
+  await expect(log).toContainText('traffic:false;');
+  await expect(menu).toBeVisible();
   await tabTo(
     await page
       .locator('#festMenu [data-fest="travel"]')

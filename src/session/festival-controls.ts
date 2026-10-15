@@ -15,6 +15,8 @@ export interface FestivalMenuState {
   discovered: readonly string[];
   autopilot: boolean;
   inEvent: boolean;
+  /** Ambient traffic setting. */
+  traffic: boolean;
 }
 export interface FestivalControlHooks {
   /** Hold or release the simulation (the worker's pause). */
@@ -35,7 +37,7 @@ export interface FestivalControlHooks {
  * Pause and keyboard ownership of the festival session. While the festival
  * menu is open the driving input is off and the festival owns Escape (it
  * resumes, or closes the map first), so every menu action (resume, reset,
- * abandon, exit, time of day, machine, autopilot, travel) is reachable with
+ * abandon, exit, time of day, machine, autopilot, traffic, travel) is reachable with
  * Tab and Space or Enter. While driving, Enter starts the race card or
  * continues from the results; a gamepad's pause button pauses and resumes.
  */

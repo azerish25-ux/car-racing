@@ -38,7 +38,11 @@ function snapshot(required = false) {
   if (!pool.length && !required) return;
   const buffer = pool.pop() ?? new ArrayBuffer(bytes);
   simulation.writeFrame(new Float32Array(buffer), stepMs, clock.droppedSeconds);
-  send({ type: 'frame', buffer }, [buffer]);
+  // Ambient traffic rides with the frame it belongs to (a few hundred bytes).
+  if (simulation.traffic.cars.length) {
+    const traffic = simulation.trafficFrame().buffer as ArrayBuffer;
+    send({ type: 'frame', buffer, traffic }, [buffer, traffic]);
+  } else send({ type: 'frame', buffer }, [buffer]);
 }
 function status() {
   if (!simulation) return;

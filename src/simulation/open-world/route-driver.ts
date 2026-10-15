@@ -1,8 +1,26 @@
-import { approach, clamp, G, Vec3 } from '../../core/math.ts';
+import { approach, clamp, G, mod, Vec3 } from '../../core/math.ts';
 import { envelopeCornerSpeed, envelopeProfile, ENVELOPE_SAMPLES, ENVELOPE_STEP } from '../ai.ts';
+import { BIKE_AI, leanFromCurvature, leanIntent } from '../bike-ai.ts';
+import { BikeVehicle } from '../bike-vehicle.ts';
 import { peakGrip } from '../tire.ts';
 import type { Vehicle } from '../vehicle.ts';
 import { pathPoint, type RoutePath } from './route-path.ts';
+
+/** Anything the driver keeps its distance from: other cars and riders, and
+ * the festival's kinematic ambient traffic (position and speed only). */
+export interface RouteObstacle {
+  readonly body: { readonly position: { readonly x: number; readonly z: number } };
+  readonly speed: number;
+}
+/** A rider down (lowside, highside, separated, remounting) this long asks
+ * the session for a reset; the bike's own recovery is bounded well inside it. */
+const BIKE_DOWN_RESET = 20;
+/** Window (m around each envelope sample) and corner-speed reserve of a
+ * motorcycle on public roads: junction corners are sharp and short. */
+const BIKE_WINDOW = Object.freeze([-6, -3, 3, 6]);
+const BIKE_CORNER_RESERVE = 0.88;
+/** Heading error (rad) beyond which a motorcycle turns round at walking pace. */
+const BIKE_TURN_ROUND = 1.0;
 
 /** Speed (m/s) above which the driver will not commit on a loose road: a
  * narrow crowned gravel lane leaves no margin for the slide a car develops
@@ -32,6 +50,9 @@ export class RouteDriver {
   /** Set when the driver asks the session to put it back on the route. */
   wantsReset = false;
   private tactical = 0;
+  /** Take a lane beside a slower car ahead (racing); off, it only follows
+   * (the free-roam cruise among ambient traffic). */
+  overtake = true;
   /** Measured understeer: road-wheel angle over the geometric angle the
    * car's actual yaw rate implies (1 = neutral). Pure pursuit is geometric;
    * this scales it so a car that runs wide at speed still holds the line. */
@@ -40,6 +61,10 @@ export class RouteDriver {
   private recovery = 0;
   private trafficSpeed = Infinity;
   private trafficClock = 0;
+  /** Seconds a motorcycle's rider has been down (see BIKE_DOWN_RESET). */
+  private down = 0;
+  /** A motorcycle turning round at walking pace (see BIKE_TURN_ROUND). */
+  private turningRound = false;
   private readonly target = pathPoint();
   private readonly sample = pathPoint();
   private readonly curvatures = new Float64Array(ENVELOPE_SAMPLES);
@@ -68,10 +93,11 @@ export class RouteDriver {
     this.trouble = 0;
     this.wantsReset = false;
   }
-  update(dt: number, cars: readonly Vehicle[], hold = false, finished = false) {
+  update(dt: number, cars: readonly RouteObstacle[], hold = false, finished = false) {
     const c = this.car,
       command = c.input,
-      path = this.path;
+      path = this.path,
+      bike = c instanceof BikeVehicle ? c : null;
     command.shift = 0;
     command.manualClutch = false;
     command.clutch = 0;
@@ -86,6 +112,19 @@ export class RouteDriver {
       this.decision = 'HOLD';
       return;
     }
+    if (bike && !bike.riding) {
+      // Rider down: no commands while the bike's bounded crash recovery runs
+      // (slide, jog back, push to the road, remount).
+      command.throttle = 0;
+      command.brake = 0;
+      command.steer = 0;
+      c.aiTarget = 0;
+      this.decision = 'RECOVERY';
+      this.down += dt;
+      if (this.down > BIKE_DOWN_RESET && !finished) this.wantsReset = true;
+      return;
+    }
+    this.down = 0;
     const env = c.definition.ai;
     // Traffic (12 Hz): follow, or take a lane beside a slower car ahead.
     this.trafficClock += dt;
@@ -108,7 +147,13 @@ export class RouteDriver {
       0,
       this.target.z + this.target.nz * offset - c.body.position.z,
     );
-    c.body.orientation.inverseRotate(this.delta, this.local);
+    if (bike) {
+      // The lean must not rotate the target: the ground frame of the heading.
+      const h = bike.dynamics.heading,
+        sh = Math.sin(h),
+        ch = Math.cos(h);
+      this.local.set(this.delta.x * ch - this.delta.z * sh, 0, this.delta.x * sh + this.delta.z * ch);
+    } else c.body.orientation.inverseRotate(this.delta, this.local);
     const purePursuit = Math.atan2(
         2 * c.spec.wheelbase * this.local.x,
         Math.max(10, this.local.x * this.local.x + this.local.z * this.local.z),
@@ -118,9 +163,21 @@ export class RouteDriver {
     // and steer are both to the left) while cornering with grip in hand.
     const yawCurvature = (c.body.omega.x * c.up.x + c.body.omega.y * c.up.y + c.body.omega.z * c.up.z) / Math.max(1, c.speed),
       geometric = Math.atan(c.spec.wheelbase * yawCurvature);
-    if (c.speed > 15 && Math.abs(geometric) > 0.002 && Math.sign(geometric) === Math.sign(c.steer) && this.recovery <= 0)
+    if (!bike && c.speed > 15 && Math.abs(geometric) > 0.002 && Math.sign(geometric) === Math.sign(c.steer) && this.recovery <= 0)
       this.understeer = approach(this.understeer, clamp(c.steer / geometric, 0.9, 2.5), dt * 0.8);
     command.steer = clamp((purePursuit * this.understeer) / (c.spec.maxSteer * speedSteer), -1, 1);
+    // A motorcycle facing away from its route (a route planned from where it
+    // stopped) turns round at walking pace on the bars, then leans.
+    let turning = false,
+      away = 0;
+    if (bike) {
+      path.at(this.d, this.sample);
+      away = Math.abs(mod(bike.dynamics.heading - Math.atan2(this.sample.tx, this.sample.tz) + Math.PI, Math.PI * 2) - Math.PI);
+      // Hysteresis: once turning round, carry on until nearly aligned.
+      this.turningRound = away > (this.turningRound ? BIKE_TURN_ROUND * 0.3 : BIKE_TURN_ROUND);
+      turning = this.turningRound;
+      command.steer = turning ? leanIntent(bike, command.steer) : this.leanCommand(bike, command.steer, finished);
+    }
     // Envelope speed profile along the route ahead (the race line's own
     // curvature, or the centreline's for a lane-keeping driver).
     const grip = clamp(peakGrip(c.tires[0], 2500, c.contacts[0], Math.max(c.speed, 38)) / env.referenceMu, 0.1, 1);
@@ -128,7 +185,16 @@ export class RouteDriver {
     const laneGrip = grip * clamp(1 - Math.abs(this.tactical) * 0.03, 0.85, 1);
     for (let i = 0; i < ENVELOPE_SAMPLES; i++) {
       const at = this.d + i * ENVELOPE_STEP;
-      const k = this.laneOffset ? path.at(at, this.sample).curvature : path.lineCurvatureAt(at);
+      const curvatureAt = (x: number) => (this.laneOffset ? path.at(x, this.sample).curvature : path.lineCurvatureAt(x));
+      let k = curvatureAt(at);
+      // A motorcycle cannot brake hard while leaned: the sharpest point of
+      // each sample's window counts (a junction corner shorter than the
+      // sample spacing is not missed), with a lean reserve.
+      if (bike)
+        for (const o of BIKE_WINDOW) {
+          const w = curvatureAt(at + o);
+          if (Math.abs(w) > Math.abs(k)) k = w;
+        }
       this.curvatures[i] = Math.abs(k);
       // Crests: keep the tyres loaded (v²·κ below ~half of g) instead of
       // flying a rolling road and landing off-line.
@@ -136,12 +202,15 @@ export class RouteDriver {
         crestSpeed = crest > 1e-4 ? Math.sqrt((0.55 * G) / crest) : Infinity,
         loose = path.network.edges[path.edge[path.index(at)]].spec.surface !== 'asphalt';
       this.corners[i] = Math.min(
-        envelopeCornerSpeed(k, laneGrip, aero, env) * this.skill,
+        envelopeCornerSpeed(k, laneGrip, aero, env) * this.skill * (bike ? BIKE_CORNER_RESERVE : 1),
         crestSpeed,
         loose ? LOOSE_ROAD_SPEED * this.skill : Infinity,
       );
     }
     let desired = Math.min(env.topSpeed * this.skill, this.speedCap);
+    // Turning round at walking pace; aligning again before speeding up.
+    if (turning) desired = Math.min(desired, 4);
+    else if (bike) desired = Math.min(desired, Math.max(6, 30 - 60 * away));
     desired = Math.min(desired, envelopeProfile(this.curvatures, this.corners, laneGrip, aero, env));
     desired = Math.min(desired, this.trafficSpeed);
     // The end of a point-to-point route: brake to a stop before its end.
@@ -155,6 +224,9 @@ export class RouteDriver {
     // causes excites a yaw weave, so line errors are left to the steering.)
     const off = Math.abs(this.lateral - offset);
     if (off > 6) desired = Math.min(desired, Math.max(8, 30 - off));
+    // A rider well off the line regains it before using the line's speed
+    // (the lean controller's correction is bounded).
+    if (bike && off > 2) desired = Math.min(desired, Math.max(6, 26 - 2.5 * off));
     c.aiTarget = desired;
     c.aiOffset = offset;
     const error = desired - c.speed;
@@ -180,7 +252,8 @@ export class RouteDriver {
     // Stuck against something: reverse out with opposite lock.
     if (!finished && c.speed < 0.8 && desired > 5) this.stuck += dt;
     else if (this.recovery <= 0) this.stuck = 0;
-    if (this.stuck > 3 && this.recovery <= 0) this.recovery = 2.2;
+    // (A motorcycle has no reverse: its own stuck help puts it back on the road.)
+    if (this.stuck > 3 && this.recovery <= 0 && !bike) this.recovery = 2.2;
     if (this.recovery > 0) {
       this.recovery -= dt;
       command.reverse = true;
@@ -192,19 +265,47 @@ export class RouteDriver {
     }
     // Ask for a reset when recovery keeps failing, when far off the route
     // or upside down.
-    const upset = c.up.y < 0.3;
+    const upset = !bike && c.up.y < 0.3;
     if (!finished && (this.stuck > 9 || this.located.distance > 40 || upset)) this.trouble += dt;
     else this.trouble = Math.max(0, this.trouble - dt);
     if (this.trouble > 4) this.wantsReset = true;
+    if (bike) bike.aiControlled();
+  }
+  /** Lean intent for a motorcycle (the steering contract of the bike AI,
+   * bike-ai.ts): the lane's own curvature previewed by the lean response,
+   * plus a damped, acceleration-bounded correction of lateral and heading
+   * error; car-style bar steering at walking pace. */
+  private leanCommand(bike: BikeVehicle, steer: number, finished: boolean) {
+    const d = bike.dynamics,
+      path = this.path,
+      v = d.speed;
+    if (v < 6) return leanIntent(bike, steer);
+    const p = path.at(this.d, this.sample),
+      reach = Math.max(0.5, p.halfWidth - 1.3),
+      lane = this.laneOffset !== 0;
+    const line = (at: number) => (lane ? 0 : path.lineAt(at));
+    const target = finished ? -reach : clamp(line(this.d) + this.laneOffset + this.tactical, -reach, reach);
+    const pathSlope = (line(this.d + 3) - line(this.d - 3)) / 6,
+      slope = pathSlope / Math.max(0.5, 1 - p.curvature * target);
+    const heading = mod(d.heading - Math.atan2(p.tx, p.tz) + Math.PI, Math.PI * 2) - Math.PI;
+    const error = target - this.lateral,
+      headingError = Math.atan(slope) - heading;
+    const ahead = this.d + v * BIKE_AI.preview,
+      k = lane ? path.at(ahead, this.sample).curvature : path.lineCurvatureAt(ahead),
+      feedForward = k / Math.max(0.5, 1 - k * (lane ? target : this.tactical));
+    const w = BIKE_AI.bandwidth,
+      bound = (BIKE_AI.correctionG * G) / (v * v);
+    const correction = clamp((w * w * error) / (v * v) + (2 * BIKE_AI.damping * w * headingError) / v, -bound, bound);
+    return leanFromCurvature(bike, feedForward + correction, steer);
   }
   /** Lane choice and following speed from the cars ahead on the route. */
-  private planTraffic(cars: readonly Vehicle[]) {
+  private planTraffic(cars: readonly RouteObstacle[]) {
     const c = this.car,
       path = this.path;
     let follow = Infinity,
       blockLeft = false,
       blockRight = false,
-      blocked: Vehicle | null = null;
+      blocked: RouteObstacle | null = null;
     for (const other of cars) {
       if (other === c) continue;
       const dx = other.body.position.x - c.body.position.x,
@@ -232,7 +333,7 @@ export class RouteDriver {
     path.at(this.d, this.sample);
     const reach = Math.max(0, this.sample.halfWidth - 1.6);
     let tactical = 0;
-    if (blocked && reach > 2.2) {
+    if (blocked && reach > 2.2 && this.overtake) {
       path.locate(blocked.body.position.x, blocked.body.position.z, this.d, 90, this.other);
       const theirs = this.other.lateral;
       // Pass on the side with more room, if it is free.

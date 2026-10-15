@@ -56,6 +56,10 @@ export function mountFestivalMenu() {
       record(`autopilot:${on}`);
       controls?.setPaused(false);
     },
+    traffic: (on) => {
+      record(`traffic:${on}`);
+      controls?.openMenu();
+    },
   });
   controls = new FestivalControls(hud, {
     pause: (value) => record(`pause:${value}`),
@@ -69,6 +73,7 @@ export function mountFestivalMenu() {
       discovered: [events[0].spec.id],
       autopilot: false,
       inEvent: false,
+      traffic: true,
     }),
     card: () => null,
     start: (id) => record(`start:${id}`),
@@ -106,6 +111,7 @@ export function mountFestivalResults() {
     vehicle: noop,
     travel: noop,
     autopilot: noop,
+    traffic: noop,
   });
   const source = {
     mode: 'finished',
@@ -117,7 +123,8 @@ export function mountFestivalResults() {
     event: null,
     result: {
       kind: 'festival-result',
-      version: 1,
+      version: 2,
+      runId: 'fixture:1',
       regionId: world.region.id,
       eventId: event.spec.id,
       eventName: event.spec.name,
@@ -143,6 +150,7 @@ export function mountFestivalResults() {
     road: { name: 'Test road', roadClass: 'country', limitKmh: 90, onRoad: true, surface: 'asphalt' },
     message: null,
     streaming: { resident: 0, peakResident: 0, budget: 24, generated: 0, evicted: 0, stalls: 0, prefetched: 0, generationMs: 0, worstGenerationMs: 0 },
+    traffic: { enabled: true, cars: 0 },
   } as const;
   let status = structuredClone(source);
   setInterval(() => (status = structuredClone(source)), 100);

@@ -509,12 +509,19 @@ describe('festival placement and machines', () => {
     // Lower densities still thin what has no collider (shrubs).
     expect(thinned).toBeGreaterThan(0);
   });
-  it('offers every four-wheel registry vehicle except karts, road cars first (data-driven)', () => {
+  it('offers every four-wheel registry vehicle except karts, road cars first, then road motorcycles (data-driven)', () => {
     const list = festivalVehicles(),
       ids = list.map((v) => v.id);
+    // Cars except karts; motorcycles on road tyres (road bikes, the supermoto),
+    // never the knobby motocross machines.
+    const admitted = (def: (typeof VEHICLES)[string]) =>
+      def.classId !== 'kart' &&
+      (def.dynamicsKind === 'four-wheel' || (def.dynamicsKind === 'bike' && (!def.bike?.offroad || def.classId === 'supermoto')));
     for (const def of Object.values(VEHICLES))
-      if (def.dynamicsKind === 'four-wheel' && def.classId !== 'kart') expect(ids).toContain(def.id);
-      else expect(ids).not.toContain(def.id);
+      if (admitted(def)) expect(ids, def.id).toContain(def.id);
+      else expect(ids, def.id).not.toContain(def.id);
+    const firstBike = list.findIndex((v) => v.dynamicsKind === 'bike');
+    if (firstBike >= 0) expect(list.slice(firstBike).every((v) => v.dynamicsKind === 'bike')).toBe(true);
     // A road-class car (when the registry has one) leads and is the default.
     const road = list.findIndex((v) => v.classId === 'road');
     if (road >= 0) {
