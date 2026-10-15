@@ -5,7 +5,7 @@
     "name": "Solvane Coast",
     "sizeKm": 8.192,
     "seed": 330270,
-    "buildMs": 422
+    "buildMs": 540
   },
   "network": {
     "totalKm": 70.92,
@@ -24,12 +24,12 @@
       "medium": 9.88,
       "slow": 8.62
     },
-    "edges": 59,
+    "edges": 60,
     "junctions": 37,
     "deadEnds": 5,
     "bridges": 20,
-    "bridgeKm": 3.39,
-    "guardrailKm": 6.24,
+    "bridgeKm": 3.44,
+    "guardrailKm": 6.26,
     "maxGrade": 0.15,
     "minRadius": 14.5
   },
@@ -39,7 +39,7 @@
       "kind": "road-race",
       "lengthKm": 10.17,
       "laps": 1,
-      "legs": 7,
+      "legs": 8,
       "checkpoints": 25
     },
     {
@@ -71,7 +71,7 @@
       "kind": "sprint",
       "lengthKm": 2.36,
       "laps": 1,
-      "legs": 1,
+      "legs": 2,
       "checkpoints": 6
     },
     {
@@ -145,16 +145,16 @@
       "vehicle": "eh3",
       "lengthKm": 10.17,
       "finished": true,
-      "timeS": 215,
-      "averageKmh": 169.9,
+      "timeS": 217.8,
+      "averageKmh": 167.7,
       "topKmh": 311.8,
-      "legalKm": 10.15,
+      "legalKm": 10.14,
       "offRouteS": 0,
       "longestStallS": 0,
       "resetRequests": 0,
       "surfacesS": {
-        "road marking": 30.3,
-        "asphalt": 185
+        "road marking": 35.8,
+        "asphalt": 182.3
       },
       "tiles": {
         "resident": 24,
@@ -164,10 +164,10 @@
         "evicted": 43,
         "stalls": 0,
         "prefetched": 67,
-        "generationMs": 385.4422269999993,
-        "worstGenerationMs": 19.152874000000338
+        "generationMs": 413.4850750000005,
+        "worstGenerationMs": 16.161613999999645
       },
-      "wallMs": 4030
+      "wallMs": 7179
     },
     {
       "route": "thornwood-rally",
@@ -192,10 +192,10 @@
         "evicted": 19,
         "stalls": 0,
         "prefetched": 43,
-        "generationMs": 174.97425699999803,
-        "worstGenerationMs": 5.89885299999969
+        "generationMs": 197.4450779999952,
+        "worstGenerationMs": 7.37786799999958
       },
-      "wallMs": 2245
+      "wallMs": 4107
     }
   ],
   "race": {
@@ -208,25 +208,25 @@
       {
         "name": "SC-7 SUPERCAR",
         "vehicle": "sc7",
-        "timeS": 36.33
+        "timeS": 36.83
       },
       {
         "name": "EH-3 ELECTRIC HYPERCAR",
         "vehicle": "eh3",
-        "timeS": 37.4
+        "timeS": 37.93
       },
       {
         "name": "SC-7 SUPERCAR",
         "vehicle": "sc7",
-        "timeS": 38.87
+        "timeS": 38.83
       },
       {
         "name": "YOU",
         "vehicle": "eh3",
-        "timeS": 39.8
+        "timeS": 39.83
       }
     ]
   },
   "failures": [],
-  "wallMs": 10640
+  "wallMs": 18087
 }
