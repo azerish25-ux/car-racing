@@ -5,10 +5,12 @@ import { chainShaderHook, injectAfter, injectDeclarations } from './shader-hooks
  * Grass and gravel (D19 ground-cover).
  *
  * Grass (in the circuit's 'grass' finish): the shared 89/101/53 texels are
- * tinted to a mown summer-turf albedo #4d5f3c (linear ~0.075/0.115/0.045,
- * luminance ~0.10, G/R ~1.5: real cut grass in the visible band), mown in 4 m
- * bands at ±6 %, with ±12 % regional variation at 25 m and 90 m and sparse
- * dry patches. It sits clearly above the ~0.105 asphalt in hue, not in value.
+ * tinted to a mown summer-turf albedo #566a43 (linear ~0.094/0.143/0.056),
+ * which the circuit finish's lush/dry soil mix brings to about 0.08/0.13/0.045
+ * (luminance ~0.11, G/R ~1.6: real cut grass in the visible band), mown in
+ * 4 m bands at ±6 %, with ±12 % regional variation at 25 m and 90 m and
+ * sparse dry patches. It sits a little above the ~0.095 asphalt in value and
+ * well apart from it in hue.
  *
  * Gravel (#8f8470, linear ~0.27 river gravel, not sand): Voronoi pebbles at 50 cells per metre of mixed mineral
  * tone, a sparser class of larger stones, dark cavities, dusty and damp
@@ -19,7 +21,7 @@ import { chainShaderHook, injectAfter, injectDeclarations } from './shader-hooks
 // Photoreal pass: the KPI 9 olive (#808054, linear 0.22/0.22/0.09) read as
 // khaki felt as bright as the road. Mown turf is ~0.08-0.12 luminance with
 // G/R 1.5-1.8; this keeps the saturation near 0.4 (no lawn-green).
-export const GRASS_TINT = Object.freeze([0.75, 0.88, 1.25] as const);
+export const GRASS_TINT = Object.freeze([0.94, 1.1, 1.56] as const);
 export const GRASS_MOW_METRES = 4;
 export const GRASS_MOW_CONTRAST = 0.06;
 export const GRASS_DETAIL_GLSL = /* glsl */ `

@@ -14,12 +14,12 @@ export type CircuitFinish = 'asphalt' | 'grass' | 'terrain' | 'concrete' | 'pain
 
 /** Linear tone gain of the racing asphalt over its byte-limited texels (P4
  * allows tone in the shader; the bytes stay inside the R<120 guard). Race
- * asphalt is a dark, near-neutral grey: effective linear albedo ~0.105 (real
- * surfaces 0.08-0.12), clearly below the turf beside it and 5-7x below the
+ * asphalt is a dark, near-neutral grey: effective linear albedo ~0.095 (real
+ * surfaces 0.08-0.12), below the turf beside it (~0.11) and 6-8x below the
  * line paint, so the road is the darkest large surface in a sunlit frame.
  * The slightly cooler G/B gains keep the near-neutral texels from reading
  * warm under the sun. */
-export const ASPHALT_TONE = Object.freeze([1.09, 1.12, 1.16] as const);
+export const ASPHALT_TONE = Object.freeze([1.01, 1.04, 1.08] as const);
 
 /** Screen-space footprint in noise cells per pixel. Keep resolved construction
  * detail; converge to its mean before a pixel samples multiple unrelated cells. */
@@ -67,7 +67,7 @@ const finishes: Record<CircuitFinish, string> = {
     diffuseColor.rgb *= 1.0-.17*join;
   `,
   grass: `
-    // D19: mown summer turf (#4d5f3c albedo over the shared 89/101/53 texels)
+    // D19: mown summer turf (#566a43 albedo over the shared 89/101/53 texels)
     // with 25 m and 90 m regional variation and dry patches below.
     diffuseColor.rgb *= vec3(${GRASS_TINT.map((v) => v.toFixed(3)).join(',')});
     ${GRASS_DETAIL_GLSL}

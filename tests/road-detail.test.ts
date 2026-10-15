@@ -457,7 +457,7 @@ describe('grid launch rubber and asphalt tone', () => {
     expect(ASPHALT_TONE[2] / ASPHALT_TONE[0]).toBeLessThan(1.1);
     expect(ASPHALT_TONE[1] / ASPHALT_TONE[0]).toBeLessThan(1.1);
     // The effective mean albedo is real race asphalt (linear 0.08-0.13), near
-    // neutral (channels within 6 % of each other).
+    // neutral (channels within 6 % of each other), below the rendered turf.
     const means = asphaltTexelMeans(surfacePixels('asphalt', 128));
     const effective = means.albedo.map((v, c) => v * ASPHALT_TONE[c]);
     for (const v of effective) {
