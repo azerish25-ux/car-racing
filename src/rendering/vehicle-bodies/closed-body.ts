@@ -55,7 +55,7 @@ export class ClosedBodyModel {
     this.halfBase = s.width / 2 - Math.max(s.flare[0], s.flare[1]);
     const zF = this.zFront,
       zR = this.zRear;
-    const open = s.style === 'roadster';
+    const open = s.style === 'roadster' || !!s.open;
     const cockpit = open ? s.belt + 0.06 : s.cowl + (s.deck - s.cowl) * 0.3;
     this.top = new Track(
       [
@@ -250,7 +250,12 @@ export class ClosedBodyModel {
     if ((seg === 1 || seg === 2) && this.arch(zMid)) return M.liner;
     if (seg <= 2) return M.floor;
     const [ws, , , rw] = this.s.cabin;
-    if (this.s.style === 'roadster' && seg === 7 && zMid < this.f.z(ws) && zMid > this.f.z(rw))
+    if (
+      (this.s.style === 'roadster' || this.s.open) &&
+      seg === 7 &&
+      zMid < this.f.z(ws) &&
+      zMid > this.f.z(rw)
+    )
       return M.interior;
     if (this.s.stripe === 'centre' && seg === 7 && j >= acc + counts[7] - 1) return M.accent;
     if (this.s.stripe === 'side' && seg === 4 && j === acc + counts[4] - 2) return M.accent;
@@ -486,7 +491,8 @@ export function buildClosedBody(
     ],
     'Body (lofted)',
   );
-  if (s.style !== 'roadster')
+  const openCockpit = s.style === 'roadster' || !!s.open;
+  if (!openCockpit)
     parts.addGrouped(
       greenhouse(model, detail),
       [mats.paint, sharedMaterials.glass(), sharedMaterials.trim()],
@@ -641,7 +647,7 @@ export function buildClosedBody(
         placed(side * xv, at.y - 0.004, zv, at.pitch, 0, side * at.roll),
       );
     }
-  if (s.roofScoop && s.style !== 'roadster') {
+  if (s.roofScoop && !openCockpit) {
     const zs = zRF - 0.12;
     parts.add(
       roundedBox(0.26, 0.09, 0.4, 0.035, seg),
@@ -837,7 +843,7 @@ export function buildClosedBody(
         placed(x * hw(zt), yt + 0.02, zt - 0.03),
       );
   }
-  if (s.extras.includes('cage') && detail === 0 && s.style !== 'roadster' && s.style !== 'truck') {
+  if (s.extras.includes('cage') && detail === 0 && !openCockpit && s.style !== 'truck') {
     // Roll cage visible through the glass.
     const y0 = model.topY(zRR) - 0.05,
       y1 = f.y(s.roof) - 0.07;
@@ -859,39 +865,53 @@ export function buildClosedBody(
       );
     }
   }
-  if (s.style === 'roadster' && detail < 2) {
-    // Low screen and roll hoop.
+  if (openCockpit && detail < 2) {
+    // Low screen and roll hoop (racing); a road roadster without a cage has
+    // a taller framed screen and no hoop.
+    const racing = s.style !== 'roadster' || s.extras.includes('cage');
     const zw = zWs + 0.02,
       yw = model.topY(zw);
-    const screen = roundedBox(hw(zw) * 1.5, 0.22, 0.008, 0.004, 1);
-    parts.add(screen, sharedMaterials.glass(), placed(0, yw + 0.1, zw, -0.45));
+    const screen = roundedBox(hw(zw) * 1.5, racing ? 0.22 : 0.36, 0.008, 0.004, 1);
+    parts.add(
+      screen,
+      sharedMaterials.glass(),
+      placed(0, yw + (racing ? 0.1 : 0.16), zw, racing ? -0.45 : -0.62),
+    );
+    if (!racing)
+      parts.add(
+        roundedBox(hw(zw) * 1.52, 0.03, 0.03, 0.01, 1),
+        sharedMaterials.trim(),
+        placed(0, yw + 0.33, zw - 0.1),
+      );
     const zh = zRW + 0.12,
       yh = model.topY(zh);
-    parts.add(
-      tubeGeometry(
-        [
-          [-0.32, yh - 0.02, zh],
-          [-0.3, yh + 0.38, zh - 0.04],
-          [0.3, yh + 0.38, zh - 0.04],
-          [0.32, yh - 0.02, zh],
-        ],
-        0.022,
-        20,
-        8,
-      ),
-      sharedMaterials.steel(),
-    );
+    if (racing)
+      parts.add(
+        tubeGeometry(
+          [
+            [-0.32, yh - 0.02, zh],
+            [-0.3, yh + 0.38, zh - 0.04],
+            [0.3, yh + 0.38, zh - 0.04],
+            [0.32, yh - 0.02, zh],
+          ],
+          0.022,
+          20,
+          8,
+        ),
+        sharedMaterials.steel(),
+      );
   }
+  extraFurniture(parts, model, mats, detail, lod);
   // Interior: dash, seat, driver (visible through glass / open cockpit).
   if (detail === 0) {
     const zd = zWs - 0.12,
-      yd = model.topY(zd) - (s.style === 'roadster' ? 0.02 : 0.06);
+      yd = model.topY(zd) - (openCockpit ? 0.02 : 0.06);
     parts.add(
       roundedBox(hw(zd) * 1.4, 0.1, 0.3, 0.03, 2),
       sharedMaterials.interior(),
       placed(0, yd, zd),
     );
-    const seatZ = s.style === 'roadster' ? (zWs + zRW) / 2 - 0.15 : (zRF + zRR) / 2;
+    const seatZ = openCockpit ? (zWs + zRW) / 2 - 0.15 : (zRF + zRR) / 2;
     const seatX = s.style === 'truck' || s.style === 'saloon' || s.style === 'rally' ? 0.36 : 0.3;
     const seatY = f.y(s.floor) + 0.12;
     parts.add(
@@ -919,6 +939,100 @@ export function buildClosedBody(
     }
     parts.build(lod.group, detail === 0);
   }
+}
+/** Catalogue-growth furniture: extractor fans, dive planes, a rally lamp
+ * pod, a bonnet scoop and fender louvres (each only when the sheet asks). */
+function extraFurniture(
+  parts: Parts,
+  model: ClosedBodyModel,
+  mats: CarMaterials,
+  detail: Detail,
+  lod: BuiltLod,
+) {
+  const { f, s } = model;
+  const has = (e: ClosedSheet['extras'][number]) => s.extras.includes(e);
+  const hw = (z: number) => model.halfWidth(z);
+  const grille = sharedMaterials.grille(),
+    carbon = sharedMaterials.carbon(),
+    sides = detail === 0 ? 28 : detail === 1 ? 14 : 8;
+  if (has('fan')) {
+    // Two extractor fans in a shroud across the tail, blades behind a grille.
+    const zf = model.zRear + 0.02,
+      yf = f.y(s.floor) + Math.min(0.3, (s.tail - s.floor) * 0.45),
+      r = Math.min(0.24, hw(model.zRear) * 0.42);
+    for (const side of [-1, 1]) {
+      const x = side * r * 1.08;
+      parts.add(
+        new T.CylinderGeometry(r + 0.025, r + 0.025, 0.08, sides, 1, true).rotateX(Math.PI / 2),
+        sharedMaterials.plastic(),
+        placed(x, yf, zf),
+      );
+      parts.add(new T.CircleGeometry(r, sides).rotateY(Math.PI), grille, placed(x, yf, zf - 0.035));
+      if (detail < 2)
+        for (let k = 0; k < 6; k++)
+          // Hub, then the blade's angular slot, its radial offset and pitch.
+          parts.add(
+            roundedBox(0.05, r * 0.9, 0.012, 0.004, 1),
+            sharedMaterials.steel(),
+            placed(x, yf, zf - 0.02, 0, 0, (k / 6) * Math.PI * 2).multiply(
+              placed(0, r * 0.45, 0, 0, 0.35),
+            ),
+          );
+    }
+  }
+  if (has('canards') && detail < 2)
+    for (const side of [-1, 1])
+      for (const [dz, dy] of [
+        [0.18, 0.04],
+        [0.32, 0.12],
+      ] as const) {
+        const z = model.zFront - dz,
+          plane = aerofoil(0.16, 0.08, 0.02, 0.2, detail === 0 ? 8 : 4);
+        const front = new T.Mesh(
+          plane.applyMatrix4(placed(side * (hw(z) + 0.06), f.y(s.nose * 0.7) + dy, z, 0.18)),
+          carbon,
+        );
+        front.castShadow = detail === 0;
+        front.name = 'Dive plane (detachable)';
+        lod.group.add(front);
+        lod.front.push(front);
+      }
+  if (has('lamp-pod')) {
+    // Four round driving lamps on a bar ahead of the grille.
+    const zl = model.zFront + 0.03,
+      yl = f.y(s.nose) + 0.05;
+    parts.add(
+      roundedBox(hw(zl) * 1.3, 0.03, 0.03, 0.01, 1),
+      sharedMaterials.steel(),
+      placed(0, yl - 0.09, zl - 0.02),
+    );
+    for (let k = 0; k < 4; k++) {
+      const x = (k - 1.5) * hw(zl) * 0.34;
+      parts.add(
+        new T.CylinderGeometry(0.085, 0.085, 0.07, sides).rotateX(Math.PI / 2),
+        sharedMaterials.trim(),
+        placed(x, yl, zl),
+      );
+      parts.add(new T.CircleGeometry(0.075, sides), mats.head, placed(x, yl, zl + 0.036));
+    }
+  }
+  if (has('bonnet-scoop')) {
+    const zs = f.frontAxle - 0.25,
+      ys = model.surfaceY(zs, 0);
+    parts.add(roundedBox(0.5, 0.08, 0.62, 0.03, 2), mats.paint, placed(0, ys + 0.02, zs));
+    parts.add(roundedBox(0.42, 0.05, 0.02, 0.01, 1), grille, placed(0, ys + 0.03, zs + 0.31));
+  }
+  if (has('louvres') && detail < 2)
+    for (const side of [-1, 1])
+      for (let k = 0; k < 5; k++) {
+        const zl = f.frontAxle - 0.08 + k * 0.07,
+          xl = hw(zl) * 0.78;
+        parts.add(
+          roundedBox(0.22, 0.012, 0.025, 0.004, 1),
+          grille,
+          placed(side * xl, model.surfaceY(zl, xl) + 0.004, zl),
+        );
+      }
 }
 function addDetachable(
   lod: BuiltLod,

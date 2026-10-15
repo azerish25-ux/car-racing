@@ -13,7 +13,7 @@ import {
   H,
 } from '../src/simulation/protocol.ts';
 import { VEHICLES, vehicleIndex } from '../src/simulation/vehicles.ts';
-import { bodySheetFor } from '../src/rendering/vehicle-bodies/body-sheet.ts';
+import { BODY_SHEETS, bodySheetFor } from '../src/rendering/vehicle-bodies/body-sheet.ts';
 import { buildVehicleBody, VehicleBodies } from '../src/rendering/vehicle-bodies/index.ts';
 import { loftRings, sampleProfile, Track } from '../src/rendering/vehicle-bodies/loft.ts';
 
@@ -35,7 +35,55 @@ const finite = (root: T.Object3D) => {
   });
   return ok;
 };
+const BINS = 24;
+/** Side outline (top height per station along the car) and plan half width
+ * per station of a built body, wheels included. */
+function silhouette(root: T.Object3D) {
+  root.updateMatrixWorld(true);
+  const box = new T.Box3().setFromObject(root),
+    top = new Array<number>(BINS).fill(0),
+    side = new Array<number>(BINS).fill(0),
+    v = new T.Vector3();
+  root.traverse((o) => {
+    if (!(o instanceof T.Mesh)) return;
+    const p = (o.geometry as T.BufferGeometry).getAttribute('position');
+    for (let i = 0; i < p.count; i++) {
+      v.fromBufferAttribute(p, i).applyMatrix4(o.matrixWorld);
+      const b = Math.min(
+        BINS - 1,
+        Math.floor(((v.z - box.min.z) / (box.max.z - box.min.z)) * BINS),
+      );
+      top[b] = Math.max(top[b], v.y - box.min.y);
+      side[b] = Math.max(side[b], Math.abs(v.x));
+    }
+  });
+  return { top, side, length: box.max.z - box.min.z };
+}
 describe('WP30 procedural vehicle bodies', () => {
+  it('gives every four-wheel machine its own sheet and a distinct silhouette', () => {
+    const shapes: { id: string; s: ReturnType<typeof silhouette> }[] = [];
+    for (const def of Object.values(VEHICLES)) {
+      if (def.id === 'apx01' || def.dynamicsKind !== 'four-wheel') continue;
+      expect(Object.hasOwn(BODY_SHEETS, def.id), `${def.id} has no body sheet`).toBe(true);
+      const body = buildVehicleBody(1, def, bodySheetFor(def)!);
+      shapes.push({ id: def.id, s: silhouette(body.lods[0].group) });
+    }
+    // RMS difference of the outlines plus half the length difference (m).
+    // The closest pair of the first catalogue (TC-1/TC-2) measures 0.088.
+    let closest = Infinity,
+      pair = '';
+    for (let i = 0; i < shapes.length; i++)
+      for (let j = i + 1; j < shapes.length; j++) {
+        const a = shapes[i].s,
+          b = shapes[j].s;
+        let sum = 0;
+        for (let k = 0; k < BINS; k++)
+          sum += (a.top[k] - b.top[k]) ** 2 + (a.side[k] - b.side[k]) ** 2;
+        const d = Math.sqrt(sum / (2 * BINS) + (a.length - b.length) ** 2 / 4);
+        if (d < closest) [closest, pair] = [d, `${shapes[i].id}/${shapes[j].id}`];
+      }
+    expect(closest, pair).toBeGreaterThan(0.075);
+  });
   it('lofts smooth, outward-facing surfaces with monotone tracks', () => {
     const track = new Track([
       [0, 0],

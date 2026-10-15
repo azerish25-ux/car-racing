@@ -125,6 +125,15 @@ function validateCatalogueFields(def: VehicleDefinition): string[] {
     const peak = Math.max(...def.spec.torqueCurve.map((p) => p[1]));
     if (peak > engine.clutchCapacity * 1.6) e.push(`${at}: clutch capacity far below peak torque`);
   }
+  if (def.fan) {
+    const fan = def.fan;
+    if (!inRange(fan.force, 0, 3 * def.spec.dryMass * 9.81))
+      e.push(`${at}: fan suction outside 0-3 g of the car's weight`);
+    if (!inRange(fan.sealHeight, 0, 0.3) || !inRange(fan.fade, 0.005, 0.5))
+      e.push(`${at}: fan seal height or fade out of range`);
+    if (!inRange(fan.z, def.wheelPositions[2][2], def.wheelPositions[0][2]))
+      e.push(`${at}: fan station must lie between the axles`);
+  }
   if (def.restHeight !== undefined && !inRange(def.restHeight, 0.1, 2))
     e.push(`${at}: restHeight outside 0.1-2 m`);
   if (def.fuelLoad !== undefined && !inRange(def.fuelLoad, 0, 200))

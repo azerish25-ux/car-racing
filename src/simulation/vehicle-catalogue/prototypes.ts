@@ -1,0 +1,212 @@
+import { lsd } from '../differential.ts';
+import { defineVehicle } from './builder.ts';
+import { combustion, KEYS } from './common.ts';
+
+/** Further endurance prototypes (§10.1 Endurance prototype and Historic
+ * families): a second top-class hypercar with a different hybrid layout, an
+ * open-top second-tier prototype and a 1971-style long-tail sports car. */
+export const HYPERCAR_HY11 = defineVehicle({
+  id: 'hy11',
+  name: 'HY-11 HYPERCAR',
+  classId: 'hypercar',
+  brief:
+    'Top-class endurance prototype built around a spec hybrid, unlike the front-axle HY-9: ' +
+    'a 4.0 L twin-turbo V8 (about 470 kW) driving the rear wheels with a 50 kW ' +
+    'crankshaft motor-generator, 1030 kg, more downforce and drag than HY-9 (L/D about ' +
+    '3.9). Intended skill: intermediate–expert. Strengths: cornering grip, torque, braking ' +
+    'stability. Weaknesses: rear-drive traction from slow corners, less straight-line ' +
+    'speed than HY-9, small energy store. Targets: 0–100 about 3.1 s, 315–340 km/h, about ' +
+    '1.6 g at 80 km/h.',
+  mass: 1030,
+  frontWeight: 0.47,
+  cogHeight: 0.43,
+  wheelbase: 3.15,
+  trackFront: 1.7,
+  trackRear: 1.66,
+  width: 2.0,
+  height: 1.06,
+  overhangFront: 1.12,
+  overhangRear: 0.88,
+  groundClearance: 0.055,
+  wheelRadius: 0.355,
+  wheelInertia: 1.9,
+  linkCentreHeight: 0.22,
+  maxSteer: 0.36,
+  finalDrive: 3.0,
+  gearRatios: [-2.8, 0, 2.95, 2.25, 1.82, 1.53, 1.33, 1.18, 1.07],
+  idleRPM: 1600,
+  shiftRPM: 7600,
+  downshiftRPM: 4200,
+  limiterRPM: 8000,
+  torqueCurve: [
+    [2500, 520],
+    [4000, 720],
+    [5500, 740],
+    [6500, 690],
+    [7500, 590],
+    [8000, 520],
+  ],
+  engine: combustion(4.0, 1100, 0.26),
+  hybrid: { motorPowerW: 50000, regenPowerW: 150000, batteryJ: 1.5e6 },
+  brakeTorque: 13500,
+  aero: { clA: 3.9, cdA: 1.0, balance: 0.45 },
+  tireFamily: 'slick',
+  tireGrip: 0.92,
+  rearGrip: 1.06,
+  drivetrain: 'rwd',
+  driveline: { rear: lsd(100, 0.4, 0.25) },
+  setupKeys: KEYS.winged,
+  elementMass: [5, 6],
+  ai: {
+    lateralBase: 13.33,
+    lateralAero: 0.00325,
+    brakingBase: 15.74,
+    brakingAero: 0.00362,
+    lateralMargin: 0.72,
+    slowLateralMargin: 0.64,
+    brakingMargin: 0.74,
+    topSpeed: 88,
+  },
+  bands: {
+    accel0to100: [2.7, 3.8],
+    topSpeed: [310, 345],
+    braking100Distance: [20, 36],
+    lateral80G: [1.45, 2.2],
+  },
+});
+export const PROTOTYPE_PR3 = defineVehicle({
+  id: 'pr3',
+  name: 'PR-3 OPEN PROTOTYPE',
+  classId: 'prototype',
+  brief:
+    'Open-cockpit second-tier prototype (a barchetta, against the closed PR-2): 3.5 L ' +
+    'twin-turbo V6, about 400 kW, 930 kg, high-downforce kit with a short tail. Intended ' +
+    'skill: intermediate. Strengths: turbo torque, low-speed downforce, light weight. ' +
+    'Weaknesses: draggy at speed, turbo response at corner exit, an open cockpit gives the ' +
+    'driver no shelter in rain. Targets: 0–100 about 3.2 s, about 300 km/h, about 1.6 g at ' +
+    '80 km/h.',
+  mass: 930,
+  frontWeight: 0.44,
+  cogHeight: 0.4,
+  wheelbase: 2.95,
+  trackFront: 1.62,
+  trackRear: 1.58,
+  width: 1.95,
+  height: 0.98,
+  overhangFront: 1.0,
+  overhangRear: 0.72,
+  groundClearance: 0.055,
+  wheelRadius: 0.34,
+  wheelInertia: 1.75,
+  linkCentreHeight: 0.22,
+  maxSteer: 0.36,
+  finalDrive: 3.1,
+  gearRatios: [-2.9, 0, 2.45, 2.0, 1.68, 1.44, 1.24, 1.06],
+  idleRPM: 1800,
+  shiftRPM: 7700,
+  downshiftRPM: 4400,
+  limiterRPM: 8000,
+  torqueCurve: [
+    [2500, 420],
+    [4000, 580],
+    [5500, 620],
+    [6500, 590],
+    [7500, 510],
+    [8000, 450],
+  ],
+  engine: combustion(3.5, 950, 0.22),
+  brakeTorque: 12000,
+  aero: { clA: 4.2, cdA: 1.05, balance: 0.42 },
+  tireFamily: 'slick',
+  tireGrip: 0.9,
+  rearGrip: 1.06,
+  drivetrain: 'rwd',
+  driveline: { rear: lsd(90, 0.4, 0.25) },
+  setupKeys: KEYS.winged,
+  elementMass: [5, 6],
+  ai: {
+    lateralBase: 13.13,
+    lateralAero: 0.00376,
+    brakingBase: 15.56,
+    brakingAero: 0.00439,
+    lateralMargin: 0.72,
+    slowLateralMargin: 0.64,
+    brakingMargin: 0.74,
+    topSpeed: 82,
+  },
+  bands: {
+    accel0to100: [2.8, 4.0],
+    topSpeed: [280, 320],
+    braking100Distance: [20, 36],
+    lateral80G: [1.45, 2.2],
+  },
+});
+export const HISTORIC_SP71 = defineVehicle({
+  id: 'sp71',
+  name: 'SP-71 LONG-TAIL PROTOTYPE',
+  classId: 'historic-prototype',
+  brief:
+    'A 1971-style long-tail sports prototype: air-cooled 4.9 L flat-12 behind the driver, ' +
+    'about 440 kW, 860 kg with driver, a spaceframe under a low-drag long tail with almost ' +
+    'no downforce, bias-ply slicks, steel brakes, five-speed. Intended skill: expert. ' +
+    'Strengths: very high top speed, a tractable flat-12. Weaknesses: light and nervous at ' +
+    'speed, long braking zones, rear weight bias (38/62) snaps on lift-off. Targets: 0–100 ' +
+    'about 3.8 s, 330–360 km/h, about 1.2 g at 80 km/h.',
+  mass: 860,
+  frontWeight: 0.38,
+  cogHeight: 0.42,
+  wheelbase: 2.3,
+  trackFront: 1.56,
+  trackRear: 1.54,
+  width: 2.03,
+  height: 0.94,
+  overhangFront: 1.0,
+  overhangRear: 1.4,
+  groundClearance: 0.08,
+  wheelRadius: 0.33,
+  wheelInertia: 1.5,
+  linkCentreHeight: 0.21,
+  maxSteer: 0.4,
+  finalDrive: 3.2,
+  gearRatios: [-2.8, 0, 2.1, 1.6, 1.28, 1.08, 0.96],
+  idleRPM: 1500,
+  shiftRPM: 8300,
+  downshiftRPM: 4500,
+  limiterRPM: 8600,
+  torqueCurve: [
+    [3000, 350],
+    [5000, 480],
+    [6500, 540],
+    [7500, 530],
+    [8300, 500],
+    [8600, 460],
+  ],
+  engine: combustion(4.9, 900, 0.2),
+  brakeTorque: 7000,
+  aero: { clA: 0.25, cdA: 0.68, balance: 0.35 },
+  tireFamily: 'historic-slick',
+  tireGrip: 0.69,
+  rearGrip: 1.25,
+  drivetrain: 'rwd',
+  driveline: { rear: lsd(20, 0.2, 0.1) },
+  setupKeys: KEYS.closed,
+  setupDefaults: { frontSpring: 90000, rearSpring: 100000, frontARB: 12000, rearARB: 8000 },
+  elementMass: [3, 4],
+  ai: {
+    lateralBase: 10.33,
+    lateralAero: 0.00074,
+    brakingBase: 13.04,
+    brakingAero: 0.00074,
+    lateralMargin: 0.66,
+    slowLateralMargin: 0.6,
+    brakingMargin: 0.66,
+    topSpeed: 93,
+    lineScale: 0.75,
+  },
+  bands: {
+    accel0to100: [3.0, 4.6],
+    topSpeed: [320, 365],
+    braking100Distance: [28, 44],
+    lateral80G: [1.05, 1.45],
+  },
+});

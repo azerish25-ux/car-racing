@@ -122,6 +122,8 @@ export class Vehicle {
   private frontDetached = false;
   private rearDetached = false;
   motorPower = 0;
+  /** Fan-assisted floor suction this step (N); 0 without a fan. */
+  fanForce = 0;
   regenerationPower = 0;
   impact = 0;
   bottomEnergy = 0;
@@ -720,6 +722,19 @@ export class Vehicle {
       )
       .add(b.position);
     b.apply(this.force, this.point);
+    const fan = this.definition.fan;
+    if (fan) {
+      // Fan-assisted floor: suction does not depend on road speed; it fades
+      // as the measured floor clearance lifts off the skirt seal (no flow
+      // lag: the skirts leak at once), and with floor damage. Absent on every
+      // other machine (no change to their physics).
+      const clearance = (this.frontRideHeight + this.rearRideHeight) * 0.5;
+      this.fanForce =
+        fan.force * clamp(1 - (clearance - fan.sealHeight) / fan.fade, 0, 1) * this.floorHealth;
+      this.force.copy(this.up).scale(-this.fanForce);
+      b.orientation.rotate(this.localPoint.set(0, 0, fan.z), this.point).add(b.position);
+      b.apply(this.force, this.point);
+    }
     if (airspeed > 0.01) b.force.addScaled(this.relativeAir, -this.aero.drag / airspeed);
     track.sample(b.position.x, b.position.z, this.surface, b.position.y);
     this.bottomEnergy = this.skid.apply(b, track, dt);

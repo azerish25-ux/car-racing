@@ -126,6 +126,7 @@ export type VenueKind = 'circuit' | 'dirt' | 'festival';
  * machines. Any other class is a circuit car by default. */
 const OFF_ROAD_CLASSES = new Set([
   'rally',
+  'historic-rally',
   'rallycross',
   'offroad',
   'off-road',

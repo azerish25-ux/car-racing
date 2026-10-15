@@ -10,7 +10,15 @@ import { discMaterial, sharedMaterials, tyreMaterial, type TreadPattern } from '
  * caliper, and a spinning group with the rim, spokes, centre lock, disc and
  * bell. Rims leave real openings so the disc and caliper read through the
  * spokes. Axle along X; `side` is +1 for a left (+X) wheel, -1 for right. */
-export type SpokeStyle = 'split' | 'straight' | 'mesh' | 'beadlock' | 'slotted' | 'kart';
+export type SpokeStyle =
+  | 'split'
+  | 'straight'
+  | 'mesh'
+  | 'beadlock'
+  | 'slotted'
+  | 'kart'
+  // Laced wire wheel: many thin crossed spokes (classic road and club cars).
+  | 'wire';
 export interface WheelSheet {
   /** Tyre section width (m) front and rear. */
   width: readonly [number, number];
@@ -132,7 +140,8 @@ function rimGeometry(sheet: WheelSheet, half: number, side: number, detail: Deta
     );
   if (detail < 2) {
     const count = sheet.style === 'beadlock' ? 0 : sheet.spokes;
-    const pair = sheet.style === 'split' || sheet.style === 'mesh' ? 2 : 1;
+    const wire = sheet.style === 'wire';
+    const pair = sheet.style === 'split' || sheet.style === 'mesh' || wire ? 2 : 1;
     const width =
       sheet.style === 'slotted'
         ? rim * 0.34
@@ -140,11 +149,21 @@ function rimGeometry(sheet: WheelSheet, half: number, side: number, detail: Deta
           ? rim * 0.16
           : sheet.style === 'kart'
             ? rim * 0.3
-            : rim * 0.1;
+            : wire
+              ? rim * 0.022
+              : rim * 0.1;
     for (let k = 0; k < count; k++)
       for (let q = 0; q < pair; q++) {
-        const spread = pair === 2 ? (q - 0.5) * (sheet.style === 'mesh' ? 0.5 : 0.2) : 0;
-        const s = spokeGeometry(hubR * 0.9, rim - 0.006, width, 0.026, side * 0.035);
+        // Wire spokes cross: each pair leans a full spoke pitch apart.
+        const spread =
+          pair === 2 ? (q - 0.5) * (sheet.style === 'mesh' ? 0.5 : wire ? 1.6 : 0.2) : 0;
+        const s = spokeGeometry(
+          hubR * 0.9,
+          rim - 0.006,
+          width,
+          wire ? 0.008 : 0.026,
+          side * (wire ? 0.06 : 0.035),
+        );
         s.rotateX(((k + spread) / count) * Math.PI * 2);
         s.translate(side * face, 0, 0);
         parts.push(s);

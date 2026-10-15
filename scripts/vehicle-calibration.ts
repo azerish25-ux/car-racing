@@ -5,6 +5,8 @@
 // with independently chosen target bands from the vehicle's design brief (not
 // with a freshly generated baseline of itself). Writes
 // docs/vehicle-calibration.json; --strict exits 1 when a metric is out of band.
+// --only=id,id measures just those definitions (authoring loop) and writes
+// nothing, so the committed report always covers the whole registry.
 import { writeFileSync } from 'node:fs';
 import { clamp, G } from '../src/core/math.ts';
 import { DEFAULT_SETUP } from '../src/simulation/config.ts';
@@ -16,6 +18,10 @@ import { DynamicsTrack } from './dynamics-fixtures.ts';
 import { BIKE_TARGETS, measureBike } from './bike-calibration.ts';
 
 const strict = process.argv.includes('--strict');
+const only = process.argv
+  .find((a) => a.startsWith('--only='))
+  ?.slice('--only='.length)
+  .split(',');
 type Band = readonly [number, number];
 /** Design-brief target bands. Formula: public F1 figures (reference-targets.ts).
  * TC-1: an original 1.3 t front-drive touring saloon on slicks. Catalogue
@@ -170,6 +176,7 @@ function aeroAt(def: VehicleDefinition, dt: number, kmh: number) {
   let downforce = 0,
     front = 0,
     drag = 0,
+    fan = 0,
     n = 0;
   const L = def.spec.wheelbase,
     rearAxle = def.wheelPositions[2][2];
@@ -186,6 +193,7 @@ function aeroAt(def: VehicleDefinition, dt: number, kmh: number) {
         a.floor * -rearAxle) /
       L;
     drag += a.drag;
+    fan += car.fanForce;
     n++;
   }
   const q = 0.5 * def.spec.airDensity * car.speed * car.speed;
@@ -194,6 +202,8 @@ function aeroAt(def: VehicleDefinition, dt: number, kmh: number) {
     clA: downforce / n / q,
     cdA: drag / n / q,
     balance: downforce > 0 ? front / downforce : null,
+    // Speed-independent fan suction (N), reported apart from ClA.
+    ...(def.fan ? { fanN: fan / n } : {}),
   };
 }
 function measure(def: VehicleDefinition, dt: number) {
@@ -222,6 +232,7 @@ const report: Record<string, unknown> = {
 };
 let outside = 0;
 for (const def of Object.values(VEHICLES)) {
+  if (only && !only.includes(def.id)) continue;
   // Motorcycles run their own adapter on the same runway (bike-calibration.ts).
   const run = def.dynamicsKind === 'bike' ? measureBike : measure;
   const fine = run(def, 1 / 240),
@@ -275,5 +286,5 @@ for (const def of Object.values(VEHICLES)) {
       `  aero @${aero.speedKmh.toFixed(0)} km/h: ClA ${aero.clA.toFixed(2)} m², CdA ${aero.cdA.toFixed(2)} m², front ${aero.balance === null ? '—' : (aero.balance * 100).toFixed(1) + '%'}`,
     );
 }
-writeFileSync('docs/vehicle-calibration.json', JSON.stringify(report, null, 2) + '\n');
+if (!only) writeFileSync('docs/vehicle-calibration.json', JSON.stringify(report, null, 2) + '\n');
 if (strict && outside) process.exitCode = 1;

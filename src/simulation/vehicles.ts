@@ -1,5 +1,5 @@
 import type { Setup } from './config.ts';
-import { BIKE_VEHICLES, type BikeSpec } from './bike-definitions.ts';
+import { BIKE_ADDITIONS, BIKE_VEHICLES, type BikeSpec } from './bike-definitions.ts';
 import type { DrivelineSpec } from './differential.ts';
 import type { TireFamilyId } from './tire-families.ts';
 import { CATALOGUE } from './vehicle-catalogue/index.ts';
@@ -92,7 +92,32 @@ export type VehicleClass =
   | 'kart'
   | 'road'
   | 'gp-bike'
-  | 'superbike';
+  | 'superbike'
+  // Catalogue growth (CONTENT_PIPELINE.md §1.4): feeder single-seaters, the
+  // historic eras, loose-surface heritage, experimental machines and further
+  // road-motorcycle classes. Appended; existing ids never change meaning.
+  | 'formula-feeder'
+  | 'formula-entry'
+  | 'historic-aero'
+  | 'historic-turbo'
+  | 'historic-prototype'
+  | 'vintage'
+  | 'historic-rally'
+  | 'experimental'
+  | 'supersport'
+  | 'classic-bike'
+  | 'road-bike';
+/** Fan-assisted floor (vehicle.ts applies it at the floor centre). */
+export interface FanSpec {
+  /** Suction (N) with the skirts sealed at or below `sealHeight`. */
+  force: number;
+  /** Floor clearance (m) up to which the skirts seal fully. */
+  sealHeight: number;
+  /** Extra clearance (m) over which suction fades to nothing. */
+  fade: number;
+  /** Car-local station (m, +Z nose) where the suction acts. */
+  z: number;
+}
 /** Driven axle(s); 'awd' splits torque through `driveline.centre`. */
 export type Drivetrain = 'rwd' | 'fwd' | 'awd';
 export interface VehicleDefinition {
@@ -153,6 +178,10 @@ export interface VehicleDefinition {
   /** Per-car limits for exposed setup keys. */
   setupLimits?: Partial<Record<keyof Setup, readonly [number, number]>>;
   powertrain?: 'combustion' | 'hybrid' | 'electric';
+  /** Fan-assisted underbody (an auxiliary-engine fan evacuating a skirted
+   * floor): suction independent of road speed, lost as the floor lifts off
+   * its seal. Absent on every machine without one. */
+  fan?: FanSpec;
   /** Optional physical blocks (tyre construction, suspension, engine,
    * gearbox, differential, aero platform) overriding the class defaults of
    * vehicle-dynamics.ts (docs/production/PHYSICS_MODEL.md). */
@@ -350,6 +379,7 @@ export const VEHICLES: Readonly<Record<string, VehicleDefinition>> = Object.free
   tc1: TOURING_TC1,
   ...BIKE_VEHICLES,
   ...CATALOGUE,
+  ...BIKE_ADDITIONS,
 });
 export const VEHICLE_IDS = Object.freeze(Object.keys(VEHICLES));
 export const DEFAULT_VEHICLE_ID = 'apx01';

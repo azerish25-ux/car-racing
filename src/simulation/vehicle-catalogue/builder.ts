@@ -111,6 +111,9 @@ export interface CatalogueSheet {
   fuelLoad?: number;
   /** Detachable front/rear element masses (kg): wings, splitters, bumpers. */
   elementMass?: readonly [number, number];
+  /** Fan-assisted floor: suction (N) at the static clearance, acting at a
+   * station (m, +Z nose; absent: the centre of mass). */
+  fan?: { force: number; z?: number };
   /** AI envelope measured by scripts/vehicle-calibration.ts (m/s², m/s). */
   ai: Omit<CapabilityEnvelope, 'referenceMu' | 'downforceReference'>;
   bands: DesignBands;
@@ -284,6 +287,18 @@ export function defineVehicle(sheet: CatalogueSheet): CatalogueEntry {
         }
       : {}),
     powertrain: sheet.powertrain ?? (hybrid ? 'hybrid' : 'combustion'),
+    // Skirts seal up to 12 mm above the static floor and lose suction over
+    // the next 50 mm (a crest, kerb or rake change breaks the seal).
+    ...(sheet.fan
+      ? {
+          fan: Object.freeze({
+            force: sheet.fan.force,
+            sealHeight: round(sheet.groundClearance + 0.012, 3),
+            fade: 0.05,
+            z: round(sheet.fan.z ?? 0, 3),
+          }),
+        }
+      : {}),
   });
   return Object.freeze({
     definition,
