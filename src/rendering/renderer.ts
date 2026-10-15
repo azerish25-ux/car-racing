@@ -37,6 +37,7 @@ import { GhostCar } from './ghost-car.ts';
 import { SafetyCarView } from './studio/safety-car.ts';
 import { LightPools } from './studio/light-pools.ts';
 import { setBrandLedLighting } from './studio/trackside-branding.ts';
+import { setAerialExtinction } from './studio/aerial-perspective.ts';
 import { MENU_CAR_DATUM, SHOWROOM } from './menu-preview.ts';
 import { focusOnSubject, subjectLens, type SubjectLens } from './studio/subject-focus.ts';
 import { reflectInWetRoad } from './wet-reflection.ts';
@@ -1066,6 +1067,9 @@ export class RacingRenderer {
     this.renderer.toneMappingExposure = daylight.exposure * 2 ** (this.photo?.exposure ?? 0);
     const fog = this.scene.fog as T.FogExp2;
     fog.density = daylight.fogDensity;
+    // The local atmosphere's extinction: the sky's own air plus rain.
+    const rainRate = presented[H.RAIN];
+    setAerialExtinction(daylight.haze, studio || !Number.isFinite(rainRate) ? 0 : rainRate);
     fog.color.setRGB(daylight.fogRed, daylight.fogGreen, daylight.fogBlue);
     this.sky.material.uniforms.cloudCover.value = daylight.cover;
     this.sky.material.uniforms.skyRadiance.value = daylight.skyRadiance;

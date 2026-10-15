@@ -99,10 +99,11 @@ export function daylightState(cloud: number, rain: number, skyMode: LightingMode
     haze: lerp(SKY_LIGHT.haze.day[0], SKY_LIGHT.haze.day[2], cover),
     /** Sky-view radiance scale: the dome in scene units. */
     skyRadiance: sky.skyScale,
-    // P12 aerial perspective (studio/aerial-perspective.ts): FogExp2 density
-    // at the circuit datum, thinning with altitude in the fog chunk. Clear
-    // 0.00055 (26 % contrast loss at 1 km), overcast 0.0008, the 24 mm/h rain
-    // preset about 0.0017. The colour is the sky's own horizon radiance away
+    // FogExp2 density for materials without the local atmosphere (unlit signs
+    // and screens near the track): clear 0.00055, overcast 0.0008, the 24 mm/h
+    // rain preset about 0.0017. The local atmosphere's aerial perspective uses
+    // the sky's own extinction instead (studio/aerial-perspective.ts, from
+    // `haze` and the rain). The colour is the sky's own horizon radiance away
     // from the sun (greying to the deck and rain); the sun side adds its glow.
     fogDensity: 0.00055 + cover * 0.00025 + precipitation * 0.0000375,
     fogRed: fog[0],
