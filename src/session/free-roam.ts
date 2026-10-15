@@ -186,7 +186,13 @@ export class FestivalSession {
     });
     this.post({
       type: 'init',
-      options: { vehicle, weather: options.weather ?? 'clear', assist: options.assist ?? 'sport', seed: options.seed ?? 73021 },
+      options: {
+        vehicle,
+        weather: options.weather ?? 'clear',
+        assist: options.assist ?? 'sport',
+        seed: options.seed ?? 73021,
+        discovered: this.save.discovered,
+      },
     });
     await ready;
     // Stream the terrain around the spawn before the first frame.

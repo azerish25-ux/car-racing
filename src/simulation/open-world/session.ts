@@ -90,6 +90,9 @@ export interface FreeRoamOptions {
   tileBudget?: number;
   /** Spawn point; default: the Port Ilse harbour front. */
   spawn?: { x: number; z: number; heading?: number };
+  /** Events discovered in earlier sessions (the festival save); unknown
+   * ids are ignored. */
+  discovered?: readonly string[];
 }
 export type FestivalMode = 'free' | 'card' | 'countdown' | 'running' | 'finished';
 export type FestivalCommand =
@@ -207,6 +210,7 @@ export class OpenWorldSimulation {
     this.events = resolveEvents(this.world);
     this.structures = regionStructures(this.world);
     this.structureGrid = new StructureGrid(this.structures);
+    for (const id of options.discovered ?? []) if (this.events.some((e) => e.spec.id === id)) this.discovered.add(id);
     this.treeBudget = options.tileBudget ?? 64;
     this.assist = options.assist ?? 'sport';
     this.seed = options.seed ?? 73021;

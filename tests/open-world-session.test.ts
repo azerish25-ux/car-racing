@@ -35,6 +35,19 @@ describe('festival free-roam session', () => {
     expect(frame[carBase(0) + RACE_BASE + R.VEHICLE]).toBe(vehicleIndex('tc1'));
     expect(status.streaming.resident).toBeLessThanOrEqual(24);
   });
+  it('restores saved discoveries and travels only to discovered events', () => {
+    const sim = new OpenWorldSimulation({ vehicle: 'tc1', discovered: ['pass-zone', 'no-such-event'] });
+    expect([...sim.discovered]).toContain('pass-zone');
+    expect(sim.discovered.has('no-such-event')).toBe(false);
+    expect(() => sim.command({ type: 'travel', event: 'quarry-drift' })).toThrow(/discovered/);
+    sim.command({ type: 'travel', event: 'pass-zone' });
+    const marker = sim.events.find((e) => e.spec.id === 'pass-zone')!.marker;
+    const p = sim.player.body.position;
+    expect(Math.hypot(p.x - marker.x, p.z - marker.z)).toBeLessThan(12);
+    for (let i = 0; i < 240; i++) sim.step(1 / 120);
+    expect(sim.status().road.onRoad).toBe(true);
+    expect(sim.status().discovered).toContain('pass-zone');
+  });
   it('resets an upturned or drowned car onto the nearest road, repaired', () => {
     const sim = new OpenWorldSimulation({ vehicle: 'tc1' });
     const car = sim.player;
