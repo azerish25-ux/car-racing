@@ -455,6 +455,23 @@ tyre's actual state instead of the former fixed slip numbers.
   The mid-field columns of the first two rows were measured before the integration merge.
   Baseline physics with the full-lock start gave 9.5 s (3.4–7.9 s on seeds 1–3). The outcome is not
   monotonic in the length, so these two tests remain sensitive to any change in start behaviour.
+* **Hosted wet-following session.** The hosted wet-following review (e2e/29) records one
+  deterministic session: Aurel, test seed, 8 cars, rain, full wets, AI driving the player, five laps.
+  The browser worker reproduces it tick for tick. Its recorder needs 3 s of same-leader wet following.
+  Frames more than 1 s apart break the run, and hosted software rendering has exceeded that near the
+  launch. The longest following starting at least 15 s after the green, sampled at 30 Hz:
+
+  | Start behaviour | Mid-field slot | Back slot |
+  |---|---|---|
+  | Baseline (53b6130) | 9.3 s | 9.5 s |
+  | 0 / 12 / 35 m fade | 10.3 / 7.0 / 10.5 s | 6.3 / 10.2 / 3.8 s |
+  | 40 / 60 / 75 / 100 m fade | none / none / none / none | none / 4.7 / none / 8.6 s |
+  | **50 m fade** | **3.4 s** (9.3 s only at the launch) | **8.9 s** (and 8.1 s) |
+
+  Run 38685156128 finished both mid-field views unqualified. The review therefore starts from the back
+  slot (`REVIEW_START_SLOTS`), and `tests/wet-review-start.test.ts` replays that session. The test
+  requires following after the launch at a 0.9 s cadence. A change in start or racing behaviour that
+  fails it needs a re-measured slot, not a relaxed review.
 
 ## 7. Calibration evidence
 
