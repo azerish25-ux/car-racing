@@ -1,7 +1,9 @@
 import { circuitDefinition, type CircuitDefinition } from './circuits.ts';
 import { K, SKID_BASE } from './protocol.ts';
 import { clamp } from '../core/math.ts';
-import { AIDriver } from './ai.ts';
+import type { AIDriver } from './ai.ts';
+import { createDriver } from './bike-ai.ts';
+import { createVehicle, writeBikeBlock } from './bike-vehicle.ts';
 import { wakeOverlap } from './aero.ts';
 import { CollisionSolver } from './collision.ts';
 import {
@@ -16,6 +18,7 @@ import {
 } from './config.ts';
 import { OVERTAKE } from './drs.ts';
 import {
+  BIKE_BASE,
   CAR_STRIDE,
   DEBRIS_BASE,
   DEBRIS_STRIDE,
@@ -31,7 +34,7 @@ import {
 } from './protocol.ts';
 import { PHASE, RaceDirector, updatePit } from './race.ts';
 import { Track } from './track.ts';
-import { Vehicle } from './vehicle.ts';
+import type { Vehicle } from './vehicle.ts';
 import { vehicleDefinition, vehicleIndex } from './vehicles.ts';
 const COMPOUND_IDS = Object.keys(COMPOUNDS);
 export class Simulation {
@@ -61,7 +64,8 @@ export class Simulation {
     // out-lap and clear track; a race uses the staggered grid in `grid` order.
     const spacing = Math.min(420, (length - 400) / count);
     this.cars = Array.from({ length: count }, (_, i) => {
-      const c = new Vehicle(
+      // Each family runs its own dynamics adapter (four-wheel or bike, D13).
+      const c = createVehicle(
         i,
         this.options.compound,
         this.options.setup,
@@ -80,7 +84,7 @@ export class Simulation {
         );
       return c;
     });
-    this.ai = this.cars.map((c) => new AIDriver(c, 0.92 + (c.id % 4) * 0.014, this.options.seed));
+    this.ai = this.cars.map((c) => createDriver(c, 0.92 + (c.id % 4) * 0.014, this.options.seed));
     this.race = new RaceDirector(this.cars, this.track, this.options);
     if (this.options.mode === 'endurance') {
       // Enough fuel for the distance plus a margin: real mass, no refuelling.
@@ -258,6 +262,7 @@ export class Simulation {
       out[r + R.SECTOR_STATUS] = status[id * 3] + 4 * status[id * 3 + 1] + 16 * status[id * 3 + 2];
       out[r + R.DRS_FLAP] = c.drsFlap;
       out[r + R.VEHICLE] = vehicleIndex(c.definition.id);
+      writeBikeBlock(out, o + BIKE_BASE, c);
       const k = o + SKID_BASE,
         skid = c.skid;
       out[k + K.CONTACTS] = skid.contacts;

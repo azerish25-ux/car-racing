@@ -51,8 +51,9 @@ prototype of the supplied player (open: WP07), authoring tools for constants eng
 
 **Days 61–90.** Finish G2 with normal-user integration (machine choice and EVENTS are in the menu),
 greybox the first new car venue with the new data contracts (open), re-run human and hardware
-acceptance (open). Bounded motorcycle experiment (done in isolation: `bike.ts`); go/no-go on bike R&D
-after its review.
+acceptance (open). Bounded motorcycle experiment (done: `bike.ts`), then integrated into sessions
+as WP33–WP36 (GP-R1, SBK-1000, bike AI, rider rig, `gp-motorcycle` event; procedural art); the
+go/no-go on the bike roster still waits for the human riding review (G4).
 
 ## 4. Modes roadmap (§11.2)
 

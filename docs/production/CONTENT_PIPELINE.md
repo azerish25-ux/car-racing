@@ -42,6 +42,21 @@ sprint, exhibition. Measured (`docs/vehicle-calibration.json`): 0–100 km/h ≈
 100–0 ≈ 29 m, 1.30 g at 80 km/h; within design bands at both timesteps. Known limits: provisional
 greybox exterior (`touring-shell.ts`), no interior, damage variants, LODs or own engine sound.
 
+**GP-R1 Prototype (gpr1 v1).** Original 1000 cc prototype-class racing motorcycle: ~300 hp
+(224 kW), 157 kg plus a 72 kg rider, carbon wings (front-biased downforce), seamless six-speed.
+Intended skill: intermediate–expert. Strengths: braking stability, top speed (~350 km/h), drive
+out of slow corners under wheelie control. Weaknesses: lean-limited mid-corner speed, rear
+overload when trail-braking hard, contact intolerance. Measured (`docs/vehicle-calibration.json`):
+0–100 ≈ 3.0 s, top ≈ 354 km/h, 100–0 ≈ 36 m (stoppie-limited), 1.31 g at 80 km/h, within bands.
+Event role: GP motorcycle sprint. Known limits: procedural bike/rider art (`rendering/bike.ts`,
+`rendering/rider.ts`), no damage variants or authored LOD assets, shared engine voice, the pit
+crew still animates a four-wheel service.
+
+**SBK-1000 Superbike (sbk1000 v1).** Original production-based 1000 cc superbike: ~215 hp
+(160 kW), 200 kg plus rider, no wings, quickshifter six-speed. Intended skill: novice–intermediate.
+Measured: 0–100 ≈ 3.2 s, top ≈ 308 km/h, 100–0 ≈ 39 m, 1.20 g at 80 km/h, within bands.
+Known limits as GP-R1.
+
 ### 1.4 Destination catalogue (§10.1, 48 models)
 
 | Family | Models | Delivery | Present |
@@ -56,8 +71,8 @@ greybox exterior (`touring-shell.ts`), no interior, damage variants, LODs or own
 | Rallycross | 3 | dirt expansion | 0 |
 | Off-road truck/buggy | 3 | dirt expansion | 0 |
 | Kart | 2 | small-vehicle slice | 0 |
-| Road sport motorcycle | 3 | bike expansion | 0 (prototype model only) |
-| Prototype GP-style motorcycle | 3 | bike expansion | 0 |
+| Road sport motorcycle | 3 | bike expansion | 1 (SBK-1000, integrated, procedural art) |
+| Prototype GP-style motorcycle | 3 | bike expansion | 1 (GP-R1, integrated, procedural art) |
 | Motocross | 4 | dirt-bike expansion | 0 |
 | Supermoto | 3 | after bike/dirt gates | 0 |
 | Flat-track | 2 | after bike/dirt gates | 0 |

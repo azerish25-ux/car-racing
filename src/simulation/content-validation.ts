@@ -4,6 +4,7 @@ import { Track } from './track.ts';
 import { DEFAULT_OPTIONS, SETUP_LIMITS } from './config.ts';
 import { EVENTS, RULESETS, eventSession } from './events.ts';
 import { VEHICLES, type VehicleDefinition } from './vehicles.ts';
+import { isBike, validateBikeDefinition } from './bike-definitions.ts';
 
 /** Content contracts (WP14, masterplan §6.3/§14.4): every definition is
  * checked at build time with explicit units and bounds, and each failure says
@@ -13,6 +14,7 @@ const finite = (v: unknown): v is number => typeof v === 'number' && Number.isFi
 const inRange = (v: unknown, lo: number, hi: number) => finite(v) && v >= lo && v <= hi;
 
 export function validateVehicleDefinition(def: VehicleDefinition): string[] {
+  if (isBike(def)) return validateBikeDefinition(def);
   const e: string[] = [],
     at = `vehicle ${def.id}`,
     s = def.spec;

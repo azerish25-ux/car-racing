@@ -114,6 +114,7 @@ export function minimapFrame(track: Track) {
 }
 import { type Settings, validateSettings } from '../storage/data.ts';
 import { type RacingRenderer } from '../rendering/renderer.ts';
+import { BIKE_MACHINE_OPTIONS, bikeMachineOptions } from './bike-machines.ts';
 export const lapTime = (seconds: number) =>
   seconds > 0
     ? `${Math.floor(seconds / 60)}:${(seconds % 60).toFixed(3).padStart(6, '0')}`
@@ -158,6 +159,8 @@ export function machineOptions(
   options: SessionOptions,
   machine: string,
 ): Pick<SessionOptions, 'vehicles' | 'ruleset' | 'compound'> {
+  const bikes = bikeMachineOptions(options, machine);
+  if (bikes) return bikes;
   if (machine !== 'tc1' && machine !== 'mixed') return { compound: options.compound };
   const count = options.opponents + 1;
   const vehicles = Array.from({ length: count }, (_, i) =>
@@ -237,7 +240,7 @@ export class Interface {
     <div class="form-row"><label>SESSION<select id="mode"><option value="race">Grand Prix</option><option value="practice">Free practice</option><option value="time-trial">Time trial · ghost</option><option value="qualifying">Race weekend · qualifying</option><option value="endurance">Endurance · mandatory stop</option></select></label><label>DISTANCE<select id="laps"><option value="1">1 lap · Sprint</option><option value="3" selected>3 laps · Standard</option><option value="5">5 laps</option><option value="10">10 laps</option><option value="15">15 laps · Endurance</option><option value="25">25 laps · Endurance</option></select></label></div>
     <div class="form-row"><label>WEATHER<select id="weather"><option value="clear">Clear / Dry</option><option value="changeable">Dry → Rain</option><option value="rain">Heavy rain</option></select></label><label>GRID<select id="opponents"><option value="0">Solo</option><option value="3">4 cars</option><option value="7" selected>8 cars</option><option value="11">12 cars</option></select></label></div>
     <div class="form-row"><label>TYRES<select id="compound"><option value="soft">Soft</option><option value="medium" selected>Medium</option><option value="hard">Hard</option><option value="intermediate">Intermediate</option><option value="wet">Full wet</option></select></label><label>ASSISTS<select id="assist"><option value="sport">ABS + TC</option><option value="raw">Off</option></select></label></div>
-    <div class="form-row"><label>START<select id="startSlot"><option value="pole" selected>Pole position</option><option value="midfield">Mid-field</option><option value="back">Back of the grid</option></select></label><label>MACHINE<select id="vehicle"><option value="apx01" selected>APX-01 Formula</option><option value="tc1">TC-1 Touring · front drive</option><option value="mixed">Mixed exhibition · Formula + Touring</option></select></label></div>
+    <div class="form-row"><label>START<select id="startSlot"><option value="pole" selected>Pole position</option><option value="midfield">Mid-field</option><option value="back">Back of the grid</option></select></label><label>MACHINE<select id="vehicle"><option value="apx01" selected>APX-01 Formula</option><option value="tc1">TC-1 Touring · front drive</option><option value="mixed">Mixed exhibition · Formula + Touring</option>${BIKE_MACHINE_OPTIONS}</select></label></div>
     <p class="session-rules" id="sessionRules" aria-live="polite"></p>
     <button class="primary enter" type="submit">ENTER CIRCUIT <span aria-hidden="true">↗</span></button>
     <button class="enter" type="submit" name="prepareGrid" value="yes">PREPARE GRID <span>START PAUSED</span></button>
