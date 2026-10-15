@@ -5,20 +5,21 @@ import { chainShaderHook, injectAfter, injectDeclarations } from './shader-hooks
  * Grass and gravel (D19 ground-cover).
  *
  * Grass (in the circuit's 'grass' finish): the shared 89/101/53 texels are
- * tinted to an olive #6c7438 albedo (sunlit render #7f8444-#8e8a4c instead of
- * the saturated #4e6e2d), mown in 4 m bands at ±6 %, with ±12 % regional
- * variation at 25 m and 90 m and sparse dry patches.
+ * tinted to a mown summer-turf albedo #4d5f3c (linear ~0.075/0.115/0.045,
+ * luminance ~0.10, G/R ~1.5: real cut grass in the visible band), mown in 4 m
+ * bands at ±6 %, with ±12 % regional variation at 25 m and 90 m and sparse
+ * dry patches. It sits clearly above the ~0.105 asphalt in hue, not in value.
  *
- * Gravel (#b9a98a): Voronoi pebbles at 50 cells per metre of mixed mineral
+ * Gravel (#8f8470, linear ~0.27 river gravel, not sand): Voronoi pebbles at 50 cells per metre of mixed mineral
  * tone, a sparser class of larger stones, dark cavities, dusty and damp
  * patches and faint wavering rake lines (0.3 m), all filtered to their mean
  * before a pixel spans a feature. World-space and lap-space, so
  * stable in motion; 0 draw calls.
  */
-// KPI 9 iteration: the rendered turf read #6d7937 at saturation 0.54 (target
-// #7f8444-#8e8a4c, 0.33-0.47). A lighter, greyer olive albedo #808054 renders
-// about #868553 in the day sun (shots/kpi-iteration-v1/v2).
-export const GRASS_TINT = Object.freeze([2.17, 1.66, 2.46] as const);
+// Photoreal pass: the KPI 9 olive (#808054, linear 0.22/0.22/0.09) read as
+// khaki felt as bright as the road. Mown turf is ~0.08-0.12 luminance with
+// G/R 1.5-1.8; this keeps the saturation near 0.4 (no lawn-green).
+export const GRASS_TINT = Object.freeze([0.75, 0.88, 1.25] as const);
 export const GRASS_MOW_METRES = 4;
 export const GRASS_MOW_CONTRAST = 0.06;
 export const GRASS_DETAIL_GLSL = /* glsl */ `
@@ -27,7 +28,7 @@ export const GRASS_DETAIL_GLSL = /* glsl */ `
     float turf90=finishFilteredNoise(vFinishWorld.xz/90.0+vec2(9.3,5.2));
     diffuseColor.rgb *= 1.0+.12*(turf25-.5)*2.0*.5+.12*(turf90-.5)*2.0*.5;
     float dryPatch=smoothstep(.66,.8,finishFilteredNoise(vFinishWorld.xz/14.0+vec2(1.7,8.3)));
-    diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*vec3(1.16,1.06,.78),dryPatch*.6);
+    diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*vec3(1.08,1.03,.88),dryPatch*.6);
 `;
 
 /**
@@ -91,7 +92,7 @@ export const TURF_GLSL = /* glsl */ `{
 }`;
 
 export const GRAVEL = Object.freeze({
-  color: 0xb9a98a,
+  color: 0x8f8470,
   cellsPerMetre: 50,
   furrowMetres: 0.3,
   cavity: 0.55,

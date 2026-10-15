@@ -75,12 +75,13 @@ describe('asphalt texels (P4 tone, Sobel normals, meso tile)', () => {
   it('authors warm-neutral asphalt with the chip contrast inside the byte guard', () => {
     const data = surfacePixels('asphalt', 128);
     const means = asphaltTexelMeans(data);
-    // Linear mean between sRGB ~#5c5853 and #6e6964, blue below red (B/R 0.85-0.95).
-    expect(means.albedo[0]).toBeGreaterThan(0.105);
-    expect(means.albedo[0]).toBeLessThan(0.15);
+    // Linear mean of a dark near-neutral binder (sRGB ~#565553 to #615f5d),
+    // blue a little below red (B/R 0.88-1.0).
+    expect(means.albedo[0]).toBeGreaterThan(0.085);
+    expect(means.albedo[0]).toBeLessThan(0.115);
     const br = means.albedo[2] / means.albedo[0];
-    expect(br).toBeGreaterThan(0.75);
-    expect(br).toBeLessThan(0.9);
+    expect(br).toBeGreaterThan(0.88);
+    expect(br).toBeLessThan(1.0);
     expect(means.roughness).toBeGreaterThan(0.75);
     expect(means.roughness).toBeLessThan(0.86);
     // The meso tile and chip coverage occupy the unread red/blue channels.
@@ -455,12 +456,15 @@ describe('grid launch rubber and asphalt tone', () => {
     }
     expect(ASPHALT_TONE[2] / ASPHALT_TONE[0]).toBeLessThan(1.1);
     expect(ASPHALT_TONE[1] / ASPHALT_TONE[0]).toBeLessThan(1.1);
-    // The effective mean albedo stays a plausible light asphalt (linear 0.15-0.22).
+    // The effective mean albedo is real race asphalt (linear 0.08-0.13), near
+    // neutral (channels within 6 % of each other).
     const means = asphaltTexelMeans(surfacePixels('asphalt', 128));
-    for (let c = 0; c < 3; c++) {
-      expect(means.albedo[c] * ASPHALT_TONE[c]).toBeGreaterThan(0.15);
-      expect(means.albedo[c] * ASPHALT_TONE[c]).toBeLessThan(0.22);
+    const effective = means.albedo.map((v, c) => v * ASPHALT_TONE[c]);
+    for (const v of effective) {
+      expect(v).toBeGreaterThan(0.08);
+      expect(v).toBeLessThan(0.13);
     }
+    expect(Math.max(...effective) / Math.min(...effective)).toBeLessThan(1.06);
     const asphalt = surfaceMaterial('asphalt');
     expect(compile(asphalt).fragmentShader).toContain(
       `diffuseColor.rgb *= vec3(${ASPHALT_TONE.map((v) => v.toFixed(3)).join(',')}) * (.92 + broad*.08`,

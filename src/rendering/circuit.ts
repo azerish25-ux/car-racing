@@ -178,7 +178,7 @@ export class CircuitScene {
     // D15: painted bands, chevrons or astroturf per corner (no flat tint).
     installRunoffFinish(runOff);
     const gravel = surfaceMaterial('gravel');
-    // D19: Voronoi pebbles, cavities and raked furrows (#b9a98a).
+    // D19: Voronoi pebbles, cavities and raked furrows (#8f8470).
     installGravelFinish(gravel);
     // Sky and sun light under the cars (D08): the ground they stand on.
     for (const m of [this.roadMaterial, grass, runOff, gravel]) installCarGrounding(m);
@@ -706,6 +706,13 @@ export class CircuitScene {
   private infrastructure() {
     const paddock = paddockMaterials();
     const { concrete, steel: dark, cladding: roof, glass } = paddock;
+    // Pit-box markings are lit road paint (one shared material for the 12
+    // boxes): they take the car's shadow and contact occlusion and get wet
+    // with the pit road. Light pools stay off, as on the pit asphalt under
+    // them (box UVs are not lap metres).
+    const boxPaint = new T.MeshStandardMaterial({ color: 0xd2b04a, roughness: 0.6 });
+    installCircuitFinish(boxPaint, 'paint');
+    installCarGrounding(boxPaint);
     // Paddock follows the main straight. Each garage has a separate bay and service box.
     // Catalogue venues build their own paddock on the venue's pit side.
     for (let i = 0; i < (this.venueKit ? 0 : 12); i++) {
@@ -739,9 +746,8 @@ export class CircuitScene {
         painting.position.copy(this.at(boxS, this.track.boxLateral(), 0.016));
         painting.rotation.y = Math.atan2(mark.tx, mark.tz);
         this.props.add(painting);
-        const yellow = new T.MeshBasicMaterial({ color: 0xe7c969 });
-        for (const x of [-1.4, 1.4]) box(painting, yellow, x, 0, 0, 0.08, 0.012, 5);
-        box(painting, yellow, 0, 0, 2.5, 2.9, 0.012, 0.08);
+        for (const x of [-1.4, 1.4]) box(painting, boxPaint, x, 0, 0, 0.08, 0.012, 5);
+        box(painting, boxPaint, 0, 0, 2.5, 2.9, 0.012, 0.08);
       });
     }
     this.construction.add('A21 hero pit-building frontage', 2, () => {
