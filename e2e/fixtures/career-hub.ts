@@ -2,7 +2,8 @@ import { Interface } from '../../src/ui/interface.ts';
 import { Simulation } from '../../src/simulation/world.ts';
 import { DEFAULT_OPTIONS, DEFAULT_SETUP } from '../../src/simulation/config.ts';
 import { CareerController } from '../../src/career/controller.ts';
-import { backupKey, recoverSave } from '../../src/storage/data.ts';
+import { loanerVehicle } from '../../src/career/ladder.ts';
+import { backupKey } from '../../src/storage/data.ts';
 
 /** Production Interface and career screens with an in-memory save store; no
  * renderer, worker or session. Session starts are logged, not run. */
@@ -35,8 +36,11 @@ export function mountCareerHub() {
   });
   career = new CareerController({
     store: {
-      async readRecovered(key, validate) {
-        return recoverSave(data.get(key), data.get(backupKey(key)), validate);
+      async read(key) {
+        return structuredClone(data.get(key));
+      },
+      async write(key, value) {
+        data.set(key, structuredClone(value));
       },
       async writeWithBackup(key, value) {
         if (data.has(key)) data.set(backupKey(key), data.get(key));
@@ -57,6 +61,9 @@ export function mountCareerHub() {
     setup: () => ({ ...DEFAULT_SETUP }),
     assist: () => 'sport',
   });
+  // The machine licences and the club meeting lend: the cheapest car of the
+  // lowest circuit tier in whatever catalogue this build registers.
+  events.dataset.loaner = loanerVehicle(career.registry, 'circuit-cars')?.id ?? '';
   void career.load({});
   ui.ready();
   ui.showMode('menu');

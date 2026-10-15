@@ -31,8 +31,48 @@ export interface CareerVenue {
   surface?: string;
   venueKind?: string;
   catalogue?: { group?: string; bikeSafe?: boolean };
-  /** Surveyed jumps (off-road venues), for the landing licence. */
+  /** Surveyed jumps (off-road venues), for the landing licence. Read through
+   * `surveyedJumps`, which keeps only entries that declare the geometry. */
   jumps?: readonly unknown[];
+}
+/** A jump the landing licence can score: where it is and the slope of its
+ * landing face. Lap distances in m; `landingPitch` is the landing face's
+ * pitch along the direction of travel in rad (nose-up +, so a downslope
+ * landing is negative), the same convention as the snapshot pitch. */
+export interface SurveyedJump {
+  name: string;
+  takeoff: number;
+  landing: number;
+  /** Length of the landing zone along the lap (m), centred on `landing`. */
+  landingLength: number;
+  landingPitch: number;
+}
+const finiteNumber = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
+/** The jumps of a venue that declare take-off, landing and landing slope.
+ * Anything else (a bare marker, a crest without a survey) is ignored, so the
+ * landing licence never scores against a slope nobody measured. */
+export function surveyedJumps(venue: { jumps?: readonly unknown[] }): SurveyedJump[] {
+  if (!Array.isArray(venue.jumps)) return [];
+  return venue.jumps.flatMap((raw, i) => {
+    if (!raw || typeof raw !== 'object') return [];
+    const j = raw as Record<string, unknown>;
+    if (!finiteNumber(j.takeoff) || !finiteNumber(j.landing) || !finiteNumber(j.landingPitch))
+      return [];
+    if (j.takeoff < 0 || j.landing < 0 || Math.abs(j.landingPitch) > Math.PI / 4) return [];
+    const landingLength =
+      finiteNumber(j.landingLength) && j.landingLength >= 4 && j.landingLength <= 200
+        ? j.landingLength
+        : 40;
+    return [
+      {
+        name: typeof j.name === 'string' && j.name ? j.name.slice(0, 40) : `JUMP ${i + 1}`,
+        takeoff: j.takeoff,
+        landing: j.landing,
+        landingLength,
+        landingPitch: j.landingPitch,
+      },
+    ];
+  });
 }
 export interface CareerRuleset {
   id: string;

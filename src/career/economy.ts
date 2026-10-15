@@ -9,7 +9,7 @@ import {
 import { DEFAULT_SETUP, SETUP_LIMITS, validateSetup, type Setup } from '../simulation/config.ts';
 import { rewardIncome } from '../storage/team-career.ts';
 import type { CareerEvent } from './ladder.ts';
-import { vehiclePrice } from './ladder.ts';
+import { purchaseReasons, vehiclePrice } from './ladder.ts';
 import {
   LICENCE_TESTS,
   MEDALS,
@@ -147,7 +147,10 @@ const markPaid = (save: CareerSave, session: string) => {
   save.paidSessions.push(session);
   save.paidSessions = save.paidSessions.slice(-200);
 };
-/** Begin (or restart after completion) the championship of `event`. */
+/** Begin the championship of `event`, or restart it after completion. A
+ * season in progress is never replaced here: it continues in the machine it
+ * started in (an empty season, with nothing raced, may change machine), and
+ * ending it early is `abandonChampionship`, which the player confirms. */
 export function startChampionship(
   save: CareerSave,
   key: string,
@@ -156,11 +159,34 @@ export function startChampionship(
   cars: number,
 ): CareerSave {
   const current = save.championships[key];
-  if (current && !complete(current.season) && current.vehicle === vehicle) return save;
+  if (current && !complete(current.season)) {
+    if (current.vehicle === vehicle) return save;
+    if (current.season.results.length)
+      throw new Error(
+        `This season is being raced in ${current.vehicle} (${current.season.results.length} of ${current.season.rounds.length} rounds recorded). Finish it in that machine, or abandon the season first.`,
+      );
+  }
   const next = structuredClone(save);
   next.championships[key] = { vehicle, season: newChampionship(cars, rounds), sessions: [] };
   return next;
 }
+/** End a season early at the player's confirmed request. Payments already
+ * made stay paid; the recorded rounds are discarded. */
+export function abandonChampionship(save: CareerSave, key: string): CareerSave {
+  const current = save.championships[key];
+  if (!current) throw new Error('There is no season to abandon.');
+  const next = structuredClone(save);
+  delete next.championships[key];
+  next.ledger.push({
+    label: `Season abandoned after ${current.season.results.length} of ${current.season.rounds.length} rounds`,
+    amount: 0,
+  });
+  next.ledger = next.ledger.slice(-48);
+  return next;
+}
+/** Rounds (1-based) of a season the AI driver drove any part of. */
+export const demonstrationRounds = (season: { results: readonly RoundResult[] }) =>
+  season.results.flatMap((r, i) => (r.demonstration ? [i + 1] : []));
 /** Pay a finished career race exactly once per session id. Returns the
  * unchanged save object when the session was already paid. */
 export function settleRace(
@@ -219,7 +245,15 @@ export function settleRace(
       entry.sessions.push(outcome.session);
       if (complete(entry.season)) {
         const table = standings(entry.season);
-        if (table[0].id === 0 && !outcome.demonstration) {
+        // The title is the player's only when every round was the player's
+        // own driving: AI-driven rounds score for the table, never a title.
+        const ai = demonstrationRounds(entry.season);
+        if (table[0].id === 0 && ai.length)
+          payout.lines.push({
+            label: `Season led on points, but the AI driver drove round${ai.length === 1 ? '' : 's'} ${ai.join(', ')}: no title, bonus or prize`,
+            amount: 0,
+          });
+        if (table[0].id === 0 && !ai.length) {
           const bonus = scale(20000, event.stakes);
           payout.lines.push({ label: 'Championship won', amount: bonus });
           payout.total += bonus;
@@ -327,6 +361,9 @@ export function buyVehicle(save: CareerSave, registry: CareerRegistry, id: strin
   const vehicle = registry.vehicles.find((v) => v.id === id);
   if (!vehicle) throw new Error('That machine is not registered in this build.');
   if (save.owned.some((o) => o.id === id)) throw new Error(`You already own the ${vehicle.name}.`);
+  const blocked = purchaseReasons(registry, vehicle);
+  if (blocked.length)
+    throw new Error(`The ${vehicle.name} cannot race in this build yet: ${blocked.join(' ')}`);
   const price = vehiclePrice(registry, vehicle);
   if (save.credits < price)
     throw new Error(

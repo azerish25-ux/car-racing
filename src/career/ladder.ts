@@ -1,4 +1,4 @@
-import type { RoundSpec } from '../core/championship.ts';
+import type { Championship, RoundSpec } from '../core/championship.ts';
 import type { WeatherPreset } from '../simulation/config.ts';
 import type { EventDefinition } from '../simulation/events.ts';
 import { LICENCE_TESTS, medalAtLeast, type LicenceId, type Medal } from './licences.ts';
@@ -8,6 +8,7 @@ import {
   disciplineStatus,
   disciplineVehicles,
   rulesetsFor,
+  surveyedJumps,
   vehicleDiscipline,
   type CareerRegistry,
   type CareerVehicle,
@@ -238,6 +239,8 @@ export interface ProgressView {
   licences: Readonly<Partial<Record<LicenceId, { medal: Medal | null }>>>;
   owned: readonly { id: string }[];
   active: Readonly<Partial<Record<DisciplineId, string>>>;
+  /** Seasons in progress: a season keeps its calendar and its machine. */
+  championships?: Readonly<Record<string, { vehicle: string; season: Championship }>>;
 }
 export function licenceMissing(view: ProgressView, t: TierDefinition) {
   return t.licences
@@ -277,6 +280,18 @@ export interface CareerEvent {
   stakes: number;
   vehicle: string | null;
   loaner: boolean;
+  /** Championship only: the season's calendar and the round raced next. */
+  calendar: readonly RoundSpec[];
+  round: number;
+}
+/** Why a machine cannot be bought: its discipline or class cannot race in
+ * this build, so credits spent on it would buy nothing usable. */
+export function purchaseReasons(registry: CareerRegistry, vehicle: CareerVehicle): string[] {
+  const status = disciplineStatus(registry, vehicleDiscipline(vehicle));
+  if (status.state !== 'open') return status.reasons;
+  return rulesetsFor(registry, vehicle.classId, 'race').length
+    ? []
+    : [`No race ruleset admits ${vehicle.classId} yet.`];
 }
 const seedOf = (text: string) => {
   let h = 2166136261;
@@ -395,6 +410,8 @@ export function disciplineEvents(
       stakes: 0.25,
       vehicle: loaner?.id ?? null,
       loaner: true,
+      calendar: [],
+      round: -1,
     });
   }
   tiers.forEach((t, tierIndex) => {
@@ -423,8 +440,10 @@ export function disciplineEvents(
       description: string,
       make: (player: CareerVehicle) => ReturnType<typeof buildEvent>,
       extraLocks: string[] = [],
+      season?: { entry: CareerVehicle | null; calendar: readonly RoundSpec[]; round: number },
     ) => {
-      const built = entry ? make(entry) : { definition: null, reason: null };
+      const machine = season ? season.entry : entry;
+      const built = machine ? make(machine) : { definition: null, reason: null };
       const reasons = coming.length
         ? coming
         : [...locked, ...extraLocks, ...(built.reason ? [built.reason] : [])];
@@ -452,8 +471,10 @@ export function disciplineEvents(
                 },
               ],
         stakes: t.payScale,
-        vehicle: entry?.id ?? null,
+        vehicle: machine?.id ?? null,
         loaner: false,
+        calendar: season?.calendar ?? [],
+        round: season?.round ?? -1,
       });
     };
     // Authored events (events.ts) whose machine class belongs to this tier.
@@ -504,29 +525,53 @@ export function disciplineEvents(
           }),
       );
     });
-    // The tier championship: a calendar across the registry's venues.
+    // The tier championship: a calendar across the registry's venues. A
+    // season in progress keeps its own calendar and the machine it started
+    // in, so changing the active machine never restarts it.
     if (venues.length) {
-      const champRep =
+      const key = `${discipline}.${t.id}.championship`;
+      const saved = view.championships?.[key];
+      const running =
+        saved && saved.season.results.length < saved.season.rounds.length ? saved : null;
+      const calendar = running ? running.season.rounds : championshipCalendar(venues, tierIndex, t);
+      const round = running ? running.season.results.length : 0;
+      const spec = calendar[round];
+      const extra =
         rep < t.championshipReputation
           ? [`${t.championshipReputation} reputation for the championship (you have ${rep})`]
           : [];
+      // A season with rounds recorded races in its own machine; an empty one
+      // (started, nothing raced) takes the current tier machine.
+      let seasonEntry: CareerVehicle | null = entry;
+      if (running && running.season.results.length) {
+        const machine = machines.find((m) => m.id === running.vehicle) ?? null;
+        const owned = view.owned.some((o) => o.id === running.vehicle);
+        seasonEntry = machine && owned ? machine : null;
+        if (!seasonEntry)
+          extra.push(
+            `your season machine, the ${machine?.name ?? running.vehicle}, which is ${machine ? 'not in your garage' : 'not in this build'} (abandon the season to start again)`,
+          );
+      }
+      if (!venues.some((v) => v.id === spec.circuit))
+        extra.push(`round ${round + 1} venue ${spec.circuit}, which is not in this build`);
       add(
-        `${discipline}.${t.id}.championship`,
+        key,
         'championship',
         `${t.name.toUpperCase()} CHAMPIONSHIP`,
-        `A season scored 25-18-15-12-10-8-6-4-2-1 across ${championshipCalendar(venues, tierIndex, t).length} rounds.`,
+        `A season scored 25-18-15-12-10-8-6-4-2-1 across ${calendar.length} rounds.`,
         (player) =>
           buildEvent(registry, {
-            id: `career-${t.id}-championship`,
-            name: `${t.name.toUpperCase()} CHAMPIONSHIP`,
-            venue: venues[0].id,
+            id: `career-${t.id}-championship-r${round + 1}`,
+            name: `${t.name.toUpperCase()} CHAMPIONSHIP · ROUND ${round + 1}`,
+            venue: spec.circuit,
             player,
             mode: 'race',
-            laps: t.laps,
-            cars: 8,
-            weather: 'clear',
+            laps: spec.laps,
+            cars: running?.season.cars ?? 8,
+            weather: spec.weather,
           }),
-        champRep,
+        extra,
+        { entry: seasonEntry, calendar, round },
       );
     }
   });
@@ -569,11 +614,11 @@ export function licenceAvailability(
   if (missing.length)
     reasons.push(`The session snapshot does not publish ${missing.join(', ')} yet.`);
   const venue =
-    test.needs === 'jump'
-      ? status.venues.find((v) => Array.isArray(v.jumps) && v.jumps.length)
-      : status.venues[0];
+    test.needs === 'jump' ? status.venues.find((v) => surveyedJumps(v).length) : status.venues[0];
   if (!venue && test.needs === 'jump' && status.venues.length)
-    reasons.push('No venue with a surveyed jump is registered yet.');
+    reasons.push(
+      'No venue declares a surveyed jump (take-off, landing position and landing slope) yet.',
+    );
   const owned = disciplineVehicles(registry, test.discipline).filter((v) =>
     view.owned.some((o) => o.id === v.id),
   );

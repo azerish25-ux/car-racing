@@ -13,7 +13,7 @@ import { eventSession } from '../src/simulation/events.ts';
 import { CAR_STRIDE, F, H, HEADER, carBase } from '../src/simulation/protocol.ts';
 import { Track } from '../src/simulation/track.ts';
 import { Simulation } from '../src/simulation/world.ts';
-import { backupKey, recoverSave } from '../src/storage/data.ts';
+import { backupKey } from '../src/storage/data.ts';
 
 /** End to end without a renderer: the licence session the career builds,
  * run by the production simulation, measured from its own snapshots. */
@@ -53,6 +53,36 @@ describe('a career licence session measured from real snapshots', () => {
     expect(settled.save.licences.cornering).toEqual({ medal: null, best: null, attempts: 1 });
     expect(settled.payout.paid).toBe(false);
   }, 120000);
+  it('scores trail braking from the lean channel of a real bike session, once a bike can race', () => {
+    const registry = liveRegistry();
+    const a = licenceAvailability(registry, newCareer(), 'lean');
+    // Data-driven: runs whenever the registries carry a raceable bike and the
+    // snapshot publishes the motorcycle block.
+    if (a.status !== 'open') return expect(a.reasons.length).toBeGreaterThan(0);
+    const options = eventSession(a.definition!, { ...DEFAULT_OPTIONS });
+    const sim = new Simulation(options);
+    sim.autoPlayer = true;
+    const vehicle = registry.vehicles.find((v) => v.id === a.vehicle)!;
+    const attempt = new LicenceAttempt(
+      LICENCE_TESTS.lean,
+      licenceCourse(LICENCE_TESTS.lean, sim.track, vehicle),
+    );
+    let outcome = null,
+      lean = 0;
+    for (let tick = 0; tick < 120 * 240 && !outcome; tick++) {
+      sim.step(1 / 120);
+      if (tick % 2) continue;
+      const sample = sampleFrame(sim.makeFrame());
+      lean = Math.max(lean, Math.abs(sample.lean ?? 0));
+      outcome = attempt.observe(sample);
+    }
+    // The lean is read from the bike block at BIKE_BASE + B.LEAN of the car.
+    expect(lean).toBeGreaterThan(0.3);
+    expect(outcome).not.toBeNull();
+    expect(outcome!.valid).toBe(true);
+    expect(outcome!.value!).toBeGreaterThanOrEqual(0);
+    expect(outcome!.value!).toBeLessThanOrEqual(100);
+  }, 120000);
 });
 
 describe('career controller: session hook and results flow', () => {
@@ -64,8 +94,11 @@ describe('career controller: session hook and results flow', () => {
     const track = new Track('clear', false, undefined, AUREL);
     const host: CareerHost = {
       store: {
-        async readRecovered(key, validate) {
-          return recoverSave(data.get(key), data.get(backupKey(key)), validate);
+        async read(key) {
+          return structuredClone(data.get(key));
+        },
+        async write(key, value) {
+          data.set(key, structuredClone(value));
         },
         async writeWithBackup(key, value) {
           if (data.has(key)) data.set(backupKey(key), data.get(key));
@@ -148,11 +181,13 @@ describe('career controller: session hook and results flow', () => {
     expect(h.calls[0].options).toMatchObject({ mode: 'practice', opponents: 0 });
     expect(h.calls[0].career).toMatchObject({ kind: 'licence', licence: 'braking', setup: null });
     h.career.begin(h.calls[0].career, 'licence-1');
-    const tc1 = h.career.registry.vehicles.find((v) => v.id === 'tc1')!;
+    // The course is paced for the machine the licence lends (the cheapest club car).
+    const loaned = h.career.registry.vehicles.find((v) => v.id === h.calls[0].career.vehicle)!;
+    expect(h.calls[0].options.vehicles![0]).toBe(loaned.id);
     const c = licenceCourse(
       LICENCE_TESTS.braking,
       new Track('clear', false, undefined, AUREL),
-      tc1,
+      loaned,
     );
     const frame = new Float32Array(HEADER + CAR_STRIDE);
     frame[H.CARS] = 1;
@@ -215,5 +250,61 @@ describe('career controller: session hook and results flow', () => {
     const second = h.calls.at(-1)!;
     expect(second.career.round).toBe(1);
     expect(second.options.circuit).toBe(season.rounds[1].circuit);
+    expect(second.options.weather).toBe(season.rounds[1].weather);
+  });
+  it('keeps a season in its machine when the active machine changes mid-season', async () => {
+    const h = harness();
+    await h.career.load({});
+    await h.career.transact((s) => ({
+      ...s,
+      credits: 100000,
+      reputation: { ...s.reputation, 'circuit-cars': 20 },
+      licences: { braking: { medal: 'bronze', best: 6, attempts: 1 } },
+    }));
+    // Two club-tier machines: tc1 (active, first bought) and tc2.
+    h.career.action('career:buy:tc1');
+    h.career.action('career:buy:tc2');
+    await h.settle();
+    expect(h.career.save.owned.map((o) => o.id)).toEqual(['tc1', 'tc2']);
+    expect(h.career.save.active['circuit-cars']).toBe('tc1');
+    const key = 'circuit-cars.club.championship';
+    for (const round of [0, 1]) {
+      h.career.action(`career:start:${key}`);
+      await h.settle();
+      const call = h.calls.at(-1)!;
+      expect(call.career).toMatchObject({ round, vehicle: 'tc1' });
+      h.career.begin(call.career, `season-r${round + 1}`);
+      h.career.finish(finishFrame(2), call.options.grid);
+      await h.settle();
+    }
+    expect(h.career.save.championships[key].season.results).toHaveLength(2);
+    // The player makes tc2 the active circuit machine in the Garage.
+    h.career.action('career:active:circuit-cars:tc2');
+    await h.settle();
+    expect(h.career.save.active['circuit-cars']).toBe('tc2');
+    // The card still offers round 3, and starting it races round 3 in tc1.
+    h.career.action('career:page:events');
+    expect(h.modals.at(-1)).toContain('START ROUND 3');
+    expect(h.modals.at(-1)).toContain('ABANDON SEASON');
+    h.career.action(`career:start:${key}`);
+    await h.settle();
+    const third = h.calls.at(-1)!;
+    expect(third.career).toMatchObject({ round: 2, vehicle: 'tc1' });
+    expect(third.options.vehicles![0]).toBe('tc1');
+    const season = h.career.save.championships[key];
+    expect(season.vehicle).toBe('tc1');
+    expect(season.season.results).toHaveLength(2);
+    expect(third.options.circuit).toBe(season.season.rounds[2].circuit);
+    // Abandoning is an explicit, confirmed choice that names the loss.
+    h.career.action(`career:abandon:${key}`);
+    expect(h.modals.at(-1)).toContain('2 of');
+    expect(h.modals.at(-1)).toContain(`career:abandonConfirm:${key}`);
+    expect(h.career.save.championships[key]).toBeDefined();
+    h.career.action(`career:abandonConfirm:${key}`);
+    await h.settle();
+    expect(h.career.save.championships[key]).toBeUndefined();
+    h.career.action(`career:start:${key}`);
+    await h.settle();
+    expect(h.calls.at(-1)!.career).toMatchObject({ round: 0, vehicle: 'tc2' });
   });
 });

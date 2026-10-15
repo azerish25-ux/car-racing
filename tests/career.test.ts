@@ -4,6 +4,7 @@ import { ContactMeter, IMPACT_FULL_SCALE_J } from '../src/career/contact.ts';
 import { CareerController, type CareerHost } from '../src/career/controller.ts';
 import { licenceCourse, LICENCE_PACE } from '../src/career/course.ts';
 import {
+  abandonChampionship,
   buyVehicle,
   careerSetup,
   CLEAN_CONTACT_J,
@@ -19,15 +20,18 @@ import {
   type RaceOutcome,
 } from '../src/career/economy.ts';
 import {
+  championshipCalendar,
   CLASS_PRICES,
   disciplineEvents,
   disciplineTiers,
   licenceAvailability,
   loanerVehicle,
+  purchaseReasons,
   recoveryEvent,
   vehiclePrice,
 } from '../src/career/ladder.ts';
 import {
+  LicenceAttempt,
   LICENCE_TESTS,
   medalFor,
   rotate,
@@ -39,14 +43,20 @@ import {
 import {
   DISCIPLINE_IDS,
   disciplineStatus,
+  disciplineVenues,
   liveRegistry,
   snapshotChannels,
+  surveyedJumps,
+  vehicleDiscipline,
   vehicleFamily,
+  venueKind,
   type CareerRegistry,
   type CareerVehicle,
 } from '../src/career/registry.ts';
 import {
   CAREER_KEY,
+  CAREER_NEWER_KEY,
+  CAREER_UNREADABLE_KEY,
   CAREER_VERSION,
   careerFromLegacy,
   newCareer,
@@ -90,6 +100,8 @@ const course: LicenceCourse = {
   window: 45,
   paceSpeed: 15,
   lineAt: () => 1,
+  landing: 3000,
+  landingWindow: 20,
   landingPitch: 0,
   cornerName: 'TEST HOOK',
 };
@@ -128,6 +140,25 @@ const progressed = (registry: CareerRegistry = live): CareerSave => {
   save.owned = registry.vehicles.map((v) => ({ id: v.id, source: 'purchase' as const }));
   return save;
 };
+/** An in-memory SaveStore with the same backup-before-overwrite semantics. */
+function storeHarness() {
+  const data = new Map<string, unknown>();
+  const toasts: string[] = [];
+  const store: CareerHost['store'] = {
+    async read(key) {
+      return structuredClone(data.get(key));
+    },
+    async write(key, value) {
+      data.set(key, structuredClone(value));
+    },
+    async writeWithBackup(key, value) {
+      if (data.has(key)) data.set(backupKey(key), data.get(key));
+      data.set(key, structuredClone(value));
+    },
+  };
+  const host = { store, toast: (m: string) => toasts.push(m) } as unknown as CareerHost;
+  return { data, toasts, host };
+}
 const outcome = (over: Partial<RaceOutcome> = {}): RaceOutcome => ({
   session: 's-1',
   position: 3,
@@ -181,11 +212,42 @@ describe('licence scoring from measured values', () => {
     expect(gold.value).toBeCloseTo(0.5, 5);
     expect(gold.medal).toBe('gold');
     expect(scoreSamples(LICENCE_TESTS.cornering, course, through(-2, 20))?.medal).toBe('bronze');
-    const invalid = scoreSamples(LICENCE_TESTS.cornering, course, through(0.2, 20, false))!;
+    // A lap already invalid when the corner starts is not this corner's
+    // fault: nothing is scored and the next lap is another try.
+    const early = new LicenceAttempt(LICENCE_TESTS.cornering, course);
+    for (const x of through(0.2, 20, false)) expect(early.observe(x)).toBeNull();
+    expect(early.message).toContain('ALREADY INVALID');
+    // A breach inside the corner voids the attempt.
+    const breach = through(0.2, 20).map((x) => ({ ...x, lapValid: x.s < 2000 }));
+    const invalid = scoreSamples(LICENCE_TESTS.cornering, course, breach)!;
     expect(invalid.valid).toBe(false);
     expect(invalid.medal).toBeNull();
+    expect(invalid.detail).toContain('in the corner');
     // Below the pace gate the corner is not scored (the player goes again).
     expect(scoreSamples(LICENCE_TESTS.cornering, course, through(0, 10))).toBeNull();
+  });
+  it('does not void the corner for a track-limits breach earlier on the lap', () => {
+    // Lap 1: a breach at turn 2 (s = 600) leaves the lap flag false until the
+    // line; the marked corner (s = 2000) is driven perfectly. Lap 2 is clean.
+    const lap = (laps: number, from: number, to: number, valid: (s: number) => boolean) =>
+      Array.from({ length: to - from }, (_, i) =>
+        sample({
+          t: laps * 200 + i / 30,
+          s: from + i,
+          laps,
+          speed: 30,
+          lateral: 1.1,
+          lapValid: valid(from + i),
+        }),
+      );
+    const attempt = new LicenceAttempt(LICENCE_TESTS.cornering, course);
+    for (const x of lap(0, 500, 4000, (s) => s < 600)) expect(attempt.observe(x)).toBeNull();
+    expect(attempt.complete).toBe(false);
+    expect(attempt.message).toContain('NEXT LAP');
+    let outcome = null;
+    for (const x of lap(1, 0, 2200, () => true)) outcome ??= attempt.observe(x);
+    expect(outcome).toMatchObject({ valid: true, medal: 'gold' });
+    expect(outcome!.value).toBeCloseTo(0.1, 5);
   });
   it('scores a wet flying lap by its peak slide angle', () => {
     const lap = (peakDeg: number, valid = true) => {
@@ -207,7 +269,18 @@ describe('licence scoring from measured values', () => {
     expect(silver.value).toBeCloseTo(5, 3);
     expect(silver.medal).toBe('silver');
     expect(scoreSamples(LICENCE_TESTS.wet, wetCourse, lap(3))?.medal).toBe('gold');
-    expect(scoreSamples(LICENCE_TESTS.wet, wetCourse, lap(3, false))?.valid).toBe(false);
+    // An invalid lap is not measured, like a slow one: the next lap counts.
+    const invalidLap = lap(3, false);
+    const attempt = new LicenceAttempt(LICENCE_TESTS.wet, wetCourse);
+    for (const x of invalidLap) expect(attempt.observe(x)).toBeNull();
+    expect(attempt.message).toContain('INVALID');
+    let retry = null;
+    for (let i = 0; i < 100 && !retry; i++)
+      retry = attempt.observe(sample({ t: 104 + i, laps: 2, speed: 30, sideslip: 0.02 }));
+    retry ??= attempt.observe(
+      sample({ t: 205, laps: 3, speed: 30, lastLap: 101, lastLapValid: true }),
+    );
+    expect(retry).toMatchObject({ valid: true, medal: 'gold' });
     // 4000 m in 102 s is 39 m/s; a 50 m/s pace gate rejects the lap without scoring.
     expect(scoreSamples(LICENCE_TESTS.wet, { ...wetCourse, paceSpeed: 50 }, lap(3))).toBeNull();
   });
@@ -227,16 +300,84 @@ describe('licence scoring from measured values', () => {
     expect(lean.valid).toBe(true);
     expect(lean.value!).toBeGreaterThan(50);
     expect(lean.medal).toBe('gold');
-    const jump = [
-      sample({ t: 0, speed: 20 }),
+    const flight = (t0: number, s: number, pitchDeg: number) => [
+      sample({ t: t0, s: s - 20, speed: 20 }),
       ...Array.from({ length: 30 }, (_, i) =>
-        sample({ t: 0.02 * (i + 1), speed: 20, airborne: true }),
+        sample({ t: t0 + 0.02 * (i + 1), s: s - 19 + i * 0.6, speed: 20, airborne: true }),
       ),
-      sample({ t: 0.7, speed: 20, pitch: (2.5 * Math.PI) / 180 }),
+      sample({ t: t0 + 0.7, s, speed: 20, pitch: (pitchDeg * Math.PI) / 180 }),
     ];
-    const landed = scoreSamples(LICENCE_TESTS.jump, course, jump)!;
+    const landed = scoreSamples(LICENCE_TESTS.jump, course, flight(0, 3000, 2.5))!;
     expect(landed.value).toBeCloseTo(2.5, 3);
     expect(landed.medal).toBe('gold');
+  });
+  it('scores the jump landing against the surveyed slope, only in its landing zone', () => {
+    const slope = (-12 * Math.PI) / 180;
+    const downhill = { ...course, landingPitch: slope };
+    const flight = (t0: number, s: number, pitch: number) => [
+      sample({ t: t0, s: s - 20, speed: 20 }),
+      ...Array.from({ length: 30 }, (_, i) =>
+        sample({ t: t0 + 0.02 * (i + 1), s: s - 19 + i * 0.6, speed: 20, airborne: true }),
+      ),
+      sample({ t: t0 + 0.7, s, speed: 20, pitch }),
+    ];
+    // A crest hop at s = 500 lands flat: it is not the jump and is not scored.
+    const attempt = new LicenceAttempt(LICENCE_TESTS.jump, downhill);
+    for (const x of flight(0, 500, 0)) expect(attempt.observe(x)).toBeNull();
+    expect(attempt.message).toContain('NOT THE MARKED JUMP');
+    // Parallel to a 12° downslope is a perfect landing, not a 12° error.
+    let outcome = null;
+    for (const x of flight(5, 3005, slope)) outcome ??= attempt.observe(x);
+    expect(outcome).toMatchObject({ valid: true, medal: 'gold' });
+    expect(outcome!.value).toBeCloseTo(0, 6);
+    expect(scoreSamples(LICENCE_TESTS.jump, downhill, flight(0, 3000, 0))!.value).toBeCloseTo(
+      12,
+      4,
+    );
+    // Without a surveyed jump nothing is scored.
+    const none = { ...course, landing: Number.NaN, landingPitch: Number.NaN };
+    expect(scoreSamples(LICENCE_TESTS.jump, none, flight(0, 3000, 0))).toBeNull();
+  });
+  it('reads the jump geometry a venue declares and opens the jump test only with a survey', () => {
+    const declared = surveyedJumps({
+      jumps: [
+        { s: 400 }, // a marker without geometry
+        { takeoff: 980, landing: 1030, landingPitch: -0.2, name: 'THE TABLE' },
+        { takeoff: 10, landing: 40, landingPitch: 2 }, // implausible slope
+      ],
+    });
+    expect(declared).toEqual([
+      { name: 'THE TABLE', takeoff: 980, landing: 1030, landingLength: 40, landingPitch: -0.2 },
+    ]);
+    const track = new Track('clear', false, undefined, {
+      ...AUREL,
+      jumps: [{ takeoff: 980, landing: 1030, landingLength: 30, landingPitch: -0.2 }],
+    } as typeof AUREL);
+    const c = licenceCourse(LICENCE_TESTS.jump, track, live.vehicles[0]);
+    expect(c).toMatchObject({ landing: 1030, landingWindow: 15, landingPitch: -0.2 });
+    // A dirt venue with unsurveyed jumps keeps the test coming, and says why.
+    const dirt = (jumps: unknown[]) => ({
+      ...live.venues[0],
+      id: 'test-dirt',
+      surface: 'dirt',
+      jumps,
+    });
+    const rx: CareerVehicle = {
+      id: 'test-rx',
+      name: 'TEST RX',
+      classId: 'rallycross',
+      dynamicsKind: 'four-wheel',
+      setupKeys: [],
+    };
+    const bare = withVehicles([rx], { venues: [...live.venues, dirt([{ s: 400 }])] });
+    expect(venueKind(bare.venues.at(-1)!)).toBe('dirt');
+    const coming = licenceAvailability(bare, newCareer(), 'jump');
+    expect(coming.status).toBe('coming');
+    expect(coming.reasons.join(' ')).toContain('surveyed jump');
+    const surveyed = withVehicles([rx], {
+      venues: [...live.venues, dirt([{ takeoff: 980, landing: 1030, landingPitch: -0.2 }])],
+    });
+    expect(licenceAvailability(surveyed, newCareer(), 'jump').venue).toBe('test-dirt');
   });
   it('reads speed, sideslip and pitch from a real snapshot layout', () => {
     const frame = new Float32Array(HEADER + CAR_STRIDE);
@@ -388,6 +529,101 @@ describe('career payments are itemised and paid once per session', () => {
       settleRace(last.save, champ, outcome({ session: 'r2', cars: 4, round: round('r2') })).save,
     ).toBe(last.save);
   });
+  it('never awards a title for a season with AI-driven rounds', () => {
+    const key = 'circuit-cars.club.championship';
+    const rounds = (['aurel', 'vellamar', 'aurel', 'vellamar'] as const).map((circuit) => ({
+      circuit,
+      weather: 'clear' as const,
+      laps: 3,
+    }));
+    const champ = { ...event, key, kind: 'championship' as const };
+    let save = startChampionship(newCareer(), key, 'tc1', rounds, 4);
+    const before = save.reputation['circuit-cars'];
+    // Rounds 1-3 driven by the AI driver: P1 each time, nothing paid.
+    for (const session of ['r1', 'r2', 'r3']) {
+      const settled = settleRace(
+        save,
+        champ,
+        outcome({
+          session,
+          position: 1,
+          cars: 4,
+          demonstration: true,
+          round: {
+            order: [0, 1, 2, 3],
+            retired: [],
+            grid: [0, 1, 2, 3],
+            demonstration: true,
+            session,
+          },
+        }),
+        'apx01',
+      );
+      expect(settled.payout.total).toBe(0);
+      save = settled.save;
+    }
+    // Round 4 is the player's own: paid as a race, but the season is not theirs.
+    const own = outcome({
+      session: 'r4',
+      position: 1,
+      cars: 4,
+      round: {
+        order: [0, 1, 2, 3],
+        retired: [],
+        grid: [0, 1, 2, 3],
+        demonstration: false,
+        session: 'r4',
+      },
+    });
+    const asRace = racePayout(champ, own, save.results[key]);
+    const last = settleRace(save, champ, own, 'apx01');
+    expect(last.save.championships[key].season.results).toHaveLength(4);
+    expect(last.payout.lines.map((l) => l.label)).not.toContain('Championship won');
+    expect(last.payout.lines.at(-1)).toMatchObject({ amount: 0 });
+    expect(last.payout.lines.at(-1)!.label).toContain('rounds 1, 2, 3');
+    expect(last.payout.awarded).toBeNull();
+    expect(last.save.owned.some((o) => o.id === 'apx01')).toBe(false);
+    // Exactly the race payment: no title bonus, no title reputation.
+    expect(last.payout.total).toBe(asRace.total);
+    expect(last.payout.reputation).toBe(asRace.reputation);
+    expect(last.save.reputation['circuit-cars'] - before).toBe(asRace.reputation);
+    expect(last.save.credits - save.credits).toBe(asRace.total);
+  });
+  it('never replaces a season with rounds recorded; abandoning is explicit', () => {
+    const key = 'circuit-cars.club.championship';
+    const rounds = [
+      { circuit: 'aurel' as const, weather: 'clear' as const, laps: 3 },
+      { circuit: 'vellamar' as const, weather: 'rain' as const, laps: 3 },
+    ];
+    const empty = startChampionship(newCareer(), key, 'tc1', rounds, 4);
+    // Nothing raced yet: the season may change machine.
+    expect(startChampionship(empty, key, 'tc2', rounds, 4).championships[key].vehicle).toBe('tc2');
+    const champ = { ...event, key, kind: 'championship' as const };
+    const raced = settleRace(
+      empty,
+      champ,
+      outcome({
+        session: 'r1',
+        cars: 4,
+        round: {
+          order: [1, 0, 2, 3],
+          retired: [],
+          grid: [0, 1, 2, 3],
+          demonstration: false,
+          session: 'r1',
+        },
+      }),
+    ).save;
+    expect(startChampionship(raced, key, 'tc1', rounds, 4)).toBe(raced);
+    expect(() => startChampionship(raced, key, 'tc2', rounds, 4)).toThrow('abandon');
+    const abandoned = abandonChampionship(raced, key);
+    expect(abandoned.championships[key]).toBeUndefined();
+    expect(abandoned.ledger.at(-1)!.label).toContain('1 of 2 rounds');
+    expect(abandoned.credits).toBe(raced.credits);
+    expect(startChampionship(abandoned, key, 'tc2', rounds, 4).championships[key].vehicle).toBe(
+      'tc2',
+    );
+  });
 });
 
 describe('unlocks and availability are derived from the registries', () => {
@@ -407,6 +643,23 @@ describe('unlocks and availability are derived from the registries', () => {
     expect(disciplineStatus(live, 'festival').state).toBe('coming');
   });
   it('opens the bike career when a bike and a ruleset for it are registered', () => {
+    // A registry without bikes (whatever the live content has), so the test
+    // shows the unlock itself rather than today's catalogue.
+    const twoWheel = new Set(
+      live.vehicles.filter((v) => vehicleFamily(v) === 'bike').map((v) => v.classId),
+    );
+    const noBikes: CareerRegistry = {
+      ...live,
+      vehicles: live.vehicles.filter((v) => vehicleFamily(v) !== 'bike'),
+      rulesets: live.rulesets.map((r) => ({
+        ...r,
+        allowedClasses: r.allowedClasses.filter((c) => !twoWheel.has(c) && c !== 'superbike'),
+      })),
+      channels: live.channels.filter((c) => c !== 'LEAN'),
+    };
+    expect(disciplineStatus(noBikes, 'road-bikes').reasons).toContain(
+      'No two-wheel road machine is registered yet.',
+    );
     const bike: CareerVehicle = {
       id: 'test-sbk',
       name: 'TEST SUPERBIKE',
@@ -415,14 +668,12 @@ describe('unlocks and availability are derived from the registries', () => {
       setupKeys: ['brakeBias'],
       ai: { topSpeed: 80, lateralBase: 11 },
     };
-    const noRules = withVehicles([bike]);
+    const noRules = { ...noBikes, vehicles: [...noBikes.vehicles, bike] };
     const status = disciplineStatus(noRules, 'road-bikes');
-    if (!live.rulesets.some((r) => r.allowedClasses.includes('superbike'))) {
-      expect(status.state).toBe('coming');
-      expect(status.reasons.join(' ')).toContain('No race ruleset admits superbike');
-    }
+    expect(status.state).toBe('coming');
+    expect(status.reasons.join(' ')).toContain('No race ruleset admits superbike');
     const rules = [
-      ...live.rulesets,
+      ...noRules.rulesets,
       {
         id: 'test-bike-sprint',
         name: 'TEST BIKE SPRINT',
@@ -433,7 +684,7 @@ describe('unlocks and availability are derived from the registries', () => {
         points: [25],
       },
     ];
-    const open = withVehicles([bike], { rulesets: rules });
+    const open: CareerRegistry = { ...noRules, rulesets: rules };
     const bikes = disciplineStatus(open, 'road-bikes');
     expect(bikes.state).toBe('open');
     expect(bikes.caveat).toContain('bike safety');
@@ -444,18 +695,18 @@ describe('unlocks and availability are derived from the registries', () => {
     ]);
     // The lean licence needs a lean channel in the snapshot.
     const lean = licenceAvailability(open, newCareer(), 'lean');
-    if (!live.channels.includes('LEAN')) {
-      expect(lean.status).toBe('coming');
-      expect(lean.reasons.join(' ')).toContain('LEAN');
-    }
+    expect(lean.status).toBe('coming');
+    expect(lean.reasons.join(' ')).toContain('LEAN');
     const leaning = licenceAvailability(
       { ...open, channels: [...open.channels, 'LEAN'] },
       newCareer(),
       'lean',
     );
     expect(leaning.status).toBe('open');
+    expect(leaning.vehicle).toBe(loanerVehicle(open, 'road-bikes')!.id);
     expect(leaning.vehicle).toBe('test-sbk');
     expect(leaning.loaner).toBe(true);
+    // No practice ruleset admits the bike, so the solo test runs under its race rules.
     expect(leaning.definition!.ruleset).toBe('test-bike-sprint');
     // Its superbike tier now lists the machine; events wait for the licence.
     const events = disciplineEvents(open, newCareer(), 'road-bikes');
@@ -534,6 +785,28 @@ describe('unlocks and availability are derived from the registries', () => {
   });
   it('validates the career content built from the live registries', () => {
     expect(validateCareerContent()).toEqual([]);
+    // A registered class without a race ruleset is coming, not merely locked,
+    // and coming content is not loaded.
+    const odd: CareerVehicle = {
+      id: 'test-hillclimb',
+      name: 'TEST HILL CLIMB',
+      classId: 'test-hill-climb',
+      dynamicsKind: 'four-wheel',
+      setupKeys: [],
+    };
+    const unraced = withVehicles([odd]);
+    const oddEvents = disciplineEvents(unraced, progressed(unraced), 'circuit-cars').filter(
+      (e) => e.tier === 'circuit-cars-open',
+    );
+    expect(oddEvents.length).toBeGreaterThan(0);
+    for (const e of oddEvents) {
+      expect(e.status).toBe('coming');
+      expect(e.reasons.join(' ')).toContain('No race ruleset admits test-hill-climb');
+    }
+    expect(validateCareerContent(unraced)).toEqual([]);
+    // A raceable class opens its events, and every one is loaded: the
+    // production loader cannot load a machine the simulation does not have,
+    // which is what validate:content must catch.
     const gt: CareerVehicle = {
       id: 'test-gt',
       name: 'TEST GT',
@@ -541,16 +814,98 @@ describe('unlocks and availability are derived from the registries', () => {
       dynamicsKind: 'four-wheel',
       setupKeys: [],
     };
-    const registry = withVehicles([gt]);
-    const gtEvent = disciplineEvents(registry, progressed(registry), 'circuit-cars').find(
-      (e) => e.tier === 'gt',
-    )!;
-    // A registered class without a race ruleset is coming, not merely locked.
-    if (!registry.rulesets.some((r) => r.allowedClasses.includes('gt'))) {
-      expect(gtEvent.status).toBe('coming');
-      expect(gtEvent.reasons.join(' ')).toContain('No race ruleset admits gt');
+    const synthetic = withVehicles([gt]);
+    const errors = validateCareerContent(synthetic);
+    expect(errors.length).toBeGreaterThan(0);
+    expect(errors.every((e) => e.includes('unknown vehicle test-gt'))).toBe(true);
+    // With a loader for the synthetic registry, the same content is valid.
+    const loaded: string[] = [];
+    expect(validateCareerContent(synthetic, (d) => void loaded.push(d.id))).toEqual([]);
+    expect(loaded.length).toBeGreaterThan(0);
+  });
+  it('builds the championship card from the round raced next, with its calendar', () => {
+    const save = progressed();
+    const events = disciplineEvents(live, save, 'circuit-cars');
+    const tiers = disciplineTiers(live, 'circuit-cars');
+    const venues = disciplineVenues(live, 'circuit-cars');
+    for (const [i, t] of tiers.entries()) {
+      const champ = events.find((e) => e.key === `circuit-cars.${t.id}.championship`)!;
+      if (champ.status !== 'open') continue;
+      const calendar = championshipCalendar(venues, i, t);
+      expect(champ.calendar).toEqual(calendar);
+      expect(champ.round).toBe(0);
+      expect(champ.definition).toMatchObject({
+        circuit: calendar[0].circuit,
+        weather: calendar[0].weather,
+        laps: calendar[0].laps,
+      });
     }
-    expect(validateCareerContent(registry)).toEqual([]);
+    // A season in progress: the card shows its next round, not round 1.
+    const key = 'circuit-cars.gt.championship';
+    const gt = events.find((e) => e.key === key)!;
+    let run = startChampionship(save, key, gt.vehicle!, gt.calendar, 8);
+    for (const session of ['g1', 'g2', 'g3'])
+      run = settleRace(
+        run,
+        { ...gt, name: gt.name },
+        outcome({
+          session,
+          round: {
+            order: [0, 1, 2, 3, 4, 5, 6, 7],
+            retired: [],
+            grid: [0, 1, 2, 3, 4, 5, 6, 7],
+            demonstration: false,
+            session,
+          },
+        }),
+      ).save;
+    const next = disciplineEvents(live, run, 'circuit-cars').find((e) => e.key === key)!;
+    expect(next.round).toBe(3);
+    expect(next.definition).toMatchObject({
+      circuit: gt.calendar[3].circuit,
+      weather: gt.calendar[3].weather,
+    });
+    expect(next.definition!.name).toContain('ROUND 4');
+  });
+  it('keeps a season in the machine it started in when the active machine changes', () => {
+    let save = progressed();
+    save.owned = [
+      { id: 'tc1', source: 'purchase' },
+      { id: 'tc2', source: 'purchase' },
+    ];
+    save.active = { 'circuit-cars': 'tc1' };
+    const key = 'circuit-cars.club.championship';
+    const club = disciplineEvents(live, save, 'circuit-cars').find((e) => e.key === key)!;
+    expect(club.vehicle).toBe('tc1');
+    save = startChampionship(save, key, 'tc1', club.calendar, 8);
+    save = settleRace(
+      save,
+      { ...club },
+      outcome({
+        session: 'c1',
+        round: {
+          order: [0, 1, 2, 3, 4, 5, 6, 7],
+          retired: [],
+          grid: [0, 1, 2, 3, 4, 5, 6, 7],
+          demonstration: false,
+          session: 'c1',
+        },
+      }),
+    ).save;
+    save = setActive(save, live, 'circuit-cars', 'tc2');
+    const events = disciplineEvents(live, save, 'circuit-cars');
+    const season = events.find((e) => e.key === key)!;
+    expect(season.status).toBe('open');
+    expect(season.vehicle).toBe('tc1');
+    expect(season.definition!.vehicles[0]).toBe('tc1');
+    expect(season.round).toBe(1);
+    // Invitationals follow the new active machine.
+    expect(events.find((e) => e.tier === 'club' && e.kind === 'invitational')!.vehicle).toBe('tc2');
+    // If the season's machine is gone, the season is locked and says how to end it.
+    const gone = { ...save, owned: save.owned.filter((o) => o.id !== 'tc1') };
+    const locked = disciplineEvents(live, gone, 'circuit-cars').find((e) => e.key === key)!;
+    expect(locked.status).toBe('locked');
+    expect(locked.reasons.join(' ')).toContain('abandon the season');
   });
   it('publishes car channels and the derived ones the licences read', () => {
     const channels = snapshotChannels();
@@ -617,6 +972,38 @@ describe('garage ownership, active machines and setup presets', () => {
     expect(save.presets.tc1).toBeUndefined();
     expect(() => setActive(save, live, 'road-bikes', 'tc1')).toThrow('does not race');
     expect(() => buyVehicle(save, live, 'tc1')).toThrow('already own');
+  });
+  it('does not sell a machine that cannot race in this build', () => {
+    // Off-road with no dirt venue (the circuits only), and a circuit class no
+    // ruleset admits: both are listed but cannot be bought.
+    const rx: CareerVehicle = {
+      id: 'test-rx',
+      name: 'TEST RX',
+      classId: 'rallycross',
+      dynamicsKind: 'four-wheel',
+      setupKeys: [],
+    };
+    const odd: CareerVehicle = {
+      id: 'test-hillclimb',
+      name: 'TEST HILL CLIMB',
+      classId: 'test-hill-climb',
+      dynamicsKind: 'four-wheel',
+      setupKeys: [],
+    };
+    const registry = withVehicles([rx, odd], {
+      venues: live.venues.filter((v) => venueKind(v) === 'circuit'),
+    });
+    const rich = { ...newCareer(), credits: 1e6 };
+    expect(disciplineStatus(registry, 'off-road').state).toBe('coming');
+    expect(purchaseReasons(registry, rx).join(' ')).toContain('dirt or mixed-surface venue');
+    expect(() => buyVehicle(rich, registry, 'test-rx')).toThrow('cannot race');
+    expect(purchaseReasons(registry, odd)).toEqual(['No race ruleset admits test-hill-climb yet.']);
+    expect(() => buyVehicle(rich, registry, 'test-hillclimb')).toThrow('cannot race');
+    // Every machine of the live catalogue that can be bought can race.
+    for (const v of live.vehicles)
+      if (!purchaseReasons(live, v).length)
+        expect(disciplineStatus(live, vehicleDiscipline(v)).state).toBe('open');
+    expect(buyVehicle(rich, registry, 'tc1').owned).toEqual([{ id: 'tc1', source: 'purchase' }]);
   });
 });
 
@@ -700,18 +1087,7 @@ describe('career save versioning, migration and recovery', () => {
     expect(lost.value).toBeNull();
   });
   it('loads through the store: recovers from the backup, else seeds from legacy saves', async () => {
-    const data = new Map<string, unknown>();
-    const toasts: string[] = [];
-    const store: CareerHost['store'] = {
-      async readRecovered(key, validate) {
-        return recoverSave(data.get(key), data.get(backupKey(key)), validate);
-      },
-      async writeWithBackup(key, value) {
-        if (data.has(key)) data.set(backupKey(key), data.get(key));
-        data.set(key, structuredClone(value));
-      },
-    };
-    const host = { store, toast: (m: string) => toasts.push(m) } as unknown as CareerHost;
+    const { data, toasts, host } = storeHarness();
     const career = new CareerController(host, live);
     await career.load({ team: { ...newTeam(), reputation: 20 } });
     expect(career.save.reputation['circuit-cars']).toBe(8);
@@ -738,6 +1114,99 @@ describe('career save versioning, migration and recovery', () => {
     await fresh.load({});
     expect(fresh.save.owned).toEqual([]);
     expect(toasts.at(-1)).toContain('new career starts');
+    // The unreadable copy is kept aside before the first overwrite and
+    // survives the backup rotation of later writes.
+    await fresh.transact((s) => ({ ...s, credits: s.credits + 1 }));
+    await fresh.transact((s) => ({ ...s, credits: s.credits + 1 }));
+    expect(data.get(CAREER_UNREADABLE_KEY)).toBe('{"truncated');
+    expect(data.get(CAREER_KEY)).toMatchObject({ credits: STARTING_CREDITS + 2 });
+  });
+  it('never overwrites a career saved by a newer build', async () => {
+    const { data, toasts, host } = storeHarness();
+    const newer = { version: CAREER_VERSION + 1, credits: 987654, revision: 9 };
+    const newerBackup = { version: CAREER_VERSION + 1, credits: 900000, revision: 8 };
+    data.set(CAREER_KEY, newer);
+    data.set(backupKey(CAREER_KEY), newerBackup);
+    const career = new CareerController(host, live);
+    await career.load({});
+    expect(career.saving).toBe(false);
+    expect(toasts.at(-1)).toContain('newer build');
+    // Play goes on for the session; storage keeps both newer copies.
+    await career.transact((s) => buyVehicle(s, live, 'tc1'));
+    await career.transact((s) => ({ ...s, credits: s.credits + 5 }));
+    expect(career.save.owned).toEqual([{ id: 'tc1', source: 'purchase' }]);
+    expect(data.get(CAREER_KEY)).toEqual(newer);
+    expect(data.get(backupKey(CAREER_KEY))).toEqual(newerBackup);
+    // The player may choose to save here: the newer career is kept aside first.
+    await career.replaceStored();
+    expect(career.saving).toBe(true);
+    expect(data.get(CAREER_NEWER_KEY)).toEqual(newer);
+    await career.transact((s) => ({ ...s, credits: s.credits + 1 }));
+    expect(data.get(CAREER_KEY)).toMatchObject({ version: CAREER_VERSION, owned: [{ id: 'tc1' }] });
+    expect(data.get(CAREER_NEWER_KEY)).toEqual(newer);
+    // A newer primary over a readable older backup: shown, still not written.
+    data.clear();
+    const older = buyVehicle(newCareer(), live, 'tc1');
+    data.set(CAREER_KEY, newer);
+    data.set(backupKey(CAREER_KEY), older);
+    const mixed = new CareerController(host, live);
+    await mixed.load({});
+    expect(mixed.saving).toBe(false);
+    expect(mixed.save.owned).toEqual(older.owned);
+    await mixed.transact((s) => ({ ...s, credits: 1 }));
+    await mixed.transact((s) => ({ ...s, credits: 2 }));
+    expect(data.get(CAREER_KEY)).toEqual(newer);
+  });
+  it('plays without saving when storage cannot be read, leaving it untouched', async () => {
+    const { data, toasts, host } = storeHarness();
+    const stored = buyVehicle(newCareer(), live, 'tc1');
+    data.set(CAREER_KEY, stored);
+    const failing = {
+      ...host,
+      store: {
+        ...host.store,
+        read: async () => {
+          throw new Error('blocked');
+        },
+      },
+    };
+    const career = new CareerController(failing, live);
+    await career.load({});
+    expect(career.saving).toBe(false);
+    expect(toasts.at(-1)).toContain('nothing is saved');
+    await career.transact((s) => ({ ...s, credits: 3 }));
+    expect(career.save.credits).toBe(3);
+    expect(data.get(CAREER_KEY)).toEqual(stored);
+  });
+  it('applies a change to what another tab saved, so neither tab loses progress', async () => {
+    const { data, toasts, host } = storeHarness();
+    const a = new CareerController(host, live),
+      b = new CareerController(host, live);
+    await a.load({});
+    await b.load({});
+    // Tab A buys a car; tab B, still on its copy, then earns a licence medal.
+    await a.transact((s) => buyVehicle(s, live, 'tc1'));
+    const medal = {
+      test: 'braking' as const,
+      value: 1,
+      medal: 'gold' as const,
+      valid: true,
+      detail: '',
+    };
+    await b.transact((s) => settleLicence(s, medal, 'tab-b', false).save);
+    expect(toasts.at(-1)).toContain('another tab');
+    const stored = validateCareer(data.get(CAREER_KEY));
+    expect(stored.owned).toEqual([{ id: 'tc1', source: 'purchase' }]);
+    expect(stored.licences.braking!.medal).toBe('gold');
+    expect(stored.credits).toBe(STARTING_CREDITS - 30000 + 10000);
+    // Tab A's next change keeps tab B's medal.
+    await a.transact((s) => ({ ...s, credits: s.credits + 1 }));
+    const after = validateCareer(data.get(CAREER_KEY));
+    expect(after.licences.braking!.medal).toBe('gold');
+    expect(after.owned).toEqual([{ id: 'tc1', source: 'purchase' }]);
+    expect(after.revision).toBe(3);
+    // A purchase already made in the other tab is refused, not repeated.
+    await expect(b.transact((s) => buyVehicle(s, live, 'tc1'))).rejects.toThrow('already own');
   });
 });
 

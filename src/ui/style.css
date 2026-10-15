@@ -4394,3 +4394,30 @@ dialog .error-detail {
 .career-briefing {
   max-width: 720px;
 }
+/* A season's calendar inside its event card; wraps at phone width. */
+.career-calendar {
+  margin: 6px 0 12px;
+  font-size: 11px;
+}
+.career-calendar li {
+  flex-wrap: wrap;
+  gap: 4px 10px;
+}
+.career-event > button + button {
+  margin-top: 6px;
+}
+/* Shown while this build is not saving the career, with the way out. */
+.career-unsaved {
+  border: 1px solid #d69b69;
+  padding: 10px 14px;
+  margin: 0 0 14px;
+  font-size: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  align-items: center;
+}
+.career-unsaved p {
+  margin: 0;
+  flex: 1 1 260px;
+}

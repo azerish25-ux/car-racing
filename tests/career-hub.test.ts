@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { buyVehicle, savePreset } from '../src/career/economy.ts';
-import { liveRegistry, type CareerRegistry } from '../src/career/registry.ts';
+import { liveRegistry, venueKind, type CareerRegistry } from '../src/career/registry.ts';
 import { newCareer } from '../src/career/save.ts';
 import { DEFAULT_SETUP } from '../src/simulation/config.ts';
 import {
@@ -91,6 +91,53 @@ describe('career screens (DOM markup, no renderer)', () => {
     expect(brief).toContain('GOLD ≤ 0.75 m');
     expect(brief).toContain('loaned');
     expect(brief).toContain('data-action="career:licenceGo"');
+  });
+  it('lists unsellable machines with what is missing and no BUY button', () => {
+    const registry: CareerRegistry = {
+      ...live,
+      venues: live.venues.filter((v) => venueKind(v) === 'circuit'),
+      vehicles: [
+        ...live.vehicles,
+        {
+          id: 'test-rx',
+          name: 'TEST RX',
+          classId: 'rallycross',
+          dynamicsKind: 'four-wheel',
+          setupKeys: [],
+        },
+      ],
+    };
+    const html = careerHub({ ...newCareer(), credits: 1e6 }, registry, {
+      page: 'dealership',
+      discipline: 'circuit-cars',
+    });
+    const card = html.slice(html.indexOf('data-vehicle="test-rx"'));
+    const rx = card.slice(0, card.indexOf('</article>'));
+    expect(rx).toContain('data-status="coming"');
+    expect(rx).toContain('COMING');
+    expect(rx).toContain('dirt or mixed-surface venue');
+    expect(rx).not.toContain('career:buy:test-rx');
+    expect(html).toContain('data-action="career:buy:tc1"');
+  });
+  it('shows a championship calendar and when the career is not being saved', () => {
+    const html = careerHub(newCareer(), live, {
+      page: 'events',
+      discipline: 'circuit-cars',
+      unsaved: {
+        reason: 'This career was saved by a newer build (career version 2)',
+        replaceable: true,
+      },
+    });
+    expect(html).toContain('class="championship-calendar career-calendar"');
+    expect(html).toMatch(/<b>R1<\/b> [^<]+ · (DRY|RAIN|CHANGEABLE) · \d+ LAPS/);
+    expect(html).toContain('NOT SAVING');
+    expect(html).toContain('data-action="career:replace"');
+    expect(
+      payoutPanel(
+        { lines: [], total: 0, reputation: 0, paid: true, reason: null, awarded: null },
+        'unsaved',
+      ),
+    ).toContain('this session only');
   });
   it('styles career screens with the existing menu tokens and no motion', () => {
     const css = readFileSync('src/ui/style.css', 'utf8');

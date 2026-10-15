@@ -8,18 +8,23 @@ import {
 import { eventSession } from '../simulation/events.ts';
 import { F, H, carBase } from '../simulation/protocol.ts';
 import type { Track } from '../simulation/track.ts';
+import { backupKey, recoverSave } from '../storage/data.ts';
 import {
   CAREER_PAGES,
+  abandonPrompt,
   careerHub,
   licenceBriefing,
   licenceResult,
   payoutPanel,
+  replacePrompt,
   type CareerPage,
   type CareerView,
+  type PaymentState,
 } from '../ui/career-hub.ts';
 import { ContactMeter } from './contact.ts';
 import { licenceCourse } from './course.ts';
 import {
+  abandonChampionship,
   buyVehicle,
   careerSetup,
   deletePreset,
@@ -32,8 +37,6 @@ import {
   type Payout,
 } from './economy.ts';
 import {
-  buildEvent,
-  championshipCalendar,
   disciplineEvents,
   disciplineTiers,
   licenceAvailability,
@@ -51,15 +54,17 @@ import {
 } from './licences.ts';
 import {
   DISCIPLINE_IDS,
-  disciplineStatus,
   liveRegistry,
   type CareerRegistry,
   type DisciplineId,
 } from './registry.ts';
 import {
   CAREER_KEY,
+  CAREER_NEWER_KEY,
+  CAREER_UNREADABLE_KEY,
   careerFromLegacy,
   newCareer,
+  newerCareerVersion,
   validateCareer,
   type CareerSave,
   type LegacySaves,
@@ -81,11 +86,11 @@ export interface CareerSession {
 }
 /** What the career needs from the application shell (main.ts). */
 export interface CareerHost {
+  /** The SaveStore: raw reads (recovery and other tabs' writes), a plain
+   * write (copies kept aside) and the backup-before-overwrite write. */
   store: {
-    readRecovered<T>(
-      key: string,
-      validate: (value: unknown) => T | null,
-    ): Promise<{ value: T | null; recovered: boolean; reason: string | null }>;
+    read(key: string): Promise<unknown>;
+    write(key: string, value: unknown): Promise<void>;
     writeWithBackup(key: string, value: unknown): Promise<void>;
   };
   modal(html: string): void;
@@ -101,6 +106,26 @@ export interface CareerHost {
 }
 const pageOf = (value: string | undefined): CareerPage =>
   CAREER_PAGES.some(([id]) => id === value) ? (value as CareerPage) : 'hub';
+/** Writes are not made while the stored career cannot safely be replaced. */
+type Persistence =
+  | { saving: true }
+  | {
+      saving: false;
+      reason: string;
+      /** Copies to keep aside if the player chooses to save in this build. */
+      keep: { key: string; value: unknown } | null;
+    };
+const message = (error: unknown) => (error instanceof Error ? error.message : String(error));
+/** One writer at a time across tabs, where the browser offers Web Locks. */
+async function exclusive<T>(fn: () => Promise<T>): Promise<T> {
+  const locks = (globalThis.navigator as { locks?: LockManager } | undefined)?.locks;
+  if (!locks) return fn();
+  let result!: T;
+  await locks.request('apex-career-save', async () => {
+    result = await fn();
+  });
+  return result;
+}
 export class CareerController {
   save: CareerSave = newCareer();
   readonly registry: CareerRegistry;
@@ -113,52 +138,145 @@ export class CareerController {
   private pendingLicence: LicenceId | null = null;
   private readonly contact = new ContactMeter(0);
   private aiUsed = false;
+  private persistence: Persistence = { saving: true };
+  /** An unreadable primary to keep aside before the first overwrite. */
+  private quarantine: unknown = undefined;
   constructor(
     private readonly host: CareerHost,
     registry: CareerRegistry = liveRegistry(),
   ) {
     this.registry = registry;
   }
-  /** Read the career, recovering from the backup, else seed from legacy saves. */
+  /** Read the career, recovering from the backup, else seed from legacy
+   * saves. A career this build cannot safely overwrite (written by a newer
+   * build, or storage that could not be read) is played without saving. */
   async load(legacy: LegacySaves) {
+    let primary: unknown, backup: unknown;
     try {
-      const saved = await this.host.store.readRecovered(CAREER_KEY, validateCareer);
-      if (saved.value) {
-        this.save = saved.value;
-        if (saved.recovered)
-          this.host.toast(
-            `Career save was unreadable (${saved.reason}); restored the previous copy.`,
-          );
-        return;
-      }
-      this.save = careerFromLegacy(legacy);
-      if (saved.reason)
-        this.host.toast(
-          `Career save was unreadable (${saved.reason}) and no backup could be used; a new career starts. The unreadable copy becomes the backup on the next save.`,
-        );
+      primary = await this.host.store.read(CAREER_KEY);
+      backup = await this.host.store.read(backupKey(CAREER_KEY));
     } catch (error) {
       this.save = careerFromLegacy(legacy);
+      const reason = `Career storage could not be read (${message(error)})`;
+      this.persistence = { saving: false, reason, keep: null };
       this.host.toast(
-        `Career save unavailable: ${error instanceof Error ? error.message : String(error)}. Career progress will not be kept.`,
+        `${reason}. You can play, but nothing is saved this session, so the stored career is left untouched.`,
+      );
+      return;
+    }
+    const saved = recoverSave(primary, backup, validateCareer);
+    const newer = newerCareerVersion(primary) ?? newerCareerVersion(backup);
+    if (newer !== null) {
+      // Overwriting would rotate the newer career out of the backup within
+      // two writes. Show what this build can read, and write nothing.
+      this.save = saved.value ?? careerFromLegacy(legacy);
+      const reason = `This career was saved by a newer build (career version ${newer})`;
+      this.persistence = {
+        saving: false,
+        reason,
+        keep: { key: CAREER_NEWER_KEY, value: newerCareerVersion(primary) ? primary : backup },
+      };
+      this.host.toast(
+        `${reason}. This build shows ${saved.value ? 'the older copy it can read' : 'a new career'} and saves nothing, so the newer career is kept. Open CAREER to choose otherwise.`,
+      );
+      return;
+    }
+    if (saved.value) {
+      this.save = saved.value;
+      if (saved.recovered) {
+        this.quarantine = primary;
+        this.host.toast(
+          `Career save was unreadable (${saved.reason}); restored the previous copy. The unreadable copy is kept aside.`,
+        );
+      }
+      return;
+    }
+    this.save = careerFromLegacy(legacy);
+    if (saved.reason) {
+      this.quarantine = primary ?? backup;
+      this.host.toast(
+        `Career save was unreadable (${saved.reason}) and no backup could be used; a new career starts. The unreadable copy is kept aside under a separate key, not overwritten.`,
       );
     }
   }
+  /** Whether career changes are being saved, and if not, why. */
+  get saving() {
+    return this.persistence.saving;
+  }
   /** Apply `change` to the latest save and persist it (backup first). Writes
-   * are serialized, so two quick transactions cannot lose each other. */
+   * are serialized in this tab and, where the browser allows, across tabs;
+   * a career another tab saved since is re-read and `change` is applied to
+   * it, so neither tab's purchases, medals or rounds are lost. */
   transact(change: (save: CareerSave) => CareerSave): Promise<CareerSave> {
     const run = this.queue.then(async () => {
-      const next = change(this.save);
-      if (next !== this.save) {
-        await this.host.store.writeWithBackup(CAREER_KEY, next);
-        this.save = next;
+      if (!this.persistence.saving) {
+        // Played without saving: the change lasts for this session only.
+        this.save = change(this.save);
+        return this.save;
       }
-      return next;
+      return exclusive(async () => {
+        const base = await this.latest();
+        const next = change(base);
+        if (next === base) return base;
+        if (this.quarantine !== undefined) {
+          await this.host.store.write(CAREER_UNREADABLE_KEY, this.quarantine);
+          this.quarantine = undefined;
+        }
+        const written = { ...next, revision: base.revision + 1 };
+        await this.host.store.writeWithBackup(CAREER_KEY, written);
+        this.save = written;
+        return written;
+      });
+    });
+    this.queue = run.catch(() => undefined);
+    return run;
+  }
+  /** The save to change: this tab's copy, unless another tab has written a
+   * different revision since. A newer build's write stops saving here. */
+  private async latest() {
+    const stored = await this.host.store.read(CAREER_KEY);
+    const newer = newerCareerVersion(stored);
+    if (newer !== null) {
+      const reason = `Another tab saved this career with a newer build (career version ${newer})`;
+      this.persistence = { saving: false, reason, keep: { key: CAREER_NEWER_KEY, value: stored } };
+      throw new Error(`${reason}; this build has stopped saving so it is not overwritten.`);
+    }
+    let fresh: CareerSave | null = null;
+    try {
+      fresh = stored === undefined ? null : validateCareer(stored);
+    } catch {
+      fresh = null; // Unreadable now: this tab's copy is the best there is.
+    }
+    if (fresh && fresh.revision !== this.save.revision) {
+      this.save = fresh;
+      this.host.toast('Career updated from another tab; your change was applied to that copy.');
+    }
+    return this.save;
+  }
+  /** The player chose to save in this build: keep the newer build's career
+   * aside under its own key, then save this build's career. Queued like any
+   * transaction, so no other write can interleave. */
+  replaceStored(): Promise<void> {
+    const run = this.queue.then(async () => {
+      const p = this.persistence;
+      if (p.saving) return;
+      if (p.keep) await this.host.store.write(p.keep.key, p.keep.value);
+      const written = { ...this.save, revision: this.save.revision + 1 };
+      await this.host.store.writeWithBackup(CAREER_KEY, written);
+      this.save = written;
+      this.persistence = { saving: true };
     });
     this.queue = run.catch(() => undefined);
     return run;
   }
   open(page: CareerPage = this.view.page, status?: string) {
-    this.view = { ...this.view, page, status };
+    const p = this.persistence;
+    this.view = {
+      ...this.view,
+      page,
+      status,
+      unsaved: p.saving ? undefined : { reason: p.reason, replaceable: !!p.keep },
+    };
     this.host.modal(careerHub(this.save, this.registry, this.view));
     // Keep keyboard focus on the section the player is in after a re-render.
     this.host
@@ -170,9 +288,9 @@ export class CareerController {
     if (this.host.modalRoot().querySelector('.career-hub')) this.open(this.view.page, status);
   }
   private fail(error: unknown) {
-    const message = error instanceof Error ? error.message : String(error);
-    this.host.toast(message);
-    this.refresh(message);
+    const text = message(error);
+    this.host.toast(text);
+    this.refresh(text);
   }
   /** Route a `career…` action. */
   action(name: string) {
@@ -194,6 +312,26 @@ export class CareerController {
       if (command === 'licence' && LICENCE_IDS.includes(a as LicenceId))
         return this.briefLicence(a as LicenceId);
       if (command === 'licenceGo') return this.startLicence();
+      if (command === 'abandon' && this.save.championships[a]) {
+        const entry = this.save.championships[a];
+        return this.host.modal(
+          abandonPrompt(
+            a,
+            this.findEvent(a)?.name ?? a,
+            this.vehicle(entry.vehicle)?.name ?? entry.vehicle,
+            entry.season.results.length,
+            entry.season.rounds.length,
+          ),
+        );
+      }
+      if (command === 'abandonConfirm')
+        return this.change((s) => abandonChampionship(s, a), 'events', 'Season abandoned.');
+      if (command === 'replace' && !this.persistence.saving)
+        return this.host.modal(replacePrompt(this.persistence.reason, !!this.persistence.keep));
+      if (command === 'replaceConfirm')
+        return void this.replaceStored()
+          .then(() => this.open('hub', 'This build now saves the career.'))
+          .catch((error) => this.fail(error));
       if (command === 'buy')
         return this.change(
           (s) => buyVehicle(s, this.registry, a),
@@ -256,46 +394,35 @@ export class CareerController {
     return this.registry.vehicles.find((v) => v.id === id) ?? null;
   }
   private async startEvent(key: string) {
-    const event = this.findEvent(key);
+    let event = this.findEvent(key);
+    const unavailable = (e: CareerEvent | null) =>
+      new Error(
+        e ? `${e.name}: ${e.reasons.join('; ') || 'not available'}` : 'Unknown career event.',
+      );
     if (!event || event.status !== 'open' || !event.definition || !event.vehicle)
-      return this.fail(
-        new Error(
-          event
-            ? `${event.name}: ${event.reasons.join('; ') || 'not available'}`
-            : 'Unknown career event.',
+      return this.fail(unavailable(event));
+    if (!this.canStart()) return;
+    if (event.kind === 'championship') {
+      // The event already names the season's machine and next round (a
+      // season in progress keeps both); this only creates a season when
+      // none is running, and never replaces one with rounds recorded.
+      const opened = event;
+      await this.transact((s) =>
+        startChampionship(
+          s,
+          opened.key,
+          opened.vehicle!,
+          opened.calendar,
+          opened.definition!.opponents + 1,
         ),
       );
-    if (!this.canStart()) return;
-    const player = this.vehicle(event.vehicle)!;
-    let definition = event.definition,
-      round = -1;
-    if (event.kind === 'championship') {
-      const tiers = disciplineTiers(this.registry, event.discipline),
-        tierIndex = tiers.findIndex((t) => t.id === event.tier),
-        tier = tiers[tierIndex],
-        venues = disciplineStatus(this.registry, event.discipline).venues;
-      const rounds = championshipCalendar(venues, tierIndex, tier);
-      const saved = await this.transact((s) =>
-        startChampionship(s, event.key, player.id, rounds, definition.opponents + 1),
-      );
-      const season = saved.championships[event.key].season;
-      round = season.results.length;
-      const spec = season.rounds[round];
-      const venue = venues.find((v) => v.id === spec.circuit);
-      const built = buildEvent(this.registry, {
-        id: `career-${tier.id}-championship-r${round + 1}`,
-        name: `${tier.name.toUpperCase()} CHAMPIONSHIP · ROUND ${round + 1}`,
-        venue: spec.circuit,
-        player,
-        mode: 'race',
-        laps: spec.laps,
-        cars: season.cars,
-        weather: spec.weather,
-      });
-      if (!built.definition || !venue)
-        return this.fail(new Error(built.reason ?? 'Round venue missing.'));
-      definition = built.definition;
+      event = this.findEvent(key);
+      if (!event || event.status !== 'open' || !event.definition || !event.vehicle)
+        return this.fail(unavailable(event));
     }
+    const player = this.vehicle(event.vehicle)!;
+    const definition = event.definition!,
+      round = event.kind === 'championship' ? event.round : -1;
     const options = eventSession(definition, this.base());
     const cars = options.opponents + 1,
       slot = Math.min(event.startSlot, cars - 1),
@@ -403,17 +530,17 @@ export class CareerController {
       reason: null,
       awarded: null,
     };
-    const show = (state: 'saving' | 'saved' | 'failed') =>
+    const show = (state: PaymentState) =>
       this.host.modal(licenceResult(test, outcome, payout, state));
     this.transact((s) => {
       const settled = settleLicence(s, outcome, session, ai);
       payout = settled.payout;
       return settled.save;
     })
-      .then(() => show('saved'))
+      .then(() => show(this.saving ? 'saved' : 'unsaved'))
       .catch((error) => {
         show('failed');
-        this.host.toast(`Licence result not saved: ${String(error)}`);
+        this.host.toast(`Licence result not saved: ${message(error)}`);
       });
     show('saving');
   }
@@ -472,7 +599,7 @@ export class CareerController {
       );
     };
     let payout = settle(this.save).payout;
-    const render = (state: 'saving' | 'saved' | 'failed') => {
+    const render = (state: PaymentState) => {
       const html = payoutPanel(payout, state, this.registry);
       this.host.setResultsExtra(html);
       const node = this.host.modalRoot().querySelector('.career-payout');
@@ -484,10 +611,10 @@ export class CareerController {
       payout = settled.payout;
       return settled.save;
     })
-      .then(() => render('saved'))
+      .then(() => render(this.saving ? 'saved' : 'unsaved'))
       .catch((error) => {
         render('failed');
-        this.host.toast(`Career payment not saved: ${String(error)}`);
+        this.host.toast(`Career payment not saved: ${message(error)}`);
       });
     return true;
   }

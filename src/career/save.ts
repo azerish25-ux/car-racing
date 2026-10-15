@@ -12,6 +12,10 @@ import { DISCIPLINE_IDS, type DisciplineId } from './registry.ts';
  * rewritten by the career: their data is read once to seed a new career. */
 export const CAREER_VERSION = 1;
 export const CAREER_KEY = 'career';
+/** Copies kept aside before this build overwrites a career it cannot read:
+ * one saved by a newer build, or one that failed validation. */
+export const CAREER_NEWER_KEY = 'career:newer';
+export const CAREER_UNREADABLE_KEY = 'career:unreadable';
 export const STARTING_CREDITS = 40000;
 export const MAX_PRESETS = 6;
 export interface LicenceRecord {
@@ -42,6 +46,8 @@ export interface CareerChampionship {
 }
 export interface CareerSave {
   version: typeof CAREER_VERSION;
+  /** Incremented by every write; another tab's write is detected by it. */
+  revision: number;
   credits: number;
   reputation: Record<DisciplineId, number>;
   licences: Partial<Record<LicenceId, LicenceRecord>>;
@@ -63,6 +69,7 @@ const zeroReputation = () =>
 export function newCareer(): CareerSave {
   return {
     version: CAREER_VERSION,
+    revision: 0,
     credits: STARTING_CREDITS,
     reputation: zeroReputation(),
     licences: {},
@@ -144,6 +151,14 @@ const record = (v: unknown): Record<string, unknown> =>
 export const CAREER_MIGRATIONS: Readonly<
   Record<number, (save: Record<string, unknown>) => Record<string, unknown>>
 > = Object.freeze({});
+/** The stored version of a career written by a newer build, else null. */
+export function newerCareerVersion(value: unknown): number | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  const version = (value as Record<string, unknown>).version;
+  return typeof version === 'number' && Number.isInteger(version) && version > CAREER_VERSION
+    ? version
+    : null;
+}
 /** Validate a stored career: bounded known fields only. Unknown vehicle ids
  * are kept (another build may register them) but are never priced or raced
  * until the registry has them. Throws on data that cannot be a career, so
@@ -165,6 +180,7 @@ export function validateCareer(value: unknown): CareerSave {
   }
   const out = newCareer();
   out.ledger = [];
+  out.revision = int(raw.revision, 0, 0, Number.MAX_SAFE_INTEGER);
   out.credits = int(raw.credits, 0, 0, 1e9);
   const rep = record(raw.reputation);
   for (const d of DISCIPLINE_IDS) out.reputation[d] = int(rep[d], 0, 0, 100);

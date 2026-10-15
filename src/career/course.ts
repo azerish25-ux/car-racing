@@ -1,7 +1,7 @@
 import { racingLineFor } from '../simulation/racing-line.ts';
 import { trackPoint, type Track } from '../simulation/track.ts';
 import type { LicenceCourse, LicenceTest } from './licences.ts';
-import type { CareerVehicle } from './registry.ts';
+import { surveyedJumps, type CareerVehicle } from './registry.ts';
 
 /** Fallback envelope when a machine publishes no AI capability numbers. */
 const DEFAULT_ENVELOPE = { topSpeed: 60, lateralBase: 12 };
@@ -63,6 +63,8 @@ export function licenceCourse(
     }
   const radius = 1 / Math.max(1e-4, sharpest);
   const line = racingLineFor(track);
+  // The jump test scores the venue's first surveyed jump, against its slope.
+  const jump = surveyedJumps(track.circuit as { jumps?: readonly unknown[] })[0];
   return {
     length,
     marker,
@@ -76,7 +78,9 @@ export function licenceCourse(
         : Math.min(envelope.topSpeed, Math.sqrt(envelope.lateralBase * radius)) *
           LICENCE_PACE.corner,
     lineAt: (s) => line.offsetAt(s),
-    landingPitch: 0,
-    cornerName,
+    landing: jump ? jump.landing % length : Number.NaN,
+    landingWindow: jump ? jump.landingLength / 2 : 0,
+    landingPitch: jump ? jump.landingPitch : Number.NaN,
+    cornerName: test.id === 'jump' && jump ? jump.name : cornerName,
   };
 }

@@ -36,6 +36,8 @@ test('career hub: CAREER entry, keyboard reach, licences, dealership, garage and
     ).CareerHub.mountCareerHub();
   });
   const log = page.locator('#careerEvents');
+  const loaner = (await log.getAttribute('data-loaner')) ?? '';
+  expect(loaner).not.toBe('');
   const hub = page.locator('#modal .career-hub');
   // CAREER leads the paddock actions and opens from the keyboard.
   const first = page.locator('#menu .menu-actions button').first();
@@ -80,7 +82,7 @@ test('career hub: CAREER entry, keyboard reach, licences, dealership, garage and
   await braking.getByRole('button', { name: 'START TEST' }).click();
   await expect(page.locator('.career-briefing h2')).toHaveText('Braking marker');
   await page.locator('.career-briefing').getByRole('button', { name: 'START TEST' }).click();
-  await expect(log).toContainText('start:practice:tc1:licence:1;');
+  await expect(log).toContainText(`start:practice:${loaner}:licence:1;`);
   // Dealership: buy the touring car, then it is active in the garage.
   await page.locator('.career-briefing').getByRole('button', { name: 'BACK' }).click();
   await expect(page.locator('[data-career-page="licences"]')).toBeVisible();
@@ -102,10 +104,21 @@ test('career hub: CAREER entry, keyboard reach, licences, dealership, garage and
   const recovery = page.locator('.career-event[data-kind="recovery"]').first();
   await expect(recovery.locator('.career-state')).toHaveText('OPEN');
   await recovery.getByRole('button', { name: 'ENTER CLUB MEETING' }).click();
-  await expect(log).toContainText('start:race:tc1:race:4;');
+  await expect(log).toContainText(`start:race:${loaner}:race:4;`);
   // Locked events state what they need.
   const locked = page.locator('.career-event[data-status="locked"]').first();
   await expect(locked.locator('.career-reasons li').first()).toBeVisible();
+  // A championship card lists its calendar: every round's venue and weather.
+  const season = page.locator('.career-event[data-kind="championship"]').first();
+  await expect(season.locator('.career-calendar li').first()).toContainText('R1');
+  // The dealership never sells a machine that cannot race here: such a card
+  // says what is missing and has no BUY button.
+  await page.getByRole('button', { name: 'Dealership', exact: true }).click();
+  const unsold = page.locator('#modal .career-vehicle[data-status="coming"]');
+  for (let i = 0; i < (await unsold.count()); i++) {
+    await expect(unsold.nth(i).getByRole('button', { name: /^BUY FOR/ })).toHaveCount(0);
+    await expect(unsold.nth(i).locator('.career-reasons li').first()).toBeVisible();
+  }
   // Reduced motion: no transition remains on career controls.
   await page.evaluate(() => (document.documentElement.dataset.reducedMotion = 'true'));
   const duration = await page

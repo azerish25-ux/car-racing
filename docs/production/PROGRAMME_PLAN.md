@@ -79,8 +79,10 @@ or team management. Rewards: completion, improvement and clean racing, with the 
 (`rewardIncome`); transactional, idempotent per session; no pay-to-win; a recovery route for broke
 teams (reduced-stakes events). Saves: versioned, backed up before overwrite, recoverable.
 *In source:* the driver career (`src/career/`, CAREER menu) implements licences scored from
-telemetry, registry-derived disciplines and tiers, invitationals, tier championships, the
-recovery club meeting, class prices, garage presets and a versioned, recoverable save; what remains
+telemetry (circuit cars and, since the bike slice merged, the bike lean licence), registry-derived
+disciplines and tiers, invitationals, tier championships locked to their machine and calendar, the
+recovery club meeting, class prices for machines that can race, garage presets and a versioned,
+recoverable save that a newer build's career or another tab's writes cannot be lost to; what remains
 designed only is listed in `GAME_DESIGN.md` §5.
 
 ## 6. AI programme (§13)

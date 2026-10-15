@@ -201,7 +201,11 @@ export interface LicenceCourse {
   paceSpeed: number;
   /** Racing-line lateral offset at lap distance s. */
   lineAt(s: number): number;
-  /** Landing slope pitch (rad) for the jump test. */
+  /** Jump test: centre (lap distance, m) and half-length of the surveyed
+   * landing zone, and its slope (rad, nose-up +). NaN when the venue has no
+   * surveyed jump, and then nothing is scored. */
+  landing: number;
+  landingWindow: number;
   landingPitch: number;
   cornerName: string;
 }
@@ -308,8 +312,14 @@ export class LicenceAttempt {
         const d = lapDelta(sample.s, c.corner, c.length);
         const inside = d >= -c.window && d <= c.window;
         if (!this.armed) {
-          // Arm only on a forward entry at the window's start.
+          // Arm only on a forward entry at the window's start, on a lap that
+          // is still valid: the lap flag stays false after a breach anywhere
+          // earlier on the lap, which says nothing about this corner.
           if (inside && d < -c.window + 15 && sample.speed > 3) {
+            if (this.test.id === 'cornering' && !sample.lapValid) {
+              this.message = 'LAP ALREADY INVALID · TRY THE CORNER AGAIN NEXT LAP';
+              return null;
+            }
             this.armed = true;
             this.sum = this.count = this.speedSum = this.overlap = this.entry = this.maxLean = 0;
             this.invalid = '';
@@ -322,6 +332,7 @@ export class LicenceAttempt {
           this.speedSum += sample.speed;
           if (this.test.id === 'cornering') {
             this.sum += Math.abs(sample.lateral - c.lineAt(sample.s));
+            // Armed on a valid lap, so a false flag here is a breach in the corner.
             if (!sample.lapValid) this.invalid = 'Track limits exceeded in the corner.';
           } else {
             const lean = Math.abs(sample.lean ?? 0);
@@ -385,13 +396,14 @@ export class LicenceAttempt {
           const time = sample.lastLap > 0 ? sample.lastLap : sample.t - this.startTime,
             pace = c.length / Math.max(1e-3, time),
             degrees = (this.peak * 180) / Math.PI;
-          if (!sample.lastLapValid)
-            return this.finish(null, 'The lap was invalid (track limits).', false);
-          if (pace < c.paceSpeed) {
+          // An invalid or slow lap is not measured; the next lap is another try.
+          if (!sample.lastLapValid || pace < c.paceSpeed) {
             this.startLap = sample.laps;
             this.startTime = sample.t;
             this.peak = 0;
-            this.message = `LAP AVERAGED ${Math.round(pace * 3.6)} KM/H · NEEDS ${Math.round(c.paceSpeed * 3.6)} · GO AGAIN`;
+            this.message = !sample.lastLapValid
+              ? 'LAP INVALID (TRACK LIMITS) · GO AGAIN'
+              : `LAP AVERAGED ${Math.round(pace * 3.6)} KM/H · NEEDS ${Math.round(c.paceSpeed * 3.6)} · GO AGAIN`;
             return null;
           }
           return this.finish(
@@ -402,21 +414,31 @@ export class LicenceAttempt {
         return null;
       }
       case 'jump': {
+        if (!Number.isFinite(c.landing + c.landingPitch)) {
+          this.message = 'NO SURVEYED JUMP AT THIS VENUE';
+          return null;
+        }
         if (sample.airborne) {
           this.airTime += dt;
           this.wasAirborne = true;
           return null;
         }
-        if (this.wasAirborne && this.airTime >= 0.25) {
-          const error = (Math.abs(sample.pitch - c.landingPitch) * 180) / Math.PI;
-          return this.finish(
-            error,
-            `Landed after ${this.airTime.toFixed(2)} s in the air, ${error.toFixed(1)}° from the landing slope.`,
-          );
-        }
+        const landed = this.wasAirborne && this.airTime >= 0.25,
+          air = this.airTime;
         this.wasAirborne = false;
         this.airTime = 0;
-        return null;
+        if (!landed) return null;
+        // Only a touchdown in the surveyed landing zone is the jump; a crest
+        // or kerb hop elsewhere on the lap is not scored.
+        if (Math.abs(lapDelta(sample.s, c.landing, c.length)) > c.landingWindow) {
+          this.message = 'THAT WAS NOT THE MARKED JUMP · CLEAR THE JUMP';
+          return null;
+        }
+        const error = (Math.abs(sample.pitch - c.landingPitch) * 180) / Math.PI;
+        return this.finish(
+          error,
+          `Landed after ${air.toFixed(2)} s in the air, ${error.toFixed(1)}° from the ${Math.round(Math.abs((c.landingPitch * 180) / Math.PI))}° landing slope.`,
+        );
       }
     }
   }

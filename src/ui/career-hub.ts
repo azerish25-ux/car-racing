@@ -1,10 +1,11 @@
-import { standings } from '../core/championship.ts';
+import { standings, type RoundResult } from '../core/championship.ts';
 import { RULESETS } from '../simulation/events.ts';
-import { careerSetup, presetEffects, type Payout } from '../career/economy.ts';
+import { careerSetup, demonstrationRounds, presetEffects, type Payout } from '../career/economy.ts';
 import {
   disciplineEvents,
   disciplineTiers,
   licenceAvailability,
+  purchaseReasons,
   tierVehicles,
   vehiclePrice,
   type CareerEvent,
@@ -42,7 +43,12 @@ export interface CareerView {
   page: CareerPage;
   discipline: DisciplineId;
   status?: string;
+  /** Set while this build is not saving the career, with the reason. */
+  unsaved?: { reason: string; replaceable: boolean };
 }
+/** Where a career payment stands: being written, written, refused by
+ * storage, or counted for this session only because saving is off. */
+export type PaymentState = 'saving' | 'saved' | 'failed' | 'unsaved';
 export const credits = (value: number) =>
   `${value < 0 ? '−' : ''}¤${Math.abs(Math.round(value)).toLocaleString('en')}`;
 const button = (label: string, action: string, primary = false) =>
@@ -72,10 +78,32 @@ function disciplineTabs(view: CareerView) {
       `<button data-action="career:discipline:${id}:${view.page}" aria-pressed="${view.discipline === id}">${DISCIPLINES[id].short}</button>`,
   ).join('')}</div>`;
 }
+/** A championship's rounds with venue, weather and laps, and the player's
+ * result in each recorded round (AI-driven rounds are marked). */
+function calendarList(
+  event: CareerEvent,
+  recorded: readonly RoundResult[],
+  registry: CareerRegistry,
+) {
+  if (event.kind !== 'championship' || !event.calendar.length) return '';
+  const weather = (w: string) => (w === 'clear' ? 'DRY' : w === 'rain' ? 'RAIN' : 'CHANGEABLE');
+  return `<ol class="championship-calendar career-calendar" aria-label="Season calendar">${event.calendar
+    .map((r, i) => {
+      const done = recorded[i];
+      const status = done
+        ? `P${done.order.indexOf(0) + 1}${done.retired.includes(0) ? ' (DNF)' : ''}${done.demonstration ? ' · AI DEMO' : ''}`
+        : i === event.round
+          ? 'NEXT'
+          : '';
+      return `<li${i === event.round ? ' class="next"' : ''}><b>R${i + 1}</b> ${escapeHtml(venueName(registry, r.circuit))} · ${weather(r.weather)} · ${r.laps} LAPS${status ? ` <span>${status}</span>` : ''}</li>`;
+    })
+    .join('')}</ol>`;
+}
 function eventCard(event: CareerEvent, save: CareerSave, registry: CareerRegistry) {
   const def = event.definition;
   const best = save.results[event.key];
   const season = save.championships[event.key];
+  const running = !!season && season.season.results.length < season.season.rounds.length;
   let detail = '';
   if (def) {
     const rules = RULESETS[def.ruleset];
@@ -85,10 +113,15 @@ function eventCard(event: CareerEvent, save: CareerSave, registry: CareerRegistr
     ? `<p class="career-objectives">${event.objectives.map((o) => `${escapeHtml(o.label)} (${credits(Math.round((o.amount * event.stakes) / 10) * 10)})`).join(' · ')}</p>`
     : '';
   let championship = '';
-  if (event.kind === 'championship' && season) {
-    const table = standings(season.season),
-      mine = table.findIndex((s) => s.id === 0);
-    championship = `<p class="career-season">Round ${Math.min(season.season.results.length + 1, season.season.rounds.length)} of ${season.season.rounds.length} · P${mine + 1} on ${table[mine].points} pts${season.season.results.length >= season.season.rounds.length ? ' · season complete' : ''}</p>`;
+  if (event.kind === 'championship') {
+    if (season && season.season.results.length) {
+      const table = standings(season.season),
+        mine = table.findIndex((s) => s.id === 0),
+        ai = demonstrationRounds(season.season);
+      championship = `<p class="career-season">Round ${Math.min(season.season.results.length + 1, season.season.rounds.length)} of ${season.season.rounds.length} · P${mine + 1} on ${table[mine].points} pts · in the ${escapeHtml(vehicleName(registry, season.vehicle))}${running ? '' : ' · season complete'}</p>${ai.length ? `<p class="career-needs">The AI driver drove round${ai.length === 1 ? '' : 's'} ${ai.join(', ')}: those points count in the table, but this season cannot earn the title, bonus or prize.</p>` : ''}`;
+    }
+    // A season in progress lists its own rounds; otherwise the next calendar.
+    championship += calendarList(event, running ? season.season.results : [], registry);
   }
   const action =
     event.status === 'open'
@@ -104,7 +137,11 @@ function eventCard(event: CareerEvent, save: CareerSave, registry: CareerRegistr
           true,
         )
       : '';
-  return `<article class="career-event" data-kind="${event.kind}" data-status="${event.status}"><header><span class="eyebrow">${event.kind === 'recovery' ? 'RECOVERY SERIES · ALWAYS OPEN' : event.kind.toUpperCase()}</span>${stateTag(event.status)}</header><h4>${escapeHtml(event.name)}</h4><p>${escapeHtml(event.description)}</p>${detail}${objectives}${championship}${event.status !== 'open' ? `<p class="career-needs">${event.status === 'coming' ? 'Coming — missing from this build:' : 'Requires:'}</p>${reasonsList(event.reasons)}` : ''}${action}</article>`;
+  const abandon =
+    event.kind === 'championship' && running && season.season.results.length
+      ? button('ABANDON SEASON', `career:abandon:${event.key}`)
+      : '';
+  return `<article class="career-event" data-kind="${event.kind}" data-status="${event.status}"><header><span class="eyebrow">${event.kind === 'recovery' ? 'RECOVERY SERIES · ALWAYS OPEN' : event.kind.toUpperCase()}</span>${stateTag(event.status)}</header><h4>${escapeHtml(event.name)}</h4><p>${escapeHtml(event.description)}</p>${detail}${objectives}${championship}${event.status !== 'open' ? `<p class="career-needs">${event.status === 'coming' ? 'Coming — missing from this build:' : 'Requires:'}</p>${reasonsList(event.reasons)}` : ''}${action}${abandon}</article>`;
 }
 function eventsPage(save: CareerSave, registry: CareerRegistry, view: CareerView) {
   const events = disciplineEvents(registry, save, view.discipline);
@@ -170,8 +207,17 @@ function dealershipPage(save: CareerSave, registry: CareerRegistry) {
       .map((v) => {
         const price = vehiclePrice(registry, v),
           owned = save.owned.some((o) => o.id === v.id),
-          tier = disciplineTiers(registry, d).find((t) => t.classes.includes(v.classId));
-        return `<article class="career-vehicle" data-vehicle="${escapeHtml(v.id)}"><header><span class="eyebrow">${DISCIPLINES[d].short} · ${escapeHtml(v.classId.toUpperCase())}${tier ? ` · ${escapeHtml(tier.name.toUpperCase())}` : ''}</span>${owned ? '<span class="career-state" data-state="open">OWNED</span>' : ''}</header><h4>${escapeHtml(v.name)}</h4><p class="career-price">${credits(price)}</p>${owned ? '' : save.credits >= price ? button(`BUY FOR ${credits(price)}`, `career:buy:${v.id}`, true) : `<p class="career-needs">Need ${credits(price - save.credits)} more. The club meeting always runs.</p>`}</article>`;
+          tier = disciplineTiers(registry, d).find((t) => t.classes.includes(v.classId)),
+          blocked = purchaseReasons(registry, v);
+        // A machine that cannot race in this build is shown, never sold.
+        const offer = owned
+          ? ''
+          : blocked.length
+            ? `<p class="career-needs">Not on sale until it can race — missing from this build:</p>${reasonsList(blocked)}`
+            : save.credits >= price
+              ? button(`BUY FOR ${credits(price)}`, `career:buy:${v.id}`, true)
+              : `<p class="career-needs">Need ${credits(price - save.credits)} more. The club meeting always runs.</p>`;
+        return `<article class="career-vehicle" data-vehicle="${escapeHtml(v.id)}" data-status="${owned ? 'owned' : blocked.length ? 'coming' : 'open'}"><header><span class="eyebrow">${DISCIPLINES[d].short} · ${escapeHtml(v.classId.toUpperCase())}${tier ? ` · ${escapeHtml(tier.name.toUpperCase())}` : ''}</span>${owned ? '<span class="career-state" data-state="open">OWNED</span>' : blocked.length ? stateTag('coming') : ''}</header><h4>${escapeHtml(v.name)}</h4><p class="career-price">${credits(price)}</p>${offer}</article>`;
       }),
   );
   return `<div class="team-heading"><h3>Machines by class.</h3><p>Prices follow class, not power. Credits come only from driving; nothing is sold for real money and nothing bought changes grip. Performance upgrades are not offered: an upgrade would have to create a new vehicle definition with its own record category.</p></div><div class="career-garage">${rows.join('')}</div>`;
@@ -188,12 +234,15 @@ export function careerHub(save: CareerSave, registry: CareerRegistry, view: Care
             ? dealershipPage(save, registry)
             : hubPage(save, registry);
   const medals = Object.values(save.licences).filter((l) => l?.medal).length;
-  return `<div class="career-hub" data-career-page="${view.page}"><header><div><span class="eyebrow">CAREER / DRIVER</span><h2>Career</h2></div>${button('CLOSE', 'modalClose')}</header><nav aria-label="Career sections">${CAREER_PAGES.map(([id, label]) => `<button data-action="career:page:${id}" aria-pressed="${view.page === id}">${label}</button>`).join('')}</nav><div class="team-stats"><div><small>CREDITS</small><strong>${credits(save.credits)}</strong></div><div><small>${DISCIPLINES[view.discipline].short} REPUTATION</small><strong>${save.reputation[view.discipline]}<em> / 100</em></strong></div><div><small>LICENCE MEDALS</small><strong>${medals}<em> / ${LICENCE_IDS.length}</em></strong></div></div><div class="team-content">${content}</div><p class="team-save" role="status" id="careerSaveStatus">${escapeHtml(view.status ?? `LOCAL SAVE · ${credits(save.credits)} · ${save.owned.length} MACHINE${save.owned.length === 1 ? '' : 'S'}`)}</p></div>`;
+  const unsaved = view.unsaved
+    ? `<div class="career-unsaved" role="note"><p><b>NOT SAVING.</b> ${escapeHtml(view.unsaved.reason)}. Progress here lasts for this session only and the stored career is left untouched.</p>${view.unsaved.replaceable ? button('SAVE IN THIS BUILD INSTEAD', 'career:replace') : ''}</div>`
+    : '';
+  return `<div class="career-hub" data-career-page="${view.page}"><header><div><span class="eyebrow">CAREER / DRIVER</span><h2>Career</h2></div>${button('CLOSE', 'modalClose')}</header>${unsaved}<nav aria-label="Career sections">${CAREER_PAGES.map(([id, label]) => `<button data-action="career:page:${id}" aria-pressed="${view.page === id}">${label}</button>`).join('')}</nav><div class="team-stats"><div><small>CREDITS</small><strong>${credits(save.credits)}</strong></div><div><small>${DISCIPLINES[view.discipline].short} REPUTATION</small><strong>${save.reputation[view.discipline]}<em> / 100</em></strong></div><div><small>LICENCE MEDALS</small><strong>${medals}<em> / ${LICENCE_IDS.length}</em></strong></div></div><div class="team-content">${content}</div><p class="team-save" role="status" id="careerSaveStatus">${escapeHtml(view.status ?? `${view.unsaved ? 'NOT SAVING' : 'LOCAL SAVE'} · ${credits(save.credits)} · ${save.owned.length} MACHINE${save.owned.length === 1 ? '' : 'S'}`)}</p></div>`;
 }
 /** The itemised payment under a classification (or why nothing was paid). */
 export function payoutPanel(
   payout: Payout,
-  state: 'saving' | 'saved' | 'failed',
+  state: PaymentState,
   registry: Pick<CareerRegistry, 'vehicles'> = { vehicles: [] },
   actions = true,
 ) {
@@ -205,7 +254,9 @@ export function payoutPanel(
       ? 'Saving to your career…'
       : state === 'saved'
         ? 'Paid to your career wallet.'
-        : 'Not saved: storage refused the write. Nothing was paid.';
+        : state === 'unsaved'
+          ? 'Counted for this session only: this build is not saving the career (see CAREER).'
+          : 'Not saved: storage refused the write. Nothing was paid.';
   if (!payout.paid && !payout.lines.length)
     return `<section class="career-payout" aria-label="Career payment"><span class="eyebrow">CAREER PAYMENT</span><p>${escapeHtml(payout.reason ?? 'No payment.')}</p>${careerButton}</section>`;
   return `<section class="career-payout" aria-label="Career payment"><span class="eyebrow">CAREER PAYMENT</span><table class="results"><tbody>${payout.lines.map((l) => `<tr><td>${escapeHtml(l.label)}</td><td>${credits(l.amount)}</td></tr>`).join('')}<tr class="you"><td>TOTAL · reputation +${payout.reputation}</td><td>${credits(payout.total)}</td></tr></tbody></table>${payout.awarded ? `<p>Prize machine: ${escapeHtml(vehicleName(registry, payout.awarded))} is now in your garage.</p>` : ''}<p class="small-note" role="status">${status}</p>${careerButton}</section>`;
@@ -222,8 +273,22 @@ export function licenceResult(
   test: LicenceTest,
   outcome: LicenceOutcome,
   payout: Payout,
-  state: 'saving' | 'saved' | 'failed',
+  state: PaymentState,
 ) {
   const medal = outcome.valid ? outcome.medal : null;
   return `<section class="career-briefing"><span class="eyebrow">LICENCE RESULT / ${escapeHtml(test.skill.toUpperCase())}</span><h2>${medal ? `${medal.charAt(0).toUpperCase()}${medal.slice(1)}.` : outcome.valid ? 'Outside the bronze limit.' : 'Attempt not scored.'}</h2><p class="career-measure"><b>${escapeHtml(test.metric.label)}</b> ${formatMetric(test, outcome.value)}</p><p>${escapeHtml(outcome.detail)}</p><p class="career-thresholds">${thresholds(test)}</p>${payoutPanel(payout, state, undefined, false)}<div class="dialog-buttons inline">${button('TRY AGAIN', 'restart', true)}${button('LICENCES', 'career:page:licences')}${button('PADDOCK', 'menu')}</div></section>`;
+}
+/** Confirmation before a season in progress is discarded. */
+export function abandonPrompt(
+  key: string,
+  name: string,
+  machine: string,
+  recorded: number,
+  rounds: number,
+) {
+  return `<section class="career-briefing"><span class="eyebrow">CHAMPIONSHIP / ABANDON</span><h2>Abandon the season?</h2><p>${escapeHtml(name)}: ${recorded} of ${rounds} round${rounds === 1 ? '' : 's'} recorded in the ${escapeHtml(machine)}. Abandoning discards ${recorded === 1 ? 'that round' : `those ${recorded} rounds`} and the standings; payments already made stay paid. The next start begins a new season in your current machine.</p><div class="dialog-buttons inline">${button('KEEP SEASON', 'career:page:events', true)}${button(`ABANDON ${recorded} ROUND${recorded === 1 ? '' : 'S'}`, `career:abandonConfirm:${key}`)}</div></section>`;
+}
+/** Confirmation before this build starts saving over a career it cannot read. */
+export function replacePrompt(reason: string, keeps: boolean) {
+  return `<section class="career-briefing"><span class="eyebrow">CAREER / SAVE IN THIS BUILD</span><h2>Save the career in this build?</h2><p>${escapeHtml(reason)}. This build then saves the career you see here.${keeps ? ' The newer career is first copied aside under a separate key; it is not deleted, but this build cannot open it.' : ''}</p><div class="dialog-buttons inline">${button('KEEP NOT SAVING', 'career:page:hub', true)}${button('SAVE IN THIS BUILD', 'career:replaceConfirm')}</div></section>`;
 }
