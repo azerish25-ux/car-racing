@@ -373,7 +373,9 @@ export class DirtBikeVehicle extends BikeVehicle {
     this.riderBody = approach(this.riderBody, assisted ? clamp(-wanted * 0.9, -1, 1) : 0, dt * 4);
     // Rear wheel: the engine spins it up toward the limiter in this gear;
     // the rear brake stops it. The chassis takes the reaction torque.
-    const ratio = spec.gearRatios[this.gear + 1] * spec.finalDrive,
+    // The engaged ratio through the setup's gearing, as on the ground
+    // (BikeVehicle.drive), so the engine note does not step at take-off.
+    const ratio = spec.gearRatios[this.gear + 1] * spec.finalDrive * this.gearing,
       limit = (spec.limiterRPM * Math.PI) / 30 / ratio,
       previous = this.rearSpin;
     this.rearSpin = clamp(

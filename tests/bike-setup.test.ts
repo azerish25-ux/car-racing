@@ -16,7 +16,7 @@ import {
   type Setup,
 } from '../src/simulation/config.ts';
 import { DirtBikeVehicle } from '../src/simulation/offroad/dirt-bike-vehicle.ts';
-import { Track } from '../src/simulation/track.ts';
+import { SURFACE, Track, trackPoint } from '../src/simulation/track.ts';
 import { VEHICLES, setupFor, vehicleDefinition } from '../src/simulation/vehicles.ts';
 import { SETUP_EFFECTS, exposedValues, presetEffects } from '../src/career/economy.ts';
 import { SETUP_LABELS, setupRows } from '../src/ui/setup-page.ts';
@@ -176,6 +176,112 @@ describe('motorcycle setup: physical effect', () => {
     expect(make({ rearPreload: 0.01 }).compressionRear).toBeLessThan(
       make({}).compressionRear - 0.009,
     );
-    expect(make({ rearDamping: 0.5 }).compressionRear).toBe(make({}).compressionRear);
+  });
+  it('dirt bike damping clicks change how the springs take and settle a hit', () => {
+    // Riding at 10 m/s on the flat, the chassis is dropped onto its springs
+    // at 1.5 m/s: firmer damping compresses less and settles sooner.
+    const MX = vehicleDefinition('mx450');
+    const track = new Track();
+    const hit = (click: number) => {
+      const bike = new DirtBikeVehicle(
+        0,
+        'medium',
+        { ...DEFAULT_SETUP, frontDamping: click, rearDamping: click },
+        'sport',
+        MX,
+      );
+      bike.place(track, 120);
+      bike.dynamics.speed = 10;
+      bike.autoShift = false;
+      bike.input.throttle = 0.3;
+      for (let t = 0; t < 0.5; t += 1 / 120) bike.step(1 / 120, track);
+      const rest = bike.compressionRear;
+      bike.vy = -1.5;
+      const travel: number[] = [];
+      for (let t = 0; t < 0.8; t += 1 / 120) {
+        bike.step(1 / 120, track);
+        travel.push(bike.compressionRear);
+      }
+      expect(bike.dynamics.state).toBe('riding');
+      return {
+        peak: Math.max(...travel),
+        // Distance from rest summed after the first quarter second.
+        settle: travel.slice(30).reduce((sum, c) => sum + Math.abs(c - rest), 0),
+      };
+    };
+    const soft = hit(0),
+      calibrated = hit(0.5),
+      firm = hit(1);
+    expect(firm.peak).toBeLessThan(calibrated.peak - 0.01);
+    expect(calibrated.peak).toBeLessThan(soft.peak - 0.01);
+    expect(firm.settle).toBeLessThan(calibrated.settle * 0.8);
+    expect(calibrated.settle).toBeLessThan(soft.settle * 0.8);
+  });
+  it('road bike damping: the fork follows a load step more slowly and kerbs grip less when firmer', () => {
+    const at = (click: number) => ({ frontDamping: click, rearDamping: click });
+    // Hard braking from 40 m/s: 50 ms later a softer fork has dived further.
+    const dive = (click: number) => {
+      const bike = ride(at(click), 40, 4, 0.3, 0.5);
+      const track = new Track();
+      bike.input.throttle = 0;
+      bike.input.brake = 1;
+      for (let t = 0; t < 0.05; t += 1 / 120) bike.step(1 / 120, track);
+      return bike.fork;
+    };
+    expect(dive(0)).toBeGreaterThan(dive(0.5) + 0.004);
+    expect(dive(0.5)).toBeGreaterThan(dive(1) + 0.004);
+    // On the kerb band beside the Aurel straight: a firm click skips over
+    // the strips (less grip), a soft one follows them; off the kerb the
+    // click does not change the grip.
+    const grip = (click: number, kerb: boolean) => {
+      const track = new Track();
+      const bike = new BikeVehicle(0, 'medium', { ...DEFAULT_SETUP, ...at(click) }, 'sport', GPR1);
+      bike.place(track, 120, kerb ? track.at(120, trackPoint()).width + 0.5 : 0);
+      bike.dynamics.speed = 30;
+      bike.gear = 3;
+      bike.autoShift = false;
+      bike.input.throttle = 0.5;
+      bike.step(1 / 120, track);
+      bike.step(1 / 120, track);
+      expect(bike.contacts[0].surface).toBe(kerb ? SURFACE.KERB : SURFACE.ASPHALT);
+      return bike.dynamics.grip;
+    };
+    expect(grip(1, true)).toBeLessThan(grip(0.5, true) - 0.03);
+    expect(grip(0, true)).toBeGreaterThan(grip(0.5, true) + 0.03);
+    expect(grip(1, false)).toBe(grip(0.5, false));
+    expect(grip(0, false)).toBe(grip(0.5, false));
+  });
+  it('dirt bike gearing holds in the air: no rpm step at take-off, the limiter through the same ratio', () => {
+    const MX = vehicleDefinition('mx450');
+    const track = new Track();
+    for (const gearing of [0.92, 1, 1.08]) {
+      const bike = new DirtBikeVehicle(0, 'medium', { ...DEFAULT_SETUP, gearing }, 'sport', MX);
+      bike.place(track, 120);
+      bike.dynamics.speed = 15;
+      bike.gear = 3;
+      bike.autoShift = false;
+      bike.input.throttle = 0.4;
+      for (let t = 0; t < 0.5; t += 1 / 120) bike.step(1 / 120, track);
+      // Thrown upward off its springs: both wheels leave the ground.
+      bike.vy = 3.5;
+      let before = bike.rpm;
+      for (let k = 0; k < 60 && !bike.airborne; k++) {
+        before = bike.rpm;
+        bike.step(1 / 120, track);
+      }
+      expect(bike.airborne, `gearing ${gearing}`).toBe(true);
+      expect(bike.rpm / before, `gearing ${gearing}`).toBeCloseTo(1, 2);
+      // Full throttle in the air: the rear wheel stops at the limiter
+      // speed of the geared drive, the same ratio the ground path uses.
+      bike.input.throttle = 1;
+      let spin = 0;
+      for (let k = 0; k < 600 && bike.airborne; k++) {
+        bike.step(1 / 120, track);
+        if (bike.airborne) spin = Math.max(spin, bike.rearSpin);
+      }
+      const spec = MX.spec,
+        ratio = spec.gearRatios[bike.gear + 1] * spec.finalDrive * gearing;
+      expect(spin, `gearing ${gearing}`).toBeCloseTo((spec.limiterRPM * Math.PI) / 30 / ratio, 6);
+    }
   });
 });
