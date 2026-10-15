@@ -642,7 +642,21 @@ describe('unlocks and availability are derived from the registries', () => {
       expect(disciplineStatus(live, 'off-road').reasons.join(' ')).toContain(
         'dirt or mixed-surface venue',
       );
-    expect(disciplineStatus(live, 'festival').state).toBe('coming');
+    // The festival region is registered as a career venue: the festival opens.
+    expect(disciplineStatus(live, 'festival').state).toBe('open');
+    expect(disciplineStatus(live, 'festival').venues.map((v) => v.id)).toEqual(
+      live.festival!.map((r) => r.id),
+    );
+    // Without a region it is coming, and says so.
+    const noRegion: CareerRegistry = {
+      ...live,
+      venues: live.venues.filter((v) => venueKind(v) !== 'festival'),
+      festival: [],
+    };
+    expect(disciplineStatus(noRegion, 'festival').state).toBe('coming');
+    expect(disciplineStatus(noRegion, 'festival').reasons.join(' ')).toContain(
+      'open festival region',
+    );
   });
   it('opens the bike career when a bike and a ruleset for it are registered', () => {
     // A registry without bikes or bike-safety assessments (whatever the live

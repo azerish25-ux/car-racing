@@ -295,7 +295,20 @@ export class GameApp {
       track: () => this.track,
       setup: () => this.settings.setup,
       assist: () => this.ui.options.assist,
+      // Festival career runs: free roam in the career's machine, straight
+      // to a discovered event when one was chosen.
+      festival: (start) => {
+        if (this.state !== 'menu' && this.state !== 'results') {
+          this.ui.toast('Return to the paddock to enter the festival.');
+          return;
+        }
+        this.ui.closeModal();
+        const options = { ...this.ui.options, vehicles: [start.vehicle] };
+        void this.startFestival(options, { travel: start.travel, loaner: start.loaner }).catch((e) => this.fail(e));
+      },
     });
+    // The career consumes the festival's typed results (pay once per run).
+    this.career.listen(window);
     this.flashbackPanel = new FlashbackPanel(this.ui.get('replayBar'));
     const identity = this.ui.get('buildIdentity');
     identity.textContent = __APEX_SOURCE_COMMIT__
@@ -527,10 +540,17 @@ export class GameApp {
   /** FESTIVAL (SESSION select): the open-world region on the same canvas
    * and GL context. The circuit presentation stays loaded and idle; the
    * festival module and its workers load on demand. */
-  private async startFestival(options: SessionOptions) {
+  private async startFestival(
+    options: SessionOptions,
+    career: { travel: string | null; loaner: boolean } | null = null,
+  ) {
     if (this.festival || this.festivalStarting || !this.renderer || !this.canvas) return;
     this.festivalStarting = true;
     const renderer = this.renderer;
+    // Each festival session has its own identity: results carry run ids
+    // under it, and the career pays each run once.
+    const session = crypto.randomUUID();
+    this.career.beginFestival({ loaner: career?.loaner ? (options.vehicles?.[0] ?? null) : null });
     try {
       const { FestivalSession, FESTIVAL_SAVE_KEY } = await import('./session/free-roam.ts');
       this.ui.showMode('loading');
@@ -564,7 +584,14 @@ export class GameApp {
           load: () => this.store.read(FESTIVAL_SAVE_KEY),
           save: (state) => this.store.write(FESTIVAL_SAVE_KEY, state),
         },
-        { vehicle: options.vehicles?.[0], weather: options.weather, assist: options.assist, seed: options.seed },
+        {
+          vehicle: options.vehicles?.[0],
+          weather: options.weather,
+          assist: options.assist,
+          seed: options.seed,
+          session,
+          travel: career?.travel ?? undefined,
+        },
       );
       this.input.setEnabled(true);
     } catch (error) {
@@ -578,6 +605,7 @@ export class GameApp {
   private exitFestival() {
     this.festival?.dispose();
     this.festival = null;
+    this.career.endFestival();
     this.input.setEnabled(false);
     this.audio.stop();
     // The festival shared the GL context: restore the circuit presentation.

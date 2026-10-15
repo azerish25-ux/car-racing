@@ -1,8 +1,15 @@
 import { DEFAULT_OPTIONS } from '../simulation/config.ts';
 import { eventSession, type EventDefinition } from '../simulation/events.ts';
-import { allTiers, disciplineEvents, licenceAvailability, vehiclePrice } from './ladder.ts';
+import { FESTIVAL_RULES, festivalEvents } from './festival.ts';
+import { allTiers, disciplineEvents, licenceAvailability, purchaseReasons, vehiclePrice } from './ladder.ts';
 import { LICENCE_IDS, LICENCE_TESTS } from './licences.ts';
-import { DISCIPLINE_IDS, liveRegistry, type CareerRegistry } from './registry.ts';
+import {
+  DISCIPLINE_IDS,
+  liveRegistry,
+  vehicleDiscipline,
+  venueKind,
+  type CareerRegistry,
+} from './registry.ts';
 import { newCareer } from './save.ts';
 
 /** Career content checks for `npm run validate:content`: tiers reference real
@@ -62,5 +69,26 @@ export function validateCareerContent(
     if (a.status !== 'open' || !a.definition) continue;
     check(`career licence ${id}`, a.definition);
   }
+  // Festival: each region is a festival venue, each event kind has an unlock
+  // rule, keys are unique, every festival machine can be bought for it, and
+  // a fully progressed driver who has discovered everything can enter all.
+  for (const region of registry.festival ?? []) {
+    const venue = registry.venues.find((v) => v.id === region.id);
+    if (!venue || venueKind(venue) !== 'festival')
+      errors.push(`career festival ${region.id}: not registered as a festival venue`);
+    for (const e of region.events)
+      if (!Object.hasOwn(FESTIVAL_RULES, e.kind))
+        errors.push(`career festival ${region.id}/${e.id}: no unlock rule for kind ${e.kind}`);
+  }
+  const everything = new Set((registry.festival ?? []).flatMap((r) => r.events.map((e) => e.id)));
+  for (const e of festivalEvents(registry, save, everything)) {
+    if (keys.has(e.key)) errors.push(`career festival event ${e.key}: duplicate key`);
+    keys.add(e.key);
+    if (e.status !== 'open') errors.push(`career festival event ${e.key}: ${e.reasons.join('; ')}`);
+  }
+  if (registry.festival?.length)
+    for (const v of registry.vehicles)
+      if (vehicleDiscipline(v) === 'festival' && purchaseReasons(registry, v).length)
+        errors.push(`career festival machine ${v.id}: ${purchaseReasons(registry, v).join(' ')}`);
   return errors;
 }

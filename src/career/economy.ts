@@ -138,12 +138,14 @@ export function racePayout(
     awarded: null,
   };
 }
-const book = (save: CareerSave, label: string, amount: number) => {
+/** Book `amount` to the wallet with a ledger line (mutates a cloned save). */
+export const book = (save: CareerSave, label: string, amount: number) => {
   save.credits = Math.max(0, save.credits + amount);
   save.ledger.push({ label, amount });
   save.ledger = save.ledger.slice(-48);
 };
-const markPaid = (save: CareerSave, session: string) => {
+/** Record a session (or festival run) as settled, so it is never paid again. */
+export const markPaid = (save: CareerSave, session: string) => {
   save.paidSessions.push(session);
   save.paidSessions = save.paidSessions.slice(-200);
 };

@@ -2,6 +2,14 @@ import { standings, type RoundResult } from '../core/championship.ts';
 import { RULESETS } from '../simulation/events.ts';
 import { careerSetup, demonstrationRounds, presetEffects, type Payout } from '../career/economy.ts';
 import {
+  FESTIVAL_RULES,
+  festivalEvents,
+  festivalRoamKey,
+  festivalSummary,
+  type FestivalCareerEvent,
+} from '../career/festival.ts';
+import { EVENT_KIND_LABEL, isRace } from '../simulation/open-world/festival-result.ts';
+import {
   disciplineEvents,
   disciplineTiers,
   licenceAvailability,
@@ -45,6 +53,8 @@ export interface CareerView {
   status?: string;
   /** Set while this build is not saving the career, with the reason. */
   unsaved?: { reason: string; replaceable: boolean };
+  /** Festival discoveries (from the festival save) for the festival tab. */
+  festival?: { discovered: readonly string[] };
 }
 /** Where a career payment stands: being written, written, refused by
  * storage, or counted for this session only because saving is off. */
@@ -143,7 +153,50 @@ function eventCard(event: CareerEvent, save: CareerSave, registry: CareerRegistr
       : '';
   return `<article class="career-event" data-kind="${event.kind}" data-status="${event.status}"><header><span class="eyebrow">${event.kind === 'recovery' ? 'RECOVERY SERIES · ALWAYS OPEN' : event.kind.toUpperCase()}</span>${stateTag(event.status)}</header><h4>${escapeHtml(event.name)}</h4><p>${escapeHtml(event.description)}</p>${detail}${objectives}${championship}${event.status !== 'open' ? `<p class="career-needs">${event.status === 'coming' ? 'Coming — missing from this build:' : 'Requires:'}</p>${reasonsList(event.reasons)}` : ''}${action}${abandon}</article>`;
 }
+const starLine = (n: number) => `${'★'.repeat(n)}${'☆'.repeat(Math.max(0, 3 - n))}`;
+const clockText = (seconds: number) => {
+  const m = Math.floor(seconds / 60);
+  return `${m}:${(seconds - m * 60).toFixed(2).padStart(5, '0')}`;
+};
+function festivalCard(e: FestivalCareerEvent, registry: CareerRegistry) {
+  const ev = e.event,
+    rec = e.record,
+    race = isRace(ev.kind);
+  const targets = ev.stars
+    ? `<dt>Star targets</dt><dd>${ev.stars
+        .map((t) =>
+          ev.kind === 'showcase' ? clockText(t) : ev.kind === 'drift-zone' ? `${t} pts` : `${t} km/h`,
+        )
+        .join(' · ')}</dd>`
+    : race
+      ? '<dt>Stars</dt><dd>3 win · 2 podium · 1 finish</dd>'
+      : '';
+  const best = rec
+    ? `<dt>Your best</dt><dd>${starLine(rec.stars)}${rec.bestPosition !== null ? ` · P${rec.bestPosition}` : ''}${rec.bestTime !== null && race ? ` · ${clockText(rec.bestTime)}` : ''}${rec.bestValue !== null ? ` · ${Math.round(rec.bestValue)}${ev.kind === 'drift-zone' ? ' pts' : ' km/h'}` : ''} · ${rec.runs} paid run${rec.runs === 1 ? '' : 's'}</dd>`
+    : '';
+  const facts = `<dl class="career-facts"><dt>Format</dt><dd>${escapeHtml(EVENT_KIND_LABEL[ev.kind])}${race ? ` · ${ev.rivals} rival${ev.rivals === 1 ? '' : 's'}` : ''}${ev.laps > 1 ? ` · ${ev.laps} laps` : ''}</dd>${targets}<dt>Needs</dt><dd>${FESTIVAL_RULES[ev.kind].reputation} festival reputation · discovered</dd><dt>Machine</dt><dd>${escapeHtml(vehicleName(registry, e.vehicle))}${e.loaner ? ' · loaned' : ''}</dd><dt>Pay rate</dt><dd>× ${e.stakes}</dd>${best}</dl>`;
+  const action =
+    e.status === 'open' ? button('DRIVE TO EVENT', `career:start:${e.key}`, true) : '';
+  return `<article class="career-event" data-kind="festival" data-festival-event="${escapeHtml(ev.id)}" data-status="${e.status}" data-discovered="${e.discovered}"><header><span class="eyebrow">${escapeHtml(EVENT_KIND_LABEL[ev.kind].toUpperCase())} · ${e.discovered ? 'DISCOVERED' : 'UNDISCOVERED'}</span>${stateTag(e.status)}</header><h4>${escapeHtml(ev.name)}</h4><p>${escapeHtml(ev.blurb)}</p>${facts}${e.status !== 'open' ? `<p class="career-needs">${e.status === 'coming' ? 'Coming — missing from this build:' : 'Requires:'}</p>${reasonsList(e.reasons)}` : ''}${action}</article>`;
+}
+/** The festival tab: the open-world region, discoveries, every event with
+ * its unlock state and your best, and free roam (GAME_DESIGN §3). */
+function festivalPage(save: CareerSave, registry: CareerRegistry, view: CareerView) {
+  const discovered = new Set(view.festival?.discovered ?? []),
+    status = disciplineStatus(registry, 'festival'),
+    summary = festivalSummary(registry, save, discovered),
+    events = festivalEvents(registry, save, discovered);
+  const machine = summary.machine.vehicle;
+  const roam = summary.regions
+    .map(
+      (r) =>
+        `<article class="career-event" data-kind="festival-roam" data-status="${status.state === 'open' && machine ? 'open' : 'coming'}"><header><span class="eyebrow">FREE ROAM · ALWAYS OPEN</span>${stateTag(status.state === 'open' && machine ? 'open' : 'coming')}</header><h4>${escapeHtml(r.name.toUpperCase())}</h4><p>Drive the region, discover events and enter them at their markers. Every finished run in a machine from your garage is paid once to your career; the loaned machine pays at a quarter of the rate. Runs the autopilot drove pay nothing.</p><dl class="career-facts"><dt>Discovered</dt><dd>${summary.discovered} of ${summary.events} events</dd><dt>Machine</dt><dd>${escapeHtml(vehicleName(registry, machine?.id ?? null))}${summary.machine.loaner ? ' · loaned' : ''}</dd><dt>Pay rate</dt><dd>× ${summary.machine.stakes}</dd></dl>${status.state === 'open' && machine ? button('ENTER THE FESTIVAL', `career:start:${festivalRoamKey(r.id)}`, true) : reasonsList(status.reasons)}</article>`,
+    )
+    .join('');
+  return `${disciplineTabs(view)}<div class="team-heading"><h3>Festival events.</h3><p>Events unlock by kind with festival reputation, and the career sends you only to events you have discovered in free roam. Reputation comes from new stars and first completions; repeating an event pays credits, never reputation.</p></div><div class="career-events">${roam}</div><section class="career-tier" aria-label="Festival events"><h4>${escapeHtml(summary.tier?.name ?? 'Festival')}</h4><p class="small-note">Discovered ${summary.discovered} of ${summary.events} · festival reputation ${save.reputation.festival}</p><div class="career-events">${events.map((e) => festivalCard(e, registry)).join('')}</div></section>`;
+}
 function eventsPage(save: CareerSave, registry: CareerRegistry, view: CareerView) {
+  if (DISCIPLINES[view.discipline].venue === 'festival') return festivalPage(save, registry, view);
   const events = disciplineEvents(registry, save, view.discipline);
   const tiers = disciplineTiers(registry, view.discipline);
   const recovery = events.filter((e) => e.kind === 'recovery');
