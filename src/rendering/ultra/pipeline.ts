@@ -5,7 +5,7 @@ import type { BroadcastGradePass } from '../broadcast-grade.ts';
 import { lightingDirection, type LightingMode } from '../daylight.ts';
 import type { FarShadow } from '../far-shadow.ts';
 import type { LensBloomPass } from '../lens-bloom.ts';
-import { PHYSICAL_BLOOM } from '../lens-bloom.ts';
+import { physicalBloomMix } from '../lens-bloom.ts';
 import { prepareMaterials, materialDiagnostics, setSurfaceWeather } from '../materials/library.ts';
 import {
   detailTier,
@@ -216,7 +216,7 @@ export class UltraPipeline {
     // Lens: restrained fringe on live and replay views only.
     grade.lensFringe =
       g.chromaticAberration && !frame.menu && !frame.photo && !frame.studio ? ULTRA_FRINGE : 0;
-    bloom.energyMix = PHYSICAL_BLOOM.mix + (PHYSICAL_BLOOM.wetMix - PHYSICAL_BLOOM.mix) * wet;
+    bloom.energyMix = physicalBloomMix(frame.studio ? 'day' : frame.lighting, wet);
     // Sun shafts.
     this.sunDirection.copy(lightingDirection(frame.lighting));
     const mode = frame.studio ? 'studio' : frame.lighting;

@@ -20,7 +20,7 @@ import { studioGlsl, studioUniforms } from './studio-frame.ts';
  *    near field stays crisp, and elevated ridges at 2-3 km land at 50-65 %.
  *  - In-scatter colour by view direction: the scene fog colour is the
  *    anti-sun haze; toward the sun it gains the forward-scattering glow,
- *    `mix(antiSun, sunSide, pow(max(dot(v, sun), 0), 8))`, faded out as the
+ *    `mix(antiSun, sunSide, pow(max(dot(v, sun), 0), 24))`, faded out as the
  *    cloud deck closes (overcast and rain haze is one grey).
  *
  * Materials without the local atmosphere (unlit signs, screens) keep three's
@@ -33,8 +33,9 @@ export const AERIAL_PERSPECTIVE = Object.freeze({
   referenceHeight: 0,
   /** Scale height of the haze, metres. */
   scaleHeight: 150,
-  /** Exponent of the sun-side lobe. */
-  sunPower: 8,
+  /** Exponent of the sun-side lobe: a tight Mie aureole (half width ~14
+   * degrees), not a 23 degree veil over the into-the-sun view. */
+  sunPower: 24,
   /** Fog colours (linear scene radiance) chosen so a fully hazed sightline
    * displays the ART_BIBLE_A section 2.3 / P12 colour through ACES at the
    * lighting's exposure and the broadcast grade. Display targets in comments. */

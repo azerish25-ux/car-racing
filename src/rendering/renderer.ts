@@ -1052,7 +1052,7 @@ export class RacingRenderer {
       car.root.position,
       illumination === 'sunset' ? 0.18 : 1,
     );
-    this.lightPools.update(studio ? 'day' : illumination);
+    this.lightPools.update(studio ? 'day' : illumination, this.bloom.energyConserving);
     setBrandLedLighting(studio ? 'day' : illumination);
     applyCircuitLightPalette(this.sun, this.hemisphere, daylight.cover, illumination);
     this.sun.intensity = daylight.sun;
