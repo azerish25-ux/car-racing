@@ -19,10 +19,10 @@ mechanic below names the system that implements it, so design and code cannot dr
 
 | Discipline | Machines (families) | Venues | Core skill | Session formats |
 |---|---|---|---|---|
-| **Circuit cars** | Formula, junior formula, historic formula, hypercar/prototype, GT3, GT4, touring, club, kart | real-world-faithful and original circuits | braking points, tyre and energy management, racecraft | practice, qualifying, sprint, grand prix, endurance (lap and timed), multi-class |
-| **Road motorcycles** | GP prototype, superbike | circuits flagged bike-safe (run-off, kerb profile) | lean angle, trail braking, body position, front/rear brake split | practice, qualifying, sprint, race |
-| **Off-road** | motocross, rally, rallycross, trophy truck | dirt/terrain venues, stages, rallycross mixed-surface | throttle on loose ground, jump take-off/landing, ruts and berms | motos, heats, stages, joker-lap rallycross |
-| **Festival (open world)** | road supercars, electric hypercars, plus any unlocked race machine | open festival region with road network | exploration, point-to-point, speed traps, drift zones | free roam, road race, sprint, speed zone, drift zone, showcase |
+| **Circuit cars** | Formula, feeder and entry formula, historic formula (1960s, 1970s, 1980s turbo), historic sports prototype, hypercar/prototype, GT3, GT4, touring, club, vintage club, kart, experimental | real-world-faithful and original circuits | braking points, tyre and energy management, racecraft | practice, qualifying, sprint, grand prix, endurance (lap and timed), multi-class |
+| **Road motorcycles** | GP prototype, superbike, supersport, classic racer (plus an open-world naked roadster) | circuits flagged bike-safe (run-off, kerb profile) | lean angle, trail braking, body position, front/rear brake split | practice, qualifying, sprint, race |
+| **Off-road** | motocross, rally, historic rally, rallycross, trophy truck, desert buggy | dirt/terrain venues, stages, rallycross mixed-surface | throttle on loose ground, jump take-off/landing, ruts and berms | motos, heats, stages, joker-lap rallycross |
+| **Festival (open world)** | road supercars, electric hypercars, hot hatch, sports sedan, muscle coupe, classic grand tourer, pickup, rally-bred road car, luxury GT, roadster, naked roadster bike, plus any unlocked race machine | open festival region with road network | exploration, point-to-point, speed traps, drift zones | free roam, road race, sprint, speed zone, drift zone, showcase |
 
 Disciplines share profile, input, garage, replay, photo, audio, accessibility and save systems.
 They never share one tyre model, one progress algorithm or one rule set (masterplan §4.2).
@@ -52,8 +52,9 @@ venue or race ruleset is shown **COMING** with the missing items listed, never h
 current catalogues, circuit cars and road bikes are open (the superbike and GP bike race under the
 motorcycle ruleset; no circuit declares bike safety yet, so bike events use every paved circuit and
 say so); off-road is coming (rally, rallycross and off-road machines exist, no dirt venue does) and
-festival is coming (road machines exist, no region does). Circuit-car tiers: club and touring →
-grand touring → Formula ladder → endurance prototypes; bike, off-road and festival tiers exist as data
+festival is coming (road machines exist, no region does). Circuit-car tiers: club, vintage and touring →
+grand touring → Formula ladder (entry, feeder, junior, the three historic eras, top tier) →
+endurance prototypes (incl. the historic sports prototype) → unlimited experimental; bike, off-road and festival tiers exist as data
 and fill when their classes are registered. A registered class that no tier names joins an automatic
 open tier.
 

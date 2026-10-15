@@ -353,6 +353,13 @@ L_stick = (β·Δω + dt·(((1−s)T + R2)/I2 − (sT + R1)/I1)) / (dt·(1/I1 + 
   * Both channels are exactly zero beyond 100 m, so the world's 101 m proximity cull stays exact
     (property test).
   * `wakeFields()` in `aero.ts` computes both for the world loop.
+* **Fan-assisted floor** (`VehicleDefinition.fan`, only the experimental XF-2). An auxiliary
+  engine's fans evacuate a skirted floor, so the suction does not scale with V²: `F_fan =
+  F·clamp(1 − (h − h_seal)/fade, 0, 1)·floorHealth`, applied at the fan station with the measured
+  (not flow-lagged) mean floor clearance, because the skirts leak the moment the floor lifts. XF-2:
+  F = 7 kN, h_seal = static clearance + 12 mm, fade 50 mm. It is reported apart from ClA
+  (`aero.fanN` in `docs/vehicle-calibration.json`). Every other definition lacks the field, so their
+  physics and content hashes are unchanged.
 
 ## 5. Ground materials
 
