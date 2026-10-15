@@ -74,7 +74,8 @@ describe('WP30 procedural vehicle bodies', () => {
   it('builds every catalogue body with three LODs, a shadow proxy and matching wheels', () => {
     for (const def of Object.values(VEHICLES)) {
       const sheet = bodySheetFor(def);
-      if (def.id === 'apx01') {
+      // The Formula car has its own assets; motorcycles their bike shells.
+      if (def.id === 'apx01' || def.dynamicsKind !== 'four-wheel') {
         expect(sheet).toBeNull();
         continue;
       }

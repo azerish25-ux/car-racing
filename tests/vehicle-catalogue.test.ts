@@ -79,7 +79,11 @@ describe('WP30 destination catalogue', () => {
     expect(vehicleHash(FORMULA_APX01)).toBe('eb95ef70');
     expect(vehicleHash(TOURING_TC1)).toBe('b2abb13d');
     expect(VEHICLE_IDS.slice(0, 2)).toEqual(['apx01', 'tc1']);
-    expect(VEHICLE_IDS.slice(2)).toEqual(Object.keys(CATALOGUE));
+    // Catalogue cars keep their order after the original two (other programmes,
+    // such as motorcycles, may also append entries).
+    expect(VEHICLE_IDS.slice(2).filter((id) => Object.hasOwn(CATALOGUE, id))).toEqual(
+      Object.keys(CATALOGUE),
+    );
     for (const id of VEHICLE_IDS) expect(vehicleAt(vehicleIndex(id)).id).toBe(id);
     const hashes = VEHICLE_IDS.map((id) => vehicleHash(VEHICLES[id]));
     expect(new Set(hashes).size).toBe(hashes.length);

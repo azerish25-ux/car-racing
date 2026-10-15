@@ -17,6 +17,7 @@ export type VehicleFamily =
   | 'offroad'
   | 'kart'
   | 'road'
+  | 'motorcycle'
   | 'other';
 export interface VehicleClassInfo {
   name: string;
@@ -62,6 +63,13 @@ export const VEHICLE_CLASSES: Readonly<Partial<Record<VehicleClass, VehicleClass
     offroad: { name: 'Off-road', family: 'offroad', order: 11, raceRuleset: 'rallycross-heat' },
     kart: { name: 'Kart', family: 'kart', order: 12, raceRuleset: 'kart-sprint' },
     road: { name: 'Road (open-world)', family: 'road', order: 13 },
+    'gp-bike': {
+      name: 'GP motorcycle',
+      family: 'motorcycle',
+      order: 14,
+      raceRuleset: 'gp-motorcycle',
+    },
+    superbike: { name: 'Superbike', family: 'motorcycle', order: 15, raceRuleset: 'gp-motorcycle' },
   });
 const OTHER: VehicleClassInfo = Object.freeze({ name: 'Other', family: 'other', order: 99 });
 export function classInfo(classId: string): VehicleClassInfo {
