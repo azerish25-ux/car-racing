@@ -1,6 +1,6 @@
 import { DriverBrain } from './driver-brain.ts';
 import { FLAG, yellowFlag } from './marshal.ts';
-import { TrafficPlanner, personality, type DriverPersonality } from './traffic.ts';
+import { STALLED, TrafficPlanner, personality, type DriverPersonality } from './traffic.ts';
 import {
   pitMergeConflict,
   pitYieldSpeed,
@@ -239,6 +239,13 @@ export class AIDriver {
       this.desiredOffset = this.laneOverride(track, c.s, plan.offset);
       this.trafficSpeed = plan.speedLimit;
       this.decision = plan.decision;
+      // Passing a stalled car, the planner's lane is where the car goes: the
+      // start position's residual offset (launch) is folded into the lane
+      // change so it is neither added on top of that lane nor dropped at once.
+      if (this.planner.bypass >= 0) {
+        this.tactical += this.launch;
+        this.launch = 0;
+      }
     }
     if (!c.inPit) c.pitYielding = false;
     const pit = c.inPit,
@@ -269,7 +276,12 @@ export class AIDriver {
       this.offset = approach(this.offset, this.desiredOffset, dt * 1.6);
       this.tactical = this.offset - lineHere;
     } else {
-      this.tactical = approach(this.tactical, this.desiredOffset - lineHere, dt * 1.6);
+      // At walking pace past a stalled car the lane change is bounded by the
+      // steering lock, not by a lateral rate: the lane is taken at once.
+      this.tactical =
+        this.planner.bypass >= 0 && c.speed < STALLED.creep * 2
+          ? this.desiredOffset - lineHere
+          : approach(this.tactical, this.desiredOffset - lineHere, dt * 1.6);
       this.offset = lineHere + this.tactical + this.launch;
     }
     const preview = c.definition.ai.lookahead;
