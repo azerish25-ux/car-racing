@@ -1771,6 +1771,9 @@ export class BikeModel {
     this.rider.root.removeFromParent();
     this.rider.dispose();
     this.root.traverse((o) => {
+      // Instancing adds a GPU instance-matrix buffer beyond the mesh geometry.
+      // Release that buffer on race restarts / bike LOD teardown as well.
+      if (o instanceof T.InstancedMesh) o.dispose();
       if (o instanceof T.Mesh) o.geometry.dispose();
     });
   }
