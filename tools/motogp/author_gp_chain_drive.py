@@ -27,7 +27,7 @@ def piece(name,vertices,faces,mat):
   return obj
 n=TEETH*8;verts=[];faces=[];z=-D
 for i in range(n):
- a=TAU*i/n;r=.102+.0042*math.cos(TEETH*a)
+ a=TAU*i/n;r=.103+.0022*math.cos(TEETH*a)
  for x,radius in ((X-.0035,r),(X-.0035,.069),(X+.0035,r),(X+.0035,.069)):
   verts.append((x,math.sin(a)*radius,z+math.cos(a)*radius))
 for i in range(n):
@@ -48,18 +48,34 @@ def plate(name,loc):
   o.data.materials.append(dark);mod=o.modifiers.new('Round forged edges','BEVEL');mod.width=.0012;mod.segments=2
   bpy.context.view_layer.objects.active=o;bpy.ops.object.modifier_apply(modifier=mod.name)
   return o
-# Staggered upper and lower drive spans show full-scale pitch and clearances.
-for lane in [-1,1]:
- for i in range(24):
-  t=i/23
-  y=lane*(.046+(.106-.046)*t);zz=-D*t
-  cylinder('Steel pin %s %02d' %(lane,i),(X,y,zz),.004,.016,steel,10)
-  for side in [-1,1]:plate('Outer link plate %s %02d %s'%(lane,i,side),(X+side*.009,y,zz))
-for i in range(27):
- a=math.pi/2+i*math.pi/26
- y=.106*math.sin(a);zz=-D+.106*math.cos(a)
- cylinder('Sprocket arc roller %02d'%i,(X,y,zz),.004,.016,steel,10)
- for side in [-1,1]:plate('Sprocket arc link %02d %s'%(i,side),(X+side*.009,y,zz))
+# One closed, full-size 520-chain loop with nearly one pin per 15.875 mm.
+# The runtime spline rounds the four tangent transitions continuously.
+FRONT=.046;REAR=.106
+perimeter=2*D+math.pi*(FRONT+REAR)
+links=round(perimeter/.015875)
+for i in range(links):
+  path_s=i*perimeter/links
+  if path_s<D:
+    t=path_s/D
+    yy=FRONT+(REAR-FRONT)*t;zz=-D*t
+    ty=(REAR-FRONT)/D;tz=-1
+  elif path_s<D+math.pi*REAR:
+    a=math.pi/2+(path_s-D)/REAR
+    yy=REAR*math.sin(a);zz=-D+REAR*math.cos(a)
+    ty=math.cos(a);tz=-math.sin(a)
+  elif path_s<2*D+math.pi*REAR:
+    t=(path_s-D-math.pi*REAR)/D
+    yy=-(REAR+(FRONT-REAR)*t);zz=-D+D*t
+    ty=(REAR-FRONT)/D;tz=1
+  else:
+    a=3*math.pi/2+(path_s-2*D-math.pi*REAR)/FRONT
+    yy=FRONT*math.sin(a);zz=FRONT*math.cos(a)
+    ty=math.cos(a);tz=-math.sin(a)
+  cylinder('Steel chain pin %03d'%i,(X,yy,zz),.004,.016,steel,10)
+  for side in [-1,1]:
+    o=plate('Forged sideplate %03d %s'%(i,side),(X+side*.009,yy,zz))
+    # Local Blender +Y (long side of each plate) follows the belt tangent.
+    o.rotation_euler.x=math.atan2(ty,-tz)
 bpy.ops.wm.save_as_mainfile(filepath=str(out/'gp-chain-drive.blend'))
 bpy.ops.export_scene.gltf(filepath=str(out/'gp-chain-drive.glb'),export_format='GLB',export_yup=True,export_apply=True)
 print('GP_CHAIN_BUILT',len(bpy.data.objects),'objects,',TEETH,'teeth; output',out)

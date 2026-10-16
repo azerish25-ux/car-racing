@@ -24,7 +24,7 @@ function sprocketGeometry() {
   const shape = new T.Shape();
   for (let i = 0; i <= REAR_TEETH * 8; i++) {
     const angle = (TAU * i) / (REAR_TEETH * 8);
-    const radius = 0.102 + 0.0042 * Math.cos(REAR_TEETH * angle);
+    const radius = 0.103 + 0.0022 * Math.cos(REAR_TEETH * angle);
     const a = radius * Math.cos(angle);
     const b = radius * Math.sin(angle);
     if (i === 0) shape.moveTo(a, b);
