@@ -1,0 +1,42 @@
+name: MotoGP offline workspace
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/motogp-offline-workspace.yml']
+permissions:
+  contents: read
+concurrency:
+  group: motogp-offline-workspace
+  cancel-in-progress: false
+jobs:
+  workspace:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Install locked development dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Archive tracked source and offline toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/motogp-workspace"
+          git archive HEAD | gzip -1 > "$RUNNER_TEMP/motogp-workspace/source.tar.gz"
+          tar -czf "$RUNNER_TEMP/motogp-workspace/node_modules.tar.gz" node_modules
+          git rev-parse HEAD > "$RUNNER_TEMP/motogp-workspace/commit.txt"
+          node --version > "$RUNNER_TEMP/motogp-workspace/node-version.txt"
+          cd "$RUNNER_TEMP/motogp-workspace"
+          sha256sum source.tar.gz node_modules.tar.gz > SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: motogp-offline-workspace
+          path: ${{ runner.temp }}/motogp-workspace/
+          compression-level: 0
+          retention-days: 3
+          if-no-files-found: error
