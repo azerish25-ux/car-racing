@@ -1,0 +1,54 @@
+name: CI reproduction bundle
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/ci-repro.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies without source changes
+        run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+      - name: Package exact source and Linux test dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import os, pathlib, subprocess
+          paths = []
+          for entry in subprocess.check_output(['git', 'ls-tree', '-z', 'HEAD']).split(b'\0'):
+              if not entry:
+                  continue
+              meta, name = entry.split(b'\t', 1)
+              path = name.decode()
+              if meta.split()[1] == b'blob' or path in ('src', 'tests', 'e2e', 'scripts', '.github'):
+                  paths.append(path)
+          dest = pathlib.Path(os.environ['RUNNER_TEMP'])
+          with (dest / 'source.tar.gz').open('wb') as output:
+              subprocess.run(['git', 'archive', '--format=tar.gz', 'HEAD', '--', *paths], stdout=output, check=True)
+          (dest / 'source-commit.txt').write_text(subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True))
+          PY
+          tar -czf "$RUNNER_TEMP/test-dependencies.tar.gz" node_modules
+      - name: Retain reproduction bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-reproduction
+          path: |
+            ${{ runner.temp }}/source.tar.gz
+            ${{ runner.temp }}/test-dependencies.tar.gz
+            ${{ runner.temp }}/source-commit.txt
+          compression-level: 0
+          retention-days: 1
+          if-no-files-found: error
