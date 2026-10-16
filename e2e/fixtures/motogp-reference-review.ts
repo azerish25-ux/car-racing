@@ -8,11 +8,11 @@ import { H } from '../../src/simulation/protocol.ts';
 import { VEHICLES } from '../../src/simulation/vehicles.ts';
 
 /** Isolated production BikeModel, not a replacement game or promotional render. */
-export function captureBike(
+export function captureBikeSequence(
   view = 'three-quarter',
   detail: 'high' | 'mid' | 'far' = 'high',
   id = 'gpr1',
-  wet = false,
+  samples: readonly { wet: boolean; time: number }[] = [{ wet: false, time: 2 }],
 ) {
   const renderer = new T.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
   renderer.setSize(1280, 800);
@@ -67,10 +67,6 @@ export function captureBike(
   const weather = new WeatherPresentation();
   weather.install(bike.root);
   const weatherFrame = new Float32Array(128);
-  weatherFrame[H.TIME] = 2;
-  weatherFrame[H.RAIN] = wet ? 20 : 0;
-  weatherFrame[H.WATER] = wet ? 0.6 : 0;
-  weather.update(weatherFrame);
   scene.add(bike.root);
   if (view === 'bodywork') bike.rider.root.visible = false;
   const floor = new T.Mesh(
@@ -102,41 +98,68 @@ export function captureBike(
     if (o instanceof T.Mesh)
       triangles += (o.geometry.index?.count ?? o.geometry.getAttribute('position').count) / 3;
   });
-  renderer.render(scene, camera);
-  const image = renderer.domElement.toDataURL('image/png');
-  const pixels = new Uint8Array(1280 * 800 * 4);
-  renderer
-    .getContext()
-    .readPixels(
-      0,
-      0,
-      1280,
-      800,
-      renderer.getContext().RGBA,
-      renderer.getContext().UNSIGNED_BYTE,
-      pixels,
-    );
-  let hash = 2166136261;
-  for (const byte of pixels) hash = Math.imul(hash ^ byte, 16777619) >>> 0;
-  const result = {
-    image,
-    hash,
-    cockpit,
-    weather: weather.diagnostics(),
-    triangles,
-    calls: renderer.info.render.calls,
-    glError: renderer.getContext().getError(),
-    bounds: new T.Box3().setFromObject(bike.root),
-  };
-  bike.dispose();
-  materials.dispose();
-  floor.geometry.dispose();
-  (floor.material as T.Material).dispose();
-  weather.dispose();
-  env.dispose();
-  room.dispose();
-  pmrem.dispose();
-  renderer.dispose();
-  renderer.forceContextLoss();
-  return result;
+  try {
+    return samples.map((sample) => {
+      weatherFrame[H.TIME] = sample.time;
+      weatherFrame[H.RAIN] = sample.wet ? 20 : 0;
+      weatherFrame[H.WATER] = sample.wet ? 0.6 : 0;
+      const source = weatherFrame.slice();
+      weather.update(weatherFrame);
+      renderer.render(scene, camera);
+      const image = renderer.domElement.toDataURL('image/png');
+      const pixels = new Uint8Array(1280 * 800 * 4);
+      renderer
+        .getContext()
+        .readPixels(
+          0,
+          0,
+          1280,
+          800,
+          renderer.getContext().RGBA,
+          renderer.getContext().UNSIGNED_BYTE,
+          pixels,
+        );
+      let hash = 2166136261;
+      for (const byte of pixels) hash = Math.imul(hash ^ byte, 16777619) >>> 0;
+      const result = {
+        image,
+        instance: bike.root.uuid,
+        sourceFrameUnchanged: weatherFrame.every((value, i) => value === source[i]),
+        resources: {
+          geometries: renderer.info.memory.geometries,
+          textures: renderer.info.memory.textures,
+          programs: renderer.info.programs?.length ?? 0,
+        },
+        hash,
+        cockpit,
+        weather: weather.diagnostics(),
+        triangles,
+        calls: renderer.info.render.calls,
+        glError: renderer.getContext().getError(),
+        bounds: new T.Box3().setFromObject(bike.root),
+      };
+      return result;
+    });
+  } finally {
+    bike.dispose();
+    materials.dispose();
+    floor.geometry.dispose();
+    (floor.material as T.Material).dispose();
+    weather.dispose();
+    env.dispose();
+    room.dispose();
+    pmrem.dispose();
+    renderer.dispose();
+    renderer.forceContextLoss();
+  }
+}
+
+/** Compatibility wrapper; sequence tests deliberately retain the same instance. */
+export function captureBike(
+  view = 'three-quarter',
+  detail: 'high' | 'mid' | 'far' = 'high',
+  id = 'gpr1',
+  wet = false,
+) {
+  return captureBikeSequence(view, detail, id, [{ wet, time: 2 }])[0];
 }
