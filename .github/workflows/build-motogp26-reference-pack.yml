@@ -1,0 +1,50 @@
+name: Build MotoGP 26 reference pack
+
+on:
+  push:
+    branches:
+      - asset-pack/motogp26-reference-100
+    paths:
+      - tools/reference_pack/build_motogp26_reference_pack.py
+      - .github/workflows/build-motogp26-reference-pack.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PYTHONUNBUFFERED: '1'
+
+jobs:
+  build-reference-pack:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install media and Python dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          python -m pip install --upgrade pip
+          python -m pip install requests beautifulsoup4 pillow ImageHash yt-dlp
+
+      - name: Build and verify 100-image pack
+        working-directory: tools/reference_pack
+        run: python build_motogp26_reference_pack.py
+
+      - name: Upload ZIP artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MotoGP26-PS5-100-Reference-Images
+          path: tools/reference_pack/output/MotoGP26_PS5_100_Reference_Images.zip
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
