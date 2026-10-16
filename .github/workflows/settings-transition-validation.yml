@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
     paths:
+      - scripts/browser-backend.ts
       - .github/workflows/settings-transition-validation.yml
       - src/main.ts
       - src/rendering/**
@@ -18,6 +19,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
+      # Include graphics-process diagnostics when a cold software draw loses its context.
+      DEBUG: pw:browser
       APEX_BROWSER_BACKEND: mesa
       LIBGL_ALWAYS_SOFTWARE: 'true'
       GALLIUM_DRIVER: llvmpipe

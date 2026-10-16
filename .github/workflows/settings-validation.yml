@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
     paths:
+      - scripts/browser-backend.ts
       - src/main.ts
       - src/core/settings-transition.ts
       - src/rendering/renderer.ts
@@ -22,6 +23,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
+      # Include graphics-process diagnostics when a cold software draw loses its context.
+      DEBUG: pw:browser
       APEX_BROWSER_BACKEND: mesa
       LIBGL_ALWAYS_SOFTWARE: 'true'
       GALLIUM_DRIVER: llvmpipe

@@ -16,12 +16,27 @@ describe('explicit software graphics backend selection', () => {
     expect(browserBackend('mesa', 'linux')).toEqual({
       name: 'mesa',
       headless: false,
-      args: ['--use-gl=angle', '--use-angle=gl', '--ignore-gpu-blocklist'],
+      args: [
+        '--use-gl=angle',
+        '--use-angle=gl',
+        '--ignore-gpu-blocklist',
+        '--gpu-watchdog-timeout-seconds=120',
+      ],
     });
     for (const platform of ['win32', 'darwin'] as const)
       expect(() => browserBackend('mesa', platform)).toThrow('requires Linux');
     for (const name of ['', 'auto', 'Mesa', '--disable-gpu'])
       expect(() => browserBackend(name)).toThrow('Unknown APEX_BROWSER_BACKEND');
+  });
+  it('keeps a finite watchdog only for explicit Mesa and never changes sandbox isolation', () => {
+    const mesa = browserBackend('mesa', 'linux').args;
+    expect(mesa).toContain('--gpu-watchdog-timeout-seconds=120');
+    for (const backend of [mesa, browserBackend('swiftshader').args]) {
+      expect(backend).not.toContain('--disable-gpu-watchdog');
+      expect(backend).not.toContain('--disable-gpu-sandbox');
+      expect(backend).not.toContain('--no-sandbox');
+    }
+    expect(browserBackend('swiftshader').args.some((arg) => arg.includes('watchdog'))).toBe(false);
   });
   it('requires the observed requested adapter and rejects silent driver fallback', () => {
     expect(() =>

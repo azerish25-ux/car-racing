@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
     paths:
+      - scripts/browser-backend.ts
       - 'scripts/infrastructure-render-budget.ts'
       - 'docs/TRACK_INFRASTRUCTURE_RENDER_BASELINE.json'
       - 'src/rendering/**'
@@ -21,6 +22,8 @@ jobs:
       matrix:
         lighting: [day, sunset, night]
     env:
+      # Include graphics-process diagnostics when a cold software draw loses its context.
+      DEBUG: pw:browser
       APEX_BROWSER_BACKEND: mesa
       LIBGL_ALWAYS_SOFTWARE: 'true'
       GALLIUM_DRIVER: llvmpipe

@@ -13,7 +13,15 @@ export function browserBackend(request: string | undefined, platform = process.p
     headless: name !== 'mesa',
     args:
       name === 'mesa'
-        ? ['--use-gl=angle', '--use-angle=gl', '--ignore-gpu-blocklist']
+        ? [
+            '--use-gl=angle',
+            '--use-angle=gl',
+            '--ignore-gpu-blocklist',
+            // llvmpipe compiles and executes on the CPU. Keep a bounded graphics
+            // process watchdog for cold photographed-material compilation; do
+            // not disable it, reduce scene quality, or extend test deadlines.
+            '--gpu-watchdog-timeout-seconds=120',
+          ]
         : ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'],
   };
 }
