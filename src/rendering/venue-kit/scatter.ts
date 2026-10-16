@@ -45,6 +45,13 @@ export function buildScatter(kit: VenueKitContext) {
     const rock = random.next() < (desert ? 0.45 : 0.35),
       size = rock ? 0.6 + random.next() * random.next() * 3.5 : 0.5 + random.next() * 1.1;
     e.set(random.next() * 0.6, random.next() * Math.PI * 2, random.next() * 0.6);
+    // Photographic shrubs (green venues) replace the faceted scrub.
+    if (!rock && kit.photoShrubs && !desert) {
+      // Same draws as a drawn shrub, so the boulders stay where they were.
+      const stretch = 0.8 + random.next() * 0.5;
+      kit.photoShrubs.push({ x, y, z, height: size * 1.5, width: size * 2 * stretch, yaw: e.y });
+      continue;
+    }
     q.setFromEuler(e);
     m.compose(
       new T.Vector3(x, y + (rock ? size * 0.25 : size * 0.45), z),

@@ -4,6 +4,7 @@ const KIND_LABEL: Record<CreditLine['kind'], string> = {
   hdri: 'Photographed skies (HDRI)',
   texture: 'Scanned material textures',
   mesh: 'Models',
+  vegetation: 'Trees, shrubs and grass',
 };
 
 function escape(text: string) {
@@ -14,7 +15,7 @@ function escape(text: string) {
  * attribution, licence and source, grouped by kind. Plain links; the list is
  * a focusable scroll region (arrow keys, Page Up/Down, gamepad). */
 export function creditsHtml(lines: readonly CreditLine[] = creditLines()) {
-  const groups = (['hdri', 'texture', 'mesh'] as const)
+  const groups = (['hdri', 'texture', 'mesh', 'vegetation'] as const)
     .map((kind) => ({ kind, items: lines.filter((l) => l.kind === kind) }))
     .filter((g) => g.items.length);
   const body = groups

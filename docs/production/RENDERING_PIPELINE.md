@@ -24,6 +24,7 @@ be overridden and persists (`src/storage/data.ts`, settings v6). The default rem
 | Lens | grade + vignette | + effects | + effects | + **restrained chromatic aberration**, **sun shafts** |
 | Depth of field | photo, showroom, telephoto | same | same | + **thin-lens replay lens** |
 | Tone mapping | ACES | ACES | ACES | **AgX** with a restrained filmic grade (ACES / Khronos Neutral selectable on any preset) |
+| Vegetation (§8b) | procedural crowns | procedural crowns | photographic, near trees ≤ 56 m, grass ≤ 40 m | photographic, ≤ 72 m, grass ≤ 55 m |
 
 A save written before ULTRA existed validates to exactly its old preset values with every new
 module off (`tests/ultra-options.test.ts`, "settings migration"). An ULTRA save opened by an older
@@ -220,6 +221,7 @@ Factories return ordinary three.js materials — callers own and dispose them.
 | Replay lens | recorded chase/broadcast view, no other depth of field | sharp |
 | GPU pass timing | timestamp queries | `gpuMs: null`; frame GPU time only |
 | Material maps | RGBA8 render-target readback | identity (flat) maps |
+| Photographic vegetation | HIGH or ULTRA, KTX2 transcoder or WebP decode, a loaded species of the venue | the procedural planting (whole venue; LOW and MEDIUM always) |
 
 ## 8. Photographed skies and third-party assets (D14)
 
@@ -371,6 +373,75 @@ circuit, up to 9 at an off-road venue). Shader cost when switching (SwiftShader,
 recompiling the 9 scanned programs takes 1.5 s (MEDIUM) / 2.6 s (HIGH/ULTRA) against 15.6 s for
 the whole scene's first compile.
 
+## 8c. Photographic vegetation (D15)
+
+Trees, shrubs and the grass band are baked from the CC BY 4.0 *Landscape* plants (Laubwerk; list,
+licence and the stated modification in `docs/ASSET_PROVENANCE.md`) on HIGH and ULTRA. LOW, MEDIUM
+(whose scenery draw/shadow budgets and browser surveys are measured on the procedural planting),
+node tests and any failed load keep the procedural crowns (`landscape.ts`, `studio/forest-belts.ts`,
+`open-world/vegetation.ts`) and the A51–A54 Aurel trees.
+
+**Bake** (`scripts/assets/vegetation/`, run by `build-third-party.ts` for `"type": "vegetation"`
+register entries). The pbrt scene object is read with its PLY meshes and PNG textures (`pbrt.ts`,
+`ply.ts`, `plant.ts`: centimetres → metres, +Y up, trunk base at the origin). A leaf-area-density
+volume of the whole plant gives every vertex its **sky visibility** — the cosine-weighted
+transmittance `exp(−0.5·LAD·s)` over 48 upper-hemisphere rays (`canopy.ts`), i.e. ambient occlusion
+through the crown. The **trunk and main limbs** are simplified with meshoptimizer
+(`simplifyWithAttributes`, error ≤ 2 % of the plant height) to 1 200–9 000 triangles and keep their
+visibility per vertex; one bark colour map and a normal map from the source displacement ship per
+plant. The **crown** (leaves, needles, twigs, fine branches; 0.25–4 M source triangles) is split
+into 80–480 area-weighted k-means clusters; each gets a card through its centroid (deciduous: the
+cluster's thinnest axis turned 60 % outward; conifers: vertical, facing away from the trunk), sized
+to hold every leaf it owns, and the cluster is rasterised orthographically onto it (`raster.ts`,
+3×3 supersampled, mip-filtered alpha-tested textures) into a 2048² colour + coverage atlas and a
+tangent-space normal + visibility atlas (shipped at 1024²). Shading normals are 45 % the crown's
+ellipsoid normal, so cards and impostors light as one volume. The **impostor** is the whole plant
+from eight azimuths (512² cells; 384 × 768 for firs). **Grass**: thin vertical slabs (0.45 m) of
+two meadow patches from four azimuths, 512 × 256 tiles. KTX2 (ETC1S colour, UASTC + zstd normals,
+mipmapped, rows bottom-first so atlas UVs match the WebP fallback) plus half-size WebP. Geometry is a
+`.veg` container (`src/rendering/vegetation/format.ts`). Eight plants: 24.75 MB (KTX2 18.92 MB,
+WebP fallbacks 4.68 MB, geometry 1.16 MB; a tree 3.56–4.11 MB, the shrub 1.11 MB, the grass 0.51 MB).
+
+**Runtime** (`src/rendering/vegetation/`). `loadVenueVegetation` loads only the species the venue's
+palette uses (`species.ts`; the same palette that picks its sky) before construction; the planting
+step builds `PhotoPlanting` from the existing plans (`vegetationPlan`, `grovePlan`,
+`forestBeltPlan`, `aurelVegetationPlan`, the venue-kit scatter shrubs, festival tile trees): the
+planting zone's character (cypress, olive, upright, spreading…) or the crown aspect picks a role,
+the palette and a position hash a species, the planned height a clamped uniform scale (0.55–1.75; the baked firs are young 8–9 m trees and
+may grow to 2.6× for the belts' 14–28 m conifers)
+and a tint; in venues planted with conifer rows (the forest theme) about two in three belt trees
+are firs instead of 40 %. `PhotoForest` instances per 140–500 m chunk and species: impostors
+always; cards + trunk only in chunks within the near distance, and there only for the plants within
+it (+2.5 m), re-selected on the CPU whenever the eye has moved 2 m — the shader would collapse the
+others, but at full vertex cost (hundreds of thousands of trunk triangles per chunk on software
+GL). Materials (`materials.ts`, MeshStandardMaterial + chained hooks, also on the depth/distance
+programs):
+
+| | |
+|---|---|
+| Cards | turned 50 % toward the main-camera eye (`vegEye`, the same in colour and shadow passes); flutter by distance from the trunk, sway ∝ height² with the presented wind (`studioWind`) |
+| LOD | per plant: cards/trunk fade out and impostors fade in over 6 m before the near distance with complementary screen-space dithers (no double draw, no hole); beyond it the near geometry collapses in the vertex shader |
+| Impostor | quad about the trunk axis facing the camera; the two nearest views blended (colour, coverage, normal, visibility); light-facing in shadow passes (far map) |
+| Coverage | alpha-to-coverage edges; alpha × (1 + 0.08 per mip, ≤ 0.24) against minification thinning |
+| Light | baked visibility × indirect (and 45 % of direct) light; leaf transmission (back-lit diffuse 0.55, forward scatter 0.6, `pow 5`) added per shadowed light in a wrapped `RE_Direct` |
+| Grass | three crossed cards per clump (tile, size, turn, tint per instance), normals 55 % toward the sky, half the baked meadow occlusion, sunk 7 % of their height (hides the patch's soil line), tips bend with the wind, clumps shrink into the ground at the grass distance |
+| Contact | a soft dark disc (42 %) under each crown on the terrain slope, within 240 m, never a shadow caster |
+
+| Preset | Near trees (cards + trunk) | Impostors | Grass band |
+|---|---|---|---|
+| Low, Medium | procedural crowns | — | — |
+| High | ≤ 56 m | beyond | ≤ 40 m |
+| ULTRA | ≤ 72 m | beyond | ≤ 55 m |
+
+Grass (`grass.ts`): clumps every 0.75 m along the lap (up to eight per side and row, thinning
+outward), from the barrier foot (only on grass run-off) to 16 m beyond it, never within the
+barrier line of the nearest section (hairpins), stands, service areas or venue structures; venues
+whose ground is not grass have none. Late-summer tiles (bare soil at the foot) are 85 % of clumps
+at arid and desert venues, 30 % at flat ones and 6 % elsewhere. Near trees cast into
+the moving sun map; impostors and belts reach the far map only (light-facing impostors).
+`apexDiagnostics().renderer.photoVegetation` reports plants, chunks, near chunks, near plants drawn
+with cards, species, failures and grass clumps.
+
 ## 9. Known limits
 
 - SSR normals are reconstructed from depth (no MRT G-buffer): tessellated curvature can show as
@@ -399,6 +470,14 @@ the whole scene's first compile.
   sets (an arid circuit's verges use the same lawn, tinted by the venue's finish), no material
   for painted lines, and the kerb paint wear is authored, not scanned. The off-road splat is per
   vertex (0.5 × 1 m cells), so soil-kind boundaries follow that grid softened by the height blend.
+
+- Photographic vegetation is a billboard cloud: within ~10 m a card shows as a flat, slightly
+  swimming cluster of leaves; seen from below the crown, impostor views (horizontal only) read as
+  the side of the tree. Held frames (no TAA) show the LOD crossfade stipple on the few trees inside
+  the 6 m band. Species are temperate (linden, horse chestnut, birch, rowan, two firs, one
+  flowering shrub, meadow grass): Mediterranean, desert and tropical venues show the nearest
+  temperate stand-ins. Grass is a band along the lap, not a ground cover of the whole venue; the
+  festival has no grass band. Wind sways whole trees and flutters cards, not individual leaves.
 - Software rendering (CI SwiftShader/Mesa) proves function only. ULTRA frame cost, memory headroom
   and image quality need captures on named reference hardware (`HARDWARE_DEVICE_PLAYTEST_PROTOCOLS.md`)
   before any row moves beyond *integrated*.

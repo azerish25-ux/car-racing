@@ -1,5 +1,6 @@
 import { loadAurelQuarry } from './aurel-quarry.ts';
 import { loadAurelVegetation } from './aurel-vegetation.ts';
+import { loadVenueVegetation } from './vegetation/index.ts';
 import { loadTrackSignalHardware } from './track-signal-hardware.ts';
 import { loadTrackBoards } from './track-boards.ts';
 import { loadBroadcastCameras } from './broadcast-cameras.ts';
@@ -623,6 +624,23 @@ export class RacingRenderer {
         label: 'Loading Aurel pit-building frontage',
       });
       renderer.circuit.pitBuildingFrontage = await loadPitBuildingFrontage(cancelled);
+      // Photographic trees, shrubs and grass for this venue (not on LOW).
+      progress({
+        completed: 0,
+        total: 1,
+        fraction: 0,
+        label: 'Loading photographed trees and grass',
+      });
+      renderer.circuit.photoLibrary = await loadVenueVegetation(
+        renderer.renderer,
+        track,
+        renderer.preset,
+        renderer.circuit.venueKit?.context ?? null,
+      );
+      if (cancelled()) {
+        renderer.dispose();
+        return null;
+      }
       // This original kit is terrain/route-validated for Aurel. Vellamar keeps
       // its own retained infrastructure until separately authored and reviewed.
       if (track.circuit.id === 'aurel') {
@@ -669,7 +687,8 @@ export class RacingRenderer {
           fraction: 0,
           label: 'Loading A51-A54 authored planting',
         });
-        renderer.circuit.vegetation = await loadAurelVegetation(cancelled);
+        if (!renderer.circuit.photoLibrary)
+          renderer.circuit.vegetation = await loadAurelVegetation(cancelled);
         renderer.circuit.quarry = await loadAurelQuarry(cancelled);
         renderer.circuit.quarry.enqueue(
           track,
@@ -1425,6 +1444,7 @@ export class RacingRenderer {
     this.circuit.broadcastCameras?.update(this.camera, this.quality);
     this.circuit.venueKit?.update(this.camera, this.night, this.bloom.energyConserving);
     this.circuit.vegetation?.update(this.camera, this.quality);
+    this.circuit.photoPlanting?.update(this.camera, this.preset, this.graphics.vegetationDensity);
     this.circuit.quarry?.update(this.camera, this.quality);
     this.circuit.heroGarage?.update(this.camera, this.quality, illumination);
     this.tyreEquipment?.update(this.camera, this.quality);
@@ -2183,6 +2203,7 @@ export class RacingRenderer {
       scannedGround: scannedGround.diagnostics(),
       lighting: this.lighting,
       vegetationTrees: this.circuit.vegetationGroup.userData.treeCount,
+      photoVegetation: this.circuit.photoPlanting?.diagnostics() ?? null,
       infrastructureDetail: this.circuit.infrastructureDiagnostics(),
       trackInfrastructure: {
         drains: this.circuit.trackInfrastructure.drains.length,
@@ -2246,6 +2267,8 @@ export class RacingRenderer {
     this.circuit.trackBoards?.dispose();
     this.circuit.broadcastCameras?.dispose();
     this.circuit.vegetation?.dispose();
+    this.circuit.photoPlanting?.dispose();
+    this.circuit.photoLibrary?.dispose();
     this.circuit.quarry?.dispose();
     this.circuit.secondaryStands.dispose();
 

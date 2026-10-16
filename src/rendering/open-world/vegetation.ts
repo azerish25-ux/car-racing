@@ -5,6 +5,12 @@ import { foliageAtlas, installFoliageAtlas, treeGeometry } from '../landscape.ts
 import { materials } from '../materials/index.ts';
 import type { TileMeshData } from '../../workers/open-world-protocol.ts';
 import { TILE_TREE_STRIDE } from './tile-data.ts';
+import { FESTIVAL_PALETTE } from '../assets/sky-catalogue.ts';
+import type { QualityPreset } from '../options.ts';
+import { PhotoForest, type PhotoPlant } from '../vegetation/forest.ts';
+import type { VegetationLibrary } from '../vegetation/library.ts';
+import { photoPlants } from '../vegetation/planting.ts';
+import { plantHash, plantTint, SPECIES, treeRole } from '../vegetation/species.ts';
 
 /** A conifer crown: three stacked, irregular cone tiers (unit height). */
 function coniferGeometry(segments: number, tiers: number) {
@@ -56,6 +62,7 @@ function shrubGeometry() {
 
 interface TileTrees {
   group: T.Group;
+  forest: PhotoForest | null;
 }
 /**
  * Instanced vegetation on the near terrain tiles: broadleaf trees from the
@@ -83,6 +90,8 @@ export class Vegetation {
     shrub: T.BufferGeometry;
   };
   stats = { tiles: 0, instances: 0 };
+  /** Photographic trees and shrubs (null: the procedural crowns). */
+  private photo: VegetationLibrary | null = null;
   constructor() {
     this.root.name = 'Festival vegetation';
     const { leafGeometry, trunkGeometry, distantLeafGeometry } = treeGeometry();
@@ -110,20 +119,84 @@ export class Vegetation {
     this.needles.side = T.FrontSide;
     this.shrub = materials.vegetation({ color: 0x3a4a24, translucency: 0.3 });
   }
+  /** Use the photographic plants for every tile built from now on (set
+   * before streaming starts; null returns to the procedural crowns). */
+  setPhotoLibrary(library: VegetationLibrary | null, ground?: (x: number, z: number) => number) {
+    this.photo = library;
+    this.ground = ground;
+  }
+  private ground: ((x: number, z: number) => number) | undefined;
+  get photographic() {
+    return !!this.photo;
+  }
+  /** Per frame: near-LOD switching of photographic tiles. */
+  update(camera: T.Camera, preset: QualityPreset) {
+    for (const tile of this.tiles.values()) tile.forest?.update(camera, preset);
+  }
   /** Bring the instanced tiles in line with the terrain's near tiles. */
   sync(near: ReadonlyMap<number, { data: TileMeshData; level: number }>) {
     for (const [key, tile] of this.tiles)
       if (!near.has(key)) {
         this.root.remove(tile.group);
+        tile.forest?.dispose();
         tile.group.traverse((o) => {
           if (o instanceof T.InstancedMesh) o.dispose();
         });
         this.tiles.delete(key);
       }
-    for (const [key, entry] of near) if (!this.tiles.has(key)) this.tiles.set(key, { group: this.build(entry.data, entry.level) });
+    for (const [key, entry] of near)
+      if (!this.tiles.has(key)) {
+        if (this.photo) {
+          const forest = this.buildPhoto(entry.data);
+          this.tiles.set(key, { group: forest.root, forest });
+        } else this.tiles.set(key, { group: this.build(entry.data, entry.level), forest: null });
+      }
     let instances = 0;
     for (const t of this.tiles.values()) instances += t.group.userData.instances as number;
     this.stats = { tiles: this.tiles.size, instances };
+  }
+  /** One tile's trees and shrubs as photographic plants (all levels: the
+   * shader crossfades leaf cards and impostors per plant). */
+  private buildPhoto(data: TileMeshData) {
+    const library = this.photo!,
+      trees = data.trees,
+      forest = new PhotoForest(library);
+    const planned: { x: number; y: number; z: number; height: number; width: number; yaw: number; conifer: boolean }[] = [];
+    const shrubs: PhotoPlant[] = [];
+    const shrub = library.get(SPECIES.shrub);
+    for (let i = 0; i < trees.length; i += TILE_TREE_STRIDE) {
+      const kind = trees[i + 3],
+        h = trees[i + 2];
+      const x = trees[i],
+        z = trees[i + 1],
+        y = trees[i + 6];
+      if (kind === TREE_SPECIES.SHRUB) {
+        if (shrub)
+          shrubs.push({
+            species: SPECIES.shrub,
+            x,
+            y: y - 0.1,
+            z,
+            scale: Math.min(2.4, Math.max(0.8, h / Math.max(0.3, shrub.info.height))),
+            yaw: trees[i + 4],
+            tint: plantTint(plantHash(x, z, 41), FESTIVAL_PALETTE),
+          });
+        continue;
+      }
+      const conifer = kind === TREE_SPECIES.CONIFER;
+      planned.push({ x, y, z, height: h, width: conifer ? h * 0.5 : h * 0.8, yaw: trees[i + 4], conifer });
+    }
+    forest.add(
+      photoPlants(planned, library, FESTIVAL_PALETTE, (t) =>
+        (t as (typeof planned)[number]).conifer ? 'conifer' : treeRole(t.height, t.width),
+      ),
+      { label: 'Festival', shadows: true, chunk: 128, ground: this.ground },
+    );
+    forest.add(shrubs, { label: 'Festival shrubs', shadows: false, chunk: 128 });
+    forest.root.userData.instances = forest.plants;
+    forest.root.name = 'Photographic vegetation tile';
+    this.root.add(forest.root);
+    return forest;
   }
   private build(data: TileMeshData, level: number) {
     const group = new T.Group(),

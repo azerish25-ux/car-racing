@@ -14,6 +14,7 @@ import {
 import type { ThirdPartyKind, ThirdPartyManifest } from '../../src/rendering/assets/third-party.ts';
 import { brandWordIn } from './brands.ts';
 import { PROTECTED_NAMES } from '../../src/simulation/content-validation.ts';
+import { validateVegetationRecipe, type VegetationRecipe } from './vegetation/recipe.ts';
 
 export interface SourceFile {
   url: string;
@@ -80,7 +81,7 @@ export interface SourceEntry {
   licenceEvidence: string;
   notes?: string;
   files: SourceFile[];
-  recipe: HdriRecipe | PbrRecipe;
+  recipe: HdriRecipe | PbrRecipe | VegetationRecipe;
 }
 export interface SourceRegister {
   version: 1;
@@ -148,10 +149,10 @@ export function validateRegister(register: SourceRegister): string[] {
     if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(s.id)) errors.push(`${at}: id must be kebab-case`);
     if (ids.has(s.id)) errors.push(`${at}: duplicate id`);
     ids.add(s.id);
-    if (!['hdri', 'texture', 'mesh'].includes(s.kind)) errors.push(`${at}: unknown kind ${s.kind}`);
+    if (!['hdri', 'texture', 'mesh', 'vegetation'].includes(s.kind)) errors.push(`${at}: unknown kind ${s.kind}`);
     if (
       s.area !== undefined &&
-      (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(s.area) || ['hdri', 'texture', 'mesh'].includes(s.area))
+      (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(s.area) || ['hdri', 'texture', 'mesh', 'vegetation'].includes(s.area))
     )
       errors.push(`${at}: area must be a kebab-case name other than a kind`);
     if (!isAllowedLicence(s.licence)) errors.push(`${at}: licence ${s.licence} is not allowed`);
@@ -194,6 +195,10 @@ export function validateRegister(register: SourceRegister): string[] {
       for (const [, , w, h] of synth.regions)
         if (w < synth.patch || h < synth.patch)
           errors.push(`${at}: synth region smaller than the patch`);
+    }
+    if (s.recipe.type === 'vegetation') {
+      if (s.kind !== 'vegetation') errors.push(`${at}: vegetation recipe on a ${s.kind}`);
+      for (const e of validateVegetationRecipe(s.recipe)) errors.push(`${at}: ${e}`);
     }
   }
   return errors;

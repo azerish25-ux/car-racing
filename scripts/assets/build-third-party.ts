@@ -20,6 +20,9 @@
  *         dome, horizon; scripts/assets/hdri.ts) -> normalised to a unit dome
  *         and clamped -> Ultra HDR JPEG per variant width: sRGB base at full
  *         size plus a half-size scalar gain map (reconstruction verified).
+ *   vegetation  a landscape plant (pbrt scene object, PLY meshes, PNG
+ *         textures) -> decimated trunk, leaf-card and impostor atlases
+ *         (scripts/assets/vegetation/build.ts).
  *   pbr   colour / normal / roughness / ao PNGs -> KTX2 (colour ETC1S sRGB,
  *         normal and ORM UASTC + zstd, mipmapped) with toktx when available,
  *         and WebP fallbacks (ImageMagick `convert`); DirectX normals are
@@ -87,6 +90,7 @@ import {
   synthesizeTile,
   writeRgb,
 } from './texture-ops.ts';
+import { buildVegetation } from './vegetation/build.ts';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const argv = process.argv.slice(2);
@@ -680,11 +684,21 @@ async function main() {
     };
     if (source.recipe.type === 'hdri')
       assets.push({ ...common, ...(await buildHdri(source, source.recipe, tools)) });
+    else if (source.recipe.type === 'vegetation')
+      assets.push({
+        ...common,
+        ...(await buildVegetation(source, source.recipe, {
+          fetch: cached,
+          toktx,
+          writeShipped,
+          log,
+        })),
+      });
     else assets.push({ ...common, ...buildPbr(source, source.recipe, toktx) });
   }
   // Directories of assets no longer in the register are removed.
   const shipped = new Set(assets.map((a) => sourceDirectory(a)));
-  const groups = new Set(['hdri', 'texture', 'mesh', ...assets.map((a) => a.area ?? a.kind)]);
+  const groups = new Set(['hdri', 'texture', 'mesh', 'vegetation', ...assets.map((a) => a.area ?? a.kind)]);
   for (const group of groups) {
     const dir = join(PUBLIC, 'assets/third-party', group);
     if (!existsSync(dir)) continue;
