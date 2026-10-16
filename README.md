@@ -111,6 +111,7 @@ scripts/, tools/ Validation and asset tooling
 | [Architecture](docs/ARCHITECTURE.md) | Application structure and simulation/rendering boundaries. |
 | [Physics model](docs/production/PHYSICS_MODEL.md) | Vehicle dynamics, tyres, suspension, drivetrain and surface interaction. |
 | [Circuit catalogue](docs/CIRCUIT_CATALOGUE.md) | Venues, layouts and implementation notes. |
+| [MotoGP R2 improvements](docs/MOTOGP_R2_DELIVERY.md) | All 100 reference reviews, bike/rider and circuit changes, motorcycle interface, braking corrections and visual evidence. |
 | [Open-world festival](docs/production/OPEN_WORLD.md) | Solvane Coast, free roam, events, traffic and known limits. |
 | [Production documents](docs/production/README.md) | Design, implementation status, development plans and validation protocols. |
 

@@ -218,6 +218,44 @@ export function ringGeometry(outer: number, inner: number, thickness: number, si
   g.rotateY(Math.PI / 2);
   return g;
 }
+/** Machined fork bridge in the steering frame. The two bores share the exact
+ * fork centres; a relieved centre leaves visible daylight around the stem.
+ * REF_017/022: the top yoke is a shaped casting, not a rectangular bar. */
+export function tripleClampGeometry(thickness = 0.025, segments = 10) {
+  const shape = new T.Shape();
+  shape.moveTo(-0.146, 0.03);
+  shape.bezierCurveTo(-0.146, 0.071, -0.082, 0.091, -0.06, 0.043);
+  shape.quadraticCurveTo(-0.042, 0.005, 0, 0.008);
+  shape.quadraticCurveTo(0.042, 0.005, 0.06, 0.043);
+  shape.bezierCurveTo(0.082, 0.091, 0.146, 0.071, 0.146, 0.03);
+  shape.quadraticCurveTo(0.145, -0.009, 0.11, -0.016);
+  shape.lineTo(0.042, -0.054);
+  shape.quadraticCurveTo(0, -0.069, -0.042, -0.054);
+  shape.lineTo(-0.11, -0.016);
+  shape.quadraticCurveTo(-0.145, -0.009, -0.146, 0.03);
+  for (const [x, z, radius] of [
+    [-0.105, FORK_OFFSET, 0.032],
+    [0.105, FORK_OFFSET, 0.032],
+    [0, -0.031, 0.0135],
+    [-0.055, -0.014, 0.009],
+    [0.055, -0.014, 0.009],
+  ]) {
+    const hole = new T.Path();
+    hole.absarc(x, z, radius, 0, Math.PI * 2, true);
+    shape.holes.push(hole);
+  }
+  const geometry = new T.ExtrudeGeometry(shape, {
+    depth: thickness,
+    bevelEnabled: true,
+    bevelSize: 0.0012,
+    bevelThickness: 0.0012,
+    bevelSegments: 1,
+    curveSegments: segments,
+  });
+  geometry.rotateX(Math.PI / 2);
+  geometry.translate(0, thickness / 2, 0);
+  return geometry;
+}
 /** Vent slots are cut from the carbon rotor annulus, not painted black dots. */
 function ventedRotor(sides: number) {
   const shape = new T.Shape();
@@ -254,6 +292,7 @@ export function beam(
   width: number,
   height: number,
   segments: number,
+  profileSegments = 12,
 ) {
   const shape = new T.Shape();
   const r = Math.min(width, height) * 0.3,
@@ -269,7 +308,12 @@ export function beam(
   shape.lineTo(-w, -h + r);
   shape.quadraticCurveTo(-w, -h, -w + r, -h);
   const path = new T.CatmullRomCurve3(points.map((p) => new T.Vector3(...p)));
-  return new T.ExtrudeGeometry(shape, { steps: segments, bevelEnabled: false, extrudePath: path });
+  return new T.ExtrudeGeometry(shape, {
+    steps: segments,
+    curveSegments: profileSegments,
+    bevelEnabled: false,
+    extrudePath: path,
+  });
 }
 export function tube(
   points: readonly [number, number, number][],
@@ -344,6 +388,7 @@ export class BikeMaterials {
   readonly seat: T.MeshStandardMaterial;
   readonly screen: T.MeshPhysicalMaterial;
   readonly screenLight: T.MeshPhysicalMaterial;
+  readonly reservoir: T.MeshStandardMaterial;
   readonly lamp: T.MeshStandardMaterial;
   readonly band: T.MeshStandardMaterial;
   readonly plate: T.MeshPhysicalMaterial;
@@ -353,10 +398,10 @@ export class BikeMaterials {
     this.paint = add(
       new T.MeshPhysicalMaterial({
         color: scheme.primary,
-        metalness: 0.06,
-        roughness: 0.32,
-        clearcoat: 1,
-        clearcoatRoughness: 0.085,
+        metalness: 0.025,
+        roughness: 0.4,
+        clearcoat: 0.72,
+        clearcoatRoughness: 0.18,
         name: 'Bike fairing paint (clear coat)',
       }),
     );
@@ -493,6 +538,13 @@ export class BikeMaterials {
         side: T.DoubleSide,
       }),
     );
+    this.reservoir = add(
+      new T.MeshStandardMaterial({
+        color: 0xdbd7bb,
+        roughness: 0.47,
+        name: 'Brake reservoir nylon',
+      }),
+    );
     this.lamp = add(
       new T.MeshStandardMaterial({ color: 0x400606, emissive: 0xff1810, emissiveIntensity: 0.2 }),
     );
@@ -528,6 +580,7 @@ export class BikeMaterials {
       tagWeatherSurface(material, 'metal', 0.75);
     tagWeatherSurface(this.rubber, 'rubber');
     tagWeatherSurface(this.seat, 'leather', 0.7);
+    tagWeatherSurface(this.reservoir, 'paint', 0.7);
   }
   dispose() {
     for (const m of this.list) {
@@ -651,9 +704,27 @@ export class BikeModel {
           }
         else
           for (let k = 0; k < 5; k++) {
-            const spoke = add(spin, new T.BoxGeometry(0.022, rim - 0.05, 0.034), m.wheel);
             const a = (k / 5) * Math.PI * 2;
-            spoke.position.set(0, Math.cos(a) * (rim / 2 + 0.02), Math.sin(a) * (rim / 2 + 0.02));
+            const spoke = add(
+              spin,
+              detail === 'high'
+                ? beam(
+                    [
+                      [0, 0.042, -0.005],
+                      [0, 0.095, 0.01],
+                      [0, 0.16, 0.02],
+                      [0, rim - 0.002, 0.012],
+                    ],
+                    0.018,
+                    0.025,
+                    7,
+                    2,
+                  )
+                : new RoundedBoxGeometry(0.022, rim - 0.05, 0.029, 1, 0.005),
+              m.wheel,
+            );
+            if (detail !== 'high')
+              spoke.position.set(0, Math.cos(a) * (rim / 2 + 0.02), Math.sin(a) * (rim / 2 + 0.02));
             spoke.rotation.x = a;
           }
         add(spin, new T.CylinderGeometry(0.05, 0.05, halfWidth * 1.4, 16), m.wheel).rotation.z =
@@ -718,8 +789,94 @@ export class BikeModel {
           FORK_OFFSET,
         );
     }
-    add(this.steer, new T.BoxGeometry(0.27, 0.025, 0.07), m.aluminium, 0, 0.01, FORK_OFFSET * 0.5);
-    add(this.steer, new T.BoxGeometry(0.25, 0.03, 0.08), m.aluminium, 0, -0.14, FORK_OFFSET * 0.5);
+    if (detail !== 'far' && full) {
+      add(
+        this.steer,
+        tripleClampGeometry(0.024, detail === 'high' ? 9 : 5),
+        m.aluminium,
+        0,
+        0.01,
+      ).name = 'Relieved upper triple clamp';
+      add(
+        this.steer,
+        tripleClampGeometry(0.028, detail === 'high' ? 7 : 4),
+        m.dark,
+        0,
+        -0.14,
+      ).name = 'Relieved lower triple clamp';
+      if (detail === 'high') {
+        // Nested anodised cap, hex adjuster and slotted screw, all attached to
+        // the same steering group. Fork travel and the grip targets are intact.
+        for (const side of [-1, 1]) {
+          add(
+            this.steer,
+            new T.CylinderGeometry(0.027, 0.027, 0.006, 20),
+            m.forkUpper,
+            side * 0.105,
+            0.035,
+            FORK_OFFSET,
+          );
+          add(
+            this.steer,
+            new T.CylinderGeometry(0.0165, 0.0165, 0.007, 6),
+            m.aluminium,
+            side * 0.105,
+            0.0415,
+            FORK_OFFSET,
+          );
+          add(
+            this.steer,
+            new T.CylinderGeometry(0.0065, 0.0065, 0.004, 12),
+            m.forkLower,
+            side * 0.105,
+            0.047,
+            FORK_OFFSET,
+          );
+          add(
+            this.steer,
+            new T.BoxGeometry(0.009, 0.0008, 0.0013),
+            m.aluminium,
+            side * 0.105,
+            0.0494,
+            FORK_OFFSET,
+          );
+          add(
+            this.steer,
+            new T.CylinderGeometry(0.006, 0.006, 0.007, 6),
+            m.steel,
+            side * 0.137,
+            0.013,
+            -0.004,
+          ).rotation.x = Math.PI / 2;
+        }
+        add(
+          this.steer,
+          new T.CylinderGeometry(0.0205, 0.0205, 0.008, 6),
+          m.forkLower,
+          0,
+          0.028,
+          -0.031,
+        );
+        add(this.steer, new T.CylinderGeometry(0.009, 0.009, 0.009, 16), m.steel, 0, 0.032, -0.031);
+      }
+    } else {
+      add(
+        this.steer,
+        new T.BoxGeometry(0.27, 0.025, 0.07),
+        m.aluminium,
+        0,
+        0.01,
+        FORK_OFFSET * 0.5,
+      );
+      add(
+        this.steer,
+        new T.BoxGeometry(0.25, 0.03, 0.08),
+        m.aluminium,
+        0,
+        -0.14,
+        FORK_OFFSET * 0.5,
+      );
+    }
     // Clip-on bars, grips and levers; the grips are the rider's hand targets.
     // An upright roadster bar rises and reaches wider.
     const upright = look.bars === 'upright',
@@ -766,6 +923,41 @@ export class BikeModel {
           0.05,
         );
         lever.rotation.y = side * 0.3;
+        // Compact switch housing, lever pivot and bar end. REF_022/030 show
+        // these mechanical layers even when the rider is fully tucked.
+        add(
+          this.steer,
+          new RoundedBoxGeometry(0.033, 0.041, 0.041, 2, 0.008),
+          m.dark,
+          side * (0.227 + barX),
+          -0.053 + barY,
+          -0.041,
+        );
+        for (let button = 0; button < 3; button++)
+          add(
+            this.steer,
+            new T.CylinderGeometry(0.0045, 0.0045, 0.003, 8),
+            button === 0 ? m.accent : button === 1 ? m.secondary : m.aluminium,
+            side * (0.227 + barX),
+            -0.03 + barY,
+            -0.052 + button * 0.011,
+          );
+        add(
+          this.steer,
+          new T.CylinderGeometry(0.019, 0.019, 0.009, 12),
+          m.forkLower,
+          side * (0.36 + barX),
+          -0.071 + barY,
+          -0.06,
+        ).rotation.z = Math.PI / 2;
+        add(
+          this.steer,
+          new T.CylinderGeometry(0.008, 0.008, 0.009, 10),
+          m.forkLower,
+          side * 0.211,
+          -0.034,
+          0.03,
+        );
       }
     }
     // Lower legs slide on the stanchions with the recorded compression.
@@ -791,13 +983,40 @@ export class BikeModel {
         // Radial monobloc caliper straddling the disc behind the axle.
         const caliper = add(
           this.forkLower,
-          new T.BoxGeometry(0.04, 0.12, 0.055),
+          detail === 'high'
+            ? new RoundedBoxGeometry(0.04, 0.12, 0.055, 2, 0.01)
+            : new T.BoxGeometry(0.04, 0.12, 0.055),
           m.caliper,
           side * 0.066,
           -0.02,
           FORK_OFFSET - 0.135,
         );
         caliper.rotation.x = 0.35;
+        if (detail === 'high') {
+          for (const y of [-0.049, 0.031])
+            add(
+              this.forkLower,
+              new T.CylinderGeometry(0.008, 0.008, 0.004, 10),
+              m.forkLower,
+              side * 0.087,
+              y,
+              FORK_OFFSET - 0.134,
+            ).rotation.z = Math.PI / 2;
+          add(
+            this.forkLower,
+            tube(
+              [
+                [side * 0.071, 0.035, FORK_OFFSET - 0.13],
+                [side * 0.125, 0.11, FORK_OFFSET - 0.11],
+                [side * 0.132, 0.23, FORK_OFFSET - 0.035],
+              ],
+              0.0026,
+              12,
+              5,
+            ),
+            m.dark,
+          );
+        }
       }
     }
     add(
@@ -1209,22 +1428,46 @@ export class BikeModel {
           ),
           m.dark,
         );
-        add(
-          this.steer,
-          new T.CylinderGeometry(0.017, 0.016, 0.025, 12),
-          m.aluminium,
-          side * 0.105,
-          0.013,
-          0,
-        );
       }
+      // Brake fluid pot, lid and moulded volume window. The assembly stays
+      // beside the bar, below the established display-to-lens ray bundle.
       add(
         this.steer,
-        new RoundedBoxGeometry(0.035, 0.04, 0.04, 2, 0.006),
-        m.secondary,
-        -0.2,
-        0.0,
-        0.05,
+        new T.CylinderGeometry(0.022, 0.019, 0.035, 16),
+        m.reservoir,
+        -0.207,
+        0.003,
+        0.065,
+      );
+      add(
+        this.steer,
+        new T.CylinderGeometry(0.024, 0.024, 0.009, 16),
+        m.dark,
+        -0.207,
+        0.025,
+        0.065,
+      );
+      add(
+        this.steer,
+        new RoundedBoxGeometry(0.009, 0.019, 0.003, 1, 0.002),
+        m.forkUpper,
+        -0.207,
+        0.002,
+        0.044,
+      );
+      add(
+        this.steer,
+        tube(
+          [
+            [-0.204, -0.014, 0.063],
+            [-0.19, -0.032, 0.064],
+            [-0.21, -0.041, 0.029],
+          ],
+          0.003,
+          9,
+          5,
+        ),
+        m.dark,
       );
     }
     // Tank cover (carbon on the prototype) between the exposed spars; a

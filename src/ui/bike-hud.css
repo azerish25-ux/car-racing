@@ -1,0 +1,285 @@
+.gp-feedback,
+.gp-heading {
+  display: none;
+}
+
+/* REF 013/017/074: compact peripheral instruments; the road and rider remain
+   visible. Existing speed, gear, revs and race-control nodes stay authoritative. */
+#hud[data-bike='true'] :is(.f1-shape, .f1-drs, .f1-status, .f1-shift, .f1-tyres, #ersMode),
+#hud[data-bike='true'] .resources label:first-child,
+#hud[data-bike='true'] .health > span:first-child,
+#hud[data-bike='true'] [data-action='ers'],
+#hud[data-bike='true'] #tires > div:nth-child(even) {
+  display: none;
+}
+#hud[data-bike='true'] #tires {
+  grid-template-columns: repeat(2, 1fr);
+}
+#hud[data-f1][data-bike='true'][data-camera] .instruments {
+  --gp-accent: #79dcc5;
+  inset: auto max(22px, 2.7vw) max(66px, 7vh) auto;
+  transform: none;
+  width: calc(278px * var(--ui-scale, 1));
+  max-width: calc(100vw - 28px);
+  height: auto;
+  padding: 13px 15px 10px;
+  border: 1px solid #b4c4d22e;
+  border-radius: 12px;
+  background: linear-gradient(145deg, #101a24ec, #070d13d9);
+  box-shadow:
+    0 6px 22px #0003,
+    inset 0 1px 0 #e6f7ff0a;
+  color: #eff5fa;
+  font-variant-numeric: tabular-nums;
+}
+#hud[data-bike='true'] .gp-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 11px;
+  font-size: calc(9px * var(--ui-scale, 1));
+  letter-spacing: 0.1em;
+  color: #96aabc;
+}
+#hud[data-bike='true'] .gp-heading > b {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #dfedf6;
+  letter-spacing: 0.035em;
+}
+#hud[data-f1][data-bike='true'] .rev-lights {
+  position: static;
+  transform: none;
+  padding: 0;
+  margin-bottom: 9px;
+  gap: 3px;
+}
+#hud[data-f1][data-bike='true'] .rev-lights i {
+  flex: 1;
+  width: auto;
+  height: 3px;
+  border-radius: 1px;
+}
+#hud[data-f1][data-bike='true'] .dash-main {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 0 0 10px;
+}
+#hud[data-f1][data-bike='true'] :is(.gear, .speed, .engine),
+#hud[data-f1][data-bike='true'] .engine > :is(b, span) {
+  position: static;
+  inset: auto;
+  transform: none;
+}
+#hud[data-f1][data-bike='true'] .gear {
+  padding: 0 18px 0 0;
+  border-right: 1px solid #bfdbef2a;
+}
+#hud[data-f1][data-bike='true'] .gear > b {
+  font-size: calc(48px * var(--ui-scale, 1));
+  line-height: 0.92;
+  font-weight: 650;
+}
+#hud[data-f1][data-bike='true'] .speed {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+#hud[data-f1][data-bike='true'] .speed > b {
+  font-size: calc(35px * var(--ui-scale, 1));
+  font-weight: 600;
+  line-height: 1;
+}
+#hud[data-f1][data-bike='true'] .speed > span,
+#hud[data-f1][data-bike='true'] .engine > span {
+  margin: 4px 0 0;
+  color: #a6b7c5;
+  font-size: calc(8px * var(--ui-scale, 1));
+}
+#hud[data-f1][data-bike='true'] .engine {
+  display: flex;
+  flex-direction: column;
+  margin-left: auto;
+  align-items: flex-end;
+}
+#hud[data-f1][data-bike='true'] .engine > b {
+  font-size: calc(14px * var(--ui-scale, 1));
+  font-weight: 600;
+}
+#hud[data-f1][data-bike='true'] .pedals {
+  display: flex;
+  gap: 12px;
+  padding: 0 0 9px;
+}
+#hud[data-bike='true'] .pedals label {
+  font-size: calc(7px * var(--ui-scale, 1));
+}
+#hud[data-bike='true'] .pedals .meter {
+  height: 3px;
+}
+#hud[data-f1][data-bike='true'][data-camera] .resources {
+  position: static;
+  display: flex;
+  transform: none;
+  padding: 7px 0;
+  border-top: 1px solid #aac4d826;
+  align-items: flex-start;
+}
+#hud[data-f1][data-bike='true'] .resources label:last-child {
+  flex-direction: row;
+  margin: 0;
+  gap: 7px;
+  font-size: calc(8px * var(--ui-scale, 1));
+}
+#hud[data-f1][data-bike='true'] #fuel {
+  font-size: calc(9px * var(--ui-scale, 1));
+  color: #deebf5;
+}
+#hud[data-bike='true'] .gp-feedback {
+  display: grid;
+  gap: 8px;
+  font-size: calc(9px * var(--ui-scale, 1));
+}
+#hud[data-bike='true'] :is(.gp-lean, .gp-rear-brake) {
+  display: grid;
+  grid-template-columns: 66px 1fr 35px;
+  align-items: center;
+  gap: 8px;
+}
+#hud[data-bike='true'] :is(.gp-lean, .gp-rear-brake) > span {
+  font-size: calc(7px * var(--ui-scale, 1));
+  letter-spacing: 0.06em;
+  color: #a5b9c9;
+}
+#hud[data-bike='true'] :is(.gp-lean, .gp-rear-brake) > b {
+  text-align: right;
+  font-size: calc(9px * var(--ui-scale, 1));
+  font-weight: 550;
+  white-space: nowrap;
+}
+#hud[data-bike='true'] .gp-lean-track {
+  position: relative;
+  height: 3px;
+  background: linear-gradient(90deg, #efab642b, #70d8c05c 50%, #efab642b);
+}
+#hud[data-bike='true'] .gp-lean-track::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: -2px;
+  height: 7px;
+  border-left: 1px solid #dbe9f359;
+}
+#hud[data-bike='true'] .gp-lean-track i {
+  position: absolute;
+  top: -3px;
+  width: 3px;
+  height: 9px;
+  border-radius: 2px;
+  background: var(--gp-accent);
+}
+#hud[data-bike='true'] .gp-rear-brake > div {
+  height: 3px;
+  background: #eff5fa18;
+}
+#hud[data-bike='true'] .gp-rear-brake i {
+  display: block;
+  height: 100%;
+  background: #f1a05e;
+}
+#hud[data-bike='true'] .gp-tyres {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 8px;
+  border-top: 1px solid #aac4d826;
+  gap: 12px;
+}
+#hud[data-bike='true'] .gp-tyres > div {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 2px 8px;
+  align-items: center;
+}
+#hud[data-bike='true'] .gp-tyres span,
+#hud[data-bike='true'] .gp-tyres small {
+  color: #9eb2c2;
+  font-size: calc(7px * var(--ui-scale, 1));
+}
+#hud[data-bike='true'] .gp-tyres b {
+  font-size: calc(11px * var(--ui-scale, 1));
+  font-weight: 550;
+}
+#hud[data-bike='true'] .gp-tyres small {
+  grid-column: 2;
+}
+#hud[data-bike='true'] .gp-tyres small[data-punctured='true'] {
+  color: #ff9b82;
+}
+#hud[data-bike='true'] .gp-rider {
+  display: flex;
+  justify-content: space-between;
+  color: #9eb2c2;
+  padding-top: 5px;
+  font-size: calc(7px * var(--ui-scale, 1));
+  letter-spacing: 0.02em;
+}
+#hud[data-bike='true'] .gp-rider b[data-active='true'] {
+  color: #ffc477;
+}
+#hud[data-f1][data-bike='true'] .f1-notes {
+  left: auto;
+  right: 0;
+  width: 100%;
+  transform: none;
+  align-items: flex-end;
+}
+[data-mode='replay'] #hud[data-bike='true'][data-camera] .instruments {
+  bottom: 118px;
+}
+@media (min-width: 1280px) and (min-height: 680px) {
+  #hud[data-f1][data-bike='true'] .car-status {
+    right: calc(max(22px, 2.7vw) + 278px * var(--ui-scale, 1) + 16px);
+    bottom: max(66px, 7vh);
+    max-height: calc(100vh - 160px);
+    background: #0b131df5;
+  }
+}
+
+@media (max-width: 1279px), (max-height: 679px) {
+  #hud[data-f1][data-bike='true'][data-camera] .instruments {
+    right: 12px;
+    bottom: 57px;
+    width: calc(230px * var(--ui-scale, 1));
+    padding: 10px 12px;
+  }
+  #hud[data-bike='true'] .gp-heading,
+  #hud[data-bike='true'] .gp-rider {
+    display: none;
+  }
+  #hud[data-f1][data-bike='true'] .gear > b {
+    font-size: calc(36px * var(--ui-scale, 1));
+  }
+  #hud[data-f1][data-bike='true'] .speed > b {
+    font-size: calc(29px * var(--ui-scale, 1));
+  }
+  #hud[data-f1][data-bike='true'] .f1-notes {
+    position: static;
+    display: contents;
+  }
+  #hud[data-f1][data-bike='true'] .f1-notes > * {
+    margin-bottom: 5px;
+  }
+}
+@media (max-width: 680px) {
+  #hud[data-f1][data-bike='true'][data-camera] .instruments {
+    bottom: calc(107px + env(safe-area-inset-bottom, 0px));
+    width: min(calc(230px * var(--ui-scale, 1)), calc(100vw - 24px));
+  }
+}
+@media (max-height: 520px) and (min-width: 681px) {
+  #hud[data-bike='true'] :is(.gp-tyres, .gp-heading, .gp-rider) {
+    display: none;
+  }
+}

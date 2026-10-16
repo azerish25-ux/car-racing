@@ -1,5 +1,7 @@
 import { Track, trackPoint } from '../simulation/track.ts';
 import { DEFAULT_SETUP, VEHICLE } from '../simulation/config.ts';
+import { vehicleDefinition, vehicleIndex } from '../simulation/vehicles.ts';
+import { B, BIKE_BASE, R, RACE_BASE } from '../simulation/protocol.ts';
 import {
   F,
   H,
@@ -29,6 +31,15 @@ export const SHOWROOM = Object.freeze({
   aperture: 0.0011,
   maxblur: 0.012,
 });
+/** The same three-quarter showroom composition scaled to a 2 m motorcycle. */
+export const BIKE_SHOWROOM = Object.freeze({
+  ...SHOWROOM,
+  height: 1.12,
+  fov: 34,
+  radius: 4.8,
+  shift: 0.76,
+  aim: 0.72,
+});
 
 /** The preview car's origin above the road (FormulaCar hub anchor datum). */
 export const MENU_CAR_DATUM = VEHICLE.restLength + VEHICLE.wheelRadius - 0.05;
@@ -36,11 +47,19 @@ export const MENU_CAR_DATUM = VEHICLE.restLength + VEHICLE.wheelRadius - 0.05;
 /** Static menu presentation, not a simulated or award-eligible driving session.
  * Keep the track coordinate, world pose and wheel dimensions consistent: the
  * studio/HQ floor samples F.S, not the position of an unrelated grid-start cell.
- * This level, unladen pose deliberately has no invented tire contact forces. */
-export function menuPreview(track: Track, distance = track.length - 32): Float32Array {
+ * A bike carries its static suspension loads; no pose advances race time,
+ * consumes fuel, or invents a simulated contact-work sample. */
+export function menuPreview(
+  track: Track,
+  distance = track.length - 32,
+  machine = 'apx01',
+): Float32Array {
   if (!Number.isFinite(distance)) throw new Error('Invalid menu preview position');
   const frame = new Float32Array(HEADER + CAR_STRIDE),
     o = carBase(0);
+  const definition = vehicleDefinition(machine),
+    spec = definition.spec,
+    bike = definition.bike;
   // Quantize the coordinate once, then derive world height from that same value.
   frame[o + F.S] = track.at(distance, trackPoint()).s;
   const p = track.at(frame[o + F.S], trackPoint()),
@@ -52,20 +71,36 @@ export function menuPreview(track: Track, distance = track.length - 32): Float32
   frame[o + F.X] = p.x;
   // FormulaCar's actual hub anchor is +0.05 m; the wheel extends down by
   // restLength + radius. Previously the preview was a further 19 mm too low.
-  frame[o + F.Y] = p.y + MENU_CAR_DATUM;
+  frame[o + F.Y] = p.y + (bike ? bike.cgHeight : spec.restLength + spec.wheelRadius - 0.05);
   frame[o + F.Z] = p.z;
   frame[o + F.QY] = Math.sin(yaw / 2);
   frame[o + F.QW] = Math.cos(yaw / 2);
   frame[o + F.GEAR] = 1;
-  frame[o + F.RPM] = VEHICLE.idleRPM;
-  frame[o + F.FUEL] = 24;
-  frame[o + F.BATTERY] = 3.2e6;
+  frame[o + F.RPM] = spec.idleRPM;
+  frame[o + F.FUEL] = bike?.fuel ?? 24;
+  frame[o + F.BATTERY] = Math.min(3.2e6, spec.maxBatteryJ);
+  frame[o + RACE_BASE + R.VEHICLE] = vehicleIndex(definition.id);
+  if (bike) {
+    // Match BikeModel's static sprung datum. This is an explicit showroom pose,
+    // not a driveable session, and does not synthesize any lap or contact work.
+    const mass = spec.dryMass + bike.fuel;
+    const frontLoad = (mass * 9.81 * bike.cgToRear) / spec.wheelbase;
+    const rearLoad = (mass * 9.81 * bike.cgToFront) / spec.wheelbase;
+    frame[o + BIKE_BASE + B.FORK] = frontLoad / bike.forkRate;
+    frame[o + BIKE_BASE + B.SHOCK] = rearLoad / bike.shockRate;
+    frame[o + BIKE_BASE + B.FRONT_LOAD] = frontLoad;
+    frame[o + BIKE_BASE + B.REAR_LOAD] = rearLoad;
+  }
   frame[o + F.FRONT_HEALTH] = frame[o + F.REAR_HEALTH] = frame[o + F.FLOOR_HEALTH] = 1;
   frame[o + F.COMPOUND] = 1;
   for (let i = 0; i < 4; i++) {
     const w = o + WHEEL_BASE + i * WHEEL_STRIDE;
-    frame[w + W.LENGTH] = VEHICLE.restLength;
-    frame[w + W.RADIUS] = VEHICLE.wheelRadius;
+    frame[w + W.LENGTH] = spec.restLength;
+    frame[w + W.RADIUS] = bike
+      ? i < 2
+        ? bike.frontWheelRadius
+        : bike.rearWheelRadius
+      : spec.wheelRadius;
     frame[w + W.PRESSURE] = i < 2 ? DEFAULT_SETUP.frontPressure : DEFAULT_SETUP.rearPressure;
   }
   return frame;

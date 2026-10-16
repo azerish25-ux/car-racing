@@ -110,7 +110,7 @@ export interface BikeAssists {
   wheelie: boolean;
   traction: boolean;
   combinedBrakes: boolean;
-  /** Cornering ABS: front brake force kept inside the friction circle. */
+  /** Cornering ABS: brake forces kept inside both tyres' friction circles. */
   abs: boolean;
 }
 export const NOVICE: BikeAssists = Object.freeze({
@@ -300,9 +300,45 @@ export class Bike {
       );
     }
     const rearForce = drive - brakeR;
-    this.rearSlip = Math.max(0, Math.abs(rearForce) / Math.max(1, rearCapacity) - 1);
-    const rearApplied = clamp(rearForce, -rearCapacity, rearCapacity);
-    const frontApplied = -Math.min(brakeF, mu * this.frontLoad);
+    let rearApplied = clamp(rearForce, -rearCapacity, rearCapacity);
+    let frontApplied = -Math.min(brakeF, mu * this.frontLoad);
+    if (a.abs) {
+      // The current brake stroke unloads the rear immediately. Using last
+      // step's rear load lets even combined-brake assistance lock the rear,
+      // especially when trail braking on a wet surface. Solve its remaining
+      // friction circle with this step's load transfer, not the old load.
+      const camberNow = 1 - 0.18 * Math.max(0, Math.abs(this.lean) - 0.8);
+      const brakeGrip = 0.95 * mu * camberNow;
+      const transferRatio = p.cgHeight / p.wheelbase;
+      const coupling = brakeGrip * transferRatio;
+      if (rearApplied < 0) {
+        const capacity = brakeGrip * Math.max(0, staticRear + frontApplied * transferRatio);
+        // q² + Fy² = (capacity - coupling*q)². This rationalized
+        // positive root remains well conditioned even when coupling ≈ 1.
+        const remaining = capacity * capacity - rearLatNow * rearLatNow;
+        const limit =
+          remaining > 0
+            ? remaining /
+              (capacity * coupling + Math.sqrt(remaining + (coupling * rearLatNow) ** 2))
+            : 0;
+        rearApplied = Math.max(rearApplied, -limit);
+      }
+      // Reducing rear braking also reduces front load. Bound the front
+      // against the same final force pair, including simultaneous throttle.
+      // Front load increases with its own brake force; lift control above
+      // remains the bound when that friction equation has no upper root.
+      if (frontApplied < 0 && coupling < 1) {
+        const capacity = brakeGrip * Math.max(0, staticFront - rearApplied * transferRatio);
+        const discriminant = capacity * capacity - (1 - coupling * coupling) * frontLatNow ** 2;
+        const limit =
+          discriminant > 0
+            ? (capacity * coupling + Math.sqrt(discriminant)) / (1 - coupling * coupling)
+            : 0;
+        frontApplied = Math.max(frontApplied, -limit);
+      }
+    }
+    this.rearSlip =
+      a.abs && rearForce < 0 ? 0 : Math.max(0, Math.abs(rearForce) / Math.max(1, rearCapacity) - 1);
     this.driveForce = Math.max(0, rearApplied);
     this.frontBrakeForce = -frontApplied;
     this.rearBrakeForce = Math.max(0, -rearApplied);
@@ -352,20 +388,23 @@ export class Bike {
         ? 0
         : Math.hypot(frontLat, -frontApplied) / Math.max(1, mu * camber * this.frontLoad);
     // A lightly loaded rear under braking locks and slides; it is not a crash.
-    const rearUse =
+    const rearCorneringUse =
       this.rearLoad < 0.05 * m * G
         ? 0
         : Math.hypot(rearLat, Math.max(0, rearApplied)) / (mu * camber * this.rearLoad);
+    // Report the full force circle under braking too. The crash model still
+    // distinguishes a recoverable rear brake slide from a powered highside.
+    const rearUse = Math.hypot(rearLat, rearApplied) / Math.max(1, mu * camber * this.rearLoad);
     this.frontUse = frontUse;
     this.rearUse = rearUse;
     this.lateralUse = Math.max(frontUse, rearUse);
     if (frontUse > 1.08 && this.speed > 3) return this.fall('lowside');
-    if (rearUse > 1.15 && this.speed > 3) {
-      this.rearSlip += rearUse - 1;
+    if (rearCorneringUse > 1.15 && this.speed > 3) {
+      this.rearSlip += rearCorneringUse - 1;
       // Under power a sliding rear that bites throws the rider (highside);
       // a rear sliding on the brakes steps out, and only a gross slide falls.
       if (rearApplied > 0 && this.rearSlip > 0.6) return this.fall('highside');
-      if (rearApplied <= 0 && rearUse > 1.45) return this.fall('lowside');
+      if (rearApplied <= 0 && rearCorneringUse > 1.45) return this.fall('lowside');
     }
     if (Math.abs(this.lean) > 1.25) return this.fall('lowside');
     this.heading += this.speed * kappa * dt;

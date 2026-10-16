@@ -1,0 +1,353 @@
+{
+  "title": "MotoGP R2 final complete-game browser review",
+  "capturedUtc": "2026-10-16T20:28:26.212797+00:00",
+  "result": "passed",
+  "exitCode": 0,
+  "buildIdentity": {
+    "commit": null,
+    "fingerprint": "24ab86c6938bdae4c47864709d37752293fb1a37ee52eb6cebba91a9d1ac78b0"
+  },
+  "sourceBaseCommit": "f91463cf506f6feced1a4db9c43af48ac3632410",
+  "graphicsBackend": "ANGLE Vulkan SwiftShader Device (Subzero), WebGL2",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "renderSize": {
+    "width": 1080,
+    "height": 675
+  },
+  "qualityPreset": "existing Low user setting selected before boot in an isolated profile",
+  "graphics": {
+    "resolutionScale": 0.75,
+    "textureSize": 256,
+    "shadowSize": 0,
+    "reflections": "environment",
+    "mirrorQuality": "low",
+    "particleDensity": 0,
+    "vegetationDensity": 0.5,
+    "crowd": false,
+    "bloom": false,
+    "autoExposure": false,
+    "localFog": false,
+    "motionBlur": 0,
+    "antialias": true,
+    "anisotropy": 2,
+    "msaa": 0,
+    "ambientOcclusion": false,
+    "filmGrade": true,
+    "temporalAA": false,
+    "lensEffects": false,
+    "cockpitFov": 54,
+    "ssr": false,
+    "taaSharpen": 0,
+    "aoTemporal": false,
+    "toneMapper": "aces",
+    "physicalBloom": false,
+    "chromaticAberration": false,
+    "lightShafts": false,
+    "shadowCascades": 2,
+    "replayDof": false
+  },
+  "scope": "Real production build, menu selection and practice riding with the existing demonstration rider. This is functional and visual evidence on a software GPU, not a consumer-GPU frame-rate benchmark, high-quality full-scene acceptance or complete release-browser matrix.",
+  "options": {
+    "mode": "practice",
+    "laps": 3,
+    "opponents": 3,
+    "weather": "clear",
+    "assist": "sport",
+    "compound": "medium",
+    "seed": 73021,
+    "circuit": "aurel",
+    "vehicles": [
+      "gpr1",
+      "gpr1",
+      "gpr1",
+      "gpr1"
+    ]
+  },
+  "checks": {
+    "selectedActualGP_R1": true,
+    "enteredCircuit": true,
+    "movingChase": true,
+    "switchedToOnboard": true,
+    "waitedForWorkerPauseAcknowledgement": true,
+    "heldPresentationMatchesSimulationTime": true,
+    "heldHudSpeedMatchesPublishedFrame": true,
+    "heldHudGearMatchesPublishedFrame": true,
+    "heldPhysicalDashboardVisuallyMatchesHud": true,
+    "browserErrors": []
+  },
+  "presentationMethod": "Waited for a new submitted presentation at the requested camera/time and then its fixed GPU-fence target to complete. Later held-frame redraws can leave a newer submission pending. Live checkpoint telemetry and screenshots need not have the same wall-clock sampling instant.",
+  "heldFrame": {
+    "workerPause": {
+      "pending": false,
+      "paused": true,
+      "tick": 9582,
+      "sequence": 2
+    },
+    "time": 85.75743865966797,
+    "speedMetersPerSecond": 37.89013671875,
+    "speedKilometersPerHour": 136.4044921875,
+    "gear": 1,
+    "hud": {
+      "speed": "136",
+      "gear": "1",
+      "rpm": "13819",
+      "gpLean": "L 46\u00b0",
+      "gpRearBrake": "0%",
+      "gpFrontTemp": "93\u00b0C",
+      "gpRearTemp": "93\u00b0C",
+      "gpRiderState": "RIDING"
+    },
+    "physicalDashboard": {
+      "speedText": "136",
+      "gearText": "1",
+      "rpmRoundedToHundreds": "13800"
+    },
+    "presentationNote": "The real simulation is acknowledged paused. Only the pause dialog/backdrop was hidden by capture-only CSS for the held screenshot; the game canvas, HUD and simulation state were retained."
+  },
+  "preparation": {
+    "status": "complete",
+    "elapsedMs": 47858.89999999944,
+    "error": null,
+    "stages": [
+      {
+        "label": "Building original Formula car 2 / 4\u2026",
+        "elapsedMs": 6258.200000000186,
+        "complete": true
+      },
+      {
+        "label": "Building original Formula car 3 / 4\u2026",
+        "elapsedMs": 408.8999999994412,
+        "complete": true
+      },
+      {
+        "label": "Building original Formula car 4 / 4\u2026",
+        "elapsedMs": 1445.7000000001863,
+        "complete": true
+      },
+      {
+        "label": "Compiling circuit and vehicle materials\u2026",
+        "elapsedMs": 506.70000000018626,
+        "complete": true
+      },
+      {
+        "label": "Compiling shadow casters around the circuit\u2026",
+        "elapsedMs": 5.599999999627471,
+        "complete": true
+      },
+      {
+        "label": "Warming shadows and scene reflections\u2026",
+        "elapsedMs": 3251.600000000559,
+        "complete": true
+      },
+      {
+        "label": "Warming offscreen pit-service materials\u2026",
+        "elapsedMs": 24880.700000000186,
+        "complete": true
+      },
+      {
+        "label": "Waiting for completed chase GPU work\u2026",
+        "elapsedMs": 0.39999999944120646,
+        "complete": true
+      },
+      {
+        "label": "Warming cockpit, mirrors and post-processing\u2026",
+        "elapsedMs": 125.20000000018626,
+        "complete": true
+      },
+      {
+        "label": "Waiting for completed cockpit GPU work\u2026",
+        "elapsedMs": 10975.799999999814,
+        "complete": true
+      }
+    ]
+  },
+  "finalGpuFrameQueue": {
+    "pending": true,
+    "submitted": 22,
+    "completed": 21,
+    "deferredCallbacks": 10679,
+    "flushRefreshes": 19,
+    "pendingMs": 1117.7999999998137,
+    "activeWaitMs": 1110.7000000001863,
+    "failure": null,
+    "latencyMs": 8046.310461487594
+  },
+  "earlierAttempts": "A concurrent full CPU suite/browser attempt stalled at session startup and hit the capture harness 240-second wait. The final run was repeated serially with the same production build, original game deadlines and existing Low preset. An earlier baseline Medium software-GPU attempt hit the production GPU preparation deadline.",
+  "captures": [
+    {
+      "image": "full-game-menu.png",
+      "sha256": "6bc209fcbc3e01a9edce54dd7d4d6698c8e1ec05c7d4bb23509b92f4acab162d",
+      "state": "menu",
+      "demonstrationRider": false,
+      "simulation": {
+        "time": 0,
+        "speed": 0,
+        "s": 2940.727294921875
+      },
+      "hud": {
+        "speed": "0",
+        "gear": "1",
+        "rpm": "4200",
+        "gpLean": "0\u00b0",
+        "gpRearBrake": "0%",
+        "gpFrontTemp": "\u2014",
+        "gpRearTemp": "\u2014",
+        "gpRiderState": "RIDING"
+      },
+      "presentation": {
+        "time": 0,
+        "frames": 5
+      },
+      "renderer": {
+        "requestedCamera": "chase",
+        "presentedCamera": "chase",
+        "gpuFrameQueue": {
+          "pending": true,
+          "submitted": 5,
+          "completed": 4,
+          "deferredCallbacks": 2257,
+          "flushRefreshes": 13,
+          "pendingMs": 342.09999999962747,
+          "activeWaitMs": 340.8999999994412,
+          "failure": null,
+          "latencyMs": 10842.936799999781
+        },
+        "renderWidth": 1080,
+        "renderHeight": 675,
+        "gpuMilliseconds": 17428.080427
+      }
+    },
+    {
+      "image": "full-game-chase.png",
+      "sha256": "b8bf9b61be24e946f1b2e5349369e9fe69a99cd415004cf54c695127fc14fc69",
+      "state": "driving",
+      "demonstrationRider": true,
+      "simulation": {
+        "time": 48.440773010253906,
+        "speed": 41.65753936767578,
+        "s": 661.0912475585938
+      },
+      "hud": {
+        "speed": "147",
+        "gear": "1",
+        "rpm": "14874",
+        "gpLean": "L 42\u00b0",
+        "gpRearBrake": "0%",
+        "gpFrontTemp": "90\u00b0C",
+        "gpRearTemp": "90\u00b0C",
+        "gpRiderState": "RIDING"
+      },
+      "presentation": {
+        "time": 48.15077209472656,
+        "frames": 11
+      },
+      "renderer": {
+        "requestedCamera": "chase",
+        "presentedCamera": "chase",
+        "gpuFrameQueue": {
+          "pending": true,
+          "submitted": 15,
+          "completed": 14,
+          "deferredCallbacks": 7278,
+          "flushRefreshes": 18,
+          "pendingMs": 144,
+          "activeWaitMs": 134.40000000037253,
+          "failure": null,
+          "latencyMs": 10259.8000246396
+        },
+        "renderWidth": 1080,
+        "renderHeight": 675,
+        "gpuMilliseconds": 8892.496755
+      }
+    },
+    {
+      "image": "full-game-onboard.png",
+      "sha256": "f6d1526b3652a5019ec8989af7baa236a4c6cc953609ad4dbbf20fca89dda45f",
+      "state": "driving",
+      "demonstrationRider": true,
+      "simulation": {
+        "time": 77.72410583496094,
+        "speed": 47.98153305053711,
+        "s": 1823.369384765625
+      },
+      "hud": {
+        "speed": "164",
+        "gear": "1",
+        "rpm": "16614",
+        "gpLean": "R 22\u00b0",
+        "gpRearBrake": "0%",
+        "gpFrontTemp": "93\u00b0C",
+        "gpRearTemp": "92\u00b0C",
+        "gpRiderState": "RIDING"
+      },
+      "presentation": {
+        "time": 77.36724853515625,
+        "frames": 14
+      },
+      "renderer": {
+        "requestedCamera": "cockpit",
+        "presentedCamera": "cockpit",
+        "gpuFrameQueue": {
+          "pending": true,
+          "submitted": 18,
+          "completed": 17,
+          "deferredCallbacks": 9025,
+          "flushRefreshes": 19,
+          "pendingMs": 317,
+          "activeWaitMs": 314.5,
+          "failure": null,
+          "latencyMs": 10128.539212615455
+        },
+        "renderWidth": 1080,
+        "renderHeight": 675,
+        "gpuMilliseconds": 12871.964565
+      }
+    },
+    {
+      "image": "full-game-held-onboard.png",
+      "sha256": "e73dedbf381d6888622beecb83a85681836407ee4d16bfc273f001d682ed6ba5",
+      "state": "paused",
+      "demonstrationRider": true,
+      "simulation": {
+        "time": 85.75743865966797,
+        "speed": 37.89013671875,
+        "s": 2139.8291015625
+      },
+      "hud": {
+        "speed": "136",
+        "gear": "1",
+        "rpm": "13819",
+        "gpLean": "L 46\u00b0",
+        "gpRearBrake": "0%",
+        "gpFrontTemp": "93\u00b0C",
+        "gpRearTemp": "93\u00b0C",
+        "gpRiderState": "RIDING"
+      },
+      "presentation": {
+        "time": 85.75743865966797,
+        "frames": 17
+      },
+      "renderer": {
+        "requestedCamera": "cockpit",
+        "presentedCamera": "cockpit",
+        "gpuFrameQueue": {
+          "pending": true,
+          "submitted": 21,
+          "completed": 20,
+          "deferredCallbacks": 10286,
+          "flushRefreshes": 19,
+          "pendingMs": 410,
+          "activeWaitMs": 398.6000000005588,
+          "failure": null,
+          "latencyMs": 8599.988076859352
+        },
+        "renderWidth": 1080,
+        "renderHeight": 675,
+        "gpuMilliseconds": 5917.760349
+      }
+    }
+  ]
+}

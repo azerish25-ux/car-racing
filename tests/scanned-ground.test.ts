@@ -165,7 +165,7 @@ describe('scanned ground shaders', () => {
     installRoadDetail(road, 3000);
     expect(installScannedAsphalt(road)).toBe(true);
     expect(installScannedAsphalt(road)).toBe(false);
-    expect(studioHookKeys(road)).toEqual(['road-detail-v5', 'scanned-asphalt-v1']);
+    expect(studioHookKeys(road)).toEqual(['road-detail-v6', 'scanned-asphalt-v1']);
     // Node: nothing loads, no define, every block compiled out.
     expect('APEX_SCAN' in definesOf(road)).toBe(false);
     const f = compile(road).fragmentShader;

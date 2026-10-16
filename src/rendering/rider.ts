@@ -1,7 +1,7 @@
 import * as T from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { tagWeatherSurface } from './weather-presentation.ts';
-import { riderPanelTexture } from './bike-livery.ts';
+import { helmetLiveryTexture, riderPanelTexture } from './bike-livery.ts';
 import { bikeSurfaceMaps } from './bike-surface-detail.ts';
 import { batchBikeRigidMeshes } from './bike-rigid-batch.ts';
 import { sampleProfile } from './profile-sampling.ts';
@@ -67,11 +67,111 @@ function limbGeometry(r0: number, r1: number, length: number, sides: number) {
   }
   return new T.LatheGeometry(points, sides);
 }
-/** Superelliptic body section loft along +Y (torso, hump). */
-function bodyLoft(
-  sections: readonly (readonly [number, number, number, number, number])[],
+type LimbShape = 'upper-arm' | 'forearm' | 'thigh' | 'shin';
+type BodySection = readonly [number, number, number, number, number];
+/** Cross sections of clothed anatomy, measured along each existing IK bone.
+ * The shoulder/biceps, forearm mass, quadriceps and calf have separate peaks;
+ * the wrist, elbow, patella and ankle taper instead of forming rigid capsules.
+ * [fraction along bone, centre Z, half width, front depth, rear depth]. */
+const ROAD_LIMB_SECTIONS: Record<LimbShape, readonly BodySection[]> = {
+  'upper-arm': [
+    [-0.11, 0, 0.002, 0.003, 0.003],
+    [-0.055, 0, 0.035, 0.034, 0.039],
+    [0, 0.002, 0.049, 0.045, 0.052],
+    [0.18, 0.004, 0.055, 0.051, 0.058],
+    [0.42, 0.003, 0.05, 0.046, 0.054],
+    [0.68, 0, 0.041, 0.038, 0.045],
+    [0.87, 0, 0.036, 0.034, 0.039],
+    [1, 0, 0.033, 0.032, 0.035],
+    [1.1, 0, 0.002, 0.003, 0.003],
+  ],
+  forearm: [
+    [-0.1, 0, 0.002, 0.003, 0.003],
+    [0, 0, 0.038, 0.04, 0.04],
+    [0.15, -0.003, 0.047, 0.051, 0.047],
+    [0.33, -0.003, 0.044, 0.047, 0.045],
+    [0.64, 0, 0.034, 0.036, 0.036],
+    [0.89, 0, 0.028, 0.03, 0.03],
+    [1, 0, 0.027, 0.029, 0.029],
+    [1.08, 0, 0.002, 0.003, 0.003],
+  ],
+  thigh: [
+    [-0.1, 0, 0.003, 0.004, 0.004],
+    [-0.04, 0, 0.061, 0.068, 0.064],
+    [0.05, 0.003, 0.08, 0.082, 0.075],
+    [0.25, 0.003, 0.081, 0.083, 0.075],
+    [0.46, 0.004, 0.072, 0.074, 0.065],
+    [0.72, 0.001, 0.058, 0.061, 0.053],
+    [0.9, 0, 0.051, 0.053, 0.047],
+    [1, 0, 0.048, 0.047, 0.047],
+    [1.09, 0, 0.003, 0.004, 0.004],
+  ],
+  shin: [
+    [-0.1, 0, 0.003, 0.004, 0.004],
+    [0, 0.002, 0.049, 0.055, 0.046],
+    [0.2, -0.006, 0.048, 0.047, 0.055],
+    [0.4, -0.009, 0.049, 0.045, 0.059],
+    [0.65, -0.004, 0.04, 0.039, 0.044],
+    [0.9, 0, 0.031, 0.034, 0.032],
+    [1, 0, 0.032, 0.035, 0.031],
+    [1.08, 0, 0.003, 0.004, 0.004],
+  ],
+};
+function roadLimbSections(shape: LimbShape, length: number): BodySection[] {
+  return ROAD_LIMB_SECTIONS[shape].map(([t, z, w, front, back]) => [t * length, z, w, front, back]);
+}
+/** A stitched insert conforms to the underlying anatomical loft. Optional
+ * accordion folds rise only 1.5–4.5 mm; plain side panels follow the same skin. */
+function leatherPanelGeometry(
+  sections: readonly BodySection[],
+  from: number,
+  to: number,
+  folds: number,
   sides: number,
+  angles: readonly [number, number] = [Math.PI * 1.06, Math.PI * 1.94],
+  roundness = 1,
 ) {
+  const ys = sections.map((s) => s[0]),
+    positions: number[] = [],
+    uv: number[] = [],
+    indices: number[] = [],
+    rows = folds ? folds * 4 : 16;
+  for (let i = 0; i <= rows; i++) {
+    const t = i / rows,
+      y = T.MathUtils.lerp(from, to, t),
+      values = [1, 2, 3, 4].map((k) =>
+        sampleProfile(
+          ys,
+          sections.map((s) => s[k]),
+          y,
+        ),
+      ),
+      raised = 0.0015 + (1 - Math.cos(t * folds * Math.PI * 2)) * 0.0015 * Math.sin(t * Math.PI);
+    for (let j = 0; j <= sides; j++) {
+      const a = T.MathUtils.lerp(angles[0], angles[1], j / sides),
+        shape = (value: number) => Math.sign(value) * Math.abs(value) ** roundness;
+      positions.push(
+        shape(Math.cos(a)) * (values[1] + raised),
+        y,
+        values[0] + shape(Math.sin(a)) * (values[Math.sin(a) > 0 ? 2 : 3] + raised),
+      );
+      uv.push(j / sides, t);
+      if (i < rows && j < sides) {
+        const at = i * (sides + 1) + j,
+          next = at + sides + 1;
+        indices.push(at, next, at + 1, at + 1, next, next + 1);
+      }
+    }
+  }
+  const geometry = new T.BufferGeometry();
+  geometry.setAttribute('position', new T.Float32BufferAttribute(positions, 3));
+  geometry.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+  return geometry;
+}
+/** Superelliptic body section loft along +Y (torso, hump). */
+function bodyLoft(sections: readonly BodySection[], sides: number, roundness = 0.8) {
   // [y, z centre, half-width, half-depth front, half-depth back]
   const p: number[] = [],
     uv: number[] = [],
@@ -99,7 +199,7 @@ function bodyLoft(
       const a = (j / sides) * Math.PI * 2,
         c = Math.cos(a),
         s = Math.sin(a);
-      const shape = (v: number) => Math.sign(v) * Math.abs(v) ** 0.8;
+      const shape = (v: number) => Math.sign(v) * Math.abs(v) ** roundness;
       p.push(shape(c) * w, y, cz + shape(s) * (s > 0 ? front : back));
       uv.push(j / sides, (y - ys[0]) / (ys[ys.length - 1] - ys[0]));
     }
@@ -115,6 +215,25 @@ function bodyLoft(
   g.setIndex(indices);
   g.computeVertexNormals();
   return g;
+}
+/** Replaceable knee slider: a thin asymmetrical polymer pad, not a joint disc. */
+function kneeSliderGeometry() {
+  const shape = new T.Shape();
+  shape.moveTo(-0.025, -0.037);
+  shape.bezierCurveTo(-0.036, -0.025, -0.032, 0.025, -0.018, 0.04);
+  shape.quadraticCurveTo(0.002, 0.049, 0.023, 0.031);
+  shape.quadraticCurveTo(0.033, 0.005, 0.026, -0.026);
+  shape.quadraticCurveTo(0.017, -0.043, -0.025, -0.037);
+  const geometry = new T.ExtrudeGeometry(shape, {
+    depth: 0.01,
+    bevelEnabled: true,
+    bevelSize: 0.004,
+    bevelThickness: 0.003,
+    bevelSegments: 2,
+    curveSegments: 5,
+  });
+  geometry.translate(0, 0, -0.005);
+  return geometry;
 }
 function part(parent: T.Object3D, geometry: T.BufferGeometry, material: T.Material) {
   const m = new T.Mesh(geometry, material);
@@ -207,6 +326,7 @@ export class Rider {
   readonly pegs = [new T.Vector3(0.17, -0.2, -0.3), new T.Vector3(-0.17, -0.2, -0.3)];
   private readonly torso = new T.Group();
   private readonly head = new T.Group();
+  private readonly headShadow = new T.Group();
   private readonly upperArms: Bone[];
   private readonly forearms: Bone[];
   private readonly thighs: Bone[];
@@ -261,10 +381,10 @@ export class Rider {
           },
     );
     const armour = new T.MeshStandardMaterial({
-      color: 0x4b535d,
-      roughness: 0.4,
-      metalness: 0.35,
-      name: 'Rider armour caps',
+      color: 0x333b43,
+      roughness: 0.49,
+      metalness: 0.08,
+      name: 'Rider moulded armour caps',
     });
     const glove = new T.MeshStandardMaterial({ color: 0x1b1c1f, roughness: 0.62 });
     const slider = new T.MeshStandardMaterial({
@@ -294,10 +414,10 @@ export class Rider {
       Object.assign(panel, surface);
       leather.normalScale.set(0.32, 0.32);
       panel.normalScale.set(0.28, 0.28);
-      leather.roughness = 0.65;
-      leather.clearcoat = 0.08;
-      panel.roughness = 0.7;
-      panel.clearcoat = 0.06;
+      leather.roughness = 0.72;
+      leather.clearcoat = 0.035;
+      panel.roughness = 0.75;
+      panel.clearcoat = 0.025;
       Object.assign(glove, bikeSurfaceMaps('seat'));
       glove.normalScale.set(0.2, 0.2);
       slider.roughness = 0.79;
@@ -314,6 +434,8 @@ export class Rider {
       leather.color.setHex(0xffffff);
       torsoLeather.map = riderPanelTexture(colours, true);
       torsoLeather.color.setHex(0xffffff);
+      helmet.map = helmetLiveryTexture(colours);
+      helmet.color.setHex(0xffffff);
     }
     this.materials.push(torsoLeather);
     for (const m of [leather, panel, torsoLeather])
@@ -326,22 +448,16 @@ export class Rider {
     this.root.name = 'Rider';
     this.root.add(this.torso);
     // Torso: pelvis at the origin, spine along +Y, chest forward (+Z).
-    part(
-      this.torso,
-      bodyLoft(
-        [
-          [-0.06, 0, 0.15, 0.1, 0.09],
-          [0.05, 0, 0.165, 0.11, 0.1],
-          [0.17, 0.01, 0.16, 0.1, 0.1],
-          [0.3, 0.02, 0.17, 0.11, 0.1],
-          [0.42, 0.02, 0.2, 0.11, 0.09],
-          [0.5, 0.02, 0.17, 0.08, 0.08],
-          [0.55, 0.03, 0.08, 0.05, 0.05],
-        ],
-        sides,
-      ),
-      torsoLeather,
-    );
+    const torsoSections: readonly BodySection[] = [
+      [-0.06, 0, 0.15, 0.1, 0.09],
+      [0.05, 0, 0.165, 0.11, 0.1],
+      [0.17, 0.01, 0.145, 0.093, 0.092],
+      [0.3, 0.02, 0.172, 0.128, 0.105],
+      [0.42, 0.02, 0.2, 0.128, 0.1],
+      [0.5, 0.02, 0.17, 0.08, 0.08],
+      [0.55, 0.03, 0.08, 0.05, 0.05],
+    ];
+    part(this.torso, bodyLoft(torsoSections, sides), torsoLeather);
     // Aero hump (spine protector and airbag housing) on the back.
     if (detail !== 'far' && !mx)
       part(
@@ -360,12 +476,67 @@ export class Rider {
     // Contrast side panels and a shoulder cap per side.
     for (const side of [1, -1]) {
       if (detail === 'far') break;
-      const flank = part(this.torso, limbGeometry(0.035, 0.03, 0.3, sides), panel);
-      flank.position.set(side * 0.15, 0.08, 0);
+      if (mx) {
+        const flank = part(this.torso, limbGeometry(0.035, 0.03, 0.3, sides), panel);
+        flank.position.set(side * 0.15, 0.08, 0);
+      } else {
+        const centreAngle = side > 0 ? 0 : Math.PI;
+        const flank = part(
+          this.torso,
+          leatherPanelGeometry(
+            torsoSections,
+            0.07,
+            0.425,
+            0,
+            detail === 'high' ? 12 : 8,
+            [centreAngle - 0.43, centreAngle + 0.43],
+            0.8,
+          ),
+          panel,
+        );
+        flank.name = 'Conformal torso leather side panel';
+      }
       // Low-profile shoulder armour moulded into the leathers.
       const cap = part(this.torso, new T.SphereGeometry(0.055, sides, sides / 2), armour);
       cap.position.set(side * 0.175, 0.46, 0.0);
       cap.scale.set(0.75, 0.55, 1.0);
+    }
+    if (detail !== 'far' && !mx) {
+      // A turned leather collar closes the neck opening instead of leaving
+      // the torso and helmet as two unrelated glossy forms.
+      const collar = part(this.torso, new T.TorusGeometry(0.062, 0.009, 6, 24), flex);
+      collar.rotation.x = Math.PI / 2;
+      collar.position.set(0, 0.541, 0.03);
+      collar.scale.y = 0.82;
+      const lip = part(this.torso, new T.TorusGeometry(0.064, 0.003, 5, 24), panel);
+      lip.rotation.x = Math.PI / 2;
+      lip.position.set(0, 0.549, 0.03);
+      lip.scale.y = 0.82;
+      if (detail === 'high') {
+        const zip = part(
+          this.torso,
+          new T.TubeGeometry(
+            new T.CatmullRomCurve3([
+              new T.Vector3(0, 0.06, 0.113),
+              new T.Vector3(0, 0.2, 0.117),
+              new T.Vector3(0, 0.37, 0.151),
+              new T.Vector3(0, 0.485, 0.108),
+            ]),
+            18,
+            0.0016,
+            4,
+            false,
+          ),
+          flex,
+        );
+        zip.name = 'Recessed front zip seam';
+        const pull = part(
+          this.torso,
+          new RoundedBoxGeometry(0.008, 0.021, 0.004, 1, 0.002),
+          armour,
+        );
+        pull.position.set(0, 0.473, 0.116);
+      }
     }
     // Head and helmet: neck pivot at the top of the spine.
     this.head.name = 'Rider head and helmet';
@@ -377,6 +548,26 @@ export class Rider {
       helmet,
     );
     shell.position.set(0, 0.15, 0.02);
+    // The followed rider's helmet surrounds the onboard lens and is hidden
+    // from that view. Retain its ground shadow with a cheap closed silhouette;
+    // it writes neither colour nor depth to the normal camera pass. Three's
+    // shadow pass uses its own opaque depth material (alphaTest remains zero).
+    const shadowOnly = new T.MeshBasicMaterial({
+      name: 'Onboard helmet shadow only',
+      transparent: true,
+      opacity: 0,
+      colorWrite: false,
+      depthWrite: false,
+    });
+    this.materials.push(shadowOnly);
+    this.headShadow.name = 'Onboard helmet shadow proxy';
+    this.headShadow.visible = false;
+    this.headShadow.position.copy(this.head.position);
+    this.torso.add(this.headShadow);
+    const silhouette = part(this.headShadow, new T.SphereGeometry(0.14, 18, 12), shadowOnly);
+    silhouette.position.copy(shell.position);
+    silhouette.scale.set(0.98, 1.02, 1.07);
+    silhouette.receiveShadow = false;
     if (detail !== 'far' && mx) {
       // Off-road helmet: a peak over the eye port, a chin bar and goggles
       // on their strap in place of a visor.
@@ -426,18 +617,53 @@ export class Rider {
         vent.rotation.y = side * 0.2;
       }
     }
-    const limb = (r0: number, r1: number, length: number, material: T.Material) => {
+    const limb = (
+      shape: LimbShape,
+      r0: number,
+      r1: number,
+      length: number,
+      material: T.Material,
+    ) => {
       const bone = new Bone(length, this.root);
-      part(bone.group, limbGeometry(r0, r1, length, sides), material);
+      const geometry =
+        !mx && detail !== 'far'
+          ? bodyLoft(roadLimbSections(shape, length), sides, 1)
+          : limbGeometry(r0, r1, length, sides);
+      part(bone.group, geometry, material).name = `Rider ${shape} leather volume`;
       return bone;
     };
-    this.upperArms = [0, 1].map(() => limb(0.046, 0.038, RIDER.upperArm, leather));
-    this.forearms = [0, 1].map(() => limb(0.039, 0.031, RIDER.forearm, panel));
-    this.thighs = [0, 1].map(() => limb(0.072, 0.052, RIDER.thigh, leather));
-    this.shins = [0, 1].map(() => limb(0.05, 0.037, RIDER.shin, panel));
+    this.upperArms = [0, 1].map(() => limb('upper-arm', 0.046, 0.038, RIDER.upperArm, leather));
+    this.forearms = [0, 1].map(() => limb('forearm', 0.039, 0.031, RIDER.forearm, panel));
+    this.thighs = [0, 1].map(() => limb('thigh', 0.072, 0.052, RIDER.thigh, leather));
+    this.shins = [0, 1].map(() => limb('shin', 0.05, 0.037, RIDER.shin, panel));
     for (let i = 0; i < 2; i++) {
       const side = i === 0 ? 1 : -1;
       if (detail !== 'far' && !mx) {
+        const foldSides = detail === 'high' ? 12 : 8;
+        const shoulderStretch = part(
+          this.upperArms[i].group,
+          leatherPanelGeometry(
+            roadLimbSections('upper-arm', RIDER.upperArm),
+            0.012,
+            0.094,
+            7,
+            foldSides,
+          ),
+          flex,
+        );
+        shoulderStretch.name = 'Conforming shoulder accordion insert';
+        const hipStretch = part(
+          this.thighs[i].group,
+          leatherPanelGeometry(
+            roadLimbSections('thigh', RIDER.thigh),
+            0.042,
+            0.157,
+            9,
+            foldSides,
+          ),
+          flex,
+        );
+        hipStretch.name = 'Conforming hip accordion insert';
         const elbowFlex = part(
           this.upperArms[i].group,
           new T.SphereGeometry(0.039, sides, sides / 2),
@@ -452,23 +678,29 @@ export class Rider {
         );
         kneeFlex.position.y = RIDER.thigh;
         kneeFlex.scale.set(0.95, 0.8, 0.95);
-        for (const [bone, radius, len] of [
-          [this.upperArms[i], 0.046, RIDER.upperArm],
-          [this.thighs[i], 0.07, RIDER.thigh],
+        for (const [bone, shape, len] of [
+          [this.upperArms[i], 'upper-arm', RIDER.upperArm],
+          [this.thighs[i], 'thigh', RIDER.thigh],
         ] as const) {
+          const sections = roadLimbSections(shape, len),
+            ys = sections.map((s) => s[0]);
+          const seamPoints = [0.025, len * 0.32, len * 0.65, len - 0.025].map((y) => {
+            const [centre, width, back] = [1, 2, 4].map((k) =>
+              sampleProfile(
+                ys,
+                sections.map((s) => s[k]),
+                y,
+              ),
+            );
+            return new T.Vector3(
+              side * (width + 0.0012) * 0.7,
+              y,
+              centre - (back + 0.0012) * 0.714,
+            );
+          });
           const seam = part(
             bone.group,
-            new T.TubeGeometry(
-              new T.CatmullRomCurve3([
-                new T.Vector3(side * radius * 0.5, 0.025, -radius * 0.85),
-                new T.Vector3(side * radius * 0.6, len * 0.5, -radius * 0.8),
-                new T.Vector3(side * radius * 0.4, len - 0.025, -radius * 0.72),
-              ]),
-              12,
-              0.0018,
-              4,
-              false,
-            ),
+            new T.TubeGeometry(new T.CatmullRomCurve3(seamPoints), 12, 0.0018, 4, false),
             panel,
           );
           seam.name = 'Stitched leather panel boundary';
@@ -490,29 +722,58 @@ export class Rider {
         guard.scale.set(1, 1.3, 0.9);
         guard.position.set(side * 0.01, 0.02, -0.02);
       } else if (detail !== 'far') {
-        // Elbow slider, knee armour and the replaceable knee slider puck on
-        // the outside of each knee, which touches the road when hung off.
+        // The armour sits under shaped leather. Only the small replaceable
+        // polymer pads are exposed; a metallic sphere would read as a hinge.
         const elbow = part(
           this.forearms[i].group,
-          new T.SphereGeometry(0.045, sides, sides / 2),
-          armour,
+          bodyLoft(
+            [
+              [-0.028, -0.02, 0.012, 0.013, 0.016],
+              [0.004, -0.025, 0.035, 0.02, 0.031],
+              [0.039, -0.025, 0.038, 0.022, 0.037],
+              [0.082, -0.021, 0.031, 0.018, 0.029],
+              [0.118, -0.01, 0.015, 0.012, 0.015],
+            ],
+            sides,
+            1,
+          ),
+          panel,
         );
-        elbow.scale.set(1, 1.4, 0.9);
-        elbow.position.set(side * 0.01, 0.02, -0.02);
-        const knee = part(
-          this.shins[i].group,
-          new T.SphereGeometry(0.062, sides, sides / 2),
-          armour,
-        );
-        knee.position.set(0, 0.0, 0.02);
-        knee.scale.set(1.1, 1.2, 0.9);
-        const puck = part(
-          this.shins[i].group,
-          new T.CylinderGeometry(0.045, 0.05, 0.03, sides),
+        elbow.name = 'Leather-covered elbow protector';
+        const elbowPad = part(
+          this.forearms[i].group,
+          new RoundedBoxGeometry(0.037, 0.053, 0.009, 2, 0.004),
           slider,
         );
-        puck.rotation.z = Math.PI / 2;
-        puck.position.set(side * 0.065, 0.02, 0.0);
+        elbowPad.position.set(side * 0.008, 0.035, -0.063);
+        elbowPad.rotation.y = side * 0.12;
+        const knee = part(
+          this.shins[i].group,
+          bodyLoft(
+            [
+              [-0.044, 0.025, 0.017, 0.02, 0.019],
+              [-0.015, 0.025, 0.047, 0.048, 0.031],
+              [0.036, 0.019, 0.054, 0.052, 0.037],
+              [0.095, 0.009, 0.047, 0.047, 0.035],
+              [0.158, 0.005, 0.028, 0.032, 0.024],
+              [0.18, 0.004, 0.006, 0.009, 0.009],
+            ],
+            sides,
+            0.92,
+          ),
+          panel,
+        );
+        knee.name = 'Leather-covered knee and shin protector';
+        const backing = part(
+          this.shins[i].group,
+          new RoundedBoxGeometry(0.007, 0.1, 0.082, 2, 0.003),
+          glove,
+        );
+        backing.position.set(side * 0.054, 0.035, 0.007);
+        const puck = part(this.shins[i].group, kneeSliderGeometry(), slider);
+        puck.name = 'Shaped replaceable polymer knee slider';
+        puck.rotation.y = (side * Math.PI) / 2;
+        puck.position.set(side * 0.062, 0.035, 0.007);
       }
       const hand = new T.Group();
       part(
@@ -536,8 +797,17 @@ export class Rider {
         thumb.rotation.set(0.85, 0, side * 0.4);
       }
       if (detail === 'high') {
-        const knuckle = part(hand, new RoundedBoxGeometry(0.062, 0.013, 0.027, 3, 0.006), armour);
-        knuckle.position.set(0, 0.025, 0.025);
+        const knuckleBacking = part(
+          hand,
+          new RoundedBoxGeometry(0.062, 0.008, 0.027, 2, 0.006),
+          panel,
+        );
+        knuckleBacking.position.set(0, 0.024, 0.025);
+        for (let finger = 0; finger < 4; finger++) {
+          const knuckle = part(hand, new T.SphereGeometry(0.0085, 10, 6), armour);
+          knuckle.scale.set(1, 0.65, 1.15);
+          knuckle.position.set(-0.024 + finger * 0.016, 0.03, 0.025);
+        }
       }
       this.forearms[i].group.add(hand);
       hand.position.set(0, RIDER.forearm + 0.02, 0);
@@ -563,6 +833,11 @@ export class Rider {
             -0.045,
             -0.015 + rib * 0.026,
           );
+        const heel = part(foot, new RoundedBoxGeometry(0.073, 0.047, 0.045, 2, 0.014), panel);
+        heel.position.set(0, -0.015, -0.071);
+        const anklePivot = part(foot, new T.CylinderGeometry(0.017, 0.017, 0.006, 12), armour);
+        anklePivot.rotation.z = Math.PI / 2;
+        anklePivot.position.set(side * 0.04, -0.068, -0.037);
       }
       // Tall off-road boots up the shin.
       if (mx)
@@ -595,6 +870,8 @@ export class Rider {
    * surrounding shell across the eye port; other riders remain unaffected. */
   setFirstPerson(active: boolean) {
     this.head.visible = !active;
+    this.headShadow.visible = active;
+    this.headShadow.quaternion.copy(this.head.quaternion);
   }
   /** Riding pose in the bike's (sprung) frame. */
   ride(pose: RiderPose) {
@@ -633,6 +910,7 @@ export class Rider {
       (into + lean) * 0.45,
       'YXZ',
     );
+    this.headShadow.quaternion.copy(this.head.quaternion);
     for (let i = 0; i < 2; i++) {
       const side = i === 0 ? 1 : -1;
       const inside = side * Math.sign(offset || lean) > 0;
@@ -670,6 +948,7 @@ export class Rider {
     this.euler.set(lying ? Math.PI / 2 - 0.1 : 0.12, 0, lying ? tumble : 0, 'ZYX');
     this.torso.quaternion.setFromEuler(this.euler);
     this.head.rotation.set(lying ? -0.6 : -0.1, 0, 0);
+    this.headShadow.quaternion.copy(this.head.quaternion);
     const stride = phase === 1 ? Math.sin(time * 9) * 0.45 : 0;
     for (let i = 0; i < 2; i++) {
       const side = i === 0 ? 1 : -1;

@@ -40,7 +40,7 @@ import { LightPools } from './studio/light-pools.ts';
 import { setBrandLedLighting } from './studio/trackside-branding.ts';
 import { REAR_LAMP, REAR_LAMP_PHYSICAL_GAIN } from './rear-signal.ts';
 import { setAerialExtinction } from './studio/aerial-perspective.ts';
-import { MENU_CAR_DATUM, SHOWROOM } from './menu-preview.ts';
+import { BIKE_SHOWROOM, MENU_CAR_DATUM, SHOWROOM } from './menu-preview.ts';
 import { focusOnSubject, subjectLens, type SubjectLens } from './studio/subject-focus.ts';
 import { reflectInWetRoad } from './wet-reflection.ts';
 import { ghostPose, type GhostPose } from '../core/ghost-lap.ts';
@@ -166,6 +166,8 @@ import {
 } from './vehicle-bodies/cabin.ts';
 import { bikeFirstPersonView } from './bike-cockpit.ts';
 import { BIKE_CHASE_ROLL, BikeShells } from './bike.ts';
+import { motorcycleChase } from './motorcycle-camera.ts';
+import { B, BIKE_BASE } from '../simulation/protocol.ts';
 export type CameraMode = 'chase' | 'cockpit' | 'pod' | 'trackside';
 /** Chase rig in metres, m/s and vertical-FOV degrees. */
 // P5 retuned to its own target (KPI 10 iteration): 1.65 m / 4.9 m framed the
@@ -846,6 +848,12 @@ export class RacingRenderer {
       this.setCars(total);
       for (let i = 0; i < total; i++)
         this.cars[i].update(frame, frame, carBase(i), 1, 1 / 120, frame[H.TIME], false);
+      // Construct the actual motorcycle materials before compileAsync. Building
+      // them for the first time inside the chase draw put cold shader linking
+      // and uploads on the first GPU fence instead of the compilation stage.
+      // The same models, LOD policy, warmup views and completion gate remain.
+      this.bikeShells.update(frame, frame, 1, this.cars, this.camera, this.quality, this.follow);
+      this.circuit.setMotorcyclePresentation(BikeShells.isBike(frame, this.follow));
       if (this.photoSky?.enabled) {
         progress('Loading the photographed sky…');
         await this.photoSky.ready(frame[H.CLOUD], this.lighting);
@@ -1121,6 +1129,16 @@ export class RacingRenderer {
     const car = this.cars[this.follow],
       speed = b[o + F.SPEED];
     const bikeFollow = !!this.bikeShells && BikeShells.isBike(b, this.follow);
+    this.circuit.setMotorcyclePresentation(bikeFollow);
+    const bikeView = bikeFollow
+      ? motorcycleChase(
+          presented[o + F.SPEED],
+          presented[o + F.BRAKE],
+          presented[o + BIKE_BASE + B.LEAN],
+          this.reducedMotion,
+        )
+      : null;
+    const chase = bikeView ?? CHASE;
     // The followed car always uses the near mesh. Its articulated subject is
     // needed to solve this frame's camera; every car is posed exactly once.
     car.setLod(0, this.quality, true, !!this.photo);
@@ -1247,20 +1265,25 @@ export class RacingRenderer {
       this.camera.fov = photoFov(this.photo.focalLength);
     } else if (menu && !this.photo) {
       // D29 showroom: low eye, long lens, slow orbit; the car sits right of the menu.
-      const angle = SHOWROOM.angle + Math.sin(this.orbitTime * SHOWROOM.rate) * SHOWROOM.sway;
+      const showroom = bikeFollow ? BIKE_SHOWROOM : SHOWROOM;
+      const angle = showroom.angle + Math.sin(this.orbitTime * showroom.rate) * showroom.sway;
       this.desired
-        .set(Math.sin(angle) * SHOWROOM.radius, 0, Math.cos(angle) * SHOWROOM.radius)
+        .set(Math.sin(angle) * showroom.radius, 0, Math.cos(angle) * showroom.radius)
         .applyQuaternion(car.root.quaternion)
         .add(this.target);
-      const road = car.root.position.y - MENU_CAR_DATUM;
-      this.desired.y = road + SHOWROOM.height;
+      const road =
+        car.root.position.y -
+        (bikeFollow
+          ? vehicleAt(Math.round(b[o + RACE_BASE + R.VEHICLE])).bike!.cgHeight
+          : MENU_CAR_DATUM);
+      this.desired.y = road + showroom.height;
       this.gaze.copy(this.target);
-      this.gaze.y = road + SHOWROOM.aim;
+      this.gaze.y = road + showroom.aim;
       // Across-view direction (to the camera's right) from the view azimuth.
       this.temporary.subVectors(this.gaze, this.desired).setY(0).normalize();
-      this.gaze.x += this.temporary.z * SHOWROOM.shift;
-      this.gaze.z -= this.temporary.x * SHOWROOM.shift;
-      this.camera.fov = SHOWROOM.fov;
+      this.gaze.x += this.temporary.z * showroom.shift;
+      this.gaze.z -= this.temporary.x * showroom.shift;
+      this.camera.fov = showroom.fov;
     } else if (cameraMode === 'trackside') {
       const composition = this.composition.update(presented, this.follow);
       this.trackside.update(
@@ -1355,12 +1378,12 @@ export class RacingRenderer {
         }
         const yaw = (pit * CHASE_PIT.yawDeg * Math.PI) / 180,
           height = T.MathUtils.lerp(
-            CHASE.height + speed * CHASE.heightPerMS,
+            chase.height + speed * chase.heightPerMS,
             CHASE_PIT.height,
             pit,
           ),
           distance = T.MathUtils.lerp(
-            CHASE.distance + speed * CHASE.distancePerMS,
+            chase.distance + speed * chase.distancePerMS,
             CHASE_PIT.distance,
             pit,
           );
@@ -1368,14 +1391,16 @@ export class RacingRenderer {
           .set(-garage * distance * Math.sin(yaw), height, -distance * Math.cos(yaw))
           .applyQuaternion(this.chaseBasis)
           .add(this.target);
-        this.direction.set(0, 0, 1).applyQuaternion(this.chaseBasis);
+        this.direction
+          .set(Math.sin(bikeView?.yaw ?? 0), 0, Math.cos(bikeView?.yaw ?? 0))
+          .applyQuaternion(this.chaseBasis);
         this.gaze
           .copy(this.target)
           .addScaledVector(
             this.direction,
-            T.MathUtils.lerp(CHASE.lookAhead, CHASE_PIT.lookAhead, pit),
+            T.MathUtils.lerp(chase.lookAhead, CHASE_PIT.lookAhead, pit),
           );
-        this.gaze.y += T.MathUtils.lerp(CHASE.lookLift, CHASE_PIT.lookLift, pit);
+        this.gaze.y += T.MathUtils.lerp(chase.lookLift, CHASE_PIT.lookLift, pit);
       }
       if (this.lookX || this.lookY) {
         this.direction
@@ -1393,7 +1418,7 @@ export class RacingRenderer {
             : cameraMode === 'cockpit' && car.suppliedPlayer
               ? cockpitFov(this.graphics.cockpitFov)
               : cameraMode === 'chase'
-                ? CHASE.fov + Math.min(CHASE.fovGain, speed * 0.06)
+                ? chase.fov + Math.min(chase.fovGain, Math.abs(speed) * 0.06)
                 : tcamFov(speed);
     }
     if (!this.initialized || cameraMode !== 'chase' || menu || this.photo || pregame) {
@@ -1430,7 +1455,8 @@ export class RacingRenderer {
     if (bikeFollow && (!menu || !!this.photo) && (!this.photo || this.photo.view !== 'orbit')) {
       // Chase rolls partly with the bike's lean; onboard views roll fully.
       this.temporary.set(0, 1, 0).applyQuaternion(car.root.quaternion);
-      if (cameraMode === 'chase') this.camera.up.lerp(this.temporary, BIKE_CHASE_ROLL).normalize();
+      if (cameraMode === 'chase')
+        this.camera.up.lerp(this.temporary, this.reducedMotion ? 0 : BIKE_CHASE_ROLL).normalize();
       else if (cameraMode === 'cockpit' || cameraMode === 'pod')
         this.camera.up.copy(this.temporary);
     }

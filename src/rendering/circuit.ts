@@ -41,7 +41,7 @@ import { buildSea, installShoreline, shoreWeight } from './sea.ts';
 import { WetRoadReflection, reflectInWetRoad } from './wet-reflection.ts';
 import { buildGarageBay, paddockMaterials } from './paddock-detail.ts';
 import { buildVegetation } from './landscape.ts';
-import { buildTyreMarks } from './tyre-marks.ts';
+import { TyreMarkPresentation } from './tyre-marks.ts';
 import {
   buildTrackInfrastructure,
   trackInfrastructurePlan as makeTrackInfrastructurePlan,
@@ -61,7 +61,7 @@ import * as T from 'three';
 import { BuildQueue } from './build-queue.ts';
 import { sphereDetail, stripDetail, trunkDetail, type ProbeDetail } from './probe-detail.ts';
 import { installWetRoad } from './materials.ts';
-import { START_GRID, apexLineAt, installRoadDetail } from './studio/road-detail.ts';
+import { apexLineAt, installRoadDetail, surfaceGridFor } from './studio/road-detail.ts';
 import { installWetDetail } from './studio/wet-detail.ts';
 import { kerbHeight } from '../simulation/contact.ts';
 import { Track, CELL_ROWS, CELL_COLS, trackPoint } from '../simulation/track.ts';
@@ -69,6 +69,7 @@ import { H } from '../simulation/protocol.ts';
 import { allFinite, clamp } from '../core/math.ts';
 import { buildTracksideBranding, type BrandingBuild } from './studio/trackside-branding.ts';
 import { installKerbFinish, installRunoffFinish, kerbUsage } from './studio/kerb-runoff-finish.ts';
+import { installVergeFinish } from './studio/track-edge-wear.ts';
 import { installCarGrounding } from './studio/car-grounding.ts';
 import { installLightPools } from './studio/light-pools.ts';
 import { buildForestBelts } from './studio/forest-belts.ts';
@@ -133,6 +134,8 @@ export class CircuitScene {
   /** Planar reflection sampled by the wet road and pit lane film. */
   readonly wetReflection = new WetRoadReflection();
   readonly roadMaterial: T.MeshStandardMaterial;
+  private readonly motorcycleSurface = { value: 0 };
+  private readonly tyreRubber: TyreMarkPresentation;
   readonly stateBytes = new Uint8Array(CELL_ROWS * CELL_COLS * 4);
   readonly startLamps: T.MeshStandardMaterial[] = [];
   readonly trackInfrastructure: TrackInfrastructurePlan;
@@ -182,6 +185,7 @@ export class CircuitScene {
     this.stateTexture.magFilter = T.LinearFilter;
     this.stateTexture.minFilter = T.LinearFilter;
     this.updateSurface(track.water, track.rubber, track.marbles);
+    this.tyreRubber = new TyreMarkPresentation(track, this.stateTexture);
     this.roadMaterial = surfaceMaterial('asphalt', undefined, true);
     installWetRoad(
       this.roadMaterial,
@@ -191,13 +195,18 @@ export class CircuitScene {
       this.wetReflection.uniforms,
     );
     // Rubbered racing line, edge dust, small repairs and crack sealant.
-    installRoadDetail(this.roadMaterial, track.length);
+    installRoadDetail(
+      this.roadMaterial,
+      track.length,
+      this.motorcycleSurface,
+      surfaceGridFor(track),
+    );
     // Sub-cell puddles and an emerging dry line (D22).
     installWetDetail(this.roadMaterial);
     const grass = surfaceMaterial('grass');
     const runOff = surfaceMaterial('asphalt', 'paint');
     // D15: painted bands, chevrons or astroturf per corner (no flat tint).
-    installRunoffFinish(runOff);
+    installRunoffFinish(runOff, track.length);
     const gravel = surfaceMaterial('gravel');
     // D19: Voronoi pebbles, cavities and raked furrows (#8f8470).
     installGravelFinish(gravel);
@@ -209,6 +218,7 @@ export class CircuitScene {
     installScannedAsphalt(this.roadMaterial);
     installScannedAsphalt(runOff);
     installScannedTurf(grass);
+    installVergeFinish(grass);
     installScannedGravel(gravel);
     // The grass apron plus D17's skirt onto the terrain, both sides, as one
     // ribbon (D32: the skirt shares the apron's chunks, 0 extra draws).
@@ -261,7 +271,7 @@ export class CircuitScene {
     installCircuitFinish(white, 'paint');
     const kerb = new T.MeshStandardMaterial({ vertexColors: true, roughness: 0.85 });
     installCircuitFinish(kerb, 'kerb');
-    installKerbFinish(kerb);
+    installKerbFinish(kerb, track.length);
     for (const m of [white, kerb]) {
       installCarGrounding(m);
       installLightPools(m);
@@ -425,9 +435,8 @@ export class CircuitScene {
         terrainFor(track).height(x, z),
       ),
     );
-    this.construction.add('Laid tyre rubber', 1, () =>
-      buildTyreMarks(track, this.surfaces, undefined, this.stateTexture),
-    );
+    if (paved)
+      this.construction.add('Laid tyre rubber', 1, () => this.tyreRubber.build(this.surfaces));
     this.construction.add('Rule-placed layered foliage', 3, () => {
       const excluded = (x: number, z: number, padding: number) =>
         (this.recoveryGates?.blocksVegetation(x, z, padding) ?? false) ||
@@ -506,6 +515,15 @@ export class CircuitScene {
     this.construction.add('Probe detail survey', 7, () => this.surveyProbeDetail());
     if (!deferred) this.construction.runSynchronously();
   }
+  /** Follow the actual snapshot's vehicle family. A uniform changes road
+   * deposits immediately; the bounded mark cache switches once per transition,
+   * so menu/replay changes never append another copy of the surface geometry. */
+  setMotorcyclePresentation(enabled: boolean) {
+    const changed = this.tyreRubber.setMotorcycle(enabled);
+    if (!changed) return;
+    this.motorcycleSurface.value = enabled ? 1 : 0;
+    this.surfaces.invalidateTransforms();
+  }
   /** Read-only identity of constructed groups, not planned sites or an art approval.
    * Groups survive static batching; no mesh traversal or GPU readback is needed. */
   infrastructureDiagnostics() {
@@ -534,6 +552,7 @@ export class CircuitScene {
       }));
     return {
       source: 'constructed-runtime-groups',
+      tyreRubber: this.tyreRubber.diagnostics(),
       quarry: this.quarry?.diagnostics() ?? null,
       startFinish: this.startFinish.diagnostics(),
       secondaryStands: this.secondaryStands.diagnostics(),
@@ -604,6 +623,7 @@ export class CircuitScene {
       colors: number[] = [],
       edge: number[] = [],
       apex: number[] = [],
+      bikeBrake: number[] = [],
       kerb: number[] = [],
       runoff: number[] = [],
       indices: number[] = [];
@@ -622,7 +642,10 @@ export class CircuitScene {
         // Signed metres beyond the asphalt edge (negative on the road), shared
         // by the kerb, verge and terrain shaders.
         edge.push(Math.abs(l) - p.width);
-        if (options.road) apex.push(...apexLineAt(this.track, s, l, line));
+        if (options.road) {
+          apex.push(...apexLineAt(this.track, s, l, line));
+          bikeBrake.push(apexLineAt(this.track, s, l, line, true)[1]);
+        }
         const c = Math.floor(s / 3) % 2 === 0 ? new T.Color(0xdc553b) : new T.Color(0xe8e3cf);
         colors.push(c.r, c.g, c.b);
         if (options.stripes) {
@@ -631,7 +654,11 @@ export class CircuitScene {
           const side = Math.sign(l) || 1;
           kerb.push(kerbUsage(Math.abs(apexLineAt(this.track, s, side * p.width, line)[0])));
         }
-        if (options.runoff) runoff.push(runoffStyleAt(this.track, s));
+        if (options.runoff) {
+          runoff.push(runoffStyleAt(this.track, s));
+          const side = Math.sign(l) || 1;
+          runoff.push(kerbUsage(Math.abs(apexLineAt(this.track, s, side * p.width, line)[0])));
+        }
       }
     }
     const ascending = options.offset(start, 1) >= options.offset(start, 0);
@@ -650,7 +677,10 @@ export class CircuitScene {
     g.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
     g.setAttribute('trackUV', new T.Float32BufferAttribute(state, 2));
     g.setAttribute('edgeMetres', new T.Float32BufferAttribute(edge, 1));
-    if (options.road) g.setAttribute('apexLine', new T.Float32BufferAttribute(apex, 2));
+    if (options.road) {
+      g.setAttribute('apexLine', new T.Float32BufferAttribute(apex, 2));
+      g.setAttribute('apexBikeBrake', new T.Float32BufferAttribute(bikeBrake, 1));
+    }
     if (options.stripes) {
       g.setAttribute('color', new T.Float32BufferAttribute(colors, 3));
       g.setAttribute(
@@ -668,7 +698,22 @@ export class CircuitScene {
         ),
       );
     }
-    if (options.runoff) g.setAttribute('runoffStyle', new T.Float32BufferAttribute(runoff, 1));
+    if (options.runoff) {
+      g.setAttribute(
+        'runoffStyle',
+        new T.Float32BufferAttribute(
+          runoff.filter((_, i) => i % 2 === 0),
+          1,
+        ),
+      );
+      g.setAttribute(
+        'kerbUsage',
+        new T.Float32BufferAttribute(
+          runoff.filter((_, i) => i % 2 === 1),
+          1,
+        ),
+      );
+    }
     g.setIndex(indices);
     g.computeVertexNormals();
     const o = mesh(this.surfaces, g, material);
@@ -892,9 +937,10 @@ export class CircuitScene {
     const paint = new T.MeshStandardMaterial({ color: 0xe9e7e0, roughness: 0.55 });
     installCircuitFinish(paint, 'paint');
     // The same slots as the simulation's grid and the road's launch rubber.
-    for (let i = 0; i < START_GRID.rows * 2; i++) {
-      const s = this.track.length - START_GRID.front - Math.floor(i / 2) * START_GRID.spacing,
-        l = i % 2 === 0 ? -START_GRID.lateral : START_GRID.lateral,
+    const grid = surfaceGridFor(this.track);
+    for (let i = 0; i < grid.rows * 2; i++) {
+      const s = this.track.length - grid.front - Math.floor(i / 2) * grid.spacing,
+        l = i % 2 === 0 ? -grid.lateral : grid.lateral,
         p = this.track.at(s, trackPoint()),
         g = new T.Group();
       g.position.copy(this.at(s, l, 0.012));

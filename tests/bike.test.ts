@@ -85,3 +85,78 @@ describe('WP33 rider-bike prototype: required riding situations (§8.3)', () => 
     expect(bike.crashes).toBe(1);
   });
 });
+
+describe('cornering ABS under the current brake stroke', () => {
+  const rearUtilization = (bike: Bike) => {
+    const p = bike.p;
+    const camber = 1 - 0.18 * Math.max(0, Math.abs(bike.lean) - 0.8);
+    const sideForce =
+      (bike.mass * Math.abs(bike.speed ** 2 * bike.curvature) * p.cgToFront) / p.wheelbase;
+    return (
+      Math.hypot(sideForce, bike.driveForce - bike.rearBrakeForce) /
+      Math.max(1, p.mu * bike.grip * camber * bike.rearLoad)
+    );
+  };
+
+  it.each([1, 0.65, 0.4])(
+    'reserves rear cornering grip and remains rideable through braking at grip %s',
+    (grip) => {
+      for (const step of [1 / 120, 1 / 240]) {
+        for (const lean of [0, 0.4, 0.7, 1]) {
+          const bike = cruising(35);
+          bike.grip = grip;
+          // Establish a real steady corner with the normal lean controller.
+          // Drive only balances drag so every case begins at the same speed.
+          for (let t = 0; t < 4; t += step)
+            bike.step(input({ lean, rider: lean, drive: BIKE.drag * bike.speed ** 2 }), step);
+          expect(bike.state).toBe('riding');
+          const entrySpeed = bike.speed;
+          let peakUse = 0;
+          for (let t = 0; t < 1; t += step) {
+            bike.step(input({ lean, rider: lean, frontBrake: 1 }), step);
+            expect(bike.state).toBe('riding');
+            const use = rearUtilization(bike);
+            peakUse = Math.max(peakUse, use);
+            // The stored force belongs to the integration step; the public
+            // curvature also includes its final, very small roll increment.
+            expect(bike.rearUse).toBeCloseTo(use, 3);
+            expect(bike.frontUse).toBeLessThanOrEqual(1.001);
+            expect(bike.rearSlip).toBe(0);
+          }
+          // Before the fix the same wet trail-braking cases demanded up to
+          // 1.94 times the rear's available force with no reported brake use.
+          expect(peakUse).toBeLessThanOrEqual(1.001);
+          expect(bike.speed).toBeLessThan(entrySpeed - 2);
+          expect(bike.rearBrakeForce).toBeGreaterThan(0);
+        }
+      }
+    },
+  );
+
+  it('leaves a longer braking distance while deeply leaned and on reduced grip', () => {
+    const stoppingDistance = (grip: number, lean: number) => {
+      const bike = cruising(35);
+      bike.grip = grip;
+      run(bike, 4, () => input({ lean, rider: lean, drive: BIKE.drag * bike.speed ** 2 }));
+      let distance = 0;
+      for (let t = 0; t < 2; t += DT) {
+        bike.step(input({ lean, rider: lean, frontBrake: 1 }), DT);
+        distance += bike.speed * DT;
+      }
+      expect(bike.state).toBe('riding');
+      return distance;
+    };
+    expect(stoppingDistance(1, 0.8)).toBeGreaterThan(stoppingDistance(1, 0) + 5);
+    expect(stoppingDistance(0.4, 0)).toBeGreaterThan(stoppingDistance(1, 0) + 5);
+  });
+
+  it('reports rear brake workload in raw mode while preserving rear-lock risk', () => {
+    const bike = cruising(35, { ...EXPERT, lean: true });
+    bike.grip = 0.4;
+    bike.step(input({ rearBrake: 1 }), DT);
+    expect(bike.rearBrakeForce).toBeGreaterThan(0);
+    expect(bike.rearSlip).toBeGreaterThan(0);
+    expect(bike.rearUse).toBeCloseTo(rearUtilization(bike), 8);
+    expect(bike.rearUse).toBeGreaterThan(1);
+  });
+});

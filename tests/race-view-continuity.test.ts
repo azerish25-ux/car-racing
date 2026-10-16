@@ -135,6 +135,7 @@ describe('current-view detail and deterministic presentation', () => {
       });
       const fixture = {
         circuit: {
+          setMotorcyclePresentation: vi.fn(),
           heroGarage: { update: garageUpdate },
           pitWallStation: { update: stationUpdate },
           pitBuildingFrontage: { update: frontageUpdate },

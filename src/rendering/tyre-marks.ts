@@ -1,6 +1,7 @@
 import * as T from 'three';
 import { clamp, Random } from '../core/math.ts';
 import { envelopeCornerSpeed } from '../simulation/ai.ts';
+import { GP_R1 } from '../simulation/bike-definitions.ts';
 import { racingLineFor } from '../simulation/racing-line.ts';
 import { trackPoint, type Track } from '../simulation/track.ts';
 import { canvasTexture } from './geometry.ts';
@@ -38,6 +39,15 @@ export const TYRE_MARKS = Object.freeze({
   waterHidden: 0.85,
 });
 
+/** A motorcycle leaves a single, narrower contact path. The shorter, softer
+ * trails describe occasional slip, not a pair of locked car wheels through
+ * every corner (REF_037, REF_047 and REF_060). */
+export const BIKE_TYRE_MARKS = Object.freeze({
+  width: 0.18,
+  strength: [0.16, 0.37] as const,
+  maximumPasses: 8,
+});
+
 export interface TyreMarkZone {
   kind: 'braking' | 'exit';
   start: number;
@@ -47,14 +57,22 @@ export interface TyreMarkZone {
 }
 
 /** Braking and slow-exit zones from a speed profile along the racing line. */
-export function tyreMarkZones(track: Track): TyreMarkZone[] {
+export function tyreMarkZones(track: Track, motorcycle = false): TyreMarkZone[] {
   const line = racingLineFor(track);
+  // Use the existing prototype's no-downforce capability envelope. Formula
+  // braking zones otherwise begin much too late for the bike scene.
+  const envelope = motorcycle ? GP_R1.ai : undefined,
+    braking = envelope ? envelope.brakingBase * envelope.brakingMargin : TYRE_MARKS.braking,
+    traction = motorcycle ? 7.8 : TYRE_MARKS.traction;
   const n = Math.round(track.length / TYRE_MARKS.step),
     step = track.length / n;
   const corner = new Float64Array(n),
     speed = new Float64Array(n);
   for (let i = 0; i < n; i++)
-    corner[i] = Math.min(92, envelopeCornerSpeed(line.curvatureAt(i * step), 1, 1));
+    corner[i] = Math.min(
+      envelope?.topSpeed ?? 92,
+      envelopeCornerSpeed(line.curvatureAt(i * step), 1, 1, envelope),
+    );
   // Closed-lap profile: forward (traction) and backward (braking) passes,
   // repeated so the start/finish wrap settles.
   speed.set(corner);
@@ -62,12 +80,12 @@ export function tyreMarkZones(track: Track): TyreMarkZone[] {
     for (let k = 1; k <= n; k++) {
       const i = k % n,
         prev = (k - 1) % n;
-      speed[i] = Math.min(speed[i], Math.sqrt(speed[prev] ** 2 + 2 * TYRE_MARKS.traction * step));
+      speed[i] = Math.min(speed[i], Math.sqrt(speed[prev] ** 2 + 2 * traction * step));
     }
     for (let k = n - 1; k >= 0; k--) {
       const i = k % n,
         next = (k + 1) % n;
-      speed[i] = Math.min(speed[i], Math.sqrt(speed[next] ** 2 + 2 * TYRE_MARKS.braking * step));
+      speed[i] = Math.min(speed[i], Math.sqrt(speed[next] ** 2 + 2 * braking * step));
     }
   }
   const zones: TyreMarkZone[] = [];
@@ -127,18 +145,29 @@ export interface TyreMark {
   lateral: Float32Array;
   /** Opacity of each sample. */
   alpha: Float32Array;
+  /** Full tread width in metres; legacy car marks use TYRE_MARKS.width. */
+  width?: number;
 }
 
 /** Individual marks: pairs of wheel tracks from several passes, each a little
  * off the line, densest where wheels lock at the end of a braking zone. */
-export function tyreMarks(track: Track, zones = tyreMarkZones(track), seed = 5417): TyreMark[] {
+export function tyreMarks(
+  track: Track,
+  zones = tyreMarkZones(track),
+  seed = 5417,
+  motorcycle = false,
+): TyreMark[] {
   const line = racingLineFor(track),
     random = new Random(seed),
     p = trackPoint(),
     marks: TyreMark[] = [];
   for (const zone of zones) {
     const length = zone.end - zone.start;
-    const count = Math.round(clamp(zone.strength / 2.2, 4, 16));
+    const count = Math.round(
+      motorcycle
+        ? clamp(zone.strength / 4.5, 3, BIKE_TYRE_MARKS.maximumPasses)
+        : clamp(zone.strength / 2.2, 4, 16),
+    );
     for (let m = 0; m < count; m++) {
       const passOffset = (random.next() - 0.5) * 1.4;
       // Braking streaks are pairs 20-60 m long that run into the apex, where
@@ -153,11 +182,15 @@ export function tyreMarks(track: Track, zones = tyreMarkZones(track), seed = 541
             )
           : clamp(length * (0.25 + random.next() * 0.45), 6, 60);
       const from = zone.start + t0 * length - (braking ? markLength : 0);
-      const drift = (random.next() - 0.5) * 0.6,
-        strength = 0.3 + random.next() * 0.32;
+      const drift = (random.next() - 0.5) * (motorcycle ? 0.9 : 0.6),
+        strength = motorcycle
+          ? BIKE_TYRE_MARKS.strength[0] +
+            random.next() * (BIKE_TYRE_MARKS.strength[1] - BIKE_TYRE_MARKS.strength[0])
+          : 0.3 + random.next() * 0.32;
       // Under braking both axles mark; out of slow corners the rear pair.
-      for (const side of [-1, 1]) {
-        if (braking && random.next() < 0.25) continue;
+      for (const side of motorcycle ? [0] : [-1, 1]) {
+        if (!motorcycle && braking && random.next() < 0.25) continue;
+        const width = motorcycle ? BIKE_TYRE_MARKS.width : TYRE_MARKS.width;
         const samples = Math.max(2, Math.ceil(markLength / 1.2) + 1);
         const s = new Float32Array(samples),
           lateral = new Float32Array(samples),
@@ -166,7 +199,7 @@ export function tyreMarks(track: Track, zones = tyreMarkZones(track), seed = 541
           const u = k / (samples - 1),
             at = from + u * markLength;
           track.at(at, p);
-          const limit = p.width - TYRE_MARKS.width;
+          const limit = p.width - width;
           s[k] = at;
           lateral[k] = clamp(
             line.offsetAt(at) + passOffset + drift * u + side * TYRE_MARKS.halfTrack,
@@ -179,9 +212,12 @@ export function tyreMarks(track: Track, zones = tyreMarkZones(track), seed = 541
           const envelope = braking
             ? Math.min(1, u / 0.3) ** 0.7 * Math.min(1, (1 - u) / 0.06)
             : (1 - u) ** 1.3;
-          alpha[k] = strength * envelope;
+          // The longitudinal slip varies as the rear hooks up; it is not an
+          // unbroken ink stroke. Seeded pass variation survives replay seeks.
+          const breakup = motorcycle ? 0.62 + 0.38 * Math.sin(u * 10 + m * 1.7) ** 2 : 1;
+          alpha[k] = strength * envelope * breakup;
         }
-        marks.push({ s, lateral, alpha });
+        marks.push(motorcycle ? { s, lateral, alpha, width } : { s, lateral, alpha });
       }
     }
   }
@@ -231,15 +267,7 @@ export function installTyreMarkWater(material: T.Material, state: T.Texture) {
   });
 }
 
-/** Merged mark meshes, one per TYRE_MARKS.chunk metres of track. With the
- * physics state texture, every vertex carries the road's `trackUV` and the
- * marks fade under standing water (installTyreMarkWater). */
-export function buildTyreMarks(
-  track: Track,
-  parent: T.Object3D,
-  marks = tyreMarks(track),
-  state?: T.Texture,
-) {
+function tyreMarkMaterial(state?: T.Texture) {
   const texture = markTexture();
   texture.wrapT = T.RepeatWrapping;
   texture.colorSpace = T.NoColorSpace;
@@ -258,6 +286,20 @@ export function buildTyreMarks(
   // Rain wets the marks like the painted lines around them.
   tagWeatherSurface(material, 'paint');
   if (state) installTyreMarkWater(material, state);
+  return material;
+}
+
+/** Merged mark meshes, one per TYRE_MARKS.chunk metres of track. With the
+ * physics state texture, every vertex carries the road's `trackUV` and the
+ * marks fade under standing water (installTyreMarkWater). A family cache can
+ * share its already-installed weather/atmosphere material across both layers. */
+export function buildTyreMarks(
+  track: Track,
+  parent: T.Object3D,
+  marks = tyreMarks(track),
+  state?: T.Texture,
+  material = tyreMarkMaterial(state),
+) {
   const chunks = new Map<
     number,
     { position: number[]; uv: number[]; trackUV: number[]; color: number[]; index: number[] }
@@ -278,7 +320,7 @@ export function buildTyreMarks(
     for (let k = 0; k < mark.s.length; k++) {
       track.at(mark.s[k], p);
       for (const edge of [-0.5, 0.5]) {
-        const l = mark.lateral[k] + edge * TYRE_MARKS.width;
+        const l = mark.lateral[k] + edge * (mark.width ?? TYRE_MARKS.width);
         chunk.position.push(
           p.x + p.nx * l,
           p.y + p.bank * clamp(l, -12, 12) + TYRE_MARKS.lift,
@@ -314,4 +356,65 @@ export function buildTyreMarks(
     meshes.push(mesh);
   }
   return meshes;
+}
+
+/** A maximum of two cached, culled mark layers. Switching followed vehicle,
+ * replay or menus only changes visibility after a layer's first construction.
+ * Geometry generation stays out of the steady-state draw loop. */
+export class TyreMarkPresentation {
+  readonly root = new T.Group();
+  private readonly layers = new Map<boolean, T.Group>();
+  private motorcycle = false;
+  private ready = false;
+  private material: T.MeshStandardMaterial | undefined;
+
+  constructor(
+    private readonly track: Track,
+    private readonly state: T.Texture,
+  ) {
+    this.root.name = 'Discipline tyre rubber';
+  }
+
+  build(parent: T.Object3D) {
+    if (this.ready) return;
+    this.ready = true;
+    parent.add(this.root);
+    this.showLayer();
+  }
+
+  setMotorcycle(enabled: boolean) {
+    if (this.motorcycle === enabled) return false;
+    this.motorcycle = enabled;
+    if (this.ready) this.showLayer();
+    return true;
+  }
+
+  private showLayer() {
+    if (!this.layers.has(this.motorcycle)) {
+      const layer = new T.Group();
+      layer.name = this.motorcycle ? 'Motorcycle contact trails' : 'Four-wheel contact trails';
+      const zones = tyreMarkZones(this.track, this.motorcycle);
+      buildTyreMarks(
+        this.track,
+        layer,
+        tyreMarks(this.track, zones, 5417, this.motorcycle),
+        this.state,
+        (this.material ??= tyreMarkMaterial(this.state)),
+      );
+      this.layers.set(this.motorcycle, layer);
+      this.root.add(layer);
+    }
+    for (const [motorcycle, layer] of this.layers) layer.visible = motorcycle === this.motorcycle;
+    this.root.updateMatrixWorld(true);
+  }
+
+  diagnostics() {
+    const active = this.layers.get(this.motorcycle);
+    return {
+      mode: this.motorcycle ? 'motorcycle' : 'car',
+      cachedLayers: this.layers.size,
+      activeMeshes: active?.children.length ?? 0,
+      treadWidth: this.motorcycle ? BIKE_TYRE_MARKS.width : TYRE_MARKS.width,
+    };
+  }
 }

@@ -127,6 +127,12 @@ describe('WP34 motorcycles in real sessions', () => {
     expect([...states]).toEqual(expect.arrayContaining(['separated', 'remount', 'riding']));
     expect(b.riding).toBe(true);
     expect(separatedRider).toBeGreaterThan(0.5);
+    // A momentarily unloaded/locked rear can have a high demand ratio, but
+    // its last pre-crash sample must not heat the tyres through recovery.
+    for (const tire of b.tires) {
+      expect(tire.carcassTemp).toBeLessThan(140);
+      expect(tire.surfaceTemp).toBeLessThan(160);
+    }
     // Remounted on the racing surface, and it rides on.
     expect(Math.abs(b.lateral)).toBeLessThan(b.trackPosition.width);
     sim.autoPlayer = true;

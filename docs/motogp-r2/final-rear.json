@@ -1,0 +1,45 @@
+{
+  "instance": "71bcc0b8-08a0-44f1-9d69-bee66525f9a4",
+  "sourceFrameUnchanged": true,
+  "resources": {
+    "geometries": 106,
+    "textures": 20,
+    "programs": 49
+  },
+  "hash": 662871055,
+  "cockpit": null,
+  "weather": {
+    "source": "presented-snapshot",
+    "dampness": 0,
+    "time": 2,
+    "rain": 0,
+    "meanWater": 0,
+    "materialRoles": {
+      "rubber": 1,
+      "paint": 11,
+      "metal": 6,
+      "leather": 5,
+      "fabric": 1
+    },
+    "roadMaterials": 0,
+    "offTrackWetness": "mean-track-water-and-rain approximation",
+    "extraTextures": 0,
+    "extraDraws": 0
+  },
+  "triangles": 93700,
+  "calls": 186,
+  "glError": 0,
+  "bounds": {
+    "isBox3": true,
+    "min": {
+      "x": -0.4675225103713595,
+      "y": -0.0962548337573153,
+      "z": -1.1265229848524594
+    },
+    "max": {
+      "x": 0.4675225103713595,
+      "y": 1.3246317426996335,
+      "z": 1.0962548337573153
+    }
+  }
+}

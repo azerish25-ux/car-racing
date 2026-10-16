@@ -1,0 +1,642 @@
+{
+  "baselineRevision": "f91463cf506f6feced1a4db9c43af48ac3632410",
+  "method": "Every imported repository TypeScript/JSON module loaded from a git archive of f91463c for the baseline; identical installed dependency toolchain and production fixture. Shared working files were never rewritten.",
+  "sources": [
+    {
+      "file": "e2e/fixtures/bike-cockpit-contract.ts",
+      "baselineSha256": "d7d15ed56d24582dac64d58f3f3de7cb6cb8b0e51b59502428ef47ddca65d2e0",
+      "finalSha256": "d7d15ed56d24582dac64d58f3f3de7cb6cb8b0e51b59502428ef47ddca65d2e0",
+      "changed": false
+    },
+    {
+      "file": "e2e/fixtures/motogp-reference-review.ts",
+      "baselineSha256": "6551082d7b6fca9c166fa8518a8915e1d2ae76d68ae07d2ebdb42499199141b1",
+      "finalSha256": "6551082d7b6fca9c166fa8518a8915e1d2ae76d68ae07d2ebdb42499199141b1",
+      "changed": false
+    },
+    {
+      "file": "src/core/math.ts",
+      "baselineSha256": "e46e109d81774003aae58c52f77cd9ae2831a856ba6c9ba8878909c2c4383bd2",
+      "finalSha256": "e46e109d81774003aae58c52f77cd9ae2831a856ba6c9ba8878909c2c4383bd2",
+      "changed": false
+    },
+    {
+      "file": "src/rendering/assets/gp-bodywork.mesh.json",
+      "baselineSha256": "29aed319fbbc6a70805704c9c88c125b6481abd38514a2619e246f0569dd847f",
+      "finalSha256": "29aed319fbbc6a70805704c9c88c125b6481abd38514a2619e246f0569dd847f",
+      "changed": false
+    },
+    {
+      "file": "src/rendering/bike-cockpit.ts",
+      "baselineSha256": "64e0ff48743a7ed0b3e798fd1618388491d76a87b4eb9e13d10c1dff145bad98",
+      "finalSha256": "4bd18dc7eacb48fd7f137a19b96c36051a5d2f293c21f87ed15bbe03d09922c0",
+      "changed": true
+    },
+    {
+      "file": "src/rendering/bike-livery.ts",
+      "baselineSha256": "15335f613f8f5002df7dad286db914c9588b911770f8e120050e7beaa57156c2",
+      "finalSha256": "f9c42adb4de68f78e607ffe7f1d6c6fc723c761964bf7dfdf6e7d0b7ba695c68",
+      "changed": true
+    },
+    {
+      "file": "src/rendering/bike-pit-service.ts",
+      "baselineSha256": "e18b597b2d2c4f04ceea38596750ba82d389c235a5869a3a36d45e214011fad2",
+      "finalSha256": "e18b597b2d2c4f04ceea38596750ba82d389c235a5869a3a36d45e214011fad2",
+      "changed": false
+    },
+    {
+      "file": "src/rendering/bike-rigid-batch.ts",
+      "baselineSha256": "3090b46ddb8e705f846932d338cb028624d23899cbede62490334abf35aca2fb",
+      "finalSha256": "3090b46ddb8e705f846932d338cb028624d23899cbede62490334abf35aca2fb",
+      "changed": false
+    },
+    {
+      "file": "src/rendering/bike-sheet.ts",
+      "baselineSha256": "cf3dae04eb8a711e8ca3ca91cce9d97b622b6061e28bc1932a95244246e076dc",
+      "finalSha256": "cf3dae04eb8a711e8ca3ca91cce9d97b622b6061e28bc1932a95244246e076dc",
+      "changed": false
+    },
+    {
+      "file": "src/rendering/bike-surface-detail.ts",
+      "baselineSha256": "93a7df59bc6160ef376a3e1b575e91b72e6ec8665fc76db0ea0a318cb0705f96",
+      "finalSha256": "93a7df59bc6160ef376a3e1b575e91b72e6ec8665fc76db0ea0a318cb0705f96",
+      "changed": false
+    },
+    {
+      "file": "src/rendering/bike.ts",
+      "baselineSha256": "c39eb13e3f4807abfcaf8f33599dff953cc40a1e216e93633897e19e908b216f",
+      "finalSha256": "f8bb97b0d0711f5c26a457f4c3257e53e8b93470099d8bcd0bc6256e2cad4ab3",
+      "changed": true
+    },
+    {
+      "file": "src/rendering/car-livery.ts",
+      "baselineSha256": "f800e50359382a1e4e59720a3d027dd6e8c28a697e057490e87e020c88e4a970",
+      "finalSha256": "f800e50359382a1e4e59720a3d027dd6e8c28a697e057490e87e020c88e4a970",
+      "changed": false
+    },
+    {
+      "file": "src/rendering/cockpit-framing.ts",
+      "baselineSha256": "fc4e04237480187117f4ae281b936e194a4352b8ce48d3979d05f0bb4e4b1999",
+      "finalSha256": "fc4e04237480187117f4ae281b936e194a4352b8ce48d3979d05f0bb4e4b1999",
+      "changed": false
+    },
+    {
+      "file": "src/rendering/geometry.ts",
+      "baselineSha256": "c120aa6b3b8ad80f6a600d77fc3717c4638f89c3ab4bc36fea520345ebfacd26",
+      "finalSha256": "c120aa6b3b8ad80f6a600d77fc3717c4638f89c3ab4bc36fea520345ebfacd26",
+      "changed": false
+    },
+    {
+      "file": "src/rendering/gp-bodywork.ts",
+      "baselineSha256": "9c61217c9be5f89a2877ba9afa5423b05acb5bfafedb1bd177c5c399dc75e783",
+      "finalSha256": "9c61217c9be5f89a2877ba9afa5423b05acb5bfafedb1bd177c5c399dc75e783",
+      "changed": false
+    },
+    {
+      "file": "src/rendering/helmet-shell.ts",
+      "baselineSha256": "f5f151c6e496c7231f81153c805cdd4b6e9e7d60831ee7bd511de2da5a229f45",
+      "finalSha256": "f5f151c6e496c7231f81153c805cdd4b6e9e7d60831ee7bd511de2da5a229f45",
+      "changed": false
+    },
+    {
+      "file": "src/rendering/light-footprint.ts",
+      "baselineSha256": "1a413c931d1c9131e00cf288131e64c684660700348baef5e5e821c136e9639b",
+      "finalSha256": "1a413c931d1c9131e00cf288131e64c684660700348baef5e5e821c136e9639b",
+      "changed": false
+    },
+    {
+      "file": "src/rendering/materials.ts",
+      "baselineSha256": "ba0ce3209220fb07aba7fcc92b3f01e5c727801c9e132a2147926d8f58c17eef",
+      "finalSha256": "ba0ce3209220fb07aba7fcc92b3f01e5c727801c9e132a2147926d8f58c17eef",
+      "changed": false
+    },
+    {
+      "file": "src/rendering/offroad/dirt-bike-model.ts",
+      "baselineSha256": "cecd5aa806afd8a57488821b4001ed959470d029d0dc0b7cb4135d7b74043631",
+      "finalSha256": "cecd5aa806afd8a57488821b4001ed959470d029d0dc0b7cb4135d7b74043631",
+      "changed": false
+    },
+    {
+      "file": "src/rendering/offroad/mud.ts",
+      "baselineSha256": "748d2967523b1cd801136cd6e22765792b695b555f20383fa1365e5c7c0d3b53",
+      "finalSha256": "748d2967523b1cd801136cd6e22765792b695b555f20383fa1365e5c7c0d3b53",
+      "changed": false
+    },
+    {
+      "file": "src/rendering/options.ts",
+      "baselineSha256": "c66a8907e7e9d5db3ad67a097127be3a07bb78b58fa79fc16922a5cce8aed95f",
+      "finalSha256": "c66a8907e7e9d5db3ad67a097127be3a07bb78b58fa79fc16922a5cce8aed95f",
+      "changed": false
+    },
+    {
+      "file": "src/rendering/paint-finish.ts",
+      "baselineSha256": "8b51eff5c0d39157124211e24dc1d52bcd1005ff1b00ade04c2c5343022b0f0e",
+      "finalSha256": "8b51eff5c0d39157124211e24dc1d52bcd1005ff1b00ade04c2c5343022b0f0e",
+      "changed": false
+    },
+    {
+      "file": "src/rendering/periodic-coverage.ts",
+      "baselineSha256": "2f7b90ef97cabf43cf156027b41866951bd380eb9fb8af68b4ccc4c8133157f0",
+      "finalSha256": "2f7b90ef97cabf43cf156027b41866951bd380eb9fb8af68b4ccc4c8133157f0",
+      "changed": false
+    },
+    {
+      "file": "src/rendering/pit-footwork.ts",
+      "baselineSha256": "4e4d629c42823d62aef33aca888794af663c0b770ba57ec91336914d5e731b10",
+      "finalSha256": "4e4d629c42823d62aef33aca888794af663c0b770ba57ec91336914d5e731b10",
+      "changed": false
+    },
+    {
+      "file": "src/rendering/pit-presentation.ts",
+      "baselineSha256": "21aabbf1fcd55f7cbf3cac4fab6fa37386cbe167b9d1c1912695ca8368e8d245",
+      "finalSha256": "21aabbf1fcd55f7cbf3cac4fab6fa37386cbe167b9d1c1912695ca8368e8d245",
+      "changed": false
+    },
+    {
+      "file": "src/rendering/profile-sampling.ts",
+      "baselineSha256": "a4960247a99d96d5e6e43f2e8189cace09774615c228ba315a8a0cbd630c24af",
+      "finalSha256": "a4960247a99d96d5e6e43f2e8189cace09774615c228ba315a8a0cbd630c24af",
+      "changed": false
+    },
+    {
+      "file": "src/rendering/rider.ts",
+      "baselineSha256": "3aee37a13b2081534363323e769eefab02f6bc6ced090ad1ab2117541bc97cc6",
+      "finalSha256": "2c0e0b143471b0e402cee165925ef5bef2412340aea14ed6ce6efd3dc6a7dcb9",
+      "changed": true
+    },
+    {
+      "file": "src/rendering/road-macro.ts",
+      "baselineSha256": "b485e2eba0c910b26cdaffd0c380a582bdfff60a0f54dd2232fcc88fe2105e48",
+      "finalSha256": "b485e2eba0c910b26cdaffd0c380a582bdfff60a0f54dd2232fcc88fe2105e48",
+      "changed": false
+    },
+    {
+      "file": "src/rendering/studio/brand-atlas.ts",
+      "baselineSha256": "dca85756467bfc3420acb61a5cba7592dd7b988d60152a6d01dcd5fd5ef817e6",
+      "finalSha256": "dca85756467bfc3420acb61a5cba7592dd7b988d60152a6d01dcd5fd5ef817e6",
+      "changed": false
+    },
+    {
+      "file": "src/rendering/studio/shader-hooks.ts",
+      "baselineSha256": "8ae51033f242d1100a6008975d6f5be3f55fd37e8f3be6399f5f731cc8da0488",
+      "finalSha256": "8ae51033f242d1100a6008975d6f5be3f55fd37e8f3be6399f5f731cc8da0488",
+      "changed": false
+    },
+    {
+      "file": "src/rendering/studio/tyre-letters.ts",
+      "baselineSha256": "24020f4b77b5a51bd50f6cef311e947deb2e2bfafb04d69079e441e1ae85c693",
+      "finalSha256": "24020f4b77b5a51bd50f6cef311e947deb2e2bfafb04d69079e441e1ae85c693",
+      "changed": false
+    },
+    {
+      "file": "src/rendering/tire-finish.ts",
+      "baselineSha256": "88dfb36154b2771fcf7685da11a9f29a5af0110cb3b9b6aab1a5e79976ca3bbc",
+      "finalSha256": "88dfb36154b2771fcf7685da11a9f29a5af0110cb3b9b6aab1a5e79976ca3bbc",
+      "changed": false
+    },
+    {
+      "file": "src/rendering/view-detail.ts",
+      "baselineSha256": "8ef0b52b5b40f165a6b1faaf6cd0e2ec2453b56904b7027ade6e852f3ed0b514",
+      "finalSha256": "8ef0b52b5b40f165a6b1faaf6cd0e2ec2453b56904b7027ade6e852f3ed0b514",
+      "changed": false
+    },
+    {
+      "file": "src/rendering/weather-presentation.ts",
+      "baselineSha256": "bce1f96744811a44742e80c2d3a22e3a7114a3ad22ef338d118199d4a14393a9",
+      "finalSha256": "bce1f96744811a44742e80c2d3a22e3a7114a3ad22ef338d118199d4a14393a9",
+      "changed": false
+    },
+    {
+      "file": "src/rendering/wet-reflection.ts",
+      "baselineSha256": "30b1429e26cd941704664c5410c3ea132daab5331a090e2c4dc8e921e4a12f56",
+      "finalSha256": "30b1429e26cd941704664c5410c3ea132daab5331a090e2c4dc8e921e4a12f56",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/aero-map.ts",
+      "baselineSha256": "8322cbb61e600c5a835b4d909da03f73ec766b045ce81e8cfd04cbf588f7c8c6",
+      "finalSha256": "8322cbb61e600c5a835b4d909da03f73ec766b045ce81e8cfd04cbf588f7c8c6",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/aero.ts",
+      "baselineSha256": "072678c4ce515b222475a02e4f1eda20f21042640dcc74127f1a9bb7f048fef5",
+      "finalSha256": "072678c4ce515b222475a02e4f1eda20f21042640dcc74127f1a9bb7f048fef5",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/bike-definitions.ts",
+      "baselineSha256": "e075dd421d9a61b9564e2918da316a0ebe92816aa4871b8662d2ac357bffe3a6",
+      "finalSha256": "e075dd421d9a61b9564e2918da316a0ebe92816aa4871b8662d2ac357bffe3a6",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/bike.ts",
+      "baselineSha256": "8193cc357eaeadd3b10bd6ac477f006323f7bb92296bde7edf013f0f999b6e50",
+      "finalSha256": "1fab3d119ab5d7a810b97a64a703d4920176f33d29ba11a328a6187bbab1e3ae",
+      "changed": true
+    },
+    {
+      "file": "src/simulation/bvh.ts",
+      "baselineSha256": "36fa58bac53dcdeb0caca18df4bd6d1de1afe26a69a04147d0992e722e537397",
+      "finalSha256": "36fa58bac53dcdeb0caca18df4bd6d1de1afe26a69a04147d0992e722e537397",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/catalogue-events.ts",
+      "baselineSha256": "ab2f64fa925f5a170531efeca109c95323b8bd3c616868e43e015211ce36980a",
+      "finalSha256": "ab2f64fa925f5a170531efeca109c95323b8bd3c616868e43e015211ce36980a",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/circuit-catalogue/builder.ts",
+      "baselineSha256": "b6c7b9cdfb5dd2067f95cd9bc4d638cb5a2d4c957140a24b45d0ea2e4cf4444e",
+      "finalSha256": "b6c7b9cdfb5dd2067f95cd9bc4d638cb5a2d4c957140a24b45d0ea2e4cf4444e",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/circuit-catalogue/dsl.ts",
+      "baselineSha256": "3e4e980d31fa1ab9424e86084f37dcaad10265669d015656003e35e59952c0a6",
+      "finalSha256": "3e4e980d31fa1ab9424e86084f37dcaad10265669d015656003e35e59952c0a6",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/circuit-catalogue/endurance.ts",
+      "baselineSha256": "0d5a4c8914d3b214fbb6dc1ade62946a7c995aa81d8a57022b97f7aee0ace261",
+      "finalSha256": "0d5a4c8914d3b214fbb6dc1ade62946a7c995aa81d8a57022b97f7aee0ace261",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/circuit-catalogue/events.ts",
+      "baselineSha256": "8d89c3696663168b70b85a80be05ef4fcbd23e8eb5d6d1c583302411573eb720",
+      "finalSha256": "8d89c3696663168b70b85a80be05ef4fcbd23e8eb5d6d1c583302411573eb720",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/circuit-catalogue/index.ts",
+      "baselineSha256": "9ebcd4dd3b631c2c27ce5955d9ef24ac71622a71800457649260a843c1b67f45",
+      "finalSha256": "9ebcd4dd3b631c2c27ce5955d9ef24ac71622a71800457649260a843c1b67f45",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/circuit-catalogue/industrial.ts",
+      "baselineSha256": "38c6ac91871dbc636fa79c9813612dae189d1ba3176c574b60fa65412d8bd0cb",
+      "finalSha256": "38c6ac91871dbc636fa79c9813612dae189d1ba3176c574b60fa65412d8bd0cb",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/circuit-catalogue/motorcycle-gp.ts",
+      "baselineSha256": "8dd2de0842929ed80bb876b6cb5a8760ec2896841da86560f1cf4909d66fed15",
+      "finalSha256": "8dd2de0842929ed80bb876b6cb5a8760ec2896841da86560f1cf4909d66fed15",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/circuit-catalogue/night-and-street.ts",
+      "baselineSha256": "4833619d220db7bf321c18510df4e83aef5cbea8ec088f40636379e9feb74d37",
+      "finalSha256": "4833619d220db7bf321c18510df4e83aef5cbea8ec088f40636379e9feb74d37",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/circuit-catalogue/real-world-classics.ts",
+      "baselineSha256": "562832bea489c70327f09db1e493808d803ac1b8c1a972811ea003be04241c68",
+      "finalSha256": "562832bea489c70327f09db1e493808d803ac1b8c1a972811ea003be04241c68",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/circuit-catalogue/real-world.ts",
+      "baselineSha256": "09daee5348767edae8aef65ad920d79403d1807f4b2ae41fa11ef7ffe23bcecc",
+      "finalSha256": "09daee5348767edae8aef65ad920d79403d1807f4b2ae41fa11ef7ffe23bcecc",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/circuit-catalogue/unconventional.ts",
+      "baselineSha256": "a6d5b3b91b0faf02d0b7ac0d38fc719649ac8cb6526465621d6372ae2f5439c5",
+      "finalSha256": "a6d5b3b91b0faf02d0b7ac0d38fc719649ac8cb6526465621d6372ae2f5439c5",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/circuit-catalogue/venue-data.ts",
+      "baselineSha256": "c48b27ca5e49bb131960fb05e4dcaff3c0b5c492bdcdb5def489d5344aa1f8d7",
+      "finalSha256": "c48b27ca5e49bb131960fb05e4dcaff3c0b5c492bdcdb5def489d5344aa1f8d7",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/circuits.ts",
+      "baselineSha256": "7b0208025d6c0cb25a49bc757e7c69b1fdcb651bdb66803ee75648de24752c90",
+      "finalSha256": "7b0208025d6c0cb25a49bc757e7c69b1fdcb651bdb66803ee75648de24752c90",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/clutch.ts",
+      "baselineSha256": "f511e6588d5326ac7573ae566c405589bc904c31a94ceddbb40d5eb110b863c4",
+      "finalSha256": "f511e6588d5326ac7573ae566c405589bc904c31a94ceddbb40d5eb110b863c4",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/config.ts",
+      "baselineSha256": "7f50a4f3b04afed147ad35ea15898280da0425227e41d3dbafc53ecdc7d93110",
+      "finalSha256": "7f50a4f3b04afed147ad35ea15898280da0425227e41d3dbafc53ecdc7d93110",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/contact.ts",
+      "baselineSha256": "6585ffb6957db45e1be40c8e171fbdb3b1702897c7469bf0f89894a2ec547c69",
+      "finalSha256": "6585ffb6957db45e1be40c8e171fbdb3b1702897c7469bf0f89894a2ec547c69",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/contamination.ts",
+      "baselineSha256": "be99152f738ba230ac65986f83df15869f5227db80bf93737e4c337186b9f005",
+      "finalSha256": "be99152f738ba230ac65986f83df15869f5227db80bf93737e4c337186b9f005",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/damage.ts",
+      "baselineSha256": "2b0268d4c9572e88c8d370d1649a579f151d55a2b5d801849197adaa2a7f95ad",
+      "finalSha256": "2b0268d4c9572e88c8d370d1649a579f151d55a2b5d801849197adaa2a7f95ad",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/differential.ts",
+      "baselineSha256": "def7d4ee3c3166dd921ebf90cbbbabff8e278243f6652711a24d3875c914d01a",
+      "finalSha256": "def7d4ee3c3166dd921ebf90cbbbabff8e278243f6652711a24d3875c914d01a",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/drs.ts",
+      "baselineSha256": "1c6459cbcdc915387a4ab5ce80e03e232a3c191bccce41f4798e2ff468e60e16",
+      "finalSha256": "1c6459cbcdc915387a4ab5ce80e03e232a3c191bccce41f4798e2ff468e60e16",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/events.ts",
+      "baselineSha256": "b437b4a0307f668fd25f3da0c9c0706b2822bad0068203dd4e4e2c1f98a4869f",
+      "finalSha256": "b437b4a0307f668fd25f3da0c9c0706b2822bad0068203dd4e4e2c1f98a4869f",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/marshal.ts",
+      "baselineSha256": "20b38f49047e2e2ccc27ce3bf1c3cc5b07c3bd01144ce32c0982169c9518ce6f",
+      "finalSha256": "20b38f49047e2e2ccc27ce3bf1c3cc5b07c3bd01144ce32c0982169c9518ce6f",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/offroad/course-terrain.ts",
+      "baselineSha256": "15cf18d425f8b6fc04612cff9f39fd068509e2fc28b78f4aa82ca8ab54f43edc",
+      "finalSha256": "15cf18d425f8b6fc04612cff9f39fd068509e2fc28b78f4aa82ca8ab54f43edc",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/offroad/course.ts",
+      "baselineSha256": "0a961097fe796b0d0e34dc974c59200466dce1569b06d4cd9d401a239e4fc20a",
+      "finalSha256": "0a961097fe796b0d0e34dc974c59200466dce1569b06d4cd9d401a239e4fc20a",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/offroad/dirt-bikes.ts",
+      "baselineSha256": "ab5d57ba61c3f2e08c35c869dbe3694d83d20eb533da03ed7a5b3bf4712fdf2f",
+      "finalSha256": "ab5d57ba61c3f2e08c35c869dbe3694d83d20eb533da03ed7a5b3bf4712fdf2f",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/offroad/formats.ts",
+      "baselineSha256": "67704c7fffe51044463e7b9304f8d424340b2513ab735d50319ae6396650f893",
+      "finalSha256": "67704c7fffe51044463e7b9304f8d424340b2513ab735d50319ae6396650f893",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/offroad/profile.ts",
+      "baselineSha256": "7d94f8c4a3b2bf414c2950afcec20323fc7cb603d3bdc509493c7f442749a2ce",
+      "finalSha256": "7d94f8c4a3b2bf414c2950afcec20323fc7cb603d3bdc509493c7f442749a2ce",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/offroad/venues.ts",
+      "baselineSha256": "f7130a30bb70c375bfbf0aa949428156ee088d255b118e354eaba6a583766508",
+      "finalSha256": "f7130a30bb70c375bfbf0aa949428156ee088d255b118e354eaba6a583766508",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/pit-service.ts",
+      "baselineSha256": "799c8a8f3de91121765d9f7780ebeeeea788e247f694f2eeedf05d5100da7bd7",
+      "finalSha256": "799c8a8f3de91121765d9f7780ebeeeea788e247f694f2eeedf05d5100da7bd7",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/powertrain.ts",
+      "baselineSha256": "12c3859d0b4fef04fa8ee8d3b07824b352cb335ceb697e869eda85c23b859307",
+      "finalSha256": "12c3859d0b4fef04fa8ee8d3b07824b352cb335ceb697e869eda85c23b859307",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/protocol.ts",
+      "baselineSha256": "f51e07505174017042b5f3aa669f01efbf173816355b27a55e920b431dd38c37",
+      "finalSha256": "f51e07505174017042b5f3aa669f01efbf173816355b27a55e920b431dd38c37",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/racing-line.ts",
+      "baselineSha256": "30e541a6c9f624f6809c47eb9447428593e9882ecf806f9db66fe20f9fda0923",
+      "finalSha256": "30e541a6c9f624f6809c47eb9447428593e9882ecf806f9db66fe20f9fda0923",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/rigid.ts",
+      "baselineSha256": "47507ac3eb5358dc509c465ccec2837d7701471a41f802440494b52161fb5827",
+      "finalSha256": "47507ac3eb5358dc509c465ccec2837d7701471a41f802440494b52161fb5827",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/road-contact.ts",
+      "baselineSha256": "1ca39b25fcb57579a54424368f44feb51901020f8c0b247f51af37a0ca3a6337",
+      "finalSha256": "1ca39b25fcb57579a54424368f44feb51901020f8c0b247f51af37a0ca3a6337",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/skid-contact.ts",
+      "baselineSha256": "ca3a97e965f0ba6507031847d981fca847345be071dfc65a2e2d7470527a27f0",
+      "finalSha256": "ca3a97e965f0ba6507031847d981fca847345be071dfc65a2e2d7470527a27f0",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/surface-drainage.ts",
+      "baselineSha256": "1a4b181fbb06c72f24170bec027155c7f30c53e3572ecbfaf01d94be1fead1bd",
+      "finalSha256": "1a4b181fbb06c72f24170bec027155c7f30c53e3572ecbfaf01d94be1fead1bd",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/surface-material.ts",
+      "baselineSha256": "ba30aa9ac645a3f2f876a24870387fedefec3a6f66dd33eb9b9dfbf13532919b",
+      "finalSha256": "ba30aa9ac645a3f2f876a24870387fedefec3a6f66dd33eb9b9dfbf13532919b",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/suspension.ts",
+      "baselineSha256": "f3c27b8d15b8b311f59a593af73b48b1bf85170b0ee5ca8d92de4cd987d35158",
+      "finalSha256": "f3c27b8d15b8b311f59a593af73b48b1bf85170b0ee5ca8d92de4cd987d35158",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/terrain.ts",
+      "baselineSha256": "7f5cd88652e9f085429816d16f949802c72240aafaddf8b2412ccd1b10009679",
+      "finalSha256": "7f5cd88652e9f085429816d16f949802c72240aafaddf8b2412ccd1b10009679",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/tire-families.ts",
+      "baselineSha256": "f0cd77285932df6ca2a56a683bf644c24d3f7a818770910c44f92abb653434df",
+      "finalSha256": "f0cd77285932df6ca2a56a683bf644c24d3f7a818770910c44f92abb653434df",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/tire.ts",
+      "baselineSha256": "77ce9475c9ec7833e18031e43f7a80348ebbba2f671f8a34fe5c6064acad1bc4",
+      "finalSha256": "77ce9475c9ec7833e18031e43f7a80348ebbba2f671f8a34fe5c6064acad1bc4",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/track.ts",
+      "baselineSha256": "5d13ce425b1872325294630559a0317cbf6177f7e240b4eae7aacac2d86e7fbc",
+      "finalSha256": "5d13ce425b1872325294630559a0317cbf6177f7e240b4eae7aacac2d86e7fbc",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/tyre-force.ts",
+      "baselineSha256": "4f3869149cbed1c6a686c59209c3566cb3b40d0ed11eb2edc812b0e7fc7adb90",
+      "finalSha256": "4f3869149cbed1c6a686c59209c3566cb3b40d0ed11eb2edc812b0e7fc7adb90",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/tyre-thermal.ts",
+      "baselineSha256": "b5e845fdfa34d9f53efbc6d385401bf80364753899ca134bf5f633df997c7679",
+      "finalSha256": "b5e845fdfa34d9f53efbc6d385401bf80364753899ca134bf5f633df997c7679",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/vehicle-catalogue/builder.ts",
+      "baselineSha256": "e2776bd76d94467498430c27d726d02ce3786762a4b6a93f859f6f9093a7912a",
+      "finalSha256": "e2776bd76d94467498430c27d726d02ce3786762a4b6a93f859f6f9093a7912a",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/vehicle-catalogue/common.ts",
+      "baselineSha256": "b0c6464cf0b7974ae930a050aa54edb675100ce62c6efd8506090da40a382ede",
+      "finalSha256": "b0c6464cf0b7974ae930a050aa54edb675100ce62c6efd8506090da40a382ede",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/vehicle-catalogue/dirt-2.ts",
+      "baselineSha256": "ffa6bbcf58d533ec0193dc3e24fa08e323a502098f81ee59f5fcc5dd90a3b733",
+      "finalSha256": "ffa6bbcf58d533ec0193dc3e24fa08e323a502098f81ee59f5fcc5dd90a3b733",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/vehicle-catalogue/dirt.ts",
+      "baselineSha256": "09d2171018c2bf2f14ad52c7139a629866cfc75988540624a84d22de02693114",
+      "finalSha256": "09d2171018c2bf2f14ad52c7139a629866cfc75988540624a84d22de02693114",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/vehicle-catalogue/endurance.ts",
+      "baselineSha256": "0639678d503ee22d5684f302aaf80e46822975a901a1f6bb580806a92d3e0a70",
+      "finalSha256": "0639678d503ee22d5684f302aaf80e46822975a901a1f6bb580806a92d3e0a70",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/vehicle-catalogue/experimental.ts",
+      "baselineSha256": "09fa03be94df01d053289c0a31b2c7ab8d9c51593207972ef2b65d3e5a784c25",
+      "finalSha256": "09fa03be94df01d053289c0a31b2c7ab8d9c51593207972ef2b65d3e5a784c25",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/vehicle-catalogue/formula.ts",
+      "baselineSha256": "e0e3ccc8fd187467d7b047c48d7fb9f80815d72684017c7157290f78787daaa2",
+      "finalSha256": "e0e3ccc8fd187467d7b047c48d7fb9f80815d72684017c7157290f78787daaa2",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/vehicle-catalogue/gt-layouts.ts",
+      "baselineSha256": "6c26da7c64ce4fd8d7a16e5a7961ca1e24b528a0177cc856ab729db112361b1e",
+      "finalSha256": "6c26da7c64ce4fd8d7a16e5a7961ca1e24b528a0177cc856ab729db112361b1e",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/vehicle-catalogue/gt.ts",
+      "baselineSha256": "78a02c349c0e431def3a2d114c7be409eacc1f53f4ec2371d585184e48df564c",
+      "finalSha256": "78a02c349c0e431def3a2d114c7be409eacc1f53f4ec2371d585184e48df564c",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/vehicle-catalogue/index.ts",
+      "baselineSha256": "ed281de1db31688b40ebf7b5900a20857934717e993e22391d7630242116068b",
+      "finalSha256": "ed281de1db31688b40ebf7b5900a20857934717e993e22391d7630242116068b",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/vehicle-catalogue/prototypes.ts",
+      "baselineSha256": "99b898854c42087dae8f1768ed1c80442a04a373ea22fcb521b8a05d84cf9d47",
+      "finalSha256": "99b898854c42087dae8f1768ed1c80442a04a373ea22fcb521b8a05d84cf9d47",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/vehicle-catalogue/road-festival.ts",
+      "baselineSha256": "e28c3bbae13e119c5a0d333292a36a8a4948a3071b86c884cf1dafd94d19790e",
+      "finalSha256": "e28c3bbae13e119c5a0d333292a36a8a4948a3071b86c884cf1dafd94d19790e",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/vehicle-catalogue/single-seaters.ts",
+      "baselineSha256": "3d9cb011aca30965afa966bd5fbd0f80fd6e02beaa3aa0bef0c762513c9bd164",
+      "finalSha256": "3d9cb011aca30965afa966bd5fbd0f80fd6e02beaa3aa0bef0c762513c9bd164",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/vehicle-catalogue/small-road.ts",
+      "baselineSha256": "d15a264998c750f8a4ee19ea7f464ba7e2597a24aec7c4fe2a21837f7b505bb7",
+      "finalSha256": "d15a264998c750f8a4ee19ea7f464ba7e2597a24aec7c4fe2a21837f7b505bb7",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/vehicle-catalogue/touring-club-2.ts",
+      "baselineSha256": "5dd81dc1f389e4d3c5caf7824391de3136c6d3cb7ba41680bd586155ca72446f",
+      "finalSha256": "5dd81dc1f389e4d3c5caf7824391de3136c6d3cb7ba41680bd586155ca72446f",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/vehicle-catalogue/touring-club.ts",
+      "baselineSha256": "18f8f95393837aa7531430ca59175ef6ba6ae518ddee5ae127134d9acdae1bc0",
+      "finalSha256": "18f8f95393837aa7531430ca59175ef6ba6ae518ddee5ae127134d9acdae1bc0",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/vehicle-classes.ts",
+      "baselineSha256": "70f3f650e51b975ab76dec71931ecba27290e307710ef6c6a8f720a66a076b28",
+      "finalSha256": "70f3f650e51b975ab76dec71931ecba27290e307710ef6c6a8f720a66a076b28",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/vehicle-dynamics.ts",
+      "baselineSha256": "6a5ee4f60c340b6afeebb1f4811ba6c2d8f08728453dae0b1b6fdc01272e4344",
+      "finalSha256": "6a5ee4f60c340b6afeebb1f4811ba6c2d8f08728453dae0b1b6fdc01272e4344",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/vehicle.ts",
+      "baselineSha256": "02ea360d0888e0776dd156fedee15dae8679c4850d4bbeb59faa05b6c14fdb24",
+      "finalSha256": "02ea360d0888e0776dd156fedee15dae8679c4850d4bbeb59faa05b6c14fdb24",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/vehicles.ts",
+      "baselineSha256": "d362e0a36d566ba8cfe866e84a2b3014e2d6bf2307b07c286e52335334f0b090",
+      "finalSha256": "d362e0a36d566ba8cfe866e84a2b3014e2d6bf2307b07c286e52335334f0b090",
+      "changed": false
+    },
+    {
+      "file": "src/simulation/weather.ts",
+      "baselineSha256": "f848f2f7ec82c777f057b10ffa54fe2b226e7dc8a89754c86a5f211674794168",
+      "finalSha256": "f848f2f7ec82c777f057b10ffa54fe2b226e7dc8a89754c86a5f211674794168",
+      "changed": false
+    }
+  ]
+}

@@ -6,14 +6,24 @@ import { bikeSurfaceMaps } from '../src/rendering/bike-surface-detail.ts';
 import { sampleProfile } from '../src/rendering/profile-sampling.ts';
 import { batchBikeRigidMeshes } from '../src/rendering/bike-rigid-batch.ts';
 import { VEHICLES } from '../src/simulation/vehicles.ts';
+import { BikeVehicle } from '../src/simulation/bike-vehicle.ts';
+import { DEFAULT_OPTIONS } from '../src/simulation/config.ts';
+import { carBase, F } from '../src/simulation/protocol.ts';
+import { Simulation } from '../src/simulation/world.ts';
 import { weatherSurface, WeatherPresentation } from '../src/rendering/weather-presentation.ts';
 import shell from '../src/rendering/assets/gp-bodywork.mesh.json';
 
+const drawText = vi.fn();
 beforeAll(() => {
   const ctx = new Proxy(
     {},
     {
-      get: (_, key) => (key === 'measureText' ? () => ({ width: 10 }) : () => undefined),
+      get: (_, key) =>
+        key === 'measureText'
+          ? () => ({ width: 10 })
+          : key === 'fillText'
+            ? drawText
+            : () => undefined,
       set: () => true,
     },
   );
@@ -64,19 +74,60 @@ describe('100-reference GP presentation', () => {
         expect(result).toBeLessThanOrEqual(Math.max(ys[i], ys[i + 1]) + 1e-9);
       }
   });
-  it('uses simulation SI speed and gearbox indexing, including neutral and invalid readings', () => {
+  it('uses simulation SI speed and displayed gear numbers, including neutral and invalid readings', () => {
     expect(bikeInstrumentReadout({ speed: 25, gear: 4, rpm: 12765 }, 16000)).toEqual({
       speed: 90,
-      gear: '3',
+      gear: '4',
       rpm: 12800,
       fill: 12765 / 16000,
     });
-    expect(bikeInstrumentReadout({ gear: 1 }, 16000).gear).toBe('N');
-    expect(bikeInstrumentReadout({ gear: 0 }, 16000).gear).toBe('R');
+    expect(bikeInstrumentReadout({ gear: 1 }, 16000).gear).toBe('1');
+    expect(bikeInstrumentReadout({ gear: 0 }, 16000).gear).toBe('N');
+    expect(bikeInstrumentReadout({ gear: -1 }, 16000).gear).toBe('R');
     expect(bikeInstrumentReadout({}, 16000).gear).toBe('N');
     const value = bikeInstrumentReadout({ speed: NaN, rpm: Infinity }, 0);
     expect(value.speed).toBe(0);
     expect(value.fill).toBe(0);
+  });
+  it('draws every actual GP session gear from BikeVehicle shifts and the published snapshot', () => {
+    const sim = new Simulation({
+      ...DEFAULT_OPTIONS,
+      mode: 'practice',
+      opponents: 0,
+      vehicles: ['gpr1'],
+    });
+    const bike = sim.cars[0];
+    expect(bike).toBeInstanceOf(BikeVehicle);
+    bike.autoShift = false;
+    sim.autoPlayer = false;
+    const frame = sim.makeFrame(),
+      o = carBase(0),
+      cockpit = new BikeCockpit(bike.spec.limiterRPM);
+    try {
+      // Exercise the real sequential gearbox. Never manufacture a gear field
+      // or copy the instrument helper's assumption into a synthetic frame.
+      for (let expectedGear = 1; expectedGear <= 6; expectedGear++) {
+        if (expectedGear > 1) bike.shift(1);
+        for (let step = 0; step < 24; step++) sim.step(1 / 120);
+        sim.writeFrame(frame);
+        expect(bike.gear).toBe(expectedGear);
+        expect(frame[o + F.GEAR]).toBe(expectedGear);
+        const values = {
+          speed: frame[o + F.SPEED],
+          gear: frame[o + F.GEAR],
+          rpm: frame[o + F.RPM],
+        };
+        expect(bikeInstrumentReadout(values, bike.spec.limiterRPM).gear).toBe(String(expectedGear));
+        drawText.mockClear();
+        cockpit.update(values);
+        expect(drawText.mock.calls.some(([text]) => text === String(expectedGear))).toBe(true);
+      }
+    } finally {
+      cockpit.root.traverse((object) => {
+        if (object instanceof T.Mesh) object.geometry.dispose();
+      });
+      cockpit.dispose();
+    }
   });
   it('does not upload the same instrument texture on an unchanged held replay frame', () => {
     const cockpit = new BikeCockpit(16000);

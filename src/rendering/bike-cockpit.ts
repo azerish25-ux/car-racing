@@ -18,21 +18,18 @@ export function bikeFirstPersonView(
 
 export interface BikeInstrumentValues {
   speed?: number;
+  /** Vehicle.gear / F.GEAR: reverse=-1, neutral=0, forward gears=1..N. */
   gear?: number;
   rpm?: number;
 }
-/** F.GEAR uses reverse=0, neutral=1, first=2, not the displayed gear number. */
+/** Snapshot gears are already the displayed numbers. Only the drivetrain's
+ * internal ratio lookup adds one to index its reverse/neutral entries. */
 export function bikeInstrumentReadout(values: BikeInstrumentValues, limiterRPM: number) {
   const finite = (v: number | undefined) => (Number.isFinite(v) ? v! : 0);
+  const gear = Math.round(finite(values.gear));
   return {
     speed: Math.round(Math.max(0, finite(values.speed)) * 3.6),
-    gear: !Number.isFinite(values.gear)
-      ? 'N'
-      : finite(values.gear) <= 0
-        ? 'R'
-        : finite(values.gear) < 2
-          ? 'N'
-          : String(Math.round(finite(values.gear)) - 1),
+    gear: gear < 0 ? 'R' : gear === 0 ? 'N' : String(gear),
     rpm: Math.round(Math.max(0, finite(values.rpm)) / 100) * 100,
     fill: T.MathUtils.clamp(finite(values.rpm) / Math.max(1, finite(limiterRPM)), 0, 1),
   };

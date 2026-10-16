@@ -1,0 +1,2196 @@
+{
+  "title": "MotoGP R2 final repository validation",
+  "recordedUtc": "2026-10-16T21:35:30.772483+00:00",
+  "command": "npm run check:stable",
+  "exitCode": 0,
+  "sourceBaseCommit": "f91463cf506f6feced1a4db9c43af48ac3632410",
+  "productionBuildIdentity": {
+    "version": 1,
+    "commit": null,
+    "fingerprint": "24ab86c6938bdae4c47864709d37752293fb1a37ee52eb6cebba91a9d1ac78b0"
+  },
+  "matchesFullGameCaptureFingerprint": true,
+  "runtime": {
+    "node": "v24.19.0",
+    "vitest": "3.2.4",
+    "vite": "7.1.7",
+    "dependencyInstallation": "locked npm ci; no dependency or test-runner configuration changes"
+  },
+  "checks": {
+    "eslint": "passed",
+    "contentValidation": "passed",
+    "testFilesPassed": 355,
+    "testFilesTotal": 355,
+    "testsPassed": 3009,
+    "testsTotal": 3009,
+    "unhandledErrors": 0,
+    "typescriptNoEmit": "passed",
+    "viteProductionBuild": "passed",
+    "sourceStabilityGuard": "passed",
+    "preparedFilesUnchangedDuringGate": 66
+  },
+  "timings": {
+    "vitestSeconds": 1882.78,
+    "viteBuildSeconds": 17.04
+  },
+  "logSHA256": "53b64465e8083dbf9c0e58c69d38e242ff64dbd9b2d47e8010e74e85d48326b4",
+  "sourceStabilityScope": "The existing source-stability wrapper compared its before/after input snapshots and exited 0. Its original exclusion for the generated supplied-player LOD derivative was retained. Diagnostic messages from intentional failure fixtures in tests/source-stability.test.ts are not failures of the enclosing gate. Documentation of these final results was written after the successful run; production sources were unchanged.",
+  "warnings": [
+    "Vite reports chunks larger than 500 kB after minification. The build passed; this run does not establish browser download or consumer-GPU frame-rate performance."
+  ],
+  "earlierFullRun": {
+    "exitCode": 1,
+    "testFilesPassed": 355,
+    "testsPassed": 3009,
+    "unhandledErrors": 1,
+    "error": "[vitest-worker]: Timeout calling onTaskUpdate",
+    "logSHA256": "530c42cdcf7e5020a324fa96d04ceefca50c6363d83d84d1012df1456e65a7f6"
+  },
+  "testSchedulingChange": {
+    "path": "tests/racing-line.test.ts",
+    "sha256": "f0cd46ec8d7aeb27c1a67ab77d5b47aaa7465d398d855a92c8cd00ce16879a32",
+    "change": "The two long simulation callbacks yield to the event loop every 2400 fixed simulation ticks. All loop limits, steps, samples, assertions and 120000/240000 ms timeouts are retained.",
+    "reason": "The prior full run spent 69.235 seconds in this previously synchronous file, beyond the installed worker RPC 60-second deadline. Periodic yields remove that concrete acknowledgement-starvation risk; the previous error is not conclusively attributed to this file alone.",
+    "focusedVerification": {
+      "sourceStabilityExitCode": 0,
+      "testsPassed": 6,
+      "testDurationSeconds": 41.395,
+      "totalDurationSeconds": 43.78,
+      "unhandledErrors": 0,
+      "eslintExitCode": 0
+    }
+  },
+  "scope": "Complete configured CPU test suite and production build, plus source stability. The separate component/browser/race reports describe their own coverage. This is not the complete release-browser matrix or a consumer-GPU benchmark.",
+  "testFiles": [
+    {
+      "path": "tests/a32-contact-witness.test.ts",
+      "tests": 5,
+      "durationMs": 11561,
+      "result": "passed"
+    },
+    {
+      "path": "tests/a32-pit-jacks.test.ts",
+      "tests": 12,
+      "durationMs": 29887,
+      "result": "passed"
+    },
+    {
+      "path": "tests/a33-spare-wheel-set.test.ts",
+      "tests": 12,
+      "durationMs": 1630,
+      "result": "passed"
+    },
+    {
+      "path": "tests/a61-rival.test.ts",
+      "tests": 5,
+      "durationMs": 2165,
+      "result": "passed"
+    },
+    {
+      "path": "tests/acceptance-matrix.test.ts",
+      "tests": 8,
+      "durationMs": 314,
+      "result": "passed"
+    },
+    {
+      "path": "tests/aerial-perspective.test.ts",
+      "tests": 8,
+      "durationMs": 761,
+      "result": "passed"
+    },
+    {
+      "path": "tests/aero-platform.test.ts",
+      "tests": 8,
+      "durationMs": 2217,
+      "result": "passed"
+    },
+    {
+      "path": "tests/aero-surface.test.ts",
+      "tests": 8,
+      "durationMs": 258,
+      "result": "passed"
+    },
+    {
+      "path": "tests/airborne-audio.test.ts",
+      "tests": 6,
+      "durationMs": 10158,
+      "result": "passed"
+    },
+    {
+      "path": "tests/audio.test.ts",
+      "tests": 5,
+      "durationMs": 8,
+      "result": "passed"
+    },
+    {
+      "path": "tests/aurel-drain-datum.test.ts",
+      "tests": 1,
+      "durationMs": 529,
+      "result": "passed"
+    },
+    {
+      "path": "tests/aurel-environment.test.ts",
+      "tests": 24,
+      "durationMs": 1929,
+      "result": "passed"
+    },
+    {
+      "path": "tests/aurel-quarry.test.ts",
+      "tests": 12,
+      "durationMs": 5028,
+      "result": "passed"
+    },
+    {
+      "path": "tests/aurel-vegetation.test.ts",
+      "tests": 14,
+      "durationMs": 12830,
+      "result": "passed"
+    },
+    {
+      "path": "tests/barrier-lookdev.test.ts",
+      "tests": 1,
+      "durationMs": 4,
+      "result": "passed"
+    },
+    {
+      "path": "tests/bike-bodies.test.ts",
+      "tests": 2,
+      "durationMs": 1633,
+      "result": "passed"
+    },
+    {
+      "path": "tests/bike-cockpit-view.test.ts",
+      "tests": 7,
+      "durationMs": 2954,
+      "result": "passed"
+    },
+    {
+      "path": "tests/bike-pit-service.test.ts",
+      "tests": 8,
+      "durationMs": 2797,
+      "result": "passed"
+    },
+    {
+      "path": "tests/bike-session.test.ts",
+      "tests": 14,
+      "durationMs": 30133,
+      "result": "passed"
+    },
+    {
+      "path": "tests/bike-setup.test.ts",
+      "tests": 12,
+      "durationMs": 1015,
+      "result": "passed"
+    },
+    {
+      "path": "tests/bike-steering-detail.test.ts",
+      "tests": 2,
+      "durationMs": 80,
+      "result": "passed"
+    },
+    {
+      "path": "tests/bike.test.ts",
+      "tests": 10,
+      "durationMs": 502,
+      "result": "passed"
+    },
+    {
+      "path": "tests/bindings.test.ts",
+      "tests": 5,
+      "durationMs": 15,
+      "result": "passed"
+    },
+    {
+      "path": "tests/brake-coupling.test.ts",
+      "tests": 4,
+      "durationMs": 1032,
+      "result": "passed"
+    },
+    {
+      "path": "tests/branchless-release.test.ts",
+      "tests": 1,
+      "durationMs": 2043,
+      "result": "passed"
+    },
+    {
+      "path": "tests/brand-atlas.test.ts",
+      "tests": 5,
+      "durationMs": 23,
+      "result": "passed"
+    },
+    {
+      "path": "tests/broadcast-camera-cycle.test.ts",
+      "tests": 1,
+      "durationMs": 825,
+      "result": "passed"
+    },
+    {
+      "path": "tests/broadcast-cameras.test.ts",
+      "tests": 11,
+      "durationMs": 11599,
+      "result": "passed"
+    },
+    {
+      "path": "tests/broadcast-presentation.test.ts",
+      "tests": 14,
+      "durationMs": 85,
+      "result": "passed"
+    },
+    {
+      "path": "tests/broadcast-sightlines.test.ts",
+      "tests": 5,
+      "durationMs": 1066,
+      "result": "passed"
+    },
+    {
+      "path": "tests/browser-backend.test.ts",
+      "tests": 4,
+      "durationMs": 13,
+      "result": "passed"
+    },
+    {
+      "path": "tests/browser-shard-plan.test.ts",
+      "tests": 2,
+      "durationMs": 19,
+      "result": "passed"
+    },
+    {
+      "path": "tests/build-queue.test.ts",
+      "tests": 5,
+      "durationMs": 9,
+      "result": "passed"
+    },
+    {
+      "path": "tests/button-actions.test.ts",
+      "tests": 17,
+      "durationMs": 17,
+      "result": "passed"
+    },
+    {
+      "path": "tests/calibration.test.ts",
+      "tests": 15,
+      "durationMs": 24,
+      "result": "passed"
+    },
+    {
+      "path": "tests/camera.test.ts",
+      "tests": 31,
+      "durationMs": 568,
+      "result": "passed"
+    },
+    {
+      "path": "tests/career-catalogue-growth.test.ts",
+      "tests": 5,
+      "durationMs": 41,
+      "result": "passed"
+    },
+    {
+      "path": "tests/career-hub.test.ts",
+      "tests": 7,
+      "durationMs": 77,
+      "result": "passed"
+    },
+    {
+      "path": "tests/career-session.test.ts",
+      "tests": 6,
+      "durationMs": 3446,
+      "result": "passed"
+    },
+    {
+      "path": "tests/career.test.ts",
+      "tests": 38,
+      "durationMs": 1130,
+      "result": "passed"
+    },
+    {
+      "path": "tests/catalogue-menu-events.test.ts",
+      "tests": 7,
+      "durationMs": 56,
+      "result": "passed"
+    },
+    {
+      "path": "tests/catch-fence.test.ts",
+      "tests": 8,
+      "durationMs": 1977,
+      "result": "passed"
+    },
+    {
+      "path": "tests/championship.test.ts",
+      "tests": 5,
+      "durationMs": 15,
+      "result": "passed"
+    },
+    {
+      "path": "tests/character-quality.test.ts",
+      "tests": 8,
+      "durationMs": 375,
+      "result": "passed"
+    },
+    {
+      "path": "tests/ci-workflow.test.ts",
+      "tests": 3,
+      "durationMs": 6,
+      "result": "passed"
+    },
+    {
+      "path": "tests/circuit-catalogue-wave2-review.test.ts",
+      "tests": 11,
+      "durationMs": 28300,
+      "result": "passed"
+    },
+    {
+      "path": "tests/circuit-catalogue-wave2.test.ts",
+      "tests": 6,
+      "durationMs": 3808,
+      "result": "passed"
+    },
+    {
+      "path": "tests/circuit-catalogue.test.ts",
+      "tests": 15,
+      "durationMs": 34213,
+      "result": "passed"
+    },
+    {
+      "path": "tests/circuit-detail.test.ts",
+      "tests": 14,
+      "durationMs": 1590,
+      "result": "passed"
+    },
+    {
+      "path": "tests/circuits.test.ts",
+      "tests": 11,
+      "durationMs": 13396,
+      "result": "passed"
+    },
+    {
+      "path": "tests/cloud-shadow.test.ts",
+      "tests": 4,
+      "durationMs": 93,
+      "result": "passed"
+    },
+    {
+      "path": "tests/clutch.test.ts",
+      "tests": 7,
+      "durationMs": 1951,
+      "result": "passed"
+    },
+    {
+      "path": "tests/cockpit-detail.test.ts",
+      "tests": 13,
+      "durationMs": 1891,
+      "result": "passed"
+    },
+    {
+      "path": "tests/cockpit-framing.test.ts",
+      "tests": 9,
+      "durationMs": 208,
+      "result": "passed"
+    },
+    {
+      "path": "tests/completed-draw.test.ts",
+      "tests": 6,
+      "durationMs": 14,
+      "result": "passed"
+    },
+    {
+      "path": "tests/concrete-barriers.test.ts",
+      "tests": 8,
+      "durationMs": 1462,
+      "result": "passed"
+    },
+    {
+      "path": "tests/contact.test.ts",
+      "tests": 5,
+      "durationMs": 340,
+      "result": "passed"
+    },
+    {
+      "path": "tests/content-import.test.ts",
+      "tests": 2,
+      "durationMs": 13,
+      "result": "passed"
+    },
+    {
+      "path": "tests/content-validation.test.ts",
+      "tests": 3,
+      "durationMs": 3411,
+      "result": "passed"
+    },
+    {
+      "path": "tests/controller-buttons.test.ts",
+      "tests": 34,
+      "durationMs": 25,
+      "result": "passed"
+    },
+    {
+      "path": "tests/core.test.ts",
+      "tests": 25,
+      "durationMs": 366,
+      "result": "passed"
+    },
+    {
+      "path": "tests/crew-kit.test.ts",
+      "tests": 1,
+      "durationMs": 3,
+      "result": "passed"
+    },
+    {
+      "path": "tests/crew-performance.test.ts",
+      "tests": 6,
+      "durationMs": 3299,
+      "result": "passed"
+    },
+    {
+      "path": "tests/crowd-flags.test.ts",
+      "tests": 2,
+      "durationMs": 193,
+      "result": "passed"
+    },
+    {
+      "path": "tests/daylight-environment.test.ts",
+      "tests": 6,
+      "durationMs": 1169,
+      "result": "passed"
+    },
+    {
+      "path": "tests/decal-coverage.test.ts",
+      "tests": 4,
+      "durationMs": 10,
+      "result": "passed"
+    },
+    {
+      "path": "tests/delivery-status.test.ts",
+      "tests": 7,
+      "durationMs": 31,
+      "result": "passed"
+    },
+    {
+      "path": "tests/differential.test.ts",
+      "tests": 9,
+      "durationMs": 22,
+      "result": "passed"
+    },
+    {
+      "path": "tests/directive.test.ts",
+      "tests": 1,
+      "durationMs": 9,
+      "result": "passed"
+    },
+    {
+      "path": "tests/draw-ledger.test.ts",
+      "tests": 2,
+      "durationMs": 6,
+      "result": "passed"
+    },
+    {
+      "path": "tests/driver-asset.test.ts",
+      "tests": 6,
+      "durationMs": 4913,
+      "result": "passed"
+    },
+    {
+      "path": "tests/driver-brain.test.ts",
+      "tests": 8,
+      "durationMs": 1364,
+      "result": "passed"
+    },
+    {
+      "path": "tests/driver-controls.test.ts",
+      "tests": 3,
+      "durationMs": 957,
+      "result": "passed"
+    },
+    {
+      "path": "tests/driver-look.test.ts",
+      "tests": 9,
+      "durationMs": 65,
+      "result": "passed"
+    },
+    {
+      "path": "tests/driver.test.ts",
+      "tests": 4,
+      "durationMs": 818,
+      "result": "passed"
+    },
+    {
+      "path": "tests/drivetrain.test.ts",
+      "tests": 7,
+      "durationMs": 1298,
+      "result": "passed"
+    },
+    {
+      "path": "tests/drs.test.ts",
+      "tests": 9,
+      "durationMs": 4879,
+      "result": "passed"
+    },
+    {
+      "path": "tests/dusk-readability.test.ts",
+      "tests": 2,
+      "durationMs": 1014,
+      "result": "passed"
+    },
+    {
+      "path": "tests/effects-upload.test.ts",
+      "tests": 1,
+      "durationMs": 58,
+      "result": "passed"
+    },
+    {
+      "path": "tests/elbow-sleeve.test.ts",
+      "tests": 2,
+      "durationMs": 1315,
+      "result": "passed"
+    },
+    {
+      "path": "tests/endurance-mode.test.ts",
+      "tests": 4,
+      "durationMs": 65969,
+      "result": "passed"
+    },
+    {
+      "path": "tests/engineering.test.ts",
+      "tests": 13,
+      "durationMs": 36626,
+      "result": "passed"
+    },
+    {
+      "path": "tests/environment-weathering.test.ts",
+      "tests": 16,
+      "durationMs": 1207,
+      "result": "passed"
+    },
+    {
+      "path": "tests/event-cards.test.ts",
+      "tests": 1,
+      "durationMs": 5,
+      "result": "passed"
+    },
+    {
+      "path": "tests/event-hall-approach.test.ts",
+      "tests": 3,
+      "durationMs": 14909,
+      "result": "passed"
+    },
+    {
+      "path": "tests/event-hall.test.ts",
+      "tests": 20,
+      "durationMs": 2277,
+      "result": "passed"
+    },
+    {
+      "path": "tests/events.test.ts",
+      "tests": 5,
+      "durationMs": 19225,
+      "result": "passed"
+    },
+    {
+      "path": "tests/exposure-key.test.ts",
+      "tests": 3,
+      "durationMs": 14,
+      "result": "passed"
+    },
+    {
+      "path": "tests/f1-hud.test.ts",
+      "tests": 14,
+      "durationMs": 773,
+      "result": "passed"
+    },
+    {
+      "path": "tests/far-shadow.test.ts",
+      "tests": 4,
+      "durationMs": 22,
+      "result": "passed"
+    },
+    {
+      "path": "tests/festival-career.test.ts",
+      "tests": 14,
+      "durationMs": 64,
+      "result": "passed"
+    },
+    {
+      "path": "tests/festival-map.test.ts",
+      "tests": 3,
+      "durationMs": 9,
+      "result": "passed"
+    },
+    {
+      "path": "tests/flashback-determinism.test.ts",
+      "tests": 2,
+      "durationMs": 17509,
+      "result": "passed"
+    },
+    {
+      "path": "tests/flashback-recording.test.ts",
+      "tests": 4,
+      "durationMs": 18,
+      "result": "passed"
+    },
+    {
+      "path": "tests/foliage-coverage.test.ts",
+      "tests": 3,
+      "durationMs": 942,
+      "result": "passed"
+    },
+    {
+      "path": "tests/foliage-crowns.test.ts",
+      "tests": 3,
+      "durationMs": 1409,
+      "result": "passed"
+    },
+    {
+      "path": "tests/forest-belts.test.ts",
+      "tests": 8,
+      "durationMs": 3299,
+      "result": "passed"
+    },
+    {
+      "path": "tests/frontend-menus.test.ts",
+      "tests": 4,
+      "durationMs": 106,
+      "result": "passed"
+    },
+    {
+      "path": "tests/frontend-retail.test.ts",
+      "tests": 3,
+      "durationMs": 11,
+      "result": "passed"
+    },
+    {
+      "path": "tests/gap-timer.test.ts",
+      "tests": 5,
+      "durationMs": 11250,
+      "result": "passed"
+    },
+    {
+      "path": "tests/ghost-lap.test.ts",
+      "tests": 4,
+      "durationMs": 9703,
+      "result": "passed"
+    },
+    {
+      "path": "tests/ghost-vehicle.test.ts",
+      "tests": 4,
+      "durationMs": 1315,
+      "result": "passed"
+    },
+    {
+      "path": "tests/gl-error-census.test.ts",
+      "tests": 3,
+      "durationMs": 4,
+      "result": "passed"
+    },
+    {
+      "path": "tests/glazing.test.ts",
+      "tests": 1,
+      "durationMs": 8,
+      "result": "passed"
+    },
+    {
+      "path": "tests/gpu-frame-gate.test.ts",
+      "tests": 13,
+      "durationMs": 709,
+      "result": "passed"
+    },
+    {
+      "path": "tests/gpu-frame-responsiveness.test.ts",
+      "tests": 1,
+      "durationMs": 5,
+      "result": "passed"
+    },
+    {
+      "path": "tests/gpu-timer.test.ts",
+      "tests": 7,
+      "durationMs": 10,
+      "result": "passed"
+    },
+    {
+      "path": "tests/graphics-continuity.test.ts",
+      "tests": 11,
+      "durationMs": 912,
+      "result": "passed"
+    },
+    {
+      "path": "tests/grid-presentation.test.ts",
+      "tests": 6,
+      "durationMs": 1452,
+      "result": "passed"
+    },
+    {
+      "path": "tests/grid-staff.test.ts",
+      "tests": 2,
+      "durationMs": 860,
+      "result": "passed"
+    },
+    {
+      "path": "tests/hero-garage.test.ts",
+      "tests": 7,
+      "durationMs": 1834,
+      "result": "passed"
+    },
+    {
+      "path": "tests/hero-import.test.ts",
+      "tests": 3,
+      "durationMs": 3697,
+      "result": "passed"
+    },
+    {
+      "path": "tests/hero-shells.test.ts",
+      "tests": 8,
+      "durationMs": 713,
+      "result": "passed"
+    },
+    {
+      "path": "tests/human-kit.test.ts",
+      "tests": 7,
+      "durationMs": 1527,
+      "result": "passed"
+    },
+    {
+      "path": "tests/ibl-energy.test.ts",
+      "tests": 10,
+      "durationMs": 1047,
+      "result": "passed"
+    },
+    {
+      "path": "tests/impact-barriers.test.ts",
+      "tests": 8,
+      "durationMs": 4597,
+      "result": "passed"
+    },
+    {
+      "path": "tests/imported-render-budget.test.ts",
+      "tests": 8,
+      "durationMs": 24,
+      "result": "passed"
+    },
+    {
+      "path": "tests/infrastructure-render-budget.test.ts",
+      "tests": 17,
+      "durationMs": 15,
+      "result": "passed"
+    },
+    {
+      "path": "tests/input.test.ts",
+      "tests": 7,
+      "durationMs": 1696,
+      "result": "passed"
+    },
+    {
+      "path": "tests/instruments.test.ts",
+      "tests": 4,
+      "durationMs": 6,
+      "result": "passed"
+    },
+    {
+      "path": "tests/integrator-stability.test.ts",
+      "tests": 7,
+      "durationMs": 754,
+      "result": "passed"
+    },
+    {
+      "path": "tests/kerb-runoff.test.ts",
+      "tests": 5,
+      "durationMs": 36,
+      "result": "passed"
+    },
+    {
+      "path": "tests/landform-groves.test.ts",
+      "tests": 4,
+      "durationMs": 2034,
+      "result": "passed"
+    },
+    {
+      "path": "tests/lap-reference.test.ts",
+      "tests": 5,
+      "durationMs": 11,
+      "result": "passed"
+    },
+    {
+      "path": "tests/lens-bloom.test.ts",
+      "tests": 6,
+      "durationMs": 785,
+      "result": "passed"
+    },
+    {
+      "path": "tests/light-pools.test.ts",
+      "tests": 4,
+      "durationMs": 194,
+      "result": "passed"
+    },
+    {
+      "path": "tests/local-frame.test.ts",
+      "tests": 4,
+      "durationMs": 66,
+      "result": "passed"
+    },
+    {
+      "path": "tests/machine-options.test.ts",
+      "tests": 4,
+      "durationMs": 9,
+      "result": "passed"
+    },
+    {
+      "path": "tests/marbles.test.ts",
+      "tests": 25,
+      "durationMs": 1449,
+      "result": "passed"
+    },
+    {
+      "path": "tests/marshal-posts.test.ts",
+      "tests": 8,
+      "durationMs": 2379,
+      "result": "passed"
+    },
+    {
+      "path": "tests/marshal.test.ts",
+      "tests": 15,
+      "durationMs": 664,
+      "result": "passed"
+    },
+    {
+      "path": "tests/material-library.test.ts",
+      "tests": 14,
+      "durationMs": 547,
+      "result": "passed"
+    },
+    {
+      "path": "tests/meeting-flow.test.ts",
+      "tests": 7,
+      "durationMs": 22,
+      "result": "passed"
+    },
+    {
+      "path": "tests/menu-presentation.test.ts",
+      "tests": 8,
+      "durationMs": 14,
+      "result": "passed"
+    },
+    {
+      "path": "tests/menu-preview.test.ts",
+      "tests": 3,
+      "durationMs": 73,
+      "result": "passed"
+    },
+    {
+      "path": "tests/mirror-detail.test.ts",
+      "tests": 4,
+      "durationMs": 1080,
+      "result": "passed"
+    },
+    {
+      "path": "tests/mirrors.test.ts",
+      "tests": 7,
+      "durationMs": 28,
+      "result": "passed"
+    },
+    {
+      "path": "tests/motion-blur.test.ts",
+      "tests": 10,
+      "durationMs": 28,
+      "result": "passed"
+    },
+    {
+      "path": "tests/motogp-reference.test.ts",
+      "tests": 9,
+      "durationMs": 4002,
+      "result": "passed"
+    },
+    {
+      "path": "tests/motorcycle-presentation.test.ts",
+      "tests": 7,
+      "durationMs": 16,
+      "result": "passed"
+    },
+    {
+      "path": "tests/moving-surface.test.ts",
+      "tests": 3,
+      "durationMs": 12,
+      "result": "passed"
+    },
+    {
+      "path": "tests/near-grass.test.ts",
+      "tests": 3,
+      "durationMs": 9,
+      "result": "passed"
+    },
+    {
+      "path": "tests/net-authority.test.ts",
+      "tests": 5,
+      "durationMs": 16422,
+      "result": "passed"
+    },
+    {
+      "path": "tests/net-codec.test.ts",
+      "tests": 9,
+      "durationMs": 1086,
+      "result": "passed"
+    },
+    {
+      "path": "tests/net-lifecycle.test.ts",
+      "tests": 5,
+      "durationMs": 12521,
+      "result": "passed"
+    },
+    {
+      "path": "tests/net-lobby.test.ts",
+      "tests": 5,
+      "durationMs": 13,
+      "result": "passed"
+    },
+    {
+      "path": "tests/net-prediction.test.ts",
+      "tests": 8,
+      "durationMs": 3090,
+      "result": "passed"
+    },
+    {
+      "path": "tests/net-records.test.ts",
+      "tests": 7,
+      "durationMs": 27063,
+      "result": "passed"
+    },
+    {
+      "path": "tests/net-resilience.test.ts",
+      "tests": 16,
+      "durationMs": 27560,
+      "result": "passed"
+    },
+    {
+      "path": "tests/net-transport.test.ts",
+      "tests": 11,
+      "durationMs": 951,
+      "result": "passed"
+    },
+    {
+      "path": "tests/offroad-meeting.test.ts",
+      "tests": 7,
+      "durationMs": 41633,
+      "result": "passed"
+    },
+    {
+      "path": "tests/offroad.test.ts",
+      "tests": 24,
+      "durationMs": 27088,
+      "result": "passed"
+    },
+    {
+      "path": "tests/open-world-bikes.test.ts",
+      "tests": 5,
+      "durationMs": 3523,
+      "result": "passed"
+    },
+    {
+      "path": "tests/open-world-session.test.ts",
+      "tests": 8,
+      "durationMs": 12549,
+      "result": "passed"
+    },
+    {
+      "path": "tests/open-world-traffic.test.ts",
+      "tests": 6,
+      "durationMs": 11960,
+      "result": "passed"
+    },
+    {
+      "path": "tests/open-world-worker.test.ts",
+      "tests": 1,
+      "durationMs": 1448,
+      "result": "passed"
+    },
+    {
+      "path": "tests/open-world.test.ts",
+      "tests": 25,
+      "durationMs": 20418,
+      "result": "passed"
+    },
+    {
+      "path": "tests/operations-render-budget.test.ts",
+      "tests": 12,
+      "durationMs": 11,
+      "result": "passed"
+    },
+    {
+      "path": "tests/overhead-garage-service-rig.test.ts",
+      "tests": 10,
+      "durationMs": 3554,
+      "result": "passed"
+    },
+    {
+      "path": "tests/paddock-detail.test.ts",
+      "tests": 5,
+      "durationMs": 39,
+      "result": "passed"
+    },
+    {
+      "path": "tests/paint-livery.test.ts",
+      "tests": 7,
+      "durationMs": 20,
+      "result": "passed"
+    },
+    {
+      "path": "tests/people.test.ts",
+      "tests": 14,
+      "durationMs": 18494,
+      "result": "passed"
+    },
+    {
+      "path": "tests/performance.test.ts",
+      "tests": 16,
+      "durationMs": 27,
+      "result": "passed"
+    },
+    {
+      "path": "tests/phase27c.test.ts",
+      "tests": 7,
+      "durationMs": 2059,
+      "result": "passed"
+    },
+    {
+      "path": "tests/phase27e.test.ts",
+      "tests": 11,
+      "durationMs": 1397,
+      "result": "passed"
+    },
+    {
+      "path": "tests/phase27f-atmosphere-audio.test.ts",
+      "tests": 3,
+      "durationMs": 781,
+      "result": "passed"
+    },
+    {
+      "path": "tests/phase27f-models.test.ts",
+      "tests": 10,
+      "durationMs": 520,
+      "result": "passed"
+    },
+    {
+      "path": "tests/phase27g-completion.test.ts",
+      "tests": 23,
+      "durationMs": 279,
+      "result": "passed"
+    },
+    {
+      "path": "tests/phase27g-events.test.ts",
+      "tests": 8,
+      "durationMs": 884,
+      "result": "passed"
+    },
+    {
+      "path": "tests/phase27g-media.test.ts",
+      "tests": 4,
+      "durationMs": 122,
+      "result": "passed"
+    },
+    {
+      "path": "tests/phase27g-models.test.ts",
+      "tests": 10,
+      "durationMs": 880,
+      "result": "passed"
+    },
+    {
+      "path": "tests/phase27g-presentation.test.ts",
+      "tests": 6,
+      "durationMs": 2198,
+      "result": "passed"
+    },
+    {
+      "path": "tests/phase27g-seams.test.ts",
+      "tests": 3,
+      "durationMs": 25,
+      "result": "passed"
+    },
+    {
+      "path": "tests/phase27g-venue.test.ts",
+      "tests": 2,
+      "durationMs": 1589,
+      "result": "passed"
+    },
+    {
+      "path": "tests/phase27h-assembly.test.ts",
+      "tests": 38,
+      "durationMs": 2472,
+      "result": "passed"
+    },
+    {
+      "path": "tests/phase27h6.test.ts",
+      "tests": 10,
+      "durationMs": 41757,
+      "result": "passed"
+    },
+    {
+      "path": "tests/photo-reference.test.ts",
+      "tests": 13,
+      "durationMs": 31,
+      "result": "passed"
+    },
+    {
+      "path": "tests/photo-sky.test.ts",
+      "tests": 12,
+      "durationMs": 531,
+      "result": "passed"
+    },
+    {
+      "path": "tests/photo-vegetation.test.ts",
+      "tests": 14,
+      "durationMs": 3396,
+      "result": "passed"
+    },
+    {
+      "path": "tests/photoreal-lens.test.ts",
+      "tests": 6,
+      "durationMs": 774,
+      "result": "passed"
+    },
+    {
+      "path": "tests/photoreal-night.test.ts",
+      "tests": 3,
+      "durationMs": 324,
+      "result": "passed"
+    },
+    {
+      "path": "tests/photoreal-pit.test.ts",
+      "tests": 3,
+      "durationMs": 8,
+      "result": "passed"
+    },
+    {
+      "path": "tests/photoreal-wet.test.ts",
+      "tests": 2,
+      "durationMs": 6,
+      "result": "passed"
+    },
+    {
+      "path": "tests/physics.test.ts",
+      "tests": 21,
+      "durationMs": 25748,
+      "result": "passed"
+    },
+    {
+      "path": "tests/pit-approach.test.ts",
+      "tests": 6,
+      "durationMs": 177,
+      "result": "passed"
+    },
+    {
+      "path": "tests/pit-building-frontage.test.ts",
+      "tests": 16,
+      "durationMs": 10972,
+      "result": "passed"
+    },
+    {
+      "path": "tests/pit-material-warmup.test.ts",
+      "tests": 7,
+      "durationMs": 1025,
+      "result": "passed"
+    },
+    {
+      "path": "tests/pit-presentation.test.ts",
+      "tests": 2,
+      "durationMs": 994,
+      "result": "passed"
+    },
+    {
+      "path": "tests/pit-release.test.ts",
+      "tests": 3,
+      "durationMs": 36378,
+      "result": "passed"
+    },
+    {
+      "path": "tests/pit-replay-selection.test.ts",
+      "tests": 3,
+      "durationMs": 5,
+      "result": "passed"
+    },
+    {
+      "path": "tests/pit-role-performance.test.ts",
+      "tests": 9,
+      "durationMs": 15906,
+      "result": "passed"
+    },
+    {
+      "path": "tests/pit-sequence.test.ts",
+      "tests": 13,
+      "durationMs": 7,
+      "result": "passed"
+    },
+    {
+      "path": "tests/pit-wall-station.test.ts",
+      "tests": 11,
+      "durationMs": 2014,
+      "result": "passed"
+    },
+    {
+      "path": "tests/pixel-difference.test.ts",
+      "tests": 6,
+      "durationMs": 12,
+      "result": "passed"
+    },
+    {
+      "path": "tests/player-index-cache.test.ts",
+      "tests": 3,
+      "durationMs": 17,
+      "result": "passed"
+    },
+    {
+      "path": "tests/point-light-work.test.ts",
+      "tests": 8,
+      "durationMs": 9,
+      "result": "passed"
+    },
+    {
+      "path": "tests/post-lens.test.ts",
+      "tests": 10,
+      "durationMs": 339,
+      "result": "passed"
+    },
+    {
+      "path": "tests/power-unit-audio.test.ts",
+      "tests": 4,
+      "durationMs": 10,
+      "result": "passed"
+    },
+    {
+      "path": "tests/powertrain.test.ts",
+      "tests": 6,
+      "durationMs": 472,
+      "result": "passed"
+    },
+    {
+      "path": "tests/practice-programme.test.ts",
+      "tests": 10,
+      "durationMs": 1394,
+      "result": "passed"
+    },
+    {
+      "path": "tests/preparation.test.ts",
+      "tests": 4,
+      "durationMs": 9,
+      "result": "passed"
+    },
+    {
+      "path": "tests/presentation-closure.test.ts",
+      "tests": 5,
+      "durationMs": 1263,
+      "result": "passed"
+    },
+    {
+      "path": "tests/presentation-continuity.test.ts",
+      "tests": 10,
+      "durationMs": 1664,
+      "result": "passed"
+    },
+    {
+      "path": "tests/presentation-review.test.ts",
+      "tests": 22,
+      "durationMs": 905,
+      "result": "passed"
+    },
+    {
+      "path": "tests/presentation-time.test.ts",
+      "tests": 23,
+      "durationMs": 471,
+      "result": "passed"
+    },
+    {
+      "path": "tests/presentation.test.ts",
+      "tests": 20,
+      "durationMs": 19,
+      "result": "passed"
+    },
+    {
+      "path": "tests/printed-panels.test.ts",
+      "tests": 1,
+      "durationMs": 3,
+      "result": "passed"
+    },
+    {
+      "path": "tests/probe-detail.test.ts",
+      "tests": 6,
+      "durationMs": 9714,
+      "result": "passed"
+    },
+    {
+      "path": "tests/proximity.test.ts",
+      "tests": 10,
+      "durationMs": 230,
+      "result": "passed"
+    },
+    {
+      "path": "tests/qualifying.test.ts",
+      "tests": 5,
+      "durationMs": 35896,
+      "result": "passed"
+    },
+    {
+      "path": "tests/quarry-surface-uv.test.ts",
+      "tests": 1,
+      "durationMs": 40,
+      "result": "passed"
+    },
+    {
+      "path": "tests/race-control.test.ts",
+      "tests": 15,
+      "durationMs": 1305,
+      "result": "passed"
+    },
+    {
+      "path": "tests/race-day.test.ts",
+      "tests": 5,
+      "durationMs": 2862,
+      "result": "passed"
+    },
+    {
+      "path": "tests/race-finish.test.ts",
+      "tests": 6,
+      "durationMs": 1162,
+      "result": "passed"
+    },
+    {
+      "path": "tests/race-readability.test.ts",
+      "tests": 13,
+      "durationMs": 40,
+      "result": "passed"
+    },
+    {
+      "path": "tests/race-review.test.ts",
+      "tests": 43,
+      "durationMs": 1177,
+      "result": "passed"
+    },
+    {
+      "path": "tests/race-structures.test.ts",
+      "tests": 3,
+      "durationMs": 66,
+      "result": "passed"
+    },
+    {
+      "path": "tests/race-surface-atmosphere.test.ts",
+      "tests": 10,
+      "durationMs": 2713,
+      "result": "passed"
+    },
+    {
+      "path": "tests/race-surface-finish.test.ts",
+      "tests": 12,
+      "durationMs": 2249,
+      "result": "passed"
+    },
+    {
+      "path": "tests/race-view-continuity.test.ts",
+      "tests": 5,
+      "durationMs": 385,
+      "result": "passed"
+    },
+    {
+      "path": "tests/racing-line.test.ts",
+      "tests": 6,
+      "durationMs": 39382,
+      "result": "passed"
+    },
+    {
+      "path": "tests/radio.test.ts",
+      "tests": 4,
+      "durationMs": 9,
+      "result": "passed"
+    },
+    {
+      "path": "tests/recorded-signal-displays.test.ts",
+      "tests": 9,
+      "durationMs": 64,
+      "result": "passed"
+    },
+    {
+      "path": "tests/recording.test.ts",
+      "tests": 37,
+      "durationMs": 3932,
+      "result": "passed"
+    },
+    {
+      "path": "tests/recovery-gates.test.ts",
+      "tests": 8,
+      "durationMs": 7673,
+      "result": "passed"
+    },
+    {
+      "path": "tests/reference-depth.test.ts",
+      "tests": 29,
+      "durationMs": 347,
+      "result": "passed"
+    },
+    {
+      "path": "tests/reference-evidence.test.ts",
+      "tests": 9,
+      "durationMs": 19,
+      "result": "passed"
+    },
+    {
+      "path": "tests/reference-implementation.test.ts",
+      "tests": 30,
+      "durationMs": 1129,
+      "result": "passed"
+    },
+    {
+      "path": "tests/reference-rendering.test.ts",
+      "tests": 11,
+      "durationMs": 1465,
+      "result": "passed"
+    },
+    {
+      "path": "tests/reflections.test.ts",
+      "tests": 18,
+      "durationMs": 74,
+      "result": "passed"
+    },
+    {
+      "path": "tests/render-census.test.ts",
+      "tests": 1,
+      "durationMs": 6,
+      "result": "passed"
+    },
+    {
+      "path": "tests/rendering.test.ts",
+      "tests": 5,
+      "durationMs": 154,
+      "result": "passed"
+    },
+    {
+      "path": "tests/replay-clock.test.ts",
+      "tests": 2,
+      "durationMs": 43,
+      "result": "passed"
+    },
+    {
+      "path": "tests/replay-photo.test.ts",
+      "tests": 9,
+      "durationMs": 64,
+      "result": "passed"
+    },
+    {
+      "path": "tests/replay-presentation.test.ts",
+      "tests": 4,
+      "durationMs": 11,
+      "result": "passed"
+    },
+    {
+      "path": "tests/review-hardware.test.ts",
+      "tests": 3,
+      "durationMs": 8,
+      "result": "passed"
+    },
+    {
+      "path": "tests/review-tools.test.ts",
+      "tests": 3,
+      "durationMs": 7907,
+      "result": "passed"
+    },
+    {
+      "path": "tests/rival-detail.test.ts",
+      "tests": 2,
+      "durationMs": 885,
+      "result": "passed"
+    },
+    {
+      "path": "tests/road-contact.test.ts",
+      "tests": 8,
+      "durationMs": 527,
+      "result": "passed"
+    },
+    {
+      "path": "tests/road-detail.test.ts",
+      "tests": 17,
+      "durationMs": 5531,
+      "result": "passed"
+    },
+    {
+      "path": "tests/road-macro.test.ts",
+      "tests": 2,
+      "durationMs": 57,
+      "result": "passed"
+    },
+    {
+      "path": "tests/rotation.test.ts",
+      "tests": 6,
+      "durationMs": 69,
+      "result": "passed"
+    },
+    {
+      "path": "tests/route-graph.test.ts",
+      "tests": 5,
+      "durationMs": 36,
+      "result": "passed"
+    },
+    {
+      "path": "tests/route-overpass.test.ts",
+      "tests": 3,
+      "durationMs": 4870,
+      "result": "passed"
+    },
+    {
+      "path": "tests/rumble.test.ts",
+      "tests": 2,
+      "durationMs": 5,
+      "result": "passed"
+    },
+    {
+      "path": "tests/safety.test.ts",
+      "tests": 9,
+      "durationMs": 39,
+      "result": "passed"
+    },
+    {
+      "path": "tests/scanned-ground.test.ts",
+      "tests": 7,
+      "durationMs": 1296,
+      "result": "passed"
+    },
+    {
+      "path": "tests/scenery-cube-camera.test.ts",
+      "tests": 3,
+      "durationMs": 1546,
+      "result": "passed"
+    },
+    {
+      "path": "tests/scenery-pass-detail.test.ts",
+      "tests": 4,
+      "durationMs": 8,
+      "result": "passed"
+    },
+    {
+      "path": "tests/scenery-shadow-camera.test.ts",
+      "tests": 4,
+      "durationMs": 2865,
+      "result": "passed"
+    },
+    {
+      "path": "tests/scoring-stage.test.ts",
+      "tests": 3,
+      "durationMs": 20,
+      "result": "passed"
+    },
+    {
+      "path": "tests/secondary-grandstand-assets.test.ts",
+      "tests": 14,
+      "durationMs": 288,
+      "result": "passed"
+    },
+    {
+      "path": "tests/secondary-grandstands.test.ts",
+      "tests": 8,
+      "durationMs": 3140,
+      "result": "passed"
+    },
+    {
+      "path": "tests/secondary-stand-artifacts.test.ts",
+      "tests": 4,
+      "durationMs": 22,
+      "result": "passed"
+    },
+    {
+      "path": "tests/secondary-stand-camera.test.ts",
+      "tests": 4,
+      "durationMs": 13,
+      "result": "passed"
+    },
+    {
+      "path": "tests/secondary-stand-capture.test.ts",
+      "tests": 3,
+      "durationMs": 10,
+      "result": "passed"
+    },
+    {
+      "path": "tests/secondary-stand-circulation.test.ts",
+      "tests": 8,
+      "durationMs": 1400,
+      "result": "passed"
+    },
+    {
+      "path": "tests/secondary-stand-traversal.test.ts",
+      "tests": 4,
+      "durationMs": 81714,
+      "result": "passed"
+    },
+    {
+      "path": "tests/sector-timing.test.ts",
+      "tests": 5,
+      "durationMs": 5681,
+      "result": "passed"
+    },
+    {
+      "path": "tests/service-lens.test.ts",
+      "tests": 7,
+      "durationMs": 776,
+      "result": "passed"
+    },
+    {
+      "path": "tests/session-identity.test.ts",
+      "tests": 3,
+      "durationMs": 11,
+      "result": "passed"
+    },
+    {
+      "path": "tests/session-review.test.ts",
+      "tests": 6,
+      "durationMs": 248,
+      "result": "passed"
+    },
+    {
+      "path": "tests/settings-transition.test.ts",
+      "tests": 49,
+      "durationMs": 9,
+      "result": "passed"
+    },
+    {
+      "path": "tests/setup-screen.test.ts",
+      "tests": 6,
+      "durationMs": 432,
+      "result": "passed"
+    },
+    {
+      "path": "tests/shadow-grounding.test.ts",
+      "tests": 6,
+      "durationMs": 11,
+      "result": "passed"
+    },
+    {
+      "path": "tests/shadow-proxies.test.ts",
+      "tests": 8,
+      "durationMs": 2898,
+      "result": "passed"
+    },
+    {
+      "path": "tests/shadow-substitution.test.ts",
+      "tests": 1,
+      "durationMs": 5,
+      "result": "passed"
+    },
+    {
+      "path": "tests/skid-contact.test.ts",
+      "tests": 13,
+      "durationMs": 9,
+      "result": "passed"
+    },
+    {
+      "path": "tests/skid-recording.test.ts",
+      "tests": 14,
+      "durationMs": 1567,
+      "result": "passed"
+    },
+    {
+      "path": "tests/sky-clouds.test.ts",
+      "tests": 10,
+      "durationMs": 8615,
+      "result": "passed"
+    },
+    {
+      "path": "tests/sky-ephemeris.test.ts",
+      "tests": 8,
+      "durationMs": 364,
+      "result": "passed"
+    },
+    {
+      "path": "tests/sky-linear.test.ts",
+      "tests": 7,
+      "durationMs": 1105,
+      "result": "passed"
+    },
+    {
+      "path": "tests/sky-order.test.ts",
+      "tests": 1,
+      "durationMs": 321,
+      "result": "passed"
+    },
+    {
+      "path": "tests/sound-profiles.test.ts",
+      "tests": 6,
+      "durationMs": 11,
+      "result": "passed"
+    },
+    {
+      "path": "tests/source-stability.test.ts",
+      "tests": 9,
+      "durationMs": 528,
+      "result": "passed"
+    },
+    {
+      "path": "tests/spatial-audio.test.ts",
+      "tests": 8,
+      "durationMs": 10,
+      "result": "passed"
+    },
+    {
+      "path": "tests/specular-aa.test.ts",
+      "tests": 2,
+      "durationMs": 5,
+      "result": "passed"
+    },
+    {
+      "path": "tests/spray-lighting.test.ts",
+      "tests": 8,
+      "durationMs": 781,
+      "result": "passed"
+    },
+    {
+      "path": "tests/spray-plume.test.ts",
+      "tests": 1,
+      "durationMs": 3,
+      "result": "passed"
+    },
+    {
+      "path": "tests/stadium-seat.test.ts",
+      "tests": 2,
+      "durationMs": 27,
+      "result": "passed"
+    },
+    {
+      "path": "tests/start-finish-shadow-bounds.test.ts",
+      "tests": 3,
+      "durationMs": 18418,
+      "result": "passed"
+    },
+    {
+      "path": "tests/start-finish.test.ts",
+      "tests": 9,
+      "durationMs": 2052,
+      "result": "passed"
+    },
+    {
+      "path": "tests/start-gantry.test.ts",
+      "tests": 10,
+      "durationMs": 2592,
+      "result": "passed"
+    },
+    {
+      "path": "tests/startup.test.ts",
+      "tests": 7,
+      "durationMs": 39,
+      "result": "passed"
+    },
+    {
+      "path": "tests/static-instance-shadow-bounds.test.ts",
+      "tests": 15,
+      "durationMs": 24,
+      "result": "passed"
+    },
+    {
+      "path": "tests/static-transform-group.test.ts",
+      "tests": 6,
+      "durationMs": 19,
+      "result": "passed"
+    },
+    {
+      "path": "tests/steel-guardrails.test.ts",
+      "tests": 9,
+      "durationMs": 1679,
+      "result": "passed"
+    },
+    {
+      "path": "tests/steering-display.test.ts",
+      "tests": 2,
+      "durationMs": 4,
+      "result": "passed"
+    },
+    {
+      "path": "tests/studio-frame.test.ts",
+      "tests": 21,
+      "durationMs": 41,
+      "result": "passed"
+    },
+    {
+      "path": "tests/studio-look-contracts.test.ts",
+      "tests": 8,
+      "durationMs": 2307,
+      "result": "passed"
+    },
+    {
+      "path": "tests/studio-qa-tools.test.ts",
+      "tests": 7,
+      "durationMs": 762,
+      "result": "passed"
+    },
+    {
+      "path": "tests/studio-shader-hooks.test.ts",
+      "tests": 25,
+      "durationMs": 20,
+      "result": "passed"
+    },
+    {
+      "path": "tests/supplied-compaction.test.ts",
+      "tests": 12,
+      "durationMs": 79,
+      "result": "passed"
+    },
+    {
+      "path": "tests/supplied-draw-ranges.test.ts",
+      "tests": 8,
+      "durationMs": 36,
+      "result": "passed"
+    },
+    {
+      "path": "tests/supplied-lookdev.test.ts",
+      "tests": 5,
+      "durationMs": 15,
+      "result": "passed"
+    },
+    {
+      "path": "tests/supplied-player-lods.test.ts",
+      "tests": 8,
+      "durationMs": 2667,
+      "result": "passed"
+    },
+    {
+      "path": "tests/supplied-player.test.ts",
+      "tests": 10,
+      "durationMs": 883,
+      "result": "passed"
+    },
+    {
+      "path": "tests/supplied-shader-work.test.ts",
+      "tests": 9,
+      "durationMs": 23,
+      "result": "passed"
+    },
+    {
+      "path": "tests/supplied-skin-bounds.test.ts",
+      "tests": 6,
+      "durationMs": 2146,
+      "result": "passed"
+    },
+    {
+      "path": "tests/surface-material.test.ts",
+      "tests": 8,
+      "durationMs": 117,
+      "result": "passed"
+    },
+    {
+      "path": "tests/suspension.test.ts",
+      "tests": 9,
+      "durationMs": 2625,
+      "result": "passed"
+    },
+    {
+      "path": "tests/tab-evidence.test.ts",
+      "tests": 8,
+      "durationMs": 427,
+      "result": "passed"
+    },
+    {
+      "path": "tests/team-career.test.ts",
+      "tests": 22,
+      "durationMs": 39,
+      "result": "passed"
+    },
+    {
+      "path": "tests/telemetry-export.test.ts",
+      "tests": 2,
+      "durationMs": 12,
+      "result": "passed"
+    },
+    {
+      "path": "tests/telemetry-plots.test.ts",
+      "tests": 13,
+      "durationMs": 68,
+      "result": "passed"
+    },
+    {
+      "path": "tests/temporal-aa.test.ts",
+      "tests": 5,
+      "durationMs": 15,
+      "result": "passed"
+    },
+    {
+      "path": "tests/terrain-landform.test.ts",
+      "tests": 5,
+      "durationMs": 1246,
+      "result": "passed"
+    },
+    {
+      "path": "tests/terrain-tiles.test.ts",
+      "tests": 3,
+      "durationMs": 795,
+      "result": "passed"
+    },
+    {
+      "path": "tests/terrain.test.ts",
+      "tests": 4,
+      "durationMs": 43,
+      "result": "passed"
+    },
+    {
+      "path": "tests/third-party-assets.test.ts",
+      "tests": 9,
+      "durationMs": 404,
+      "result": "passed"
+    },
+    {
+      "path": "tests/tire-carcass.test.ts",
+      "tests": 12,
+      "durationMs": 1314,
+      "result": "passed"
+    },
+    {
+      "path": "tests/track-boards.test.ts",
+      "tests": 9,
+      "durationMs": 2034,
+      "result": "passed"
+    },
+    {
+      "path": "tests/track-infrastructure.test.ts",
+      "tests": 10,
+      "durationMs": 2043,
+      "result": "passed"
+    },
+    {
+      "path": "tests/track-signal-hardware.test.ts",
+      "tests": 8,
+      "durationMs": 1309,
+      "result": "passed"
+    },
+    {
+      "path": "tests/trackside-branding.test.ts",
+      "tests": 5,
+      "durationMs": 308,
+      "result": "passed"
+    },
+    {
+      "path": "tests/trackside-operations.test.ts",
+      "tests": 5,
+      "durationMs": 2107,
+      "result": "passed"
+    },
+    {
+      "path": "tests/trackside.test.ts",
+      "tests": 3,
+      "durationMs": 112,
+      "result": "passed"
+    },
+    {
+      "path": "tests/traffic.test.ts",
+      "tests": 8,
+      "durationMs": 204,
+      "result": "passed"
+    },
+    {
+      "path": "tests/tyre-blankets.test.ts",
+      "tests": 10,
+      "durationMs": 2016,
+      "result": "passed"
+    },
+    {
+      "path": "tests/tyre-marks.test.ts",
+      "tests": 7,
+      "durationMs": 1537,
+      "result": "passed"
+    },
+    {
+      "path": "tests/tyre-model.test.ts",
+      "tests": 15,
+      "durationMs": 68,
+      "result": "passed"
+    },
+    {
+      "path": "tests/tyre-thermal.test.ts",
+      "tests": 8,
+      "durationMs": 28,
+      "result": "passed"
+    },
+    {
+      "path": "tests/tyre-trolleys-racks.test.ts",
+      "tests": 11,
+      "durationMs": 1126,
+      "result": "passed"
+    },
+    {
+      "path": "tests/tyre-wheels.test.ts",
+      "tests": 7,
+      "durationMs": 26,
+      "result": "passed"
+    },
+    {
+      "path": "tests/ultra-math.test.ts",
+      "tests": 23,
+      "durationMs": 30,
+      "result": "passed"
+    },
+    {
+      "path": "tests/ultra-options.test.ts",
+      "tests": 11,
+      "durationMs": 15,
+      "result": "passed"
+    },
+    {
+      "path": "tests/ultra-pipeline.test.ts",
+      "tests": 21,
+      "durationMs": 186,
+      "result": "passed"
+    },
+    {
+      "path": "tests/vehicle-bodies.test.ts",
+      "tests": 4,
+      "durationMs": 10603,
+      "result": "passed"
+    },
+    {
+      "path": "tests/vehicle-cabins.test.ts",
+      "tests": 9,
+      "durationMs": 5633,
+      "result": "passed"
+    },
+    {
+      "path": "tests/vehicle-catalogue-growth.test.ts",
+      "tests": 13,
+      "durationMs": 7773,
+      "result": "passed"
+    },
+    {
+      "path": "tests/vehicle-catalogue.test.ts",
+      "tests": 7,
+      "durationMs": 8858,
+      "result": "passed"
+    },
+    {
+      "path": "tests/vehicle-definitions.test.ts",
+      "tests": 5,
+      "durationMs": 10994,
+      "result": "passed"
+    },
+    {
+      "path": "tests/vehicle-rollover.test.ts",
+      "tests": 5,
+      "durationMs": 4148,
+      "result": "passed"
+    },
+    {
+      "path": "tests/venue-kit-wave2.test.ts",
+      "tests": 24,
+      "durationMs": 18596,
+      "result": "passed"
+    },
+    {
+      "path": "tests/venue-kit.test.ts",
+      "tests": 25,
+      "durationMs": 31564,
+      "result": "passed"
+    },
+    {
+      "path": "tests/venue-landmark.test.ts",
+      "tests": 4,
+      "durationMs": 722,
+      "result": "passed"
+    },
+    {
+      "path": "tests/venue-pit-data.test.ts",
+      "tests": 3,
+      "durationMs": 2822,
+      "result": "passed"
+    },
+    {
+      "path": "tests/visible-wheel-pivots.test.ts",
+      "tests": 4,
+      "durationMs": 12,
+      "result": "passed"
+    },
+    {
+      "path": "tests/visual-coherence.test.ts",
+      "tests": 30,
+      "durationMs": 1516,
+      "result": "passed"
+    },
+    {
+      "path": "tests/vsc.test.ts",
+      "tests": 3,
+      "durationMs": 17105,
+      "result": "passed"
+    },
+    {
+      "path": "tests/wake-cull.test.ts",
+      "tests": 1,
+      "durationMs": 1017,
+      "result": "passed"
+    },
+    {
+      "path": "tests/weather-reconciliation.test.ts",
+      "tests": 15,
+      "durationMs": 1177,
+      "result": "passed"
+    },
+    {
+      "path": "tests/weather.test.ts",
+      "tests": 10,
+      "durationMs": 2489,
+      "result": "passed"
+    },
+    {
+      "path": "tests/wet-broadcast-fidelity.test.ts",
+      "tests": 9,
+      "durationMs": 2604,
+      "result": "passed"
+    },
+    {
+      "path": "tests/wet-detail.test.ts",
+      "tests": 2,
+      "durationMs": 7,
+      "result": "passed"
+    },
+    {
+      "path": "tests/wet-night-traffic-start.test.ts",
+      "tests": 1,
+      "durationMs": 37575,
+      "result": "passed"
+    },
+    {
+      "path": "tests/wet-presentation.test.ts",
+      "tests": 13,
+      "durationMs": 642,
+      "result": "passed"
+    },
+    {
+      "path": "tests/wet-reflection.test.ts",
+      "tests": 4,
+      "durationMs": 9,
+      "result": "passed"
+    },
+    {
+      "path": "tests/wet-review-start.test.ts",
+      "tests": 4,
+      "durationMs": 18459,
+      "result": "passed"
+    },
+    {
+      "path": "tests/wheel-alignment.test.ts",
+      "tests": 3,
+      "durationMs": 1866,
+      "result": "passed"
+    },
+    {
+      "path": "tests/wheel-gun.test.ts",
+      "tests": 9,
+      "durationMs": 1387,
+      "result": "passed"
+    },
+    {
+      "path": "tests/wheel-pose.test.ts",
+      "tests": 9,
+      "durationMs": 14,
+      "result": "passed"
+    },
+    {
+      "path": "tests/wing-surface.test.ts",
+      "tests": 15,
+      "durationMs": 872,
+      "result": "passed"
+    },
+    {
+      "path": "tests/worker-pause.test.ts",
+      "tests": 5,
+      "durationMs": 8471,
+      "result": "passed"
+    },
+    {
+      "path": "tests/workshop-equipment.test.ts",
+      "tests": 15,
+      "durationMs": 2930,
+      "result": "passed"
+    }
+  ]
+}

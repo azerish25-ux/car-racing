@@ -1,4 +1,6 @@
 import { installRaceDayHud, updateRaceDayHud } from './race-day-hud.ts';
+import { BikeHud } from './bike-hud.ts';
+import { vehicleAt, vehicleDefinition } from '../simulation/vehicles.ts';
 import {
   SESSION_RULES_FIELDS,
   machineOptions,
@@ -55,14 +57,23 @@ import {
   racingSession,
   startingGrid,
   validateOptions,
-  VEHICLE,
   type SessionOptions,
   type Setup,
   type StartSlot,
 } from '../simulation/config.ts';
 import { sessionIncompatibilities } from '../simulation/events.ts';
 import { setupStep } from './setup-page.ts';
-import { F, H, W, WHEEL_BASE, WHEEL_STRIDE, WHEEL_NAMES, carBase } from '../simulation/protocol.ts';
+import {
+  F,
+  H,
+  R,
+  RACE_BASE,
+  W,
+  WHEEL_BASE,
+  WHEEL_STRIDE,
+  WHEEL_NAMES,
+  carBase,
+} from '../simulation/protocol.ts';
 import { type Track } from '../simulation/track.ts';
 import { circuitDefinition, type CircuitId } from '../simulation/circuits.ts';
 import { CIRCUIT_MENU_LABELS, circuitBlurb, circuitOptionsHtml } from './circuit-menu.ts';
@@ -157,6 +168,7 @@ interface Callbacks {
   exportSetup: () => void;
   importSetup: (file: File) => void;
   previewAudio?: (settings: DrivingAudioSettings) => void;
+  previewMachine?: (id: string) => void;
 }
 /** DOM writes only when the value changed: unchanged writes still dirty layout. */
 function writeText(e: Element, value: string) {
@@ -201,8 +213,10 @@ export class Interface {
   private sectors: SectorBoard | null = null;
   /** F1-style layout: cluster, tower header, sector panel, banners, tags. */
   private readonly f1: F1Hud;
+  private readonly bikeHud: BikeHud;
   private readonly trackMap: TrackMap;
-  private readonly revThresholds = revLedThresholds();
+  private revThresholds = revLedThresholds();
+  private revVehicle = '';
   options: SessionOptions = { ...DEFAULT_OPTIONS };
   /** Time Trial: saved personal best (0 when none) and the live ghost delta. */
   timeTrial: { best: number; delta: number | null } | null = null;
@@ -219,9 +233,9 @@ export class Interface {
   ) {
     const DEV = this.developer;
     element.innerHTML = `
-  <div id="loading" class="loading" role="status" aria-live="polite" aria-busy="true"><div class="brand">APEX<span>FORMULA</span></div><p id="loadingSession" class="loading-session" hidden></p><div class="loading-progress"><div class="loading-row"><b id="loadingStage">Loading</b><span id="loadingPercent">0%</span></div><div class="loader" id="loadingBar" role="progressbar" aria-label="Loading progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i></div></div><p id="loadingText" class="loading-detail"${DEV ? '' : ' hidden'}>Preparing circuit and car systems…</p><p id="loadingTip" class="loading-tip"><b>TIP</b> ${LOADING_TIPS[0]}</p></div>
+  <div id="loading" class="loading" role="status" aria-live="polite" aria-busy="true"><div class="brand">MOTOBOUND<span>MOTORSPORT</span></div><p id="loadingSession" class="loading-session" hidden></p><div class="loading-progress"><div class="loading-row"><b id="loadingStage">Loading</b><span id="loadingPercent">0%</span></div><div class="loader" id="loadingBar" role="progressbar" aria-label="Loading progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i></div></div><p id="loadingText" class="loading-detail"${DEV ? '' : ' hidden'}>Preparing circuit and car systems…</p><p id="loadingTip" class="loading-tip"><b>TIP</b> ${LOADING_TIPS[0]}</p></div>
   <section id="menu" class="menu" hidden>
-   <header class="masthead"><div class="brand">APEX<span>FORMULA</span></div><span class="edition">DRIVER <b id="menuDriver">${escapeHtml(this.playerName.toUpperCase())}</b></span></header>
+   <header class="masthead"><div class="brand">MOTOBOUND<span>MOTORSPORT</span></div><span class="edition">DRIVER <b id="menuDriver">${escapeHtml(this.playerName.toUpperCase())}</b></span></header>
    <div class="menu-body" tabindex="0" role="region" aria-label="Race setup and tools"><div class="eyebrow"><i></i> <span id="circuitEyebrow">AUREL · GRAND CIRCUIT</span></div><h1>EVERY INPUT.<br>EVERY FORCE.</h1><p class="intro">Four contact patches. One racing line.<br>Find the limit between them.</p>
    <form id="sessionForm" class="session-form">
     <div class="form-row"><label>CIRCUIT<select id="circuit">${circuitOptionsHtml()}</select></label></div>
@@ -242,7 +256,7 @@ export class Interface {
    <footer class="menu-footer"><span><b id="circuitLength">${(track.length / 1000).toFixed(3)}</b> KM</span><span><b id="circuitTurns">${track.circuit.corners.length}</b> TURNS</span><span><b id="circuitDrs">${track.circuit.drsZones.length}</b> DRS ${track.circuit.drsZones.length === 1 ? 'ZONE' : 'ZONES'}</span><span class="menu-hint"><kbd>WASD</kbd> / <kbd>ARROWS</kbd> DRIVE · <kbd>G</kbd> AI DRIVER · GAMEPAD READY</span><span id="buildIdentity"${DEV ? '' : ' hidden'}>DEV BUILD</span></footer>
   </section>
   <section id="hud" class="hud" hidden>
-   <div class="hud-top"><div class="brand small">APEX<span>LIVE</span></div><div class="position-badge" role="status" aria-label="Race position"><b id="positionBadge">P1</b><span id="positionField">/ 1</span></div><div class="session-status"><span id="lapLabel">LAP 1 / 3</span><b id="flag">GRID</b><span id="weatherLabel">24°C / DRY</span></div><button class="icon-button" data-action="pause" aria-label="Pause session">Ⅱ</button></div>
+   <div class="hud-top"><div class="brand small">MOTOBOUND<span>LIVE</span></div><div class="position-badge" role="status" aria-label="Race position"><b id="positionBadge">P1</b><span id="positionField">/ 1</span></div><div class="session-status"><span id="lapLabel">LAP 1 / 3</span><b id="flag">GRID</b><span id="weatherLabel">24°C / DRY</span></div><button class="icon-button" data-action="pause" aria-label="Pause session">Ⅱ</button></div>
    <aside class="timing" tabindex="0" aria-label="Live race classification"><div class="panel-heading">CLASSIFICATION <span id="towerColumn">INTERVAL</span></div><div id="tower"></div></aside>
    <div class="lap-panel"><label class="lap-delta"><i id="lapDeltaLabel">DELTA TO BEST</i><span id="lapDelta">—</span></label><label class="lap-current">CURRENT LAP<b id="lapTime">—:——.———</b></label><label>PERSONAL BEST<span id="bestLap">—:——.———</span></label><label>LAST LAP<span id="lastLap">—:——.———</span></label></div>
    <div id="startSequence" class="start-sequence" hidden><div id="lights">${'<i></i>'.repeat(5)}</div><span id="startText">BUILD REVS. HOLD THE BRAKE.</span></div>
@@ -277,6 +291,7 @@ export class Interface {
     installCompactRaceHud(this.hud);
     installRaceDayHud(this.hud);
     this.f1 = installF1Hud(this.hud);
+    this.bikeHud = new BikeHud(this.hud);
     installSpeedTunnel(element.ownerDocument);
     this.trackMap = new TrackMap(this.map);
     element.addEventListener('click', (e) => {
@@ -347,6 +362,26 @@ export class Interface {
     });
     const describeRules = () => {
       const select = (id: string) => (this.get(id) as HTMLSelectElement).value;
+      const machine = machineOptions(this.options, select('vehicle')).vehicles?.[0] ?? 'apx01';
+      const definition = vehicleDefinition(machine);
+      const bike = !!definition.bike;
+      this.menu.dataset.bike = String(bike);
+      const machineCard = this.menu.querySelector('.car-label')!;
+      machineCard.querySelector('span')!.textContent = definition.name.split(' ')[0];
+      machineCard.querySelector('b')!.textContent =
+        definition.classId === 'gp-bike'
+          ? 'GRAND PRIX / TWO WHEELS'
+          : definition.classId.toUpperCase().replaceAll('-', ' ');
+      this.menu.querySelector('.intro')!.innerHTML = bike
+        ? 'Two contact patches. One racing line.<br>Feel the balance through every corner.'
+        : 'Four contact patches. One racing line.<br>Find the limit between them.';
+      machineCard.querySelector('div')!.textContent = bike
+        ? `${Math.round(definition.spec.dryMass - definition.bike!.riderMass)} KG BIKE · ${definition.spec.gearRatios.length - 2} SPEED · ${definition.bike!.gearbox.toUpperCase()}`
+        : `${definition.spec.dryMass} KG DRY · ${definition.spec.gearRatios.length - 2} SPEED`;
+      for (const option of (this.get('opponents') as HTMLSelectElement).options)
+        if (option.value !== '0')
+          option.textContent = `${Number(option.value) + 1} ${bike ? 'riders' : 'cars'}`;
+      this.callbacks.previewMachine?.(machine);
       if (select('mode') === 'festival') {
         this.get('sessionRules').textContent =
           'Festival: free roam in the Solvane region, events found by driving to them. Weather and assists apply; a road machine chosen in MACHINE is used, otherwise pick one in the festival menu.';
@@ -483,6 +518,9 @@ export class Interface {
   }
   update(frame: Float32Array, renderer: RacingRenderer, auto: boolean, ers: number) {
     this.lastFrame = frame;
+    const o = carBase(0),
+      definition = vehicleAt(Math.round(frame[o + RACE_BASE + R.VEHICLE]));
+    const machineChanged = this.revVehicle !== '' && this.revVehicle !== definition.id;
     const proximity = nearbyTraffic(frame);
     for (const side of ['left', 'right'] as const) {
       const node = this.get(side === 'left' ? 'proximityLeft' : 'proximityRight');
@@ -491,17 +529,21 @@ export class Interface {
     }
 
     this.hud.dataset.camera = renderer.mode;
-    // Timing loops and name tags see every presented frame; the panels below
-    // refresh at a third of the rate.
+    // Motorcycle instruments must follow every presented snapshot, including
+    // when rendering is slow. Car panels keep their one-in-three cadence,
+    // except that a machine change restores the matching layout immediately.
     this.observeGaps(frame);
     const mode = this.element.dataset.mode;
     const banner = this.f1.observe(frame, auto);
     this.f1.nameTags(frame, renderer, mode === 'driving' || mode === 'paused');
     this.tick++;
-    if (this.tick % 3 !== 0) return;
-    const o = carBase(0),
-      speed = frame[o + F.SPEED],
+    if (!definition.bike && !machineChanged && this.tick % 3 !== 0) return;
+    const speed = frame[o + F.SPEED],
       compound = Object.keys(COMPOUNDS)[Math.round(frame[o + F.COMPOUND])] ?? 'medium';
+    if (this.revVehicle !== definition.id) {
+      this.revVehicle = definition.id;
+      this.revThresholds = revLedThresholds(definition.spec.shiftRPM);
+    }
     this.setText('speed', String(Math.round(speed * 3.6)));
     const gear = frame[o + F.GEAR];
     this.setText('gear', gear === 0 ? 'N' : gear < 0 ? 'R' : String(Math.round(gear)));
@@ -542,6 +584,7 @@ export class Interface {
     this.setText('battery', `${Math.round(frame[o + F.BATTERY] / 4e4)}%`);
     this.setText('fuel', `${frame[o + F.FUEL].toFixed(1)} KG`);
     updateRaceDayHud(this.hud, frame);
+    this.bikeHud.update(frame);
     writeWidth(this.get('brakeBar'), `${(frame[o + F.BRAKE] * 100).toFixed(1)}%`);
     writeWidth(this.get('throttleBar'), `${(frame[o + F.THROTTLE] * 100).toFixed(1)}%`);
     writeWidth(this.get('batteryBar'), `${(frame[o + F.BATTERY] / 4e4).toFixed(1)}%`);
@@ -561,7 +604,7 @@ export class Interface {
       lights = this.get('rpmLights'),
       pitPhase = Math.round(frame[o + F.PIT_PHASE]),
       pitLimiter = frame[o + F.IN_PIT] > 0 && (pitPhase === 1 || pitPhase === 6),
-      limiter = pitLimiter || rpm >= VEHICLE.limiterRPM - 60,
+      limiter = pitLimiter || rpm >= definition.spec.limiterRPM - 60,
       blinkOn = Math.floor(frame[H.TIME] * (pitLimiter ? 4 : 16)) % 2 === 0;
     lights.dataset.limiter = limiter ? 'on' : 'off';
     Array.from(lights.children).forEach((e, i) => {

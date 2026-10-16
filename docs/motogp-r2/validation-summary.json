@@ -1,0 +1,123 @@
+{
+  "source_base": "f91463cf506f6feced1a4db9c43af48ac3632410",
+  "canonical_gpu": {
+    "test": "e2e/41-motogp-reference.spec.ts",
+    "outcome": "expected",
+    "duration_ms": 69730,
+    "captures": 14,
+    "backend": "ANGLE SwiftShader",
+    "original_assertions_unchanged": true,
+    "lods": [
+      {
+        "detail": "high",
+        "triangles": 93700,
+        "calls": 186,
+        "glError": 0,
+        "hash": 1042509547,
+        "resources": {
+          "geometries": 106,
+          "textures": 20,
+          "programs": 49
+        }
+      },
+      {
+        "detail": "mid",
+        "triangles": 44737,
+        "calls": 164,
+        "glError": 0,
+        "hash": 2923790932,
+        "resources": {
+          "geometries": 95,
+          "textures": 19,
+          "programs": 45
+        }
+      },
+      {
+        "detail": "far",
+        "triangles": 12538,
+        "calls": 85,
+        "glError": 0,
+        "hash": 3988803314,
+        "resources": {
+          "geometries": 54,
+          "textures": 10,
+          "programs": 32
+        }
+      }
+    ],
+    "capture_revision": "after physical instrument gear convention correction"
+  },
+  "same_instance_weather": [
+    {
+      "hash": 1042509547,
+      "resources": {
+        "geometries": 106,
+        "textures": 20,
+        "programs": 49
+      },
+      "glError": 0,
+      "sourceFrameUnchanged": true
+    },
+    {
+      "hash": 43448736,
+      "resources": {
+        "geometries": 106,
+        "textures": 20,
+        "programs": 49
+      },
+      "glError": 0,
+      "sourceFrameUnchanged": true
+    },
+    {
+      "hash": 43448736,
+      "resources": {
+        "geometries": 106,
+        "textures": 20,
+        "programs": 49
+      },
+      "glError": 0,
+      "sourceFrameUnchanged": true
+    },
+    {
+      "hash": 1042509547,
+      "resources": {
+        "geometries": 106,
+        "textures": 20,
+        "programs": 49
+      },
+      "glError": 0,
+      "sourceFrameUnchanged": true
+    }
+  ],
+  "focused_cpu": {
+    "test_files": [
+      "tests/motogp-reference.test.ts",
+      "tests/bike-cockpit-view.test.ts",
+      "tests/bike-pit-service.test.ts",
+      "tests/bike-bodies.test.ts",
+      "tests/bike-steering-detail.test.ts"
+    ],
+    "passed_tests": 28,
+    "lint": "passed",
+    "instrument_regression": "A real GP-R1 Simulation/BikeVehicle shifts from first through sixth, publishes each frame, and its actual cockpit canvas must draw the same gear. F.GEAR uses -1 reverse, 0 neutral, 1 first; the ratio-array index is not the displayed gear.",
+    "duration_ms": 21180
+  },
+  "matched_component_views": [
+    "side",
+    "rear",
+    "three-quarter"
+  ],
+  "additional_final_views": [
+    "corner",
+    "onboard"
+  ],
+  "visual_review": "All final side, rear, three-quarter, corner and onboard captures individually inspected. Anatomical tapered leather volumes, covered joints, shaped sliders and flush torso panels improve the previous capsule/metal-ball presentation. After the gear-convention correction the final production onboard display was inspected again and shows fixture gear 4. Procedural/IK rider and authored base body shell remain; no photographic or commercial-game parity is certified.",
+  "source_files": {
+    "src/rendering/bike.ts": "f8bb97b0d0711f5c26a457f4c3257e53e8b93470099d8bcd0bc6256e2cad4ab3",
+    "src/rendering/rider.ts": "2c0e0b143471b0e402cee165925ef5bef2412340aea14ed6ce6efd3dc6a7dcb9",
+    "src/rendering/bike-livery.ts": "f9c42adb4de68f78e607ffe7f1d6c6fc723c761964bf7dfdf6e7d0b7ba695c68",
+    "tests/bike-steering-detail.test.ts": "aa87eb699dd0ffc7f1da2a27d5bce5e558e62ddef39079686639679da8785a41",
+    "src/rendering/bike-cockpit.ts": "4bd18dc7eacb48fd7f137a19b96c36051a5d2f293c21f87ed15bbe03d09922c0",
+    "tests/motogp-reference.test.ts": "3dbbadb302ce0403f8d7f68e2170d4428306a0c8f3c87e9a6a469b75fc5d53f9"
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "test": "e2e/motorcycle-presentation.spec.ts",
+  "result": "passed",
+  "testDurationSeconds": 3.9,
+  "totalDurationSeconds": 5.1,
+  "scope": "Production DOM/CSS with controlled test telemetry, GPU disabled; not a 3D or performance test.",
+  "cadenceRegression": {
+    "before": "The first single-call motorcycle snapshot retained speed 0, gear 1, RPM 4200 and data-bike=false instead of expected speed 90, gear 2, RPM 6100.",
+    "after": "Four successive distinct motorcycle snapshots immediately update speed, gear, RPM and lean; machine switching immediately restores car panels, which retain their one-in-three cadence."
+  },
+  "viewports": [
+    [
+      1440,
+      900
+    ],
+    [
+      960,
+      600
+    ],
+    [
+      390,
+      844
+    ]
+  ],
+  "scales": [
+    1,
+    1.35
+  ],
+  "checks": [
+    "instrument visibility and bounds",
+    "no cluster horizontal overflow",
+    "desktop MFD does not overlap instruments",
+    "actual front/rear tyre channels",
+    "fallen-state warnings clear and stale loads are unavailable",
+    "bike-to-car labels, battery and four-tyre restoration",
+    "selected-machine card and rider/car grid labels"
+  ],
+  "focusedCpuTests": 28,
+  "focusedCpuResult": "passed",
+  "lint": "passed",
+  "sourceSha256": {
+    "src/ui/interface.ts": "ab5efc7b56c65ccb2be0bdf18ecb6f418f9b2755d7247ec18b87061446150c08",
+    "src/main.ts": "19e2a6cefd036cd1d28580e671670449faf8d81ef87d57c1f3d4595745a1ad3f",
+    "e2e/fixtures/motorcycle-presentation.ts": "ffdedb9a1029fddb044dd72b1fcd1b43646516bd9a6791ca132d9a133760f51e",
+    "e2e/motorcycle-presentation.spec.ts": "ce6654941f4c9a0ece8bacc82ac24c76da6829888d32d6e4e05ac58b129e05ae"
+  }
+}

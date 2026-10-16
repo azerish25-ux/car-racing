@@ -72,7 +72,7 @@ describe('minimum-curvature racing line', () => {
     expect(sample).toBeGreaterThan(0.3);
     expect(centre).toBeLessThan(0.15);
   });
-  it('the AI drives the line: quicker, valid laps without damage', () => {
+  it('the AI drives the line: quicker, valid laps without damage', async () => {
     for (const [circuit, bound] of [
       ['aurel', 52],
       ['vellamar', 72],
@@ -84,6 +84,8 @@ describe('minimum-curvature racing line', () => {
         samples = 0;
       for (let tick = 0; tick < 120 * 200 && sim.race.laps[0].completed < 2; tick++) {
         sim.step(1 / 120);
+        // Service runner IPC without changing the fixed simulation step or samples.
+        if (tick % 2400 === 0) await new Promise((resolve) => setTimeout(resolve, 0));
         if (sim.race.laps[0].completed >= 1) {
           error += Math.abs(sim.cars[0].lateral - line.offsetAt(sim.cars[0].s));
           samples++;
@@ -97,7 +99,7 @@ describe('minimum-curvature racing line', () => {
       expect(sim.cars[0].frontHealth).toBe(1);
     }
   }, 120000);
-  it('a mid-field start still races wheel to wheel on the line', () => {
+  it('a mid-field start still races wheel to wheel on the line', async () => {
     // The race-review criterion: one rival within 18 m (and 22 m along the
     // lap) for 5 s. On-track position changes are counted at 15 Hz.
     const sim = new Simulation({
@@ -118,6 +120,8 @@ describe('minimum-curvature racing line', () => {
       clock = 0;
     for (let tick = 0; tick < 120 * 240 && sim.race.phase !== PHASE.FINISHED; tick++) {
       sim.step(1 / 120);
+      // Yield before the sampling branches can continue to the next physics tick.
+      if (tick % 2400 === 0) await new Promise((resolve) => setTimeout(resolve, 0));
       if ((clock += 1 / 120) < 1 / 15) continue;
       clock = 0;
       sim.cars.forEach((c, i) => {

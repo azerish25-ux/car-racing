@@ -86,6 +86,7 @@ describe('kerb and run-off finishes', () => {
     expect(installKerbFinish(kerb)).toBe(false);
     expect(studioHookKeys(kerb)).toEqual([KERB_HOOK]);
     const shader = compile(kerb);
+    expect(kerb.vertexColors).toBe(false);
     expect(shader.vertexShader).toContain('attribute float kerbStyle;');
     const f = shader.fragmentShader;
     expect(f).toContain('float stripePhase = vFinishMetres.y / 2.2000;');
@@ -100,6 +101,11 @@ describe('kerb and run-off finishes', () => {
     expect(f).toContain('normal = apexReliefNormal(');
     // The circuit finish (chips, joints) still runs after the paint.
     expect(f.indexOf('D15 kerb paint')).toBeLessThan(f.indexOf('float jointPhase'));
+    // The construction detail is no longer erased at color_fragment.
+    expect(f.slice(f.indexOf('#include <color_fragment>'))).not.toContain(
+      'diffuseColor.rgb = kerbPaint;',
+    );
+    expect(shader.uniforms.apexEdgeLapLength.value).toBe(3600);
   });
 
   it('paints the run-off with bands, chevrons, astroturf and soil seams, without the old tint', () => {

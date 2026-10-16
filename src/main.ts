@@ -49,7 +49,8 @@ import {
 } from './simulation/config.ts';
 import { meetingFromEvent } from './ui/offroad-meeting.ts';
 import { MeetingFlow } from './ui/meeting-flow.ts';
-import { F, H, carBase } from './simulation/protocol.ts';
+import { F, H, R, RACE_BASE, carBase } from './simulation/protocol.ts';
+import { vehicleAt } from './simulation/vehicles.ts';
 import { safetyCarPose } from './rendering/studio/safety-car.ts';
 import { RacingRenderer } from './rendering/renderer.ts';
 import { Interface, shortTime } from './ui/interface.ts';
@@ -217,6 +218,8 @@ export class GameApp {
   private previousTime = 0;
   private renderedAt = 0;
   private renderedState: State | null = null;
+  private showroomFrame: Float32Array | null = null;
+  private showroomMachine = 'apx01';
   private menuCovered = false;
   private viewportRedrawPending = false;
   private presentationFrames = 0;
@@ -270,6 +273,15 @@ export class GameApp {
         void this.audio
           .previewDriving(settings)
           .catch((error) => this.ui.toast(`Audio preview unavailable: ${String(error)}`));
+      },
+      previewMachine: (id) => {
+        const changed = this.showroomMachine !== id;
+        this.showroomMachine = id;
+        if (this.state !== 'menu' || !this.renderer) return;
+        if (!changed && this.showroomFrame) return;
+        this.showroomFrame = menuPreview(this.track, this.track.length - 32, id);
+        this.renderer.reset();
+        this.renderedState = null;
       },
       exportSetup: () =>
         downloadBlob(
@@ -542,7 +554,8 @@ export class GameApp {
     document.documentElement.dataset.colorblind = String(this.settings.colorblind);
     document.documentElement.dataset.highContrast = String(this.settings.highContrast);
     this.applyCommunication(this.settings);
-    const preview = menuPreview(this.track);
+    const preview = menuPreview(this.track, this.track.length - 32, this.showroomMachine);
+    this.showroomFrame = preview;
     this.current = preview;
     this.previous = preview;
     this.state = 'menu';
@@ -641,6 +654,7 @@ export class GameApp {
     // The festival shared the GL context: restore the circuit presentation.
     this.renderer?.setQuality(this.settings.quality, this.settings.graphics);
     this.state = 'menu';
+    this.showroomFrame = menuPreview(this.track, this.track.length - 32, this.showroomMachine);
     this.renderedState = null;
     this.ui.ready();
     this.ui.showMode('menu');
@@ -1023,6 +1037,11 @@ export class GameApp {
     let a = this.previous,
       b = this.current,
       alpha = clamp((time - this.receivedAt) / Math.max(8, (b[H.TIME] - a[H.TIME]) * 1000), 0, 1);
+    if (this.state === 'menu' && this.showroomFrame) {
+      a = this.showroomFrame;
+      b = this.showroomFrame;
+      alpha = 1;
+    }
     if (this.state === 'replay' && this.replay && this.replayA && this.replayB) {
       const targetTime = this.replayClock.target(
         wallDelta,
@@ -1179,14 +1198,15 @@ export class GameApp {
           this.photoStudio.captureBusy(false);
         });
     }
+    // The motorcycle's physical dashboard and HUD must describe the same
+    // presented pose, including interpolation and a slow graphics submission.
+    const shown =
+      this.state === 'replay' ||
+      vehicleAt(Math.round(b[carBase(0) + RACE_BASE + R.VEHICLE])).dynamicsKind === 'bike'
+        ? this.renderer.presented.value
+        : b;
     if (this.state !== 'menu' && this.state !== 'photo')
-      this.ui.update(
-        this.state === 'replay' ? this.renderer.presented.value : b,
-        this.renderer,
-        this.auto,
-        this.ers,
-      );
-    const shown = this.state === 'replay' ? this.renderer.presented.value : b;
+      this.ui.update(shown, this.renderer, this.auto, this.ers);
     this.renderer.setBroadcastFollow(
       this.state === 'replay' && this.renderer.mode === 'trackside'
         ? this.replayDirector.follow(shown, shown[H.TIME], this.track.length)
@@ -2088,6 +2108,9 @@ export class GameApp {
         this.ui.closeModal();
         this.ui.telemetryModal.close();
         this.state = 'menu';
+        // A circuit change replaces the Track. Rebuild the selected showroom
+        // pose against this venue instead of retaining coordinates from the last one.
+        this.showroomFrame = menuPreview(this.track, this.track.length - 32, this.showroomMachine);
         this.programme.stop();
         this.post({ type: 'pause', value: true });
         this.input.setEnabled(false);

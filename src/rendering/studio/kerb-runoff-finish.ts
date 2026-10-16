@@ -1,5 +1,6 @@
 import * as T from 'three';
 import { chainShaderHook, injectAfter, injectDeclarations } from './shader-hooks.ts';
+import { installTrackEdgeHelpers } from './track-edge-wear.ts';
 
 /**
  * Kerbs and run-off (D15 track-kerbs-runoff), chained after the circuit
@@ -79,12 +80,17 @@ vec3 apexReliefNormal(vec3 n, float h) {
 	return normalize( max( abs( det ), 1e-10 ) * n - grad );
 }`;
 
-export const KERB_HOOK = 'kerb-finish-v2';
-export const RUNOFF_HOOK = 'runoff-finish-v2';
+export const KERB_HOOK = 'kerb-finish-v3';
+export const RUNOFF_HOOK = 'runoff-finish-v3';
 
 /** Install on the kerb ribbon material (after `installCircuitFinish(m, 'kerb')`). */
-export function installKerbFinish(material: T.MeshStandardMaterial) {
+export function installKerbFinish(material: T.MeshStandardMaterial, lapLength = 3600) {
+  // Stripe colour is authored in metres in the shader. Disabling the old
+  // vertex tint lets construction joints and paint chips survive the colour
+  // stage instead of resetting all of them to kerbPaint after color_fragment.
+  material.vertexColors = false;
   return chainShaderHook(material, KERB_HOOK, (shader) => {
+    installTrackEdgeHelpers(shader, lapLength);
     injectDeclarations(
       shader,
       'common',
@@ -121,6 +127,8 @@ export function installKerbFinish(material: T.MeshStandardMaterial) {
 	float grime = finishFilteredNoise( vFinishWorld.xz * vec2( 3.1, 0.8 ) );
 	float kerbUse = max( vKerbUsage, ${f(KERB.wearFloor)} );
 	kerbWear = clamp( kerbUse * trackSide * ( .55 + .6 * grime ), 0.0, 1.0 );
+	float crossingScuffs = apexEdgeScuffs( vKerbAcross, vFinishMetres.y, sign( vFinishMetres.x ) );
+	kerbWear = max( kerbWear, crossingScuffs * ( .2 + .8 * kerbUse ) );
 	// Rolled paint over cast concrete: fine grit, and chips through to the
 	// grey concrete where tyres strike the kerb, plus dust in the grooves.
 	float grit = finishFilteredNoise( vFinishWorld.xz * 41.0 );
@@ -139,9 +147,8 @@ export function installKerbFinish(material: T.MeshStandardMaterial) {
 }`,
       'fragment',
     );
-    // The ribbon's legacy 3 m vertex colours must not tint the painted stripes
-    // (they turned alternate white stripes salmon): restore the paint after them.
-    injectAfter(shader, 'color_fragment', 'diffuseColor.rgb = kerbPaint;', 'fragment');
+    // Keep the following circuit-finish chips and panel joints. The former
+    // colour-stage reset erased them along with the unused legacy vertex tint.
     injectAfter(
       shader,
       'roughnessmap_fragment',
@@ -164,25 +171,26 @@ export function installKerbFinish(material: T.MeshStandardMaterial) {
 }
 
 /** Install on the run-off ribbon material (after `installCircuitFinish(m, 'paint')`). */
-export function installRunoffFinish(material: T.MeshStandardMaterial) {
+export function installRunoffFinish(material: T.MeshStandardMaterial, lapLength = 3600) {
   material.color.setHex(0xffffff);
   return chainShaderHook(material, RUNOFF_HOOK, (shader) => {
+    installTrackEdgeHelpers(shader, lapLength);
     injectDeclarations(
       shader,
       'common',
-      'attribute float runoffStyle;\nattribute float edgeMetres;\nvarying float vRunoffStyle;\nvarying float vRunoffEdge;',
+      'attribute float runoffStyle;\nattribute float kerbUsage;\nattribute float edgeMetres;\nvarying float vRunoffStyle;\nvarying float vRunoffUsage;\nvarying float vRunoffEdge;',
       'vertex',
     );
     injectAfter(
       shader,
       'begin_vertex',
-      'vRunoffStyle = runoffStyle;\nvRunoffEdge = edgeMetres;',
+      'vRunoffStyle = runoffStyle;\nvRunoffUsage = kerbUsage;\nvRunoffEdge = edgeMetres;',
       'vertex',
     );
     injectDeclarations(
       shader,
       'common',
-      'varying float vRunoffStyle;\nvarying float vRunoffEdge;',
+      'varying float vRunoffStyle;\nvarying float vRunoffUsage;\nvarying float vRunoffEdge;',
       'fragment',
     );
     injectAfter(
@@ -193,6 +201,11 @@ export function installRunoffFinish(material: T.MeshStandardMaterial) {
 	float e = vRunoffEdge;
 	float tex = dot( diffuseColor.rgb, vec3( .3333 ) ) / .32;
 	float grain = finishFilteredNoise( vFinishWorld.xz * 6.0 );
+	// Derivatives are evaluated before the per-style branch. The same paths
+	// on the adjacent kerb continue through the painted apron without a seam.
+	float crossingScuffs = apexEdgeScuffs( e, vFinishMetres.y, sign( vFinishMetres.x ) );
+	float vergeWear = apexVergeWear( vFinishWorld.xz, e );
+	vec3 vergeSoil = apexVergeSoil( vFinishWorld.xz );
 	vec3 base = ${v3(RUNOFF.base)} * ( .9 + .2 * grain ) * clamp( tex, .75, 1.25 );
 	int style = int( vRunoffStyle + .5 );
 	vec3 surface;
@@ -225,14 +238,16 @@ export function installRunoffFinish(material: T.MeshStandardMaterial) {
 		float arc = smoothstep( .52, .7, finishFilteredNoise( vec2( e * 3.2 + vFinishMetres.y * .02, vFinishMetres.y * .11 ) ) );
 		float runMarks = wideRun * arc * ( 1.0 - smoothstep( ${f(RUNOFF.from + 0.3)}, ${f(RUNOFF.to - 0.3)}, e ) );
 		surface = mix( surface, vec3( .045, .043, .041 ), runMarks * .42 );
+		surface = mix( surface, ${v3(KERB.rubber)}, crossingScuffs * ( .2 + .8 * max( vRunoffUsage, ${f(KERB.wearFloor)} ) ) * .78 );
 		// Fine grit and dust swept off the grass onto the painted surface.
 		float grit = finishFilteredNoise( vFinishWorld.xz * 23.0 );
 		surface *= .93 + .14 * grit;
 	}
 	// Worn soil where the run-off meets the kerb and the grass.
-	float seam = max( 1.0 - smoothstep( 0.0, ${f(RUNOFF.seam)}, abs( e - ${f(RUNOFF.from)} - .1 ) ),
-		1.0 - smoothstep( 0.0, ${f(RUNOFF.seam)}, abs( e - ${f(RUNOFF.to)} + .12 ) ) );
+	float seam = 1.0 - smoothstep( 0.0, ${f(RUNOFF.seam)}, abs( e - ${f(RUNOFF.from)} - .1 ) );
 	surface = mix( surface, ${v3(RUNOFF.soil)} * ( .8 + .4 * grain ), seam * .55 );
+	float grassJoin = smoothstep( 3.62, 4.0, e ) * vergeWear;
+	surface = mix( surface, vergeSoil, grassJoin * .78 );
 	diffuseColor.rgb = surface;
 }`,
       'fragment',

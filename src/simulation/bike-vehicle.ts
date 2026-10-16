@@ -576,7 +576,10 @@ export class BikeVehicle extends Vehicle {
       t.length = (front ? spec.forkTravel : spec.shockTravel) - t.compression + 0.2;
       t.water = c.water;
       t.surface = c.surface;
-      const use = front ? d.frontUse : d.rearUse;
+      // Utilization is a demand ratio: an unloaded, locked tyre can report
+      // a large value. It is not an unbounded heat source, and a separated
+      // rider must not keep heating tyres from the last pre-crash sample.
+      const use = riding ? clamp(front ? d.frontUse : d.rearUse, 0, 1.5) : 0;
       const work = Math.hypot(t.fx, t.fy) * d.speed;
       t.energy = work * 0.02;
       t.wear = Math.min(1, t.wear + (work * dt) / (COMPOUNDS[t.compound].lifeJ * 10));

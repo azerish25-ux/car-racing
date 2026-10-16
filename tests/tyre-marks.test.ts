@@ -5,6 +5,8 @@ import { circuitDefinition } from '../src/simulation/circuits.ts';
 import { racingLineFor } from '../src/simulation/racing-line.ts';
 import {
   TYRE_MARKS,
+  BIKE_TYRE_MARKS,
+  TyreMarkPresentation,
   buildTyreMarks,
   installTyreMarkWater,
   tyreMarkZones,
@@ -29,6 +31,79 @@ const track = (id: 'aurel' | 'vellamar') =>
   new Track('clear', false, undefined, circuitDefinition(id));
 
 describe('laid tyre rubber', () => {
+  it('lays single narrow motorcycle contact paths instead of paired car wheel tracks', () => {
+    const t = track('aurel'),
+      zones = [{ kind: 'braking' as const, start: 500, end: 560, strength: 24 }],
+      marks = tyreMarks(t, zones, 5417, true),
+      line = racingLineFor(t),
+      point = trackPoint();
+    expect(marks.length).toBeGreaterThanOrEqual(3);
+    expect(marks.length).toBeLessThanOrEqual(BIKE_TYRE_MARKS.maximumPasses);
+    expect(tyreMarks(t, zones, 5417, true)).toEqual(marks);
+    for (const mark of marks) {
+      expect(mark.width).toBe(BIKE_TYRE_MARKS.width);
+      for (let i = 0; i < mark.s.length; i++) {
+        t.at(mark.s[i], point);
+        expect(Math.abs(mark.lateral[i])).toBeLessThan(point.width);
+        expect(Math.abs(mark.lateral[i] - line.offsetAt(mark.s[i]))).toBeLessThan(1.16);
+        expect(mark.alpha[i]).toBeGreaterThanOrEqual(0);
+        expect(mark.alpha[i]).toBeLessThanOrEqual(BIKE_TYRE_MARKS.strength[1]);
+      }
+    }
+    const bikeZones = tyreMarkZones(t, true);
+    expect(tyreMarkZones(t, true)).toEqual(bikeZones);
+    expect(bikeZones).not.toEqual(tyreMarkZones(t));
+  });
+
+  it('keeps at most two layers across repeated vehicle and replay transitions', () => {
+    stubCanvas();
+    const t = track('aurel'),
+      state = new T.DataTexture(new Uint8Array(4), 1, 1),
+      parent = new T.Group(),
+      presentation = new TyreMarkPresentation(t, state);
+    presentation.setMotorcycle(true);
+    // Choosing a mode before cooperative construction does not allocate meshes.
+    expect(presentation.root.children).toHaveLength(0);
+    presentation.build(parent);
+    presentation.build(parent);
+    expect(parent.children).toHaveLength(1);
+    expect(presentation.diagnostics().mode).toBe('motorcycle');
+    presentation.setMotorcycle(false);
+    const objects: T.Object3D[] = [];
+    presentation.root.traverse((object) => objects.push(object));
+    for (let i = 0; i < 40; i++) presentation.setMotorcycle(i % 2 === 0);
+    const after: T.Object3D[] = [];
+    presentation.root.traverse((object) => after.push(object));
+    expect(after).toEqual(objects);
+    expect(presentation.diagnostics().cachedLayers).toBe(2);
+    expect(presentation.root.children.filter((layer) => layer.visible)).toHaveLength(1);
+    const motorcycleLayer = presentation.root.children.find((layer) =>
+      layer.name.startsWith('Motorcycle'),
+    )!;
+    const mesh = motorcycleLayer.children[0] as T.Mesh;
+    const positions = mesh.geometry.getAttribute('position');
+    expect(
+      Math.hypot(positions.getX(1) - positions.getX(0), positions.getZ(1) - positions.getZ(0)),
+    ).toBeCloseTo(BIKE_TYRE_MARKS.width, 4);
+    expect(mesh.geometry.getAttribute('trackUV').count).toBe(positions.count);
+    const geometries = new Set<T.BufferGeometry>(),
+      materials = new Set<T.MeshStandardMaterial>();
+    presentation.root.traverse((object) => {
+      if (object instanceof T.Mesh) {
+        geometries.add(object.geometry);
+        materials.add(object.material as T.MeshStandardMaterial);
+      }
+    });
+    // Local weather/atmosphere are installed once during scene construction;
+    // lazily added geometry must retain that registered material identity.
+    expect(materials.size).toBe(1);
+    for (const geometry of geometries) geometry.dispose();
+    for (const material of materials) {
+      material.alphaMap?.dispose();
+      material.dispose();
+    }
+    state.dispose();
+  });
   for (const id of ['aurel', 'vellamar'] as const)
     it(`${id}: braking zones end at corners and every mark lies on the asphalt near the line`, () => {
       const t = track(id),

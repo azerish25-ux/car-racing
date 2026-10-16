@@ -1,4 +1,5 @@
 import styles from './race-day-hud.css?inline';
+import { bikeReadout } from './bike-readout.ts';
 import {
   F,
   H,
@@ -25,6 +26,19 @@ const CHOICE_LABEL: Record<(typeof PIT_CHOICES)[number], string> = {
   intermediate: 'I',
   wet: 'W',
 };
+const BIKE_LABELS: Readonly<Record<string, string>> = {
+  mfdBattery: 'FRONT LOAD',
+  mfdMotor: 'REAR LOAD',
+  mfdRegen: 'TRACTION / WHEELIE CONTROL',
+  mfdBrakeBias: 'FRONT LEVER / REAR PEDAL',
+  mfdFloor: 'FAIRING CONDITION',
+  mfdRear: 'RIDER',
+  mfdSetupBias: 'CHASSIS LEAN',
+  mfdDiffPower: 'HANG-OFF',
+  mfdDiffCoast: 'TUCK',
+  mfdErsMode: 'TRACTION / WHEELIE CONTROL',
+  mfdRide: 'FORK / SHOCK COMPRESSION',
+};
 /** The compound picked on the STRATEGY page for the next pit request, if any. */
 export function selectedPitCompound(hud: HTMLElement): Compound | undefined {
   const value = hud.dataset.pitCompound;
@@ -38,11 +52,13 @@ const reading = (rows: readonly [string, string][]) =>
 export function vehicleWarning(frame: Float32Array): string {
   const o = carBase(0);
   if (frame[H.PHASE] < 2 || frame[o + F.FINISH] > 0) return '';
+  const bike = bikeReadout(frame);
+  if (bike && bike.state !== 'RIDING') return `${bike.state} / WAIT FOR SAFE RECOVERY`;
   for (let wheel = 0; wheel < 4; wheel++)
     if (frame[o + WHEEL_BASE + wheel * WHEEL_STRIDE + W.PUNCTURED] > 0)
       return 'PUNCTURE / REQUEST PIT SERVICE';
   if (frame[o + F.FRONT_HEALTH] < 0.6 || frame[o + F.REAR_HEALTH] < 0.6)
-    return 'AERO DAMAGE / REQUEST PIT SERVICE';
+    return bike ? 'FAIRING DAMAGE / REQUEST PIT SERVICE' : 'AERO DAMAGE / REQUEST PIT SERVICE';
   if (frame[o + F.FUEL] < 2) return 'LOW FUEL / UNDER 2 KG';
   for (let wheel = 0; wheel < 4; wheel++)
     if (frame[o + WHEEL_BASE + wheel * WHEEL_STRIDE + W.DISC_TEMP] > 1100)
@@ -244,6 +260,40 @@ export function updateRaceDayHud(hud: HTMLElement, frame: Float32Array) {
     'mfdRide',
     `${Math.round(frame[o + F.FRONT_RIDE] * 1000)} / ${Math.round(frame[o + F.REAR_RIDE] * 1000)} MM`,
   );
+  const bike = bikeReadout(frame);
+  if (hud.dataset.mfdBike !== String(!!bike)) {
+    hud.dataset.mfdBike = String(!!bike);
+    for (const [id, label] of Object.entries(BIKE_LABELS)) {
+      const node = hud.querySelector(`#${id}`)?.previousElementSibling as HTMLElement | null;
+      if (!node) continue;
+      node.dataset.originalLabel ??= node.textContent ?? '';
+      node.textContent = bike ? label : node.dataset.originalLabel;
+    }
+    hud.querySelectorAll('.vehicle-tabs > button').forEach((node, i) => {
+      node.textContent = bike ? ['TYRES', 'FUEL', 'BIKE', 'STRATEGY', 'RIDER'][i] : MFD_PAGES[i];
+    });
+  }
+  if (bike) {
+    write('mfdBattery', bike.frontLoad === null ? '—' : `${bike.frontLoad}%`);
+    write('mfdMotor', bike.rearLoad === null ? '—' : `${bike.rearLoad}%`);
+    write('mfdRegen', `${bike.intervention}%`);
+    write('mfdBrakeBias', `${bike.frontBrake}% / ${bike.rearBrake}%`);
+    // The motorcycle adapter simulates cosmetic fairing scrapes through its
+    // front-health channel. It has no structural chassis-health channel.
+    write('mfdFloor', `${Math.round(frame[o + F.FRONT_HEALTH] * 100)}%`);
+    write('mfdRear', bike.state);
+    write('mfdTyreLife', `${Math.round((bike.front.life + bike.rear.life) / 2)}%`);
+    const worst = bike.front.life <= bike.rear.life ? 'FRONT' : 'REAR';
+    write('mfdTyreWorst', `${worst} · ${Math.min(bike.front.life, bike.rear.life)}%`);
+    write(
+      'mfdSetupBias',
+      `${Math.abs(bike.lean)}° ${bike.lean > 0 ? 'LEFT' : bike.lean < 0 ? 'RIGHT' : ''}`.trim(),
+    );
+    write('mfdDiffPower', `${Math.abs(bike.hangOff)} CM`);
+    write('mfdDiffCoast', `${bike.tuck}%`);
+    write('mfdErsMode', `${bike.intervention}%`);
+    write('mfdRide', `${bike.fork} / ${bike.shock} MM`);
+  }
   const warning = vehicleWarning(frame);
   write('vehicleAlert', warning);
   hud.querySelector<HTMLElement>('#vehicleAlert')!.hidden = !warning;

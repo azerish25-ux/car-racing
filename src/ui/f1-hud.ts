@@ -571,15 +571,16 @@ export class F1Hud {
 
     // Cluster arcs and status.
     const clamp = (v: number) => (Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : 0);
-    this.dash(this.arcs.ers, clamp(frame[o + F.BATTERY] / VEHICLE.maxBatteryJ));
-    const rpm = frame[o + F.RPM];
+    const spec = vehicleAt(Math.round(frame[o + RACE_BASE + R.VEHICLE])).spec;
     this.dash(
-      this.arcs.rpm,
-      clamp((rpm - VEHICLE.idleRPM) / (VEHICLE.limiterRPM - VEHICLE.idleRPM)),
+      this.arcs.ers,
+      spec.maxBatteryJ > 0 ? clamp(frame[o + F.BATTERY] / spec.maxBatteryJ) : 0,
     );
+    const rpm = frame[o + F.RPM];
+    this.dash(this.arcs.rpm, clamp((rpm - spec.idleRPM) / (spec.limiterRPM - spec.idleRPM)));
     this.dash(this.arcs.thr, clamp(frame[o + F.THROTTLE]));
     this.dash(this.arcs.brk, clamp(frame[o + F.BRAKE]));
-    attr(this.cluster, 'redline', String(rpm >= VEHICLE.shiftRPM));
+    attr(this.cluster, 'redline', String(rpm >= spec.shiftRPM));
     const pitPhase = Math.round(frame[o + F.PIT_PHASE]);
     const pitLimiter = frame[o + F.IN_PIT] > 0 && (pitPhase === 1 || pitPhase === 6);
     attr(this.cluster, 'pit', String(pitLimiter));
@@ -587,8 +588,8 @@ export class F1Hud {
     const drs = s.drs ?? Math.round(s.frame[carBase(0) + RACE_BASE + R.DRS]);
     attr(this.drs, 'state', String(drs >= 0 && drs <= 2 ? drs : 0));
     const gear = Math.round(frame[o + F.GEAR]);
-    const up = gear >= 1 && gear < VEHICLE.gearRatios.length - 2 && rpm >= VEHICLE.shiftRPM * 0.985;
-    const down = gear > 1 && rpm < VEHICLE.shiftRPM * 0.62 && frame[o + F.BRAKE] > 0.2;
+    const up = gear >= 1 && gear < spec.gearRatios.length - 2 && rpm >= spec.shiftRPM * 0.985;
+    const down = gear > 1 && rpm < spec.shiftRPM * 0.62 && frame[o + F.BRAKE] > 0.2;
     attr(this.shift, 'shift', up ? 'up' : down ? 'down' : 'none');
     const compound = compoundOf(frame, 0);
     set(this.compound, COMPOUND_LETTERS[compound] ?? 'M');

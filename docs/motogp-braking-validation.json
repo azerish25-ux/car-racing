@@ -1,0 +1,475 @@
+{
+  "baseline": "f91463c",
+  "reproductionScope": {
+    "prototypeBIKE": {
+      "dataPath": "configurations",
+      "caseCount": 12,
+      "parameterSource": "BIKE prototype defaults in src/simulation/bike.ts",
+      "purpose": "Regression coverage for the reduced-order prototype; these figures are not the production GP_R1 result.",
+      "maximumBeforeRearCircle": 2.719369839831628,
+      "maximumAfterRearCircle": 0.9500000000000021
+    },
+    "productionGP_R1": {
+      "dataPath": "productionGP_R1.configurations",
+      "caseCount": 3,
+      "parameterSource": "bikeParameters(GP_R1, GP_R1.spec.dryMass + GP_R1.bike.fuel)",
+      "purpose": "Production GP_R1 dynamics-core reproduction; full adapter/session behavior is checked separately in verification.",
+      "maximumBeforeRearCircle": 1.4663656739271111,
+      "maximumAfterRearCircle": 0.9493153217446866
+    }
+  },
+  "method": "The top-level configurations are the 12 BIKE prototype-default cases, not GP_R1. Run core Bike with NOVICE aids at 35 m/s. Settle lean and matching rider command for 4 s with drive equal to aerodynamic drag, then hold full front lever (combined brakes active) for 1 s at 240 Hz. Measure actual rear force circle using final wheel load, speed and curvature, separately from the reported rearUse.",
+  "evidenceLimit": "Controlled reduced-order simulation regression; does not establish real motorcycle physical accuracy or infer handling coefficients from reference photographs.",
+  "configurations": [
+    {
+      "grip": 1,
+      "leanCommand": 0,
+      "before": {
+        "peakRearCircle": 2.719369839831628,
+        "peakReportedRearUse": 0,
+        "peakFrontUse": 0.6862174982405209,
+        "entrySpeedMps": 35,
+        "exitSpeedMps": 22.92803779223793,
+        "brakingDistanceFirstSecondM": 28.96546327101998,
+        "state": "riding",
+        "crashes": 0
+      },
+      "after": {
+        "peakRearCircle": 0.9500000000000021,
+        "peakReportedRearUse": 0.9500000000000021,
+        "peakFrontUse": 0.6857655245815257,
+        "entrySpeedMps": 35,
+        "exitSpeedMps": 22.9684960547754,
+        "brakingDistanceFirstSecondM": 28.991490184604686,
+        "state": "riding",
+        "crashes": 0
+      }
+    },
+    {
+      "grip": 1,
+      "leanCommand": 0.4,
+      "before": {
+        "peakRearCircle": 1.6804381424604118,
+        "peakReportedRearUse": 0.847914840977553,
+        "peakFrontUse": 0.4889495251595549,
+        "entrySpeedMps": 35,
+        "exitSpeedMps": 25.18434557415667,
+        "brakingDistanceFirstSecondM": 30.113973110831775,
+        "state": "riding",
+        "crashes": 0
+      },
+      "after": {
+        "peakRearCircle": 0.9490674338522245,
+        "peakReportedRearUse": 0.9490674636184006,
+        "peakFrontUse": 0.466601048173352,
+        "entrySpeedMps": 35,
+        "exitSpeedMps": 26.04363188997044,
+        "brakingDistanceFirstSecondM": 30.553851801140112,
+        "state": "riding",
+        "crashes": 0
+      }
+    },
+    {
+      "grip": 1,
+      "leanCommand": 0.7,
+      "before": {
+        "peakRearCircle": 1.1428413792456502,
+        "peakReportedRearUse": 0.8485064899132244,
+        "peakFrontUse": 0.3684017645415155,
+        "entrySpeedMps": 34.998312686796474,
+        "exitSpeedMps": 27.987531537153732,
+        "brakingDistanceFirstSecondM": 31.546779944468167,
+        "state": "riding",
+        "crashes": 0
+      },
+      "after": {
+        "peakRearCircle": 0.9489944398688186,
+        "peakReportedRearUse": 0.9489945421875425,
+        "peakFrontUse": 0.3828610861829341,
+        "entrySpeedMps": 34.998312686796474,
+        "exitSpeedMps": 28.588792080616194,
+        "brakingDistanceFirstSecondM": 31.854942324233363,
+        "state": "riding",
+        "crashes": 0
+      }
+    },
+    {
+      "grip": 1,
+      "leanCommand": 1,
+      "before": {
+        "peakRearCircle": 1.1768220947548755,
+        "peakReportedRearUse": 1.0325429006927862,
+        "peakFrontUse": 0.5888211170545623,
+        "entrySpeedMps": 31.453086391036425,
+        "exitSpeedMps": 26.8782345547642,
+        "brakingDistanceFirstSecondM": 29.24046799559961,
+        "state": "riding",
+        "crashes": 0
+      },
+      "after": {
+        "peakRearCircle": 0.9491931916445979,
+        "peakReportedRearUse": 0.9491932845376855,
+        "peakFrontUse": 0.6429475070281246,
+        "entrySpeedMps": 31.453086391036425,
+        "exitSpeedMps": 28.053001703053162,
+        "brakingDistanceFirstSecondM": 29.841160877120373,
+        "state": "riding",
+        "crashes": 0
+      }
+    },
+    {
+      "grip": 0.65,
+      "leanCommand": 0,
+      "before": {
+        "peakRearCircle": 2.2182256063244976,
+        "peakReportedRearUse": 0,
+        "peakFrontUse": 0.9524687941320296,
+        "entrySpeedMps": 35,
+        "exitSpeedMps": 24.074713169139265,
+        "brakingDistanceFirstSecondM": 29.552740859825946,
+        "state": "riding",
+        "crashes": 0
+      },
+      "after": {
+        "peakRearCircle": 0.9500000000000005,
+        "peakReportedRearUse": 0.9500000000000005,
+        "peakFrontUse": 0.95,
+        "entrySpeedMps": 35,
+        "exitSpeedMps": 24.126986157000825,
+        "brakingDistanceFirstSecondM": 29.5840448284332,
+        "state": "riding",
+        "crashes": 0
+      }
+    },
+    {
+      "grip": 0.65,
+      "leanCommand": 0.4,
+      "before": {
+        "peakRearCircle": 1.656723581462014,
+        "peakReportedRearUse": 0.8479877817645076,
+        "peakFrontUse": 0.7790600413291989,
+        "entrySpeedMps": 35,
+        "exitSpeedMps": 25.54056483961622,
+        "brakingDistanceFirstSecondM": 30.29840537845965,
+        "state": "riding",
+        "crashes": 0
+      },
+      "after": {
+        "peakRearCircle": 0.9494743777726755,
+        "peakReportedRearUse": 0.949474386354705,
+        "peakFrontUse": 0.7713971386576719,
+        "entrySpeedMps": 35,
+        "exitSpeedMps": 26.21167704384209,
+        "brakingDistanceFirstSecondM": 30.643572157384103,
+        "state": "riding",
+        "crashes": 0
+      }
+    },
+    {
+      "grip": 0.65,
+      "leanCommand": 0.7,
+      "before": {
+        "peakRearCircle": 1.3927822317214402,
+        "peakReportedRearUse": 0.8485895990966373,
+        "peakFrontUse": 0.45074118420051723,
+        "entrySpeedMps": 34.98769773510236,
+        "exitSpeedMps": 28.370682000647374,
+        "brakingDistanceFirstSecondM": 31.737920842365646,
+        "state": "riding",
+        "crashes": 0
+      },
+      "after": {
+        "peakRearCircle": 0.9492231592410211,
+        "peakReportedRearUse": 0.9492231989173328,
+        "peakFrontUse": 0.4551457523655701,
+        "entrySpeedMps": 34.98769773510236,
+        "exitSpeedMps": 29.42829788210033,
+        "brakingDistanceFirstSecondM": 32.27996429863999,
+        "state": "riding",
+        "crashes": 0
+      }
+    },
+    {
+      "grip": 0.65,
+      "leanCommand": 1,
+      "before": {
+        "peakRearCircle": 1.3374135020245372,
+        "peakReportedRearUse": 1.0169552271112263,
+        "peakFrontUse": 0.5799320419716598,
+        "entrySpeedMps": 31.835837703060086,
+        "exitSpeedMps": 27.225348393337818,
+        "brakingDistanceFirstSecondM": 29.606088723935162,
+        "state": "riding",
+        "crashes": 0
+      },
+      "after": {
+        "peakRearCircle": 0.9493089241686471,
+        "peakReportedRearUse": 0.9493089768209692,
+        "peakFrontUse": 0.6453305965009903,
+        "entrySpeedMps": 31.835837703060086,
+        "exitSpeedMps": 28.63781079121714,
+        "brakingDistanceFirstSecondM": 30.328921390007455,
+        "state": "riding",
+        "crashes": 0
+      }
+    },
+    {
+      "grip": 0.4,
+      "leanCommand": 0,
+      "before": {
+        "peakRearCircle": 1.9615362666137122,
+        "peakReportedRearUse": 0,
+        "peakFrontUse": 0.9502600011442641,
+        "entrySpeedMps": 35,
+        "exitSpeedMps": 27.495691388420983,
+        "brakingDistanceFirstSecondM": 31.297800650870222,
+        "state": "riding",
+        "crashes": 0
+      },
+      "after": {
+        "peakRearCircle": 0.9500000000000002,
+        "peakReportedRearUse": 0.9500000000000002,
+        "peakFrontUse": 0.95,
+        "entrySpeedMps": 35,
+        "exitSpeedMps": 27.57393384535035,
+        "brakingDistanceFirstSecondM": 31.34114981814186,
+        "state": "riding",
+        "crashes": 0
+      }
+    },
+    {
+      "grip": 0.4,
+      "leanCommand": 0.4,
+      "before": {
+        "peakRearCircle": 1.9868668088965789,
+        "peakReportedRearUse": 0.5653537033452494,
+        "peakFrontUse": 0.9519320646218845,
+        "entrySpeedMps": 35,
+        "exitSpeedMps": 27.56848245277722,
+        "brakingDistanceFirstSecondM": 31.33517174368667,
+        "state": "riding",
+        "crashes": 0
+      },
+      "after": {
+        "peakRearCircle": 0.9497270132845734,
+        "peakReportedRearUse": 0.9497270149961147,
+        "peakFrontUse": 0.9499316180380992,
+        "entrySpeedMps": 35,
+        "exitSpeedMps": 27.91340984338456,
+        "brakingDistanceFirstSecondM": 31.514530170964868,
+        "state": "riding",
+        "crashes": 0
+      }
+    },
+    {
+      "grip": 0.4,
+      "leanCommand": 0.7,
+      "before": {
+        "peakRearCircle": 1.9399025396633667,
+        "peakReportedRearUse": 0.8486282013478709,
+        "peakFrontUse": 0.7735407593206222,
+        "entrySpeedMps": 34.99404145880016,
+        "exitSpeedMps": 28.557714846431146,
+        "brakingDistanceFirstSecondM": 31.836901164076064,
+        "state": "riding",
+        "crashes": 0
+      },
+      "after": {
+        "peakRearCircle": 0.9494020520235963,
+        "peakReportedRearUse": 0.9494020636123243,
+        "peakFrontUse": 0.767116272463057,
+        "entrySpeedMps": 34.99404145880016,
+        "exitSpeedMps": 29.38045840439886,
+        "brakingDistanceFirstSecondM": 32.26040132087454,
+        "state": "riding",
+        "crashes": 0
+      }
+    },
+    {
+      "grip": 0.4,
+      "leanCommand": 1,
+      "before": {
+        "peakRearCircle": 1.730982718713252,
+        "peakReportedRearUse": 1.0020026412401593,
+        "peakFrontUse": 0.6100446068354014,
+        "entrySpeedMps": 32.17484571471107,
+        "exitSpeedMps": 28.223594722125902,
+        "brakingDistanceFirstSecondM": 30.282387114656764,
+        "state": "riding",
+        "crashes": 0
+      },
+      "after": {
+        "peakRearCircle": 0.9494497388518117,
+        "peakReportedRearUse": 0.9494497586849178,
+        "peakFrontUse": 0.6558212499577699,
+        "entrySpeedMps": 32.17484571471107,
+        "exitSpeedMps": 29.304100742530586,
+        "brakingDistanceFirstSecondM": 30.83685033493853,
+        "state": "riding",
+        "crashes": 0
+      }
+    }
+  ],
+  "referenceContext": [
+    "REF_070 wet leaned bikes",
+    "REF_096 wet tire and body materials",
+    "REF_098 apex posture and tire contact"
+  ],
+  "referenceUsage": "The reference review motivated examination of corner entry and wet-surface behavior; all coefficients and the correction come from the existing reduced-order model and reproducible code tests, not measurements from photographs.",
+  "implementationFiles": [
+    "src/simulation/bike.ts",
+    "src/simulation/bike-vehicle.ts"
+  ],
+  "regressionTests": [
+    "tests/bike.test.ts: cornering ABS under the current brake stroke",
+    "tests/bike-session.test.ts: crash flows through race control"
+  ],
+  "behavior": "Assisted rear braking reserves lateral capacity at the wheel load caused by the same brake stroke. Front force is then checked against the resulting force pair. Raw brake-slide/highside behavior remains active. Rear force utilization includes braking, and tire thermal response ignores pre-crash utilization during recovery.",
+  "modelParameters": {
+    "mass": 229,
+    "wheelbase": 1.45,
+    "cgHeight": 0.62,
+    "cgToFront": 0.73,
+    "cgToRear": 0.72,
+    "maxSteer": 0.6,
+    "steerRate": 2.2,
+    "maxLean": 1,
+    "mu": 1.55,
+    "power": 180000,
+    "maxDrive": 4200,
+    "frontBrake": 9500,
+    "rearBrake": 2400,
+    "drag": 0.38,
+    "riderOffsetMax": 0.28
+  },
+  "productionGP_R1": {
+    "parameterSource": "bikeParameters(GP_R1, GP_R1.spec.dryMass + GP_R1.bike.fuel)",
+    "parameters": {
+      "mass": 245,
+      "wheelbase": 1.45,
+      "cgHeight": 0.62,
+      "cgToFront": 0.7,
+      "cgToRear": 0.75,
+      "maxSteer": 0.6,
+      "steerRate": 2.4,
+      "maxLean": 1.0036671374806159,
+      "mu": 1.75,
+      "power": 224000,
+      "maxDrive": 0,
+      "frontBrake": 7600,
+      "rearBrake": 1900,
+      "drag": 0.215,
+      "riderOffsetMax": 0.3,
+      "downforce": 0.045,
+      "downforceFront": 0.6,
+      "rolling": 0.015,
+      "wheelieLimit": 0.1,
+      "stoppieMargin": 0.92
+    },
+    "method": "Same settling and braking procedure; the settling drive also balances rolling resistance. This is the production GP_R1 dynamics core, with complete adapters/races checked separately.",
+    "configurations": [
+      {
+        "grip": 1,
+        "leanCommand": 0.7,
+        "before": {
+          "peakRearCircle": 1.003708728305103,
+          "peakReportedRearUse": 0.8486439277294944,
+          "entrySpeedMps": 35,
+          "exitSpeedMps": 28.508956389537584,
+          "state": "riding",
+          "crashes": 0
+        },
+        "after": {
+          "peakRearCircle": 0.9488968338743757,
+          "peakReportedRearUse": 0.9488969661478994,
+          "entrySpeedMps": 35,
+          "exitSpeedMps": 28.69538425018648,
+          "state": "riding",
+          "crashes": 0
+        }
+      },
+      {
+        "grip": 0.65,
+        "leanCommand": 0.7,
+        "before": {
+          "peakRearCircle": 1.141241468679259,
+          "peakReportedRearUse": 0.8487386208405585,
+          "entrySpeedMps": 34.99936527591777,
+          "exitSpeedMps": 28.963004817944945,
+          "state": "riding",
+          "crashes": 0
+        },
+        "after": {
+          "peakRearCircle": 0.9491268912683262,
+          "peakReportedRearUse": 0.9491269461146409,
+          "entrySpeedMps": 34.99936527591777,
+          "exitSpeedMps": 29.48684590640042,
+          "state": "riding",
+          "crashes": 0
+        }
+      },
+      {
+        "grip": 0.4,
+        "leanCommand": 0.7,
+        "before": {
+          "peakRearCircle": 1.4663656739271111,
+          "peakReportedRearUse": 0.8487853289533751,
+          "entrySpeedMps": 35,
+          "exitSpeedMps": 29.187586643762604,
+          "state": "riding",
+          "crashes": 0
+        },
+        "after": {
+          "peakRearCircle": 0.9493153217446866,
+          "peakReportedRearUse": 0.9493153386777582,
+          "entrySpeedMps": 35,
+          "exitSpeedMps": 30.07365859869481,
+          "state": "riding",
+          "crashes": 0
+        }
+      }
+    ]
+  },
+  "verification": {
+    "bikeRegression": {
+      "command": "npx vitest run tests/bike.test.ts tests/bike-setup.test.ts tests/bike-session.test.ts",
+      "exitCode": 0,
+      "files": 3,
+      "testsPassed": 36
+    },
+    "lint": {
+      "command": "npx eslint src/simulation/bike.ts src/simulation/bike-vehicle.ts tests/bike.test.ts tests/bike-session.test.ts",
+      "exitCode": 0
+    },
+    "seededMotorcycleRaces": {
+      "command": "npm run test:bikes",
+      "exitCode": 0,
+      "report": "docs/bike-race.json",
+      "passed": true,
+      "failures": [],
+      "races": 19,
+      "allRidersFinished": true,
+      "totalFalls": 6,
+      "maximumFallsPerRace": 3,
+      "longestStopSeconds": 11.724999999999975
+    },
+    "offroadAndOpenWorld": {
+      "testsPassed": 29,
+      "commands": [
+        {
+          "command": "npx vitest run tests/offroad.test.ts tests/open-world-bikes.test.ts --testNamePattern '^(?!.*joker)'",
+          "exitCode": 0,
+          "testsPassed": 27,
+          "testsSkipped": 2
+        },
+        {
+          "command": "npx vitest run tests/offroad.test.ts --testNamePattern 'joker'",
+          "exitCode": 0,
+          "testsPassed": 2,
+          "testsSkipped": 22
+        }
+      ],
+      "note": "The unfiltered first run passed all 29 assertions but exited 1 on a worker RPC timeout under load. The same complete case set was rerun in two non-overlapping name filters, each exiting 0, with no test or timeout changes."
+    }
+  }
+}

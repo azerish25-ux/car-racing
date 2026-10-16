@@ -18,6 +18,7 @@ import {
   apexLineProfile,
   installAsphaltDetail,
   installRoadDetail,
+  surfaceGridFor,
 } from '../src/rendering/studio/road-detail.ts';
 import { studioHookKeys } from '../src/rendering/studio/shader-hooks.ts';
 import {
@@ -219,13 +220,16 @@ describe('racing surface layer', () => {
       'trackState',
       'surfaceDeposits',
       'roadLampRadius',
+      'apexMotorcycleSurface',
     ]);
     const f = shader.fragmentShader;
     const line = f.indexOf('apexLineMask = apexCore * apexRubber');
     expect(line).toBeGreaterThan(f.indexOf('vec4 roadState = texture2D(trackState, vTrackUV)'));
     expect(line).toBeLessThan(f.indexOf('#include <color_fragment>'));
     expect(f).toContain(`smoothstep(0.0, ${ROAD_DETAIL.rubberFull.toFixed(5)}, roadState.g)`);
-    expect(f).toContain(`exp(-0.5 * (apexX / ${ROAD_DETAIL.lineSigma.toFixed(5)})`);
+    expect(f).toContain(
+      `float apexSigma = mix(${ROAD_DETAIL.lineSigma.toFixed(5)}, 0.56, apexMotorcycleSurface)`,
+    );
     expect(f).toContain(
       `(${ROAD_DETAIL.lineDarkening.toFixed(5)} + ${ROAD_DETAIL.brakeDarkening.toFixed(5)} * apexBrake) * apexLineMask`,
     );
@@ -243,9 +247,29 @@ describe('racing surface layer', () => {
     expect(shader.vertexShader).toContain('attribute vec2 apexLine;');
     expect(shader.vertexShader).toContain('attribute float edgeMetres;');
     expect(material.customProgramCacheKey()).toContain('road-macro-v1');
-    expect(material.customProgramCacheKey()).toContain('|road-detail-v5');
+    expect(material.customProgramCacheKey()).toContain('|road-detail-v6');
     // The wet road hook is not a studio chain, so only the newer key is listed.
-    expect(studioHookKeys(material)).toEqual(['road-detail-v5']);
+    expect(studioHookKeys(material)).toEqual(['road-detail-v6']);
+    material.dispose();
+    state.dispose();
+  });
+  it('changes vehicle-family wear through one live uniform without recompiling the road', () => {
+    stubCanvas();
+    const material = surfaceMaterial('asphalt', undefined, true),
+      state = new T.DataTexture(new Uint8Array(4), 1, 1),
+      motorcycle = { value: 0 };
+    installWetRoad(material, state, true);
+    installRoadDetail(material, 3000, motorcycle);
+    const shader = compile(material),
+      key = material.customProgramCacheKey(),
+      version = material.version;
+    expect(shader.uniforms.apexMotorcycleSurface).toBe(motorcycle);
+    motorcycle.value = 1;
+    expect(shader.uniforms.apexMotorcycleSurface.value).toBe(1);
+    expect(material.customProgramCacheKey()).toBe(key);
+    expect(material.version).toBe(version);
+    motorcycle.value = 0;
+    expect(shader.uniforms.apexMotorcycleSurface.value).toBe(0);
     material.dispose();
     state.dispose();
   });
@@ -411,6 +435,15 @@ describe('repairs, sealant and braking streaks', () => {
 });
 
 describe('grid launch rubber and asphalt tone', () => {
+  it('derives painting coordinates from the same venue slots as the simulation', () => {
+    const track = new Track('clear');
+    expect(surfaceGridFor(track)).toEqual({
+      front: track.pit.gridStart,
+      spacing: track.pit.gridRow,
+      rows: START_GRID.rows,
+      lateral: track.pit.gridColumn,
+    });
+  });
   it('lays launch tracks from the same slots the simulation starts cars in', () => {
     const sim = new Simulation({ ...DEFAULT_OPTIONS, mode: 'race', opponents: 11 });
     const p = trackPoint(),

@@ -8,6 +8,7 @@ import { installCarGrounding } from '../studio/car-grounding.ts';
 import { installLightPools } from '../studio/light-pools.ts';
 import { installGravelFinish } from '../studio/grass-gravel-finish.ts';
 import { chainShaderHook, injectAfter, injectDeclarations } from '../studio/shader-hooks.ts';
+import { installVergeFinish } from '../studio/track-edge-wear.ts';
 import {
   albedoOf,
   installScannedAsphalt,
@@ -307,8 +308,10 @@ export function venueKitMaterials(style: VenueThemeStyle) {
     installLightPools(m);
   }
   // Photographed ground (ground/scanned-ground.ts): verge, trap, run-off, rock.
-  if (groundKind === 'grass') installScannedTurf(ground);
-  else if (groundKind === 'gravel') installScannedGravel(ground);
+  if (groundKind === 'grass') {
+    installScannedTurf(ground);
+    installVergeFinish(ground);
+  } else if (groundKind === 'gravel') installScannedGravel(ground);
   else installScannedConcrete(ground);
   installScannedGravel(gravel);
   installScannedAsphalt(runoff);

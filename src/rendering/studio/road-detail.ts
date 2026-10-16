@@ -82,6 +82,24 @@ export const ROAD_DETAIL = Object.freeze({
  * `spacing` apart, columns at +-`lateral` metres. */
 export const START_GRID = Object.freeze({ front: 32, spacing: 10, rows: 6, lateral: 2.2 });
 
+export interface SurfaceGrid {
+  front: number;
+  spacing: number;
+  rows: number;
+  lateral: number;
+}
+
+/** Paint and launch deposits follow the same venue-specific slots that the
+ * simulation uses, including circuits whose pit straight is shorter. */
+export function surfaceGridFor(track: Track): SurfaceGrid {
+  return {
+    front: track.pit.gridStart,
+    spacing: track.pit.gridRow,
+    rows: START_GRID.rows,
+    lateral: track.pit.gridColumn,
+  };
+}
+
 /** Launch rubber: every start spins the rear tyres up from each grid slot,
  * laying a pair of dark tracks per grid column that fade within ~80 m. */
 export const LAUNCH_RUBBER = Object.freeze({
@@ -227,13 +245,15 @@ interface LineProfile {
   length: number;
 }
 const profiles = new WeakMap<Track, LineProfile>();
+const bikeProfiles = new WeakMap<Track, LineProfile>();
 
 /** Racing-line offset and braking weight along a lap, sampled every
  * ROAD_DETAIL.profileStep metres. The weight rises through each braking zone
  * to 1 at the apex (scaled by the speed lost), fades over ~20 m after it, and
  * carries a lighter share through slow-corner exits. Cached per track. */
-export function apexLineProfile(track: Track): LineProfile {
-  let profile = profiles.get(track);
+export function apexLineProfile(track: Track, motorcycle = false): LineProfile {
+  const cache = motorcycle ? bikeProfiles : profiles;
+  let profile = cache.get(track);
   if (profile) return profile;
   const line = racingLineFor(track),
     length = track.length,
@@ -242,7 +262,7 @@ export function apexLineProfile(track: Track): LineProfile {
   const offset = new Float32Array(n),
     brake = new Float32Array(n);
   for (let i = 0; i < n; i++) offset[i] = line.offsetAt(i * step);
-  for (const zone of tyreMarkZones(track)) {
+  for (const zone of tyreMarkZones(track, motorcycle)) {
     const span = Math.max(zone.end - zone.start, 1e-3);
     if (zone.kind === 'braking') {
       const peak = clamp(zone.strength / 28, 0.45, 1);
@@ -262,7 +282,7 @@ export function apexLineProfile(track: Track): LineProfile {
     }
   }
   profile = { offset, brake, step, length };
-  profiles.set(track, profile);
+  cache.set(track, profile);
   return profile;
 }
 
@@ -274,8 +294,14 @@ function sample(profile: LineProfile, values: Float32Array, s: number) {
 }
 /** Per-vertex `apexLine` for a road vertex at lap distance `s`, lateral `l`:
  * (signed metres from the racing line, braking weight 0-1). */
-export function apexLineAt(track: Track, s: number, l: number, out: [number, number] = [0, 0]) {
-  const profile = apexLineProfile(track);
+export function apexLineAt(
+  track: Track,
+  s: number,
+  l: number,
+  out: [number, number] = [0, 0],
+  motorcycle = false,
+) {
+  const profile = apexLineProfile(track, motorcycle);
   out[0] = l - sample(profile, profile.offset, s);
   out[1] = clamp(sample(profile, profile.brake, s), 0, 1);
   return out;
@@ -283,7 +309,9 @@ export function apexLineAt(track: Track, s: number, l: number, out: [number, num
 
 const ROAD_COMMON = /* glsl */ `
 varying vec2 vApexLine;
+varying float vApexBikeBrake;
 varying float vEdgeMetres;
+uniform float apexMotorcycleSurface;
 // Value noise that repeats every 'period' cells along y, so lap-distance
 // patterns close exactly at the start line.
 float apexLapNoise(vec2 p, float period) {
@@ -297,16 +325,22 @@ float apexLapNoise(vec2 p, float period) {
 /** Install the racing-surface layer on the road material. Requires the wet
  * road (`roadState`, `vRoadMetres`, the macro noise) and the asphalt detail
  * (`vAsphaltWorld`); throws at compile time if either is missing. */
-export function installRoadDetail(material: T.MeshStandardMaterial, lapLength: number) {
+export function installRoadDetail(
+  material: T.MeshStandardMaterial,
+  lapLength: number,
+  motorcycle: T.IUniform<number> = { value: 0 },
+  grid: SurfaceGrid = START_GRID,
+) {
   if (!Number.isFinite(lapLength) || lapLength <= 0) throw new Error('Invalid road lap length');
   const R = ROAD_DETAIL,
-    G = START_GRID,
+    G = grid,
     L = LAUNCH_RUBBER,
     launchBack = G.front + (G.rows - 1) * G.spacing + L.axle;
   // Striation cells along the lap: an integer count, so the pattern closes.
   const alongCells = Math.max(1, Math.round(lapLength / 18)),
     streakCells = Math.max(1, Math.round(lapLength / R.streakLength));
-  return chainShaderHook(material, 'road-detail-v5', (shader) => {
+  return chainShaderHook(material, 'road-detail-v6', (shader) => {
+    shader.uniforms.apexMotorcycleSurface = motorcycle;
     for (const needed of [
       'vec4 roadState',
       'varying vec2 vRoadMetres',
@@ -318,10 +352,14 @@ export function installRoadDetail(material: T.MeshStandardMaterial, lapLength: n
     injectAfter(
       shader,
       'common',
-      'attribute vec2 apexLine; attribute float edgeMetres; varying vec2 vApexLine; varying float vEdgeMetres;',
+      'attribute vec2 apexLine; attribute float apexBikeBrake; attribute float edgeMetres; varying vec2 vApexLine; varying float vApexBikeBrake; varying float vEdgeMetres;',
       'vertex',
     );
-    injectAfter(shader, 'begin_vertex', 'vApexLine = apexLine; vEdgeMetres = edgeMetres;');
+    injectAfter(
+      shader,
+      'begin_vertex',
+      'vApexLine = apexLine; vApexBikeBrake = apexBikeBrake; vEdgeMetres = edgeMetres;',
+    );
     // Below every pars chunk and the wet road's common block, whose macro
     // hash and noise these functions call (GLSL needs them declared first).
     injectAfter(
@@ -342,9 +380,10 @@ export function installRoadDetail(material: T.MeshStandardMaterial, lapLength: n
       'color_fragment',
       `{
         float apexX = vApexLine.x;
-        float apexBrake = clamp(vApexLine.y, 0.0, 1.0);
+        float apexBrake = clamp(mix(vApexLine.y, vApexBikeBrake, apexMotorcycleSurface), 0.0, 1.0);
         float apexRubber = smoothstep(0.0, ${g(R.rubberFull)}, roadState.g);
-        float apexCore = exp(-0.5 * (apexX / ${g(R.lineSigma)}) * (apexX / ${g(R.lineSigma)}));
+        float apexSigma = mix(${g(R.lineSigma)}, 0.56, apexMotorcycleSurface);
+        float apexCore = exp(-0.5 * (apexX / apexSigma) * (apexX / apexSigma));
         // Laid rubber is streaky: many passes a tyre wide, a little off the
         // mean line. Fine lateral striations, varying slowly along the lap and
         // converging to their mean before they would alias.
@@ -353,6 +392,9 @@ export function installRoadDetail(material: T.MeshStandardMaterial, lapLength: n
         float apexStri = mix(0.5, apexLapNoise(apexStriP, ${g(alongCells)}), apexStriAA);
         // Striations average 1.0, so the line keeps its full darkening at range.
         apexLineMask = apexCore * apexRubber * mix(0.8, 1.2, apexStri);
+        // A bike's contact paths are narrower and less continuously polished
+        // than the four-wheel line; the actual laid rubber still sets strength.
+        apexLineMask *= mix(1.0, 0.72 + 0.28 * apexStri, apexMotorcycleSurface);
         // Traffic streaks: every car's tyres polish and dust lanes along the
         // lap, strongest around the line. Converge to the mean before aliasing.
         vec2 apexLaneP = vec2(vRoadMetres.x / ${g(R.streakWidth)}, vRoadMetres.y * ${g(streakCells / lapLength)});
@@ -372,12 +414,13 @@ export function installRoadDetail(material: T.MeshStandardMaterial, lapLength: n
         // below has unit lateral slope, so this is also its own footprint.
         float apexWheelAA = max(fwidth(vRoadMetres.x), 1e-4);
         if (apexFromLine > ${g(-launchBack - 1)} && apexFromLine < ${g(L.decay * 4.5)}) {
-          float apexWheel = abs(abs(abs(vRoadMetres.x) - ${g(G.lateral)}) - ${g(L.halfTrack)});
+          float apexWheel = abs(abs(abs(vRoadMetres.x) - ${g(G.lateral)}) - mix(${g(L.halfTrack)}, 0.0, apexMotorcycleSurface));
+          float apexLaunchWidth = mix(${g(L.halfWidth)}, 0.09, apexMotorcycleSurface);
           // Many starts from slightly different stances: a soft-shouldered track.
-          float apexTyre = 1.0 - smoothstep(${g(L.halfWidth * 0.55)} - apexWheelAA, ${g(L.halfWidth * 1.7)} + apexWheelAA, apexWheel);
+          float apexTyre = 1.0 - smoothstep(apexLaunchWidth * 0.55 - apexWheelAA, apexLaunchWidth * 1.7 + apexWheelAA, apexWheel);
           float apexLaunches = 0.0;
           for (int k = 0; k < ${G.rows}; k++) {
-            float apexAlong = apexFromLine + ${g(G.front + L.axle)} + float(k) * ${g(G.spacing)};
+            float apexAlong = apexFromLine + ${g(G.front)} + mix(${g(L.axle)}, 0.75, apexMotorcycleSurface) + float(k) * ${g(G.spacing)};
             if (apexAlong > 0.0) apexLaunches += 0.7 * exp(-apexAlong / ${g(L.decay)}) * smoothstep(0.0, 1.2, apexAlong);
           }
           // Tread streaks inside each track, converging before they alias.
