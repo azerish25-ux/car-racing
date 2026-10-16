@@ -10,6 +10,7 @@ import {
 } from '../simulation/protocol.ts';
 import { PHASE } from '../simulation/race.ts';
 import type { StartSlot } from '../simulation/config.ts';
+import type { CircuitId } from '../simulation/circuits.ts';
 
 /** Additional observations in the existing presentation capture, not a second
  * simulation or a driving controller. Distances are metres and time is seconds.
@@ -287,6 +288,16 @@ export const isRacingWorkload = (workload: string) =>
 export const REVIEW_START_SLOTS: Readonly<Partial<Record<string, StartSlot>>> = Object.freeze({
   'close-racing': 'midfield',
   'wet-following': 'back',
+});
+
+/** Explicit menu circuit for workloads whose event depends on the venue.
+ * Aurel's current back-grid field separates after the launch; it no longer
+ * provides a three-second post-launch interval at every 0.9 s sampling phase.
+ * Vellamar supplies sustained real wet following later in the lap, without
+ * changing the field, driving, particle density, or qualification thresholds.
+ * Browser capture and its headless regression must select the same circuit. */
+export const REVIEW_CIRCUITS: Readonly<Partial<Record<string, CircuitId>>> = Object.freeze({
+  'wet-following': 'vellamar',
 });
 
 /** Qualifies events from adjacent, advancing simulation observations. Holding a

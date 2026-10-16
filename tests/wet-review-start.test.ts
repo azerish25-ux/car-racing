@@ -7,6 +7,7 @@ import { Effects } from '../src/rendering/effects.ts';
 import { EffectPlayback } from '../src/rendering/effect-playback.ts';
 import {
   REVIEW_START_SLOTS,
+  REVIEW_CIRCUITS,
   RaceReviewEvents,
   raceReviewFrame,
   readRaceReviewFrame,
@@ -26,22 +27,23 @@ function disposeEffects(effects: Effects) {
   materials.forEach((material) => material.dispose());
 }
 
-// The hosted review (e2e/29 '27H.6 wet-following') records this exact session:
-// the menu's default circuit, seed and setup, five laps, eight cars, rain, full
-// wets, the workload's paddock START slot and the AI driving the player. The
-// browser worker reproduces it tick for tick, so its wet-following intervals
-// are known here. Hosted software rendering has exceeded the recorder's one-
-// second continuity gate near the launch, and run 38685156128 finished both
-// views unqualified when the mid-field session followed a wet car for longer
-// than 3.4 s only during the launch. The thresholds are unchanged: this only
-// requires following that a recorder could observe after the launch.
+// The hosted review (e2e/29 '27H.6 wet-following') and this regression use
+// the same explicit circuit and START slot, default seed/setup, five laps,
+// eight cars, rain, full wets and the AI driving the player. Do not rely on
+// the menu's default circuit: Aurel's revised field no longer supplies a
+// sufficiently long post-launch interval at all four slow sampling phases.
+// Vellamar retains later real following; recording still starts 15 s after
+// green and still requires three uninterrupted seconds of actual leader spray.
 describe('hosted wet-following session', () => {
   it('follows a wet car after the launch at a sub-second recorder cadence', () => {
     const cars = 8,
-      slot = REVIEW_START_SLOTS['wet-following'];
+      slot = REVIEW_START_SLOTS['wet-following'],
+      circuit = REVIEW_CIRCUITS['wet-following'];
     expect(slot).toBeDefined();
+    expect(circuit).toBeDefined();
     const sim = new Simulation({
       ...DEFAULT_OPTIONS,
+      circuit,
       mode: 'race',
       laps: 5,
       opponents: cars - 1,
@@ -49,6 +51,7 @@ describe('hosted wet-following session', () => {
       compound: 'wet',
       grid: startingGrid(cars, slot!),
     });
+    expect(sim.track.circuit.id).toBe(circuit);
     sim.autoPlayer = true;
     // Presented every 0.9 s (inside the 1 s gate) at four phases, starting
     // 15 s after the green: following that ends with the launch never counts.

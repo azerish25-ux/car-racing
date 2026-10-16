@@ -7,7 +7,7 @@ import { finishRaceEntry } from './race-entry.ts';
 import { test, expect, type Page, type TestInfo } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { H } from '../src/simulation/protocol.ts';
-import { REVIEW_START_SLOTS } from '../src/rendering/race-review.ts';
+import { REVIEW_START_SLOTS, REVIEW_CIRCUITS } from '../src/rendering/race-review.ts';
 import {
   readPresentationReport,
   type ReviewWorkload,
@@ -115,17 +115,17 @@ for (const drive of drives)
     await page.selectOption('#opponents', drive.opponents);
     await page.selectOption('#weather', drive.weather);
     await page.selectOption('#compound', drive.weather === 'rain' ? 'wet' : 'medium');
-    // Following and close racing need a car alongside. With the AI driving to
-    // the measured car envelope, a pole-sitter runs away from the field (run
-    // 36817461056 never held a rival close for 5 s), so these reviews start
-    // further back (the paddock START option). Since physics v2 the mid-field
-    // wet session follows a wet car for longer than 3.4 s only during the
-    // launch (6.9-16.2 s), which run 38685156128 could not record within the
-    // one-second continuity gate; from the back it follows again at 29-37 s
-    // and 46-55 s. tests/wet-review-start.test.ts replays this exact session.
-    // The qualification thresholds are unchanged.
-    const startSlot = REVIEW_START_SLOTS[drive.workload];
+    // Select ordinary menu inputs shared with the headless session regression.
+    // Wet following uses Vellamar explicitly: the default Aurel back-grid field
+    // now separates too soon after launch for every slow recording phase.
+    // Keep eight cars, real driving/spray, and the original qualification gates.
+    const startSlot = REVIEW_START_SLOTS[drive.workload],
+      circuit = REVIEW_CIRCUITS[drive.workload];
     if (startSlot) await page.selectOption('#startSlot', startSlot);
+    if (circuit) {
+      await page.selectOption('#circuit', circuit);
+      await expect(page.locator('#circuit')).toHaveValue(circuit);
+    }
     // All event reviews begin from the ordinary held grid. A running start lets
     // slow browser setup advance the opponents before the player's AI and camera
     // are ready. No vehicle is repositioned and simulation timing is unchanged.
@@ -281,6 +281,7 @@ for (const drive of drives)
       height: (canvas as HTMLCanvasElement).height,
     }));
     expect(buffer).toEqual({ width: configuration.width, height: configuration.height });
+    if (circuit) expect(configuration.session.circuit).toBe(circuit);
     expect(configuration.session.opponents).toBe(Number(drive.opponents));
     expect(configuration.graphics.particleDensity).toBe(drive.weather === 'rain' ? 1 : 0);
     if (pausedStart) expect(report.context.startTime).toBe(0);

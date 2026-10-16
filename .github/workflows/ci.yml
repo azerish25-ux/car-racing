@@ -17,7 +17,11 @@ jobs:
           node-version: '22'
           cache: npm
       - run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
-      - run: npm run check:stable
+      # Produce the exact build independently of the unit-test job. A unit
+      # regression must not suppress browser diagnostics for a valid build;
+      # publication still requires both jobs and every existing browser gate.
+      - name: Lint, validate content, typecheck and build without source changes
+        run: node --experimental-transform-types scripts/source-stability.ts -- bash -c 'npm run lint && npm run validate:content && npm run build'
       - name: Static application build
         uses: actions/upload-artifact@v4
         with:
@@ -36,6 +40,20 @@ jobs:
             ${{ runner.temp }}/apex-source.tar.gz
             ${{ runner.temp }}/source-commit.txt
           retention-days: 7
+  unit-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+      # npm test retains pretest asset generation and runs the whole suite.
+      # No filters or skipped regressions; failures remain blocking for publication.
+      - name: Full unit suite without source changes
+        run: node --experimental-transform-types scripts/source-stability.ts -- npm test
   scenarios:
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -62,10 +80,10 @@ jobs:
             docs/scenario-results.json
             docs/dynamics-benchmark.json
             docs/marshal-integration.json
+            docs/pit-integration.json
             docs/wet-pit-results.json
             docs/integrated-driving.json
             docs/rotation-benchmark.json
-            docs/pit-integration.json
             docs/race-classification.json
             docs/vellamar-race.json
             docs/reference-targets.json
@@ -249,7 +267,7 @@ jobs:
   publish:
     # Ship exactly the build tested above, never a parallel unvalidated rebuild.
     # The CDN workflow consumes this gated artifact, not an independent build.
-    needs: [validate, scenarios, browser, wet-presentation]
+    needs: [validate, unit-tests, scenarios, browser, wet-presentation]
     # Manual validation of the current main must produce the SAME gated artifact.
     # Keep success() and all needs: a dispatch never bypasses a failed test.
     if: >-
