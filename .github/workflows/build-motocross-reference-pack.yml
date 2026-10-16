@@ -1,0 +1,55 @@
+name: Build motocross reference candidates
+
+on:
+  push:
+    branches:
+      - automation/motocross-reference-pack-build
+    paths:
+      - tools/build_motocross_reference_candidates.py
+      - .github/workflows/build-motocross-reference-pack.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-reference-candidates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install media and Python dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ffmpeg
+          python -m pip install --upgrade pip
+          python -m pip install requests beautifulsoup4 pillow imagehash
+
+      - name: Build source-traceable candidate pack
+        run: python tools/build_motocross_reference_candidates.py
+
+      - name: Summarize build
+        if: always()
+        run: |
+          if [ -f motocross_reference_build/build_report.json ]; then
+            cat motocross_reference_build/build_report.json
+          fi
+
+      - name: Upload candidate pack
+        uses: actions/upload-artifact@v4
+        with:
+          name: motocross-reference-candidates
+          path: |
+            motocross_reference_build/motocross_ps5_reference_candidates.zip
+            motocross_reference_build/build_report.json
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
