@@ -25,22 +25,43 @@ Every original image is separately indexed, but **an indexed image does not impl
    `tests/gp-cooling-louvers.test.ts` checks symmetry, finite geometry, bounds
    and LOD budgets. No real-world team marks, PS5 screenshots or licensed models ship.
 
+3. **Moving mechanical drivetrain for GP-R1:** `src/rendering/gp-chain-drive.ts`
+   replaces the two stationary rectangular chain runs and the plain annulus
+   in the high-LOD GP-R1 only. A closed spline and 512 precomputed arc-length
+   samples position repeated steel pins/rollers and forged outer side plates
+   through **two instanced draw calls**, with a **42-tooth rear sprocket**
+   attached to the rear wheel spin node. The chain phase comes from the
+   recorded rear-wheel angle; a complete wheel rotation permutes identical
+   links, avoiding a snapshot wrap pop. Mid/distant and other motorcycles
+   retain the cheaper original. `tests/gp-chain-drive.test.ts` covers
+   instance budgets, replay seek determinism, wheel-phase wrapping and
+   non-finite pose guards. This is visual animation only; there is no change
+   to gearbox or physical grip coefficients.
+
 ## Reproducible Blender authoring
 
 ```sh
 blender --background --python tools/motogp/author_gp_cooling_louvers.py -- --out /tmp/motogp-r3
 ```
 
-This emits an editable `.blend` and exportable `.glb` **in the requested output directory**.
+The cooling-outlet authoring command emits an editable `.blend` and exportable `.glb` **in the requested output directory**.
 The game uses the matching procedural geometry code; it does not fetch or depend
 on the authoring GLB at runtime. Both were generated and rendered locally.
+To author the separate drivetrain geometry for artist interchange:
+
+```sh
+blender --background --python tools/motogp/author_gp_chain_drive.py -- --out /tmp/motogp-r3-chain
+```
+
+The Blender chain assembly is independently editable; the game animates
+equivalent instanced primitives rather than loading that large source GLB.
 Rebuild `tools/motogp/build_gp_bodywork.py` separately for the existing full shell.
 
 ## Tested in the development container
 
 - Supplied image archive integrity and exact R2 correspondence: **100/100 SHA-256 matches**.
 - Blender 5.2.2 LTS: actual original assets saved to `.blend` and `.glb`;
-  standalone component and original full shell plus new detail rendered.
+  standalone component and original full shell plus new detail rendered; the later authored chain source separately exported.
   These are authoring previews, not gameplay captures.
 - The pure dynamics integration executed at 48 m/s: with 85% tow,
   measured deceleration improves by approximately **0.543 m/s²** against
