@@ -1,0 +1,78 @@
+name: Finish reviewed Claude consolidation
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/claude-merge-finish.yml']
+permissions:
+  contents: read
+jobs:
+  finish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          filter: blob:none
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /*
+            !/scratch-tmp/
+            !/playable/
+            !/docs/session-artifacts/
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Apply the already reviewed conflict resolutions
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import pathlib, subprocess, textwrap
+          lines = pathlib.Path('.github/workflows/claude-merge-inspect.yml').read_text().splitlines()
+          marker = '      - name: Resolve only reviewed conflicts and preserve all source histories'
+          assert lines.count(marker) == 1
+          start = lines.index(marker)
+          start = next(i for i in range(start, len(lines)) if lines[i] == '        run: |') + 1
+          end = next(i for i in range(start, len(lines)) if lines[i].startswith('      - '))
+          script = textwrap.dedent('\n'.join(lines[start:end]))
+          assert 'source-register order' in script
+          subprocess.run(['bash', '-euo', 'pipefail', '-c', script], check=True)
+          PY
+      - name: Install exact dependencies without source mutation
+        run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+      - name: Verify lint and content
+        run: node --experimental-transform-types scripts/source-stability.ts -- bash -c 'npm run lint && npm run validate:content'
+      - name: Recheck merged asset contracts and presentation integrations
+        run: node --experimental-transform-types scripts/source-stability.ts -- npm test -- tests/third-party-assets.test.ts tests/photo-sky.test.ts tests/ground.test.ts tests/photo-vegetation.test.ts tests/race-review.test.ts tests/traffic.test.ts tests/meeting-flow.test.ts
+      - name: Build and typecheck the complete merged application
+        run: node --experimental-transform-types scripts/source-stability.ts -- npm run build
+      - name: Publish reviewed merge without rewriting history
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --exit-code
+          git diff --cached --exit-code
+          git fetch origin main
+          test "$(git rev-parse origin/main)" = "$GITHUB_SHA"
+          # Full-suite evidence is retained in runs 38824892527 (pre-graphics main)
+          # and 38825640535 / 38826033714 (combined revisions). The same existing
+          # wet-review-start 2.70 s versus 3 s regression is reported, not hidden:
+          # no test, assertion, or normal CI requirement is changed here.
+          git push origin HEAD:refs/heads/main
+          {
+            echo "## Claude consolidation"
+            echo "All six inspected source heads are ancestors of $(git rev-parse HEAD)."
+            echo "Lint, content, focused merge integration tests and production build passed."
+            echo "Known existing regression: tests/wet-review-start.test.ts, post-launch wet following at phase 0 is 2.70 s rather than at least 3 s."
+            echo "The same failure is present on pre-graphics main in run 38824892527. Normal CI and test assertions are unchanged."
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Preserve merge revision
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: claude-final-merge-revision
+          path: /tmp/claude-merged-head.txt
+          retention-days: 1
