@@ -797,8 +797,10 @@ export class RacingRenderer {
   async waitForPreparedFrame(cancelled: () => boolean, yieldFrame: () => Promise<void>) {
     const deadline = performance.now() + 45000;
     while (!cancelled() && !this.gpuFrames.ready()) {
-      // A slow GPU starts the session late rather than failing it.
-      if (performance.now() >= deadline) return;
+      // A timeout is not completion. Releasing targets or applying a new
+      // quality while this fence is unfinished would violate GPU ownership.
+      if (performance.now() >= deadline)
+        throw new Error('GPU preparation did not complete within 45000ms');
       await yieldFrame();
     }
   }

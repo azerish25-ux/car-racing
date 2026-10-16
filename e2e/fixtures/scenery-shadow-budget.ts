@@ -3,6 +3,7 @@ import { RacingRenderer } from '../../src/rendering/renderer.ts';
 import { graphicsPreset } from '../../src/rendering/options.ts';
 import { Simulation } from '../../src/simulation/world.ts';
 import { DEFAULT_OPTIONS } from '../../src/simulation/config.ts';
+import { captureGlErrors } from './gl-error-census.ts';
 
 /** Read-only submission census for the SAME first complete cockpit frame as the
  * infrastructure budget. Does not warm away a lighting bake or hide any caster.
@@ -40,12 +41,8 @@ export async function sceneryShadowBudget(lighting: 'day' | 'sunset' | 'night') 
   // This is test-only instrumentation and never accepts an erroneous frame.
   const gl = renderer.getContext();
   const glErrorStages: { stage: string; code: number }[] = [];
-  const captureGlError = (stage: string) => {
-    const code = gl.getError();
-    if (code !== gl.NO_ERROR) glErrorStages.push({ stage, code });
-  };
+  const captureGlError = (stage: string) => captureGlErrors(gl, stage, glErrorStages);
   captureGlError('construction');
-  const drawErrors: { code: number; camera: string; object: string; material: string }[] = [];
   const originalDraw = renderer.renderBufferDirect;
   const rows = new Map<
     string,
@@ -55,16 +52,9 @@ export async function sceneryShadowBudget(lighting: 'day' | 'sunset' | 'night') 
     const beforeCalls = renderer.info.render.calls;
     const beforeTriangles = renderer.info.render.triangles;
     originalDraw.call(this, camera, scene, geometry, material, object, group);
-    // WebGL errors are sticky. Observe them immediately after individual draws
-    // to identify the first offending mesh instead of the later screenshot.
-    const drawCode = gl.getError();
-    if (drawCode !== gl.NO_ERROR && drawErrors.length < 12)
-      drawErrors.push({
-        code: drawCode,
-        camera: camera.type,
-        object: object.name || object.type,
-        material: material.name || material.type,
-      });
+    // Do not issue a synchronous driver round-trip after every draw. Sticky
+    // GL errors are drained at every phase boundary below; zero-error gates,
+    // all submissions and the cold first-frame workload remain unchanged.
     if (!(material instanceof T.MeshDepthMaterial || material instanceof T.MeshDistanceMaterial))
       return;
     const names: string[] = [];
@@ -173,9 +163,10 @@ export async function sceneryShadowBudget(lighting: 'day' | 'sunset' | 'night') 
       passes: stats.drawBreakdown,
       shadows,
       sourceUnchanged: frame.every((v, i) => Object.is(v, original[i])),
-      glError: drawErrors[0]?.code ?? glErrorStages[0]?.code ?? gl.getError(),
+      glError: glErrorStages[0]?.code ?? gl.getError(),
       glErrorStages,
-      drawErrors,
+      drawErrors: null, // Per-draw synchronous diagnostics are deliberately not collected.
+      errorObservation: 'phase-boundaries',
       contextLost: gl.isContextLost(),
     };
   } finally {

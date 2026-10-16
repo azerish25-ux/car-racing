@@ -151,3 +151,42 @@ it('restores the selected camera when a GPU warmup pass throws', async () => {
   expect(target.mode).toBe('pod');
   expect(target.reset).toHaveBeenCalled();
 });
+
+it('never treats an unfinished GPU preparation deadline as successful completion', async () => {
+  let now = 0;
+  const clock = vi.spyOn(performance, 'now').mockImplementation(() => now);
+  const target = { gpuFrames: { ready: vi.fn(() => false) } } as unknown as RacingRenderer;
+  try {
+    await expect(
+      RacingRenderer.prototype.waitForPreparedFrame.call(
+        target,
+        () => false,
+        async () => {
+          now += 45001;
+        },
+      ),
+    ).rejects.toThrow('GPU preparation did not complete');
+  } finally {
+    clock.mockRestore();
+  }
+});
+
+it('does not apply graphics or compile when preparation fails', async () => {
+  const target = {
+    disposed: false,
+    waitForPreparedFrame: vi.fn(async () => {
+      throw new Error('GPU preparation did not complete');
+    }),
+    setQuality: vi.fn(),
+  };
+  await expect(
+    RacingRenderer.prototype.prepareQuality.call(
+      target as unknown as RacingRenderer,
+      'low',
+      {} as never,
+      () => false,
+      async () => {},
+    ),
+  ).rejects.toThrow('GPU preparation did not complete');
+  expect(target.setQuality).not.toHaveBeenCalled();
+});

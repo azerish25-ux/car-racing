@@ -42,84 +42,82 @@ function fixture() {
 }
 
 describe('bounded asynchronous GPU frame submissions', () => {
-  it('never deadlocks on a fence whose status is not refreshed (F01)', () => {
+  it('refreshes an overdue fence without declaring unfinished work complete', () => {
     const { gate, gl, state, clock } = fixture();
     gate.submittedFrame();
-    state.wait = gl.TIMEOUT_EXPIRED;
-    // A held replay submits nothing else; the status poll never changes.
-    for (let ms = 1; ms <= 1200; ms++) {
-      clock.now = ms;
-      expect(gate.ready()).toBe(ms >= 1000);
-      if (gate.diagnostics().expiredFences) break;
-    }
-    expect(gate.diagnostics()).toMatchObject({ pending: false, expiredFences: 1 });
-    expect(state.deleted).toHaveLength(1);
-    // A fence that completes within the bound is still awaited normally.
-    gate.submittedFrame();
-    clock.now += 100;
+    clock.now = 1001;
     expect(gate.ready()).toBe(false);
-  });
-  it('drains rather than queueing: a slow GPU never has two frames in flight', () => {
-    const { gate, gl, state, clock } = fixture();
-    // Frames that genuinely take 2 s each, polled every 16 ms. A drain at the
-    // 1 s floor blocks for the remaining second of real GPU work.
-    state.finishCost = 1000;
-    for (let i = 0; i < 6; i++) {
-      gate.submittedFrame();
-      let done = false;
-      for (let t = 16; t <= 2000 && !done; t += 16) {
-        clock.now += 16;
-        state.wait = t >= 2000 ? gl.CONDITION_SATISFIED : gl.TIMEOUT_EXPIRED;
-        done = gate.ready();
-      }
-      // Whatever released the fence, nothing is outstanding before the next draw.
-      expect(gate.diagnostics().pending).toBe(false);
-      expect(gate.diagnostics().completed).toBe(gate.diagnostics().submitted);
-    }
-    // Early releases always drained the GPU first.
-    expect(state.finishes).toBe(gate.diagnostics().expiredFences);
-    // Once latency is learned, a 2 s frame is awaited by polling, not drained.
-    expect(gate.waitBoundMs).toBeGreaterThan(2000);
-    // A stale fence (work long done) is resolved without learning latency.
-    state.finishCost = 0;
-    const learned = gate.diagnostics().latencyMs;
-    gate.submittedFrame();
-    state.wait = gl.TIMEOUT_EXPIRED;
-    for (let t = 0; t < 10000; t += 16) {
-      clock.now += 16;
-      if (gate.ready()) break;
-    }
-    expect(gate.diagnostics().pending).toBe(false);
-    expect(gate.diagnostics().latencyMs).toBe(learned);
-  });
-  it('does not grow its own wait on a host that never refreshes fence status', () => {
-    const { gate, gl, state, clock } = fixture();
-    // Fast frames, but the status is never refreshed and each drain costs a
-    // few milliseconds of driver overhead (software GL). The gate's own wait
-    // must not be mistaken for GPU latency.
-    state.wait = gl.TIMEOUT_EXPIRED;
-    state.finishCost = 5;
-    let longest = 0;
-    for (let i = 0; i < 20; i++) {
-      gate.submittedFrame();
-      const start = clock.now;
-      while (!gate.ready()) clock.now += 16;
-      longest = Math.max(longest, clock.now - start);
-    }
-    expect(gate.waitBoundMs).toBe(1000);
-    expect(longest).toBeLessThan(1100);
-    expect(gate.diagnostics().expiredFences).toBe(20);
-  });
-  it('ignores completions first observed after an idle period and caps the bound', () => {
-    const { gate, gl, state, clock } = fixture();
-    gate.submittedFrame();
-    // Held replay: nothing polls for a minute, then the fence is seen done.
-    clock.now += 60000;
+    expect(state.finishes).toBe(0);
+    expect(state.flushes).toBe(2);
+    expect(gate.diagnostics()).toMatchObject({ pending: true, completed: 0, flushRefreshes: 1 });
+    // The next task observes actual completion after the driver progresses.
+    clock.now += 16;
     state.wait = gl.CONDITION_SATISFIED;
     expect(gate.ready()).toBe(true);
-    expect(gate.diagnostics().latencyMs).toBe(0);
-    expect(gate.waitBoundMs).toBe(1000);
+    expect(state.deleted).toHaveLength(1);
+    expect(gate.diagnostics().completed).toBe(1);
+  });
+
+  it('keeps input callbacks live throughout a 30-second GPU workload', () => {
+    const { gate, gl, state, clock } = fixture();
+    state.finishCost = 30000;
+    gate.submittedFrame();
+    let inputPolls = 0;
+    for (let t = 16; t < 30000; t += 16) {
+      clock.now = t;
+      inputPolls++;
+      expect(gate.ready()).toBe(false);
+      expect(clock.now).toBe(t);
+    }
+    expect(inputPolls).toBeGreaterThan(1800);
+    expect(state.next).toBe(1);
+    expect(state.finishes).toBe(0);
+    expect(gate.diagnostics().completed).toBe(0);
+    state.wait = gl.CONDITION_SATISFIED;
+    expect(gate.ready()).toBe(true);
+    gate.submittedFrame();
+    expect(state.next).toBe(2);
+  });
+
+  it('fails closed on a persistently stuck driver instead of draining or queueing', () => {
+    const { gate, state, clock } = fixture();
+    gate.submittedFrame();
+    for (let t = 16; t < 120000; t += 16) {
+      clock.now = t;
+      expect(gate.ready()).toBe(false);
+    }
+    clock.now = 120000;
+    expect(() => gate.ready()).toThrow('GPU frame completion stalled');
+    expect(gate.ready()).toBe(false);
+    expect(() => gate.submittedFrame()).toThrow('GPU frame completion stalled');
+    expect(state.finishes).toBe(0);
+    expect(state.next).toBe(1);
+    expect(gate.diagnostics().completed).toBe(0);
+  });
+
+  it('does not mistake a hidden tab or held editor for active GPU waiting', () => {
+    const { gate, gl, state, clock } = fixture();
+    gate.submittedFrame();
+    clock.now += 600000;
+    expect(gate.ready()).toBe(false);
+    expect(gate.diagnostics().activeWaitMs).toBe(0);
+    state.wait = gl.CONDITION_SATISFIED;
+    expect(gate.ready()).toBe(true);
+    expect(state.finishes).toBe(0);
     expect(gate.maxWaitMs).toBe(10000);
+  });
+
+  it('rejects unbounded or invalid polling configuration', () => {
+    const { gl } = fixture();
+    for (const limits of [
+      [0, 10, 100],
+      [10, 5, 100],
+      [10, 100, 100],
+      [1, 2, Infinity],
+    ])
+      expect(() => new GpuFrameGate(gl, () => 0, ...(limits as [number, number, number]))).toThrow(
+        'Invalid GPU frame polling limits',
+      );
   });
   it('permits the first frame and flushes a completion fence after its passes', () => {
     const { gate, gl, state } = fixture();
@@ -133,7 +131,10 @@ describe('bounded asynchronous GPU frame submissions', () => {
       submitted: 1,
       completed: 0,
       deferredCallbacks: 0,
-      expiredFences: 0,
+      flushRefreshes: 0,
+      pendingMs: 0,
+      activeWaitMs: 0,
+      failure: null,
       latencyMs: 0,
     });
   });

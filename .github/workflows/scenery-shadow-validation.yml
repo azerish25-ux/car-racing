@@ -10,6 +10,7 @@ on:
       - 'src/rendering/**'
       - 'e2e/scenery-shadow-budget.spec.ts'
       - 'e2e/fixtures/scenery-shadow-budget.ts'
+      - 'e2e/fixtures/gl-error-census.ts'
       - '.github/workflows/scenery-shadow-validation.yml'
 permissions:
   contents: read

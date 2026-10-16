@@ -12,6 +12,7 @@ on:
       - e2e/30-menu-access.spec.ts
       - e2e/settings-transition.spec.ts
       - e2e/menu-startup.ts
+      - e2e/gpu-frame-gate.spec.ts
 permissions:
   contents: read
 jobs:
@@ -52,7 +53,7 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb
       - name: Original settings and paused-grid regression
-        run: xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e -- e2e/30-menu-access.spec.ts e2e/settings-transition.spec.ts --trace on
+        run: xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e -- e2e/30-menu-access.spec.ts e2e/settings-transition.spec.ts e2e/gpu-frame-gate.spec.ts --trace on
       - name: Retain settings evidence including failures
         if: always()
         uses: actions/upload-artifact@v4
