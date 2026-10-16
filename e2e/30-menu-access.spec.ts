@@ -1,3 +1,4 @@
+import { MENU_STARTUP_TIMEOUT_MS } from './menu-startup.ts';
 import { test, expect } from '@playwright/test';
 import { build } from 'vite';
 import { resolve } from 'node:path';
@@ -106,14 +107,14 @@ test('27H.6 menu access: 640x400 settings persist and the normal paused grid sta
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/');
-  await expect(page.locator('#menu')).toBeVisible({ timeout: 90000 });
+  await expect(page.locator('#menu')).toBeVisible({ timeout: MENU_STARTUP_TIMEOUT_MS });
   const settings = page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true });
   await settings.click();
   await page.locator('[name=quality]').selectOption('low');
   await page.getByRole('button', { name: 'APPLY & SAVE', exact: true }).click();
   await expect(page.locator('#modal')).toBeHidden();
   await page.reload();
-  await expect(page.locator('#menu')).toBeVisible({ timeout: 90000 });
+  await expect(page.locator('#menu')).toBeVisible({ timeout: MENU_STARTUP_TIMEOUT_MS });
   await settings.click();
   await expect(page.locator('[name=quality]')).toHaveValue('low');
   await page.getByRole('button', { name: 'CANCEL', exact: true }).click();

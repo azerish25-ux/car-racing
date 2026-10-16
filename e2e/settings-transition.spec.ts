@@ -1,3 +1,4 @@
+import { MENU_STARTUP_TIMEOUT_MS } from './menu-startup.ts';
 import { test, expect } from '@playwright/test';
 
 test.use({ actionTimeout: 15000 });
@@ -9,7 +10,7 @@ for (const [width, height] of [[640, 400], [1280, 720]]) {
     const errors: string[] = [];
     page.on('pageerror', (error) => errors.push(error.message));
     await page.goto('/');
-    await expect(page.locator('#menu')).toBeVisible({ timeout: 90000 });
+    await expect(page.locator('#menu')).toBeVisible({ timeout: MENU_STARTUP_TIMEOUT_MS });
     const settings = page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true });
     // Observe the real click before its handler opens the editor. No synthetic
     // click, forced input, altered renderer, or wait-for-timeout retry is used.
@@ -44,7 +45,7 @@ for (const [width, height] of [[640, 400], [1280, 720]]) {
     await expect.poll(() => page.evaluate(() => window.apexDiagnostics().settingsTransition))
       .toEqual({ busy: false, phase: 'idle' });
     await page.reload();
-    await expect(page.locator('#menu')).toBeVisible({ timeout: 90000 });
+    await expect(page.locator('#menu')).toBeVisible({ timeout: MENU_STARTUP_TIMEOUT_MS });
     await settings.click();
     await expect(page.locator('[name=quality]')).toHaveValue('low');
     // Exercise keyboard submission with unchanged graphics as well as the cold
