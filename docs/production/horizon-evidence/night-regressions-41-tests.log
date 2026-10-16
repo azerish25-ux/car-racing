@@ -1,0 +1,20 @@
+
+ RUN  v3.2.4 /workspace/scratch/3a81635718f0/Experiment-3
+
+ ✓ tests/ibl-energy.test.ts (10 tests) 949ms
+   ✓ D03 producer lighting decisions (P1-P3) > splits the day light into sun, sky IBL and a minor hemisphere term  904ms
+ ✓ tests/festival-car-switch.test.ts (3 tests) 2416ms
+   ✓ festival garage presentation > poses a road body from the current holder after using and reusing a Formula car  829ms
+   ✓ festival garage presentation > selects rival Formula LODs from camera distance and the selected quality  527ms
+   ✓ festival garage presentation > releases every procedural Formula resource once and preserves shared atlases and borrowed feeds  1059ms
+ ✓ tests/festival-presentation.test.ts (4 tests) 912ms
+   ✓ festival route guidance > conforms its chevrons to grade/camber, keeps flags beyond shoulders and resets after travel  869ms
+ ✓ tests/photoreal-night.test.ts (3 tests) 272ms
+ ✓ tests/reflections.test.ts (18 tests) 75ms
+ ✓ tests/festival-ground-height.test.ts (3 tests) 58ms
+
+ Test Files  6 passed (6)
+      Tests  41 passed (41)
+   Start at  15:14:27
+   Duration  16.74s (transform 3.88s, setup 0ms, collect 10.34s, tests 4.68s, environment 1ms, prepare 515ms)
+

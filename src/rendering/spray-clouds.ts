@@ -61,6 +61,7 @@ export class SprayClouds {
     opacity: Float32Array,
     kinds: Uint8Array,
     floors: Float32Array = new Float32Array(opacity.length).fill(-1e6),
+    colors?: Float32Array,
   ) {
     const count = opacity.length;
     if (
@@ -69,7 +70,8 @@ export class SprayClouds {
       velocities.length !== count * 3 ||
       sizes.length !== count ||
       kinds.length !== count ||
-      floors.length !== count
+      floors.length !== count ||
+      (colors !== undefined && colors.length !== count * 3)
     )
       throw new Error('Spray instance arrays must have matching nonzero lengths');
     this.geometry.setAttribute(
@@ -89,11 +91,17 @@ export class SprayClouds {
         name,
         new T.InstancedBufferAttribute(array, stride).setUsage(T.DynamicDrawUsage),
       );
+    if (colors)
+      this.geometry.setAttribute(
+        'cloudColor',
+        new T.InstancedBufferAttribute(colors, 3).setUsage(T.DynamicDrawUsage),
+      );
     // Stable slot variation; neither frames nor camera movement reseed the mist.
     const variation = Float32Array.from({ length: count }, (_, i) => ((i * 73 + 19) % 251) / 251);
     this.geometry.setAttribute('variation', new T.InstancedBufferAttribute(variation, 1));
     this.geometry.instanceCount = count;
     this.material = new T.ShaderMaterial({
+      defines: colors ? { USE_CLOUD_COLOR: 1 } : {},
       transparent: true,
       depthWrite: false,
       fog: true,
@@ -116,6 +124,9 @@ export class SprayClouds {
         attribute float kind;
         attribute float variation;
         attribute float floor;
+        #ifdef USE_CLOUD_COLOR
+          attribute vec3 cloudColor;
+        #endif
         uniform float nearPlane;
         varying vec2 vUv;
         varying float vGround;
@@ -169,8 +180,13 @@ export class SprayClouds {
           // Use the scene's real light state. Unlike the old unlit point color,
           // spray cannot remain luminous when the venue lights are switched off.
           vec3 energy=precipitationEnergy((modelViewMatrix*vec4(center,1.0)).xyz);
-          // D24: lit spray #d6dadb (linear), dust and smoke as before.
-          vLight=(spray?vec3(0.672,0.701,0.708):dust?vec3(0.5,0.42,0.3):vec3(0.8,0.8,0.78))*energy;
+          // Preserve calibrated spray/smoke radiance. Dust uses its recorded
+          // per-puff surface colour, shared with the existing contact pool.
+          vec3 albedo=spray?vec3(0.672,0.701,0.708):dust?vec3(0.5,0.42,0.3):vec3(0.8,0.8,0.78);
+          #ifdef USE_CLOUD_COLOR
+            if(dust) albedo=cloudColor;
+          #endif
+          vLight=albedo*energy;
           // A diffuse volume cannot be brighter than a fully lit white card;
           // an unbounded nearby floodlight otherwise blooms a puff into a
           // glowing block. Smoke and dust stay radial (no wake anisotropy).
@@ -259,6 +275,8 @@ export class SprayClouds {
   upload(first = 0, last = this.geometry.instanceCount - 1) {
     for (const name of ['center', 'velocity', 'size', 'opacity', 'kind', 'floor'])
       markItems(this.geometry.getAttribute(name) as T.BufferAttribute, first, last);
+    const color = this.geometry.getAttribute('cloudColor') as T.BufferAttribute | undefined;
+    if (color) markItems(color, first, last);
   }
   clear() {
     this.signals.count.value = 0;

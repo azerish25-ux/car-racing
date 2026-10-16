@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>MOTOBOUND festival integration fixture</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        overflow: hidden;
+        background: #121b20;
+      }
+      #app {
+        position: absolute;
+        inset: 0;
+      }
+      #world {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+      }
+      #loading {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        color: white;
+        background: #142128;
+        font: 16px system-ui;
+        z-index: 30;
+      }
+      #loading[hidden] {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <main id="app">
+      <canvas id="world"></canvas>
+      <div id="loading" role="status">Loading festival</div>
+    </main>
+    <script type="module" src="./horizon-session.ts"></script>
+  </body>
+</html>

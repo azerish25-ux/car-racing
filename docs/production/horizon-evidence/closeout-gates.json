@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "completed": true,
+  "checks": [
+    {
+      "name": "lint",
+      "command": [
+        "npm",
+        "run",
+        "lint"
+      ],
+      "startedAt": "2026-10-16T22:26:01.822625+00:00",
+      "finishedAt": "2026-10-16T22:26:33.910244+00:00",
+      "durationSeconds": 32.088,
+      "exitCode": 0,
+      "log": "/workspace/scratch/3a81635718f0/horizon-closeout-lint.log",
+      "logSha256": "89f0b098b1eb5d9131ba019d93bbaea75cfc7c5edac019f1c586e974855e1abc"
+    },
+    {
+      "name": "content",
+      "command": [
+        "npm",
+        "run",
+        "validate:content"
+      ],
+      "startedAt": "2026-10-16T22:26:33.910469+00:00",
+      "finishedAt": "2026-10-16T22:26:47.217353+00:00",
+      "durationSeconds": 13.307,
+      "exitCode": 0,
+      "log": "/workspace/scratch/3a81635718f0/horizon-closeout-content.log",
+      "logSha256": "cf8766ef77622e7bcc6c2abdeeab6d209a5a5251190c76912aa4934ba6b4988e"
+    },
+    {
+      "name": "guarded-build",
+      "command": [
+        "node",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "npm",
+        "run",
+        "build"
+      ],
+      "startedAt": "2026-10-16T22:30:51.269664+00:00",
+      "finishedAt": "2026-10-16T22:32:49.395969+00:00",
+      "durationSeconds": 118.126,
+      "exitCode": 0,
+      "log": "/workspace/scratch/3a81635718f0/horizon-closeout-guarded-build.log",
+      "logSha256": "8d6ccca877596ae0abb84af888a2d8c7931345b168ea579224899c16794f0e4f"
+    }
+  ],
+  "buildIdentity": {
+    "version": 1,
+    "commit": null,
+    "fingerprint": "8f7a38bbeeec13ef12dc344ffc20a310887e78f0091e17e30c6b1ef4707782b0"
+  },
+  "methodology": "Final lint, content validation, and source-guarded production build. npm run build performs full TypeScript checking and Vite production bundling. The guard compares all configured inputs before/after the build. This is not npm run check:stable and does not rerun the broad unit suite."
+}

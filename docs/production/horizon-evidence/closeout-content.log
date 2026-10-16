@@ -1,0 +1,8 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> apex-formula-laboratory@0.1.0 validate:content
+> node --experimental-transform-types scripts/validate-content.ts
+
+(node:124484) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Content valid

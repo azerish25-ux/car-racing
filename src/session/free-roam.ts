@@ -1,7 +1,11 @@
 import type * as T from 'three';
 import { scannedGround } from '../rendering/ground/scan-store.ts';
 import type { Assist, Controls, WeatherPreset } from '../simulation/config.ts';
-import { resolveEvents, type FestivalEvent, type FestivalResult } from '../simulation/open-world/festival-events.ts';
+import {
+  resolveEvents,
+  type FestivalEvent,
+  type FestivalResult,
+} from '../simulation/open-world/festival-events.ts';
 import { regionStructures } from '../simulation/open-world/placement.ts';
 import {
   festivalDefaultVehicle,
@@ -21,7 +25,12 @@ import type { AudioView } from '../audio/spatial.ts';
 import { FestivalHud } from '../ui/festival-hud.ts';
 import { minimapHeading } from '../ui/festival-map.ts';
 import { FestivalControls, festivalMenuState } from './festival-controls.ts';
-import { FESTIVAL_SAVE_KEY, festivalMachineChoice, validateFestivalSave, type FestivalSave } from './festival-save.ts';
+import {
+  FESTIVAL_SAVE_KEY,
+  festivalMachineChoice,
+  validateFestivalSave,
+  type FestivalSave,
+} from './festival-save.ts';
 import type { FromOpenWorld, ToOpenWorld } from '../workers/open-world-protocol.ts';
 import OpenWorldWorker from '../workers/open-world.worker.ts?worker&inline';
 import TileWorker from '../workers/open-world-tiles.worker.ts?worker&inline';
@@ -48,7 +57,13 @@ export interface FestivalHost {
   audio?: {
     start(): Promise<void>;
     stop(): void;
-    update(frame: Float32Array, cockpit: boolean, playing: boolean, view: AudioView, liveHuman: boolean): void;
+    update(
+      frame: Float32Array,
+      cockpit: boolean,
+      playing: boolean,
+      view: AudioView,
+      liveHuman: boolean,
+    ): void;
   };
   /** Career/progression hook: every finished or abandoned event result. */
   onResult?(result: FestivalResult): void;
@@ -103,15 +118,29 @@ export class FestivalSession {
   private readyResolve: (() => void) | null = null;
   private readyReject: ((e: Error) => void) | null = null;
   private save: FestivalSave;
+  private readonly photoKeys = (event: KeyboardEvent) => {
+    if (!this.renderer?.photo || event.code !== 'Escape') return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    this.setPhoto(false);
+  };
   private constructor(
     private readonly host: FestivalHost,
     save: FestivalSave | null,
   ) {
-    this.save = save ?? { version: 1, discovered: [], best: {}, vehicle: festivalDefaultVehicle(), traffic: true };
+    this.save = save ?? {
+      version: 1,
+      discovered: [],
+      best: {},
+      vehicle: festivalDefaultVehicle(),
+      traffic: true,
+    };
     this.worker = new OpenWorldWorker();
     this.tiles = new TileWorker();
     this.worker.onmessage = (event: MessageEvent<FromOpenWorld>) => this.receive(event.data);
-    this.worker.onerror = (event) => this.fail(new Error(event.message || 'Festival worker failed'));
+    this.worker.onerror = (event) =>
+      this.fail(new Error(event.message || 'Festival worker failed'));
+    window.addEventListener('keydown', this.photoKeys, true);
   }
   static async start(host: FestivalHost, options: FestivalStartOptions = {}) {
     host.loading('Building the Solvane festival region…');
@@ -136,7 +165,14 @@ export class FestivalSession {
     const structures = regionStructures(world);
     host.loading('Building roads, buildings and water…');
     await new Promise<void>((resolve) => setTimeout(resolve, 0));
-    const renderer = new FestivalRenderer(host.renderer, host.canvas, world, events, structures, this.tiles);
+    const renderer = new FestivalRenderer(
+      host.renderer,
+      host.canvas,
+      world,
+      events,
+      structures,
+      this.tiles,
+    );
     this.renderer = renderer;
     renderer.setQuality(host.quality, host.graphics);
     renderer.lighting = host.lighting;
@@ -148,6 +184,8 @@ export class FestivalSession {
     this.traffic = new TrafficCars();
     this.riders = new FestivalRiders();
     renderer.scene.add(this.traffic.root, this.riders.root);
+    renderer.registerVehicleRoot(this.riders.root);
+    this.riders.shells.install = () => renderer.refreshVehicleMaterials();
     const vehicles = festivalVehicles();
     const machine = festivalMachineChoice(options, this.save.vehicle);
     const vehicle = machine.drive;
@@ -183,6 +221,9 @@ export class FestivalSession {
         void this.persist();
         this.openMenu();
       },
+      map: () => this.openMap(),
+      photo: (open) => this.setPhoto(open),
+      photoAngle: (angle) => renderer.photoAngle(angle),
     });
     const hud = this.hud;
     this.controls = new FestivalControls(hud, {
@@ -238,7 +279,8 @@ export class FestivalSession {
     this.post({ type: 'pause', value: false });
     // A career start goes straight to its event (discovered: the card opens
     // on arrival, a skill challenge starts at its entry gate).
-    if (options.travel && this.save.discovered.includes(options.travel)) await this.travel(options.travel);
+    if (options.travel && this.save.discovered.includes(options.travel))
+      await this.travel(options.travel);
   }
   private post(message: ToOpenWorld, transfer: Transferable[] = []) {
     if (!this.disposed) this.worker.postMessage(message, transfer);
@@ -260,7 +302,9 @@ export class FestivalSession {
         // Every superseded buffer goes back, whatever its size: the worker
         // keeps those of the current field size and drops the rest.
         if (this.previous && this.previous !== this.current && this.previous.buffer.byteLength > 0)
-          this.post({ type: 'recycle', buffer: this.previous.buffer as ArrayBuffer }, [this.previous.buffer as ArrayBuffer]);
+          this.post({ type: 'recycle', buffer: this.previous.buffer as ArrayBuffer }, [
+            this.previous.buffer as ArrayBuffer,
+          ]);
         this.previous = this.current ?? frame;
         this.current = frame;
         this.trafficPrevious = this.trafficCurrent;
@@ -310,8 +354,14 @@ export class FestivalSession {
     if (better) {
       this.save.best[result.eventId] = {
         stars: Math.max(result.stars, best?.stars ?? 0),
-        time: result.time !== null && (best?.time == null || result.time < best.time) ? result.time : (best?.time ?? null),
-        value: value !== null && (best?.value == null || value > best.value) ? value : (best?.value ?? null),
+        time:
+          result.time !== null && (best?.time == null || result.time < best.time)
+            ? result.time
+            : (best?.time ?? null),
+        value:
+          value !== null && (best?.value == null || value > best.value)
+            ? value
+            : (best?.value ?? null),
       };
       void this.persist();
     }
@@ -336,6 +386,7 @@ export class FestivalSession {
     if (!renderer || !event || this.travelling) return;
     this.travelling = true;
     this.hud?.showMenu(false);
+    this.hud?.showMap(false);
     this.host.loading(`Travelling to ${event.spec.name}…`);
     this.command({ type: 'travel', event: id });
     const { x, z } = event.marker,
@@ -359,6 +410,22 @@ export class FestivalSession {
   private openMenu() {
     this.controls?.openMenu();
   }
+  private openMap() {
+    if (!this.isPaused) this.setPaused(true);
+    const frame = this.current;
+    this.hud?.showMap(
+      true,
+      new Set(this.status?.discovered ?? []),
+      frame ? { x: frame[carBase(0) + F.X], z: frame[carBase(0) + F.Z] } : undefined,
+    );
+  }
+  private setPhoto(open: boolean) {
+    if (!this.renderer || !this.hud || this.travelling) return;
+    if (open) this.setPaused(true);
+    this.renderer.setPhoto(open);
+    this.hud.showPhoto(open);
+    if (!open) this.setPaused(false);
+  }
   /** Pause (menu open, driving input off) or resume (FestivalControls). */
   setPaused(value: boolean) {
     this.controls?.setPaused(value);
@@ -372,6 +439,10 @@ export class FestivalSession {
     if (this.travelling) return name !== 'mute';
     switch (name) {
       case 'pause':
+        if (this.renderer?.photo) {
+          this.setPhoto(false);
+          return true;
+        }
         this.controls?.togglePause();
         return true;
       case 'camera':
@@ -385,9 +456,8 @@ export class FestivalSession {
         this.command({ type: 'autopilot', value: !this.status?.autopilot });
         return true;
       case 'telemetry': {
-        const open = !this.hud?.mapOpen;
-        const f = this.current;
-        this.hud?.showMap(open, new Set(this.status?.discovered ?? []), f ? { x: f[carBase(0) + F.X], z: f[carBase(0) + F.Z] } : undefined);
+        if (this.hud?.mapOpen) this.hud.showMap(false);
+        else this.openMap();
         return true;
       }
       case 'pit':
@@ -414,7 +484,13 @@ export class FestivalSession {
       alpha = Math.min(1, Math.max(0, (performance.now() - this.receivedAt) / span));
     // Posed before the draw, from the same interpolation as the cars.
     this.riders?.update(a, b, alpha, renderer.camera, this.host.quality);
-    this.traffic?.update(this.trafficPrevious, this.trafficCurrent, alpha, renderer.night, b[H.TIME]);
+    this.traffic?.update(
+      this.trafficPrevious,
+      this.trafficCurrent,
+      alpha,
+      renderer.night,
+      b[H.TIME],
+    );
     renderer.draw(a, b, alpha, Math.min(0.08, wall));
     const o = carBase(0),
       presented = renderer.presented.value;
@@ -449,6 +525,7 @@ export class FestivalSession {
   dispose() {
     if (this.disposed) return;
     this.disposed = true;
+    window.removeEventListener('keydown', this.photoKeys, true);
     this.controls?.dispose();
     this.host.audio?.stop();
     this.worker.terminate();

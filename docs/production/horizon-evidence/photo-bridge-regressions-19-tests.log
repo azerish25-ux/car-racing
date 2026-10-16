@@ -1,0 +1,15 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+ RUN  v3.2.4 /workspace/scratch/3a81635718f0/Experiment-3
+
+ ✓ tests/festival-presentation.test.ts (4 tests) 2332ms
+   ✓ festival route guidance > conforms its chevrons to grade/camber, keeps flags beyond shoulders and resets after travel  2216ms
+ ✓ tests/festival-ground-height.test.ts (11 tests) 399ms
+   ✓ festival carved-ground presentation queries > keeps lower-route chevrons, camber samples and checkpoint flags below the h2 overpass  303ms
+ ✓ tests/festival-effects-integration.test.ts (4 tests) 46ms
+
+ Test Files  3 passed (3)
+      Tests  19 passed (19)
+   Start at  15:30:14
+   Duration  12.55s (transform 4.37s, setup 0ms, collect 8.51s, tests 2.78s, environment 1ms, prepare 365ms)
+

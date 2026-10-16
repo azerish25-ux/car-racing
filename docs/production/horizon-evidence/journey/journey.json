@@ -1,0 +1,119 @@
+{
+  "version": 1,
+  "completed": true,
+  "sourceIdentity": {
+    "version": 1,
+    "commit": null,
+    "fingerprint": "9ebc826ed95d012520bb1c2c7296f255d15f47c4dfae77e609aee296c66bbb47"
+  },
+  "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+  "quality": "low",
+  "viewport": {
+    "width": 960,
+    "height": 540
+  },
+  "methodology": "Real FestivalSession, workers, InputController and renderer. Natural initial discoveries. GPU submissions held between deliberate rendered states for software-GPU readback; no simulation acceleration. Manual keyboard launch/brake; race completion uses explicitly assisted production autopilot. This is not a hardware performance test.",
+  "errors": [],
+  "failedAssets": [],
+  "steps": [
+    {
+      "name": "real session boot and natural harbour discovery",
+      "passed": true,
+      "discoveries": [
+        "harbour-welcome"
+      ],
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+    },
+    {
+      "name": "keyboard throttle, rendered movement and braking",
+      "passed": true,
+      "distanceM": 6.927685007457713,
+      "movingKmh": 15.579922562810381,
+      "stoppedKmh": 0.01553144619575932
+    },
+    {
+      "name": "world map route preview, discovery gate and return to pause menu",
+      "passed": true
+    },
+    {
+      "name": "paused photo orbit and Escape return",
+      "passed": true,
+      "cameraTravelM": 4.433356970650854
+    },
+    {
+      "name": "garage Formula to road-car round trip through real worker and renderer",
+      "passed": true
+    },
+    {
+      "name": "discovered-event travel, start card, countdown, real rivals and route presentation",
+      "passed": true
+    },
+    {
+      "name": "one typed completed result and visible results card",
+      "passed": true,
+      "result": {
+        "kind": "festival-result",
+        "version": 2,
+        "runId": "horizon-browser-review:1",
+        "regionId": "solvane",
+        "eventId": "harbour-welcome",
+        "eventName": "Harbour Opening Run",
+        "eventKind": "sprint",
+        "vehicleId": "tc1",
+        "completed": true,
+        "abandoned": false,
+        "position": 3,
+        "entrants": 3,
+        "time": 105.66666666670478,
+        "trapKmh": null,
+        "averageKmh": null,
+        "driftScore": null,
+        "driftLines": [],
+        "stars": 2,
+        "legalDistance": 2569.4017453028223,
+        "offRouteSeconds": 0,
+        "standings": [
+          {
+            "car": 1,
+            "name": "TC-3 AWD TOURING",
+            "vehicleId": "tc3",
+            "time": 89.36666666671233,
+            "progress": 0.9924685968023459
+          },
+          {
+            "car": 2,
+            "name": "TC-1 TOURING",
+            "vehicleId": "tc1",
+            "time": 99.86666666671006,
+            "progress": 0.9924034840183865
+          },
+          {
+            "car": 0,
+            "name": "YOU",
+            "vehicleId": "tc1",
+            "time": 105.66666666670478,
+            "progress": 0.9960755745811205
+          }
+        ],
+        "at": 140.02500000003698,
+        "assisted": true
+      }
+    },
+    {
+      "name": "results Continue returns to free roam",
+      "passed": true
+    },
+    {
+      "name": "session exit removes HUD, terminates session and releases geometry",
+      "passed": true,
+      "before": {
+        "geometries": 644,
+        "textures": 40
+      },
+      "after": {
+        "geometries": 1,
+        "textures": 17
+      }
+    }
+  ]
+}

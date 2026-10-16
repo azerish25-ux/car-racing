@@ -1,0 +1,414 @@
+{
+  "schemaVersion": 1,
+  "kind": "scripted-festival-physics-validation",
+  "generatedAt": "2026-10-16T21:37:06.953Z",
+  "runStartedAt": "2026-10-16T21:36:59.877Z",
+  "command": "node --experimental-transform-types scripts/horizon-gameplay-validation.ts",
+  "workingDirectory": "repository root",
+  "outputFile": "docs/production/horizon-gameplay-validation.json",
+  "runtime": {
+    "node": "v24.19.0",
+    "platform": "linux",
+    "architecture": "x64"
+  },
+  "source": {
+    "baseGitCommit": "f91463cf506f6feced1a4db9c43af48ac3632410",
+    "validatesWorkingTree": true,
+    "fileSha256": {
+      "src/simulation/open-world/session.ts": "051552d9c271fccf78627b8a9bf2f83c94c97dcb1e95502d018a35a4129dea44",
+      "src/simulation/open-world/festival-events.ts": "71e547c3eaab461b63e1f89becc07981d5fe3474cb25f9acb6209da2a36673c1",
+      "src/simulation/open-world/region-data.ts": "79d30bc05b7a7f6e5da3139723072f1d82241ca4cfd090331375cb3d0d30de7d",
+      "src/simulation/open-world/route-driver.ts": "a658f4bc7d950c5f20f585ebb70e4a5b1811acd4abca5a01dd01d2af30fc04c2",
+      "src/simulation/open-world/skill-chain.ts": "830dfb87c871a63fcbc636a98cd24fea1313de47d60d5b914f69286a0dfb0072",
+      "src/simulation/vehicle.ts": "02ea360d0888e0776dd156fedee15dae8679c4850d4bbeb59faa05b6c14fdb24",
+      "src/simulation/vehicles.ts": "d362e0a36d566ba8cfe866e84a2b3014e2d6bf2307b07c286e52335334f0b090"
+    }
+  },
+  "simulationSettings": {
+    "weather": "clear",
+    "assist": "sport",
+    "seed": 73021,
+    "tileBudget": 12,
+    "traffic": false
+  },
+  "evidenceScope": {
+    "actualSimulationPhysics": true,
+    "normalEventStartCommand": true,
+    "humanPlaytest": false,
+    "browserExecuted": false,
+    "rendererExecuted": false,
+    "visualQualityEvidence": false,
+    "hardwareFrameRateEvidence": false,
+    "explanation": "These checks exercise gameplay route completion and attainable targets only. Scripted input does not establish human usability or visual quality. No career records are stored."
+  },
+  "routes": [
+    {
+      "eventId": "harbour-welcome",
+      "vehicleId": "tc1",
+      "controller": "session-autopilot",
+      "method": {
+        "humanDriven": false,
+        "inSessionAutopilotEnabled": true,
+        "externalRouteDriverSteering": false,
+        "steeringDriverSkill": 0.9,
+        "throttle": "session RouteDriver speed envelope",
+        "brake": "session RouteDriver speed envelope",
+        "forcedPoseOrVelocityAfterStart": false,
+        "explicitResetCommands": 0,
+        "careerPersistenceUsed": false,
+        "resultAssistanceInterpretation": "The in-session autopilot marks its game result assisted."
+      },
+      "eventGeometry": {
+        "resolvedDistanceMeters": 2579.5248983826677,
+        "authoredPathLengthMeters": 2639.5248983826677,
+        "starTargets": null,
+        "marker": {
+          "x": 649.9999999999966,
+          "y": 4.599999999999998,
+          "z": -2600,
+          "heading": 1.5707963267948966
+        }
+      },
+      "timing": {
+        "maximumAllowedSimulationSeconds": 180,
+        "ticks": 13040,
+        "tickSeconds": 0.008333333333333333,
+        "physicsSubstepsPerTick": 2,
+        "elapsedSimulationSeconds": 108.66666666669921,
+        "elapsedEventSeconds": 105.66666666669921,
+        "wallRuntimeMilliseconds": 5373.2491039999995,
+        "wallRuntimePurpose": "Execution duration only; concurrent test/render work makes this unsuitable as a performance benchmark."
+      },
+      "maximumSpeedKmh": 164.99614620610754,
+      "playerReplacementsAfterStart": 0,
+      "result": {
+        "kind": "festival-result",
+        "version": 2,
+        "runId": "horizon-validation-harbour-welcome-tc1:1",
+        "regionId": "solvane",
+        "eventId": "harbour-welcome",
+        "eventName": "Harbour Opening Run",
+        "eventKind": "sprint",
+        "vehicleId": "tc1",
+        "completed": true,
+        "abandoned": false,
+        "position": 3,
+        "entrants": 3,
+        "time": 105.66666666669921,
+        "trapKmh": null,
+        "averageKmh": null,
+        "driftScore": null,
+        "driftLines": [],
+        "stars": 2,
+        "legalDistance": 2569.4392501674943,
+        "offRouteSeconds": 0,
+        "standings": [
+          {
+            "car": 1,
+            "name": "TC-3 AWD TOURING",
+            "vehicleId": "tc3",
+            "time": 89.36666666668624,
+            "progress": 0.9924480506590121
+          },
+          {
+            "car": 2,
+            "name": "TC-1 TOURING",
+            "vehicleId": "tc1",
+            "time": 99.8666666666946,
+            "progress": 0.9925344910894129
+          },
+          {
+            "car": 0,
+            "name": "YOU",
+            "vehicleId": "tc1",
+            "time": 105.66666666669921,
+            "progress": 0.996090114027782
+          }
+        ],
+        "at": 108.66666666669921,
+        "assisted": true
+      },
+      "checks": {
+        "producedResult": true,
+        "completed": true,
+        "zeroOffRouteSeconds": true,
+        "noPlayerRecoveryReplacement": true,
+        "threeStarTargetReached": null
+      }
+    },
+    {
+      "eventId": "runway-launch",
+      "vehicleId": "tc1",
+      "controller": "session-autopilot",
+      "method": {
+        "humanDriven": false,
+        "inSessionAutopilotEnabled": true,
+        "externalRouteDriverSteering": false,
+        "steeringDriverSkill": 0.9,
+        "throttle": "session RouteDriver speed envelope",
+        "brake": "session RouteDriver speed envelope",
+        "forcedPoseOrVelocityAfterStart": false,
+        "explicitResetCommands": 0,
+        "careerPersistenceUsed": false,
+        "resultAssistanceInterpretation": "The in-session autopilot marks its game result assisted."
+      },
+      "eventGeometry": {
+        "resolvedDistanceMeters": 1239.9813908289902,
+        "authoredPathLengthMeters": 1299.9813908289902,
+        "starTargets": [
+          110,
+          160,
+          210
+        ],
+        "marker": {
+          "x": 2151.235815320007,
+          "y": 144.7626322700243,
+          "z": 1846.9547371003116,
+          "heading": 1.6166120403346804
+        }
+      },
+      "timing": {
+        "maximumAllowedSimulationSeconds": 120,
+        "ticks": 3676,
+        "tickSeconds": 0.008333333333333333,
+        "physicsSubstepsPerTick": 2,
+        "elapsedSimulationSeconds": 30.633333333332235,
+        "elapsedEventSeconds": null,
+        "wallRuntimeMilliseconds": 633.3503220000002,
+        "wallRuntimePurpose": "Execution duration only; concurrent test/render work makes this unsuitable as a performance benchmark."
+      },
+      "maximumSpeedKmh": 207.01833475803556,
+      "playerReplacementsAfterStart": 0,
+      "result": {
+        "kind": "festival-result",
+        "version": 2,
+        "runId": "horizon-validation-runway-launch-tc1:1",
+        "regionId": "solvane",
+        "eventId": "runway-launch",
+        "eventName": "Kestrel Launch Run",
+        "eventKind": "speed-trap",
+        "vehicleId": "tc1",
+        "completed": true,
+        "abandoned": false,
+        "position": null,
+        "entrants": 1,
+        "time": null,
+        "trapKmh": 85.48812795027824,
+        "averageKmh": null,
+        "driftScore": null,
+        "driftLines": [],
+        "stars": 0,
+        "legalDistance": 1241.2575613185468,
+        "offRouteSeconds": 0,
+        "standings": [
+          {
+            "car": 0,
+            "name": "YOU",
+            "vehicleId": "tc1",
+            "time": 30.633333333332235,
+            "progress": 1
+          }
+        ],
+        "at": 30.633333333332235,
+        "assisted": true
+      },
+      "checks": {
+        "producedResult": true,
+        "completed": true,
+        "zeroOffRouteSeconds": true,
+        "noPlayerRecoveryReplacement": true,
+        "threeStarTargetReached": null
+      }
+    },
+    {
+      "eventId": "runway-launch",
+      "vehicleId": "tc1",
+      "controller": "scripted-steering-full-throttle",
+      "method": {
+        "humanDriven": false,
+        "inSessionAutopilotEnabled": false,
+        "externalRouteDriverSteering": true,
+        "steeringDriverSkill": 0.9,
+        "throttle": "constant 1.0 through setInput",
+        "brake": "constant 0.0 through setInput",
+        "forcedPoseOrVelocityAfterStart": false,
+        "explicitResetCommands": 0,
+        "careerPersistenceUsed": false,
+        "resultAssistanceInterpretation": "External scripted steering is assistance even though the game result assisted flag is false; this is not a human or unassisted record."
+      },
+      "eventGeometry": {
+        "resolvedDistanceMeters": 1239.9813908289902,
+        "authoredPathLengthMeters": 1299.9813908289902,
+        "starTargets": [
+          110,
+          160,
+          210
+        ],
+        "marker": {
+          "x": 2151.235815320007,
+          "y": 144.7626322700243,
+          "z": 1846.9547371003116,
+          "heading": 1.6166120403346804
+        }
+      },
+      "timing": {
+        "maximumAllowedSimulationSeconds": 90,
+        "ticks": 3356,
+        "tickSeconds": 0.008333333333333333,
+        "physicsSubstepsPerTick": 2,
+        "elapsedSimulationSeconds": 27.96666666666572,
+        "elapsedEventSeconds": null,
+        "wallRuntimeMilliseconds": 523.915919,
+        "wallRuntimePurpose": "Execution duration only; concurrent test/render work makes this unsuitable as a performance benchmark."
+      },
+      "maximumSpeedKmh": 230.10937929931322,
+      "playerReplacementsAfterStart": 0,
+      "result": {
+        "kind": "festival-result",
+        "version": 2,
+        "runId": "horizon-validation-runway-launch-tc1:1",
+        "regionId": "solvane",
+        "eventId": "runway-launch",
+        "eventName": "Kestrel Launch Run",
+        "eventKind": "speed-trap",
+        "vehicleId": "tc1",
+        "completed": true,
+        "abandoned": false,
+        "position": null,
+        "entrants": 1,
+        "time": null,
+        "trapKmh": 230.10937929931322,
+        "averageKmh": null,
+        "driftScore": null,
+        "driftLines": [],
+        "stars": 3,
+        "legalDistance": 1241.2293575113406,
+        "offRouteSeconds": 0,
+        "standings": [
+          {
+            "car": 0,
+            "name": "YOU",
+            "vehicleId": "tc1",
+            "time": 27.96666666666572,
+            "progress": 1
+          }
+        ],
+        "at": 27.96666666666572,
+        "assisted": false
+      },
+      "checks": {
+        "producedResult": true,
+        "completed": true,
+        "zeroOffRouteSeconds": true,
+        "noPlayerRecoveryReplacement": true,
+        "threeStarTargetReached": true
+      }
+    },
+    {
+      "eventId": "runway-launch",
+      "vehicleId": "eh3",
+      "controller": "scripted-steering-full-throttle",
+      "method": {
+        "humanDriven": false,
+        "inSessionAutopilotEnabled": false,
+        "externalRouteDriverSteering": true,
+        "steeringDriverSkill": 0.9,
+        "throttle": "constant 1.0 through setInput",
+        "brake": "constant 0.0 through setInput",
+        "forcedPoseOrVelocityAfterStart": false,
+        "explicitResetCommands": 0,
+        "careerPersistenceUsed": false,
+        "resultAssistanceInterpretation": "External scripted steering is assistance even though the game result assisted flag is false; this is not a human or unassisted record."
+      },
+      "eventGeometry": {
+        "resolvedDistanceMeters": 1239.9813908289902,
+        "authoredPathLengthMeters": 1299.9813908289902,
+        "starTargets": [
+          110,
+          160,
+          210
+        ],
+        "marker": {
+          "x": 2151.235815320007,
+          "y": 144.7626322700243,
+          "z": 1846.9547371003116,
+          "heading": 1.6166120403346804
+        }
+      },
+      "timing": {
+        "maximumAllowedSimulationSeconds": 90,
+        "ticks": 2192,
+        "tickSeconds": 0.008333333333333333,
+        "physicsSubstepsPerTick": 2,
+        "elapsedSimulationSeconds": 18.26666666666627,
+        "elapsedEventSeconds": null,
+        "wallRuntimeMilliseconds": 421.76415,
+        "wallRuntimePurpose": "Execution duration only; concurrent test/render work makes this unsuitable as a performance benchmark."
+      },
+      "maximumSpeedKmh": 348.7537762149112,
+      "playerReplacementsAfterStart": 0,
+      "result": {
+        "kind": "festival-result",
+        "version": 2,
+        "runId": "horizon-validation-runway-launch-eh3:1",
+        "regionId": "solvane",
+        "eventId": "runway-launch",
+        "eventName": "Kestrel Launch Run",
+        "eventKind": "speed-trap",
+        "vehicleId": "eh3",
+        "completed": true,
+        "abandoned": false,
+        "position": null,
+        "entrants": 1,
+        "time": null,
+        "trapKmh": 348.69784856920677,
+        "averageKmh": null,
+        "driftScore": null,
+        "driftLines": [],
+        "stars": 3,
+        "legalDistance": 1243.28794747172,
+        "offRouteSeconds": 0,
+        "standings": [
+          {
+            "car": 0,
+            "name": "YOU",
+            "vehicleId": "eh3",
+            "time": 18.26666666666627,
+            "progress": 1
+          }
+        ],
+        "at": 18.26666666666627,
+        "assisted": false
+      },
+      "checks": {
+        "producedResult": true,
+        "completed": true,
+        "zeroOffRouteSeconds": true,
+        "noPlayerRecoveryReplacement": true,
+        "threeStarTargetReached": true
+      }
+    }
+  ],
+  "driftPlayground": {
+    "eventId": "kestrel-drift",
+    "resolvedDistanceMeters": 706.3158055518055,
+    "authoredPathLengthMeters": 766.3158055518055,
+    "minimumHalfWidthMeters": 15,
+    "maximumHalfWidthMeters": 15,
+    "starTargets": [
+      100,
+      300,
+      600
+    ],
+    "routeGraphValidation": "Passed during resolveEvents in OpenWorldSimulation construction.",
+    "humanDriftRun": false,
+    "scriptedDriftRun": false,
+    "limitation": "Route geometry and existing drift scoring regressions were checked; this document does not claim a completed drift playground driving trial."
+  },
+  "interpretation": {
+    "distances": "Measured event distances exclude the final 60 m of braking runout included in each of these three authored paths.",
+    "harbour": "A legal completed autopilot run supports route continuity and opponent integration. It does not establish human race difficulty.",
+    "runway": "The two full-throttle runs check mechanical reachability of the authored speed targets. The ordinary autopilot run demonstrates its conservative end-of-route braking and is not a test of maximum vehicle speed."
+  },
+  "passed": true
+}

@@ -6,7 +6,13 @@ import type { FestivalEventSpec } from './region-data.ts';
 import { pathPoint, planRoute, RoutePath } from './route-path.ts';
 import type { OpenWorld } from './world.ts';
 
-export { EVENT_KIND_LABEL, FESTIVAL_RESULT_VERSION, isRace, RACE_KINDS, type FestivalResult } from './festival-result.ts';
+export {
+  EVENT_KIND_LABEL,
+  FESTIVAL_RESULT_VERSION,
+  isRace,
+  RACE_KINDS,
+  type FestivalResult,
+} from './festival-result.ts';
 
 /** A festival event resolved against the road network. */
 export interface FestivalEvent {
@@ -25,7 +31,11 @@ export interface FestivalEvent {
 export function resolveEvents(world: OpenWorld): FestivalEvent[] {
   return world.region.events.map((spec, index) => {
     const closed = spec.kind === 'circuit';
-    const path = new RoutePath(world.network, planRoute(world.network, spec.waypoints, closed), closed);
+    const path = new RoutePath(
+      world.network,
+      planRoute(world.network, spec.waypoints, closed),
+      closed,
+    );
     const routeSpec = path.routeSpec(spec.id);
     const errors = validateRoute(routeSpec);
     if (errors.length) throw new Error(`Festival event ${spec.id}: ${errors.join('; ')}`);
@@ -48,31 +58,49 @@ export function resolveEvents(world: OpenWorld): FestivalEvent[] {
 export class DriftMeter {
   readonly events: ScoreEvent[] = [];
   private active = false;
-  private start = 0;
   private quality = 0;
-  private samples = 0;
+  private duration = 0;
   private calm = 0;
   private invalid = false;
   /** Current live angle (rad) for presentation. */
   angle = 0;
-  update(car: Vehicle, time: number, dt: number, offRoad: boolean, impact: boolean) {
+  update(
+    car: Vehicle,
+    time: number,
+    dt: number,
+    offRoad: boolean,
+    impact: boolean,
+    grounded = true,
+  ) {
+    if (!Number.isFinite(time) || !Number.isFinite(dt) || dt <= 0 || dt > 0.25) return;
     const v = car.localVelocity,
       speed = Math.hypot(v.x, v.z);
     this.angle = speed > 3 ? Math.atan2(Math.abs(v.x), Math.max(0.1, v.z)) : 0;
-    const sliding = speed > 9 && v.z > 2 && this.angle > 0.2;
+    // A spin is not a controlled drift. Contacts also count during the
+    // short straightening grace period, otherwise a last-frame wall hit
+    // could bank a slide that should have been voided.
+    const bailout =
+      offRoad ||
+      impact ||
+      !grounded ||
+      !Number.isFinite(speed) ||
+      (speed > 9 && (v.z <= 2 || this.angle > 1.2));
+    if (this.active && bailout) this.invalid = true;
+    const sliding = speed > 9 && v.z > 2 && this.angle > 0.2 && this.angle <= 1.2;
     if (sliding) {
       if (!this.active) {
         this.active = true;
-        this.start = time;
         this.quality = 0;
-        this.samples = 0;
+        this.duration = 0;
         this.invalid = false;
       }
       this.calm = 0;
       // Angle beyond ~12 degrees, saturating at ~45, weighted by speed.
-      this.quality += Math.min(1, (this.angle - 0.2) / 0.55) * Math.min(1, speed / 25);
-      this.samples++;
-      if (offRoad || impact) this.invalid = true;
+      // Weight by elapsed simulation time, not frame count, so different
+      // substep rates and brief straightening gaps score consistently.
+      this.quality += Math.min(1, (this.angle - 0.2) / 0.55) * Math.min(1, speed / 25) * dt;
+      this.duration += dt;
+      if (bailout) this.invalid = true;
     } else if (this.active) {
       this.calm += dt;
       if (this.calm > 0.35) this.close(time);
@@ -80,15 +108,27 @@ export class DriftMeter {
   }
   private close(time: number) {
     this.active = false;
-    const duration = time - this.start - this.calm;
-    if (duration > 0.4)
-      this.events.push({
-        time,
-        kind: 'drift',
-        quality: this.samples ? this.quality / this.samples : 0,
-        duration,
-        valid: !this.invalid,
-      });
+    const event = this.current(time);
+    if (event) this.events.push(event);
+  }
+  private current(time: number): ScoreEvent | null {
+    return this.duration > 0.4
+      ? {
+          time,
+          kind: 'drift',
+          quality: this.duration ? this.quality / this.duration : 0,
+          duration: this.duration,
+          valid: !this.invalid,
+        }
+      : null;
+  }
+  /** Recovery must not preserve a provisional drift across a teleport. */
+  invalidate(time: number) {
+    if (this.active) {
+      this.invalid = true;
+      this.close(time);
+    }
+    this.angle = 0;
   }
   /** Close any open drift and score everything so far. */
   finish(time: number) {
@@ -97,9 +137,10 @@ export class DriftMeter {
   }
   /** Live total: closed drifts plus the running one's provisional points. */
   live(time: number) {
-    const closed = scoreEvents(this.events).total;
-    if (!this.active || !this.samples) return closed;
-    return closed + Math.round(100 * Math.min(10, time - this.start) * (this.quality / this.samples));
+    const provisional = this.active ? this.current(time) : null;
+    // The exact same formula as finish(): no phantom provisional points
+    // for invalid/low-quality slides and no score jump when a drift closes.
+    return scoreEvents(provisional ? [...this.events, provisional] : this.events).total;
   }
   get drifting() {
     return this.active;
@@ -114,7 +155,13 @@ export interface Participant {
   name: string;
 }
 /** Stars for a result against the event's targets. */
-export function starsFor(spec: FestivalEventSpec, result: Pick<FestivalResult, 'completed' | 'position' | 'trapKmh' | 'averageKmh' | 'driftScore' | 'time'>) {
+export function starsFor(
+  spec: FestivalEventSpec,
+  result: Pick<
+    FestivalResult,
+    'completed' | 'position' | 'trapKmh' | 'averageKmh' | 'driftScore' | 'time'
+  >,
+) {
   if (!result.completed) return 0;
   const t = spec.stars;
   switch (spec.kind) {
@@ -126,7 +173,10 @@ export function starsFor(spec: FestivalEventSpec, result: Pick<FestivalResult, '
       return t ? t.filter((v) => (result.driftScore ?? 0) >= v).length : 0;
     case 'showcase':
       // Stars by time, and beating the pace car is at least one star.
-      return Math.max(t ? t.filter((v) => (result.time ?? Infinity) <= v).length : 0, result.position === 1 ? 1 : 0);
+      return Math.max(
+        t ? t.filter((v) => (result.time ?? Infinity) <= v).length : 0,
+        result.position === 1 ? 1 : 0,
+      );
     default:
       return result.position === 1 ? 3 : (result.position ?? 99) <= 3 ? 2 : 1;
   }

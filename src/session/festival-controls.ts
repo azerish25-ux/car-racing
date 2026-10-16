@@ -74,8 +74,10 @@ export class FestivalControls {
       return;
     }
     if (e.code !== 'Enter' && e.code !== 'NumpadEnter') return;
-    // In the menu, Enter activates the focused button.
-    if (menus.menuOpen) return;
+    // Paused overlays own Enter even when photo mode has hidden the menu.
+    // A race card or result can remain behind the photo controls; activating
+    // one of those controls must not also start/continue its event.
+    if (this.paused || menus.menuOpen) return;
     const card = this.hooks.card();
     if (menus.cardOpen && card) {
       e.preventDefault();

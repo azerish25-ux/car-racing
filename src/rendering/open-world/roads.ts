@@ -1,7 +1,15 @@
 import * as T from 'three';
-import { installScannedDetail, installScannedMaps, libraryAlbedo } from '../ground/scanned-ground.ts';
+import {
+  installScannedDetail,
+  installScannedMaps,
+  libraryAlbedo,
+} from '../ground/scanned-ground.ts';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { ROAD_FLAG, type RoadEdge, type RoadNetwork } from '../../simulation/open-world/road-network.ts';
+import {
+  ROAD_FLAG,
+  type RoadEdge,
+  type RoadNetwork,
+} from '../../simulation/open-world/road-network.ts';
 import type { TrackPoint } from '../../simulation/track.ts';
 import type { TerrainField } from '../../simulation/open-world/terrain-field.ts';
 import { materials } from '../materials/index.ts';
@@ -10,7 +18,20 @@ import { OW_NOISE_GLSL } from './terrain-material.ts';
 /** Chunk edge (m) for culling road geometry. */
 const CHUNK = 512;
 type SurfaceHeight = (point: TrackPoint, lateral: number) => number;
-const roadPoint = (): TrackPoint => ({ s: 0, x: 0, y: 0, z: 0, tx: 0, tz: 1, nx: 1, nz: 0, curvature: 0, width: 0, bank: 0, gradient: 0 });
+const roadPoint = (): TrackPoint => ({
+  s: 0,
+  x: 0,
+  y: 0,
+  z: 0,
+  tx: 0,
+  tz: 1,
+  nx: 1,
+  nz: 0,
+  curvature: 0,
+  width: 0,
+  bank: 0,
+  gradient: 0,
+});
 
 class Builder {
   positions: number[] = [];
@@ -42,7 +63,85 @@ class Builder {
     return g;
   }
 }
-type Layer = 'asphaltMajor' | 'asphalt' | 'town' | 'dirt' | 'verge' | 'paint' | 'yellow' | 'rail' | 'concrete' | 'post';
+type Layer =
+  | 'asphaltMajor'
+  | 'asphalt'
+  | 'town'
+  | 'dirt'
+  | 'verge'
+  | 'paving'
+  | 'paint'
+  | 'yellow'
+  | 'rail'
+  | 'concrete'
+  | 'post';
+
+/** Flush stone shoulders retain the existing physical cross-fall. The narrow
+ * dark drainage strip and staggered joints give town streets human scale
+ * without introducing a raised, non-colliding kerb into the driving surface. */
+function pavingMaterial(wet: { value: number }) {
+  const material = new T.MeshStandardMaterial({ color: 0xffffff, roughness: 0.87 });
+  material.name = 'Port Ilse cut-stone footways';
+  (material as unknown as { defines: Record<string, string> }).defines = { USE_UV: '' };
+  material.polygonOffset = true;
+  material.polygonOffsetFactor = -1;
+  material.polygonOffsetUnits = -2;
+  material.onBeforeCompile = (shader) => {
+    shader.uniforms.owPavingWet = wet;
+    shader.fragmentShader = shader.fragmentShader
+      .replace(
+        '#include <common>',
+        `#include <common>\nuniform float owPavingWet;\n${OW_NOISE_GLSL}\nfloat owPavingJoint;`,
+      )
+      .replace(
+        '#include <color_fragment>',
+        `#include <color_fragment>
+{
+  vec2 p = vec2(abs(vUv.x) - 4.6, vUv.y);
+  float row = floor(p.y / 0.72);
+  vec2 cell = vec2(p.x / 0.48 + mod(row, 2.0) * 0.5, p.y / 0.72);
+  vec2 f = fract(cell), aa = max(fwidth(cell), vec2(0.001));
+  vec2 seam = smoothstep(vec2(0.012), vec2(0.012) + aa, min(f, 1.0 - f));
+  owPavingJoint = 1.0 - seam.x * seam.y;
+  float stone = owHash(floor(cell));
+  vec3 color = mix(vec3(0.23, 0.225, 0.205), vec3(0.36, 0.345, 0.31), stone);
+  color *= 0.94 + 0.1 * owNoise(p * 18.0);
+  color = mix(color, vec3(0.09, 0.095, 0.09), owPavingJoint * 0.67);
+  float gutter = 1.0 - smoothstep(0.14, 0.24, p.x);
+  color = mix(color, vec3(0.115, 0.125, 0.13), gutter * 0.7);
+  diffuseColor.rgb = color * (1.0 - owPavingWet * 0.27);
+}`,
+      )
+      .replace(
+        '#include <roughnessmap_fragment>',
+        `#include <roughnessmap_fragment>\nroughnessFactor = mix(0.87, 0.38, owPavingWet) + owPavingJoint * 0.08;`,
+      );
+  };
+  material.customProgramCacheKey = () => 'solvane-paving-v1';
+  return material;
+}
+
+/** Paint has scuffed edges and sparse worn aggregate, filtered by pixel
+ * footprint. Markings remain solid enough to read at speed and at night. */
+function wornPaint(material: T.MeshStandardMaterial) {
+  (material as unknown as { defines: Record<string, string> }).defines = { USE_UV: '' };
+  material.onBeforeCompile = (shader) => {
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', `#include <common>\n${OW_NOISE_GLSL}`)
+      .replace(
+        '#include <color_fragment>',
+        `#include <color_fragment>
+{
+  float detail = 1.0 - smoothstep(0.025, 0.15, length(fwidth(vUv)));
+  float grain = owNoise(vUv * vec2(31.0, 24.0));
+  float wear = smoothstep(0.66, 0.86, grain) * detail;
+  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.075), wear * 0.65);
+}`,
+      );
+  };
+  material.customProgramCacheKey = () => 'solvane-road-paint-v1';
+  return material;
+}
 
 /** Dirt track: compacted gravel with wheel ruts, world-space noise, no texture. */
 function dirtMaterial() {
@@ -123,17 +222,33 @@ export class RoadMeshes {
   readonly root = new T.Group();
   readonly materials: Record<Layer, T.Material>;
   readonly lampMaterial: T.MeshStandardMaterial;
+  readonly reflectorMaterial = new T.MeshStandardMaterial({
+    color: 0xffdf9a,
+    emissive: 0xffd071,
+    emissiveIntensity: 0.02,
+    roughness: 0.27,
+  });
+  private readonly pavingWet = { value: 0 };
   stats = { chunks: 0, triangles: 0, lamps: 0, posts: 0 };
   constructor(
     readonly network: RoadNetwork,
     readonly field: TerrainField,
   ) {
     this.root.name = 'Festival roads';
-    const asphaltMajor = materials.asphalt({ variant: 'fresh', color: 0x3c3d3e });
-    const asphalt = materials.asphalt({ variant: 'worn' });
-    const town = materials.asphalt({ variant: 'patched', color: 0x48484a });
+    // The Low fallback must still read as fine aggregate. The old patched
+    // tile repeated large bright islands across every street like cobbles.
+    // Photographed maps retain their own measured scale on Medium and above.
+    const asphaltMajor = materials.asphalt({ variant: 'fresh', color: 0x3c3d3e, tile: 0.3 });
+    const asphalt = materials.asphalt({ variant: 'worn', tile: 0.3 });
+    const town = materials.asphalt({
+      variant: 'fresh',
+      color: 0x424446,
+      tile: 0.24,
+      puddles: 0.45,
+    });
     // Photographed asphalt on Medium and above (ground/scanned-ground.ts).
-    for (const m of [asphaltMajor, asphalt, town]) installScannedMaps(m, 'asphalt', libraryAlbedo(m));
+    for (const m of [asphaltMajor, asphalt, town])
+      installScannedMaps(m, 'asphalt', libraryAlbedo(m));
     for (const [m, units] of [
       [asphaltMajor, -4],
       [asphalt, -3],
@@ -143,8 +258,12 @@ export class RoadMeshes {
       m.polygonOffsetFactor = -1;
       m.polygonOffsetUnits = units;
     }
-    const paint = new T.MeshStandardMaterial({ color: 0xd8d8d2, roughness: 0.55, metalness: 0 });
-    const yellow = new T.MeshStandardMaterial({ color: 0xc9a227, roughness: 0.55, metalness: 0 });
+    const paint = wornPaint(
+      new T.MeshStandardMaterial({ color: 0xd8d8d2, roughness: 0.55, metalness: 0 }),
+    );
+    const yellow = wornPaint(
+      new T.MeshStandardMaterial({ color: 0xc9a227, roughness: 0.55, metalness: 0 }),
+    );
     for (const m of [paint, yellow]) {
       m.polygonOffset = true;
       m.polygonOffsetFactor = -2;
@@ -162,10 +281,15 @@ export class RoadMeshes {
       town,
       dirt: installScannedDirt(dirtMaterial()),
       verge: installScannedVerge(vergeMaterial()),
+      paving: pavingMaterial(this.pavingWet),
       paint,
       yellow,
-      rail: Object.assign(materials.metal({ kind: 'bare', metal: 'steel', roughness: 0.42 }), { side: T.DoubleSide }),
-      concrete: Object.assign(materials.concrete({ variant: 'rough', horizontal: 0 }), { side: T.DoubleSide }),
+      rail: Object.assign(materials.metal({ kind: 'bare', metal: 'steel', roughness: 0.42 }), {
+        side: T.DoubleSide,
+      }),
+      concrete: Object.assign(materials.concrete({ variant: 'rough', horizontal: 0 }), {
+        side: T.DoubleSide,
+      }),
       post: materials.metal({ kind: 'cast', metal: 'steel', color: 0x8a8d90 }),
     };
     this.build();
@@ -213,14 +337,35 @@ export class RoadMeshes {
           r1 = row(q, v1);
         for (let k = 0; k < across.length - 1; k++) b.quad(r0[k], r0[k + 1], r1[k], r1[k + 1]);
         // Verges (gravel, falling slightly away), not on bridges.
-        const bridge = (net.flags[i] & ROAD_FLAG.BRIDGE) !== 0 && (net.flags[i + 1] & ROAD_FLAG.BRIDGE) !== 0;
+        const bridge =
+          (net.flags[i] & ROAD_FLAG.BRIDGE) !== 0 && (net.flags[i + 1] & ROAD_FLAG.BRIDGE) !== 0;
         if (spec.shoulder > 0.2 && !bridge) {
-          const vb = builder(mx, mz, e.roadClass === 'highway' || e.roadClass === 'runway' ? layer : 'verge');
+          const vb = builder(
+            mx,
+            mz,
+            e.roadClass === 'town'
+              ? 'paving'
+              : e.roadClass === 'highway' || e.roadClass === 'runway'
+                ? layer
+                : 'verge',
+          );
           for (const side of [-1, 1]) {
             const edge = (pt: TrackPoint, v: number) => {
-              const inner = vb.vertex(pt.x + pt.nx * side * hw, height(pt, side * hw) - 0.005, pt.z + pt.nz * side * hw, side * hw, v);
+              const inner = vb.vertex(
+                pt.x + pt.nx * side * hw,
+                height(pt, side * hw) - 0.005,
+                pt.z + pt.nz * side * hw,
+                side * hw,
+                v,
+              );
               const w = hw + spec.shoulder,
-                outer = vb.vertex(pt.x + pt.nx * side * w, height(pt, side * hw) - 0.06 - spec.shoulder * 0.03, pt.z + pt.nz * side * w, side * w, v);
+                outer = vb.vertex(
+                  pt.x + pt.nx * side * w,
+                  height(pt, side * hw) - 0.06 - spec.shoulder * 0.03,
+                  pt.z + pt.nz * side * w,
+                  side * w,
+                  v,
+                );
               return [inner, outer];
             };
             const [a0, a1] = edge(p, v0),
@@ -229,14 +374,23 @@ export class RoadMeshes {
             else vb.quad(a1, a0, c1, c0);
           }
         }
-        if (bridge) this.bridgeSegment(builder(mx, mz, 'concrete'), p, q, hw + spec.shoulder, height);
+        if (bridge)
+          this.bridgeSegment(builder(mx, mz, 'concrete'), p, q, hw + spec.shoulder, height);
         // Guardrails where the network marks them (not on bridges: parapets).
         for (const [bit, side] of [
           [ROAD_FLAG.BARRIER_LEFT, -1],
           [ROAD_FLAG.BARRIER_RIGHT, 1],
         ] as const)
           if (!bridge && net.flags[i] & bit && net.flags[i + 1] & bit)
-            this.railSegment(builder(mx, mz, 'rail'), p, q, side, hw + spec.shoulder + 0.35, height, posts);
+            this.railSegment(
+              builder(mx, mz, 'rail'),
+              p,
+              q,
+              side,
+              hw + spec.shoulder + 0.35,
+              height,
+              posts,
+            );
       }
       this.markings(e, builder);
       if (e.roadClass === 'town') this.townLamps(e, lamps);
@@ -262,12 +416,28 @@ export class RoadMeshes {
     }
     // Guardrail posts and town lamps: instanced.
     if (posts.length) {
-      const post = new T.InstancedMesh(new T.BoxGeometry(0.15, 1, 0.12).translate(0, 0.5, 0), this.materials.post, posts.length);
+      const post = new T.InstancedMesh(
+        new T.BoxGeometry(0.15, 1, 0.12).translate(0, 0.5, 0),
+        this.materials.post,
+        posts.length,
+      );
       posts.forEach((m, i) => post.setMatrixAt(i, m));
       post.name = 'Guardrail posts';
       post.castShadow = true;
       post.computeBoundingSphere();
       this.root.add(post);
+      // Reflectors share existing rail-post anchors: no new obstacle in a
+      // shoulder. The low emission aids legibility, without pretending that
+      // the reflectors themselves illuminate the road.
+      const reflectors = new T.InstancedMesh(
+        new T.BoxGeometry(0.18, 0.09, 0.14).translate(0, 0.9, 0),
+        this.reflectorMaterial,
+        Math.ceil(posts.length / 3),
+      );
+      for (let i = 0, k = 0; i < posts.length; i += 3, k++) reflectors.setMatrixAt(k, posts[i]);
+      reflectors.name = 'Varda and coast guardrail reflectors';
+      reflectors.computeBoundingSphere();
+      this.root.add(reflectors);
     }
     if (lamps.length) {
       const pole = new T.CylinderGeometry(0.07, 0.1, 7, 6).translate(0, 3.5, 0);
@@ -287,7 +457,12 @@ export class RoadMeshes {
       heads.computeBoundingSphere();
       this.root.add(poles, heads);
     }
-    this.stats = { chunks: chunks.size, triangles: triangles.n, lamps: lamps.length, posts: posts.length };
+    this.stats = {
+      chunks: chunks.size,
+      triangles: triangles.n,
+      lamps: lamps.length,
+      posts: posts.length,
+    };
   }
   /** Painted lines: edge lines, centre lines and runway markings. */
   private markings(e: RoadEdge, builder: (x: number, z: number, layer: Layer) => Builder) {
@@ -295,27 +470,65 @@ export class RoadMeshes {
       spec = e.spec,
       hw = spec.halfWidth;
     if (spec.markings === 'none') return;
-    const lines: { lateral: number; width: number; dash: number; gap: number; layer: Layer; junction: boolean }[] = [];
+    const lines: {
+      lateral: number;
+      width: number;
+      dash: number;
+      gap: number;
+      layer: Layer;
+      junction: boolean;
+    }[] = [];
     const edgeLine = { width: 0.15, dash: 0, gap: 0, layer: 'paint' as Layer, junction: false };
     if (spec.markings === 'motorway') {
       lines.push({ ...edgeLine, lateral: -(hw - 0.75) }, { ...edgeLine, lateral: hw - 0.75 });
-      lines.push({ lateral: -0.12, width: 0.12, dash: 0, gap: 0, layer: 'yellow', junction: false });
+      lines.push({
+        lateral: -0.12,
+        width: 0.12,
+        dash: 0,
+        gap: 0,
+        layer: 'yellow',
+        junction: false,
+      });
       lines.push({ lateral: 0.12, width: 0.12, dash: 0, gap: 0, layer: 'yellow', junction: false });
-      lines.push({ lateral: -3.6, width: 0.14, dash: 4.5, gap: 7.5, layer: 'paint', junction: false });
-      lines.push({ lateral: 3.6, width: 0.14, dash: 4.5, gap: 7.5, layer: 'paint', junction: false });
+      lines.push({
+        lateral: -3.6,
+        width: 0.14,
+        dash: 4.5,
+        gap: 7.5,
+        layer: 'paint',
+        junction: false,
+      });
+      lines.push({
+        lateral: 3.6,
+        width: 0.14,
+        dash: 4.5,
+        gap: 7.5,
+        layer: 'paint',
+        junction: false,
+      });
     } else if (spec.markings === 'centre') {
       lines.push({ ...edgeLine, lateral: -(hw - 0.27) }, { ...edgeLine, lateral: hw - 0.27 });
       const solid = e.roadClass === 'mountain';
-      lines.push({ lateral: 0, width: 0.13, dash: solid ? 0 : 3, gap: solid ? 0 : 6, layer: 'paint', junction: false });
+      lines.push({
+        lateral: 0,
+        width: 0.13,
+        dash: solid ? 0 : 3,
+        gap: solid ? 0 : 6,
+        layer: 'paint',
+        junction: false,
+      });
     } else if (spec.markings === 'runway') {
       lines.push({ lateral: 0, width: 0.9, dash: 30, gap: 20, layer: 'paint', junction: true });
-      lines.push({ ...edgeLine, width: 0.9, lateral: -(hw - 1) }, { ...edgeLine, width: 0.9, lateral: hw - 1 });
+      lines.push(
+        { ...edgeLine, width: 0.9, lateral: -(hw - 1) },
+        { ...edgeLine, width: 0.9, lateral: hw - 1 },
+      );
     }
     const p = roadPoint();
     const step = 2;
     for (const line of lines) {
       for (let s = 0; s < e.length - step; s += step) {
-        if (line.dash > 0 && (s % (line.dash + line.gap)) >= line.dash) continue;
+        if (line.dash > 0 && s % (line.dash + line.gap) >= line.dash) continue;
         net.at(e.offset + s, p);
         // No lines through junction mouths.
         if (!line.junction && this.inJunction(e, s)) continue;
@@ -324,7 +537,13 @@ export class RoadMeshes {
         const b = { ...p },
           builderAt = builder((a.x + b.x) / 2, (a.z + b.z) / 2, line.layer);
         const corner = (pt: TrackPoint, l: number, v: number) =>
-          builderAt.vertex(pt.x + pt.nx * l, net.surfaceHeight(pt, l, hw, spec.crown) + 0.012, pt.z + pt.nz * l, l, v);
+          builderAt.vertex(
+            pt.x + pt.nx * l,
+            net.surfaceHeight(pt, l, hw, spec.crown) + 0.012,
+            pt.z + pt.nz * l,
+            l,
+            v,
+          );
         const w = line.width / 2;
         const a0 = corner(a, line.lateral - w, s),
           a1 = corner(a, line.lateral + w, s),
@@ -346,8 +565,19 @@ export class RoadMeshes {
           const l = k * 1.9,
             bb = builder(a.x, a.z, 'paint');
           const corner = (pt: TrackPoint, ll: number, v: number) =>
-            bb.vertex(pt.x + pt.nx * ll, net.surfaceHeight(pt, ll, hw, spec.crown) + 0.012, pt.z + pt.nz * ll, ll, v);
-          bb.quad(corner(a, l - 0.6, 0), corner(a, l + 0.6, 0), corner(b, l - 0.6, 30), corner(b, l + 0.6, 30));
+            bb.vertex(
+              pt.x + pt.nx * ll,
+              net.surfaceHeight(pt, ll, hw, spec.crown) + 0.012,
+              pt.z + pt.nz * ll,
+              ll,
+              v,
+            );
+          bb.quad(
+            corner(a, l - 0.6, 0),
+            corner(a, l + 0.6, 0),
+            corner(b, l - 0.6, 30),
+            corner(b, l + 0.6, 30),
+          );
         }
       }
     }
@@ -375,19 +605,35 @@ export class RoadMeshes {
       h(pt, side * (lateral - 0.4)) + dy,
       pt.z + pt.nz * side * lateral,
     ];
-    // W-beam: a 0.31 m tall rail face with a slight bulge, 0.75 m high.
+    // Actual rolled W section. Two crests and a central trough catch
+    // different highlights as the car passes instead of reading as a flat
+    // grey ribbon. It stays within 6 cm of the collision-backed rail line.
     const nx = -p.nx * side,
       nz = -p.nz * side;
     const [ax, ay, az] = at(p, 0.6),
       [bx, by, bz] = at(q, 0.6);
-    const lift = 0.31;
-    const a0 = b.vertex(ax, ay, az, p.s, 0, nx, 0, nz),
-      a1 = b.vertex(ax, ay + lift, az, p.s, 1, nx, 0, nz),
-      b0 = b.vertex(bx, by, bz, q.s, 0, nx, 0, nz),
-      b1 = b.vertex(bx, by + lift, bz, q.s, 1, nx, 0, nz);
-    // Two-sided: both windings.
-    b.quad(a0, a1, b0, b1);
-    b.quad(a1, a0, b1, b0);
+    const profile = [
+      [0, 0],
+      [0.075, 0.055],
+      [0.155, 0],
+      [0.235, 0.055],
+      [0.31, 0],
+    ];
+    for (let k = 0; k < profile.length - 1; k++) {
+      const [y0, d0] = profile[k],
+        [y1, d1] = profile[k + 1];
+      const gradient = (d1 - d0) / (y1 - y0),
+        norm = Math.hypot(1, gradient);
+      const nnx = nx / norm,
+        nny = -gradient / norm,
+        nnz = nz / norm;
+      const a0 = b.vertex(ax + nx * d0, ay + y0, az + nz * d0, p.s, y0, nnx, nny, nnz);
+      const a1 = b.vertex(ax + nx * d1, ay + y1, az + nz * d1, p.s, y1, nnx, nny, nnz);
+      const b0 = b.vertex(bx + nx * d0, by + y0, bz + nz * d0, q.s, y0, nnx, nny, nnz);
+      const b1 = b.vertex(bx + nx * d1, by + y1, bz + nz * d1, q.s, y1, nnx, nny, nnz);
+      if (side > 0) b.quad(a0, a1, b0, b1);
+      else b.quad(a1, a0, b1, b0);
+    }
     if (Math.floor(p.s / 4) !== Math.floor(q.s / 4)) {
       const m = new T.Matrix4().compose(
         new T.Vector3(ax + p.nx * side * 0.12, ay - 0.6, az + p.nz * side * 0.12),
@@ -453,7 +699,12 @@ export class RoadMeshes {
       }
       const s = net.s[i] - e.offset;
       if (run < 0) run = s;
-      if (s - run < 16 || Math.floor((s - run) / 32) === Math.floor((net.s[Math.max(e.first, i - 1)] - e.offset - run) / 32)) continue;
+      if (
+        s - run < 16 ||
+        Math.floor((s - run) / 32) ===
+          Math.floor((net.s[Math.max(e.first, i - 1)] - e.offset - run) / 32)
+      )
+        continue;
       net.at(net.s[i], p);
       const top = p.y - 1.5,
         ground = this.field.height(p.x, p.z) - 1;
@@ -495,9 +746,16 @@ export class RoadMeshes {
       const side = Math.floor(s / 32) % 2 === 0 ? 1 : -1,
         l = side * (e.spec.halfWidth + e.spec.shoulder - 0.4);
       const m = new T.Matrix4().compose(
-        new T.Vector3(p.x + p.nx * l, net.surfaceHeight(p, side * e.spec.halfWidth, e.spec.halfWidth, e.spec.crown) - 0.1, p.z + p.nz * l),
+        new T.Vector3(
+          p.x + p.nx * l,
+          net.surfaceHeight(p, side * e.spec.halfWidth, e.spec.halfWidth, e.spec.crown) - 0.1,
+          p.z + p.nz * l,
+        ),
         // The arm reaches over the road (local +x toward the centreline).
-        new T.Quaternion().setFromAxisAngle(new T.Vector3(0, 1, 0), Math.atan2(side * p.nz, -side * p.nx)),
+        new T.Quaternion().setFromAxisAngle(
+          new T.Vector3(0, 1, 0),
+          Math.atan2(side * p.nz, -side * p.nx),
+        ),
         new T.Vector3(1, 1, 1),
       );
       lamps.push(m);
@@ -506,6 +764,10 @@ export class RoadMeshes {
   /** Night: street lamps glow (bloom carries them). */
   setNight(night: number) {
     this.lampMaterial.emissiveIntensity = 0.05 + night * 9;
+    this.reflectorMaterial.emissiveIntensity = 0.02 + night * 0.72;
+  }
+  setWet(wet: number) {
+    this.pavingWet.value = T.MathUtils.clamp(wet, 0, 1);
   }
   dispose() {
     this.root.traverse((o) => {
@@ -513,5 +775,6 @@ export class RoadMeshes {
     });
     for (const m of Object.values(this.materials)) m.dispose();
     this.lampMaterial.dispose();
+    this.reflectorMaterial.dispose();
   }
 }

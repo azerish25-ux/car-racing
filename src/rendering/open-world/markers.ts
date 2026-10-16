@@ -34,7 +34,7 @@ void main() {
   // A column the camera stands in (the player waiting at a start, a gate
   // being driven through) fades out instead of washing over the view.
   float near = nearFade.y > 0.0 ? smoothstep(nearFade.x, nearFade.y, vDepth) : 1.0;
-  gl_FragColor = vec4(colour * strength * pulse * fade * near * 2.2, 1.0);
+  gl_FragColor = vec4(colour * strength * pulse * fade * near * 0.72, 1.0);
 }`;
 /** Light column (fades within `near` metres of the camera) or ground ring. */
 function beamMaterial(colour: number, near: readonly [number, number] = [0, 0]) {
@@ -72,13 +72,24 @@ export class EventMarkers {
   private readonly markers: Marker[] = [];
   private readonly gate: T.Mesh;
   private readonly gateMaterial = beamMaterial(0x46e0ff, COLUMN_FADE);
-  private readonly geometry = new T.CylinderGeometry(2.6, 2.6, 90, 20, 1, true).translate(0, 45, 0);
-  private readonly ring = new T.RingGeometry(6.2, 7.4, 48).rotateX(-Math.PI / 2);
+  private readonly geometry = new T.CylinderGeometry(0.55, 1.05, 24, 16, 1, true).translate(
+    0,
+    12,
+    0,
+  );
+  private readonly ring = new T.RingGeometry(4.1, 4.55, 48).rotateX(-Math.PI / 2);
+  private readonly cameraMaterial = new T.MeshStandardMaterial({
+    color: 0x2b2f33,
+    roughness: 0.5,
+    metalness: 0.6,
+  });
+  private readonly poleGeometry = new T.CylinderGeometry(0.12, 0.14, 6, 8).translate(0, 3, 0);
+  private readonly cameraGeometry = new T.BoxGeometry(0.5, 0.4, 0.8).translate(0, 6.1, 0);
   constructor(events: readonly FestivalEvent[], groundHeight: (x: number, z: number) => number) {
     this.root.name = 'Festival event markers';
-    const camera = new T.MeshStandardMaterial({ color: 0x2b2f33, roughness: 0.5, metalness: 0.6 });
-    const pole = new T.CylinderGeometry(0.12, 0.14, 6, 8).translate(0, 3, 0);
-    const box = new T.BoxGeometry(0.5, 0.4, 0.8).translate(0, 6.1, 0);
+    const camera = this.cameraMaterial,
+      pole = this.poleGeometry,
+      box = this.cameraGeometry;
     const p = pathPoint();
     for (const event of events) {
       const colour = EVENT_COLOURS[event.spec.kind];
@@ -111,6 +122,7 @@ export class EventMarkers {
       }
     }
     this.gate = new T.Mesh(this.geometry, this.gateMaterial);
+    this.gate.scale.set(0.6, 0.45, 0.6);
     this.gate.visible = false;
     this.gate.frustumCulled = false;
     this.root.add(this.gate);
@@ -142,5 +154,9 @@ export class EventMarkers {
       m.ring.dispose();
     }
     this.gateMaterial.dispose();
+    this.cameraMaterial.dispose();
+    this.poleGeometry.dispose();
+    this.cameraGeometry.dispose();
+    this.root.clear();
   }
 }

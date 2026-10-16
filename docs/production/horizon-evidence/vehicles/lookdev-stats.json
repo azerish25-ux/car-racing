@@ -1,0 +1,61 @@
+{
+  "measurement": "Actual Three.js renderer.info.render values from the same static lit vehicle fixture at 1280x800. Submission counts, not whole-game frame rate. Before uses committed builder and profiles; after uses working source. Hidden LOD object counts are deliberately omitted because the before fixture only instantiates LOD0.",
+  "captures": [
+    {
+      "id": "rh3",
+      "view": "front",
+      "baseline": true,
+      "drawCalls": 52,
+      "triangles": 56698
+    },
+    {
+      "id": "rh3",
+      "view": "front",
+      "baseline": false,
+      "drawCalls": 57,
+      "triangles": 72376
+    },
+    {
+      "id": "sc7",
+      "view": "rear",
+      "baseline": true,
+      "drawCalls": 51,
+      "triangles": 57426
+    },
+    {
+      "id": "sc7",
+      "view": "rear",
+      "baseline": false,
+      "drawCalls": 56,
+      "triangles": 82628
+    },
+    {
+      "id": "rg63",
+      "view": "front",
+      "baseline": false,
+      "drawCalls": 55,
+      "triangles": 74644
+    },
+    {
+      "id": "rp6",
+      "view": "front",
+      "baseline": false,
+      "drawCalls": 53,
+      "triangles": 81192
+    },
+    {
+      "id": "eh3",
+      "view": "rear",
+      "baseline": false,
+      "drawCalls": 55,
+      "triangles": 81296
+    },
+    {
+      "id": "gt10m",
+      "view": "rear",
+      "baseline": false,
+      "drawCalls": 61,
+      "triangles": 83376
+    }
+  ]
+}

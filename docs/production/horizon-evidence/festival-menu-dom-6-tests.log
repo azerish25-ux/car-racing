@@ -1,0 +1,16 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+Running 6 tests using 1 worker
+
+(node:114909) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:114909) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 e2e/49-festival-menu-access.spec.ts:79:1 › festival menu access: every pause-menu action is reachable with the keyboard (8.1s)
+  ✓  2 e2e/49-festival-menu-access.spec.ts:143:1 › festival results: CONTINUE takes a normal mouse click while status keeps arriving (4.0s)
+  ✓  3 e2e/49-festival-menu-access.spec.ts:166:1 › festival map: filters, event selection and keyboard focus survive redraws (3.1s)
+  ✓  4 e2e/49-festival-menu-access.spec.ts:247:1 › festival photo: keyboard return cannot activate the race card behind the controls (2.8s)
+  ✓  5 e2e/49-festival-menu-access.spec.ts:302:1 › festival gamepad: D-pad, accept and back use fresh presses across map and photo transitions (2.7s)
+  ✓  6 e2e/49-festival-menu-access.spec.ts:365:1 › festival menus remain usable when browser policy denies gamepad access (2.4s)
+
+  6 passed (40.3s)

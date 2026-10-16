@@ -411,10 +411,45 @@ export class VehicleBodies {
   }
   private dispose(body: Built) {
     this.root.remove(body.root);
+    const feedIndex = this.feedShown.indexOf(body);
+    if (feedIndex !== -1) this.feedShown.splice(feedIndex, 1);
+    // A grouped surface or suspension link can share its geometry with
+    // another mesh. Release each buffer once, including the shadow proxy.
+    const geometries = new Set<T.BufferGeometry>();
     body.root.traverse((o) => {
-      if (o instanceof T.Mesh) o.geometry.dispose();
+      if (o instanceof T.Mesh) geometries.add(o.geometry);
     });
+    for (const geometry of geometries) geometry.dispose();
     body.lods[0].cabin?.display?.dispose();
+    // Paint, live lamps and wheel shaders belong to this car. Glass, trim,
+    // rims, suits and optical covers are shared by the whole catalogue;
+    // traversing and disposing every material would invalidate other cars.
+    const { paint, accent, helmet, head, tail, board } = body.materials;
+    const materials = new Set<T.Material>([paint, accent, helmet, head, tail, board]);
+    for (const wheels of body.wheels)
+      for (const wheel of wheels) {
+        for (const material of Array.isArray(wheel.tyre.material)
+          ? wheel.tyre.material
+          : [wheel.tyre.material])
+          materials.add(material);
+        if (wheel.disc) materials.add(wheel.disc);
+      }
+    for (const material of Array.isArray(body.proxy.material)
+      ? body.proxy.material
+      : [body.proxy.material])
+      materials.add(material);
+    // The board owns its canvas texture. Paint's environment map and
+    // renderer-installed reflection textures have a separate lifetime.
+    board.map?.dispose();
+    for (const material of materials) material.dispose();
+  }
+  /** Release every built car and reset the rear-view feed state. Safe to
+   * repeat; subsequent updates build fresh bodies using the same callback. */
+  clear(): void {
+    this.feedShown.length = 0;
+    this.framesSinceFeed = 0;
+    for (const body of this.bodies.values()) this.dispose(body);
+    this.bodies.clear();
   }
   /** Bodies currently shown (diagnostics). */
   get count() {

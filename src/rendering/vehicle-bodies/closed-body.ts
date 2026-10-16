@@ -22,6 +22,11 @@ import type { CarMaterials, BuiltLod } from './common.ts';
 import type { CabinLayout } from './cabin.ts';
 import { buildClosedCabin, type CabinOpening } from './interior.ts';
 import type { VehicleDefinition } from '../../simulation/vehicles.ts';
+import {
+  addFestivalWingHardware,
+  buildFestivalDetail,
+  festivalDetailFor,
+} from './festival-detail.ts';
 
 /** Closed-wheel bodies (GT, prototype, saloon, roadster, rally, truck, road
  * supercar) generated from a ClosedSheet. The lower body is one loft of
@@ -94,6 +99,7 @@ export class ClosedBodyModel {
       [f.frontAxle, y(s.belt - 0.02)],
       [zF, y(Math.min(s.nose - 0.06, s.belt - 0.08))],
     ]);
+    const noseWidth = s.noseWidth ?? 0.7;
     this.taper = new Track([
       [zR, 0.8],
       [zR + 0.05, 0.9],
@@ -101,9 +107,9 @@ export class ClosedBodyModel {
       [f.rearAxle, 1],
       [f.frontAxle, 1],
       [zF - 0.4, 0.95],
-      [zF - 0.1, 0.84],
-      [zF - 0.03, 0.78],
-      [zF, 0.7],
+      [zF - 0.1, Math.min(0.97, noseWidth + 0.14)],
+      [zF - 0.03, Math.min(0.95, noseWidth + 0.08)],
+      [zF, noseWidth],
     ]);
     const clearance = s.style === 'truck' ? 0.1 : 0.045;
     this.arches = [
@@ -465,6 +471,7 @@ function wing(
   w: WingSheet,
   mats: CarMaterials,
   detail: Detail,
+  festivalDetail = false,
 ) {
   const { f, s } = model;
   const carbon = sharedMaterials.carbon();
@@ -543,6 +550,7 @@ function wing(
         placed(x, y - 0.06, z - w.chord * 0.2, 0.35),
       );
     }
+  if (festivalDetail) addFestivalWingHardware(group, model, w, detail);
   return group;
 }
 /** Build one LOD of a closed body into `lod.group`. With a cabin layout the
@@ -556,6 +564,7 @@ export function buildClosedBody(
   cabin?: { layout: CabinLayout; def: VehicleDefinition },
 ) {
   const { f, s } = model;
+  const detailedFestival = detail < 2 && festivalDetailFor(cabin?.def, s);
   const parts = new Parts();
   const rings = model.stations(detail).map((z) => model.ring(z, detail));
   const openCockpit = s.style === 'roadster' || !!s.open;
@@ -564,8 +573,8 @@ export function buildClosedBody(
     zLidRear = f.z(s.cabin[3]);
   const cell = detail === 0 ? cabin?.layout.cell : null;
   const lower = loftRings(rings, {
-    capStart: true,
-    capEnd: true,
+    capStart: !detailedFestival,
+    capEnd: !detailedFestival,
     capMaterial: M.paint,
     material: (zMid, j, i) => {
       if (cabin && j >= deck && zMid < zLidFront && zMid > zLidRear) {
@@ -619,72 +628,74 @@ export function buildClosedBody(
     return { y: y0, pitch: -Math.atan(dz), roll: Math.atan(dx) };
   };
   const seg = detail === 0 ? 3 : 1;
-  const zHead = model.zFront - (s.style === 'truck' ? 0.1 : s.lamps.front === 'pod' ? 0.3 : 0.22);
-  for (const side of [-1, 1]) {
-    const ax = hw(zHead) * (s.lamps.front === 'bar' ? 0.45 : 0.66),
-      at = surface(zHead, ax),
-      x = side * ax,
-      roll = side * at.roll;
-    const lamp = (w: number, d: number, dx = 0, round = false) => {
-      parts.add(
-        roundedBox(w + 0.03, 0.03, d + 0.03, 0.012, seg),
-        trim,
-        placed(x + side * dx, at.y - 0.01, zHead, at.pitch, 0, roll),
-      );
-      const lens = round
-        ? new T.CylinderGeometry(w / 2, w / 2, 0.026, detail === 0 ? 24 : 10)
-        : roundedBox(w, 0.026, d, 0.01, seg);
-      parts.add(lens, mats.head, placed(x + side * dx, at.y - 0.002, zHead, at.pitch, 0, roll));
-    };
-    if (s.lamps.front === 'round') lamp(0.15, 0.15, 0, true);
-    else if (s.lamps.front === 'twin') {
-      lamp(0.12, 0.12, 0.08, true);
-      lamp(0.12, 0.12, -0.08, true);
-    } else if (s.lamps.front === 'pod') {
-      parts.add(
-        roundedBox(0.16, 0.08, 0.22, 0.035, seg),
-        mats.paint,
-        placed(x, at.y + 0.02, zHead, at.pitch),
-      );
-      parts.add(
-        roundedBox(0.12, 0.05, 0.02, 0.012, seg),
-        mats.head,
-        placed(x, at.y + 0.025, zHead + 0.11),
-      );
-    } else if (s.lamps.front === 'bar') lamp(hw(zHead) * 0.5, 0.06);
-    else lamp(0.3, 0.07);
-  }
-  // Tail lamps on the rear face.
-  {
-    const zTail = model.zRear - 0.004,
-      half = hw(model.zRear) * 0.8,
-      ty = Math.min(f.y(s.tail) - 0.13, model.topY(model.zRear) - 0.06);
-    const unit = (x: number, w: number, h: number, round = false) => {
-      parts.add(
-        roundedBox(w + 0.03, h + 0.03, 0.02, 0.01, seg),
-        trim,
-        placed(x, ty, zTail + 0.006),
-      );
-      parts.add(
-        round
-          ? new T.CylinderGeometry(w / 2, w / 2, 0.02, detail === 0 ? 20 : 8).rotateX(Math.PI / 2)
-          : roundedBox(w, h, 0.02, Math.min(0.01, h / 3), seg),
-        mats.tail,
-        placed(x, ty, zTail),
-      );
-    };
-    if (s.lamps.rear === 'bar') unit(0, half * 1.7, 0.06);
-    else if (s.lamps.rear === 'strip') unit(0, half * 1.8, 0.022);
+  if (!detailedFestival) {
+    const zHead = model.zFront - (s.style === 'truck' ? 0.1 : s.lamps.front === 'pod' ? 0.3 : 0.22);
     for (const side of [-1, 1]) {
-      const x = side * half * 0.74;
-      if (s.lamps.rear === 'round') {
-        unit(x, 0.11, 0.11, true);
-        unit(x - side * 0.15, 0.09, 0.09, true);
-      } else if (s.lamps.rear === 'twin') unit(x, 0.24, 0.09);
+      const ax = hw(zHead) * (s.lamps.front === 'bar' ? 0.45 : 0.66),
+        at = surface(zHead, ax),
+        x = side * ax,
+        roll = side * at.roll;
+      const lamp = (w: number, d: number, dx = 0, round = false) => {
+        parts.add(
+          roundedBox(w + 0.03, 0.03, d + 0.03, 0.012, seg),
+          trim,
+          placed(x + side * dx, at.y - 0.01, zHead, at.pitch, 0, roll),
+        );
+        const lens = round
+          ? new T.CylinderGeometry(w / 2, w / 2, 0.026, detail === 0 ? 24 : 10)
+          : roundedBox(w, 0.026, d, 0.01, seg);
+        parts.add(lens, mats.head, placed(x + side * dx, at.y - 0.002, zHead, at.pitch, 0, roll));
+      };
+      if (s.lamps.front === 'round') lamp(0.15, 0.15, 0, true);
+      else if (s.lamps.front === 'twin') {
+        lamp(0.12, 0.12, 0.08, true);
+        lamp(0.12, 0.12, -0.08, true);
+      } else if (s.lamps.front === 'pod') {
+        parts.add(
+          roundedBox(0.16, 0.08, 0.22, 0.035, seg),
+          mats.paint,
+          placed(x, at.y + 0.02, zHead, at.pitch),
+        );
+        parts.add(
+          roundedBox(0.12, 0.05, 0.02, 0.012, seg),
+          mats.head,
+          placed(x, at.y + 0.025, zHead + 0.11),
+        );
+      } else if (s.lamps.front === 'bar') lamp(hw(zHead) * 0.5, 0.06);
+      else lamp(0.3, 0.07);
+    }
+    // Tail lamps on the rear face.
+    {
+      const zTail = model.zRear - 0.004,
+        half = hw(model.zRear) * 0.8,
+        ty = Math.min(f.y(s.tail) - 0.13, model.topY(model.zRear) - 0.06);
+      const unit = (x: number, w: number, h: number, round = false) => {
+        parts.add(
+          roundedBox(w + 0.03, h + 0.03, 0.02, 0.01, seg),
+          trim,
+          placed(x, ty, zTail + 0.006),
+        );
+        parts.add(
+          round
+            ? new T.CylinderGeometry(w / 2, w / 2, 0.02, detail === 0 ? 20 : 8).rotateX(Math.PI / 2)
+            : roundedBox(w, h, 0.02, Math.min(0.01, h / 3), seg),
+          mats.tail,
+          placed(x, ty, zTail),
+        );
+      };
+      if (s.lamps.rear === 'bar') unit(0, half * 1.7, 0.06);
+      else if (s.lamps.rear === 'strip') unit(0, half * 1.8, 0.022);
+      for (const side of [-1, 1]) {
+        const x = side * half * 0.74;
+        if (s.lamps.rear === 'round') {
+          unit(x, 0.11, 0.11, true);
+          unit(x - side * 0.15, 0.09, 0.09, true);
+        } else if (s.lamps.rear === 'twin') unit(x, 0.24, 0.09);
+      }
     }
   }
-  // Grille and intakes.
-  if (s.grille > 0) {
+  // Grille and intakes. Festival near/mid caps have physical apertures.
+  if (s.grille > 0 && !detailedFestival) {
     const gw = hw(model.zFront) * 1.1 * s.grille;
     parts.add(
       roundedBox(gw, 0.12 * Math.max(0.6, s.grille), 0.08, 0.02, 2),
@@ -730,7 +741,7 @@ export function buildClosedBody(
         placed(k * hw(model.zRear) * 0.3, f.y(s.floor) + h * 0.5 + 0.03, model.zRear + 0.2, 0.25),
       );
   }
-  if (s.sideIntake && detail < 2)
+  if (s.sideIntake && detail < 2 && !detailedFestival)
     for (const side of [-1, 1]) {
       const zi = f.rearAxle + f.radius + 0.36;
       const yi = f.y(s.belt) - 0.04;
@@ -740,7 +751,7 @@ export function buildClosedBody(
         placed(side * (model.sideX(zi, yi) - 0.02), yi, zi),
       );
     }
-  if (s.bonnetVents && detail < 2)
+  if (s.bonnetVents && detail < 2 && !detailedFestival)
     for (const side of [-1, 1]) {
       const zv = (f.frontAxle + zWs) / 2 + 0.05;
       const xv = hw(zv) * 0.45,
@@ -799,14 +810,14 @@ export function buildClosedBody(
       );
     }
   // Exhausts.
-  if (s.extras.includes('exhaust-rear'))
+  if (s.extras.includes('exhaust-rear') && !detailedFestival)
     for (const side of [-1, 1])
       parts.add(
         new T.CylinderGeometry(0.045, 0.05, 0.12, 14).rotateX(Math.PI / 2),
         sharedMaterials.exhaust(),
         placed(side * hw(model.zRear) * 0.45, f.y(s.floor + 0.14), model.zRear + 0.02),
       );
-  if (s.extras.includes('exhaust-side'))
+  if (s.extras.includes('exhaust-side') && !detailedFestival)
     for (const side of [-1, 1])
       parts.add(
         new T.CylinderGeometry(0.04, 0.04, 0.14, 12).rotateX(Math.PI / 2),
@@ -1006,6 +1017,7 @@ export function buildClosedBody(
       );
   }
   extraFurniture(parts, model, mats, detail, lod);
+  if (detailedFestival) buildFestivalDetail(parts, model, mats, detail, lod, gh);
   // Interior (near LOD): the cabin shell merges into this LOD's draws; its
   // detail, helmet and turning wheel are groups of their own (interior.ts).
   if (detail === 0 && cabin && cell) {
@@ -1031,7 +1043,9 @@ export function buildClosedBody(
     });
   }
   void rr;
-  parts.build(lod.group, detail === 0);
+  for (const mesh of parts.build(lod.group, detail === 0))
+    if (!Array.isArray(mesh.material) && mesh.material.userData.vehicleLampLens)
+      mesh.castShadow = false;
   if (lod.cabin)
     lod.group.traverse((o) => {
       if (!(o instanceof T.Mesh)) return;
@@ -1042,7 +1056,7 @@ export function buildClosedBody(
       }
     });
   if (s.wing) {
-    const built = wing(parts, model, s.wing, mats, detail);
+    const built = wing(parts, model, s.wing, mats, detail, detailedFestival);
     if (built) {
       const g = new T.Group();
       g.name = 'Rear wing (detachable)';

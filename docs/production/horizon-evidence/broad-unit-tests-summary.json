@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-10-16T22:02:34.404402+00:00",
+  "workingDirectory": "/workspace/scratch/3a81635718f0/Experiment-3",
+  "broadRun": {
+    "command": "npm test > /workspace/scratch/3a81635718f0/horizon-full-test.log 2>&1",
+    "sandbox": "default",
+    "exitCode": 1,
+    "files": {
+      "total": 356,
+      "passed": 353,
+      "failed": 3
+    },
+    "tests": {
+      "total": 3009,
+      "passed": 3000,
+      "failed": 9
+    },
+    "reportedDurationSeconds": 1607.39,
+    "reportedStartTime": "14:34:18",
+    "reporterClockNote": "Start time is preserved as printed by Vitest; not converted to UTC.",
+    "failures": [
+      "tests/pit-release.test.ts > anticipates the future service-bay sweep before a moving car becomes trapped beside a serviced car",
+      "tests/review-tools.test.ts > Phase 27E evidence command line > recomputes raw observations, enforces source identity and gives strict failures for interrupted captures",
+      "tests/review-tools.test.ts > Phase 27E evidence command line > verifies actual counterpart PNG bytes without converting declarations into art certification",
+      "tests/studio-qa-tools.test.ts > capture-matrix > documents every production-plan flag",
+      "tests/studio-qa-tools.test.ts > capture-matrix > keeps the original capture.mjs indices for the default day run",
+      "tests/studio-qa-tools.test.ts > capture-matrix > gives every matrix shot a unique, scenario-stable index",
+      "tests/studio-qa-tools.test.ts > capture-matrix > holds the default drive shots at one simulated instant (turn-1 approach)",
+      "tests/studio-qa-tools.test.ts > capture-matrix > rejects bad options and output inside the repository before launching a browser",
+      "tests/studio-qa-tools.test.ts > look-targets.json > only measures shots the matrix produces, inside the frame, with known measures"
+    ],
+    "log": "/workspace/scratch/3a81635718f0/horizon-full-test-preserved.log",
+    "logSha256": "68a48b225f7916cde4e87261e71cfdf8414b4aed02d0640f7853d9ab1c5ff59b",
+    "logRecovery": {
+      "startedAt": "2026-10-16T22:00:35Z",
+      "finishedAt": "2026-10-16T22:01:06Z",
+      "sourcePid": 94879,
+      "sourceInode": 131551,
+      "visibleLogWasReplaced": true,
+      "captureMethod": "Read-only retained descriptor of Vitest stdout; copied original log bytes without modifying the running test process.",
+      "output": "/workspace/scratch/3a81635718f0/horizon-full-test-preserved.log",
+      "capturedBytes": 73699
+    }
+  },
+  "targetedRerun": {
+    "command": "npx vitest run tests/studio-qa-tools.test.ts tests/review-tools.test.ts tests/pit-release.test.ts > /tmp/horizon-failed-test-retry.log 2>&1",
+    "sandbox": "require_escalated",
+    "exitCode": 0,
+    "files": {
+      "total": 3,
+      "passed": 3,
+      "failed": 0
+    },
+    "tests": {
+      "total": 13,
+      "passed": 13,
+      "failed": 0
+    },
+    "reportedDurationSeconds": 32.61,
+    "reportedStartTime": "15:01:31",
+    "priorTimeoutTestMilliseconds": 16921,
+    "unchangedTimeoutLimitMilliseconds": 30000,
+    "sourceOrTestEditsForRerun": false,
+    "log": "/workspace/scratch/3a81635718f0/horizon-failed-test-retry.log",
+    "logSha256": "ee75402091f99ffaffce3b637fe360572611436a85e07a5cea129797a9b2125b"
+  },
+  "subprocessProbe": {
+    "purpose": "Read-only local CLI subprocess probe after full-suite CLI tests returned empty output",
+    "command": "spawnSync(process.execPath, [\"scripts/studio/capture-matrix.mjs\", \"--help\"], { cwd: process.cwd(), encoding: \"utf8\" })",
+    "node": "v24.19.0",
+    "observedAt": "2026-10-16T21:54:07.428Z",
+    "status": 0,
+    "errorCode": "EPERM",
+    "errorMessage": "spawnSync /opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node EPERM",
+    "stdout": "",
+    "stderr": "",
+    "browserStarted": false,
+    "sourceModified": false
+  },
+  "interpretation": {
+    "singleAllGreenBroadRun": false,
+    "remainingFailuresAfterTargetedRerun": 0,
+    "cliFailures": "The default sandbox returned spawnSync EPERM with status 0 and empty output. The two unchanged CLI test files passed when rerun outside that wrapper.",
+    "timeoutFailure": "One existing pit-release test exceeded 30 seconds under the broad concurrent workload (31,079 ms); it passed in 16,921 ms in the targeted rerun. No assertion or test timeout was changed.",
+    "collectionScope": "The broad run collected 356 test files before later rendering integration tests were added. Agents also ran focused tests on those later files; this report does not merge those counts or claim one immutable-source all-green full run.",
+    "graphicsEvidence": false,
+    "hardwarePerformanceEvidence": false
+  }
+}

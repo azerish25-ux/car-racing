@@ -1,7 +1,14 @@
 import { clamp, Vec3 } from '../../core/math.ts';
 import { BikeVehicle, createVehicle, writeBikeBlock } from '../bike-vehicle.ts';
 import { CollisionSolver } from '../collision.ts';
-import { COMPOUNDS, controls, DEFAULT_SETUP, type Assist, type Controls, type WeatherPreset } from '../config.ts';
+import {
+  COMPOUNDS,
+  controls,
+  DEFAULT_SETUP,
+  type Assist,
+  type Controls,
+  type WeatherPreset,
+} from '../config.ts';
 import {
   BIKE_BASE,
   CAR_STRIDE,
@@ -35,7 +42,12 @@ import {
   type FestivalResult,
   type Participant,
 } from './festival-events.ts';
-import { festivalAdmits, festivalCars, festivalDefaultVehicle, festivalVehicles } from './festival-machines.ts';
+import {
+  festivalAdmits,
+  festivalCars,
+  festivalDefaultVehicle,
+  festivalVehicles,
+} from './festival-machines.ts';
 import { asTrack, OpenWorldTrack, WORLD_SURFACE_NAMES } from './open-world-track.ts';
 import {
   insideFootprint,
@@ -49,6 +61,11 @@ import {
 import { SOLVANE, SPEED_CLASS_KMH, type RegionDefinition } from './region-data.ts';
 import { RouteDriver, type RouteObstacle } from './route-driver.ts';
 import { pathPoint, planRoute, RoutePath } from './route-path.ts';
+import {
+  FestivalSkillChain,
+  type FestivalSkillSample,
+  type FestivalSkillStatus,
+} from './skill-chain.ts';
 import type { TileCacheStats } from './terrain-tiles.ts';
 import { TILE_SIZE } from './terrain-tiles.ts';
 import { openWorld, type OpenWorld } from './world.ts';
@@ -130,6 +147,8 @@ export interface FestivalStatus {
   /** Ambient traffic: the player's setting and the cars alive now (none
    * during events). */
   traffic: { enabled: boolean; cars: number };
+  /** Manual driving skill chains; separate from event/career rewards. */
+  skills: FestivalSkillStatus;
 }
 interface Run {
   event: FestivalEvent;
@@ -144,6 +163,9 @@ interface Run {
   progressClock: number;
   /** Seconds the player has been off the legal route (resets on return). */
   lost: number;
+  /** Actual route station at activation. Rolling zones retain the player's
+   * run-up, and measure only the distance covered after they start timing. */
+  entryDistance: number;
 }
 const SPAWN = { x: 560, z: -2602, heading: Math.PI / 2 };
 /** Event reset: route search window around the legal progress (m, well
@@ -175,6 +197,7 @@ export class OpenWorldSimulation {
   readonly results: FestivalResult[] = [];
   /** Ambient traffic (kinematic cars around the player in free roam). */
   readonly traffic: AmbientTraffic;
+  readonly skills = new FestivalSkillChain();
   trafficEnabled: boolean;
   mode: FestivalMode = 'free';
   tick = 0;
@@ -210,20 +233,35 @@ export class OpenWorldSimulation {
   private readonly session: string;
   private runs = 0;
   private readonly obstacles: RouteObstacle[] = [];
+  private readonly skillSample: FestivalSkillSample = {
+    lateral: 0,
+    forward: 0,
+    onRoad: false,
+    grounded: false,
+    impact: false,
+    assisted: false,
+  };
   /** Seconds a riderless motorcycle has been down (bounded fallback reset). */
   private riderDown = 0;
   constructor(readonly options: FreeRoamOptions = {}) {
     this.world = openWorld(options.region ?? SOLVANE);
-    this.track = new OpenWorldTrack(this.world, options.weather ?? 'clear', undefined, options.tileBudget ?? 64);
+    this.track = new OpenWorldTrack(
+      this.world,
+      options.weather ?? 'clear',
+      undefined,
+      options.tileBudget ?? 64,
+    );
     this.asTrack = asTrack(this.track);
     this.events = resolveEvents(this.world);
     this.structures = regionStructures(this.world);
     this.structureGrid = new StructureGrid(this.structures);
-    for (const id of options.discovered ?? []) if (this.events.some((e) => e.spec.id === id)) this.discovered.add(id);
+    for (const id of options.discovered ?? [])
+      if (this.events.some((e) => e.spec.id === id)) this.discovered.add(id);
     this.treeBudget = options.tileBudget ?? 64;
     this.assist = options.assist ?? 'sport';
     this.seed = options.seed ?? 73021;
-    this.session = options.session && options.session.length <= 80 ? options.session : `festival-${this.seed}`;
+    this.session =
+      options.session && options.session.length <= 80 ? options.session : `festival-${this.seed}`;
     this.traffic = new AmbientTraffic(this.world.network, this.seed);
     this.trafficEnabled = options.traffic === true;
     const vehicle = this.makeCar(0, options.vehicle ?? festivalDefaultVehicle());
@@ -240,8 +278,11 @@ export class OpenWorldSimulation {
    * vertical model runs on the region's ground). */
   private makeCar(id: number, vehicleId: string): Vehicle {
     const definition =
-      Object.hasOwn(VEHICLES, vehicleId) && festivalAdmits(VEHICLES[vehicleId]) ? VEHICLES[vehicleId] : VEHICLES[festivalDefaultVehicle()];
-    if (isDirtBike(definition)) return new DirtBikeVehicle(id, 'medium', DEFAULT_SETUP, this.assist, definition);
+      Object.hasOwn(VEHICLES, vehicleId) && festivalAdmits(VEHICLES[vehicleId])
+        ? VEHICLES[vehicleId]
+        : VEHICLES[festivalDefaultVehicle()];
+    if (isDirtBike(definition))
+      return new DirtBikeVehicle(id, 'medium', DEFAULT_SETUP, this.assist, definition);
     return createVehicle(id, 'medium', DEFAULT_SETUP, this.assist, definition);
   }
   // --- Placement ----------------------------------------------------------
@@ -268,7 +309,13 @@ export class OpenWorldSimulation {
   /** Place on a route at distance d and lateral offset, facing along it. */
   private placeOnPath(car: Vehicle, path: RoutePath, d: number, lateral: number) {
     const p = path.at(d, this.pp);
-    this.placeAt(car, p.x + p.nx * lateral, p.z + p.nz * lateral, Math.atan2(p.tx, p.tz), p.y + 0.5);
+    this.placeAt(
+      car,
+      p.x + p.nx * lateral,
+      p.z + p.nz * lateral,
+      Math.atan2(p.tx, p.tz),
+      p.y + 0.5,
+    );
   }
   /** Fresh car (repairs damage) at the nearest road, aligned with travel. */
   resetToRoad(index = 0, reason = 'Reset to the road') {
@@ -291,7 +338,8 @@ export class OpenWorldSimulation {
         legal = path.progressDistance(participant.progress.edge, participant.progress.s),
         found = path.locate(pos.x, pos.z, legal, RESET_WINDOW, this.located);
       let ahead = found - legal;
-      if (path.closed) ahead = ((ahead % path.length) + path.length * 1.5) % path.length - path.length / 2;
+      if (path.closed)
+        ahead = (((ahead % path.length) + path.length * 1.5) % path.length) - path.length / 2;
       const d = ahead > RESET_AHEAD ? legal + RESET_AHEAD : found;
       this.placeOnPath(fresh, path, d, 0);
       const driver = run.drivers[slot];
@@ -307,11 +355,23 @@ export class OpenWorldSimulation {
         forward = old.forward.x * p.tx + old.forward.z * p.tz >= 0 ? 1 : -1,
         // Keep to the right-hand lane of the chosen direction (lateral is
         // positive to the left of the edge's forward direction).
-        lane = clamp(-forward * Math.min(keep, e.spec.halfWidth * 0.5) || clamp(lateral, -keep, keep), -keep, keep);
-      this.placeAt(fresh, p.x + p.nx * lane, p.z + p.nz * lane, Math.atan2(p.tx * forward, p.tz * forward), p.y + 0.5);
+        lane = clamp(
+          -forward * Math.min(keep, e.spec.halfWidth * 0.5) || clamp(lateral, -keep, keep),
+          -keep,
+          keep,
+        );
+      this.placeAt(
+        fresh,
+        p.x + p.nx * lane,
+        p.z + p.nz * lane,
+        Math.atan2(p.tx * forward, p.tz * forward),
+        p.y + 0.5,
+      );
     }
     if (index === 0 && this.autopilotDriver) this.autopilotDriver = null;
     if (index === 0) {
+      this.skills.reset();
+      run?.drift?.invalidate(this.time);
       this.parked = true;
       this.say(reason);
     }
@@ -333,7 +393,8 @@ export class OpenWorldSimulation {
     dst.reverse = !!input.reverse;
     dst.manualClutch = input.manualClutch === true;
     dst.clutch = Number.isFinite(input.clutch) ? clamp(input.clutch, 0, 1) : 0;
-    if (dst.throttle > 0.05 || dst.brake > 0.05 || Math.abs(dst.steer) > 0.1 || dst.reverse) this.parked = false;
+    if (dst.throttle > 0.05 || dst.brake > 0.05 || Math.abs(dst.steer) > 0.1 || dst.reverse)
+      this.parked = false;
   }
   command(cmd: FestivalCommand) {
     switch (cmd.type) {
@@ -360,6 +421,7 @@ export class OpenWorldSimulation {
         break;
       case 'autopilot':
         this.autopilot = !!cmd.value;
+        if (this.autopilot) this.skills.reset('AUTOPILOT · PRACTICE');
         this.autopilotDriver = null;
         if (!this.autopilot) Object.assign(this.player.input, controls());
         break;
@@ -367,6 +429,7 @@ export class OpenWorldSimulation {
         if (!Object.hasOwn(VEHICLES, cmd.id) || !festivalAdmits(VEHICLES[cmd.id]))
           throw new Error(`Vehicle ${cmd.id} cannot run in the festival`);
         if (this.run) this.abandon();
+        this.skills.reset();
         const old = this.player,
           fresh = this.makeCar(0, cmd.id),
           q = old.body.orientation;
@@ -383,6 +446,7 @@ export class OpenWorldSimulation {
         if (!event) throw new Error(`Unknown festival event ${cmd.event}`);
         if (!this.discovered.has(event.spec.id)) throw new Error('Travel needs a discovered event');
         if (this.run) this.abandon();
+        this.skills.reset();
         const fresh = this.makeCar(0, this.player.definition.id);
         this.cars[0] = fresh;
         this.placeOnPath(fresh, event.path, 0, 0);
@@ -404,25 +468,36 @@ export class OpenWorldSimulation {
    * Showcase: the fastest registry car. */
   private rivalVehicles(event: FestivalEvent, count: number) {
     const own = this.player.definition,
-      all = own.dynamicsKind === 'bike' ? festivalVehicles().filter((d) => d.dynamicsKind === 'bike') : festivalCars();
+      all =
+        own.dynamicsKind === 'bike'
+          ? festivalVehicles().filter((d) => d.dynamicsKind === 'bike')
+          : festivalCars();
     if (event.spec.kind === 'showcase') {
       const cars = festivalCars();
       return [cars.reduce((best, d) => (d.ai.topSpeed > best.ai.topSpeed ? d : best), cars[0]).id];
     }
     const same = all.filter((d) => d.classId === own.classId),
       pool = same.length ? same : all;
-    return Array.from({ length: count }, (_, i) => pool[(i + event.index + this.seed) % pool.length].id);
+    return Array.from(
+      { length: count },
+      (_, i) => pool[(i + event.index + this.seed) % pool.length].id,
+    );
   }
-  private startEvent(event: FestivalEvent) {
+  private startEvent(event: FestivalEvent, rolling = false) {
+    const race = isRace(event.spec.kind);
+    // Passing a passive skill gate starts a measurement, not a new car.
+    // Keep momentum, pose, gear, tyre temperatures, damage and controls.
+    const keepPlayer = rolling && !race;
+    const existingPlayer = this.player;
+    if (!keepPlayer) this.skills.reset();
     this.endRun();
     this.cardEvent = null;
     // Ambient traffic is off while an event runs (it returns in free roam).
     this.traffic.clear();
     this.runs++;
-    const race = isRace(event.spec.kind);
     const rivals = race ? Math.max(0, Math.min(7, event.spec.rivals ?? 0)) : 0;
     const ids = this.rivalVehicles(event, rivals);
-    const player = this.makeCar(0, this.player.definition.id);
+    const player = keepPlayer ? existingPlayer : this.makeCar(0, existingPlayer.definition.id);
     const cars = [player, ...ids.map((id, i) => this.makeCar(i + 1, id))];
     this.cars = cars;
     // Grid: two columns on wide roads, single file on narrow ones; the
@@ -432,12 +507,16 @@ export class OpenWorldSimulation {
     path.at(0, start);
     const twoWide = start.halfWidth >= 4.4,
       order = [...cars.slice(1), player];
-    order.forEach((car, slot) => {
-      const row = twoWide ? Math.floor(slot / 2) : slot,
-        column = twoWide ? (slot % 2 === 0 ? -1 : 1) * Math.min(2.6, start.halfWidth - 1.7) : 0;
-      const d = Math.max(4, (twoWide ? Math.ceil(order.length / 2) : order.length) * 9 + 4 - row * 9);
-      this.placeOnPath(car, path, race ? d : 2, column);
-    });
+    if (!keepPlayer)
+      order.forEach((car, slot) => {
+        const row = twoWide ? Math.floor(slot / 2) : slot,
+          column = twoWide ? (slot % 2 === 0 ? -1 : 1) * Math.min(2.6, start.halfWidth - 1.7) : 0;
+        const d = Math.max(
+          4,
+          (twoWide ? Math.ceil(order.length / 2) : order.length) * 9 + 4 - row * 9,
+        );
+        this.placeOnPath(car, path, race ? d : 2, column);
+      });
     const tolerance = path.maxHalfWidth() + 8;
     const participants: Participant[] = cars.map((car, i) => ({
       car,
@@ -450,7 +529,12 @@ export class OpenWorldSimulation {
       p.progress.update({ x: pos.x, y: pos.y, z: pos.z }, 200);
       p.progress.distance = 0;
     }
-    const skill = (i: number) => (event.spec.kind === 'showcase' ? 0.97 : 0.86 + ((i * 37 + this.seed) % 9) * 0.012);
+    const entryDistance = path.progressDistance(
+      participants[0].progress.edge,
+      participants[0].progress.s,
+    );
+    const skill = (i: number) =>
+      event.spec.kind === 'showcase' ? 0.97 : 0.86 + ((i * 37 + this.seed) % 9) * 0.012;
     this.run = {
       event,
       participants,
@@ -463,7 +547,9 @@ export class OpenWorldSimulation {
       assisted: this.autopilot,
       progressClock: 0,
       lost: 0,
+      entryDistance,
     };
+    this.parked = false;
     this.autopilotDriver = null;
     this.mode = race ? 'countdown' : 'running';
     this.discovered.add(event.spec.id);
@@ -487,13 +573,16 @@ export class OpenWorldSimulation {
   private finishRun(completed: boolean, abandoned = false) {
     const run = this.run!,
       event = run.event,
-      spec = event.spec,
-      path = event.path;
+      spec = event.spec;
     const player = run.participants[0];
     const elapsed = Math.max(0, (player.finishTime ?? this.time) - run.start);
     const drift = run.drift?.finish(this.time) ?? null;
     const ranking = run.participants
-      .map((p, i) => ({ p, i, key: p.finishTime !== null ? -1e9 + p.finishTime : -p.progress.distance }))
+      .map((p, i) => ({
+        p,
+        i,
+        key: p.finishTime !== null ? -1e9 + p.finishTime : -p.progress.distance,
+      }))
       .sort((a, b) => a.key - b.key);
     const position = ranking.findIndex((r) => r.i === 0) + 1;
     const result: FestivalResult = {
@@ -511,7 +600,14 @@ export class OpenWorldSimulation {
       entrants: run.participants.length,
       time: completed && spec.kind !== 'speed-trap' ? elapsed : null,
       trapKmh: spec.kind === 'speed-trap' && completed ? run.trapKmh : null,
-      averageKmh: spec.kind === 'speed-zone' && completed && elapsed > 0 ? (path.length / elapsed) * 3.6 : null,
+      // The authored path includes braking run-out beyond the finish gate.
+      // Crediting that un-driven tail inflated every previous zone result.
+      averageKmh:
+        spec.kind === 'speed-zone' && completed && elapsed > 0
+          ? (Math.min(player.progress.distance, Math.max(0, event.distance - run.entryDistance)) /
+              elapsed) *
+            3.6
+          : null,
       driftScore: drift ? drift.total : null,
       driftLines: drift ? [...drift.lines].sort((a, b) => b.points - a.points).slice(0, 8) : [],
       stars: 0,
@@ -565,7 +661,14 @@ export class OpenWorldSimulation {
     }
     if (this.mode !== 'running') return;
     // The player's ground was sampled last in step(): drift validity reads it.
-    run.drift?.update(this.player, this.time, dt, !this.track.query.onRoad, this.player.impact > 0.25);
+    run.drift?.update(
+      this.player,
+      this.time,
+      dt,
+      !this.track.query.onRoad || run.participants[0].progress.offRoute,
+      this.player.impact > 0.25,
+      this.player.up.y > 0.45 && this.player.tires.some((t) => t.load > 20),
+    );
     run.progressClock += dt;
     if (run.progressClock < 1 / 30) return;
     const step = run.progressClock;
@@ -574,6 +677,15 @@ export class OpenWorldSimulation {
       if (p.finishTime !== null) continue;
       const pos = p.car.body.position;
       p.progress.update({ x: pos.x, y: pos.y, z: pos.z });
+      if (!race) {
+        // RouteProgress counts positive movement for race bookkeeping.
+        // A zone uses net route station: reversing and re-driving the same
+        // few metres must not inflate its average speed or completion bar.
+        p.progress.distance = Math.max(
+          0,
+          path.progressDistance(p.progress.edge, p.progress.s) - run.entryDistance,
+        );
+      }
       const done = path.closed ? p.progress.laps >= event.laps : p.progress.finished;
       if (done) p.finishTime = this.time;
     }
@@ -608,16 +720,27 @@ export class OpenWorldSimulation {
             if (d2 > 30 * 30) this.declined = null;
             continue;
           }
-          if (d2 < 16 * 16 && this.player.speed < 22) card = event;
+          if (d2 < 16 * 16 && this.player.speed < 4) card = event;
           continue;
         }
         if (this.mode !== 'free' || d2 > 30 * 30) continue;
         const path = event.path,
-          d = path.locate(pos.x, pos.z, 0, 40, this.located),
+          entry = path.at(0, this.pp),
+          beyondEntry = (pos.x - entry.x) * entry.tx + (pos.z - entry.z) * entry.tz;
+        // A nearby car behind the gate or on a stacked crossing has not
+        // entered this challenge yet. The old nearest-point projection
+        // clamped both sides to station zero and could start it early.
+        if (beyondEntry < 0 || Math.abs(pos.y - entry.y) > 5) continue;
+        const d = path.locate(pos.x, pos.z, 0, 40, this.located),
           p = path.at(d, this.pp),
           aligned = this.player.forward.x * p.tx + this.player.forward.z * p.tz;
-        if (d < 25 && Math.abs(this.located.lateral) < p.halfWidth + 1.5 && aligned > 0.6 && this.player.speed > 4) {
-          this.startEvent(event);
+        if (
+          d < 25 &&
+          Math.abs(this.located.lateral) < p.halfWidth + 1.5 &&
+          aligned > 0.6 &&
+          this.player.speed > 4
+        ) {
+          this.startEvent(event, true);
           return;
         }
       }
@@ -667,7 +790,9 @@ export class OpenWorldSimulation {
     // Physics: two substeps, car contacts, rails and static colliders.
     // Finished rivals are out of the race: no car contact with them.
     const track = this.asTrack,
-      contact = run ? this.cars.filter((c, i) => i === 0 || run.participants[i]?.finishTime === null) : this.cars;
+      contact = run
+        ? this.cars.filter((c, i) => i === 0 || run.participants[i]?.finishTime === null)
+        : this.cars;
     // Ambient traffic (free roam only): kinematic, then the player's contact.
     const traffic = this.trafficEnabled && !run ? this.traffic : null;
     if (traffic) traffic.step(dt, this.player);
@@ -695,7 +820,8 @@ export class OpenWorldSimulation {
     this.drowned = this.track.query.waterDepth > 0.75 ? this.drowned + dt : 0;
     if (this.upset > 2 || this.riderDown > 20) this.resetToRoad(0, 'Recovered to the road');
     else if (this.drowned > 1.2) this.resetToRoad(0, 'Pulled out of the water');
-    else if (pos.y < SAMPLE.height - 8 || player.retired) this.resetToRoad(0, 'Recovered to the road');
+    else if (pos.y < SAMPLE.height - 8 || player.retired)
+      this.resetToRoad(0, 'Recovered to the road');
     else if (Math.abs(pos.x) > half + 60 || Math.abs(pos.z) > half + 60)
       this.resetToRoad(0, 'The festival region ends here');
     // Streaming: request tiles along every car's path, generate within budget.
@@ -712,6 +838,15 @@ export class OpenWorldSimulation {
       this.discoveryClock = 0;
       this.updateDiscovery();
     }
+    const skillCar = this.player,
+      sample = this.skillSample;
+    sample.lateral = skillCar.localVelocity.x;
+    sample.forward = skillCar.localVelocity.z;
+    sample.onRoad = this.track.query.onRoad;
+    sample.grounded = skillCar.up.y > 0.45 && skillCar.tires.some((t) => t.load > 20);
+    sample.impact = skillCar.impact > 0.25;
+    sample.assisted = this.autopilot || !!(this.run && isRace(this.run.event.spec.kind));
+    this.skills.update(sample, dt);
     if (this.messageClock > 0) {
       this.messageClock -= dt;
       if (this.messageClock <= 0) this.message = null;
@@ -728,13 +863,30 @@ export class OpenWorldSimulation {
       const pos = this.player.body.position;
       const target = [...this.events]
         .filter((e) => Math.hypot(e.marker.x - pos.x, e.marker.z - pos.z) > 60)
-        .sort((a, b) => Math.hypot(a.marker.x - pos.x, a.marker.z - pos.z) - Math.hypot(b.marker.x - pos.x, b.marker.z - pos.z))[0];
+        .sort(
+          (a, b) =>
+            Math.hypot(a.marker.x - pos.x, a.marker.z - pos.z) -
+            Math.hypot(b.marker.x - pos.x, b.marker.z - pos.z),
+        )[0];
       if (!target) return;
-      const legs = planRoute(this.world.network, [[pos.x, pos.z], [target.marker.x, target.marker.z]], false);
+      const legs = planRoute(
+        this.world.network,
+        [
+          [pos.x, pos.z],
+          [target.marker.x, target.marker.z],
+        ],
+        false,
+      );
       const path = new RoutePath(this.world.network, legs, false);
       // Among ambient traffic: in the right-hand lane, following, never
       // overtaking into the oncoming lane.
-      this.autopilotDriver = new RouteDriver(this.player, path, 0.8, this.trafficEnabled ? -1.9 : 0, 24);
+      this.autopilotDriver = new RouteDriver(
+        this.player,
+        path,
+        0.8,
+        this.trafficEnabled ? -1.9 : 0,
+        24,
+      );
       this.autopilotDriver.overtake = !this.trafficEnabled;
       this.say(`Autopilot: driving to ${target.spec.name}`);
     }
@@ -766,7 +918,8 @@ export class OpenWorldSimulation {
     }
     trees = treesForTile(this.world, ix, iz, this.structureGrid, 1);
     this.trees.set(key, trees);
-    while (this.trees.size > this.treeBudget) this.trees.delete(this.trees.keys().next().value as number);
+    while (this.trees.size > this.treeBudget)
+      this.trees.delete(this.trees.keys().next().value as number);
     return trees;
   }
   /** Buildings and tree trunks as static colliders (impulse with damage). */
@@ -807,7 +960,8 @@ export class OpenWorldSimulation {
           this.corner.set(px, b.position.y, pz);
         }
       }
-    if (deepest > 0) this.collisions.impulse(car, null, this.corner, this.normal, Math.min(deepest, 0.6));
+    if (deepest > 0)
+      this.collisions.impulse(car, null, this.corner, this.normal, Math.min(deepest, 0.6));
     // Tree trunks: circle against the chassis rectangle.
     const trees = this.treesAt(b.position.x, b.position.z);
     for (let i = 0; i < trees.length; i += TREE_STRIDE) {
@@ -845,7 +999,11 @@ export class OpenWorldSimulation {
         }
       }
       this.normal.set(nx, 0, nz);
-      this.corner.set(b.position.x + cx * vx + cz * ux, b.position.y, b.position.z + cx * vz + cz * uz);
+      this.corner.set(
+        b.position.x + cx * vx + cz * ux,
+        b.position.y,
+        b.position.z + cx * vz + cz * uz,
+      );
       this.collisions.impulse(car, null, this.corner, this.normal, Math.min(depth, 0.6));
     }
   }
@@ -862,11 +1020,15 @@ export class OpenWorldSimulation {
     if (run) {
       const p = run.participants[0];
       const ranking = run.participants
-        .map((r, i) => ({ i, key: r.finishTime !== null ? -1e9 + r.finishTime : -r.progress.distance }))
+        .map((r, i) => ({
+          i,
+          key: r.finishTime !== null ? -1e9 + r.finishTime : -r.progress.distance,
+        }))
         .sort((a, b) => a.key - b.key);
       let live: { label: string; value: string } | null = null;
       const elapsed = Math.max(0, this.time - run.start);
-      if (run.event.spec.kind === 'speed-trap') live = { label: 'SPEED', value: `${Math.round(player.speed * 3.6)} KM/H` };
+      if (run.event.spec.kind === 'speed-trap')
+        live = { label: 'SPEED', value: `${Math.round(player.speed * 3.6)} KM/H` };
       else if (run.event.spec.kind === 'speed-zone')
         live = {
           label: 'AVERAGE',
@@ -877,7 +1039,16 @@ export class OpenWorldSimulation {
       let gatePoint: { x: number; z: number } | null = null;
       if (gate) {
         const edge = run.event.graph.spec.edges.find((x) => x.id === gate.edge);
-        const point = edge?.points[Math.min(edge.points.length - 1, Math.round((gate.s / Math.max(1, run.event.graph.length(gate.edge))) * (edge.points.length - 1)))];
+        const point =
+          edge?.points[
+            Math.min(
+              edge.points.length - 1,
+              Math.round(
+                (gate.s / Math.max(1, run.event.graph.length(gate.edge))) *
+                  (edge.points.length - 1),
+              ),
+            )
+          ];
         if (point) gatePoint = { x: point.x, z: point.z };
       }
       event = {
@@ -927,11 +1098,13 @@ export class OpenWorldSimulation {
       message: this.message,
       streaming: { ...this.track.tiles.stats },
       traffic: { enabled: this.trafficEnabled, cars: this.traffic.cars.length },
+      skills: this.skills.status(),
     };
   }
   /** Snapshot in the circuit frame layout (race fields neutral). */
   writeFrame(out: Float32Array, stepMs = 0, dropped = 0) {
-    if (out.length !== HEADER + this.cars.length * CAR_STRIDE) throw new Error('Invalid snapshot buffer');
+    if (out.length !== HEADER + this.cars.length * CAR_STRIDE)
+      throw new Error('Invalid snapshot buffer');
     out.fill(0);
     out[H.TIME] = this.time;
     out[H.PHASE] = 2;

@@ -1,0 +1,12 @@
+(node:137124) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> apex-formula-laboratory@0.1.0 prebuild
+> npm run generate:player-lods
+
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> apex-formula-laboratory@0.1.0 generate:player-lods
+> node --experimental-strip-types scripts/build-player-lods.mjs
+

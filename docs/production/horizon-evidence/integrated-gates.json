@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "completed": true,
+  "checks": [
+    {
+      "name": "lint",
+      "command": [
+        "npm",
+        "run",
+        "lint"
+      ],
+      "startedAt": "2026-10-16T22:47:40.088676+00:00",
+      "finishedAt": "2026-10-16T22:48:02.562273+00:00",
+      "durationSeconds": 22.474,
+      "exitCode": 0,
+      "log": "/workspace/scratch/3a81635718f0/horizon-integrated-lint.log",
+      "logSha256": "89f0b098b1eb5d9131ba019d93bbaea75cfc7c5edac019f1c586e974855e1abc"
+    },
+    {
+      "name": "content",
+      "command": [
+        "npm",
+        "run",
+        "validate:content"
+      ],
+      "startedAt": "2026-10-16T22:48:02.562476+00:00",
+      "finishedAt": "2026-10-16T22:48:07.120747+00:00",
+      "durationSeconds": 4.558,
+      "exitCode": 0,
+      "log": "/workspace/scratch/3a81635718f0/horizon-integrated-content.log",
+      "logSha256": "02abad15641e5f97e1d3b89114cc7ea5ffc77b3b388b6dbd132b098387673d15"
+    },
+    {
+      "name": "guarded-build",
+      "command": [
+        "node",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "npm",
+        "run",
+        "build"
+      ],
+      "startedAt": "2026-10-16T22:48:07.120972+00:00",
+      "finishedAt": "2026-10-16T22:48:56.634208+00:00",
+      "durationSeconds": 49.513,
+      "exitCode": 0,
+      "log": "/workspace/scratch/3a81635718f0/horizon-integrated-guarded-build.log",
+      "logSha256": "f96409c2c642b76bf0222a2272d89bde3b210f50bba906f87db593cae870e8ec"
+    }
+  ],
+  "buildIdentity": {
+    "version": 1,
+    "commit": "06e20b2162158e04c499e48600aefbf531076fef",
+    "fingerprint": "13a1175f3deddf9bb25dbed0efadda0da0888c8d3f9aefe13d75b8f0b9b5f283"
+  },
+  "methodology": "Integrated lint, content validation, and source-guarded production build after preserving concurrent MotoGP commit 6e93a4ef452764f2ee0b69797817f91a908d897e. npm run build performs full TypeScript checking and Vite production bundling. The guard compares all configured inputs before/after the build. This is not npm run check:stable and does not rerun the broad unit suite."
+}

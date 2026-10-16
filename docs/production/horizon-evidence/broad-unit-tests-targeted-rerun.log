@@ -1,0 +1,17 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+ RUN  v3.2.4 /workspace/scratch/3a81635718f0/Experiment-3
+
+ ✓ tests/pit-release.test.ts (3 tests) 23392ms
+   ✓ pit-release circular-wait regression > physically releases the blocked pair and services both without contact  6466ms
+   ✓ anticipates the future service-bay sweep before a moving car becomes trapped beside a serviced car  16921ms
+ ✓ tests/review-tools.test.ts (3 tests) 5988ms
+   ✓ Phase 27E evidence command line > recomputes raw observations, enforces source identity and gives strict failures for interrupted captures  3355ms
+   ✓ Phase 27E evidence command line > verifies actual counterpart PNG bytes without converting declarations into art certification  2568ms
+ ✓ tests/studio-qa-tools.test.ts (7 tests) 465ms
+
+ Test Files  3 passed (3)
+      Tests  13 passed (13)
+   Start at  15:01:31
+   Duration  32.61s (transform 844ms, setup 0ms, collect 2.12s, tests 29.85s, environment 0ms, prepare 179ms)
+

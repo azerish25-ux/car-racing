@@ -1,0 +1,36 @@
+{
+  "completed": true,
+  "sourceIdentity": {
+    "version": 1,
+    "commit": "06e20b2162158e04c499e48600aefbf531076fef",
+    "fingerprint": "13a1175f3deddf9bb25dbed0efadda0da0888c8d3f9aefe13d75b8f0b9b5f283"
+  },
+  "viewport": {
+    "width": 960,
+    "height": 640
+  },
+  "quality": "low",
+  "methodology": "Production application entry, real supported Low settings in a new isolated IndexedDB profile, UI-only actions. No renderer, worker or input stubs; no simulation/capture hooks.",
+  "steps": [
+    {
+      "name": "production main menu and circuit preview loaded",
+      "passed": true
+    },
+    {
+      "name": "Session selection enters festival on shared application canvas",
+      "passed": true,
+      "hud": "50\nMOTOBOUND / SOLVANE COAST\nHarbour Front\nASPHALT\nC CAMERA · T MAP · ESC MENU\nTHE ROAD IS YOURS\nPort Ilse Street Loop\n0.4 KM AWAY · CIRCUIT\nSOLVANE\n1/16 DISCOVERED\nRH-3 HOT HATCH\n0\n1\nGEAR\nKILOMETRES / HOUR\nFREE ROAM"
+    },
+    {
+      "name": "application festival pause/photo/return",
+      "passed": true
+    },
+    {
+      "name": "festival exit restores production session menu",
+      "passed": true,
+      "state": "menu"
+    }
+  ],
+  "errors": [],
+  "httpErrors": []
+}

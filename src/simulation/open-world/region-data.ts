@@ -273,7 +273,10 @@ const VARDA: XZ = [-2900, 2450];
 function arc(centre: XZ, polar: readonly (readonly [number, number])[]): XZ[] {
   return polar.map(([r, deg]) => {
     const a = (deg * Math.PI) / 180;
-    return [Math.round(centre[0] + r * Math.cos(a)), Math.round(centre[1] + r * Math.sin(a))] as const;
+    return [
+      Math.round(centre[0] + r * Math.cos(a)),
+      Math.round(centre[1] + r * Math.sin(a)),
+    ] as const;
   });
 }
 /** A hairpin stack: spiral legs between the given polar corners, each leg
@@ -894,6 +897,46 @@ export const SOLVANE: RegionDefinition = Object.freeze({
       rivals: 1,
       stars: [150, 140, 132],
       blurb: 'Exhibition run: the full runway, onto the ridge highway, against a pace car.',
+    },
+    {
+      id: 'harbour-welcome',
+      name: 'Harbour Opening Run',
+      kind: 'sprint',
+      waypoints: [
+        [650, -2600],
+        [1250, -2480],
+        [1640, -2400],
+        [1700, -2180],
+        [2040, -2200],
+      ],
+      rivals: 2,
+      blurb:
+        'Your first festival run: the waterfront, market and upper streets. Brake before each turn and chase two rivals.',
+    },
+    {
+      id: 'kestrel-drift',
+      name: 'Kestrel Drift Playground',
+      kind: 'drift-zone',
+      waypoints: [
+        [3550, 1820],
+        [3700, 1660],
+        [3320, 1640],
+      ],
+      stars: [100, 300, 600],
+      blurb:
+        'A wide taxiway turn for learning to link a slide. Carry speed through the gate, countersteer and exit cleanly.',
+    },
+    {
+      id: 'runway-launch',
+      name: 'Kestrel Launch Run',
+      kind: 'speed-trap',
+      waypoints: [
+        [2150, 1820],
+        [3450, 1820],
+      ],
+      stars: [110, 160, 210],
+      blurb:
+        'Build speed along the broad runway and cross the speed gate. Three reachable targets from road cars to supercars.',
     },
   ],
 } as RegionDefinition);

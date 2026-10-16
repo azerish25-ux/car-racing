@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "completed": true,
+  "checks": [
+    {
+      "name": "tests",
+      "command": [
+        "npx",
+        "vitest",
+        "run",
+        "tests/gp-cooling-louvers.test.ts",
+        "tests/motorcycle-presentation.test.ts",
+        "tests/festival-effects-integration.test.ts",
+        "tests/festival-car-switch.test.ts"
+      ],
+      "startedAt": "2026-10-16T23:03:39.923778+00:00",
+      "finishedAt": "2026-10-16T23:03:46.279244+00:00",
+      "durationSeconds": 6.355,
+      "exitCode": 0,
+      "log": "/workspace/scratch/3a81635718f0/horizon-louvers-tests.log",
+      "logSha256": "6e77552975585ce110d432f673ed37efc8da227433e80bc4b541055f8a6fd2e7"
+    },
+    {
+      "name": "lint",
+      "command": [
+        "npx",
+        "eslint",
+        "src/rendering/bike.ts",
+        "src/rendering/gp-cooling-louvers.ts",
+        "tests/gp-cooling-louvers.test.ts"
+      ],
+      "startedAt": "2026-10-16T23:03:46.279369+00:00",
+      "finishedAt": "2026-10-16T23:03:47.683533+00:00",
+      "durationSeconds": 1.404,
+      "exitCode": 0,
+      "log": "/workspace/scratch/3a81635718f0/horizon-louvers-lint.log",
+      "logSha256": "7125f194612fcff2f454c05d848e7cb71facc1967b4d5017e25b34fdee3ba74f"
+    },
+    {
+      "name": "guarded-build",
+      "command": [
+        "node",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "npm",
+        "run",
+        "build"
+      ],
+      "startedAt": "2026-10-16T23:03:47.683637+00:00",
+      "finishedAt": "2026-10-16T23:04:30.466788+00:00",
+      "durationSeconds": 42.783,
+      "exitCode": 0,
+      "log": "/workspace/scratch/3a81635718f0/horizon-louvers-guarded-build.log",
+      "logSha256": "b3d89bd3eb4989c0c8c384cb34b181157dab80848786a51ef701006700927a9e"
+    }
+  ],
+  "buildIdentity": {
+    "version": 1,
+    "commit": "6023ba632af8822d9d45339508267d4899fc503f",
+    "fingerprint": "b2e96b50396e622c1f490b05f09931ec0a203d3525f28d25dca7574796ac213b"
+  },
+  "methodology": "Preserve concurrent MotoGP bodywork commit 8523372aa27e831e826807982c225f203d6e23ff. Verify its cooling-outlet geometry plus motorcycle presentation, Festival contact effects and car switching; lint all three incoming TypeScript files; build with full TypeScript checking under the repository source-change guard. Output buffered through subprocess pipes. Earlier browser records retain their original identities; no new GPU capture or broad-suite run is claimed."
+}

@@ -37,7 +37,10 @@ describe('festival free-roam session', () => {
     expect(status.streaming.resident).toBeLessThanOrEqual(24);
   });
   it('restores saved discoveries and travels only to discovered events', () => {
-    const sim = new OpenWorldSimulation({ vehicle: 'tc1', discovered: ['pass-zone', 'no-such-event'] });
+    const sim = new OpenWorldSimulation({
+      vehicle: 'tc1',
+      discovered: ['pass-zone', 'no-such-event'],
+    });
     expect([...sim.discovered]).toContain('pass-zone');
     expect(sim.discovered.has('no-such-event')).toBe(false);
     expect(() => sim.command({ type: 'travel', event: 'quarry-drift' })).toThrow(/discovered/);
@@ -147,11 +150,22 @@ describe('festival free-roam session', () => {
     expect(zone.eventKind).toBe('speed-zone');
     expect(zone.completed).toBe(true);
     expect(zone.averageKmh).toBeGreaterThan(40);
+    // Time covers the legal measured section, not the extra braking run-out
+    // at the end of the authored path. Those metres used to inflate records.
+    const finish = sim.events.find((e) => e.spec.id === 'plateau-zone')!.distance;
+    expect(zone.averageKmh!).toBeLessThanOrEqual((finish / zone.time!) * 3.6);
+    expect(zone.averageKmh!).toBeCloseTo((zone.legalDistance / zone.time!) * 3.6, 0);
   });
   it('opens a race card at its marker only when the player stops there', () => {
     const sim = new OpenWorldSimulation({ vehicle: 'tc1' });
     const event = sim.events.find((e) => e.spec.id === 'valley-sprint')!;
-    sim.placeAt(sim.player, event.marker.x, event.marker.z, event.marker.heading, event.marker.y + 1);
+    sim.placeAt(
+      sim.player,
+      event.marker.x,
+      event.marker.z,
+      event.marker.heading,
+      event.marker.y + 1,
+    );
     for (let i = 0; i < 60; i++) sim.step(1 / 120);
     const status = sim.status();
     expect(status.mode).toBe('card');
@@ -164,7 +178,13 @@ describe('festival free-roam session', () => {
     // ...and it offers itself again after the player has left and returned.
     sim.placeAt(sim.player, event.marker.x + 200, event.marker.z, event.marker.heading);
     for (let i = 0; i < 12; i++) sim.step(1 / 120);
-    sim.placeAt(sim.player, event.marker.x, event.marker.z, event.marker.heading, event.marker.y + 1);
+    sim.placeAt(
+      sim.player,
+      event.marker.x,
+      event.marker.z,
+      event.marker.heading,
+      event.marker.y + 1,
+    );
     for (let i = 0; i < 60; i++) sim.step(1 / 120);
     expect(sim.status().mode).toBe('card');
   });

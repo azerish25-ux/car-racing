@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "completed": true,
+  "checks": [
+    {
+      "name": "slipstream-tests",
+      "command": [
+        "npx",
+        "vitest",
+        "run",
+        "tests/bike-slipstream.test.ts",
+        "tests/motorcycle-presentation.test.ts",
+        "tests/festival-effects-integration.test.ts"
+      ],
+      "startedAt": "2026-10-16T22:57:57.655569+00:00",
+      "finishedAt": "2026-10-16T22:58:01.095707+00:00",
+      "durationSeconds": 3.44,
+      "exitCode": 0,
+      "log": "/workspace/scratch/3a81635718f0/horizon-publish-slipstream-tests.log",
+      "logSha256": "eb751a95cf364a32751c40e6e67306a1a4b9da6d9458bd3fcd18e73e9a8330f5"
+    },
+    {
+      "name": "slipstream-lint",
+      "command": [
+        "npx",
+        "eslint",
+        "src/simulation/bike-slipstream.ts",
+        "src/simulation/bike-vehicle.ts",
+        "tests/bike-slipstream.test.ts"
+      ],
+      "startedAt": "2026-10-16T22:58:01.096193+00:00",
+      "finishedAt": "2026-10-16T22:58:02.291401+00:00",
+      "durationSeconds": 1.195,
+      "exitCode": 0,
+      "log": "/workspace/scratch/3a81635718f0/horizon-publish-slipstream-lint.log",
+      "logSha256": "7125f194612fcff2f454c05d848e7cb71facc1967b4d5017e25b34fdee3ba74f"
+    },
+    {
+      "name": "guarded-build",
+      "command": [
+        "node",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "npm",
+        "run",
+        "build"
+      ],
+      "startedAt": "2026-10-16T23:01:09.244307+00:00",
+      "finishedAt": "2026-10-16T23:01:48.527924+00:00",
+      "durationSeconds": 39.284,
+      "exitCode": 0,
+      "log": "/workspace/scratch/3a81635718f0/horizon-publication-build-complete.log",
+      "logSha256": "53062de898d44ccca4fc653ea02abf9d2b4d60420ba41c8d1081bdac58efeb5c"
+    }
+  ],
+  "buildIdentity": {
+    "version": 1,
+    "commit": "1e45b1ec30a844586b8bb5241141f9bb51cb862d",
+    "fingerprint": "4d7d70ed9b2c8c927c4fa419bfc57ca29b570e54c9a8121bd11c075e64a9e419"
+  },
+  "methodology": "Final slipstream, motorcycle presentation and Festival effects regression selection, scoped lint of the three incoming files, and source-guarded production build after preserving concurrent MotoGP commit 8f1823ee566815c0f0469c84519e9f3c57be91e8. The incoming patch changes only motorcycle drag integration; it does not change the Festival or shared application entry/render paths previously exercised at fingerprint 13a1175f3deddf9bb25dbed0efadda0da0888c8d3f9aefe13d75b8f0b9b5f283. npm run build performs full TypeScript checking and Vite production bundling. The guard compares all configured inputs before/after the build. This is not npm run check:stable and does not rerun the broad unit suite.",
+  "captureMethod": "Guarded build repeated with buffered subprocess pipe capture to retain complete output. The first successful build had a replaced live log pathname that retained only its prebuild header; its original partial log and gate record are retained separately. Earlier targeted tests and lint were not repeated."
+}

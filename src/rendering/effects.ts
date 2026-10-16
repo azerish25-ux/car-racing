@@ -33,7 +33,7 @@ export const DIFFUSER_PLUME_SHARE = 0.3;
 
 const COLORS = [
   [0.65, 0.73, 0.73],
-  [0.52, 0.43, 0.28],
+  [0.5, 0.42, 0.3],
   [2.5, 0.9, 0.12],
   [0.65, 0.74, 0.77],
   [0.77, 0.77, 0.73],
@@ -95,11 +95,30 @@ export class Effects {
     this.alpha.subarray(0, EFFECT_CAPACITY.contact),
     this.kind.subarray(0, EFFECT_CAPACITY.contact),
     this.floors.subarray(0, EFFECT_CAPACITY.contact),
+    this.colors.subarray(0, EFFECT_CAPACITY.contact * 3),
   );
   private viewport = new T.Vector4();
   private rainEmission = 0;
   /** Roofed ground (tunnels) where no rain is born; null everywhere open. */
   sheltered: ((x: number, z: number) => boolean) | null = null;
+  /** Optional venue adapter for catalogue wheel positions. It writes the
+   * local birth point and returns ground height relative to the body's world
+   * height. The circuit's calibrated Formula emitters remain the default. */
+  contactOffset:
+    | ((
+        frame: Float32Array,
+        car: number,
+        wheel: number,
+        plume: boolean,
+        target: T.Vector3,
+      ) => number)
+    | null = null;
+  /** Optional venue filter for duplicate contact channels (motorcycle axles). */
+  contactEnabled: ((frame: Float32Array, car: number, wheel: number) => boolean) | null = null;
+  /** Some venues admit motorcycles, which do not have a car diffuser. */
+  diffuserEnabled: ((frame: Float32Array, car: number) => boolean) | null = null;
+  /** Venue-specific loose-ground colours, keyed by snapshot material id. */
+  looseColours: ReadonlyMap<number, readonly [number, number, number]> | null = null;
   private windX = 0;
   private windZ = 0;
   enabled = true;
@@ -217,6 +236,7 @@ export class Effects {
     kind: number,
     owner = -1,
     floor = y,
+    tint?: readonly [number, number, number],
   ) {
     const isRain = kind === PARTICLE_KIND.RAIN;
     const i = isRain ? EFFECT_CAPACITY.contact + this.rainCursor : this.cursor,
@@ -257,7 +277,7 @@ export class Effects {
       this.sizes[i] = kind === PARTICLE_KIND.SMOKE ? 0.24 : 0.18;
       this.gravity[i] = kind === PARTICLE_KIND.SMOKE ? 0.78 : 0.48;
     }
-    const color = COLORS[kind];
+    const color = tint ?? COLORS[kind];
     this.colors[p] = color[0];
     this.colors[p + 1] = color[1];
     this.colors[p + 2] = color[2];
@@ -377,6 +397,10 @@ export class Effects {
         for (let wheel = 0; wheel < 4; wheel++) {
           const p = o + WHEEL_BASE + wheel * WHEEL_STRIDE,
             slot = id * 4 + wheel;
+          if (this.contactEnabled && !this.contactEnabled(frame, id, wheel)) {
+            this.emission[slot] = 0;
+            continue;
+          }
           const water = frame[p + W.WATER],
             surface = frame[p + W.SURFACE];
           let rate = 0,
@@ -390,7 +414,10 @@ export class Effects {
                 Math.min(180, speed * water * 2.5 * tread * loadFactor) *
                 (wheel < 2 ? SPRAY_AXLE_SHARE.front : SPRAY_AXLE_SHARE.rear);
               kind = PARTICLE_KIND.SPRAY;
-            } else if ((surface === 3 || surface === 4) && speed > 4) {
+            } else if (
+              (surface === 3 || surface === 4 || this.looseColours?.has(surface)) &&
+              speed > 4
+            ) {
               rate = speed * 1.7;
               kind = PARTICLE_KIND.DUST;
             } else if (speed > 6) {
@@ -419,14 +446,18 @@ export class Effects {
             const plume =
               spray &&
               wheel >= 2 &&
+              (!this.diffuserEnabled || this.diffuserEnabled(frame, id)) &&
               (this.spawned[PARTICLE_KIND.SPRAY] * 0.618034) % 1 < DIFFUSER_PLUME_SHARE;
-            this.v
-              .set(
+            const floor = this.contactOffset
+              ? this.contactOffset(frame, id, wheel, plume, this.v)
+              : -0.37;
+            if (!this.contactOffset)
+              this.v.set(
                 plume ? (wheel % 2 === 0 ? -0.18 : 0.18) : wheel % 2 === 0 ? -0.83 : 0.83,
                 plume ? -0.12 : -0.37,
                 plume ? SPRAY_PLUME.offset : wheel < 2 ? 1.82 : -1.62,
-              )
-              .applyQuaternion(this.q);
+              );
+            this.v.applyQuaternion(this.q);
             this.spawn(
               frame[o] + this.v.x,
               frame[o + 1] + this.v.y,
@@ -445,7 +476,8 @@ export class Effects {
               kind,
               id,
               // Ground under the diffuser exit, below the plume's birth height.
-              frame[o + 1] - 0.37,
+              frame[o + 1] + floor,
+              kind === PARTICLE_KIND.DUST ? this.looseColours?.get(surface) : undefined,
             );
           }
         }

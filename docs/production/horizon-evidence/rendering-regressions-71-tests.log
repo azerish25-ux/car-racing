@@ -1,0 +1,34 @@
+
+ RUN  v3.2.4 /workspace/scratch/3a81635718f0/Experiment-3
+
+ ✓ tests/reflections.test.ts (18 tests) 190ms
+ ✓ tests/ibl-energy.test.ts (10 tests) 806ms
+   ✓ D03 producer lighting decisions (P1-P3) > splits the day light into sun, sky IBL and a minor hemisphere term  758ms
+ ✓ tests/festival-vehicle-detail.test.ts (6 tests) 4361ms
+   ✓ Festival vehicle exterior construction > lets a front-view ray reach the recessed radiator rather than a painted blocking face  928ms
+   ✓ Festival vehicle exterior construction > terminates rear cooling apertures inside a dark duct at chase-view angles  2148ms
+   ✓ Festival vehicle exterior construction > keeps all optical emitters on the existing lamp materials and batches the extra finish roles  406ms
+   ✓ Festival vehicle exterior construction > releases replaced and cleared cars once while preserving other cars and shared finishes  827ms
+ ✓ tests/festival-car-switch.test.ts (3 tests) 3702ms
+   ✓ festival garage presentation > poses a road body from the current holder after using and reusing a Formula car  1134ms
+   ✓ festival garage presentation > selects rival Formula LODs from camera distance and the selected quality  967ms
+   ✓ festival garage presentation > releases every procedural Formula resource once and preserves shared atlases and borrowed feeds  1600ms
+ ✓ tests/probe-detail.test.ts (6 tests) 31029ms
+   ✓ probe detail on the built circuits > omits over a third of the probe draws and nothing a texel wide  30751ms
+ ✓ tests/wet-reflection.test.ts (4 tests) 13ms
+ ✓ tests/festival-presentation.test.ts (4 tests) 769ms
+   ✓ festival route guidance > conforms its chevrons to grade/camber, keeps flags beyond shoulders and resets after travel  739ms
+ ✓ tests/festival-traffic-visuals.test.ts (3 tests) 1037ms
+   ✓ festival traffic visual geometry > keeps four bounded material batches with real wheel cutouts and finite curved geometry  1012ms
+ ✓ tests/spray-lighting.test.ts (8 tests) 858ms
+   ✓ lit spray and spatial floodlight continuity > uses bounded continuous weights and exchanges tied lamps at zero energy  436ms
+ ✓ tests/effects-upload.test.ts (1 test) 49ms
+ ✓ tests/festival-ground-height.test.ts (3 tests) 41ms
+ ✓ tests/festival-effects-integration.test.ts (4 tests) 28ms
+ ✓ tests/spray-plume.test.ts (1 test) 4ms
+
+ Test Files  13 passed (13)
+      Tests  71 passed (71)
+   Start at  14:59:19
+   Duration  70.32s (transform 8.34s, setup 0ms, collect 23.12s, tests 42.89s, environment 2ms, prepare 1.25s)
+

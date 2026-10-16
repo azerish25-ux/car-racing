@@ -1,0 +1,30 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+ RUN  v3.2.4 /workspace/scratch/3a81635718f0/Experiment-3
+
+ ✓ tests/road-detail.test.ts (17 tests) 5329ms
+   ✓ asphalt texels (P4 tone, Sobel normals, meso tile) > builds a seamless, normalised meso tile with its own seed  658ms
+   ✓ asphalt texels (P4 tone, Sobel normals, meso tile) > gives asphalt a linear normal map (no bump map) and keeps three textures  645ms
+   ✓ asphalt detail shader > fades the chip tile to its mean over 15-40 m and adds meso tone and relief  561ms
+   ✓ racing surface layer > keeps the wet road uniform keys and composes after its state sample  554ms
+   ✓ racing surface layer > changes vehicle-family wear through one live uniform without recompiling the road  509ms
+   ✓ racing surface layer > takes derivatives in uniform control flow and never inverts the chip relief  494ms
+   ✓ grid launch rubber and asphalt tone > compiles the launch tracks continuously across the start line  514ms
+   ✓ grid launch rubber and asphalt tone > lifts the racing asphalt by one calibrated tone gain in its finish  1052ms
+ ✓ tests/festival-car-switch.test.ts (3 tests) 1635ms
+   ✓ festival garage presentation > poses a road body from the current holder after using and reusing a Formula car  610ms
+   ✓ festival garage presentation > selects rival Formula LODs from camera distance and the selected quality  321ms
+   ✓ festival garage presentation > releases every procedural Formula resource once and preserves shared atlases and borrowed feeds  702ms
+ ✓ tests/festival-presentation.test.ts (4 tests) 874ms
+   ✓ festival route guidance > conforms its chevrons to grade/camber, keeps flags beyond shoulders and resets after travel  842ms
+ ✓ tests/festival-ground-height.test.ts (11 tests) 340ms
+ ✓ tests/race-view-continuity.test.ts (5 tests) 202ms
+ ✓ tests/festival-effects-integration.test.ts (4 tests) 23ms
+ ✓ tests/startup.test.ts (7 tests) 45ms
+ ✓ tests/motorcycle-presentation.test.ts (7 tests) 11ms
+
+ Test Files  8 passed (8)
+      Tests  58 passed (58)
+   Start at  15:47:40
+   Duration  22.95s (transform 3.98s, setup 0ms, collect 12.44s, tests 8.46s, environment 2ms, prepare 589ms)
+

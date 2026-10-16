@@ -1,0 +1,379 @@
+{
+  "schemaVersion": 1,
+  "copiedAt": "2026-10-16T22:08:48.135668+00:00",
+  "purpose": "Repository-retained implementation evidence. Original capture and test-output bytes are unchanged; presentation notes identify each dated iteration.",
+  "files": [
+    {
+      "file": "broad-unit-tests-initial.log",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/horizon-full-test-preserved.log",
+      "bytes": 73699,
+      "sha256": "68a48b225f7916cde4e87261e71cfdf8414b4aed02d0640f7853d9ab1c5ff59b",
+      "copiedWithoutModification": true
+    },
+    {
+      "file": "broad-unit-tests-summary.json",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/horizon-full-test-summary.json",
+      "bytes": 4681,
+      "sha256": "8b6102f6b393526d1e23b4c09513713fb0d981612ee8102bb37d91f125eb9ef0",
+      "copiedWithoutModification": true
+    },
+    {
+      "file": "broad-unit-tests-targeted-rerun.log",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/horizon-failed-test-retry.log",
+      "bytes": 1032,
+      "sha256": "ee75402091f99ffaffce3b637fe360572611436a85e07a5cea129797a9b2125b",
+      "copiedWithoutModification": true
+    },
+    {
+      "file": "closeout-content.log",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/horizon-closeout-content.log",
+      "bytes": 409,
+      "sha256": "cf8766ef77622e7bcc6c2abdeeab6d209a5a5251190c76912aa4934ba6b4988e",
+      "copiedWithoutModification": true
+    },
+    {
+      "file": "closeout-gates.json",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/horizon-closeout-gates.json",
+      "bytes": 1968,
+      "sha256": "d78b97fc26703135600696410769342c61d0923b40e5eb0318584a8e051396b3",
+      "copiedWithoutModification": true
+    },
+    {
+      "file": "closeout-guarded-build.log",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/horizon-closeout-guarded-build.log",
+      "bytes": 2643,
+      "sha256": "8d6ccca877596ae0abb84af888a2d8c7931345b168ea579224899c16794f0e4f",
+      "copiedWithoutModification": true
+    },
+    {
+      "file": "closeout-lint.log",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/horizon-closeout-lint.log",
+      "bytes": 169,
+      "sha256": "89f0b098b1eb5d9131ba019d93bbaea75cfc7c5edac019f1c586e974855e1abc",
+      "copiedWithoutModification": true
+    },
+    {
+      "file": "festival-menu-dom-6-tests.log",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/festival-final-DOM.log",
+      "bytes": 1331,
+      "sha256": "382c3027179276a5348975653eb183039921cbd179526474e2fd6c431368d747",
+      "copiedWithoutModification": true
+    },
+    {
+      "file": "final-bodywork-lint.log",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/horizon-louvers-lint.log",
+      "bytes": 99,
+      "sha256": "7125f194612fcff2f454c05d848e7cb71facc1967b4d5017e25b34fdee3ba74f",
+      "copiedWithoutModification": true
+    },
+    {
+      "file": "final-bodywork-regressions.log",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/horizon-louvers-tests.log",
+      "bytes": 841,
+      "sha256": "6e77552975585ce110d432f673ed37efc8da227433e80bc4b541055f8a6fd2e7",
+      "copiedWithoutModification": true
+    },
+    {
+      "file": "final-gates.json",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/horizon-louvers-gates.json",
+      "bytes": 2467,
+      "sha256": "933db20ec7117ece5edcd88596b2bc957f1c0a76c1968d93f4a252cbeda75248",
+      "copiedWithoutModification": true
+    },
+    {
+      "file": "final-guarded-build.log",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/horizon-louvers-guarded-build.log",
+      "bytes": 2644,
+      "sha256": "b3d89bd3eb4989c0c8c384cb34b181157dab80848786a51ef701006700927a9e",
+      "copiedWithoutModification": true
+    },
+    {
+      "file": "integrated-content.log",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/horizon-integrated-content.log",
+      "bytes": 409,
+      "sha256": "02abad15641e5f97e1d3b89114cc7ea5ffc77b3b388b6dbd132b098387673d15",
+      "copiedWithoutModification": true
+    },
+    {
+      "file": "integrated-gates.json",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/horizon-integrated-gates.json",
+      "bytes": 2098,
+      "sha256": "8f6fa681a1d73c81427c1f12882ceaadf5a1db9566382fa0b533e8fbf7471cde",
+      "copiedWithoutModification": true
+    },
+    {
+      "file": "integrated-guarded-build.log",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/horizon-integrated-guarded-build.log",
+      "bytes": 2644,
+      "sha256": "f96409c2c642b76bf0222a2272d89bde3b210f50bba906f87db593cae870e8ec",
+      "copiedWithoutModification": true
+    },
+    {
+      "file": "integrated-lint.log",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/horizon-integrated-lint.log",
+      "bytes": 169,
+      "sha256": "89f0b098b1eb5d9131ba019d93bbaea75cfc7c5edac019f1c586e974855e1abc",
+      "copiedWithoutModification": true
+    },
+    {
+      "file": "integrated-main-entry.json",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/horizon-evidence/integrated-main-entry.json",
+      "bytes": 1215,
+      "sha256": "b9093ec8f7d54dc3814ed202429c92742459427dfa48fb47b271f3b6e194cc3a",
+      "copiedWithoutModification": true
+    },
+    {
+      "file": "integrated-regressions-58-tests.log",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/horizon-integrated-tests.log",
+      "bytes": 2252,
+      "sha256": "5f4ec675d820aab925f3312e002f897eb15dcd500c55147edd7870ea49117b71",
+      "copiedWithoutModification": true
+    },
+    {
+      "file": "journey/journey-event.png",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/horizon-evidence/journey/journey-event.png",
+      "bytes": 452585,
+      "sha256": "4f1e1e3886e9ba83700c461fcf8e5e6f485cd03be0eff15167eb34479ef8c68f",
+      "copiedWithoutModification": true
+    },
+    {
+      "file": "journey/journey-map.png",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/horizon-evidence/journey/journey-map.png",
+      "bytes": 240508,
+      "sha256": "c4c0554c95421f4fda994771cd5057f16ddc6fcd573dc4b7c9db82c016903df8",
+      "copiedWithoutModification": true
+    },
+    {
+      "file": "journey/journey-photo.png",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/horizon-evidence/journey/journey-photo.png",
+      "bytes": 348974,
+      "sha256": "952c361c81e1d5e2223f3e19ba263e5f2c734f94524ccd45956563d2272e8bb8",
+      "copiedWithoutModification": true
+    },
+    {
+      "file": "journey/journey-results.png",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/horizon-evidence/journey/journey-results.png",
+      "bytes": 232868,
+      "sha256": "9ce39944a7f5b68e4026e9377ed75b392ae7101792c9cdb686c065e6a04f6252",
+      "copiedWithoutModification": true
+    },
+    {
+      "file": "journey/journey.json",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/horizon-evidence/journey/journey.json",
+      "bytes": 3558,
+      "sha256": "2ca37fa69b9124598c7c6a0faa3a882084334a43d1bc22a1b57c15e0192c4920",
+      "copiedWithoutModification": true
+    },
+    {
+      "file": "main-entry.json",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/horizon-evidence/main-entry.json",
+      "bytes": 1177,
+      "sha256": "83a50f7598c73c205732d21b7dcc290f0b21c9f9044f340f41ef2b8242a29e25",
+      "copiedWithoutModification": true
+    },
+    {
+      "file": "night-regressions-41-tests.log",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/horizon-night-tests.log",
+      "bytes": 1203,
+      "sha256": "03b85868e6e075091df744d7f1a9ecf18e605a973723f09b3582b4009a066b53",
+      "copiedWithoutModification": true
+    },
+    {
+      "file": "photo-bridge-regressions-19-tests.log",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/festival-final-photo-bridge-tests.log",
+      "bytes": 805,
+      "sha256": "6b7cd3cc0610625008c30656e2aae404e67ade4207aa381c17a2e53e30693ea0",
+      "copiedWithoutModification": true
+    },
+    {
+      "file": "publication-gates.json",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/horizon-publication-gates-complete.json",
+      "bytes": 3033,
+      "sha256": "79f5972b549e230ddc1a392b84c69d545afb117d8aa9dc642992be6ecb3ad09a",
+      "copiedWithoutModification": true
+    },
+    {
+      "file": "publication-guarded-build.log",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/horizon-publication-build-complete.log",
+      "bytes": 2644,
+      "sha256": "53062de898d44ccca4fc653ea02abf9d2b4d60420ba41c8d1081bdac58efeb5c",
+      "copiedWithoutModification": true
+    },
+    {
+      "file": "publication-initial-gates.json",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/horizon-publish-gates.json",
+      "bytes": 2701,
+      "sha256": "f6558528f62a82735fb39a50ab5ed78634623126261692dde1b39694fd36c50e",
+      "copiedWithoutModification": true
+    },
+    {
+      "file": "publication-initial-guarded-build-partial.log",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/horizon-publish-guarded-build.log",
+      "bytes": 570,
+      "sha256": "3a21f4e9e54ee8a32df41d4ffcdf825375fb3b2f457e292e55b25f85bfb04b9b",
+      "copiedWithoutModification": true
+    },
+    {
+      "file": "publication-slipstream-lint.log",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/horizon-publish-slipstream-lint.log",
+      "bytes": 99,
+      "sha256": "7125f194612fcff2f454c05d848e7cb71facc1967b4d5017e25b34fdee3ba74f",
+      "copiedWithoutModification": true
+    },
+    {
+      "file": "publication-slipstream-tests.log",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/horizon-publish-slipstream-tests.log",
+      "bytes": 513,
+      "sha256": "eb751a95cf364a32751c40e6e67306a1a4b9da6d9458bd3fcd18e73e9a8330f5",
+      "copiedWithoutModification": true
+    },
+    {
+      "file": "rendering-regressions-71-tests.log",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/horizon-final-rendering-tests.log",
+      "bytes": 2529,
+      "sha256": "84b7cf14eb30ae40143af4eda95d95fc078829adb7c61659d3797e97aeff7bd6",
+      "copiedWithoutModification": true
+    },
+    {
+      "file": "vehicles/lookdev-stats.json",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/horizon-evidence/vehicle-lookdev-stats.json",
+      "bytes": 1380,
+      "sha256": "852d985fe378c0848a20ba8edbb9a6db3403ca958d16b25428367913b78240fe",
+      "copiedWithoutModification": true
+    },
+    {
+      "file": "vehicles/rh3-front-after.png",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/horizon-evidence/vehicle-rh3-front-after.png",
+      "bytes": 154459,
+      "sha256": "d369ced083af07646a63db1ea7bf88b729ad4f951604a83dab573ec7140f87e2",
+      "copiedWithoutModification": true
+    },
+    {
+      "file": "vehicles/rh3-front-before.png",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/horizon-evidence/vehicle-rh3-front-before.png",
+      "bytes": 148821,
+      "sha256": "cb966910a7b7b9d17a776368b3e41ac78ea1e3a1754ca78244004ba5b660d75a",
+      "copiedWithoutModification": true
+    },
+    {
+      "file": "vehicles/sc7-rear-after.png",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/horizon-evidence/vehicle-sc7-rear-after.png",
+      "bytes": 143951,
+      "sha256": "9f320185728bbea65bdae12c57b8baf2bdbc20d9c1ecf094996e18a659843a46",
+      "copiedWithoutModification": true
+    },
+    {
+      "file": "vehicles/sc7-rear-before.png",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/horizon-evidence/vehicle-sc7-rear-before.png",
+      "bytes": 136051,
+      "sha256": "d9d2ca2f0fcf42a73ef458c9883d5f84bd3c6b9be013e0d30a5c18d27c851f38",
+      "copiedWithoutModification": true
+    },
+    {
+      "file": "visuals/accepted-high-night-drive.png",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/horizon-evidence/accepted-high-night-drive.png",
+      "bytes": 360838,
+      "sha256": "479ca24c82122e9109b1a1a0d80f19acb08496b659f43239aad286093d7899bc",
+      "copiedWithoutModification": true
+    },
+    {
+      "file": "visuals/accepted-high-night-photo.png",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/horizon-evidence/accepted-high-night-photo.png",
+      "bytes": 288307,
+      "sha256": "3f2f10145154121b5b582a636c00a0c6c755642bdbb206ea3a4ff82a7547cdec",
+      "copiedWithoutModification": true
+    },
+    {
+      "file": "visuals/accepted-high-night.json",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/horizon-evidence/accepted-high-night.json",
+      "bytes": 14098,
+      "sha256": "c25874fd09aa299881a2266810705ba1744603f97069a518db786766429e8cb9",
+      "copiedWithoutModification": true
+    },
+    {
+      "file": "visuals/accepted-medium-before-capture.json",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/horizon-evidence/accepted-medium-before-capture.json",
+      "bytes": 6574,
+      "sha256": "bd1892d50c13939bffc037cf04742cc6a2332661b3970e46440a335708fc6579",
+      "copiedWithoutModification": true
+    },
+    {
+      "file": "visuals/accepted-medium-day.png",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/horizon-evidence/accepted-medium-day.png",
+      "bytes": 783728,
+      "sha256": "3db2d0a3ab83d77cfa6eb35ed5b949a590f42a6b62d784bbddb7aa3b3a715c7f",
+      "copiedWithoutModification": true
+    },
+    {
+      "file": "visuals/accepted-medium-festival-menu.png",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/horizon-evidence/accepted-medium-festival-menu.png",
+      "bytes": 477786,
+      "sha256": "eb8d01cff44e38d1f7cb4c2a1788e17dfc9b88100c942bfab83774352bf29165",
+      "copiedWithoutModification": true
+    },
+    {
+      "file": "visuals/accepted-medium-map.png",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/horizon-evidence/accepted-medium-map.png",
+      "bytes": 371554,
+      "sha256": "bfab9b5a5b27ffa73950f8e67b0d9c09861306c1e65a8d703360df6b1f41c661",
+      "copiedWithoutModification": true
+    },
+    {
+      "file": "visuals/accepted-medium-photo.png",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/horizon-evidence/accepted-medium-photo.png",
+      "bytes": 669152,
+      "sha256": "4a85ef9085f225bdb0da58b2298e76c1e3133c085bb8217d51d6790977e1881f",
+      "copiedWithoutModification": true
+    },
+    {
+      "file": "visuals/accepted-medium-state.json",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/horizon-evidence/accepted-medium-state.json",
+      "bytes": 7259,
+      "sha256": "38682b4f98bdce8a259e3354b08588e7f287122aaa0087860a60267c5f314e4b",
+      "copiedWithoutModification": true
+    },
+    {
+      "file": "visuals/accepted-varda-drive.png",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/horizon-evidence/accepted-varda-drive.png",
+      "bytes": 447185,
+      "sha256": "064ea6a9586dbbfdb0229b797bfd01cadeb3e99761d6e1e3ce3e0691e4c41798",
+      "copiedWithoutModification": true
+    },
+    {
+      "file": "visuals/accepted-varda-photo.png",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/horizon-evidence/accepted-varda-photo.png",
+      "bytes": 517698,
+      "sha256": "8d4413e48f56a0bae74c6f81a1b3430c98cf2f4f5df936ba12c7e6aefd7ac080",
+      "copiedWithoutModification": true
+    },
+    {
+      "file": "visuals/accepted-varda.json",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/horizon-evidence/accepted-varda.json",
+      "bytes": 15574,
+      "sha256": "1f55da7e6daf0ac018945eeebe6261cbbdd47a24d11f0f23b04ce05f5752e7a3",
+      "copiedWithoutModification": true
+    },
+    {
+      "file": "visuals/baseline-medium-before-capture.json",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/horizon-evidence/baseline-medium-before-capture.json",
+      "bytes": 6141,
+      "sha256": "2e1665944bbab211264c071108f963b85e9f90f83c3ab719abaa73c09257a6a8",
+      "copiedWithoutModification": true
+    },
+    {
+      "file": "visuals/baseline-medium-day.png",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/horizon-evidence/baseline-medium-day.png",
+      "bytes": 744591,
+      "sha256": "bd200a868d093f3cdbef5921859ee34fe79925e979a1e3f388ff45d149166a05",
+      "copiedWithoutModification": true
+    },
+    {
+      "file": "visuals/baseline-medium-state.json",
+      "originalScratchPath": "/workspace/scratch/3a81635718f0/horizon-evidence/baseline-medium-state.json",
+      "bytes": 7695,
+      "sha256": "a829af4ab1fb9bfde8bfc774e36417e01fa97886186091ebcdaada7ec41771c5",
+      "copiedWithoutModification": true
+    }
+  ],
+  "updatedAt": "2026-10-16T23:05:39.257399+00:00"
+}

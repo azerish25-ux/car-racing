@@ -4,12 +4,15 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { Sky } from 'three/addons/objects/Sky.js';
 import { FXAAShader } from 'three/addons/shaders/FXAAShader.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { AudioViewTracker } from '../../audio/spatial.ts';
 import { clamp } from '../../core/math.ts';
 import type { FestivalEvent } from '../../simulation/open-world/festival-events.ts';
+import { carvedGroundHeight } from '../../simulation/open-world/ground-height.ts';
 import type { Structure } from '../../simulation/open-world/placement.ts';
 import type { OpenWorld } from '../../simulation/open-world/world.ts';
-import { CAR_STRIDE, F, H, HEADER, carBase } from '../../simulation/protocol.ts';
+import { CAR_STRIDE, F, H, HEADER, R, RACE_BASE, carBase } from '../../simulation/protocol.ts';
+import { MATERIAL } from '../../simulation/surface-material.ts';
 import { BroadcastGradePass } from '../broadcast-grade.ts';
 import {
   bindSkyCelestial,
@@ -52,12 +55,29 @@ import { Vegetation } from './vegetation.ts';
 import { photoVegetationEnabled, VegetationLibrary } from '../vegetation/library.ts';
 import { speciesForPalette } from '../vegetation/species.ts';
 import { Water } from './water.ts';
+import { Effects } from '../effects.ts';
+import { EffectPlayback } from '../effect-playback.ts';
+import { ReflectionSystem } from '../reflections.ts';
+import {
+  iblUniforms,
+  installSpecularIBL,
+  installSpecularIBLMaterial,
+  setIblEnergy,
+} from '../studio/ibl-energy.ts';
+import { HorizonGuidance } from './horizon-guidance.ts';
+import { FestivalTrails } from './festival-trails.ts';
+import { HorizonDressing } from './horizon-dressing.ts';
+import {
+  createFestivalContactOffset,
+  festivalContactEnabled,
+  festivalDiffuserEnabled,
+} from './festival-contacts.ts';
 
 export type FestivalCamera = 'chase' | 'far' | 'hood';
 const CAMERAS: readonly FestivalCamera[] = ['chase', 'far', 'hood'];
 /** Chase rigs (m): distance behind, height, look-ahead, look lift, fov. */
 const RIGS = {
-  chase: { distance: 6.4, height: 2.15, perMs: 0.022, lookAhead: 7, lift: 0.9, fov: 60 },
+  chase: { distance: 5.8, height: 1.85, perMs: 0.018, lookAhead: 9, lift: 0.82, fov: 57 },
   far: { distance: 11, height: 3.6, perMs: 0.03, lookAhead: 10, lift: 1.1, fov: 58 },
 } as const;
 
@@ -79,12 +99,27 @@ export class FestivalRenderer {
   readonly terrain: TerrainStreamer;
   readonly roads: RoadMeshes;
   readonly buildings: Buildings;
+  readonly dressing: HorizonDressing;
   readonly vegetation = new Vegetation();
   /** Photographic trees and shrubs, when loaded (see loadPhotoVegetation). */
   photoVegetation: VegetationLibrary | null = null;
   readonly water: Water;
   readonly markers: EventMarkers;
   readonly cars = new FestivalCars();
+  readonly effects = new Effects();
+  private readonly effectPlayback = new EffectPlayback(this.effects);
+  readonly guidance = new HorizonGuidance();
+  readonly trails = new FestivalTrails();
+  private readonly reflection = new ReflectionSystem();
+  private readonly reflectionMaterials: T.MeshStandardMaterial[] = [];
+  private reflectionVersion = -1;
+  private readonly vehicleRoots: T.Object3D[] = [];
+  private readonly vehiclePaint: T.MeshStandardMaterial[] = [];
+  private vehiclePaintVersion = 0;
+  private reflectedVehicleVersion = -1;
+  private readonly events: ReadonlyMap<string, FestivalEvent>;
+  private readonly orbit: OrbitControls;
+  photo = false;
   readonly audioView = new AudioViewTracker();
   readonly presented = new PresentedFrame();
   readonly sun = new T.DirectionalLight(0xfff0dc, 3.9);
@@ -116,7 +151,10 @@ export class FestivalRenderer {
   private readonly euler = new T.Euler();
   private initialized = false;
   private lastTime = NaN;
+  private readonly lastSubject = new T.Vector3(NaN, NaN, NaN);
+  private lastVehicle = -1;
   private disposed = false;
+  private readonly heightAt = (x: number, z: number, y?: number) => this.groundHeight(x, z, y);
   readonly discovered = new Set<string>();
   activeEvent: string | null = null;
   gate: { x: number; z: number } | null = null;
@@ -130,6 +168,32 @@ export class FestivalRenderer {
     tileWorker: Worker,
   ) {
     const scene = this.scene;
+    this.events = new Map(events.map((event) => [event.spec.id, event]));
+    this.orbit = new OrbitControls(this.camera, canvas);
+    this.orbit.enabled = false;
+    this.orbit.enableDamping = true;
+    this.orbit.dampingFactor = 0.12;
+    this.orbit.minDistance = 2.5;
+    this.orbit.maxDistance = 22;
+    this.orbit.maxPolarAngle = Math.PI * 0.49;
+    this.orbit.enablePan = false;
+    this.reflection.probeFacesPerFrame = 1;
+    this.reflection.probeExclusions = [
+      this.cars.root,
+      this.effects.group,
+      this.guidance.root,
+      this.trails.root,
+    ];
+    this.effects.looseColours = new Map([
+      [MATERIAL.DIRT, [0.43, 0.32, 0.19] as const],
+      [MATERIAL.MUD, [0.23, 0.19, 0.14] as const],
+      [MATERIAL.SAND, [0.69, 0.59, 0.4] as const],
+      [MATERIAL.SNOW, [0.81, 0.85, 0.89] as const],
+      [MATERIAL.GRAVEL_ROAD, [0.51, 0.47, 0.39] as const],
+    ]);
+    this.effects.contactOffset = createFestivalContactOffset(this.heightAt);
+    this.effects.contactEnabled = festivalContactEnabled;
+    this.effects.diffuserEnabled = festivalDiffuserEnabled;
     scene.name = 'Festival region';
     this.sky.scale.setScalar(450000);
     this.sky.userData.excludeMotionBlur = true;
@@ -143,23 +207,38 @@ export class FestivalRenderer {
     scene.add(this.hemisphere, this.sun, this.sun.target);
     this.sun.castShadow = true;
     this.sun.shadow.mapSize.set(2048, 2048);
-    Object.assign(this.sun.shadow.camera, { left: -70, right: 70, top: 70, bottom: -70, near: 20, far: 900 });
+    Object.assign(this.sun.shadow.camera, {
+      left: -70,
+      right: 70,
+      top: 70,
+      bottom: -70,
+      near: 20,
+      far: 900,
+    });
     this.sun.shadow.bias = -0.00003;
     this.sun.shadow.normalBias = 0.02;
     this.terrain = new TerrainStreamer(tileWorker, TERRAIN_BUDGETS.medium);
     this.roads = new RoadMeshes(world.network, world.field);
     this.buildings = new Buildings(structures);
+    this.dressing = new HorizonDressing(world, structures);
     this.water = new Water(world.field);
     this.markers = new EventMarkers(events, (x, z) => this.groundHeight(x, z));
+    this.reflection.probeExclusions.push(this.markers.root);
     scene.add(
       this.terrain.root,
       this.roads.root,
       this.buildings.root,
+      this.dressing.root,
       this.vegetation.root,
       this.water.root,
       this.markers.root,
       this.cars.root,
+      this.effects.group,
+      this.guidance.root,
+      this.trails.root,
     );
+    installSpecularIBL(scene);
+    installSpecularIBLMaterial(this.terrain.material);
     this.composer = new EffectComposer(renderer);
     this.scenePass = new SceneAmbientPass(scene, this.camera, this.graphics.msaa);
     this.composer.addPass(this.scenePass);
@@ -182,14 +261,56 @@ export class FestivalRenderer {
     });
     prewarmSky('day');
   }
-  /** Road surface where there is a road, else natural ground (markers). */
-  groundHeight(x: number, z: number) {
+  /** Separately posed motorcycles belong to the same reflection system,
+   * and must not appear inside the probe taken at their own position. */
+  registerVehicleRoot(root: T.Object3D) {
+    if (this.vehicleRoots.includes(root)) return;
+    this.vehicleRoots.push(root);
+    this.reflection.probeExclusions.push(root);
+    this.refreshVehicleMaterials();
+  }
+  refreshVehicleMaterials() {
+    const unique = new Set<T.MeshStandardMaterial>();
+    for (const root of this.vehicleRoots) {
+      installSpecularIBL(root);
+      root.traverse((object) => {
+        if (!(object instanceof T.Mesh)) return;
+        for (const material of Array.isArray(object.material) ? object.material : [object.material])
+          if (material instanceof T.MeshPhysicalMaterial && material.clearcoat > 0)
+            unique.add(material);
+      });
+    }
+    this.vehiclePaint.length = 0;
+    this.vehiclePaint.push(...unique);
+    this.vehiclePaintVersion++;
+  }
+  /** Keep road queries analytic on the requested height layer. Off-road
+   * points and ground beneath bridges use the existing carved surface. */
+  groundHeight(x: number, z: number, y?: number) {
     const net = this.world.network,
-      p = { s: 0, x: 0, y: 0, z: 0, tx: 0, tz: 1, nx: 1, nz: 0, curvature: 0, width: 0, bank: 0, gradient: 0 };
-    const l = net.nearest(x, z, p),
-      e = net.edges[net.edgeOf[net.lastSegment]];
-    if (Math.abs(l) < e.spec.halfWidth + e.spec.shoulder) return net.surfaceHeight(p, l, e.spec.halfWidth, e.spec.crown);
-    return this.world.field.height(x, z);
+      p = {
+        s: 0,
+        x: 0,
+        y: 0,
+        z: 0,
+        tx: 0,
+        tz: 1,
+        nx: 1,
+        nz: 0,
+        curvature: 0,
+        width: 0,
+        bank: 0,
+        gradient: 0,
+      };
+    const l = net.nearest(x, z, p, y),
+      e = net.edges[net.edgeOf[net.lastSegment]],
+      reach = e.spec.halfWidth + e.spec.shoulder,
+      layered = y !== undefined && Number.isFinite(y);
+    // A height-matching segment can end far ahead of this point. Its
+    // lateral offset alone does not establish a road footprint here.
+    if (net.lastLayerMatch && Math.abs(l) < reach && (!layered || net.lastDistance < reach))
+      return net.surfaceHeight(p, l, e.spec.halfWidth, e.spec.crown);
+    return carvedGroundHeight(this.world.carver, x, z);
   }
   /** Load the photographic trees and shrubs (not on LOW); call before the
    * world streams so every tile is planted the same way. Failures keep the
@@ -199,13 +320,14 @@ export class FestivalRenderer {
     try {
       const library = await VegetationLibrary.load(
         this.renderer,
-        speciesForPalette(FESTIVAL_PALETTE, true, false),
+        speciesForPalette(FESTIVAL_PALETTE, true, true),
       );
       if (!library.trees.length) {
         library.dispose();
         return false;
       }
       this.photoVegetation = library;
+      this.dressing.usePhotoVegetation(library);
       // Trees never stand on roads: the natural ground alone (cheap per tile).
       this.vegetation.setPhotoLibrary(library, (x, z) => this.world.field.height(x, z));
       return true;
@@ -232,6 +354,9 @@ export class FestivalRenderer {
     this.scenePass.ambientOcclusion = g.ambientOcclusion;
     this.scenePass.temporal.enabled = g.temporalAA;
     this.grade.enabled = g.filmGrade;
+    this.effects.enabled = g.particleDensity > 0;
+    this.effects.density = g.particleDensity;
+    this.trails.enabled = preset !== 'low';
     const budget = TERRAIN_BUDGETS[tier];
     this.terrain.budget = { ...budget, trees: budget.trees * clamp(g.vegetationDensity, 0, 1) };
     this.environment.highDetail = g.reflections === 'local';
@@ -243,10 +368,16 @@ export class FestivalRenderer {
   resize() {
     const w = this.canvas.clientWidth || innerWidth,
       h = this.canvas.clientHeight || innerHeight;
-    const size = bufferSize(w, h, Math.min(devicePixelRatio, 1.5) * this.graphics.resolutionScale, this.renderer.capabilities.maxTextureSize);
+    const size = bufferSize(
+      w,
+      h,
+      Math.min(devicePixelRatio, 1.5) * this.graphics.resolutionScale,
+      this.renderer.capabilities.maxTextureSize,
+    );
     const ratio = Math.min(size.width / w, size.height / h);
     const current = this.renderer.getSize(new T.Vector2());
-    if (current.x !== w || current.y !== h || this.renderer.getPixelRatio() !== ratio) this.renderer.setDrawingBufferSize(w, h, ratio);
+    if (current.x !== w || current.y !== h || this.renderer.getPixelRatio() !== ratio)
+      this.renderer.setDrawingBufferSize(w, h, ratio);
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
     this.composer.setPixelRatio(ratio);
@@ -258,6 +389,27 @@ export class FestivalRenderer {
     this.mode = mode ?? CAMERAS[(CAMERAS.indexOf(this.mode) + 1) % CAMERAS.length];
     this.initialized = false;
     this.audioView.reset();
+  }
+  /** Pause is owned by FestivalSession. This only changes the presentation. */
+  setPhoto(active: boolean) {
+    this.photo = active;
+    this.orbit.enabled = active;
+    if (active) {
+      this.orbit.target.copy(this.target).add(new T.Vector3(0, 0.6, 0));
+      this.camera.fov = 45;
+      this.camera.updateProjectionMatrix();
+      this.orbit.update();
+    } else {
+      this.initialized = false;
+      this.audioView.reset();
+    }
+  }
+  photoAngle(angle: number) {
+    if (!this.photo) return;
+    const offset = this.camera.position.clone().sub(this.orbit.target);
+    offset.applyAxisAngle(new T.Vector3(0, 1, 0), angle);
+    this.camera.position.copy(this.orbit.target).add(offset);
+    this.orbit.update();
   }
   /** Night amount of the current lighting (lamps, windows, headlights). */
   get night() {
@@ -281,18 +433,50 @@ export class FestivalRenderer {
     const presented = this.presented.sample(a, b, a === b ? 1 : clamp(alpha, 0, 1));
     const time = presented[H.TIME];
     const night = this.night;
-    this.cars.update(a, b, presented, a === b ? 1 : alpha, dt, night);
+    this.cars.update(
+      a,
+      b,
+      presented,
+      a === b ? 1 : alpha,
+      dt,
+      night,
+      this.camera,
+      this.mode === 'hood' && !this.photo,
+      detailTier(this.preset),
+    );
     const o = carBase(0),
       subject = this.cars.subject(0);
     const speed = presented[o + F.SPEED];
     this.target.set(presented[o + F.X], presented[o + F.Y], presented[o + F.Z]);
     // --- Camera ---------------------------------------------------------
-    const cut = !this.initialized || !(time >= this.lastTime) || time - this.lastTime > 1;
+    const vehicle = Math.round(presented[o + RACE_BASE + R.VEHICLE]);
+    const elapsed = time - this.lastTime;
+    // A camera change or a slow GPU is not a simulation discontinuity.
+    // Reject physical jumps while allowing normal distance covered in a stall.
+    const discontinuity =
+      vehicle !== this.lastVehicle ||
+      !(elapsed >= 0) ||
+      this.lastSubject.distanceTo(this.target) >
+        Math.max(24, Math.abs(speed) * Math.max(0, elapsed) * 1.8 + 10);
+    const cut = !this.initialized || discontinuity || elapsed > 1;
+    this.lastSubject.copy(this.target);
+    this.lastVehicle = vehicle;
     this.lastTime = time;
     if (subject) this.forward.set(0, 0, 1).applyQuaternion(subject.quaternion);
-    if (this.mode === 'hood' && subject) {
+    if (this.photo) {
+      this.orbit.update();
+      // This orbit stays attached to the subject. Raising the camera under
+      // a bridge must not switch its clearance surface to the upper deck.
+      this.camera.position.y = Math.max(
+        this.camera.position.y,
+        this.groundHeight(this.camera.position.x, this.camera.position.z, this.target.y) + 0.45,
+      );
+      this.gaze.copy(this.orbit.target);
+    } else if (this.mode === 'hood' && subject) {
       this.desired.set(0, 1.18, 0.35).applyQuaternion(subject.quaternion).add(this.target);
-      this.temp.set(Math.sin(this.lookX) * 30, 0.6, Math.cos(this.lookX) * 30).applyQuaternion(subject.quaternion);
+      this.temp
+        .set(Math.sin(this.lookX) * 30, 0.6, Math.cos(this.lookX) * 30)
+        .applyQuaternion(subject.quaternion);
       this.gaze.copy(this.desired).add(this.temp);
       this.camera.position.copy(this.desired);
       this.camera.fov = 66;
@@ -300,18 +484,27 @@ export class FestivalRenderer {
     } else {
       const rig = RIGS[this.mode === 'far' ? 'far' : 'chase'];
       const pitch = Math.asin(clamp(this.forward.y, -0.4, 0.4));
-      this.basis.setFromEuler(this.euler.set(-pitch, Math.atan2(this.forward.x, this.forward.z) + this.lookX, 0, 'YXZ'));
+      let yaw = Math.atan2(this.forward.x, this.forward.z);
+      const velocityYaw = Math.atan2(presented[o + F.VX], presented[o + F.VZ]);
+      const slipYaw = Math.atan2(Math.sin(velocityYaw - yaw), Math.cos(velocityYaw - yaw));
+      yaw += clamp(slipYaw, -0.65, 0.65) * clamp((speed - 8) / 28, 0, 0.2);
+      this.basis.setFromEuler(this.euler.set(-pitch, yaw + this.lookX, 0, 'YXZ'));
       this.desired
-        .set(0, rig.height + speed * 0.012, -rig.distance - speed * rig.perMs)
+        .set(
+          0,
+          rig.height + Math.min(0.6, Math.abs(speed) * 0.005),
+          -rig.distance - Math.abs(speed) * rig.perMs,
+        )
         .applyQuaternion(this.basis)
         .add(this.target);
       // Never below the ground (hills behind the car).
-      const ground = this.groundHeight(this.desired.x, this.desired.z) + 0.8;
+      const ground = this.groundHeight(this.desired.x, this.desired.z, this.target.y) + 0.8;
       if (this.desired.y < ground) this.desired.y = ground;
       this.temp.set(0, 0, 1).applyQuaternion(this.basis);
       this.gaze.copy(this.target).addScaledVector(this.temp, rig.lookAhead);
       this.gaze.y += rig.lift;
-      this.camera.fov = rig.fov + Math.min(10, speed * 0.06);
+      const fov = rig.fov + Math.min(9, Math.abs(speed) * 0.07);
+      this.camera.fov += (fov - this.camera.fov) * (cut ? 1 : 1 - Math.exp(-dt * 4));
       if (cut) {
         this.camera.position.copy(this.desired);
         this.velocity.set(0, 0, 0);
@@ -320,7 +513,10 @@ export class FestivalRenderer {
           n = Math.max(1, Math.ceil(dt * 120)),
           h = dt / n;
         for (let k = 0; k < n; k++) {
-          this.velocity.addScaledVector(this.temp.copy(this.desired).sub(this.camera.position), omega * omega * h);
+          this.velocity.addScaledVector(
+            this.temp.copy(this.desired).sub(this.camera.position),
+            omega * omega * h,
+          );
           this.velocity.multiplyScalar(Math.exp(-2 * omega * h));
           this.camera.position.addScaledVector(this.velocity, h);
         }
@@ -338,25 +534,65 @@ export class FestivalRenderer {
       this.vegetation.sync(this.terrain.treeTiles);
     }
     this.vegetation.update(this.camera, this.preset);
-    this.markers.update(time, this.discovered, this.activeEvent, this.gate, (x, z) => this.groundHeight(x, z));
+    this.markers.update(time, this.discovered, this.activeEvent, this.gate, (x, z) =>
+      this.groundHeight(x, z),
+    );
+    this.markers.root.visible = !this.photo;
+    if (discontinuity) this.guidance.reset();
+    this.guidance.update(
+      this.activeEvent ? (this.events.get(this.activeEvent) ?? null) : null,
+      this.gate,
+      this.target,
+      speed,
+      this.heightAt,
+    );
+    if (this.photo) this.guidance.root.visible = false;
+    if (discontinuity) {
+      this.effectPlayback.reset();
+      // Travel/recovery may keep time and the current car's material identity.
+      // Capture the destination even if the player immediately pauses for a photo.
+      this.reflection.invalidate();
+    }
+    this.effectPlayback.update(presented, true, true);
+    this.effects.setSignalLights(presented, true);
+    this.trails.update(presented, this.heightAt);
     this.roads.setNight(night);
     this.buildings.setNight(night);
+    this.dressing.update(time, night, this.camera, this.preset);
     // --- Lighting -----------------------------------------------------------
     const mode = this.lighting,
       daylight = circuitLightState(presented[H.CLOUD], presented[H.RAIN], mode);
     if (mode === 'night') {
-      // Open country at night: moonlight, not a floodlit circuit.
-      daylight.sun *= 0.16;
-      daylight.fill *= 0.7;
-      daylight.exposure *= 1.5;
+      // The region's emissive street lamps do not supply the circuit's real
+      // floodlight pools. Keep a modest diffuse night floor so the player's
+      // unlit rear and roadside architecture retain shape. Raising exposure
+      // instead only clipped the nearby headlights and luminous windows.
+      daylight.sun = 0.28 * (1 - daylight.cover * 0.35);
+      daylight.fill = 1.0 + daylight.cover * 0.15;
+      daylight.environment = 0.2 + daylight.cover * 0.04;
+      daylight.exposure = 1.12 - clamp(presented[H.RAIN], 0, 60) * 0.0005;
     }
     const photoPalette = mode === 'night' ? null : this.photoSky.fogPalette(daylight.cover, mode);
     if (photoPalette)
-      [daylight.fogRed, daylight.fogGreen, daylight.fogBlue] = aerialFogColor(daylight.cover, presented[H.RAIN], mode, photoPalette);
+      [daylight.fogRed, daylight.fogGreen, daylight.fogBlue] = aerialFogColor(
+        daylight.cover,
+        presented[H.RAIN],
+        mode,
+        photoPalette,
+      );
     applyCircuitLightPalette(this.sun, this.hemisphere, daylight.cover, mode);
     this.sun.intensity = daylight.sun;
     this.hemisphere.intensity = daylight.fill;
     this.scene.environmentIntensity = daylight.environment;
+    // Festival may follow any circuit lighting state in the shared renderer.
+    // Set its own sky energy every frame instead of inheriting that state.
+    setIblEnergy(daylight.environment, mode);
+    const saturation = this.photoSky.irradianceSaturation(
+      daylight.cover,
+      mode,
+      iblUniforms.apexSkyIrradianceSaturation.value,
+    );
+    if (saturation !== null) iblUniforms.apexSkyIrradianceSaturation.value = saturation;
     this.renderer.toneMappingExposure = daylight.exposure;
     const fog = this.scene.fog as T.FogExp2;
     // The region is kilometres deep: the circuit haze, thinned.
@@ -371,16 +607,66 @@ export class FestivalRenderer {
     bindSkyCelestial(this.sky.material, mode);
     this.photoSky.bind(this.sky.material, daylight.cover, mode, false);
     uniforms.cloudDrift.value = (time * SKY_CLOUDS.driftPerSecond) % 1;
-    shadowAnchor(this.target, this.sun.shadow.mapSize.x, this.sun.shadow.camera.right, this.sun.target.position, mode);
-    this.sun.position.copy(this.sun.target.position).add(this.temp.copy(lightingDirection(mode)).normalize().multiplyScalar(400));
+    shadowAnchor(
+      this.target,
+      this.sun.shadow.mapSize.x,
+      this.sun.shadow.camera.right,
+      this.sun.target.position,
+      mode,
+    );
+    this.sun.position
+      .copy(this.sun.target.position)
+      .add(this.temp.copy(lightingDirection(mode)).normalize().multiplyScalar(400));
     this.sun.target.updateMatrixWorld();
     const wet = clamp(presented[H.WATER] / 0.8, 0, 1);
+    this.roads.setWet(wet);
     this.terrain.material.userData.ow.owWet.value = wet;
     studioUniforms.studioTime.value = time;
     // A light onshore breeze for the planting (no weather wind in free roam).
     studioUniforms.studioWind.value.set(2.6, 1.4, time, 0.5);
     // --- Render ---------------------------------------------------------------
+    this.renderer.info.reset();
+    this.renderer.info.autoReset = false;
     this.environment.update(this.renderer, this.scene, daylight.cover, mode);
+    if (
+      this.reflectionVersion !== this.cars.paintVersion ||
+      this.reflectedVehicleVersion !== this.vehiclePaintVersion
+    ) {
+      this.reflection.updateProbe(
+        this.renderer,
+        this.scene,
+        subject ?? this.cars.root,
+        this.reflectionMaterials,
+        false,
+      );
+      this.reflection.invalidate();
+      this.reflectionMaterials.length = 0;
+      for (const material of this.cars.reflectivePaint)
+        if (material instanceof T.MeshStandardMaterial) this.reflectionMaterials.push(material);
+      this.reflectionMaterials.push(...this.vehiclePaint);
+      for (const surface of ['asphalt', 'asphaltMajor', 'town'] as const) {
+        const material = this.roads.materials[surface];
+        if (material instanceof T.MeshStandardMaterial) this.reflectionMaterials.push(material);
+      }
+      this.reflectionVersion = this.cars.paintVersion;
+      this.reflectedVehicleVersion = this.vehiclePaintVersion;
+    }
+    this.reflection.beginFrame(time, false);
+    this.reflection.setSkyIntensity(
+      this.reflectionMaterials,
+      daylight.environment,
+      iblUniforms.apexSpecularIBL.value,
+    );
+    if (subject)
+      this.reflection.updateProbe(
+        this.renderer,
+        this.scene,
+        subject,
+        this.reflectionMaterials,
+        this.graphics.reflections === 'local',
+        wet > 0.15 ? 0.8 : 2,
+        this.sky.material.uniforms.probeSkyIntensity,
+      );
     this.audioView.update(this.camera, time, 0, this.mode === 'hood', 0);
     postLensFrame(
       this.grade,
@@ -394,19 +680,20 @@ export class FestivalRenderer {
     );
     this.ultra.prepareFrame({
       presented,
-      cars: [{ reflectivePaint: this.cars.reflectivePaint }],
+      cars: [
+        { reflectivePaint: this.cars.reflectivePaint },
+        { reflectivePaint: this.vehiclePaint },
+      ],
       subject: this.target,
       cameraMode: 'chase',
       lighting: mode,
       studio: false,
       menu: false,
-      photo: false,
+      photo: this.photo,
       replay: false,
       otherDof: false,
       cut,
     });
-    this.renderer.info.reset();
-    this.renderer.info.autoReset = false;
     this.composer.render();
     this.ultra.afterFrame();
     this.stats.drawCalls = this.renderer.info.render.calls;
@@ -424,12 +711,34 @@ export class FestivalRenderer {
     this.terrain.dispose();
     this.roads.dispose();
     this.buildings.dispose();
+    this.dressing.dispose();
     this.vegetation.dispose();
     this.photoVegetation?.dispose();
     this.photoVegetation = null;
     this.water.dispose();
     this.markers.dispose();
     this.cars.dispose();
+    this.trails.dispose();
+    this.guidance.dispose();
+    this.orbit.dispose();
+    this.reflection.dispose();
+    this.vehiclePaint.length = 0;
+    this.vehicleRoots.length = 0;
+    this.environment.dispose();
+    this.wet.dispose();
+    this.farShadow.dispose();
+    this.effectPlayback.reset();
+    this.effects.group.traverse((node) => {
+      if (node instanceof T.Mesh || node instanceof T.Points) {
+        node.geometry.dispose();
+        for (const material of Array.isArray(node.material) ? node.material : [node.material])
+          material.dispose();
+      }
+    });
+    this.bloom.dispose();
+    this.grade.dispose();
+    this.fxaa.dispose();
+    this.scenePass.dispose();
     this.ultra.dispose();
     this.photoSky.dispose();
     this.composer.dispose();
