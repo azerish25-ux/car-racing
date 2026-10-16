@@ -1615,8 +1615,8 @@ export class BikeModel {
     add(this.swingarm, new T.CylinderGeometry(0.02, 0.02, 0.3, 10), m.steel).rotation.z =
       Math.PI / 2;
     if (detail !== 'far') {
-      if (authored && detail === 'high') {
-        // GP close-up: articulated steel roller/link chain and a toothed,
+      if ((authored || definition.id === 'gpr2') && detail === 'high') {
+        // Both GP prototypes' close-ups: articulated chain and a toothed,
         // wheel-driven sprocket, not stationary boxes and a plain annulus.
         this.gpChain = new GPChainDrive(arm, m.steel, m.dark, m.aluminium);
         this.swingarm.add(this.gpChain.root);

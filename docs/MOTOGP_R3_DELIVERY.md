@@ -25,9 +25,9 @@ Every original image is separately indexed, but **an indexed image does not impl
    `tests/gp-cooling-louvers.test.ts` checks symmetry, finite geometry, bounds
    and LOD budgets. No real-world team marks, PS5 screenshots or licensed models ship.
 
-3. **Moving mechanical drivetrain for GP-R1:** `src/rendering/gp-chain-drive.ts`
+3. **Moving mechanical drivetrain for GP-R1 and GP-R2:** `src/rendering/gp-chain-drive.ts`
    replaces the two stationary rectangular chain runs and the plain annulus
-   in the high-LOD GP-R1 only. A closed spline and 512 precomputed arc-length
+   in the high-LOD GP prototypes only. A closed spline and 512 precomputed arc-length
    samples position repeated steel pins/rollers and forged outer side plates
    through **two instanced draw calls**, with a **42-tooth rear sprocket**
    attached to the rear wheel spin node. The chain phase comes from the
