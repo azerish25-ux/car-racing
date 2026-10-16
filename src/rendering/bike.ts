@@ -4,6 +4,7 @@ import { batchBikeRigidMeshes } from './bike-rigid-batch.ts';
 import { addGPIdentity } from './bike-livery.ts';
 import { gpBodywork, gpUpperCowl } from './gp-bodywork.ts';
 import { gpCoolingLouvers } from './gp-cooling-louvers.ts';
+import { GPChainDrive } from './gp-chain-drive.ts';
 import { bikeSurfaceMaps } from './bike-surface-detail.ts';
 import { BikeCockpit } from './bike-cockpit.ts';
 import { tagWeatherSurface } from './weather-presentation.ts';
@@ -636,6 +637,7 @@ export class BikeModel {
   private readonly scratch = new T.Vector3();
   private readonly matrix = new T.Matrix4();
   private readonly rings: T.Mesh[] = [];
+  private readonly gpChain?: GPChainDrive;
   private readonly cockpit?: BikeCockpit;
   constructor(
     readonly definition: VehicleDefinition,
@@ -1613,19 +1615,27 @@ export class BikeModel {
     add(this.swingarm, new T.CylinderGeometry(0.02, 0.02, 0.3, 10), m.steel).rotation.z =
       Math.PI / 2;
     if (detail !== 'far') {
-      // Chain runs (top/bottom) between the sprockets on the left.
-      for (const y of [0.045, -0.045]) {
-        const run = add(
-          this.swingarm,
-          new T.BoxGeometry(0.012, 0.012, arm),
-          m.steel,
-          0.115,
-          y + (y > 0 ? 0.04 : -0.04) * 0.5,
-          -arm / 2,
-        );
-        run.rotation.x = y > 0 ? 0.035 : -0.035;
+      if (authored && detail === 'high') {
+        // GP close-up: articulated steel roller/link chain and a toothed,
+        // wheel-driven sprocket, not stationary boxes and a plain annulus.
+        this.gpChain = new GPChainDrive(arm, m.steel, m.dark, m.aluminium);
+        this.swingarm.add(this.gpChain.root);
+        this.rearSpin.add(this.gpChain.sprocket);
+      } else {
+        // Mid-distance and non-GP machines retain the inexpensive original.
+        for (const y of [0.045, -0.045]) {
+          const run = add(
+            this.swingarm,
+            new T.BoxGeometry(0.012, 0.012, arm),
+            m.steel,
+            0.115,
+            y + (y > 0 ? 0.04 : -0.04) * 0.5,
+            -arm / 2,
+          );
+          run.rotation.x = y > 0 ? 0.035 : -0.035;
+        }
+        add(this.swingarm, ringGeometry(0.105, 0.05, 0.008, sides), m.aluminium, 0.115, 0, -arm);
       }
-      add(this.swingarm, ringGeometry(0.105, 0.05, 0.008, sides), m.aluminium, 0.115, 0, -arm);
       // Chain guard (carbon) and rear caliper hanger on the right.
       add(this.swingarm, new T.BoxGeometry(0.004, 0.05, 0.22), m.carbon, 0.13, 0.07, -arm * 0.75);
       add(this.swingarm, new T.BoxGeometry(0.03, 0.06, 0.05), m.caliper, -0.09, 0.06, -arm + 0.07);
@@ -1716,6 +1726,7 @@ export class BikeModel {
     this.forkLower.position.y = -(FORK_LENGTH + this.sag.fork - v.fork);
     this.frontSpin.rotation.x = v.frontRotation;
     this.rearSpin.rotation.x = v.rearRotation;
+    this.gpChain?.update(v.rearRotation);
     // Pit service: the rear wheel rolls back out of the swingarm and the
     // front drops out of the fork while the axles are drawn (bike-pit-service).
     this.rearWheel.position.copy(this.rearAxle);
