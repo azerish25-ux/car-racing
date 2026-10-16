@@ -1,0 +1,46 @@
+name: Build FH6 Reference Pack
+
+on:
+  push:
+    branches:
+      - automation/fh6-reference-pack-20261016
+    paths:
+      - tools/build_fh6_reference_pack.py
+      - .github/workflows/build-fh6-reference-pack.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-reference-pack:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out reference-pack branch
+        uses: actions/checkout@v4
+
+      - name: Build and verify 100-image archive
+        run: python3 tools/build_fh6_reference_pack.py
+
+      - name: Report archive contents
+        run: |
+          set -euo pipefail
+          ZIP="build/Forza-Horizon-6-Developer-Reference-Pack-100-Images.zip"
+          test -s "$ZIP"
+          unzip -t "$ZIP"
+          IMAGE_COUNT="$(unzip -Z1 "$ZIP" | grep -Eci '\.(jpg|jpeg|png|webp)$')"
+          test "$IMAGE_COUNT" -eq 100
+          sha256sum "$ZIP" | tee build/SHA256SUMS.txt
+          echo "Verified exactly $IMAGE_COUNT reference images."
+
+      - name: Upload completed archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: Forza-Horizon-6-Developer-Reference-Pack-100-Images
+          path: |
+            build/Forza-Horizon-6-Developer-Reference-Pack-100-Images.zip
+            build/SHA256SUMS.txt
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7
