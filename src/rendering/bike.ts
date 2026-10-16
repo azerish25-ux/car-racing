@@ -3,6 +3,7 @@ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.j
 import { batchBikeRigidMeshes } from './bike-rigid-batch.ts';
 import { addGPIdentity } from './bike-livery.ts';
 import { gpBodywork, gpUpperCowl } from './gp-bodywork.ts';
+import { gpCoolingLouvers } from './gp-cooling-louvers.ts';
 import { bikeSurfaceMaps } from './bike-surface-detail.ts';
 import { BikeCockpit } from './bike-cockpit.ts';
 import { tagWeatherSurface } from './weather-presentation.ts';
@@ -1497,6 +1498,7 @@ export class BikeModel {
       const shell = gpBodywork(m, detail);
       if (detail !== 'far') addGPIdentity(shell, m);
       this.sprung.add(shell);
+      if (detail !== 'far') this.sprung.add(gpCoolingLouvers(detail, m.carbon, m.steel));
       add(this.sprung, new T.BoxGeometry(0.05, 0.025, 0.012), m.lamp, 0, 0.302, -0.83, false);
     } else if (look.tail === 'race') {
       add(
