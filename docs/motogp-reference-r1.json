@@ -1,0 +1,808 @@
+{
+  "sourceArchive": "reference/MotoGP26/MotoGP26_PS5_100_Reference_Images.zip",
+  "sourceSHA256": "478517180397aa7022b508264e2e6383f721ea930a4035ef314e2e8fb421e7c6",
+  "reviewedImages": 100,
+  "qualityCertified": false,
+  "references": [
+    {
+      "reference": 1,
+      "file": "MotoGP26_PS5_100_Reference_Images/01_official_ps5_store/REF_001_candidate_0001.jpg",
+      "sha256": "b84362eab51ab28c8136ab297a7b011f0cc8f9184b1d738c0086f2d13b870bcb",
+      "observation": "Front pack: narrow nose intake, thin wing planes, windscreen, forks and strong directional grounding.",
+      "components": "B, M, W",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 2,
+      "file": "MotoGP26_PS5_100_Reference_Images/01_official_ps5_store/REF_002_candidate_0002.jpg",
+      "sha256": "a3741289c3813d37b887934e7eac9a6ea1a1c3272aeaf990e20fdb03130bdf40",
+      "observation": "Corner close-up: inside knee, low torso, rounded slick tire and glossy paint against matte suit.",
+      "components": "M, R, W",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 3,
+      "file": "MotoGP26_PS5_100_Reference_Images/01_official_ps5_store/REF_003_candidate_0003.jpg",
+      "sha256": "343a6072fb69f9887b3ebe4e50b78f8543de556d73eccb3345658485c2e30ccb",
+      "observation": "Side-by-side exit: rider shoulder seams, wheel hardware and rubber trajectory marks.",
+      "components": "R, W",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 4,
+      "file": "MotoGP26_PS5_100_Reference_Images/01_official_ps5_store/REF_004_candidate_0004.jpg",
+      "sha256": "c7b8f6484f389cf37cbe1938a773f0d66617e6ce9fa44685e34603b64093daf1",
+      "observation": "High three-quarter apex: unbroken screen/cowl silhouette and worn red/white curb detail.",
+      "components": "B",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 5,
+      "file": "MotoGP26_PS5_100_Reference_Images/01_official_ps5_store/REF_005_candidate_0005.jpg",
+      "sha256": "bcb937ed6d7ad5b859c83e59005d57a7b40f88e90b4f9d2711c4c2e4d46f2e88",
+      "observation": "Dirt training bike: extended suspension and upright stance; retain road-bike proportions in GP mode.",
+      "components": "Retained/context",
+      "status": "reviewed-context-retained"
+    },
+    {
+      "reference": 6,
+      "file": "MotoGP26_PS5_100_Reference_Images/01_official_ps5_store/REF_006_candidate_0006.jpg",
+      "sha256": "450108af626e6534fe2f35ed67e6d31dc0073447007af103d9593aad79399305",
+      "observation": "Pit straight: compact tuck, raised tail, glass pit facade and separated bike silhouettes.",
+      "components": "B, R",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 7,
+      "file": "MotoGP26_PS5_100_Reference_Images/01_official_ps5_store/REF_007_candidate_0007.jpg",
+      "sha256": "6b75fe8f1f1b79df2281882270449b926169e8c19f54c08d45dbd0ae6a04a66f",
+      "observation": "Indoor training: roof occlusion, terracotta surface and repeating barrier depth.",
+      "components": "Retained/context",
+      "status": "reviewed-context-retained"
+    },
+    {
+      "reference": 8,
+      "file": "MotoGP26_PS5_100_Reference_Images/01_official_ps5_store/REF_008_candidate_0008.jpg",
+      "sha256": "2f7c2df0335d4e4176498b3733391e1d60213dfce226cbcb3b331dd17c87a6be",
+      "observation": "Telephoto racing: sharp mid-distance subject with defocused foreground, appropriate for replays only.",
+      "components": "Retained/context",
+      "status": "reviewed-context-retained"
+    },
+    {
+      "reference": 9,
+      "file": "MotoGP26_PS5_100_Reference_Images/01_official_ps5_store/REF_009_candidate_0009.jpg",
+      "sha256": "a22ca34ae1c75159d22c0c7214bf529c5683c466aea84f5a8c9c8459287675a7",
+      "observation": "Indoor mini bikes: columns, cast shadows and exposed mechanical finishes.",
+      "components": "Retained/context",
+      "status": "reviewed-context-retained"
+    },
+    {
+      "reference": 10,
+      "file": "MotoGP26_PS5_100_Reference_Images/01_official_ps5_store/REF_010_candidate_0010.jpg",
+      "sha256": "b075be8a32703a4802e41ddd241049f96e027743ef69525dc715086f6bc83f93",
+      "observation": "Rain pack: cool diffuse sky, darker asphalt, subdued paint and localized wet sheen.",
+      "components": "D",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 11,
+      "file": "MotoGP26_PS5_100_Reference_Images/02_ui_menus_hud/REF_011_candidate_0011.jpg",
+      "sha256": "5f53c4bb2833fd5c49042b729db656c351d3b976634ce290a23048a68b7bad95",
+      "observation": "Rider identity menu: legible restrained overlay and perforated leather; no likeness copying.",
+      "components": "R",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 12,
+      "file": "MotoGP26_PS5_100_Reference_Images/02_ui_menus_hud/REF_012_candidate_0012.jpg",
+      "sha256": "df193ef51721f14a779984dd51e357c91d6d8c7c85e3ee37de51c5e905c4b224",
+      "observation": "Garage setup: clear settings hierarchy over detailed side-on bike and workshop shadows.",
+      "components": "M",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 13,
+      "file": "MotoGP26_PS5_100_Reference_Images/02_ui_menus_hud/REF_013_candidate_0013.jpg",
+      "sha256": "97bc85bc7112d4efa40bb4a968829c36bbbfcd06f264e62be053ecf818bfa2b5",
+      "observation": "Split-screen HUD: compact timing tower, peripheral instruments, unobstructed driving sightline.",
+      "components": "Retained/context",
+      "status": "reviewed-context-retained"
+    },
+    {
+      "reference": 14,
+      "file": "MotoGP26_PS5_100_Reference_Images/03_gameplay_models_tracks/REF_014_candidate_0014.jpg",
+      "sha256": "96c75a68062ecf2785daa950b96fd36ba52b3a3fe0ec8b9ca278eb18d432d630",
+      "observation": "Start grid chase: grid paint, start gantry, grounded tires and clear rear silhouette.",
+      "components": "Retained/context",
+      "status": "reviewed-context-retained"
+    },
+    {
+      "reference": 15,
+      "file": "MotoGP26_PS5_100_Reference_Images/03_gameplay_models_tracks/REF_015_candidate_0015.jpg",
+      "sha256": "4786737af8affae47288864274dafb07eef9a8a206d18459f4ef3c7a70cb1fc1",
+      "observation": "Deep lean at ribbed curb: knee position, shoulder offset and tire crown contact.",
+      "components": "R, W",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 16,
+      "file": "MotoGP26_PS5_100_Reference_Images/03_gameplay_models_tracks/REF_016_candidate_0016.jpg",
+      "sha256": "625811b015735e520957f9bd8a2c30ecb4b8c137dc282ba73e0e9cb9104b3fd2",
+      "observation": "Stationary grid: boot-down rider stance and readable entrant colors.",
+      "components": "M, R",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 17,
+      "file": "MotoGP26_PS5_100_Reference_Images/03_gameplay_models_tracks/REF_017_candidate_0017.jpg",
+      "sha256": "b66c1559a2650df0208b5697e64b0849dbc243cd10f551f642ce1d8f714c81b1",
+      "observation": "Wet cockpit: legible dash, fork tops, cables and a clear forward sightline.",
+      "components": "C, D",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 18,
+      "file": "MotoGP26_PS5_100_Reference_Images/03_gameplay_models_tracks/REF_018_candidate_0018.jpg",
+      "sha256": "00bd3c544fc28315189390e7385bca13607075a56e9583ae9d7d460d393c05e8",
+      "observation": "Wet side profile: fairing/tank/seat transitions, tail clearance and matte mechanical cavities.",
+      "components": "B, M",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 19,
+      "file": "MotoGP26_PS5_100_Reference_Images/03_gameplay_models_tracks/REF_019_candidate_0019.jpg",
+      "sha256": "bb3f07104daec87a7f56b88e099d72e155e0a3e001f8a0664b2f1888119f676f",
+      "observation": "Dry lean front view: layered winglets, tucked head and long directional shadow.",
+      "components": "B, R",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 20,
+      "file": "MotoGP26_PS5_100_Reference_Images/03_gameplay_models_tracks/REF_020_candidate_0020.jpg",
+      "sha256": "9858e612e73459b2ff352b3ac4874eef3db02e8a945e2190d25847364bf776b6",
+      "observation": "Front battle: rounded tire contact and controlled paint highlights without white clipping.",
+      "components": "M, W",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 21,
+      "file": "MotoGP26_PS5_100_Reference_Images/03_gameplay_models_tracks/REF_021_candidate_0044.jpg",
+      "sha256": "110a4b7bdb5bbf366f7449e046bc450b70df237e5b3d901cb1289a20ea2dce05",
+      "observation": "Small-class pair: slim front silhouettes, fork spacing and restrained white surfaces.",
+      "components": "B, M",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 22,
+      "file": "MotoGP26_PS5_100_Reference_Images/03_gameplay_models_tracks/REF_022_candidate_0045.jpg",
+      "sha256": "bbaa37be774225250f387af16db3e44732ca0aea6298d0e2e544506a07e51864",
+      "observation": "Nose close-up: deep inlet opening, layered aero and glove/lever contact.",
+      "components": "B, C, R",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 23,
+      "file": "MotoGP26_PS5_100_Reference_Images/03_gameplay_models_tracks/REF_023_candidate_0046.jpg",
+      "sha256": "bf2e1318692231694627c42262f554221e4280b054ed96899a83de6e1868ea8a",
+      "observation": "Indoor mini bike: structured roof shadows and patchy, directional floor response.",
+      "components": "Retained/context",
+      "status": "reviewed-context-retained"
+    },
+    {
+      "reference": 24,
+      "file": "MotoGP26_PS5_100_Reference_Images/03_gameplay_models_tracks/REF_024_candidate_0047.jpg",
+      "sha256": "0753a3b3bd31579310def5200de1cf0238b7ea449e9cf5cd78eb79214144062b",
+      "observation": "Dirt corner: radiator/exhaust exposure, fabric barriers and different suspension silhouette.",
+      "components": "Retained/context",
+      "status": "reviewed-context-retained"
+    },
+    {
+      "reference": 25,
+      "file": "MotoGP26_PS5_100_Reference_Images/03_gameplay_models_tracks/REF_025_candidate_0048.jpg",
+      "sha256": "4cc46d5c8405dae66136ed41c55a0837077c0ef5fa3dad14e5fe8be36e35a4ac",
+      "observation": "Mini-bike curb: chipped/ribbed curb paint, contrasting tire and broad white material.",
+      "components": "M",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 26,
+      "file": "MotoGP26_PS5_100_Reference_Images/03_gameplay_models_tracks/REF_026_candidate_0049.jpg",
+      "sha256": "3bea48f919adf91016c94b5757fcc1e0952a3cf241bad36950208125efd5d300",
+      "observation": "Dirt pack: spokes, chain, swingarm, extended foot and localized dust; not a GP dust effect.",
+      "components": "Retained/context",
+      "status": "reviewed-context-retained"
+    },
+    {
+      "reference": 27,
+      "file": "MotoGP26_PS5_100_Reference_Images/03_gameplay_models_tracks/REF_027_candidate_0050.jpg",
+      "sha256": "dd7d66ffc47f08d31e5fb04c45bb3eff666176480a5d8912274385cddf3684cd",
+      "observation": "Extreme lean: low inside elbow without clipping fairing; clear tire crown contact.",
+      "components": "R, W",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 28,
+      "file": "MotoGP26_PS5_100_Reference_Images/03_gameplay_models_tracks/REF_028_candidate_0051.jpg",
+      "sha256": "34b10b48bbe6eab658903c48b29536f4b5cae8a91ec15eaa735e77e078c4beb1",
+      "observation": "Road sport bike: clear bubble screen and curved red shell; GP bike must not gain road headlights.",
+      "components": "B, M",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 29,
+      "file": "MotoGP26_PS5_100_Reference_Images/03_gameplay_models_tracks/REF_029_candidate_0052.jpg",
+      "sha256": "a351affc12c2a10bdc75f62cb1572ad64f8b582a44e70201e99fc6c7fc1b18a8",
+      "observation": "Road-bike pack: narrow screen highlight and opaque visor contrast.",
+      "components": "B, M, R",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 30,
+      "file": "MotoGP26_PS5_100_Reference_Images/03_gameplay_models_tracks/REF_030_candidate_0055.jpg",
+      "sha256": "cfd6ab8f4bd16a80732269b56d12c4bbf9615fdae333661c6b87e174db6dad31",
+      "observation": "High-angle GP corner: off-center torso and overlapping rubber lines at the racing trajectory.",
+      "components": "R",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 31,
+      "file": "MotoGP26_PS5_100_Reference_Images/03_gameplay_models_tracks/REF_031_candidate_0056.jpg",
+      "sha256": "6cc408eed20ba484b136b914f0a14159b0c12a766270f07b571cf7c4fa89284c",
+      "observation": "Top-down lean: width of racing-line rubber and red/white curb wear.",
+      "components": "Retained/context",
+      "status": "reviewed-context-retained"
+    },
+    {
+      "reference": 32,
+      "file": "MotoGP26_PS5_100_Reference_Images/03_gameplay_models_tracks/REF_032_candidate_0057.jpg",
+      "sha256": "0123a8d391441706bcda3771df6b71b05d2d4bf9686694e7ee06da6f4d4bc526",
+      "observation": "Low front three-quarter: inlet cavity depth and coherent screen/fairing reflection flow.",
+      "components": "B, M",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 33,
+      "file": "MotoGP26_PS5_100_Reference_Images/03_gameplay_models_tracks/REF_033_candidate_0058.jpg",
+      "sha256": "6d3a359b817b320845204c5e1c9338d0070580f65b7d3860861c601face9264b",
+      "observation": "Medium replay view: matte broad runoff colors and believable contact shadows.",
+      "components": "Retained/context",
+      "status": "reviewed-context-retained"
+    },
+    {
+      "reference": 34,
+      "file": "MotoGP26_PS5_100_Reference_Images/03_gameplay_models_tracks/REF_034_candidate_0059.jpg",
+      "sha256": "6e33b0372f71830e3ddcb8a8c85522d3f910a808fd859922d379787da58d5d06",
+      "observation": "Rain under bridge: diffuse cool exposure, readable bike under structural shadow.",
+      "components": "D",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 35,
+      "file": "MotoGP26_PS5_100_Reference_Images/03_gameplay_models_tracks/REF_035_candidate_0060.jpg",
+      "sha256": "9496fa64434c4a223f8786310180810f1b61acaeacd34fea6d9f23b028bf7b7d",
+      "observation": "Rain rider close-up: elbow protection, suit seams and subdued wheel/paint response.",
+      "components": "D, R",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 36,
+      "file": "MotoGP26_PS5_100_Reference_Images/03_gameplay_models_tracks/REF_036_candidate_0061.jpg",
+      "sha256": "3c615a65b92466e5a9647ed25689c030529a129c992a3dc05388ec68bbe3e843",
+      "observation": "Rain apex: broken puddle coverage, spray plume and non-uniform asphalt roughness.",
+      "components": "D",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 37,
+      "file": "MotoGP26_PS5_100_Reference_Images/03_gameplay_models_tracks/REF_037_candidate_0062.jpg",
+      "sha256": "eb211b2314a47f8c19cf0c74baa726b3839c44ab71602f4a6e489afc3f335778",
+      "observation": "Wet side lean: restrained red paint and correctly scaled grandstand structure.",
+      "components": "D, M",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 38,
+      "file": "MotoGP26_PS5_100_Reference_Images/03_gameplay_models_tracks/REF_038_candidate_0063.jpg",
+      "sha256": "87742d5beb685d09167094eb8e79150de5f25a131892369a460d3e29d89abfb4",
+      "observation": "Wet overhead: compact aero hump, narrow tail and meaningful tire clearance.",
+      "components": "B, D, R",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 39,
+      "file": "MotoGP26_PS5_100_Reference_Images/03_gameplay_models_tracks/REF_039_candidate_0064.jpg",
+      "sha256": "e9458e0980d8d3cab62985339266148d3950c476325bde0389d22056086ebc68",
+      "observation": "Sunlit medium shot: low-contrast asphalt aggregate and localized tire grounding.",
+      "components": "W",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 40,
+      "file": "MotoGP26_PS5_100_Reference_Images/03_gameplay_models_tracks/REF_040_candidate_0065.jpg",
+      "sha256": "6818d38c5a739d5627c59c7601939884344c31bb8f06a57ed4c4dc0538913a23",
+      "observation": "Dirt at golden hour: warm key/cool fill separation rather than orange global tint.",
+      "components": "Retained/context",
+      "status": "reviewed-context-retained"
+    },
+    {
+      "reference": 41,
+      "file": "MotoGP26_PS5_100_Reference_Images/03_gameplay_models_tracks/REF_041_candidate_0066.jpg",
+      "sha256": "0c9f840c95498afa2cb3ae885dbd36663836ce5ac3657dcfa526115755426c2f",
+      "observation": "Dirt overhead: ruts, fork spacing and foot-out pose; keep these out of GP handling.",
+      "components": "Retained/context",
+      "status": "reviewed-context-retained"
+    },
+    {
+      "reference": 42,
+      "file": "MotoGP26_PS5_100_Reference_Images/03_gameplay_models_tracks/REF_042_candidate_0067.jpg",
+      "sha256": "4cfe3e5979315675fa457e326e5176b40350f6d8b459a2d8c7c732be35cebbdb",
+      "observation": "Training close-up: physically thick tire, dark wheel recesses and textured riding suit.",
+      "components": "R, W",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 43,
+      "file": "MotoGP26_PS5_100_Reference_Images/03_gameplay_models_tracks/REF_043_candidate_0068.jpg",
+      "sha256": "17086cb950cd43fabe692368cd3f65857d793521e665bf32375fbab7c68cae90",
+      "observation": "Indoor shaded corner: visible material differences without crushed black surfaces.",
+      "components": "Retained/context",
+      "status": "reviewed-context-retained"
+    },
+    {
+      "reference": 44,
+      "file": "MotoGP26_PS5_100_Reference_Images/03_gameplay_models_tracks/REF_044_candidate_0069.jpg",
+      "sha256": "184a8ecc17d6e4051c1a82dcb6a87d109b2ea9558393ea83d693f855ebf02cc8",
+      "observation": "Mountain training circuit: distance haze, crisp foreground curb and muted far forest.",
+      "components": "Retained/context",
+      "status": "reviewed-context-retained"
+    },
+    {
+      "reference": 45,
+      "file": "MotoGP26_PS5_100_Reference_Images/03_gameplay_models_tracks/REF_045_candidate_0070.jpg",
+      "sha256": "985ff52f3ecab69c2abc23e1e95e6f475ef9188844ad98e6b7aeba04c3c44ffc",
+      "observation": "Mountain mini-bike apex: worn ribbed curb and distinct suit panels.",
+      "components": "R",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 46,
+      "file": "MotoGP26_PS5_100_Reference_Images/03_gameplay_models_tracks/REF_046_candidate_0071.jpg",
+      "sha256": "e1866f02683479445e4db715b0e5ab455ecbb1724b3484136a069d6ce6837b57",
+      "observation": "Orange sport bike: non-metallic painted shell with clearcoat over dark inner structure.",
+      "components": "M",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 47,
+      "file": "MotoGP26_PS5_100_Reference_Images/03_gameplay_models_tracks/REF_047_candidate_0072.jpg",
+      "sha256": "7b1ac10c950e85a44e1fbaa9c8475b4e93dab71cbc9f15c45d0e7936d84c74ad",
+      "observation": "Sport-bike low corner: broad fairing curvature and curb scale, not extra GP headlights.",
+      "components": "B",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 48,
+      "file": "MotoGP26_PS5_100_Reference_Images/04_official_trailer_frames/REF_048_video_01_ref_048_pass_01_047_14_6_frame_00002.jpg",
+      "sha256": "b9320a3e95fba3bc15d3b1f29587b4cad1befd5a01203c8c0e7e1dd1a3182a61",
+      "observation": "Wide side-pan trailer: consistent silhouette during camera pan; blur belongs to replay, not blanket live blur.",
+      "components": "Retained/context",
+      "status": "reviewed-context-retained"
+    },
+    {
+      "reference": 49,
+      "file": "MotoGP26_PS5_100_Reference_Images/04_official_trailer_frames/REF_049_video_01_ref_049_pass_01_047_14_6_frame_00014.jpg",
+      "sha256": "b3a5b2f3e3e706fac99853c62c2ffe551384f66085b50da684ce52e12251a2e3",
+      "observation": "Extreme nose close-up: wing cavities, rounded leading edge and fastener scale.",
+      "components": "B",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 50,
+      "file": "MotoGP26_PS5_100_Reference_Images/04_official_trailer_frames/REF_050_video_01_ref_050_pass_01_047_14_6_frame_00020.jpg",
+      "sha256": "0e0be08b262097b6d5a6847a8cc599a066970b61399fa151e74576fec620963f",
+      "observation": "On-bike carbon close-up: fine twill, occluded cavity and scale-sensitive texture filtering.",
+      "components": "C, M",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 51,
+      "file": "MotoGP26_PS5_100_Reference_Images/04_official_trailer_frames/REF_051_video_01_ref_051_pass_01_047_14_6_frame_00038.jpg",
+      "sha256": "0b2f2ff12f9e8cc499bafa2951ce9c40be60320fb32499ed2a6d5aaf325b556b",
+      "observation": "Pre-start hand gesture: hand independence from handlebar when stationary; gesture not inferred physics.",
+      "components": "Retained/context",
+      "status": "reviewed-context-retained"
+    },
+    {
+      "reference": 52,
+      "file": "MotoGP26_PS5_100_Reference_Images/04_official_trailer_frames/REF_052_video_01_ref_052_pass_01_047_14_6_frame_00044.jpg",
+      "sha256": "d617cfd83fa5e5efcc5dbe9931dd8d9dd17208afd2767ad98812d78e1cfb3681",
+      "observation": "Grid front: both boots planted and pelvis/seat relationship at rest.",
+      "components": "R",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 53,
+      "file": "MotoGP26_PS5_100_Reference_Images/04_official_trailer_frames/REF_053_video_01_ref_053_pass_01_047_14_6_frame_00050.jpg",
+      "sha256": "990bb62277028ecb6d8fe4f573cd635d1a432617f63ec990d4ac28aac19401f8",
+      "observation": "Passing field: wheel/readability across distances, avoiding abrupt silhouette changes.",
+      "components": "L",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 54,
+      "file": "MotoGP26_PS5_100_Reference_Images/04_official_trailer_frames/REF_054_video_01_ref_054_pass_01_047_14_6_frame_00062.jpg",
+      "sha256": "28323035956cdd843389f59502be906fc943c3d90a3c48b5aed7dc76691205a2",
+      "observation": "Front cockpit-facing rider: opaque visor, glove armor and fine suit contrast.",
+      "components": "C, R",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 55,
+      "file": "MotoGP26_PS5_100_Reference_Images/04_official_trailer_frames/REF_055_video_01_ref_055_pass_01_047_14_6_frame_00074.jpg",
+      "sha256": "e6bdf92022729bc0b15b905376320a8e65d07b155e5196f7fe20b2b2372d5baa",
+      "observation": "Long straight chase: rear tire/tail proportions and compact high-speed tuck.",
+      "components": "B, R",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 56,
+      "file": "MotoGP26_PS5_100_Reference_Images/05_official_ps5_detail_crops/REF_056_PS5_DETAIL_AERO_BODYWORK_RIDER.jpg",
+      "sha256": "b25f8de8ebd1303dc615014b395882e73dc4db048878a36e66a894009b36aeca",
+      "observation": "PS5 bodywork detail crop: layered aero, fasteners, fork finishes and knee-out shape.",
+      "components": "B, M, R",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 57,
+      "file": "MotoGP26_PS5_100_Reference_Images/04_official_trailer_frames/REF_057_video_01_ref_057_pass_01_047_14_6_frame_00000.jpg",
+      "sha256": "e8038abd45494b4ff959ac4b0e412132d07a388cf916b4b9719011f1823ec7a3",
+      "observation": "Glove detail: separate fingers, knuckle protection, seams and actual grip contact.",
+      "components": "C, R",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 58,
+      "file": "MotoGP26_PS5_100_Reference_Images/04_official_trailer_frames/REF_058_video_01_ref_058_pass_01_047_14_6_frame_00001.jpg",
+      "sha256": "fd1a801dc6b58cc3ec9ddc407a791215c7390a4b1454460e409a891610242dea",
+      "observation": "Side-pan repeated moment: preserve wheel rotation and replay continuity.",
+      "components": "L",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 59,
+      "file": "MotoGP26_PS5_100_Reference_Images/04_official_trailer_frames/REF_059_video_01_ref_059_pass_01_047_14_6_frame_00004.jpg",
+      "sha256": "1defd8a1c2b71883239782d15264a18e917307e3c8b085f1eb931327369e3dc1",
+      "observation": "Side lean close-up: open wheel/seat negative space and visible chain/swingarm.",
+      "components": "B, W",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 60,
+      "file": "MotoGP26_PS5_100_Reference_Images/05_official_ps5_detail_crops/REF_060_PS5_DETAIL_FAIRINGS_WHEELS_LEAN.jpg",
+      "sha256": "6983a17ee84c8e295ec280a3b2f0e7da34108f5685be54790d2e64901d2112d3",
+      "observation": "PS5 fairing detail crop: paint/carbon separation, tire contact and paired bikes.",
+      "components": "B, M, W",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 61,
+      "file": "MotoGP26_PS5_100_Reference_Images/04_official_trailer_frames/REF_061_video_01_ref_061_pass_01_047_14_6_frame_00009.jpg",
+      "sha256": "60c150b0fec1df8f2937e327c55c934fe828bf4762c150d323c59ed6542ad03e",
+      "observation": "Night rear: rounded rear slick, muffler outlets, boots and controlled low-light silhouette.",
+      "components": "B",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 62,
+      "file": "MotoGP26_PS5_100_Reference_Images/04_official_trailer_frames/REF_062_video_02_ref_062_pass_02_061_13_6_frame_00008.jpg",
+      "sha256": "6e413799ccf8a441d965937bbb032a5ece06513f9093ddf0f20c90b63476be1e",
+      "observation": "Dusk pit straight: warm facade edge light, cool sky and structured shadow separation.",
+      "components": "Retained/context",
+      "status": "reviewed-context-retained"
+    },
+    {
+      "reference": 63,
+      "file": "MotoGP26_PS5_100_Reference_Images/04_official_trailer_frames/REF_063_video_02_ref_063_pass_02_061_13_6_frame_00020.jpg",
+      "sha256": "1a32f78fddc56c066d2e01d99e335b954485d9d92cf7794f06d12e859692c08a",
+      "observation": "Long-lens trackside: bike stays readable across sun/shadow boundaries.",
+      "components": "Retained/context",
+      "status": "reviewed-context-retained"
+    },
+    {
+      "reference": 64,
+      "file": "MotoGP26_PS5_100_Reference_Images/04_official_trailer_frames/REF_064_video_02_ref_064_pass_02_061_13_6_frame_00026.jpg",
+      "sha256": "9145a4c5a5fe93423356ffe987f53959fa4aa6cb5b74b50f2df8da73633cce0f",
+      "observation": "Night front pack: local floodlights and cool specular highlights, no excessive bloom.",
+      "components": "Retained/context",
+      "status": "reviewed-context-retained"
+    },
+    {
+      "reference": 65,
+      "file": "MotoGP26_PS5_100_Reference_Images/04_official_trailer_frames/REF_065_video_02_ref_065_pass_02_061_13_6_frame_00032.jpg",
+      "sha256": "634ccdbd07cd67ffc559fc3cb4e90c6d5c5ffba8e32c0e8072f790c7fb53374c",
+      "observation": "Cockpit detail: triple clamp, cables, thin screen rim and perforated sleeves.",
+      "components": "C, R",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 66,
+      "file": "MotoGP26_PS5_100_Reference_Images/04_official_trailer_frames/REF_066_video_02_ref_066_pass_02_061_13_6_frame_00038.jpg",
+      "sha256": "2876aa3d19262b2d6f0ec1c2e3abc93ca20f11e8dfb0121c78c778bb3b2f6f78",
+      "observation": "Trailer typography over riding: editorial hierarchy only; title is not a gameplay feature.",
+      "components": "Retained/context",
+      "status": "reviewed-context-retained"
+    },
+    {
+      "reference": 67,
+      "file": "MotoGP26_PS5_100_Reference_Images/04_official_trailer_frames/REF_067_video_02_ref_067_pass_02_061_13_6_frame_00044.jpg",
+      "sha256": "6cb0735509e89a8f30e09e41654d5160e714c45e8006d7917d24a02e7bed5a96",
+      "observation": "Overhead training: lean/tuck silhouette and tire shadow placement.",
+      "components": "R, W",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 68,
+      "file": "MotoGP26_PS5_100_Reference_Images/04_official_trailer_frames/REF_068_video_02_ref_068_pass_02_061_13_6_frame_00050.jpg",
+      "sha256": "2485116c9b53e1ccd7e98b7dd08539bddcb4087d10835427a7d97ffac7cc6cc5",
+      "observation": "Indoor riding: localized floor reflection and roof shadow structure.",
+      "components": "Retained/context",
+      "status": "reviewed-context-retained"
+    },
+    {
+      "reference": 69,
+      "file": "MotoGP26_PS5_100_Reference_Images/04_official_trailer_frames/REF_069_video_02_ref_069_pass_02_061_13_6_frame_00056.jpg",
+      "sha256": "1e7df12ad0fac61f09dcda8f5149f81ee7c667ebe0aecd19c0cd49e91241c585",
+      "observation": "Press room: fabric folds and off-bike staging, outside MotoGP riding graphics scope.",
+      "components": "Retained/context",
+      "status": "reviewed-context-retained"
+    },
+    {
+      "reference": 70,
+      "file": "MotoGP26_PS5_100_Reference_Images/04_official_trailer_frames/REF_070_video_02_ref_070_pass_02_061_13_6_frame_00062.jpg",
+      "sha256": "4fba7eb25ec0128e7aef5bb5ea4602c6e34a35b3190e5fdb1830fe3e13c44cc8",
+      "observation": "Rain/trailer caption: blue-grey distance treatment and dark wet bike separation.",
+      "components": "D",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 71,
+      "file": "MotoGP26_PS5_100_Reference_Images/04_official_trailer_frames/REF_071_video_02_ref_071_pass_02_061_13_6_frame_00068.jpg",
+      "sha256": "fb52560156425a4e7af52300b22fbce2624e237d5c25b9acb852695eca106bd7",
+      "observation": "Rear underside: twin perforated exhaust ends, chain and wide rounded slick.",
+      "components": "B, W",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 72,
+      "file": "MotoGP26_PS5_100_Reference_Images/04_official_trailer_frames/REF_072_video_02_ref_072_pass_02_061_13_6_frame_00074.jpg",
+      "sha256": "afd1428b5a6b2bb7519473b54f874c0c012e7fe037c87e2476e26c6c66fc1a87",
+      "observation": "Night paired lean: cool highlights with preserved black tire contact.",
+      "components": "M",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 73,
+      "file": "MotoGP26_PS5_100_Reference_Images/04_official_trailer_frames/REF_073_video_02_ref_073_pass_02_061_13_6_frame_00003.jpg",
+      "sha256": "1441bf23866b445dd371bd51b6c485a03707396dfb6b058037a07adbb5aceafa",
+      "observation": "Tank/gloves macro: recessed vents, sculpted edges, glove contact and fine perforation.",
+      "components": "B, R",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 74,
+      "file": "MotoGP26_PS5_100_Reference_Images/04_official_trailer_frames/REF_074_video_02_ref_074_pass_02_061_13_6_frame_00075.jpg",
+      "sha256": "77cb2de81910f464a6cf6033b46c5e3de2ef5a1f43d7baf2238abc31a8ef5eeb",
+      "observation": "Helmet-offset cockpit: readable fork tops and dashboard with a useful horizon.",
+      "components": "C",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 75,
+      "file": "MotoGP26_PS5_100_Reference_Images/04_official_trailer_frames/REF_075_video_01_ref_075_pass_01_074_6_11_frame_00016.jpg",
+      "sha256": "6a1cccc0e137c8d9da528c418e82b3a2f27ac66f34d8c55f8c7925955a7a628c",
+      "observation": "On-bike carbon repeat: stable fine weave and mechanical cavity contrast in motion.",
+      "components": "C, M",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 76,
+      "file": "MotoGP26_PS5_100_Reference_Images/04_official_trailer_frames/REF_076_video_01_ref_076_pass_01_074_6_11_frame_00027.jpg",
+      "sha256": "e88eb852b8717c7738cac3e173a59994cd6e3bed0ca0a2aeb91c916b73630439",
+      "observation": "Cockpit left: small control buttons, clamp fasteners, glove wrap and clear road view.",
+      "components": "C, R",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 77,
+      "file": "MotoGP26_PS5_100_Reference_Images/04_official_trailer_frames/REF_077_video_01_ref_077_pass_01_074_6_11_frame_00038.jpg",
+      "sha256": "e5eaf2e1dce91fdcb92837c4ecced3436cc16151e7e9f182fcc49225434a7bdc",
+      "observation": "Onboard passing: stable forward view, plausible screen height and dash contrast.",
+      "components": "C",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 78,
+      "file": "MotoGP26_PS5_100_Reference_Images/04_official_trailer_frames/REF_078_video_01_ref_078_pass_01_074_6_11_frame_00049.jpg",
+      "sha256": "0144905a82c90c9a2592e398cafd179cfec68b4991d2f05fa2227056ae7dc4e7",
+      "observation": "Pit prep: differentiated glove/suit/visor finishes; no copying real crew faces.",
+      "components": "M, R",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 79,
+      "file": "MotoGP26_PS5_100_Reference_Images/04_official_trailer_frames/REF_079_video_01_ref_079_pass_01_074_6_11_frame_00000.jpg",
+      "sha256": "d430318d12136f9b420e1fab84262334a1c7b0237fffab99ad6db20a558984ed",
+      "observation": "Wide pan near-repeat: stable track texel scale and continuous bike framing.",
+      "components": "Retained/context",
+      "status": "reviewed-context-retained"
+    },
+    {
+      "reference": 80,
+      "file": "MotoGP26_PS5_100_Reference_Images/04_official_trailer_frames/REF_080_video_01_ref_080_pass_01_074_6_11_frame_00001.jpg",
+      "sha256": "840af5085a193dad8a6f335804b7ed2b2bbb8cfaadd117dc5759fe832132c97a",
+      "observation": "Wide pan near-repeat: same material scale and LOD behavior at shifted position.",
+      "components": "L",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 81,
+      "file": "MotoGP26_PS5_100_Reference_Images/04_official_trailer_frames/REF_081_video_02_ref_081_pass_02_080_6_11_frame_00005.jpg",
+      "sha256": "2132b94d283bde04397ea8ca5c42da45ec6bd1090449ffa14622acd49b0af6c9",
+      "observation": "Helmet macro: recessed liner and visor/frame layering; no replication of likeness.",
+      "components": "R",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 82,
+      "file": "MotoGP26_PS5_100_Reference_Images/04_official_trailer_frames/REF_082_video_02_ref_082_pass_02_080_6_11_frame_00016.jpg",
+      "sha256": "7b87f15db735b58bd86ef4530a37d410f033db4cb0e9ae89dd859ff53da43ef5",
+      "observation": "Distant field: coherent bike LODs, track edges, haze and pack readability.",
+      "components": "L",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 83,
+      "file": "MotoGP26_PS5_100_Reference_Images/04_official_trailer_frames/REF_083_video_02_ref_083_pass_02_080_6_11_frame_00038.jpg",
+      "sha256": "160d374fa8826c31573dbe113f193b47c3d9d41cd37854b7b87ba6876f543e96",
+      "observation": "Training caption: rear-view tire grounding; no new game mode inferred from title.",
+      "components": "W",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 84,
+      "file": "MotoGP26_PS5_100_Reference_Images/04_official_trailer_frames/REF_084_video_02_ref_084_pass_02_080_6_11_frame_00049.jpg",
+      "sha256": "63b043e263074f81cf4f7eedbbc529c13cb829991e51bd745ab05076fcb98584",
+      "observation": "Career desk: paper, furniture and casual character staging outside GP riding scope.",
+      "components": "Retained/context",
+      "status": "reviewed-context-retained"
+    },
+    {
+      "reference": 85,
+      "file": "MotoGP26_PS5_100_Reference_Images/04_official_trailer_frames/REF_085_video_02_ref_085_pass_02_080_6_11_frame_00060.jpg",
+      "sha256": "31314d5682b71914c62f480e6ae58de65a7f7683cc2aed60c2d45c7fd670a9c4",
+      "observation": "Sunlit lean: restrained asphalt grain, tire shoulder highlights and crisp contact shadow.",
+      "components": "W",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 86,
+      "file": "MotoGP26_PS5_100_Reference_Images/04_official_trailer_frames/REF_086_video_02_ref_086_pass_02_080_6_11_frame_00063.jpg",
+      "sha256": "43e782601a6a7353888866de849c1844b0f780979687841dfcca9eeb1be3c203",
+      "observation": "Night side close-up: controlled white clearcoat highlights over saturated paint.",
+      "components": "M",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 87,
+      "file": "MotoGP26_PS5_100_Reference_Images/04_official_trailer_frames/REF_087_video_01_ref_087_pass_01_086_6_14_frame_00034.jpg",
+      "sha256": "533e2916681ba97b49f5a69d4febc7614d8700a149d04d888a9286f789bed46f",
+      "observation": "Rear onboard: split tail fins, hollow titanium exhaust outlet and tire shoulder profile.",
+      "components": "B, W",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 88,
+      "file": "MotoGP26_PS5_100_Reference_Images/04_official_trailer_frames/REF_088_video_01_ref_088_pass_01_086_6_14_frame_00048.jpg",
+      "sha256": "dd1dfc0a5e6af6a4e93348f050e813541df4d8fd985bb0242d11c91e3150d128",
+      "observation": "Cockpit repeat: dash/shift lights remain below useful road sightline.",
+      "components": "C",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 89,
+      "file": "MotoGP26_PS5_100_Reference_Images/04_official_trailer_frames/REF_089_video_01_ref_089_pass_01_086_6_14_frame_00075.jpg",
+      "sha256": "4f4840a6b514e32ad5471c8b2d9cbb3843dc559b82490a7ebcbfb746d1ea21c4",
+      "observation": "Chase straight: aerotail silhouette, neutral shading and rear tire width.",
+      "components": "B",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 90,
+      "file": "MotoGP26_PS5_100_Reference_Images/04_official_trailer_frames/REF_090_video_01_ref_090_pass_01_086_6_14_frame_00073.jpg",
+      "sha256": "61c969c4b8274a57562bd14dec9b96dc50f5b20f24f1254975b9f3c39014e5a4",
+      "observation": "Chase field: distant silhouettes, track paint scale and consistent visual density.",
+      "components": "L",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 91,
+      "file": "MotoGP26_PS5_100_Reference_Images/04_official_trailer_frames/REF_091_video_01_ref_091_pass_01_086_6_14_frame_00011.jpg",
+      "sha256": "61ac45becde65a82bab0b154b8df7ace9f2f1f071bd6a0b5c9bcc1c8c857bda6",
+      "observation": "Dirt side: spoke wheel, exhaust, boots and fork finish; retain distinct GP wheel design.",
+      "components": "Retained/context",
+      "status": "reviewed-context-retained"
+    },
+    {
+      "reference": 92,
+      "file": "MotoGP26_PS5_100_Reference_Images/04_official_trailer_frames/REF_092_video_01_ref_092_pass_01_086_6_14_frame_00072.jpg",
+      "sha256": "84e852ba565c994fe4a545f64739e265ee1a11a71a89c06668bb9531a72c8afd",
+      "observation": "Mini-bike front pack: compact silhouette and foreground/background depth separation.",
+      "components": "Retained/context",
+      "status": "reviewed-context-retained"
+    },
+    {
+      "reference": 93,
+      "file": "MotoGP26_PS5_100_Reference_Images/05_official_ps5_detail_crops/REF_093_PS5_DETAIL_DIRT_RIDER_SUSPENSION.jpg",
+      "sha256": "2042946d60959c0c685acc5ea32361a111a195d7e26e7251ec85b966148332f3",
+      "observation": "PS5 dirt detail crop: fork/rider/suspension materials; no dirt geometry transplanted to GP.",
+      "components": "Retained/context",
+      "status": "reviewed-context-retained"
+    },
+    {
+      "reference": 94,
+      "file": "MotoGP26_PS5_100_Reference_Images/04_official_trailer_frames/REF_094_video_02_ref_094_pass_02_092_6_14_frame_00020.jpg",
+      "sha256": "dbc63b27255fc3e2b04ddea2f0199e2b7214a2b9ac67d0d53a90595ab12dcad8",
+      "observation": "Distant field near-repeat: readable changing detail and restrained background haze.",
+      "components": "L",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 95,
+      "file": "MotoGP26_PS5_100_Reference_Images/04_official_trailer_frames/REF_095_video_02_ref_095_pass_02_092_6_14_frame_00034.jpg",
+      "sha256": "1b348d9b9d0be60d78c444e7b43dfbb65ebff47060c603cd5e22b3bbdc0fd4ef",
+      "observation": "Repeated cockpit macro: windscreen edge, triple-clamp metal and leather microstructure.",
+      "components": "C, R",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 96,
+      "file": "MotoGP26_PS5_100_Reference_Images/05_official_ps5_detail_crops/REF_096_PS5_DETAIL_WET_MATERIALS_TIRE.jpg",
+      "sha256": "8f0ce89251e7322febda3f069e9bae53c395f6a27882d1fcd5e91d70dc5f0193",
+      "observation": "PS5 wet detail crop: wet tire, controlled paint response and rain exposure.",
+      "components": "D, M",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 97,
+      "file": "MotoGP26_PS5_100_Reference_Images/04_official_trailer_frames/REF_097_video_02_ref_097_pass_02_092_6_14_frame_00062.jpg",
+      "sha256": "d358c5e789ae0a4efc0ecef87f3bf3c1d08b283c32efd6294505907097aea02d",
+      "observation": "Career hub title: stairs/facade scene and overlay hierarchy; no career rebuild claimed.",
+      "components": "Retained/context",
+      "status": "reviewed-context-retained"
+    },
+    {
+      "reference": 98,
+      "file": "MotoGP26_PS5_100_Reference_Images/04_official_trailer_frames/REF_098_video_02_ref_098_pass_02_092_6_14_frame_00076.jpg",
+      "sha256": "959eb7e78e00e4186eaba07146a676659989d5cad47c73ed2dd6ee34e7bbe086",
+      "observation": "Deep elbow-down apex: knee/elbow relationship, continuous fairing and worn curb.",
+      "components": "B, R",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 99,
+      "file": "MotoGP26_PS5_100_Reference_Images/04_official_trailer_frames/REF_099_video_01_ref_099_pass_01_098_2_17_frame_00000.jpg",
+      "sha256": "4ee673731f326b05665f796aae867668ca002ad29972a1f790d9d51f0508eace",
+      "observation": "Repeated side pan: coherent silhouettes and tire phase across replay positions.",
+      "components": "L",
+      "status": "partially-applied-components"
+    },
+    {
+      "reference": 100,
+      "file": "MotoGP26_PS5_100_Reference_Images/04_official_trailer_frames/REF_100_video_01_ref_100_pass_01_098_2_17_frame_00004.jpg",
+      "sha256": "2d205661970a830948445e379ab30ac14d463274761d7a690193bcb808bf8b94",
+      "observation": "Dirt side repeat: component finish/scale observations only; not GP suspension behavior.",
+      "components": "Retained/context",
+      "status": "reviewed-context-retained"
+    }
+  ]
+}

@@ -1,0 +1,130 @@
+import * as T from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { BikeMaterials, BikeModel, staticSag } from '../../src/rendering/bike.ts';
+import { WeatherPresentation } from '../../src/rendering/weather-presentation.ts';
+import { H } from '../../src/simulation/protocol.ts';
+import { VEHICLES } from '../../src/simulation/vehicles.ts';
+
+/** Isolated production BikeModel, not a replacement game or promotional render. */
+export function captureBike(
+  view = 'three-quarter',
+  detail: 'high' | 'mid' | 'far' = 'high',
+  id = 'gpr1',
+  wet = false,
+) {
+  const renderer = new T.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+  renderer.setSize(1280, 800);
+  renderer.setPixelRatio(1);
+  renderer.outputColorSpace = T.SRGBColorSpace;
+  renderer.toneMapping = T.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = T.PCFSoftShadowMap;
+  const scene = new T.Scene();
+  scene.background = new T.Color('#aab9c6');
+  const pmrem = new T.PMREMGenerator(renderer);
+  const room = new RoomEnvironment();
+  const env = pmrem.fromScene(room, 0.06);
+  scene.environment = env.texture;
+  scene.environmentIntensity = 0.55;
+  const sun = new T.DirectionalLight(0xfff0d9, 3.1);
+  sun.position.set(3, 6, 4);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(2048, 2048);
+  Object.assign(sun.shadow.camera, { left: -3, right: 3, top: 3, bottom: -3, near: 0.1, far: 15 });
+  sun.shadow.bias = -0.00015;
+  sun.shadow.normalBias = 0.012;
+  scene.add(sun, new T.HemisphereLight(0xc9e4ff, 0x514737, 1.3));
+  const def = VEHICLES[id],
+    materials = new BikeMaterials(0);
+  const bike = new BikeModel(def, 0, detail, materials, true);
+  const sag = staticSag(def);
+  bike.pose({
+    fork: sag.fork,
+    shock: sag.shock,
+    steer: 0,
+    frontRotation: 0,
+    rearRotation: 0,
+    chassisLean: view === 'corner' ? 0.88 : 0,
+    riderOffset: view === 'corner' ? 0.18 : 0,
+    tuck: 0.75,
+    brake: 0.05,
+    rearBrake: 0,
+    discTemp: 280,
+    compoundColour: 0xffffff,
+    riding: true,
+    speed: 42,
+    gear: 4,
+    rpm: 12200,
+  });
+  bike.root.position.y = def.bike!.cgHeight;
+  if (view === 'corner') {
+    bike.root.rotation.z = -0.88;
+    bike.root.position.y *= Math.cos(0.88);
+  }
+  const weather = new WeatherPresentation();
+  weather.install(bike.root);
+  const weatherFrame = new Float32Array(128);
+  weatherFrame[H.TIME] = 2;
+  weatherFrame[H.RAIN] = wet ? 20 : 0;
+  weatherFrame[H.WATER] = wet ? 0.6 : 0;
+  weather.update(weatherFrame);
+  scene.add(bike.root);
+  if (view === 'bodywork') bike.rider.root.visible = false;
+  const floor = new T.Mesh(
+    new T.PlaneGeometry(200, 200),
+    new T.MeshStandardMaterial({ color: 0x45494d, roughness: 0.91 }),
+  );
+  floor.rotation.x = -Math.PI / 2;
+  floor.receiveShadow = true;
+  scene.add(floor);
+  const camera = new T.PerspectiveCamera(38, 1280 / 800, 0.03, 80);
+  if (view === 'side') camera.position.set(3.7, 1.35, 0.1);
+  else if (view === 'front') camera.position.set(0.18, 1.1, 3.7);
+  else if (view === 'rear') camera.position.set(-2.5, 1.8, -3.0);
+  else if (view === 'onboard') camera.position.set(0.07, 1.16, -0.16);
+  else camera.position.set(-2.8, 1.65, 3.35);
+  camera.lookAt(0, view === 'onboard' ? 0.87 : 0.68, view === 'onboard' ? 0.6 : 0);
+  scene.updateMatrixWorld(true);
+  let triangles = 0;
+  bike.root.traverse((o) => {
+    if (o instanceof T.Mesh)
+      triangles += (o.geometry.index?.count ?? o.geometry.getAttribute('position').count) / 3;
+  });
+  renderer.render(scene, camera);
+  const image = renderer.domElement.toDataURL('image/png');
+  const pixels = new Uint8Array(1280 * 800 * 4);
+  renderer
+    .getContext()
+    .readPixels(
+      0,
+      0,
+      1280,
+      800,
+      renderer.getContext().RGBA,
+      renderer.getContext().UNSIGNED_BYTE,
+      pixels,
+    );
+  let hash = 2166136261;
+  for (const byte of pixels) hash = Math.imul(hash ^ byte, 16777619) >>> 0;
+  const result = {
+    image,
+    hash,
+    weather: weather.diagnostics(),
+    triangles,
+    calls: renderer.info.render.calls,
+    glError: renderer.getContext().getError(),
+    bounds: new T.Box3().setFromObject(bike.root),
+  };
+  bike.dispose();
+  materials.dispose();
+  floor.geometry.dispose();
+  (floor.material as T.Material).dispose();
+  weather.dispose();
+  env.dispose();
+  room.dispose();
+  pmrem.dispose();
+  renderer.dispose();
+  renderer.forceContextLoss();
+  return result;
+}

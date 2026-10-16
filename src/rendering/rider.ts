@@ -1,5 +1,19 @@
 import * as T from 'three';
-import { helmetShell, visorGeometry } from './helmet-shell.ts';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { tagWeatherSurface } from './weather-presentation.ts';
+import { riderPanelTexture } from './bike-livery.ts';
+import { bikeSurfaceMaps } from './bike-surface-detail.ts';
+import { batchBikeRigidMeshes } from './bike-rigid-batch.ts';
+import { sampleProfile } from './profile-sampling.ts';
+import {
+  helmetShell,
+  visorGeometry,
+  helmetSpoilerGeometry,
+  helmetPoint,
+  visorBounds,
+  VISOR_PHI,
+  helmetPatch,
+} from './helmet-shell.ts';
 
 /** Procedural road-racing rider (WP34 presentation): one-piece leathers with
  * armour caps, aero hump, knee/elbow sliders, gloves, boots and a full-face
@@ -60,16 +74,36 @@ function bodyLoft(
 ) {
   // [y, z centre, half-width, half-depth front, half-depth back]
   const p: number[] = [],
+    uv: number[] = [],
     indices: number[] = [];
-  for (const [y, cz, w, front, back] of sections)
+  const ys = sections.map((s) => s[0]);
+  const samples: number[][] = [];
+  const steps = sides >= 20 ? 4 : sides >= 12 ? 2 : 1;
+  for (let i = 0; i < sections.length - 1; i++)
+    for (let j = 0; j < steps; j++) {
+      const y = T.MathUtils.lerp(ys[i], ys[i + 1], j / steps);
+      samples.push([
+        y,
+        ...[1, 2, 3, 4].map((k) =>
+          sampleProfile(
+            ys,
+            sections.map((s) => s[k]),
+            y,
+          ),
+        ),
+      ]);
+    }
+  samples.push([...sections[sections.length - 1]]);
+  for (const [y, cz, w, front, back] of samples)
     for (let j = 0; j <= sides; j++) {
       const a = (j / sides) * Math.PI * 2,
         c = Math.cos(a),
         s = Math.sin(a);
       const shape = (v: number) => Math.sign(v) * Math.abs(v) ** 0.8;
       p.push(shape(c) * w, y, cz + shape(s) * (s > 0 ? front : back));
+      uv.push(j / sides, (y - ys[0]) / (ys[ys.length - 1] - ys[0]));
     }
-  for (let i = 0; i < sections.length - 1; i++)
+  for (let i = 0; i < samples.length - 1; i++)
     for (let j = 0; j < sides; j++) {
       const a = i * (sides + 1) + j,
         b = a + sides + 1;
@@ -77,6 +111,7 @@ function bodyLoft(
     }
   const g = new T.BufferGeometry();
   g.setAttribute('position', new T.Float32BufferAttribute(p, 3));
+  g.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
   g.setIndex(indices);
   g.computeVertexNormals();
   return g;
@@ -192,7 +227,13 @@ export class Rider {
     // Textile kit: matte woven fabric with a soft sheen, no lacquer.
     const leather = new T.MeshPhysicalMaterial(
       mx
-        ? { color: colours.primary, roughness: 0.84, sheen: 0.35, sheenRoughness: 0.7, name: 'Rider jersey and pants (textile)' }
+        ? {
+            color: colours.primary,
+            roughness: 0.84,
+            sheen: 0.35,
+            sheenRoughness: 0.7,
+            name: 'Rider jersey and pants (textile)',
+          }
         : {
             color: colours.primary,
             roughness: 0.48,
@@ -204,7 +245,13 @@ export class Rider {
     );
     const panel = new T.MeshPhysicalMaterial(
       mx
-        ? { color: colours.secondary, roughness: 0.86, sheen: 0.3, sheenRoughness: 0.75, name: 'Rider kit panels (textile)' }
+        ? {
+            color: colours.secondary,
+            roughness: 0.86,
+            sheen: 0.3,
+            sheenRoughness: 0.75,
+            name: 'Rider kit panels (textile)',
+          }
         : {
             color: colours.secondary,
             roughness: 0.52,
@@ -214,14 +261,14 @@ export class Rider {
           },
     );
     const armour = new T.MeshStandardMaterial({
-      color: colours.accent,
-      roughness: 0.32,
-      metalness: 0.1,
+      color: 0x4b535d,
+      roughness: 0.4,
+      metalness: 0.35,
       name: 'Rider armour caps',
     });
     const glove = new T.MeshStandardMaterial({ color: 0x1b1c1f, roughness: 0.62 });
     const slider = new T.MeshStandardMaterial({
-      color: 0xd9dad6,
+      color: 0x454b51,
       roughness: 0.68,
       name: 'Knee slider (scuffed polymer)',
     });
@@ -234,14 +281,48 @@ export class Rider {
       name: 'Rider helmet shell',
     });
     const visor = new T.MeshPhysicalMaterial({
-      color: 0x26394a,
-      roughness: 0.07,
-      metalness: 0.55,
+      color: 0x5e6f79,
+      roughness: 0.1,
+      metalness: 0.85,
       clearcoat: 1,
       clearcoatRoughness: 0.03,
       name: 'Tinted visor',
     });
-    this.materials.push(leather, panel, armour, glove, slider, helmet, visor);
+    if (!mx && detail !== 'far') {
+      const surface = bikeSurfaceMaps('leather');
+      Object.assign(leather, surface);
+      Object.assign(panel, surface);
+      leather.normalScale.set(0.32, 0.32);
+      panel.normalScale.set(0.28, 0.28);
+      leather.roughness = 0.65;
+      leather.clearcoat = 0.08;
+      panel.roughness = 0.7;
+      panel.clearcoat = 0.06;
+      Object.assign(glove, bikeSurfaceMaps('seat'));
+      glove.normalScale.set(0.2, 0.2);
+      slider.roughness = 0.79;
+    }
+    const flex = new T.MeshStandardMaterial({
+      color: 0x151a20,
+      roughness: 0.91,
+      name: 'Rider stretch fabric and seams',
+    });
+    this.materials.push(leather, panel, armour, glove, slider, helmet, visor, flex);
+    const torsoLeather = leather.clone();
+    if (!mx && detail !== 'far') {
+      leather.map = riderPanelTexture(colours, false);
+      leather.color.setHex(0xffffff);
+      torsoLeather.map = riderPanelTexture(colours, true);
+      torsoLeather.color.setHex(0xffffff);
+    }
+    this.materials.push(torsoLeather);
+    for (const m of [leather, panel, torsoLeather])
+      tagWeatherSurface(m, mx ? 'fabric' : 'leather', 0.85);
+    tagWeatherSurface(flex, 'fabric', 0.65);
+    tagWeatherSurface(glove, 'leather', 0.8);
+    tagWeatherSurface(helmet, 'paint');
+    tagWeatherSurface(armour, 'metal', 0.7);
+    tagWeatherSurface(slider, 'paint', 0.6);
     this.root.name = 'Rider';
     this.root.add(this.torso);
     // Torso: pelvis at the origin, spine along +Y, chest forward (+Z).
@@ -259,7 +340,7 @@ export class Rider {
         ],
         sides,
       ),
-      leather,
+      torsoLeather,
     );
     // Aero hump (spine protector and airbag housing) on the back.
     if (detail !== 'far' && !mx)
@@ -313,9 +394,36 @@ export class Rider {
       const shield = part(this.head, visorGeometry(0.004), visor);
       shield.position.copy(shell.position);
       // Rear aero spoiler on the helmet.
-      const fin = part(this.head, new T.BoxGeometry(0.16, 0.025, 0.07), helmet);
-      fin.position.set(0, 0.24, -0.12);
-      fin.rotation.x = -0.35;
+      const fin = part(this.head, helmetSpoilerGeometry(detail === 'high' ? 16 : 8, 4), helmet);
+      fin.position.copy(shell.position);
+      // Conformal gasket follows the existing shaped eye port; no floating visor band.
+      const outline: T.Vector3[] = [];
+      for (const edge of [1, 0])
+        for (let i = 0; i <= 40; i++) {
+          const t = edge ? i / 40 : 1 - i / 40;
+          const phi = T.MathUtils.lerp(VISOR_PHI[0], VISOR_PHI[1], t);
+          outline.push(helmetPoint(visorBounds(phi)[edge], phi, 0.0045));
+        }
+      const seal = part(
+        this.head,
+        new T.TubeGeometry(new T.CatmullRomCurve3(outline, true), 80, 0.002, 5, true),
+        flex,
+      );
+      seal.position.copy(shell.position);
+      const brow = part(
+        this.head,
+        helmetPatch(0.048, 0.07, 0.15, Math.PI - 0.15, 0.0015, 3, 32),
+        panel,
+      );
+      brow.position.copy(shell.position);
+      for (const side of [-1, 1]) {
+        const pivot = part(this.head, new T.CylinderGeometry(0.01, 0.01, 0.004, 12), glove);
+        pivot.rotation.z = Math.PI / 2;
+        pivot.position.set(side * 0.137, 0.153, 0.035);
+        const vent = part(this.head, new RoundedBoxGeometry(0.061, 0.012, 0.006, 2, 0.003), flex);
+        vent.position.set(side * 0.033, 0.095, 0.173);
+        vent.rotation.y = side * 0.2;
+      }
     }
     const limb = (r0: number, r1: number, length: number, material: T.Material) => {
       const bone = new Bone(length, this.root);
@@ -328,11 +436,56 @@ export class Rider {
     this.shins = [0, 1].map(() => limb(0.05, 0.037, RIDER.shin, panel));
     for (let i = 0; i < 2; i++) {
       const side = i === 0 ? 1 : -1;
+      if (detail !== 'far' && !mx) {
+        const elbowFlex = part(
+          this.upperArms[i].group,
+          new T.SphereGeometry(0.039, sides, sides / 2),
+          flex,
+        );
+        elbowFlex.position.y = RIDER.upperArm;
+        elbowFlex.scale.set(0.94, 0.85, 0.94);
+        const kneeFlex = part(
+          this.thighs[i].group,
+          new T.SphereGeometry(0.053, sides, sides / 2),
+          flex,
+        );
+        kneeFlex.position.y = RIDER.thigh;
+        kneeFlex.scale.set(0.95, 0.8, 0.95);
+        for (const [bone, radius, len] of [
+          [this.upperArms[i], 0.046, RIDER.upperArm],
+          [this.thighs[i], 0.07, RIDER.thigh],
+        ] as const) {
+          const seam = part(
+            bone.group,
+            new T.TubeGeometry(
+              new T.CatmullRomCurve3([
+                new T.Vector3(side * radius * 0.5, 0.025, -radius * 0.85),
+                new T.Vector3(side * radius * 0.6, len * 0.5, -radius * 0.8),
+                new T.Vector3(side * radius * 0.4, len - 0.025, -radius * 0.72),
+              ]),
+              12,
+              0.0018,
+              4,
+              false,
+            ),
+            panel,
+          );
+          seam.name = 'Stitched leather panel boundary';
+        }
+      }
       if (detail !== 'far' && mx) {
         // Knee braces over the pants and elbow guards.
-        const brace = part(this.shins[i].group, new T.CylinderGeometry(0.06, 0.058, 0.16, sides), armour);
+        const brace = part(
+          this.shins[i].group,
+          new T.CylinderGeometry(0.06, 0.058, 0.16, sides),
+          armour,
+        );
         brace.position.set(0, 0.02, 0.0);
-        const guard = part(this.forearms[i].group, new T.SphereGeometry(0.042, sides, sides / 2), armour);
+        const guard = part(
+          this.forearms[i].group,
+          new T.SphereGeometry(0.042, sides, sides / 2),
+          armour,
+        );
         guard.scale.set(1, 1.3, 0.9);
         guard.position.set(side * 0.01, 0.02, -0.02);
       } else if (detail !== 'far') {
@@ -361,26 +514,81 @@ export class Rider {
         puck.position.set(side * 0.065, 0.02, 0.0);
       }
       const hand = new T.Group();
-      part(hand, new T.BoxGeometry(0.075, 0.06, 0.11), glove).position.set(0, 0, 0.03);
+      part(
+        hand,
+        new RoundedBoxGeometry(0.069, 0.047, 0.079, detail === 'far' ? 1 : 3, 0.017),
+        glove,
+      ).position.set(0, 0.0, 0.016);
+      if (detail !== 'far') {
+        for (let finger = 0; finger < 4; finger++) {
+          const x = -0.025 + finger * 0.0165;
+          const points = [
+            new T.Vector3(x, 0.013, 0.042),
+            new T.Vector3(x, 0.013, 0.07),
+            new T.Vector3(x, -0.007, 0.079),
+            new T.Vector3(x, -0.025, 0.061),
+          ];
+          part(hand, new T.TubeGeometry(new T.CatmullRomCurve3(points), 9, 0.007, 6, false), glove);
+        }
+        const thumb = part(hand, limbGeometry(0.01, 0.008, 0.037, 8), glove);
+        thumb.position.set(side * 0.036, -0.01, 0.007);
+        thumb.rotation.set(0.85, 0, side * 0.4);
+      }
       if (detail === 'high') {
-        const knuckle = part(hand, new T.BoxGeometry(0.07, 0.02, 0.05), armour);
-        knuckle.position.set(0, 0.035, 0.04);
+        const knuckle = part(hand, new RoundedBoxGeometry(0.062, 0.013, 0.027, 3, 0.006), armour);
+        knuckle.position.set(0, 0.025, 0.025);
       }
       this.forearms[i].group.add(hand);
       hand.position.set(0, RIDER.forearm + 0.02, 0);
       this.hands.push(hand);
       const foot = new T.Group();
-      part(foot, new T.BoxGeometry(0.085, 0.09, 0.27), glove).position.set(0, -0.02, 0.06);
+      part(
+        foot,
+        new RoundedBoxGeometry(0.084, 0.072, 0.247, detail === 'far' ? 1 : 3, 0.029),
+        glove,
+      ).position.set(0, -0.015, 0.048);
+      if (!mx && detail !== 'far') {
+        const ankle = part(foot, limbGeometry(0.043, 0.035, 0.145, sides), panel);
+        ankle.position.set(0, -0.01, -0.03);
+        ankle.rotation.x = Math.PI;
+        part(foot, new RoundedBoxGeometry(0.087, 0.014, 0.253, 2, 0.006), flex).position.set(
+          0,
+          0.023,
+          0.048,
+        );
+        for (let rib = 0; rib < 4; rib++)
+          part(foot, new RoundedBoxGeometry(0.07, 0.008, 0.028, 2, 0.003), flex).position.set(
+            0,
+            -0.045,
+            -0.015 + rib * 0.026,
+          );
+      }
       // Tall off-road boots up the shin.
-      if (mx) part(foot, new T.CylinderGeometry(0.058, 0.05, 0.3, sides), glove).position.set(0, -0.17, 0);
+      if (mx)
+        part(foot, new T.CylinderGeometry(0.058, 0.05, 0.3, sides), glove).position.set(
+          0,
+          -0.17,
+          0,
+        );
       if (detail !== 'far') {
-        const toe = part(foot, new T.BoxGeometry(0.03, 0.03, 0.06), slider);
+        const toe = part(foot, new RoundedBoxGeometry(0.018, 0.016, 0.058, 2, 0.005), slider);
         toe.position.set(side * 0.045, -0.05, 0.16);
       }
       this.shins[i].group.add(foot);
       foot.position.set(0, RIDER.shin + 0.02, 0);
       this.feet.push(foot);
     }
+    for (const group of [
+      this.torso,
+      this.head,
+      ...this.hands,
+      ...this.feet,
+      ...this.upperArms.map((b) => b.group),
+      ...this.forearms.map((b) => b.group),
+      ...this.thighs.map((b) => b.group),
+      ...this.shins.map((b) => b.group),
+    ])
+      batchBikeRigidMeshes(group);
   }
   /** Riding pose in the bike's (sprung) frame. */
   ride(pose: RiderPose) {
@@ -483,7 +691,12 @@ export class Rider {
     this.root.traverse((o) => {
       if (o instanceof T.Mesh) o.geometry.dispose();
     });
-    for (const m of this.materials) m.dispose();
+    const textures = new Set<T.Texture>();
+    for (const m of this.materials) {
+      for (const value of Object.values(m)) if (value instanceof T.Texture) textures.add(value);
+      m.dispose();
+    }
+    for (const texture of textures) texture.dispose();
   }
 }
 void Y;

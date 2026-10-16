@@ -1,4 +1,13 @@
 import * as T from 'three';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { batchBikeRigidMeshes } from './bike-rigid-batch.ts';
+import { addGPIdentity } from './bike-livery.ts';
+import { gpBodywork } from './gp-bodywork.ts';
+import { bikeSurfaceMaps } from './bike-surface-detail.ts';
+import { BikeCockpit } from './bike-cockpit.ts';
+import { tagWeatherSurface } from './weather-presentation.ts';
+import { carbonMaterial } from './materials.ts';
+import { sampleProfile } from './profile-sampling.ts';
 import {
   carBase,
   B,
@@ -59,7 +68,29 @@ export interface Section {
 /** Closed superelliptic loft along +Z; distinct top/bottom radii shape a fairing. */
 export function superLoft(input: readonly Section[], sides: number, exponent = 2.6, caps = true) {
   // Ascending z keeps the winding (and so the normals) outward.
-  const sections = [...input].sort((a, b) => a.z - b.z);
+  const stations = [...input].sort((a, b) => a.z - b.z);
+  const zs = stations.map((s) => s.z);
+  const steps = sides >= 32 ? 5 : sides >= 16 ? 3 : 1;
+  const sections: Section[] = [];
+  for (let i = 0; i < stations.length - 1; i++)
+    for (let j = 0; j < steps; j++) {
+      const z = T.MathUtils.lerp(zs[i], zs[i + 1], j / steps);
+      const at = (key: 'y' | 'w' | 'top' | 'bottom' | 'topWidth') =>
+        sampleProfile(
+          zs,
+          stations.map((s) => s[key] ?? 1),
+          z,
+        );
+      sections.push({
+        z,
+        y: at('y'),
+        w: at('w'),
+        top: at('top'),
+        bottom: at('bottom'),
+        topWidth: at('topWidth'),
+      });
+    }
+  sections.push(stations[stations.length - 1]);
   const p: number[] = [],
     uv: number[] = [],
     indices: number[] = [];
@@ -104,7 +135,22 @@ export function superLoft(input: readonly Section[], sides: number, exponent = 2
 }
 /** Open sheet over the upper arc of each section (windscreen bubble). */
 function arcSheet(input: readonly Section[], from: number, to: number, columns: number) {
-  const sections = [...input].sort((a, b) => a.z - b.z);
+  const stations = [...input].sort((a, b) => a.z - b.z);
+  const zs = stations.map((s) => s.z);
+  const steps = columns >= 16 ? 5 : columns >= 8 ? 3 : 1;
+  const sections: Section[] = [];
+  for (let i = 0; i < stations.length - 1; i++)
+    for (let j = 0; j < steps; j++) {
+      const z = T.MathUtils.lerp(zs[i], zs[i + 1], j / steps);
+      const at = (key: 'y' | 'w' | 'top') =>
+        sampleProfile(
+          zs,
+          stations.map((s) => s[key]),
+          z,
+        );
+      sections.push({ z, y: at('y'), w: at('w'), top: at('top'), bottom: 0 });
+    }
+  sections.push(stations[stations.length - 1]);
   const p: number[] = [],
     uv: number[] = [],
     indices: number[] = [];
@@ -172,6 +218,36 @@ export function ringGeometry(outer: number, inner: number, thickness: number, si
   g.rotateY(Math.PI / 2);
   return g;
 }
+/** Vent slots are cut from the carbon rotor annulus, not painted black dots. */
+function ventedRotor(sides: number) {
+  const shape = new T.Shape();
+  shape.absarc(0, 0, 0.17, 0, Math.PI * 2, false);
+  const centre = new T.Path();
+  centre.absarc(0, 0, 0.115, 0, Math.PI * 2, true);
+  shape.holes.push(centre);
+  for (let i = 0; i < 18; i++) {
+    const angle = (i / 18) * Math.PI * 2,
+      hole = new T.Path();
+    for (let j = 0; j <= 8; j++) {
+      const a = (-j / 8) * Math.PI * 2;
+      const x =
+        Math.cos(angle) * (0.145 + Math.cos(a) * 0.007) - Math.sin(angle) * Math.sin(a) * 0.0028;
+      const y =
+        Math.sin(angle) * (0.145 + Math.cos(a) * 0.007) + Math.cos(angle) * Math.sin(a) * 0.0028;
+      if (j === 0) hole.moveTo(x, y);
+      else hole.lineTo(x, y);
+    }
+    shape.holes.push(hole);
+  }
+  const g = new T.ExtrudeGeometry(shape, {
+    depth: 0.022,
+    bevelEnabled: false,
+    curveSegments: sides,
+  });
+  g.translate(0, 0, -0.011);
+  g.rotateY(Math.PI / 2);
+  return g;
+}
 /** Rectangular-section beam swept along a curve (frame spars, swingarm). */
 export function beam(
   points: readonly [number, number, number][],
@@ -232,44 +308,20 @@ export function exhaustGeometry(
   g.setAttribute('color', new T.BufferAttribute(colours, 3));
   return g;
 }
-/** Twill-weave carbon fibre: a woven albedo with per-tow sheen variation. */
-function carbonTexture() {
-  const texture = canvasTexture(128, 128, (c) => {
-    c.fillStyle = '#121315';
-    c.fillRect(0, 0, 128, 128);
-    for (let y = 0; y < 8; y++)
-      for (let x = 0; x < 8; x++) {
-        const over = (x + y) % 4 < 2;
-        const g = c.createLinearGradient(
-          x * 16,
-          y * 16,
-          x * 16 + (over ? 16 : 0),
-          y * 16 + (over ? 0 : 16),
-        );
-        g.addColorStop(0, over ? '#2a2c30' : '#18191c');
-        g.addColorStop(0.5, over ? '#3a3d42' : '#222428');
-        g.addColorStop(1, over ? '#25272b' : '#16171a');
-        c.fillStyle = g;
-        c.fillRect(x * 16 + 0.5, y * 16 + 0.5, 15, 15);
-      }
-  });
-  texture.wrapS = texture.wrapT = T.RepeatWrapping;
-  texture.repeat.set(6, 6);
-  return texture;
-}
 export function numberTexture(number: number, paint: string, ink: string) {
-  return canvasTexture(256, 256, (c) => {
-    c.fillStyle = paint;
-    c.fillRect(0, 0, 256, 256);
-    c.fillStyle = ink;
-    c.beginPath();
-    c.ellipse(128, 128, 112, 104, 0, 0, Math.PI * 2);
-    c.fill();
-    c.fillStyle = paint;
-    c.font = 'bold 150px "Saira Variable", sans-serif';
+  return canvasTexture(512, 512, (c) => {
+    c.clearRect(0, 0, 512, 512);
     c.textAlign = 'center';
     c.textBaseline = 'middle';
-    c.fillText(String(number), 128, 136);
+    c.font = 'italic 900 360px "Saira Variable", sans-serif';
+    c.lineJoin = 'round';
+    c.lineWidth = 20;
+    c.strokeStyle = '#15191c';
+    c.strokeText(String(number).padStart(2, '0'), 244, 267, 470);
+    c.fillStyle = ink;
+    c.fillText(String(number).padStart(2, '0'), 244, 267, 470);
+    c.fillStyle = paint;
+    c.fillRect(105, 454, 300, 8);
   });
 }
 /** Materials of one entrant (paint per livery; mechanical finishes shared in spirit). */
@@ -301,10 +353,10 @@ export class BikeMaterials {
     this.paint = add(
       new T.MeshPhysicalMaterial({
         color: scheme.primary,
-        metalness: 0.25,
+        metalness: 0.06,
         roughness: 0.32,
         clearcoat: 1,
-        clearcoatRoughness: 0.05,
+        clearcoatRoughness: 0.085,
         name: 'Bike fairing paint (clear coat)',
       }),
     );
@@ -327,22 +379,15 @@ export class BikeMaterials {
         clearcoatRoughness: 0.06,
       }),
     );
-    this.carbon = add(
-      new T.MeshPhysicalMaterial({
-        color: 0xffffff,
-        map: carbonTexture(),
-        metalness: 0.2,
-        roughness: 0.38,
-        clearcoat: 1,
-        clearcoatRoughness: 0.03,
-        name: 'Carbon fibre (twill, lacquered)',
-      }),
-    );
+    this.carbon = add(carbonMaterial('lacquered'));
+    this.carbon.name = 'GP carbon: metre-scale filtered twill';
     this.aluminium = add(
       new T.MeshStandardMaterial({
         color: 0xb9bcc0,
         metalness: 0.92,
         roughness: 0.34,
+        ...bikeSurfaceMaps('brushed'),
+        normalScale: new T.Vector2(0.07, 0.07),
         name: 'Frame aluminium',
       }),
     );
@@ -356,7 +401,13 @@ export class BikeMaterials {
       }),
     );
     this.rubber = add(
-      new T.MeshStandardMaterial({ color: 0x141415, roughness: 0.86, name: 'Slick tyre' }),
+      new T.MeshStandardMaterial({
+        color: 0x18191a,
+        roughness: 0.89,
+        ...bikeSurfaceMaps('rubber'),
+        normalScale: new T.Vector2(0.16, 0.16),
+        name: 'Slick tyre: fine grain',
+      }),
     );
     this.wheel = add(
       new T.MeshPhysicalMaterial({
@@ -410,7 +461,13 @@ export class BikeMaterials {
       new T.MeshStandardMaterial({ color: 0x6d7076, metalness: 0.9, roughness: 0.4 }),
     );
     this.seat = add(
-      new T.MeshStandardMaterial({ color: 0x18191b, roughness: 0.9, name: 'Seat pad' }),
+      new T.MeshStandardMaterial({
+        color: 0x18191b,
+        roughness: 0.92,
+        ...bikeSurfaceMaps('seat'),
+        normalScale: new T.Vector2(0.22, 0.22),
+        name: 'Textured seat pad',
+      }),
     );
     this.screen = add(
       new T.MeshPhysicalMaterial({
@@ -443,11 +500,34 @@ export class BikeMaterials {
     this.plate = add(
       new T.MeshPhysicalMaterial({
         map: numberTexture((id % 98) + 2, scheme.primary, scheme.accent),
+        transparent: true,
+        depthWrite: false,
+        polygonOffset: true,
+        polygonOffsetFactor: -2,
         roughness: 0.34,
         clearcoat: 1,
         clearcoatRoughness: 0.05,
       }),
     );
+    for (const material of [
+      this.paint,
+      this.secondary,
+      this.accent,
+      this.carbon,
+      this.wheel,
+      this.plate,
+    ])
+      tagWeatherSurface(material, 'paint');
+    for (const material of [
+      this.aluminium,
+      this.steel,
+      this.titanium,
+      this.forkUpper,
+      this.forkLower,
+    ])
+      tagWeatherSurface(material, 'metal', 0.75);
+    tagWeatherSurface(this.rubber, 'rubber');
+    tagWeatherSurface(this.seat, 'leather', 0.7);
   }
   dispose() {
     for (const m of this.list) {
@@ -502,6 +582,7 @@ export class BikeModel {
   private readonly scratch = new T.Vector3();
   private readonly matrix = new T.Matrix4();
   private readonly rings: T.Mesh[] = [];
+  private readonly cockpit?: BikeCockpit;
   constructor(
     readonly definition: VehicleDefinition,
     readonly id: number,
@@ -520,7 +601,8 @@ export class BikeModel {
       wings = look.wings !== 'none',
       full = look.fairing === 'full',
       naked = look.fairing === 'naked',
-      classic = look.fairing === 'classic';
+      classic = look.fairing === 'classic',
+      authored = definition.id === 'gpr1';
     this.sag = staticSag(definition);
     this.root.name = `${definition.name} ${id + 1} (${detail})`;
     this.root.add(this.sprung);
@@ -583,7 +665,14 @@ export class BikeModel {
         // Twin carbon discs on floating carriers (one steel disc on a
         // classic machine).
         for (const side of look.wheels === 'spoked' ? [1] : [1, -1]) {
-          add(spin, ringGeometry(0.17, 0.115, 0.022, sides), m.disc, side * 0.066, 0, 0);
+          add(
+            spin,
+            detail === 'high' ? ventedRotor(sides) : ringGeometry(0.17, 0.115, 0.022, sides),
+            m.disc,
+            side * 0.066,
+            0,
+            0,
+          );
           if (detail === 'high')
             for (let k = 0; k < 6; k++) {
               const a = (k / 6) * Math.PI * 2;
@@ -670,7 +759,7 @@ export class BikeModel {
       if (detail === 'high') {
         const lever = add(
           this.steer,
-          new T.BoxGeometry(0.15, 0.008, 0.016),
+          new RoundedBoxGeometry(0.15, 0.008, 0.016, 2, 0.003),
           m.aluminium,
           side * 0.28,
           -0.04,
@@ -891,7 +980,7 @@ export class BikeModel {
     ): Section => ({ z, y, w, top, bottom, topWidth });
     // Upper fairing: a wedge nose over the front wheel, clear of fork travel,
     // whose cheeks drop behind the wheel to meet the lower fairing.
-    if (full)
+    if (full && !authored)
       add(
         this.sprung,
         superLoft(
@@ -911,7 +1000,7 @@ export class BikeModel {
       );
     // Lower fairing and belly pan: behind the wheel, its rear edge rising
     // toward the footpegs; the frame beams stay exposed above it.
-    if (full)
+    if (full && !authored)
       add(
         this.sprung,
         superLoft(
@@ -929,7 +1018,7 @@ export class BikeModel {
         m.secondary,
       );
     // Accent stripe along the lower fairing.
-    if (full && detail !== 'far')
+    if (full && !authored && detail !== 'far')
       add(
         this.sprung,
         superLoft(
@@ -968,7 +1057,8 @@ export class BikeModel {
         flank.rotation.y = side * (Math.PI / 2 - 0.08);
       }
       // Ram-air intake at the nose tip.
-      add(this.sprung, new T.CircleGeometry(0.03, 16), m.dark, 0, 0.15, 0.957, false);
+      if (!authored)
+        add(this.sprung, new T.CircleGeometry(0.03, 16), m.dark, 0, 0.15, 0.957, false);
     }
     // Classic round-nosed fairing: one bulbous shell over the forks with a
     // round number plate; no belly pan, so the engine and chambers show.
@@ -1044,7 +1134,7 @@ export class BikeModel {
         for (const y of [0.02, -0.08]) {
           const foil = add(
             this.sprung,
-            new T.BoxGeometry(0.1, 0.012, 0.16),
+            new RoundedBoxGeometry(0.1, 0.012, 0.16, 2, 0.004),
             m.carbon,
             side * 0.27,
             y,
@@ -1052,10 +1142,17 @@ export class BikeModel {
           );
           foil.rotation.z = side * -0.12;
         }
-        add(this.sprung, new T.BoxGeometry(0.006, 0.13, 0.17), m.carbon, side * 0.32, -0.03, 0.6);
+        add(
+          this.sprung,
+          new RoundedBoxGeometry(0.006, 0.13, 0.17, 2, 0.002),
+          m.carbon,
+          side * 0.32,
+          -0.03,
+          0.6,
+        );
       }
     // Wings: stacked carbon aerofoils with end plates on the prototype class.
-    if (look.wings === 'stacked' && detail !== 'far')
+    if (look.wings === 'stacked' && !authored && detail !== 'far')
       for (const side of [1, -1]) {
         const foil = new T.Shape();
         foil.moveTo(0, 0);
@@ -1109,33 +1206,73 @@ export class BikeModel {
         false,
       );
     // Instrument display behind the screen.
-    if (detail === 'high') {
-      const dash = add(this.sprung, new T.BoxGeometry(0.13, 0.07, 0.02), m.dark, 0, 0.3, 0.47);
-      dash.rotation.x = -0.9;
+    if (detail === 'high' && full) {
+      this.cockpit = new BikeCockpit(definition.spec.limiterRPM);
+      this.sprung.add(this.cockpit.root);
+      // Wiring and reservoir give onboard views mechanical depth without
+      // changing the grip/steering anchors or obscuring the rider's sightline.
+      for (const side of [-1, 1]) {
+        add(
+          this.steer,
+          tube(
+            [
+              [side * 0.24, -0.04, 0.03],
+              [side * 0.16, -0.12, 0.09],
+              [side * 0.07, -0.22, 0.02],
+            ],
+            0.0035,
+            12,
+            5,
+          ),
+          m.dark,
+        );
+        add(
+          this.steer,
+          new T.CylinderGeometry(0.017, 0.016, 0.025, 12),
+          m.aluminium,
+          side * 0.105,
+          0.013,
+          0,
+        );
+      }
+      add(
+        this.steer,
+        new RoundedBoxGeometry(0.035, 0.04, 0.04, 2, 0.006),
+        m.secondary,
+        -0.2,
+        0.0,
+        0.05,
+      );
     }
     // Tank cover (carbon on the prototype) between the exposed spars; a
     // classic machine has a big rounded steel tank, a naked bike a sculpted
     // tank with knee scallops that reaches further forward.
     const tankScale = classic ? 1.18 : naked ? 1.08 : 1;
-    add(
-      this.sprung,
-      superLoft(
-        [
-          section(-0.14, 0.22, 0.12 * tankScale, 0.07 * tankScale, 0.06),
-          section(0.0, 0.26, 0.165 * tankScale, 0.09 * tankScale, 0.08),
-          section(0.16, 0.26, 0.17 * tankScale, 0.08 * tankScale, 0.08),
-          section(0.3, 0.24, 0.15 * tankScale, 0.07 * tankScale, 0.07),
-          section(naked ? 0.46 : 0.41, naked ? 0.25 : 0.22, 0.11, 0.06, 0.06),
-        ],
-        sides,
-        classic ? 2.1 : 2.6,
-      ),
-      wings ? m.carbon : m.paint,
-    );
+    if (!authored)
+      add(
+        this.sprung,
+        superLoft(
+          [
+            section(-0.14, 0.22, 0.12 * tankScale, 0.07 * tankScale, 0.06),
+            section(0.0, 0.26, 0.165 * tankScale, 0.09 * tankScale, 0.08),
+            section(0.16, 0.26, 0.17 * tankScale, 0.08 * tankScale, 0.08),
+            section(0.3, 0.24, 0.15 * tankScale, 0.07 * tankScale, 0.07),
+            section(naked ? 0.46 : 0.41, naked ? 0.25 : 0.22, 0.11, 0.06, 0.06),
+          ],
+          sides,
+          classic ? 2.1 : 2.6,
+        ),
+        wings ? m.carbon : m.paint,
+      );
     // Seat unit and tail hump with the rain/brake light: the race tail, a
     // short roadster tail with a pillion pad, or a classic flat seat ending in
     // a rounded hump.
-    if (look.tail === 'race') {
+    if (authored) {
+      const shell = gpBodywork(m, detail);
+      if (detail !== 'far') addGPIdentity(shell, m);
+      this.sprung.add(shell);
+      add(this.sprung, new T.BoxGeometry(0.05, 0.025, 0.012), m.lamp, 0, 0.302, -0.83, false);
+    } else if (look.tail === 'race') {
       add(
         this.sprung,
         superLoft(
@@ -1152,7 +1289,7 @@ export class BikeModel {
         m.paint,
       );
       add(this.sprung, new T.BoxGeometry(0.2, 0.025, 0.26), m.seat, 0, 0.232, -0.3);
-      add(this.sprung, new T.BoxGeometry(0.05, 0.025, 0.012), m.lamp, 0, 0.32, -0.845, false);
+      add(this.sprung, new T.BoxGeometry(0.05, 0.025, 0.012), m.lamp, 0, 0.302, -0.83, false);
     } else if (look.tail === 'stubby') {
       add(
         this.sprung,
@@ -1278,6 +1415,34 @@ export class BikeModel {
         );
         shock.rotation.x = -0.35;
       }
+    if (full && detail !== 'far') {
+      const pos: number[] = [],
+        uv: number[] = [],
+        ix: number[] = [];
+      const segments = detail === 'high' ? 32 : 16;
+      for (let i = 0; i <= segments; i++) {
+        const a = T.MathUtils.lerp(0.65, 2.6, i / segments),
+          r = rearR + 0.018;
+        for (const side of [-1, 1]) {
+          pos.push(
+            side * (0.11 - (0.015 * i) / segments),
+            r * Math.sin(a),
+            -this.armLength + r * Math.cos(a),
+          );
+          uv.push(side > 0 ? 1 : 0, i / segments);
+        }
+        if (i < segments) {
+          const k = i * 2;
+          ix.push(k, k + 2, k + 1, k + 1, k + 2, k + 3);
+        }
+      }
+      const hugger = new T.BufferGeometry();
+      hugger.setAttribute('position', new T.Float32BufferAttribute(pos, 3));
+      hugger.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
+      hugger.setIndex(ix);
+      hugger.computeVertexNormals();
+      add(this.swingarm, hugger, m.carbon).name = 'Swingarm-mounted carbon tyre hugger';
+    }
     this.root.add(this.swingarm);
     this.rearWheel.position.copy(this.rearAxle);
     this.rearWheel.add(this.rearSpin);
@@ -1297,12 +1462,23 @@ export class BikeModel {
     this.rider.pegs[0].set(0.17, -0.2, -0.3);
     this.rider.pegs[1].set(-0.17, -0.2, -0.3);
     this.sprung.add(this.rider.root);
+    for (const group of [
+      this.sprung,
+      this.steer,
+      this.forkLower,
+      this.frontSpin,
+      this.rearSpin,
+      this.swingarm,
+      this.spring,
+    ])
+      batchBikeRigidMeshes(group);
     void L;
   }
   /** Pose from interpolated snapshot values (bike frame = chassis pose). */
   pose(v: BikePoseValues) {
     const b = this.definition.bike!,
       L = this.definition.spec.wheelbase;
+    this.cockpit?.update(v);
     // Sprung mass dips and pitches on the springs; the tyres stay on the road.
     const df = (v.fork - this.sag.fork) * Math.cos(RAKE),
       dr = v.shock - this.sag.shock;
@@ -1352,6 +1528,8 @@ export class BikeModel {
     }
   }
   dispose() {
+    this.cockpit?.dispose();
+    this.rider.root.removeFromParent();
     this.rider.dispose();
     this.root.traverse((o) => {
       if (o instanceof T.Mesh) o.geometry.dispose();
@@ -1359,6 +1537,10 @@ export class BikeModel {
   }
 }
 export interface BikePoseValues {
+  /** Snapshot values for the near cockpit; metres/second and protocol gear index. */
+  speed?: number;
+  rpm?: number;
+  gear?: number;
   fork: number;
   shock: number;
   steer: number;
@@ -1574,6 +1756,9 @@ export class BikeShells {
       v = this.values,
       lerp = (index: number) => T.MathUtils.lerp(a[index], b[index], t);
     const wheel = (i: number) => o + WHEEL_BASE + i * WHEEL_STRIDE;
+    v.speed = lerp(o + F.SPEED);
+    v.rpm = lerp(o + F.RPM);
+    v.gear = b[o + F.GEAR];
     v.fork = lerp(k + B.FORK);
     v.shock = lerp(k + B.SHOCK);
     v.steer = lerp(k + B.STEER);

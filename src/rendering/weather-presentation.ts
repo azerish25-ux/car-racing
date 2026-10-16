@@ -13,7 +13,9 @@ export type WeatherSurface =
   | 'grass'
   | 'gravel'
   | 'fabric'
-  | 'foliage';
+  | 'foliage'
+  | 'rubber'
+  | 'leather';
 /** Art response, not a second water simulation. Porous surfaces darken but retain
  * broad highlights; cloth/vegetation never acquire a glass-like coat. */
 export const WEATHER_SURFACES: Readonly<Record<WeatherSurface, readonly [number, number]>> = {
@@ -28,6 +30,8 @@ export const WEATHER_SURFACES: Readonly<Record<WeatherSurface, readonly [number,
   gravel: [0.25, 0.62],
   fabric: [0.15, 0.78],
   foliage: [0.1, 0.56],
+  rubber: [0.1, 0.48],
+  leather: [0.08, 0.44],
 };
 const roads = new WeakMap<T.Material, { value: T.Vector4 }>();
 /** Each road material owns a small uniform; its spatial water still comes from
