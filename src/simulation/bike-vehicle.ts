@@ -11,6 +11,7 @@ import {
 } from './bike-definitions.ts';
 import { COMPOUNDS, DEFAULT_SETUP, type Assist, type Compound, type Setup } from './config.ts';
 import { MARSHAL } from './marshal.ts';
+import { bikeSlipstreamDragScale } from './bike-slipstream.ts';
 import { bikeStandLift } from './pit-service.ts';
 import { B, BIKE_STRIDE } from './protocol.ts';
 import { peakGrip } from './tire.ts';
@@ -303,7 +304,10 @@ export class BikeVehicle extends Vehicle {
     // Rider: tuck on straights, hang off toward the corner.
     const fast = d.speed > 25 && Math.abs(d.lean) < 0.2 && throttle > 0.6 && brake < 0.05;
     this.tuck = approach(this.tuck, fast && this.riding ? 1 : 0, dt * 2.5);
-    d.dragScale = 1 - spec.tuckDrag * this.tuck;
+    // Wake fields already account for the leader's speed, separation, offset
+    // and heading. Apply the tow to the actual motorcycle dynamics core, not
+    // just the presentation aero readout, so overtakes gain real acceleration.
+    d.dragScale = bikeSlipstreamDragScale(this.tuck, spec.tuckDrag, this.slipstream);
     const hang =
       d.speed > 10 ? clamp(1.3 * this.input.steer + 1.1 * d.lean, -1, 1) * (1 - this.tuck) : 0;
     const force = this.drive(dt, throttle);
