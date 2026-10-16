@@ -1,7 +1,9 @@
 import * as T from 'three';
+import { inspectBikeCockpit } from './bike-cockpit-contract.ts';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import { BikeMaterials, BikeModel, staticSag } from '../../src/rendering/bike.ts';
+import { BikeMaterials, BikeModel, BikeShells, staticSag } from '../../src/rendering/bike.ts';
 import { WeatherPresentation } from '../../src/rendering/weather-presentation.ts';
+import { tcamFov } from '../../src/rendering/cockpit-framing.ts';
 import { H } from '../../src/simulation/protocol.ts';
 import { VEHICLES } from '../../src/simulation/vehicles.ts';
 
@@ -82,10 +84,19 @@ export function captureBike(
   if (view === 'side') camera.position.set(3.7, 1.35, 0.1);
   else if (view === 'front') camera.position.set(0.18, 1.1, 3.7);
   else if (view === 'rear') camera.position.set(-2.5, 1.8, -3.0);
-  else if (view === 'onboard') camera.position.set(0.07, 1.16, -0.16);
   else camera.position.set(-2.8, 1.65, 3.35);
-  camera.lookAt(0, view === 'onboard' ? 0.87 : 0.68, view === 'onboard' ? 0.6 : 0);
+  camera.lookAt(0, 0.68, 0);
+  if (view === 'onboard') {
+    bike.rider.setFirstPerson(true);
+    const direction = new T.Vector3();
+    new BikeShells().onboard(bike.root, camera.position, direction);
+    camera.fov = tcamFov(42);
+    camera.lookAt(camera.position.clone().add(direction));
+    camera.updateProjectionMatrix();
+  }
   scene.updateMatrixWorld(true);
+  camera.updateMatrixWorld(true);
+  const cockpit = view === 'onboard' ? inspectBikeCockpit(bike.root, camera) : null;
   let triangles = 0;
   bike.root.traverse((o) => {
     if (o instanceof T.Mesh)
@@ -110,6 +121,7 @@ export function captureBike(
   const result = {
     image,
     hash,
+    cockpit,
     weather: weather.diagnostics(),
     triangles,
     calls: renderer.info.render.calls,

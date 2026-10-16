@@ -104,6 +104,18 @@ upper=loft('GP continuous upper cowl',[
 (.66,.168,.243,.151,.068,.71),(.78,.18,.203,.115,.058,.68),(.882,.165,.132,.079,.047,.67),
 (.942,.153,.081,.053,.040,.79),(.974,.150,.060,.035,.032,.94)],'paint',48,48,2.5)
 cut_ellipse(upper,(0,.147,.943),(.042,.022,.13))
+# A real open cockpit well behind the windscreen, not a closed solid cowl
+# with an instrument embedded inside it. The outer cheeks retain their profile.
+bpy.ops.mesh.primitive_cube_add(size=1, location=xyz((0,.405,.49)))
+cutter=bpy.context.object;cutter.name='Cockpit well cutter'
+cutter.dimensions=(.25,.44,.39)
+bpy.ops.object.transform_apply(location=False,rotation=False,scale=True)
+bevel(cutter,.028,3)
+select(upper);mod=upper.modifiers.new('Open cockpit well','BOOLEAN')
+mod.operation='DIFFERENCE';mod.solver='EXACT';mod.object=cutter
+bpy.ops.object.modifier_apply(modifier=mod.name)
+bpy.data.objects.remove(cutter,do_unlink=True)
+
 # The tunnel has actual thickness and a back wall, rather than a black circle sticker.
 loft('Ram air duct liner',[(.804,.147,.037,.020,.020,1),(.902,.147,.039,.021,.021,1),(.974,.147,.0417,.0217,.0217,1)],'dark',8,28,2,caps=False)
 loft('Ram air dark throat',[(.940,.147,.041,.021,.021,1),(.942,.147,.041,.021,.021,1)],'dark',1,28,2)
@@ -224,7 +236,8 @@ def export_geometry(objs,ratio=1):
         del b['lookup'];result.append({'material':name,**b})
     return result
 high=export_geometry(objects);mid=export_geometry(objects,.22)
-asset={'version':1,'unit':'metre','forward':'+Z','up':'+Y','high':high,'mid':mid}
+asset={'version':2,'unit':'metre','forward':'+Z','up':'+Y','high':high,'mid':mid,
+       'upperHigh':export_geometry([upper]),'upperMid':export_geometry([upper],.22)}
 (out/'gp-bodywork.mesh.json').write_text(json.dumps(asset,separators=(',',':'))+'\n')
 # Editable native source + standard interchange model, excluding preview stage.
 select(objects[0]);bpy.ops.object.select_all(action='DESELECT')

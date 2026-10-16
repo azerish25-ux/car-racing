@@ -164,6 +164,7 @@ import {
   mountFov,
   type CabinLayout,
 } from './vehicle-bodies/cabin.ts';
+import { bikeFirstPersonView } from './bike-cockpit.ts';
 import { BIKE_CHASE_ROLL, BikeShells } from './bike.ts';
 export type CameraMode = 'chase' | 'cockpit' | 'pod' | 'trackside';
 /** Chase rig in metres, m/s and vertical-FOV degrees. */
@@ -1383,15 +1384,17 @@ export class RacingRenderer {
         this.gaze.copy(this.desired).addScaledVector(this.direction, 30);
       }
       this.camera.fov =
-        cabin && seated
-          ? cameraMode === 'cockpit'
-            ? cabinFov(cabin, this.graphics.cockpitFov)
-            : mountFov(cabin, speed)
-          : cameraMode === 'cockpit' && car.suppliedPlayer
-            ? cockpitFov(this.graphics.cockpitFov)
-            : cameraMode === 'chase'
-              ? CHASE.fov + Math.min(CHASE.fovGain, speed * 0.06)
-              : tcamFov(speed);
+        bikeFollow && seated
+          ? tcamFov(speed)
+          : cabin && seated
+            ? cameraMode === 'cockpit'
+              ? cabinFov(cabin, this.graphics.cockpitFov)
+              : mountFov(cabin, speed)
+            : cameraMode === 'cockpit' && car.suppliedPlayer
+              ? cockpitFov(this.graphics.cockpitFov)
+              : cameraMode === 'chase'
+                ? CHASE.fov + Math.min(CHASE.fovGain, speed * 0.06)
+                : tcamFov(speed);
     }
     if (!this.initialized || cameraMode !== 'chase' || menu || this.photo || pregame) {
       this.camera.position.copy(this.desired);
@@ -1502,6 +1505,9 @@ export class RacingRenderer {
     }
     this.mirrorRoot = bodyMirrors?.root ?? car.root;
     this.bikeShells?.update(a, b, alpha, this.cars, this.camera, this.quality, this.follow);
+    this.bikeShells?.setFirstPerson(
+      bikeFirstPersonView(cameraMode, menu, pregame, this.photo?.view) ? this.follow : -1,
+    );
     this.ghost?.update(
       this.ghostActive && !replay && !menu && !this.photo ? this.ghostPose : null,
       this.camera,

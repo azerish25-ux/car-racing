@@ -1,6 +1,21 @@
 import * as T from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 
+/** Menu/orbit/broadcast cameras must never inherit first-person self-culling. */
+export function bikeFirstPersonView(
+  mode: string,
+  menu: boolean,
+  pregame: boolean,
+  photoView?: string,
+) {
+  return (
+    !pregame &&
+    (!photoView || photoView === 'cockpit') &&
+    (!menu || !!photoView) &&
+    mode === 'cockpit'
+  );
+}
+
 export interface BikeInstrumentValues {
   speed?: number;
   gear?: number;
@@ -11,14 +26,13 @@ export function bikeInstrumentReadout(values: BikeInstrumentValues, limiterRPM: 
   const finite = (v: number | undefined) => (Number.isFinite(v) ? v! : 0);
   return {
     speed: Math.round(Math.max(0, finite(values.speed)) * 3.6),
-    gear:
-      values.gear === undefined
-        ? 'N'
-        : finite(values.gear) <= 0
-          ? 'R'
-          : finite(values.gear) < 2
-            ? 'N'
-            : String(Math.round(finite(values.gear)) - 1),
+    gear: !Number.isFinite(values.gear)
+      ? 'N'
+      : finite(values.gear) <= 0
+        ? 'R'
+        : finite(values.gear) < 2
+          ? 'N'
+          : String(Math.round(finite(values.gear)) - 1),
     rpm: Math.round(Math.max(0, finite(values.rpm)) / 100) * 100,
     fill: T.MathUtils.clamp(finite(values.rpm) / Math.max(1, finite(limiterRPM)), 0, 1),
   };
@@ -48,12 +62,14 @@ export class BikeCockpit {
     shell.castShadow = shell.receiveShadow = true;
     this.root.add(shell);
     const display = new T.Mesh(new T.PlaneGeometry(0.132, 0.066), this.material);
-    // The face looks back towards the rider, not through the front fairing.
+    display.name = 'GP instrument display';
+    // The face looks back and up towards the rider, not down into the cowl.
     display.rotation.y = Math.PI;
     display.position.z = -0.0095;
     this.root.add(display);
-    this.root.position.set(0, 0.295, 0.465);
-    this.root.rotation.x = -0.72;
+    // Recessed below the windscreen; the cowl provides a real open well.
+    this.root.position.set(0, 0.31, 0.6);
+    this.root.rotation.x = 0.72;
     this.update({});
   }
   update(values: BikeInstrumentValues) {

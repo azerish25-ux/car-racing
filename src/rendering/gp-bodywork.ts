@@ -8,10 +8,9 @@ import type { RiderDetail } from './rider.ts';
  * and pit-service articulation retain their production owners. No async swap
  * or late unshadowed mesh can appear during a replay. Geometry is owned by each
  * model; its existing disposal path releases it. Five material batches per LOD. */
-export function gpBodywork(materials: BikeMaterials, detail: RiderDetail): T.Group {
+function buildGroup(materials: BikeMaterials, source: typeof bodywork.high, name: string): T.Group {
   const group = new T.Group();
-  group.name = `GP-R1 authored shell (${detail})`;
-  const source = detail === 'high' ? bodywork.high : bodywork.mid;
+  group.name = name;
   for (const part of source) {
     const geometry = new T.BufferGeometry();
     geometry.setAttribute('position', new T.Float32BufferAttribute(part.position, 3));
@@ -29,6 +28,23 @@ export function gpBodywork(materials: BikeMaterials, detail: RiderDetail): T.Gro
     group.add(mesh);
   }
   group.userData.authoredIn = 'Blender 5.2.2';
-  group.userData.referenceRevision = 'motogp-100-r1';
+  group.userData.referenceRevision = 'motogp-100-r1.1';
   return group;
+}
+
+export function gpBodywork(materials: BikeMaterials, detail: RiderDetail): T.Group {
+  return buildGroup(
+    materials,
+    detail === 'high' ? bodywork.high : bodywork.mid,
+    `GP-R1 authored shell (${detail})`,
+  );
+}
+/** Full-fairing catalogue bikes share the open instrument well, not the GP-R1
+ * tank, tail or aero. The existing box-wing and road-bike identities remain. */
+export function gpUpperCowl(materials: BikeMaterials, detail: RiderDetail): T.Group {
+  return buildGroup(
+    materials,
+    detail === 'high' ? bodywork.upperHigh : bodywork.upperMid,
+    `Open motorcycle instrument cowl (${detail})`,
+  );
 }

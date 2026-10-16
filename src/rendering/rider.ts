@@ -368,6 +368,7 @@ export class Rider {
       cap.scale.set(0.75, 0.55, 1.0);
     }
     // Head and helmet: neck pivot at the top of the spine.
+    this.head.name = 'Rider head and helmet';
     this.head.position.set(0, RIDER.spine + 0.04, 0.03);
     this.torso.add(this.head);
     const shell = part(
@@ -589,6 +590,11 @@ export class Rider {
       ...this.shins.map((b) => b.group),
     ])
       batchBikeRigidMeshes(group);
+  }
+  /** A first-person lens is inside the rider's helmet. Do not draw the
+   * surrounding shell across the eye port; other riders remain unaffected. */
+  setFirstPerson(active: boolean) {
+    this.head.visible = !active;
   }
   /** Riding pose in the bike's (sprung) frame. */
   ride(pose: RiderPose) {

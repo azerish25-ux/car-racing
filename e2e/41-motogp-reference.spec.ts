@@ -67,6 +67,33 @@ test('GP reference R1: authored LODs, road-bike fallback and reversible wet mate
     hashes.push(result.hash);
     triangleCounts.push(result.triangles);
   }
+  // Use the production onboard mount and lens, not a convenient exterior angle.
+  for (const id of ['gpr1', 'gpr2', 'sbk1000', 'ss600']) {
+    const result = await page.evaluate(
+      (id) =>
+        (
+          window as unknown as { MotoGPReview: { captureBike: typeof captureBike } }
+        ).MotoGPReview.captureBike('onboard', 'high', id, false),
+      id,
+    );
+    await info.attach(`${id}-production-onboard.png`, {
+      body: Buffer.from(result.image.split(',')[1], 'base64'),
+      contentType: 'image/png',
+    });
+    await info.attach(`${id}-onboard-contract.json`, {
+      body: JSON.stringify(result, (key, value) => (key === 'image' ? undefined : value), 2),
+      contentType: 'application/json',
+    });
+    expect(result.glError).toBe(0);
+    expect(result.cockpit?.facing).toBeGreaterThan(0.7);
+    expect(result.cockpit?.visibleSamples).toBe(9);
+    for (const [x, y, z] of result.cockpit!.corners) {
+      expect(Math.abs(x)).toBeLessThan(0.95);
+      expect(Math.abs(y)).toBeLessThan(0.95);
+      expect(z).toBeGreaterThan(-1);
+      expect(z).toBeLessThan(1);
+    }
+  }
   expect(errors).toEqual([]);
   expect(triangleCounts[0]).toBeGreaterThan(triangleCounts[1]);
   expect(triangleCounts[1]).toBeGreaterThan(triangleCounts[2]);

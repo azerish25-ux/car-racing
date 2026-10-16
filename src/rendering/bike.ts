@@ -2,7 +2,7 @@ import * as T from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { batchBikeRigidMeshes } from './bike-rigid-batch.ts';
 import { addGPIdentity } from './bike-livery.ts';
-import { gpBodywork } from './gp-bodywork.ts';
+import { gpBodywork, gpUpperCowl } from './gp-bodywork.ts';
 import { bikeSurfaceMaps } from './bike-surface-detail.ts';
 import { BikeCockpit } from './bike-cockpit.ts';
 import { tagWeatherSurface } from './weather-presentation.ts';
@@ -980,24 +980,7 @@ export class BikeModel {
     ): Section => ({ z, y, w, top, bottom, topWidth });
     // Upper fairing: a wedge nose over the front wheel, clear of fork travel,
     // whose cheeks drop behind the wheel to meet the lower fairing.
-    if (full && !authored)
-      add(
-        this.sprung,
-        superLoft(
-          [
-            section(0.37, 0.02, 0.24, 0.29, 0.2, 0.62),
-            section(0.45, 0.07, 0.26, 0.26, 0.15, 0.66),
-            section(0.53, 0.13, 0.265, 0.2, 0.11, 0.7),
-            section(0.66, 0.17, 0.245, 0.15, 0.07, 0.68),
-            section(0.78, 0.18, 0.2, 0.11, 0.06, 0.62),
-            section(0.88, 0.17, 0.13, 0.075, 0.05, 0.6),
-            section(0.955, 0.155, 0.05, 0.03, 0.03, 0.7),
-          ],
-          sides,
-          3,
-        ),
-        m.paint,
-      );
+    if (full && !authored) this.sprung.add(gpUpperCowl(m, detail));
     // Lower fairing and belly pan: behind the wheel, its rear edge rising
     // toward the footpegs; the frame beams stay exposed above it.
     if (full && !authored)
@@ -1577,10 +1560,10 @@ interface Entry {
 const COMPOUND_COLOURS = Object.values(COMPOUNDS).map((c) => c.color);
 /** Chase-camera roll as a fraction of the followed bike's lean. */
 export const BIKE_CHASE_ROLL = 0.35;
-/** Onboard camera inside the screen bubble, ahead of the tucked rider. */
+/** First-person lens inside the screen bubble, behind the instrument well. */
 export const BIKE_ONBOARD = Object.freeze({
-  eye: [0, 0.36, 0.46] as const,
-  pitch: -0.06,
+  eye: [0, 0.435, 0.34] as const,
+  pitch: -0.14,
   tail: [0, 0.78, -0.95] as const,
   tailPitch: -0.12,
 });
@@ -1655,6 +1638,12 @@ export class BikeShells {
     this.root.remove(entry.rig.root);
     entry.rig.dispose();
     entry.materials.dispose();
+  }
+  /** Exclude only the followed rider's own helmet from first-person colour
+   * rendering. Restore every rider for tail, chase, replay and photo views. */
+  setFirstPerson(follow: number) {
+    for (const [id, entry] of this.entries)
+      for (const model of entry.levels) model.rider.setFirstPerson(id === follow);
   }
   /** The service rig of entrant `id` (diagnostics and tests), if it is a bike. */
   serviceRig(id: number) {

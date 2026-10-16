@@ -2,10 +2,12 @@
   "runtime": "Blender 5.2.2 LTS official Linux x64 desktop binary",
   "buildHash": "d13f752e3b9c",
   "archiveSHA256": "84098912789dc450e95697c4184fb8a90acbe5111c2ba4aede3fecb57806a168",
-  "meshSHA256": "958a31a5342682d2216a62e7cde82eea73d791e868e20790d179fb948022b1ec",
+  "meshSHA256": "29aed319fbbc6a70805704c9c88c125b6481abd38514a2619e246f0569dd847f",
   "command": "blender -b --factory-startup -t 2 --python tools/motogp/build_gp_bodywork.py -- --out OUTPUT",
-  "localIndependentMatchingBakes": 3,
+  "localIndependentMatchingBakes": 2,
   "hostedIndependentMatchingBakes": 2,
-  "repair": "Reconstruct planar UVs on beveled fins and end fences from final positions. Do not relax mesh integrity verification.",
-  "scope": "Deterministic mesh bake; not a complete game or physical GPU quality certification."
+  "repair": "Retain deterministic fin/fence UV projection. Add an actual rounded instrument recess and shared high/mid upper-cowl geometry for road-racing cockpits.",
+  "scope": "Deterministic bodywork bake and component contracts; not full navigation, consumer GPU performance, PS5 parity or live-site certification.",
+  "revision": "MotoGP R1.1 cockpit",
+  "meshSchemaVersion": 2
 }
