@@ -119,7 +119,9 @@ split scheme (`cascadeSplits`, λ = 0.8) is provided for view-fitted cascades an
 splits.
 
 **Image-based lighting.** Retained: the sky PMREM is recaptured on lighting/LIVE-sun changes and
-blended between cloud bins without recapture; local scene probes refresh one face per frame.
+blended between cloud bins without recapture; local scene probes refresh one face per frame. Since
+D14 the dome it captures is a **photographed sky** on HIGH/ULTRA/MEDIUM (§8), so the environment
+light, reflections and the visible background are the same photograph.
 
 **Sun shafts** (`light-shafts.ts`). Screen-space volumetric scattering in linear HDR before bloom:
 a quarter-resolution mask of open sky weighted by a Henyey-Greenstein lobe (g = 0.9: beams start at
@@ -219,7 +221,157 @@ Factories return ordinary three.js materials — callers own and dispose them.
 | GPU pass timing | timestamp queries | `gpuMs: null`; frame GPU time only |
 | Material maps | RGBA8 render-target readback | identity (flat) maps |
 
-## 8. Known limits
+## 8. Photographed skies and third-party assets (D14)
+
+The visible sky and its image-based light are photographs (13 CC0 Poly Haven HDRIs, list and
+licences in `docs/ASSET_PROVENANCE.md`), not the procedural dome, on every preset except LOW.
+
+**Files.** Each sky ships as `public/assets/third-party/hdri/<id>/<id>_{4k,2k}.hdr.jpg`: an
+Ultra HDR JPEG whose sRGB base is full size and whose gain map is a half-size scalar
+(log2 over [0, log2 65], gamma 1, zero offsets) — `hdr = base · 2^(gain · gainMax)` exactly, the
+base computed against the gain the decoder reads back (built and verified by
+`scripts/assets/hdri.ts`; reconstruction 0.015–0.045 stops RMS, JPEG noise). Radiance is normalised so
+the cosine-weighted dome mean is 1 and sun cores are clipped at 64×; pixels below the skyline (the
+photographer's ground) are replaced by the blurred sky above it before encoding, since the shader
+never shows them. The build measures, and the
+manifest stores, the brightest region's azimuth/elevation and colour, direct/diffuse ratio, dome
+mean, horizon colours toward/away from the sun, zenith and ground means.
+
+**Selection** (`src/rendering/assets/sky-catalogue.ts`). A venue's landscape picks a palette
+(`THEME_PALETTE` for every catalogue/off-road theme; Aurel green, Vellamar coast, festival coast);
+each lighting has a ramp of skies over simulated cloud cover — day: clear (≤ 0.20) → fair-weather
+cumulus (0.45) → overcast (0.72) → rain cloud and mist (≥ 0.92); golden hour: clear/broken
+evening → overcast → rain; night: moonlit (≤ 0.4) → low cloud lit by distant towns (≥ 0.7; cities
+always, at 4× the physical night dome so a city's sky glow reads above the floodlit-venue black).
+Green, city and flat venues open under broken cumulus with the sun out of shot: no clear-sky photo
+with a high sun and a clean horizon exists in the reachable set for them. The visible dome and every
+PMREM bin crossfade the two neighbouring skies per pixel, so a weather transition is continuous; the
+weather presets land on clear (0.12) and rain (0.95). Skies were chosen for a clean horizon (a photo
+is drawn at infinity: a nearby hill or tree would tower over the circuit); see
+`docs/ASSET_PROVENANCE.md`.
+
+**Alignment and radiometry** (`src/rendering/assets/photo-sky.ts`). Each photo is rotated about +y
+so its measured sun (moon or glow at night) stands under the scene's key light (`skyRotation`);
+skies with a visible sun were chosen within 8° of the key's elevation (52° day, 10° golden hour —
+tested), so shadows, shafts and the photographed sun agree. The photo is scaled to the
+cosine-weighted mean radiance of the physical sky it replaces (`skyCosineRadiance`), which keeps
+the sun, fill, exposure and IBL calibration of §1–§7; only the sky's content and colour change. The
+aerial-perspective haze takes the photo's horizon colours (`fogPalette` → `aerialFogColor` and the
+sun-side glow), so distant terrain dissolves into the photographed horizon. Cube captures (PMREM bins,
+local probes) clip the photo at 16× the dome mean — the directional light carries the sun — and
+replace the lower hemisphere with the calibrated ground (`SKY_GROUND_GLSL`). The visible dome never
+shows the photographer's ground: below the recipe's `skyline` it fades over 1° into the sky just
+above it, blurred across azimuth (a 64-texel-wide mip), so wherever the venue's terrain ends inside the
+haze the horizon continues as haze, as the physical sky does. The skyline is 0° (horizon) for most
+skies; 7.5° for the broken-cumulus sky (it also hides nearby poles, trees and farm buildings) and 5.5°
+for the winter sky (a distant housing estate).
+
+**Shader** (`photo-sky-shader.ts`, in the dome of `daylight.ts`). Two texture pairs (base sRGB
+RGBA8 with mips and 4× anisotropy, gain R8), equirectangular lookup with seam-free `textureGrad`,
+crossfade weight, capture clamp; `photoAmount` 1 skips the procedural sky entirely (no sky-view,
+cloud or star fetches). Cost: 2 (4 while crossfading) texture fetches per sky pixel, 4 (8) below the
+horizon. The diffuse IBL keeps the physical sky's blue/red balance (`irradianceSaturation`: clear
+photographs run B/R 3–4.5 against the model's calibrated 2.4, which tinted sunlit asphalt blue);
+the visible sky keeps the photograph's colour. The festival renderer, whose materials lack that
+patch, gets the same balance in its PMREM captures (`photoCaptureSaturation`).
+
+**Loading and memory.** Files load on demand (`fetch`, split at the manifest's gain-map offset,
+`createImageBitmap` without colour management, off the main thread). Sessions wait for the skies of
+their starting cover behind the loading screen (circuit `prepare`, festival boot; menu: the clear
+sky during renderer creation); a later weather or lighting change loads in the background and the
+dome keeps its loaded neighbour (or the procedural sky) until then, followed by one PMREM recapture.
+At most four decoded skies stay resident. 4k: 0.3–1.4 MB download, ≈45 MB GPU (base 32 MB + mips,
+gain 2 MB); 2k: 0.1–0.4 MB / ≈11 MB. All 13 skies at both sizes are 10.6 MB. LOW, a missing decoder (node tests), or a failed load keep the
+physical sky (`console.warn`, no error dialog). `apexDiagnostics().renderer.photoSky` reports
+palette, variant, shown pair and residents.
+
+| Preset | Sky |
+|---|---|
+| Low | procedural physical sky (unchanged) |
+| Medium | photographed, 2k |
+| High / ULTRA | photographed, 4k |
+
+**Asset APIs for other features** (`src/rendering/assets/`):
+
+```ts
+import { loadPbrSet } from '../rendering/assets/texture-loader.ts';
+const set = await loadPbrSet(renderer.renderer, 'sandy-gravel-01', { repeat: 8, anisotropy: 8 });
+const gravel = new T.MeshStandardMaterial({ ...set.maps });   // map, normalMap, roughnessMap, metalnessMap, aoMap (ORM)
+set.metres;                                                   // physical size of one repeat
+set.dispose();
+
+import { loadEnvironment } from '../rendering/assets/environment-loader.ts';
+const env = await loadEnvironment(renderer, 'quarry-02', { variant: '2k' });   // studio / showroom scenes
+scene.background = env.background; scene.environment = env.environment;
+scene.backgroundRotation.y = scene.environmentRotation.y = env.rotationFor(sunDirection);
+
+import { thirdPartyAsset, creditLines } from '../rendering/assets/third-party.ts';
+```
+
+`loadPbrSet` prefers KTX2 (transcoder at `assets/basis/`, copied from three by the build) and
+falls back to WebP per map; textures are cached per renderer and cloned per call. `loadEnvironment`
+decodes the gain map on the GPU into a half-float equirect + PMREM (three's `UltraHDRLoader` /
+`HDRLoader` for files without a manifest layout) and is reference counted. All loaders reject in
+node, so unit tests and LOW keep the procedural paths. To add an asset: add a register entry
+(pinned URL, SHA-256, size, licence, author, attribution, licence evidence, recipe), run
+`node --experimental-transform-types scripts/assets/build-third-party.ts --tools <node_modules with
+hdrify> [--toktx <path>]`, commit the register, the manifest and `public/assets/third-party/`.
+
+## 8b. Scanned ground (D14.1)
+
+Every ground material — racing asphalt, pit lane, run-off, kerbs, verges and aprons, gravel traps,
+the far terrain, venue-kit paving and rock, the off-road course soil, the festival terrain and its
+roads — takes its structure (colour variation, relief, roughness) from photographed CC0 / CC BY 4.0
+sets (`docs/ASSET_PROVENANCE.md`) on MEDIUM and above. The calibrated albedos, finishes and every
+simulation-driven layer stay in charge: a scan enters as a **ratio to its set's mean colour**
+(recorded by the build), so it adds the photograph's detail and hue variation without moving a
+surface's measured albedo, the exposure or the IBL balance.
+
+**Store** (`src/rendering/ground/scan-store.ts`). Ten layers — `lawn`, `meadow`, `forest`,
+`dryEarth`, `asphalt`, `wetEarth`, `concrete`, `rock`, `snow` (sets under
+`public/assets/third-party/ground/`) and `gravel` (`sandy-gravel-01`). Materials register the layers
+they sample; once a renderer is attached (`setQuality`) the store loads those layers with
+`loadPbrSet` (KTX2, WebP fallback, anisotropy 16), binds them to shared uniforms and defines
+`APEX_SCAN` (plus `APEX_SCAN_HEX` on HIGH/ULTRA) on every material whose layers are resident; maps
+the scan supersedes (procedural albedo, bump and roughness on turf, gravel and concrete; the library
+soil's maps) are swapped out and restored on LOW. The race renderer, the menu and the festival wait
+for the sets behind the loading screen (`scannedGround.ready`); `apexDiagnostics().renderer.scannedGround`
+lists residents, formats and switched materials. Node, LOW and any load failure keep the procedural
+surfaces (`console.warn`).
+
+**Sampling** (`ground-glsl.ts`). World-planar, uv = (x, −z) / metres, so each set keeps its
+photographed scale and an OpenGL normal map's frame on the ground is right-handed. HIGH/ULTRA: hex
+tiling — a triangle lattice (1.5–1.6 cells per tile) whose vertices each pick a random offset and
+rotation; the three taps of a pixel's triangle blend with barycentrics sharpened by their own
+luminance (Mikkelsen, JCGT 2022), so no repetition reads at any distance and transitions are
+grain-on-grain rather than blurred. MEDIUM: the tile plus a rotated 0.37× tap. Gradients come from
+the unrotated uv (rotated per tap, `textureGrad`), so filtering is that of one plain lookup. Steep
+faces use a slope-aligned projection (u along the contour, v up the face).
+
+| Surface | Layers | What the scan does |
+|---|---|---|
+| Racing surface, pit lane, run-off (`installScannedAsphalt`) | asphalt | replaces the procedural chip tile exactly where the micro fade applies it (colour, chip normal, roughness); a 1/7-scale tap mottles the binder; meso tone, racing line, launch rubber, repairs, sealant, glints and the wet film are untouched |
+| Verges, aprons, skirts, kit grass (`installScannedTurf`) | lawn, meadow | mown lawn within 24–52 m of the centre line, meadow beyond and in metre-scale patches through the mown verge, meadow macro tap (9 m tile ×0.11); mowing bands and regional tint from the D19 finish stay; procedural tufts are compiled out |
+| Far terrain (`installScannedTerrain`) | lawn, meadow, rock | the turf blend by distance to the circuit; rock on slopes 0.47–0.62 (slope-aligned); the canopy carpet keeps its crowns |
+| Gravel traps (`installScannedGravel`) | gravel | the scan under the D19 river-gravel colour with dust/damp patches |
+| Kerbs (`installScannedKerb`) | concrete | paint follows the concrete's tone (40 %) and relief; its high points are scrubbed to the substrate first, more where tyres strike (`kerbWear`) |
+| Kit paving, gate pad, stadium (`installScannedConcrete`, `installScannedMaps`) | concrete, rock | concrete / rock at their photographed scale |
+| Off-road soil (`soil-splat.ts`) | per course, ≤ 5 of dryEarth (hardpack), forest (loam), gravel (sand, gravel), wetEarth (mud), asphalt, meadow (turf) | one-hot `apexSoilLayers` per vertex; height-blended splat (each set's luminance lifts its weight at a boundary); the dominant set slope-aligned on berms and jump faces; simulated compaction smooths relief and gloss, ruts stay rough; vertex colour keeps the kind's albedo; moisture darkening and puddles as before |
+| Festival terrain, roads | meadow, rock, forest, gravel, snow; asphalt | each layer colour of the biome splat takes its set's ratio, normals blend by layer weight; library asphalt swaps its maps |
+
+**Cost.** Per pixel on HIGH/ULTRA: 9 texture fetches per sampled set (3 taps × colour, normal,
+ORM), 6 without ORM (splat slots, rock, festival layers), plus 1–2 macro taps. Turf: 2 sets (21
+fetches); terrain: 2–3; asphalt: 1 (+1 macro); off-road: the slots present at the pixel (one or two
+away from boundaries) plus a slope tap on steep faces. MEDIUM halves the tap count. Active samplers
+per program stay ≤ 15 (off-road soil 10 + shadows/environment), within the 16 of common GPUs.
+Memory: 10 sets × 3 maps at 1024² with mips; ETC1S/UASTC transcode to BC7/ASTC/ETC where
+supported (≈ 1.4 MB per map), RGBA8 otherwise (5.6 MB). All ten sets ship 14.8 MB of KTX2 plus
+4.8 MB of WebP fallbacks; a session downloads only the layers its materials use (6 at a paved
+circuit, up to 9 at an off-road venue). Shader cost when switching (SwiftShader, Valley Ridge):
+recompiling the 9 scanned programs takes 1.5 s (MEDIUM) / 2.6 s (HIGH/ULTRA) against 15.6 s for
+the whole scene's first compile.
+
+## 9. Known limits
 
 - SSR normals are reconstructed from depth (no MRT G-buffer): tessellated curvature can show as
   faceted reflections on low-polygon bodies; normal-mapped detail is not reflected. Single bounce;
@@ -235,6 +387,18 @@ Factories return ordinary three.js materials — callers own and dispose them.
   shadows); PCSS penumbrae are capped at 6 texels in every map.
 - Sun shafts are screen-space: no shafts once the sun is well outside the frame, and no ray-marched
   in-scattering in shadowed air (the aerial-perspective haze remains the retained model).
+- Photographed skies are static: the sun's azimuth follows the scene key by rotation, but its
+  elevation is the photo's (within 8° for sunlit skies); a LIVE sky keeps the photo of the nearest
+  lighting rather than the real time of day, and night is a fixed moonlit or town-lit sky. Clouds
+  in the photo do not move or cast the (procedural) cloud shadows on the circuit. The photo's
+  ground below the horizon is at infinity — wherever the venue's terrain ends inside the haze the
+  photographed foreground can show through. 4k over 360° is about 11 px per degree, softer than
+  the screen at 50–60° FOV.
+- Scanned ground is a single photographed tile per surface type at 1024 px (about 1.6 mm per
+  texel on asphalt and lawn, 3 mm on meadow and rock): no parallax/displacement, no per-venue
+  sets (an arid circuit's verges use the same lawn, tinted by the venue's finish), no material
+  for painted lines, and the kerb paint wear is authored, not scanned. The off-road splat is per
+  vertex (0.5 × 1 m cells), so soil-kind boundaries follow that grid softened by the height blend.
 - Software rendering (CI SwiftShader/Mesa) proves function only. ULTRA frame cost, memory headroom
   and image quality need captures on named reference hardware (`HARDWARE_DEVICE_PLAYTEST_PROTOCOLS.md`)
   before any row moves beyond *integrated*.

@@ -11,3 +11,6 @@ test-results/
 public/models/supplied-player-lods.bin.gz
 browser-shard-plan.json
 browser-backend.json
+
+# Third-party asset build cache (scripts/assets/build-third-party.ts).
+.cache/

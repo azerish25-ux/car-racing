@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { installScannedDetail, installScannedMaps, libraryAlbedo } from '../ground/scanned-ground.ts';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { ROAD_FLAG, type RoadEdge, type RoadNetwork } from '../../simulation/open-world/road-network.ts';
 import type { TrackPoint } from '../../simulation/track.ts';
@@ -98,6 +99,16 @@ function vergeMaterial() {
   return material;
 }
 
+/** Photographed loam under the dirt tracks and meadow on the verges (Medium and above). */
+function installScannedDirt(material: T.MeshStandardMaterial) {
+  installScannedDetail(material, 'forest', { strength: 1, chroma: 0.5, relief: 1.2 });
+  return material;
+}
+function installScannedVerge(material: T.MeshStandardMaterial) {
+  installScannedDetail(material, 'meadow', { strength: 0.9, chroma: 0.5, relief: 1 });
+  return material;
+}
+
 /**
  * Road presentation of the network: asphalt ribbons (fresh on highways and
  * the runway, worn on country and mountain roads, patched in town) from the
@@ -121,6 +132,8 @@ export class RoadMeshes {
     const asphaltMajor = materials.asphalt({ variant: 'fresh', color: 0x3c3d3e });
     const asphalt = materials.asphalt({ variant: 'worn' });
     const town = materials.asphalt({ variant: 'patched', color: 0x48484a });
+    // Photographed asphalt on Medium and above (ground/scanned-ground.ts).
+    for (const m of [asphaltMajor, asphalt, town]) installScannedMaps(m, 'asphalt', libraryAlbedo(m));
     for (const [m, units] of [
       [asphaltMajor, -4],
       [asphalt, -3],
@@ -147,8 +160,8 @@ export class RoadMeshes {
       asphaltMajor,
       asphalt,
       town,
-      dirt: dirtMaterial(),
-      verge: vergeMaterial(),
+      dirt: installScannedDirt(dirtMaterial()),
+      verge: installScannedVerge(vergeMaterial()),
       paint,
       yellow,
       rail: Object.assign(materials.metal({ kind: 'bare', metal: 'steel', roughness: 0.42 }), { side: T.DoubleSide }),

@@ -4,7 +4,7 @@ import * as T from 'three';
 import { installStableSurfaceBump } from './materials.ts';
 import { Random, clamp } from '../core/math.ts';
 import { canvasTexture } from './geometry.ts';
-import { installAsphaltDetail } from './studio/road-detail.ts';
+import { ASPHALT_DETAIL, installAsphaltDetail } from './studio/road-detail.ts';
 
 export type SurfaceKind = 'asphalt' | 'grass' | 'gravel' | 'concrete';
 const palette: Record<SurfaceKind, readonly [number, number, number]> = {
@@ -296,7 +296,12 @@ export function surfaceMaterial(
   installStableSurfaceBump(material);
   if (finish || kind !== 'gravel')
     installCircuitFinish(material, finish ?? (kind as CircuitFinish));
-  if (asphalt) installAsphaltDetail(material, asphaltTexelMeans(data));
+  if (asphalt) {
+    const means = asphaltTexelMeans(data);
+    installAsphaltDetail(material, means);
+    // The scanned asphalt (ground/scanned-ground.ts) cancels this chip tile.
+    material.userData.asphaltMeans = { ...means, contrast: ASPHALT_DETAIL.microContrast };
+  }
   return material;
 }
 

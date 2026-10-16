@@ -38,6 +38,10 @@ import { postLensFrame } from '../studio/lens-effects.ts';
 import { SKY_CLOUDS, SkyClouds } from '../studio/sky-clouds.ts';
 import { studioUniforms } from '../studio/studio-frame.ts';
 import { UltraPipeline } from '../ultra/pipeline.ts';
+import { PhotoSky } from '../assets/photo-sky.ts';
+import { scannedGround } from '../ground/scan-store.ts';
+import { FESTIVAL_PALETTE } from '../assets/sky-catalogue.ts';
+import { aerialFogColor } from '../studio/aerial-perspective.ts';
 import { WetRoadReflection } from '../wet-reflection.ts';
 import { Buildings } from './buildings.ts';
 import { FestivalCars } from './festival-cars.ts';
@@ -83,6 +87,8 @@ export class FestivalRenderer {
   private readonly hemisphere = new T.HemisphereLight(0x8fb6ea, 0x4a4237, 0.14);
   private readonly sky = new Sky();
   private readonly environment: SkyEnvironment;
+  /** Photographed CC0 sky of the region (assets/photo-sky.ts). */
+  readonly photoSky = new PhotoSky(FESTIVAL_PALETTE, true);
   private readonly composer: EffectComposer;
   private readonly scenePass: SceneAmbientPass;
   private readonly bloom = new LensBloomPass();
@@ -125,7 +131,8 @@ export class FestivalRenderer {
     this.sky.userData.excludeMotionBlur = true;
     configureSky(this.sky);
     const clouds = SkyClouds.forSky(this.sky.material, lightingDirection);
-    this.environment = new SkyEnvironment(this.sky, clouds);
+    this.photoSky.setQuality(this.preset);
+    this.environment = new SkyEnvironment(this.sky, clouds, this.photoSky);
     scene.add(this.sky);
     scene.environmentIntensity = 0.7;
     scene.fog = new T.FogExp2(0xb9c7c1, 0.00012);
@@ -201,6 +208,8 @@ export class FestivalRenderer {
     const budget = TERRAIN_BUDGETS[tier];
     this.terrain.budget = { ...budget, trees: budget.trees * clamp(g.vegetationDensity, 0, 1) };
     this.environment.highDetail = g.reflections === 'local';
+    this.photoSky.setQuality(preset);
+    scannedGround.attach(this.renderer, preset);
     this.ultra.configure(preset, g);
     this.resize();
   }
@@ -313,6 +322,9 @@ export class FestivalRenderer {
       daylight.fill *= 0.7;
       daylight.exposure *= 1.5;
     }
+    const photoPalette = mode === 'night' ? null : this.photoSky.fogPalette(daylight.cover, mode);
+    if (photoPalette)
+      [daylight.fogRed, daylight.fogGreen, daylight.fogBlue] = aerialFogColor(daylight.cover, presented[H.RAIN], mode, photoPalette);
     applyCircuitLightPalette(this.sun, this.hemisphere, daylight.cover, mode);
     this.sun.intensity = daylight.sun;
     this.hemisphere.intensity = daylight.fill;
@@ -329,6 +341,7 @@ export class FestivalRenderer {
     uniforms.sunsetAmount.value = mode === 'sunset' ? 1 : 0;
     uniforms.sunPosition.value.copy(lightingDirection(mode));
     bindSkyCelestial(this.sky.material, mode);
+    this.photoSky.bind(this.sky.material, daylight.cover, mode, false);
     uniforms.cloudDrift.value = (time * SKY_CLOUDS.driftPerSecond) % 1;
     shadowAnchor(this.target, this.sun.shadow.mapSize.x, this.sun.shadow.camera.right, this.sun.target.position, mode);
     this.sun.position.copy(this.sun.target.position).add(this.temp.copy(lightingDirection(mode)).normalize().multiplyScalar(400));
@@ -377,6 +390,7 @@ export class FestivalRenderer {
   dispose() {
     if (this.disposed) return;
     this.disposed = true;
+    scannedGround.detach(this.renderer);
     this.terrain.dispose();
     this.roads.dispose();
     this.buildings.dispose();
@@ -385,6 +399,7 @@ export class FestivalRenderer {
     this.markers.dispose();
     this.cars.dispose();
     this.ultra.dispose();
+    this.photoSky.dispose();
     this.composer.dispose();
     this.scene.clear();
   }

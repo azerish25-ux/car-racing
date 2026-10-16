@@ -17,7 +17,11 @@ import {
   type LightingMode,
 } from './sky-light.ts';
 import { BRIGHT_STARS, liveCelestial, presetCelestial, starVector } from './sky-ephemeris.ts';
-import { aerialFogColor, setAerialPerspective } from './studio/aerial-perspective.ts';
+import {
+  aerialFogColor,
+  setAerialPerspective,
+  type AerialPalette,
+} from './studio/aerial-perspective.ts';
 import { setCloudShadow } from './studio/cloud-shadow.ts';
 import {
   SKY_CLOUD_LIGHTING,
@@ -28,6 +32,12 @@ import {
   skyCloudLight,
   type SkyClouds,
 } from './studio/sky-clouds.ts';
+import {
+  createPhotoSkyUniforms,
+  PHOTO_SKY_SAMPLE,
+  PHOTO_SKY_UNIFORM_NAMES,
+  PHOTO_SKY_UNIFORMS,
+} from './assets/photo-sky-shader.ts';
 import {
   IBL_ENERGY,
   SKY_IRRADIANCE_SATURATION,
@@ -464,7 +474,7 @@ uniform float probeSkyIntensity;
 uniform float nightAmount;
 uniform float sunsetAmount;
 uniform float urbanGlow;
-${SKY_CLOUD_UNIFORMS}${SKY_CLOUD_SAMPLE}${SKY_CLOUD_LIGHTING}${SKY_GROUND_UNIFORMS}${CELESTIAL_GLSL}
+${SKY_CLOUD_UNIFORMS}${SKY_CLOUD_SAMPLE}${SKY_CLOUD_LIGHTING}${SKY_GROUND_UNIFORMS}${CELESTIAL_GLSL}${PHOTO_SKY_UNIFORMS}${PHOTO_SKY_SAMPLE}
 const float SKY_PI = 3.141592653589793;
 const vec2 SKY_VIEW_SIZE = vec2(${SKY_DOME.size[0].toFixed(1)}, ${SKY_DOME.size[1].toFixed(1)});
 // Sky view: u = azimuth from the sun / pi, v = sqrt(elevation / 90 degrees);
@@ -478,8 +488,7 @@ vec3 skyView(vec3 direction) {
   uv = (uv * (SKY_VIEW_SIZE - 1.0) + 0.5) / SKY_VIEW_SIZE;
   return mix(texture2D(skyViewLow, uv).rgb, texture2D(skyViewHigh, uv).rgb, skyViewWeight);
 }
-void main() {
-  vec3 direction = normalize(vWorldPosition - cameraPosition);
+vec3 proceduralSky(vec3 direction) {
   vec3 radiance = skyView(direction) * skyRadiance;
   // Unresolved thin cloud whitens the clear dome toward a blue grey of its own
   // luminance; a closing deck replaces it with the deck's diffuse radiance.
@@ -554,6 +563,15 @@ void main() {
     nightSky = mix(nightSky, vec3(.014, .016, .021), cloudCover * .45 * (1.0 - cover));
     radiance = mix(vec3(.008, .0095, .014), nightSky, smoothstep(-.05, .10, direction.y));
   }
+  return radiance;
+}
+void main() {
+  vec3 direction = normalize(vWorldPosition - cameraPosition);
+  // Photographed sky (assets/photo-sky-shader.ts) over the physical one; the
+  // procedural dome is not evaluated at all once a photo fully replaces it.
+  vec3 radiance = photoAmount < 1.0 ? proceduralSky(direction) : vec3(0.0);
+  if (photoAmount > 0.0)
+    radiance = mix(radiance, photoSky(direction, sunDiscAmount <= 0.0), photoAmount);
   ${SKY_GROUND_GLSL}
   gl_FragColor=vec4(radiance * probeSkyIntensity,1.0);
   #include <tonemapping_fragment>
@@ -589,6 +607,8 @@ export function configureSky(sky: Sky) {
   };
   // Cloud panoramas: unbound (no baked clouds) until a SkyClouds binds them.
   Object.assign(u, createSkyCloudUniforms());
+  // Photographed sky: unbound (procedural only) until a PhotoSky binds one.
+  Object.assign(u, createPhotoSkyUniforms());
   // Ground hemisphere: 0 for the visible dome, set only by SkyEnvironment.capture.
   u.groundAmount = { value: 0 };
   u.groundAlbedo = { value: new T.Vector3(...IBL_ENERGY.groundAlbedo) };
@@ -668,19 +688,34 @@ const SKY_BINDING = [
   'cloudKey',
   'cloudAmbient',
   'cloudBounce',
+  ...PHOTO_SKY_UNIFORM_NAMES,
 ] as const;
 function saveSkyBinding(material: T.ShaderMaterial) {
   const u = material.uniforms;
   const saved = SKY_BINDING.filter((k) => u[k]).map((k) => {
     const value = u[k].value as unknown;
-    return [k, value instanceof T.Vector3 ? value.clone() : value] as const;
+    return [
+      k,
+      value instanceof T.Vector3 || value instanceof T.Vector4 ? value.clone() : value,
+    ] as const;
   });
   return () => {
     for (const [k, value] of saved) {
       if (value instanceof T.Vector3) (u[k].value as T.Vector3).copy(value);
+      else if (value instanceof T.Vector4) (u[k].value as T.Vector4).copy(value);
       else u[k].value = value;
     }
   };
+}
+
+/** A photographed sky over the dome (assets/photo-sky.ts). SkyEnvironment
+ * binds it per PMREM bin, recaptures when `key` changes (a sky finished
+ * loading, another venue or quality) and reads the aerial-perspective
+ * palette from it. */
+export interface PhotoSkyBinding {
+  readonly key: string;
+  bind(material: T.ShaderMaterial, cover: number, mode: LightingMode, capture: boolean): boolean;
+  fogPalette(cover: number, mode: LightingMode): AerialPalette | null;
 }
 
 /** Piecewise-linear radiance between neighbouring, identically packed PMREMs.
@@ -780,9 +815,11 @@ export class SkyEnvironment {
   private epoch: object = {};
   /** `clouds` bakes and binds the sky's cloud panoramas (the circuit renderer);
    * without it the dome has no baked clouds. */
+  private photoKey = '';
   constructor(
     private sky: Sky,
     private clouds?: SkyClouds,
+    private photo?: PhotoSkyBinding,
   ) {
     this.environmentScene.add(sky.clone());
   }
@@ -808,6 +845,8 @@ export class SkyEnvironment {
       uniforms.sunPosition.value.copy(lightingDirection(mode));
       // This bin's sky view, deck and cloud lighting.
       bindSkyAtmosphere(this.sky.material, bin / 8, mode);
+      // This bin's photographed sky (restored with the binding below).
+      this.photo?.bind(this.sky.material, bin / 8, mode, true);
       // The directional light carries the sun; the capture holds only sky.
       if (uniforms.sunDiscAmount) uniforms.sunDiscAmount.value = 0;
       // The lower hemisphere is ground, lit by this bin's sun and sky, not
@@ -913,7 +952,9 @@ export class SkyEnvironment {
       plan.cover,
       mode,
       undefined,
-      mode === 'night' ? undefined : skyFogPalette(plan.cover, mode),
+      mode === 'night'
+        ? undefined
+        : (this.photo?.fogPalette(plan.cover, mode) ?? skyFogPalette(plan.cover, mode)),
     );
     // The same field shades the circuit, drifting with the dome's clouds.
     setCloudShadow(
@@ -924,17 +965,20 @@ export class SkyEnvironment {
       (this.sky.material.uniforms.cloudDrift?.value as number | undefined) ?? 0,
     );
     this.probeRefreshNeeded = false;
-    const sunKey = skySunKey();
+    const sunKey = skySunKey(),
+      photoKey = this.photo?.key ?? '';
     if (
       plan.cover === this.cover &&
       mode === this.mode &&
       sunKey === this.sunKey &&
+      photoKey === this.photoKey &&
       size === this.size
     )
       return false;
     const resized = size !== this.size;
-    // A re-aimed LIVE sun recaptures like a lighting change.
-    const relit = mode !== this.mode || sunKey !== this.sunKey;
+    // A re-aimed LIVE sun or another photographed sky recaptures like a
+    // lighting change.
+    const relit = mode !== this.mode || sunKey !== this.sunKey || photoKey !== this.photoKey;
     const candidates = new Map<number, T.WebGLRenderTarget>();
     const created: T.WebGLRenderTarget[] = [];
     // A new atlas layout needs new blend outputs. The published texture may be
@@ -988,6 +1032,7 @@ export class SkyEnvironment {
     this.cover = plan.cover;
     this.mode = mode;
     this.sunKey = sunKey;
+    this.photoKey = photoKey;
     this.size = size;
     this.cached = candidates;
     for (const [bin, target] of retired) if (candidates.get(bin) !== target) target.dispose();
@@ -1004,6 +1049,7 @@ export class SkyEnvironment {
       size: this.size,
       retainedTargets: this.cached.size + this.outputs.length,
       interpolation: 'linear-HDR-CubeUV',
+      photoKey: this.photoKey,
       independentAnimation: false,
       clouds: this.clouds?.diagnostics() ?? null,
     };

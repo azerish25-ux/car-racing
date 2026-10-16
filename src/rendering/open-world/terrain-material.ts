@@ -1,5 +1,62 @@
 import * as T from 'three';
+import { SCAN_COMMON_GLSL } from '../ground/ground-glsl.ts';
+import {
+  scanLayerCall,
+  scanMacroCall,
+  scannedGround,
+  scanUniformDeclarations,
+  type ScanLayer,
+} from '../ground/scan-store.ts';
 
+/** Photographed sets of the festival terrain (Medium and above): meadow
+ * grass, rock (slope-aligned), forest-floor soil, sandy gravel, snow. */
+export const FESTIVAL_SCAN_LAYERS: readonly ScanLayer[] = Object.freeze([
+  'meadow',
+  'rock',
+  'forest',
+  'gravel',
+  'snow',
+]);
+const SCAN_LUMA = 'vec3(0.2126, 0.7152, 0.0722)';
+/** Festival scan block: per-layer colour ratios (and a blended detail normal)
+ * from the photographed sets, applied to the calibrated layer colours. */
+const FESTIVAL_SCAN_GLSL = /* glsl */ `
+#ifdef APEX_SCAN
+  vec2 scanDx = dFdx(vOwWorld.xz), scanDy = dFdy(vOwWorld.xz);
+  vec3 scanWorldN = normalize((vec4(vNormal, 0.0) * viewMatrix).xyz);
+  vec3 scanContour = normalize(vec3(-scanWorldN.z, 0.0, scanWorldN.x) + vec3(1e-4, 0.0, 0.0));
+  vec2 scanFace = vec2(dot(vOwWorld, scanContour), vOwWorld.y);
+  vec2 scanFaceDx = dFdx(scanFace), scanFaceDy = dFdy(scanFace);
+  ApexScanSample sGrass = ${scanLayerCall('meadow', 'p', 'scanDx', 'scanDy', 1.5)};
+  vec3 scanGrass = mix(vec3(dot(sGrass.ratio, ${SCAN_LUMA})), sGrass.ratio, 0.55);
+  vec3 scanMacro = ${scanMacroCall('meadow', 'p', 0.08)};
+  scanGrass *= 1.0 + 0.45 * (dot(scanMacro, ${SCAN_LUMA}) - 1.0);
+  grass *= scanGrass * mix(1.0, sGrass.ao, 0.35);
+  owScanN = sGrass.n;
+  owScanRough = sGrass.rough;
+  ApexScanSample sLayer;
+  if (rock > 0.004) {
+    sLayer = ${scanLayerCall('rock', 'scanFace', 'scanFaceDx', 'scanFaceDy', 1.5, false)};
+    rockC *= sLayer.ratio;
+    owScanN = apexScanMixNormal(owScanN, sLayer.n, rock);
+  }
+  if (soil > 0.004) {
+    sLayer = ${scanLayerCall('forest', 'p', 'scanDx', 'scanDy', 1.5, false)};
+    soilC *= sLayer.ratio;
+    owScanN = apexScanMixNormal(owScanN, sLayer.n, soil * (1.0 - rock));
+  }
+  if (sand > 0.004) {
+    sLayer = ${scanLayerCall('gravel', 'p', 'scanDx', 'scanDy', 1.5, false)};
+    sandC *= mix(vec3(dot(sLayer.ratio, ${SCAN_LUMA})), sLayer.ratio, 0.5);
+    owScanN = apexScanMixNormal(owScanN, sLayer.n, sand * (1.0 - rock));
+  }
+  if (snow > 0.004) {
+    sLayer = ${scanLayerCall('snow', 'p', 'scanDx', 'scanDy', 1.5, false)};
+    snowC *= sLayer.ratio;
+    owScanN = apexScanMixNormal(owScanN, sLayer.n, snow);
+  }
+#endif
+`;
 /** Shared GLSL value noise for the festival materials (world-space, no
  * textures, filtered by distance so it never aliases). */
 export const OW_NOISE_GLSL = /* glsl */ `
@@ -47,7 +104,7 @@ export function terrainMaterial(): T.MeshStandardMaterial & { userData: { ow: Te
   const uniforms: TerrainUniforms = { owWet: { value: 0 }, owSnowTint: { value: 1 } };
   material.userData.ow = uniforms;
   material.onBeforeCompile = (shader) => {
-    Object.assign(shader.uniforms, uniforms);
+    Object.assign(shader.uniforms, uniforms, scannedGround.uniformsFor(FESTIVAL_SCAN_LAYERS));
     shader.vertexShader = shader.vertexShader
       .replace(
         '#include <common>',
@@ -76,7 +133,13 @@ varying vec4 vShade;
 varying vec3 vOwWorld;
 ${OW_NOISE_GLSL}
 float owRoughness;
-vec2 owBump;`,
+vec2 owBump;
+#ifdef APEX_SCAN
+${scanUniformDeclarations(FESTIVAL_SCAN_LAYERS)}
+vec3 owScanN = vec3(0.0, 0.0, 1.0);
+float owScanRough = 1.0;
+#endif
+${SCAN_COMMON_GLSL}`,
       )
       .replace(
         '#include <color_fragment>',
@@ -112,6 +175,7 @@ vec2 owBump;`,
   vec3 soilC = mix(earth, crop, field > 0.0 ? 0.75 : 0.0);
   vec3 sandC = mix(vec3(0.42, 0.37, 0.27), vec3(0.6, 0.54, 0.41), meso) * (0.9 + 0.2 * micro);
   vec3 snowC = vec3(0.82, 0.84, 0.88) * (0.94 + 0.06 * micro) * owSnowTint;
+  ${FESTIVAL_SCAN_GLSL}
   // Road verges: compacted, dusty.
   float verge = smoothstep(0.25, 1.0, vShade.x) * (1.0 - snow);
   vec3 col = grass;
@@ -124,6 +188,9 @@ vec2 owBump;`,
   owRoughness = mix(owRoughness, 0.96, soil * 0.6);
   owRoughness = mix(owRoughness, 0.88, sand);
   owRoughness = mix(owRoughness, 0.42, snow);
+#ifdef APEX_SCAN
+  owRoughness = clamp(owRoughness * mix(owScanRough, 1.0, max(rock, snow)), 0.05, 1.0);
+#endif
   // Standing water: porous layers darken and smooth (not snow or rock faces).
   float wet = owWet * (1.0 - snow) * (1.0 - 0.6 * rock);
   col *= 1.0 - 0.38 * wet;
@@ -145,9 +212,13 @@ roughnessFactor = owRoughness;`,
       .replace(
         '#include <normal_fragment_maps>',
         `#include <normal_fragment_maps>
-normal = normalize(normal + (viewMatrix * vec4(-owBump.x, 0.0, -owBump.y, 0.0)).xyz);`,
+normal = normalize(normal + (viewMatrix * vec4(-owBump.x, 0.0, -owBump.y, 0.0)).xyz);
+#ifdef APEX_SCAN
+normal = apexScanPerturb(normal, owScanN, 1.1);
+#endif`,
       );
   };
   material.customProgramCacheKey = () => 'festival-terrain-v1';
+  scannedGround.register(material, FESTIVAL_SCAN_LAYERS);
   return material;
 }

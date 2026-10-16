@@ -5,9 +5,11 @@ import {
   type CourseTerrain,
   type TerrainRenderDelta,
 } from '../../simulation/offroad/course-terrain.ts';
-import { COURSE_CELL, type SoilKind } from '../../simulation/offroad/course.ts';
+import { COURSE_CELL, SOIL_KINDS, type SoilKind } from '../../simulation/offroad/course.ts';
 import { Track, trackPoint } from '../../simulation/track.ts';
 import { materials } from '../materials/index.ts';
+import { installScannedSoil, soilSlotOf, soilSlots, writeSoilSlot } from '../ground/soil-splat.ts';
+import type { ScanLayer } from '../ground/scan-store.ts';
 
 /** Soil albedo per kind (sRGB; the soil detail map multiplies it). */
 export const SOIL_COLOURS: Readonly<Record<SoilKind, number>> = Object.freeze({
@@ -55,6 +57,8 @@ export class TerrainView {
   private readonly history: Keyframe[] = [];
   private shown = -1;
   private wetness = 0;
+  /** Photographed soil sets of this course (ground/soil-splat.ts). */
+  readonly soilSlots: readonly ScanLayer[];
   constructor(readonly track: Track) {
     const surface = Track.offroadOf(track);
     if (!(surface instanceof TrackTerrainSurface)) throw new Error('Not a terrain venue');
@@ -65,6 +69,11 @@ export class TerrainView {
     this.compaction = new Float32Array(blocks);
     this.group.name = 'Off-road course terrain (deformable)';
     this.material = materials.soil({ tile: 0.28 });
+    // Kinds on this course (cells off the course read as the venue's turf).
+    const kinds = new Set<SoilKind>(['turf']);
+    for (let i = 0; i < t.soil.length; i++) kinds.add(SOIL_KINDS[t.soil[i]] ?? 'loam');
+    this.soilSlots = soilSlots(kinds);
+    installScannedSoil(this.material, this.soilSlots);
     for (let first = 0; first < t.renderRows; first += CHUNK_ROWS)
       this.chunks.push(this.buildChunk(first, Math.min(CHUNK_ROWS, t.renderRows - first)));
   }
@@ -82,6 +91,7 @@ export class TerrainView {
     const position = new Float32Array(count * 3),
       colours = new Float32Array(count * 3),
       state = new Float32Array(count * 3),
+      layers = new Float32Array(count * 4),
       uv = new Float32Array(count * 2),
       base = new Float32Array(count),
       keep = new Uint8Array(count);
@@ -122,6 +132,7 @@ export class TerrainView {
         colours[k * 3 + 1] = colour.g;
         colours[k * 3 + 2] = colour.b;
         state[k * 3] = cell < 0 ? 0 : t.baseMoisture[cell] / 255;
+        writeSoilSlot(layers, k, soilSlotOf(kind, this.soilSlots), this.soilSlots.length);
       }
     }
     const index: number[] = [];
@@ -144,6 +155,7 @@ export class TerrainView {
       'apexSoilState',
       new T.BufferAttribute(state, 3).setUsage(T.DynamicDrawUsage),
     );
+    geometry.setAttribute('apexSoilLayers', new T.BufferAttribute(layers, 4));
     geometry.setAttribute('uv', new T.BufferAttribute(uv, 2));
     geometry.setAttribute('uv1', new T.BufferAttribute(uv.slice(), 2));
     geometry.setIndex(index);

@@ -2,6 +2,7 @@ import * as T from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { Random } from '../../core/math.ts';
 import { trackPoint, type Track } from '../../simulation/track.ts';
+import { installScannedMaps, libraryAlbedo } from '../ground/scanned-ground.ts';
 import { materials } from '../materials/index.ts';
 
 /** Indoor stadium dimensions (m). */
@@ -36,6 +37,7 @@ export class Stadium {
     }
     box.expandByVector(new T.Vector3(STADIUM.margin, 0, STADIUM.margin));
     const concrete = materials.concrete({ variant: 'rough', horizontal: 1, color: 0x8b8882 });
+    installScannedMaps(concrete, 'concrete', libraryAlbedo(concrete));
     const steel = materials.metal({
       kind: 'cast',
       metal: 'steel',
