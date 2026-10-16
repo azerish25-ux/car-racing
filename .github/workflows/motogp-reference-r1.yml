@@ -1,0 +1,113 @@
+name: MotoGP reference R1 delivery
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/motogp-reference-r1.yml']
+permissions:
+  contents: write
+concurrency:
+  group: motogp-reference-r1-delivery
+  cancel-in-progress: false
+jobs:
+  integrate-and-validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      APEX_BROWSER_BACKEND: swiftshader
+      NODE_OPTIONS: --max-old-space-size=5120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Verify and apply the exact locally tested source patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/motogp-evidence"
+          cat tools/motogp/stage/part-0{0,1,2,3}.bin > "$RUNNER_TEMP/graphics-r1.patch.xz"
+          echo "2925dc436ee10f807fc2d37518d2f67443b6516ce670a5dba52d3c817f3fc0b2  $RUNNER_TEMP/graphics-r1.patch.xz" | sha256sum -c -
+          xz -dc "$RUNNER_TEMP/graphics-r1.patch.xz" > "$RUNNER_TEMP/graphics-r1.patch"
+          echo "ff8ca450d234090062d41ee6dbb1cd329b9172b5503b94350ed406f045b47f4a  $RUNNER_TEMP/graphics-r1.patch" | sha256sum -c -
+          git apply --check "$RUNNER_TEMP/graphics-r1.patch"
+          git apply "$RUNNER_TEMP/graphics-r1.patch"
+          cp "$RUNNER_TEMP/graphics-r1.patch" "$RUNNER_TEMP/motogp-evidence/"
+      - name: Install the pinned Blender Python runtime
+        run: python -m pip install --disable-pip-version-check bpy==5.2.2
+      - name: Rebuild and verify original Blender-authored bodywork
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/motogp/build_gp_bodywork.py -- --out "$RUNNER_TEMP/gp-bodywork" 2>&1 | tee "$RUNNER_TEMP/motogp-evidence/blender.log"
+          echo "d1e9fdff0b743cf99f94a5a0a9bcce01f0d7d28720b9f549179e11068bb2fa46  $RUNNER_TEMP/gp-bodywork/gp-bodywork.mesh.json" | sha256sum -c -
+          mkdir -p src/rendering/assets authoring/motogp
+          cp "$RUNNER_TEMP/gp-bodywork/gp-bodywork.mesh.json" src/rendering/assets/
+          cp "$RUNNER_TEMP/gp-bodywork/gp-bodywork-stats.json" tools/motogp/
+          cp "$RUNNER_TEMP/gp-bodywork/motobound-gp-bodywork.blend" authoring/motogp/
+          cp "$RUNNER_TEMP/gp-bodywork/motobound-gp-bodywork.glb" authoring/motogp/
+          python tools/motogp/build_reference_index.py
+      - name: Install locked development dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Create the candidate commit without moving remote main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rm tools/motogp/stage/part-0{0,1,2,3}.bin .github/workflows/motogp-reference-r1.yml
+          git add src/rendering/bike.ts src/rendering/rider.ts src/rendering/weather-presentation.ts src/rendering/bike-cockpit.ts src/rendering/bike-livery.ts src/rendering/bike-rigid-batch.ts src/rendering/bike-surface-detail.ts src/rendering/gp-bodywork.ts src/rendering/profile-sampling.ts src/rendering/assets/gp-bodywork.mesh.json tests/motogp-reference.test.ts e2e/41-motogp-reference.spec.ts e2e/fixtures/motogp-reference-review.ts e2e/fixtures/motogp-race-review.ts tools/motogp/build_gp_bodywork.py tools/motogp/build_reference_index.py tools/motogp/gp-bodywork-stats.json docs/MOTOGP_100_REFERENCE_R1.md docs/motogp-reference-r1.json authoring/motogp
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'feat(motogp): apply 100-reference visual review with authored GP bodywork' -m 'Original Blender bodywork, material-scale detail, articulated rider refinements, live cockpit, reversible weather response and rigid batching. Preserve existing physics and concurrent delivery fixes. Include the individual reference audit, native authoring assets and GPU regression fixture. This is a tested graphics revision, not a claim of PS5 parity or complete recreation of every reference scene.'
+          git rev-parse HEAD | tee "$RUNNER_TEMP/motogp-evidence/candidate-commit.txt"
+      - name: Lint and validate catalogue content
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run lint 2>&1 | tee "$RUNNER_TEMP/motogp-evidence/lint.log"
+          npm run validate:content 2>&1 | tee "$RUNNER_TEMP/motogp-evidence/content.log"
+      - name: Run GP geometry, rider, suspension, pit and session regression tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx vitest run tests/motogp-reference.test.ts tests/bike-bodies.test.ts tests/bike-pit-service.test.ts tests/bike-session.test.ts tests/bike-setup.test.ts tests/bike.test.ts tests/open-world-bikes.test.ts 2>&1 | tee "$RUNNER_TEMP/motogp-evidence/unit.log"
+      - name: Type check and build the unchanged production configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run build 2>&1 | tee "$RUNNER_TEMP/motogp-evidence/build.log"
+          cp dist/BUILD_IDENTITY.json "$RUNNER_TEMP/motogp-evidence/"
+      - name: Install test browser
+        run: npx playwright install --with-deps chromium
+      - name: Render all GP detail levels and reversible wet weather on WebGL2
+        shell: bash
+        run: |
+          set -euo pipefail
+          xvfb-run -a npx playwright test e2e/41-motogp-reference.spec.ts 2>&1 | tee "$RUNNER_TEMP/motogp-evidence/gpu.log"
+      - name: Push only the validated candidate with a main-head guard
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --exit-code -- src package-lock.json
+          git fetch origin main
+          test "$(git rev-parse origin/main)" = "$GITHUB_SHA" || { echo 'main advanced; inspect and reconcile before retrying; no force push'; exit 1; }
+          git push origin HEAD:main
+          git rev-parse HEAD | tee "$RUNNER_TEMP/motogp-evidence/pushed-commit.txt"
+          echo "Validated MotoGP revision: $(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"
+          echo 'Focused GPU tests do not certify physical hardware performance or the full release matrix.' >> "$GITHUB_STEP_SUMMARY"
+      - name: Preserve validation evidence and editable assets
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: motogp-reference-r1-validation
+          path: |
+            ${{ runner.temp }}/motogp-evidence/
+            ${{ runner.temp }}/gp-bodywork/
+            test-results/
+            playwright-report/
+            browser-backend.json
+          compression-level: 6
+          retention-days: 7
+          if-no-files-found: error
