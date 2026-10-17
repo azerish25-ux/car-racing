@@ -1,0 +1,76 @@
+name: Solvane R2 verified object export
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [.github/workflows/solvane-r2-object-export.yml]
+permissions:
+  contents: write
+  actions: read
+jobs:
+  export:
+    runs-on: ubuntu-slim
+    timeout-minutes: 10
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          artifact-ids: '12111288449'
+          run-id: '39060789251'
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/prepared
+          merge-multiple: true
+      - name: Authenticate the prepared candidate and create immutable Git objects only
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('node:fs');
+            const path = require('node:path');
+            const crypto = require('node:crypto');
+            const { execFileSync } = require('node:child_process');
+            const hash = b => crypto.createHash('sha256').update(b).digest('hex');
+            const blob = b => crypto.createHash('sha1').update(`blob ${b.length}\0`).update(b).digest('hex');
+            const { data: run } = await github.rest.actions.getWorkflowRun({ ...context.repo, run_id: 39060789251 });
+            if (run.head_sha !== '0353eb55d5300fdf440b5465c50c166a79af7f0d' || run.head_branch !== 'main') throw Error('Unexpected candidate identity');
+            const { data: job } = await github.request('GET /repos/{owner}/{repo}/actions/jobs/{job_id}', { ...context.repo, job_id: 117478139545 });
+            if (job.run_id !== run.id || job.conclusion !== 'success') throw Error('Preparation did not pass');
+            const manifests = [];
+            function walk(p) { for (const d of fs.readdirSync(p, { withFileTypes: true })) {
+              const f = path.join(p,d.name);
+              if (d.isDirectory()) walk(f);
+              else if (d.isFile() && d.name === 'candidate-manifest.json') manifests.push(f);
+            }}
+            walk(path.join(process.env.RUNNER_TEMP,'prepared'));
+            if (manifests.length !== 1) throw Error('Ambiguous prepared manifest');
+            const manifestBytes = fs.readFileSync(manifests[0]);
+            if (hash(manifestBytes) !== 'c531b6cbda53ecf040fb57c3a5b78547ab54f53d3cabafc5ace4095ef1ff6758') throw Error('Manifest identity mismatch');
+            const m = JSON.parse(manifestBytes);
+            const archive = path.join(path.dirname(manifests[0]),'candidate-files.tar.gz');
+            if (hash(fs.readFileSync(archive)) !== 'e91760cc111e6416810ef5f320b1b2a4814c2539782807de67047b0f7357b593' || m.files.length !== 20) throw Error('Archive identity mismatch');
+            const checks = JSON.parse(fs.readFileSync(path.join(path.dirname(manifests[0]),'prepare-result.json')));
+            if (!['contracts','lint','content','scriptedDriving','productionBuild','nativeReopen'].every(k => checks[k] === true)) throw Error('Incomplete prepared checks');
+            const names = execFileSync('tar',['-tzf',archive],{encoding:'utf8'}).trim().split('\n').sort();
+            const expected = m.files.map(f => f.path).sort();
+            if (JSON.stringify(names) !== JSON.stringify(expected) || new Set(names).size !== 20 || names.some(n => n.startsWith('/') || n.includes('..') || !/^[\w./-]+$/.test(n))) throw Error('Archive path-set mismatch');
+            const root = fs.mkdtempSync(path.join(process.env.RUNNER_TEMP,'candidate-'));
+            execFileSync('tar',['-xzf',archive,'-C',root]);
+            const objects = [];
+            for (const f of m.files) {
+              const p = path.join(root,f.path);
+              if (!fs.lstatSync(p).isFile()) throw Error('Non-file candidate member');
+              const bytes = fs.readFileSync(p);
+              if (bytes.length !== f.bytes || hash(bytes) !== f.sha256 || blob(bytes) !== f.blob) throw Error(`Candidate mismatch: ${f.path}`);
+              const { data } = await github.rest.git.createBlob({ ...context.repo, content: bytes.toString('base64'), encoding: 'base64' });
+              if (data.sha !== f.blob) throw Error('Git object identity mismatch');
+              objects.push({ path:f.path, sha:data.sha, sha256:f.sha256, bytes:f.bytes, baseBlob:f.baseBlob });
+            }
+            const out = path.join(process.env.RUNNER_TEMP,'solvane-r2-objects');
+            fs.mkdirSync(out,{recursive:true});
+            const record = { sourceRun:run.id, sourceCheckout:run.head_sha, exportCheckout:context.sha, branchUpdated:false, visualAcceptance:false, objects };
+            fs.writeFileSync(path.join(out,'objects.json'),JSON.stringify(record,null,2)+'\n');
+            console.log('VERIFIED_OBJECTS',JSON.stringify(record));
+      - uses: actions/upload-artifact@v4
+        with:
+          name: solvane-r2-verified-objects
+          path: ${{ runner.temp }}/solvane-r2-objects/
+          retention-days: 14
+          if-no-files-found: error
