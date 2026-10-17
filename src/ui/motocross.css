@@ -1,0 +1,417 @@
+.mx-entry {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 18px 0 14px;
+}
+.mx-entry > span,
+.mx-kicker {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  color: #c4b49e;
+}
+.mx-entry > span {
+  margin-right: 5px;
+}
+.mx-entry button {
+  min-height: 36px;
+  border: 1px solid #b5986d55;
+  border-radius: 3px;
+  padding: 7px 12px;
+  color: #f3eadb;
+  font: 750 10px/1.3 var(--font-ui, sans-serif);
+  letter-spacing: 0.07em;
+  background: #1e211ed9;
+}
+.mx-entry button:is(:hover, :focus-visible),
+.mx-entry button[aria-pressed='true'] {
+  border-color: #efb56c;
+  background: #463323;
+}
+.mx-setup {
+  grid-column: 1 / -1;
+  min-width: 0;
+  margin: 0 0 2px;
+}
+/* The existing submit button owns a reserved row. Only the MX setup and
+   tools scroll, so even a short viewport exposes the action without a field
+   disappearing behind a floating control. Road menus keep their original DOM. */
+.menu .menu-body.mx-menu-layout {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding-top: 0;
+}
+.mx-menu-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scroll-padding-block: 8px;
+  scrollbar-width: thin;
+  padding: 4px 4px 10px;
+}
+.mx-start-dock {
+  flex: 0 0 auto;
+  padding: 8px 4px 0;
+  border-top: 1px solid #d8c8ac35;
+}
+.menu .mx-start-dock .enter.primary {
+  min-height: 44px;
+  margin: 0;
+}
+.mx-menu-layout .mx-entry {
+  margin: 10px 0 12px;
+}
+.menu .mx-menu-layout .session-form {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  row-gap: 10px;
+}
+.mx-menu-layout .session-form label {
+  min-width: 0;
+}
+.mx-menu-layout #sessionRules {
+  grid-column: 1 / -1;
+}
+.mx-setup .mx-venue-card {
+  grid-template-columns: minmax(90px, 0.65fr) minmax(0, 1.6fr);
+  padding-block: 8px;
+}
+.mx-setup .mx-layout {
+  max-height: 68px;
+}
+.mx-setup[hidden],
+.mx-ride-hud[hidden] {
+  display: none !important;
+}
+.mx-venue-card {
+  display: grid;
+  grid-template-columns: minmax(95px, 0.8fr) 1.35fr;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  background: linear-gradient(120deg, #222720ed, #141918f5);
+  border: 1px solid #bbad853d;
+  border-left: 3px solid #dda962;
+}
+.mx-venue-card[data-venue='supercross'] {
+  background: linear-gradient(120deg, #202834f0, #171a22f5);
+}
+.mx-layout {
+  width: 100%;
+  max-height: 104px;
+  overflow: visible;
+}
+.mx-layout-ground {
+  fill: none;
+  stroke: #daa76820;
+  stroke-width: 13;
+  stroke-linejoin: round;
+}
+.mx-layout-line {
+  fill: none;
+  stroke: #e7bd86;
+  stroke-width: 2.7;
+  stroke-linejoin: round;
+}
+.mx-venue-card strong {
+  display: block;
+  color: #f5eee3;
+  font-size: 18px;
+  line-height: 1.15;
+  margin-top: 5px;
+}
+.mx-venue-card p {
+  margin: 7px 0 0;
+  color: #c2c4bd;
+  font-size: 10px;
+  line-height: 1.4;
+}
+.mx-ride-presets {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 5px;
+  padding: 0;
+  min-width: 0;
+  margin: 10px 0 0;
+  border: 0;
+}
+.mx-ride-presets legend {
+  margin-bottom: 7px;
+  color: #b9b8ad;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+.mx-ride-presets button {
+  min-height: 61px;
+  padding: 9px 7px;
+  text-align: left;
+  white-space: normal;
+  background: #161b1ee8;
+  border: 1px solid #c1b29630;
+  color: #eee9e0;
+  border-radius: 2px;
+  font-stretch: 100%;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+.mx-ride-presets button b {
+  display: block;
+  font-size: 11px;
+  line-height: 1.3;
+  text-transform: uppercase;
+}
+.mx-ride-presets button span {
+  display: block;
+  margin-top: 4px;
+  color: #b4b9bb;
+  font-size: 11px;
+  line-height: 1.35;
+}
+.mx-ride-presets button[aria-pressed='true'] {
+  background: #3c3023;
+  border-color: #e3b878;
+}
+.mx-entry button:focus-visible,
+.mx-ride-presets button:focus-visible {
+  outline: 2px solid #fff4d5;
+  outline-offset: 3px;
+}
+.mx-technique {
+  margin: 8px 0 0;
+  color: #c7c8c0;
+  font-size: 11px;
+  line-height: 1.4;
+}
+.menu[data-discipline='motocross'] .intro,
+.menu[data-discipline='supercross'] .intro {
+  max-width: 410px;
+}
+.menu[data-discipline='motocross'] .eyebrow,
+.menu[data-discipline='supercross'] .eyebrow {
+  color: #ebbd7b;
+}
+.event-card[data-discipline='motocross'],
+.event-card[data-discipline='supercross'] {
+  border-top-color: #d5a66d;
+}
+.event-card .mx-venue-card {
+  margin: 12px 0;
+  min-height: 105px;
+}
+.event-card .mx-venue-card strong {
+  font-size: 15px;
+}
+.event-card .mx-layout {
+  max-height: 90px;
+}
+.hud[data-motocross='true'] .mx-status-stack {
+  position: absolute;
+  top: 67px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(350px, calc(100vw - 460px));
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  pointer-events: none;
+  z-index: 6;
+}
+.mx-ride-hud {
+  width: 100%;
+  padding: 9px 12px 10px;
+  border-left: 3px solid #e9b770;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #0b1118de, #11161dba);
+  box-shadow: 0 2px 10px #0002;
+  color: #f8f4ec;
+  pointer-events: none;
+  font-variant-numeric: tabular-nums;
+}
+.mx-ride-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: 0.11em;
+  color: #d7c5aa;
+}
+.mx-ride-main {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 4px;
+}
+.mx-ride-main strong {
+  font-size: 16px;
+  line-height: 1.15;
+  letter-spacing: 0.02em;
+}
+.mx-ride-main b {
+  font-size: 18px;
+  line-height: 1;
+  white-space: nowrap;
+}
+.mx-ride-note {
+  margin-top: 5px;
+  color: #d2d5d5;
+  font-size: 10px;
+  line-height: 1.35;
+}
+.mx-ride-progress {
+  height: 2px;
+  margin-top: 8px;
+  background: #d7b27730;
+}
+.mx-ride-progress i {
+  display: block;
+  height: 100%;
+  width: var(--mx-progress, 0%);
+  background: #e9bb7f;
+}
+.mx-ride-hud[data-tone='clean'] {
+  border-left-color: #98dac0;
+}
+.mx-ride-hud[data-tone='heavy'],
+.mx-ride-hud[data-tone='crash'] {
+  border-left-color: #f29273;
+}
+.mx-ride-hud[data-tone='air'] {
+  border-left-color: #a8d8ef;
+}
+.hud[data-motocross='true']
+  :is(
+    .resources label:first-child,
+    #ersMode,
+    .f1-drs,
+    [data-action='ers'],
+    [data-action='pit'],
+    #startSequence,
+    .health > span:first-child,
+    .tower-row em
+  ) {
+  display: none !important;
+}
+.hud[data-motocross='true']
+  :is(.tires > div:nth-child(even), .f1-tyres [data-w='1'], .f1-tyres [data-w='3']) {
+  display: none !important;
+}
+.hud[data-motocross='true'] .tires {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+#hud[data-motocross='true'] .f1-ers {
+  stroke: #daba81;
+}
+#hud[data-motocross='true'] .resources label:last-child {
+  flex-direction: column;
+  font-size: calc(1.2 * var(--u, 8px));
+}
+#hud[data-motocross='true'] #fuel {
+  font-size: calc(1.8 * var(--u, 8px));
+  color: #e8d7b7;
+}
+/* Preserve the desktop banner and compact live-message presentations, but
+   let their real text height place the jump information and captions. */
+#hud[data-motocross='true'] .mx-status-stack > :is(.f1-banner, .radio-caption) {
+  position: static;
+  inset: auto;
+  transform: none;
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  margin: 0;
+}
+#hud[data-motocross='true'] .mx-status-stack > .f1-banner small {
+  white-space: normal;
+}
+#hud[data-motocross='true'] .mx-status-stack > .f1-banner[data-state='off'],
+#hud[data-motocross='true'] .mx-status-stack > .radio-caption[data-on='false'] {
+  display: none;
+}
+#hud[data-motocross='true'] .mx-status-stack > .offroad-readout {
+  position: static !important;
+  inset: auto !important;
+  transform: none !important;
+  white-space: normal !important;
+}
+#hud[data-motocross='true'] .mx-status-stack > .radio-caption {
+  padding: 7px 10px;
+  font-size: calc(12px * var(--ui-scale, 1));
+  line-height: 1.35;
+}
+#hud[data-motocross='true'] .proximity {
+  /* Include the scaled arrow's painted edge in its measured alert box. */
+  padding-inline: 3px;
+}
+@media (max-width: 1279px), (max-height: 679px) {
+  .hud[data-motocross='true'] .mx-status-stack {
+    top: calc(var(--race-header, 47px) + 10px);
+    width: min(320px, calc(100vw - 38px));
+  }
+  #hud[data-motocross='true'] .mx-status-stack > .race-message {
+    position: static;
+    inset: auto;
+    transform: none;
+    width: 100%;
+    margin: 0;
+    padding: 6px 9px;
+    border-left: 3px solid #f5c400;
+    background: #161910e8;
+    text-align: left;
+  }
+  .mx-ride-hud {
+    padding: 7px 10px;
+  }
+  .mx-ride-main strong {
+    font-size: 13px;
+  }
+  .mx-ride-main b {
+    font-size: 15px;
+  }
+  .mx-ride-note {
+    font-size: 9px;
+  }
+}
+@media (max-height: 500px) and (min-width: 560px) {
+  .hud[data-motocross='true'] .mx-status-stack {
+    left: 12px;
+    width: min(320px, calc(50vw - 24px));
+    transform: none;
+  }
+}
+@media (max-width: 680px) {
+  #hud[data-motocross='true'] .proximity {
+    top: auto;
+    bottom: calc(var(--rd-controls, 104px) - 38px);
+    flex-direction: row;
+    gap: 6px;
+  }
+  #hud[data-motocross='true'] .proximity b {
+    font-size: 20px;
+    line-height: 1;
+  }
+  #hud[data-motocross='true'] .proximity-right b {
+    order: 1;
+  }
+}
+@media (max-width: 500px) {
+  .mx-ride-presets {
+    grid-template-columns: 1fr;
+  }
+  .mx-ride-presets button {
+    min-height: 48px;
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    align-items: center;
+    gap: 12px;
+  }
+  .mx-ride-presets button span {
+    margin-top: 0;
+  }
+}

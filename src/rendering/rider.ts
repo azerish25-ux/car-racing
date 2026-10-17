@@ -5,6 +5,13 @@ import { helmetLiveryTexture, riderPanelTexture } from './bike-livery.ts';
 import { bikeSurfaceMaps } from './bike-surface-detail.ts';
 import { batchBikeRigidMeshes } from './bike-rigid-batch.ts';
 import { sampleProfile } from './profile-sampling.ts';
+import { motocrossFabricMaps, motocrossGraphics } from './offroad/motocross-detail.ts';
+import {
+  addMotocrossBoot,
+  addMotocrossHelmet,
+  drapeMotocrossFabric,
+  motocrossHelmetShell,
+} from './offroad/motocross-gear.ts';
 import {
   helmetShell,
   visorGeometry,
@@ -333,6 +340,16 @@ export class Rider {
   private readonly shins: Bone[];
   private readonly hands: T.Group[] = [];
   private readonly feet: T.Group[] = [];
+  private readonly exteriorForearms = [0, 1].map(() => ({
+    position: new T.Vector3(),
+    quaternion: new T.Quaternion(),
+  }));
+  private readonly exteriorUpperArms = [0, 1].map(() => ({
+    position: new T.Vector3(),
+    quaternion: new T.Quaternion(),
+  }));
+  private motocrossFirstPerson = false;
+  private riding = false;
   private readonly materials: T.Material[] = [];
   private readonly q = new T.Quaternion();
   private readonly euler = new T.Euler();
@@ -341,6 +358,7 @@ export class Rider {
     colours: RiderColours,
     readonly detail: RiderDetail = 'high',
     readonly kit: RiderKit = 'leathers',
+    readonly raceNumber = 2,
   ) {
     const sides = detail === 'high' ? 20 : detail === 'mid' ? 12 : 6;
     const mx = kit === 'motocross';
@@ -381,10 +399,10 @@ export class Rider {
           },
     );
     const armour = new T.MeshStandardMaterial({
-      color: 0x333b43,
-      roughness: 0.49,
-      metalness: 0.08,
-      name: 'Rider moulded armour caps',
+      color: mx ? 0x34393a : 0x333b43,
+      roughness: mx ? 0.74 : 0.49,
+      metalness: mx ? 0.02 : 0.08,
+      name: mx ? 'Rider armour caps' : 'Rider moulded armour caps',
     });
     const glove = new T.MeshStandardMaterial({ color: 0x1b1c1f, roughness: 0.62 });
     const slider = new T.MeshStandardMaterial({
@@ -429,6 +447,38 @@ export class Rider {
     });
     this.materials.push(leather, panel, armour, glove, slider, helmet, visor, flex);
     const torsoLeather = leather.clone();
+    const mxBoot = mx
+      ? new T.MeshStandardMaterial({
+          color: 0xe1ddd2,
+          roughness: 0.65,
+          name: 'Motocross moulded boot shell',
+        })
+      : null;
+    const mxTrim = mx
+      ? new T.MeshPhysicalMaterial({
+          color: colours.accent,
+          roughness: 0.38,
+          clearcoat: 0.2,
+          name: 'Motocross equipment trim',
+        })
+      : null;
+    if (mxBoot && mxTrim) this.materials.push(mxBoot, mxTrim);
+    if (mx && detail !== 'far') {
+      const weave = motocrossFabricMaps();
+      const sleeve = motocrossGraphics(colours, 'sleeve', raceNumber);
+      for (const material of [leather, panel, torsoLeather]) {
+        Object.assign(material, weave);
+        material.normalScale.set(0.22, 0.22);
+        material.color.setHex(0xffffff);
+      }
+      leather.map = panel.map = sleeve;
+      torsoLeather.map = motocrossGraphics(colours, 'jersey', raceNumber);
+      helmet.map = motocrossGraphics(colours, 'helmet', raceNumber);
+      helmet.color.setHex(0xffffff);
+      helmet.roughness = 0.27;
+      visor.color.setHex(0x769c9e);
+      visor.roughness = 0.14;
+    }
     if (!mx && detail !== 'far') {
       leather.map = riderPanelTexture(colours, false);
       leather.color.setHex(0xffffff);
@@ -446,18 +496,30 @@ export class Rider {
     tagWeatherSurface(armour, 'metal', 0.7);
     tagWeatherSurface(slider, 'paint', 0.6);
     this.root.name = 'Rider';
+    this.torso.name = 'Rider torso';
     this.root.add(this.torso);
+    const fabric = (g: T.BufferGeometry) => (mx && detail !== 'far' ? drapeMotocrossFabric(g) : g);
     // Torso: pelvis at the origin, spine along +Y, chest forward (+Z).
-    const torsoSections: readonly BodySection[] = [
-      [-0.06, 0, 0.15, 0.1, 0.09],
-      [0.05, 0, 0.165, 0.11, 0.1],
-      [0.17, 0.01, 0.145, 0.093, 0.092],
-      [0.3, 0.02, 0.172, 0.128, 0.105],
-      [0.42, 0.02, 0.2, 0.128, 0.1],
-      [0.5, 0.02, 0.17, 0.08, 0.08],
-      [0.55, 0.03, 0.08, 0.05, 0.05],
-    ];
-    part(this.torso, bodyLoft(torsoSections, sides), torsoLeather);
+    const torsoSections: readonly BodySection[] = mx
+      ? [
+          [-0.06, 0, 0.15, 0.1, 0.09],
+          [0.05, 0, 0.165, 0.11, 0.1],
+          [0.17, 0.01, 0.16, 0.1, 0.1],
+          [0.3, 0.02, 0.17, 0.11, 0.1],
+          [0.42, 0.02, 0.2, 0.11, 0.09],
+          [0.5, 0.02, 0.17, 0.08, 0.08],
+          [0.55, 0.03, 0.08, 0.05, 0.05],
+        ]
+      : [
+          [-0.06, 0, 0.15, 0.1, 0.09],
+          [0.05, 0, 0.165, 0.11, 0.1],
+          [0.17, 0.01, 0.145, 0.093, 0.092],
+          [0.3, 0.02, 0.172, 0.128, 0.105],
+          [0.42, 0.02, 0.2, 0.128, 0.1],
+          [0.5, 0.02, 0.17, 0.08, 0.08],
+          [0.55, 0.03, 0.08, 0.05, 0.05],
+        ];
+    part(this.torso, fabric(bodyLoft(torsoSections, sides)), torsoLeather);
     // Aero hump (spine protector and airbag housing) on the back.
     if (detail !== 'far' && !mx)
       part(
@@ -497,7 +559,11 @@ export class Rider {
         flank.name = 'Conformal torso leather side panel';
       }
       // Low-profile shoulder armour moulded into the leathers.
-      const cap = part(this.torso, new T.SphereGeometry(0.055, sides, sides / 2), armour);
+      const cap = part(
+        this.torso,
+        new T.SphereGeometry(0.055, sides, sides / 2),
+        mx ? panel : armour,
+      );
       cap.position.set(side * 0.175, 0.46, 0.0);
       cap.scale.set(0.75, 0.55, 1.0);
     }
@@ -544,44 +610,38 @@ export class Rider {
     this.torso.add(this.head);
     const shell = part(
       this.head,
-      detail === 'far' ? new T.SphereGeometry(0.14, 8, 6) : helmetShell(),
+      detail === 'far'
+        ? new T.SphereGeometry(0.14, 8, 6)
+        : mx
+          ? motocrossHelmetShell()
+          : helmetShell(),
       helmet,
     );
     shell.position.set(0, 0.15, 0.02);
-    // The followed rider's helmet surrounds the onboard lens and is hidden
-    // from that view. Retain its ground shadow with a cheap closed silhouette;
-    // it writes neither colour nor depth to the normal camera pass. Three's
-    // shadow pass uses its own opaque depth material (alphaTest remains zero).
-    const shadowOnly = new T.MeshBasicMaterial({
-      name: 'Onboard helmet shadow only',
-      transparent: true,
-      opacity: 0,
-      colorWrite: false,
-      depthWrite: false,
-    });
-    this.materials.push(shadowOnly);
-    this.headShadow.name = 'Onboard helmet shadow proxy';
-    this.headShadow.visible = false;
-    this.headShadow.position.copy(this.head.position);
-    this.torso.add(this.headShadow);
-    const silhouette = part(this.headShadow, new T.SphereGeometry(0.14, 18, 12), shadowOnly);
-    silhouette.position.copy(shell.position);
-    silhouette.scale.set(0.98, 1.02, 1.07);
-    silhouette.receiveShadow = false;
-    if (detail !== 'far' && mx) {
-      // Off-road helmet: a peak over the eye port, a chin bar and goggles
-      // on their strap in place of a visor.
-      const peak = part(this.head, new T.BoxGeometry(0.19, 0.012, 0.12), helmet);
-      peak.position.set(0, 0.235, 0.17);
-      peak.rotation.x = -0.2;
-      const chin = part(this.head, new T.BoxGeometry(0.12, 0.06, 0.08), helmet);
-      chin.position.set(0, 0.05, 0.17);
-      chin.rotation.x = 0.5;
-      const goggle = part(this.head, new T.BoxGeometry(0.17, 0.05, 0.03), visor);
-      goggle.position.set(0, 0.17, 0.165);
-      const strap = part(this.head, new T.TorusGeometry(0.14, 0.012, 6, sides), glove);
-      strap.position.set(0, 0.17, 0.02);
-      strap.rotation.x = Math.PI / 2;
+    if (!mx) {
+      // The followed rider's helmet surrounds the onboard lens and is hidden
+      // from that view. Retain its ground shadow with a cheap closed silhouette;
+      // it writes neither colour nor depth to the normal camera pass. Three's
+      // shadow pass uses its own opaque depth material (alphaTest remains zero).
+      const shadowOnly = new T.MeshBasicMaterial({
+        name: 'Onboard helmet shadow only',
+        transparent: true,
+        opacity: 0,
+        colorWrite: false,
+        depthWrite: false,
+      });
+      this.materials.push(shadowOnly);
+      this.headShadow.name = 'Onboard helmet shadow proxy';
+      this.headShadow.visible = false;
+      this.headShadow.position.copy(this.head.position);
+      this.torso.add(this.headShadow);
+      const silhouette = part(this.headShadow, new T.SphereGeometry(0.14, 18, 12), shadowOnly);
+      silhouette.position.copy(shell.position);
+      silhouette.scale.set(0.98, 1.02, 1.07);
+      silhouette.receiveShadow = false;
+    }
+    if (mx) {
+      addMotocrossHelmet(this.head, detail, helmet, visor, flex, mxTrim!);
     } else if (detail !== 'far') {
       const shield = part(this.head, visorGeometry(0.004), visor);
       shield.position.copy(shell.position);
@@ -629,7 +689,8 @@ export class Rider {
         !mx && detail !== 'far'
           ? bodyLoft(roadLimbSections(shape, length), sides, 1)
           : limbGeometry(r0, r1, length, sides);
-      part(bone.group, geometry, material).name = `Rider ${shape} leather volume`;
+      const segment = part(bone.group, fabric(geometry), material);
+      if (!mx) segment.name = `Rider ${shape} leather volume`;
       return bone;
     };
     this.upperArms = [0, 1].map(() => limb('upper-arm', 0.046, 0.038, RIDER.upperArm, leather));
@@ -638,6 +699,13 @@ export class Rider {
     this.shins = [0, 1].map(() => limb('shin', 0.05, 0.037, RIDER.shin, panel));
     for (let i = 0; i < 2; i++) {
       const side = i === 0 ? 1 : -1;
+      if (mx) {
+        const label = i === 0 ? 'left' : 'right';
+        this.upperArms[i].group.name = `Motocross ${label} upper arm`;
+        this.forearms[i].group.name = `Motocross ${label} forearm`;
+        this.thighs[i].group.name = `Motocross ${label} thigh`;
+        this.shins[i].group.name = `Motocross ${label} shin`;
+      }
       if (detail !== 'far' && !mx) {
         const foldSides = detail === 'high' ? 12 : 8;
         const shoulderStretch = part(
@@ -654,13 +722,7 @@ export class Rider {
         shoulderStretch.name = 'Conforming shoulder accordion insert';
         const hipStretch = part(
           this.thighs[i].group,
-          leatherPanelGeometry(
-            roadLimbSections('thigh', RIDER.thigh),
-            0.042,
-            0.157,
-            9,
-            foldSides,
-          ),
+          leatherPanelGeometry(roadLimbSections('thigh', RIDER.thigh), 0.042, 0.157, 9, foldSides),
           flex,
         );
         hipStretch.name = 'Conforming hip accordion insert';
@@ -707,17 +769,18 @@ export class Rider {
         }
       }
       if (detail !== 'far' && mx) {
-        // Knee braces over the pants and elbow guards.
+        // Low-profile protection under textile; no metallic road sliders.
         const brace = part(
           this.shins[i].group,
-          new T.CylinderGeometry(0.06, 0.058, 0.16, sides),
-          armour,
+          new T.SphereGeometry(0.059, sides, sides / 2),
+          panel,
         );
-        brace.position.set(0, 0.02, 0.0);
+        brace.position.set(0, 0.01, 0.005);
+        brace.scale.set(1.05, 1.4, 0.92);
         const guard = part(
           this.forearms[i].group,
           new T.SphereGeometry(0.042, sides, sides / 2),
-          armour,
+          panel,
         );
         guard.scale.set(1, 1.3, 0.9);
         guard.position.set(side * 0.01, 0.02, -0.02);
@@ -776,6 +839,7 @@ export class Rider {
         puck.position.set(side * 0.062, 0.035, 0.007);
       }
       const hand = new T.Group();
+      if (mx) hand.name = `Motocross ${i === 0 ? 'left' : 'right'} hand`;
       part(
         hand,
         new RoundedBoxGeometry(0.069, 0.047, 0.079, detail === 'far' ? 1 : 3, 0.017),
@@ -796,7 +860,10 @@ export class Rider {
         thumb.position.set(side * 0.036, -0.01, 0.007);
         thumb.rotation.set(0.85, 0, side * 0.4);
       }
-      if (detail === 'high') {
+      if (detail === 'high' && mx) {
+        const knuckle = part(hand, new RoundedBoxGeometry(0.062, 0.013, 0.027, 3, 0.006), armour);
+        knuckle.position.set(0, 0.025, 0.025);
+      } else if (detail === 'high') {
         const knuckleBacking = part(
           hand,
           new RoundedBoxGeometry(0.062, 0.008, 0.027, 2, 0.006),
@@ -813,11 +880,14 @@ export class Rider {
       hand.position.set(0, RIDER.forearm + 0.02, 0);
       this.hands.push(hand);
       const foot = new T.Group();
-      part(
-        foot,
-        new RoundedBoxGeometry(0.084, 0.072, 0.247, detail === 'far' ? 1 : 3, 0.029),
-        glove,
-      ).position.set(0, -0.015, 0.048);
+      if (mx) foot.name = `Motocross ${i === 0 ? 'left' : 'right'} boot`;
+      if (mx) addMotocrossBoot(foot, detail, side, mxBoot!, flex, armour);
+      else
+        part(
+          foot,
+          new RoundedBoxGeometry(0.084, 0.072, 0.247, detail === 'far' ? 1 : 3, 0.029),
+          glove,
+        ).position.set(0, -0.015, 0.048);
       if (!mx && detail !== 'far') {
         const ankle = part(foot, limbGeometry(0.043, 0.035, 0.145, sides), panel);
         ankle.position.set(0, -0.01, -0.03);
@@ -839,14 +909,7 @@ export class Rider {
         anklePivot.rotation.z = Math.PI / 2;
         anklePivot.position.set(side * 0.04, -0.068, -0.037);
       }
-      // Tall off-road boots up the shin.
-      if (mx)
-        part(foot, new T.CylinderGeometry(0.058, 0.05, 0.3, sides), glove).position.set(
-          0,
-          -0.17,
-          0,
-        );
-      if (detail !== 'far') {
+      if (detail !== 'far' && !mx) {
         const toe = part(foot, new RoundedBoxGeometry(0.018, 0.016, 0.058, 2, 0.005), slider);
         toe.position.set(side * 0.045, -0.05, 0.16);
       }
@@ -866,15 +929,56 @@ export class Rider {
     ])
       batchBikeRigidMeshes(group);
   }
-  /** A first-person lens is inside the rider's helmet. Do not draw the
-   * surrounding shell across the eye port; other riders remain unaffected. */
-  setFirstPerson(active: boolean) {
+  /** Exclude the followed rider's own helmet from the first-person lens.
+   * A stable MX eye needs its own arm presentation: sleeves enter from below
+   * the camera, with the same wrists on the actual steered bar grips. */
+  setFirstPerson(active: boolean, motocross = false) {
     this.head.visible = !active;
-    this.headShadow.visible = active;
+    this.headShadow.visible = active && this.kit !== 'motocross';
     this.headShadow.quaternion.copy(this.head.quaternion);
+    if (this.kit === 'motocross') {
+      const previous = this.motocrossFirstPerson;
+      this.motocrossFirstPerson = active && motocross;
+      this.torso.visible = !this.motocrossFirstPerson;
+      for (const arm of this.upperArms) arm.group.visible = true;
+      if (this.motocrossFirstPerson && this.riding) this.onboardArms();
+      else if (previous)
+        for (let i = 0; i < this.forearms.length; i++) {
+          this.forearms[i].group.position.copy(this.exteriorForearms[i].position);
+          this.forearms[i].group.quaternion.copy(this.exteriorForearms[i].quaternion);
+          this.upperArms[i].group.position.copy(this.exteriorUpperArms[i].position);
+          this.upperArms[i].group.quaternion.copy(this.exteriorUpperArms[i].quaternion);
+        }
+    }
+  }
+  private captureExteriorArms() {
+    for (let i = 0; i < this.forearms.length; i++) {
+      this.exteriorForearms[i].position.copy(this.forearms[i].group.position);
+      this.exteriorForearms[i].quaternion.copy(this.forearms[i].group.quaternion);
+      this.exteriorUpperArms[i].position.copy(this.upperArms[i].group.position);
+      this.exteriorUpperArms[i].quaternion.copy(this.upperArms[i].group.quaternion);
+    }
+  }
+  private onboardArms() {
+    const [elbow, pole, offset, shoulder] = this.v;
+    for (let i = 0; i < this.forearms.length; i++) {
+      const side = i === 0 ? 1 : -1;
+      // Preserve the authored forearm length and the exact hand contact. The
+      // exterior standing elbow pole lies above this fixed bike-frame camera;
+      // the first-person pole instead carries each sleeve out of the lower view.
+      offset.set(side * 0.09, -0.13, -0.23).normalize();
+      elbow.copy(this.grips[i]).addScaledVector(offset, RIDER.forearm);
+      offset.set(side * 0.015, -0.16, -0.24).normalize();
+      shoulder.copy(elbow).addScaledVector(offset, RIDER.upperArm);
+      pole.copy(this.grips[i]);
+      pole.z += 1;
+      this.upperArms[i].aim(shoulder, elbow, pole);
+      this.forearms[i].aim(elbow, this.grips[i], pole);
+    }
   }
   /** Riding pose in the bike's (sprung) frame. */
   ride(pose: RiderPose) {
+    this.riding = true;
     const lean = pose.lean,
       offset = pose.offset,
       tuck = T.MathUtils.clamp(pose.tuck, 0, 1),
@@ -890,15 +994,22 @@ export class Rider {
     pelvis.z += braking * 0.05 - tuck * 0.05;
     pelvis.y -= tuck * 0.03;
     // Off-road: up on the pegs (knees flexed) and fore/aft over the bike.
-    pelvis.y += standing * 0.3;
-    pelvis.z += standing * 0.04 - body * 0.1;
+    const mx = this.kit === 'motocross';
+    // The original 30 cm rise exceeded a dirt rider's leg reach. Keep the
+    // ankles planted on their pegs with flex left in the knees for a landing.
+    pelvis.y += standing * (mx ? 0.17 : 0.3);
+    pelvis.z += mx ? standing * 0.055 + body * 0.085 : standing * 0.04 - body * 0.1;
     // The body leans further into the corner than the bike; tucks on the
     // straight; sits up and braces under braking.
-    const into = T.MathUtils.clamp(lean * 0.22 + offset * 0.5, -0.32, 0.32);
+    const into = T.MathUtils.clamp(
+      mx ? -lean * 0.3 + offset * 0.2 : lean * 0.22 + offset * 0.5,
+      -0.32,
+      0.32,
+    );
     let pitch = T.MathUtils.lerp(1.05, 1.42, tuck) - braking * 0.3 + Math.abs(lean) * 0.1;
     // An off-road rider sits up; standing, bends at the hips over the bars.
-    if (this.kit === 'motocross') pitch = 0.42 + braking * 0.1 + Math.abs(lean) * 0.08;
-    pitch = T.MathUtils.lerp(pitch, 0.78 + body * 0.25, standing);
+    if (mx) pitch = 0.36 + braking * 0.12 + body * 0.16 + standing * 0.23;
+    else pitch = T.MathUtils.lerp(pitch, 0.78 + body * 0.25, standing);
     const yaw = T.MathUtils.clamp(offset * 0.9, -0.3, 0.3) + pose.steer * 0.3;
     this.euler.set(pitch, yaw, -into, 'ZYX');
     this.torso.position.copy(pelvis);
@@ -918,28 +1029,37 @@ export class Rider {
         .set(side * RIDER.shoulderWidth, RIDER.spine - 0.04, 0.0)
         .applyQuaternion(this.torso.quaternion)
         .add(pelvis);
-      pole.copy(shoulder).add(target.set(side * 0.35, -0.3, -0.1));
+      pole
+        .copy(shoulder)
+        .add(target.set(side * 0.35, mx ? -0.08 + standing * 0.15 : -0.3, mx ? 0.08 : -0.1));
       twoBone(this.upperArms[i], this.forearms[i], shoulder, this.grips[i], pole, joint);
       hip
         .set(side * RIDER.hipWidth, 0, 0)
         .applyQuaternion(this.torso.quaternion)
         .add(pelvis);
       // Feet on the pegs; the inside knee opens toward the road when hung off.
-      const out = inside ? 0.35 + Math.abs(offset) * 1.4 : 0.25;
+      const out = mx ? (inside ? 0.18 : 0.12) : inside ? 0.35 + Math.abs(offset) * 1.4 : 0.25;
       pole.copy(hip).add(target.set(side * out, 0.15, 0.55));
       // A dabbed foot leaves its peg toward the ground ahead of it.
       const down = side * dab > 0 ? Math.abs(dab) : 0;
       if (down > 0) {
-        target.set(side * 0.34, -0.86, 0.32).add(this.pegs[i]);
+        // Motocross: project the boot ahead of the peg, heel close to the
+        // surface. The former 86 cm drop put the target far below the track.
+        target.set(side * (mx ? 0.2 : 0.34), mx ? -0.015 : -0.86, 0.32).add(this.pegs[i]);
         target.lerpVectors(this.pegs[i], target, down);
         twoBone(this.thighs[i], this.shins[i], hip, target, pole, joint);
       } else twoBone(this.thighs[i], this.shins[i], hip, this.pegs[i], pole, joint);
-      this.feet[i].rotation.set(-0.35, 0, 0);
+      this.feet[i].rotation.set(mx ? -0.07 - down * 0.15 : -0.35, 0, 0);
       this.hands[i].rotation.set(0.2, 0, 0);
+    }
+    if (this.kit === 'motocross') {
+      this.captureExteriorArms();
+      if (this.motocrossFirstPerson) this.onboardArms();
     }
   }
   /** Separated rider: `phase` 0 sliding/tumbling, 1 standing/jogging, 2 at the bike. */
   separated(phase: number, tumble: number, time: number) {
+    this.riding = false;
     const [pelvis, a, b, joint, pole, c] = this.v;
     const lying = phase === 0;
     pelvis.set(0, lying ? 0.0 : 0.95, 0);
@@ -971,6 +1091,7 @@ export class Rider {
       twoBone(this.thighs[i], this.shins[i], a, c, pole, joint);
       this.feet[i].rotation.set(-1.4, 0, 0);
     }
+    if (this.kit === 'motocross') this.captureExteriorArms();
   }
   dispose() {
     this.root.traverse((o) => {

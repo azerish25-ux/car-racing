@@ -1,0 +1,11 @@
+{
+  "verifiedAt": "2026-10-16T23:05:58.975781+00:00",
+  "sourceCount": 13,
+  "sourceHashesMatchBeforeAndCurrent": true,
+  "originalValidatorsUnchanged": true,
+  "reportHashes": {
+    "docs/offroad-calibration.json": "05a2a9e2a5be64558745131fcd72c368127c6cbfc2896b7dd4a5b74124f366b7",
+    "docs/offroad-races.json": "eac61fa3d96b5372e06b1625b0237a0a3a7502a2675c5fb4f3c8c6ab2aca4c68"
+  },
+  "scope": "Source/report integrity only; use the original command exit code and assertions for pass/fail."
+}

@@ -12,6 +12,7 @@ import { Roost } from './roost.ts';
 import { Stadium } from './stadium.ts';
 import { StartGate } from './start-gate.ts';
 import { TerrainView } from './terrain-view.ts';
+import { MxCourseDressing } from './mx-course-dressing.ts';
 
 export { installMud, installMudOn, mudUniforms, type MudUniforms } from './mud.ts';
 export { DirtBikeModel } from './dirt-bike-model.ts';
@@ -27,7 +28,8 @@ export class OffroadScene {
   terrain: TerrainView | null = null;
   gate: StartGate | null = null;
   stadium: Stadium | null = null;
-  readonly roost = new Roost();
+  dressing: MxCourseDressing | null = null;
+  readonly roost: Roost;
   private lastTime = NaN;
   private readonly pending: {
     delta: TerrainRenderDelta | undefined;
@@ -41,8 +43,10 @@ export class OffroadScene {
     const surface = Track.offroadOf(track);
     if (!(surface instanceof TrackTerrainSurface)) throw new Error('Not a terrain venue');
     const course = surface.course;
+    this.roost = new Roost(track);
     this.group.name = 'Off-road venue';
     this.group.add(this.roost.points);
+    if (this.roost.contactShadows) this.group.add(this.roost.contactShadows);
     construction.add('Off-road course terrain', 3, () => {
       this.terrain = new TerrainView(track);
       // Night venues light the soil with the floodlight pools, like a ribbon.
@@ -60,6 +64,11 @@ export class OffroadScene {
         this.stadium = new Stadium(track);
         this.group.add(this.stadium.root);
       });
+    if (course.kind === 'motocross' || course.kind === 'supercross')
+      construction.add('MX course furniture and shoulders', 3, () => {
+        this.dressing = new MxCourseDressing(track);
+        this.group.add(this.dressing.root);
+      });
   }
   /** A worker surface keyframe's terrain export. */
   record(delta: TerrainRenderDelta | undefined, time: number, live: boolean) {
@@ -76,8 +85,9 @@ export class OffroadScene {
     this.gate?.update(frame);
     const time = frame[H.TIME],
       dt = Number.isFinite(this.lastTime) ? clamp(time - this.lastTime, 0, 0.1) : 0;
-    // A rewind or a new session restarts the clock: drop the old roost.
-    if (time < this.lastTime - 0.5) this.roost.clear();
+    // Even a sub-frame reverse seek can cross a takeoff/contact edge.
+    // Drop particles and edge history before reading that earlier snapshot.
+    if (time < this.lastTime) this.roost.clear();
     this.lastTime = time;
     this.roost.update(frame, dt);
   }
@@ -85,6 +95,7 @@ export class OffroadScene {
     this.terrain?.dispose();
     this.gate?.dispose();
     this.stadium?.dispose();
+    this.dressing?.dispose();
     this.roost.dispose();
   }
 }

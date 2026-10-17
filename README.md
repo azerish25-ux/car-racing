@@ -115,6 +115,7 @@ scripts/, tools/ Validation and asset tooling
 | [Physics model](docs/production/PHYSICS_MODEL.md) | Vehicle dynamics, tyres, suspension, drivetrain and surface interaction. |
 | [Circuit catalogue](docs/CIRCUIT_CATALOGUE.md) | Venues, layouts and implementation notes. |
 | [MotoGP R2 improvements](docs/MOTOGP_R2_DELIVERY.md) | All 100 reference reviews, bike/rider and circuit changes, motorcycle interface, braking corrections and visual evidence. |
+| [Motocross reference upgrade](docs/production/motocross-reference-upgrade.md) | All 100 motocross references, detailed bikes and riders, dirt and stadium scenery, riding/camera updates, race reliability and actual gameplay evidence. |
 | [Open-world festival](docs/production/OPEN_WORLD.md) | Solvane Coast, free roam, events, traffic and known limits. |
 | [100-image festival reference record](docs/production/HORIZON_REFERENCE_IMPLEMENTATION.md) | Individual observations and original implementations for every supplied reference, with code links and limits. |
 | [Festival upgrade validation](docs/production/HORIZON_UPGRADE_VALIDATION.md) | Final screenshots, real driving/event evidence, test results and the guarded production build. |

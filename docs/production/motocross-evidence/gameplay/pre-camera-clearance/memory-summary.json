@@ -1,0 +1,240 @@
+{
+  "schemaVersion": 1,
+  "scope": "Shared cgroup memory.current sampled approximately every five seconds; includes process memory, filesystem cache and kernel memory, not Chromium-only usage.",
+  "sourceFile": "memory.jsonl",
+  "rawSampleCount": 166,
+  "rawSamplerFirstUtc": "2026-10-17T00:04:37.218047+00:00",
+  "rawSamplerLastUtc": "2026-10-17T00:18:22.620941+00:00",
+  "rawSamplerSpanSeconds": 825.402894,
+  "rawSamplerSpanIsTestDuration": false,
+  "earliestBeforeRunSample": {
+    "timeUtc": "2026-10-17T00:04:37.218047+00:00",
+    "elapsedSeconds": 0.0,
+    "currentBytes": 3310608384,
+    "limitBytes": 8589934592,
+    "events": {
+      "low": 0,
+      "high": 0,
+      "max": 295191,
+      "oom": 4,
+      "oom_kill": 3,
+      "oom_group_kill": 0
+    },
+    "anonymousBytes": 100732928,
+    "fileBytes": 2925092864,
+    "kernelBytes": 283189248
+  },
+  "reporterWindow": {
+    "startUtc": "2026-10-17T00:04:44.289000Z",
+    "endUtc": "2026-10-17T00:14:10.218439Z",
+    "durationMs": 565929.439,
+    "includedSampleCount": 113,
+    "beforeWindowSampleCount": 2,
+    "lateExcludedSampleCount": 51,
+    "nearestBeforeWindowBaseline": {
+      "timeUtc": "2026-10-17T00:04:42.231554+00:00",
+      "elapsedSeconds": 5.002,
+      "currentBytes": 3312734208,
+      "limitBytes": 8589934592,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 295191,
+        "oom": 4,
+        "oom_kill": 3,
+        "oom_group_kill": 0
+      },
+      "anonymousBytes": 102805504,
+      "fileBytes": 2925096960,
+      "kernelBytes": 283435008
+    },
+    "firstIncludedSample": {
+      "timeUtc": "2026-10-17T00:04:47.238860+00:00",
+      "elapsedSeconds": 10.021,
+      "currentBytes": 3911016448,
+      "limitBytes": 8589934592,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 295191,
+        "oom": 4,
+        "oom_kill": 3,
+        "oom_group_kill": 0
+      },
+      "anonymousBytes": 669212672,
+      "fileBytes": 2934333440,
+      "kernelBytes": 306012160
+    },
+    "lastIncludedSample": {
+      "timeUtc": "2026-10-17T00:14:07.392894+00:00",
+      "elapsedSeconds": 570.175,
+      "currentBytes": 5664956416,
+      "limitBytes": 8589934592,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 295191,
+        "oom": 4,
+        "oom_kill": 3,
+        "oom_group_kill": 0
+      },
+      "anonymousBytes": 2195013632,
+      "fileBytes": 3149606912,
+      "kernelBytes": 318881792
+    },
+    "highestSampledCurrent": {
+      "timeUtc": "2026-10-17T00:12:22.357994+00:00",
+      "elapsedSeconds": 465.14,
+      "currentBytes": 7229112320,
+      "limitBytes": 8589934592,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 295191,
+        "oom": 4,
+        "oom_kill": 3,
+        "oom_group_kill": 0
+      },
+      "anonymousBytes": 3747786752,
+      "fileBytes": 3154153472,
+      "kernelBytes": 325640192
+    },
+    "highestSampledCurrentGiB": 6.732635498046875,
+    "firstAfterWindowBoundarySample": {
+      "timeUtc": "2026-10-17T00:14:12.393485+00:00",
+      "elapsedSeconds": 575.175,
+      "currentBytes": 3362447360,
+      "limitBytes": 8589934592,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 295191,
+        "oom": 4,
+        "oom_kill": 3,
+        "oom_group_kill": 0
+      },
+      "anonymousBytes": 121372672,
+      "fileBytes": 2955968512,
+      "kernelBytes": 283947008
+    },
+    "eventDeltasAcrossBracketingSamples": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    },
+    "eventsConstantAcrossIncludedSamples": true
+  },
+  "testWindow": {
+    "startUtc": "2026-10-17T00:04:45.586000Z",
+    "endUtc": "2026-10-17T00:14:01.501000Z",
+    "durationMs": 555915,
+    "includedSampleCount": 111,
+    "beforeWindowSampleCount": 2,
+    "lateExcludedSampleCount": 53,
+    "nearestBeforeWindowBaseline": {
+      "timeUtc": "2026-10-17T00:04:42.231554+00:00",
+      "elapsedSeconds": 5.002,
+      "currentBytes": 3312734208,
+      "limitBytes": 8589934592,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 295191,
+        "oom": 4,
+        "oom_kill": 3,
+        "oom_group_kill": 0
+      },
+      "anonymousBytes": 102805504,
+      "fileBytes": 2925096960,
+      "kernelBytes": 283435008
+    },
+    "firstIncludedSample": {
+      "timeUtc": "2026-10-17T00:04:47.238860+00:00",
+      "elapsedSeconds": 10.021,
+      "currentBytes": 3911016448,
+      "limitBytes": 8589934592,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 295191,
+        "oom": 4,
+        "oom_kill": 3,
+        "oom_group_kill": 0
+      },
+      "anonymousBytes": 669212672,
+      "fileBytes": 2934333440,
+      "kernelBytes": 306012160
+    },
+    "lastIncludedSample": {
+      "timeUtc": "2026-10-17T00:13:57.391289+00:00",
+      "elapsedSeconds": 560.173,
+      "currentBytes": 6895190016,
+      "limitBytes": 8589934592,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 295191,
+        "oom": 4,
+        "oom_kill": 3,
+        "oom_group_kill": 0
+      },
+      "anonymousBytes": 3413581824,
+      "fileBytes": 3155058688,
+      "kernelBytes": 325382144
+    },
+    "highestSampledCurrent": {
+      "timeUtc": "2026-10-17T00:12:22.357994+00:00",
+      "elapsedSeconds": 465.14,
+      "currentBytes": 7229112320,
+      "limitBytes": 8589934592,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 295191,
+        "oom": 4,
+        "oom_kill": 3,
+        "oom_group_kill": 0
+      },
+      "anonymousBytes": 3747786752,
+      "fileBytes": 3154153472,
+      "kernelBytes": 325640192
+    },
+    "highestSampledCurrentGiB": 6.732635498046875,
+    "firstAfterWindowBoundarySample": {
+      "timeUtc": "2026-10-17T00:14:02.392073+00:00",
+      "elapsedSeconds": 565.174,
+      "currentBytes": 5664870400,
+      "limitBytes": 8589934592,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 295191,
+        "oom": 4,
+        "oom_kill": 3,
+        "oom_group_kill": 0
+      },
+      "anonymousBytes": 2195025920,
+      "fileBytes": 3149606912,
+      "kernelBytes": 318889984
+    },
+    "eventDeltasAcrossBracketingSamples": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    },
+    "eventsConstantAcrossIncludedSamples": true
+  },
+  "interpretation": [
+    "The maximum is the highest sampled memory.current value within each named execution window; sub-sample instantaneous peaks are not measured.",
+    "Samples before and after each window are excluded from its memory maximum. The nearest bracketing samples are retained separately to compare cumulative cgroup events across the boundaries.",
+    "Existing cumulative OOM counts belong to earlier activity. Zero event deltas mean no new cgroup OOM/kill events across this run, not zero historical events.",
+    "The sampler continued after the reporter finished. That late idle interval is preserved in the raw JSONL and excluded from execution-window statistics.",
+    "This run does not establish physical GPU performance or prove the absence of all resource leaks."
+  ]
+}

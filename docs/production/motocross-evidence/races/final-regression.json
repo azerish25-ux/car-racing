@@ -1,0 +1,188 @@
+{
+  "schemaVersion": 3,
+  "command": "npm run test:offroad",
+  "workingDirectory": "/workspace/scratch/ce74d2c3df38/motocross-final-recovery-gate",
+  "exitCode": 0,
+  "verifiedAt": "2026-10-17T00:05:03.301576+00:00",
+  "baselineCommit": "f91463cf506f6feced1a4db9c43af48ac3632410",
+  "sourceHashes": {
+    "scripts/offroad-calibration.ts": "a994af9827d5587dd015533290a5725d458b80e2c176ef74915a73de08672718",
+    "scripts/offroad-races.ts": "f117567b26e82941a756e55ec77a1bae5300ad442c72050ca836e6c82ba41420",
+    "src/simulation/offroad/dirt-bike-vehicle.ts": "a0048db1805e3660c81e6a82486dd71684a96b5db911cb2aabd31d1b86178d56",
+    "src/simulation/offroad/ai.ts": "3a5acf6d1ea40d940031aac4d5e4c55da8a0d0e2ea11a2fe77050dd96253be39",
+    "src/simulation/bike-ai.ts": "668a736db9168c9deb64797aa928971788a4c52a07e41b2bbc8bc8c0852c64e6",
+    "src/simulation/collision.ts": "02c8320bc909a556ca19d3b912f8be707db0463b6a23085b141ef652c678613e",
+    "src/simulation/driver-brain.ts": "d851cde01ebb016668daaedfa016bcc77536083b47284c812405ece28754f727",
+    "src/simulation/world.ts": "26500be30f1c8c1a666d6df4fed21ddc9a5f2aec6f29d163d866ab46caba501b",
+    "src/simulation/events.ts": "6231f596497857b0eda19a786b2e1444c6df413505f677b63d4dd7c64b5370e4",
+    "src/simulation/offroad/formats.ts": "8f80f9eacd13cf1a80b727c3ef4ad2ed0cb792a35f4e480b5e5bde6279608c5a",
+    "src/simulation/race.ts": "7f5017105700ff50e474a2a641cd0b4170a485c59be866d793aa280b62c1e952",
+    "src/simulation/bike.ts": "1fab3d119ab5d7a810b97a64a703d4920176f33d29ba11a328a6187bbab1e3ae",
+    "src/simulation/bike-vehicle.ts": "ca4dcfe776caa6ea9fe2578dfa8ef8ea39af8d1afb3fc612810300f037fbecc3",
+    "src/simulation/bike-slipstream.ts": "69249d407d3db7d150934e0479dfc629f27bf4579239231bc2850128dc39c66a"
+  },
+  "sourceFingerprintCount": 14,
+  "fingerprintScope": "Fourteen selected relevant simulation, adapter, eligibility and original-validator files, including preserved shared MotoGP R2/R3 bike paths. This is not a hash inventory of every repository file; presentation-only remote chain changes are outside this CPU gate.",
+  "sourceHashesMatchCurrentFiles": true,
+  "validationScriptsUnchangedFromBaseline": true,
+  "passed": true,
+  "jumpCalibrationCases": 20,
+  "standingStartCases": 3,
+  "raceScenarios": 10,
+  "classifiedEntrantStarts": 74,
+  "retirements": 0,
+  "failures": [],
+  "reports": {
+    "races": {
+      "path": "docs/offroad-races.json",
+      "sha256": "c8ce1d390670e17f5164909254a8988966f65a6ce6cd4809582ec7922e017bbc"
+    },
+    "calibration": {
+      "path": "docs/offroad-calibration.json",
+      "sha256": "05a2a9e2a5be64558745131fcd72c368127c6cbfc2896b7dd4a5b74124f366b7"
+    }
+  },
+  "interpretation": "Final uninstrumented deterministic CPU gate after concurrent MotoGP R2/R3 integration, dirt thermal compatibility, and the measured committed-touchdown, authoritative-pose collision, pre-face heading-abort and stationary drive-effort repairs. Original crash, classification, stop, terrain and calibration thresholds are unchanged. No all-seed, physical-device frame-rate or console-visual-parity claim.",
+  "precedingIntegration": {
+    "path": "docs/production/motocross-evidence/races/preceding-integration-regression.json",
+    "sha256": "5b1c198bd97ca27c45b1a1b0bdd7245d4625a44ec2534c9fa80174cfc660e999",
+    "scope": "Preceding integrated gate before the explicit motocross VSC/safety-car opt-out; retained historical evidence, not the final controller result."
+  },
+  "preR2Integration": {
+    "path": "docs/production/motocross-evidence/races/pre-r2-integration/final-regression.json",
+    "sha256": "4215d968c8abf7ac5b83faa2125e9f38492a6d82c117dcef3cbafdc66a4ac71c",
+    "scope": "Preserved passing integration before concurrent MotoGP R2; its current-source claims describe that historical capture."
+  },
+  "r2BeforeControlCorrections": {
+    "path": "docs/production/motocross-evidence/races/r2-before-control-corrections/offroad-races.json",
+    "sha256": "eac61fa3d96b5372e06b1625b0237a0a3a7502a2675c5fb4f3c8c6ab2aca4c68",
+    "scope": "Preserved failing R2 integration: nine of ten events passed, with the dry outdoor moto exceeding its unchanged per-rider crash cap."
+  },
+  "beforeStationaryEffortCorrection": {
+    "path": "docs/production/motocross-evidence/races/r2-before-effort-pause/offroad-races.json",
+    "sha256": "a600b8db7725ee680d84737856adf898edecbf56632850267c5cfed2e769e932",
+    "scope": "Preserved failing gate with all crash and classification bounds passing but two stationary recovery delays above the unchanged twenty-second stop limit."
+  },
+  "races": [
+    {
+      "name": "Valley Ridge motocross moto",
+      "raceSeconds": 301.76,
+      "classified": 8,
+      "entrants": 8,
+      "totalCrashes": 2,
+      "worstRiderCrashes": 1,
+      "maximumCrashesForOneRider": 2,
+      "crashesPerRiderLap": 0.083,
+      "longestStopSeconds": 10.13,
+      "retired": []
+    },
+    {
+      "name": "Arena Nord supercross main",
+      "raceSeconds": 274.57,
+      "classified": 8,
+      "entrants": 8,
+      "totalCrashes": 0,
+      "worstRiderCrashes": 0,
+      "maximumCrashesForOneRider": 2,
+      "crashesPerRiderLap": 0,
+      "longestStopSeconds": 10.4,
+      "retired": []
+    },
+    {
+      "name": "Kestrel rallycross heat",
+      "raceSeconds": 246.29,
+      "classified": 5,
+      "entrants": 5,
+      "totalCrashes": 0,
+      "worstRiderCrashes": 0,
+      "maximumCrashesForOneRider": null,
+      "crashesPerRiderLap": null,
+      "longestStopSeconds": 0,
+      "retired": []
+    },
+    {
+      "name": "Pinewood special stage",
+      "raceSeconds": 178.62,
+      "classified": 4,
+      "entrants": 4,
+      "totalCrashes": 0,
+      "worstRiderCrashes": 0,
+      "maximumCrashesForOneRider": null,
+      "crashesPerRiderLap": null,
+      "longestStopSeconds": 0.39,
+      "retired": []
+    },
+    {
+      "name": "event valley-ridge-mx-moto-1",
+      "raceSeconds": 390.28,
+      "classified": 10,
+      "entrants": 10,
+      "totalCrashes": 2,
+      "worstRiderCrashes": 1,
+      "maximumCrashesForOneRider": 2,
+      "crashesPerRiderLap": 0.05,
+      "longestStopSeconds": 9.78,
+      "retired": []
+    },
+    {
+      "name": "event valley-ridge-mx-moto-2",
+      "raceSeconds": 777.94,
+      "classified": 10,
+      "entrants": 10,
+      "totalCrashes": 1,
+      "worstRiderCrashes": 1,
+      "maximumCrashesForOneRider": 2,
+      "crashesPerRiderLap": 0.025,
+      "longestStopSeconds": 17.67,
+      "retired": []
+    },
+    {
+      "name": "event arena-nord-supercross",
+      "raceSeconds": 564.64,
+      "classified": 10,
+      "entrants": 10,
+      "totalCrashes": 5,
+      "worstRiderCrashes": 2,
+      "maximumCrashesForOneRider": 3,
+      "crashesPerRiderLap": 0.083,
+      "longestStopSeconds": 13.49,
+      "retired": []
+    },
+    {
+      "name": "event valley-ridge-supermoto",
+      "raceSeconds": 401.12,
+      "classified": 8,
+      "entrants": 8,
+      "totalCrashes": 3,
+      "worstRiderCrashes": 1,
+      "maximumCrashesForOneRider": 2,
+      "crashesPerRiderLap": 0.125,
+      "longestStopSeconds": 11.82,
+      "retired": []
+    },
+    {
+      "name": "event kestrel-rallycross-heat",
+      "raceSeconds": 246.29,
+      "classified": 5,
+      "entrants": 5,
+      "totalCrashes": 0,
+      "worstRiderCrashes": 0,
+      "maximumCrashesForOneRider": null,
+      "crashesPerRiderLap": null,
+      "longestStopSeconds": 0,
+      "retired": []
+    },
+    {
+      "name": "event pinewood-special-stage",
+      "raceSeconds": 219.23,
+      "classified": 6,
+      "entrants": 6,
+      "totalCrashes": 0,
+      "worstRiderCrashes": 0,
+      "maximumCrashesForOneRider": null,
+      "crashesPerRiderLap": null,
+      "longestStopSeconds": 0.39,
+      "retired": []
+    }
+  ]
+}

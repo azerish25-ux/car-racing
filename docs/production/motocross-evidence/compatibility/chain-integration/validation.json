@@ -1,0 +1,54 @@
+{
+  "scope": "Focused CPU construction, expanded-instance triangle budgets and idempotent resource ownership; Canvas drawing stubbed, no browser or GPU",
+  "command": "npx vitest run tests/gp-chain-drive.test.ts tests/motogp-reference.test.ts tests/bike-bodies.test.ts",
+  "status": "passed",
+  "files": 3,
+  "tests": 16,
+  "duration_seconds": 6.44,
+  "suites": [
+    {
+      "file": "tests/gp-chain-drive.test.ts",
+      "passed": 4,
+      "duration_ms": 70
+    },
+    {
+      "file": "tests/motogp-reference.test.ts",
+      "passed": 10,
+      "duration_ms": 1478
+    },
+    {
+      "file": "tests/bike-bodies.test.ts",
+      "passed": 2,
+      "duration_ms": 1294
+    }
+  ],
+  "other_checks": {
+    "owned_eslint": "passed",
+    "owned_prettier": "passed",
+    "git_diff_check": "passed"
+  },
+  "unchanged_reference_triangle_ceiling": 110000,
+  "source_hashes": {
+    "src/rendering/gp-chain-drive.ts": "57869f8c6427f8423d2cd309812c5f6b94cf846a0e5fc036823f10fb414e53c9",
+    "src/rendering/bike.ts": "36d2e4f7e77e3064305f9f8c1575ce278bd608b760fca71ca3cec17f2495a7e9",
+    "tests/gp-chain-drive.test.ts": "f25d4c471f5bc9b03725da1498c42cb5753bcad9b9b6dc012571d1a52fa860f2",
+    "tests/motogp-reference.test.ts": "44e741fae537354822a2e1a2b55504dfffbcad886c083704baaff9ef93e38e72",
+    "tests/bike-bodies.test.ts": "bb083c69becea91fb93b6f93476a77f0a065fd96e03e8d4d005e46c3d6c1cf85"
+  },
+  "final_frozen_source": {
+    "capturedAt": "2026-10-16T23:33:13.115865+00:00",
+    "integratedParent": "07d7e8b58f0dfa67020889a3dece4c5d99fd97bd",
+    "sourceCount": 665,
+    "sourceSha256": "2730d842760938bd83b29679c042c7494baed23b4fc1bc0f2fddc1db375c0349",
+    "sourceHashEncoding": "SHA-256 of UTF-8 compact JSON (separators comma/colon), with lexicographically sorted path keys; values are file SHA-256 digests.",
+    "buildIdentity": {
+      "version": 1,
+      "commit": null,
+      "fingerprint": "0d78ef3c0fd14a8007b8b1f448c0ca495f66fe24dd4f07fa53ed7a50c372079e"
+    }
+  },
+  "limits": [
+    "The CPU witness counts the entire constructed high-detail model with each instance expanded; it is not the GP41 scene render count.",
+    "The lifecycle witness proves disposal-event ownership and idempotence. It does not measure process memory or attribute any previous browser crash."
+  ]
+}

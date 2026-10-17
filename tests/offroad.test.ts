@@ -646,6 +646,16 @@ describe('off-road integration guards', () => {
       if (bike.recoverIfUpset(dt, track)) restarted = t;
     }
     expect(restarted).toBeGreaterThan(BIKE_RECOVERY.stuckSeconds - 0.1);
+    expect(bike.dynamics.state).toBe('remount');
+    // The marshal now crosses the feature visibly, within the same bounded
+    // remount interval. An instant restart could skip a timing checkpoint.
+    let pushed = 0;
+    while (!bike.riding && pushed < BIKE_RECOVERY.maxPush + dt * 2) {
+      bike.input.throttle = bike.input.brake = bike.input.steer = 0;
+      bike.step(dt, track);
+      pushed += dt;
+    }
+    expect(pushed).toBeLessThanOrEqual(BIKE_RECOVERY.maxPush + dt * 2);
     expect(mod(bike.s - triple.end + L / 2, L) - L / 2).toBeGreaterThan(1);
     expect(Math.abs(bike.lateral)).toBeLessThan(track.at(bike.s, trackPoint()).width);
     expect(bike.riding && !bike.airborne).toBe(true);

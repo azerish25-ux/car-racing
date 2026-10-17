@@ -1,0 +1,476 @@
+{
+  "metadata": {
+    "actualWorkers": 1
+  },
+  "startTime": 1792201887900,
+  "duration": 157599.91499999998,
+  "files": [
+    {
+      "fileId": "3fbd06b21eed61ee3457",
+      "fileName": "11-phase27c.spec.ts",
+      "tests": [
+        {
+          "testId": "3fbd06b21eed61ee3457-84a276c9fec95c72c99c",
+          "title": "Phase 27C: actual crowd colour/depth shaders freeze and rewind exactly",
+          "projectName": "",
+          "location": {
+            "file": "11-phase27c.spec.ts",
+            "line": 66,
+            "column": 1
+          },
+          "duration": 6979,
+          "annotations": [],
+          "tags": [],
+          "outcome": "expected",
+          "path": [],
+          "ok": true,
+          "results": [
+            {
+              "attachments": [
+                {
+                  "name": "crowd-time-0.png",
+                  "contentType": "image/png",
+                  "path": "data/d3088d611b334798b5721a62425742c1b38440b4.png"
+                },
+                {
+                  "name": "crowd-paused.png",
+                  "contentType": "image/png",
+                  "path": "data/d3088d611b334798b5721a62425742c1b38440b4.png"
+                },
+                {
+                  "name": "crowd-time-2.png",
+                  "contentType": "image/png",
+                  "path": "data/66d57c180f8f8f039bffa2ab985db1f1610e1d4f.png"
+                },
+                {
+                  "name": "crowd-rewind.png",
+                  "contentType": "image/png",
+                  "path": "data/d3088d611b334798b5721a62425742c1b38440b4.png"
+                },
+                {
+                  "name": "crowd-repeat.png",
+                  "contentType": "image/png",
+                  "path": "data/d3088d611b334798b5721a62425742c1b38440b4.png"
+                },
+                {
+                  "name": "crowd-handoff-52.png",
+                  "contentType": "image/png",
+                  "path": "data/85ff419c0850316cacbb94cc4564dd78054a7b1e.png"
+                },
+                {
+                  "name": "crowd-handoff-300.png",
+                  "contentType": "image/png",
+                  "path": "data/cd696c1eb725e72715d1cb2b20417c7819449367.png"
+                },
+                {
+                  "name": "crowd-handoff-52.png",
+                  "contentType": "image/png",
+                  "path": "data/85ff419c0850316cacbb94cc4564dd78054a7b1e.png"
+                },
+                {
+                  "name": "crowd-metrics.json",
+                  "contentType": "application/json"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "stats": {
+        "total": 1,
+        "expected": 1,
+        "unexpected": 0,
+        "flaky": 0,
+        "skipped": 0,
+        "ok": true
+      }
+    },
+    {
+      "fileId": "115f7b67105cc547e99c",
+      "fileName": "41-motogp-reference.spec.ts",
+      "tests": [
+        {
+          "testId": "115f7b67105cc547e99c-dc61b472f248a863c6ed",
+          "title": "GP reference R1.1: authored LODs, production onboard and same-instance wet rewind on WebGL2",
+          "projectName": "",
+          "location": {
+            "file": "41-motogp-reference.spec.ts",
+            "line": 17,
+            "column": 1
+          },
+          "duration": 107540,
+          "annotations": [],
+          "tags": [],
+          "outcome": "expected",
+          "path": [],
+          "ok": true,
+          "results": [
+            {
+              "attachments": [
+                {
+                  "name": "0-gpr1-high-dry.png",
+                  "contentType": "image/png",
+                  "path": "data/06adbb149324ae0f55eb999c02fc86ae0b191e8b.png"
+                },
+                {
+                  "name": "0-metrics.json",
+                  "contentType": "application/json"
+                },
+                {
+                  "name": "1-gpr1-mid-dry.png",
+                  "contentType": "image/png",
+                  "path": "data/f33a672d79fdab964b122eadba7c719d06166bbd.png"
+                },
+                {
+                  "name": "1-metrics.json",
+                  "contentType": "application/json"
+                },
+                {
+                  "name": "2-gpr1-far-dry.png",
+                  "contentType": "image/png",
+                  "path": "data/f55f075adfe61a596531b8d6468b08e6138dca35.png"
+                },
+                {
+                  "name": "2-metrics.json",
+                  "contentType": "application/json"
+                },
+                {
+                  "name": "3-gpr2-high-dry.png",
+                  "contentType": "image/png",
+                  "path": "data/2028f5487ccbc82688df6683a9998e66d2d1da9e.png"
+                },
+                {
+                  "name": "3-metrics.json",
+                  "contentType": "application/json"
+                },
+                {
+                  "name": "4-gpr1-high-wet.png",
+                  "contentType": "image/png",
+                  "path": "data/e7d5b9c12ba6b13bbc60c03c6f46deb144169d00.png"
+                },
+                {
+                  "name": "4-metrics.json",
+                  "contentType": "application/json"
+                },
+                {
+                  "name": "5-gpr1-high-dry.png",
+                  "contentType": "image/png",
+                  "path": "data/06adbb149324ae0f55eb999c02fc86ae0b191e8b.png"
+                },
+                {
+                  "name": "5-metrics.json",
+                  "contentType": "application/json"
+                },
+                {
+                  "name": "gpr1-production-onboard.png",
+                  "contentType": "image/png",
+                  "path": "data/87319753f3b4cc99b0a88861d5df36e2126ca008.png"
+                },
+                {
+                  "name": "gpr1-onboard-contract.json",
+                  "contentType": "application/json"
+                },
+                {
+                  "name": "gpr2-production-onboard.png",
+                  "contentType": "image/png",
+                  "path": "data/febc9031046bd0fcbbcf228afaec94d7c7482ba8.png"
+                },
+                {
+                  "name": "gpr2-onboard-contract.json",
+                  "contentType": "application/json"
+                },
+                {
+                  "name": "sbk1000-production-onboard.png",
+                  "contentType": "image/png",
+                  "path": "data/8249ba25cab40fab18180ef497302718b4a06cdd.png"
+                },
+                {
+                  "name": "sbk1000-onboard-contract.json",
+                  "contentType": "application/json"
+                },
+                {
+                  "name": "ss600-production-onboard.png",
+                  "contentType": "image/png",
+                  "path": "data/8fe6a068349ee455560e33f997556dae3e2d6e57.png"
+                },
+                {
+                  "name": "ss600-onboard-contract.json",
+                  "contentType": "application/json"
+                },
+                {
+                  "name": "same-instance-weather-0.png",
+                  "contentType": "image/png",
+                  "path": "data/06adbb149324ae0f55eb999c02fc86ae0b191e8b.png"
+                },
+                {
+                  "name": "same-instance-weather-1.png",
+                  "contentType": "image/png",
+                  "path": "data/e7d5b9c12ba6b13bbc60c03c6f46deb144169d00.png"
+                },
+                {
+                  "name": "same-instance-weather-2.png",
+                  "contentType": "image/png",
+                  "path": "data/e7d5b9c12ba6b13bbc60c03c6f46deb144169d00.png"
+                },
+                {
+                  "name": "same-instance-weather-3.png",
+                  "contentType": "image/png",
+                  "path": "data/06adbb149324ae0f55eb999c02fc86ae0b191e8b.png"
+                },
+                {
+                  "name": "same-instance-weather-metrics.json",
+                  "contentType": "application/json"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "stats": {
+        "total": 1,
+        "expected": 1,
+        "unexpected": 0,
+        "flaky": 0,
+        "skipped": 0,
+        "ok": true
+      }
+    },
+    {
+      "fileId": "1bc807ad1cd6991acf0a",
+      "fileName": "42-motocross-bike.spec.ts",
+      "tests": [
+        {
+          "testId": "1bc807ad1cd6991acf0a-31eec84b920bbf839709",
+          "title": "Motocross reference R2: production bikes, reachable riding poses and reversible mud on WebGL2",
+          "projectName": "",
+          "location": {
+            "file": "42-motocross-bike.spec.ts",
+            "line": 4,
+            "column": 1
+          },
+          "duration": 40767,
+          "annotations": [],
+          "tags": [],
+          "outcome": "expected",
+          "path": [],
+          "ok": true,
+          "results": [
+            {
+              "attachments": [
+                {
+                  "name": "mx450-high.png",
+                  "contentType": "image/png",
+                  "path": "data/efcf7c0b25d4a5c486c637eea973ce6d81912ce8.png"
+                },
+                {
+                  "name": "mx450-high-metrics.json",
+                  "contentType": "application/json"
+                },
+                {
+                  "name": "mx450-mid.png",
+                  "contentType": "image/png",
+                  "path": "data/9a07a44191bc3d2d7d48dd4238871870e306af96.png"
+                },
+                {
+                  "name": "mx450-mid-metrics.json",
+                  "contentType": "application/json"
+                },
+                {
+                  "name": "mx450-far.png",
+                  "contentType": "image/png",
+                  "path": "data/b818a69f3ea67beff783fdbc077bb7b80d678c3b.png"
+                },
+                {
+                  "name": "mx450-far-metrics.json",
+                  "contentType": "application/json"
+                },
+                {
+                  "name": "mx250-high.png",
+                  "contentType": "image/png",
+                  "path": "data/c69417d83639be43511bc15798f7300565607ad3.png"
+                },
+                {
+                  "name": "mx250-high-metrics.json",
+                  "contentType": "application/json"
+                },
+                {
+                  "name": "mx250-mid.png",
+                  "contentType": "image/png",
+                  "path": "data/e0cff7825c72651aec16e2032617cf815976a56e.png"
+                },
+                {
+                  "name": "mx250-mid-metrics.json",
+                  "contentType": "application/json"
+                },
+                {
+                  "name": "mx250-far.png",
+                  "contentType": "image/png",
+                  "path": "data/8ede0eedff82bc0d64a22c7dfd51428f23bf55e9.png"
+                },
+                {
+                  "name": "mx250-far-metrics.json",
+                  "contentType": "application/json"
+                },
+                {
+                  "name": "standing-side.png",
+                  "contentType": "image/png",
+                  "path": "data/b7f3ce7cfffd95f630e39e110aad23c004841a89.png"
+                },
+                {
+                  "name": "standing-side-metrics.json",
+                  "contentType": "application/json"
+                },
+                {
+                  "name": "braced-front.png",
+                  "contentType": "image/png",
+                  "path": "data/733dba9a63ec1955515c332cf362a514fd3c5468.png"
+                },
+                {
+                  "name": "braced-front-metrics.json",
+                  "contentType": "application/json"
+                },
+                {
+                  "name": "inside-foot-dab.png",
+                  "contentType": "image/png",
+                  "path": "data/efa856d965d377b243d2c73ba392e537087e97a3.png"
+                },
+                {
+                  "name": "inside-foot-dab-metrics.json",
+                  "contentType": "application/json"
+                },
+                {
+                  "name": "rear-components.png",
+                  "contentType": "image/png",
+                  "path": "data/27711dbce41d2e802605d3166fb40433afa2dcf1.png"
+                },
+                {
+                  "name": "rear-components-metrics.json",
+                  "contentType": "application/json"
+                },
+                {
+                  "name": "helmet-and-gear.png",
+                  "contentType": "image/png",
+                  "path": "data/e429e1d1d89e5f000e7e86d1a233ab15edcddb28.png"
+                },
+                {
+                  "name": "helmet-and-gear-metrics.json",
+                  "contentType": "application/json"
+                },
+                {
+                  "name": "mx250-production-onboard-0.png",
+                  "contentType": "image/png",
+                  "path": "data/164f18091030af429798401f5a45bad66afaa3d4.png"
+                },
+                {
+                  "name": "mx250-production-onboard-0-metrics.json",
+                  "contentType": "application/json"
+                },
+                {
+                  "name": "mx250-production-onboard-1.png",
+                  "contentType": "image/png",
+                  "path": "data/1037f0508dd909e24b0f1d8b5a01b43cdc7958aa.png"
+                },
+                {
+                  "name": "mx250-production-onboard-1-metrics.json",
+                  "contentType": "application/json"
+                },
+                {
+                  "name": "mx250-production-onboard-2.png",
+                  "contentType": "image/png",
+                  "path": "data/d95640e8ba7967aff688a59e2a291265d1a1da89.png"
+                },
+                {
+                  "name": "mx250-production-onboard-2-metrics.json",
+                  "contentType": "application/json"
+                },
+                {
+                  "name": "mx450-production-onboard-0.png",
+                  "contentType": "image/png",
+                  "path": "data/ca54832adfd8b54b49517db886bfbd9ca4058ae7.png"
+                },
+                {
+                  "name": "mx450-production-onboard-0-metrics.json",
+                  "contentType": "application/json"
+                },
+                {
+                  "name": "mx450-production-onboard-1.png",
+                  "contentType": "image/png",
+                  "path": "data/a61a303b213fa28fde41d3a2fcf3bf90c260d6ce.png"
+                },
+                {
+                  "name": "mx450-production-onboard-1-metrics.json",
+                  "contentType": "application/json"
+                },
+                {
+                  "name": "mx450-production-onboard-2.png",
+                  "contentType": "image/png",
+                  "path": "data/ba0f6e1726eb321b81ab4944e339b4130a67b648.png"
+                },
+                {
+                  "name": "mx450-production-onboard-2-metrics.json",
+                  "contentType": "application/json"
+                },
+                {
+                  "name": "same-instance-mud-0.png",
+                  "contentType": "image/png",
+                  "path": "data/efcf7c0b25d4a5c486c637eea973ce6d81912ce8.png"
+                },
+                {
+                  "name": "same-instance-mud-0-metrics.json",
+                  "contentType": "application/json"
+                },
+                {
+                  "name": "same-instance-mud-1.png",
+                  "contentType": "image/png",
+                  "path": "data/83541c2c4ea460e3ed3b376451ab9ee96dc5a488.png"
+                },
+                {
+                  "name": "same-instance-mud-1-metrics.json",
+                  "contentType": "application/json"
+                },
+                {
+                  "name": "same-instance-mud-2.png",
+                  "contentType": "image/png",
+                  "path": "data/83541c2c4ea460e3ed3b376451ab9ee96dc5a488.png"
+                },
+                {
+                  "name": "same-instance-mud-2-metrics.json",
+                  "contentType": "application/json"
+                },
+                {
+                  "name": "same-instance-mud-3.png",
+                  "contentType": "image/png",
+                  "path": "data/efcf7c0b25d4a5c486c637eea973ce6d81912ce8.png"
+                },
+                {
+                  "name": "same-instance-mud-3-metrics.json",
+                  "contentType": "application/json"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "stats": {
+        "total": 1,
+        "expected": 1,
+        "unexpected": 0,
+        "flaky": 0,
+        "skipped": 0,
+        "ok": true
+      }
+    }
+  ],
+  "projectNames": [
+    ""
+  ],
+  "stats": {
+    "total": 3,
+    "expected": 3,
+    "unexpected": 0,
+    "flaky": 0,
+    "skipped": 0,
+    "ok": true
+  },
+  "errors": []
+}

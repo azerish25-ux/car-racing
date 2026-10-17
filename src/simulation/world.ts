@@ -101,7 +101,13 @@ export class Simulation {
     // Gate slots or the stage queue on terrain venues (no-op elsewhere).
     OffroadSession.place(this.track, this.cars, this.options);
     this.ai = this.cars.map((c) =>
-      createEntrantDriver(c, 0.92 + (c.id % 4) * 0.014, this.options.seed, this.track, this.options.laps),
+      createEntrantDriver(
+        c,
+        0.92 + (c.id % 4) * 0.014,
+        this.options.seed,
+        this.track,
+        this.options.laps,
+      ),
     );
     this.recoveries = new Uint16Array(count);
     this.strandClock = new Float64Array(count);
@@ -144,6 +150,7 @@ export class Simulation {
   }
   /** Toggle the player's pit request; `compound` is the strategy page's choice. */
   requestPit(compound?: Compound) {
+    if (!this.race.ruleset.service.pitStops) return;
     const c = this.cars[0];
     c.pitRequested = !c.pitRequested;
     if (compound && Object.hasOwn(COMPOUNDS, compound)) {
@@ -178,7 +185,8 @@ export class Simulation {
     }
     for (const c of this.cars) c.recoverIfUpset(dt, this.track);
     this.recoverStranded(dt);
-    for (const c of this.cars) updatePit(c, this.track, dt, this.cars);
+    if (this.race.ruleset.service.pitStops)
+      for (const c of this.cars) updatePit(c, this.track, dt, this.cars);
     this.offroad?.afterPhysics(dt);
     this.track.evolve(dt, Math.max(0, this.race.time - this.race.greenAt));
     this.race.step(dt);

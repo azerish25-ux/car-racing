@@ -1,0 +1,341 @@
+{
+  "schemaVersion": 1,
+  "title": "Late MotoGP R3.1/R4 brake integration and motocross compatibility",
+  "recordedAt": "2026-10-17T01:52:44.824971+00:00",
+  "status": "passed",
+  "evidenceKind": "Preserved completed CPU reports and source review. Packaging performs checksum and report-consistency checks; it does not rerun tests.",
+  "integration": {
+    "previousIncoming": "31626200d4a79e8173f70d587a14c09176d0aa7f",
+    "physicsIncoming": "0e0326a7b26e797362a3fd51655a8af37f3eabb2",
+    "verifiedIncomingThrough": "d4dd3e541433a0eb7513b0b9124c932911a64bdb",
+    "ownedFiles": [
+      "src/simulation/bike-vehicle.ts",
+      "src/simulation/gp-brake-fade.ts",
+      "tests/gp-brake-fade.test.ts"
+    ],
+    "allOwnedFilesMatchIncomingBytes": true,
+    "simulationDelta": "Only the road BikeVehicle.step brake inputs and the new pure gpBrakeEfficiency helper changed after 3162620. All three assigned source/test files match both 0e0326a and d4dd3e5 exactly."
+  },
+  "sourceHashes": {
+    "src/simulation/bike-vehicle.ts": "203cd5bf79c860609c453fda64713a25e4b7acb27e7a98d76afbb12904ab30b9",
+    "src/simulation/gp-brake-fade.ts": "44b747004eb4c7c1256b6d65ccd16dd9b60fb00a49174e77962c99bc29fe543c",
+    "tests/gp-brake-fade.test.ts": "26d06cee0f4238998786fae7e2377733c12ae7c369fdfc12092297051857eeea"
+  },
+  "testAndCallPathSourceHashes": {
+    "tests/bike-session.test.ts": "a9caa63f9f81e0e3cf10de63d269a195c50c07ad2df12f3fee1d2a8f1e9199ec",
+    "tests/motocross-thermal.test.ts": "d64af6bfcf516d6048004de2fdc9431820948031722ff1582d054e14bd11db3a",
+    "src/simulation/offroad/session.ts": "25e9bd4b3d2d9371015d9cda8123964ac2e92890bbecf87de8badc0b02c8da78",
+    "src/simulation/open-world/session.ts": "f90566c9d6819bea2f933c6f7f55a652152d246056fb7450a7c4588485dc38e1",
+    "src/simulation/offroad/dirt-bike-vehicle.ts": "a0048db1805e3660c81e6a82486dd71684a96b5db911cb2aabd31d1b86178d56",
+    "src/simulation/world.ts": "26500be30f1c8c1a666d6df4fed21ddc9a5f2aec6f29d163d866ab46caba501b"
+  },
+  "focused": {
+    "command": "node node_modules/vitest/vitest.mjs run tests/gp-brake-fade.test.ts tests/bike-session.test.ts tests/motocross-thermal.test.ts --reporter=default --reporter=json --outputFile=/workspace/scratch/ce74d2c3df38/motocross-late-r4-physics/focused.json > /workspace/scratch/ce74d2c3df38/motocross-late-r4-physics/focused.log 2>&1",
+    "workingDirectory": "/workspace/scratch/ce74d2c3df38/Experiment-3",
+    "exitCode": 0,
+    "passed": 20,
+    "failed": 0,
+    "skipped": 0,
+    "testFiles": 3,
+    "consoleReportedDurationSeconds": 19.24,
+    "suiteCounterNote": "The native Vitest report counts nine suites including nested suites; testResults contains three test files.",
+    "files": [
+      {
+        "path": "tests/bike-session.test.ts",
+        "status": "passed",
+        "passed": 14,
+        "assertions": [
+          {
+            "name": "WP34 motorcycles in real sessions builds the bike adapter and bike AI for bike definitions only",
+            "status": "passed"
+          },
+          {
+            "name": "WP34 motorcycles in real sessions laps a circuit under AI with lean, gears, tyre wear and valid timing",
+            "status": "passed"
+          },
+          {
+            "name": "WP34 motorcycles in real sessions crash flows through race control: rider down, separation, remount, back on track",
+            "status": "passed"
+          },
+          {
+            "name": "WP34 motorcycles in real sessions a hard contact between bikes unseats a rider without non-finite state",
+            "status": "passed"
+          },
+          {
+            "name": "WP34 motorcycles in real sessions race control penalises a bike jump start like any entrant",
+            "status": "passed"
+          },
+          {
+            "name": "WP34 motorcycles in real sessions rear brake is the secondary (clutch) input and decelerates on its own",
+            "status": "passed"
+          },
+          {
+            "name": "WP34 motorcycles in real sessions services a bike in the pit lane and releases it",
+            "status": "passed"
+          },
+          {
+            "name": "WP34 snapshot v12 bike block round-trips lean, steer, rider pose and loads; cars carry zeros",
+            "status": "passed"
+          },
+          {
+            "name": "WP34 snapshot v12 bike block rejects unknown vehicle indices and old layouts",
+            "status": "passed"
+          },
+          {
+            "name": "WP34 snapshot v12 bike block chassis lean inverts to the dynamics lean (tyre crown geometry)",
+            "status": "passed"
+          },
+          {
+            "name": "WP36 bike identity, rules and content gives every bike its own identity hash and record category",
+            "status": "passed"
+          },
+          {
+            "name": "WP36 bike identity, rules and content rejects mixed car and bike grids, admits all-bike grids",
+            "status": "passed"
+          },
+          {
+            "name": "WP36 bike identity, rules and content validates bike content and names what is wrong",
+            "status": "passed"
+          },
+          {
+            "name": "WP35 seeded AI bike race finishes a mixed GP/superbike race with bounded incidents and no stuck rider",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "path": "tests/gp-brake-fade.test.ts",
+        "status": "passed",
+        "passed": 3,
+        "assertions": [
+          {
+            "name": "GP disc heat fade retains baseline race feel under normal temperatures",
+            "status": "passed"
+          },
+          {
+            "name": "GP disc heat fade progressively reduces maximum brake torque under thermal abuse, and recovers",
+            "status": "passed"
+          },
+          {
+            "name": "GP disc heat fade never produces nonfinite or negative brake gains",
+            "status": "passed"
+          }
+        ]
+      },
+      {
+        "path": "tests/motocross-thermal.test.ts",
+        "status": "passed",
+        "passed": 3,
+        "assertions": [
+          {
+            "name": "off-road thermal integration with full brake-force utilisation 'mx250' bounds real Raw braking heat and stops contact heating through recovery",
+            "status": "passed"
+          },
+          {
+            "name": "off-road thermal integration with full brake-force utilisation 'mx450' bounds real Raw braking heat and stops contact heating through recovery",
+            "status": "passed"
+          },
+          {
+            "name": "off-road thermal integration with full brake-force utilisation 'sm450' bounds real Raw braking heat and stops contact heating through recovery",
+            "status": "passed"
+          }
+        ]
+      }
+    ],
+    "nativeReport": {
+      "originalPath": "/workspace/scratch/ce74d2c3df38/motocross-late-r4-physics/focused.json",
+      "bytes": 7536,
+      "sha256": "e7554e28b53618fa5c390268886e406a45cb44cea50529b942532b883c4ccab9",
+      "encoding": "utf-8",
+      "rawUtf8": "{\"numTotalTestSuites\":9,\"numPassedTestSuites\":9,\"numFailedTestSuites\":0,\"numPendingTestSuites\":0,\"numTotalTests\":20,\"numPassedTests\":20,\"numFailedTests\":0,\"numPendingTests\":0,\"numTodoTests\":0,\"snapshot\":{\"added\":0,\"failure\":false,\"filesAdded\":0,\"filesRemoved\":0,\"filesRemovedList\":[],\"filesUnmatched\":0,\"filesUpdated\":0,\"matched\":0,\"total\":0,\"unchecked\":0,\"uncheckedKeysByFile\":[],\"unmatched\":0,\"updated\":0,\"didUpdate\":false},\"startTime\":1792201309944,\"success\":true,\"testResults\":[{\"assertionResults\":[{\"ancestorTitles\":[\"WP34 motorcycles in real sessions\"],\"fullName\":\"WP34 motorcycles in real sessions builds the bike adapter and bike AI for bike definitions only\",\"status\":\"passed\",\"title\":\"builds the bike adapter and bike AI for bike definitions only\",\"duration\":75.13649499999997,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"WP34 motorcycles in real sessions\"],\"fullName\":\"WP34 motorcycles in real sessions laps a circuit under AI with lean, gears, tyre wear and valid timing\",\"status\":\"passed\",\"title\":\"laps a circuit under AI with lean, gears, tyre wear and valid timing\",\"duration\":1796.042843,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"WP34 motorcycles in real sessions\"],\"fullName\":\"WP34 motorcycles in real sessions crash flows through race control: rider down, separation, remount, back on track\",\"status\":\"passed\",\"title\":\"crash flows through race control: rider down, separation, remount, back on track\",\"duration\":390.09569999999985,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"WP34 motorcycles in real sessions\"],\"fullName\":\"WP34 motorcycles in real sessions a hard contact between bikes unseats a rider without non-finite state\",\"status\":\"passed\",\"title\":\"a hard contact between bikes unseats a rider without non-finite state\",\"duration\":53.531132999999954,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"WP34 motorcycles in real sessions\"],\"fullName\":\"WP34 motorcycles in real sessions race control penalises a bike jump start like any entrant\",\"status\":\"passed\",\"title\":\"race control penalises a bike jump start like any entrant\",\"duration\":49.41377899999998,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"WP34 motorcycles in real sessions\"],\"fullName\":\"WP34 motorcycles in real sessions rear brake is the secondary (clutch) input and decelerates on its own\",\"status\":\"passed\",\"title\":\"rear brake is the secondary (clutch) input and decelerates on its own\",\"duration\":21.58406399999967,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"WP34 motorcycles in real sessions\"],\"fullName\":\"WP34 motorcycles in real sessions services a bike in the pit lane and releases it\",\"status\":\"passed\",\"title\":\"services a bike in the pit lane and releases it\",\"duration\":1288.8611419999997,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"WP34 snapshot v12 bike block\"],\"fullName\":\"WP34 snapshot v12 bike block round-trips lean, steer, rider pose and loads; cars carry zeros\",\"status\":\"passed\",\"title\":\"round-trips lean, steer, rider pose and loads; cars carry zeros\",\"duration\":248.05654099999992,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"WP34 snapshot v12 bike block\"],\"fullName\":\"WP34 snapshot v12 bike block rejects unknown vehicle indices and old layouts\",\"status\":\"passed\",\"title\":\"rejects unknown vehicle indices and old layouts\",\"duration\":0.3551919999999882,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"WP34 snapshot v12 bike block\"],\"fullName\":\"WP34 snapshot v12 bike block chassis lean inverts to the dynamics lean (tyre crown geometry)\",\"status\":\"passed\",\"title\":\"chassis lean inverts to the dynamics lean (tyre crown geometry)\",\"duration\":0.2523529999998573,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"WP36 bike identity, rules and content\"],\"fullName\":\"WP36 bike identity, rules and content gives every bike its own identity hash and record category\",\"status\":\"passed\",\"title\":\"gives every bike its own identity hash and record category\",\"duration\":1.9320499999994354,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"WP36 bike identity, rules and content\"],\"fullName\":\"WP36 bike identity, rules and content rejects mixed car and bike grids, admits all-bike grids\",\"status\":\"passed\",\"title\":\"rejects mixed car and bike grids, admits all-bike grids\",\"duration\":1.164639999999963,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"WP36 bike identity, rules and content\"],\"fullName\":\"WP36 bike identity, rules and content validates bike content and names what is wrong\",\"status\":\"passed\",\"title\":\"validates bike content and names what is wrong\",\"duration\":3693.6144080000004,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"WP35 seeded AI bike race\"],\"fullName\":\"WP35 seeded AI bike race finishes a mixed GP/superbike race with bounded incidents and no stuck rider\",\"status\":\"passed\",\"title\":\"finishes a mixed GP/superbike race with bounded incidents and no stuck rider\",\"duration\":8238.555565999999,\"failureMessages\":[],\"meta\":{}}],\"startTime\":1792201311742,\"endTime\":1792201327602.5557,\"status\":\"passed\",\"message\":\"\",\"name\":\"/workspace/scratch/ce74d2c3df38/Experiment-3/tests/bike-session.test.ts\"},{\"assertionResults\":[{\"ancestorTitles\":[\"GP disc heat fade\"],\"fullName\":\"GP disc heat fade retains baseline race feel under normal temperatures\",\"status\":\"passed\",\"title\":\"retains baseline race feel under normal temperatures\",\"duration\":1.7637829999999894,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"GP disc heat fade\"],\"fullName\":\"GP disc heat fade progressively reduces maximum brake torque under thermal abuse, and recovers\",\"status\":\"passed\",\"title\":\"progressively reduces maximum brake torque under thermal abuse, and recovers\",\"duration\":0.5738830000000235,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"GP disc heat fade\"],\"fullName\":\"GP disc heat fade never produces nonfinite or negative brake gains\",\"status\":\"passed\",\"title\":\"never produces nonfinite or negative brake gains\",\"duration\":0.7761779999999874,\"failureMessages\":[],\"meta\":{}}],\"startTime\":1792201329168,\"endTime\":1792201329170.7761,\"status\":\"passed\",\"message\":\"\",\"name\":\"/workspace/scratch/ce74d2c3df38/Experiment-3/tests/gp-brake-fade.test.ts\"},{\"assertionResults\":[{\"ancestorTitles\":[\"off-road thermal integration with full brake-force utilisation\"],\"fullName\":\"off-road thermal integration with full brake-force utilisation 'mx250' bounds real Raw braking heat and stops contact heating through recovery\",\"status\":\"passed\",\"title\":\"'mx250' bounds real Raw braking heat and stops contact heating through recovery\",\"duration\":306.450383,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"off-road thermal integration with full brake-force utilisation\"],\"fullName\":\"off-road thermal integration with full brake-force utilisation 'mx450' bounds real Raw braking heat and stops contact heating through recovery\",\"status\":\"passed\",\"title\":\"'mx450' bounds real Raw braking heat and stops contact heating through recovery\",\"duration\":153.34711900000013,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"off-road thermal integration with full brake-force utilisation\"],\"fullName\":\"off-road thermal integration with full brake-force utilisation 'sm450' bounds real Raw braking heat and stops contact heating through recovery\",\"status\":\"passed\",\"title\":\"'sm450' bounds real Raw braking heat and stops contact heating through recovery\",\"duration\":152.8915360000001,\"failureMessages\":[],\"meta\":{}}],\"startTime\":1792201328321,\"endTime\":1792201328933.8916,\"status\":\"passed\",\"message\":\"\",\"name\":\"/workspace/scratch/ce74d2c3df38/Experiment-3/tests/motocross-thermal.test.ts\"}]}"
+    },
+    "nativeConsole": {
+      "originalPath": "/workspace/scratch/ce74d2c3df38/motocross-late-r4-physics/focused.log",
+      "bytes": 1223,
+      "sha256": "d4e8dd477420f9cc560451cacd0f67b3dccd36fef9d4fd15dd116e92cfb9ae70",
+      "encoding": "utf-8",
+      "rawUtf8": "\n RUN  v3.2.4 /workspace/scratch/ce74d2c3df38/Experiment-3\n\n ✓ tests/bike-session.test.ts (14 tests) 15862ms\n   ✓ WP34 motorcycles in real sessions > laps a circuit under AI with lean, gears, tyre wear and valid timing  1796ms\n   ✓ WP34 motorcycles in real sessions > crash flows through race control: rider down, separation, remount, back on track  390ms\n   ✓ WP34 motorcycles in real sessions > services a bike in the pit lane and releases it  1289ms\n   ✓ WP36 bike identity, rules and content > validates bike content and names what is wrong  3694ms\n   ✓ WP35 seeded AI bike race > finishes a mixed GP/superbike race with bounded incidents and no stuck rider  8239ms\n ✓ tests/motocross-thermal.test.ts (3 tests) 615ms\n   ✓ off-road thermal integration with full brake-force utilisation > 'mx250' bounds real Raw braking heat and stops contact heating through recovery  306ms\n ✓ tests/gp-brake-fade.test.ts (3 tests) 4ms\n\n Test Files  3 passed (3)\n      Tests  20 passed (20)\n   Start at  18:41:49\n   Duration  19.24s (transform 737ms, setup 0ms, collect 2.08s, tests 16.48s, environment 1ms, prepare 215ms)\n\nJSON report written to /workspace/scratch/ce74d2c3df38/motocross-late-r4-physics/focused.json\n"
+    }
+  },
+  "productionBindingProbe": {
+    "command": "node --experimental-transform-types brake-binding-probe.mjs",
+    "workingDirectory": "/workspace/scratch/ce74d2c3df38/motocross-late-r4-physics",
+    "exitCode": 0,
+    "passed": true,
+    "vehicles": 6,
+    "physicalStates": 36,
+    "scope": "Production createEntrant, adapter step and actual dynamics front/rear brake forces; no private solver or brake argument interception.",
+    "fixture": "Fresh independent physical states at 45 m, speed 28 m/s, Raw assists, front input 0.1 and rear input 0.1, one 1/240 s production step. Disc temperature is the only changed state between variants.",
+    "result": "At unsaturated front/rear input 0.1, each hot GP axle produces 0.78 times its cold force independently. SBK1000 and all three dirt adapters produce identical front/rear forces and resulting speed across all six temperature variants.",
+    "fixtureDesignNote": "The low brake demands expose actuator gain below the real tyre friction cap. Larger demands can reach that cap and mask the gain in actual contact force; no tyre, ABS, landing or event threshold was changed.",
+    "nativeReport": {
+      "originalPath": "/workspace/scratch/ce74d2c3df38/motocross-late-r4-physics/brake-binding-probe.json",
+      "bytes": 12472,
+      "sha256": "6c83a932e7d6d62efb2d9c243109984122bebac4419bea1e0b801107d050a561",
+      "encoding": "utf-8",
+      "rawUtf8": "{\n  \"passed\": true,\n  \"scope\": \"Production createEntrant, adapter step and actual dynamics front/rear brake forces; no private solver or brake argument interception.\",\n  \"fixture\": \"Fresh independent physical states at 45 m, speed 28 m/s, Raw assists, front input 0.1 and rear input 0.1, one 1/240 s production step. Disc temperature is the only changed state between variants.\",\n  \"limits\": \"This verifies the fade binding and vehicle eligibility. The assigned initial disc temperatures are controlled fixtures, not a natural heat-up/cool-down cycle or measured real brake temperatures.\",\n  \"cases\": [\n    {\n      \"vehicle\": \"gpr1\",\n      \"adapter\": \"BikeVehicle\",\n      \"samples\": {\n        \"cold\": {\n          \"initialFrontDiscCelsius\": 40,\n          \"initialRearDiscCelsius\": 40,\n          \"frontBrakeForce\": 760,\n          \"rearBrakeForce\": 190,\n          \"speedAfterStep\": 27.980073618224143\n        },\n        \"normal\": {\n          \"initialFrontDiscCelsius\": 800,\n          \"initialRearDiscCelsius\": 800,\n          \"frontBrakeForce\": 760,\n          \"rearBrakeForce\": 190,\n          \"speedAfterStep\": 27.980073618224143\n        },\n        \"frontHot\": {\n          \"initialFrontDiscCelsius\": 1400,\n          \"initialRearDiscCelsius\": 40,\n          \"frontBrakeForce\": 592.8000000000001,\n          \"rearBrakeForce\": 190,\n          \"speedAfterStep\": 27.982917155639107\n        },\n        \"rearHot\": {\n          \"initialFrontDiscCelsius\": 40,\n          \"initialRearDiscCelsius\": 1400,\n          \"frontBrakeForce\": 760,\n          \"rearBrakeForce\": 148.20000000000002,\n          \"speedAfterStep\": 27.980784502577883\n        },\n        \"bothHot\": {\n          \"initialFrontDiscCelsius\": 1400,\n          \"initialRearDiscCelsius\": 1400,\n          \"frontBrakeForce\": 592.8000000000001,\n          \"rearBrakeForce\": 148.20000000000002,\n          \"speedAfterStep\": 27.98362803999285\n        },\n        \"lowerHeat\": {\n          \"initialFrontDiscCelsius\": 550,\n          \"initialRearDiscCelsius\": 550,\n          \"frontBrakeForce\": 760,\n          \"rearBrakeForce\": 190,\n          \"speedAfterStep\": 27.980073618224143\n        }\n      },\n      \"ratios\": {\n        \"cold\": {\n          \"front\": 1,\n          \"rear\": 1\n        },\n        \"normal\": {\n          \"front\": 1,\n          \"rear\": 1\n        },\n        \"frontHot\": {\n          \"front\": 0.7800000000000001,\n          \"rear\": 1\n        },\n        \"rearHot\": {\n          \"front\": 1,\n          \"rear\": 0.7800000000000001\n        },\n        \"bothHot\": {\n          \"front\": 0.7800000000000001,\n          \"rear\": 0.7800000000000001\n        },\n        \"lowerHeat\": {\n          \"front\": 1,\n          \"rear\": 1\n        }\n      }\n    },\n    {\n      \"vehicle\": \"gpr2\",\n      \"adapter\": \"BikeVehicle\",\n      \"samples\": {\n        \"cold\": {\n          \"initialFrontDiscCelsius\": 40,\n          \"initialRearDiscCelsius\": 40,\n          \"frontBrakeForce\": 770,\n          \"rearBrakeForce\": 190,\n          \"speedAfterStep\": 27.97943688363498\n        },\n        \"normal\": {\n          \"initialFrontDiscCelsius\": 800,\n          \"initialRearDiscCelsius\": 800,\n          \"frontBrakeForce\": 770,\n          \"rearBrakeForce\": 190,\n          \"speedAfterStep\": 27.97943688363498\n        },\n        \"frontHot\": {\n          \"initialFrontDiscCelsius\": 1400,\n          \"initialRearDiscCelsius\": 40,\n          \"frontBrakeForce\": 600.6000000000001,\n          \"rearBrakeForce\": 190,\n          \"speedAfterStep\": 27.982317836015934\n        },\n        \"rearHot\": {\n          \"initialFrontDiscCelsius\": 40,\n          \"initialRearDiscCelsius\": 1400,\n          \"frontBrakeForce\": 770,\n          \"rearBrakeForce\": 148.20000000000002,\n          \"speedAfterStep\": 27.980147767988722\n        },\n        \"bothHot\": {\n          \"initialFrontDiscCelsius\": 1400,\n          \"initialRearDiscCelsius\": 1400,\n          \"frontBrakeForce\": 600.6000000000001,\n          \"rearBrakeForce\": 148.20000000000002,\n          \"speedAfterStep\": 27.983028720369674\n        },\n        \"lowerHeat\": {\n          \"initialFrontDiscCelsius\": 550,\n          \"initialRearDiscCelsius\": 550,\n          \"frontBrakeForce\": 770,\n          \"rearBrakeForce\": 190,\n          \"speedAfterStep\": 27.97943688363498\n        }\n      },\n      \"ratios\": {\n        \"cold\": {\n          \"front\": 1,\n          \"rear\": 1\n        },\n        \"normal\": {\n          \"front\": 1,\n          \"rear\": 1\n        },\n        \"frontHot\": {\n          \"front\": 0.7800000000000001,\n          \"rear\": 1\n        },\n        \"rearHot\": {\n          \"front\": 1,\n          \"rear\": 0.7800000000000001\n        },\n        \"bothHot\": {\n          \"front\": 0.7800000000000001,\n          \"rear\": 0.7800000000000001\n        },\n        \"lowerHeat\": {\n          \"front\": 1,\n          \"rear\": 1\n        }\n      }\n    },\n    {\n      \"vehicle\": \"sbk1000\",\n      \"adapter\": \"BikeVehicle\",\n      \"samples\": {\n        \"cold\": {\n          \"initialFrontDiscCelsius\": 40,\n          \"initialRearDiscCelsius\": 40,\n          \"frontBrakeForce\": 680,\n          \"rearBrakeForce\": 170,\n          \"speedAfterStep\": 27.984040787685586\n        },\n        \"normal\": {\n          \"initialFrontDiscCelsius\": 800,\n          \"initialRearDiscCelsius\": 800,\n          \"frontBrakeForce\": 680,\n          \"rearBrakeForce\": 170,\n          \"speedAfterStep\": 27.984040787685586\n        },\n        \"frontHot\": {\n          \"initialFrontDiscCelsius\": 1400,\n          \"initialRearDiscCelsius\": 40,\n          \"frontBrakeForce\": 680,\n          \"rearBrakeForce\": 170,\n          \"speedAfterStep\": 27.984040787685586\n        },\n        \"rearHot\": {\n          \"initialFrontDiscCelsius\": 40,\n          \"initialRearDiscCelsius\": 1400,\n          \"frontBrakeForce\": 680,\n          \"rearBrakeForce\": 170,\n          \"speedAfterStep\": 27.984040787685586\n        },\n        \"bothHot\": {\n          \"initialFrontDiscCelsius\": 1400,\n          \"initialRearDiscCelsius\": 1400,\n          \"frontBrakeForce\": 680,\n          \"rearBrakeForce\": 170,\n          \"speedAfterStep\": 27.984040787685586\n        },\n        \"lowerHeat\": {\n          \"initialFrontDiscCelsius\": 550,\n          \"initialRearDiscCelsius\": 550,\n          \"frontBrakeForce\": 680,\n          \"rearBrakeForce\": 170,\n          \"speedAfterStep\": 27.984040787685586\n        }\n      },\n      \"ratios\": {\n        \"cold\": {\n          \"front\": 1,\n          \"rear\": 1\n        },\n        \"normal\": {\n          \"front\": 1,\n          \"rear\": 1\n        },\n        \"frontHot\": {\n          \"front\": 1,\n          \"rear\": 1\n        },\n        \"rearHot\": {\n          \"front\": 1,\n          \"rear\": 1\n        },\n        \"bothHot\": {\n          \"front\": 1,\n          \"rear\": 1\n        },\n        \"lowerHeat\": {\n          \"front\": 1,\n          \"rear\": 1\n        }\n      }\n    },\n    {\n      \"vehicle\": \"mx250\",\n      \"adapter\": \"DirtBikeVehicle\",\n      \"samples\": {\n        \"cold\": {\n          \"initialFrontDiscCelsius\": 40,\n          \"initialRearDiscCelsius\": 40,\n          \"frontBrakeForce\": 220,\n          \"rearBrakeForce\": 90,\n          \"speedAfterStep\": 27.98352880436942\n        },\n        \"normal\": {\n          \"initialFrontDiscCelsius\": 800,\n          \"initialRearDiscCelsius\": 800,\n          \"frontBrakeForce\": 220,\n          \"rearBrakeForce\": 90,\n          \"speedAfterStep\": 27.98352880436942\n        },\n        \"frontHot\": {\n          \"initialFrontDiscCelsius\": 1400,\n          \"initialRearDiscCelsius\": 40,\n          \"frontBrakeForce\": 220,\n          \"rearBrakeForce\": 90,\n          \"speedAfterStep\": 27.98352880436942\n        },\n        \"rearHot\": {\n          \"initialFrontDiscCelsius\": 40,\n          \"initialRearDiscCelsius\": 1400,\n          \"frontBrakeForce\": 220,\n          \"rearBrakeForce\": 90,\n          \"speedAfterStep\": 27.98352880436942\n        },\n        \"bothHot\": {\n          \"initialFrontDiscCelsius\": 1400,\n          \"initialRearDiscCelsius\": 1400,\n          \"frontBrakeForce\": 220,\n          \"rearBrakeForce\": 90,\n          \"speedAfterStep\": 27.98352880436942\n        },\n        \"lowerHeat\": {\n          \"initialFrontDiscCelsius\": 550,\n          \"initialRearDiscCelsius\": 550,\n          \"frontBrakeForce\": 220,\n          \"rearBrakeForce\": 90,\n          \"speedAfterStep\": 27.98352880436942\n        }\n      },\n      \"ratios\": {\n        \"cold\": {\n          \"front\": 1,\n          \"rear\": 1\n        },\n        \"normal\": {\n          \"front\": 1,\n          \"rear\": 1\n        },\n        \"frontHot\": {\n          \"front\": 1,\n          \"rear\": 1\n        },\n        \"rearHot\": {\n          \"front\": 1,\n          \"rear\": 1\n        },\n        \"bothHot\": {\n          \"front\": 1,\n          \"rear\": 1\n        },\n        \"lowerHeat\": {\n          \"front\": 1,\n          \"rear\": 1\n        }\n      }\n    },\n    {\n      \"vehicle\": \"mx450\",\n      \"adapter\": \"DirtBikeVehicle\",\n      \"samples\": {\n        \"cold\": {\n          \"initialFrontDiscCelsius\": 40,\n          \"initialRearDiscCelsius\": 40,\n          \"frontBrakeForce\": 230,\n          \"rearBrakeForce\": 95,\n          \"speedAfterStep\": 27.98370432176129\n        },\n        \"normal\": {\n          \"initialFrontDiscCelsius\": 800,\n          \"initialRearDiscCelsius\": 800,\n          \"frontBrakeForce\": 230,\n          \"rearBrakeForce\": 95,\n          \"speedAfterStep\": 27.98370432176129\n        },\n        \"frontHot\": {\n          \"initialFrontDiscCelsius\": 1400,\n          \"initialRearDiscCelsius\": 40,\n          \"frontBrakeForce\": 230,\n          \"rearBrakeForce\": 95,\n          \"speedAfterStep\": 27.98370432176129\n        },\n        \"rearHot\": {\n          \"initialFrontDiscCelsius\": 40,\n          \"initialRearDiscCelsius\": 1400,\n          \"frontBrakeForce\": 230,\n          \"rearBrakeForce\": 95,\n          \"speedAfterStep\": 27.98370432176129\n        },\n        \"bothHot\": {\n          \"initialFrontDiscCelsius\": 1400,\n          \"initialRearDiscCelsius\": 1400,\n          \"frontBrakeForce\": 230,\n          \"rearBrakeForce\": 95,\n          \"speedAfterStep\": 27.98370432176129\n        },\n        \"lowerHeat\": {\n          \"initialFrontDiscCelsius\": 550,\n          \"initialRearDiscCelsius\": 550,\n          \"frontBrakeForce\": 230,\n          \"rearBrakeForce\": 95,\n          \"speedAfterStep\": 27.98370432176129\n        }\n      },\n      \"ratios\": {\n        \"cold\": {\n          \"front\": 1,\n          \"rear\": 1\n        },\n        \"normal\": {\n          \"front\": 1,\n          \"rear\": 1\n        },\n        \"frontHot\": {\n          \"front\": 1,\n          \"rear\": 1\n        },\n        \"rearHot\": {\n          \"front\": 1,\n          \"rear\": 1\n        },\n        \"bothHot\": {\n          \"front\": 1,\n          \"rear\": 1\n        },\n        \"lowerHeat\": {\n          \"front\": 1,\n          \"rear\": 1\n        }\n      }\n    },\n    {\n      \"vehicle\": \"sm450\",\n      \"adapter\": \"DirtBikeVehicle\",\n      \"samples\": {\n        \"cold\": {\n          \"initialFrontDiscCelsius\": 40,\n          \"initialRearDiscCelsius\": 40,\n          \"frontBrakeForce\": 330,\n          \"rearBrakeForce\": 100,\n          \"speedAfterStep\": 27.98242426214803\n        },\n        \"normal\": {\n          \"initialFrontDiscCelsius\": 800,\n          \"initialRearDiscCelsius\": 800,\n          \"frontBrakeForce\": 330,\n          \"rearBrakeForce\": 100,\n          \"speedAfterStep\": 27.98242426214803\n        },\n        \"frontHot\": {\n          \"initialFrontDiscCelsius\": 1400,\n          \"initialRearDiscCelsius\": 40,\n          \"frontBrakeForce\": 330,\n          \"rearBrakeForce\": 100,\n          \"speedAfterStep\": 27.98242426214803\n        },\n        \"rearHot\": {\n          \"initialFrontDiscCelsius\": 40,\n          \"initialRearDiscCelsius\": 1400,\n          \"frontBrakeForce\": 330,\n          \"rearBrakeForce\": 100,\n          \"speedAfterStep\": 27.98242426214803\n        },\n        \"bothHot\": {\n          \"initialFrontDiscCelsius\": 1400,\n          \"initialRearDiscCelsius\": 1400,\n          \"frontBrakeForce\": 330,\n          \"rearBrakeForce\": 100,\n          \"speedAfterStep\": 27.98242426214803\n        },\n        \"lowerHeat\": {\n          \"initialFrontDiscCelsius\": 550,\n          \"initialRearDiscCelsius\": 550,\n          \"frontBrakeForce\": 330,\n          \"rearBrakeForce\": 100,\n          \"speedAfterStep\": 27.98242426214803\n        }\n      },\n      \"ratios\": {\n        \"cold\": {\n          \"front\": 1,\n          \"rear\": 1\n        },\n        \"normal\": {\n          \"front\": 1,\n          \"rear\": 1\n        },\n        \"frontHot\": {\n          \"front\": 1,\n          \"rear\": 1\n        },\n        \"rearHot\": {\n          \"front\": 1,\n          \"rear\": 1\n        },\n        \"bothHot\": {\n          \"front\": 1,\n          \"rear\": 1\n        },\n        \"lowerHeat\": {\n          \"front\": 1,\n          \"rear\": 1\n        }\n      }\n    }\n  ]\n}\n"
+    },
+    "exactExecutedProbeSource": {
+      "originalPath": "/workspace/scratch/ce74d2c3df38/motocross-late-r4-physics/brake-binding-probe.mjs",
+      "bytes": 4006,
+      "sha256": "80b58726c61efa8754eaac98f3165c4ecb4503b0911069935add592952c71d0e",
+      "encoding": "utf-8",
+      "rawUtf8": "import assert from 'node:assert/strict';\nimport { writeFileSync } from 'node:fs';\nimport { pathToFileURL } from 'node:url';\nconst root = '/workspace/scratch/ce74d2c3df38/Experiment-3';\nconst load = path => import(pathToFileURL(`${root}/${path}`).href);\nconst { Track } = await load('src/simulation/track.ts');\nconst { DEFAULT_SETUP, controls } = await load('src/simulation/config.ts');\nconst { GP_R1, GP_R2, SBK_1000 } = await load('src/simulation/bike-definitions.ts');\nconst { MX_250, MX_450, SM_450 } = await load('src/simulation/offroad/dirt-bikes.ts');\nconst { BikeVehicle } = await load('src/simulation/bike-vehicle.ts');\nconst { DirtBikeVehicle } = await load('src/simulation/offroad/dirt-bike-vehicle.ts');\nconst { createEntrant } = await load('src/simulation/offroad/session.ts');\nconst { rigTrack } = await load('src/simulation/offroad/jump-rig.ts');\nconst road = new Track('clear');\nconst dirt = rigTrack('valley-ridge-mx');\nconst cases = [];\nfor (const definition of [GP_R1, GP_R2, SBK_1000, MX_250, MX_450, SM_450]) {\n  const offroad = !!definition.bike.offroad;\n  const samples = {};\n  for (const [name, frontTemp, rearTemp] of [\n    ['cold', 40, 40], ['normal', 800, 800], ['frontHot', 1400, 40],\n    ['rearHot', 40, 1400], ['bothHot', 1400, 1400], ['lowerHeat', 550, 550],\n  ]) {\n    const bike = createEntrant(0, 'medium', DEFAULT_SETUP, 'raw', definition);\n    const track = offroad ? dirt : road;\n    assert.equal(bike instanceof DirtBikeVehicle, offroad);\n    assert.equal(bike instanceof BikeVehicle, true);\n    bike.place(track, 45);\n    bike.dynamics.speed = 28;\n    bike.gear = 2;\n    Object.assign(bike.input, { ...controls(), brake: 0.1, clutch: 0.1 });\n    for (let i = 0; i < bike.tires.length; i++) bike.tires[i].discTemp = i < 2 ? frontTemp : rearTemp;\n    bike.step(1 / 240, track);\n    assert.equal(bike.riding, true);\n    assert.equal(bike.dynamics.assists.abs, false);\n    assert.ok(bike.dynamics.frontBrakeForce > 10);\n    assert.ok(bike.dynamics.rearBrakeForce > 10);\n    samples[name] = {\n      initialFrontDiscCelsius: frontTemp, initialRearDiscCelsius: rearTemp,\n      frontBrakeForce: bike.dynamics.frontBrakeForce,\n      rearBrakeForce: bike.dynamics.rearBrakeForce,\n      speedAfterStep: bike.speed,\n    };\n  }\n  const gp = definition.id === 'gpr1' || definition.id === 'gpr2';\n  const ratios = {};\n  for (const [name, sample] of Object.entries(samples)) {\n    const front = sample.frontBrakeForce / samples.cold.frontBrakeForce;\n    const rear = sample.rearBrakeForce / samples.cold.rearBrakeForce;\n    const expectFront = gp && ['frontHot', 'bothHot'].includes(name) ? 0.78 : 1;\n    const expectRear = gp && ['rearHot', 'bothHot'].includes(name) ? 0.78 : 1;\n    assert.ok(Math.abs(front - expectFront) < 1e-12, `${definition.id} ${name} front ${front}`);\n    assert.ok(Math.abs(rear - expectRear) < 1e-12, `${definition.id} ${name} rear ${rear}`);\n    ratios[name] = { front, rear };\n  }\n  cases.push({ vehicle: definition.id, adapter: offroad ? 'DirtBikeVehicle' : 'BikeVehicle', samples, ratios });\n}\nconst report = {\n  passed: true,\n  scope: 'Production createEntrant, adapter step and actual dynamics front/rear brake forces; no private solver or brake argument interception.',\n  fixture: 'Fresh independent physical states at 45 m, speed 28 m/s, Raw assists, front input 0.1 and rear input 0.1, one 1/240 s production step. Disc temperature is the only changed state between variants.',\n  limits: 'This verifies the fade binding and vehicle eligibility. The assigned initial disc temperatures are controlled fixtures, not a natural heat-up/cool-down cycle or measured real brake temperatures.',\n  cases,\n};\nwriteFileSync(new URL('./brake-binding-probe.json', import.meta.url), JSON.stringify(report, null, 2) + '\\n');\nconsole.log(JSON.stringify({ passed: true, vehicles: cases.length, physicalStates: cases.length * 6, hotGain: 0.78, unaffectedVehicles: cases.filter(c => c.adapter === 'DirtBikeVehicle' || c.vehicle === 'sbk1000').map(c => c.vehicle) }));\n"
+    },
+    "sourceReproductionNote": "The retained probe source contains its original absolute repository path. Reproducing elsewhere requires changing only that path and running against the recorded source bytes."
+  },
+  "actualOffroadCallPath": [
+    {
+      "path": "src/simulation/offroad/session.ts",
+      "symbol": "createEntrant",
+      "finding": "MX250, MX450 and SM450 definitions select DirtBikeVehicle."
+    },
+    {
+      "path": "src/simulation/world.ts",
+      "symbol": "Simulation constructor",
+      "finding": "Race entrants are constructed through createEntrant."
+    },
+    {
+      "path": "src/simulation/open-world/session.ts",
+      "symbol": "makeCar",
+      "finding": "Festival also selects DirtBikeVehicle for offroad bike definitions."
+    },
+    {
+      "path": "src/simulation/offroad/dirt-bike-vehicle.ts",
+      "symbol": "DirtBikeVehicle.step",
+      "finding": "Overrides the entire step, calls dynamics.step directly with its own front/rear brake inputs, and never calls super.step; flight and recovery remain in the dirt adapter."
+    },
+    {
+      "path": "src/simulation/bike-vehicle.ts",
+      "symbol": "BikeVehicle.step",
+      "finding": "The new fading branch is inside the overridden road step and additionally permits only definition IDs gpr1 and gpr2."
+    }
+  ],
+  "historicalFullRaceGate": {
+    "record": {
+      "path": "docs/production/motocross-evidence/races/final-regression.json",
+      "sha256": "3ed049ab26750489fb57ae5592db45308fdb26075fff3620604d602d79266236"
+    },
+    "recordPreservedWithoutModification": true,
+    "completedResult": {
+      "jumpCalibrations": 20,
+      "standingStarts": 3,
+      "raceScenarios": 10,
+      "classifiedEntrantStarts": 74,
+      "retirements": 0,
+      "exitCode": 0
+    },
+    "fingerprints": {
+      "total": 14,
+      "stillIdentical": 13,
+      "changed": 1,
+      "comparisons": [
+        {
+          "path": "scripts/offroad-calibration.ts",
+          "recordedGateSHA256": "a994af9827d5587dd015533290a5725d458b80e2c176ef74915a73de08672718",
+          "currentSHA256": "a994af9827d5587dd015533290a5725d458b80e2c176ef74915a73de08672718",
+          "identical": true
+        },
+        {
+          "path": "scripts/offroad-races.ts",
+          "recordedGateSHA256": "f117567b26e82941a756e55ec77a1bae5300ad442c72050ca836e6c82ba41420",
+          "currentSHA256": "f117567b26e82941a756e55ec77a1bae5300ad442c72050ca836e6c82ba41420",
+          "identical": true
+        },
+        {
+          "path": "src/simulation/offroad/dirt-bike-vehicle.ts",
+          "recordedGateSHA256": "a0048db1805e3660c81e6a82486dd71684a96b5db911cb2aabd31d1b86178d56",
+          "currentSHA256": "a0048db1805e3660c81e6a82486dd71684a96b5db911cb2aabd31d1b86178d56",
+          "identical": true
+        },
+        {
+          "path": "src/simulation/offroad/ai.ts",
+          "recordedGateSHA256": "3a5acf6d1ea40d940031aac4d5e4c55da8a0d0e2ea11a2fe77050dd96253be39",
+          "currentSHA256": "3a5acf6d1ea40d940031aac4d5e4c55da8a0d0e2ea11a2fe77050dd96253be39",
+          "identical": true
+        },
+        {
+          "path": "src/simulation/bike-ai.ts",
+          "recordedGateSHA256": "668a736db9168c9deb64797aa928971788a4c52a07e41b2bbc8bc8c0852c64e6",
+          "currentSHA256": "668a736db9168c9deb64797aa928971788a4c52a07e41b2bbc8bc8c0852c64e6",
+          "identical": true
+        },
+        {
+          "path": "src/simulation/collision.ts",
+          "recordedGateSHA256": "02c8320bc909a556ca19d3b912f8be707db0463b6a23085b141ef652c678613e",
+          "currentSHA256": "02c8320bc909a556ca19d3b912f8be707db0463b6a23085b141ef652c678613e",
+          "identical": true
+        },
+        {
+          "path": "src/simulation/driver-brain.ts",
+          "recordedGateSHA256": "d851cde01ebb016668daaedfa016bcc77536083b47284c812405ece28754f727",
+          "currentSHA256": "d851cde01ebb016668daaedfa016bcc77536083b47284c812405ece28754f727",
+          "identical": true
+        },
+        {
+          "path": "src/simulation/world.ts",
+          "recordedGateSHA256": "26500be30f1c8c1a666d6df4fed21ddc9a5f2aec6f29d163d866ab46caba501b",
+          "currentSHA256": "26500be30f1c8c1a666d6df4fed21ddc9a5f2aec6f29d163d866ab46caba501b",
+          "identical": true
+        },
+        {
+          "path": "src/simulation/events.ts",
+          "recordedGateSHA256": "6231f596497857b0eda19a786b2e1444c6df413505f677b63d4dd7c64b5370e4",
+          "currentSHA256": "6231f596497857b0eda19a786b2e1444c6df413505f677b63d4dd7c64b5370e4",
+          "identical": true
+        },
+        {
+          "path": "src/simulation/offroad/formats.ts",
+          "recordedGateSHA256": "8f80f9eacd13cf1a80b727c3ef4ad2ed0cb792a35f4e480b5e5bde6279608c5a",
+          "currentSHA256": "8f80f9eacd13cf1a80b727c3ef4ad2ed0cb792a35f4e480b5e5bde6279608c5a",
+          "identical": true
+        },
+        {
+          "path": "src/simulation/race.ts",
+          "recordedGateSHA256": "7f5017105700ff50e474a2a641cd0b4170a485c59be866d793aa280b62c1e952",
+          "currentSHA256": "7f5017105700ff50e474a2a641cd0b4170a485c59be866d793aa280b62c1e952",
+          "identical": true
+        },
+        {
+          "path": "src/simulation/bike.ts",
+          "recordedGateSHA256": "1fab3d119ab5d7a810b97a64a703d4920176f33d29ba11a328a6187bbab1e3ae",
+          "currentSHA256": "1fab3d119ab5d7a810b97a64a703d4920176f33d29ba11a328a6187bbab1e3ae",
+          "identical": true
+        },
+        {
+          "path": "src/simulation/bike-vehicle.ts",
+          "recordedGateSHA256": "ca4dcfe776caa6ea9fe2578dfa8ef8ea39af8d1afb3fc612810300f037fbecc3",
+          "currentSHA256": "203cd5bf79c860609c453fda64713a25e4b7acb27e7a98d76afbb12904ab30b9",
+          "identical": false
+        },
+        {
+          "path": "src/simulation/bike-slipstream.ts",
+          "recordedGateSHA256": "69249d407d3db7d150934e0479dfc629f27bf4579239231bc2850128dc39c66a",
+          "currentSHA256": "69249d407d3db7d150934e0479dfc629f27bf4579239231bc2850128dc39c66a",
+          "identical": true
+        }
+      ]
+    },
+    "originalValidatorScriptsStillByteIdenticalToBaseline": true,
+    "reports": {
+      "races": {
+        "path": "docs/offroad-races.json",
+        "sha256": "c8ce1d390670e17f5164909254a8988966f65a6ce6cd4809582ec7922e017bbc"
+      },
+      "calibration": {
+        "path": "docs/offroad-calibration.json",
+        "sha256": "05a2a9e2a5be64558745131fcd72c368127c6cbfc2896b7dd4a5b74124f366b7"
+      }
+    },
+    "rerunAfterThisDelta": false,
+    "interpretation": "The fourteen fingerprints remain the exact bytes used in the completed historical full gate. The old record's sourceHashesMatchCurrentFiles field describes its capture time. It is not a claim that all fourteen are still current after R4: BikeVehicle changed, and this evidence establishes that the changed step is bypassed by the actual dirt adapter while focused production controls pass."
+  },
+  "retention": "Native reports, console output and the exact executed probe script are embedded as UTF-8 strings. Re-encoding each rawUtf8 value reconstructs the original byte count and SHA-256 without the scratch directory.",
+  "limitations": [
+    "This verifies the fade binding and vehicle eligibility. The assigned initial disc temperatures are controlled fixtures, not a natural heat-up/cool-down cycle or measured real brake temperatures.",
+    "The focused run contains twenty assertions across three files; the 36 physical probe states are a separate controlled integration witness, not 36 additional Vitest tests.",
+    "No complete offroad race gate or GPU/browser test was rerun for this isolated physics delta.",
+    "This record does not validate the concurrently integrated paint, glow, crowd or caliper appearance; rendered verification is recorded separately.",
+    "No all-seed, real-device performance or measured real-world brake-temperature claim."
+  ]
+}

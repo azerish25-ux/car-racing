@@ -76,6 +76,7 @@ import { buildForestBelts } from './studio/forest-belts.ts';
 import { venueKitFor, type VenueKit } from './venue-kit/index.ts';
 import { batchScene, box, canvasTexture, label, mesh, unprintedBack } from './geometry.ts';
 import { offroadSceneFor, type OffroadScene } from './offroad/index.ts';
+import { isMotocrossVenue } from './offroad/mx-boundary.ts';
 /** Lit start lamp emission (D28: bright enough to bloom at night and in daylight). */
 export const START_LAMP_EMISSIVE = 25;
 interface RibbonOptions {
@@ -152,12 +153,15 @@ export class CircuitScene {
     roughness: 0.38,
     metalness: 0.12,
   });
+  /** Palettes also own templates for branches that produce no scene mesh. */
+  private readonly surfaceMaterials = new Set<T.Material>();
   private temp = trackPoint();
   readonly construction = new BuildQueue();
   constructor(
     readonly track: Track,
     deferred = false,
   ) {
+    this.surfaceMaterials.add(this.safetyPanel);
     this.group.name = 'Aurel circuit';
     this.trackInfrastructure = makeTrackInfrastructurePlan(track);
     this.startFinish = new StartFinishVenue(track);
@@ -208,6 +212,8 @@ export class CircuitScene {
     // D15: painted bands, chevrons or astroturf per corner (no flat tint).
     installRunoffFinish(runOff, track.length);
     const gravel = surfaceMaterial('gravel');
+    for (const material of [this.roadMaterial, grass, runOff, gravel])
+      this.surfaceMaterials.add(material);
     // D19: Voronoi pebbles, cavities and raked furrows (#8f8470).
     installGravelFinish(gravel);
     // Sky and sun light under the cars (D08): the ground they stand on.
@@ -267,12 +273,19 @@ export class CircuitScene {
         step: 1.8,
       });
     // Line paint is an off-white with a little sheen, never pure white.
-    const white = new T.MeshStandardMaterial({ color: 0xe9e7e0, roughness: 0.55 });
+    const white = new T.MeshStandardMaterial({
+      color: 0xe9e7e0,
+      roughness: 0.55,
+    });
     installCircuitFinish(white, 'paint');
-    const kerb = new T.MeshStandardMaterial({ vertexColors: true, roughness: 0.85 });
+    const kerb = new T.MeshStandardMaterial({
+      vertexColors: true,
+      roughness: 0.85,
+    });
     installCircuitFinish(kerb, 'kerb');
     installKerbFinish(kerb, track.length);
     for (const m of [white, kerb]) {
+      this.surfaceMaterials.add(m);
       installCarGrounding(m);
       installLightPools(m);
     }
@@ -302,37 +315,43 @@ export class CircuitScene {
         step: 2,
       });
     }
-    // Smooth pit road ribbon and its marking; no decorative inaccessible lane.
-    const pitMat = surfaceMaterial('asphalt', undefined, true);
-    installWetRoad(
-      pitMat,
-      this.stateTexture,
-      false,
-      VENUE_LAMP_RADIUS,
-      this.wetReflection.uniforms,
-    );
-    installCarGrounding(pitMat);
-    installScannedAsphalt(pitMat);
-    for (const [start, end] of [
-      [track.length - track.pit.divergeStart, track.length],
-      [0, track.pit.mergeEnd],
-    ]) {
-      this.queueRibbon(pitMat, {
-        start,
-        end,
-        offset: (s, t) => track.pitOffset(s) + (t * 2 - 1) * 3.6,
-        height: () => 0.003,
-        columns: 4,
-        step: 1,
-      });
-      for (const side of [-1, 1])
-        this.queueRibbon(white, {
+    // Paved venues retain their physical pit asphalt and edge paint. The
+    // dirt formats use a mechanics-area template without paved pit service;
+    // its inherited ribbons otherwise cross neighboring MX/SX riding lanes.
+    if (paved) {
+      const pitMat = surfaceMaterial('asphalt', undefined, true);
+      pitMat.name = 'Paved circuit pit asphalt';
+      this.surfaceMaterials.add(pitMat);
+      installWetRoad(
+        pitMat,
+        this.stateTexture,
+        false,
+        VENUE_LAMP_RADIUS,
+        this.wetReflection.uniforms,
+      );
+      installCarGrounding(pitMat);
+      installScannedAsphalt(pitMat);
+      for (const [start, end] of [
+        [track.length - track.pit.divergeStart, track.length],
+        [0, track.pit.mergeEnd],
+      ]) {
+        this.queueRibbon(pitMat, {
           start,
           end,
-          offset: (s, t) => track.pitOffset(s) + side * (3.35 + t * 0.12),
-          height: () => 0.008,
+          offset: (s, t) => track.pitOffset(s) + (t * 2 - 1) * 3.6,
+          height: () => 0.003,
+          columns: 4,
           step: 1,
         });
+        for (const side of [-1, 1])
+          this.queueRibbon(white, {
+            start,
+            end,
+            offset: (s, t) => track.pitOffset(s) + side * (3.35 + t * 0.12),
+            height: () => 0.008,
+            step: 1,
+          });
+      }
     }
     // Surface colour below the horizon: track ribbons cover the actual collision elevation.
     this.construction.add('Distant terrain', 3, () => {
@@ -356,6 +375,7 @@ export class CircuitScene {
       terrain.computeVertexNormals();
       // Same original grass texels, plus slope/elevation landform shading.
       const land = surfaceMaterial('grass', 'terrain');
+      this.surfaceMaterials.add(land);
       // D17: forest carpet, strata rock and dry meadows by distance to the circuit.
       terrainTrackDistance(track, terrain);
       installTerrainFinish(land);
@@ -514,6 +534,16 @@ export class CircuitScene {
     });
     this.construction.add('Probe detail survey', 7, () => this.surveyProbeDetail());
     if (!deferred) this.construction.runSynchronously();
+  }
+  /** Include unused road/kit palette entries in the renderer's ordinary
+   * material disposer. Terrain venues omit several of their meshes, but the
+   * palettes still own textures and scanned-ground registrations. */
+  disposalMaterials() {
+    const materials = new Set(this.surfaceMaterials);
+    if (this.venueKit)
+      for (const value of Object.values(this.venueKit.context.materials))
+        for (const material of Array.isArray(value) ? value : [value]) materials.add(material);
+    return materials;
   }
   /** Follow the actual snapshot's vehicle family. A uniform changes road
    * deposits immediately; the bounded mark cache switches once per transition,
@@ -793,7 +823,11 @@ export class CircuitScene {
     g.rotation.y = Math.atan2(p.tx, p.tz) + (l < 0 ? Math.PI / 2 : -Math.PI / 2);
     this.props.add(g);
     const m = unprintedBack(
-      new T.MeshStandardMaterial({ map: label(text), roughness: 0.72, side: T.DoubleSide }),
+      new T.MeshStandardMaterial({
+        map: label(text),
+        roughness: 0.72,
+        side: T.DoubleSide,
+      }),
     );
     mesh(g, new T.PlaneGeometry(width, height), m);
     const metal = new T.MeshStandardMaterial({ color: 0x586463 });
@@ -807,7 +841,10 @@ export class CircuitScene {
     // boxes): they take the car's shadow and contact occlusion and get wet
     // with the pit road. Light pools stay off, as on the pit asphalt under
     // them (box UVs are not lap metres).
-    const boxPaint = new T.MeshStandardMaterial({ color: 0xd2b04a, roughness: 0.6 });
+    const boxPaint = new T.MeshStandardMaterial({
+      color: 0xd2b04a,
+      roughness: 0.6,
+    });
     installCircuitFinish(boxPaint, 'paint');
     installCarGrounding(boxPaint);
     // Paddock follows the main straight. Each garage has a separate bay and service box.
@@ -830,7 +867,9 @@ export class CircuitScene {
           const panel = mesh(
             g,
             new T.PlaneGeometry(7.5, 0.9),
-            new T.MeshStandardMaterial({ map: label(`AUREL  ${String(i + 1).padStart(2, '0')}`) }),
+            new T.MeshStandardMaterial({
+              map: label(`AUREL  ${String(i + 1).padStart(2, '0')}`),
+            }),
             -6.62,
             3.5,
             0,
@@ -862,7 +901,10 @@ export class CircuitScene {
       this.props.add(root);
     });
     const stands = standMaterials();
-    for (const site of venuePlan(this.track).grandstands)
+    // The indoor bowl already supplies stands, aisles, crowd and roof.
+    for (const site of this.track.circuit.offroad?.kind === 'supercross'
+      ? []
+      : venuePlan(this.track).grandstands)
       this.construction.add(`Detailed grandstand at ${site.s} m`, 3, () =>
         buildGrandstand(
           this.track,
@@ -880,6 +922,9 @@ export class CircuitScene {
       this.startFinish.buildScreen(this.props, this.sightlines),
     );
     this.construction.add('Signs, gantry and control tower', 2, () => {
+      // MX uses its physical drop gate, paired course markers and holeshot
+      // arch. Formula light gantries are unrelated to that start sequence.
+      if (isMotocrossVenue(this.track)) return;
       const plan = venuePlan(this.track);
       for (const sign of plan.signs)
         this.sign(sign.text, sign.s, sign.lateral, sign.width, sign.height);
@@ -901,7 +946,10 @@ export class CircuitScene {
         gantry,
         new T.PlaneGeometry(14, 1),
         unprintedBack(
-          new T.MeshStandardMaterial({ map: label(plan.gantryLabel), side: T.DoubleSide }),
+          new T.MeshStandardMaterial({
+            map: label(plan.gantryLabel),
+            side: T.DoubleSide,
+          }),
         ),
         0,
         6,
@@ -934,11 +982,14 @@ export class CircuitScene {
   }
   private grid() {
     // Grid boxes use the same lit, slightly worn line paint as the edges.
-    const paint = new T.MeshStandardMaterial({ color: 0xe9e7e0, roughness: 0.55 });
+    const paint = new T.MeshStandardMaterial({
+      color: 0xe9e7e0,
+      roughness: 0.55,
+    });
     installCircuitFinish(paint, 'paint');
     // The same slots as the simulation's grid and the road's launch rubber.
     const grid = surfaceGridFor(this.track);
-    for (let i = 0; i < grid.rows * 2; i++) {
+    for (let i = 0; i < (isMotocrossVenue(this.track) ? 0 : grid.rows * 2); i++) {
       const s = this.track.length - grid.front - Math.floor(i / 2) * grid.spacing,
         l = i % 2 === 0 ? -grid.lateral : grid.lateral,
         p = this.track.at(s, trackPoint()),
@@ -967,7 +1018,7 @@ export class CircuitScene {
   }
   update(frame: Float32Array) {
     this.offroad?.update(frame);
-    for (let i = 0; i < 5; i++)
+    for (let i = 0; i < this.startLamps.length; i++)
       this.startLamps[i].emissiveIntensity = i < frame[H.LIGHTS] ? START_LAMP_EMISSIVE : 0;
     updateSafetyPanel(this.safetyPanel, frame);
     this.signalHardware?.displays.update(frame);

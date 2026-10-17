@@ -1,0 +1,37 @@
+{
+  "scope": "Production GP-R1 high model construction and ownership; Canvas drawing stubbed, no GPU",
+  "source": {
+    "src/rendering/bike.ts": "749d04ab91a03a988d33a987b1a3e305f59df1452c2346625037dde4fb63e67a",
+    "src/rendering/gp-chain-drive.ts": "6cf2ad358a02f9db4a8811bd918f388fe0472c59a2d916888d897ecb47581291"
+  },
+  "meshCount": 99,
+  "baseTriangles": 95704,
+  "expandedTriangles": 160468,
+  "unchangedReferenceCeiling": 110000,
+  "insideReferenceCeiling": false,
+  "instances": [
+    {
+      "name": "Steel chain pins and rollers",
+      "count": 103,
+      "trianglesPerInstance": 32,
+      "expandedTriangles": 3296,
+      "baseBounds": {
+        "min": [-0.004000000189989805, -0.00800000037997961, -0.004000000189989805],
+        "max": [0.004000000189989805, 0.00800000037997961, 0.004000000189989805]
+      }
+    },
+    {
+      "name": "Paired articulated link plates",
+      "count": 206,
+      "trianglesPerInstance": 300,
+      "expandedTriangles": 61800,
+      "baseBounds": {
+        "min": [-0.00139999995008111, -0.0044999998062849045, -0.007000000216066837],
+        "max": [0.00139999995008111, 0.0044999998062849045, 0.007000000216066837]
+      }
+    }
+  ],
+  "instanceDisposeEvents": [0, 0],
+  "geometryDisposeEvents": [2, 2],
+  "sharedMaterialDisposalsBeforeOwnerCloses": 0
+}

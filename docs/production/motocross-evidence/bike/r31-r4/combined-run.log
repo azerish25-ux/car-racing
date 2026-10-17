@@ -1,0 +1,22 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+[2m[WebServer] [22mnpm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+[2m[WebServer] [22m(node:170794) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+Observed swiftshader test backend: ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)
+
+Running 3 tests using 1 worker
+
+(node:170885) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:170885) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 e2e/11-phase27c.spec.ts:66:1 › Phase 27C: actual crowd colour/depth shaders freeze and rewind exactly (7.0s)
+  ✓  2 e2e/41-motogp-reference.spec.ts:17:1 › GP reference R1.1: authored LODs, production onboard and same-instance wet rewind on WebGL2 (1.8m)
+  ✓  3 e2e/42-motocross-bike.spec.ts:4:1 › Motocross reference R2: production bikes, reachable riding poses and reversible mud on WebGL2 (40.8s)
+
+  3 passed (2.6m)
+
+To open last HTML report run:
+[36m[39m
+[36m  npx playwright show-report playwright-report/motocross[39m
+[36m[39m

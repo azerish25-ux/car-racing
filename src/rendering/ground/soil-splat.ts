@@ -28,7 +28,8 @@ import {
  *  - compaction from the simulation (the racing line, landings, berm walls)
  *    smooths the relief and gloss of packed soil; ruts stay rough and dark
  *    (the soil hook's moisture and rut darkening still apply);
- *  - a macro tap of the loam set breaks up the course at range.
+ *  - a macro tap of the selected resident soil set breaks up the course at
+ *    range; callers can choose the authored soil rather than a turf slot.
  */
 export const SOIL_SCAN: Readonly<Record<SoilKind, ScanLayer>> = Object.freeze({
   hardpack: 'dryEarth',
@@ -41,8 +42,9 @@ export const SOIL_SCAN: Readonly<Record<SoilKind, ScanLayer>> = Object.freeze({
 });
 export const MAX_SOIL_SLOTS = 5;
 
-/** The sets (slots) a course with `kinds` samples, most used first; extra
- * kinds beyond the slot budget fall back to the first slot. */
+/** The sets (slots) a course with `kinds` samples. Sets shared by more kinds
+ * sort first; ties preserve input order. This is not a terrain-area histogram.
+ * Extra kinds beyond the slot budget fall back to the first slot. */
 export function soilSlots(kinds: Iterable<SoilKind>) {
   const counts = new Map<ScanLayer, number>();
   for (const kind of kinds) counts.set(SOIL_SCAN[kind], (counts.get(SOIL_SCAN[kind]) ?? 0) + 1);
@@ -76,7 +78,7 @@ const SLOT_RELIEF: Readonly<Record<ScanLayer, number>> = Object.freeze({
   gravel: 1.2,
 });
 
-function splatGlsl(slots: readonly ScanLayer[]) {
+function splatGlsl(slots: readonly ScanLayer[], macroLayer: ScanLayer) {
   const n = slots.length;
   const weight = (i: number) =>
     i < 4 && i < n - 1
@@ -129,11 +131,12 @@ function splatGlsl(slots: readonly ScanLayer[]) {
 		apexNs = mix( apexNs, apexSide.n * apexSum, apexSteep );
 		apexRough = mix( apexRough, apexSide.rough, apexSteep );
 	}`);
-  // Macro breakup from the first (most used) set.
+  // Macro breakup from the caller's soil set. The first slot remains the
+  // legacy default, but may be turf even on an entirely dirt indoor course.
   // Two scales (~25 m and ~90 m tiles): dry and damp, dusty and packed
   // regions, with a little of the set's own hue shift.
-  lines.push(`vec3 apexMacro = ${scanMacroCall(slots[0], 'vScanWorld.xz', 0.09)};
-	vec3 apexMacroFar = ${scanMacroCall(slots[0], 'vScanWorld.xz', 0.027)};
+  lines.push(`vec3 apexMacro = ${scanMacroCall(macroLayer, 'vScanWorld.xz', 0.09)};
+	vec3 apexMacroFar = ${scanMacroCall(macroLayer, 'vScanWorld.xz', 0.027)};
 	vec3 apexMacroMix = mix( vec3( dot( apexMacro, ${LUMA} ) ), apexMacro, 0.6 );
 	apexRatio *= mix( vec3( 1.0 ), apexMacroMix, 0.6 ) * ( 1.0 + 0.45 * ( dot( apexMacroFar, ${LUMA} ) - 1.0 ) );`);
   lines.push(`diffuseColor.rgb *= apexRatio * mix( 1.0, apexAo, 0.4 );
@@ -146,9 +149,15 @@ function splatGlsl(slots: readonly ScanLayer[]) {
 }
 
 /** Install the splat on the library soil material of a TerrainView whose
- * geometry carries `apexSoilLayers` for `slots` (soilSlots). */
-export function installScannedSoil(material: T.MeshPhysicalMaterial, slots: readonly ScanLayer[]) {
+ * geometry carries `apexSoilLayers` for `slots` (soilSlots). The macro must
+ * reuse one of those slots, keeping asset and sampler budgets unchanged. */
+export function installScannedSoil(
+  material: T.MeshPhysicalMaterial,
+  slots: readonly ScanLayer[],
+  macroLayer: ScanLayer = slots[0],
+) {
   if (!slots.length || slots.length > MAX_SOIL_SLOTS) throw new Error('Invalid soil slots');
+  if (!slots.includes(macroLayer)) throw new Error('Soil macro must use an existing soil slot');
   const kept = new Map<string, unknown>();
   const installed = chainShaderHook(material, `scanned-soil-v1`, (shader) => {
     if (!shader.fragmentShader.includes('varying vec3 vApexSoil'))
@@ -184,7 +193,7 @@ ${SCAN_COMMON_GLSL}`,
     injectAfter(
       shader,
       'color_fragment',
-      `#ifdef APEX_SCAN\n{\n\t${splatGlsl(slots)}\n}\n#endif`,
+      `#ifdef APEX_SCAN\n{\n\t${splatGlsl(slots, macroLayer)}\n}\n#endif`,
       'fragment',
     );
     injectAfter(
@@ -201,6 +210,12 @@ ${SCAN_COMMON_GLSL}`,
     );
   });
   if (!installed) return false;
+  // The hook closes over its layer selection. Distinct selections must not
+  // reuse a shader that reads another material's macro sampler.
+  const cacheKey = material.customProgramCacheKey;
+  material.customProgramCacheKey = function () {
+    return `${cacheKey.call(this)}|soil-slots=${slots.join(',')};macro=${macroLayer}`;
+  };
   scannedGround.register(material, slots, (on) => {
     const m = material as unknown as Record<string, unknown>;
     if (on) {

@@ -1,0 +1,246 @@
+{
+  "schemaVersion": 1,
+  "packagedAtUtc": "2026-10-17T01:58:14.868070+00:00",
+  "status": "passed",
+  "source_spec": "e2e/11-phase27c.spec.ts",
+  "testSelection": "Phase 27C: actual crowd colour/depth shaders freeze and rewind exactly",
+  "commandScope": "Selected crowd test within the release owner's single sequential crowd11, GP41 and MX42 Playwright invocation; no new test was launched by this packaging step.",
+  "scope": "Existing Phase 27C production CrowdCluster component with twelve seated people, real colour and shadow shaders, and controlled near/mid/far inputs on the frozen integrated d4dd3e5 source. The changed shader is used by Valley generic grandstands and the initial road-venue menu; this fixture is not a complete MX venue or race capture.",
+  "source": {
+    "capturedAt": "2026-10-17T01:49:51.422845+00:00",
+    "integratedParent": "d4dd3e541433a0eb7513b0b9124c932911a64bdb",
+    "sourceCount": 670,
+    "sourceSha256": "acfc1a799a933ff9c135046aee17daa741366549f7808b8091200accf69f874d",
+    "sourceHashEncoding": "SHA-256 of UTF-8 compact JSON (separators comma/colon), with lexicographically sorted path keys; values are file SHA-256 digests.",
+    "buildIdentity": {
+      "version": 1,
+      "commit": null,
+      "fingerprint": "a5a1575e169f6475439722adeb3ac6ae569bc91b6d604f14e465faf7eccc6de4"
+    }
+  },
+  "sourceRecord": "docs/production/motocross-evidence/validation/final-validated-source.json",
+  "sourceRecordSha256": "3f384bde598dd74ecc34c45260b69d36153366af3caf0bfcd60558778a612d35",
+  "sourceIntegrity": {
+    "beforeCheckpointRecord": "motocross-release-validation/r4-renderer-regression/r4-validated-source.json",
+    "beforeRecordSha256": "3f384bde598dd74ecc34c45260b69d36153366af3caf0bfcd60558778a612d35",
+    "afterCheckpointRecord": "motocross-release-validation/r4-renderer-regression/after-source.json",
+    "afterRecordSha256": "6bcfbbfff5cda3683a6ea353354de2abf6d2626b47618b8caf1968157f0974ba",
+    "productionSourceFiles": 670,
+    "contextFiles": 12,
+    "sourceInventoryAndHashesUnchanged": true,
+    "contextFilesUnchanged": true,
+    "buildIdentityAndMainBundlesUnchanged": true
+  },
+  "verificationSourceSha256AtPackaging": {
+    "e2e/11-phase27c.spec.ts": "0f1cf2168fd54015e6c4da32598d2f10979416c05b070aa5b359ba13574285d3",
+    "e2e/fixtures/phase27c-crowd.ts": "17a9275bead357983790d88bdcda1fb425397010a959db371438bf4fd428cc48",
+    "e2e/fixtures/phase27c-resources.ts": "6d821a04d56977283330dce562397c65185244e1a6121a730c055975948397d4",
+    "playwright.motocross.config.ts": "b6f5b9fc1e0e640de269cb8bba4fe02045eba7879e066025546d22f9fd92de59"
+  },
+  "productionCrowdSourceSha256": "464b01dbf13ef5407a927e646de29eeea9d8f8320bda2361be0dd88b418394f9",
+  "fullCheckpoint": "motocross-release-validation/r4-renderer-regression",
+  "checkpointAttachmentManifestSha256": "da58fa8245c3406c1040279dcc63ad495b551dc11e8f363af1e48a8243a5fa11",
+  "report": {
+    "startTime": 1792201887900,
+    "durationMs": 157599.91499999998,
+    "stats": {
+      "total": 3,
+      "expected": 3,
+      "unexpected": 0,
+      "flaky": 0,
+      "skipped": 0,
+      "ok": true
+    },
+    "errors": [],
+    "scope": "Whole combined report; its duration is not attributed to the single crowd test."
+  },
+  "tests": [
+    {
+      "title": "Phase 27C: actual crowd colour/depth shaders freeze and rewind exactly",
+      "duration": 6979,
+      "status": "passed",
+      "outcome": "expected",
+      "startTime": "2026-10-17T01:51:29.845Z",
+      "retry": 0
+    }
+  ],
+  "captures": 8,
+  "capture_files": [
+    "crowd-time-0.png",
+    "crowd-paused.png",
+    "crowd-time-2.png",
+    "crowd-rewind.png",
+    "crowd-repeat.png",
+    "crowd-handoff-52.png",
+    "crowd-handoff-300.png",
+    "crowd-handoff-52-return.png"
+  ],
+  "images": [
+    {
+      "file": "crowd-time-0.png",
+      "originalAttachmentName": "crowd-time-0.png",
+      "attachmentOrdinal": 1,
+      "captureOrdinal": 1,
+      "sha256": "e499a786a1ddf3d494a8c19f972082cc12dac106f38accfacc5b6b379c5a70d9",
+      "bytes": 322187,
+      "width": 1280,
+      "height": 720,
+      "view": "crowd-time-0",
+      "triangles": 78708,
+      "draws": 4
+    },
+    {
+      "file": "crowd-paused.png",
+      "originalAttachmentName": "crowd-paused.png",
+      "attachmentOrdinal": 2,
+      "captureOrdinal": 2,
+      "sha256": "e499a786a1ddf3d494a8c19f972082cc12dac106f38accfacc5b6b379c5a70d9",
+      "bytes": 322187,
+      "width": 1280,
+      "height": 720,
+      "view": "crowd-paused",
+      "triangles": 78708,
+      "draws": 4
+    },
+    {
+      "file": "crowd-time-2.png",
+      "originalAttachmentName": "crowd-time-2.png",
+      "attachmentOrdinal": 3,
+      "captureOrdinal": 3,
+      "sha256": "790914240a5949160c85f639794f1208e66a59440d937ab6ab3a712eee7020d6",
+      "bytes": 322285,
+      "width": 1280,
+      "height": 720,
+      "view": "crowd-time-2",
+      "triangles": 78708,
+      "draws": 4
+    },
+    {
+      "file": "crowd-rewind.png",
+      "originalAttachmentName": "crowd-rewind.png",
+      "attachmentOrdinal": 4,
+      "captureOrdinal": 4,
+      "sha256": "e499a786a1ddf3d494a8c19f972082cc12dac106f38accfacc5b6b379c5a70d9",
+      "bytes": 322187,
+      "width": 1280,
+      "height": 720,
+      "view": "crowd-rewind",
+      "triangles": 78708,
+      "draws": 4
+    },
+    {
+      "file": "crowd-repeat.png",
+      "originalAttachmentName": "crowd-repeat.png",
+      "attachmentOrdinal": 5,
+      "captureOrdinal": 5,
+      "sha256": "e499a786a1ddf3d494a8c19f972082cc12dac106f38accfacc5b6b379c5a70d9",
+      "bytes": 322187,
+      "width": 1280,
+      "height": 720,
+      "view": "crowd-repeat",
+      "triangles": 78708,
+      "draws": 4
+    },
+    {
+      "file": "crowd-handoff-52.png",
+      "originalAttachmentName": "crowd-handoff-52.png",
+      "attachmentOrdinal": 6,
+      "captureOrdinal": 6,
+      "sha256": "338e1006266d8cb06729a35931e12b9b3a7aa04a6ccab4fe07c960417e0f0bdd",
+      "bytes": 316734,
+      "width": 1280,
+      "height": 720,
+      "view": "crowd-handoff-52",
+      "triangles": 95604,
+      "draws": 5
+    },
+    {
+      "file": "crowd-handoff-300.png",
+      "originalAttachmentName": "crowd-handoff-300.png",
+      "attachmentOrdinal": 7,
+      "captureOrdinal": 7,
+      "sha256": "b18eb0628691ce4f1f09b5505fa20b7e5b59833e908bd6d7ad56f8aabaffba6b",
+      "bytes": 292837,
+      "width": 1280,
+      "height": 720,
+      "view": "crowd-handoff-300",
+      "triangles": 7524,
+      "draws": 4
+    },
+    {
+      "file": "crowd-handoff-52-return.png",
+      "originalAttachmentName": "crowd-handoff-52.png",
+      "attachmentOrdinal": 8,
+      "captureOrdinal": 8,
+      "sha256": "338e1006266d8cb06729a35931e12b9b3a7aa04a6ccab4fe07c960417e0f0bdd",
+      "bytes": 316734,
+      "width": 1280,
+      "height": 720,
+      "view": "crowd-handoff-52",
+      "triangles": 95604,
+      "draws": 5
+    }
+  ],
+  "attachmentNaming": "All eight PNG attachments are retained in their original order. The second crowd-handoff-52.png is saved as crowd-handoff-52-return.png; original names and one-based report attachment ordinals are recorded above.",
+  "metrics": {
+    "file": "crowd-metrics.json",
+    "sha256": "a69753f3196dad203ef6d7518317b749c7e10a7d40b36eae2b3c54178b83c146",
+    "bytes": 1290
+  },
+  "browserBackend": {
+    "file": "environment.json",
+    "sha256": "f1537375721c6a9664c673b9545e728c2aff3d053640088891e5324577a93ccf",
+    "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+    "softwareRendererDetected": true,
+    "physicalHardwareValidated": false
+  },
+  "checks": {
+    "pageAndConsoleErrors": [],
+    "glError": 0,
+    "pauseExact": true,
+    "rewindExact": true,
+    "visibleMovement": true,
+    "memoryBefore": {
+      "geometries": 4,
+      "textures": 1
+    },
+    "memoryAfter": {
+      "geometries": 4,
+      "textures": 1
+    },
+    "handoff": {
+      "activeLevels": 2,
+      "farLevels": 1,
+      "rewindExact": true,
+      "ranges": [
+        [
+          0.5,
+          1
+        ],
+        [
+          0,
+          0.5
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    "nearTriangles": 6556,
+    "midTriangles": 1408,
+    "farTriangles": 624
+  },
+  "reviewOwnership": "Individual visual observations are written separately by the release owner after displaying every new PNG; packaging does not claim that visual review.",
+  "limits": [
+    "The shader mask excludes skin and shoes, but not accessory tags. Close non-skinned phone/cup shells can also receive the weave and 0.42 roughness floor; this is not a clothing-only effect.",
+    "Arena SX uses its independent stadium crowd materials. OffroadScene-only world43 does not include the Valley generic CrowdClusters and cannot substitute for this shader check.",
+    "The eight earlier complete motocross journey captures remain evidence for the original 667-source / 7733bb95 / 82b50183 build and are not relabeled by this component result.",
+    "These are controlled component renderer measurements, not full-race performance or hardware-independent pixel baselines."
+  ]
+}

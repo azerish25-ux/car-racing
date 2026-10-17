@@ -1,0 +1,29 @@
+{
+  "source_spec": "e2e/motorcycle-presentation.spec.ts",
+  "report_stats": {
+    "total": 1,
+    "expected": 1,
+    "unexpected": 0,
+    "flaky": 0,
+    "skipped": 0,
+    "ok": true
+  },
+  "report_duration_ms": 12134.552,
+  "scope": "Combined production Interface and MotoGP R2 BikeHud, actual Saira fonts, motorcycle telemetry, tyre channels, MFD and bike/car/menu restoration. Synthetic presented snapshots; DOM layout and readout evidence, not a running race.",
+  "combined_source": {
+    "integrated_remote_parent": "6e93a4ef452764f2ee0b69797817f91a908d897e",
+    "build_fingerprint": "85c14e6784442ab806d98b4d4fb0559f02affe8a92d9894ec010ed081b7f97f9",
+    "source_sha256": "307df6de70e0cfd3df261023245a72102e25d4e4b04d290fa8bab888b970379c",
+    "verified_source_files": 655,
+    "source_mismatches": [],
+    "spec_sha256": "4deac0f4127322e6b24812df4196d4d3f8963705c75a834e78eef7957e3f09fd"
+  },
+  "tests": [
+    {
+      "title": "motorcycle HUD: responsive production layout, real tyre channels and bike/car restoration",
+      "duration": 9578,
+      "outcome": "expected",
+      "startTime": "2026-10-16T22:52:11.600Z"
+    }
+  ]
+}

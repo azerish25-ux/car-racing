@@ -10,6 +10,7 @@ import { Track, trackPoint } from '../../simulation/track.ts';
 import { materials } from '../materials/index.ts';
 import { installScannedSoil, soilSlotOf, soilSlots, writeSoilSlot } from '../ground/soil-splat.ts';
 import type { ScanLayer } from '../ground/scan-store.ts';
+import { installMxSoilDetail, MX_SOIL_COLOURS } from './mx-soil-detail.ts';
 
 /** Soil albedo per kind (sRGB; the soil detail map multiplies it). */
 export const SOIL_COLOURS: Readonly<Record<SoilKind, number>> = Object.freeze({
@@ -57,12 +58,16 @@ export class TerrainView {
   private readonly history: Keyframe[] = [];
   private shown = -1;
   private wetness = 0;
+  private readonly motocross: boolean;
   /** Photographed soil sets of this course (ground/soil-splat.ts). */
   readonly soilSlots: readonly ScanLayer[];
+  /** Broad variation uses a resident soil scan, never the MX/SX turf slot. */
+  readonly soilMacro: ScanLayer;
   constructor(readonly track: Track) {
     const surface = Track.offroadOf(track);
     if (!(surface instanceof TrackTerrainSurface)) throw new Error('Not a terrain venue');
     this.terrain = surface.terrain;
+    this.motocross = surface.kind === 'motocross' || surface.kind === 'supercross';
     const t = this.terrain,
       blocks = t.renderColumns * t.renderRows;
     this.depth = new Float32Array(blocks);
@@ -73,7 +78,14 @@ export class TerrainView {
     const kinds = new Set<SoilKind>(['turf']);
     for (let i = 0; i < t.soil.length; i++) kinds.add(SOIL_KINDS[t.soil[i]] ?? 'loam');
     this.soilSlots = soilSlots(kinds);
-    installScannedSoil(this.material, this.soilSlots);
+    this.soilMacro =
+      surface.kind === 'motocross'
+        ? 'forest'
+        : surface.kind === 'supercross'
+          ? 'dryEarth'
+          : this.soilSlots[0];
+    installScannedSoil(this.material, this.soilSlots, this.soilMacro);
+    if (this.motocross) installMxSoilDetail(this.material);
     for (let first = 0; first < t.renderRows; first += CHUNK_ROWS)
       this.chunks.push(this.buildChunk(first, Math.min(CHUNK_ROWS, t.renderRows - first)));
   }
@@ -92,6 +104,7 @@ export class TerrainView {
       colours = new Float32Array(count * 3),
       state = new Float32Array(count * 3),
       layers = new Float32Array(count * 4),
+      mxCourse = this.motocross ? new Float32Array(count * 4) : null,
       uv = new Float32Array(count * 2),
       base = new Float32Array(count),
       keep = new Uint8Array(count);
@@ -127,12 +140,21 @@ export class TerrainView {
           s,
         );
         const kind = cell < 0 ? 'turf' : t.soilKind(cell);
-        colour.setHex(SOIL_COLOURS[kind]).convertSRGBToLinear();
+        // Three's setHex already decodes sRGB. Decoding again crushed the
+        // motocross loam into almost-black soil under cloud/stadium light.
+        colour.setHex((this.motocross ? MX_SOIL_COLOURS : SOIL_COLOURS)[kind]);
+        if (!this.motocross) colour.convertSRGBToLinear();
         colours[k * 3] = colour.r;
         colours[k * 3 + 1] = colour.g;
         colours[k * 3 + 2] = colour.b;
         state[k * 3] = cell < 0 ? 0 : t.baseMoisture[cell] / 255;
         writeSoilSlot(layers, k, soilSlotOf(kind, this.soilSlots), this.soilSlots.length);
+        if (mxCourse) {
+          mxCourse[k * 4] = lateral;
+          mxCourse[k * 4 + 1] = s;
+          mxCourse[k * 4 + 2] = kind === 'turf' || kind === 'asphalt' ? 0 : 1;
+          mxCourse[k * 4 + 3] = clamp(p.curvature * 20, -1, 1);
+        }
       }
     }
     const index: number[] = [];
@@ -156,6 +178,7 @@ export class TerrainView {
       new T.BufferAttribute(state, 3).setUsage(T.DynamicDrawUsage),
     );
     geometry.setAttribute('apexSoilLayers', new T.BufferAttribute(layers, 4));
+    if (mxCourse) geometry.setAttribute('mxCourse', new T.BufferAttribute(mxCourse, 4));
     geometry.setAttribute('uv', new T.BufferAttribute(uv, 2));
     geometry.setAttribute('uv1', new T.BufferAttribute(uv.slice(), 2));
     geometry.setIndex(index);

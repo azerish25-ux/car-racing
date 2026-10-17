@@ -27,6 +27,7 @@ import {
   SCANNED_GROUND,
 } from '../src/rendering/ground/scanned-ground.ts';
 import {
+  installScannedSoil,
   soilSlots,
   soilSlotOf,
   SOIL_SCAN,
@@ -244,6 +245,43 @@ describe('scanned ground shaders', () => {
 });
 
 describe('off-road soil splat', () => {
+  it('reuses resident macro samplers while preserving fine layers and the legacy default', () => {
+    const slots = soilSlots(['turf', 'hardpack', 'loam']);
+    expect(slots).toEqual(['meadow', 'dryEarth', 'forest']);
+    const legacy = materials.soil(),
+      forest = materials.soil(),
+      clay = materials.soil(),
+      invalid = materials.soil();
+    try {
+      installScannedSoil(legacy, slots);
+      installScannedSoil(forest, slots, 'forest');
+      installScannedSoil(clay, slots, 'dryEarth');
+      const original = compile(legacy),
+        outdoor = compile(forest),
+        indoor = compile(clay);
+      for (const [shader, sampler] of [
+        [original, 'apexScanMeadowC'],
+        [outdoor, 'apexScanForestC'],
+        [indoor, 'apexScanDryEarthC'],
+      ] as const) {
+        expect(shader.fragmentShader).toContain(`vec3 apexMacro = apexScanMacro( ${sampler},`);
+        expect(shader.fragmentShader).toContain(`vec3 apexMacroFar = apexScanMacro( ${sampler},`);
+        // Macro selection cannot drop turf/detail layers or add an asset.
+        expect(Object.keys(shader.uniforms).sort()).toEqual(Object.keys(original.uniforms).sort());
+        for (const layer of ['Meadow', 'DryEarth', 'Forest'])
+          expect(shader.fragmentShader).toContain(
+            `apexScanLayer( apexScan${layer}C, apexScan${layer}N,`,
+          );
+      }
+      expect(forest.customProgramCacheKey()).not.toBe(legacy.customProgramCacheKey());
+      expect(forest.customProgramCacheKey()).not.toBe(clay.customProgramCacheKey());
+      expect(installScannedSoil(forest, slots, 'forest')).toBe(false);
+      expect(() => installScannedSoil(invalid, slots, 'rock')).toThrow('existing soil slot');
+    } finally {
+      for (const material of [legacy, forest, clay, invalid]) material.dispose();
+    }
+  });
+
   it('maps soil kinds to photographed sets in at most five slots', () => {
     expect(SOIL_SCAN.hardpack).toBe('dryEarth');
     expect(SOIL_SCAN.mud).toBe('wetEarth');

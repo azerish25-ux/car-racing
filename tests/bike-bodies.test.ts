@@ -41,7 +41,9 @@ const triangles = (root: T.Object3D) => {
   root.traverse((o) => {
     if (!(o instanceof T.Mesh)) return;
     const g = o.geometry as T.BufferGeometry;
-    n += (g.index ? g.index.count : g.getAttribute('position').count) / 3;
+    n +=
+      ((g.index ? g.index.count : g.getAttribute('position').count) / 3) *
+      (o instanceof T.InstancedMesh ? o.count : 1);
   });
   return n;
 };

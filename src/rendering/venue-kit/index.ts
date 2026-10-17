@@ -16,6 +16,7 @@ import {
 } from './structures.ts';
 import { chunks } from './sweep.ts';
 import { FACADE_STREET_LIGHT, FACADE_WINDOWS, facadeStreetUniforms } from './materials.ts';
+import { buildMotocrossBoundary, isMotocrossVenue } from '../offroad/mx-boundary.ts';
 
 /** Procedural venue kit (WP30): dresses ANY catalogue CircuitDefinition from
  * its data — verges and run-off where physics reads them, barriers by kind on
@@ -39,11 +40,16 @@ export class VenueKit {
   enqueue(host: RibbonHost) {
     const kit = this.context,
       track = this.track,
-      queue = host.construction;
+      queue = host.construction,
+      motocross = isMotocrossVenue(track);
     queueGround(kit, host);
-    for (const [a, b] of chunks(0, track.length, 60))
-      queue.add('Venue kit barriers', 2, () => buildBarrierChunk(kit, a, b));
-    queue.add('Venue kit paddock and pit wall', 2, () => buildPaddock(kit));
+    if (motocross)
+      queue.add('MX physical boundary padding', 2, () => kit.add(buildMotocrossBoundary(track)));
+    else {
+      for (const [a, b] of chunks(0, track.length, 60))
+        queue.add('Venue kit barriers', 2, () => buildBarrierChunk(kit, a, b));
+      queue.add('Venue kit paddock and pit wall', 2, () => buildPaddock(kit));
+    }
     if (kit.meta.dressing.tunnels.length)
       queue.add('Venue kit tunnels', 2, () => buildTunnels(kit));
     if (kit.meta.dressing.crossings.length)
@@ -54,9 +60,11 @@ export class VenueKit {
       queue.add('Venue kit city frontage', 3, () => buildFacades(kit));
     if (kit.meta.dressing.gantries.length)
       queue.add('Venue kit crane gantries', 2, () => buildGantries(kit));
-    if (kit.style.lightTowers || kit.meta.night || kit.meta.dayNight)
+    // The SX roof carries its own floodlight banks. Circuit towers and pit
+    // buildings can intersect its compact neighboring rhythm lanes.
+    if (!motocross && (kit.style.lightTowers || kit.meta.night || kit.meta.dayNight))
       queue.add('Venue kit light towers', 3, () => buildLightTowers(kit));
-    queue.add('Venue kit braking boards', 3, () => buildBoards(kit));
+    if (!motocross) queue.add('Venue kit braking boards', 3, () => buildBoards(kit));
     queue.add('Venue kit scatter', 3, () => buildScatter(kit));
     queue.add('Seal venue kit transforms', 6, () => this.root.sealTransforms());
   }

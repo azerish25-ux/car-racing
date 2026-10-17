@@ -1,0 +1,2523 @@
+{
+  "boundary": "Production Interface and real Saira fonts; full-width venue cards, native form action and field reachability; RadioCaption and RadioArbiter with explicitly synthetic HUD/flag snapshots, one-call initial/sparse update and real rectangle checks; no gameplay or GPU performance claim",
+  "menuMeasurements": [
+    {
+      "width": 1280,
+      "height": 800,
+      "scale": 1,
+      "outdoor": {
+        "discipline": "motocross",
+        "form": {
+          "x": 61.75,
+          "y": 201,
+          "width": 440,
+          "height": 685.25
+        },
+        "panel": {
+          "x": 61.75,
+          "y": 274,
+          "width": 440,
+          "height": 227.453125
+        },
+        "card": {
+          "x": 61.75,
+          "y": 274,
+          "width": 440,
+          "height": 89.6875
+        },
+        "scroll": {
+          "x": 57.75,
+          "y": 120,
+          "width": 448,
+          "height": 516,
+          "heightAvailable": 516,
+          "heightTotal": 1035
+        },
+        "start": {
+          "x": 61.75,
+          "y": 645,
+          "width": 440,
+          "height": 57,
+          "form": "sessionForm",
+          "unobscured": true
+        },
+        "horizontalOverflow": 0,
+        "texts": [
+          {
+            "selector": ".mx-setup .mx-venue-card strong",
+            "text": "THROUGH THE RIDGE",
+            "rect": {
+              "x": 202.875,
+              "y": 313,
+              "width": 285.875,
+              "height": 20.6875
+            },
+            "lines": 1,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-setup .mx-venue-card p",
+            "text": "6 jump features \u00b7 6 named turns",
+            "rect": {
+              "x": 202.875,
+              "y": 340.6875,
+              "width": 285.875,
+              "height": 14
+            },
+            "lines": 1,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-ride-presets button b",
+            "text": "Learn the jumps",
+            "rect": {
+              "x": 69.75,
+              "y": 404.6875,
+              "width": 127.328125,
+              "height": 14.296875
+            },
+            "lines": 1,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-ride-presets button b",
+            "text": "Race the pack",
+            "rect": {
+              "x": 218.078125,
+              "y": 404.6875,
+              "width": 127.328125,
+              "height": 14.296875
+            },
+            "lines": 1,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-ride-presets button b",
+            "text": "Full control",
+            "rect": {
+              "x": 366.40625,
+              "y": 404.6875,
+              "width": 127.328125,
+              "height": 14.296875
+            },
+            "lines": 1,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-ride-presets button span",
+            "text": "Solo practice \u00b7 riding assists",
+            "rect": {
+              "x": 69.75,
+              "y": 422.984375,
+              "width": 127.328125,
+              "height": 29.6875
+            },
+            "lines": 2,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-ride-presets button span",
+            "text": "Eight riders \u00b7 riding assists",
+            "rect": {
+              "x": 218.078125,
+              "y": 422.984375,
+              "width": 127.328125,
+              "height": 29.6875
+            },
+            "lines": 2,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-ride-presets button span",
+            "text": "Eight riders \u00b7 assists off",
+            "rect": {
+              "x": 366.40625,
+              "y": 422.984375,
+              "width": 127.328125,
+              "height": 29.6875
+            },
+            "lines": 2,
+            "overflow": 0
+          }
+        ]
+      },
+      "stadium": {
+        "discipline": "supercross",
+        "form": {
+          "x": 61.75,
+          "y": 201,
+          "width": 440,
+          "height": 685.25
+        },
+        "panel": {
+          "x": 61.75,
+          "y": 274,
+          "width": 440,
+          "height": 227.453125
+        },
+        "card": {
+          "x": 61.75,
+          "y": 274,
+          "width": 440,
+          "height": 89.6875
+        },
+        "scroll": {
+          "x": 57.75,
+          "y": 120,
+          "width": 448,
+          "height": 516,
+          "heightAvailable": 516,
+          "heightTotal": 1035
+        },
+        "start": {
+          "x": 61.75,
+          "y": 645,
+          "width": 440,
+          "height": 57,
+          "form": "sessionForm",
+          "unobscured": true
+        },
+        "horizontalOverflow": 0,
+        "texts": [
+          {
+            "selector": ".mx-setup .mx-venue-card strong",
+            "text": "UNDER THE LIGHTS",
+            "rect": {
+              "x": 202.875,
+              "y": 313,
+              "width": 285.875,
+              "height": 20.6875
+            },
+            "lines": 1,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-setup .mx-venue-card p",
+            "text": "4 jump features \u00b7 5 named turns",
+            "rect": {
+              "x": 202.875,
+              "y": 340.6875,
+              "width": 285.875,
+              "height": 14
+            },
+            "lines": 1,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-ride-presets button b",
+            "text": "Learn the jumps",
+            "rect": {
+              "x": 69.75,
+              "y": 404.6875,
+              "width": 127.328125,
+              "height": 14.296875
+            },
+            "lines": 1,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-ride-presets button b",
+            "text": "Race the pack",
+            "rect": {
+              "x": 218.078125,
+              "y": 404.6875,
+              "width": 127.328125,
+              "height": 14.296875
+            },
+            "lines": 1,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-ride-presets button b",
+            "text": "Full control",
+            "rect": {
+              "x": 366.40625,
+              "y": 404.6875,
+              "width": 127.328125,
+              "height": 14.296875
+            },
+            "lines": 1,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-ride-presets button span",
+            "text": "Solo practice \u00b7 riding assists",
+            "rect": {
+              "x": 69.75,
+              "y": 422.984375,
+              "width": 127.328125,
+              "height": 29.6875
+            },
+            "lines": 2,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-ride-presets button span",
+            "text": "Eight riders \u00b7 riding assists",
+            "rect": {
+              "x": 218.078125,
+              "y": 422.984375,
+              "width": 127.328125,
+              "height": 29.6875
+            },
+            "lines": 2,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-ride-presets button span",
+            "text": "Eight riders \u00b7 assists off",
+            "rect": {
+              "x": 366.40625,
+              "y": 422.984375,
+              "width": 127.328125,
+              "height": 29.6875
+            },
+            "lines": 2,
+            "overflow": 0
+          }
+        ]
+      },
+      "fieldMeasurements": [
+        {
+          "field": "circuit",
+          "top": 222,
+          "bottom": 264,
+          "scrollTop": 120,
+          "scrollBottom": 636,
+          "actionTop": 636,
+          "unobscured": true
+        },
+        {
+          "field": "mode",
+          "top": 534.453125,
+          "bottom": 576.453125,
+          "scrollTop": 120,
+          "scrollBottom": 636,
+          "actionTop": 636,
+          "unobscured": true
+        },
+        {
+          "field": "laps",
+          "top": 534.453125,
+          "bottom": 576.453125,
+          "scrollTop": 120,
+          "scrollBottom": 636,
+          "actionTop": 636,
+          "unobscured": true
+        },
+        {
+          "field": "weather",
+          "top": 578.453125,
+          "bottom": 620.453125,
+          "scrollTop": 120,
+          "scrollBottom": 636,
+          "actionTop": 636,
+          "unobscured": true
+        },
+        {
+          "field": "opponents",
+          "top": 578.453125,
+          "bottom": 620.453125,
+          "scrollTop": 120,
+          "scrollBottom": 636,
+          "actionTop": 636,
+          "unobscured": true
+        },
+        {
+          "field": "compound",
+          "top": 357.453125,
+          "bottom": 399.453125,
+          "scrollTop": 120,
+          "scrollBottom": 636,
+          "actionTop": 636,
+          "unobscured": true
+        },
+        {
+          "field": "assist",
+          "top": 357.453125,
+          "bottom": 399.453125,
+          "scrollTop": 120,
+          "scrollBottom": 636,
+          "actionTop": 636,
+          "unobscured": true
+        },
+        {
+          "field": "startSlot",
+          "top": 430.453125,
+          "bottom": 472.453125,
+          "scrollTop": 120,
+          "scrollBottom": 636,
+          "actionTop": 636,
+          "unobscured": true
+        },
+        {
+          "field": "vehicle",
+          "top": 430.453125,
+          "bottom": 472.453125,
+          "scrollTop": 120,
+          "scrollBottom": 636,
+          "actionTop": 636,
+          "unobscured": true
+        },
+        {
+          "field": "PREPARE GRID START PAUSED",
+          "top": 517.25,
+          "bottom": 563.25,
+          "scrollTop": 120,
+          "scrollBottom": 636,
+          "actionTop": 636,
+          "unobscured": true
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 800,
+      "scale": 1.35,
+      "outdoor": {
+        "discipline": "motocross",
+        "form": {
+          "x": 61.75,
+          "y": 201,
+          "width": 440,
+          "height": 685.25
+        },
+        "panel": {
+          "x": 61.75,
+          "y": 274,
+          "width": 440,
+          "height": 227.453125
+        },
+        "card": {
+          "x": 61.75,
+          "y": 274,
+          "width": 440,
+          "height": 89.6875
+        },
+        "scroll": {
+          "x": 57.75,
+          "y": 120,
+          "width": 448,
+          "height": 516,
+          "heightAvailable": 516,
+          "heightTotal": 1035
+        },
+        "start": {
+          "x": 61.75,
+          "y": 645,
+          "width": 440,
+          "height": 57,
+          "form": "sessionForm",
+          "unobscured": true
+        },
+        "horizontalOverflow": 0,
+        "texts": [
+          {
+            "selector": ".mx-setup .mx-venue-card strong",
+            "text": "THROUGH THE RIDGE",
+            "rect": {
+              "x": 202.875,
+              "y": 313,
+              "width": 285.875,
+              "height": 20.6875
+            },
+            "lines": 1,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-setup .mx-venue-card p",
+            "text": "6 jump features \u00b7 6 named turns",
+            "rect": {
+              "x": 202.875,
+              "y": 340.6875,
+              "width": 285.875,
+              "height": 14
+            },
+            "lines": 1,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-ride-presets button b",
+            "text": "Learn the jumps",
+            "rect": {
+              "x": 69.75,
+              "y": 404.6875,
+              "width": 127.328125,
+              "height": 14.296875
+            },
+            "lines": 1,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-ride-presets button b",
+            "text": "Race the pack",
+            "rect": {
+              "x": 218.078125,
+              "y": 404.6875,
+              "width": 127.328125,
+              "height": 14.296875
+            },
+            "lines": 1,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-ride-presets button b",
+            "text": "Full control",
+            "rect": {
+              "x": 366.40625,
+              "y": 404.6875,
+              "width": 127.328125,
+              "height": 14.296875
+            },
+            "lines": 1,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-ride-presets button span",
+            "text": "Solo practice \u00b7 riding assists",
+            "rect": {
+              "x": 69.75,
+              "y": 422.984375,
+              "width": 127.328125,
+              "height": 29.6875
+            },
+            "lines": 2,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-ride-presets button span",
+            "text": "Eight riders \u00b7 riding assists",
+            "rect": {
+              "x": 218.078125,
+              "y": 422.984375,
+              "width": 127.328125,
+              "height": 29.6875
+            },
+            "lines": 2,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-ride-presets button span",
+            "text": "Eight riders \u00b7 assists off",
+            "rect": {
+              "x": 366.40625,
+              "y": 422.984375,
+              "width": 127.328125,
+              "height": 29.6875
+            },
+            "lines": 2,
+            "overflow": 0
+          }
+        ]
+      },
+      "stadium": {
+        "discipline": "supercross",
+        "form": {
+          "x": 61.75,
+          "y": 201,
+          "width": 440,
+          "height": 685.25
+        },
+        "panel": {
+          "x": 61.75,
+          "y": 274,
+          "width": 440,
+          "height": 227.453125
+        },
+        "card": {
+          "x": 61.75,
+          "y": 274,
+          "width": 440,
+          "height": 89.6875
+        },
+        "scroll": {
+          "x": 57.75,
+          "y": 120,
+          "width": 448,
+          "height": 516,
+          "heightAvailable": 516,
+          "heightTotal": 1035
+        },
+        "start": {
+          "x": 61.75,
+          "y": 645,
+          "width": 440,
+          "height": 57,
+          "form": "sessionForm",
+          "unobscured": true
+        },
+        "horizontalOverflow": 0,
+        "texts": [
+          {
+            "selector": ".mx-setup .mx-venue-card strong",
+            "text": "UNDER THE LIGHTS",
+            "rect": {
+              "x": 202.875,
+              "y": 313,
+              "width": 285.875,
+              "height": 20.6875
+            },
+            "lines": 1,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-setup .mx-venue-card p",
+            "text": "4 jump features \u00b7 5 named turns",
+            "rect": {
+              "x": 202.875,
+              "y": 340.6875,
+              "width": 285.875,
+              "height": 14
+            },
+            "lines": 1,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-ride-presets button b",
+            "text": "Learn the jumps",
+            "rect": {
+              "x": 69.75,
+              "y": 404.6875,
+              "width": 127.328125,
+              "height": 14.296875
+            },
+            "lines": 1,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-ride-presets button b",
+            "text": "Race the pack",
+            "rect": {
+              "x": 218.078125,
+              "y": 404.6875,
+              "width": 127.328125,
+              "height": 14.296875
+            },
+            "lines": 1,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-ride-presets button b",
+            "text": "Full control",
+            "rect": {
+              "x": 366.40625,
+              "y": 404.6875,
+              "width": 127.328125,
+              "height": 14.296875
+            },
+            "lines": 1,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-ride-presets button span",
+            "text": "Solo practice \u00b7 riding assists",
+            "rect": {
+              "x": 69.75,
+              "y": 422.984375,
+              "width": 127.328125,
+              "height": 29.6875
+            },
+            "lines": 2,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-ride-presets button span",
+            "text": "Eight riders \u00b7 riding assists",
+            "rect": {
+              "x": 218.078125,
+              "y": 422.984375,
+              "width": 127.328125,
+              "height": 29.6875
+            },
+            "lines": 2,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-ride-presets button span",
+            "text": "Eight riders \u00b7 assists off",
+            "rect": {
+              "x": 366.40625,
+              "y": 422.984375,
+              "width": 127.328125,
+              "height": 29.6875
+            },
+            "lines": 2,
+            "overflow": 0
+          }
+        ]
+      },
+      "fieldMeasurements": [
+        {
+          "field": "circuit",
+          "top": 222,
+          "bottom": 264,
+          "scrollTop": 120,
+          "scrollBottom": 636,
+          "actionTop": 636,
+          "unobscured": true
+        },
+        {
+          "field": "mode",
+          "top": 534.453125,
+          "bottom": 576.453125,
+          "scrollTop": 120,
+          "scrollBottom": 636,
+          "actionTop": 636,
+          "unobscured": true
+        },
+        {
+          "field": "laps",
+          "top": 534.453125,
+          "bottom": 576.453125,
+          "scrollTop": 120,
+          "scrollBottom": 636,
+          "actionTop": 636,
+          "unobscured": true
+        },
+        {
+          "field": "weather",
+          "top": 578.453125,
+          "bottom": 620.453125,
+          "scrollTop": 120,
+          "scrollBottom": 636,
+          "actionTop": 636,
+          "unobscured": true
+        },
+        {
+          "field": "opponents",
+          "top": 578.453125,
+          "bottom": 620.453125,
+          "scrollTop": 120,
+          "scrollBottom": 636,
+          "actionTop": 636,
+          "unobscured": true
+        },
+        {
+          "field": "compound",
+          "top": 357.453125,
+          "bottom": 399.453125,
+          "scrollTop": 120,
+          "scrollBottom": 636,
+          "actionTop": 636,
+          "unobscured": true
+        },
+        {
+          "field": "assist",
+          "top": 357.453125,
+          "bottom": 399.453125,
+          "scrollTop": 120,
+          "scrollBottom": 636,
+          "actionTop": 636,
+          "unobscured": true
+        },
+        {
+          "field": "startSlot",
+          "top": 430.453125,
+          "bottom": 472.453125,
+          "scrollTop": 120,
+          "scrollBottom": 636,
+          "actionTop": 636,
+          "unobscured": true
+        },
+        {
+          "field": "vehicle",
+          "top": 430.453125,
+          "bottom": 472.453125,
+          "scrollTop": 120,
+          "scrollBottom": 636,
+          "actionTop": 636,
+          "unobscured": true
+        },
+        {
+          "field": "PREPARE GRID START PAUSED",
+          "top": 517.25,
+          "bottom": 563.25,
+          "scrollTop": 120,
+          "scrollBottom": 636,
+          "actionTop": 636,
+          "unobscured": true
+        }
+      ]
+    },
+    {
+      "width": 640,
+      "height": 400,
+      "scale": 1,
+      "outdoor": {
+        "discipline": "motocross",
+        "form": {
+          "x": 40,
+          "y": 163,
+          "width": 556,
+          "height": 662.875
+        },
+        "panel": {
+          "x": 40,
+          "y": 236,
+          "width": 556,
+          "height": 205.078125
+        },
+        "card": {
+          "x": 40,
+          "y": 236,
+          "width": 556,
+          "height": 89.6875
+        },
+        "scroll": {
+          "x": 36,
+          "y": 82,
+          "width": 564,
+          "height": 178,
+          "heightAvailable": 178,
+          "heightTotal": 1013
+        },
+        "start": {
+          "x": 40,
+          "y": 269,
+          "width": 556,
+          "height": 57,
+          "form": "sessionForm",
+          "unobscured": true
+        },
+        "horizontalOverflow": 0,
+        "texts": [
+          {
+            "selector": ".mx-setup .mx-venue-card strong",
+            "text": "THROUGH THE RIDGE",
+            "rect": {
+              "x": 214.640625,
+              "y": 275,
+              "width": 368.359375,
+              "height": 20.6875
+            },
+            "lines": 1,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-setup .mx-venue-card p",
+            "text": "6 jump features \u00b7 6 named turns",
+            "rect": {
+              "x": 214.640625,
+              "y": 302.6875,
+              "width": 368.359375,
+              "height": 14
+            },
+            "lines": 1,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-ride-presets button b",
+            "text": "Learn the jumps",
+            "rect": {
+              "x": 48,
+              "y": 370.609375,
+              "width": 166,
+              "height": 14.296875
+            },
+            "lines": 1,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-ride-presets button b",
+            "text": "Race the pack",
+            "rect": {
+              "x": 235,
+              "y": 370.609375,
+              "width": 166,
+              "height": 14.296875
+            },
+            "lines": 1,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-ride-presets button b",
+            "text": "Full control",
+            "rect": {
+              "x": 422,
+              "y": 370.609375,
+              "width": 166,
+              "height": 14.296875
+            },
+            "lines": 1,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-ride-presets button span",
+            "text": "Solo practice \u00b7 riding assists",
+            "rect": {
+              "x": 48,
+              "y": 388.90625,
+              "width": 166,
+              "height": 14.84375
+            },
+            "lines": 1,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-ride-presets button span",
+            "text": "Eight riders \u00b7 riding assists",
+            "rect": {
+              "x": 235,
+              "y": 388.90625,
+              "width": 166,
+              "height": 14.84375
+            },
+            "lines": 1,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-ride-presets button span",
+            "text": "Eight riders \u00b7 assists off",
+            "rect": {
+              "x": 422,
+              "y": 388.90625,
+              "width": 166,
+              "height": 14.84375
+            },
+            "lines": 1,
+            "overflow": 0
+          }
+        ]
+      },
+      "stadium": {
+        "discipline": "supercross",
+        "form": {
+          "x": 40,
+          "y": -53,
+          "width": 556,
+          "height": 662.875
+        },
+        "panel": {
+          "x": 40,
+          "y": 20,
+          "width": 556,
+          "height": 205.078125
+        },
+        "card": {
+          "x": 40,
+          "y": 20,
+          "width": 556,
+          "height": 89.6875
+        },
+        "scroll": {
+          "x": 36,
+          "y": 82,
+          "width": 564,
+          "height": 178,
+          "heightAvailable": 178,
+          "heightTotal": 1013
+        },
+        "start": {
+          "x": 40,
+          "y": 269,
+          "width": 556,
+          "height": 57,
+          "form": "sessionForm",
+          "unobscured": true
+        },
+        "horizontalOverflow": 0,
+        "texts": [
+          {
+            "selector": ".mx-setup .mx-venue-card strong",
+            "text": "UNDER THE LIGHTS",
+            "rect": {
+              "x": 214.640625,
+              "y": 59,
+              "width": 368.359375,
+              "height": 20.6875
+            },
+            "lines": 1,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-setup .mx-venue-card p",
+            "text": "4 jump features \u00b7 5 named turns",
+            "rect": {
+              "x": 214.640625,
+              "y": 86.6875,
+              "width": 368.359375,
+              "height": 14
+            },
+            "lines": 1,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-ride-presets button b",
+            "text": "Learn the jumps",
+            "rect": {
+              "x": 48,
+              "y": 154.609375,
+              "width": 166,
+              "height": 14.296875
+            },
+            "lines": 1,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-ride-presets button b",
+            "text": "Race the pack",
+            "rect": {
+              "x": 235,
+              "y": 154.609375,
+              "width": 166,
+              "height": 14.296875
+            },
+            "lines": 1,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-ride-presets button b",
+            "text": "Full control",
+            "rect": {
+              "x": 422,
+              "y": 154.609375,
+              "width": 166,
+              "height": 14.296875
+            },
+            "lines": 1,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-ride-presets button span",
+            "text": "Solo practice \u00b7 riding assists",
+            "rect": {
+              "x": 48,
+              "y": 172.90625,
+              "width": 166,
+              "height": 14.84375
+            },
+            "lines": 1,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-ride-presets button span",
+            "text": "Eight riders \u00b7 riding assists",
+            "rect": {
+              "x": 235,
+              "y": 172.90625,
+              "width": 166,
+              "height": 14.84375
+            },
+            "lines": 1,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-ride-presets button span",
+            "text": "Eight riders \u00b7 assists off",
+            "rect": {
+              "x": 422,
+              "y": 172.90625,
+              "width": 166,
+              "height": 14.84375
+            },
+            "lines": 1,
+            "overflow": 0
+          }
+        ]
+      },
+      "fieldMeasurements": [
+        {
+          "field": "circuit",
+          "top": 184,
+          "bottom": 226,
+          "scrollTop": 82,
+          "scrollBottom": 260,
+          "actionTop": 260,
+          "unobscured": true
+        },
+        {
+          "field": "mode",
+          "top": 150.078125,
+          "bottom": 192.078125,
+          "scrollTop": 82,
+          "scrollBottom": 260,
+          "actionTop": 260,
+          "unobscured": true
+        },
+        {
+          "field": "laps",
+          "top": 150.078125,
+          "bottom": 192.078125,
+          "scrollTop": 82,
+          "scrollBottom": 260,
+          "actionTop": 260,
+          "unobscured": true
+        },
+        {
+          "field": "weather",
+          "top": 202.078125,
+          "bottom": 244.078125,
+          "scrollTop": 82,
+          "scrollBottom": 260,
+          "actionTop": 260,
+          "unobscured": true
+        },
+        {
+          "field": "opponents",
+          "top": 202.078125,
+          "bottom": 244.078125,
+          "scrollTop": 82,
+          "scrollBottom": 260,
+          "actionTop": 260,
+          "unobscured": true
+        },
+        {
+          "field": "compound",
+          "top": 150.078125,
+          "bottom": 192.078125,
+          "scrollTop": 82,
+          "scrollBottom": 260,
+          "actionTop": 260,
+          "unobscured": true
+        },
+        {
+          "field": "assist",
+          "top": 150.078125,
+          "bottom": 192.078125,
+          "scrollTop": 82,
+          "scrollBottom": 260,
+          "actionTop": 260,
+          "unobscured": true
+        },
+        {
+          "field": "startSlot",
+          "top": 202.078125,
+          "bottom": 244.078125,
+          "scrollTop": 82,
+          "scrollBottom": 260,
+          "actionTop": 260,
+          "unobscured": true
+        },
+        {
+          "field": "vehicle",
+          "top": 202.078125,
+          "bottom": 244.078125,
+          "scrollTop": 82,
+          "scrollBottom": 260,
+          "actionTop": 260,
+          "unobscured": true
+        },
+        {
+          "field": "PREPARE GRID START PAUSED",
+          "top": 147.875,
+          "bottom": 193.875,
+          "scrollTop": 82,
+          "scrollBottom": 260,
+          "actionTop": 260,
+          "unobscured": true
+        }
+      ]
+    },
+    {
+      "width": 375,
+      "height": 667,
+      "scale": 1.35,
+      "outdoor": {
+        "discipline": "motocross",
+        "form": {
+          "x": 26.75,
+          "y": 167.703125,
+          "width": 317.5,
+          "height": 817.046875
+        },
+        "panel": {
+          "x": 26.75,
+          "y": 269.6875,
+          "width": 317.5,
+          "height": 313.46875
+        },
+        "card": {
+          "x": 26.75,
+          "y": 269.6875,
+          "width": 317.5,
+          "height": 89.6875
+        },
+        "scroll": {
+          "x": 22.75,
+          "y": 86.703125,
+          "width": 325.5,
+          "height": 440.296875,
+          "heightAvailable": 440,
+          "heightTotal": 1167
+        },
+        "start": {
+          "x": 26.75,
+          "y": 536,
+          "width": 317.5,
+          "height": 57,
+          "form": "sessionForm",
+          "unobscured": true
+        },
+        "horizontalOverflow": 0,
+        "texts": [
+          {
+            "selector": ".mx-setup .mx-venue-card strong",
+            "text": "THROUGH THE RIDGE",
+            "rect": {
+              "x": 141.75,
+              "y": 308.6875,
+              "width": 189.5,
+              "height": 20.6875
+            },
+            "lines": 1,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-setup .mx-venue-card p",
+            "text": "6 jump features \u00b7 6 named turns",
+            "rect": {
+              "x": 141.75,
+              "y": 336.375,
+              "width": 189.5,
+              "height": 14
+            },
+            "lines": 1,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-ride-presets button b",
+            "text": "Learn the jumps",
+            "rect": {
+              "x": 34.75,
+              "y": 407.21875,
+              "width": 115.796875,
+              "height": 14.296875
+            },
+            "lines": 1,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-ride-presets button b",
+            "text": "Race the pack",
+            "rect": {
+              "x": 34.75,
+              "y": 460.21875,
+              "width": 115.796875,
+              "height": 14.296875
+            },
+            "lines": 1,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-ride-presets button b",
+            "text": "Full control",
+            "rect": {
+              "x": 34.75,
+              "y": 513.21875,
+              "width": 115.796875,
+              "height": 14.296875
+            },
+            "lines": 1,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-ride-presets button span",
+            "text": "Solo practice \u00b7 riding assists",
+            "rect": {
+              "x": 162.546875,
+              "y": 406.953125,
+              "width": 173.703125,
+              "height": 14.84375
+            },
+            "lines": 1,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-ride-presets button span",
+            "text": "Eight riders \u00b7 riding assists",
+            "rect": {
+              "x": 162.546875,
+              "y": 459.953125,
+              "width": 173.703125,
+              "height": 14.84375
+            },
+            "lines": 1,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-ride-presets button span",
+            "text": "Eight riders \u00b7 assists off",
+            "rect": {
+              "x": 162.546875,
+              "y": 512.953125,
+              "width": 173.703125,
+              "height": 14.84375
+            },
+            "lines": 1,
+            "overflow": 0
+          }
+        ]
+      },
+      "stadium": {
+        "discipline": "supercross",
+        "form": {
+          "x": 26.75,
+          "y": 150.703125,
+          "width": 317.5,
+          "height": 800.25
+        },
+        "panel": {
+          "x": 26.75,
+          "y": 235.890625,
+          "width": 317.5,
+          "height": 313.46875
+        },
+        "card": {
+          "x": 26.75,
+          "y": 235.890625,
+          "width": 317.5,
+          "height": 89.6875
+        },
+        "scroll": {
+          "x": 22.75,
+          "y": 86.703125,
+          "width": 325.5,
+          "height": 440.296875,
+          "heightAvailable": 440,
+          "heightTotal": 1150
+        },
+        "start": {
+          "x": 26.75,
+          "y": 536,
+          "width": 317.5,
+          "height": 57,
+          "form": "sessionForm",
+          "unobscured": true
+        },
+        "horizontalOverflow": 0,
+        "texts": [
+          {
+            "selector": ".mx-setup .mx-venue-card strong",
+            "text": "UNDER THE LIGHTS",
+            "rect": {
+              "x": 141.75,
+              "y": 274.890625,
+              "width": 189.5,
+              "height": 20.6875
+            },
+            "lines": 1,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-setup .mx-venue-card p",
+            "text": "4 jump features \u00b7 5 named turns",
+            "rect": {
+              "x": 141.75,
+              "y": 302.578125,
+              "width": 189.5,
+              "height": 14
+            },
+            "lines": 1,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-ride-presets button b",
+            "text": "Learn the jumps",
+            "rect": {
+              "x": 34.75,
+              "y": 373.421875,
+              "width": 115.796875,
+              "height": 14.296875
+            },
+            "lines": 1,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-ride-presets button b",
+            "text": "Race the pack",
+            "rect": {
+              "x": 34.75,
+              "y": 426.421875,
+              "width": 115.796875,
+              "height": 14.296875
+            },
+            "lines": 1,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-ride-presets button b",
+            "text": "Full control",
+            "rect": {
+              "x": 34.75,
+              "y": 479.421875,
+              "width": 115.796875,
+              "height": 14.296875
+            },
+            "lines": 1,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-ride-presets button span",
+            "text": "Solo practice \u00b7 riding assists",
+            "rect": {
+              "x": 162.546875,
+              "y": 373.15625,
+              "width": 173.703125,
+              "height": 14.84375
+            },
+            "lines": 1,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-ride-presets button span",
+            "text": "Eight riders \u00b7 riding assists",
+            "rect": {
+              "x": 162.546875,
+              "y": 426.15625,
+              "width": 173.703125,
+              "height": 14.84375
+            },
+            "lines": 1,
+            "overflow": 0
+          },
+          {
+            "selector": ".mx-ride-presets button span",
+            "text": "Eight riders \u00b7 assists off",
+            "rect": {
+              "x": 162.546875,
+              "y": 479.15625,
+              "width": 173.703125,
+              "height": 14.84375
+            },
+            "lines": 1,
+            "overflow": 0
+          }
+        ]
+      },
+      "fieldMeasurements": [
+        {
+          "field": "circuit",
+          "top": 188.703125,
+          "bottom": 230.703125,
+          "scrollTop": 86.703125,
+          "scrollBottom": 527,
+          "actionTop": 527,
+          "unobscured": true
+        },
+        {
+          "field": "mode",
+          "top": 286.15625,
+          "bottom": 328.15625,
+          "scrollTop": 86.703125,
+          "scrollBottom": 527,
+          "actionTop": 527,
+          "unobscured": true
+        },
+        {
+          "field": "laps",
+          "top": 286.15625,
+          "bottom": 328.15625,
+          "scrollTop": 86.703125,
+          "scrollBottom": 527,
+          "actionTop": 527,
+          "unobscured": true
+        },
+        {
+          "field": "weather",
+          "top": 359.15625,
+          "bottom": 401.15625,
+          "scrollTop": 86.703125,
+          "scrollBottom": 527,
+          "actionTop": 527,
+          "unobscured": true
+        },
+        {
+          "field": "opponents",
+          "top": 359.15625,
+          "bottom": 401.15625,
+          "scrollTop": 86.703125,
+          "scrollBottom": 527,
+          "actionTop": 527,
+          "unobscured": true
+        },
+        {
+          "field": "compound",
+          "top": 432.15625,
+          "bottom": 474.15625,
+          "scrollTop": 86.703125,
+          "scrollBottom": 527,
+          "actionTop": 527,
+          "unobscured": true
+        },
+        {
+          "field": "assist",
+          "top": 432.15625,
+          "bottom": 474.15625,
+          "scrollTop": 86.703125,
+          "scrollBottom": 527,
+          "actionTop": 527,
+          "unobscured": true
+        },
+        {
+          "field": "startSlot",
+          "top": 469.15625,
+          "bottom": 511.15625,
+          "scrollTop": 86.703125,
+          "scrollBottom": 527,
+          "actionTop": 527,
+          "unobscured": true
+        },
+        {
+          "field": "vehicle",
+          "top": 469.15625,
+          "bottom": 511.15625,
+          "scrollTop": 86.703125,
+          "scrollBottom": 527,
+          "actionTop": 527,
+          "unobscured": true
+        },
+        {
+          "field": "PREPARE GRID START PAUSED",
+          "top": 283.75,
+          "bottom": 329.75,
+          "scrollTop": 86.703125,
+          "scrollBottom": 527,
+          "actionTop": 527,
+          "unobscured": true
+        }
+      ]
+    }
+  ],
+  "measurements": [
+    {
+      "width": 1280,
+      "height": 800,
+      "scale": 1,
+      "state": "full",
+      "initialized": {
+        "time": 0,
+        "cars": 8,
+        "fuel": 5.5,
+        "laps": 3
+      },
+      "sparseSamples": [
+        {
+          "tick": 121,
+          "speed": 49,
+          "rpm": 7121
+        },
+        {
+          "tick": 151,
+          "speed": 50,
+          "rpm": 7151
+        },
+        {
+          "tick": 149,
+          "speed": 50,
+          "rpm": 7149
+        }
+      ],
+      "layout": [
+        {
+          "selector": ".f1-banner",
+          "status": true,
+          "rect": {
+            "x": 465,
+            "y": 67,
+            "width": 350,
+            "height": 39.75
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".mx-ride-hud",
+          "status": true,
+          "rect": {
+            "x": 465,
+            "y": 112.75,
+            "width": 350,
+            "height": 83.890625
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".offroad-readout",
+          "status": true,
+          "rect": {
+            "x": 465,
+            "y": 202.640625,
+            "width": 350,
+            "height": 26.1875
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".radio-caption",
+          "status": true,
+          "rect": {
+            "x": 465,
+            "y": 234.828125,
+            "width": 350,
+            "height": 58.03125
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".proximity-left",
+          "status": true,
+          "rect": {
+            "x": 488.796875,
+            "y": 492.484375,
+            "width": 29.03125,
+            "height": 23.03125
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".proximity-right",
+          "status": true,
+          "rect": {
+            "x": 762.171875,
+            "y": 492.484375,
+            "width": 29.03125,
+            "height": 23.03125
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".instruments",
+          "status": false,
+          "rect": {
+            "x": 503.5625,
+            "y": 645.765625,
+            "width": 272.875,
+            "height": 102.234375
+          },
+          "overflow": 42
+        },
+        {
+          "selector": ".hud-top",
+          "status": false,
+          "rect": {
+            "x": 1146,
+            "y": 748.34375,
+            "width": 99.453125,
+            "height": 24.46875
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".timing",
+          "status": false,
+          "rect": {
+            "x": 34.546875,
+            "y": 35.1875,
+            "width": 277.1875,
+            "height": 211.21875
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".lap-panel",
+          "status": false,
+          "rect": {
+            "x": 989.140625,
+            "y": 33.59375,
+            "width": 256.3125,
+            "height": 52.65625
+          },
+          "overflow": 0
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 800,
+      "scale": 1,
+      "state": "held",
+      "initialized": {
+        "time": 0,
+        "cars": 8,
+        "fuel": 5.5,
+        "laps": 3
+      },
+      "sparseSamples": [
+        {
+          "tick": 121,
+          "speed": 49,
+          "rpm": 7121
+        },
+        {
+          "tick": 151,
+          "speed": 50,
+          "rpm": 7151
+        },
+        {
+          "tick": 149,
+          "speed": 50,
+          "rpm": 7149
+        }
+      ],
+      "layout": [
+        {
+          "selector": ".f1-banner",
+          "status": true,
+          "rect": {
+            "x": 465,
+            "y": 67,
+            "width": 350,
+            "height": 20.15625
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".mx-ride-hud",
+          "status": true,
+          "rect": {
+            "x": 465,
+            "y": 93.15625,
+            "width": 350,
+            "height": 83.890625
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".offroad-readout",
+          "status": true,
+          "rect": {
+            "x": 465,
+            "y": 183.046875,
+            "width": 350,
+            "height": 26.1875
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".proximity-left",
+          "status": true,
+          "rect": {
+            "x": 488.796875,
+            "y": 492.484375,
+            "width": 29.03125,
+            "height": 23.03125
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".proximity-right",
+          "status": true,
+          "rect": {
+            "x": 762.171875,
+            "y": 492.484375,
+            "width": 29.03125,
+            "height": 23.03125
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".instruments",
+          "status": false,
+          "rect": {
+            "x": 503.5625,
+            "y": 645.765625,
+            "width": 272.875,
+            "height": 102.234375
+          },
+          "overflow": 42
+        },
+        {
+          "selector": ".hud-top",
+          "status": false,
+          "rect": {
+            "x": 1146,
+            "y": 748.34375,
+            "width": 99.453125,
+            "height": 24.46875
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".timing",
+          "status": false,
+          "rect": {
+            "x": 34.546875,
+            "y": 35.1875,
+            "width": 277.1875,
+            "height": 211.21875
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".lap-panel",
+          "status": false,
+          "rect": {
+            "x": 989.140625,
+            "y": 33.59375,
+            "width": 256.3125,
+            "height": 52.65625
+          },
+          "overflow": 0
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 800,
+      "scale": 1.35,
+      "state": "full",
+      "initialized": {
+        "time": 0,
+        "cars": 8,
+        "fuel": 5.5,
+        "laps": 3
+      },
+      "sparseSamples": [
+        {
+          "tick": 121,
+          "speed": 49,
+          "rpm": 7121
+        },
+        {
+          "tick": 151,
+          "speed": 50,
+          "rpm": 7151
+        },
+        {
+          "tick": 149,
+          "speed": 50,
+          "rpm": 7149
+        }
+      ],
+      "layout": [
+        {
+          "selector": ".f1-banner",
+          "status": true,
+          "rect": {
+            "x": 465,
+            "y": 67,
+            "width": 350,
+            "height": 53.421875
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".mx-ride-hud",
+          "status": true,
+          "rect": {
+            "x": 465,
+            "y": 126.421875,
+            "width": 350,
+            "height": 83.890625
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".offroad-readout",
+          "status": true,
+          "rect": {
+            "x": 465,
+            "y": 216.3125,
+            "width": 350,
+            "height": 26.1875
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".radio-caption",
+          "status": true,
+          "rect": {
+            "x": 465,
+            "y": 248.5,
+            "width": 350,
+            "height": 73.453125
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".proximity-left",
+          "status": true,
+          "rect": {
+            "x": 435.875,
+            "y": 488.453125,
+            "width": 37.09375,
+            "height": 31.09375
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".proximity-right",
+          "status": true,
+          "rect": {
+            "x": 807.03125,
+            "y": 488.453125,
+            "width": 37.09375,
+            "height": 31.09375
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".instruments",
+          "status": false,
+          "rect": {
+            "x": 455.8125,
+            "y": 609.984375,
+            "width": 368.375,
+            "height": 138.015625
+          },
+          "overflow": 57
+        },
+        {
+          "selector": ".hud-top",
+          "status": false,
+          "rect": {
+            "x": 1110.078125,
+            "y": 739.765625,
+            "width": 135.375,
+            "height": 33.046875
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".timing",
+          "status": false,
+          "rect": {
+            "x": 34.546875,
+            "y": 35.1875,
+            "width": 374.21875,
+            "height": 284.734375
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".lap-panel",
+          "status": false,
+          "rect": {
+            "x": 899.421875,
+            "y": 33.59375,
+            "width": 346.03125,
+            "height": 70.609375
+          },
+          "overflow": 0
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 800,
+      "scale": 1.35,
+      "state": "held",
+      "initialized": {
+        "time": 0,
+        "cars": 8,
+        "fuel": 5.5,
+        "laps": 3
+      },
+      "sparseSamples": [
+        {
+          "tick": 121,
+          "speed": 49,
+          "rpm": 7121
+        },
+        {
+          "tick": 151,
+          "speed": 50,
+          "rpm": 7151
+        },
+        {
+          "tick": 149,
+          "speed": 50,
+          "rpm": 7149
+        }
+      ],
+      "layout": [
+        {
+          "selector": ".f1-banner",
+          "status": true,
+          "rect": {
+            "x": 465,
+            "y": 67,
+            "width": 350,
+            "height": 27.203125
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".mx-ride-hud",
+          "status": true,
+          "rect": {
+            "x": 465,
+            "y": 100.203125,
+            "width": 350,
+            "height": 83.890625
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".offroad-readout",
+          "status": true,
+          "rect": {
+            "x": 465,
+            "y": 190.09375,
+            "width": 350,
+            "height": 26.1875
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".proximity-left",
+          "status": true,
+          "rect": {
+            "x": 435.875,
+            "y": 488.453125,
+            "width": 37.09375,
+            "height": 31.09375
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".proximity-right",
+          "status": true,
+          "rect": {
+            "x": 807.03125,
+            "y": 488.453125,
+            "width": 37.09375,
+            "height": 31.09375
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".instruments",
+          "status": false,
+          "rect": {
+            "x": 455.8125,
+            "y": 609.984375,
+            "width": 368.375,
+            "height": 138.015625
+          },
+          "overflow": 57
+        },
+        {
+          "selector": ".hud-top",
+          "status": false,
+          "rect": {
+            "x": 1110.078125,
+            "y": 739.765625,
+            "width": 135.375,
+            "height": 33.046875
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".timing",
+          "status": false,
+          "rect": {
+            "x": 34.546875,
+            "y": 35.1875,
+            "width": 374.21875,
+            "height": 284.734375
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".lap-panel",
+          "status": false,
+          "rect": {
+            "x": 899.421875,
+            "y": 33.59375,
+            "width": 346.03125,
+            "height": 70.609375
+          },
+          "overflow": 0
+        }
+      ]
+    },
+    {
+      "width": 640,
+      "height": 400,
+      "scale": 1,
+      "state": "full",
+      "initialized": {
+        "time": 0,
+        "cars": 8,
+        "fuel": 5.5,
+        "laps": 3
+      },
+      "sparseSamples": [
+        {
+          "tick": 121,
+          "speed": 49,
+          "rpm": 7121
+        },
+        {
+          "tick": 151,
+          "speed": 50,
+          "rpm": 7151
+        },
+        {
+          "tick": 149,
+          "speed": 50,
+          "rpm": 7149
+        }
+      ],
+      "layout": [
+        {
+          "selector": "#raceMessage",
+          "status": true,
+          "rect": {
+            "x": 12,
+            "y": 54,
+            "width": 296,
+            "height": 40
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".mx-ride-hud",
+          "status": true,
+          "rect": {
+            "x": 12,
+            "y": 100,
+            "width": 296,
+            "height": 74.078125
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".offroad-readout",
+          "status": true,
+          "rect": {
+            "x": 12,
+            "y": 180.078125,
+            "width": 296,
+            "height": 26.1875
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".radio-caption",
+          "status": true,
+          "rect": {
+            "x": 12,
+            "y": 212.265625,
+            "width": 296,
+            "height": 58.03125
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".proximity-left",
+          "status": true,
+          "rect": {
+            "x": 8,
+            "y": 314,
+            "width": 74.34375,
+            "height": 20
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".proximity-right",
+          "status": true,
+          "rect": {
+            "x": 551.953125,
+            "y": 314,
+            "width": 80.046875,
+            "height": 20
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".instruments",
+          "status": false,
+          "rect": {
+            "x": 325,
+            "y": 148,
+            "width": 305,
+            "height": 148
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".hud-top",
+          "status": false,
+          "rect": {
+            "x": 10,
+            "y": 6,
+            "width": 620,
+            "height": 34
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".touch-controls",
+          "status": false,
+          "rect": {
+            "x": 8,
+            "y": 350,
+            "width": 624,
+            "height": 44
+          },
+          "overflow": 0
+        }
+      ]
+    },
+    {
+      "width": 640,
+      "height": 400,
+      "scale": 1,
+      "state": "held",
+      "initialized": {
+        "time": 0,
+        "cars": 8,
+        "fuel": 5.5,
+        "laps": 3
+      },
+      "sparseSamples": [
+        {
+          "tick": 121,
+          "speed": 49,
+          "rpm": 7121
+        },
+        {
+          "tick": 151,
+          "speed": 50,
+          "rpm": 7151
+        },
+        {
+          "tick": 149,
+          "speed": 50,
+          "rpm": 7149
+        }
+      ],
+      "layout": [
+        {
+          "selector": "#raceMessage",
+          "status": true,
+          "rect": {
+            "x": 12,
+            "y": 54,
+            "width": 296,
+            "height": 40
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".mx-ride-hud",
+          "status": true,
+          "rect": {
+            "x": 12,
+            "y": 100,
+            "width": 296,
+            "height": 74.078125
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".offroad-readout",
+          "status": true,
+          "rect": {
+            "x": 12,
+            "y": 180.078125,
+            "width": 296,
+            "height": 26.1875
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".proximity-left",
+          "status": true,
+          "rect": {
+            "x": 8,
+            "y": 314,
+            "width": 74.34375,
+            "height": 20
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".proximity-right",
+          "status": true,
+          "rect": {
+            "x": 551.953125,
+            "y": 314,
+            "width": 80.046875,
+            "height": 20
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".instruments",
+          "status": false,
+          "rect": {
+            "x": 325,
+            "y": 148,
+            "width": 305,
+            "height": 148
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".hud-top",
+          "status": false,
+          "rect": {
+            "x": 10,
+            "y": 6,
+            "width": 620,
+            "height": 34
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".touch-controls",
+          "status": false,
+          "rect": {
+            "x": 8,
+            "y": 350,
+            "width": 624,
+            "height": 44
+          },
+          "overflow": 0
+        }
+      ]
+    },
+    {
+      "width": 375,
+      "height": 667,
+      "scale": 1.35,
+      "state": "full",
+      "initialized": {
+        "time": 0,
+        "cars": 8,
+        "fuel": 5.5,
+        "laps": 3
+      },
+      "sparseSamples": [
+        {
+          "tick": 121,
+          "speed": 49,
+          "rpm": 7121
+        },
+        {
+          "tick": 151,
+          "speed": 50,
+          "rpm": 7151
+        },
+        {
+          "tick": 149,
+          "speed": 50,
+          "rpm": 7149
+        }
+      ],
+      "layout": [
+        {
+          "selector": "#raceMessage",
+          "status": true,
+          "rect": {
+            "x": 27.5,
+            "y": 65.1875,
+            "width": 320,
+            "height": 49.78125
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".mx-ride-hud",
+          "status": true,
+          "rect": {
+            "x": 27.5,
+            "y": 120.96875,
+            "width": 320,
+            "height": 74.078125
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".offroad-readout",
+          "status": true,
+          "rect": {
+            "x": 27.5,
+            "y": 201.046875,
+            "width": 320,
+            "height": 26.1875
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".radio-caption",
+          "status": true,
+          "rect": {
+            "x": 27.5,
+            "y": 233.234375,
+            "width": 320,
+            "height": 73.453125
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".proximity-left",
+          "status": true,
+          "rect": {
+            "x": 8,
+            "y": 581,
+            "width": 88.796875,
+            "height": 20
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".proximity-right",
+          "status": true,
+          "rect": {
+            "x": 271.25,
+            "y": 581,
+            "width": 95.75,
+            "height": 20
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".instruments",
+          "status": false,
+          "rect": {
+            "x": 60,
+            "y": 396.84375,
+            "width": 305,
+            "height": 166.15625
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".hud-top",
+          "status": false,
+          "rect": {
+            "x": 10,
+            "y": 6,
+            "width": 355,
+            "height": 51.25
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".touch-controls",
+          "status": false,
+          "rect": {
+            "x": 8,
+            "y": 617,
+            "width": 359,
+            "height": 44
+          },
+          "overflow": 0
+        }
+      ]
+    },
+    {
+      "width": 375,
+      "height": 667,
+      "scale": 1.35,
+      "state": "held",
+      "initialized": {
+        "time": 0,
+        "cars": 8,
+        "fuel": 5.5,
+        "laps": 3
+      },
+      "sparseSamples": [
+        {
+          "tick": 121,
+          "speed": 49,
+          "rpm": 7121
+        },
+        {
+          "tick": 151,
+          "speed": 50,
+          "rpm": 7151
+        },
+        {
+          "tick": 149,
+          "speed": 50,
+          "rpm": 7149
+        }
+      ],
+      "layout": [
+        {
+          "selector": "#raceMessage",
+          "status": true,
+          "rect": {
+            "x": 27.5,
+            "y": 65.1875,
+            "width": 320,
+            "height": 49.78125
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".mx-ride-hud",
+          "status": true,
+          "rect": {
+            "x": 27.5,
+            "y": 120.96875,
+            "width": 320,
+            "height": 74.078125
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".offroad-readout",
+          "status": true,
+          "rect": {
+            "x": 27.5,
+            "y": 201.046875,
+            "width": 320,
+            "height": 26.1875
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".proximity-left",
+          "status": true,
+          "rect": {
+            "x": 8,
+            "y": 581,
+            "width": 88.796875,
+            "height": 20
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".proximity-right",
+          "status": true,
+          "rect": {
+            "x": 271.25,
+            "y": 581,
+            "width": 95.75,
+            "height": 20
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".instruments",
+          "status": false,
+          "rect": {
+            "x": 60,
+            "y": 396.84375,
+            "width": 305,
+            "height": 166.15625
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".hud-top",
+          "status": false,
+          "rect": {
+            "x": 10,
+            "y": 6,
+            "width": 355,
+            "height": 51.25
+          },
+          "overflow": 0
+        },
+        {
+          "selector": ".touch-controls",
+          "status": false,
+          "rect": {
+            "x": 8,
+            "y": 617,
+            "width": 359,
+            "height": 44
+          },
+          "overflow": 0
+        }
+      ]
+    }
+  ]
+}

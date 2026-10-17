@@ -1,0 +1,104 @@
+{
+  "source_spec": "e2e/41-motogp-reference.spec.ts",
+  "command": "npx playwright test -c playwright.motocross.config.ts e2e/41-motogp-reference.spec.ts",
+  "report_duration_ms": 100480.165,
+  "scope": "Existing GP production-model compatibility fixture rerun after the MX/SX trackside-camera clearance correction, preserving concurrent MotoGP work through 31626200; controlled scene, not a full-race performance measurement",
+  "source": {
+    "capturedAt": "2026-10-17T00:40:48.124896+00:00",
+    "integratedParent": "31626200d4a79e8173f70d587a14c09176d0aa7f",
+    "sourceCount": 667,
+    "sourceSha256": "7733bb95ae33dc962eb2e6d07b2d3480dac3276a50753733268a68b22f500d36",
+    "sourceHashEncoding": "SHA-256 of UTF-8 compact JSON (separators comma/colon), with lexicographically sorted path keys; values are file SHA-256 digests.",
+    "buildIdentity": {
+      "version": 1,
+      "commit": null,
+      "fingerprint": "82b5018336f9fb2c9ae1c2fcc7d11d1c3011209ec2e1c8471be5111c033c52e8"
+    }
+  },
+  "verification_source_hashes": {
+    "e2e/41-motogp-reference.spec.ts": "945e831e0d6b46ca702bd55f845760c4a62cc423f4b3c2cfd0d5dcc57cb6bdea",
+    "e2e/fixtures/motogp-reference-review.ts": "673461f9c5ee64887150ebfef43284459af2f2f6a31bc4f2c3fb8aa7fe78a3c1"
+  },
+  "tests": [
+    {
+      "title": "GP reference R1.1: authored LODs, production onboard and same-instance wet rewind on WebGL2",
+      "duration": 98383,
+      "outcome": "expected",
+      "startTime": "2026-10-17T00:41:41.570Z"
+    }
+  ],
+  "captures": 14,
+  "capture_review": {
+    "method": "Per-capture SHA-256 comparison with previously individually displayed and inspected PNG originals. All matched files reuse their corresponding visual observations; no new display pass is claimed.",
+    "referenceCheckpoint": "motocross-release-validation/gp41",
+    "referenceSourceSha256": "dc8777face456bed880b57643191beec29101678c5581085a5adc0e8d9140c6f",
+    "referenceBuildFingerprint": "d90b8bb6e400a4764cf0e079d822edf13cd0c1979218ecc855a096fda28269f5",
+    "capturedFiles": 14,
+    "hashMatchedFiles": 14,
+    "changedFilesRequiringNewInspection": []
+  },
+  "capture_files": [
+    "0-gpr1-high-dry.png",
+    "1-gpr1-mid-dry.png",
+    "2-gpr1-far-dry.png",
+    "3-gpr2-high-dry.png",
+    "4-gpr1-high-wet.png",
+    "5-gpr1-high-dry.png",
+    "gpr1-production-onboard.png",
+    "gpr2-production-onboard.png",
+    "same-instance-weather-0.png",
+    "same-instance-weather-1.png",
+    "same-instance-weather-2.png",
+    "same-instance-weather-3.png",
+    "sbk1000-production-onboard.png",
+    "ss600-production-onboard.png"
+  ],
+  "source_integrity": {
+    "before": {
+      "phase": "before final GP41 camera-clearance run",
+      "sourceCount": 667,
+      "contextCount": 12,
+      "sourceSha256": "7733bb95ae33dc962eb2e6d07b2d3480dac3276a50753733268a68b22f500d36",
+      "buildIdentity": {
+        "version": 1,
+        "commit": null,
+        "fingerprint": "82b5018336f9fb2c9ae1c2fcc7d11d1c3011209ec2e1c8471be5111c033c52e8"
+      },
+      "mainBundleSha256": {
+        "dist/assets/index-D7OeIayi.js": "03d86ac745bbfd44491362fba46cedb4fa7ac059dc26500e44a10b5bf0bd5ebe",
+        "dist/assets/index-DsWC2xfY.css": "e01e630a0b8da84506eae8d15f348dadf7f9b582c2bda5d6d4958e106a7e4e91"
+      },
+      "allSourceAndContextMatches": true
+    },
+    "after": {
+      "phase": "after final GP41 camera-clearance run",
+      "checkedAt": "2026-10-17T00:43:30.904879+00:00",
+      "sourceCount": 667,
+      "contextCount": 12,
+      "sourceSha256": "7733bb95ae33dc962eb2e6d07b2d3480dac3276a50753733268a68b22f500d36",
+      "buildIdentity": {
+        "version": 1,
+        "commit": null,
+        "fingerprint": "82b5018336f9fb2c9ae1c2fcc7d11d1c3011209ec2e1c8471be5111c033c52e8"
+      },
+      "mainBundleSha256": {
+        "dist/assets/index-D7OeIayi.js": "03d86ac745bbfd44491362fba46cedb4fa7ac059dc26500e44a10b5bf0bd5ebe",
+        "dist/assets/index-DsWC2xfY.css": "e01e630a0b8da84506eae8d15f348dadf7f9b582c2bda5d6d4958e106a7e4e91"
+      },
+      "allSourceAndContextMatches": true
+    }
+  },
+  "report_start_time": 1792197699643,
+  "attachment_count": 25,
+  "page_and_console_errors": [],
+  "error_check": "The passing spec explicitly asserted its accumulated pageerror and console.error list equals [].",
+  "triangle_metric_definitions": {
+    "triangles": "Entire constructed bike/rider model, multiplying every InstancedMesh geometry by its instance count; the unchanged 110000 model budget applies here.",
+    "submittedTriangles": "WebGLRenderer.info.render.triangles after a draw: counts submitted color/transmission work, including repeated passes, after the renderer resets the shadow-pass counter."
+  },
+  "retained_initial_failure": {
+    "checkpoint": "motocross-r3-validation/gp41-initial-program-transition",
+    "reason": "Cold first draw recorded 54 programs; the next draw recorded 56. The approved fixture diagnostic subsequently observed 54,56,56 in three identical dry draws and identified the added shader keys as depth programs.",
+    "budgets_or_weather_assertions_relaxed": false
+  }
+}

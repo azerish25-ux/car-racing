@@ -1,0 +1,182 @@
+{
+  "schemaVersion": 1,
+  "sourceSpec": "e2e/41-motogp-reference.spec.ts",
+  "scope": "Production-model WebGL2 compatibility fixture after GP R3.1/R4, glow and shared paint integration. Vite bundles current production imports into a test-owned page; this is not the full game journey or a hardware performance benchmark.",
+  "individualReproductionCommand": "npx playwright test -c playwright.motocross.config.ts e2e/41-motogp-reference.spec.ts",
+  "actualExecution": {
+    "scope": "The GP case ran second in one sequential, single-worker three-test Playwright process together with filtered crowd11 and MX42.",
+    "cwd": "/workspace/scratch/ce74d2c3df38/Experiment-3",
+    "combinedCommand": "npx playwright test -c playwright.motocross.config.ts e2e/11-phase27c.spec.ts e2e/41-motogp-reference.spec.ts e2e/42-motocross-bike.spec.ts --grep 'actual crowd colour/depth shaders freeze and rewind exactly|GP reference R1.1:|Motocross reference R2:'",
+    "combinedCommandProvenance": "Exact root-provided command for completed session72694; matches the three filtered tests in the retained combined reporter.",
+    "combinedReporterStartTimeMs": 1792201887900,
+    "combinedReporterDurationMs": 157599.91499999998,
+    "combinedReporterStats": {
+      "total": 3,
+      "expected": 3,
+      "unexpected": 0,
+      "flaky": 0,
+      "skipped": 0,
+      "ok": true
+    },
+    "combinedReporterErrors": [],
+    "log": "combined-run.log"
+  },
+  "test": {
+    "spec": "41-motogp-reference.spec.ts",
+    "title": "GP reference R1.1: authored LODs, production onboard and same-instance wet rewind on WebGL2",
+    "outcome": "expected",
+    "status": "passed",
+    "durationMs": 107540,
+    "resultDurationMs": 107540,
+    "startTime": "2026-10-17T01:51:36.980Z",
+    "errors": [],
+    "attachments": 25,
+    "pngs": 14,
+    "directory": "/workspace/scratch/ce74d2c3df38/motocross-release-validation/r4-renderer-regression/gp41"
+  },
+  "source": {
+    "capturedAt": "2026-10-17T01:49:51.422845+00:00",
+    "integratedParent": "d4dd3e541433a0eb7513b0b9124c932911a64bdb",
+    "sourceCount": 670,
+    "sourceSha256": "acfc1a799a933ff9c135046aee17daa741366549f7808b8091200accf69f874d",
+    "sourceHashEncoding": "SHA-256 of UTF-8 compact JSON (separators comma/colon), with lexicographically sorted path keys; values are file SHA-256 digests.",
+    "buildIdentity": {
+      "version": 1,
+      "commit": null,
+      "fingerprint": "a5a1575e169f6475439722adeb3ac6ae569bc91b6d604f14e465faf7eccc6de4"
+    },
+    "mainBundles": {
+      "dist/assets/index-DGfXH7Dq.js": {
+        "sha256": "23e7ac1fd34e4ca84a36986c5971a1197a372178924320751b773ca95a961937",
+        "bytes": 14709309
+      },
+      "dist/assets/index-DsWC2xfY.css": {
+        "sha256": "e01e630a0b8da84506eae8d15f348dadf7f9b582c2bda5d6d4958e106a7e4e91",
+        "bytes": 74661
+      }
+    }
+  },
+  "verificationSourceHashes": {
+    "e2e/41-motogp-reference.spec.ts": "945e831e0d6b46ca702bd55f845760c4a62cc423f4b3c2cfd0d5dcc57cb6bdea",
+    "e2e/fixtures/motogp-reference-review.ts": "a921fc12a60acc8db62a4cd9da896cab7a132182f48cc4f68db7b7c8f4a09187"
+  },
+  "sourceIntegrity": {
+    "sourceFiles": 670,
+    "contextFiles": 12,
+    "sourceSha256": "acfc1a799a933ff9c135046aee17daa741366549f7808b8091200accf69f874d",
+    "buildFingerprint": "a5a1575e169f6475439722adeb3ac6ae569bc91b6d604f14e465faf7eccc6de4",
+    "beforeRecordSha256": "3f384bde598dd74ecc34c45260b69d36153366af3caf0bfcd60558778a612d35",
+    "afterRecordSha256": "6bcfbbfff5cda3683a6ea353354de2abf6d2626b47618b8caf1968157f0974ba",
+    "sourceAndContextAndBuildAndBundlesUnchanged": true,
+    "beforeCapturedAt": "2026-10-17T01:49:51.422845+00:00",
+    "afterCapturedAt": "2026-10-17T01:57:04.533870+00:00",
+    "beforeRecord": "../../validation/final-validated-source.json",
+    "method": "Complete dictionary equality of all670 source hashes,12 context hashes, build identity and both main-bundle hashes against the post-run capture."
+  },
+  "backend": {
+    "file": "environment.json",
+    "sha256": "f1537375721c6a9664c673b9545e728c2aff3d053640088891e5324577a93ccf",
+    "softwareRendererDetected": true,
+    "physicalHardwareValidated": false
+  },
+  "attachments": {
+    "total": 25,
+    "pngs": 14,
+    "jsons": 11,
+    "manifest": "attachment-manifest.json",
+    "allOriginalBytesPreserved": true
+  },
+  "pageAndConsoleErrors": [],
+  "errorCheck": "The completed spec explicitly asserted its accumulated pageerror and console.error list equals []; renderer GL errors were zero in every capture.",
+  "budgets": {
+    "expandedModelTriangles": {
+      "operator": "<",
+      "limit": 110000,
+      "allExteriorCasesPassed": true
+    },
+    "renderCalls": {
+      "operator": "<",
+      "limit": 220,
+      "allExteriorCasesPassed": true
+    },
+    "thresholdsRelaxed": false
+  },
+  "triangleMetricDefinitions": {
+    "triangles": "All geometry in the constructed bike/rider model, multiplying every InstancedMesh by count. The110000 ceiling applies here.",
+    "submittedTriangles": "WebGLRenderer.info.render.triangles after the draw, including repeated color/transmission submissions after the shadow-pass counter reset; view-dependent and distinct from complete-model cost."
+  },
+  "onboardContract": {
+    "gpr1": {
+      "visibleSamples": 9,
+      "facing": 0.9607822416911271,
+      "calls": 33,
+      "submittedTriangles": 54520,
+      "resources": {
+        "geometries": 109,
+        "textures": 14,
+        "programs": 40
+      }
+    },
+    "gpr2": {
+      "visibleSamples": 9,
+      "facing": 0.9607822416911271,
+      "calls": 33,
+      "submittedTriangles": 29736,
+      "resources": {
+        "geometries": 108,
+        "textures": 14,
+        "programs": 40
+      }
+    },
+    "sbk1000": {
+      "visibleSamples": 9,
+      "facing": 0.9607822416911271,
+      "calls": 33,
+      "submittedTriangles": 30296,
+      "resources": {
+        "geometries": 98,
+        "textures": 14,
+        "programs": 36
+      }
+    },
+    "ss600": {
+      "visibleSamples": 9,
+      "facing": 0.9607822416911271,
+      "calls": 35,
+      "submittedTriangles": 30344,
+      "resources": {
+        "geometries": 98,
+        "textures": 14,
+        "programs": 38
+      }
+    }
+  },
+  "sameInstanceWeather": {
+    "hashes": [3004651270, 2258845372, 2258845372, 3004651270],
+    "sourceFrameUnchanged": true,
+    "sameInstance": true,
+    "resources": {
+      "geometries": 118,
+      "textures": 26,
+      "programs": 55
+    },
+    "allResourcesEqual": true,
+    "preparationPrograms": [55, 55, 55],
+    "allThreeInitialDryResourcesEqual": true,
+    "wetHeldIdentical": true,
+    "rewoundDryIdentical": true
+  },
+  "visualReview": {
+    "file": "visual-review.json",
+    "owner": "root",
+    "scope": "Individual visual observations are owned and maintained separately from this automated-test and capture-provenance record.",
+    "capturedImages": 14
+  },
+  "cpuEvidence": "cpu-validation.json",
+  "limitations": [
+    "This controlled fixture does not re-run the earlier full-game main45 journey.",
+    "SwiftShader execution time is not a physical-GPU frame-rate measurement.",
+    "The individual image observations are maintained in the separately owned visual-review.json.",
+    "CPU integration batches and historical667-source evidence retain their actual scopes; they are not relabelled as this renderer run."
+  ]
+}

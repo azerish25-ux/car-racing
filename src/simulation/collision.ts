@@ -1,5 +1,5 @@
 import { ChassisBox, BoxContact } from './obb.ts';
-import { Vec3 } from '../core/math.ts';
+import { clamp, mod, Vec3 } from '../core/math.ts';
 import { trackPoint, type Track } from './track.ts';
 import type { Vehicle } from './vehicle.ts';
 /** Scratch state is owned per collision solver, not by a mutable module singleton. */
@@ -123,7 +123,34 @@ export class CollisionSolver {
               this.corner,
             )
             .add(a.body.position);
-          const lateral = track.nearest(this.corner.x, this.corner.z, trackPos, this.corner.y);
+          let lateral = track.nearest(this.corner.x, this.corner.z, trackPos, this.corner.y);
+          // Stadium rhythm lanes are close enough that a chassis corner can
+          // be nearer the next lane while the bike is still on this one.
+          // That lane's opposite-facing wall would push it farther out. Keep
+          // the usual exact projection unless it leaves the bike's local
+          // course neighbourhood, then project only around its own station.
+          if (track.circuit.offroad && a.definition.bike?.offroad) {
+            const reach = Math.max(
+              4,
+              3 * Math.hypot(a.definition.halfExtents[0], a.definition.halfExtents[2]),
+            );
+            const distance =
+              mod(trackPos.s - a.s + track.length / 2, track.length) - track.length / 2;
+            if (Math.abs(distance) > reach) {
+              let along = 0;
+              for (let i = 0; i < 3; i++) {
+                track.at(a.s + along, trackPos);
+                const step =
+                  (this.corner.x - trackPos.x) * trackPos.tx +
+                  (this.corner.z - trackPos.z) * trackPos.tz;
+                along = clamp(along + step, -reach, reach);
+              }
+              track.at(a.s + along, trackPos);
+              lateral =
+                (this.corner.x - trackPos.x) * trackPos.nx +
+                (this.corner.z - trackPos.z) * trackPos.nz;
+            }
+          }
           const boundary = track.boundaryAt(trackPos, Math.sign(lateral));
           const penetration = Math.abs(lateral) - boundary;
           if (penetration > deepest) {

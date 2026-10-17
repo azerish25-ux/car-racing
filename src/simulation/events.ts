@@ -37,6 +37,9 @@ export interface RulesetDefinition {
   classification: 'laps' | 'timed';
   points: readonly number[];
   drs: boolean;
+  /** Permit VSC/safety-car neutralisation. Omitted keeps the existing race
+   * procedure; false retains local marshal flags without a pace car. */
+  safetyCar?: boolean;
   assists: readonly Assist[];
   /** Every entrant must share one class (the catalogue's default grids). */
   singleClass?: boolean;

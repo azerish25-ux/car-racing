@@ -1,0 +1,149 @@
+{
+  "instance": "ff5ab565-76d6-4bc0-b590-f6de6744142d",
+  "sourceFrameUnchanged": true,
+  "resources": {
+    "geometries": 108,
+    "textures": 14,
+    "programs": 40
+  },
+  "preparation": [
+    {
+      "wet": false,
+      "time": 2,
+      "sourceFrameUnchanged": true,
+      "resources": {
+        "geometries": 108,
+        "textures": 14,
+        "programs": 40
+      },
+      "addedPrograms": []
+    },
+    {
+      "wet": false,
+      "time": 2,
+      "sourceFrameUnchanged": true,
+      "resources": {
+        "geometries": 108,
+        "textures": 14,
+        "programs": 40
+      },
+      "addedPrograms": []
+    },
+    {
+      "wet": false,
+      "time": 2,
+      "sourceFrameUnchanged": true,
+      "resources": {
+        "geometries": 108,
+        "textures": 14,
+        "programs": 40
+      },
+      "addedPrograms": []
+    }
+  ],
+  "hash": 196697148,
+  "cockpit": {
+    "centre": [
+      0,
+      0.9262641543837289,
+      0.5928578455731615
+    ],
+    "facing": 0.9607822416911271,
+    "corners": [
+      [
+        -0.28651077118199514,
+        -0.7632843491841257,
+        0.7595680424958308
+      ],
+      [
+        0.28651077118199514,
+        -0.7632843491841257,
+        0.7595680424958308
+      ],
+      [
+        -0.25015423465915343,
+        -0.33163656339729897,
+        0.7901726541116109
+      ],
+      [
+        0.25015423465915343,
+        -0.33163656339729897,
+        0.7901726541116109
+      ]
+    ],
+    "samples": [
+      {
+        "visible": true,
+        "blocker": "GP instrument display /  / PlaneGeometry"
+      },
+      {
+        "visible": true,
+        "blocker": "GP instrument display /  / PlaneGeometry"
+      },
+      {
+        "visible": true,
+        "blocker": "GP instrument display /  / PlaneGeometry"
+      },
+      {
+        "visible": true,
+        "blocker": "GP instrument display /  / PlaneGeometry"
+      },
+      {
+        "visible": true,
+        "blocker": "GP instrument display /  / PlaneGeometry"
+      },
+      {
+        "visible": true,
+        "blocker": "GP instrument display /  / PlaneGeometry"
+      },
+      {
+        "visible": true,
+        "blocker": "GP instrument display /  / PlaneGeometry"
+      },
+      {
+        "visible": true,
+        "blocker": "GP instrument display /  / PlaneGeometry"
+      },
+      {
+        "visible": true,
+        "blocker": "GP instrument display /  / PlaneGeometry"
+      }
+    ],
+    "visibleSamples": 9
+  },
+  "weather": {
+    "source": "presented-snapshot",
+    "dampness": 0,
+    "time": 2,
+    "rain": 0,
+    "meanWater": 0,
+    "materialRoles": {
+      "metal": 6,
+      "rubber": 1,
+      "paint": 10,
+      "fabric": 1,
+      "leather": 5
+    },
+    "roadMaterials": 0,
+    "offTrackWetness": "mean-track-water-and-rain approximation",
+    "extraTextures": 0,
+    "extraDraws": 0
+  },
+  "triangles": 100220,
+  "submittedTriangles": 29736,
+  "calls": 33,
+  "glError": 0,
+  "bounds": {
+    "isBox3": true,
+    "min": {
+      "x": -0.4654921646542646,
+      "y": -0.0962548337573153,
+      "z": -1.1049506470828327
+    },
+    "max": {
+      "x": 0.4654921646542646,
+      "y": 1.3146317426996332,
+      "z": 1.1162548337573153
+    }
+  }
+}

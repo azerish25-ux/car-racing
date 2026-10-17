@@ -1,0 +1,64 @@
+{
+  "checkpoint": "/workspace/scratch/ce74d2c3df38/motocross-release-validation/r4-renderer-regression",
+  "stats": {
+    "total": 3,
+    "expected": 3,
+    "unexpected": 0,
+    "flaky": 0,
+    "skipped": 0,
+    "ok": true
+  },
+  "startTime": 1792201887900,
+  "durationMs": 157599.91499999998,
+  "errors": [],
+  "tests": {
+    "gp41": {
+      "spec": "41-motogp-reference.spec.ts",
+      "title": "GP reference R1.1: authored LODs, production onboard and same-instance wet rewind on WebGL2",
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 107540,
+      "resultDurationMs": 107540,
+      "startTime": "2026-10-17T01:51:36.980Z",
+      "errors": [],
+      "attachments": 25,
+      "pngs": 14,
+      "directory": "/workspace/scratch/ce74d2c3df38/motocross-release-validation/r4-renderer-regression/gp41"
+    },
+    "mx42": {
+      "spec": "42-motocross-bike.spec.ts",
+      "title": "Motocross reference R2: production bikes, reachable riding poses and reversible mud on WebGL2",
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 40767,
+      "resultDurationMs": 40767,
+      "startTime": "2026-10-17T01:53:24.628Z",
+      "errors": [],
+      "attachments": 42,
+      "pngs": 21,
+      "directory": "/workspace/scratch/ce74d2c3df38/motocross-release-validation/r4-renderer-regression/mx42"
+    },
+    "crowd11": {
+      "spec": "11-phase27c.spec.ts",
+      "title": "Phase 27C: actual crowd colour/depth shaders freeze and rewind exactly",
+      "outcome": "expected",
+      "status": "passed",
+      "durationMs": 6979,
+      "resultDurationMs": 6979,
+      "startTime": "2026-10-17T01:51:29.845Z",
+      "errors": [],
+      "attachments": 9,
+      "pngs": 8,
+      "directory": "/workspace/scratch/ce74d2c3df38/motocross-release-validation/r4-renderer-regression/crowd11"
+    }
+  },
+  "sourceIntegrity": {
+    "sourceFiles": 670,
+    "contextFiles": 12,
+    "sourceSha256": "acfc1a799a933ff9c135046aee17daa741366549f7808b8091200accf69f874d",
+    "buildFingerprint": "a5a1575e169f6475439722adeb3ac6ae569bc91b6d604f14e465faf7eccc6de4",
+    "beforeRecordSha256": "3f384bde598dd74ecc34c45260b69d36153366af3caf0bfcd60558778a612d35",
+    "afterRecordSha256": "6bcfbbfff5cda3683a6ea353354de2abf6d2626b47618b8caf1968157f0974ba",
+    "sourceAndContextAndBuildAndBundlesUnchanged": true
+  }
+}

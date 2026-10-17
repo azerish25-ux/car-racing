@@ -1,0 +1,247 @@
+{
+  "schemaVersion": 1,
+  "auditedAtUtc": "2026-10-17T02:09:40.433178+00:00",
+  "status": "passed",
+  "scope": "Read-only integrity audit of the supplied reference inventory, prior individual reviews, current implementation path links and 90 registered evidence images: 39 retained world/interface compatibility captures, the eight final top-level complete-game captures on their original 667-source identity, and 43 newly reviewed GP/MX/crowd component captures on the later 670-source identity. The release owner individually displayed all 43 new component PNGs and recorded their observations; no earlier observation reuse is claimed for them. This audit verifies those records and bytes without claiming a fresh visual re-review of the 100 supplied references, source-URL/platform verification, visual parity or another race/browser run.",
+  "archive": {
+    "suppliedName": "Motocross_PS5_100_Developer_Reference_Images(1).zip",
+    "package": "Motocross_PS5_100_Developer_Reference_Images",
+    "bytes": 47893403,
+    "sha256": "d8c8fbb62974432e8feafa853917deb45765dccc18be7d1da8ece9be512a9c73",
+    "crcPassed": true,
+    "files": 105,
+    "jpgs": 100,
+    "extractedByteMatches": 105,
+    "jpgSha256Matches": 100
+  },
+  "index": {
+    "file": "REFERENCE_INDEX.csv",
+    "sha256": "573fc00e9f2ac50726ce0e8afaa7d6f0ed435926d3efbf49a89c22c5cd67044e",
+    "bytes": 61843,
+    "rows": 100,
+    "archiveBytesIdentical": true,
+    "suppliedMetadataFieldsMatched": 1100
+  },
+  "suppliedChecksumManifest": {
+    "file": "SHA256SUMS.txt",
+    "sha256": "7663bcd17fdfb9e25ab14d0535c41f99db0febbe0b185fccc8d71222e3dc46c2",
+    "entries": 104,
+    "matches": 104
+  },
+  "references": {
+    "count": 100,
+    "uniqueNumericIds": 100,
+    "uniqueStringIds": 100,
+    "range": "001-100",
+    "csvAndMapOrderExact": true,
+    "extractedJpgCount": 100,
+    "sha256Matches": 100,
+    "uniqueSourceHashes": 100,
+    "fullyDecodedJpegs": 100,
+    "dimensionMatches": 100,
+    "dimensionHistogram": {
+      "1024x576": 5,
+      "1200x675": 1,
+      "1438x810": 1,
+      "1600x900": 3,
+      "1731x1440": 1,
+      "1917x1080": 1,
+      "1918x1080": 1,
+      "1920x1012": 1,
+      "1920x1080": 59,
+      "2380x1440": 1,
+      "2400x1400": 1,
+      "2560x1440": 25
+    },
+    "sourceImageManifestSha256": "9f017aca59e6dcafdee74bc2f302639e04a9a28105d344a35af33119d10ad6c2",
+    "recordedIndividualVisualReviews": 100,
+    "reviewerCounts": {
+      "bike_rider": 32,
+      "terrain_fx": 34,
+      "riding_camera": 34
+    },
+    "recordedMetadataDiscrepancyIds": [
+      "057",
+      "058",
+      "063",
+      "064",
+      "082",
+      "088",
+      "091"
+    ]
+  },
+  "implementationMap": {
+    "file": "docs/production/motocross-reference-map.json",
+    "identityScope": "The normalized references array only; mutable validation/result fields are excluded.",
+    "normalization": "UTF-8 JSON, ensure_ascii=False, sort_keys=True, separators=(comma, colon); retain array order.",
+    "normalizedReferencesSha256": "7a280d79f9fa9da02d8799a32287dbb702763cd9961fd92b45d0c0d8aab63bf3",
+    "expectedImmutableReferencesSha256": "7a280d79f9fa9da02d8799a32287dbb702763cd9961fd92b45d0c0d8aab63bf3",
+    "immutableReferencesIdentityMatched": true,
+    "uniqueMappedPaths": 35,
+    "existingMappedPaths": 35,
+    "referenceToPathAssociations": 329,
+    "mappedPathSetSha256": "7b822b9fbc7baa541b158abda926af2cce1050cb0154bc15fd682efb8da93dbe",
+    "missingPaths": []
+  },
+  "noSourceImagesCommitted": {
+    "passed": true,
+    "headCommit": "f91463cf506f6feced1a4db9c43af48ac3632410",
+    "headBlobPathsChecked": 3535,
+    "indexBlobPathsChecked": 3894,
+    "workingTreeCandidatesChecked": 4001,
+    "distinctTrackedZipArchivesInspected": 1,
+    "archiveMembersChecked": 107,
+    "method": "Compare original JPEG/source-ZIP byte lengths then SHA-256 against HEAD blobs, staged index blobs and tracked/unignored working-tree candidates. Inspect tracked ZIP members for exact original JPEG bytes. Does not assert absence of transformed derivatives from hashes alone.",
+    "matchingPaths": []
+  },
+  "retainedEvidence": {
+    "directories": [
+      {
+        "directory": "docs/production/motocross-evidence/world",
+        "retainedImages": 8,
+        "recordedSha256Matches": 8,
+        "decodedImages": 8,
+        "imageManifestSha256": "23d8efb6cd56f40e3600fa564e9de244e57b3c14b257a49b8e5ec239964b31e0",
+        "decodedDimensionManifestSha256": "02bf0bd117b26c1f6fb7f0aa207433e3b9a8641ac9546feb4dedb498d6c68314",
+        "reviewRecordSha256": "c2ff7cb89f4ae6c3eac41965d78593043a1c9ef00928b1e27694ce3a43d4968c"
+      },
+      {
+        "directory": "docs/production/motocross-evidence/interface",
+        "retainedImages": 17,
+        "recordedSha256Matches": 17,
+        "decodedImages": 17,
+        "imageManifestSha256": "a092d639d81baf0db9595ca3dc3c97bbb851a523956d31c544831483e46361fa",
+        "decodedDimensionManifestSha256": "3e6ffe7fe696f9e91f9094188bc045c5cdc44aa80add070f3626bbcb1cc67860",
+        "reviewRecordSha256": "9082c53f4d758a62c93533ba3aae2303f754a2439aa8a96d04eabf7779d685fe"
+      },
+      {
+        "directory": "docs/production/motocross-evidence/compatibility/r2-interface",
+        "retainedImages": 4,
+        "recordedSha256Matches": 4,
+        "decodedImages": 4,
+        "imageManifestSha256": "72038e5dd40836ea855d6ca42b73d78cc68e923da2e4b32859c987e4badd857e",
+        "decodedDimensionManifestSha256": "87a5f6e502b17d916eb99f26b42636fa130457a67d37ae0a2f0ccb15f4114a89",
+        "reviewRecordSha256": "54985b9191298a453435b3b396599cd5798b3e8fd957259a364c1f5884fb926f"
+      },
+      {
+        "directory": "docs/production/motocross-evidence/compatibility/r2-environment",
+        "retainedImages": 10,
+        "recordedSha256Matches": 10,
+        "decodedImages": 10,
+        "imageManifestSha256": "f1782847146422cb3a8a8652c0492acae3823ca7420771d5cd732a7c86bc4247",
+        "decodedDimensionManifestSha256": "e85496b7082396dbb51a95f8a74bcba3e6964c8f54f8aa38eafb9ec6cda26a7a",
+        "reviewRecordSha256": "fd5b5152ab1fcb2011b1c5bffa3b204234ba42a8bd492a02b0149187be4c5971"
+      },
+      {
+        "directory": "docs/production/motocross-evidence/gameplay",
+        "retainedImages": 8,
+        "recordedSha256Matches": 8,
+        "decodedImages": 8,
+        "imageManifestSha256": "98f485f168572d4073cc7d6cf3a482973fd2546f511fc220cf7ea0e248c15f66",
+        "decodedDimensionManifestSha256": "350a7b8f2556115f3c51c8a3e67e2dcdd795f9669d492a7310db8c8aeb3a75a2",
+        "reviewRecordSha256": "0e04c38ffee94da1e79090b0bfc8e00ce372071be46ecabf84484c07ab1bee03",
+        "expectedFinalTopLevelImages": [
+          "arena-nord-sx-actual-chase.png",
+          "arena-nord-sx-actual-menu.png",
+          "arena-nord-sx-actual-onboard.png",
+          "arena-nord-sx-actual-pause.png",
+          "valley-ridge-mx-actual-chase.png",
+          "valley-ridge-mx-actual-menu.png",
+          "valley-ridge-mx-actual-onboard.png",
+          "valley-ridge-mx-actual-pause.png"
+        ],
+        "individuallyMarkedReviewed": 8,
+        "nonemptyIndividualObservations": 8,
+        "recordedDimensionsMatched": 8,
+        "recordedSourceFilesSha256": "7733bb95ae33dc962eb2e6d07b2d3480dac3276a50753733268a68b22f500d36",
+        "recordedBuildFingerprintSha256": "82b5018336f9fb2c9ae1c2fcc7d11d1c3011209ec2e1c8471be5111c033c52e8",
+        "recordedTestSource": "e2e/45-motocross-gameplay.spec.ts",
+        "gameplayTestRecordSha256": "01b23d1cf0ca5c85fc7621b1116c86ddfdb5120be40c702a45a54d4caa254fba",
+        "gameplayEnvironmentRecordSha256": "9366d108b688e047fac4c6854306b82ceeeb633fc6961d6720b7bca2e83fa0ec",
+        "originalGameplaySourceCount": 667,
+        "testAttachmentInventoryAndReviewCount": 8,
+        "scope": "Only the eight final top-level full-game PNGs and their root-owned individual visual-review records; pre-camera-clearance is retained historical evidence and is excluded from this final image count."
+      },
+      {
+        "directory": "docs/production/motocross-evidence/compatibility/r31-r4",
+        "retainedImages": 14,
+        "recordedSha256Matches": 14,
+        "decodedImages": 14,
+        "imageManifestSha256": "2c715df44f3978b47aab8d51d916381516efd2f71d067a21f820f489df43ac3a",
+        "decodedDimensionManifestSha256": "59092fad7b4ec66891a5c0c03b1f34d1525954925d773707cb59f3b42c53168b",
+        "reviewRecordSha256": "6a0118f7eb3d5038ca40008bf5a74f53b6b8218596d5053f1c4a3b67d395334e",
+        "recordedSourceFilesSha256": "acfc1a799a933ff9c135046aee17daa741366549f7808b8091200accf69f874d",
+        "recordedBuildFingerprintSha256": "a5a1575e169f6475439722adeb3ac6ae569bc91b6d604f14e465faf7eccc6de4",
+        "recordedTestSource": "e2e/41-motogp-reference.spec.ts",
+        "testRecordSha256": "c5fa3e29d5426be9026deb4b3edbd3bc2d6db789d5be11cc788bd9beb6ca2ce4",
+        "testAttachmentInventoryAndReviewCount": 14,
+        "reviewMethods": {
+          "individual-display": 14
+        },
+        "observationsReusedFromEarlierCaptures": 0,
+        "scope": "New component-renderer evidence on the final 670-source build. The release owner recorded a fresh individual display for every new capture, including any repeated pixels; no earlier observation reuse is claimed. This integrity audit reads those existing records and does not relabel the complete 667-source gameplay captures."
+      },
+      {
+        "directory": "docs/production/motocross-evidence/bike/r31-r4",
+        "retainedImages": 21,
+        "recordedSha256Matches": 21,
+        "decodedImages": 21,
+        "imageManifestSha256": "75a3020cf384e5b1b231a9bcd6fdd3f0a105c7c5239cccc8f1864bccc5957abb",
+        "decodedDimensionManifestSha256": "c5dffde84cf71dfae95bd05777817339bcab00ea5f24786d23d910cf7586a683",
+        "reviewRecordSha256": "d0802cd57449871044405841e7f8886c120a5058bb1916efd34e2790706a0603",
+        "recordedSourceFilesSha256": "acfc1a799a933ff9c135046aee17daa741366549f7808b8091200accf69f874d",
+        "recordedBuildFingerprintSha256": "a5a1575e169f6475439722adeb3ac6ae569bc91b6d604f14e465faf7eccc6de4",
+        "recordedTestSource": "e2e/42-motocross-bike.spec.ts",
+        "testRecordSha256": "f67903b82f8055c1072e163c465916d8f4aa0e23fadad910524616044e3f3ac6",
+        "testAttachmentInventoryAndReviewCount": 21,
+        "reviewMethods": {
+          "individual-display": 21
+        },
+        "observationsReusedFromEarlierCaptures": 0,
+        "scope": "New component-renderer evidence on the final 670-source build. The release owner recorded a fresh individual display for every new capture, including any repeated pixels; no earlier observation reuse is claimed. This integrity audit reads those existing records and does not relabel the complete 667-source gameplay captures."
+      },
+      {
+        "directory": "docs/production/motocross-evidence/validation/shared-crowd",
+        "retainedImages": 8,
+        "recordedSha256Matches": 8,
+        "decodedImages": 8,
+        "imageManifestSha256": "d7f861bfda27e83cde109dcbae6d48d868d25b4367a5241f24a18d554523d77e",
+        "decodedDimensionManifestSha256": "9e0d474c62f4fd5bde4d8ba8d2346e5f66619222ffdd0bb7cceb2899ebc999f6",
+        "reviewRecordSha256": "d086ffa59a0b36868b60dcd5817bf700704272c311e5c679725681de9f3cd999",
+        "recordedSourceFilesSha256": "acfc1a799a933ff9c135046aee17daa741366549f7808b8091200accf69f874d",
+        "recordedBuildFingerprintSha256": "a5a1575e169f6475439722adeb3ac6ae569bc91b6d604f14e465faf7eccc6de4",
+        "recordedTestSource": "e2e/11-phase27c.spec.ts",
+        "testRecordSha256": "9f9268dfa2bba5d623c46894b1044e86aea251435ad91280bad67f060d6fe084",
+        "testAttachmentInventoryAndReviewCount": 8,
+        "reviewMethods": {
+          "individual-display": 8
+        },
+        "observationsReusedFromEarlierCaptures": 0,
+        "scope": "New component-renderer evidence on the final 670-source build. The release owner recorded a fresh individual display for every new capture, including any repeated pixels; no earlier observation reuse is claimed. This integrity audit reads those existing records and does not relabel the complete 667-source gameplay captures."
+      }
+    ],
+    "registeredImageHashesMatched": 90,
+    "newComponentImagesWithRecordedIndividualDisplays": 43,
+    "newComponentObservationsReusedFromEarlierCaptures": 0,
+    "localMarkdownLinkTargetsChecked": 191,
+    "literalEvidenceFileTargetsChecked": 20,
+    "missingLocalTargets": [],
+    "linkScope": "All evidence README Markdown links plus the upgrade report; literal PNG/JSON/MD and relative-directory references in the eight audited evidence READMEs. Historical nested gameplay captures are excluded from the eight final top-level image checks. Evidence subdirectories were not modified."
+  },
+  "reproduce": {
+    "inputs": [
+      "Original supplied ZIP",
+      "Its extracted package directory",
+      "Repository working directory"
+    ],
+    "requirements": [
+      "Python 3",
+      "Pillow",
+      "git"
+    ],
+    "coreCommand": "python3 - ARCHIVE_PATH EXTRACTED_PACKAGE_DIRECTORY REPOSITORY_DIRECTORY <<'PY'\nimport csv, hashlib, json, sys, zipfile\nfrom pathlib import Path\nfrom PIL import Image\narchive, refs, repo = map(Path, sys.argv[1:4])\nsha = lambda b: hashlib.sha256(b).hexdigest()\ncanon = lambda x: json.dumps(x, ensure_ascii=False, sort_keys=True, separators=(',', ':')).encode('utf8')\nrows = list(csv.DictReader((refs/'REFERENCE_INDEX.csv').open(encoding='utf-8-sig')))\nmapped = json.loads((repo/'docs/production/motocross-reference-map.json').read_text())['references']\nassert sha(canon(mapped)) == '7a280d79f9fa9da02d8799a32287dbb702763cd9961fd92b45d0c0d8aab63bf3'\nassert [int(r['final_number']) for r in rows] == [e['number'] for e in mapped] == list(range(1,101))\nimages = {}\nwith zipfile.ZipFile(archive) as z:\n assert z.testzip() is None\n for row, entry in zip(rows, mapped):\n  assert row['file'] == entry['file'] and entry['id'] == f\"{entry['number']:03d}\"\n  for key in row.keys() - {'final_number','category','file'}: assert row[key] == entry['suppliedMetadata'][key]\n  raw = (refs/row['file']).read_bytes(); images[row['file']] = sha(raw)\n  assert images[row['file']] == row['sha256']\n  assert z.read(refs.name+'/'+row['file']) == raw\n  with Image.open(refs/row['file']) as image:\n   image.load(); assert image.size == (int(row['width']),int(row['height']))\nassert len(images) == len(set(images.values())) == 100\npaths = sorted({p for e in mapped for p in e['implementation']['files']})\nassert all((repo/p).is_file() for p in paths)\nevidence = repo/'docs/production/motocross-evidence'\nnew_rendered = {'compatibility/r31-r4':14,'bike/r31-r4':21,'validation/shared-crowd':8}\nregistered = 0\nfor rel in ['world','interface','compatibility/r2-interface','compatibility/r2-environment','gameplay',*new_rendered]:\n p = evidence/rel; record = json.loads((p/'visual-review.json').read_text()); review = record['images']\n registered += len(review)\n assert len(review) == len({i['file'] for i in review})\n assert {i['file'] for i in review} == {f.name for f in p.glob('*.png')}\n assert all(sha((p/i['file']).read_bytes()) == i['sha256'] for i in review)\n if rel == 'gameplay':\n  expected = {f'{venue}-actual-{view}.png' for venue in ['valley-ridge-mx','arena-nord-sx'] for view in ['menu','chase','onboard','pause']}\n  assert {i['file'] for i in review} == expected\n  assert all(i.get('reviewed') is True and isinstance(i.get('observation'),str) and i['observation'].strip() for i in review)\n  run = json.loads((p/'test-run.json').read_text()); env = json.loads((p/'environment.json').read_text())\n  assert record['sourceFilesSha256'] == run['source']['sourceSha256'] == env['sourceSha256'] == '7733bb95ae33dc962eb2e6d07b2d3480dac3276a50753733268a68b22f500d36'\n  assert record['buildFingerprintSha256'] == run['source']['buildIdentity']['fingerprint'] == env['buildIdentity']['fingerprint'] == '82b5018336f9fb2c9ae1c2fcc7d11d1c3011209ec2e1c8471be5111c033c52e8'\n  assert run['source']['sourceCount'] == 667 and record['testSource'] == run['sourceSpec']\n  attachments = {i['retainedHereAs']:i for i in run['attachments'] if i.get('contentType')=='image/png'}\n  assert set(attachments) == expected\n  assert all(i['sha256'] == attachments[i['file']]['sha256'] and (p/i['file']).stat().st_size == attachments[i['file']]['bytes'] for i in review)\n if rel in new_rendered:\n  run = json.loads((p/'test-run.json').read_text())\n  assert len(review) == new_rendered[rel] and run['source']['sourceCount'] == 670\n  assert record['testRunSha256'] == sha((p/'test-run.json').read_bytes())\n  assert record['sourceFilesSha256'] == run['source']['sourceSha256'] == 'acfc1a799a933ff9c135046aee17daa741366549f7808b8091200accf69f874d'\n  assert record['buildFingerprintSha256'] == run['source']['buildIdentity']['fingerprint'] == 'a5a1575e169f6475439722adeb3ac6ae569bc91b6d604f14e465faf7eccc6de4'\n  assert record['testSource'] == (run.get('source_spec') or run.get('sourceSpec'))\n  assert all(i.get('reviewed') is True and i.get('method')=='individual-display' and isinstance(i.get('observation'),str) and i['observation'].strip() for i in review)\n  rows = json.loads((p/'attachment-manifest.json').read_text()) if (p/'attachment-manifest.json').is_file() else run['images']\n  attachments = {i.get('file') or i.get('retainedHereAs'):i for i in rows if (i.get('file') or i.get('retainedHereAs','')).endswith('.png')}\n  assert set(attachments) == {i['file'] for i in review}\n  assert all(i['sha256'] == attachments[i['file']]['sha256'] and (p/i['file']).stat().st_size == attachments[i['file']]['bytes'] for i in review)\n for item in review:\n  assert Path(item['file']).name == item['file']\n  with Image.open(p/item['file']) as image:\n   image.load(); assert image.format == 'PNG'\n   if rel == 'gameplay' or rel in new_rendered or 'width' in item: assert image.size == (item['width'],item['height'])\nassert registered == 90\nprint(json.dumps({'references':len(mapped),'registeredEvidenceImages':registered,'uniqueMappedPaths':len(paths),'normalizedReferencesSha256':sha(canon(mapped)),'sourceImageManifestSha256':sha(canon(images)),'csvSha256':sha((refs/'REFERENCE_INDEX.csv').read_bytes()),'archiveSha256':sha(archive.read_bytes())},indent=2))\nPY",
+    "checksumCommand": "cd EXTRACTED_PACKAGE_DIRECTORY && sha256sum -c SHA256SUMS.txt",
+    "gitAuditRecipe": "Inventory HEAD with git ls-tree -r -l -z HEAD; index with git ls-files --stage -z and git cat-file --batch-check; candidates with git ls-files --cached --others --exclude-standard -z. Hash bytes only after an original-image/source-archive size match; inspect ZIP member sizes and matching member bytes. Match against all 100 CSV sha256 values and the original ZIP sha256."
+  },
+  "failures": []
+}

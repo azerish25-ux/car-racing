@@ -142,7 +142,7 @@
         "long": "crash-flat"
       },
       "rolled": "ok",
-      "rollSeconds": 16.97
+      "rollSeconds": 16.98
     },
     {
       "machine": "mx450",
@@ -355,7 +355,7 @@
         "long": "crash-flat"
       },
       "rolled": "ok",
-      "rollSeconds": 16.32
+      "rollSeconds": 16.31
     },
     {
       "machine": "mx450",
@@ -427,7 +427,7 @@
         "long": "crash-flat"
       },
       "rolled": "ok",
-      "rollSeconds": 16.19
+      "rollSeconds": 16.18
     },
     {
       "machine": "mx250",

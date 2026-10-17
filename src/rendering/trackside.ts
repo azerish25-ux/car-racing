@@ -3,6 +3,7 @@ import { clamp, mod } from '../core/math.ts';
 import { Track, trackPoint } from '../simulation/track.ts';
 import { F, H, HEADER, CAR_STRIDE, carBase } from '../simulation/protocol.ts';
 import { inStandFootprint } from './grandstand.ts';
+import { isMotocrossBroadcast, placeMotocrossRigs } from './offroad/broadcast-sites.ts';
 
 export interface BroadcastSubjectVisibility {
   /** At most eight finite world-space subject-boundary points. */
@@ -93,7 +94,7 @@ export function broadcastRadius(frame: Float32Array, followed: number) {
 export function tracksideRigs(track: Track): readonly CameraRig[] {
   const p = trackPoint(),
     spacing = track.length / TRACKSIDE_PLATFORMS.length;
-  return TRACKSIDE_PLATFORMS.map(([side, height, fov], id): CameraRig => {
+  const rigs = TRACKSIDE_PLATFORMS.map(([side, height, fov], id): CameraRig => {
     const centerS = id * spacing;
     track.at(centerS + spacing * 0.18, p);
     let offset = side * (p.width + 18);
@@ -124,6 +125,7 @@ export function tracksideRigs(track: Track): readonly CameraRig[] {
       leadSeconds: style.leadSeconds,
     };
   });
+  return isMotocrossBroadcast(track) ? placeMotocrossRigs(track, rigs) : rigs;
 }
 
 /** Broadcast telephoto (D30): a moving subject's sphere fills `fill` of the

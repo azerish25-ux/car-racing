@@ -1,0 +1,806 @@
+{
+  "schemaVersion": 1,
+  "capturedAtUtc": "2026-10-17T00:41:31.918265+00:00",
+  "scope": "Focused CPU verification of the MX/SX procedural replay-camera relocation and visible fallback hardware. This record does not claim a new rendered full-app pass; the subsequent release images are recorded separately.",
+  "status": "passed",
+  "before": {
+    "sourceSha256": "dc8777face456bed880b57643191beec29101678c5581085a5adc0e8d9140c6f",
+    "recordedOriginalRigAndSiteSnapshotSha256": "1f82e3d3a28a6f5efefcabbbc2b4562773cf71af102017bf6168e9f8e9184198",
+    "visibleDefectOwner": "src/rendering/track-infrastructure.ts buildTrackInfrastructure(), plan.cameras procedural fallback: base, offset post, platform, two rails, camera body and barrel.",
+    "preservedActualImagePaths": [
+      "docs/production/motocross-evidence/gameplay/pre-camera-clearance/arena-nord-sx-actual-chase.png",
+      "docs/production/motocross-evidence/gameplay/pre-camera-clearance/arena-nord-sx-actual-onboard.png"
+    ],
+    "footprintReconstruction": "Before X/Z and yaw are the exact pre-edit recorded production sites. The unchanged horizontal production hardware geometry was regenerated at those sites to measure its complete envelope. The new terrain-conforming vertical base code does not alter those X/Z footprints. Before foundation seating is not inferred from that reconstruction."
+  },
+  "candidateSource": {
+    "sourceSha256": "7733bb95ae33dc962eb2e6d07b2d3480dac3276a50753733268a68b22f500d36",
+    "sourceCount": 667,
+    "integratedParent": "577a6e3ac010ab0ec9e8f5c53e4f1c2c385af2f7",
+    "sourceHashEncoding": "SHA-256 of UTF-8 compact JSON (separators comma/colon), with lexicographically sorted path keys; values are file SHA-256 digests.",
+    "sourceHashes": {
+      "src/rendering/trackside.ts": "028d9c598598f80ed2559ffb4db11c3b49c0e38832ec80b598d8c6ebec7582c4",
+      "src/rendering/track-infrastructure.ts": "3197d16cfd18378a8bd3629e1cbf5e97068076f3bbcef1e028a0c956aab46c1b",
+      "src/rendering/offroad/broadcast-sites.ts": "cdddca1e78a919ea7eaf48682a7b4e959ae59ecaf2c78f31a72be8cd5b505f50",
+      "src/rendering/offroad/stadium-dimensions.ts": "6662beb1eac19d0b6d5af809066d13dd00ec9f3f8855cf3e081213e7fd1c7e57",
+      "src/rendering/offroad/stadium.ts": "8651f2f0999a96dcd175f90ee2cd9f480437fb9002e02afe81b7d6e9ae2460bc"
+    },
+    "sourceHashesMatchRecordedPreBuildIdentity": true,
+    "stadiumDimensions": "All eight extracted stadium dimension values are unchanged; the lightweight shared module prevents the static placement planner from importing rendering shaders."
+  },
+  "tests": {
+    "total": 53,
+    "passed": 53,
+    "failed": 0,
+    "files": [
+      {
+        "testFile": "tests/motocross-broadcast-placement.test.ts",
+        "testFileSha256": "f000134d9ec9a829178ff247c0edfe66662757d2e23d19ab6dacc228d35ce642",
+        "tests": 2,
+        "passed": 2,
+        "failed": 0,
+        "nativeTestFileDurationMs": 2143.158447265625,
+        "nativeReporterSha256": "5d8291f4e804dc1cb852ea64b0928d53f0375923b17b17dcd2de5f55f4a66a88",
+        "reporterFormat": "Vitest JSON",
+        "nativeFileStartTimeUtc": "2026-10-17T00:35:15.034000+00:00"
+      },
+      {
+        "testFile": "tests/motocross-broadcast-controls.test.ts",
+        "testFileSha256": "60a25956471243df4d64ded69321d60df1a2da6542a4538f365ee1c8ad5c713e",
+        "tests": 51,
+        "passed": 51,
+        "failed": 0,
+        "nativeTestFileDurationMs": 4757.375244140625,
+        "nativeReporterSha256": "582d88ea8a23ab75d459676a542c3661364faab55cfda95e9df6bab4b2638ded",
+        "reporterFormat": "Vitest JSON",
+        "nativeFileStartTimeUtc": "2026-10-17T00:38:02.301000+00:00"
+      }
+    ],
+    "scopedEslint": "Passed on the five changed production files and the complete-venue mesh test before source release. Full build/lint are recorded separately by the release owner."
+  },
+  "contracts": {
+    "preservedOtherVenues": 44,
+    "preservedOtherVenueRigRecords": 880,
+    "preservedOtherVenueScope": "All non-MX/SX built-in venues, including the paved catalogue, Kestrel RX and Pinewood stage. Every entire serialized CameraRig array matches its pre-edit SHA256 signature.",
+    "historicalSignatureEncoding": "SHA256(JSON.stringify(tracksideRigs(new Track('clear', false, undefined, definition))))",
+    "historicalControlsEmbeddedIn": "tests/motocross-broadcast-controls.test.ts",
+    "preservedDirtRigMetadataRecords": 40,
+    "preservedDirtMetadata": [
+      "id",
+      "centerS",
+      "coverageM",
+      "baseFov",
+      "trackingHz",
+      "zoomHz",
+      "shot",
+      "leadSeconds"
+    ],
+    "physicalAndDirectorOpticalAlignment": "All 40 real camera child-group world origins equal their corresponding replay-director optical site; maximum error is zero in the measured output.",
+    "authoredCameraHeightRangeM": [
+      3.5,
+      7
+    ],
+    "authoredCameraHeightsPreserved": true,
+    "fullHardwareEnvelope": "Actual transformed vertices of all seven meshes per supported camera; base, offset post, platform, both rails, camera body and barrel.",
+    "laneProof": "Independent separating-axis intersection of the full enclosing rectangle, expanded by 0.4 m on each local axis, against every triangle of the public complete legal riding ribbon. No intersections in either venue.",
+    "seatingProof": "The same actual camera rectangles and 0.4 m band are tested against projected triangles of the generated Arena concrete seating decks; all actual camera vertices also clear the ordinary grandstand footprints.",
+    "terrainProof": "Each actual generated base bottom vertex is seated in public Track.sample terrain contact; the measured embed is 0.02 m at all 40 supports. The optical site and support use the same actual static ground datum.",
+    "sightlineProof": "For each of the 40 views, an independent midpoint grid at at most 0.19 m intervals samples actual Track.sample terrain along the ray to that view own source center at terrain plus 1.1 m rider height. Every sample retains at least 0.2 m terrain clearance; this does not assert every static view sees every point of the route.",
+    "scopeGuard": "Only motocross and supercross static rig positions are relocated. The authored Aurel camera kit and all non-MX/SX rig behavior remain under the historical controls. Renderer light-selection code is unchanged."
+  },
+  "venues": {
+    "valley-ridge-mx": {
+      "rigCountBefore": 20,
+      "rigCountAfter": 20,
+      "horizontalMovedCount": 20,
+      "horizontalUnchangedIds": [],
+      "beforeBaseOrPostPenetrations": [],
+      "beforeFullEnvelopeLegalIntersectionIds": [],
+      "beforeFullEnvelope040mBandFailureIds": [],
+      "afterFullEnvelopeLegalIntersectionIds": [],
+      "afterFullEnvelope040mBandFailureIds": [],
+      "afterActualStadiumSeatingIntersections": null,
+      "afterStandFootprintIntersections": 0,
+      "afterSupportedCount": 20,
+      "afterActualMeshCount": 140,
+      "afterActualVertexCount": 4400,
+      "afterMinimumActualVertexLegalGapM": 2.505658,
+      "afterFoundationEmbeddedRangeM": [
+        0.02,
+        0.02
+      ],
+      "maximumOpticalAlignmentErrorM": 0,
+      "rigPositionsAndMeasuredGaps": [
+        {
+          "rigId": 0,
+          "beforeEyeM": [
+            -15.722843,
+            5.120238,
+            -65.5
+          ],
+          "afterEyeM": [
+            -13.722843,
+            7.794056,
+            -62.75
+          ],
+          "horizontalMoveM": 3.400368,
+          "afterMinimumVertexLegalGapM": 2.705065
+        },
+        {
+          "rigId": 1,
+          "beforeEyeM": [
+            30.26136,
+            5.223282,
+            -65.503688
+          ],
+          "afterEyeM": [
+            30.26136,
+            6.929811,
+            -64.753688
+          ],
+          "horizontalMoveM": 0.75,
+          "afterMinimumVertexLegalGapM": 4.303688
+        },
+        {
+          "rigId": 2,
+          "beforeEyeM": [
+            76.468685,
+            5.599395,
+            -66.020618
+          ],
+          "afterEyeM": [
+            76.480312,
+            6.240408,
+            -64.770672
+          ],
+          "horizontalMoveM": 1.25,
+          "afterMinimumVertexLegalGapM": 4.323555
+        },
+        {
+          "rigId": 3,
+          "beforeEyeM": [
+            112.64883,
+            7.899036,
+            -59.297746
+          ],
+          "afterEyeM": [
+            111.972393,
+            7.950378,
+            -59.62168
+          ],
+          "horizontalMoveM": 0.75,
+          "afterMinimumVertexLegalGapM": 2.600395
+        },
+        {
+          "rigId": 4,
+          "beforeEyeM": [
+            60.288494,
+            5.44309,
+            -77
+          ],
+          "afterEyeM": [
+            60.288494,
+            4.395785,
+            -79.25
+          ],
+          "horizontalMoveM": 2.25,
+          "afterMinimumVertexLegalGapM": 3.028485
+        },
+        {
+          "rigId": 5,
+          "beforeEyeM": [
+            14.304291,
+            7.203625,
+            -31
+          ],
+          "afterEyeM": [
+            14.304291,
+            7.096125,
+            -43.25
+          ],
+          "horizontalMoveM": 12.25,
+          "afterMinimumVertexLegalGapM": 4.3
+        },
+        {
+          "rigId": 6,
+          "beforeEyeM": [
+            -41.00063,
+            6.741053,
+            -34.310384
+          ],
+          "afterEyeM": [
+            -28.998245,
+            6.786654,
+            -36.296021
+          ],
+          "horizontalMoveM": 12.165525,
+          "afterMinimumVertexLegalGapM": 2.916332
+        },
+        {
+          "rigId": 7,
+          "beforeEyeM": [
+            5,
+            10.604976,
+            11.701344
+          ],
+          "afterEyeM": [
+            -7.25,
+            10.507132,
+            11.701344
+          ],
+          "horizontalMoveM": 12.25,
+          "afterMinimumVertexLegalGapM": 4.3
+        },
+        {
+          "rigId": 8,
+          "beforeEyeM": [
+            -14.634477,
+            10.778693,
+            75.394997
+          ],
+          "afterEyeM": [
+            -13.622754,
+            11.360018,
+            79.074524
+          ],
+          "horizontalMoveM": 3.816084,
+          "afterMinimumVertexLegalGapM": 4.475476
+        },
+        {
+          "rigId": 9,
+          "beforeEyeM": [
+            37.706802,
+            9.798443,
+            31
+          ],
+          "afterEyeM": [
+            37.706802,
+            9.888354,
+            43.25
+          ],
+          "horizontalMoveM": 12.25,
+          "afterMinimumVertexLegalGapM": 4.3
+        },
+        {
+          "rigId": 10,
+          "beforeEyeM": [
+            61.829569,
+            12.659573,
+            74.786577
+          ],
+          "afterEyeM": [
+            62.380448,
+            12.761337,
+            79.224655
+          ],
+          "horizontalMoveM": 4.472136,
+          "afterMinimumVertexLegalGapM": 4.404662
+        },
+        {
+          "rigId": 11,
+          "beforeEyeM": [
+            58.396942,
+            11.867894,
+            113.015607
+          ],
+          "afterEyeM": [
+            58.618132,
+            11.975402,
+            100.767604
+          ],
+          "horizontalMoveM": 12.25,
+          "afterMinimumVertexLegalGapM": 4.29857
+        },
+        {
+          "rigId": 12,
+          "beforeEyeM": [
+            12.828162,
+            10.643113,
+            67
+          ],
+          "afterEyeM": [
+            12.828162,
+            10.034522,
+            64.75
+          ],
+          "horizontalMoveM": 2.25,
+          "afterMinimumVertexLegalGapM": 4.3
+        },
+        {
+          "rigId": 13,
+          "beforeEyeM": [
+            -33.156041,
+            13.341097,
+            113
+          ],
+          "afterEyeM": [
+            -33.156041,
+            13.448597,
+            100.75
+          ],
+          "horizontalMoveM": 12.25,
+          "afterMinimumVertexLegalGapM": 4.3
+        },
+        {
+          "rigId": 14,
+          "beforeEyeM": [
+            -79.754654,
+            9.378553,
+            67.039319
+          ],
+          "afterEyeM": [
+            -79.427246,
+            9.270805,
+            79.284943
+          ],
+          "horizontalMoveM": 12.25,
+          "afterMinimumVertexLegalGapM": 4.301262
+        },
+        {
+          "rigId": 15,
+          "beforeEyeM": [
+            -127.01561,
+            9.828538,
+            60.007462
+          ],
+          "afterEyeM": [
+            -114.7664,
+            9.935876,
+            60.14653
+          ],
+          "horizontalMoveM": 12.25,
+          "afterMinimumVertexLegalGapM": 4.299411
+        },
+        {
+          "rigId": 16,
+          "beforeEyeM": [
+            -81,
+            9.800568,
+            14.284436
+          ],
+          "afterEyeM": [
+            -93.25,
+            9.693068,
+            14.284436
+          ],
+          "horizontalMoveM": 12.25,
+          "afterMinimumVertexLegalGapM": 4.3
+        },
+        {
+          "rigId": 17,
+          "beforeEyeM": [
+            -127.100092,
+            6.826293,
+            -31.699767
+          ],
+          "afterEyeM": [
+            -114.850092,
+            6.934794,
+            -31.699767
+          ],
+          "horizontalMoveM": 12.25,
+          "afterMinimumVertexLegalGapM": 4.294104
+        },
+        {
+          "rigId": 18,
+          "beforeEyeM": [
+            -91.033214,
+            6.552209,
+            -73.055713
+          ],
+          "afterEyeM": [
+            -90.755607,
+            6.164519,
+            -77.237272
+          ],
+          "horizontalMoveM": 4.190764,
+          "afterMinimumVertexLegalGapM": 2.505658
+        },
+        {
+          "rigId": 19,
+          "beforeEyeM": [
+            -61.707046,
+            6.371868,
+            -77.111997
+          ],
+          "afterEyeM": [
+            -61.707046,
+            6.262988,
+            -79.111997
+          ],
+          "horizontalMoveM": 2,
+          "afterMinimumVertexLegalGapM": 2.948076
+        }
+      ]
+    },
+    "arena-nord-sx": {
+      "rigCountBefore": 20,
+      "rigCountAfter": 20,
+      "horizontalMovedCount": 16,
+      "horizontalUnchangedIds": [
+        8,
+        10,
+        16,
+        19
+      ],
+      "beforeBaseOrPostPenetrations": [
+        {
+          "rigId": 0,
+          "sourceCenterM": 0,
+          "nearestLaneStationM": 269.267071,
+          "minimumBaseVertexLegalGapM": -1.65,
+          "minimumPostVertexLegalGapM": -0.36
+        },
+        {
+          "rigId": 1,
+          "sourceCenterM": 30.774594,
+          "nearestLaneStationM": 300.041665,
+          "minimumBaseVertexLegalGapM": -1.65,
+          "minimumPostVertexLegalGapM": -0.36
+        },
+        {
+          "rigId": 2,
+          "sourceCenterM": 61.549188,
+          "nearestLaneStationM": 330.816259,
+          "minimumBaseVertexLegalGapM": -1.471796,
+          "minimumPostVertexLegalGapM": -0.181796
+        },
+        {
+          "rigId": 9,
+          "sourceCenterM": 276.971347,
+          "nearestLaneStationM": 18.78313,
+          "minimumBaseVertexLegalGapM": -1.65,
+          "minimumPostVertexLegalGapM": -0.36
+        },
+        {
+          "rigId": 11,
+          "sourceCenterM": 338.520536,
+          "nearestLaneStationM": 80.277392,
+          "minimumBaseVertexLegalGapM": -1.314919,
+          "minimumPostVertexLegalGapM": -0.013493
+        }
+      ],
+      "beforeFullEnvelopeLegalIntersectionIds": [
+        0,
+        1,
+        2,
+        9,
+        11
+      ],
+      "beforeFullEnvelope040mBandFailureIds": [
+        0,
+        1,
+        2,
+        5,
+        7,
+        9,
+        11,
+        12,
+        14
+      ],
+      "afterFullEnvelopeLegalIntersectionIds": [],
+      "afterFullEnvelope040mBandFailureIds": [],
+      "afterActualStadiumSeatingIntersections": 0,
+      "afterStandFootprintIntersections": 0,
+      "afterSupportedCount": 20,
+      "afterActualMeshCount": 140,
+      "afterActualVertexCount": 4400,
+      "afterMinimumActualVertexLegalGapM": 0.85,
+      "afterFoundationEmbeddedRangeM": [
+        0.02,
+        0.02
+      ],
+      "maximumOpticalAlignmentErrorM": 0,
+      "rigPositionsAndMeasuredGaps": [
+        {
+          "rigId": 0,
+          "beforeEyeM": [
+            -16.460573,
+            5,
+            3
+          ],
+          "afterEyeM": [
+            -16.460573,
+            5.056374,
+            0.5
+          ],
+          "horizontalMoveM": 2.5,
+          "afterMinimumVertexLegalGapM": 0.85
+        },
+        {
+          "rigId": 1,
+          "beforeEyeM": [
+            14.314021,
+            4.9,
+            3
+          ],
+          "afterEyeM": [
+            10.314021,
+            4.975926,
+            0.5
+          ],
+          "horizontalMoveM": 4.716991,
+          "afterMinimumVertexLegalGapM": 0.85
+        },
+        {
+          "rigId": 2,
+          "beforeEyeM": [
+            45.088615,
+            5,
+            2.821796
+          ],
+          "afterEyeM": [
+            49.088615,
+            5.033391,
+            0.321796
+          ],
+          "horizontalMoveM": 4.716991,
+          "afterMinimumVertexLegalGapM": 1.01418
+        },
+        {
+          "rigId": 3,
+          "beforeEyeM": [
+            76.217122,
+            7,
+            -44.29095
+          ],
+          "afterEyeM": [
+            76.021632,
+            7.028357,
+            -31.542449
+          ],
+          "horizontalMoveM": 12.75,
+          "afterMinimumVertexLegalGapM": 2.194415
+        },
+        {
+          "rigId": 4,
+          "beforeEyeM": [
+            71.412844,
+            4,
+            -29.447515
+          ],
+          "afterEyeM": [
+            71.417259,
+            4.027905,
+            -29.947495
+          ],
+          "horizontalMoveM": 0.5,
+          "afterMinimumVertexLegalGapM": 2.167417
+        },
+        {
+          "rigId": 5,
+          "beforeEyeM": [
+            40.439923,
+            5,
+            15.201459
+          ],
+          "afterEyeM": [
+            48.439923,
+            5.033327,
+            14.201459
+          ],
+          "horizontalMoveM": 8.062258,
+          "afterMinimumVertexLegalGapM": 0.926459
+        },
+        {
+          "rigId": 6,
+          "beforeEyeM": [
+            9.665328,
+            3.5,
+            -29.2
+          ],
+          "afterEyeM": [
+            9.665328,
+            3.54225,
+            -29.45
+          ],
+          "horizontalMoveM": 0.25,
+          "afterMinimumVertexLegalGapM": 1
+        },
+        {
+          "rigId": 7,
+          "beforeEyeM": [
+            -21.133563,
+            6,
+            15.199747
+          ],
+          "afterEyeM": [
+            -21.132742,
+            5.967249,
+            14.449747
+          ],
+          "horizontalMoveM": 0.75,
+          "afterMinimumVertexLegalGapM": 0.900253
+        },
+        {
+          "rigId": 8,
+          "beforeEyeM": [
+            -40.126875,
+            5,
+            27.903005
+          ],
+          "afterEyeM": [
+            -40.126875,
+            5.095265,
+            27.903005
+          ],
+          "horizontalMoveM": 0,
+          "afterMinimumVertexLegalGapM": 1.253005
+        },
+        {
+          "rigId": 9,
+          "beforeEyeM": [
+            -3.21687,
+            3.5,
+            -15.2
+          ],
+          "afterEyeM": [
+            -3.21687,
+            3.54225,
+            -29.45
+          ],
+          "horizontalMoveM": 14.25,
+          "afterMinimumVertexLegalGapM": 1
+        },
+        {
+          "rigId": 10,
+          "beforeEyeM": [
+            27.557724,
+            6,
+            29.2
+          ],
+          "afterEyeM": [
+            27.557724,
+            6.041,
+            29.2
+          ],
+          "horizontalMoveM": 0,
+          "afterMinimumVertexLegalGapM": 2.55
+        },
+        {
+          "rigId": 11,
+          "beforeEyeM": [
+            58.277392,
+            5,
+            -15.245974
+          ],
+          "afterEyeM": [
+            58.24354,
+            5.032694,
+            -28.995932
+          ],
+          "horizontalMoveM": 13.75,
+          "afterMinimumVertexLegalGapM": 1.726332
+        },
+        {
+          "rigId": 12,
+          "beforeEyeM": [
+            59.277977,
+            4,
+            -1.1303
+          ],
+          "afterEyeM": [
+            73.223732,
+            3.993462,
+            1.434538
+          ],
+          "horizontalMoveM": 14.179651,
+          "afterMinimumVertexLegalGapM": 1.340572
+        },
+        {
+          "rigId": 13,
+          "beforeEyeM": [
+            28.003976,
+            7,
+            43.2
+          ],
+          "afterEyeM": [
+            30.003976,
+            7.05225,
+            31.45
+          ],
+          "horizontalMoveM": 11.918997,
+          "afterMinimumVertexLegalGapM": 4.8
+        },
+        {
+          "rigId": 14,
+          "beforeEyeM": [
+            -2.770618,
+            3.5,
+            -1.2
+          ],
+          "afterEyeM": [
+            -2.770618,
+            3.470058,
+            -0.45
+          ],
+          "horizontalMoveM": 0.75,
+          "afterMinimumVertexLegalGapM": 0.9
+        },
+        {
+          "rigId": 15,
+          "beforeEyeM": [
+            -33.545213,
+            5,
+            43.2
+          ],
+          "afterEyeM": [
+            -33.545213,
+            5.05225,
+            31.45
+          ],
+          "horizontalMoveM": 11.75,
+          "afterMinimumVertexLegalGapM": 4.8
+        },
+        {
+          "rigId": 16,
+          "beforeEyeM": [
+            -64.319807,
+            6,
+            11.583189
+          ],
+          "afterEyeM": [
+            -64.319807,
+            5.952916,
+            11.583189
+          ],
+          "horizontalMoveM": 0,
+          "afterMinimumVertexLegalGapM": 3.747243
+        },
+        {
+          "rigId": 17,
+          "beforeEyeM": [
+            -106.580613,
+            4,
+            6.554643
+          ],
+          "afterEyeM": [
+            -94.331688,
+            4.051603,
+            6.716977
+          ],
+          "horizontalMoveM": 12.25,
+          "afterMinimumVertexLegalGapM": 4.285614
+        },
+        {
+          "rigId": 18,
+          "beforeEyeM": [
+            -76.424864,
+            5,
+            -10.344074
+          ],
+          "afterEyeM": [
+            -91.949955,
+            5.03969,
+            -5.988444
+          ],
+          "horizontalMoveM": 16.124515,
+          "afterMinimumVertexLegalGapM": 1.617122
+        },
+        {
+          "rigId": 19,
+          "beforeEyeM": [
+            -47.235167,
+            6,
+            2.890718
+          ],
+          "afterEyeM": [
+            -47.235167,
+            6.0099,
+            2.890718
+          ],
+          "horizontalMoveM": 0,
+          "afterMinimumVertexLegalGapM": 1.286786
+        }
+      ]
+    }
+  },
+  "reproduction": {
+    "focusedCommand": "npx vitest run tests/motocross-broadcast-placement.test.ts tests/motocross-broadcast-controls.test.ts",
+    "note": "The retained results were two separate focused invocations of those files. Native per-file durations above are not aggregate CLI or browser durations.",
+    "beforeSnapshotSha256": "1f82e3d3a28a6f5efefcabbbc2b4562773cf71af102017bf6168e9f8e9184198",
+    "measurementScriptSha256": "9a361764b99ccf1fbf8a975bdffa0180a1c004e694ea19b8651e7abe813bc50b",
+    "measurementOutputSha256": "a56fb9302cbc5d46ed6473c9b8831ad1766ca4dd7076d5d53186dc7ca6fc70d0",
+    "positionsAndGapsPrecision": "Six decimal places in the compact per-rig measurements; full optical errors and native durations are retained without that rounding."
+  }
+}

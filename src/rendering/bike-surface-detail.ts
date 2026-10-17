@@ -37,7 +37,11 @@ export function bikeSurfaceMaps(kind: BikeSurface, size = 128) {
       else value += 0.04 * Math.sin(((2 * Math.PI * x) / size) * 16);
       height[at] = value;
       const r = Math.round(
-        (kind === 'paint' ? 0.9 + grain * 0.075 : kind === 'brushed' ? 0.78 + grain * 0.2 : 0.86 + grain * 0.13) * 255,
+        (kind === 'paint'
+          ? 0.9 + grain * 0.075
+          : kind === 'brushed'
+            ? 0.78 + grain * 0.2
+            : 0.86 + grain * 0.13) * 255,
       );
       roughness.set([r, r, r, 255], at * 4);
     }
@@ -70,7 +74,13 @@ export function bikeSurfaceMaps(kind: BikeSurface, size = 128) {
     t.anisotropy = 4;
     t.needsUpdate = true;
     const repeat =
-      kind === 'rubber' ? [10, 2] : kind === 'brushed' ? [2, 4] : kind === 'paint' ? [12, 12] : [5, 5];
+      kind === 'rubber'
+        ? [10, 2]
+        : kind === 'brushed'
+          ? [2, 4]
+          : kind === 'paint'
+            ? [12, 12]
+            : [5, 5];
     t.repeat.set(repeat[0], repeat[1]);
     return t;
   };

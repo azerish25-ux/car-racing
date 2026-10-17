@@ -1,0 +1,142 @@
+{
+  "scope": "All 14 actual GP41 captures from the final camera-clearance build, including both GP prototype chains; each file is byte-identical to its individually inspected prior d90 capture. Controlled production-model fixture; no main-app/race/FPS claim.",
+  "checkedAt": "2026-10-17T00:43:50.591195+00:00",
+  "source": {
+    "integratedParent": "31626200d4a79e8173f70d587a14c09176d0aa7f",
+    "sourceCount": 667,
+    "sourceSha256": "7733bb95ae33dc962eb2e6d07b2d3480dac3276a50753733268a68b22f500d36",
+    "buildIdentity": {
+      "version": 1,
+      "commit": null,
+      "fingerprint": "82b5018336f9fb2c9ae1c2fcc7d11d1c3011209ec2e1c8471be5111c033c52e8"
+    }
+  },
+  "review_method": {
+    "method": "Per-capture SHA-256 comparison with previously individually displayed and inspected PNG originals. All matched files reuse their corresponding visual observations; no new display pass is claimed.",
+    "referenceCheckpoint": "motocross-release-validation/gp41",
+    "referenceSourceSha256": "dc8777face456bed880b57643191beec29101678c5581085a5adc0e8d9140c6f",
+    "referenceBuildFingerprint": "d90b8bb6e400a4764cf0e079d822edf13cd0c1979218ecc855a096fda28269f5",
+    "capturedFiles": 14,
+    "hashMatchedFiles": 14,
+    "changedFilesRequiringNewInspection": []
+  },
+  "captures": [
+    {
+      "file": "0-gpr1-high-dry.png",
+      "sha256": "3b65cf3bc8ff80a3ceb3180e931e9f2f3ddc079a03c7ea88119fad52acf026fd",
+      "same_png_as_individually_reviewed_d90_run": true,
+      "referenceSha256": "3b65cf3bc8ff80a3ceb3180e931e9f2f3ddc079a03c7ea88119fad52acf026fd",
+      "observation": "High-detail GP-R1 retains the red authored fairing, louver openings, thin metal component highlights, treadless tires and tucked leather-clad rider. No large new geometry obstruction is visible. The complete chain route is mostly hidden from this three-quarter angle.",
+      "observationProvenance": "Individual local image inspection preserved in motocross-release-validation/gp41/visual-review.json; reused only after full-file SHA-256 equality."
+    },
+    {
+      "file": "1-gpr1-mid-dry.png",
+      "sha256": "2733f4f0934631bc2f9e680edf7f900d824d0df96117ca859d02493b8609b715",
+      "same_png_as_individually_reviewed_d90_run": true,
+      "referenceSha256": "2733f4f0934631bc2f9e680edf7f900d824d0df96117ca859d02493b8609b715",
+      "observation": "The middle LOD retains the silhouette, louver area, rider helmet graphics and dark boot/hand contact regions, with a visibly simpler front wheel and component detail.",
+      "observationProvenance": "Individual local image inspection preserved in motocross-release-validation/gp41/visual-review.json; reused only after full-file SHA-256 equality."
+    },
+    {
+      "file": "2-gpr1-far-dry.png",
+      "sha256": "bdc348a27c5988391b87037110e17034a302a801f432d3a97350b1e1bbbd89e7",
+      "same_png_as_individually_reviewed_d90_run": true,
+      "referenceSha256": "bdc348a27c5988391b87037110e17034a302a801f432d3a97350b1e1bbbd89e7",
+      "observation": "The far LOD keeps the bike/rider massing and red/black color separation. Faceted tires, simplified helmet and reduced gear detail are apparent at this deliberately close comparison distance.",
+      "observationProvenance": "Individual local image inspection preserved in motocross-release-validation/gp41/visual-review.json; reused only after full-file SHA-256 equality."
+    },
+    {
+      "file": "3-gpr2-high-dry.png",
+      "sha256": "a0280f4299a80d4b7c00650f53bfaaa60bd532b399eb36bdd96e559f2199b878",
+      "same_png_as_individually_reviewed_d90_run": true,
+      "referenceSha256": "a0280f4299a80d4b7c00650f53bfaaa60bd532b399eb36bdd96e559f2199b878",
+      "observation": "GP-R2 with the integrated chain retains its distinct dark lower body, red nose, fork/wheel profile and tucked road rider. No added geometry obstructs the bike or rider. The complete chain route remains mostly hidden by this three-quarter viewpoint.",
+      "observationProvenance": "Individual local image inspection preserved in motocross-release-validation/gp41/visual-review.json; reused only after full-file SHA-256 equality."
+    },
+    {
+      "file": "4-gpr1-high-wet.png",
+      "sha256": "39307269d0aa1a2a0c5c1f3db0d0bdab8cb6baac1848a7aa4783ed3c882303fb",
+      "same_png_as_individually_reviewed_d90_run": true,
+      "referenceSha256": "39307269d0aa1a2a0c5c1f3db0d0bdab8cb6baac1848a7aa4783ed3c882303fb",
+      "observation": "The wet frame preserves silhouette and contacts; material darkening and highlight changes are subtle in this neutral lighting. The exact pixel hash differs from dry.",
+      "observationProvenance": "Individual local image inspection preserved in motocross-release-validation/gp41/visual-review.json; reused only after full-file SHA-256 equality."
+    },
+    {
+      "file": "5-gpr1-high-dry.png",
+      "sha256": "3b65cf3bc8ff80a3ceb3180e931e9f2f3ddc079a03c7ea88119fad52acf026fd",
+      "same_png_as_individually_reviewed_d90_run": true,
+      "referenceSha256": "3b65cf3bc8ff80a3ceb3180e931e9f2f3ddc079a03c7ea88119fad52acf026fd",
+      "observation": "The separately reconstructed dry frame visually restores the initial dry appearance, matching its exact pixel hash.",
+      "observationProvenance": "Individual local image inspection preserved in motocross-release-validation/gp41/visual-review.json; reused only after full-file SHA-256 equality."
+    },
+    {
+      "file": "gpr1-production-onboard.png",
+      "sha256": "cb223b625f2a88bb944682a030727ea6065fe73cfb2c59ca455d8df983858be3",
+      "same_png_as_individually_reviewed_d90_run": true,
+      "referenceSha256": "cb223b625f2a88bb944682a030727ea6065fe73cfb2c59ca455d8df983858be3",
+      "observation": "Gear 4, speed 151 and 12200 RPM are legible in the lower-center instrument. The translucent windscreen crosses the upper display area, while the forward view remains open and no own-rider helmet or torso enters it.",
+      "observationProvenance": "Individual local image inspection preserved in motocross-release-validation/gp41/visual-review.json; reused only after full-file SHA-256 equality."
+    },
+    {
+      "file": "gpr2-production-onboard.png",
+      "sha256": "ace4a8866c82744f53c9e507f47d22007d284a8ed0374c458bd5f6cebb49d633",
+      "same_png_as_individually_reviewed_d90_run": true,
+      "referenceSha256": "ace4a8866c82744f53c9e507f47d22007d284a8ed0374c458bd5f6cebb49d633",
+      "observation": "Gear 4, speed 151 and 12200 RPM remain readable through the translucent screen, with side cockpit structures at the margins and an open central forward view. The complete PNG and pixel hash match the preceding run before the GP-R2 chain addition.",
+      "observationProvenance": "Individual local image inspection preserved in motocross-release-validation/gp41/visual-review.json; reused only after full-file SHA-256 equality."
+    },
+    {
+      "file": "same-instance-weather-0.png",
+      "sha256": "3b65cf3bc8ff80a3ceb3180e931e9f2f3ddc079a03c7ea88119fad52acf026fd",
+      "same_png_as_individually_reviewed_d90_run": true,
+      "referenceSha256": "3b65cf3bc8ff80a3ceb3180e931e9f2f3ddc079a03c7ea88119fad52acf026fd",
+      "observation": "The retained-instance dry state matches the high-detail initial dry presentation, with stable pose and shadow placement.",
+      "observationProvenance": "Individual local image inspection preserved in motocross-release-validation/gp41/visual-review.json; reused only after full-file SHA-256 equality."
+    },
+    {
+      "file": "same-instance-weather-1.png",
+      "sha256": "39307269d0aa1a2a0c5c1f3db0d0bdab8cb6baac1848a7aa4783ed3c882303fb",
+      "same_png_as_individually_reviewed_d90_run": true,
+      "referenceSha256": "39307269d0aa1a2a0c5c1f3db0d0bdab8cb6baac1848a7aa4783ed3c882303fb",
+      "observation": "The same retained bike changes to the subtly darker/glossier wet materials without changing rider pose, components or shadow placement.",
+      "observationProvenance": "Individual local image inspection preserved in motocross-release-validation/gp41/visual-review.json; reused only after full-file SHA-256 equality."
+    },
+    {
+      "file": "same-instance-weather-2.png",
+      "sha256": "39307269d0aa1a2a0c5c1f3db0d0bdab8cb6baac1848a7aa4783ed3c882303fb",
+      "same_png_as_individually_reviewed_d90_run": true,
+      "referenceSha256": "39307269d0aa1a2a0c5c1f3db0d0bdab8cb6baac1848a7aa4783ed3c882303fb",
+      "observation": "The held wet frame is visually unchanged and has the exact same hash as the preceding wet frame.",
+      "observationProvenance": "Individual local image inspection preserved in motocross-release-validation/gp41/visual-review.json; reused only after full-file SHA-256 equality."
+    },
+    {
+      "file": "same-instance-weather-3.png",
+      "sha256": "3b65cf3bc8ff80a3ceb3180e931e9f2f3ddc079a03c7ea88119fad52acf026fd",
+      "same_png_as_individually_reviewed_d90_run": true,
+      "referenceSha256": "3b65cf3bc8ff80a3ceb3180e931e9f2f3ddc079a03c7ea88119fad52acf026fd",
+      "observation": "The rewind to dry returns the same instance to the original appearance and exact initial dry hash.",
+      "observationProvenance": "Individual local image inspection preserved in motocross-release-validation/gp41/visual-review.json; reused only after full-file SHA-256 equality."
+    },
+    {
+      "file": "sbk1000-production-onboard.png",
+      "sha256": "ef928c0e1bb717cf8338a5e8ba1b8e358729ff220b80e21f7e7aba281af9269b",
+      "same_png_as_individually_reviewed_d90_run": true,
+      "referenceSha256": "ef928c0e1bb717cf8338a5e8ba1b8e358729ff220b80e21f7e7aba281af9269b",
+      "observation": "Gear 4, speed 151 and 12200 RPM are legible; the windscreen edge crosses the upper display while its main digits remain clear. No rider helmet/torso obstructs the forward view.",
+      "observationProvenance": "Individual local image inspection preserved in motocross-release-validation/gp41/visual-review.json; reused only after full-file SHA-256 equality."
+    },
+    {
+      "file": "ss600-production-onboard.png",
+      "sha256": "cd11459689c5a2d917496c576993db4d16d0a7c50fe6c95f7f9c041c10799012",
+      "same_png_as_individually_reviewed_d90_run": true,
+      "referenceSha256": "cd11459689c5a2d917496c576993db4d16d0a7c50fe6c95f7f9c041c10799012",
+      "observation": "The lower-center instrument, RPM strip and brand/readouts remain legible below the broad translucent windscreen. The road-facing view is open.",
+      "observationProvenance": "Individual local image inspection preserved in motocross-release-validation/gp41/visual-review.json; reused only after full-file SHA-256 equality."
+    }
+  ],
+  "limits": [
+    "The three-quarter angle does not expose the complete chain route; focused CPU cases separately validate geometry, bounds, resource ownership and replay-driven phase.",
+    "The existing translucent windscreen softens some display contrast, especially on GP-R2, while all four production instruments pass their nine visibility samples.",
+    "LOD comparison captures place every model at the same close viewpoint; visibly simpler far-detail tires and gear are intentional comparison evidence."
+  ]
+}

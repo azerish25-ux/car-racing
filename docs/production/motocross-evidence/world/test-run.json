@@ -1,0 +1,75 @@
+{
+  "source_spec": "e2e/43-motocross-world.spec.ts",
+  "fixture": "Production OffroadScene and BikeShells; actual seeded eight-rider AI simulation at 10 seconds; prepared procedural materials plus resident photographed scans through the actual ScanStore/PBR loader; neutral component lighting and synthetic backing plane; not the full application scene or hardware FPS acceptance",
+  "build_identity": {
+    "version": 1,
+    "commit": null,
+    "fingerprint": "b8022a153cf429695c7f3af288504a9432b9371283f60a29190805b0034929c2"
+  },
+  "source_sha256": {
+    "src/rendering/ground/soil-splat.ts": "3fb333df1a8c3310f9890a6c5f61e11d5d703ac9541102aaf4e447898bc907df",
+    "src/rendering/offroad/terrain-view.ts": "5c394c05f2c42cc11a5f588f2722f33db72301fa923a539766b0ff1ff5a8301e",
+    "src/rendering/ground/scan-store.ts": "08776ae29989a77062dd2b9211351f3459b124d6594a7b1168bc3b365449f4bf",
+    "src/rendering/ground/ground-glsl.ts": "17c08242ba1f509552cbc275ecb480380e1ef89ba00367b4de6d6ec6c5687593",
+    "e2e/fixtures/motocross-world-review.ts": "f95bd1f016a2bf952da2434a2dda5c8815a2581d56850655d70c7a49f898a85a",
+    "e2e/43-motocross-world.spec.ts": "2b8638f5b27708307ba6c43715ae79fd9c1ed48b568310d77b25383fcef6920d"
+  },
+  "report_stats": {
+    "total": 1,
+    "expected": 1,
+    "unexpected": 0,
+    "flaky": 0,
+    "skipped": 0,
+    "ok": true
+  },
+  "report_duration_ms": 150704.12,
+  "tests": [
+    {
+      "title": "MX and SX production terrain loads photographed soil with correct macros and reversible wetness on WebGL2",
+      "duration": 148701,
+      "outcome": "expected",
+      "startTime": "2026-10-16T22:16:40.861Z"
+    }
+  ],
+  "captures": 8,
+  "render_samples": 16,
+  "compiled_soil_scans": {
+    "valley-ridge-mx": {
+      "active": true,
+      "macro": "forest",
+      "compiledMacroSampler": "apexScanForestC",
+      "slots": [
+        "meadow",
+        "dryEarth",
+        "forest",
+        "wetEarth",
+        "gravel"
+      ]
+    },
+    "arena-nord-sx": {
+      "active": true,
+      "macro": "dryEarth",
+      "compiledMacroSampler": "apexScanDryEarthC",
+      "slots": [
+        "meadow",
+        "dryEarth",
+        "forest"
+      ]
+    },
+    "all_required_slots_resident": true,
+    "failed_layers": [],
+    "observed_loaded_formats": [
+      "ktx2"
+    ]
+  },
+  "assertions": {
+    "all_samples_gl_error_zero": true,
+    "wet_pixels_differ_from_prepared": true,
+    "held_wet_pixels_equal_wet": true,
+    "rewound_pixels_equal_prepared": true,
+    "resources_stable_per_scene": true,
+    "source_snapshot_and_terrain_unchanged": true,
+    "eight_production_bike_rigs_per_scene": true,
+    "console_or_page_errors": []
+  }
+}

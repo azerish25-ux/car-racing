@@ -9,6 +9,7 @@ import { gpCoolingLouvers } from './gp-cooling-louvers.ts';
 import { GPChainDrive } from './gp-chain-drive.ts';
 import { bikeSurfaceMaps } from './bike-surface-detail.ts';
 import { BikeCockpit } from './bike-cockpit.ts';
+import { tcamFov } from './cockpit-framing.ts';
 import { tagWeatherSurface } from './weather-presentation.ts';
 import { carbonMaterial } from './materials.ts';
 import { sampleProfile } from './profile-sampling.ts';
@@ -647,6 +648,7 @@ export class BikeModel {
   private readonly rings: T.Mesh[] = [];
   private readonly gpChain?: GPChainDrive;
   private readonly cockpit?: BikeCockpit;
+  private disposed = false;
   constructor(
     readonly definition: VehicleDefinition,
     readonly id: number,
@@ -1791,12 +1793,13 @@ export class BikeModel {
     }
   }
   dispose() {
+    if (this.disposed) return;
+    this.disposed = true;
     this.cockpit?.dispose();
     this.rider.root.removeFromParent();
     this.rider.dispose();
     this.root.traverse((o) => {
-      // Instancing adds a GPU instance-matrix buffer beyond the mesh geometry.
-      // Release that buffer on race restarts / bike LOD teardown as well.
+      // Instance matrices are owned by the mesh, separately from its geometry.
       if (o instanceof T.InstancedMesh) o.dispose();
       if (o instanceof T.Mesh) o.geometry.dispose();
     });
@@ -1850,6 +1853,17 @@ export const BIKE_ONBOARD = Object.freeze({
   tail: [0, 0.78, -0.95] as const,
   tailPitch: -0.12,
 });
+/** Helmet-height motocross eye above the raised bars and number board. The
+ * GP windscreen socket sits directly behind the MX plate, obscuring the road. */
+export const MOTOCROSS_ONBOARD = Object.freeze({
+  eye: [0, 1.05, -0.4] as const,
+  pitch: -0.4,
+  fovExtra: 10,
+});
+/** Dirt and supermoto bars need their own lens; road and tail views are unchanged. */
+export function bikeOnboardFov(speed: number, definition?: VehicleDefinition, tail = false) {
+  return tcamFov(speed) + (!tail && definition?.bike?.offroad ? MOTOCROSS_ONBOARD.fovExtra : 0);
+}
 /** Per-entrant bike presentation over the snapshot pose (WP34). Formula and
  * touring representations are hidden for bike entrants; LODs follow lens-
  * corrected distance like the cars. */
@@ -1922,11 +1936,12 @@ export class BikeShells {
     entry.rig.dispose();
     entry.materials.dispose();
   }
-  /** Exclude only the followed rider's own helmet from first-person colour
-   * rendering. Restore every rider for tail, chase, replay and photo views. */
+  /** Exclude the followed rider's first-person self geometry. Restore every
+   * rider for tail, chase, replay and photo views. */
   setFirstPerson(follow: number) {
     for (const [id, entry] of this.entries)
-      for (const model of entry.levels) model.rider.setFirstPerson(id === follow);
+      for (const model of entry.levels)
+        model.rider.setFirstPerson(id === follow, !!entry.definition.bike?.offroad);
   }
   /** The service rig of entrant `id` (diagnostics and tests), if it is a bike. */
   serviceRig(id: number) {
@@ -2072,11 +2087,19 @@ export class BikeShells {
     rider.root.rotation.set(0, b[k + B.RIDER_HEADING], 0);
     rider.separated(phase, b[k + B.RIDER_TUMBLE], b[H.TIME]);
   }
-  /** Onboard camera for a followed bike, in world space: inside the screen
-   * bubble, or (`tail`) on the seat unit looking over the rider's back. */
-  onboard(root: T.Object3D, eye: T.Vector3, direction: T.Vector3, tail = false) {
-    const mount = tail ? BIKE_ONBOARD.tail : BIKE_ONBOARD.eye,
-      pitch = tail ? BIKE_ONBOARD.tailPitch : BIKE_ONBOARD.pitch;
+  /** Onboard camera for a followed bike in world space. Motocross uses the
+   * raised bar layout; road bikes retain their windscreen socket. */
+  onboard(
+    root: T.Object3D,
+    eye: T.Vector3,
+    direction: T.Vector3,
+    tail = false,
+    definition?: VehicleDefinition,
+  ) {
+    const mx = !!definition?.bike?.offroad,
+      profile = mx ? MOTOCROSS_ONBOARD : BIKE_ONBOARD,
+      mount = tail ? BIKE_ONBOARD.tail : profile.eye,
+      pitch = tail ? BIKE_ONBOARD.tailPitch : profile.pitch;
     eye.set(mount[0], mount[1], mount[2]).applyQuaternion(root.quaternion).add(root.position);
     direction.set(0, Math.sin(pitch), Math.cos(pitch)).applyQuaternion(root.quaternion);
   }

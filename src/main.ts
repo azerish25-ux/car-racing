@@ -9,6 +9,8 @@ import { GridPresentationClock } from './core/grid-presentation.ts';
 import { GridPresentationPanel } from './ui/grid-presentation.ts';
 import './ui/grid-presentation.css';
 import { menuPreview, shouldDrawMenu } from './rendering/menu-preview.ts';
+import { motocrossMenuPreview } from './rendering/offroad/menu-bike.ts';
+import { VEHICLES, vehicleAt } from './simulation/vehicles.ts';
 import { shouldDrawReplay } from './rendering/replay-presentation.ts';
 import { TabEvidence } from './ui/tab-evidence.ts';
 import { ReferenceSessionReview, referenceSessionPanel } from './ui/reference-session.ts';
@@ -50,7 +52,6 @@ import {
 import { meetingFromEvent } from './ui/offroad-meeting.ts';
 import { MeetingFlow } from './ui/meeting-flow.ts';
 import { F, H, R, RACE_BASE, carBase } from './simulation/protocol.ts';
-import { vehicleAt } from './simulation/vehicles.ts';
 import { safetyCarPose } from './rendering/studio/safety-car.ts';
 import { RacingRenderer } from './rendering/renderer.ts';
 import { Interface, shortTime } from './ui/interface.ts';
@@ -198,6 +199,9 @@ export class GameApp {
   private receivedAt = 0;
   private state: State = 'loading';
   private options: SessionOptions = { ...DEFAULT_OPTIONS };
+  /** Display-only menu snapshot. Keep worker frames intact for transfer-pool
+   * recycling, paused-tick receipts and the recorded session. */
+  private menuMachineFrame: Float32Array | null = null;
   private auto = false;
   private ers: 0 | 1 | 2 = 1;
   /** One-shot DRS and ERS overtake presses, sent with the next input sample. */
@@ -218,8 +222,8 @@ export class GameApp {
   private previousTime = 0;
   private renderedAt = 0;
   private renderedState: State | null = null;
-  private showroomFrame: Float32Array | null = null;
   private showroomMachine = 'apx01';
+  private menuPreviewPending = false;
   private menuCovered = false;
   private viewportRedrawPending = false;
   private presentationFrames = 0;
@@ -269,19 +273,11 @@ export class GameApp {
       replaySpeed: (value) => {
         this.replayClock.setRate(value);
       },
+      previewMachine: (id) => this.previewSelectedMachine(id),
       previewAudio: (settings) => {
         void this.audio
           .previewDriving(settings)
           .catch((error) => this.ui.toast(`Audio preview unavailable: ${String(error)}`));
-      },
-      previewMachine: (id) => {
-        const changed = this.showroomMachine !== id;
-        this.showroomMachine = id;
-        if (this.state !== 'menu' || !this.renderer) return;
-        if (!changed && this.showroomFrame) return;
-        this.showroomFrame = menuPreview(this.track, this.track.length - 32, id);
-        this.renderer.reset();
-        this.renderedState = null;
       },
       exportSetup: () =>
         downloadBlob(
@@ -463,6 +459,24 @@ export class GameApp {
     void this.boot(canvas).catch((e) => this.fail(e));
   }
   private canvas: HTMLCanvasElement | null = null;
+  private selectedMachinePreview() {
+    return VEHICLES[this.showroomMachine]?.classId === 'motocross'
+      ? motocrossMenuPreview(this.track, this.showroomMachine)
+      : menuPreview(this.track, this.track.length - 32, this.showroomMachine);
+  }
+  private previewSelectedMachine(id: string) {
+    const changed = this.showroomMachine !== id;
+    this.showroomMachine = id;
+    this.menuPreviewPending ||= changed;
+    if (this.state !== 'menu' || !this.renderer || this.savingSettings) return;
+    if (!this.menuPreviewPending && this.menuMachineFrame) return;
+    // One display-only pose supports each vehicle family while worker-owned
+    // snapshots retain their pause receipts and transferable-buffer identity.
+    this.menuMachineFrame = this.selectedMachinePreview();
+    this.menuPreviewPending = false;
+    this.renderer.reset();
+    this.renderedState = null;
+  }
   /** Build (or rebuild for another circuit) the complete presentation. */
   private async buildRenderer(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -554,8 +568,8 @@ export class GameApp {
     document.documentElement.dataset.colorblind = String(this.settings.colorblind);
     document.documentElement.dataset.highContrast = String(this.settings.highContrast);
     this.applyCommunication(this.settings);
-    const preview = menuPreview(this.track, this.track.length - 32, this.showroomMachine);
-    this.showroomFrame = preview;
+    const preview = this.selectedMachinePreview();
+    this.menuMachineFrame = preview;
     this.current = preview;
     this.previous = preview;
     this.state = 'menu';
@@ -654,7 +668,7 @@ export class GameApp {
     // The festival shared the GL context: restore the circuit presentation.
     this.renderer?.setQuality(this.settings.quality, this.settings.graphics);
     this.state = 'menu';
-    this.showroomFrame = menuPreview(this.track, this.track.length - 32, this.showroomMachine);
+    this.menuMachineFrame = this.selectedMachinePreview();
     this.renderedState = null;
     this.ui.ready();
     this.ui.showMode('menu');
@@ -723,6 +737,7 @@ export class GameApp {
       // A career session may race a saved per-vehicle preset (src/career/economy.ts).
       setup: { ...(this.career.sessionSetup() ?? this.settings.setup) },
     };
+    this.menuMachineFrame = null;
     this.ui.options = this.options;
     this.auto = false;
     this.ers = 1;
@@ -1037,10 +1052,9 @@ export class GameApp {
     let a = this.previous,
       b = this.current,
       alpha = clamp((time - this.receivedAt) / Math.max(8, (b[H.TIME] - a[H.TIME]) * 1000), 0, 1);
-    if (this.state === 'menu' && this.showroomFrame) {
-      a = this.showroomFrame;
-      b = this.showroomFrame;
-      alpha = 1;
+    if (this.state === 'menu' && this.menuMachineFrame) {
+      a = b = this.menuMachineFrame;
+      alpha = 0;
     }
     if (this.state === 'replay' && this.replay && this.replayA && this.replayB) {
       const targetTime = this.replayClock.target(
@@ -2110,7 +2124,7 @@ export class GameApp {
         this.state = 'menu';
         // A circuit change replaces the Track. Rebuild the selected showroom
         // pose against this venue instead of retaining coordinates from the last one.
-        this.showroomFrame = menuPreview(this.track, this.track.length - 32, this.showroomMachine);
+        this.menuMachineFrame = this.selectedMachinePreview();
         this.programme.stop();
         this.post({ type: 'pause', value: true });
         this.input.setEnabled(false);
@@ -2118,6 +2132,7 @@ export class GameApp {
         this.ui.showMode('menu');
         this.renderer?.reset();
         this.renderer?.setLivery(this.team.livery);
+        this.previewSelectedMachine((this.ui.get('vehicle') as HTMLSelectElement).value);
         break;
       case 'restart':
         // A meeting's running session reruns as that session of the meeting;
@@ -2590,6 +2605,9 @@ export class GameApp {
       if (!cancelled()) this.fail(error);
     } finally {
       this.savingSettings = false;
+      // A machine selection made while graphics preparation held the old
+      // showroom can now publish its deferred display-only pose.
+      if (!cancelled()) this.previewSelectedMachine(this.showroomMachine);
       form?.removeAttribute('aria-busy');
       if (submit) {
         submit.disabled = false;
@@ -2699,6 +2717,16 @@ export class GameApp {
         reason: this.performanceCapture.reason,
       },
       auto: this.auto,
+      menuPreview:
+        this.state === 'menu' && this.menuMachineFrame
+          ? {
+              machine: vehicleAt(
+                Math.round(this.menuMachineFrame[carBase(0) + RACE_BASE + R.VEHICLE]),
+              ).id,
+              time: this.menuMachineFrame[H.TIME],
+              cars: this.menuMachineFrame[H.CARS],
+            }
+          : null,
       timeTrial: {
         ghostLap: this.records.player?.lap.lapTime ?? 0,
         ghostVisible: this.renderer?.ghostVisible() ?? false,

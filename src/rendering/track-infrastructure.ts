@@ -13,6 +13,7 @@ import { installVenueFinish } from './venue-materials.ts';
 import { grassApronOffset } from './ground-profile.ts';
 import { inStandFootprint } from './grandstand.ts';
 import { tracksideRigs } from './trackside.ts';
+import { isMotocrossBroadcast, motocrossCameraGround } from './offroad/broadcast-sites.ts';
 
 export interface TrackDetailSite {
   kind: 'drain' | 'marshal' | 'utility' | 'camera';
@@ -128,7 +129,9 @@ export function trackInfrastructurePlan(track: Track): TrackInfrastructurePlan {
     const near = trackPoint(),
       lateral = track.nearest(rig.position.x, rig.position.z, near),
       side: -1 | 1 = lateral < 0 ? -1 : 1,
-      ground = groundHeight(track, rig.position.x, rig.position.z);
+      ground = isMotocrossBroadcast(track)
+        ? motocrossCameraGround(track, rig.position.x, rig.position.z)
+        : groundHeight(track, rig.position.x, rig.position.z);
     return {
       kind: 'camera' as const,
       s: near.s,
@@ -329,10 +332,41 @@ export function buildTrackInfrastructure(
     }
     const cameraHeight = Math.max(1.2, (site.cameraY ?? site.y + 3) - site.y);
     if (site.supported) {
-      box(g, concrete, 0, 0.08, 0, 1.3, 0.16, 1.3);
+      const base = box(g, concrete, 0, 0.08, 0, 1.3, 0.16, 1.3);
+      let supportFoot = 0;
+      if (isMotocrossBroadcast(track)) {
+        const c = Math.cos(site.yaw),
+          s = Math.sin(site.yaw),
+          ground = (x: number, z: number) =>
+            motocrossCameraGround(track, site.x + c * x + s * z, site.z - s * x + c * z) - site.y,
+          positions = base.geometry.getAttribute('position');
+        let top = 0;
+        for (const x of [-0.65, 0.65])
+          for (const z of [-0.65, 0.65]) top = Math.max(top, ground(x, z));
+        // A level top with four terrain-conformed feet keeps the existing
+        // compact base seated on soil; no floating pad on a neighboring jump.
+        for (let i = 0; i < positions.count; i++)
+          positions.setY(
+            i,
+            positions.getY(i) > 0 ? top + 0.08 : ground(positions.getX(i), positions.getZ(i)) - 0.1,
+          );
+        base.geometry.computeVertexNormals();
+        base.geometry.computeBoundingBox();
+        base.geometry.computeBoundingSphere();
+        supportFoot = ground(site.side * 0.7, 0) - 0.02;
+      }
       // Mount hardware sits outside/behind the actual optical viewpoint.
       // The old eye intersected both the body and platform handrail.
-      box(g, steel, site.side * 0.7, cameraHeight * 0.5, 0, 0.12, cameraHeight, 0.12);
+      box(
+        g,
+        steel,
+        site.side * 0.7,
+        (cameraHeight + supportFoot) * 0.5,
+        0,
+        0.12,
+        cameraHeight - supportFoot,
+        0.12,
+      );
       box(g, steel, site.side * 0.7, cameraHeight - 0.5, 0, 1.15, 0.12, 1.0);
       for (const z of [-0.47, 0.47])
         box(g, steel, site.side * 0.95, cameraHeight - 0.25, z, 0.65, 0.35, 0.055);

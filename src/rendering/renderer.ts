@@ -36,7 +36,7 @@ import { detailDistance, feedDetailDistance } from './view-detail.ts';
 import { readRaceReviewFrame } from './race-review.ts';
 import { GhostCar } from './ghost-car.ts';
 import { SafetyCarView } from './studio/safety-car.ts';
-import { LightPools } from './studio/light-pools.ts';
+import type { LightPools } from './studio/light-pools.ts';
 import { setBrandLedLighting } from './studio/trackside-branding.ts';
 import { REAR_LAMP, REAR_LAMP_PHYSICAL_GAIN } from './rear-signal.ts';
 import { setAerialExtinction } from './studio/aerial-perspective.ts';
@@ -66,7 +66,7 @@ import { GeometrySurvey } from './geometry-survey.ts';
 import { DrivingGuide } from './driving-guide.ts';
 import { GridPreparationView } from './grid-preparation.ts';
 import { PhotoStage, ScenePresentationScope } from './photo-stage.ts';
-import { VenueLighting } from './venue-lighting.ts';
+import { buildVenueLighting, type VenueLighting } from './venue-lighting.ts';
 import {
   photoGrade,
   photoLens,
@@ -90,6 +90,7 @@ import {
 } from './daylight.ts';
 import { prewarmSky, skySunKey } from './sky-light.ts';
 import { PhotoSky } from './assets/photo-sky.ts';
+import { disposeTextureLoaders } from './assets/texture-loader.ts';
 import { scannedGround } from './ground/scan-store.ts';
 import { skyPaletteFor } from './assets/sky-catalogue.ts';
 import { aerialFogColor } from './studio/aerial-perspective.ts';
@@ -101,6 +102,7 @@ import type { FrameMetrics } from '../core/performance.ts';
 import type { BuildProgress } from './build-queue.ts';
 import { TracksideDirector } from './trackside.ts';
 import { CameraClock, InertialCamera, ViewOrientation } from './camera-dynamics.ts';
+import { MotocrossChaseCamera } from './offroad/chase-camera.ts';
 import { ReflectionSystem } from './reflections.ts';
 import { ShadowProxies } from './shadow-proxies.ts';
 import { FarShadow } from './far-shadow.ts';
@@ -142,8 +144,12 @@ import { AudioViewTracker } from '../audio/spatial.ts';
 import { Track, trackPoint } from '../simulation/track.ts';
 import {
   CAR_STRIDE,
+  B,
+  BIKE_BASE,
   F,
   H,
+  O,
+  OFFROAD_BASE,
   R,
   RACE_BASE,
   W,
@@ -165,9 +171,8 @@ import {
   type CabinLayout,
 } from './vehicle-bodies/cabin.ts';
 import { bikeFirstPersonView } from './bike-cockpit.ts';
-import { BIKE_CHASE_ROLL, BikeShells } from './bike.ts';
+import { BIKE_CHASE_ROLL, BikeShells, bikeOnboardFov } from './bike.ts';
 import { motorcycleChase } from './motorcycle-camera.ts';
-import { B, BIKE_BASE } from '../simulation/protocol.ts';
 export type CameraMode = 'chase' | 'cockpit' | 'pod' | 'trackside';
 /** Chase rig in metres, m/s and vertical-FOV degrees. */
 // P5 retuned to its own target (KPI 10 iteration): 1.65 m / 4.9 m framed the
@@ -185,6 +190,15 @@ export const CHASE = Object.freeze({
   lookLift: -0.25,
   fov: 50,
   fovGain: 4,
+});
+/** Existing MX/SM menu framing keeps the standing rider and raised bars
+ * within the original showroom lens. Road motorcycles use BIKE_SHOWROOM. */
+const MOTOCROSS_SHOWROOM = Object.freeze({
+  ...SHOWROOM,
+  radius: 4.7,
+  height: 1.25,
+  aim: 0.95,
+  shift: 0.72,
 });
 /** Chase rig while the followed car stands in its pit box (pit phases 2-5, or
  * 1 and 6 below `speed` m/s): raised and pulled back over the crew, moved to
@@ -327,6 +341,7 @@ export class RacingRenderer {
   private cameraClock = new CameraClock();
   private inertia = new InertialCamera();
   private viewOrientation = new ViewOrientation();
+  private motocrossCamera = new MotocrossChaseCamera();
   private reflection = Object.assign(new ReflectionSystem(), {
     // Periodic probe refreshes render one cube face per frame (six frames
     // per refresh) instead of all six in one frame.
@@ -403,8 +418,9 @@ export class RacingRenderer {
     this.gpuFrames = new GpuFrameGate(context);
     this.atmosphere = new LocalAtmosphere(track);
     this.guide = new DrivingGuide(track);
-    this.venueLighting = new VenueLighting(track);
-    this.lightPools = new LightPools(track);
+    const lighting = buildVenueLighting(track);
+    this.venueLighting = lighting.venueLighting;
+    this.lightPools = lighting.lightPools;
     this.scene.add(
       this.lightPools.root,
       this.guide.mesh,
@@ -1067,6 +1083,7 @@ export class RacingRenderer {
     this.initialized = false;
     this.inertia.reset();
     this.viewOrientation.reset();
+    this.motocrossCamera.reset();
     this.trackside.reset();
     this.lookX = 0;
     this.lookY = 0;
@@ -1084,6 +1101,7 @@ export class RacingRenderer {
     this.initialized = false;
     this.inertia.reset();
     this.viewOrientation.reset();
+    this.motocrossCamera.reset();
     this.trackside.reset();
     this.effectPlayback.reset();
     this.sampleCount = 0;
@@ -1120,6 +1138,7 @@ export class RacingRenderer {
       this.composition.reset();
       this.inertia.reset();
       this.viewOrientation.reset();
+      this.motocrossCamera.reset();
       this.trackside.reset();
       this.audioView.reset();
       this.initialized = false;
@@ -1129,15 +1148,21 @@ export class RacingRenderer {
     const car = this.cars[this.follow],
       speed = b[o + F.SPEED];
     const bikeFollow = !!this.bikeShells && BikeShells.isBike(b, this.follow);
+    const followedDefinition = vehicleAt(Math.round(presented[o + RACE_BASE + R.VEHICLE])),
+      motocrossFollow =
+        bikeFollow &&
+        followedDefinition.classId === 'motocross' &&
+        !!followedDefinition.bike?.offroad;
     this.circuit.setMotorcyclePresentation(bikeFollow);
-    const bikeView = bikeFollow
-      ? motorcycleChase(
-          presented[o + F.SPEED],
-          presented[o + F.BRAKE],
-          presented[o + BIKE_BASE + B.LEAN],
-          this.reducedMotion,
-        )
-      : null;
+    const bikeView =
+      bikeFollow && !motocrossFollow
+        ? motorcycleChase(
+            presented[o + F.SPEED],
+            presented[o + F.BRAKE],
+            presented[o + BIKE_BASE + B.LEAN],
+            this.reducedMotion,
+          )
+        : null;
     const chase = bikeView ?? CHASE;
     // The followed car always uses the near mesh. Its articulated subject is
     // needed to solve this frame's camera; every car is posed exactly once.
@@ -1265,17 +1290,17 @@ export class RacingRenderer {
       this.camera.fov = photoFov(this.photo.focalLength);
     } else if (menu && !this.photo) {
       // D29 showroom: low eye, long lens, slow orbit; the car sits right of the menu.
-      const showroom = bikeFollow ? BIKE_SHOWROOM : SHOWROOM;
-      const angle = showroom.angle + Math.sin(this.orbitTime * showroom.rate) * showroom.sway;
+      // Dirt bikes retain their taller rider framing; road bikes use the
+      // R2 motorcycle composition and cars retain the original showroom.
+      const dirtBikeMenu = bikeFollow && !!followedDefinition.bike?.offroad,
+        showroom = dirtBikeMenu ? MOTOCROSS_SHOWROOM : bikeFollow ? BIKE_SHOWROOM : SHOWROOM,
+        angle = showroom.angle + Math.sin(this.orbitTime * showroom.rate) * showroom.sway;
       this.desired
         .set(Math.sin(angle) * showroom.radius, 0, Math.cos(angle) * showroom.radius)
         .applyQuaternion(car.root.quaternion)
         .add(this.target);
       const road =
-        car.root.position.y -
-        (bikeFollow
-          ? vehicleAt(Math.round(b[o + RACE_BASE + R.VEHICLE])).bike!.cgHeight
-          : MENU_CAR_DATUM);
+        car.root.position.y - (bikeFollow ? followedDefinition.bike!.cgHeight : MENU_CAR_DATUM);
       this.desired.y = road + showroom.height;
       this.gaze.copy(this.target);
       this.gaze.y = road + showroom.aim;
@@ -1343,9 +1368,33 @@ export class RacingRenderer {
         this.gaze.copy(this.desired).addScaledVector(this.direction, 40);
         // A bike's onboard cameras are mounted on the bike and roll with it.
         if (bikeFollow) {
-          this.bikeShells.onboard(car.root, this.desired, this.direction, cameraMode === 'pod');
+          this.bikeShells.onboard(
+            car.root,
+            this.desired,
+            this.direction,
+            cameraMode === 'pod',
+            followedDefinition,
+          );
           this.gaze.copy(this.desired).addScaledVector(this.direction, 40);
         }
+      } else if (motocrossFollow) {
+        if (!this.initialized) this.motocrossCamera.reset();
+        const offroad = o + OFFROAD_BASE;
+        this.motocrossCamera.update(cameraDt, this.circuit.track, {
+          anchor: this.target,
+          heading: Math.atan2(this.direction.x, this.direction.z),
+          s: presented[o + F.S],
+          speed: presented[o + F.SPEED],
+          cgHeight: followedDefinition.bike!.cgHeight,
+          lean: presented[o + BIKE_BASE + B.LEAN],
+          airborne: presented[offroad + O.AIRBORNE] > 0.5,
+          airTime: presented[offroad + O.AIR_TIME],
+          landingSpeed: presented[offroad + O.LANDING_SPEED],
+          bottom: presented[offroad + O.BOTTOM],
+          motion: this.shake,
+        });
+        this.desired.copy(this.motocrossCamera.eye);
+        this.gaze.copy(this.motocrossCamera.gaze);
       } else {
         // Close, low chase framing: the car fills more of the lower centre and
         // the horizon sits nearer mid-frame, as in modern broadcast-style games.
@@ -1410,7 +1459,7 @@ export class RacingRenderer {
       }
       this.camera.fov =
         bikeFollow && seated
-          ? tcamFov(speed)
+          ? bikeOnboardFov(speed, followedDefinition, cameraMode === 'pod')
           : cabin && seated
             ? cameraMode === 'cockpit'
               ? cabinFov(cabin, this.graphics.cockpitFov)
@@ -1418,7 +1467,9 @@ export class RacingRenderer {
             : cameraMode === 'cockpit' && car.suppliedPlayer
               ? cockpitFov(this.graphics.cockpitFov)
               : cameraMode === 'chase'
-                ? chase.fov + Math.min(chase.fovGain, Math.abs(speed) * 0.06)
+                ? motocrossFollow
+                  ? this.motocrossCamera.fov
+                  : chase.fov + Math.min(chase.fovGain, Math.abs(speed) * 0.06)
                 : tcamFov(speed);
     }
     if (!this.initialized || cameraMode !== 'chase' || menu || this.photo || pregame) {
@@ -1442,6 +1493,20 @@ export class RacingRenderer {
         this.camera.position.addScaledVector(this.velocity, h);
       }
     }
+    if (
+      motocrossFollow &&
+      cameraMode === 'chase' &&
+      this.photo?.view !== 'orbit' &&
+      !menu &&
+      !pregame
+    ) {
+      this.motocrossCamera.clearTerrain(
+        this.camera.position,
+        this.target,
+        this.circuit.track,
+        followedDefinition.bike!.cgHeight,
+      );
+    }
     this.previousAnchor.copy(this.target);
     this.camera.up.set(0, 1, 0);
     if (
@@ -1455,9 +1520,11 @@ export class RacingRenderer {
     if (bikeFollow && (!menu || !!this.photo) && (!this.photo || this.photo.view !== 'orbit')) {
       // Chase rolls partly with the bike's lean; onboard views roll fully.
       this.temporary.set(0, 1, 0).applyQuaternion(car.root.quaternion);
-      if (cameraMode === 'chase')
-        this.camera.up.lerp(this.temporary, this.reducedMotion ? 0 : BIKE_CHASE_ROLL).normalize();
-      else if (cameraMode === 'cockpit' || cameraMode === 'pod')
+      if (cameraMode === 'chase') {
+        if (motocrossFollow && !pregame) this.camera.up.copy(this.motocrossCamera.up);
+        else
+          this.camera.up.lerp(this.temporary, this.reducedMotion ? 0 : BIKE_CHASE_ROLL).normalize();
+      } else if (cameraMode === 'cockpit' || cameraMode === 'pod')
         this.camera.up.copy(this.temporary);
     }
     this.camera.lookAt(this.gaze);
@@ -2286,6 +2353,9 @@ export class RacingRenderer {
     if (this.disposed) return;
     this.disposed = true;
     scannedGround.detach(this.renderer);
+    // Stop new decoder work now; pending ground roles finish before their
+    // worker pool is released, so resident sets survive a circuit switch.
+    void disposeTextureLoaders(this.renderer);
     // Restore immutable source images before any asset owner closes its bitmap.
     this.textures.dispose();
     // Each kit removes its owned root before the generic scene disposer, so
@@ -2327,6 +2397,8 @@ export class RacingRenderer {
     this.reflection.dispose();
     this.shadowProxies.dispose();
     this.farShadow.dispose();
+    // LightShadow owns these targets; WebGLRenderer.dispose() does not.
+    this.sun.shadow.dispose();
     this.gpuTimer.dispose();
     this.gpuFrames.dispose();
     this.motionBlur.dispose();
@@ -2341,7 +2413,7 @@ export class RacingRenderer {
     this.grade.dispose();
     this.ultra.dispose();
     const geometries = new Set<T.BufferGeometry>(),
-      materials = new Set<T.Material>(),
+      materials = this.circuit.disposalMaterials(),
       textures = new Set<T.Texture>();
     const skeletons = new Set<T.Skeleton>();
     this.scene.traverse((o) => {
@@ -2357,10 +2429,12 @@ export class RacingRenderer {
         }
         for (const m of Array.isArray(o.material) ? o.material : [o.material]) {
           materials.add(m);
-          for (const value of Object.values(m)) if (value instanceof T.Texture) textures.add(value);
         }
       }
     });
+    for (const material of materials)
+      for (const value of Object.values(material))
+        if (value instanceof T.Texture) textures.add(value);
     for (const skeleton of skeletons) skeleton.dispose();
     for (const g of geometries) g.dispose();
     for (const m of materials) m.dispose();

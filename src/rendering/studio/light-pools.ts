@@ -158,7 +158,10 @@ export class LightPools {
   readonly heads: T.InstancedMesh;
   readonly poles: T.InstancedMesh;
   private readonly headMaterial: T.MeshBasicMaterial;
-  constructor(track: Track) {
+  constructor(
+    track: Track,
+    private readonly roadHardware = true,
+  ) {
     this.root.name = 'Floodlight pole rows (D28)';
     this.sites = poolLampSites(track);
     const H = LIGHT_POOLS.height,
@@ -209,7 +212,9 @@ export class LightPools {
     const strength = POOL_STRENGTH[mode];
     lightPoolUniforms.lightPoolStrength.value = strength;
     lightPoolUniforms.lightPoolKeyShare.value = RIBBON_KEY_SHARE[mode];
-    this.root.visible = mode === 'night';
+    // Indoor MX lights are mounted on the arena roof. Preserve the analytic
+    // soil illumination without exposing these roadside poles in tight lanes.
+    this.root.visible = mode === 'night' && this.roadHardware !== false;
   }
 }
 

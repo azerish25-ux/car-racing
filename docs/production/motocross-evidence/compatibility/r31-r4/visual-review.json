@@ -1,0 +1,136 @@
+{
+  "schemaVersion": 1,
+  "scope": "Every listed original PNG from the final sequential renderer checkpoint was individually displayed and reviewed by the release owner. These are component fixtures, not complete motocross playthrough images.",
+  "sourceFilesSha256": "acfc1a799a933ff9c135046aee17daa741366549f7808b8091200accf69f874d",
+  "buildFingerprintSha256": "a5a1575e169f6475439722adeb3ac6ae569bc91b6d604f14e465faf7eccc6de4",
+  "testSource": "e2e/41-motogp-reference.spec.ts",
+  "testRunSha256": "c5fa3e29d5426be9026deb4b3edbd3bc2d6db789d5be11cc788bd9beb6ca2ce4",
+  "images": [
+    {
+      "file": "0-gpr1-high-dry.png",
+      "reviewed": true,
+      "method": "individual-display",
+      "observation": "The GP-R1 high model shows a complete red fairing, rider and striped helmet, winglets, fork, wheels, visible radial caliper and separated brake rotor surfaces. The front-quarter silhouette and ground shadow are coherent.",
+      "sha256": "f9186b154ad3ee864eb59f7c4e8e0360634728dec09a84df168218bb01bf8135",
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "file": "1-gpr1-mid-dry.png",
+      "reviewed": true,
+      "method": "individual-display",
+      "observation": "The mid model keeps the red fairing profile, rider pose, helmet striping, fork and wheel silhouettes. Brake and small body details are reduced as expected for this LOD.",
+      "sha256": "fcf42f5f06b4f1fd4d5b26efd78b62c00e4b111d4f5c137134a40f68f847bf7d",
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "file": "2-gpr1-far-dry.png",
+      "reviewed": true,
+      "method": "individual-display",
+      "observation": "The forced far model retains the motorcycle and tucked-rider silhouette with clearly simplified wheels, helmet and suit details. Its close presentation is a controlled LOD inspection, not the normal far-distance framing.",
+      "sha256": "ab98b1d068a908625a26bf2fce6a84a089b917cda6583425a0611229c8e8302f",
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "file": "3-gpr2-high-dry.png",
+      "reviewed": true,
+      "method": "individual-display",
+      "observation": "The GP-R2 high model has its distinct red upper and dark lower fairing, visible number, rider, fork and caliper. The different tail and side-body shapes remain intact.",
+      "sha256": "9ce0f68c0dde005e4a9de0edf8a0d476c8557bde5a2845d4e9f7bacf2b0e8b1c",
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "file": "4-gpr1-high-wet.png",
+      "reviewed": true,
+      "method": "individual-display",
+      "observation": "The wet GP-R1 retains the same complete rider, fairing, wheel and brake assembly. The controlled material change is subtle in this neutral fixture; no claim of full wet-track lighting is made.",
+      "sha256": "0e30c97c95dee15f501527702975022b1cb3d915c25eac1747b8183072ba8568",
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "file": "5-gpr1-high-dry.png",
+      "reviewed": true,
+      "method": "individual-display",
+      "observation": "The restored dry GP-R1 returns to the first high-model appearance, including the fairing highlights, rider striping and ground shadow. Its PNG hash matches the initial dry capture.",
+      "sha256": "f9186b154ad3ee864eb59f7c4e8e0360634728dec09a84df168218bb01bf8135",
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "file": "gpr1-production-onboard.png",
+      "reviewed": true,
+      "method": "individual-display",
+      "observation": "The GP-R1 production camera has an unobstructed horizon above the windscreen. Gear 4, speed 151 and the RPM readout are legible on the dashboard; the screen edge overlaps its upper label area.",
+      "sha256": "ea5df6f905c8e9b6610b0309ccf06831f3aa452b2281453ccaa9f0d66e36e5f5",
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "file": "gpr2-production-onboard.png",
+      "reviewed": true,
+      "method": "individual-display",
+      "observation": "The GP-R2 camera retains a clear central forward horizon and its distinct windscreen and side-frame arrangement. Gear and speed remain readable through the translucent screen.",
+      "sha256": "c03cfc8c2e35d946ffa97b12bbb26acba9feffa664ae06f66f480c2568360bc0",
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "file": "sbk1000-production-onboard.png",
+      "reviewed": true,
+      "method": "individual-display",
+      "observation": "The SBK1000 production camera shows the dashboard below a clear forward horizon. Gear 4, speed 151 and RPM remain readable, with the windscreen passing over the upper dash region.",
+      "sha256": "94ac7040834effa02516125d69ae8a651ecb665a1a4c93b31afa78ffbe352900",
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "file": "ss600-production-onboard.png",
+      "reviewed": true,
+      "method": "individual-display",
+      "observation": "The SS600 dashboard, shift lights, gear, speed and RPM are legible below the forward view. Its screen top sits above the display without a rider head or torso obscuring the central corridor.",
+      "sha256": "433e999e0580bce13ca4b1f02f0e5209e70d3d3d7bdb152ae75af12100056ddf",
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "file": "same-instance-weather-0.png",
+      "reviewed": true,
+      "method": "individual-display",
+      "observation": "The initial same-instance weather capture shows the complete dry high model and rider with the original shadow and red fairing highlights.",
+      "sha256": "f9186b154ad3ee864eb59f7c4e8e0360634728dec09a84df168218bb01bf8135",
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "file": "same-instance-weather-1.png",
+      "reviewed": true,
+      "method": "individual-display",
+      "observation": "The same model in the wet state retains all exterior parts and its coherent shadow. The material change does not displace the fairing, brake parts or rider.",
+      "sha256": "0e30c97c95dee15f501527702975022b1cb3d915c25eac1747b8183072ba8568",
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "file": "same-instance-weather-2.png",
+      "reviewed": true,
+      "method": "individual-display",
+      "observation": "The held wet frame repeats the previous wet model and shadow without visible drift. Its stored PNG hash is identical to the first wet frame.",
+      "sha256": "0e30c97c95dee15f501527702975022b1cb3d915c25eac1747b8183072ba8568",
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "file": "same-instance-weather-3.png",
+      "reviewed": true,
+      "method": "individual-display",
+      "observation": "The dry rewind restores the original same-instance exterior and shadow. Its stored PNG hash is identical to the initial dry frame.",
+      "sha256": "f9186b154ad3ee864eb59f7c4e8e0360634728dec09a84df168218bb01bf8135",
+      "width": 1280,
+      "height": 800
+    }
+  ]
+}

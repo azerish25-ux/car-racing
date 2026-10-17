@@ -1,0 +1,233 @@
+{
+  "schemaVersion": 1,
+  "status": "passed production journey after MX/SX camera-support clearance correction",
+  "sourceSpec": "e2e/45-motocross-gameplay.spec.ts",
+  "command": "npx playwright test -c playwright.motocross.config.ts e2e/45-motocross-gameplay.spec.ts",
+  "scope": "Normal production application and simulation worker; visible menu controls and player bindings; read-only apexDiagnostics observations.",
+  "source": {
+    "capturedAt": "2026-10-17T00:40:48.124896+00:00",
+    "integratedParent": "31626200d4a79e8173f70d587a14c09176d0aa7f",
+    "sourceCount": 667,
+    "sourceSha256": "7733bb95ae33dc962eb2e6d07b2d3480dac3276a50753733268a68b22f500d36",
+    "sourceHashEncoding": "SHA-256 of UTF-8 compact JSON (separators comma/colon), with lexicographically sorted path keys; values are file SHA-256 digests.",
+    "buildIdentity": {
+      "version": 1,
+      "commit": null,
+      "fingerprint": "82b5018336f9fb2c9ae1c2fcc7d11d1c3011209ec2e1c8471be5111c033c52e8"
+    }
+  },
+  "validatedContextFiles": {
+    "package.json": "2529988dea1291dbfd77c6583633e2c0d4d05e811077442494797a5986d6b6f2",
+    "package-lock.json": "d85b97d2e51497b62414087966db13b740b174fe4b96663d29447644948d2969",
+    "index.html": "6247c948ffbaa20365a8727e0c91f4ad28500af65193b6daf8c81a785e1442a8",
+    "tsconfig.json": "3c60d83dfec002bd9a4294aac40331089021b7ded79a18f3a45b20cd1b55d0f9",
+    "vite.config.ts": "c56e9f2ce6f34efb3fa3be988f7a78a643e9609732cfbc677732d6a4067079a0",
+    "playwright.motocross.config.ts": "8afb9e56c937fbae63190455d95980d925e6a8ed4df725a2ae4f4eb41f655e29",
+    "e2e/41-motogp-reference.spec.ts": "945e831e0d6b46ca702bd55f845760c4a62cc423f4b3c2cfd0d5dcc57cb6bdea",
+    "e2e/fixtures/motogp-reference-review.ts": "673461f9c5ee64887150ebfef43284459af2f2f6a31bc4f2c3fb8aa7fe78a3c1",
+    "e2e/45-motocross-gameplay.spec.ts": "b562de7d502e6cdbdb72d84f904f8c6db0f7893e66948924d5a7670f2cad7161",
+    "e2e/menu-startup.ts": "7ec07c39e911e9d4c48b15007639e13ff439d6bd0187b955c1ed097e0c4c1b5a",
+    "scripts/offroad-calibration.ts": "a994af9827d5587dd015533290a5725d458b80e2c176ef74915a73de08672718",
+    "scripts/offroad-races.ts": "f117567b26e82941a756e55ec77a1bae5300ad442c72050ca836e6c82ba41420"
+  },
+  "validatedMainBundles": {
+    "dist/assets/index-D7OeIayi.js": {
+      "sha256": "03d86ac745bbfd44491362fba46cedb4fa7ac059dc26500e44a10b5bf0bd5ebe",
+      "bytes": 14704268
+    },
+    "dist/assets/index-DsWC2xfY.css": {
+      "sha256": "e01e630a0b8da84506eae8d15f348dadf7f9b582c2bda5d6d4958e106a7e4e91",
+      "bytes": 74661
+    }
+  },
+  "reporter": {
+    "startUtc": "2026-10-17T00:44:11.803000Z",
+    "endUtc": "2026-10-17T00:55:37.349460Z",
+    "durationMs": 685546.46,
+    "stats": {
+      "total": 1,
+      "expected": 1,
+      "unexpected": 0,
+      "flaky": 0,
+      "skipped": 0,
+      "ok": true
+    },
+    "errors": [],
+    "metadata": {
+      "actualWorkers": 1
+    }
+  },
+  "test": {
+    "title": "real motocross player entry, eight-rider gate, riding, cameras, pause and venue switch",
+    "outcome": "expected",
+    "status": "passed",
+    "startUtc": "2026-10-17T00:44:13.664000Z",
+    "endUtc": "2026-10-17T00:55:15.539000Z",
+    "durationMs": 661875,
+    "errors": [],
+    "pageAndConsoleErrorAssertion": "passed: collected pageerror and console error messages equal []"
+  },
+  "attachments": [
+    {
+      "name": "valley-ridge-mx-actual-menu.png",
+      "contentType": "image/png",
+      "bytes": 1032437,
+      "sha256": "ff7dc728a65b66b062881ba2893410f181afe4f3c07ea0969460c9fea3809de9",
+      "retainedHereAs": "valley-ridge-mx-actual-menu.png",
+      "fullCheckpointRetained": true,
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "name": "valley-ridge-mx-actual-chase.png",
+      "contentType": "image/png",
+      "bytes": 1410774,
+      "sha256": "a3234766b75b94f74c619a337b0fa33933e7004eeec861a08fe8be1bb7ee9cb0",
+      "retainedHereAs": "valley-ridge-mx-actual-chase.png",
+      "fullCheckpointRetained": true,
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "name": "valley-ridge-mx-actual-onboard.png",
+      "contentType": "image/png",
+      "bytes": 1516641,
+      "sha256": "7446e3f4e97ddf474cd6b9d936ff5ba22c58f6a0bc4b6eb661b41bad82acf2ce",
+      "retainedHereAs": "valley-ridge-mx-actual-onboard.png",
+      "fullCheckpointRetained": true,
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "name": "valley-ridge-mx-actual-pause.png",
+      "contentType": "image/png",
+      "bytes": 366364,
+      "sha256": "e88d42a756e5b98b3dd14cdfee6b3f6cf4c3b60c228375a7b95cffd255996640",
+      "retainedHereAs": "valley-ridge-mx-actual-pause.png",
+      "fullCheckpointRetained": true,
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "name": "valley-ridge-mx-journey.json",
+      "contentType": "application/json",
+      "bytes": 106745,
+      "sha256": "946a5a3b5d25237f9e72c19287cdda24bc7e97338637b6d89d93e57f1281bae6",
+      "retainedHereAs": "valley-ridge-mx-journey.json",
+      "fullCheckpointRetained": true
+    },
+    {
+      "name": "arena-nord-sx-actual-menu.png",
+      "contentType": "image/png",
+      "bytes": 1083203,
+      "sha256": "94ecea4032e337199e8be21541ea40d7900f1406a8cd98faea67be73243ac171",
+      "retainedHereAs": "arena-nord-sx-actual-menu.png",
+      "fullCheckpointRetained": true,
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "name": "arena-nord-sx-actual-chase.png",
+      "contentType": "image/png",
+      "bytes": 1178995,
+      "sha256": "e04d3a8bde7d4e98e092c7f9e60a83ce3ebd593b31f2e8f967d663ddcb3ffc6c",
+      "retainedHereAs": "arena-nord-sx-actual-chase.png",
+      "fullCheckpointRetained": true,
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "name": "arena-nord-sx-actual-onboard.png",
+      "contentType": "image/png",
+      "bytes": 1157724,
+      "sha256": "f38b5fea4110a7c7edb4d95b82066907f05e993c5502e4edded5308f9e1510c5",
+      "retainedHereAs": "arena-nord-sx-actual-onboard.png",
+      "fullCheckpointRetained": true,
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "name": "arena-nord-sx-actual-pause.png",
+      "contentType": "image/png",
+      "bytes": 324692,
+      "sha256": "1cf74068e8882823c3e42afbe2ed6177376c165a61a1c881db92872d30666355",
+      "retainedHereAs": "arena-nord-sx-actual-pause.png",
+      "fullCheckpointRetained": true,
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "name": "arena-nord-sx-journey.json",
+      "contentType": "application/json",
+      "bytes": 112830,
+      "sha256": "a18f7baceea24c5863d7204b2b37676dc07e382f80841f3f580b6796d1643aeb",
+      "retainedHereAs": "arena-nord-sx-journey.json",
+      "fullCheckpointRetained": true
+    },
+    {
+      "name": "motocross-production-journey.json",
+      "contentType": "application/json",
+      "bytes": 260504,
+      "sha256": "b6386df8e8258b4212ef8340c88670b1a46ef8ac0a3cd213c932349b26aef8dd",
+      "retainedHereAs": "motocross-production-journey.json",
+      "fullCheckpointRetained": true
+    },
+    {
+      "name": "stdout",
+      "contentType": "text/plain",
+      "bytes": 1074,
+      "sha256": "f229992ad0ae517e6472308b82953323f8358f4984fff67288ff45b2bceaf936",
+      "retainedHereAs": "journey-actions.log",
+      "fullCheckpointRetained": true
+    }
+  ],
+  "originalAttachmentCount": 12,
+  "originalScreenshotCount": 8,
+  "retainedScreenshotCount": 8,
+  "actions": [
+    "Load the normal application and wait for its menu.",
+    "Select OUTDOOR MX / mx450, then STADIUM SX / mx250, using the visible menu and vehicle selector.",
+    "Wait for the selected-machine showroom frame and capture the actual menu.",
+    "Click ENTER CIRCUIT and wait for the complete production preparation gate.",
+    "Verify eight initialized machine rows via vehicleIndex, held tick 0, manual control and no safety-car phase.",
+    "Click GO TO THE GATE; hold W until real player speed exceeds 3 m/s with nonzero throttle and AI disabled.",
+    "Release W, then press G to explicitly enable the built-in AI demonstration.",
+    "Observe signed wrap-aware course progress, persisted qualifying airtime, actual touchdown telemetry and presentation-time advancement.",
+    "Capture chase; press C, verify cockpit mode and capture onboard.",
+    "Press Escape, verify the acknowledged worker pause and held tick, and capture pause.",
+    "Click RETURN TO PADDOCK and verify menu/presentation clocks reset before proceeding."
+  ],
+  "readOnlyDiagnosticsLimits": [
+    "Read-only diagnostic hooks do not change the worker, vehicle state, terrain, camera, race progress or rendering settings.",
+    "The longer course demonstration explicitly enables AI after a separate real player-throttle check; it is not continuous manual riding.",
+    "Persisted airtime and grounded landing telemetry establish a qualifying flight even when slow software presentation misses the airborne edge.",
+    "The observation checkpoint and later captures occur at different times; the JSON does not identify every screenshot as the touchdown frame.",
+    "Full-race classification, physical GPU FPS, load-time certification and all-venue visual completeness are separate from this two-venue journey."
+  ],
+  "visualReview": {
+    "owner": "root",
+    "file": "visual-review.json",
+    "sha256": "0e04c38ffee94da1e79090b0bfc8e00ce372071be46ecabf84484c07ab1bee03",
+    "reviewedImageCount": 8,
+    "allImageHashesAndDimensionsMatchCheckpoint": true,
+    "scope": "Separate root-owned per-image observations; this packager does not create visual observations or infer broader approval."
+  },
+  "trace": {
+    "configuredMode": "retain-on-failure",
+    "retainedForThisPassingTest": false,
+    "note": "Passing-run HTML/decoded reports and original attachments are preserved; no trace.zip was emitted."
+  },
+  "fullCheckpoint": "motocross-release-validation/main45-camera-clearance",
+  "sourceIntegrity": {
+    "validatedSourceRecord": "motocross-release-validation/main45-camera-clearance/validated-source.json",
+    "validatedSourceRecordSha256": "6e33625753b7e8d8f4232edcca5279891e5ca349f08318a3521f67eb6fcaf56c",
+    "afterSourceRecord": "motocross-release-validation/main45-camera-clearance/after-source.json",
+    "afterSourceRecordSha256": "ebb2d8452d05fb0d5ef7bd8464f7d877d1dd471530256a87a3fcae1296ede02e",
+    "afterRecordCapturedAt": "2026-10-17T01:32:09.102769+00:00",
+    "productionSourceFiles": 667,
+    "verificationContextFiles": 12,
+    "sourceInventoryAndAllHashesUnchanged": true,
+    "allVerificationContextHashesUnchanged": true,
+    "buildIdentityAndMainBundlesUnchanged": true
+  }
+}

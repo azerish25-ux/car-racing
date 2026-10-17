@@ -1,0 +1,39 @@
+{
+  "status": "passed",
+  "sourceSha256": "acfc1a799a933ff9c135046aee17daa741366549f7808b8091200accf69f874d",
+  "sourceCount": 670,
+  "buildIdentity": {
+    "version": 1,
+    "commit": null,
+    "fingerprint": "a5a1575e169f6475439722adeb3ac6ae569bc91b6d604f14e465faf7eccc6de4"
+  },
+  "checks": [
+    {
+      "command": "npm run build",
+      "exitCode": 0,
+      "typescript": "passed",
+      "viteModules": 652,
+      "viteDurationSeconds": 18.83,
+      "mainJavaScriptBytes": 14709309,
+      "mainJavaScriptGzipKB": 4390.8,
+      "log": "final-build.log",
+      "warning": "The existing large-chunk warning remains."
+    },
+    {
+      "command": "npm run lint",
+      "exitCode": 0,
+      "scope": "Complete src, tests, e2e and scripts tree",
+      "log": "final-lint.log"
+    },
+    {
+      "command": "npm run validate:content",
+      "exitCode": 0,
+      "result": "Content valid",
+      "log": "final-content.log"
+    }
+  ],
+  "sourceStableAcrossBuild": true,
+  "contextFilesStableAcrossBuild": 12,
+  "scope": "Latest combined source through d4dd3e5: retained motocross implementation and camera clearance, incoming GP R3.1/R4 geometry, braking, glow, paint and shared crowd detail, with the caliper kept inside original model budgets. Earlier complete motocross journey and full race evidence retain their actual source identities. New GP, dirt-model and crowd renderer checks are recorded separately.",
+  "previousCameraClearanceBuild": "camera-clearance-build/README.md"
+}

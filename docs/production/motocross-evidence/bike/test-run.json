@@ -1,0 +1,55 @@
+{
+  "source_spec": "e2e/42-motocross-bike.spec.ts",
+  "command": "npx playwright test -c playwright.motocross.config.ts e2e/42-motocross-bike.spec.ts",
+  "report_duration_ms": 48743.233,
+  "scope": "Production motocross model fixture after integrating concurrent MotoGP R2; controlled scene, not a full-race performance measurement",
+  "source": {
+    "capturedAt": "2026-10-16T22:47:45.140996+00:00",
+    "integratedParent": "6e93a4ef452764f2ee0b69797817f91a908d897e",
+    "sourceCount": 655,
+    "sourceSha256": "307df6de70e0cfd3df261023245a72102e25d4e4b04d290fa8bab888b970379c",
+    "buildIdentity": {
+      "version": 1,
+      "commit": null,
+      "fingerprint": "85c14e6784442ab806d98b4d4fb0559f02affe8a92d9894ec010ed081b7f97f9"
+    }
+  },
+  "tests": [
+    {
+      "title": "Motocross reference R2: production bikes, reachable riding poses and reversible mud on WebGL2",
+      "duration": 46842,
+      "outcome": "expected",
+      "startTime": "2026-10-16T22:48:16.290Z"
+    }
+  ],
+  "captures": 21,
+  "visually_inspected_captures": [
+    "braced-front.png",
+    "helmet-and-gear.png",
+    "inside-foot-dab.png",
+    "mx250-far.png",
+    "mx250-high.png",
+    "mx250-mid.png",
+    "mx250-production-onboard-0.png",
+    "mx250-production-onboard-1.png",
+    "mx250-production-onboard-2.png",
+    "mx450-far.png",
+    "mx450-high.png",
+    "mx450-mid.png",
+    "mx450-production-onboard-0.png",
+    "mx450-production-onboard-1.png",
+    "mx450-production-onboard-2.png",
+    "rear-components.png",
+    "same-instance-mud-0.png",
+    "same-instance-mud-1.png",
+    "same-instance-mud-2.png",
+    "same-instance-mud-3.png",
+    "standing-side.png"
+  ],
+  "previous_run_comparison": {
+    "same_backend": true,
+    "matching_samples": 21,
+    "matching_fields": ["hash", "triangles", "calls", "resources", "bounds", "contacts", "cockpit"],
+    "scope": "Within this environment only; hashes are not cross-platform screenshot baselines"
+  }
+}

@@ -52,11 +52,23 @@ function ktx2(renderer: T.WebGLRenderer) {
   }
   return loader;
 }
-/** Dispose the shared transcoder workers of a renderer (on its disposal). */
+const loaderDisposals = new WeakMap<T.WebGLRenderer, Promise<void>>();
+/** Close a renderer's cache to new requests, then release its transcoder pool
+ * after every current role (including format fallbacks) settles. Terminating
+ * Three's workers earlier drops their pending resolvers and can strand the
+ * shared ground store. Source images stay owned by any resident texture clones. */
 export function disposeTextureLoaders(renderer: T.WebGLRenderer) {
-  ktx2Loaders.get(renderer)?.dispose();
-  ktx2Loaders.delete(renderer);
-  sources.delete(renderer);
+  let disposal = loaderDisposals.get(renderer);
+  if (!disposal) {
+    disposal = Promise.allSettled(sources.get(renderer)?.values() ?? []).then(() => {
+      // A fallback may have created the KTX2 pool while the roles drained.
+      ktx2Loaders.get(renderer)?.dispose();
+      ktx2Loaders.delete(renderer);
+      sources.delete(renderer);
+    });
+    loaderDisposals.set(renderer, disposal);
+  }
+  return disposal;
 }
 
 const sources = new WeakMap<
@@ -72,6 +84,7 @@ async function loadFile(renderer: T.WebGLRenderer, file: ShippedFile): Promise<T
 }
 
 function loadRole(renderer: T.WebGLRenderer, files: ShippedFile[], prefer: 'ktx2' | 'webp') {
+  if (loaderDisposals.has(renderer)) return Promise.resolve(null);
   let cache = sources.get(renderer);
   if (!cache) sources.set(renderer, (cache = new Map()));
   const key = `${files[0].path}:${prefer}`;

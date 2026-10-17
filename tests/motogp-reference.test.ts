@@ -216,7 +216,9 @@ describe('100-reference GP presentation', () => {
       let count = 0;
       model.root.traverse((o) => {
         if (o instanceof T.Mesh)
-          count += (o.geometry.index?.count ?? o.geometry.getAttribute('position').count) / 3;
+          count +=
+            ((o.geometry.index?.count ?? o.geometry.getAttribute('position').count) / 3) *
+            (o instanceof T.InstancedMesh ? o.count : 1);
       });
       counts.push(count);
       for (const lean of [-1.0, 0, 1.0]) {
@@ -251,5 +253,29 @@ describe('100-reference GP presentation', () => {
     expect(counts[0]).toBeGreaterThan(counts[1]);
     expect(counts[1]).toBeGreaterThan(counts[2]);
     materials.dispose();
+  });
+  it('releases both GP chain instance buffers exactly once when a model is disposed twice', () => {
+    const materials = new BikeMaterials(0),
+      model = new BikeModel(VEHICLES.gpr1, 0, 'high', materials, true),
+      instances: T.InstancedMesh[] = [];
+    model.root.traverse((object) => {
+      if (object instanceof T.InstancedMesh) instances.push(object);
+    });
+    expect(instances).toHaveLength(2);
+    const disposed = instances.map(() => vi.fn()),
+      geometryDisposed = instances.map(() => vi.fn()),
+      sharedMaterialDisposed = vi.fn();
+    instances.forEach((mesh, index) => {
+      mesh.addEventListener('dispose', disposed[index]);
+      mesh.geometry.addEventListener('dispose', geometryDisposed[index]);
+    });
+    materials.steel.addEventListener('dispose', sharedMaterialDisposed);
+    model.dispose();
+    model.dispose();
+    for (const listener of [...disposed, ...geometryDisposed])
+      expect(listener).toHaveBeenCalledTimes(1);
+    expect(sharedMaterialDisposed).not.toHaveBeenCalled();
+    materials.dispose();
+    expect(sharedMaterialDisposed).toHaveBeenCalledTimes(1);
   });
 });

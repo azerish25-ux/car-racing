@@ -1,0 +1,437 @@
+{
+  "schemaVersion": 1,
+  "sourceSpec": "e2e/42-motocross-bike.spec.ts",
+  "scope": "Production DirtBikeModel WebGL2 component fixture after R3.1/R4 integration. Vite bundles production imports into a controlled test page; this is separate from the full game journey and is not a physical-hardware performance measurement.",
+  "individualReproductionCommand": "npx playwright test -c playwright.motocross.config.ts e2e/42-motocross-bike.spec.ts",
+  "actualExecution": {
+    "scope": "MX42 ran third in the sequential single-worker crowd11 / GP41 / MX42 process.",
+    "cwd": "/workspace/scratch/ce74d2c3df38/Experiment-3",
+    "combinedCommand": "npx playwright test -c playwright.motocross.config.ts e2e/11-phase27c.spec.ts e2e/41-motogp-reference.spec.ts e2e/42-motocross-bike.spec.ts --grep 'actual crowd colour/depth shaders freeze and rewind exactly|GP reference R1.1:|Motocross reference R2:'",
+    "combinedCommandProvenance": "Exact command supplied by the executing root; the three selected cases, order and results are retained in the original combined report and console log.",
+    "combinedReporterStartTimeMs": 1792201887900,
+    "combinedReporterDurationMs": 157599.91499999998,
+    "combinedReporterStats": {
+      "total": 3,
+      "expected": 3,
+      "unexpected": 0,
+      "flaky": 0,
+      "skipped": 0,
+      "ok": true
+    },
+    "combinedReporterErrors": [],
+    "report": "combined-report.json",
+    "log": "combined-run.log"
+  },
+  "test": {
+    "spec": "42-motocross-bike.spec.ts",
+    "title": "Motocross reference R2: production bikes, reachable riding poses and reversible mud on WebGL2",
+    "outcome": "expected",
+    "status": "passed",
+    "durationMs": 40767,
+    "resultDurationMs": 40767,
+    "startTime": "2026-10-17T01:53:24.628Z",
+    "errors": [],
+    "attachments": 42,
+    "pngs": 21,
+    "directory": "/workspace/scratch/ce74d2c3df38/motocross-release-validation/r4-renderer-regression/mx42",
+    "retry": 0
+  },
+  "source": {
+    "capturedAt": "2026-10-17T01:49:51.422845+00:00",
+    "integratedParent": "d4dd3e541433a0eb7513b0b9124c932911a64bdb",
+    "sourceCount": 670,
+    "sourceSha256": "acfc1a799a933ff9c135046aee17daa741366549f7808b8091200accf69f874d",
+    "sourceHashEncoding": "SHA-256 of UTF-8 compact JSON (separators comma/colon), with lexicographically sorted path keys; values are file SHA-256 digests.",
+    "buildIdentity": {
+      "version": 1,
+      "commit": null,
+      "fingerprint": "a5a1575e169f6475439722adeb3ac6ae569bc91b6d604f14e465faf7eccc6de4"
+    },
+    "mainBundles": {
+      "dist/assets/index-DGfXH7Dq.js": {
+        "sha256": "23e7ac1fd34e4ca84a36986c5971a1197a372178924320751b773ca95a961937",
+        "bytes": 14709309
+      },
+      "dist/assets/index-DsWC2xfY.css": {
+        "sha256": "e01e630a0b8da84506eae8d15f348dadf7f9b582c2bda5d6d4958e106a7e4e91",
+        "bytes": 74661
+      }
+    }
+  },
+  "verificationSourceHashes": {
+    "e2e/42-motocross-bike.spec.ts": "ded9787c13e965a75c6496d3ab96d5bbae336b338011449516b0b2a16f059717",
+    "e2e/fixtures/motocross-bike-review.ts": "fff515c445209a1f46f28c395279e53edd226de79698ad98321a478f601364b0",
+    "e2e/fixtures/motocross-cockpit-contract.ts": "4433e2cadbfe000aeff6e773ee9a7e868604bcadf62a5dbaac3b8ba91cdc2c08"
+  },
+  "verificationSourceHashScope": "Current spec and two fixture helper hashes recorded during packaging for reproduction. These three e2e files are separate from the 670 production-source and 12 context-file inventories.",
+  "sourceIntegrity": {
+    "sourceFiles": 670,
+    "contextFiles": 12,
+    "sourceSha256": "acfc1a799a933ff9c135046aee17daa741366549f7808b8091200accf69f874d",
+    "buildFingerprint": "a5a1575e169f6475439722adeb3ac6ae569bc91b6d604f14e465faf7eccc6de4",
+    "beforeRecordSha256": "3f384bde598dd74ecc34c45260b69d36153366af3caf0bfcd60558778a612d35",
+    "afterRecordSha256": "6bcfbbfff5cda3683a6ea353354de2abf6d2626b47618b8caf1968157f0974ba",
+    "sourceAndContextAndBuildAndBundlesUnchanged": true,
+    "beforeCapturedAt": "2026-10-17T01:49:51.422845+00:00",
+    "afterCapturedAt": "2026-10-17T01:57:04.533870+00:00",
+    "beforeRecord": "before-source.json",
+    "afterRecord": "after-source.json",
+    "method": "Complete equality of all 670 source hashes, 12 context hashes, build identity and both main-bundle hashes across the before/after capture. Packaging independently recomputed the dictionary digest and attachment hashes."
+  },
+  "backend": {
+    "path": "environment.json",
+    "sha256": "f1537375721c6a9664c673b9545e728c2aff3d053640088891e5324577a93ccf",
+    "bytes": 369,
+    "softwareRendererDetected": true,
+    "physicalHardwareValidated": false
+  },
+  "nativeReports": {
+    "test-report.json": {
+      "path": "test-report.json",
+      "sha256": "3267ff2aa2f2c3e79147edaf05d642408d73308480081108f6c2f0b15a2d7379",
+      "bytes": 336051
+    },
+    "combined-report.json": {
+      "path": "combined-report.json",
+      "sha256": "5f9d82ba0985c5d579c3f0d46e8ee2b082d29f54f161ef4fac00e08c5acf7369",
+      "bytes": 16925
+    },
+    "attachment-manifest.json": {
+      "path": "attachment-manifest.json",
+      "sha256": "f2018758b47e3b95c915383ef760727c9a4a183e55bb09be3db2279efd8b5006",
+      "bytes": 13858
+    },
+    "before-source.json": {
+      "path": "before-source.json",
+      "sha256": "3f384bde598dd74ecc34c45260b69d36153366af3caf0bfcd60558778a612d35",
+      "bytes": 74407
+    },
+    "after-source.json": {
+      "path": "after-source.json",
+      "sha256": "6bcfbbfff5cda3683a6ea353354de2abf6d2626b47618b8caf1968157f0974ba",
+      "bytes": 74407
+    }
+  },
+  "attachments": {
+    "total": 42,
+    "pngs": 21,
+    "jsons": 21,
+    "manifest": "attachment-manifest.json",
+    "allOriginalBytesPreserved": true,
+    "layout": "Original PNG filenames are at this directory root. Original metrics filenames are in raw-metrics/. The original manifest is preserved without rewriting its checkpoint-relative file fields."
+  },
+  "pageAndConsoleErrors": [],
+  "errorCheck": "The completed spec explicitly asserts its accumulated pageerror/console.error list equals []; every one of the 21 metrics records has glError zero and finiteGeometry true.",
+  "budgets": {
+    "renderCalls": {
+      "operator": "<",
+      "limit": 200
+    },
+    "constructedModelTriangles": {
+      "operator": "<",
+      "limit": 130000
+    },
+    "minimumVertexYMetres": {
+      "operator": ">",
+      "limit": -0.006
+    },
+    "handAndAnkleErrorMetres": {
+      "operator": "<",
+      "limit": 0.03
+    },
+    "allCasesPassed": true,
+    "thresholdsRelaxed": false
+  },
+  "triangleMetricDefinition": "triangles counts geometry in the constructed motocross bike/rider model. calls is WebGLRenderer.info.render.calls for this view. These are distinct from full-world cost and from measured physical-GPU frame rate.",
+  "lod": {
+    "mx250": {
+      "high": {
+        "triangles": 74562,
+        "calls": 64,
+        "resources": {
+          "geometries": 76,
+          "textures": 16,
+          "programs": 12
+        }
+      },
+      "mid": {
+        "triangles": 44649,
+        "calls": 60,
+        "resources": {
+          "geometries": 72,
+          "textures": 16,
+          "programs": 12
+        }
+      },
+      "far": {
+        "triangles": 11195,
+        "calls": 45,
+        "resources": {
+          "geometries": 57,
+          "textures": 10,
+          "programs": 12
+        }
+      }
+    },
+    "mx450": {
+      "high": {
+        "triangles": 74562,
+        "calls": 64,
+        "resources": {
+          "geometries": 76,
+          "textures": 16,
+          "programs": 12
+        }
+      },
+      "mid": {
+        "triangles": 44649,
+        "calls": 60,
+        "resources": {
+          "geometries": 72,
+          "textures": 16,
+          "programs": 12
+        }
+      },
+      "far": {
+        "triangles": 11195,
+        "calls": 45,
+        "resources": {
+          "geometries": 57,
+          "textures": 10,
+          "programs": 12
+        }
+      }
+    }
+  },
+  "onboardContract": {
+    "mx250-production-onboard-0": {
+      "headVisible": false,
+      "torsoVisible": false,
+      "handsVisible": [
+        true,
+        true
+      ],
+      "sleeveEntries": [
+        [
+          -1.191031700326108,
+          -2.9051473970022874,
+          0.8349572920531734
+        ],
+        [
+          1.191031700326108,
+          -2.9051473970022874,
+          0.8349572920531734
+        ]
+      ],
+      "visibleControls": 3,
+      "clearForwardSamples": 15,
+      "calls": 29,
+      "resources": {
+        "geometries": 69,
+        "textures": 12,
+        "programs": 11
+      },
+      "allControlProjectionsInsideBounds": true,
+      "maxHandErrorM": 0.019999999999999987,
+      "maxAnkleErrorM": 0.020000000000000046
+    },
+    "mx250-production-onboard-1": {
+      "headVisible": false,
+      "torsoVisible": false,
+      "handsVisible": [
+        true,
+        true
+      ],
+      "sleeveEntries": [
+        [
+          -1.232695509736005,
+          -3.212442383891272,
+          0.8213222635178477
+        ],
+        [
+          1.0903998118603402,
+          -2.5101764122129744,
+          0.8468861737708389
+        ]
+      ],
+      "visibleControls": 3,
+      "clearForwardSamples": 15,
+      "calls": 29,
+      "resources": {
+        "geometries": 69,
+        "textures": 12,
+        "programs": 11
+      },
+      "allControlProjectionsInsideBounds": true,
+      "maxHandErrorM": 0.02000000000000005,
+      "maxAnkleErrorM": 0.020000000000000014
+    },
+    "mx250-production-onboard-2": {
+      "headVisible": false,
+      "torsoVisible": false,
+      "handsVisible": [
+        true,
+        true
+      ],
+      "sleeveEntries": [
+        [
+          -1.048163940752826,
+          -2.351573314330994,
+          0.8522596284453252
+        ],
+        [
+          1.2592115483856996,
+          -3.402592628321711,
+          0.8138216004241382
+        ]
+      ],
+      "visibleControls": 3,
+      "clearForwardSamples": 15,
+      "calls": 30,
+      "resources": {
+        "geometries": 69,
+        "textures": 12,
+        "programs": 11
+      },
+      "allControlProjectionsInsideBounds": true,
+      "maxHandErrorM": 0.020000000000000014,
+      "maxAnkleErrorM": 0.020000000000000046
+    },
+    "mx450-production-onboard-0": {
+      "headVisible": false,
+      "torsoVisible": false,
+      "handsVisible": [
+        true,
+        true
+      ],
+      "sleeveEntries": [
+        [
+          -1.1783567802488473,
+          -2.9115478914829,
+          0.8367216555778404
+        ],
+        [
+          1.1783567802488473,
+          -2.9115478914829,
+          0.8367216555778404
+        ]
+      ],
+      "visibleControls": 3,
+      "clearForwardSamples": 15,
+      "calls": 30,
+      "resources": {
+        "geometries": 69,
+        "textures": 12,
+        "programs": 11
+      },
+      "allControlProjectionsInsideBounds": true,
+      "maxHandErrorM": 0.019999999999999987,
+      "maxAnkleErrorM": 0.020000000000000046
+    },
+    "mx450-production-onboard-1": {
+      "headVisible": false,
+      "torsoVisible": false,
+      "handsVisible": [
+        true,
+        true
+      ],
+      "sleeveEntries": [
+        [
+          -1.2185107531390507,
+          -3.2148927542247643,
+          0.8233869605493526
+        ],
+        [
+          1.0796224739194256,
+          -2.5192222028806546,
+          0.8484069420857088
+        ]
+      ],
+      "visibleControls": 3,
+      "clearForwardSamples": 15,
+      "calls": 30,
+      "resources": {
+        "geometries": 69,
+        "textures": 12,
+        "programs": 11
+      },
+      "allControlProjectionsInsideBounds": true,
+      "maxHandErrorM": 0.02000000000000005,
+      "maxAnkleErrorM": 0.020000000000000014
+    },
+    "mx450-production-onboard-2": {
+      "headVisible": false,
+      "torsoVisible": false,
+      "handsVisible": [
+        true,
+        true
+      ],
+      "sleeveEntries": [
+        [
+          -1.0381624053390812,
+          -2.361667566788916,
+          0.8536765198932647
+        ],
+        [
+          1.2441232038023227,
+          -3.4026748442002765,
+          0.8160614499188673
+        ]
+      ],
+      "visibleControls": 3,
+      "clearForwardSamples": 15,
+      "calls": 31,
+      "resources": {
+        "geometries": 69,
+        "textures": 12,
+        "programs": 11
+      },
+      "allControlProjectionsInsideBounds": true,
+      "maxHandErrorM": 0.019999999999999983,
+      "maxAnkleErrorM": 0.020000000000000046
+    }
+  },
+  "sameInstanceMud": {
+    "sameInstance": true,
+    "instance": "c112cde4-eb4e-4bed-bdea-1677080f611e",
+    "hashes": [
+      1036874890,
+      1438494632,
+      1438494632,
+      1036874890
+    ],
+    "resources": {
+      "geometries": 76,
+      "textures": 16,
+      "programs": 12
+    },
+    "allResourcesEqual": true,
+    "mudChangesPixels": true,
+    "heldMudIdentical": true,
+    "clearedMudRestoresDry": true,
+    "mudValues": [
+      0,
+      0.9,
+      0.9,
+      0
+    ],
+    "wetnessValues": [
+      0,
+      0.8800000000000001,
+      0.8800000000000001,
+      0
+    ]
+  },
+  "continuityEvidence": "continuity-comparison.json",
+  "visualReview": {
+    "file": "visual-review.json",
+    "owner": "root",
+    "capturedImages": 21,
+    "scope": "Individual display observations are maintained separately by root. Numeric and byte continuity in this package is a separate comparison, not a claim of observation reuse."
+  },
+  "limitations": [
+    "The actual full-game main45 records keep their original source/build identity and are not relabelled as this component run.",
+    "SwiftShader and this controlled scene do not establish physical-device frame rate or console visual parity.",
+    "Component poses do not reproduce live full-track traffic, world lighting, dust volumes or an entire riding session."
+  ]
+}

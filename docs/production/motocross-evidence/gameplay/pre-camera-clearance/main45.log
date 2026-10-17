@@ -1,0 +1,40 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+[2m[WebServer] [22mnpm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+[2m[WebServer] [22m(node:155775) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+Observed swiftshader test backend: ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)
+
+Running 1 test using 1 worker
+
+(node:155864) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:155864) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[MX journey] Selecting valley-ridge-mx and mx450
+[MX journey] Captured valley-ridge-mx-actual-menu.png
+[MX journey] Preparing the complete valley-ridge-mx session
+[MX journey] valley-ridge-mx is prepared at the held eight-rider gate
+[MX journey] valley-ridge-mx has real course progress, flight and touchdown
+[MX journey] Captured valley-ridge-mx-actual-chase.png
+[MX journey] Captured valley-ridge-mx-actual-onboard.png
+[MX journey] Captured valley-ridge-mx-actual-pause.png
+[MX journey] valley-ridge-mx returned to its selected-machine paddock
+[MX journey] Selecting arena-nord-sx and mx250
+[MX journey] Captured arena-nord-sx-actual-menu.png
+[MX journey] Preparing the complete arena-nord-sx session
+[MX journey] arena-nord-sx is prepared at the held eight-rider gate
+[MX journey] arena-nord-sx has real course progress, flight and touchdown
+[MX journey] Captured arena-nord-sx-actual-chase.png
+[MX journey] Captured arena-nord-sx-actual-onboard.png
+[MX journey] Captured arena-nord-sx-actual-pause.png
+[MX journey] arena-nord-sx returned to its selected-machine paddock
+  ✓  1 e2e/45-motocross-gameplay.spec.ts:10:1 › real motocross player entry, eight-rider gate, riding, cameras, pause and venue switch (9.3m)
+
+  Slow test file: e2e/45-motocross-gameplay.spec.ts (9.3m)
+  Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+  1 passed (9.4m)
+
+To open last HTML report run:
+[36m[39m
+[36m  npx playwright show-report playwright-report/motocross[39m
+[36m[39m

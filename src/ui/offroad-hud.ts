@@ -1,9 +1,22 @@
 import type { SessionOptions } from '../simulation/config.ts';
 import { rulesetFor } from '../simulation/events.ts';
 import { offroadCourse } from '../simulation/offroad/venues.ts';
-import { carBase, H, O, OFFROAD_BASE } from '../simulation/protocol.ts';
+import {
+  carBase,
+  H,
+  F,
+  R,
+  RACE_BASE,
+  B,
+  BIKE_BASE,
+  O,
+  OFFROAD_BASE,
+} from '../simulation/protocol.ts';
 import { PHASE } from '../simulation/race.ts';
 import type { Track } from '../simulation/track.ts';
+import { clamp, mod } from '../core/math.ts';
+import { vehicleAt } from '../simulation/vehicles.ts';
+import { assessMotocrossLanding } from '../simulation/offroad/riding-feedback.ts';
 
 function clock(seconds: number) {
   if (!(seconds >= 0)) return '—';
@@ -19,9 +32,17 @@ function clock(seconds: number) {
  * start and the running stage time. Hidden on paved circuits. */
 export class OffroadHud {
   private element: HTMLElement | null = null;
+  private ride: HTMLElement | null = null;
+  private rideFields: HTMLElement[] = [];
   private airUntil = 0;
   private airTime = 0;
+  private landedAirTime = 0;
   private wasAirborne = false;
+  private lastTrack: Track | null = null;
+  private lastTime = -Infinity;
+  private landingAt = -Infinity;
+  private landingRough = false;
+  private landing: ReturnType<typeof assessMotocrossLanding> | null = null;
   constructor(private readonly hud: HTMLElement) {}
   private node() {
     if (!this.element) {
@@ -35,6 +56,116 @@ export class OffroadHud {
       this.hud.appendChild(this.element);
     }
     return this.element;
+  }
+  private rideNode() {
+    if (!this.ride) {
+      this.ride = document.createElement('section');
+      this.ride.className = 'mx-ride-hud';
+      this.ride.setAttribute('aria-label', 'Motocross jump and landing information');
+      // The numeric airtime changes continuously, so this is deliberately not
+      // a live region. Only the discrete start/holeshot line uses role=status.
+      this.ride.innerHTML =
+        '<div class="mx-ride-heading"><span></span><span></span></div><div class="mx-ride-main"><strong></strong><b></b></div><div class="mx-ride-note"></div><div class="mx-ride-progress"><i></i></div>';
+      this.rideFields = Array.from(
+        this.ride.querySelectorAll<HTMLElement>(
+          '.mx-ride-heading span, .mx-ride-main strong, .mx-ride-main b, .mx-ride-note',
+        ),
+      );
+      this.hud.append(this.ride);
+    }
+    return this.ride;
+  }
+  private updateRide(
+    frame: Float32Array,
+    track: Track,
+    options: SessionOptions,
+    airborne: boolean,
+  ) {
+    const course = offroadCourse(track.circuit)!;
+    const node = this.rideNode(),
+      base = carBase(0),
+      o = base + OFFROAD_BASE;
+    const s = mod(frame[base + F.S], track.length),
+      time = frame[H.TIME];
+    const crashed = frame[base + BIKE_BASE + B.STATE] > 0.5;
+    let next = course.jumps[0],
+      distance = Infinity;
+    for (const jump of course.jumps) {
+      const d = mod(jump.start - s, track.length);
+      if (s >= jump.start && s <= jump.end) {
+        next = jump;
+        distance = 0;
+        break;
+      }
+      if (d < distance) {
+        next = jump;
+        distance = d;
+      }
+    }
+    let heading = course.kind === 'supercross' ? 'SUPERCROSS' : 'MOTOCROSS';
+    let tag = frame[o + O.MOISTURE] > 0.58 ? 'WET SOIL' : 'TRACK FLOW';
+    let title = next?.name ?? 'FIND YOUR LINE',
+      metric = next ? `${Math.round(distance)} M` : '';
+    let note =
+      options.assist === 'raw'
+        ? 'Throttle and brake control pitch in flight.'
+        : 'Assisted pitch · line up with the landing slope.';
+    let tone = 'approach',
+      progress = next ? Math.round(clamp(1 - distance / 100, 0, 1) * 100) : 0;
+    if (next && distance <= 0.01) {
+      tag = next.kind.toUpperCase();
+      metric = 'ON COURSE';
+    }
+    if (next && distance > 160) {
+      title = 'BUILD YOUR RHYTHM';
+      note = `Next: ${next.name.toLowerCase()} · ${Math.round(distance)} m`;
+      metric = '';
+      progress = 0;
+    }
+    if (options.mode === 'race' && frame[H.PHASE] < PHASE.RACING) {
+      heading = 'START GATE';
+      tag = 'READY';
+      title = 'WAIT FOR THE DROP';
+      metric = `GATE ${Math.max(1, Math.round(frame[o + O.SLOT]))}`;
+      note = 'Settle the bike. Pick your line into the first berm.';
+      progress = 0;
+    } else if (crashed) {
+      tag = 'RECOVERY';
+      title = 'RESET YOUR RHYTHM';
+      metric = '';
+      tone = 'crash';
+      note = 'The rider is recovering. Prepare a smooth restart.';
+      progress = 0;
+    } else if (airborne) {
+      heading = 'IN FLIGHT';
+      tag = next?.name ?? 'AIR';
+      title = 'MATCH THE LANDING';
+      metric = `${this.airTime.toFixed(2)} S`;
+      tone = 'air';
+      note = 'Throttle lifts the nose · brake lowers it.';
+      progress = Math.round(clamp(this.airTime / 2, 0, 1) * 100);
+    } else if (time < this.airUntil && this.landing) {
+      heading = 'LAST JUMP';
+      tag = 'TOUCHDOWN';
+      title = this.landing.label.toUpperCase();
+      metric = `${this.landedAirTime.toFixed(2)} S`;
+      note = this.landing.cue;
+      tone =
+        this.landing.tone === 'good'
+          ? 'clean'
+          : this.landing.tone === 'warning'
+            ? 'heavy'
+            : 'landing';
+      progress = Math.round(clamp((this.airUntil - time) / 2.8, 0, 1) * 100);
+    }
+    node.hidden = false;
+    node.dataset.tone = tone;
+    const values = [heading, tag, title, metric, note];
+    for (let i = 0; i < this.rideFields.length; i++)
+      if (this.rideFields[i].textContent !== values[i]) this.rideFields[i].textContent = values[i];
+    const width = `${progress}%`;
+    if (node.style.getPropertyValue('--mx-progress') !== width)
+      node.style.setProperty('--mx-progress', width);
   }
   /** The off-road part of the results card (WP42): the holeshot, joker laps
    * against the requirement, or each car's stage time; empty elsewhere. */
@@ -86,6 +217,8 @@ export class OffroadHud {
     const course = offroadCourse(track.circuit);
     if (!course) {
       if (this.element) this.element.hidden = true;
+      if (this.ride) this.ride.hidden = true;
+      this.lastTrack = null;
       return;
     }
     const format = rulesetFor(options).format,
@@ -93,11 +226,55 @@ export class OffroadHud {
       phase = frame[H.PHASE],
       time = frame[H.TIME],
       parts: string[] = [];
+    // Snapshot time is nondecreasing outside a seek. Even a short rewind
+    // across a takeoff must not look like a new touchdown in this frame.
+    if (track !== this.lastTrack || time < this.lastTime || time > this.lastTime + 2) {
+      this.airTime = this.landedAirTime = this.airUntil = 0;
+      this.wasAirborne = false;
+      this.landing = null;
+      this.landingAt = -Infinity;
+      this.landingRough = false;
+    }
+    this.lastTrack = track;
+    this.lastTime = time;
     // Air time of the last real jump, held for two seconds after landing.
     const airborne = frame[o + O.AIRBORNE] > 0.5;
-    if (airborne) this.airTime = frame[o + O.AIR_TIME];
-    if (this.wasAirborne && !airborne && this.airTime > 0.35) this.airUntil = time + 2;
+    if (airborne) {
+      this.airTime = frame[o + O.AIR_TIME];
+      // A new flight owns its own touchdown measurements, including a tiny
+      // rebound. It must never regrade the previous qualifying jump.
+      if (!this.wasAirborne) this.landingAt = -Infinity;
+    }
+    if (this.wasAirborne && !airborne) {
+      // Physics retains completed airtime until the next takeoff. Prefer its
+      // final value to the last airborne presentation sample.
+      const completedAirTime = Math.max(this.airTime, frame[o + O.AIR_TIME]);
+      if (completedAirTime > 0.2) {
+        this.landedAirTime = completedAirTime;
+        this.airUntil = time + 2.8;
+        this.landingAt = time;
+        this.landingRough = course.isRough(mod(frame[carBase(0) + F.S], track.length));
+      }
+    }
+    // The spring can bottom a few frames after the first tyre contact. Keep
+    // grading that short settling window rather than promising a clean landing
+    // before the measured suspension and crash state have arrived.
+    if (!airborne && time >= this.landingAt && time - this.landingAt <= 0.25) {
+      const b = carBase(0);
+      const spec = vehicleAt(Math.round(frame[b + RACE_BASE + R.VEHICLE])).bike?.offroad;
+      this.landing = assessMotocrossLanding(
+        frame[o + O.LANDING_PITCH],
+        frame[o + O.LANDING_SPEED],
+        frame[o + O.BOTTOM],
+        frame[b + BIKE_BASE + B.STATE] > 0.5,
+        spec,
+        this.landingRough,
+      );
+    }
     this.wasAirborne = airborne;
+    const motocross = course.kind === 'motocross' || course.kind === 'supercross';
+    if (motocross) this.updateRide(frame, track, options, airborne);
+    else if (this.ride) this.ride.hidden = true;
     if (format?.start === 'gate' && options.mode !== 'practice') {
       if (frame[o + O.START] > 2.5) parts.push('JUMP START');
       else if (phase < PHASE.RACING) parts.push(`GATE ${Math.round(frame[o + O.SLOT])}`);
@@ -120,7 +297,7 @@ export class OffroadHud {
           : `${start > 0.5 ? 'AT THE CONTROL' : 'QUEUED'} · START IN ${Math.ceil(-t)}`,
       );
     }
-    if (time < this.airUntil) parts.push(`AIR ${this.airTime.toFixed(2)} S`);
+    if (!motocross && time < this.airUntil) parts.push(`AIR ${this.landedAirTime.toFixed(2)} S`);
     const node = this.node();
     node.hidden = parts.length === 0;
     const text = parts.join('  ·  ');

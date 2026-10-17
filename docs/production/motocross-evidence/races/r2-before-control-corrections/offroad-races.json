@@ -1,0 +1,1969 @@
+{
+  "generated": "npm run test:offroad (scripts/offroad-races.ts)",
+  "dt": 0.008333333333333333,
+  "parkedLimitSeconds": 20,
+  "crashBounds": {
+    "motocross": 0.5,
+    "supercross": 0.75
+  },
+  "passed": false,
+  "races": [
+    {
+      "race": "Valley Ridge motocross moto",
+      "circuit": "valley-ridge-mx",
+      "ruleset": "motocross-moto",
+      "laps": 3,
+      "weather": "clear",
+      "seed": 41001,
+      "vehicles": [
+        "mx450",
+        "mx450",
+        "mx250",
+        "mx450",
+        "mx450",
+        "mx250",
+        "mx450",
+        "mx450"
+      ],
+      "raceSeconds": 314.59,
+      "wallSeconds": 49.7,
+      "finishTimes": [
+        291.85,
+        297.62,
+        277.65,
+        319.58,
+        259.4,
+        288.83,
+        298.96,
+        243.69
+      ],
+      "retired": [],
+      "bestLaps": [
+        87.77,
+        97.82,
+        0,
+        0,
+        95.24,
+        88.21,
+        91.45,
+        0
+      ],
+      "crashes": [
+        0,
+        1,
+        2,
+        1,
+        0,
+        1,
+        0,
+        1
+      ],
+      "crashesPerRiderLap": 0.25,
+      "crashBound": 0.5,
+      "crashCauses": [
+        [],
+        [
+          "crash-front@594"
+        ],
+        [
+          "crash-front@603",
+          "crash-front@615"
+        ],
+        [
+          "crash-front@782"
+        ],
+        [],
+        [
+          "contact@878"
+        ],
+        [],
+        [
+          "crash-front@600"
+        ]
+      ],
+      "landings": [
+        59,
+        58,
+        64,
+        59,
+        65,
+        65,
+        64,
+        77
+      ],
+      "aiDecisions": [
+        {
+          "clears": 17,
+          "rolls": 3,
+          "aborts": 1,
+          "pushes": 2
+        },
+        {
+          "clears": 17,
+          "rolls": 3,
+          "aborts": 0,
+          "pushes": 2
+        },
+        {
+          "clears": 21,
+          "rolls": 1,
+          "aborts": 0,
+          "pushes": 0
+        },
+        {
+          "clears": 16,
+          "rolls": 2,
+          "aborts": 2,
+          "pushes": 4
+        },
+        {
+          "clears": 22,
+          "rolls": 1,
+          "aborts": 0,
+          "pushes": 1
+        },
+        {
+          "clears": 18,
+          "rolls": 3,
+          "aborts": 1,
+          "pushes": 3
+        },
+        {
+          "clears": 17,
+          "rolls": 3,
+          "aborts": 1,
+          "pushes": 1
+        },
+        {
+          "clears": 23,
+          "rolls": 0,
+          "aborts": 0,
+          "pushes": 0
+        }
+      ],
+      "longestStopSeconds": 13.43,
+      "longestStop": {
+        "car": 1,
+        "s": 616.3,
+        "time": 175.4
+      },
+      "holeshot": 7,
+      "log": [
+        "14.9 car 7 HOLESHOT: HOLESHOT"
+      ],
+      "terrain": {
+        "cells": 41151,
+        "deepest": 0.03884196653962135,
+        "sequence": 1510611,
+        "wetness": 0,
+        "hash": "a93915e8"
+      },
+      "classification": {
+        "kind": "moto",
+        "holeshot": 7,
+        "jokers": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "jumpStarts": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "splits": [
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          []
+        ],
+        "stageTimes": [
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "stage": null,
+        "terrain": {
+          "cells": 41151,
+          "deepest": 0.03884196653962135,
+          "sequence": 1510611,
+          "wetness": 0
+        }
+      }
+    },
+    {
+      "race": "Arena Nord supercross main",
+      "circuit": "arena-nord-sx",
+      "ruleset": "motocross-moto",
+      "laps": 3,
+      "weather": "clear",
+      "seed": 41003,
+      "vehicles": [
+        "mx450",
+        "mx450",
+        "mx450",
+        "mx450",
+        "mx450",
+        "mx450",
+        "mx450",
+        "mx450"
+      ],
+      "raceSeconds": 268.68,
+      "wallSeconds": 75.8,
+      "finishTimes": [
+        262.85,
+        239.61,
+        273.68,
+        222.73,
+        235.13,
+        250.05,
+        237.19,
+        211.08
+      ],
+      "retired": [],
+      "bestLaps": [
+        0,
+        78.46,
+        83.71,
+        73.92,
+        73.18,
+        0,
+        84.27,
+        66.01
+      ],
+      "crashes": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "crashesPerRiderLap": 0.042,
+      "crashBound": 0.75,
+      "crashCauses": [
+        [],
+        [
+          "crash-front@473"
+        ],
+        [],
+        [],
+        [],
+        [],
+        [],
+        []
+      ],
+      "landings": [
+        70,
+        77,
+        78,
+        78,
+        75,
+        66,
+        89,
+        90
+      ],
+      "aiDecisions": [
+        {
+          "clears": 9,
+          "rolls": 4,
+          "aborts": 0,
+          "pushes": 5
+        },
+        {
+          "clears": 9,
+          "rolls": 5,
+          "aborts": 0,
+          "pushes": 2
+        },
+        {
+          "clears": 7,
+          "rolls": 6,
+          "aborts": 1,
+          "pushes": 5
+        },
+        {
+          "clears": 10,
+          "rolls": 5,
+          "aborts": 1,
+          "pushes": 3
+        },
+        {
+          "clears": 9,
+          "rolls": 5,
+          "aborts": 1,
+          "pushes": 3
+        },
+        {
+          "clears": 7,
+          "rolls": 7,
+          "aborts": 1,
+          "pushes": 1
+        },
+        {
+          "clears": 8,
+          "rolls": 6,
+          "aborts": 0,
+          "pushes": 2
+        },
+        {
+          "clears": 10,
+          "rolls": 5,
+          "aborts": 0,
+          "pushes": 2
+        }
+      ],
+      "longestStopSeconds": 10.05,
+      "longestStop": {
+        "car": 3,
+        "s": 165,
+        "time": 98
+      },
+      "holeshot": 7,
+      "log": [
+        "14.8 car 7 HOLESHOT: HOLESHOT"
+      ],
+      "terrain": {
+        "cells": 27961,
+        "deepest": 0.011514806188642979,
+        "sequence": 1264815,
+        "wetness": 0,
+        "hash": "2339735c"
+      },
+      "classification": {
+        "kind": "moto",
+        "holeshot": 7,
+        "jokers": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "jumpStarts": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "splits": [
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          []
+        ],
+        "stageTimes": [
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "stage": null,
+        "terrain": {
+          "cells": 27961,
+          "deepest": 0.011514806188642979,
+          "sequence": 1264815,
+          "wetness": 0
+        }
+      }
+    },
+    {
+      "race": "Kestrel rallycross heat",
+      "circuit": "kestrel-rx",
+      "ruleset": "rallycross-joker",
+      "laps": 4,
+      "weather": "clear",
+      "seed": 41005,
+      "vehicles": [
+        "rcx6",
+        "rcx6",
+        "rcx6",
+        "rcx6",
+        "rcx6"
+      ],
+      "raceSeconds": 246.29,
+      "wallSeconds": 97.7,
+      "finishTimes": [
+        238.96,
+        241.81,
+        236.64,
+        243.58,
+        246.29
+      ],
+      "retired": [],
+      "bestLaps": [
+        57,
+        57.63,
+        55.39,
+        57.31,
+        57.85
+      ],
+      "crashes": [],
+      "crashCauses": [],
+      "landings": [],
+      "aiDecisions": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "longestStopSeconds": 0,
+      "longestStop": {
+        "car": -1,
+        "s": 0,
+        "time": 0
+      },
+      "holeshot": -1,
+      "jokers": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "log": [
+        "37.2 car 1 JOKER: JOKER LAP 1/1",
+        "93.7 car 0 JOKER: JOKER LAP 1/1",
+        "100.2 car 4 JOKER: JOKER LAP 1/1",
+        "155.3 car 3 JOKER: JOKER LAP 1/1",
+        "206.4 car 2 JOKER: JOKER LAP 1/1"
+      ],
+      "terrain": {
+        "cells": 34294,
+        "deepest": 0.01828121580183506,
+        "sequence": 1187670,
+        "wetness": 0,
+        "hash": "dce02a90"
+      },
+      "classification": {
+        "kind": "rallycross",
+        "holeshot": -1,
+        "jokers": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "jumpStarts": [
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "splits": [
+          [],
+          [],
+          [],
+          [],
+          []
+        ],
+        "stageTimes": [
+          -1,
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "stage": null,
+        "terrain": {
+          "cells": 34294,
+          "deepest": 0.01828121580183506,
+          "sequence": 1187670,
+          "wetness": 0
+        }
+      }
+    },
+    {
+      "race": "Pinewood special stage",
+      "circuit": "pinewood-stage",
+      "ruleset": "rally-stage",
+      "laps": 1,
+      "weather": "clear",
+      "seed": 41006,
+      "vehicles": [
+        "rl2",
+        "rl2",
+        "rl2",
+        "rl2"
+      ],
+      "raceSeconds": 178.62,
+      "wallSeconds": 26.4,
+      "finishTimes": [
+        121.44,
+        121.57,
+        120.36,
+        118.61
+      ],
+      "retired": [],
+      "bestLaps": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "crashes": [],
+      "crashCauses": [],
+      "landings": [],
+      "aiDecisions": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "longestStopSeconds": 0.39,
+      "longestStop": {
+        "car": 0,
+        "s": 37.8,
+        "time": 0.4
+      },
+      "holeshot": -1,
+      "stage": [
+        {
+          "start": 0,
+          "time": 121.44,
+          "splits": [
+            44.9690444804395,
+            82.71904448045854,
+            121.43571114715601,
+            121.43571114715601
+          ]
+        },
+        {
+          "start": 20,
+          "time": 121.57,
+          "splits": [
+            45.61904448044493,
+            83.10237781380809,
+            121.56904448047177,
+            121.56904448047177
+          ]
+        },
+        {
+          "start": 40,
+          "time": 120.36,
+          "splits": [
+            44.935711147126966,
+            82.15237781382277,
+            120.36071114712135,
+            120.36071114712135
+          ]
+        },
+        {
+          "start": 60,
+          "time": 118.61,
+          "splits": [
+            43.68571114714189,
+            80.67737781380592,
+            118.61071114710475,
+            118.61071114710475
+          ]
+        }
+      ],
+      "log": [
+        "22.1 car 1 STAGE_CALL: TO THE START CONTROL · GO IN 4 S",
+        "26.1 car 1 STAGE_GO: GO",
+        "42.1 car 2 STAGE_CALL: TO THE START CONTROL · GO IN 4 S",
+        "46.1 car 2 STAGE_GO: GO",
+        "62.1 car 3 STAGE_CALL: TO THE START CONTROL · GO IN 4 S",
+        "66.1 car 3 STAGE_GO: GO",
+        "127.6 car 0 STAGE_FINISH: STAGE TIME 121.4 S",
+        "147.7 car 1 STAGE_FINISH: STAGE TIME 121.6 S",
+        "166.5 car 2 STAGE_FINISH: STAGE TIME 120.4 S",
+        "184.7 car 3 STAGE_FINISH: STAGE TIME 118.6 S"
+      ],
+      "terrain": {
+        "cells": 35597,
+        "deepest": 0.10751033574342728,
+        "sequence": 1044282,
+        "wetness": 0,
+        "hash": "fc87aa43"
+      },
+      "classification": {
+        "kind": "stage",
+        "holeshot": -1,
+        "jokers": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "jumpStarts": [
+          false,
+          false,
+          false,
+          false
+        ],
+        "splits": [
+          [
+            44.9690444804395,
+            82.71904448045854,
+            121.43571114715601,
+            121.43571114715601
+          ],
+          [
+            45.61904448044493,
+            83.10237781380809,
+            121.56904448047177,
+            121.56904448047177
+          ],
+          [
+            44.935711147126966,
+            82.15237781382277,
+            120.36071114712135,
+            120.36071114712135
+          ],
+          [
+            43.68571114714189,
+            80.67737781380592,
+            118.61071114710475,
+            118.61071114710475
+          ]
+        ],
+        "stageTimes": [
+          121.43571114715601,
+          121.56904448047177,
+          120.36071114712135,
+          118.61071114710475
+        ],
+        "stage": [
+          {
+            "position": 1,
+            "id": 3,
+            "time": 118.61071114710475,
+            "penalties": 0,
+            "reason": ""
+          },
+          {
+            "position": 2,
+            "id": 2,
+            "time": 120.36071114712135,
+            "penalties": 0,
+            "reason": ""
+          },
+          {
+            "position": 3,
+            "id": 0,
+            "time": 121.43571114715601,
+            "penalties": 0,
+            "reason": ""
+          },
+          {
+            "position": 4,
+            "id": 1,
+            "time": 121.56904448047177,
+            "penalties": 0,
+            "reason": ""
+          }
+        ],
+        "terrain": {
+          "cells": 35597,
+          "deepest": 0.10751033574342728,
+          "sequence": 1044282,
+          "wetness": 0
+        }
+      }
+    },
+    {
+      "race": "event valley-ridge-mx-moto-1",
+      "event": "valley-ridge-mx-moto-1",
+      "circuit": "valley-ridge-mx",
+      "ruleset": "motocross-moto",
+      "laps": 4,
+      "weather": "clear",
+      "seed": 41001,
+      "vehicles": [
+        "mx450",
+        "mx450",
+        "mx250",
+        "mx450",
+        "mx250",
+        "mx450",
+        "mx250",
+        "mx450",
+        "mx250",
+        "mx450"
+      ],
+      "raceSeconds": 397.01,
+      "wallSeconds": 70.9,
+      "finishTimes": [
+        389.53,
+        380.19,
+        397,
+        378.64,
+        381.81,
+        364.97,
+        368.96,
+        349,
+        361.2,
+        331.68
+      ],
+      "retired": [],
+      "bestLaps": [
+        88.47,
+        87.84,
+        84.13,
+        88.84,
+        86.81,
+        96.47,
+        0,
+        0,
+        94.8,
+        87.86
+      ],
+      "crashes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        3,
+        2,
+        0
+      ],
+      "crashesPerRiderLap": 0.175,
+      "crashBound": 0.5,
+      "crashCauses": [
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [
+          "contact@107",
+          "crash-front@594"
+        ],
+        [
+          "crash-front@593",
+          "crash-flat@604",
+          "crash-flat@606"
+        ],
+        [
+          "crash-front@602",
+          "crash-front@614"
+        ],
+        []
+      ],
+      "landings": [
+        83,
+        81,
+        76,
+        78,
+        80,
+        86,
+        76,
+        85,
+        84,
+        93
+      ],
+      "aiDecisions": [
+        {
+          "clears": 22,
+          "rolls": 3,
+          "aborts": 1,
+          "pushes": 3
+        },
+        {
+          "clears": 23,
+          "rolls": 3,
+          "aborts": 0,
+          "pushes": 1
+        },
+        {
+          "clears": 20,
+          "rolls": 4,
+          "aborts": 0,
+          "pushes": 2
+        },
+        {
+          "clears": 22,
+          "rolls": 4,
+          "aborts": 1,
+          "pushes": 0
+        },
+        {
+          "clears": 22,
+          "rolls": 3,
+          "aborts": 0,
+          "pushes": 1
+        },
+        {
+          "clears": 24,
+          "rolls": 3,
+          "aborts": 0,
+          "pushes": 2
+        },
+        {
+          "clears": 24,
+          "rolls": 3,
+          "aborts": 2,
+          "pushes": 1
+        },
+        {
+          "clears": 27,
+          "rolls": 1,
+          "aborts": 0,
+          "pushes": 0
+        },
+        {
+          "clears": 24,
+          "rolls": 3,
+          "aborts": 1,
+          "pushes": 0
+        },
+        {
+          "clears": 28,
+          "rolls": 2,
+          "aborts": 0,
+          "pushes": 1
+        }
+      ],
+      "longestStopSeconds": 13.59,
+      "longestStop": {
+        "car": 7,
+        "s": 616.3,
+        "time": 71.9
+      },
+      "holeshot": 8,
+      "log": [
+        "14.7 car 8 HOLESHOT: HOLESHOT"
+      ],
+      "terrain": {
+        "cells": 47644,
+        "deepest": 0.0394294299185276,
+        "sequence": 2397615,
+        "wetness": 0,
+        "hash": "b7e5ee31"
+      },
+      "classification": {
+        "kind": "moto",
+        "holeshot": 8,
+        "jokers": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "jumpStarts": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "splits": [
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          []
+        ],
+        "stageTimes": [
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "stage": null,
+        "terrain": {
+          "cells": 47644,
+          "deepest": 0.0394294299185276,
+          "sequence": 2397615,
+          "wetness": 0
+        }
+      }
+    },
+    {
+      "race": "event valley-ridge-mx-moto-2",
+      "event": "valley-ridge-mx-moto-2",
+      "circuit": "valley-ridge-mx",
+      "ruleset": "motocross-moto",
+      "laps": 4,
+      "weather": "changeable",
+      "seed": 41002,
+      "vehicles": [
+        "mx450",
+        "mx450",
+        "mx250",
+        "mx450",
+        "mx250",
+        "mx450",
+        "mx250",
+        "mx450",
+        "mx250",
+        "mx450"
+      ],
+      "raceSeconds": 772.39,
+      "wallSeconds": 138.5,
+      "finishTimes": [
+        738.7,
+        687.52,
+        701.33,
+        777.39,
+        721.75,
+        736.61,
+        671.11,
+        726.71,
+        716.93,
+        746.93
+      ],
+      "retired": [],
+      "bestLaps": [
+        158.8,
+        110.45,
+        152.83,
+        0,
+        158.69,
+        117.99,
+        86.26,
+        170.9,
+        0,
+        130.2
+      ],
+      "crashes": [
+        0,
+        0,
+        1,
+        1,
+        1,
+        0,
+        0,
+        0,
+        2,
+        0
+      ],
+      "crashesPerRiderLap": 0.125,
+      "crashBound": 0.5,
+      "crashCauses": [
+        [],
+        [],
+        [
+          "crash-front@594"
+        ],
+        [
+          "contact@705"
+        ],
+        [
+          "crash-rear@766"
+        ],
+        [],
+        [],
+        [],
+        [
+          "crash-flat@606",
+          "crash-front@773"
+        ],
+        []
+      ],
+      "landings": [
+        65,
+        75,
+        55,
+        45,
+        53,
+        49,
+        82,
+        58,
+        62,
+        67
+      ],
+      "aiDecisions": [
+        {
+          "clears": 15,
+          "rolls": 10,
+          "aborts": 1,
+          "pushes": 7
+        },
+        {
+          "clears": 16,
+          "rolls": 11,
+          "aborts": 1,
+          "pushes": 11
+        },
+        {
+          "clears": 17,
+          "rolls": 10,
+          "aborts": 1,
+          "pushes": 13
+        },
+        {
+          "clears": 13,
+          "rolls": 11,
+          "aborts": 2,
+          "pushes": 7
+        },
+        {
+          "clears": 15,
+          "rolls": 11,
+          "aborts": 0,
+          "pushes": 10
+        },
+        {
+          "clears": 12,
+          "rolls": 14,
+          "aborts": 0,
+          "pushes": 8
+        },
+        {
+          "clears": 24,
+          "rolls": 4,
+          "aborts": 0,
+          "pushes": 12
+        },
+        {
+          "clears": 16,
+          "rolls": 10,
+          "aborts": 1,
+          "pushes": 9
+        },
+        {
+          "clears": 19,
+          "rolls": 7,
+          "aborts": 0,
+          "pushes": 10
+        },
+        {
+          "clears": 12,
+          "rolls": 13,
+          "aborts": 2,
+          "pushes": 14
+        }
+      ],
+      "longestStopSeconds": 14.57,
+      "longestStop": {
+        "car": 8,
+        "s": 616.5,
+        "time": 640.2
+      },
+      "holeshot": 8,
+      "log": [
+        "14.7 car 8 HOLESHOT: HOLESHOT"
+      ],
+      "terrain": {
+        "cells": 60607,
+        "deepest": 0.04652375355362892,
+        "sequence": 4953064,
+        "wetness": 0.5933630945968575,
+        "hash": "cfbee70c"
+      },
+      "classification": {
+        "kind": "moto",
+        "holeshot": 8,
+        "jokers": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "jumpStarts": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "splits": [
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          []
+        ],
+        "stageTimes": [
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "stage": null,
+        "terrain": {
+          "cells": 60607,
+          "deepest": 0.04652375355362892,
+          "sequence": 4953064,
+          "wetness": 0.5933630945968575
+        }
+      }
+    },
+    {
+      "race": "event arena-nord-supercross",
+      "event": "arena-nord-supercross",
+      "circuit": "arena-nord-sx",
+      "ruleset": "motocross-moto",
+      "laps": 6,
+      "weather": "clear",
+      "seed": 41003,
+      "vehicles": [
+        "mx450",
+        "mx450",
+        "mx450",
+        "mx450",
+        "mx450",
+        "mx450",
+        "mx450",
+        "mx450",
+        "mx450",
+        "mx450"
+      ],
+      "raceSeconds": 559.53,
+      "wallSeconds": 181.8,
+      "finishTimes": [
+        542.92,
+        502.21,
+        534.45,
+        526,
+        513.51,
+        551.7,
+        555.34,
+        499.5,
+        564.52,
+        511.46
+      ],
+      "retired": [],
+      "bestLaps": [
+        73.1,
+        74.78,
+        70.29,
+        73.88,
+        76.13,
+        74,
+        73.53,
+        101.64,
+        79.91,
+        72
+      ],
+      "crashes": [
+        1,
+        0,
+        2,
+        0,
+        2,
+        0,
+        0,
+        0,
+        0,
+        2
+      ],
+      "crashesPerRiderLap": 0.117,
+      "crashBound": 0.75,
+      "crashCauses": [
+        [
+          "crash-front@457"
+        ],
+        [],
+        [
+          "crash-front@457",
+          "contact@451"
+        ],
+        [],
+        [
+          "crash-front@457"
+        ],
+        [],
+        [],
+        [],
+        [],
+        [
+          "crash-front@465",
+          "crash-front@463"
+        ]
+      ],
+      "landings": [
+        146,
+        163,
+        146,
+        147,
+        139,
+        149,
+        136,
+        172,
+        176,
+        169
+      ],
+      "aiDecisions": [
+        {
+          "clears": 12,
+          "rolls": 13,
+          "aborts": 1,
+          "pushes": 7
+        },
+        {
+          "clears": 13,
+          "rolls": 15,
+          "aborts": 0,
+          "pushes": 6
+        },
+        {
+          "clears": 12,
+          "rolls": 14,
+          "aborts": 1,
+          "pushes": 6
+        },
+        {
+          "clears": 11,
+          "rolls": 16,
+          "aborts": 0,
+          "pushes": 6
+        },
+        {
+          "clears": 8,
+          "rolls": 15,
+          "aborts": 1,
+          "pushes": 7
+        },
+        {
+          "clears": 11,
+          "rolls": 14,
+          "aborts": 0,
+          "pushes": 10
+        },
+        {
+          "clears": 11,
+          "rolls": 14,
+          "aborts": 1,
+          "pushes": 6
+        },
+        {
+          "clears": 18,
+          "rolls": 10,
+          "aborts": 1,
+          "pushes": 6
+        },
+        {
+          "clears": 13,
+          "rolls": 12,
+          "aborts": 0,
+          "pushes": 6
+        },
+        {
+          "clears": 16,
+          "rolls": 11,
+          "aborts": 1,
+          "pushes": 6
+        }
+      ],
+      "longestStopSeconds": 14.39,
+      "longestStop": {
+        "car": 6,
+        "s": 458.4,
+        "time": 203.5
+      },
+      "holeshot": 8,
+      "log": [
+        "14.8 car 8 HOLESHOT: HOLESHOT"
+      ],
+      "terrain": {
+        "cells": 36378,
+        "deepest": 0.011522160843014717,
+        "sequence": 3243399,
+        "wetness": 0,
+        "hash": "8a61084a"
+      },
+      "classification": {
+        "kind": "moto",
+        "holeshot": 8,
+        "jokers": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "jumpStarts": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "splits": [
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          []
+        ],
+        "stageTimes": [
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "stage": null,
+        "terrain": {
+          "cells": 36378,
+          "deepest": 0.011522160843014717,
+          "sequence": 3243399,
+          "wetness": 0
+        }
+      }
+    },
+    {
+      "race": "event valley-ridge-supermoto",
+      "event": "valley-ridge-supermoto",
+      "circuit": "valley-ridge-mx",
+      "ruleset": "supermoto-moto",
+      "laps": 3,
+      "weather": "clear",
+      "seed": 41004,
+      "vehicles": [
+        "sm450",
+        "sm450",
+        "sm450",
+        "sm450",
+        "sm450",
+        "sm450",
+        "sm450",
+        "sm450"
+      ],
+      "raceSeconds": 325.02,
+      "wallSeconds": 47.9,
+      "finishTimes": [
+        299.42,
+        292.92,
+        317.72,
+        330.01,
+        317.41,
+        310.18,
+        286.93,
+        301.8
+      ],
+      "retired": [],
+      "bestLaps": [
+        0,
+        94.63,
+        93.75,
+        118.33,
+        114.47,
+        91.76,
+        87.39,
+        0
+      ],
+      "crashes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "crashesPerRiderLap": 0,
+      "crashBound": 0.5,
+      "crashCauses": [
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        []
+      ],
+      "landings": [
+        64,
+        62,
+        65,
+        55,
+        60,
+        67,
+        61,
+        58
+      ],
+      "aiDecisions": [
+        {
+          "clears": 20,
+          "rolls": 1,
+          "aborts": 2,
+          "pushes": 2
+        },
+        {
+          "clears": 21,
+          "rolls": 0,
+          "aborts": 1,
+          "pushes": 3
+        },
+        {
+          "clears": 18,
+          "rolls": 1,
+          "aborts": 0,
+          "pushes": 4
+        },
+        {
+          "clears": 15,
+          "rolls": 3,
+          "aborts": 1,
+          "pushes": 3
+        },
+        {
+          "clears": 14,
+          "rolls": 5,
+          "aborts": 0,
+          "pushes": 4
+        },
+        {
+          "clears": 17,
+          "rolls": 2,
+          "aborts": 0,
+          "pushes": 3
+        },
+        {
+          "clears": 20,
+          "rolls": 2,
+          "aborts": 0,
+          "pushes": 4
+        },
+        {
+          "clears": 18,
+          "rolls": 3,
+          "aborts": 1,
+          "pushes": 1
+        }
+      ],
+      "longestStopSeconds": 10.24,
+      "longestStop": {
+        "car": 3,
+        "s": 113.1,
+        "time": 25.5
+      },
+      "holeshot": 7,
+      "log": [
+        "14.8 car 7 HOLESHOT: HOLESHOT"
+      ],
+      "terrain": {
+        "cells": 44189,
+        "deepest": 0.03939873352646828,
+        "sequence": 1592847,
+        "wetness": 0,
+        "hash": "bd7cebf5"
+      },
+      "classification": {
+        "kind": "moto",
+        "holeshot": 7,
+        "jokers": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "jumpStarts": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "splits": [
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          []
+        ],
+        "stageTimes": [
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "stage": null,
+        "terrain": {
+          "cells": 44189,
+          "deepest": 0.03939873352646828,
+          "sequence": 1592847,
+          "wetness": 0
+        }
+      }
+    },
+    {
+      "race": "event kestrel-rallycross-heat",
+      "event": "kestrel-rallycross-heat",
+      "circuit": "kestrel-rx",
+      "ruleset": "rallycross-joker",
+      "laps": 4,
+      "weather": "clear",
+      "seed": 41005,
+      "vehicles": [
+        "rcx6",
+        "rcx6",
+        "rcx6",
+        "rcx6",
+        "rcx6"
+      ],
+      "raceSeconds": 246.29,
+      "wallSeconds": 89.9,
+      "finishTimes": [
+        238.96,
+        241.81,
+        236.64,
+        243.58,
+        246.29
+      ],
+      "retired": [],
+      "bestLaps": [
+        57,
+        57.63,
+        55.39,
+        57.31,
+        57.85
+      ],
+      "crashes": [],
+      "crashCauses": [],
+      "landings": [],
+      "aiDecisions": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "longestStopSeconds": 0,
+      "longestStop": {
+        "car": -1,
+        "s": 0,
+        "time": 0
+      },
+      "holeshot": -1,
+      "jokers": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "log": [
+        "37.2 car 1 JOKER: JOKER LAP 1/1",
+        "93.7 car 0 JOKER: JOKER LAP 1/1",
+        "100.2 car 4 JOKER: JOKER LAP 1/1",
+        "155.3 car 3 JOKER: JOKER LAP 1/1",
+        "206.4 car 2 JOKER: JOKER LAP 1/1"
+      ],
+      "terrain": {
+        "cells": 34294,
+        "deepest": 0.01828121580183506,
+        "sequence": 1187670,
+        "wetness": 0,
+        "hash": "dce02a90"
+      },
+      "classification": {
+        "kind": "rallycross",
+        "holeshot": -1,
+        "jokers": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "jumpStarts": [
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "splits": [
+          [],
+          [],
+          [],
+          [],
+          []
+        ],
+        "stageTimes": [
+          -1,
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "stage": null,
+        "terrain": {
+          "cells": 34294,
+          "deepest": 0.01828121580183506,
+          "sequence": 1187670,
+          "wetness": 0
+        }
+      }
+    },
+    {
+      "race": "event pinewood-special-stage",
+      "event": "pinewood-special-stage",
+      "circuit": "pinewood-stage",
+      "ruleset": "rally-stage",
+      "laps": 1,
+      "weather": "clear",
+      "seed": 41006,
+      "vehicles": [
+        "rl2",
+        "rl2",
+        "rl2",
+        "rl2",
+        "rl2",
+        "rl2"
+      ],
+      "raceSeconds": 219.23,
+      "wallSeconds": 48.8,
+      "finishTimes": [
+        121.44,
+        121.57,
+        120.36,
+        119.19,
+        120.3,
+        119.22
+      ],
+      "retired": [],
+      "bestLaps": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "crashes": [],
+      "crashCauses": [],
+      "landings": [],
+      "aiDecisions": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "longestStopSeconds": 0.39,
+      "longestStop": {
+        "car": 0,
+        "s": 37.8,
+        "time": 0.4
+      },
+      "holeshot": -1,
+      "stage": [
+        {
+          "start": 0,
+          "time": 121.44,
+          "splits": [
+            44.9690444804395,
+            82.71904448045854,
+            121.43571114715601,
+            121.43571114715601
+          ]
+        },
+        {
+          "start": 20,
+          "time": 121.57,
+          "splits": [
+            45.61904448044493,
+            83.10237781380809,
+            121.56904448047177,
+            121.56904448047177
+          ]
+        },
+        {
+          "start": 40,
+          "time": 120.36,
+          "splits": [
+            44.935711147126966,
+            82.15237781382277,
+            120.36071114712135,
+            120.36071114712135
+          ]
+        },
+        {
+          "start": 60,
+          "time": 119.19,
+          "splits": [
+            44.260711147142345,
+            81.24404448047207,
+            119.18571114710423,
+            119.18571114710423
+          ]
+        },
+        {
+          "start": 80,
+          "time": 120.3,
+          "splits": [
+            44.494044480487304,
+            81.91071114711994,
+            120.30237781375169,
+            120.30237781375169
+          ]
+        },
+        {
+          "start": 100,
+          "time": 119.22,
+          "splits": [
+            43.960711147136266,
+            81.09404448043583,
+            119.21904448040115,
+            119.21904448040115
+          ]
+        }
+      ],
+      "log": [
+        "22.1 car 1 STAGE_CALL: TO THE START CONTROL · GO IN 4 S",
+        "26.1 car 1 STAGE_GO: GO",
+        "42.1 car 2 STAGE_CALL: TO THE START CONTROL · GO IN 4 S",
+        "46.1 car 2 STAGE_GO: GO",
+        "62.1 car 3 STAGE_CALL: TO THE START CONTROL · GO IN 4 S",
+        "66.1 car 3 STAGE_GO: GO",
+        "82.1 car 4 STAGE_CALL: TO THE START CONTROL · GO IN 4 S",
+        "86.1 car 4 STAGE_GO: GO",
+        "102.1 car 5 STAGE_CALL: TO THE START CONTROL · GO IN 4 S",
+        "106.1 car 5 STAGE_GO: GO",
+        "127.6 car 0 STAGE_FINISH: STAGE TIME 121.4 S",
+        "147.7 car 1 STAGE_FINISH: STAGE TIME 121.6 S",
+        "166.5 car 2 STAGE_FINISH: STAGE TIME 120.4 S",
+        "185.3 car 3 STAGE_FINISH: STAGE TIME 119.2 S",
+        "206.4 car 4 STAGE_FINISH: STAGE TIME 120.3 S",
+        "225.3 car 5 STAGE_FINISH: STAGE TIME 119.2 S"
+      ],
+      "terrain": {
+        "cells": 35841,
+        "deepest": 0.11458061635494232,
+        "sequence": 1916673,
+        "wetness": 0,
+        "hash": "3b663d68"
+      },
+      "classification": {
+        "kind": "stage",
+        "holeshot": -1,
+        "jokers": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "jumpStarts": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "splits": [
+          [
+            44.9690444804395,
+            82.71904448045854,
+            121.43571114715601,
+            121.43571114715601
+          ],
+          [
+            45.61904448044493,
+            83.10237781380809,
+            121.56904448047177,
+            121.56904448047177
+          ],
+          [
+            44.935711147126966,
+            82.15237781382277,
+            120.36071114712135,
+            120.36071114712135
+          ],
+          [
+            44.260711147142345,
+            81.24404448047207,
+            119.18571114710423,
+            119.18571114710423
+          ],
+          [
+            44.494044480487304,
+            81.91071114711994,
+            120.30237781375169,
+            120.30237781375169
+          ],
+          [
+            43.960711147136266,
+            81.09404448043583,
+            119.21904448040115,
+            119.21904448040115
+          ]
+        ],
+        "stageTimes": [
+          121.43571114715601,
+          121.56904448047177,
+          120.36071114712135,
+          119.18571114710423,
+          120.30237781375169,
+          119.21904448040115
+        ],
+        "stage": [
+          {
+            "position": 1,
+            "id": 3,
+            "time": 119.18571114710423,
+            "penalties": 0,
+            "reason": ""
+          },
+          {
+            "position": 2,
+            "id": 5,
+            "time": 119.21904448040115,
+            "penalties": 0,
+            "reason": ""
+          },
+          {
+            "position": 3,
+            "id": 4,
+            "time": 120.30237781375169,
+            "penalties": 0,
+            "reason": ""
+          },
+          {
+            "position": 4,
+            "id": 2,
+            "time": 120.36071114712135,
+            "penalties": 0,
+            "reason": ""
+          },
+          {
+            "position": 5,
+            "id": 0,
+            "time": 121.43571114715601,
+            "penalties": 0,
+            "reason": ""
+          },
+          {
+            "position": 6,
+            "id": 1,
+            "time": 121.56904448047177,
+            "penalties": 0,
+            "reason": ""
+          }
+        ],
+        "terrain": {
+          "cells": 35841,
+          "deepest": 0.11458061635494232,
+          "sequence": 1916673,
+          "wetness": 0
+        }
+      }
+    }
+  ],
+  "failures": [
+    "event valley-ridge-mx-moto-1: one rider crashed 3 times in 4 laps"
+  ]
+}

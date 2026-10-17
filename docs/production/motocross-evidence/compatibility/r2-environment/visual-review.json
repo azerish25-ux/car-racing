@@ -1,0 +1,76 @@
+{
+  "scope": "Existing MotoGP R2 controlled Aurel surface fixture on the combined source: real ribbon builder/materials and shipped WebP scans, neutral light/sky, synthetic wetness/family switches. Ten individually inspected images; not the complete scene or a driven lap.",
+  "method": "Every listed full PNG was individually opened with view_image after its passing combined-build test. No composite-only or filename-only review.",
+  "images": [
+    {
+      "file": "apex-bike-dry.png",
+      "sha256": "ac833c88215bb15268c5b774ab8b6be32edb639ab0b0aaae809c9675e969a706",
+      "width": 800,
+      "height": 500,
+      "observed": "Dry apex view shows granular neutral asphalt, worn red/white kerbs and the narrower motorcycle tyre-mark presentation. The material layers meet cleanly along the white track edge."
+    },
+    {
+      "file": "apex-car-dry.png",
+      "sha256": "6b2facf1ff8d91113093c9d96fc40201421eb91a4ae11f0d484ac811d301d1f3",
+      "width": 800,
+      "height": 500,
+      "observed": "The same dry apex camera shows visibly wider paired car rubber marks while retaining the same asphalt, kerb and verge appearance."
+    },
+    {
+      "file": "apex-bike-held.png",
+      "sha256": "ac833c88215bb15268c5b774ab8b6be32edb639ab0b0aaae809c9675e969a706",
+      "width": 800,
+      "height": 500,
+      "observed": "After repeated bike/car switches, the held motorcycle apex image visibly matches the initial dry motorcycle layout; no duplicate mark layer is apparent."
+    },
+    {
+      "file": "apex-bike-wet.png",
+      "sha256": "0adba98c37e5366097ec5b94b14ba6bd2d94cd6d2033e8ae10bf7ae12a138525",
+      "width": 800,
+      "height": 500,
+      "observed": "Synthetic wetness darkens the actual road shader while leaving grain and tyre marks visible. Distant asphalt is particularly dark in this neutral component scene, which omits the full Renderer reflection passes."
+    },
+    {
+      "file": "apex-bike-wet-held.png",
+      "sha256": "0adba98c37e5366097ec5b94b14ba6bd2d94cd6d2033e8ae10bf7ae12a138525",
+      "width": 800,
+      "height": 500,
+      "observed": "The held wet image preserves the same dark material response and tyre marks without visible accumulation or flicker."
+    },
+    {
+      "file": "apex-bike-rewound.png",
+      "sha256": "ac833c88215bb15268c5b774ab8b6be32edb639ab0b0aaae809c9675e969a706",
+      "width": 800,
+      "height": 500,
+      "observed": "Restoring dry state returns the apex road to the original lighter granular surface and the original narrow motorcycle marks."
+    },
+    {
+      "file": "kerb-runoff-verge.png",
+      "sha256": "adb010be0e782a56407233299066173faee52d19813553bc64962ce2a7e03251",
+      "width": 800,
+      "height": 500,
+      "observed": "Close verge view shows raised red/white kerbs, worn red runoff chevrons, white road edge and a narrow brown transition into scanned grass. No broken edge geometry or missing material is visible."
+    },
+    {
+      "file": "launch-bike.png",
+      "sha256": "6cbc37edb7c38519493060e368c078895f1472560d452067c1e4af0375eb0525",
+      "width": 800,
+      "height": 500,
+      "observed": "Launch-grid view shows fine asphalt cracks and narrower single-contact motorcycle launch marks between red/white kerbs and green runoff."
+    },
+    {
+      "file": "launch-car.png",
+      "sha256": "dafe5d463fadb581eb3d64a695d92682b51926eda23da1b9b72a59504385e602",
+      "width": 800,
+      "height": 500,
+      "observed": "The same launch camera displays wider paired car launch marks with the underlying road/grid/kerb appearance preserved."
+    },
+    {
+      "file": "launch-bike-restored.png",
+      "sha256": "6cbc37edb7c38519493060e368c078895f1472560d452067c1e4af0375eb0525",
+      "width": 800,
+      "height": 500,
+      "observed": "Switching back restores the earlier narrow motorcycle launch appearance without leaving the wider car marks over it."
+    }
+  ]
+}

@@ -1,0 +1,199 @@
+{
+  "schemaVersion": 1,
+  "scope": "Every listed original PNG from the final MX42 production-model fixture was individually displayed and freshly reviewed by the release owner. The separate numerical/pixel comparison against earlier R2 evidence does not substitute for this review. These are controlled component views, not complete motocross playthrough captures.",
+  "sourceFilesSha256": "acfc1a799a933ff9c135046aee17daa741366549f7808b8091200accf69f874d",
+  "buildFingerprintSha256": "a5a1575e169f6475439722adeb3ac6ae569bc91b6d604f14e465faf7eccc6de4",
+  "testSource": "e2e/42-motocross-bike.spec.ts",
+  "testRunSha256": "f67903b82f8055c1072e163c465916d8f4aa0e23fadad910524616044e3f3ac6",
+  "images": [
+    {
+      "file": "mx250-high.png",
+      "reviewed": true,
+      "method": "individual-display",
+      "observation": "The MX250 high model has a distinct red tubular frame, detailed spoked wheels and knobby tyres, gold fork tubes, radiator and exhaust detail, numbered plastics and complete rider equipment. Hands meet the grips and the visible boot rests by the peg.",
+      "sha256": "bda101b710406dd298fe2c7391eccad2debaf9a0f9f367af132ff69b0c3c08f8",
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "file": "mx250-mid.png",
+      "reviewed": true,
+      "method": "individual-display",
+      "observation": "The MX250 mid model keeps the numbered plastics, rider kit, frame and fork silhouette while reducing spokes and tread detail. The model remains complete in the controlled close-up LOD view.",
+      "sha256": "087e26ccd5870e24db4e14c3a8fc6248b6267cdb27c5a956d64a9c035749db7d",
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "file": "mx250-far.png",
+      "reviewed": true,
+      "method": "individual-display",
+      "observation": "The MX250 far model retains its red frame, number board, fork, wheel and rider silhouette with deliberately simplified tyres and untextured rider surfaces. This forced close-up exposes the distance-model reductions rather than representing normal near-view quality.",
+      "sha256": "f50e49cb4a4313bd909a6eb66967a4842c359936fe5d3f8e7e1e5ff2b6580118",
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "file": "mx450-high.png",
+      "reviewed": true,
+      "method": "individual-display",
+      "observation": "The MX450 high model shows its different silver frame, complete red/white bodywork, finned radiator, spoked wheels, dense tread and complete helmet, goggles and boot equipment. Hand and visible peg contacts are coherent.",
+      "sha256": "92441973338df2a2871f1c3adf905c10ff3eb081f66a6c567d319c97346c5dd3",
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "file": "mx450-mid.png",
+      "reviewed": true,
+      "method": "individual-display",
+      "observation": "The MX450 mid model retains the silver frame and complete body/rider silhouette with reduced wheel and tread detail. Its numbered bodywork and control-contact pose remain intact.",
+      "sha256": "755aa22923d109de2f23e97849e569630f467446676e664639b4222e32671189",
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "file": "mx450-far.png",
+      "reviewed": true,
+      "method": "individual-display",
+      "observation": "The forced MX450 far model remains identifiable through its silver frame, number board, raised fender and rider silhouette. Wheels and clothing are visibly simplified for the distance LOD.",
+      "sha256": "672eb5e22eaabb59c331132e6771b359a4c7fa5f795648d50b505a5a9c74f989",
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "file": "standing-side.png",
+      "reviewed": true,
+      "method": "individual-display",
+      "observation": "The side view shows the rider raised above the seat with bent knees and hands on the bar. The suspended pose exposes the chain, sprocket, rear spring, pegs, brake rotor and spoke detail with a separated ground shadow.",
+      "sha256": "834f3856944ddfcd68930ab175e8528f2d6337f6e26334305f2257d45d953b0d",
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "file": "inside-foot-dab.png",
+      "reviewed": true,
+      "method": "individual-display",
+      "observation": "The leaned front-quarter pose extends the inside boot away from the peg while both hands remain on the grips. Forks, tyres, radiator and numbered front panel remain coherent under the banked chassis.",
+      "sha256": "4552cd714de32c761676606c99fa482bd5beb46651bea78d04f3de7b9ed33be6",
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "file": "braced-front.png",
+      "reviewed": true,
+      "method": "individual-display",
+      "observation": "The front view shows a braced rider with elevated elbows and both gloved hands meeting the controls. The helmet/goggles, number panel, fork and front tread read clearly without detached limb segments.",
+      "sha256": "3357c4eb242cd9ae5ebf7a33fce6401572e3230152cb652697b651249a7dac2e",
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "file": "rear-components.png",
+      "reviewed": true,
+      "method": "individual-display",
+      "observation": "The rear-quarter view exposes the open exhaust outlet, seat ribs, rear fender, swingarm, spoked wheel, brake disc and boot/peg area. The rider back graphic follows the torso and the cast shadow is coherent.",
+      "sha256": "cf84cf0aec3c1b8ac2eccc3036f1e5aa50c9d5d81acdf515cd0d21b1f25da8d8",
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "file": "helmet-and-gear.png",
+      "reviewed": true,
+      "method": "individual-display",
+      "observation": "The equipment close-up shows the shaped peak and chin assembly, goggles and frame, helmet vents, textile surface, glove fingers and handlebar levers/cables. Both hands remain at their actual grips.",
+      "sha256": "e076f5208063d870c686ab002f09eae7b3c54a58d4a5ec4ef9fdc20bd040967c",
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "file": "mx250-production-onboard-0.png",
+      "reviewed": true,
+      "method": "individual-display",
+      "observation": "The neutral MX250 cockpit shows both continuous sleeves and hands, grips, levers, cable loops and bar pad. The plain reverse of the number board sits below the clear forward ground corridor; the rider head/torso do not occlude it.",
+      "sha256": "c6c0cf5dbda84b125e5e4ba3cea5e751b0f7f418ce5852b09b5e2e6fad453216",
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "file": "mx250-production-onboard-1.png",
+      "reviewed": true,
+      "method": "individual-display",
+      "observation": "The steered MX250 cockpit retains both hands and continuous sleeves around the angled handlebar. Cables, levers, bar pad and number-board reverse are visible below the forward view.",
+      "sha256": "5720d9d82c94fda26812a23c805037e22f1f938536d12fa7b11f583895af5420",
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "file": "mx250-production-onboard-2.png",
+      "reviewed": true,
+      "method": "individual-display",
+      "observation": "The banked/braking MX250 cockpit keeps the paired controls and sleeves coherent while the horizon rolls with the bike. The central forward corridor clears the rider and number board.",
+      "sha256": "e34b0bc1f30fd1e92e1aad40f3401912aa7d5af5d60332f976acfa650d645f04",
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "file": "mx450-production-onboard-0.png",
+      "reviewed": true,
+      "method": "individual-display",
+      "observation": "The neutral MX450 cockpit shows the distinct silver upper frame under the bar, both gloves and continuous sleeves, levers and cable loops. The number-board reverse remains unprinted and below the forward corridor.",
+      "sha256": "8cf0a7ac966204aa516b04b336a69899b7bc26a001c31cc46c0384484e58672c",
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "file": "mx450-production-onboard-1.png",
+      "reviewed": true,
+      "method": "individual-display",
+      "observation": "The steered MX450 cockpit retains paired grip contacts, complete sleeves and the angled bar assembly, with the silver frame visible below. The forward ground and horizon are unobstructed by the rider.",
+      "sha256": "58c656e9e14a0010d1a16445893138240ec0556f06160b0d64cf97594bac0367",
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "file": "mx450-production-onboard-2.png",
+      "reviewed": true,
+      "method": "individual-display",
+      "observation": "The banked/braking MX450 view retains both hands, continuous arm shapes and the complete control assembly. Its plain number-board back remains below the clear driving corridor.",
+      "sha256": "c31e4cc5819d0b3a957476f206154a3cdb7abe61ee64fa4807918f28651aadbc",
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "file": "same-instance-mud-0.png",
+      "reviewed": true,
+      "method": "individual-display",
+      "observation": "The initial clean MX450 shows crisp entrant graphics, red plastics, bright silver frame, gold fork and dark tread with complete rider equipment and ground shadow.",
+      "sha256": "92441973338df2a2871f1c3adf905c10ff3eb081f66a6c567d319c97346c5dd3",
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "file": "same-instance-mud-1.png",
+      "reviewed": true,
+      "method": "individual-display",
+      "observation": "The muddy state visibly coats the rider, plastics, wheels, frame and fork in earth tones while preserving the bike shape, glove/peg contacts and legibility of the main number.",
+      "sha256": "ae18947b398fdb54be3bf5e1d9fd57558bd62a83c3967bbf080322c0ed8bccee",
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "file": "same-instance-mud-2.png",
+      "reviewed": true,
+      "method": "individual-display",
+      "observation": "The held muddy state retains the same dirt coverage, geometry and shadow without visual drift. Its original PNG hash is identical to the preceding muddy frame.",
+      "sha256": "ae18947b398fdb54be3bf5e1d9fd57558bd62a83c3967bbf080322c0ed8bccee",
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "file": "same-instance-mud-3.png",
+      "reviewed": true,
+      "method": "individual-display",
+      "observation": "Rewinding to the clean state restores the original red, white, silver and gold materials and rider graphics. Its original PNG hash matches the initial clean frame.",
+      "sha256": "92441973338df2a2871f1c3adf905c10ff3eb081f66a6c567d319c97346c5dd3",
+      "width": 1280,
+      "height": 800
+    }
+  ]
+}

@@ -1,0 +1,144 @@
+{
+  "schemaVersion": 1,
+  "command": "npm run test:offroad",
+  "baselineCommit": "f91463cf506f6feced1a4db9c43af48ac3632410",
+  "sourceHashes": {
+    "scripts/offroad-calibration.ts": "a994af9827d5587dd015533290a5725d458b80e2c176ef74915a73de08672718",
+    "scripts/offroad-races.ts": "f117567b26e82941a756e55ec77a1bae5300ad442c72050ca836e6c82ba41420",
+    "src/simulation/offroad/dirt-bike-vehicle.ts": "e700298e049d7874fd3690eea785b621717ba4dc9dc27a84ebf017815a346742",
+    "src/simulation/offroad/ai.ts": "93390c7d74631a6cf1478238694cecc475d52f14528365f4b7de9e3ec718b9d9",
+    "src/simulation/bike-ai.ts": "668a736db9168c9deb64797aa928971788a4c52a07e41b2bbc8bc8c0852c64e6",
+    "src/simulation/collision.ts": "02c8320bc909a556ca19d3b912f8be707db0463b6a23085b141ef652c678613e",
+    "src/simulation/driver-brain.ts": "d851cde01ebb016668daaedfa016bcc77536083b47284c812405ece28754f727",
+    "src/simulation/world.ts": "26500be30f1c8c1a666d6df4fed21ddc9a5f2aec6f29d163d866ab46caba501b"
+  },
+  "validationScriptsUnchangedFromBaseline": true,
+  "passed": true,
+  "jumpCalibrationCases": 20,
+  "raceScenarios": 10,
+  "failures": [],
+  "reports": {
+    "races": {
+      "path": "docs/production/motocross-evidence/races/preceding-integration-offroad-races.json",
+      "sha256": "ae01b7694fb4a60b1f2ef19440e8426772d53b6b9f92e25d91abeeeafcd64a62"
+    },
+    "calibration": {
+      "path": "docs/offroad-calibration.json",
+      "sha256": "69b5a87e40f78f4bda2ee32188ff6d382c20e84d6fee4d38c2c2ffaeef62ac87"
+    }
+  },
+  "interpretation": "Deterministic seeded CPU scenarios with original classification, crash, stop, terrain and event rules. These figures are not physical-device frame-rate measurements or all-seed guarantees.",
+  "races": [
+    {
+      "name": "Valley Ridge motocross moto",
+      "raceSeconds": 326.9,
+      "classified": 8,
+      "entrants": 8,
+      "totalCrashes": 3,
+      "worstRiderCrashes": 2,
+      "crashesPerRiderLap": 0.125,
+      "longestStopSeconds": 13.17,
+      "retired": []
+    },
+    {
+      "name": "Arena Nord supercross main",
+      "raceSeconds": 290.71,
+      "classified": 8,
+      "entrants": 8,
+      "totalCrashes": 2,
+      "worstRiderCrashes": 1,
+      "crashesPerRiderLap": 0.083,
+      "longestStopSeconds": 18.02,
+      "retired": []
+    },
+    {
+      "name": "Kestrel rallycross heat",
+      "raceSeconds": 246.29,
+      "classified": 5,
+      "entrants": 5,
+      "totalCrashes": 0,
+      "worstRiderCrashes": 0,
+      "crashesPerRiderLap": null,
+      "longestStopSeconds": 0,
+      "retired": []
+    },
+    {
+      "name": "Pinewood special stage",
+      "raceSeconds": 178.62,
+      "classified": 4,
+      "entrants": 4,
+      "totalCrashes": 0,
+      "worstRiderCrashes": 0,
+      "crashesPerRiderLap": null,
+      "longestStopSeconds": 0.39,
+      "retired": []
+    },
+    {
+      "name": "event valley-ridge-mx-moto-1",
+      "raceSeconds": 436.5,
+      "classified": 10,
+      "entrants": 10,
+      "totalCrashes": 7,
+      "worstRiderCrashes": 2,
+      "crashesPerRiderLap": 0.175,
+      "longestStopSeconds": 13.27,
+      "retired": []
+    },
+    {
+      "name": "event valley-ridge-mx-moto-2",
+      "raceSeconds": 790.89,
+      "classified": 10,
+      "entrants": 10,
+      "totalCrashes": 4,
+      "worstRiderCrashes": 1,
+      "crashesPerRiderLap": 0.1,
+      "longestStopSeconds": 13.9,
+      "retired": []
+    },
+    {
+      "name": "event arena-nord-supercross",
+      "raceSeconds": 566.07,
+      "classified": 10,
+      "entrants": 10,
+      "totalCrashes": 2,
+      "worstRiderCrashes": 1,
+      "crashesPerRiderLap": 0.033,
+      "longestStopSeconds": 17.46,
+      "retired": []
+    },
+    {
+      "name": "event valley-ridge-supermoto",
+      "raceSeconds": 303.76,
+      "classified": 8,
+      "entrants": 8,
+      "totalCrashes": 0,
+      "worstRiderCrashes": 0,
+      "crashesPerRiderLap": 0,
+      "longestStopSeconds": 9.79,
+      "retired": []
+    },
+    {
+      "name": "event kestrel-rallycross-heat",
+      "raceSeconds": 246.29,
+      "classified": 5,
+      "entrants": 5,
+      "totalCrashes": 0,
+      "worstRiderCrashes": 0,
+      "crashesPerRiderLap": null,
+      "longestStopSeconds": 0,
+      "retired": []
+    },
+    {
+      "name": "event pinewood-special-stage",
+      "raceSeconds": 219.23,
+      "classified": 6,
+      "entrants": 6,
+      "totalCrashes": 0,
+      "worstRiderCrashes": 0,
+      "crashesPerRiderLap": null,
+      "longestStopSeconds": 0.39,
+      "retired": []
+    }
+  ],
+  "scope": "Preceding integrated gate before the explicit motocross VSC/safety-car opt-out; retained historical evidence, not the final controller result."
+}

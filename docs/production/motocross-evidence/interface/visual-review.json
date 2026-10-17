@@ -1,0 +1,125 @@
+{
+  "scope": "Combined production Interface with real Saira fonts, original MX menu/status helpers and synthetic HUD/flag snapshots. Seventeen inspected component images; no rendered game world.",
+  "method": "Every listed full PNG was individually opened with view_image after its passing combined-build test. No composite-only or filename-only review.",
+  "images": [
+    {
+      "file": "motocross-menu-1280-scale-1.png",
+      "sha256": "b3311110b39e208a15113e464eb45e7cf77cf7317694f2f0a6be7ecf19d2daf7",
+      "width": 1280,
+      "height": 800,
+      "observed": "Outdoor menu: 440 px venue card spans the full form; route title is on one line, all three presets are balanced and the primary action occupies its own visible bottom row. Lower settings continue in the bounded scroll area. The integrated MOTOBOUND masthead retains DIRT SERIES and RIDER copy."
+    },
+    {
+      "file": "motocross-menu-1280-scale-1.35.png",
+      "sha256": "b3311110b39e208a15113e464eb45e7cf77cf7317694f2f0a6be7ecf19d2daf7",
+      "width": 1280,
+      "height": 800,
+      "observed": "Outdoor menu at accessibility scale 1.35: menu typography follows the existing fixed menu scale while the same full-width card, readable presets and separate primary row remain intact."
+    },
+    {
+      "file": "motocross-menu-640-scale-1.png",
+      "sha256": "c88525de6220e1b6dea0c6bcaca4ce1a0a02791bf07a6a006eef2a2a5337fe07",
+      "width": 640,
+      "height": 400,
+      "observed": "Short landscape menu: circuit selector and description use the available width; the setup scrollport is short, while ENTER CIRCUIT stays fully visible beneath it. Further setup content is intentionally reached by scrolling, not hidden under the action."
+    },
+    {
+      "file": "motocross-menu-375-scale-1.35.png",
+      "sha256": "8c185d5f3bf59deb5113431fd5c6e91ae9a6a198834ef58e26afee8c9e017741",
+      "width": 375,
+      "height": 667,
+      "observed": "Portrait menu: the 317.5 px card shows its route title on one line; presets become full-width rows. ENTER CIRCUIT remains visible in its own row; the remaining preset and settings are in the scroll area."
+    },
+    {
+      "file": "motocross-menu-settings-1280-scale-1.png",
+      "sha256": "b5eefe02aac96a6a0825108923298f67dfc5ac42dcbba75b8dea489c2ea33188",
+      "width": 1280,
+      "height": 800,
+      "observed": "Desktop after native machine-field focus: session, distance, weather, grid, tyres, assists, start and machine controls are visible in balanced columns; PREPARE GRID remains available; the primary action stays in its reserved row."
+    },
+    {
+      "file": "motocross-menu-settings-1280-scale-1.35.png",
+      "sha256": "b5eefe02aac96a6a0825108923298f67dfc5ac42dcbba75b8dea489c2ea33188",
+      "width": 1280,
+      "height": 800,
+      "observed": "Desktop scale 1.35 settings view: the focused machine field and surrounding settings remain readable above the separated primary action; menu typography is unchanged by the HUD scale setting."
+    },
+    {
+      "file": "motocross-menu-settings-640-scale-1.png",
+      "sha256": "3524db490a6a8a2db111bab718a9aff97d4adb5d8e7e2022b2a83bb554cded94",
+      "width": 640,
+      "height": 400,
+      "observed": "Short landscape after machine-field focus: start and machine selectors, race rules and PREPARE GRID are exposed above the persistent ENTER CIRCUIT row. Native focus checks separately covered every other setup control."
+    },
+    {
+      "file": "motocross-menu-settings-375-scale-1.35.png",
+      "sha256": "98f1b5ba0d53d26a1c343226f06c6c3c7cbf8123fdba4f175e2fe959c3e58403",
+      "width": 375,
+      "height": 667,
+      "observed": "Portrait after machine-field focus: tyres, assists, start, machine, race rules, PREPARE GRID and paddock actions remain reachable in the scroll region. The primary row is separate and fully visible."
+    },
+    {
+      "file": "motocross-menu-components.png",
+      "sha256": "03fb94dd1bb8ebe9338a07f50b3843247eb5f2f7b7d4d3382aee426fc6f4a394",
+      "width": 1280,
+      "height": 800,
+      "observed": "Stadium menu with MX250: full-width prepared-clay venue card, single-line UNDER THE LIGHTS title, three balanced presets and correct machine data; ENTER CIRCUIT is visible. No 3D showroom is rendered in this component fixture. The integrated machine card reports MX-250, 97 kg and 300 mm travel."
+    },
+    {
+      "file": "motocross-hud-full-1280-scale-1.png",
+      "sha256": "181eb3ea377d90568b885fbbc3bb79e522c9447a0d47b3cfd537082a04755e96",
+      "width": 1280,
+      "height": 800,
+      "observed": "Desktop full alert: actual double-yellow banner, jump readout, holeshot line and RadioCaption flow without overlap; bottom instruments and both proximity arrows remain clear."
+    },
+    {
+      "file": "motocross-hud-held-1280-scale-1.png",
+      "sha256": "b0bf6b5ae81de8ea7a01942dc5394e4a20abed11f9fde5c78e8c1abcdaced950",
+      "width": 1280,
+      "height": 800,
+      "observed": "Desktop held alert: banner contracts to its mini state, caption expires, jump/holeshot content remains visible and neither proximity cue overlaps telemetry."
+    },
+    {
+      "file": "motocross-hud-full-1280-scale-1.35.png",
+      "sha256": "c5025b2f6cdc30082b53689a5f04e0bbd816686e86c813d18de1ec6d04693835",
+      "width": 1280,
+      "height": 800,
+      "observed": "Large HUD scale: double-yellow text and radio caption wrap within their own panels; the status stack remains separate from the enlarged classification and instruments."
+    },
+    {
+      "file": "motocross-hud-held-1280-scale-1.35.png",
+      "sha256": "848f427f117174c7e50f0e0a8083d9b56d83ea7ea3d720de5d9c27ef287e3cc7",
+      "width": 1280,
+      "height": 800,
+      "observed": "Large HUD scale after the caption expires: compact retained flag and jump readout stay aligned; both proximity arrows and enlarged instruments remain unobstructed."
+    },
+    {
+      "file": "motocross-hud-full-640-scale-1.png",
+      "sha256": "e38a3fd323cbcaf2423fb0bc87bf9e8ffd8cd03d784afcd0273f9bcf48e0ff45",
+      "width": 640,
+      "height": 400,
+      "observed": "Short landscape with real fonts: compact yellow alert and radio occupy the left status column; instruments fit on the right, with both rider cues in the reserved strip above touch controls. MOTOBOUND remains in the compact header; only the MX fuel/instrument cluster is present."
+    },
+    {
+      "file": "motocross-hud-held-640-scale-1.png",
+      "sha256": "e2057f9dce113518c994f1db13559e9f836bfac2eb64e53c40ebad683d1f4540",
+      "width": 640,
+      "height": 400,
+      "observed": "Short landscape held state: the radio disappears while the warning, jump/holeshot readout, right-side instruments, proximity cues and touch controls retain their separate regions."
+    },
+    {
+      "file": "motocross-hud-full-375-scale-1.35.png",
+      "sha256": "976b0e25f270a6a032908e0ae725b7b86505c40bc7c086192e9930042b90c7be",
+      "width": 375,
+      "height": 667,
+      "observed": "Portrait with large HUD text: warning and radio wrap legibly above instruments; rider-left and rider-right cues sit below instruments and above touch controls without clipping."
+    },
+    {
+      "file": "motocross-hud-held-375-scale-1.35.png",
+      "sha256": "925880dfd7b7a066e368531e1ed7acae21dfd37debe0cd9dc4ae0433846c92d5",
+      "width": 375,
+      "height": 667,
+      "observed": "Portrait held state: the expired radio leaves a clear gap; warning and jump/holeshot readout remain present and all controls/proximity cues are within the viewport."
+    }
+  ]
+}

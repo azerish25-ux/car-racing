@@ -1,11 +1,11 @@
 import * as T from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import type { VehicleDefinition } from '../../simulation/vehicles.ts';
 import {
   add,
   beam,
   exhaustGeometry,
-  numberTexture,
   staticSag,
   superLoft,
   tube,
@@ -17,6 +17,15 @@ import { liveryScheme } from '../car-livery.ts';
 import { Rider, type RiderDetail } from '../rider.ts';
 import { installMudOn, type MudUniforms } from './mud.ts';
 import { forkLocalOffset } from '../bike-pit-service.ts';
+import { batchBikeRigidMeshes } from '../bike-rigid-batch.ts';
+import {
+  motocrossChain,
+  motocrossGraphics,
+  motocrossRotor,
+  motocrossSidePanel,
+  motocrossTread,
+  mouldedPanel,
+} from './motocross-detail.ts';
 
 /** Off-road motorcycle geometry (m): a 27 degree rake, a long fork with
  * ~300 mm of travel between the axle and the lower clamp, and the rider's
@@ -40,6 +49,8 @@ export class DirtBikeModel {
   readonly root = new T.Group();
   readonly sprung = new T.Group();
   readonly rider: Rider;
+  /** Sight points on the authored control geometry, following steering. */
+  readonly onboardControls = new T.Group();
   private readonly steerMount = new T.Group();
   private readonly steer = new T.Group();
   private readonly forkLower = new T.Group();
@@ -55,7 +66,7 @@ export class DirtBikeModel {
   private readonly gripLocal = [new T.Vector3(), new T.Vector3()];
   private readonly scratch = new T.Vector3();
   private readonly matrix = new T.Matrix4();
-  private readonly plastics: T.MeshPhysicalMaterial[] = [];
+  private readonly plastics: T.MeshStandardMaterial[] = [];
   constructor(
     readonly definition: VehicleDefinition,
     readonly id: number,
@@ -68,6 +79,11 @@ export class DirtBikeModel {
       sides = detail === 'high' ? 36 : detail === 'mid' ? 18 : 10,
       supermoto = definition.tireFamily === 'supermoto',
       scheme = liveryScheme(id);
+    const colours = {
+      primary: new T.Color(scheme.primary).getHex(),
+      secondary: new T.Color(scheme.secondary).getHex(),
+      accent: new T.Color(scheme.accent).getHex(),
+    };
     this.sag = staticSag(definition);
     this.root.name = `${definition.name} ${id + 1} (${detail})`;
     this.root.add(this.sprung);
@@ -85,15 +101,38 @@ export class DirtBikeModel {
       return mat;
     };
     const primary = plastic(scheme.primary, 'Off-road plastics'),
-      white = plastic(0xe8e6df, 'Off-road white plastics'),
       dark = plastic(0x1c1d20, 'Off-road black plastics'),
       board = new T.MeshPhysicalMaterial({
-        map: numberTexture((id % 98) + 2, '#ecebe4', scheme.primary),
+        map: motocrossGraphics(colours, 'number', (id % 98) + 2),
         roughness: 0.5,
         clearcoat: 0.1,
-        name: 'Number board',
+        name: 'Motocross factory number board',
       });
     this.plastics.push(board);
+    const shroudMaterial = primary.clone();
+    shroudMaterial.color.setHex(0xffffff);
+    if (detail !== 'far') shroudMaterial.map = motocrossGraphics(colours, 'shroud', (id % 98) + 2);
+    else shroudMaterial.color.set(scheme.primary);
+    shroudMaterial.name = 'Motocross layered factory plastics';
+    const rimMaterial = new T.MeshStandardMaterial({
+      color: id % 2 ? scheme.primary : 0x33383b,
+      metalness: 0.8,
+      roughness: 0.32,
+      name: 'Motocross anodised rim and hub',
+    });
+    const rotorMaterial = new T.MeshStandardMaterial({
+      color: 0xa3a7a8,
+      metalness: 0.88,
+      roughness: 0.35,
+      name: 'Motocross stainless wave rotor',
+    });
+    const chainMaterial = new T.MeshStandardMaterial({
+      color: 0x938165,
+      metalness: 0.78,
+      roughness: 0.48,
+      name: 'Motocross roller chain',
+    });
+    this.plastics.push(shroudMaterial, rimMaterial, rotorMaterial, chainMaterial);
     // ---- Wheels: spoked rims and knobby (or treaded road) tyres.
     const frontR = b.frontWheelRadius,
       rearR = b.rearWheelRadius,
@@ -106,7 +145,9 @@ export class DirtBikeModel {
       halfWidth: number,
       front: boolean,
     ) => {
-      const knob = supermoto ? 0 : 0.016;
+      // When distant tread blocks disappear, their envelope stays in the
+      // carcass so a LOD switch cannot make the wheel shrink off the ground.
+      const knob = supermoto || detail === 'far' ? 0 : 0.016;
       add(
         spin,
         tyreGeometry(radius - knob, halfWidth, halfWidth * 1.15, rim + 0.012, sides),
@@ -115,34 +156,47 @@ export class DirtBikeModel {
       if (knob > 0 && detail !== 'far')
         add(
           spin,
-          knobs(radius - knob, halfWidth, knob, detail === 'high' ? 40 : 22),
+          motocrossTread(radius, halfWidth, knob, detail === 'high' ? 44 : 24),
           this.m.rubber,
         );
       // Rim hoop, hub and spokes.
-      const hoop = add(spin, new T.TorusGeometry(rim, 0.012, 6, sides), this.m.aluminium);
-      hoop.rotation.y = Math.PI / 2;
-      add(spin, new T.CylinderGeometry(0.045, 0.045, 0.12, 12), this.m.aluminium).rotation.z =
+      const hoop = add(spin, new T.CylinderGeometry(rim, rim, 0.033, sides, 1, true), rimMaterial);
+      hoop.rotation.z = Math.PI / 2;
+      for (const side of [-1, 1]) {
+        const lip = add(spin, new T.TorusGeometry(rim, 0.006, 6, sides), rimMaterial, side * 0.019);
+        lip.rotation.y = Math.PI / 2;
+      }
+      add(spin, new T.CylinderGeometry(0.034, 0.034, 0.092, 12), rimMaterial).rotation.z =
         Math.PI / 2;
-      if (detail !== 'far')
-        add(spin, spokes(rim, detail === 'high' ? 32 : 16), this.m.steel, 0, 0, 0, false);
-      if (front)
+      if (detail !== 'far') {
+        add(spin, spokes(rim, detail === 'high' ? 36 : 20), this.m.steel, 0, 0, 0, false);
+        for (const side of [-1, 1])
+          add(
+            spin,
+            new T.CylinderGeometry(0.048, 0.048, 0.008, 12),
+            rimMaterial,
+            side * 0.041,
+          ).rotation.z = Math.PI / 2;
         add(
           spin,
-          new T.CylinderGeometry(0.135, 0.135, 0.005, sides),
-          this.m.disc,
-          0.055,
-          0,
-          0,
-        ).rotation.z = Math.PI / 2;
-      else
-        add(
-          spin,
-          new T.CylinderGeometry(0.12, 0.12, 0.005, sides),
-          this.m.disc,
-          -0.06,
-          0,
-          0,
-        ).rotation.z = Math.PI / 2;
+          motocrossRotor(front ? 0.131 : 0.117, detail),
+          rotorMaterial,
+          front ? 0.056 : -0.06,
+        );
+        if (!front) add(spin, motocrossRotor(0.115, detail, true), chainMaterial, 0.095);
+        if (detail === 'high')
+          for (let k = 0; k < 6; k++) {
+            const a = (k / 6) * Math.PI * 2;
+            add(
+              spin,
+              new T.CylinderGeometry(0.004, 0.004, 0.006, 6),
+              this.m.aluminium,
+              front ? 0.06 : -0.064,
+              Math.cos(a) * 0.061,
+              Math.sin(a) * 0.061,
+            ).rotation.z = Math.PI / 2;
+          }
+      }
     };
     // ---- Steering: a long fork on a 27 degree head.
     const front = new T.Vector3(0, frontR - h, b.cgToFront);
@@ -153,6 +207,14 @@ export class DirtBikeModel {
     this.steerMount.rotation.x = -RAKE;
     this.sprung.add(this.steerMount);
     this.steerMount.add(this.steer);
+    this.onboardControls.name = 'Motocross onboard control sights';
+    this.steer.add(this.onboardControls);
+    const controlSight = (name: string, x: number, y: number, z: number) => {
+      const point = new T.Object3D();
+      point.name = name;
+      point.position.set(x, y, z);
+      this.onboardControls.add(point);
+    };
     // Outer fork tubes (anodised) through the clamps.
     for (const side of [1, -1])
       add(
@@ -168,17 +230,34 @@ export class DirtBikeModel {
     // Tapered bar on risers, crossbar pad, grips and levers.
     const barY = CLAMPS + 0.09,
       barZ = -0.06;
-    const bar = add(
+    controlSight('Motocross bar pad', 0, barY + 0.012, barZ + 0.03);
+    add(
       this.steer,
-      new T.CylinderGeometry(0.014, 0.011, 0.8, 10),
+      tube(
+        [
+          [-0.42, barY, barZ],
+          [-0.28, barY, barZ + 0.01],
+          [-0.17, barY - 0.044, barZ + 0.032],
+          [0, barY - 0.05, barZ + 0.032],
+          [0.17, barY - 0.044, barZ + 0.032],
+          [0.28, barY, barZ + 0.01],
+          [0.42, barY, barZ],
+        ],
+        0.012,
+        detail === 'high' ? 36 : 16,
+        8,
+      ),
       this.m.aluminium,
-      0,
-      barY,
-      barZ,
     );
-    bar.rotation.z = Math.PI / 2;
     if (detail !== 'far')
-      add(this.steer, new T.BoxGeometry(0.2, 0.04, 0.05), dark, 0, barY + 0.04, barZ + 0.01);
+      add(
+        this.steer,
+        new RoundedBoxGeometry(0.22, 0.057, 0.065, 2, 0.014),
+        primary,
+        0,
+        barY + 0.012,
+        barZ + 0.03,
+      );
     for (const side of [1, -1]) {
       add(
         this.steer,
@@ -197,51 +276,100 @@ export class DirtBikeModel {
         barZ,
       ).rotation.z = Math.PI / 2;
       this.gripLocal[side > 0 ? 0 : 1].set(side * 0.36, barY, barZ);
+      controlSight(`Motocross ${side > 0 ? 'left' : 'right'} grip`, side * 0.36, barY, barZ);
       if (detail === 'high') {
         const lever = add(
           this.steer,
-          new T.BoxGeometry(0.16, 0.008, 0.016),
+          new RoundedBoxGeometry(0.14, 0.008, 0.016, 2, 0.004),
           this.m.aluminium,
           side * 0.3,
           barY - 0.01,
           barZ + 0.07,
         );
         lever.rotation.y = side * 0.25;
+        add(
+          this.steer,
+          new T.SphereGeometry(0.006, 8, 6),
+          this.m.aluminium,
+          side * 0.37,
+          barY - 0.01,
+          barZ + 0.085,
+        );
+        add(
+          this.steer,
+          new RoundedBoxGeometry(0.037, 0.026, 0.046, 2, 0.006),
+          this.m.dark,
+          side * 0.247,
+          barY + 0.02,
+          barZ + 0.033,
+        );
       }
     }
+    if (detail !== 'far')
+      for (const side of [-1, 1])
+        add(
+          this.steer,
+          tube(
+            [
+              [side * 0.24, barY + 0.013, barZ + 0.042],
+              [side * 0.16, barY + 0.073, barZ + 0.075],
+              [side * 0.054, CLAMPS - 0.09, 0.05],
+            ],
+            0.004,
+            18,
+            5,
+          ),
+          this.m.dark,
+        );
     // Front number plate below the bar.
     const plate = add(
       this.steer,
-      new T.CylinderGeometry(0.2, 0.2, 0.2, 12, 1, true, -0.55, 1.1),
+      mouldedPanel(
+        [
+          [-0.138, 0.143],
+          [0.138, 0.143],
+          [0.155, 0.065],
+          [0.119, -0.13],
+          [0, -0.167],
+          [-0.119, -0.13],
+        ],
+        0.008,
+        0.005,
+      ),
       board,
       0,
-      CLAMPS - 0.06,
-      OFFSET + 0.06,
+      CLAMPS - 0.075,
+      OFFSET + 0.1,
     );
-    plate.scale.set(1, 1, 0.5);
-    plate.rotation.y = 0;
+    plate.name = 'Motocross sculpted front number plate';
+    // Race numbers are printed on the front. The cockpit sees the unprinted
+    // moulding, not a mirrored duplicate of the graphics through the plate.
+    const plateNormals = plate.geometry.getAttribute('normal'),
+      plateUv = plate.geometry.getAttribute('uv');
+    for (let i = 0; i < plateNormals.count; i++)
+      if (plateNormals.getZ(i) < 0.5) plateUv.setXY(i, 8 / 512, 0.5);
     // High front fender on the lower clamp: the wheel rises into the gap.
     const fender = superLoft(
       [
-        { z: -0.26, y: -0.09, w: 0.08, top: 0.012, bottom: 0.004 },
-        { z: -0.05, y: -0.05, w: 0.1, top: 0.014, bottom: 0.004 },
-        { z: 0.15, y: -0.06, w: 0.1, top: 0.014, bottom: 0.004 },
-        { z: 0.36, y: -0.12, w: 0.085, top: 0.012, bottom: 0.004 },
-        { z: 0.46, y: -0.17, w: 0.06, top: 0.01, bottom: 0.004 },
+        { z: -0.26, y: -0.09, w: 0.062, top: 0.012, bottom: 0.004 },
+        { z: -0.05, y: -0.05, w: 0.095, top: 0.022, bottom: 0.004 },
+        { z: 0.15, y: -0.06, w: 0.103, top: 0.025, bottom: 0.004 },
+        { z: 0.36, y: -0.115, w: 0.082, top: 0.02, bottom: 0.004 },
+        { z: 0.48, y: -0.17, w: 0.067, top: 0.008, bottom: 0.004 },
       ],
       sides,
       3,
     );
-    add(this.steer, fender, supermoto ? primary : white, 0, -0.04, OFFSET);
+    add(this.steer, fender, primary, 0, -0.04, OFFSET);
     // Lower legs (stanchions and axle lugs) slide with the recorded compression.
     this.steer.add(this.forkLower);
     for (const side of [1, -1]) {
       add(
         this.forkLower,
-        new T.CylinderGeometry(0.024, 0.024, 0.5, sides / 2),
+        new T.CylinderGeometry(0.024, 0.024, 0.68, sides / 2),
         this.m.forkLower,
         side * 0.095,
-        0.26,
+        0.34,
         OFFSET,
       );
       add(
@@ -256,11 +384,11 @@ export class DirtBikeModel {
       if (detail !== 'far')
         add(
           this.forkLower,
-          new T.BoxGeometry(0.035, 0.34, 0.06),
-          dark,
+          new RoundedBoxGeometry(0.049, 0.34, 0.054, 2, 0.013),
+          primary,
           side * 0.115,
           0.2,
-          OFFSET + 0.025,
+          OFFSET + 0.023,
         );
     }
     add(
@@ -274,23 +402,38 @@ export class DirtBikeModel {
     this.forkLower.add(this.frontSpin);
     this.frontSpin.position.set(0, 0, OFFSET);
     wheel(this.frontSpin, frontR, frontRim, supermoto ? 0.06 : 0.042, true);
-    // ---- Frame (steel perimeter), engine, radiators, bodywork.
-    const fy = (y: number) => y;
+    if (detail === 'high')
+      add(
+        this.forkLower,
+        tube(
+          [
+            [0.113, 0.02, OFFSET - 0.1],
+            [0.124, 0.25, OFFSET + 0.017],
+            [0.123, 0.51, OFFSET + 0.013],
+          ],
+          0.004,
+          16,
+          5,
+        ),
+        this.m.dark,
+      );
+    // ---- Open perimeter frame, cast engine and folded radiator shrouds.
+    const lightFrame = definition.id === 'mx250';
     for (const side of [1, -1]) {
       add(
         this.sprung,
-        tube(
+        beam(
           [
             [side * 0.03, head.y - 0.01, head.z - 0.03],
-            [side * 0.12, head.y - 0.12, head.z - 0.25],
-            [side * 0.13, fy(-0.06), -0.12],
-            [side * 0.11, fy(-0.33), -0.16],
+            [side * 0.1, head.y - 0.1, head.z - 0.2],
+            [side * 0.14, -0.07, -0.12],
+            [side * 0.115, -0.35, -0.16],
           ],
-          0.016,
-          detail === 'high' ? 24 : 8,
-          8,
+          lightFrame ? 0.027 : 0.038,
+          lightFrame ? 0.037 : 0.066,
+          detail === 'high' ? 20 : 8,
         ),
-        this.m.steel,
+        lightFrame ? primary : this.m.aluminium,
       );
       // Subframe to the rear fender.
       add(
@@ -307,6 +450,22 @@ export class DirtBikeModel {
         ),
         this.m.aluminium,
       );
+      add(
+        this.sprung,
+        tube(
+          [
+            [side * 0.065, head.y - 0.06, head.z - 0.03],
+            [side * 0.11, -0.28, 0.19],
+            [side * 0.12, -0.5, 0.07],
+            [side * 0.1, -0.51, -0.17],
+            [side * 0.11, -0.33, -0.2],
+          ],
+          lightFrame ? 0.014 : 0.018,
+          detail === 'high' ? 28 : 12,
+          8,
+        ),
+        lightFrame ? primary : this.m.aluminium,
+      );
     }
     add(
       this.sprung,
@@ -322,31 +481,170 @@ export class DirtBikeModel {
       ),
       this.m.steel,
     );
-    // Single-cylinder engine: cases, barrel and head, skid plate.
-    add(this.sprung, new T.BoxGeometry(0.2, 0.22, 0.34), this.m.aluminium, 0, -0.4, -0.02);
-    const barrel = add(this.sprung, new T.BoxGeometry(0.15, 0.2, 0.15), this.m.dark, 0, -0.2, 0.04);
+    // The round clutch/ignition covers sit over sculpted magnesium cases;
+    // the frame remains visibly open around them.
+    add(
+      this.sprung,
+      new RoundedBoxGeometry(0.19, 0.17, 0.27, detail === 'high' ? 3 : 1, 0.055),
+      this.m.aluminium,
+      0,
+      -0.39,
+      -0.065,
+    );
+    for (const side of [-1, 1]) {
+      const cover = add(
+        this.sprung,
+        new T.CylinderGeometry(side > 0 ? 0.086 : 0.1, side > 0 ? 0.086 : 0.1, 0.033, sides),
+        this.m.dark,
+        side * 0.106,
+        -0.38,
+        -0.057,
+      );
+      cover.rotation.z = Math.PI / 2;
+      add(
+        this.sprung,
+        new T.CylinderGeometry(0.066, 0.066, 0.008, sides),
+        this.m.aluminium,
+        side * 0.125,
+        -0.38,
+        -0.057,
+      ).rotation.z = Math.PI / 2;
+      if (detail === 'high')
+        for (let k = 0; k < 7; k++) {
+          const a = (k / 7) * Math.PI * 2;
+          add(
+            this.sprung,
+            new T.CylinderGeometry(0.005, 0.005, 0.006, 6),
+            this.m.steel,
+            side * 0.127,
+            -0.38 + Math.sin(a) * 0.078,
+            -0.057 + Math.cos(a) * 0.078,
+          ).rotation.z = Math.PI / 2;
+        }
+    }
+    const barrel = add(
+      this.sprung,
+      new RoundedBoxGeometry(0.135, 0.21, 0.13, 2, 0.016),
+      this.m.aluminium,
+      0,
+      -0.23,
+      0.033,
+    );
     barrel.rotation.x = -0.3;
-    add(this.sprung, new T.BoxGeometry(0.17, 0.02, 0.36), this.m.aluminium, 0, -0.52, -0.02);
+    add(
+      this.sprung,
+      new RoundedBoxGeometry(0.166, 0.054, 0.167, 2, 0.015),
+      this.m.dark,
+      0,
+      -0.106,
+      0.015,
+    ).rotation.x = -0.3;
+    if (detail !== 'far')
+      for (let i = 0; i < 6; i++)
+        add(
+          this.sprung,
+          new RoundedBoxGeometry(0.141, 0.009, 0.137, 1, 0.009),
+          this.m.steel,
+          0,
+          -0.304 + i * 0.025,
+          0.055 - i * 0.007,
+        ).rotation.x = -0.3;
+    add(
+      this.sprung,
+      new RoundedBoxGeometry(0.218, 0.025, 0.35, 2, 0.015),
+      this.m.dark,
+      0,
+      -0.52,
+      -0.02,
+    );
     // Radiators either side of the frame, under the wing shrouds.
     for (const side of [1, -1]) {
-      add(this.sprung, new T.BoxGeometry(0.03, 0.24, 0.16), this.m.dark, side * 0.16, -0.1, 0.12);
+      add(
+        this.sprung,
+        new RoundedBoxGeometry(0.104, 0.266, 0.031, 1, 0.008),
+        this.m.aluminium,
+        side * 0.115,
+        -0.105,
+        0.19,
+      );
+      add(
+        this.sprung,
+        new T.BoxGeometry(0.087, 0.236, 0.009),
+        this.m.dark,
+        side * 0.115,
+        -0.105,
+        0.209,
+      );
+      if (detail !== 'far') {
+        for (let k = 0; k < 13; k++)
+          add(
+            this.sprung,
+            new T.BoxGeometry(0.087, 0.0035, 0.011),
+            this.m.steel,
+            side * 0.115,
+            -0.214 + k * 0.018,
+            0.218,
+          );
+        for (let k = 0; k < 4; k++)
+          add(
+            this.sprung,
+            new T.BoxGeometry(0.004, 0.242, 0.015),
+            dark,
+            side * (0.08 + k * 0.024),
+            -0.105,
+            0.222,
+          );
+        add(
+          this.sprung,
+          tube(
+            [
+              [side * 0.119, -0.24, 0.18],
+              [side * 0.11, -0.27, 0.13],
+              [side * 0.076, -0.225, 0.04],
+            ],
+            0.011,
+            12,
+            6,
+          ),
+          dark,
+        );
+      }
       const shroud = add(
         this.sprung,
-        superLoft(
+        motocrossSidePanel(
           [
-            { z: -0.12, y: 0.02, w: 0.012, top: 0.1, bottom: 0.14 },
-            { z: 0.05, y: -0.02, w: 0.014, top: 0.12, bottom: 0.18 },
-            { z: 0.2, y: -0.07, w: 0.012, top: 0.1, bottom: 0.14 },
+            [-0.17, 0.135],
+            [0.085, 0.168],
+            [0.325, 0.105],
+            [0.23, -0.028],
+            [0.209, -0.265],
+            [0.103, -0.299],
+            [0.027, -0.118],
+            [-0.129, -0.052],
           ],
-          sides / 2,
-          4,
+          side,
         ),
-        primary,
-        side * 0.19,
+        shroudMaterial,
+        side * 0.184,
         0,
         0,
       );
       shroud.rotation.y = side * 0.12;
+      shroud.name = 'Motocross folded radiator shroud';
+      if (detail === 'high')
+        for (const [z, y] of [
+          [-0.122, 0.09],
+          [0.156, -0.242],
+          [0.277, 0.094],
+        ])
+          add(
+            this.sprung,
+            new T.CylinderGeometry(0.006, 0.006, 0.007, 6),
+            this.m.steel,
+            side * 0.194,
+            y,
+            z,
+          ).rotation.z = Math.PI / 2;
     }
     // Tank under the shrouds and the long flat seat.
     add(
@@ -362,6 +660,23 @@ export class DirtBikeModel {
       ),
       primary,
     );
+    add(this.sprung, new T.CylinderGeometry(0.034, 0.039, 0.016, 12), this.m.dark, 0, 0.15, 0.091);
+    if (detail !== 'far')
+      add(
+        this.sprung,
+        tube(
+          [
+            [0, 0.16, 0.093],
+            [0, 0.22, 0.075],
+            [0, 0.22, 0.225],
+            [0, 0.17, 0.283],
+          ],
+          0.004,
+          18,
+          5,
+        ),
+        this.m.dark,
+      );
     add(
       this.sprung,
       superLoft(
@@ -376,17 +691,37 @@ export class DirtBikeModel {
       ),
       this.m.seat,
     );
+    if (detail !== 'far')
+      for (let i = 0; i < 6; i++)
+        add(
+          this.sprung,
+          new RoundedBoxGeometry(0.17 - i * 0.01, 0.008, 0.015, 1, 0.003),
+          dark,
+          0,
+          0.134 - i * 0.002,
+          -0.23 - i * 0.062,
+        );
     // Side number boards and the long, upswept rear fender.
     for (const side of [1, -1]) {
       const panel = add(
         this.sprung,
-        new T.BoxGeometry(0.006, 0.17, 0.3),
+        motocrossSidePanel(
+          [
+            [-0.755, 0.047],
+            [-0.348, 0.077],
+            [-0.223, -0.031],
+            [-0.347, -0.196],
+            [-0.602, -0.093],
+          ],
+          side,
+        ),
         board,
-        side * 0.13,
-        -0.02,
-        -0.46,
+        side * 0.151,
+        0,
+        0,
       );
-      panel.rotation.x = 0.12;
+      panel.rotation.y = -side * 0.045;
+      panel.name = 'Motocross tapered side number panel';
     }
     add(
       this.sprung,
@@ -399,7 +734,7 @@ export class DirtBikeModel {
         sides,
         3,
       ),
-      supermoto ? primary : white,
+      primary,
     );
     // Exhaust: header from the head down the right side to the silencer.
     add(
@@ -407,9 +742,10 @@ export class DirtBikeModel {
       exhaustGeometry(
         [
           [0, -0.16, 0.14],
-          [-0.08, -0.25, 0.1],
-          [-0.12, -0.2, -0.15],
-          [-0.13, -0.05, -0.45],
+          [-0.098, -0.2, 0.23],
+          [-0.16, -0.365, 0.11],
+          [-0.155, -0.3, -0.14],
+          [-0.163, -0.05, -0.46],
         ],
         0.022,
         detail === 'high' ? 32 : 10,
@@ -417,15 +753,61 @@ export class DirtBikeModel {
       ),
       this.m.titanium,
     );
-    const silencer = add(
-      this.sprung,
-      new T.CylinderGeometry(0.045, 0.04, 0.36, sides / 2),
+    const silencer = new T.Group();
+    silencer.name = 'Motocross tapered open exhaust silencer';
+    silencer.position.set(-0.177, -0.005, -0.615);
+    silencer.rotation.x = 0.22;
+    this.sprung.add(silencer);
+    add(
+      silencer,
+      new T.CylinderGeometry(0.049, 0.044, 0.342, sides / 2),
       this.m.aluminium,
-      -0.14,
-      0.0,
-      -0.62,
-    );
-    silencer.rotation.x = Math.PI / 2 - 0.25;
+    ).rotation.x = Math.PI / 2;
+    add(
+      silencer,
+      new T.CylinderGeometry(0.046, 0.033, 0.065, sides / 2),
+      this.m.dark,
+      0,
+      0,
+      -0.189,
+    ).rotation.x = Math.PI / 2;
+    add(silencer, new T.TorusGeometry(0.025, 0.005, 6, sides / 2), this.m.steel, 0, 0, -0.222);
+    add(silencer, new T.CircleGeometry(0.021, sides / 2), this.m.dark, 0, 0, -0.218).rotation.y =
+      Math.PI;
+    if (detail !== 'far')
+      for (const z of [-0.115, 0.11])
+        add(silencer, new T.TorusGeometry(0.049, 0.004, 5, sides / 2), this.m.steel, 0, 0, z);
+    // Serrated hollow pegs retain the rider's authored contact points.
+    for (const side of [-1, 1]) {
+      for (const z of [-0.125, -0.075])
+        add(
+          this.sprung,
+          new T.BoxGeometry(0.098, 0.014, 0.009),
+          this.m.steel,
+          side * 0.17,
+          -0.449,
+          z,
+        );
+      add(
+        this.sprung,
+        new T.BoxGeometry(0.011, 0.014, 0.059),
+        this.m.steel,
+        side * 0.217,
+        -0.449,
+        -0.1,
+      );
+      if (detail === 'high')
+        for (let k = 0; k < 5; k++)
+          for (const z of [-0.125, -0.075])
+            add(
+              this.sprung,
+              new T.BoxGeometry(0.008, 0.025, 0.009),
+              this.m.steel,
+              side * (0.126 + k * 0.021),
+              -0.444,
+              z,
+            );
+    }
     // Rear shock (spring compresses with the shock).
     if (detail !== 'far') {
       const coil: [number, number, number][] = [];
@@ -465,9 +847,23 @@ export class DirtBikeModel {
     add(this.swingarm, new T.CylinderGeometry(0.018, 0.018, 0.26, 10), this.m.steel).rotation.z =
       Math.PI / 2;
     if (detail !== 'far') {
-      for (const y of [0.04, -0.04])
-        add(this.swingarm, new T.BoxGeometry(0.01, 0.01, arm), this.m.steel, 0.1, y, -arm / 2);
-      add(this.swingarm, new T.BoxGeometry(0.01, 0.05, 0.3), dark, 0.12, 0.05, -arm * 0.55);
+      add(this.swingarm, motocrossChain(arm, detail), chainMaterial, 0.095);
+      add(
+        this.swingarm,
+        new RoundedBoxGeometry(0.018, 0.027, 0.26, 1, 0.007),
+        dark,
+        0.102,
+        0.047,
+        -arm * 0.35,
+      );
+      add(
+        this.swingarm,
+        new RoundedBoxGeometry(0.038, 0.085, 0.084, 1, 0.012),
+        dark,
+        0.095,
+        -0.074,
+        -arm * 0.8,
+      );
     }
     this.root.add(this.swingarm);
     this.rearWheel.position.copy(this.rearAxle);
@@ -475,19 +871,24 @@ export class DirtBikeModel {
     this.root.add(this.rearWheel);
     wheel(this.rearSpin, rearR, rearRim, supermoto ? 0.085 : 0.06, false);
     // ---- Off-road rider.
-    this.rider = new Rider(
-      {
-        primary: new T.Color(scheme.primary).getHex(),
-        secondary: new T.Color(scheme.secondary).getHex(),
-        accent: new T.Color(scheme.accent).getHex(),
-      },
-      detail,
-      'motocross',
-    );
+    this.rider = new Rider(colours, detail, 'motocross', (id % 98) + 2);
     this.rider.seat.set(0, 0.2, -0.24);
     this.rider.pegs[0].set(0.17, -0.44, -0.1);
     this.rider.pegs[1].set(-0.17, -0.44, -0.1);
     this.sprung.add(this.rider.root);
+    // Repeated lugs, fins, fasteners and mechanical pieces are merged per
+    // material inside each articulation boundary, including distant LODs.
+    for (const group of [
+      this.sprung,
+      this.steer,
+      this.forkLower,
+      this.frontSpin,
+      this.rearSpin,
+      this.swingarm,
+      this.spring,
+      silencer,
+    ])
+      batchBikeRigidMeshes(group);
     installMudOn(this.root, this.mud);
   }
   pose(v: BikePoseValues) {
@@ -549,23 +950,6 @@ export class DirtBikeModel {
       m.dispose();
     }
   }
-}
-/** Knobs around a tyre: centre and shoulder rows, staggered (one geometry). */
-function knobs(radius: number, halfWidth: number, height: number, count: number) {
-  const parts: T.BufferGeometry[] = [];
-  for (let k = 0; k < count; k++) {
-    const a = (k / count) * Math.PI * 2;
-    const rows = k % 2 === 0 ? [0] : [-0.65, 0.65];
-    for (const x of rows) {
-      const g = new T.BoxGeometry(0.026, height * 2, 0.024);
-      g.translate(x * halfWidth, radius, 0);
-      g.rotateX(a);
-      parts.push(g);
-    }
-  }
-  const merged = mergeGeometries(parts, false);
-  for (const g of parts) g.dispose();
-  return merged;
 }
 /** Laced spokes from the hub flanges to the rim, crossing (one geometry). */
 function spokes(rim: number, count: number) {

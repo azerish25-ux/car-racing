@@ -1,0 +1,280 @@
+{
+  "schemaVersion": 1,
+  "createdAt": "2026-10-17T02:07:17.913013+00:00",
+  "scope": "Byte inventory of this package excluding this inventory and separately owned visual-review.json.",
+  "originalAttachments": 42,
+  "originalPngs": 21,
+  "originalMetrics": 21,
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "c4e9f92713f8f2e26eecffd9c833b77b3310c7c4beae0895e67c35e3885e1ae8",
+      "bytes": 7284
+    },
+    {
+      "path": "after-source.json",
+      "sha256": "6bcfbbfff5cda3683a6ea353354de2abf6d2626b47618b8caf1968157f0974ba",
+      "bytes": 74407
+    },
+    {
+      "path": "attachment-manifest.json",
+      "sha256": "f2018758b47e3b95c915383ef760727c9a4a183e55bb09be3db2279efd8b5006",
+      "bytes": 13858
+    },
+    {
+      "path": "before-source.json",
+      "sha256": "3f384bde598dd74ecc34c45260b69d36153366af3caf0bfcd60558778a612d35",
+      "bytes": 74407
+    },
+    {
+      "path": "braced-front.png",
+      "sha256": "3357c4eb242cd9ae5ebf7a33fce6401572e3230152cb652697b651249a7dac2e",
+      "bytes": 200911
+    },
+    {
+      "path": "checkpoint-summary.json",
+      "sha256": "bf596b6f1c2b6b765e750c71113717576724b306900611ba26a31733d167f7cc",
+      "bytes": 2335
+    },
+    {
+      "path": "combined-report.json",
+      "sha256": "5f9d82ba0985c5d579c3f0d46e8ee2b082d29f54f161ef4fac00e08c5acf7369",
+      "bytes": 16925
+    },
+    {
+      "path": "combined-run.log",
+      "sha256": "22a08c577260c5c3303fad932aaf3e2f1abe3fe4cd6b36b7c6bca3b1216fcbbf",
+      "bytes": 1474
+    },
+    {
+      "path": "continuity-comparison.json",
+      "sha256": "5dd6b2c76a3f7c753e5feb26652b150522b8649c5cad3c408883fe1782070e86",
+      "bytes": 7223
+    },
+    {
+      "path": "environment.json",
+      "sha256": "f1537375721c6a9664c673b9545e728c2aff3d053640088891e5324577a93ccf",
+      "bytes": 369
+    },
+    {
+      "path": "helmet-and-gear.png",
+      "sha256": "e076f5208063d870c686ab002f09eae7b3c54a58d4a5ec4ef9fdc20bd040967c",
+      "bytes": 425077
+    },
+    {
+      "path": "inside-foot-dab.png",
+      "sha256": "4552cd714de32c761676606c99fa482bd5beb46651bea78d04f3de7b9ed33be6",
+      "bytes": 244507
+    },
+    {
+      "path": "metrics.json",
+      "sha256": "101ef422b9aa2451510167e239b19c766495e8ac5d55132b6a146c71817ffe6b",
+      "bytes": 48139
+    },
+    {
+      "path": "mx250-far.png",
+      "sha256": "f50e49cb4a4313bd909a6eb66967a4842c359936fe5d3f8e7e1e5ff2b6580118",
+      "bytes": 204245
+    },
+    {
+      "path": "mx250-high.png",
+      "sha256": "bda101b710406dd298fe2c7391eccad2debaf9a0f9f367af132ff69b0c3c08f8",
+      "bytes": 254851
+    },
+    {
+      "path": "mx250-mid.png",
+      "sha256": "087e26ccd5870e24db4e14c3a8fc6248b6267cdb27c5a956d64a9c035749db7d",
+      "bytes": 243946
+    },
+    {
+      "path": "mx250-production-onboard-0.png",
+      "sha256": "c6c0cf5dbda84b125e5e4ba3cea5e751b0f7f418ce5852b09b5e2e6fad453216",
+      "bytes": 186019
+    },
+    {
+      "path": "mx250-production-onboard-1.png",
+      "sha256": "5720d9d82c94fda26812a23c805037e22f1f938536d12fa7b11f583895af5420",
+      "bytes": 209737
+    },
+    {
+      "path": "mx250-production-onboard-2.png",
+      "sha256": "e34b0bc1f30fd1e92e1aad40f3401912aa7d5af5d60332f976acfa650d645f04",
+      "bytes": 241635
+    },
+    {
+      "path": "mx450-far.png",
+      "sha256": "672eb5e22eaabb59c331132e6771b359a4c7fa5f795648d50b505a5a9c74f989",
+      "bytes": 205452
+    },
+    {
+      "path": "mx450-high.png",
+      "sha256": "92441973338df2a2871f1c3adf905c10ff3eb081f66a6c567d319c97346c5dd3",
+      "bytes": 255620
+    },
+    {
+      "path": "mx450-mid.png",
+      "sha256": "755aa22923d109de2f23e97849e569630f467446676e664639b4222e32671189",
+      "bytes": 244551
+    },
+    {
+      "path": "mx450-production-onboard-0.png",
+      "sha256": "8cf0a7ac966204aa516b04b336a69899b7bc26a001c31cc46c0384484e58672c",
+      "bytes": 190470
+    },
+    {
+      "path": "mx450-production-onboard-1.png",
+      "sha256": "58c656e9e14a0010d1a16445893138240ec0556f06160b0d64cf97594bac0367",
+      "bytes": 212769
+    },
+    {
+      "path": "mx450-production-onboard-2.png",
+      "sha256": "c31e4cc5819d0b3a957476f206154a3cdb7abe61ee64fa4807918f28651aadbc",
+      "bytes": 244977
+    },
+    {
+      "path": "raw-metrics/braced-front-metrics.json",
+      "sha256": "78cfd8069e36208251294996cafc625016c9380ab60d6e80c67f7554229f8ab0",
+      "bytes": 1500
+    },
+    {
+      "path": "raw-metrics/helmet-and-gear-metrics.json",
+      "sha256": "7ac9c295cfe2613796f2de8248832304549c2084b514497896b7925c7c394648",
+      "bytes": 1501
+    },
+    {
+      "path": "raw-metrics/inside-foot-dab-metrics.json",
+      "sha256": "9069f9144a8f545c7da5fe0ad54e5630a7315a45fd726a72fed3dd1972908045",
+      "bytes": 1500
+    },
+    {
+      "path": "raw-metrics/mx250-far-metrics.json",
+      "sha256": "7d4c709cfc8b4e195687082f1d5bacc34c46b7184d265265219b33200c539ea4",
+      "bytes": 1344
+    },
+    {
+      "path": "raw-metrics/mx250-high-metrics.json",
+      "sha256": "800f0887f3429cb63bf804ace666eb46737a772778b0fbe20c7650d29c85b04c",
+      "bytes": 1502
+    },
+    {
+      "path": "raw-metrics/mx250-mid-metrics.json",
+      "sha256": "232dba504c747e62547fe91749ce0219bbd20104d79c92da849b47fcca2fc929",
+      "bytes": 1502
+    },
+    {
+      "path": "raw-metrics/mx250-production-onboard-0-metrics.json",
+      "sha256": "2c9d52fa1fbf0d72dac51dfbd728447337477170ee966088c4f96a4ed184db09",
+      "bytes": 4691
+    },
+    {
+      "path": "raw-metrics/mx250-production-onboard-1-metrics.json",
+      "sha256": "cef0b9faefc555e1730401fe3989f1049a18ac96396dd5b8aef92193fa1887a1",
+      "bytes": 4710
+    },
+    {
+      "path": "raw-metrics/mx250-production-onboard-2-metrics.json",
+      "sha256": "2c0aeb85a3e362473221410989f0ff560a6b8d83630c212be0babaf9c7f77cfc",
+      "bytes": 4744
+    },
+    {
+      "path": "raw-metrics/mx450-far-metrics.json",
+      "sha256": "c73f3a3d505c4c090550e1b62fadf652b418f210e265bbc7e52d303831779eab",
+      "bytes": 1344
+    },
+    {
+      "path": "raw-metrics/mx450-high-metrics.json",
+      "sha256": "52b097940157fa08634c030187529efc0652972dfc81f63988fa1524d81e2ee5",
+      "bytes": 1501
+    },
+    {
+      "path": "raw-metrics/mx450-mid-metrics.json",
+      "sha256": "811bdfb91e5e3b6a85bc218db4e534d09a810d6ba8a8484dd6be0110f5c645ad",
+      "bytes": 1499
+    },
+    {
+      "path": "raw-metrics/mx450-production-onboard-0-metrics.json",
+      "sha256": "f4a4c4459976563579369e798bda4c0c4e687e220d587f23f16efe09456fdd2b",
+      "bytes": 4701
+    },
+    {
+      "path": "raw-metrics/mx450-production-onboard-1-metrics.json",
+      "sha256": "89fe613cbbf340303c6f73a3e0ed1a389dcba4d87eebddd3f80f8ff16124c09b",
+      "bytes": 4730
+    },
+    {
+      "path": "raw-metrics/mx450-production-onboard-2-metrics.json",
+      "sha256": "a1bebfe3cb70216ce346157df926ffad8eea5490788f4d12d45454f161dfd30a",
+      "bytes": 4741
+    },
+    {
+      "path": "raw-metrics/rear-components-metrics.json",
+      "sha256": "efd3306594c45d4bde9df9fa9a0f1338e27a27dd2549b0c2dce6c874bbef3847",
+      "bytes": 1502
+    },
+    {
+      "path": "raw-metrics/same-instance-mud-0-metrics.json",
+      "sha256": "e2c41e0a78e0a719669eb611795f945b3d328bc78461987bc86d10e075d91b7f",
+      "bytes": 1501
+    },
+    {
+      "path": "raw-metrics/same-instance-mud-1-metrics.json",
+      "sha256": "f9aa471d9f379de2b7968758fabeccf5fc5185c1bace8727caa16260b95d9415",
+      "bytes": 1520
+    },
+    {
+      "path": "raw-metrics/same-instance-mud-2-metrics.json",
+      "sha256": "f9aa471d9f379de2b7968758fabeccf5fc5185c1bace8727caa16260b95d9415",
+      "bytes": 1520
+    },
+    {
+      "path": "raw-metrics/same-instance-mud-3-metrics.json",
+      "sha256": "e2c41e0a78e0a719669eb611795f945b3d328bc78461987bc86d10e075d91b7f",
+      "bytes": 1501
+    },
+    {
+      "path": "raw-metrics/standing-side-metrics.json",
+      "sha256": "ba395f3772309c35552f9bae246a7101bff9f8545b80ea500b62da6d437ff5d6",
+      "bytes": 1502
+    },
+    {
+      "path": "rear-components.png",
+      "sha256": "cf84cf0aec3c1b8ac2eccc3036f1e5aa50c9d5d81acdf515cd0d21b1f25da8d8",
+      "bytes": 286343
+    },
+    {
+      "path": "same-instance-mud-0.png",
+      "sha256": "92441973338df2a2871f1c3adf905c10ff3eb081f66a6c567d319c97346c5dd3",
+      "bytes": 255620
+    },
+    {
+      "path": "same-instance-mud-1.png",
+      "sha256": "ae18947b398fdb54be3bf5e1d9fd57558bd62a83c3967bbf080322c0ed8bccee",
+      "bytes": 252261
+    },
+    {
+      "path": "same-instance-mud-2.png",
+      "sha256": "ae18947b398fdb54be3bf5e1d9fd57558bd62a83c3967bbf080322c0ed8bccee",
+      "bytes": 252261
+    },
+    {
+      "path": "same-instance-mud-3.png",
+      "sha256": "92441973338df2a2871f1c3adf905c10ff3eb081f66a6c567d319c97346c5dd3",
+      "bytes": 255620
+    },
+    {
+      "path": "standing-side.png",
+      "sha256": "834f3856944ddfcd68930ab175e8528f2d6337f6e26334305f2257d45d953b0d",
+      "bytes": 351229
+    },
+    {
+      "path": "test-report.json",
+      "sha256": "3267ff2aa2f2c3e79147edaf05d642408d73308480081108f6c2f0b15a2d7379",
+      "bytes": 336051
+    },
+    {
+      "path": "test-run.json",
+      "sha256": "f67903b82f8055c1072e163c465916d8f4aa0e23fadad910524616044e3f3ac6",
+      "bytes": 13713
+    }
+  ]
+}

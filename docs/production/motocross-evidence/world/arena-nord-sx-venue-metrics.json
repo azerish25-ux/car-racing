@@ -1,0 +1,390 @@
+[
+  {
+    "label": "prepared-soil",
+    "hash": 3348542145,
+    "glError": 0,
+    "calls": 526,
+    "triangles": 2292329,
+    "bikes": 8,
+    "particles": 83,
+    "contactShadows": 16,
+    "terrainCells": 1740,
+    "sourceUnchanged": true,
+    "resources": {
+      "geometries": 520,
+      "textures": 121,
+      "programs": 22
+    },
+    "soilHooks": [
+      "library-soil-v1",
+      "library-wet-surface-v1",
+      "scanned-soil-v1",
+      "mx-groomed-soil-v1",
+      "light-pools-v2",
+      "mx-world-review-observe-v1"
+    ],
+    "soilScans": {
+      "active": true,
+      "slots": [
+        "meadow",
+        "dryEarth",
+        "forest"
+      ],
+      "macro": "dryEarth",
+      "compiledMacroSampler": "apexScanDryEarthC",
+      "store": {
+        "preset": "high",
+        "enabled": true,
+        "hex": true,
+        "resident": [
+          "concrete",
+          "meadow",
+          "dryEarth",
+          "forest",
+          "wetEarth",
+          "gravel",
+          "rock"
+        ],
+        "failed": [],
+        "formats": {
+          "concrete": {
+            "color": "ktx2",
+            "normal": "ktx2",
+            "orm": "ktx2"
+          },
+          "meadow": {
+            "color": "ktx2",
+            "normal": "ktx2",
+            "orm": "ktx2"
+          },
+          "dryEarth": {
+            "color": "ktx2",
+            "normal": "ktx2",
+            "orm": "ktx2"
+          },
+          "forest": {
+            "color": "ktx2",
+            "normal": "ktx2",
+            "orm": "ktx2"
+          },
+          "wetEarth": {
+            "color": "ktx2",
+            "normal": "ktx2",
+            "orm": "ktx2"
+          },
+          "gravel": {
+            "color": "ktx2",
+            "normal": "ktx2",
+            "orm": "ktx2"
+          },
+          "rock": {
+            "color": "ktx2",
+            "normal": "ktx2",
+            "orm": "ktx2"
+          }
+        },
+        "materials": 3,
+        "scanned": 3
+      }
+    },
+    "groups": [
+      "Roost (clods and dust)",
+      "MX loaded tyre contact shadows",
+      "Start gate",
+      "Supercross stadium",
+      "Off-road course terrain (deformable)",
+      "MOTOBOUND MX course furniture and shoulders"
+    ]
+  },
+  {
+    "label": "wet-soil",
+    "hash": 1874630950,
+    "glError": 0,
+    "calls": 526,
+    "triangles": 2292329,
+    "bikes": 8,
+    "particles": 83,
+    "contactShadows": 16,
+    "terrainCells": 1740,
+    "sourceUnchanged": true,
+    "resources": {
+      "geometries": 520,
+      "textures": 121,
+      "programs": 22
+    },
+    "soilHooks": [
+      "library-soil-v1",
+      "library-wet-surface-v1",
+      "scanned-soil-v1",
+      "mx-groomed-soil-v1",
+      "light-pools-v2",
+      "mx-world-review-observe-v1"
+    ],
+    "soilScans": {
+      "active": true,
+      "slots": [
+        "meadow",
+        "dryEarth",
+        "forest"
+      ],
+      "macro": "dryEarth",
+      "compiledMacroSampler": "apexScanDryEarthC",
+      "store": {
+        "preset": "high",
+        "enabled": true,
+        "hex": true,
+        "resident": [
+          "concrete",
+          "meadow",
+          "dryEarth",
+          "forest",
+          "wetEarth",
+          "gravel",
+          "rock"
+        ],
+        "failed": [],
+        "formats": {
+          "concrete": {
+            "color": "ktx2",
+            "normal": "ktx2",
+            "orm": "ktx2"
+          },
+          "meadow": {
+            "color": "ktx2",
+            "normal": "ktx2",
+            "orm": "ktx2"
+          },
+          "dryEarth": {
+            "color": "ktx2",
+            "normal": "ktx2",
+            "orm": "ktx2"
+          },
+          "forest": {
+            "color": "ktx2",
+            "normal": "ktx2",
+            "orm": "ktx2"
+          },
+          "wetEarth": {
+            "color": "ktx2",
+            "normal": "ktx2",
+            "orm": "ktx2"
+          },
+          "gravel": {
+            "color": "ktx2",
+            "normal": "ktx2",
+            "orm": "ktx2"
+          },
+          "rock": {
+            "color": "ktx2",
+            "normal": "ktx2",
+            "orm": "ktx2"
+          }
+        },
+        "materials": 3,
+        "scanned": 3
+      }
+    },
+    "groups": [
+      "Roost (clods and dust)",
+      "MX loaded tyre contact shadows",
+      "Start gate",
+      "Supercross stadium",
+      "Off-road course terrain (deformable)",
+      "MOTOBOUND MX course furniture and shoulders"
+    ]
+  },
+  {
+    "label": "held-wet-soil",
+    "hash": 1874630950,
+    "glError": 0,
+    "calls": 526,
+    "triangles": 2292329,
+    "bikes": 8,
+    "particles": 83,
+    "contactShadows": 16,
+    "terrainCells": 1740,
+    "sourceUnchanged": true,
+    "resources": {
+      "geometries": 520,
+      "textures": 121,
+      "programs": 22
+    },
+    "soilHooks": [
+      "library-soil-v1",
+      "library-wet-surface-v1",
+      "scanned-soil-v1",
+      "mx-groomed-soil-v1",
+      "light-pools-v2",
+      "mx-world-review-observe-v1"
+    ],
+    "soilScans": {
+      "active": true,
+      "slots": [
+        "meadow",
+        "dryEarth",
+        "forest"
+      ],
+      "macro": "dryEarth",
+      "compiledMacroSampler": "apexScanDryEarthC",
+      "store": {
+        "preset": "high",
+        "enabled": true,
+        "hex": true,
+        "resident": [
+          "concrete",
+          "meadow",
+          "dryEarth",
+          "forest",
+          "wetEarth",
+          "gravel",
+          "rock"
+        ],
+        "failed": [],
+        "formats": {
+          "concrete": {
+            "color": "ktx2",
+            "normal": "ktx2",
+            "orm": "ktx2"
+          },
+          "meadow": {
+            "color": "ktx2",
+            "normal": "ktx2",
+            "orm": "ktx2"
+          },
+          "dryEarth": {
+            "color": "ktx2",
+            "normal": "ktx2",
+            "orm": "ktx2"
+          },
+          "forest": {
+            "color": "ktx2",
+            "normal": "ktx2",
+            "orm": "ktx2"
+          },
+          "wetEarth": {
+            "color": "ktx2",
+            "normal": "ktx2",
+            "orm": "ktx2"
+          },
+          "gravel": {
+            "color": "ktx2",
+            "normal": "ktx2",
+            "orm": "ktx2"
+          },
+          "rock": {
+            "color": "ktx2",
+            "normal": "ktx2",
+            "orm": "ktx2"
+          }
+        },
+        "materials": 3,
+        "scanned": 3
+      }
+    },
+    "groups": [
+      "Roost (clods and dust)",
+      "MX loaded tyre contact shadows",
+      "Start gate",
+      "Supercross stadium",
+      "Off-road course terrain (deformable)",
+      "MOTOBOUND MX course furniture and shoulders"
+    ]
+  },
+  {
+    "label": "rewound-soil",
+    "hash": 3348542145,
+    "glError": 0,
+    "calls": 526,
+    "triangles": 2292329,
+    "bikes": 8,
+    "particles": 83,
+    "contactShadows": 16,
+    "terrainCells": 1740,
+    "sourceUnchanged": true,
+    "resources": {
+      "geometries": 520,
+      "textures": 121,
+      "programs": 22
+    },
+    "soilHooks": [
+      "library-soil-v1",
+      "library-wet-surface-v1",
+      "scanned-soil-v1",
+      "mx-groomed-soil-v1",
+      "light-pools-v2",
+      "mx-world-review-observe-v1"
+    ],
+    "soilScans": {
+      "active": true,
+      "slots": [
+        "meadow",
+        "dryEarth",
+        "forest"
+      ],
+      "macro": "dryEarth",
+      "compiledMacroSampler": "apexScanDryEarthC",
+      "store": {
+        "preset": "high",
+        "enabled": true,
+        "hex": true,
+        "resident": [
+          "concrete",
+          "meadow",
+          "dryEarth",
+          "forest",
+          "wetEarth",
+          "gravel",
+          "rock"
+        ],
+        "failed": [],
+        "formats": {
+          "concrete": {
+            "color": "ktx2",
+            "normal": "ktx2",
+            "orm": "ktx2"
+          },
+          "meadow": {
+            "color": "ktx2",
+            "normal": "ktx2",
+            "orm": "ktx2"
+          },
+          "dryEarth": {
+            "color": "ktx2",
+            "normal": "ktx2",
+            "orm": "ktx2"
+          },
+          "forest": {
+            "color": "ktx2",
+            "normal": "ktx2",
+            "orm": "ktx2"
+          },
+          "wetEarth": {
+            "color": "ktx2",
+            "normal": "ktx2",
+            "orm": "ktx2"
+          },
+          "gravel": {
+            "color": "ktx2",
+            "normal": "ktx2",
+            "orm": "ktx2"
+          },
+          "rock": {
+            "color": "ktx2",
+            "normal": "ktx2",
+            "orm": "ktx2"
+          }
+        },
+        "materials": 3,
+        "scanned": 3
+      }
+    },
+    "groups": [
+      "Roost (clods and dust)",
+      "MX loaded tyre contact shadows",
+      "Start gate",
+      "Supercross stadium",
+      "Off-road course terrain (deformable)",
+      "MOTOBOUND MX course furniture and shoulders"
+    ]
+  }
+]

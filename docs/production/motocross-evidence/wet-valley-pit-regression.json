@@ -1,0 +1,565 @@
+{
+  "baseline": {
+    "revision": "f914 (isolated baseline checkout)",
+    "event": "valley-ridge-mx-moto-2",
+    "raceTime": 836.227,
+    "finishStartedAt": 656.22,
+    "finishGrace": 180,
+    "retirements": [
+      {
+        "caller": "RaceDirector.step: finish grace expired",
+        "state": {
+          "id": 0,
+          "t": 836.227,
+          "s": 3.037,
+          "lateral": 11.762,
+          "speed": 0,
+          "target": 0,
+          "state": "riding",
+          "retired": false,
+          "finishTime": 0,
+          "lap": {
+            "completed": 1,
+            "nextGate": 1,
+            "distance": 899.939,
+            "lapTime": 696.669,
+            "last": 137.564,
+            "best": 0,
+            "lastS": 3.037,
+            "active": true,
+            "valid": true,
+            "penalty": 0,
+            "warnings": 2
+          },
+          "leaderGap": 2724.216,
+          "y": 1.096,
+          "bodyY": 1.096,
+          "groundY": 0.236,
+          "vy": 0,
+          "airborne": false,
+          "crashes": 1,
+          "lastCrash": {
+            "cause": "crash-front",
+            "s": 766.0089359824426,
+            "time": 111.03749999998118
+          },
+          "health": {
+            "fuel": 5.238,
+            "frontHealth": 0.989,
+            "rearHealth": 1,
+            "floorHealth": 1,
+            "suspensionDamage": 0,
+            "sidepodHealth": 1
+          },
+          "heading": -4.601,
+          "throttle": 0,
+          "brake": 1,
+          "steer": 1,
+          "decision": "PIT SERVICE"
+        }
+      },
+      {
+        "caller": "RaceDirector.step: finish grace expired",
+        "state": {
+          "id": 1,
+          "t": 836.227,
+          "s": 7.336,
+          "lateral": 16.071,
+          "speed": 0,
+          "target": 0,
+          "state": "riding",
+          "retired": false,
+          "finishTime": 0,
+          "lap": {
+            "completed": 1,
+            "nextGate": 1,
+            "distance": 904.451,
+            "lapTime": 312.237,
+            "last": 522.024,
+            "best": 0,
+            "lastS": 7.336,
+            "active": true,
+            "valid": true,
+            "penalty": 5,
+            "warnings": 3
+          },
+          "leaderGap": 2719.704,
+          "y": 1.1,
+          "bodyY": 1.1,
+          "groundY": 0.239,
+          "vy": 0,
+          "airborne": false,
+          "crashes": 1,
+          "lastCrash": {
+            "cause": "contact",
+            "s": 198.4053176409327,
+            "time": 33.79999999999993
+          },
+          "health": {
+            "fuel": 5.239,
+            "frontHealth": 1,
+            "rearHealth": 1,
+            "floorHealth": 1,
+            "suspensionDamage": 0,
+            "sidepodHealth": 1
+          },
+          "heading": -4.703,
+          "throttle": 0,
+          "brake": 1,
+          "steer": -0.006,
+          "decision": "PIT SERVICE"
+        }
+      },
+      {
+        "caller": "RaceDirector.step: finish grace expired",
+        "state": {
+          "id": 2,
+          "t": 836.227,
+          "s": 893.018,
+          "lateral": 13.792,
+          "speed": 0.05,
+          "target": 0.145,
+          "state": "riding",
+          "retired": false,
+          "finishTime": 0,
+          "lap": {
+            "completed": 1,
+            "nextGate": 0,
+            "distance": 1774.638,
+            "lapTime": 721.869,
+            "last": 112.464,
+            "best": 0,
+            "lastS": 893.018,
+            "active": true,
+            "valid": false,
+            "penalty": 10,
+            "warnings": 9
+          },
+          "leaderGap": 1849.517,
+          "y": 1.216,
+          "bodyY": 1.216,
+          "groundY": 0.366,
+          "vy": 0,
+          "airborne": false,
+          "crashes": 1,
+          "lastCrash": {
+            "cause": "contact",
+            "s": 228.7128307523799,
+            "time": 31.941666666665174
+          },
+          "health": {
+            "fuel": 5.677,
+            "frontHealth": 0.973,
+            "rearHealth": 1,
+            "floorHealth": 1,
+            "suspensionDamage": 0,
+            "sidepodHealth": 1
+          },
+          "heading": -4.632,
+          "throttle": 0,
+          "brake": 1,
+          "steer": -0.019,
+          "decision": "PIT SERVICE"
+        }
+      },
+      {
+        "caller": "RaceDirector.step: finish grace expired",
+        "state": {
+          "id": 4,
+          "t": 836.227,
+          "s": 914.097,
+          "lateral": 14.567,
+          "speed": 0.049,
+          "target": 0,
+          "state": "riding",
+          "retired": false,
+          "finishTime": 0,
+          "lap": {
+            "completed": 1,
+            "nextGate": 0,
+            "distance": 1789.679,
+            "lapTime": 741.623,
+            "last": 92.705,
+            "best": 0,
+            "lastS": 914.097,
+            "active": true,
+            "valid": false,
+            "penalty": 0,
+            "warnings": 2
+          },
+          "leaderGap": 1834.476,
+          "y": 1.101,
+          "bodyY": 1.101,
+          "groundY": 0.251,
+          "vy": 0,
+          "airborne": false,
+          "crashes": 0,
+          "health": {
+            "fuel": 5.664,
+            "frontHealth": 0.991,
+            "rearHealth": 1,
+            "floorHealth": 1,
+            "suspensionDamage": 0,
+            "sidepodHealth": 1
+          },
+          "heading": -4.642,
+          "throttle": 0,
+          "brake": 1,
+          "steer": 0.006,
+          "decision": "PIT SERVICE"
+        }
+      },
+      {
+        "caller": "RaceDirector.step: finish grace expired",
+        "state": {
+          "id": 5,
+          "t": 836.227,
+          "s": 907.069,
+          "lateral": 13.68,
+          "speed": 0.05,
+          "target": 0,
+          "state": "riding",
+          "retired": false,
+          "finishTime": 0,
+          "lap": {
+            "completed": 1,
+            "nextGate": 0,
+            "distance": 1781.255,
+            "lapTime": 734.062,
+            "last": 100.185,
+            "best": 0,
+            "lastS": 907.069,
+            "active": true,
+            "valid": false,
+            "penalty": 0,
+            "warnings": 2
+          },
+          "leaderGap": 1842.9,
+          "y": 1.135,
+          "bodyY": 1.135,
+          "groundY": 0.275,
+          "vy": 0,
+          "airborne": false,
+          "crashes": 0,
+          "health": {
+            "fuel": 5.093,
+            "frontHealth": 0.993,
+            "rearHealth": 1,
+            "floorHealth": 1,
+            "suspensionDamage": 0,
+            "sidepodHealth": 1
+          },
+          "heading": -4.65,
+          "throttle": 0,
+          "brake": 1,
+          "steer": 0.004,
+          "decision": "PIT SERVICE"
+        }
+      },
+      {
+        "caller": "RaceDirector.step: finish grace expired",
+        "state": {
+          "id": 7,
+          "t": 836.227,
+          "s": 900.058,
+          "lateral": 12.764,
+          "speed": 0.05,
+          "target": 0,
+          "state": "riding",
+          "retired": false,
+          "finishTime": 0,
+          "lap": {
+            "completed": 1,
+            "nextGate": 0,
+            "distance": 1774.38,
+            "lapTime": 728.655,
+            "last": 105.572,
+            "best": 0,
+            "lastS": 900.058,
+            "active": true,
+            "valid": false,
+            "penalty": 5,
+            "warnings": 6
+          },
+          "leaderGap": 1849.775,
+          "y": 1.172,
+          "bodyY": 1.172,
+          "groundY": 0.312,
+          "vy": 0,
+          "airborne": false,
+          "crashes": 0,
+          "health": {
+            "fuel": 5.088,
+            "frontHealth": 0.994,
+            "rearHealth": 1,
+            "floorHealth": 1,
+            "suspensionDamage": 0,
+            "sidepodHealth": 1
+          },
+          "heading": -4.711,
+          "throttle": 0,
+          "brake": 1,
+          "steer": 0.009,
+          "decision": "PIT SERVICE"
+        }
+      }
+    ]
+  },
+  "implementation": {
+    "files": [
+      "src/simulation/driver-brain.ts",
+      "src/simulation/world.ts"
+    ],
+    "rule": "Existing ruleset.service.pitStops now gates AI strategy, manual request and service updates.",
+    "tests": "tests/pit-session-eligibility.test.ts",
+    "preserved": "Finish grace, timing gates, pit choreography in permitted sessions, format definitions."
+  },
+  "verification": {
+    "command": "OFFROAD_RACE=valley-ridge-mx-moto-2 node --experimental-transform-types scripts/offroad-races.ts",
+    "scope": "Production simulation at 120 Hz, original built-in event; includes concurrent integrated collision/AI/recovery fixes.",
+    "report": {
+      "generated": "npm run test:offroad (scripts/offroad-races.ts)",
+      "dt": 0.008333333333333333,
+      "parkedLimitSeconds": 20,
+      "crashBounds": {
+        "motocross": 0.5,
+        "supercross": 0.75
+      },
+      "passed": true,
+      "races": [
+        {
+          "race": "event valley-ridge-mx-moto-2",
+          "event": "valley-ridge-mx-moto-2",
+          "circuit": "valley-ridge-mx",
+          "ruleset": "motocross-moto",
+          "laps": 4,
+          "weather": "changeable",
+          "seed": 41002,
+          "vehicles": [
+            "mx450",
+            "mx450",
+            "mx250",
+            "mx450",
+            "mx250",
+            "mx450",
+            "mx250",
+            "mx450",
+            "mx250",
+            "mx450"
+          ],
+          "raceSeconds": 808.45,
+          "wallSeconds": 224.3,
+          "finishTimes": [
+            818.45,
+            712.28,
+            714.32,
+            802.19,
+            800.67,
+            718.33,
+            747.31,
+            654.66,
+            720.18,
+            794.77
+          ],
+          "retired": [],
+          "bestLaps": [
+            0,
+            151.44,
+            95.42,
+            0,
+            0,
+            158.28,
+            0,
+            0,
+            90.09,
+            0
+          ],
+          "crashes": [
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            2,
+            0,
+            1
+          ],
+          "crashesPerRiderLap": 0.1,
+          "crashBound": 0.5,
+          "crashCauses": [
+            [],
+            [],
+            [],
+            [
+              "grip-lowside@552"
+            ],
+            [],
+            [],
+            [],
+            [
+              "crash-front@782",
+              "crash-rear@310"
+            ],
+            [],
+            [
+              "crash-front@772"
+            ]
+          ],
+          "landings": [
+            33,
+            57,
+            57,
+            39,
+            55,
+            60,
+            50,
+            63,
+            53,
+            43
+          ],
+          "aiDecisions": [
+            {
+              "clears": 15,
+              "rolls": 9,
+              "aborts": 0,
+              "pushes": 7
+            },
+            {
+              "clears": 17,
+              "rolls": 10,
+              "aborts": 0,
+              "pushes": 10
+            },
+            {
+              "clears": 21,
+              "rolls": 7,
+              "aborts": 2,
+              "pushes": 11
+            },
+            {
+              "clears": 15,
+              "rolls": 10,
+              "aborts": 0,
+              "pushes": 12
+            },
+            {
+              "clears": 18,
+              "rolls": 7,
+              "aborts": 2,
+              "pushes": 13
+            },
+            {
+              "clears": 16,
+              "rolls": 11,
+              "aborts": 1,
+              "pushes": 10
+            },
+            {
+              "clears": 19,
+              "rolls": 7,
+              "aborts": 1,
+              "pushes": 13
+            },
+            {
+              "clears": 29,
+              "rolls": 0,
+              "aborts": 2,
+              "pushes": 10
+            },
+            {
+              "clears": 23,
+              "rolls": 5,
+              "aborts": 0,
+              "pushes": 9
+            },
+            {
+              "clears": 16,
+              "rolls": 9,
+              "aborts": 0,
+              "pushes": 11
+            }
+          ],
+          "longestStopSeconds": 15.17,
+          "longestStop": {
+            "car": 0,
+            "s": 616.3,
+            "time": 110.7
+          },
+          "holeshot": 8,
+          "log": [
+            "14.7 car 8 HOLESHOT: HOLESHOT"
+          ],
+          "terrain": {
+            "cells": 61534,
+            "deepest": 0.05452965199947357,
+            "sequence": 5228516,
+            "wetness": 0.5886235206071414,
+            "hash": "d4fb40d3"
+          },
+          "classification": {
+            "kind": "moto",
+            "holeshot": 8,
+            "jokers": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "jumpStarts": [
+              false,
+              false,
+              false,
+              false,
+              false,
+              false,
+              false,
+              false,
+              false,
+              false
+            ],
+            "splits": [
+              [],
+              [],
+              [],
+              [],
+              [],
+              [],
+              [],
+              [],
+              [],
+              []
+            ],
+            "stageTimes": [
+              -1,
+              -1,
+              -1,
+              -1,
+              -1,
+              -1,
+              -1,
+              -1,
+              -1,
+              -1
+            ],
+            "stage": null,
+            "terrain": {
+              "cells": 61534,
+              "deepest": 0.05452965199947357,
+              "sequence": 5228516,
+              "wetness": 0.5886235206071414
+            }
+          }
+        }
+      ],
+      "failures": []
+    }
+  }
+}

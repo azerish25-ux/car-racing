@@ -1,0 +1,77 @@
+{
+  "method": "Each of the eight final PNG files was individually displayed with the local image viewer and visually inspected at 1280 by 800 pixels.",
+  "scope": "Production OffroadScene and BikeShells; actual seeded eight-rider AI simulation at 10 seconds; prepared procedural materials plus resident photographed scans through the actual ScanStore/PBR loader; neutral component lighting and synthetic backing plane; not the full application scene or hardware FPS acceptance",
+  "test_duration_seconds": 148.701,
+  "report_duration_seconds": 150.70412,
+  "production_source_mutated_after_capture": false,
+  "images": [
+    {
+      "file": "valley-ridge-mx-riding-prepared-soil.png",
+      "sha256": "b95b1baf1058ede77523152518ce234b281eb4a7544df869c366391c1c3b7250",
+      "observations": [
+        "Photographed fibrous and aggregate grain is visible across the warm beige/tan soil. The broad pink/lavender dirt islands seen in the earlier full-application capture are absent.",
+        "Directional travel marks remain visible within the scan detail. Loaded tyre shadows, rider poses, flexible yellow stakes, boulders, canopies and the original event structure are readable.",
+        "The plain background and synthetic backing plane identify this as an isolated component scene."
+      ]
+    },
+    {
+      "file": "valley-ridge-mx-riding-wet-soil.png",
+      "sha256": "4e4d1cdbea5e8a7bec7a167cb1639942ef2212c44a877f683e3533533717b898",
+      "observations": [
+        "The same fixed rider poses and camera show darker brown soil with cooler, grey-brown wet travel channels; the photographed grain remains readable.",
+        "No broad pink/lavender tint or uniform mirror-like sheen is visible. The wet change is restrained and consistent across the exposed riding surface."
+      ]
+    },
+    {
+      "file": "valley-ridge-mx-venue-prepared-soil.png",
+      "sha256": "11395b426a3d94c21a17f5c594b4c37bb93f6b785d81d6124d76225f6f5ffae4",
+      "observations": [
+        "The full course route and jump sequence are readable. Most of the surface is brown loam with a greener scanned verge.",
+        "Light sand and dark mud regions retain the distinct, partly rectangular boundaries of the existing authored physics zones. The fix did not change course geometry or surface classifications.",
+        "Canopies and boulders remain outside the riding band; this overview omits the full application's distant landscape and venue-kit forests."
+      ]
+    },
+    {
+      "file": "valley-ridge-mx-venue-wet-soil.png",
+      "sha256": "fbd3e28fb68368440a24f02e23b40c2bd891da1bf2580af79bb7e7195508bf8c",
+      "observations": [
+        "The broad course surface darkens while the authored sand and mud zones remain distinct. Course shape, dressing and rider poses match the prepared-soil view.",
+        "The macro variation remains brown and neutral without the earlier pink soil islands; jump silhouettes stay legible."
+      ]
+    },
+    {
+      "file": "arena-nord-sx-riding-prepared-soil.png",
+      "sha256": "0bdae3a9d4151550f0a976105a66366e60fa82ca29e910f8ca84726d58394092",
+      "observations": [
+        "The resident dry-earth macro produces a warm tan stadium floor with fine pale and brown aggregate grain, without broad pink/lavender patches.",
+        "Jump faces and backsides are visible beyond the riders. Low padded blocks and flexible stakes mark the tight lanes without tall road furniture crossing the riding area.",
+        "Repeated spectators, tier aisles and event ribbons frame the bowl. The neutral component lighting does not reproduce the complete main renderer's night presentation."
+      ]
+    },
+    {
+      "file": "arena-nord-sx-riding-wet-soil.png",
+      "sha256": "07a8d5ba5dc254f32cc1a72542b4a40e067105c90d7cbbdc2ddd3e56d0947c78",
+      "observations": [
+        "The same fixed riders and floor geometry are retained while the tan surface becomes darker brown. Photographed grain remains visible through the moisture response.",
+        "The berm and jump forms remain readable; no new hue islands or glaring specular patches are visible."
+      ]
+    },
+    {
+      "file": "arena-nord-sx-venue-prepared-soil.png",
+      "sha256": "700acb654ad763d95403d0ea44f3668089148124af0593d8ce4ed139077af33a",
+      "observations": [
+        "The camera sits inside the bowl below the roof and exposes the floor, trusses, repeated spectator tiers and event ribbons.",
+        "The complete jump rhythm and low course markers are legible at overview scale. Fine pale scan grain remains visible without meadow-derived lavender macro islands.",
+        "The synthetic backing plane is visible at course cutouts and around the finite terrain ribbon; this image is not the full application floor/venue composition."
+      ]
+    },
+    {
+      "file": "arena-nord-sx-venue-wet-soil.png",
+      "sha256": "7a3e46fcea3debc0007ff9452acaf499b40b973f0384b4f195b1064711bbbceb",
+      "observations": [
+        "The exposed arena floor darkens across the same interior composition; all jumps, course markers, rider positions and roof structure stay fixed.",
+        "Moisture produces a brown response while preserving scanned aggregate detail. The surface does not acquire the pink/lavender macro patches previously observed in the full application."
+      ]
+    }
+  ]
+}

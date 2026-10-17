@@ -139,6 +139,12 @@ export function minimapFrame(track: Track) {
 import { type Settings, validateSettings } from '../storage/data.ts';
 import { type RacingRenderer } from '../rendering/renderer.ts';
 import { OffroadHud } from './offroad-hud.ts';
+import { MotocrossStatusStack } from './motocross-status.ts';
+import {
+  installMotocrossMenu,
+  motocrossKind,
+  motocrossSessionTitle,
+} from './motocross-presentation.ts';
 import { CreditsGamepad, creditsHtml } from './credits.ts';
 export const lapTime = (seconds: number) =>
   seconds > 0
@@ -168,6 +174,7 @@ interface Callbacks {
   exportSetup: () => void;
   importSetup: (file: File) => void;
   previewAudio?: (settings: DrivingAudioSettings) => void;
+  /** Resolved player machine after a menu machine or circuit selection. */
   previewMachine?: (id: string) => void;
 }
 /** DOM writes only when the value changed: unchanged writes still dirty layout. */
@@ -184,13 +191,17 @@ export class Interface {
   readonly hud: HTMLElement;
   /** Terrain venues: gate, holeshot, joker and stage readout (WP42). */
   private readonly offroadHud: OffroadHud;
+  private readonly motocrossStatus: MotocrossStatusStack;
+  private readonly refreshMotocrossMenu: () => void;
   readonly modal: HTMLDialogElement;
   readonly map: HTMLCanvasElement;
   readonly graph: HTMLCanvasElement;
   readonly replayBar: HTMLElement;
   private toastTimer = 0;
   private nodes = new Map<string, HTMLElement>();
-  private tick = 0;
+  private panelFrames = 0;
+  private panelTick = -Infinity;
+  private panelTime = -Infinity;
   private lastAnnounced = '';
   private deviceCalibration: DeviceCalibrationPanel | null = null;
   private creditsPad: CreditsGamepad | null = null;
@@ -291,6 +302,7 @@ export class Interface {
     installCompactRaceHud(this.hud);
     installRaceDayHud(this.hud);
     this.f1 = installF1Hud(this.hud);
+    this.motocrossStatus = new MotocrossStatusStack(this.element, this.hud);
     this.bikeHud = new BikeHud(this.hud);
     installSpeedTunnel(element.ownerDocument);
     this.trackMap = new TrackMap(this.map);
@@ -360,28 +372,41 @@ export class Interface {
       const submitter = (e as SubmitEvent).submitter as HTMLButtonElement | null;
       this.callbacks.start(this.options, submitter?.name === 'prepareGrid');
     });
+    // Restore the original menu structure before applying the selected road
+    // machine's presentation. The MX helper owns its venue copy and dirt-bike
+    // specification card; its change listeners must run before this refresh.
+    const refreshMotocross = installMotocrossMenu(this.menu, () => this.track);
+    let previewSelection = '';
     const describeRules = () => {
       const select = (id: string) => (this.get(id) as HTMLSelectElement).value;
       const machine = machineOptions(this.options, select('vehicle')).vehicles?.[0] ?? 'apx01';
       const definition = vehicleDefinition(machine);
       const bike = !!definition.bike;
+      const motocross = !!motocrossKind(select('circuit') as CircuitId);
       this.menu.dataset.bike = String(bike);
       const machineCard = this.menu.querySelector('.car-label')!;
-      machineCard.querySelector('span')!.textContent = definition.name.split(' ')[0];
-      machineCard.querySelector('b')!.textContent =
-        definition.classId === 'gp-bike'
-          ? 'GRAND PRIX / TWO WHEELS'
-          : definition.classId.toUpperCase().replaceAll('-', ' ');
-      this.menu.querySelector('.intro')!.innerHTML = bike
-        ? 'Two contact patches. One racing line.<br>Feel the balance through every corner.'
-        : 'Four contact patches. One racing line.<br>Find the limit between them.';
-      machineCard.querySelector('div')!.textContent = bike
-        ? `${Math.round(definition.spec.dryMass - definition.bike!.riderMass)} KG BIKE · ${definition.spec.gearRatios.length - 2} SPEED · ${definition.bike!.gearbox.toUpperCase()}`
-        : `${definition.spec.dryMass} KG DRY · ${definition.spec.gearRatios.length - 2} SPEED`;
+      if (definition.classId !== 'motocross') {
+        machineCard.querySelector('span')!.textContent = definition.name.split(' ')[0];
+        machineCard.querySelector('b')!.textContent =
+          definition.classId === 'gp-bike'
+            ? 'GRAND PRIX / TWO WHEELS'
+            : definition.classId.toUpperCase().replaceAll('-', ' ');
+        machineCard.querySelector('div')!.textContent = bike
+          ? `${Math.round(definition.spec.dryMass - definition.bike!.riderMass)} KG BIKE · ${definition.spec.gearRatios.length - 2} SPEED · ${definition.bike!.gearbox.toUpperCase()}`
+          : `${definition.spec.dryMass} KG DRY · ${definition.spec.gearRatios.length - 2} SPEED`;
+      }
+      if (!motocross)
+        this.menu.querySelector('.intro')!.innerHTML = bike
+          ? 'Two contact patches. One racing line.<br>Feel the balance through every corner.'
+          : 'Four contact patches. One racing line.<br>Find the limit between them.';
       for (const option of (this.get('opponents') as HTMLSelectElement).options)
         if (option.value !== '0')
-          option.textContent = `${Number(option.value) + 1} ${bike ? 'riders' : 'cars'}`;
-      this.callbacks.previewMachine?.(machine);
+          option.textContent = `${Number(option.value) + 1} ${bike || motocross ? 'riders' : 'cars'}`;
+      const selection = `${select('circuit')}:${machine}`;
+      if (previewSelection !== selection) {
+        previewSelection = selection;
+        this.callbacks.previewMachine?.(machine);
+      }
       if (select('mode') === 'festival') {
         this.get('sessionRules').textContent =
           'Festival: free roam in the Solvane region, events found by driving to them. Weather and assists apply; a road machine chosen in MACHINE is used, otherwise pick one in the festival menu.';
@@ -396,8 +421,15 @@ export class Interface {
         circuit: select('circuit') as CircuitId,
       });
     };
-    for (const id of SESSION_RULES_FIELDS) this.get(id).addEventListener('change', describeRules);
-    describeRules();
+    // Assist changes also refresh the MX helper's originals, so reapply the
+    // selected road-bike presentation after that listener as well.
+    for (const id of [...SESSION_RULES_FIELDS, 'assist'])
+      this.get(id).addEventListener('change', describeRules);
+    this.refreshMotocrossMenu = () => {
+      refreshMotocross();
+      describeRules();
+    };
+    this.refreshMotocrossMenu();
     this.get('weather').addEventListener('change', () => {
       if ((this.get('weather') as HTMLSelectElement).value === 'rain')
         (this.get('compound') as HTMLSelectElement).value = 'wet';
@@ -467,12 +499,14 @@ export class Interface {
     const timed = options.mode === 'time-trial' || options.mode === 'practice';
     const weather = { clear: 'Dry', changeable: 'Changeable', rain: 'Wet' }[options.weather];
     line.textContent = [
-      SESSION_TITLES[options.mode],
+      motocrossSessionTitle(options) ?? SESSION_TITLES[options.mode],
       circuitTitle(circuitDefinition(options.circuit).id),
       options.mode === 'qualifying' || timed
         ? ''
         : `${options.laps} ${options.laps === 1 ? 'lap' : 'laps'}`,
-      options.mode === 'time-trial' ? '' : `${options.opponents + 1} cars`,
+      options.mode === 'time-trial'
+        ? ''
+        : `${options.opponents + 1} ${motocrossKind(options.circuit) ? 'riders' : 'cars'}`,
       weather,
     ]
       .filter(Boolean)
@@ -529,15 +563,42 @@ export class Interface {
     }
 
     this.hud.dataset.camera = renderer.mode;
-    // Motorcycle instruments must follow every presented snapshot, including
-    // when rendering is slow. Car panels keep their one-in-three cadence,
-    // except that a machine change restores the matching layout immediately.
+    this.hud.dataset.motocross = String(!!motocrossKind(this.track.circuit.id));
+    this.bikeHud.update(frame);
+    for (const side of ['Left', 'Right'] as const) {
+      const node = this.get(`proximity${side}`);
+      const subject = definition.bike ? 'Rider' : 'Car';
+      const label = `${subject} ${side.toLowerCase()}`;
+      if (node.getAttribute('aria-label') !== label) node.setAttribute('aria-label', label);
+      writeText(node.querySelector('span')!, label.toUpperCase());
+    }
+    // Flight/contact transitions must be seen on every presented frame, even
+    // while the lower-frequency timing panels skip their DOM refresh.
+    this.offroadHud.update(frame, this.track, this.options);
+    this.motocrossStatus.update(this.hud.dataset.motocross === 'true');
+    // Motorcycle instruments follow every presented snapshot. Car panels may
+    // skip close samples, but first, sparse, reversed and machine-transition
+    // frames must never leave the template or an old race state on screen.
     this.observeGaps(frame);
     const mode = this.element.dataset.mode;
     const banner = this.f1.observe(frame, auto);
     this.f1.nameTags(frame, renderer, mode === 'driving' || mode === 'paused');
-    this.tick++;
-    if (!definition.bike && !machineChanged && this.tick % 3 !== 0) return;
+    this.panelFrames++;
+    const tick = frame[H.TICK],
+      time = frame[H.TIME];
+    if (
+      !definition.bike &&
+      !machineChanged &&
+      this.panelFrames < 3 &&
+      tick >= this.panelTick &&
+      tick - this.panelTick < 3 &&
+      time >= this.panelTime &&
+      time - this.panelTime < 0.05
+    )
+      return;
+    this.panelFrames = 0;
+    this.panelTick = tick;
+    this.panelTime = time;
     const speed = frame[o + F.SPEED],
       compound = Object.keys(COMPOUNDS)[Math.round(frame[o + F.COMPOUND])] ?? 'medium';
     if (this.revVehicle !== definition.id) {
@@ -584,7 +645,6 @@ export class Interface {
     this.setText('battery', `${Math.round(frame[o + F.BATTERY] / 4e4)}%`);
     this.setText('fuel', `${frame[o + F.FUEL].toFixed(1)} KG`);
     updateRaceDayHud(this.hud, frame);
-    this.bikeHud.update(frame);
     writeWidth(this.get('brakeBar'), `${(frame[o + F.BRAKE] * 100).toFixed(1)}%`);
     writeWidth(this.get('throttleBar'), `${(frame[o + F.THROTTLE] * 100).toFixed(1)}%`);
     writeWidth(this.get('batteryBar'), `${(frame[o + F.BATTERY] / 4e4).toFixed(1)}%`);
@@ -594,7 +654,6 @@ export class Interface {
     this.setText('tireCompound', compound.toUpperCase());
     this.setText('autoLabel', auto ? 'AI ON' : 'AI OFF');
     this.setText('cameraLabel', renderer.mode.toUpperCase());
-    this.offroadHud.update(frame, this.track, this.options);
     this.setText('health', `${Math.round(frame[o + F.FRONT_HEALTH] * 100)}%`);
     this.setText('lateralG', `${Math.abs(frame[o + F.G_LAT]).toFixed(1)} G`);
     this.setText('penalty', `${Math.round(frame[o + F.PENALTY])} S`);
@@ -617,6 +676,10 @@ export class Interface {
       writeText(e.querySelector('span')!, `${Math.round(100 * (1 - frame[p + W.WEAR]))}%`);
       writeText(e.querySelector('small')!, `${Math.round(frame[p + W.DISC_TEMP])}° BRAKE`);
       const band = tyreBand(temp);
+      writeText(
+        e.querySelector('label')!,
+        definition.bike ? (i < 2 ? 'FRONT' : 'REAR') : WHEEL_NAMES[i],
+      );
       if ((e as HTMLElement).style.getPropertyValue('--tire') !== band)
         (e as HTMLElement).style.setProperty('--tire', band);
     });
@@ -739,6 +802,7 @@ export class Interface {
   /** Replace the displayed circuit (menu captions, length and minimap). */
   setTrack(track: Track) {
     this.track = track;
+    this.panelTick = this.panelTime = -Infinity;
     const name = track.circuit.name;
     this.get('minimapCaption').textContent = name;
     this.get('circuitEyebrow').textContent = name.replace(' / ', ' · ');
@@ -749,6 +813,7 @@ export class Interface {
     this.get('circuitDrs').nextSibling!.textContent = ` DRS ${zones === 1 ? 'ZONE' : 'ZONES'}`;
     (this.get('circuit') as HTMLSelectElement).value = track.circuit.id;
     this.get('circuitBlurb').textContent = circuitBlurb(track.circuit.id);
+    this.refreshMotocrossMenu();
     this.mapFrame = minimapFrame(track);
   }
   private mapFrame: ReturnType<typeof minimapFrame> | null = null;
@@ -761,7 +826,7 @@ export class Interface {
       ? '<div class="dev-tools" role="group" aria-label="Developer tools"><span>DEV</span><button data-action="performance">PERFORMANCE CAPTURE</button><button data-action="visualReview">FULL-LAP VISUAL REVIEW</button><button data-action="sessionReview">SESSION 146 EVIDENCE</button></div>'
       : '';
     this.modalContent(
-      `<div class="pause-menu"><header class="pause-head"><span class="eyebrow">PAUSED</span><h2>${SESSION_TITLES[this.options.mode] ?? 'Session'}</h2><span class="pause-circuit">${escapeHtml(circuitTitle(this.track.circuit.id))}</span></header>${this.pauseSummary()}<div class="dialog-buttons pause-actions"><button class="primary" data-action="resume">RESUME SESSION</button>${this.gridPresentationAvailable ? '<button data-action="gridPresentation">PRE-RACE PRESENTATION</button>' : ''}<button data-action="restart">RESTART SESSION</button><button data-action="settings">GARAGE & SETTINGS</button><button data-action="menu">RETURN TO PADDOCK</button></div><div class="pause-more" role="group" aria-label="More options"><button data-action="camera">CHANGE CAMERA</button><button data-action="replay">WATCH REPLAY</button><button data-action="photo">PHOTO STUDIO</button><button data-action="autopilot">AI DRIVER</button><button data-action="academy">ACADEMY</button></div>${developer}</div>`,
+      `<div class="pause-menu"><header class="pause-head"><span class="eyebrow">PAUSED</span><h2>${motocrossSessionTitle(this.options) ?? SESSION_TITLES[this.options.mode] ?? 'Session'}</h2><span class="pause-circuit">${escapeHtml(circuitTitle(this.track.circuit.id))}</span></header>${this.pauseSummary()}<div class="dialog-buttons pause-actions"><button class="primary" data-action="resume">RESUME SESSION</button>${this.gridPresentationAvailable ? '<button data-action="gridPresentation">PRE-RACE PRESENTATION</button>' : ''}<button data-action="restart">RESTART SESSION</button><button data-action="settings">GARAGE & SETTINGS</button><button data-action="menu">RETURN TO PADDOCK</button></div><div class="pause-more" role="group" aria-label="More options"><button data-action="camera">CHANGE CAMERA</button><button data-action="replay">WATCH REPLAY</button><button data-action="photo">PHOTO STUDIO</button><button data-action="autopilot">AI DRIVER</button><button data-action="academy">ACADEMY</button></div>${developer}</div>`,
     );
   }
   /** Compact session context for the pause menu: position, lap, gap, tyres, conditions. */
@@ -834,17 +899,32 @@ export class Interface {
     (this.get('reviewMachine') as HTMLInputElement).value = machine;
   }
   controls(bindings: Bindings) {
+    const motocross = !!motocrossKind(
+      this.menu.hidden
+        ? this.track.circuit.id
+        : ((this.get('circuit') as HTMLSelectElement).value as CircuitId),
+    );
+    const labels = motocross
+      ? {
+          ...BINDING_LABELS,
+          brake: 'Front brake / lower the nose in flight',
+          clutch: 'Rear brake / lower the nose in flight',
+          left: 'Steer / bank left in flight',
+          right: 'Steer / bank right in flight',
+        }
+      : BINDING_LABELS;
     this.modalContent(
       `<span class="eyebrow">DRIVER BRIEFING</span><h2>Take control.</h2><div class="control-grid">${Object.entries(
         bindings,
       )
+        .filter(([action]) => !motocross || !['pit', 'ers', 'drs', 'overtake'].includes(action))
         .map(
           ([action, code]) =>
-            `<b>${keyName(code)}</b><span>${BINDING_LABELS[action as BindingAction]}</span>`,
+            `<b>${keyName(code)}</b><span>${labels[action as BindingAction]}</span>`,
         )
         .join(
           '',
-        )}<b>ESC</b><span>Pause / release mouse look</span><b>DOUBLE CLICK</b><span>Cockpit mouse look</span></div><p>Gamepad: left stick steers, triggers for throttle and brake, shoulder buttons shift, Y changes camera, X cycles energy mode and Start pauses. Remap any control or set up a wheel in Garage &amp; Settings.</p><button class="primary" data-action="modalClose">UNDERSTOOD</button>`,
+        )}<b>ESC</b><span>Pause / release mouse look</span><b>DOUBLE CLICK</b><span>Cockpit mouse look</span></div><p>${motocross ? 'In flight, throttle lifts the nose and either brake lowers it. Bank with the steering input; release it to level the bike. Riding assists help align a landing. Gamepad: left stick steers and banks, triggers operate throttle and brake, shoulder buttons shift and Start pauses.' : 'Gamepad: left stick steers, triggers for throttle and brake, shoulder buttons shift, Y changes camera, X cycles energy mode and Start pauses.'} Remap any control in Garage &amp; Settings.</p><button class="primary" data-action="modalClose">UNDERSTOOD</button>`,
     );
   }
   /** Paddock "Credits & licences": every third-party attribution (manifest). */
@@ -1001,7 +1081,10 @@ export class Interface {
             this.toast(String(error));
           }
         };
-        document.addEventListener('keydown', listener, { capture: true, signal: capture.signal });
+        document.addEventListener('keydown', listener, {
+          capture: true,
+          signal: capture.signal,
+        });
       }),
     );
     document.getElementById('exportSetup')!.onclick = () => this.callbacks.exportSetup();

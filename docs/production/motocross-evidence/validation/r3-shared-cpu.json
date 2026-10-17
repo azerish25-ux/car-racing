@@ -1,0 +1,151 @@
+{
+  "schemaVersion": 1,
+  "title": "Incoming MotoGP R3 and Festival shared CPU compatibility",
+  "evidenceKind": "Projection of a completed Vitest JSON report; no tests rerun during preservation.",
+  "integrationScope": "Completed focused CPU compatibility run for the shared changes incoming through 493e937b5f48b22a4dc08804a8a17323d539186b: GP cooling louvers and slipstream, shared effects/spray, catalogue body construction and ownership, and Festival vehicle/traffic presentation. The integration parent is task context, not metadata emitted by the Vitest reporter. This run preceded final AI repairs and release gates.",
+  "postFinalAiValidation": false,
+  "originalReport": {
+    "file": "motocross-r3-shared-cpu.json",
+    "bytes": 14209,
+    "sha256": "fa4f258f125da30669d333bb68e5de11a94f85b02010dc55b0a24b435e638525"
+  },
+  "reportedResult": {
+    "success": true,
+    "numTotalTestSuites": 19,
+    "numPassedTestSuites": 19,
+    "numFailedTestSuites": 0,
+    "numPendingTestSuites": 0,
+    "numTotalTests": 34,
+    "numPassedTests": 34,
+    "numFailedTests": 0,
+    "numPendingTests": 0,
+    "numTodoTests": 0
+  },
+  "derivedResult": {
+    "testFiles": 9,
+    "fileStatusCounts": {
+      "passed": 9
+    },
+    "assertionStatusCounts": {
+      "passed": 34
+    },
+    "failureMessages": 0,
+    "assertionCountsMatchReporterTotals": true,
+    "uniqueFileNames": true,
+    "suiteCounterNote": "Vitest suite counters include nested suites. Test-file count is testResults.length, not numTotalTestSuites."
+  },
+  "timing": {
+    "reporterStartTimeUnixMs": 1792192560329,
+    "reporterStartTimeUtc": "2026-10-16T23:16:00.329+00:00",
+    "lastResultEndTimeUnixMs": 1792192578599.9075,
+    "lastResultEndTimeUtc": "2026-10-16T23:16:18.599+00:00",
+    "reporterStartToLastResultMs": 18270.9075,
+    "sumOfFileDurationsMs": 11964.0915,
+    "processWallDurationMs": null,
+    "durationMethod": "Each file duration is endTime minus startTime using the decimal values serialized in the original report. The run window is max(file.endTime) minus report.startTime; it is not a recorded process wall duration and excludes any later teardown/report writing. File durations are not summed to infer wall time. UTC labels are displayed to milliseconds; Unix millisecond values retain the original precision."
+  },
+  "relatedRecordedSourceIdentity": null,
+  "sourceIdentityNote": "The original CPU reporter JSON contains no commit, source digest or build fingerprint. No later source/build identity has been retroactively attached to this run.",
+  "files": [
+    {
+      "file": "tests/bike-slipstream.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "assertionStatusCounts": {
+        "passed": 3
+      },
+      "startTimeUnixMs": 1792192578353,
+      "endTimeUnixMs": 1792192578357.0815,
+      "durationMs": 4.0815
+    },
+    {
+      "file": "tests/effects-upload.test.ts",
+      "status": "passed",
+      "tests": 1,
+      "assertionStatusCounts": {
+        "passed": 1
+      },
+      "startTimeUnixMs": 1792192577820,
+      "endTimeUnixMs": 1792192577866.0183,
+      "durationMs": 46.0183
+    },
+    {
+      "file": "tests/festival-effects-integration.test.ts",
+      "status": "passed",
+      "tests": 4,
+      "assertionStatusCounts": {
+        "passed": 4
+      },
+      "startTimeUnixMs": 1792192573353,
+      "endTimeUnixMs": 1792192573371.5935,
+      "durationMs": 18.5935
+    },
+    {
+      "file": "tests/festival-traffic-visuals.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "assertionStatusCounts": {
+        "passed": 3
+      },
+      "startTimeUnixMs": 1792192576354,
+      "endTimeUnixMs": 1792192577567.4832,
+      "durationMs": 1213.4832
+    },
+    {
+      "file": "tests/festival-vehicle-detail.test.ts",
+      "status": "passed",
+      "tests": 6,
+      "assertionStatusCounts": {
+        "passed": 6
+      },
+      "startTimeUnixMs": 1792192562200,
+      "endTimeUnixMs": 1792192564616.1965,
+      "durationMs": 2416.1965
+    },
+    {
+      "file": "tests/gp-cooling-louvers.test.ts",
+      "status": "passed",
+      "tests": 4,
+      "assertionStatusCounts": {
+        "passed": 4
+      },
+      "startTimeUnixMs": 1792192578103,
+      "endTimeUnixMs": 1792192578159.1643,
+      "durationMs": 56.1643
+    },
+    {
+      "file": "tests/spray-lighting.test.ts",
+      "status": "passed",
+      "tests": 8,
+      "assertionStatusCounts": {
+        "passed": 8
+      },
+      "startTimeUnixMs": 1792192574691,
+      "endTimeUnixMs": 1792192575422.301,
+      "durationMs": 731.301
+    },
+    {
+      "file": "tests/spray-plume.test.ts",
+      "status": "passed",
+      "tests": 1,
+      "assertionStatusCounts": {
+        "passed": 1
+      },
+      "startTimeUnixMs": 1792192578598,
+      "endTimeUnixMs": 1792192578599.9075,
+      "durationMs": 1.9075
+    },
+    {
+      "file": "tests/vehicle-bodies.test.ts",
+      "status": "passed",
+      "tests": 4,
+      "assertionStatusCounts": {
+        "passed": 4
+      },
+      "startTimeUnixMs": 1792192565533,
+      "endTimeUnixMs": 1792192573009.3457,
+      "durationMs": 7476.3457
+    }
+  ],
+  "reproduction": "Parse the original report identified by SHA-256. Project every testResults entry; count assertionResults by status; derive file paths relative to the repository; subtract reported decimal start/end timestamps. Reconcile these counts with reportedResult. No current-source hash is substituted for historical provenance."
+}

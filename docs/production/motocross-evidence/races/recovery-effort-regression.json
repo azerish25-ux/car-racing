@@ -1,0 +1,865 @@
+{
+  "schemaVersion": 1,
+  "title": "Stationary motocross drive effort across real traffic interruptions",
+  "status": "Complete: four focused before/after production cases, exact isolated wet event and final original complete 20-jump / three-start / ten-event gate verified.",
+  "source": "src/simulation/offroad/ai.ts",
+  "test": "tests/motocross-ai.test.ts",
+  "sourceHashes": {
+    "before": "1841eeada2852a76b1372742d81c583fbc50e50c9ef8b1b8375da78ff484a29b",
+    "after": "3a5acf6d1ea40d940031aac4d5e4c55da8a0d0e2ea11a2fe77050dd96253be39"
+  },
+  "testSha256": "3332fe10eea9aa91947fc14ef92b7650bee1b05f7128c422a58f62f62bba0c0a",
+  "diagnosis": {
+    "witness": "Actual wet Valley Moto 2 rider 4 remains at station 315.399 m while passing traffic alternates drive and brake commands. Each brake intervention reset the original four-second effort clock without physical movement. The eventual normal five-second remount was functioning correctly.",
+    "trace": {
+      "path": "docs/production/motocross-evidence/races/recovery-effort/wet-stop-before.json.gz",
+      "sha256": "fd263e704a73b82582742edacc09022dbf72b4bbc92665b4634ab889481fa77b"
+    },
+    "command": "OFFROAD_RACE=valley-ridge-mx-moto-2 node --experimental-transform-types diagnosed-wet-stop.mjs",
+    "cwd": "/workspace/scratch/ce74d2c3df38/motocross-final-integrated-gate/wet-stop-debug",
+    "instrumentation": "Read-only observation of production Simulation.step followed by importing the unchanged original race script; no state, input or validator changes.",
+    "continuousStopSeconds": 23.442,
+    "timeline": [
+      {
+        "t": 136.627,
+        "s": 315.364,
+        "speed": 0.767,
+        "target": 2,
+        "state": "riding",
+        "input": {
+          "throttle": 1,
+          "brake": 0,
+          "clutch": 0,
+          "manualClutch": false,
+          "steer": 0.013803365018354819,
+          "shift": 0,
+          "ers": 0,
+          "pit": false,
+          "reverse": false
+        },
+        "aiStuck": 0,
+        "fallbackStuck": 0,
+        "decisions": {
+          "clears": 7,
+          "rolls": 1,
+          "aborts": 1,
+          "pushes": 0
+        }
+      },
+      {
+        "t": 139.127,
+        "s": 315.399,
+        "speed": 0,
+        "target": 4.928,
+        "state": "riding",
+        "input": {
+          "throttle": 1,
+          "brake": 0,
+          "clutch": 0,
+          "manualClutch": false,
+          "steer": 0.04059577934745733,
+          "shift": 0,
+          "ers": 0,
+          "pit": false,
+          "reverse": false
+        },
+        "aiStuck": 2.2,
+        "fallbackStuck": 2.2,
+        "decisions": {
+          "clears": 7,
+          "rolls": 1,
+          "aborts": 1,
+          "pushes": 0
+        }
+      },
+      {
+        "t": 139.877,
+        "s": 315.399,
+        "speed": 0,
+        "target": 0,
+        "state": "riding",
+        "input": {
+          "throttle": 0,
+          "brake": 1,
+          "clutch": 0,
+          "manualClutch": false,
+          "steer": 0.1733437054883134,
+          "shift": 0,
+          "ers": 0,
+          "pit": false,
+          "reverse": false
+        },
+        "aiStuck": 0,
+        "fallbackStuck": 0,
+        "decisions": {
+          "clears": 7,
+          "rolls": 1,
+          "aborts": 1,
+          "pushes": 0
+        }
+      },
+      {
+        "t": 142.127,
+        "s": 315.399,
+        "speed": 0,
+        "target": 6.553,
+        "state": "riding",
+        "input": {
+          "throttle": 1,
+          "brake": 0,
+          "clutch": 0,
+          "manualClutch": false,
+          "steer": 0.3212066964633158,
+          "shift": 0,
+          "ers": 0,
+          "pit": false,
+          "reverse": false
+        },
+        "aiStuck": 1.717,
+        "fallbackStuck": 1.717,
+        "decisions": {
+          "clears": 7,
+          "rolls": 1,
+          "aborts": 1,
+          "pushes": 0
+        }
+      },
+      {
+        "t": 143.127,
+        "s": 315.399,
+        "speed": 0,
+        "target": 0,
+        "state": "riding",
+        "input": {
+          "throttle": 0,
+          "brake": 1,
+          "clutch": 0,
+          "manualClutch": false,
+          "steer": 0.3450050565202965,
+          "shift": 0,
+          "ers": 0,
+          "pit": false,
+          "reverse": false
+        },
+        "aiStuck": 0,
+        "fallbackStuck": 0,
+        "decisions": {
+          "clears": 7,
+          "rolls": 1,
+          "aborts": 1,
+          "pushes": 0
+        }
+      },
+      {
+        "t": 145.127,
+        "s": 315.399,
+        "speed": 0,
+        "target": 5.015,
+        "state": "riding",
+        "input": {
+          "throttle": 1,
+          "brake": 0,
+          "clutch": 0,
+          "manualClutch": false,
+          "steer": 0.25628395575366225,
+          "shift": 0,
+          "ers": 0,
+          "pit": false,
+          "reverse": false
+        },
+        "aiStuck": 1.783,
+        "fallbackStuck": 1.783,
+        "decisions": {
+          "clears": 7,
+          "rolls": 1,
+          "aborts": 1,
+          "pushes": 0
+        }
+      },
+      {
+        "t": 146.127,
+        "s": 315.399,
+        "speed": 0,
+        "target": 5,
+        "state": "riding",
+        "input": {
+          "throttle": 1,
+          "brake": 0,
+          "clutch": 0,
+          "manualClutch": false,
+          "steer": 0.06971627988395417,
+          "shift": 0,
+          "ers": 0,
+          "pit": false,
+          "reverse": false
+        },
+        "aiStuck": 0.033,
+        "fallbackStuck": 0.033,
+        "decisions": {
+          "clears": 7,
+          "rolls": 1,
+          "aborts": 1,
+          "pushes": 0
+        }
+      },
+      {
+        "t": 149.127,
+        "s": 315.399,
+        "speed": 0,
+        "target": 0.828,
+        "state": "riding",
+        "input": {
+          "throttle": 1,
+          "brake": 0,
+          "clutch": 0,
+          "manualClutch": false,
+          "steer": 0.014401759195397967,
+          "shift": 0,
+          "ers": 0,
+          "pit": false,
+          "reverse": false
+        },
+        "aiStuck": 0.008,
+        "fallbackStuck": 0.008,
+        "decisions": {
+          "clears": 7,
+          "rolls": 1,
+          "aborts": 1,
+          "pushes": 0
+        }
+      },
+      {
+        "t": 150.377,
+        "s": 315.399,
+        "speed": 0,
+        "target": 4.314,
+        "state": "riding",
+        "input": {
+          "throttle": 1,
+          "brake": 0,
+          "clutch": 0,
+          "manualClutch": false,
+          "steer": 0.014401759195397967,
+          "shift": 0,
+          "ers": 0,
+          "pit": false,
+          "reverse": false
+        },
+        "aiStuck": 1.258,
+        "fallbackStuck": 1.258,
+        "decisions": {
+          "clears": 7,
+          "rolls": 1,
+          "aborts": 1,
+          "pushes": 0
+        }
+      },
+      {
+        "t": 154.377,
+        "s": 315.399,
+        "speed": 0,
+        "target": 5,
+        "state": "riding",
+        "input": {
+          "throttle": 1,
+          "brake": 0,
+          "clutch": 0,
+          "manualClutch": false,
+          "steer": 0.014401759195397967,
+          "shift": 0,
+          "ers": 0,
+          "pit": false,
+          "reverse": false
+        },
+        "aiStuck": 3.883,
+        "fallbackStuck": 3.883,
+        "decisions": {
+          "clears": 7,
+          "rolls": 1,
+          "aborts": 1,
+          "pushes": 0
+        }
+      },
+      {
+        "t": 154.627,
+        "s": 315.811,
+        "speed": 0,
+        "target": 0,
+        "state": "remount",
+        "input": {
+          "throttle": 0,
+          "brake": 0,
+          "clutch": 0,
+          "manualClutch": false,
+          "steer": 0,
+          "shift": 0,
+          "ers": 0,
+          "pit": false,
+          "reverse": false
+        },
+        "aiStuck": 0,
+        "fallbackStuck": 0,
+        "decisions": {
+          "clears": 7,
+          "rolls": 1,
+          "aborts": 1,
+          "pushes": 1
+        }
+      },
+      {
+        "t": 159.627,
+        "s": 330.878,
+        "speed": 0.268,
+        "target": 5,
+        "state": "riding",
+        "input": {
+          "throttle": 0.9999998430791783,
+          "brake": 0,
+          "clutch": 0,
+          "manualClutch": false,
+          "steer": -0.1354126048226158,
+          "shift": 0,
+          "ers": 0,
+          "pit": false,
+          "reverse": false
+        },
+        "aiStuck": 0.125,
+        "fallbackStuck": 0.125,
+        "decisions": {
+          "clears": 7,
+          "rolls": 2,
+          "aborts": 1,
+          "pushes": 1
+        }
+      }
+    ]
+  },
+  "correction": {
+    "pause": "While riding, grounded and slower than 0.5 m/s, a tick without a drive request leaves accumulated drive effort unchanged.",
+    "countAndTrigger": "Only current target > 0.5 m/s, throttle > 0.2 and brake < 0.1 accrue dt and can request assistance after the original four seconds.",
+    "reset": "Actual motion at or above 0.5 m/s, flight, nonriding state or inactive/initial race resets effort.",
+    "scope": "DirtBikeAIDriver only. Shared BikeVehicle six-second fallback, normal five-second remount, player controls and all jump/landing/crash/stop thresholds are unchanged."
+  },
+  "fixture": {
+    "mode": "practice",
+    "circuit": "valley-ridge-mx",
+    "weather": "rain",
+    "vehicles": [
+      "mx250",
+      "mx450"
+    ],
+    "seed": 41003,
+    "stationMetres": 315.4,
+    "lateralMetres": -1.52,
+    "physics": "Production Simulation, DirtBikeVehicle contact, AI and traffic planning. No private effort clock or fabricated AI pedals.",
+    "traffic": "A real second rider is placed 2.8 m ahead for two seconds, then 40 m ahead for two seconds. This deliberately staged traffic fixture produces the pedal interruptions through the actual controller.",
+    "variants": {
+      "interruptedBefore": {
+        "fixture": "interrupted",
+        "firstPush": null,
+        "finalS": 315.39999999999986,
+        "crashes": 0,
+        "pushes": 0
+      },
+      "interruptedAfter": {
+        "fixture": "interrupted",
+        "firstPush": {
+          "time": 8.158333333333333,
+          "drive": 4.016666666666656,
+          "state": "remount",
+          "s": 315.4257893679817
+        },
+        "finalS": 331.35740952335595,
+        "crashes": 0,
+        "pushes": 1
+      },
+      "continuousBrakeQueueAfter": {
+        "fixture": "queued",
+        "firstPush": null,
+        "finalS": 315.39999999999986,
+        "crashes": 0,
+        "pushes": 0
+      },
+      "actualMovementReset": {
+        "fixture": "movement",
+        "firstPush": {
+          "time": 6.4,
+          "drive": 5.900000000000083,
+          "state": "remount",
+          "s": 315.85190831604245,
+          "resetAt": 2.3833333333333333,
+          "returnedAt": null
+        },
+        "finalS": 335.8886360059407,
+        "returnedAt": null,
+        "crashes": 0,
+        "pushes": 1
+      },
+      "actualManualRemountReset": {
+        "fixture": "state",
+        "firstPush": {
+          "time": 11.125,
+          "drive": 5.908333333333417,
+          "state": "remount",
+          "s": 315.4257893679817,
+          "resetAt": null,
+          "returnedAt": 6.991666666666666
+        },
+        "finalS": 324.29733195371887,
+        "returnedAt": 6.991666666666666,
+        "crashes": 0,
+        "pushes": 1
+      }
+    },
+    "movementResetExplanation": "The public body velocity receives a 2 m/s forward push at t=2 s; the bike physically moves. The last speed >=0.5 sample before assistance is t=2.3833 s and assistance begins t=6.4 s, a fresh 4.0167 seconds later.",
+    "manualRemountExplanation": "A public restart at t=2 s enters the actual remount state. The bike returns to riding at t=6.9917 s, is placed back on the same beached face, and requires a fresh drive interval before assistance at t=11.125 s.",
+    "queueCaveat": "The traffic controller receives its normal initial evaluation; assertions require sustained throttle <0.01 and brake >0.9 after the first second, no significant motion and no assistance through 14 seconds."
+  },
+  "focusedBefore": {
+    "path": "docs/production/motocross-evidence/races/recovery-effort/tests-before.json",
+    "sha256": "6c7b0731f00096e5496400474fb13b523745de223259f59ff7aad06acb8b4011",
+    "passed": 3,
+    "failed": 1,
+    "skipped": 12,
+    "cases": [
+      {
+        "name": "motocross stationary drive effort pauses effort during passing traffic and assists only after four seconds of actual drive",
+        "status": "failed"
+      },
+      {
+        "name": "motocross stationary drive effort keeps a continuously brake-held traffic queue stationary without assistance",
+        "status": "passed"
+      },
+      {
+        "name": "motocross stationary drive effort discards earlier effort when a real external push moves the bike",
+        "status": "passed"
+      },
+      {
+        "name": "motocross stationary drive effort starts a fresh drive-effort interval after an actual manual remount",
+        "status": "passed"
+      }
+    ]
+  },
+  "focusedAfter": {
+    "path": "docs/production/motocross-evidence/races/recovery-effort/tests-after.json",
+    "sha256": "cab06a3ae60b1f6274f37812175fd5e8b02d24a89c5a63fd8507010086e4cdb7",
+    "passed": 4,
+    "failed": 0,
+    "skipped": 12,
+    "cases": [
+      {
+        "name": "motocross stationary drive effort pauses effort during passing traffic and assists only after four seconds of actual drive",
+        "status": "passed"
+      },
+      {
+        "name": "motocross stationary drive effort keeps a continuously brake-held traffic queue stationary without assistance",
+        "status": "passed"
+      },
+      {
+        "name": "motocross stationary drive effort discards earlier effort when a real external push moves the bike",
+        "status": "passed"
+      },
+      {
+        "name": "motocross stationary drive effort starts a fresh drive-effort interval after an actual manual remount",
+        "status": "passed"
+      }
+    ]
+  },
+  "focusedCommand": "node node_modules/vitest/vitest.mjs run tests/motocross-ai.test.ts -t 'motocross stationary drive effort' --reporter=default --reporter=json --outputFile=<report>",
+  "exactWetEvent": {
+    "before": {
+      "path": "docs/production/motocross-evidence/races/r2-before-effort-pause/offroad-races.json",
+      "sha256": "a600b8db7725ee680d84737856adf898edecbf56632850267c5cfed2e769e932",
+      "raceSeconds": 836.24,
+      "crashes": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        1,
+        0
+      ],
+      "longestStopSeconds": 23.44,
+      "longestStop": {
+        "car": 4,
+        "s": 331.1,
+        "time": 160
+      },
+      "retired": [],
+      "finishTimes": [
+        763.48,
+        722.65,
+        716.05,
+        756.11,
+        747.37,
+        766.24,
+        728.19,
+        701.85,
+        721.52,
+        841.24
+      ]
+    },
+    "isolatedAfter": {
+      "command": "OFFROAD_RACE=valley-ridge-mx-moto-2 node --experimental-transform-types scripts/offroad-races.ts",
+      "cwd": "/workspace/scratch/ce74d2c3df38/motocross-final-integrated-gate/recovery-effort-candidate",
+      "exitCode": 0,
+      "passed": true,
+      "path": "docs/production/motocross-evidence/races/recovery-effort/wet-candidate-after.json",
+      "sha256": "0ba76819b8d19f282a765ea99a3213af4f92e7b2a2a42981c38f371a0b82a333",
+      "raceSeconds": 777.94,
+      "crashes": [
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "longestStopSeconds": 17.67,
+      "longestStop": {
+        "car": 8,
+        "s": 331.1,
+        "time": 154.5
+      },
+      "retired": [],
+      "finishTimes": [
+        787.93,
+        733.4,
+        741.12,
+        750.77,
+        766.81,
+        726.01,
+        744.88,
+        725.79,
+        742.86,
+        785.33
+      ],
+      "scope": "Isolated candidate with the exact final logic. A redundant comment was removed afterward; final exact source fingerprints belong to the subsequent complete original gate."
+    }
+  },
+  "fullFocusedCompatibility": {
+    "path": "docs/production/motocross-evidence/races/recovery-effort/focused-69.json",
+    "sha256": "39806cd3e2cb3febde4f808d6034656976b90e747c632a7a40f12ad68bbecf8a",
+    "passed": 69,
+    "failed": 0,
+    "skipped": 0,
+    "cases": [
+      {
+        "name": "WP34 motorcycles in real sessions builds the bike adapter and bike AI for bike definitions only",
+        "status": "passed"
+      },
+      {
+        "name": "WP34 motorcycles in real sessions laps a circuit under AI with lean, gears, tyre wear and valid timing",
+        "status": "passed"
+      },
+      {
+        "name": "WP34 motorcycles in real sessions crash flows through race control: rider down, separation, remount, back on track",
+        "status": "passed"
+      },
+      {
+        "name": "WP34 motorcycles in real sessions a hard contact between bikes unseats a rider without non-finite state",
+        "status": "passed"
+      },
+      {
+        "name": "WP34 motorcycles in real sessions race control penalises a bike jump start like any entrant",
+        "status": "passed"
+      },
+      {
+        "name": "WP34 motorcycles in real sessions rear brake is the secondary (clutch) input and decelerates on its own",
+        "status": "passed"
+      },
+      {
+        "name": "WP34 motorcycles in real sessions services a bike in the pit lane and releases it",
+        "status": "passed"
+      },
+      {
+        "name": "WP34 snapshot v12 bike block round-trips lean, steer, rider pose and loads; cars carry zeros",
+        "status": "passed"
+      },
+      {
+        "name": "WP34 snapshot v12 bike block rejects unknown vehicle indices and old layouts",
+        "status": "passed"
+      },
+      {
+        "name": "WP34 snapshot v12 bike block chassis lean inverts to the dynamics lean (tyre crown geometry)",
+        "status": "passed"
+      },
+      {
+        "name": "WP36 bike identity, rules and content gives every bike its own identity hash and record category",
+        "status": "passed"
+      },
+      {
+        "name": "WP36 bike identity, rules and content rejects mixed car and bike grids, admits all-bike grids",
+        "status": "passed"
+      },
+      {
+        "name": "WP36 bike identity, rules and content validates bike content and names what is wrong",
+        "status": "passed"
+      },
+      {
+        "name": "WP35 seeded AI bike race finishes a mixed GP/superbike race with bounded incidents and no stuck rider",
+        "status": "passed"
+      },
+      {
+        "name": "WP33 rider-bike prototype: required riding situations (\u00a78.3) low-speed start: balanced, no oscillation or fall, smooth into riding",
+        "status": "passed"
+      },
+      {
+        "name": "WP33 rider-bike prototype: required riding situations (\u00a78.3) corner entry: the stick sets a lean, and lean and path agree (tan \u03c6 = v\u00b2\u03ba/g)",
+        "status": "passed"
+      },
+      {
+        "name": "WP33 rider-bike prototype: required riding situations (\u00a78.3) front and rear brakes are distinct and the stoppie is bounded",
+        "status": "passed"
+      },
+      {
+        "name": "WP33 rider-bike prototype: required riding situations (\u00a78.3) wheelie assist bounds pitch; without it full throttle can loop the bike",
+        "status": "passed"
+      },
+      {
+        "name": "WP33 rider-bike prototype: required riding situations (\u00a78.3) over-asking grip mid-corner is a lowside with a coherent crash and remount",
+        "status": "passed"
+      },
+      {
+        "name": "cornering ABS under the current brake stroke reserves rear cornering grip and remains rideable through braking at grip 1",
+        "status": "passed"
+      },
+      {
+        "name": "cornering ABS under the current brake stroke reserves rear cornering grip and remains rideable through braking at grip 0.65",
+        "status": "passed"
+      },
+      {
+        "name": "cornering ABS under the current brake stroke reserves rear cornering grip and remains rideable through braking at grip 0.4",
+        "status": "passed"
+      },
+      {
+        "name": "cornering ABS under the current brake stroke leaves a longer braking distance while deeply leaned and on reduced grip",
+        "status": "passed"
+      },
+      {
+        "name": "cornering ABS under the current brake stroke reports rear brake workload in raw mode while preserving rear-lock risk",
+        "status": "passed"
+      },
+      {
+        "name": "motocross committed jump handoff allows a real mx250 clear to settle without treating touchdown as a beached gap rider",
+        "status": "passed"
+      },
+      {
+        "name": "motocross committed jump handoff allows a real mx450 clear to settle without treating touchdown as a beached gap rider",
+        "status": "passed"
+      },
+      {
+        "name": "motocross committed jump handoff aborts the mx250 clear once when heading recovery brakes from side -1",
+        "status": "passed"
+      },
+      {
+        "name": "motocross committed jump handoff aborts the mx250 clear once when heading recovery brakes from side 1",
+        "status": "passed"
+      },
+      {
+        "name": "motocross committed jump handoff aborts the mx450 clear once when heading recovery brakes from side -1",
+        "status": "passed"
+      },
+      {
+        "name": "motocross committed jump handoff aborts the mx450 clear once when heading recovery brakes from side 1",
+        "status": "passed"
+      },
+      {
+        "name": "motocross AI rejoining slows a rider facing across the lane on side -1 before driving onward",
+        "status": "passed"
+      },
+      {
+        "name": "motocross AI rejoining slows a rider facing across the lane on side 1 before driving onward",
+        "status": "passed"
+      },
+      {
+        "name": "motocross AI rejoining holds one lane from the real stadium tabletop through its rollers and finish triple",
+        "status": "passed"
+      },
+      {
+        "name": "motocross AI rejoining physically crosses timing gates during a long marshal recovery at 145.4 m",
+        "status": "passed"
+      },
+      {
+        "name": "motocross AI rejoining physically crosses timing gates during a long marshal recovery at 448 m",
+        "status": "passed"
+      },
+      {
+        "name": "motocross AI rejoining helps a beached rider with the exact 4 m/s rolling target without waiting for the slower fallback",
+        "status": "passed"
+      },
+      {
+        "name": "motocross stationary drive effort pauses effort during passing traffic and assists only after four seconds of actual drive",
+        "status": "passed"
+      },
+      {
+        "name": "motocross stationary drive effort keeps a continuously brake-held traffic queue stationary without assistance",
+        "status": "passed"
+      },
+      {
+        "name": "motocross stationary drive effort discards earlier effort when a real external push moves the bike",
+        "status": "passed"
+      },
+      {
+        "name": "motocross stationary drive effort starts a fresh drive-effort interval after an actual manual remount",
+        "status": "passed"
+      },
+      {
+        "name": "motocross collision and sprung vertical velocity does not turn a real tilted two-bike position correction into the next contact impulse",
+        "status": "passed"
+      },
+      {
+        "name": "motocross collision and sprung vertical velocity keeps physical heave continuous through 'mx250' placement and remount",
+        "status": "passed"
+      },
+      {
+        "name": "motocross collision and sprung vertical velocity keeps physical heave continuous through 'mx450' placement and remount",
+        "status": "passed"
+      },
+      {
+        "name": "motocross barriers between adjacent stadium lanes does not push a bike across the median when its corner is nearest the next rhythm lane",
+        "status": "passed"
+      },
+      {
+        "name": "motocross barriers between adjacent stadium lanes pushes an overlapping bike toward its own lane, including an angled front corner",
+        "status": "passed"
+      },
+      {
+        "name": "motocross barriers between adjacent stadium lanes keeps the seeded eight-rider stadium start free of spurious high-energy launches",
+        "status": "passed"
+      },
+      {
+        "name": "motocross barriers between adjacent stadium lanes projects a deep manual terrain contact without an impossible launch in raw",
+        "status": "passed"
+      },
+      {
+        "name": "motocross barriers between adjacent stadium lanes projects a deep manual terrain contact without an impossible launch in sport",
+        "status": "passed"
+      },
+      {
+        "name": "shared paved-circuit barriers retains inward barrier response for formula",
+        "status": "passed"
+      },
+      {
+        "name": "shared paved-circuit barriers retains inward barrier response for motogp",
+        "status": "passed"
+      },
+      {
+        "name": "motocross race-control eligibility valley-ridge-mx: sustained hazards retain local flags without a VSC or pace car",
+        "status": "passed"
+      },
+      {
+        "name": "motocross race-control eligibility arena-nord-sx: sustained hazards retain local flags without a VSC or pace car",
+        "status": "passed"
+      },
+      {
+        "name": "motocross race-control eligibility formula-grand-prix: an omitted eligibility setting preserves VSC and safety-car deployment",
+        "status": "passed"
+      },
+      {
+        "name": "motocross race-control eligibility gp-motorcycle: an omitted eligibility setting preserves VSC and safety-car deployment",
+        "status": "passed"
+      },
+      {
+        "name": "motocross race-control eligibility supermoto-moto: an omitted eligibility setting preserves VSC and safety-car deployment",
+        "status": "passed"
+      },
+      {
+        "name": "motocross race-control eligibility practice still excludes global neutralisation while reporting an obstruction",
+        "status": "passed"
+      },
+      {
+        "name": "motocross player air control a normal brake tap lowers the nose and slows the front wheel without bending the trajectory",
+        "status": "passed"
+      },
+      {
+        "name": "motocross player air control left/right air input banks the chassis, then release levels it without sideways air steering",
+        "status": "passed"
+      },
+      {
+        "name": "motocross player air control Sport settles a held air lean toward touchdown while Raw preserves player banking authority",
+        "status": "passed"
+      },
+      {
+        "name": "motocross player air control keeps the existing AI flight solution independent of the unused front pedal",
+        "status": "passed"
+      },
+      {
+        "name": "motocross player air control 'mx450' keeps air-pitch brake corrections out of the next grounded substep",
+        "status": "passed"
+      },
+      {
+        "name": "motocross player air control 'mx250' keeps air-pitch brake corrections out of the next grounded substep",
+        "status": "passed"
+      },
+      {
+        "name": "motocross player air control publishes the new landing on the touchdown edge and refines that record during settlement",
+        "status": "passed"
+      },
+      {
+        "name": "motocross player air control is repeatable and keeps spinning wheels and chassis state bounded under alternating air inputs",
+        "status": "passed"
+      },
+      {
+        "name": "motocross landing messages celebrates slope-matched touchdown and warns about bottoming using the normalized snapshot value",
+        "status": "passed"
+      },
+      {
+        "name": "motocross landing messages reports an actual crash rather than inferring one from a single pose or invalid telemetry",
+        "status": "passed"
+      },
+      {
+        "name": "off-road thermal integration with full brake-force utilisation 'mx250' bounds real Raw braking heat and stops contact heating through recovery",
+        "status": "passed"
+      },
+      {
+        "name": "off-road thermal integration with full brake-force utilisation 'mx450' bounds real Raw braking heat and stops contact heating through recovery",
+        "status": "passed"
+      },
+      {
+        "name": "off-road thermal integration with full brake-force utilisation 'sm450' bounds real Raw braking heat and stops contact heating through recovery",
+        "status": "passed"
+      }
+    ]
+  },
+  "limits": [
+    "Deterministic CPU witnesses, one exact event replay and a complete original ten-event gate; no claim covering every seed or real hardware.",
+    "Pit, traffic, local flags and deformed terrain couple race trajectories; the lower crash count does not prove that the clock correction directly prevents each crash.",
+    "The staged traffic fixture deliberately controls blocker location; it is distinct from the unmodified whole-race replay."
+  ],
+  "fullIntegratedGate": {
+    "path": "docs/production/motocross-evidence/races/final-regression.json",
+    "sha256": "3ed049ab26750489fb57ae5592db45308fdb26075fff3620604d602d79266236",
+    "exitCode": 0,
+    "sourceFingerprintCount": 14,
+    "sourceHashes": {
+      "scripts/offroad-calibration.ts": "a994af9827d5587dd015533290a5725d458b80e2c176ef74915a73de08672718",
+      "scripts/offroad-races.ts": "f117567b26e82941a756e55ec77a1bae5300ad442c72050ca836e6c82ba41420",
+      "src/simulation/offroad/dirt-bike-vehicle.ts": "a0048db1805e3660c81e6a82486dd71684a96b5db911cb2aabd31d1b86178d56",
+      "src/simulation/offroad/ai.ts": "3a5acf6d1ea40d940031aac4d5e4c55da8a0d0e2ea11a2fe77050dd96253be39",
+      "src/simulation/bike-ai.ts": "668a736db9168c9deb64797aa928971788a4c52a07e41b2bbc8bc8c0852c64e6",
+      "src/simulation/collision.ts": "02c8320bc909a556ca19d3b912f8be707db0463b6a23085b141ef652c678613e",
+      "src/simulation/driver-brain.ts": "d851cde01ebb016668daaedfa016bcc77536083b47284c812405ece28754f727",
+      "src/simulation/world.ts": "26500be30f1c8c1a666d6df4fed21ddc9a5f2aec6f29d163d866ab46caba501b",
+      "src/simulation/events.ts": "6231f596497857b0eda19a786b2e1444c6df413505f677b63d4dd7c64b5370e4",
+      "src/simulation/offroad/formats.ts": "8f80f9eacd13cf1a80b727c3ef4ad2ed0cb792a35f4e480b5e5bde6279608c5a",
+      "src/simulation/race.ts": "7f5017105700ff50e474a2a641cd0b4170a485c59be866d793aa280b62c1e952",
+      "src/simulation/bike.ts": "1fab3d119ab5d7a810b97a64a703d4920176f33d29ba11a328a6187bbab1e3ae",
+      "src/simulation/bike-vehicle.ts": "ca4dcfe776caa6ea9fe2578dfa8ef8ea39af8d1afb3fc612810300f037fbecc3",
+      "src/simulation/bike-slipstream.ts": "69249d407d3db7d150934e0479dfc629f27bf4579239231bc2850128dc39c66a"
+    },
+    "jumpCalibrationCases": 20,
+    "standingStartCases": 3,
+    "raceScenarios": 10,
+    "classifiedEntrantStarts": 74,
+    "retirements": 0
+  }
+}

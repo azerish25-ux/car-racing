@@ -179,8 +179,8 @@ export class DriverBrain {
     const compound = car.tires[0].compound;
     const slick = compound !== 'intermediate' && compound !== 'wet';
     const mismatch = slick ? clamp((water - 0.12) / 0.7, 0, 1) : 0;
-    this.pace = (1 - this.tireCare * 0.035 - wet * (1 - traits.wetSkill) * 0.07) *
-      (1 - 0.22 * mismatch);
+    this.pace =
+      (1 - this.tireCare * 0.035 - wet * (1 - traits.wetSkill) * 0.07) * (1 - 0.22 * mismatch);
     const caution = yellowFlag(race.control.flags[car.id]);
     const safe = !car.inPit && !car.pitRequested && !car.finishTime && !car.retired && !caution;
     const reserve = 4e6 * (0.13 + 0.12 * traits.tireManagement);
@@ -199,7 +199,15 @@ export class DriverBrain {
       this.ers = 1;
       this.decision = this.tireCare > 0.2 ? 'TIRE MANAGEMENT' : 'BALANCED';
     }
-    if (!car.inPit && !car.finishTime && !car.retired && car.s < track.length - track.pit.exitBefore) {
+    // Motos, heats and stages carry their tyres to the finish. Their courses
+    // have no in-race service; a road strategy request strands them in a bay.
+    if (
+      race.ruleset.service.pitStops &&
+      !car.inPit &&
+      !car.finishTime &&
+      !car.retired &&
+      car.s < track.length - track.pit.exitBefore
+    ) {
       const compound = car.tires[0].compound;
       const wrongWet = water > 0.18 && compound !== 'intermediate' && compound !== 'wet';
       const wrongDry = water < 0.05 && (compound === 'intermediate' || compound === 'wet');

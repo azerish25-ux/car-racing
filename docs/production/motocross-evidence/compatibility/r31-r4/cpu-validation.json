@@ -1,0 +1,876 @@
+{
+  "schemaVersion": 1,
+  "scope": "GP R3.1/R4 rendering integration CPU evidence; incremental real test batches and construction measurements. This is not a new full-game, hardware-renderer, Blender, or full-670-source CPU-suite claim.",
+  "integratedUpstream": [
+    "0e0326a7b26e797362a3fd51655a8af37f3eabb2",
+    "d4dd3e541433a0eb7513b0b9124c932911a64bdb"
+  ],
+  "subsequentFrozenBuild": {
+    "scope": "Final source/build identity captured after all integration and before the separately coordinated browser run; earlier CPU batches retain their individual scope above.",
+    "integratedParent": "d4dd3e541433a0eb7513b0b9124c932911a64bdb",
+    "sourceCount": 670,
+    "sourceSha256": "acfc1a799a933ff9c135046aee17daa741366549f7808b8091200accf69f874d",
+    "contextFileCount": 12,
+    "buildFingerprint": "a5a1575e169f6475439722adeb3ac6ae569bc91b6d604f14e465faf7eccc6de4",
+    "validatedSourceRecordSha256": "3f384bde598dd74ecc34c45260b69d36153366af3caf0bfcd60558778a612d35",
+    "validatedSourceRecord": "../../validation/final-validated-source.json",
+    "allSourceAndContextBytesMatchAtPackaging": true
+  },
+  "unrelaxedBudgets": {
+    "expandedModelTriangles": {
+      "operator": "<",
+      "limit": 110000
+    },
+    "renderDrawCalls": {
+      "operator": "<",
+      "limit": 220,
+      "status": "a separate browser assertion, not a CPU draw measurement"
+    },
+    "legacyProductionChainTest": {
+      "operator": "<",
+      "limit": 14000
+    },
+    "incomingReviewChainTest": {
+      "operator": "<",
+      "limit": 16000
+    }
+  },
+  "caliperRepair": {
+    "problem": "Incoming GP-R1 high exceeded the existing complete-model gate in two independent tests: 110708 is not less than 110000.",
+    "change": "One bevel step instead of two, and 12 rather than 20 sides for the small piston cylinders. No threshold, authored profile curve, housing dimensions, bevel width/depth, mount, rotor slot, materials, hydraulic hose, or hardware placement change.",
+    "beforeExpandedGpr1HighTriangles": 110708,
+    "afterExpandedGpr1HighTriangles": 109764,
+    "beforeTrianglesPerCaliper": 2048,
+    "afterTrianglesPerCaliper": 1576,
+    "materialBatchesPerCaliper": 4,
+    "measurements": [
+      {
+        "name": "incoming-r4",
+        "trianglesPerCaliper": 2048,
+        "components": [
+          {
+            "name": "Forged two-jaw housing",
+            "triangles": 984
+          },
+          {
+            "name": "Machined piston faces",
+            "triangles": 400
+          },
+          {
+            "name": "Titanium hydraulic hardware",
+            "triangles": 304
+          },
+          {
+            "name": "Pads and braided hose",
+            "triangles": 360
+          }
+        ],
+        "bounds": {
+          "min": [-0.04969999939203262, -0.058975204825401306, -0.05208366736769676],
+          "max": [0.09161368757486343, 0.15692932903766632, 0.06553204357624054]
+        },
+        "gapSamples": [
+          {
+            "y": -0.025,
+            "direction": -1,
+            "firstHitDistance": 0.010999999940395355,
+            "hit": "Pads and braided hose"
+          },
+          {
+            "y": -0.025,
+            "direction": 1,
+            "firstHitDistance": 0.010999999940395355,
+            "hit": "Pads and braided hose"
+          },
+          {
+            "y": 0,
+            "direction": -1,
+            "firstHitDistance": 0.010999999940395355,
+            "hit": "Pads and braided hose"
+          },
+          {
+            "y": 0,
+            "direction": 1,
+            "firstHitDistance": 0.010999999940395355,
+            "hit": "Pads and braided hose"
+          },
+          {
+            "y": 0.025,
+            "direction": -1,
+            "firstHitDistance": 0.010999999940395355,
+            "hit": "Pads and braided hose"
+          },
+          {
+            "y": 0.025,
+            "direction": 1,
+            "firstHitDistance": 0.010999999940395355,
+            "hit": "Pads and braided hose"
+          }
+        ],
+        "predictedCompleteGpr1HighTriangles": 110708
+      },
+      {
+        "name": "one-bevel-step",
+        "trianglesPerCaliper": 1832,
+        "components": [
+          {
+            "name": "Forged two-jaw housing",
+            "triangles": 768
+          },
+          {
+            "name": "Machined piston faces",
+            "triangles": 400
+          },
+          {
+            "name": "Titanium hydraulic hardware",
+            "triangles": 304
+          },
+          {
+            "name": "Pads and braided hose",
+            "triangles": 360
+          }
+        ],
+        "bounds": {
+          "min": [-0.04969999939203262, -0.058975204825401306, -0.05208366736769676],
+          "max": [0.09161368757486343, 0.15692932903766632, 0.06553204357624054]
+        },
+        "gapSamples": [
+          {
+            "y": -0.025,
+            "direction": -1,
+            "firstHitDistance": 0.010999999940395355,
+            "hit": "Pads and braided hose"
+          },
+          {
+            "y": -0.025,
+            "direction": 1,
+            "firstHitDistance": 0.010999999940395355,
+            "hit": "Pads and braided hose"
+          },
+          {
+            "y": 0,
+            "direction": -1,
+            "firstHitDistance": 0.010999999940395355,
+            "hit": "Pads and braided hose"
+          },
+          {
+            "y": 0,
+            "direction": 1,
+            "firstHitDistance": 0.010999999940395355,
+            "hit": "Pads and braided hose"
+          },
+          {
+            "y": 0.025,
+            "direction": -1,
+            "firstHitDistance": 0.010999999940395355,
+            "hit": "Pads and braided hose"
+          },
+          {
+            "y": 0.025,
+            "direction": 1,
+            "firstHitDistance": 0.010999999940395355,
+            "hit": "Pads and braided hose"
+          }
+        ],
+        "predictedCompleteGpr1HighTriangles": 110276
+      },
+      {
+        "name": "one-bevel-step-pistons16",
+        "trianglesPerCaliper": 1704,
+        "components": [
+          {
+            "name": "Forged two-jaw housing",
+            "triangles": 704
+          },
+          {
+            "name": "Machined piston faces",
+            "triangles": 336
+          },
+          {
+            "name": "Titanium hydraulic hardware",
+            "triangles": 304
+          },
+          {
+            "name": "Pads and braided hose",
+            "triangles": 360
+          }
+        ],
+        "bounds": {
+          "min": [-0.04969999939203262, -0.058975204825401306, -0.05208366736769676],
+          "max": [0.09161368757486343, 0.15692932903766632, 0.06553204357624054]
+        },
+        "gapSamples": [
+          {
+            "y": -0.025,
+            "direction": -1,
+            "firstHitDistance": 0.010999999940395355,
+            "hit": "Pads and braided hose"
+          },
+          {
+            "y": -0.025,
+            "direction": 1,
+            "firstHitDistance": 0.010999999940395355,
+            "hit": "Pads and braided hose"
+          },
+          {
+            "y": 0,
+            "direction": -1,
+            "firstHitDistance": 0.010999999940395355,
+            "hit": "Pads and braided hose"
+          },
+          {
+            "y": 0,
+            "direction": 1,
+            "firstHitDistance": 0.010999999940395355,
+            "hit": "Pads and braided hose"
+          },
+          {
+            "y": 0.025,
+            "direction": -1,
+            "firstHitDistance": 0.010999999940395355,
+            "hit": "Pads and braided hose"
+          },
+          {
+            "y": 0.025,
+            "direction": 1,
+            "firstHitDistance": 0.010999999940395355,
+            "hit": "Pads and braided hose"
+          }
+        ],
+        "predictedCompleteGpr1HighTriangles": 110020
+      },
+      {
+        "name": "one-bevel-step-pistons12",
+        "trianglesPerCaliper": 1576,
+        "components": [
+          {
+            "name": "Forged two-jaw housing",
+            "triangles": 640
+          },
+          {
+            "name": "Machined piston faces",
+            "triangles": 272
+          },
+          {
+            "name": "Titanium hydraulic hardware",
+            "triangles": 304
+          },
+          {
+            "name": "Pads and braided hose",
+            "triangles": 360
+          }
+        ],
+        "bounds": {
+          "min": [-0.04969999939203262, -0.058975204825401306, -0.05208366736769676],
+          "max": [0.09161368757486343, 0.15692932903766632, 0.06553204357624054]
+        },
+        "gapSamples": [
+          {
+            "y": -0.025,
+            "direction": -1,
+            "firstHitDistance": 0.010999999940395355,
+            "hit": "Pads and braided hose"
+          },
+          {
+            "y": -0.025,
+            "direction": 1,
+            "firstHitDistance": 0.010999999940395355,
+            "hit": "Pads and braided hose"
+          },
+          {
+            "y": 0,
+            "direction": -1,
+            "firstHitDistance": 0.010999999940395355,
+            "hit": "Pads and braided hose"
+          },
+          {
+            "y": 0,
+            "direction": 1,
+            "firstHitDistance": 0.010999999940395355,
+            "hit": "Pads and braided hose"
+          },
+          {
+            "y": 0.025,
+            "direction": -1,
+            "firstHitDistance": 0.010999999940395355,
+            "hit": "Pads and braided hose"
+          },
+          {
+            "y": 0.025,
+            "direction": 1,
+            "firstHitDistance": 0.010999999940395355,
+            "hit": "Pads and braided hose"
+          }
+        ],
+        "predictedCompleteGpr1HighTriangles": 109764
+      }
+    ],
+    "measurementFileSha256": "09b6aa8c51ca5bed4a494bc96dfb350b06a6569921ebf424e28a269dcd572afb",
+    "independentRegression": {
+      "file": "tests/gp-radial-caliper.test.ts",
+      "sides": [-1, 1],
+      "aabbToleranceDecimalPlaces": 8,
+      "rayOrigins": [
+        [0, -0.025, 0.015],
+        [0, 0, 0.015],
+        [0, 0.025, 0.015]
+      ],
+      "rayDirections": [
+        [-1, 0, 0],
+        [1, 0, 0]
+      ],
+      "firstHitObject": "Pads and braided hose",
+      "firstHitDistanceMetres": 0.010999999940395355,
+      "rotorThicknessMetres": 0.022,
+      "distanceToleranceDecimalPlaces": 8,
+      "purpose": "Both mirrored components preserve their observed incoming AABB and leave the actual rotor gap open; rays hit pad backing, not an unintended housing bridge."
+    }
+  },
+  "geometryAccounting": {
+    "scope": "CPU production-constructor accounting after R3.1/R4 integration; expanded instances, no GPU draw-call measurement.",
+    "models": [
+      {
+        "id": "gpr1",
+        "detail": "high",
+        "expandedModelTriangles": 109764,
+        "chainRollerInstances": 102,
+        "radialCalipers": [
+          {
+            "parent": "",
+            "position": [0.066, -0.02, -0.10500000000000001],
+            "scale": [1, 1, 1],
+            "triangles": 1576
+          },
+          {
+            "parent": "",
+            "position": [-0.066, -0.02, -0.10500000000000001],
+            "scale": [-1, 1, 1],
+            "triangles": 1576
+          }
+        ]
+      },
+      {
+        "id": "gpr1",
+        "detail": "mid",
+        "expandedModelTriangles": 44953,
+        "chainRollerInstances": 0,
+        "radialCalipers": []
+      },
+      {
+        "id": "gpr1",
+        "detail": "far",
+        "expandedModelTriangles": 12538,
+        "chainRollerInstances": 0,
+        "radialCalipers": []
+      },
+      {
+        "id": "gpr2",
+        "detail": "high",
+        "expandedModelTriangles": 100220,
+        "chainRollerInstances": 100,
+        "radialCalipers": [
+          {
+            "parent": "",
+            "position": [0.066, -0.02, -0.10500000000000001],
+            "scale": [1, 1, 1],
+            "triangles": 1576
+          },
+          {
+            "parent": "",
+            "position": [-0.066, -0.02, -0.10500000000000001],
+            "scale": [-1, 1, 1],
+            "triangles": 1576
+          }
+        ]
+      }
+    ],
+    "caliper": {
+      "triangles": 1576,
+      "materialBatches": 4,
+      "bounds": {
+        "min": [-0.04969999939203262, -0.058975204825401306, -0.05208366736769676],
+        "max": [0.09161368757486343, 0.15692932903766632, 0.06553204357624054]
+      }
+    },
+    "reviewChain": {
+      "arm": 0.52,
+      "links": 96,
+      "rollerTriangleCount": 3072,
+      "plateTriangleCount": 8448,
+      "sprocketTriangleCount": 1440,
+      "expandedTriangles": 12960
+    }
+  },
+  "geometryAccountingFileSha256": "18f30b74caadf803e10329629aaa5570567efbb9f8dd5ae01218ca17bc83b001",
+  "measurementMethod": "Actual production constructors; sum (index count or position count) / 3 over every Mesh, multiplied by InstancedMesh.count. Counts include model geometry regardless of view; renderer submitted triangles are a separate future browser metric.",
+  "preservationAndScope": [
+    "The incoming analytic chain routing, wheel-matched direction, even link count, midpoint-centred waisted plates, phase/culling envelopes, and replay-held buffer behavior supersede the older rectangular plate helper; the new chain module is byte-identical to upstream.",
+    "GP cooling-louver exterior screw-head winding is preserved from upstream; both sides pass the actual exterior-ray test.",
+    "BikeModel retains one idempotent disposal path for geometry and InstancedMesh buffers; the focused reference test confirms two instance-dispose events total after calling model.dispose twice.",
+    "The incoming GP fixture precompile call is retained together with expanded instance accounting, separately named submittedTriangles, three identical dry warmup samples, and all existing weather/held/rewind resource equalities.",
+    "GP disc glow is selected only for GP-R1/GP-R2. Shared BikeMaterials now allocates six paint maps per entrant, including dirt bikes; DirtBikeModel/rider reference none of paint/secondary/accent and retain separate dirt plastic materials. Existing BikeMaterials.dispose enumerates the new texture fields.",
+    "The MX250, MX450 and SM450 CPU controls use the production model, socket, pose, FOV and visibility contract across three aspect ratios and four articulation cases, then restore exterior arms and execute owner cleanup.",
+    "The incoming Blender authoring/review tools are preserved. No new Blender run or offline asset export is claimed by this integration record.",
+    "Brake-fade simulation and crowd integration are owned and validated separately; they are not included in these CPU test totals.",
+    "The older compatibility root and full-game eight-image main45 evidence remain their actual 667-source snapshot and are not relabelled by this record."
+  ],
+  "testBatches": [
+    {
+      "id": "r31-r4-before-caliper-repair",
+      "scope": "The integrated 0e0326a GP rendering before the bounded caliper tessellation repair. This report intentionally retains both unchanged-budget failures.",
+      "command": "npx vitest run tests/gp-chain-integrity.test.ts tests/gp-louver-facing.test.ts tests/gp-radial-caliper.test.ts tests/gp-chain-drive.test.ts tests/motogp-reference.test.ts tests/bike-bodies.test.ts --reporter=json --outputFile=/workspace/scratch/ce74d2c3df38/motocross-r4-integration/focused-gp-tests.json",
+      "cwd": "/workspace/scratch/ce74d2c3df38/Experiment-3",
+      "startTimeMs": 1792201038564,
+      "startUtc": "2026-10-17T01:37:18.564000+00:00",
+      "passed": 28,
+      "failed": 2,
+      "pending": 0,
+      "total": 30,
+      "fileCount": 6,
+      "rawReport": {
+        "file": "vitest-before-caliper-repair.json.gz",
+        "encoding": "gzip, lossless original Vitest JSON",
+        "sha256": "5689dbd7000663cd7bc91f63935d4e87a6b20011d92b6ad627c04f645730b463",
+        "uncompressedSha256": "5cfaa6c027b99fe4aa228308c79d6d4a811eb3ce8085a9fbad1d9652d3179b80",
+        "compressedBytes": 2646,
+        "uncompressedBytes": 14710
+      },
+      "files": [
+        {
+          "file": "tests/bike-bodies.test.ts",
+          "status": "passed",
+          "tests": 2,
+          "durationMs": 1460.588134765625,
+          "assertions": [
+            {
+              "name": "road motorcycle bodies (bike sheets) keeps the original design for GP-R1 and SBK-1000 and a sheet for every other road bike",
+              "status": "passed"
+            },
+            {
+              "name": "road motorcycle bodies (bike sheets) builds three cheaper levels inside the collision box, with distinct silhouettes",
+              "status": "passed"
+            }
+          ]
+        },
+        {
+          "file": "tests/gp-chain-drive.test.ts",
+          "status": "passed",
+          "tests": 4,
+          "durationMs": 64.216064453125,
+          "assertions": [
+            {
+              "name": "GP-R1 high-detail instanced, replay-deterministic chain drive keeps the pin-lobed plate dimensions and the complete production chain inside its triangle budget",
+              "status": "passed"
+            },
+            {
+              "name": "GP-R1 high-detail instanced, replay-deterministic chain drive uses two instanced draws, a single 42-tooth metal sprocket and no transient clones",
+              "status": "passed"
+            },
+            {
+              "name": "GP-R1 high-detail instanced, replay-deterministic chain drive replay seek returns to the same exact link positions and wheel modulo poses",
+              "status": "passed"
+            },
+            {
+              "name": "GP-R1 high-detail instanced, replay-deterministic chain drive bounds invalid swingarm geometry and guards against non-finite phase",
+              "status": "passed"
+            }
+          ]
+        },
+        {
+          "file": "tests/gp-chain-integrity.test.ts",
+          "status": "failed",
+          "tests": 10,
+          "durationMs": 3530.597412109375,
+          "assertions": [
+            {
+              "name": "GP chain real instance cost and mechanical continuity keeps the complete repeated 0.52 m chain below 16000 triangles",
+              "status": "passed"
+            },
+            {
+              "name": "GP chain real instance cost and mechanical continuity gpr1 retains the existing 110000-triangle model gate after expanding instances",
+              "status": "failed",
+              "failure": "AssertionError: expected 110708 to be less than 110000"
+            },
+            {
+              "name": "GP chain real instance cost and mechanical continuity gpr2 retains the existing 110000-triangle model gate after expanding instances",
+              "status": "passed"
+            },
+            {
+              "name": "GP chain real instance cost and mechanical continuity centres every plate between its two pins, not on a single pin",
+              "status": "passed"
+            },
+            {
+              "name": "GP chain real instance cost and mechanical continuity moves wrapped chain rollers in the same direction as the rear wheel",
+              "status": "passed"
+            },
+            {
+              "name": "GP chain real instance cost and mechanical continuity holds buffers on a repeated snapshot and restores exact transforms after a seek",
+              "status": "passed"
+            },
+            {
+              "name": "GP chain real instance cost and mechanical continuity uses an even link count and survives wrapped, negative and extreme finite rotations",
+              "status": "passed"
+            },
+            {
+              "name": "GP chain real instance cost and mechanical continuity retains bounded culling volumes through every chain phase",
+              "status": "passed"
+            },
+            {
+              "name": "GP chain real instance cost and mechanical continuity does not create animated links on mid detail",
+              "status": "passed"
+            },
+            {
+              "name": "GP chain real instance cost and mechanical continuity does not create animated links on far detail",
+              "status": "passed"
+            }
+          ]
+        },
+        {
+          "file": "tests/gp-louver-facing.test.ts",
+          "status": "passed",
+          "tests": 2,
+          "durationMs": 10.414306640625,
+          "assertions": [
+            {
+              "name": "GP mirrored cooling-outlet retainers shows all four solid screw heads from exterior side -1",
+              "status": "passed"
+            },
+            {
+              "name": "GP mirrored cooling-outlet retainers shows all four solid screw heads from exterior side 1",
+              "status": "passed"
+            }
+          ]
+        },
+        {
+          "file": "tests/gp-radial-caliper.test.ts",
+          "status": "passed",
+          "tests": 2,
+          "durationMs": 145.50244140625,
+          "assertions": [
+            {
+              "name": "MotoGP forged radial brake: geometry and ownership builds both sides with finite sculpted indexed meshes inside the draw/triangle budget",
+              "status": "passed"
+            },
+            {
+              "name": "MotoGP forged radial brake: geometry and ownership does not accept a non-physical left/right side",
+              "status": "passed"
+            }
+          ]
+        },
+        {
+          "file": "tests/motogp-reference.test.ts",
+          "status": "failed",
+          "tests": 10,
+          "durationMs": 1643.4814453125,
+          "assertions": [
+            {
+              "name": "100-reference GP presentation ships finite authored metre geometry, complete normals/UVs and valid triangles at both LODs",
+              "status": "passed"
+            },
+            {
+              "name": "100-reference GP presentation keeps interpolation inside each measured profile interval",
+              "status": "passed"
+            },
+            {
+              "name": "100-reference GP presentation uses simulation SI speed and displayed gear numbers, including neutral and invalid readings",
+              "status": "passed"
+            },
+            {
+              "name": "100-reference GP presentation draws every actual GP session gear from BikeVehicle shifts and the published snapshot",
+              "status": "passed"
+            },
+            {
+              "name": "100-reference GP presentation does not upload the same instrument texture on an unchanged held replay frame",
+              "status": "passed"
+            },
+            {
+              "name": "100-reference GP presentation builds deterministic filtered linear microtextures rather than random-frame grain",
+              "status": "passed"
+            },
+            {
+              "name": "100-reference GP presentation batches static detail without capturing a wheel articulation or changing shadows",
+              "status": "passed"
+            },
+            {
+              "name": "100-reference GP presentation connects the bike and rider to existing reversible weather without losing carbon shader hooks",
+              "status": "passed"
+            },
+            {
+              "name": "100-reference GP presentation keeps all three GP LODs posed and finite during lean, steer, braking and wheel service",
+              "status": "failed",
+              "failure": "AssertionError: expected 110708 to be less than 110000"
+            },
+            {
+              "name": "100-reference GP presentation releases both GP chain instance buffers exactly once when a model is disposed twice",
+              "status": "passed"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "r31-r4-after-caliper-repair",
+      "scope": "Targeted rerun of both failed gates, the caliper component including the new independent envelope/rotor-slot test, and actual MX250/MX450/SM450 cockpit controls. This precedes the d4dd3e5 glow/paint integration.",
+      "command": "npx vitest run tests/gp-chain-integrity.test.ts tests/motogp-reference.test.ts tests/gp-radial-caliper.test.ts tests/motocross-cockpit-view.test.ts --reporter=json --outputFile=/workspace/scratch/ce74d2c3df38/motocross-r4-integration/focused-gp-after-caliper.json",
+      "cwd": "/workspace/scratch/ce74d2c3df38/Experiment-3",
+      "startTimeMs": 1792201254168,
+      "startUtc": "2026-10-17T01:40:54.168000+00:00",
+      "passed": 26,
+      "failed": 0,
+      "pending": 0,
+      "total": 26,
+      "fileCount": 4,
+      "rawReport": {
+        "file": "vitest-after-caliper-repair.json.gz",
+        "encoding": "gzip, lossless original Vitest JSON",
+        "sha256": "0a5b6c75a54807fee2220597d4dbd6a36bbee7240f95c73987c6d4d411004c78",
+        "uncompressedSha256": "f5c29270ea27e75b819dd6f7d252c2043a1e5e75ddf57697676f14fcf84b5e9a",
+        "compressedBytes": 1995,
+        "uncompressedBytes": 10547
+      },
+      "files": [
+        {
+          "file": "tests/gp-chain-integrity.test.ts",
+          "status": "passed",
+          "tests": 10,
+          "durationMs": 3656.706787109375,
+          "assertions": [
+            {
+              "name": "GP chain real instance cost and mechanical continuity keeps the complete repeated 0.52 m chain below 16000 triangles",
+              "status": "passed"
+            },
+            {
+              "name": "GP chain real instance cost and mechanical continuity gpr1 retains the existing 110000-triangle model gate after expanding instances",
+              "status": "passed"
+            },
+            {
+              "name": "GP chain real instance cost and mechanical continuity gpr2 retains the existing 110000-triangle model gate after expanding instances",
+              "status": "passed"
+            },
+            {
+              "name": "GP chain real instance cost and mechanical continuity centres every plate between its two pins, not on a single pin",
+              "status": "passed"
+            },
+            {
+              "name": "GP chain real instance cost and mechanical continuity moves wrapped chain rollers in the same direction as the rear wheel",
+              "status": "passed"
+            },
+            {
+              "name": "GP chain real instance cost and mechanical continuity holds buffers on a repeated snapshot and restores exact transforms after a seek",
+              "status": "passed"
+            },
+            {
+              "name": "GP chain real instance cost and mechanical continuity uses an even link count and survives wrapped, negative and extreme finite rotations",
+              "status": "passed"
+            },
+            {
+              "name": "GP chain real instance cost and mechanical continuity retains bounded culling volumes through every chain phase",
+              "status": "passed"
+            },
+            {
+              "name": "GP chain real instance cost and mechanical continuity does not create animated links on mid detail",
+              "status": "passed"
+            },
+            {
+              "name": "GP chain real instance cost and mechanical continuity does not create animated links on far detail",
+              "status": "passed"
+            }
+          ]
+        },
+        {
+          "file": "tests/gp-radial-caliper.test.ts",
+          "status": "passed",
+          "tests": 3,
+          "durationMs": 126.741455078125,
+          "assertions": [
+            {
+              "name": "MotoGP forged radial brake: geometry and ownership builds both sides with finite sculpted indexed meshes inside the draw/triangle budget",
+              "status": "passed"
+            },
+            {
+              "name": "MotoGP forged radial brake: geometry and ownership does not accept a non-physical left/right side",
+              "status": "passed"
+            },
+            {
+              "name": "MotoGP forged radial brake: geometry and ownership preserves the authored envelope and open rotor slot on both mirrored sides",
+              "status": "passed"
+            }
+          ]
+        },
+        {
+          "file": "tests/motocross-cockpit-view.test.ts",
+          "status": "passed",
+          "tests": 3,
+          "durationMs": 750.83251953125,
+          "assertions": [
+            {
+              "name": "Motocross production onboard visibility mx250: clears the number plate and rider while keeping real controls in view",
+              "status": "passed"
+            },
+            {
+              "name": "Motocross production onboard visibility mx450: clears the number plate and rider while keeping real controls in view",
+              "status": "passed"
+            },
+            {
+              "name": "Motocross production onboard visibility sm450: clears the number plate and rider while keeping real controls in view",
+              "status": "passed"
+            }
+          ]
+        },
+        {
+          "file": "tests/motogp-reference.test.ts",
+          "status": "passed",
+          "tests": 10,
+          "durationMs": 1756.16064453125,
+          "assertions": [
+            {
+              "name": "100-reference GP presentation ships finite authored metre geometry, complete normals/UVs and valid triangles at both LODs",
+              "status": "passed"
+            },
+            {
+              "name": "100-reference GP presentation keeps interpolation inside each measured profile interval",
+              "status": "passed"
+            },
+            {
+              "name": "100-reference GP presentation uses simulation SI speed and displayed gear numbers, including neutral and invalid readings",
+              "status": "passed"
+            },
+            {
+              "name": "100-reference GP presentation draws every actual GP session gear from BikeVehicle shifts and the published snapshot",
+              "status": "passed"
+            },
+            {
+              "name": "100-reference GP presentation does not upload the same instrument texture on an unchanged held replay frame",
+              "status": "passed"
+            },
+            {
+              "name": "100-reference GP presentation builds deterministic filtered linear microtextures rather than random-frame grain",
+              "status": "passed"
+            },
+            {
+              "name": "100-reference GP presentation batches static detail without capturing a wheel articulation or changing shadows",
+              "status": "passed"
+            },
+            {
+              "name": "100-reference GP presentation connects the bike and rider to existing reversible weather without losing carbon shader hooks",
+              "status": "passed"
+            },
+            {
+              "name": "100-reference GP presentation keeps all three GP LODs posed and finite during lean, steer, braking and wheel service",
+              "status": "passed"
+            },
+            {
+              "name": "100-reference GP presentation releases both GP chain instance buffers exactly once when a model is disposed twice",
+              "status": "passed"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "d4dd3e5-glow-paint-motocross",
+      "scope": "The two incoming glow/paint tests and the three existing MX250/MX450/SM450 construction/pose/restore/cleanup cases after the d4dd3e5 shared-material merge.",
+      "command": "npx vitest run tests/gp-disc-glow.test.ts tests/gp-paint-microfinish.test.ts tests/motocross-cockpit-view.test.ts --reporter=json --outputFile=/workspace/scratch/ce74d2c3df38/motocross-r4b-integration/focused-glow-paint-mx.json",
+      "cwd": "/workspace/scratch/ce74d2c3df38/Experiment-3",
+      "startTimeMs": 1792201625149,
+      "startUtc": "2026-10-17T01:47:05.149000+00:00",
+      "passed": 7,
+      "failed": 0,
+      "pending": 0,
+      "total": 7,
+      "fileCount": 3,
+      "rawReport": {
+        "file": "vitest-glow-paint-mx.json.gz",
+        "encoding": "gzip, lossless original Vitest JSON",
+        "sha256": "bcb0f233355125d87e9e884af95275486c95a63a6279f5c076b3f4bb5817fbb4",
+        "uncompressedSha256": "f7b5106b1f124530e78ecb6c7db8e94ff0a34778b5727a2b28c19262a3aa9e52",
+        "compressedBytes": 866,
+        "uncompressedBytes": 3446
+      },
+      "files": [
+        {
+          "file": "tests/gp-disc-glow.test.ts",
+          "status": "passed",
+          "tests": 3,
+          "durationMs": 2.391357421875,
+          "assertions": [
+            {
+              "name": "GP carbon rotor physical heat visibility does not radiate unrealistic orange light at normal race temperatures",
+              "status": "passed"
+            },
+            {
+              "name": "GP carbon rotor physical heat visibility grows continuously, stays bounded and reverses after cooling",
+              "status": "passed"
+            },
+            {
+              "name": "GP carbon rotor physical heat visibility ignores non-finite readings safely",
+              "status": "passed"
+            }
+          ]
+        },
+        {
+          "file": "tests/gp-paint-microfinish.test.ts",
+          "status": "passed",
+          "tests": 1,
+          "durationMs": 95.37744140625,
+          "assertions": [
+            {
+              "name": "MotoGP painted composite PBR finish gives painted fairings bounded deterministic orange-peel normal and roughness maps",
+              "status": "passed"
+            }
+          ]
+        },
+        {
+          "file": "tests/motocross-cockpit-view.test.ts",
+          "status": "passed",
+          "tests": 3,
+          "durationMs": 760.6376953125,
+          "assertions": [
+            {
+              "name": "Motocross production onboard visibility mx250: clears the number plate and rider while keeping real controls in view",
+              "status": "passed"
+            },
+            {
+              "name": "Motocross production onboard visibility mx450: clears the number plate and rider while keeping real controls in view",
+              "status": "passed"
+            },
+            {
+              "name": "Motocross production onboard visibility sm450: clears the number plate and rider while keeping real controls in view",
+              "status": "passed"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "latestDistinctResults": {
+    "testCases": 38,
+    "testFiles": 9,
+    "passed": 38,
+    "failed": 0,
+    "note": "Latest result per (test file, full test name) across the three incremental batches; repeated cases are counted once here."
+  },
+  "integratedOwnedFileHashes": {
+    "authoring/motogp/README-R31.md": "397f65d459e0926605e29be40f67121ec2fdde27ede97b808e3b3a48a4785c79",
+    "docs/MOTOGP_R31_DRIVETRAIN_VALIDATION.md": "bc55e9158c61f692db0f8f662aed28b5e94663abfb5b704f12fa485f428c795e",
+    "docs/MOTOGP_R4_BRAKE_REALISM.md": "7f9c234a89eb18ddafd44a7c6389d19ec88ba889d8ff4e6dd809626a7fca3794",
+    "e2e/fixtures/motogp-reference-review.ts": "a921fc12a60acc8db62a4cd9da896cab7a132182f48cc4f68db7b7c8f4a09187",
+    "src/rendering/bike-surface-detail.ts": "fa23b463dcd1c7331aa5359d0667b8b8eb11df7eb6dc04bd74c4e37d0636148e",
+    "src/rendering/bike.ts": "b19e6cac35c0e301cce9a8c8909e0f1bf4e75b512cb5e5f02d81a70c18af8389",
+    "src/rendering/gp-chain-drive.ts": "224bf3bbda75b957b523489419a7e38d2b869e5e0a6d036972986a62ba21e990",
+    "src/rendering/gp-cooling-louvers.ts": "f32f42de3aeb37613da5f8ea60133053d5fb429652ee2e93a2809dac44c13e4b",
+    "src/rendering/gp-disc-glow.ts": "935645a98bb14bfc7a4cf55eb4f8d2f8e17630f7b82ed94731b1f76c4a762256",
+    "src/rendering/gp-radial-caliper.ts": "dba1b58b99d5c582d37bc169e5b73f0c0f0dc220c7afdb920bf17d1d6e6ce7a2",
+    "tests/gp-chain-drive.test.ts": "d58b1bf205ff66b50c8ff3d96ca05c8c00c5f83cdcd35649d9d49451f5455405",
+    "tests/gp-chain-integrity.test.ts": "f783739bbc9d59be942174603d2c0ab8429662addabef33abd36fd84cecb0d51",
+    "tests/gp-disc-glow.test.ts": "6d7382c32f9dc4373f259719239face7d60d06d64ba78c2e9ff8742804bcbc77",
+    "tests/gp-louver-facing.test.ts": "e13821d1b861aefbfa7f69b083e22c337c91b4c3aeebb7a8213314fc8e3fb32e",
+    "tests/gp-paint-microfinish.test.ts": "e18197238053393a19af537235d4d3accddd2faa60fa2d760e02ef5e5a8b1a0f",
+    "tests/gp-radial-caliper.test.ts": "4ddc603000a83d9c1487ea089fe939b9db40a2c5cd700b04ade8fb8f96fbbbec",
+    "tests/motocross-cockpit-view.test.ts": "33fe75d3a122789eb4ecf3e5e8d41b0709d24aa823b67620168a0436539c0d93",
+    "tests/motogp-reference.test.ts": "44e741fae537354822a2e1a2b55504dfffbcad886c083704baaff9ef93e38e72",
+    "tools/motogp/author_gp_radial_caliper.py": "008600973abfa415b67120ac5bbb6397bcc0dbee8355dc5e716d478c64a5379f",
+    "tools/motogp/export_gp_drivetrain_review.ts": "74b4666e1cd7983df1dbcbebf921c168cb45ceddc7c490a2f6916544c6730a90",
+    "tools/motogp/review_gp_drivetrain.py": "7e490eb87d555ff618c8796285f8e2855aabca8bcb2af9d2857be393495c6fde"
+  }
+}

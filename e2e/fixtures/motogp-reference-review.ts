@@ -102,12 +102,41 @@ export function captureBikeSequence(
         ((o.geometry.index?.count ?? o.geometry.getAttribute('position').count) / 3) *
         (o instanceof T.InstancedMesh ? o.count : 1);
   });
+  const resources = () => ({
+    geometries: renderer.info.memory.geometries,
+    textures: renderer.info.memory.textures,
+    programs: renderer.info.programs?.length ?? 0,
+  });
   try {
     // Match production shader preparation before observing resource stability.
-    // In r180 a cold shadow pass otherwise keys depth variants with an empty
-    // light layout; mixed instanced/rigid draws compile two more on frame two.
-    // compile() renders no extra frames and does not alter weather or pixels.
+    // compile() renders no extra frames and changes no source snapshots.
     renderer.compile(scene, camera);
+    // Production prepares real scene draws before presenting a race. In this
+    // isolated fixture, measure that preparation with the exact same dry pose
+    // and uniforms three times; do not attribute a cold second-draw program to
+    // weather. Keep the first transition visible in the attached diagnostics.
+    weatherFrame[H.TIME] = 2;
+    const preparationSource = weatherFrame.slice();
+    weather.update(weatherFrame);
+    let previousPrograms = new Set<number>();
+    const preparation = Array.from({ length: 3 }, (_, i) => {
+      renderer.render(scene, camera);
+      const programs = renderer.info.programs ?? [];
+      const addedPrograms =
+        i === 0
+          ? []
+          : programs
+              .filter((program) => !previousPrograms.has(program.id))
+              .map(({ name, cacheKey }) => ({ name, cacheKey }));
+      previousPrograms = new Set(programs.map((program) => program.id));
+      return {
+        wet: false,
+        time: 2,
+        sourceFrameUnchanged: weatherFrame.every((value, j) => value === preparationSource[j]),
+        resources: resources(),
+        addedPrograms,
+      };
+    });
     return samples.map((sample) => {
       weatherFrame[H.TIME] = sample.time;
       weatherFrame[H.RAIN] = sample.wet ? 20 : 0;
@@ -134,15 +163,13 @@ export function captureBikeSequence(
         image,
         instance: bike.root.uuid,
         sourceFrameUnchanged: weatherFrame.every((value, i) => value === source[i]),
-        resources: {
-          geometries: renderer.info.memory.geometries,
-          textures: renderer.info.memory.textures,
-          programs: renderer.info.programs?.length ?? 0,
-        },
+        resources: resources(),
+        preparation,
         hash,
         cockpit,
         weather: weather.diagnostics(),
         triangles,
+        submittedTriangles: renderer.info.render.triangles,
         calls: renderer.info.render.calls,
         glError: renderer.getContext().getError(),
         bounds: new T.Box3().setFromObject(bike.root),

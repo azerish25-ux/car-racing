@@ -1,0 +1,172 @@
+{
+  "earlierCheckpoint": "/workspace/scratch/ce74d2c3df38/motocross-r2-validation/mx42/attachments",
+  "earlierRetainedRecord": "../test-run.json",
+  "earlierRetainedRecordSHA256": "50e096f596f4b86b27b126a0caa1827404269d57255203665e0935057f5c8b08",
+  "comparedCases": 21,
+  "identicalPngFiles": 21,
+  "matchingMetricsCases": 21,
+  "fields": [
+    "hash",
+    "triangles",
+    "calls",
+    "resources",
+    "bounds",
+    "contacts",
+    "cockpit",
+    "finiteGeometry",
+    "glError",
+    "mud",
+    "wetness"
+  ],
+  "excludedField": "instance UUID is per-run identity; equality is required only within each same-instance sequence.",
+  "interpretation": "Separate later execution on the recorded 670-source build. PNG and numerical continuity applies to these controlled poses on this software renderer only; it neither relabels the earlier run nor establishes full-game or cross-device pixel identity.",
+  "cases": [
+    {
+      "name": "mx450-high",
+      "pngSHA256": "92441973338df2a2871f1c3adf905c10ff3eb081f66a6c567d319c97346c5dd3",
+      "identicalPngBytes": true,
+      "earlierMetricsSHA256": "d4753e1a64d28da25f01b85a267fdc36272f90dbf5a57be6dd6cf16cec4dd90c",
+      "changedComparedFields": []
+    },
+    {
+      "name": "mx450-mid",
+      "pngSHA256": "755aa22923d109de2f23e97849e569630f467446676e664639b4222e32671189",
+      "identicalPngBytes": true,
+      "earlierMetricsSHA256": "e1cac9fb4edd0e400083a5b406ed028418824fdd0b26671ca056983dc9109953",
+      "changedComparedFields": []
+    },
+    {
+      "name": "mx450-far",
+      "pngSHA256": "672eb5e22eaabb59c331132e6771b359a4c7fa5f795648d50b505a5a9c74f989",
+      "identicalPngBytes": true,
+      "earlierMetricsSHA256": "c4a0960fc46e0cec27b3c6632bf9f735ddaf7843d70cb38b1041071e28100130",
+      "changedComparedFields": []
+    },
+    {
+      "name": "mx250-high",
+      "pngSHA256": "bda101b710406dd298fe2c7391eccad2debaf9a0f9f367af132ff69b0c3c08f8",
+      "identicalPngBytes": true,
+      "earlierMetricsSHA256": "f6456a70b01efa500f0b425d2afd8349b505cce8bcb907f68eaaef6cc9ebf6de",
+      "changedComparedFields": []
+    },
+    {
+      "name": "mx250-mid",
+      "pngSHA256": "087e26ccd5870e24db4e14c3a8fc6248b6267cdb27c5a956d64a9c035749db7d",
+      "identicalPngBytes": true,
+      "earlierMetricsSHA256": "0d28f9323428a1675333f939fb1688940c3b8c9d1413d879a9775610e436fb10",
+      "changedComparedFields": []
+    },
+    {
+      "name": "mx250-far",
+      "pngSHA256": "f50e49cb4a4313bd909a6eb66967a4842c359936fe5d3f8e7e1e5ff2b6580118",
+      "identicalPngBytes": true,
+      "earlierMetricsSHA256": "0a345f3109e50da4edeb50ec3fba8e2db7455f8bc9affcdd94ef6efdc636cc94",
+      "changedComparedFields": []
+    },
+    {
+      "name": "standing-side",
+      "pngSHA256": "834f3856944ddfcd68930ab175e8528f2d6337f6e26334305f2257d45d953b0d",
+      "identicalPngBytes": true,
+      "earlierMetricsSHA256": "a97f98c542a46951126a8ae390690ea25830f4a04e5664de04dfe693182a38b1",
+      "changedComparedFields": []
+    },
+    {
+      "name": "braced-front",
+      "pngSHA256": "3357c4eb242cd9ae5ebf7a33fce6401572e3230152cb652697b651249a7dac2e",
+      "identicalPngBytes": true,
+      "earlierMetricsSHA256": "7b6ee4daa5bc2e5dcd2e73c42abc04b783d2837aa14aa6a583701d35171102c3",
+      "changedComparedFields": []
+    },
+    {
+      "name": "inside-foot-dab",
+      "pngSHA256": "4552cd714de32c761676606c99fa482bd5beb46651bea78d04f3de7b9ed33be6",
+      "identicalPngBytes": true,
+      "earlierMetricsSHA256": "9c136c3485120295566dc57b2e70c3dcd2f562eff502a6baed1900fef0efa05e",
+      "changedComparedFields": []
+    },
+    {
+      "name": "rear-components",
+      "pngSHA256": "cf84cf0aec3c1b8ac2eccc3036f1e5aa50c9d5d81acdf515cd0d21b1f25da8d8",
+      "identicalPngBytes": true,
+      "earlierMetricsSHA256": "3ff2ed1a2c0ae25fc0bec133168d39e7768050b94d2757b4768ec81b740bad60",
+      "changedComparedFields": []
+    },
+    {
+      "name": "helmet-and-gear",
+      "pngSHA256": "e076f5208063d870c686ab002f09eae7b3c54a58d4a5ec4ef9fdc20bd040967c",
+      "identicalPngBytes": true,
+      "earlierMetricsSHA256": "824ee95883717b5ebeb8759dcaecd347df243e9fcfd198c5b39e66a4a667139b",
+      "changedComparedFields": []
+    },
+    {
+      "name": "mx250-production-onboard-0",
+      "pngSHA256": "c6c0cf5dbda84b125e5e4ba3cea5e751b0f7f418ce5852b09b5e2e6fad453216",
+      "identicalPngBytes": true,
+      "earlierMetricsSHA256": "1a2ed2fcff957b311871124a8474d7a954f80f6fa65b05916293aeabdcbda318",
+      "changedComparedFields": []
+    },
+    {
+      "name": "mx250-production-onboard-1",
+      "pngSHA256": "5720d9d82c94fda26812a23c805037e22f1f938536d12fa7b11f583895af5420",
+      "identicalPngBytes": true,
+      "earlierMetricsSHA256": "28e06f0525e361e7022188add95ca7c79a9c46b5be13b867dda47fed753f58de",
+      "changedComparedFields": []
+    },
+    {
+      "name": "mx250-production-onboard-2",
+      "pngSHA256": "e34b0bc1f30fd1e92e1aad40f3401912aa7d5af5d60332f976acfa650d645f04",
+      "identicalPngBytes": true,
+      "earlierMetricsSHA256": "35ae09ed4d822c0a9e0a267ebaac1b4a1819650e07d83f650bdfc403b37368d3",
+      "changedComparedFields": []
+    },
+    {
+      "name": "mx450-production-onboard-0",
+      "pngSHA256": "8cf0a7ac966204aa516b04b336a69899b7bc26a001c31cc46c0384484e58672c",
+      "identicalPngBytes": true,
+      "earlierMetricsSHA256": "c0e99d7788d80e819fb2814e430ed4e417693db205c1e5da5fc05c00639f45b3",
+      "changedComparedFields": []
+    },
+    {
+      "name": "mx450-production-onboard-1",
+      "pngSHA256": "58c656e9e14a0010d1a16445893138240ec0556f06160b0d64cf97594bac0367",
+      "identicalPngBytes": true,
+      "earlierMetricsSHA256": "572e4176f8c8a6fcd1d082fdc566730dee07f879eaaa0b41fb0022d6ce2ed697",
+      "changedComparedFields": []
+    },
+    {
+      "name": "mx450-production-onboard-2",
+      "pngSHA256": "c31e4cc5819d0b3a957476f206154a3cdb7abe61ee64fa4807918f28651aadbc",
+      "identicalPngBytes": true,
+      "earlierMetricsSHA256": "6b3383c8f111f08a7060f4bdffdd0364f5bbc7d4fc3fe4b1cdefc0b55015be48",
+      "changedComparedFields": []
+    },
+    {
+      "name": "same-instance-mud-0",
+      "pngSHA256": "92441973338df2a2871f1c3adf905c10ff3eb081f66a6c567d319c97346c5dd3",
+      "identicalPngBytes": true,
+      "earlierMetricsSHA256": "3eae024872c2b9c5a77148c05a0375dee6049d1532925117bd723f7754876718",
+      "changedComparedFields": []
+    },
+    {
+      "name": "same-instance-mud-1",
+      "pngSHA256": "ae18947b398fdb54be3bf5e1d9fd57558bd62a83c3967bbf080322c0ed8bccee",
+      "identicalPngBytes": true,
+      "earlierMetricsSHA256": "dc6bd8a20595bfb70cf2488ef6fffbfd37997eb48d19fc9569866ba8e6c4d2ff",
+      "changedComparedFields": []
+    },
+    {
+      "name": "same-instance-mud-2",
+      "pngSHA256": "ae18947b398fdb54be3bf5e1d9fd57558bd62a83c3967bbf080322c0ed8bccee",
+      "identicalPngBytes": true,
+      "earlierMetricsSHA256": "dc6bd8a20595bfb70cf2488ef6fffbfd37997eb48d19fc9569866ba8e6c4d2ff",
+      "changedComparedFields": []
+    },
+    {
+      "name": "same-instance-mud-3",
+      "pngSHA256": "92441973338df2a2871f1c3adf905c10ff3eb081f66a6c567d319c97346c5dd3",
+      "identicalPngBytes": true,
+      "earlierMetricsSHA256": "3eae024872c2b9c5a77148c05a0375dee6049d1532925117bd723f7754876718",
+      "changedComparedFields": []
+    }
+  ]
+}

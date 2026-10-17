@@ -1,0 +1,83 @@
+{
+  "captures": [
+    {
+      "view": "crowd-time-0",
+      "triangles": 78708,
+      "draws": 4
+    },
+    {
+      "view": "crowd-paused",
+      "triangles": 78708,
+      "draws": 4
+    },
+    {
+      "view": "crowd-time-2",
+      "triangles": 78708,
+      "draws": 4
+    },
+    {
+      "view": "crowd-rewind",
+      "triangles": 78708,
+      "draws": 4
+    },
+    {
+      "view": "crowd-repeat",
+      "triangles": 78708,
+      "draws": 4
+    },
+    {
+      "view": "crowd-handoff-52",
+      "triangles": 95604,
+      "draws": 5
+    },
+    {
+      "view": "crowd-handoff-300",
+      "triangles": 7524,
+      "draws": 4
+    },
+    {
+      "view": "crowd-handoff-52",
+      "triangles": 95604,
+      "draws": 5
+    }
+  ],
+  "handoff": {
+    "activeLevels": 2,
+    "farLevels": 1,
+    "rewindExact": true,
+    "ranges": [
+      [
+        0.5,
+        1
+      ],
+      [
+        0,
+        0.5
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ]
+    ]
+  },
+  "glError": 0,
+  "pauseExact": true,
+  "rewindExact": true,
+  "visibleMovement": true,
+  "memoryBefore": {
+    "geometries": 4,
+    "textures": 1
+  },
+  "memoryAfter": {
+    "geometries": 4,
+    "textures": 1
+  },
+  "nearTriangles": 6556,
+  "midTriangles": 1408,
+  "farTriangles": 624,
+  "errors": []
+}

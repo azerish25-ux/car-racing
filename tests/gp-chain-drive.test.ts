@@ -1,6 +1,7 @@
 import * as T from 'three';
 import { describe, expect, it } from 'vitest';
 import { GPChainDrive } from '../src/rendering/gp-chain-drive.ts';
+import { VEHICLES } from '../src/simulation/vehicles.ts';
 
 const material = () => new T.MeshStandardMaterial();
 const positions = (mesh: T.InstancedMesh) => {
@@ -14,6 +15,36 @@ const positions = (mesh: T.InstancedMesh) => {
 };
 
 describe('GP-R1 high-detail instanced, replay-deterministic chain drive', () => {
+  it('keeps the pin-lobed plate dimensions and the complete production chain inside its triangle budget', () => {
+    const spec = VEHICLES.gpr1.bike!,
+      arm = Math.hypot(spec.rearWheelRadius - spec.cgHeight + 0.13, -spec.cgToRear + 0.2),
+      a = new GPChainDrive(arm, material(), material(), material());
+    const plate = a.plates.geometry;
+    plate.computeBoundingBox();
+    const size = plate.boundingBox!.getSize(new T.Vector3()),
+      centre = plate.boundingBox!.getCenter(new T.Vector3());
+    expect(size.x).toBeCloseTo(0.0028, 7);
+    expect(size.y).toBeCloseTo(0.0086, 7);
+    expect(size.z).toBeCloseTo(0.015875 + 2 * 0.0043, 7);
+    expect(centre.length()).toBeLessThan(1e-8);
+    const normal = plate.getAttribute('normal');
+    for (let i = 0; i < normal.count; i++)
+      expect(Math.hypot(normal.getX(i), normal.getY(i), normal.getZ(i))).toBeCloseTo(1, 5);
+    let expanded = 0;
+    for (const mesh of [a.rollers, a.plates, a.sprocket]) {
+      expanded +=
+        ((mesh.geometry.index?.count ?? mesh.geometry.getAttribute('position').count) / 3) *
+        (mesh instanceof T.InstancedMesh ? mesh.count : 1);
+    }
+    expect(expanded).toBeLessThan(14000);
+    expect((plate.index?.count ?? plate.getAttribute('position').count) / 3).toBeLessThanOrEqual(
+      44,
+    );
+    for (const mesh of [a.rollers, a.plates, a.sprocket]) {
+      if (mesh instanceof T.InstancedMesh) mesh.dispose();
+      mesh.geometry.dispose();
+    }
+  });
   it('uses two instanced draws, a single 42-tooth metal sprocket and no transient clones', () => {
     const a = new GPChainDrive(0.52, material(), material(), material());
     expect(a.root.children).toEqual([a.rollers, a.plates]);

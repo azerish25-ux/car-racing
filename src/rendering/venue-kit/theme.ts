@@ -222,9 +222,9 @@ export const VENUE_THEMES: Readonly<Record<VenueTheme, VenueThemeStyle>> = Objec
   // terrain mesh; the kit dresses verges beyond it, barriers and the paddock.
   motocross: {
     ground: 'grass',
-    groundTint: 0x5d7436,
+    groundTint: 0x687443,
     landform: 'hills',
-    relief: 18,
+    relief: 92,
     planting: BROADLEAF,
     forestBelts: true,
     scrub: 0,

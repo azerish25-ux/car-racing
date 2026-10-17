@@ -3,7 +3,7 @@ import { AIDriver, envelopeBrakingSpeed, envelopeCornerSpeed } from '../ai.ts';
 import { BikeAIDriver, createDriver } from '../bike-ai.ts';
 import { FLAG } from '../marshal.ts';
 import { PHASE, type RaceDirector } from '../race.ts';
-import { racingLineFor } from '../racing-line.ts';
+import { RACING_LINE, racingLineFor } from '../racing-line.ts';
 import { lineCost } from '../terrain.ts';
 import { surfaceSample, Track, trackPoint } from '../track.ts';
 import { peakGrip } from '../tire.ts';
@@ -11,6 +11,7 @@ import type { Vehicle } from '../vehicle.ts';
 import { TrackTerrainSurface } from './course-terrain.ts';
 import { DirtBikeVehicle } from './dirt-bike-vehicle.ts';
 import { takeoffSpeed, type JumpSurvey } from './profile.ts';
+import { LANDING_RULES } from './riding-feedback.ts';
 import { offroadSessionFor } from './session.ts';
 import { offroadCourse } from './venues.ts';
 
@@ -77,6 +78,11 @@ export class DirtBikeAIDriver extends BikeAIDriver {
   private biasTarget = 0;
   private lineClock = 0;
   private plan: { jump: JumpSurvey; clear: boolean; locked: boolean } | null = null;
+  private readonly lineBefore = trackPoint();
+  private readonly lineHere = trackPoint();
+  private readonly lineAfter = trackPoint();
+  private lineTrack: Track | null = null;
+  private featureLines: Array<{ from: number; to: number; lateral: number }> = [];
   readonly decisions = { clears: 0, rolls: 0, aborts: 0, pushes: 0 };
   constructor(
     readonly rider: DirtBikeVehicle,
@@ -108,11 +114,10 @@ export class DirtBikeAIDriver extends BikeAIDriver {
     c.input.throttle = 1;
     c.input.brake = 0;
   }
-  /** A rider rejoining from wide of a berm turns back toward the line at a
-   * bounded angle: the lean-aware tracker, given metres of lateral error at
-   * walking pace, can otherwise lay the bike across the track and ride into
-   * the far wall. Beyond HEADING_LIMIT off the course direction the lean
-   * intent only steers the heading back. */
+  /** A rider rejoining from wide of a berm slows while turning back toward
+   * the course. Steering alone is insufficient: a leaned bike takes time to
+   * stand up, and a normal racing target accelerates it across the next wall
+   * before it can point down the lane. */
   private headingGuard(track: Track) {
     const c = this.rider,
       d = c.dynamics;
@@ -122,6 +127,25 @@ export class DirtBikeAIDriver extends BikeAIDriver {
       mod(Math.atan2(squarePoint.tx, squarePoint.tz) - d.heading + Math.PI, Math.PI * 2) - Math.PI;
     if (Math.abs(error) < HEADING_LIMIT) return;
     c.input.steer = clamp(error * 2.2 - d.lean * 0.4, -0.6, 0.6);
+    const rejoin = Math.max(2.8, 5.5 - 2 * Math.abs(error));
+    // This rejoin limit runs after the jump planner. A committed clear
+    // must see the same substantial pre-face braking constraint as the
+    // upstream traffic limit, or it reaches the lip below its clear speed.
+    const plan = this.plan;
+    if (plan?.clear && plan.locked && rejoin < c.aiTarget) {
+      const run = mod(plan.jump.takeoff - c.s, track.length),
+        face = plan.jump.takeoff - plan.jump.start;
+      if (
+        run <= 28 && run <= track.length / 2 && run >= face + 0.5 &&
+        rejoin < jumpHoldSpeed(plan.jump) - ABORT_MARGIN
+      ) {
+        plan.clear = false;
+        this.decisions.aborts++;
+      }
+    }
+    c.aiTarget = Math.min(c.aiTarget, rejoin);
+    c.input.throttle = Math.min(c.input.throttle, clamp(0.2 + (rejoin - c.speed) * 0.5, 0, 1));
+    c.input.brake = Math.max(c.input.brake, clamp((c.speed - rejoin) * 0.4, 0, 1));
   }
   private stuck = 0;
   /** Marshal assistance: a bike pinned against a tyre wall or beached on a
@@ -129,15 +153,18 @@ export class DirtBikeAIDriver extends BikeAIDriver {
   private unstick(dt: number, track: Track, race: RaceDirector) {
     const c = this.rider;
     if (
-      race.phase === PHASE.RACING &&
-      race.raceTime > 5 &&
-      c.riding &&
-      !c.airborne &&
-      c.speed < 0.5 &&
-      c.aiTarget > 4
-    )
-      this.stuck += dt;
-    else this.stuck = 0;
+      race.phase !== PHASE.RACING || race.raceTime <= 5 ||
+      !c.riding || c.airborne || c.speed >= 0.5
+    ) {
+      this.stuck = 0;
+      return;
+    }
+    // Count actual drive effort while stationary. Passing traffic can
+    // briefly hold a beached rider on the brakes; that pause does not mean
+    // the bike moved. A continuously queued rider accrues no effort, and
+    // assistance still starts only on a tick asking for drive.
+    if (c.aiTarget <= 0.5 || c.input.throttle <= 0.2 || c.input.brake >= 0.1) return;
+    this.stuck += dt;
     if (this.stuck < STUCK_SECONDS) return;
     this.stuck = 0;
     // At the course edge facing the course, never back on a face it could
@@ -222,39 +249,73 @@ export class DirtBikeAIDriver extends BikeAIDriver {
     const base = racing + this.rutBias,
       course = offroadCourse(track.circuit);
     if (!course) return base;
-    const L = track.length,
-      line = racingLineFor(track);
-    // Whoops and rollers are crossed straight too (a diagonal over bumps
-    // drifts on every hop), on the line the rider wants at their exit.
-    for (const r of course.rough) {
-      const from = r.from - 8,
-        rel = mod(s - from, L),
-        span = mod(r.to - from, L);
-      if (rel > span + JUMP_LINE_BLEND) continue;
-      const frozen = clamp(line.offsetAt(mod(r.to, L)), -2.5, 2.5),
-        w =
-          rel < JUMP_LINE_BLEND
-            ? smooth(rel / JUMP_LINE_BLEND)
-            : rel > span
-              ? 1 - smooth((rel - span) / JUMP_LINE_BLEND)
-              : 1;
-      return base + (frozen - base) * w;
+    if (this.lineTrack !== track) {
+      this.lineTrack = track;
+      const sections = [
+        ...course.rough.map((r) => ({ from: r.from - JUMP_LINE_LEAD, to: r.to + 2 })),
+        ...course.jumps.map((j) => ({ from: j.start - JUMP_LINE_LEAD, to: j.end + 2 })),
+      ].sort((a, b) => a.from - b.from);
+      const merged: Array<{ from: number; to: number }> = [];
+      for (const section of sections) {
+        const previous = merged.at(-1);
+        if (previous && section.from <= previous.to + JUMP_LINE_BLEND)
+          previous.to = Math.max(previous.to, section.to);
+        else merged.push({ ...section });
+      }
+      // A feature train crossing the lap line is one corridor too.
+      const first = merged[0], last = merged.at(-1);
+      if (first && last && first !== last && first.from + track.length <= last.to + JUMP_LINE_BLEND) {
+        last.to = first.to + track.length;
+        merged.shift();
+      }
+      const line = racingLineFor(track);
+      this.featureLines = merged.map((section) => ({
+        ...section,
+        lateral: clamp(line.offsetAt(section.from), -1.5, 1.5),
+      }));
     }
-    for (const j of course.jumps) {
-      const from = j.start - JUMP_LINE_LEAD,
-        rel = mod(s - from, L),
-        span = j.end + 2 - from;
+    // Consecutive jumps and rollers share a line. Otherwise an exit line
+    // from one feature can demand a full-width lane change inside the next
+    // bump train, where airborne tyres cannot execute that correction.
+    for (const section of this.featureLines) {
+      const rel = mod(s - section.from, track.length), span = section.to - section.from;
       if (rel > span + JUMP_LINE_BLEND) continue;
-      const frozen = clamp(line.offsetAt(mod(from, L)), -1.5, 1.5),
-        w =
-          rel < JUMP_LINE_BLEND
-            ? smooth(rel / JUMP_LINE_BLEND)
-            : rel > span
-              ? 1 - smooth((rel - span) / JUMP_LINE_BLEND)
-              : 1;
-      return base + (frozen - base) * w;
+      const w = rel < JUMP_LINE_BLEND
+        ? smooth(rel / JUMP_LINE_BLEND)
+        : rel > span
+          ? 1 - smooth((rel - span) / JUMP_LINE_BLEND)
+          : 1;
+      return base + (section.lateral - base) * w;
     }
     return base;
+  }
+  /** The lean tracker follows the same narrowed, rut-biased and feature-held
+   * path as the planner. Using the road line here asks a rider to swerve
+   * across rollers even while the off-road planner holds a straight line. */
+  protected override steeringLineOffset(track: Track, s: number) {
+    const c = this.rider,
+      wetness = clamp(c.contacts[0].water / 0.8, 0, 1),
+      width = (1 - 0.45 * wetness) * (c.definition.ai.lineScale ?? 1),
+      base = this.lineOffset(track, s, racingLineFor(track).offsetAt(s) * width),
+      reach = Math.max(1, track.at(s, this.lineHere).width - RACING_LINE.edgeMargin);
+    return clamp(base, -reach, reach);
+  }
+  /** Signed curvature of that actual path, from three nearby ground-plane
+   * positions. The road-bike solver remains untouched; a frozen straight
+   * gives exactly zero feed-forward through a whoop or a jump face. */
+  protected override steeringLineCurvature(track: Track, s: number) {
+    const la = this.steeringLineOffset(track, s - 2),
+      lb = this.steeringLineOffset(track, s),
+      lc = this.steeringLineOffset(track, s + 2),
+      a = track.at(s - 2, this.lineBefore),
+      b = track.at(s, this.lineHere),
+      c = track.at(s + 2, this.lineAfter),
+      ax = b.x + b.nx * lb - a.x - a.nx * la,
+      az = b.z + b.nz * lb - a.z - a.nz * la,
+      bx = c.x + c.nx * lc - b.x - b.nx * lb,
+      bz = c.z + c.nz * lc - b.z - b.nz * lb;
+    return Math.atan2(az * bx - ax * bz, ax * bx + az * bz) /
+      Math.max(0.1, (Math.hypot(ax, az) + Math.hypot(bx, bz)) * 0.5);
   }
   /** A motorcycle needs about half a car's lateral room to pass or avoid. */
   protected override trafficScale() {
@@ -293,6 +354,16 @@ export class DirtBikeAIDriver extends BikeAIDriver {
       mod(c.s - inside.takeoff, L) < inside.end - inside.takeoff + 1 &&
       mod(c.s - inside.start, L) > inside.takeoff - inside.start + 0.5
     ) {
+      // A real clear may touch down before the surveyed gap ends. Keep
+      // upstream race/traffic limits while its suspension settles instead
+      // of abruptly commanding the walking target for a beached rider.
+      const landing = c.lastLanding;
+      if (
+        this.plan?.jump === inside && this.plan.clear && this.plan.locked &&
+        landing && course.jumpAt(landing.s) === inside &&
+        landing.airTime > LANDING_RULES.minimumAirTime &&
+        c.clock >= landing.time && c.clock - landing.time <= LANDING_RULES.settleSeconds
+      ) return desired;
       this.plan = null;
       if (inside.forgiving) return desired;
       // Down in a gap: enough speed to roll up and over the next mound (its

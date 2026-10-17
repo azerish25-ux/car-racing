@@ -1,0 +1,34 @@
+{
+  "scope": "Combined production MotoGP R2 BikeHud and Interface with synthetic telemetry and actual Saira fonts. Four individually inspected component images; no rendered game world.",
+  "method": "Every listed full PNG was individually opened with view_image after its passing combined-build test. No composite-only or filename-only review.",
+  "images": [
+    {
+      "file": "motorcycle-hud-1440.png",
+      "sha256": "c02162ec450a305925f01932962d605a63a52fbece50d68e34c8a4482b87111c",
+      "width": 1440,
+      "height": 900,
+      "observed": "Desktop GP-R1 panel is anchored above the vehicle controls with gear 4, 162 km/h, 11340 RPM, 12.4 kg fuel, L 46 degrees lean, 35% rear pedal and separate front/rear tyre values. Classification, timing and minimap remain clear; the car battery dial is absent."
+    },
+    {
+      "file": "motorcycle-hud-960.png",
+      "sha256": "be156cdc3ccc10b415ac21cca1266f12c6a323b20d97d3f0277070258457db8d",
+      "width": 960,
+      "height": 600,
+      "observed": "Compact landscape uses the MOTOBOUND top bar and a narrower lower-right bike panel. Speed, gear, RPM, fuel, lean, rear pedal and both tyre temperatures fit within its edges without horizontal clipping."
+    },
+    {
+      "file": "motorcycle-hud-390.png",
+      "sha256": "cf0173c63b20a32d52c391a8182c5ff55715e5467053100d1f31c398172bef7b",
+      "width": 390,
+      "height": 844,
+      "observed": "Portrait keeps the bike readout above touch controls; 162 km/h, gear 4, RPM, fuel and both tyre channels remain visible. The bottom monospace fixture stamp identifies synthetic telemetry and is not production UI."
+    },
+    {
+      "file": "motorcycle-mfd.png",
+      "sha256": "2b6ba59dbb75589eb13d510ea0cb14b2fbb4fb213224a8bf9952a30f6add57a7",
+      "width": 1440,
+      "height": 900,
+      "observed": "The RIDER MFD sits to the left of the GP readout with a visible gap. Chassis lean, hang-off, tuck, traction/wheelie control and fork/shock compression are legible; the panels do not overlap."
+    }
+  ]
+}

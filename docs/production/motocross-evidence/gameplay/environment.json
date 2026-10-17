@@ -1,0 +1,488 @@
+{
+  "scope": "The existing setup probe plus read-only renderer diagnostics extracted from this completed production journey; no new browser or renderer invocation.",
+  "backendSource": {
+    "file": "browser-backend.json",
+    "originalMtimeUtc": "2026-10-17T00:44:12.831481Z",
+    "provenance": "Written by scripts/browser-backend-setup.ts during this reporter window before test start; adapter string also matches main45.log."
+  },
+  "backend": {
+    "requested": "swiftshader",
+    "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "vendor": "Google Inc. (Google)",
+    "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+    "pixel": [64, 128, 191, 255],
+    "error": 0,
+    "softwareRendererDetected": true,
+    "physicalHardwareValidated": false
+  },
+  "sourceSha256": "7733bb95ae33dc962eb2e6d07b2d3480dac3276a50753733268a68b22f500d36",
+  "buildIdentity": {
+    "version": 1,
+    "commit": null,
+    "fingerprint": "82b5018336f9fb2c9ae1c2fcc7d11d1c3011209ec2e1c8471be5111c033c52e8"
+  },
+  "venues": [
+    {
+      "circuit": "valley-ridge-mx",
+      "machine": "mx450",
+      "sourceAttachment": "valley-ridge-mx-journey.json",
+      "renderer": {
+        "graphics": {
+          "resolutionScale": 1,
+          "textureSize": 512,
+          "shadowSize": 2048,
+          "reflections": "environment",
+          "mirrorQuality": "medium",
+          "particleDensity": 0.65,
+          "vegetationDensity": 1,
+          "crowd": true,
+          "bloom": true,
+          "autoExposure": true,
+          "localFog": true,
+          "motionBlur": 0.35,
+          "antialias": true,
+          "anisotropy": 8,
+          "msaa": 2,
+          "ambientOcclusion": true,
+          "filmGrade": true,
+          "temporalAA": false,
+          "lensEffects": true,
+          "cockpitFov": 54,
+          "ssr": false,
+          "taaSharpen": 0,
+          "aoTemporal": false,
+          "toneMapper": "aces",
+          "physicalBloom": false,
+          "chromaticAberration": false,
+          "lightShafts": false,
+          "shadowCascades": 2,
+          "replayDof": false
+        },
+        "renderWidth": 1280,
+        "renderHeight": 800,
+        "camera": "chase",
+        "preparation": {
+          "status": "complete",
+          "elapsedMs": 71323.19999999925,
+          "error": null,
+          "stages": [
+            {
+              "label": "Building original Formula car 2 / 8\u2026",
+              "elapsedMs": 321.8999999985099,
+              "complete": true
+            },
+            {
+              "label": "Building original Formula car 3 / 8\u2026",
+              "elapsedMs": 340.1000000014901,
+              "complete": true
+            },
+            {
+              "label": "Building original Formula car 4 / 8\u2026",
+              "elapsedMs": 252.19999999925494,
+              "complete": true
+            },
+            {
+              "label": "Building original Formula car 5 / 8\u2026",
+              "elapsedMs": 256.30000000074506,
+              "complete": true
+            },
+            {
+              "label": "Building original Formula car 6 / 8\u2026",
+              "elapsedMs": 245.89999999850988,
+              "complete": true
+            },
+            {
+              "label": "Building original Formula car 7 / 8\u2026",
+              "elapsedMs": 220.5,
+              "complete": true
+            },
+            {
+              "label": "Building original Formula car 8 / 8\u2026",
+              "elapsedMs": 2474.5,
+              "complete": true
+            },
+            {
+              "label": "Loading the photographed sky\u2026",
+              "elapsedMs": 0.5,
+              "complete": true
+            },
+            {
+              "label": "Loading photographed ground\u2026",
+              "elapsedMs": 0.30000000074505806,
+              "complete": true
+            },
+            {
+              "label": "Compiling circuit and vehicle materials\u2026",
+              "elapsedMs": 617.3000000007451,
+              "complete": true
+            },
+            {
+              "label": "Compiling shadow casters around the circuit\u2026",
+              "elapsedMs": 3485.099999997765,
+              "complete": true
+            },
+            {
+              "label": "Warming shadows and scene reflections\u2026",
+              "elapsedMs": 24382.70000000298,
+              "complete": true
+            },
+            {
+              "label": "Warming offscreen pit-service materials\u2026",
+              "elapsedMs": 23202.39999999851,
+              "complete": true
+            },
+            {
+              "label": "Waiting for completed chase GPU work\u2026",
+              "elapsedMs": 0.3999999985098839,
+              "complete": true
+            },
+            {
+              "label": "Warming cockpit, mirrors and post-processing\u2026",
+              "elapsedMs": 1633.9000000022352,
+              "complete": true
+            },
+            {
+              "label": "Waiting for completed cockpit GPU work\u2026",
+              "elapsedMs": 13889,
+              "complete": true
+            }
+          ]
+        },
+        "warmupFrames": 2,
+        "warmupPitPasses": 2,
+        "photoSky": {
+          "enabled": true,
+          "palette": "green",
+          "variant": "2k",
+          "key": "green:2k:2",
+          "shown": {
+            "a": "rural-landscape",
+            "b": "rural-landscape",
+            "weight": 0,
+            "amount": 1
+          },
+          "resident": [
+            {
+              "id": "rural-landscape",
+              "loaded": true,
+              "failed": false,
+              "bytes": 202809
+            }
+          ]
+        },
+        "scannedGround": {
+          "preset": "medium",
+          "enabled": true,
+          "hex": false,
+          "resident": [
+            "concrete",
+            "asphalt",
+            "meadow",
+            "lawn",
+            "gravel",
+            "rock",
+            "dryEarth",
+            "forest",
+            "wetEarth"
+          ],
+          "failed": [],
+          "formats": {
+            "concrete": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            },
+            "asphalt": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            },
+            "meadow": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            },
+            "lawn": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            },
+            "gravel": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            },
+            "rock": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            },
+            "dryEarth": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            },
+            "forest": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            },
+            "wetEarth": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            }
+          },
+          "materials": 13,
+          "scanned": 13
+        },
+        "textures": 185,
+        "geometries": 1200
+      },
+      "presentation": {
+        "time": 38.349998474121094,
+        "frames": 6,
+        "menuCovered": false,
+        "engineeringVisible": false,
+        "elapsed": 4,
+        "resets": 4,
+        "boundedCatchups": 2,
+        "omittedSeconds": 34.349998474121094
+      }
+    },
+    {
+      "circuit": "arena-nord-sx",
+      "machine": "mx250",
+      "sourceAttachment": "arena-nord-sx-journey.json",
+      "renderer": {
+        "graphics": {
+          "resolutionScale": 1,
+          "textureSize": 512,
+          "shadowSize": 2048,
+          "reflections": "environment",
+          "mirrorQuality": "medium",
+          "particleDensity": 0.65,
+          "vegetationDensity": 1,
+          "crowd": true,
+          "bloom": true,
+          "autoExposure": true,
+          "localFog": true,
+          "motionBlur": 0.35,
+          "antialias": true,
+          "anisotropy": 8,
+          "msaa": 2,
+          "ambientOcclusion": true,
+          "filmGrade": true,
+          "temporalAA": false,
+          "lensEffects": true,
+          "cockpitFov": 54,
+          "ssr": false,
+          "taaSharpen": 0,
+          "aoTemporal": false,
+          "toneMapper": "aces",
+          "physicalBloom": false,
+          "chromaticAberration": false,
+          "lightShafts": false,
+          "shadowCascades": 2,
+          "replayDof": false
+        },
+        "renderWidth": 1280,
+        "renderHeight": 800,
+        "camera": "chase",
+        "preparation": {
+          "status": "complete",
+          "elapsedMs": 64811.10000000149,
+          "error": null,
+          "stages": [
+            {
+              "label": "Building original Formula car 2 / 8\u2026",
+              "elapsedMs": 230.40000000223517,
+              "complete": true
+            },
+            {
+              "label": "Building original Formula car 3 / 8\u2026",
+              "elapsedMs": 266,
+              "complete": true
+            },
+            {
+              "label": "Building original Formula car 4 / 8\u2026",
+              "elapsedMs": 214.59999999776483,
+              "complete": true
+            },
+            {
+              "label": "Building original Formula car 5 / 8\u2026",
+              "elapsedMs": 255.40000000223517,
+              "complete": true
+            },
+            {
+              "label": "Building original Formula car 6 / 8\u2026",
+              "elapsedMs": 201.69999999925494,
+              "complete": true
+            },
+            {
+              "label": "Building original Formula car 7 / 8\u2026",
+              "elapsedMs": 238.30000000074506,
+              "complete": true
+            },
+            {
+              "label": "Building original Formula car 8 / 8\u2026",
+              "elapsedMs": 2502.39999999851,
+              "complete": true
+            },
+            {
+              "label": "Loading the photographed sky\u2026",
+              "elapsedMs": 0.30000000074505806,
+              "complete": true
+            },
+            {
+              "label": "Loading photographed ground\u2026",
+              "elapsedMs": 0.10000000149011612,
+              "complete": true
+            },
+            {
+              "label": "Compiling circuit and vehicle materials\u2026",
+              "elapsedMs": 1101.5,
+              "complete": true
+            },
+            {
+              "label": "Compiling shadow casters around the circuit\u2026",
+              "elapsedMs": 3168.2999999970198,
+              "complete": true
+            },
+            {
+              "label": "Warming shadows and scene reflections\u2026",
+              "elapsedMs": 6802.400000002235,
+              "complete": true
+            },
+            {
+              "label": "Warming offscreen pit-service materials\u2026",
+              "elapsedMs": 33550.199999999255,
+              "complete": true
+            },
+            {
+              "label": "Waiting for completed chase GPU work\u2026",
+              "elapsedMs": 0.30000000074505806,
+              "complete": true
+            },
+            {
+              "label": "Warming cockpit, mirrors and post-processing\u2026",
+              "elapsedMs": 111.89999999850988,
+              "complete": true
+            },
+            {
+              "label": "Waiting for completed cockpit GPU work\u2026",
+              "elapsedMs": 16167.300000000745,
+              "complete": true
+            }
+          ]
+        },
+        "warmupFrames": 2,
+        "warmupPitPasses": 2,
+        "photoSky": {
+          "enabled": true,
+          "palette": "city",
+          "variant": "2k",
+          "key": "city:2k:3",
+          "shown": {
+            "a": "kloppenheim-04",
+            "b": "kloppenheim-04",
+            "weight": 0,
+            "amount": 1
+          },
+          "resident": [
+            {
+              "id": "kloppenheim-04",
+              "loaded": true,
+              "failed": false,
+              "bytes": 129318
+            },
+            {
+              "id": "rural-landscape",
+              "loaded": true,
+              "failed": false,
+              "bytes": 202809
+            }
+          ]
+        },
+        "scannedGround": {
+          "preset": "medium",
+          "enabled": true,
+          "hex": false,
+          "resident": [
+            "concrete",
+            "asphalt",
+            "meadow",
+            "lawn",
+            "gravel",
+            "rock",
+            "dryEarth",
+            "forest",
+            "wetEarth"
+          ],
+          "failed": [],
+          "formats": {
+            "concrete": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            },
+            "asphalt": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            },
+            "meadow": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            },
+            "lawn": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            },
+            "gravel": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            },
+            "rock": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            },
+            "dryEarth": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            },
+            "forest": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            },
+            "wetEarth": {
+              "color": "ktx2",
+              "normal": "ktx2",
+              "orm": "ktx2"
+            }
+          },
+          "materials": 13,
+          "scanned": 13
+        },
+        "textures": 188,
+        "geometries": 1186
+      },
+      "presentation": {
+        "time": 45.49286651611328,
+        "frames": 18,
+        "menuCovered": false,
+        "engineeringVisible": false,
+        "elapsed": 6,
+        "resets": 4,
+        "boundedCatchups": 3,
+        "omittedSeconds": 39.49286651611328
+      }
+    }
+  ]
+}

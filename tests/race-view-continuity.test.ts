@@ -148,6 +148,7 @@ describe('current-view detail and deterministic presentation', () => {
         orbitTime: 0,
         presented: new PresentedFrame(),
         cameraClock: new CameraClock(),
+        motocrossCamera: reset(),
         composition: reset(),
         motionBlur: reset(),
         trackside: reset(),

@@ -1,0 +1,29 @@
+{
+  "source_spec": "e2e/42-motogp-environment.spec.ts",
+  "report_stats": {
+    "total": 1,
+    "expected": 1,
+    "unexpected": 0,
+    "flaky": 0,
+    "skipped": 0,
+    "ok": true
+  },
+  "report_duration_ms": 47816.761999999995,
+  "scope": "Actual CircuitScene production ribbon materials, tyre-mark layer cache and loaded scanned ground in the existing MotoGP R2 controlled surface fixture. Fixed apex and launch cameras with synthetic wetness/family transitions. WebGL2 component evidence; not the full Renderer or a running race.",
+  "combined_source": {
+    "integrated_remote_parent": "6e93a4ef452764f2ee0b69797817f91a908d897e",
+    "build_fingerprint": "85c14e6784442ab806d98b4d4fb0559f02affe8a92d9894ec010ed081b7f97f9",
+    "source_sha256": "307df6de70e0cfd3df261023245a72102e25d4e4b04d290fa8bab888b970379c",
+    "verified_source_files": 655,
+    "source_mismatches": [],
+    "spec_sha256": "29602168aff86eee326476f7d9c14c9a1809ef180a811c7976744725e73956c8"
+  },
+  "tests": [
+    {
+      "title": "GP surface references: real ribbon shaders, single tyre rubber, wet holds and bounded family switches on WebGL2",
+      "duration": 45488,
+      "outcome": "expected",
+      "startTime": "2026-10-16T22:52:54.767Z"
+    }
+  ]
+}

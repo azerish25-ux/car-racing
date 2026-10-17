@@ -1,0 +1,16 @@
+{
+  "scripts/offroad-calibration.ts": "a994af9827d5587dd015533290a5725d458b80e2c176ef74915a73de08672718",
+  "scripts/offroad-races.ts": "f117567b26e82941a756e55ec77a1bae5300ad442c72050ca836e6c82ba41420",
+  "src/simulation/offroad/dirt-bike-vehicle.ts": "a0048db1805e3660c81e6a82486dd71684a96b5db911cb2aabd31d1b86178d56",
+  "src/simulation/offroad/ai.ts": "1841eeada2852a76b1372742d81c583fbc50e50c9ef8b1b8375da78ff484a29b",
+  "src/simulation/bike-ai.ts": "668a736db9168c9deb64797aa928971788a4c52a07e41b2bbc8bc8c0852c64e6",
+  "src/simulation/collision.ts": "02c8320bc909a556ca19d3b912f8be707db0463b6a23085b141ef652c678613e",
+  "src/simulation/driver-brain.ts": "d851cde01ebb016668daaedfa016bcc77536083b47284c812405ece28754f727",
+  "src/simulation/world.ts": "26500be30f1c8c1a666d6df4fed21ddc9a5f2aec6f29d163d866ab46caba501b",
+  "src/simulation/events.ts": "6231f596497857b0eda19a786b2e1444c6df413505f677b63d4dd7c64b5370e4",
+  "src/simulation/offroad/formats.ts": "8f80f9eacd13cf1a80b727c3ef4ad2ed0cb792a35f4e480b5e5bde6279608c5a",
+  "src/simulation/race.ts": "7f5017105700ff50e474a2a641cd0b4170a485c59be866d793aa280b62c1e952",
+  "src/simulation/bike.ts": "1fab3d119ab5d7a810b97a64a703d4920176f33d29ba11a328a6187bbab1e3ae",
+  "src/simulation/bike-vehicle.ts": "ca4dcfe776caa6ea9fe2578dfa8ef8ea39af8d1afb3fc612810300f037fbecc3",
+  "src/simulation/bike-slipstream.ts": "69249d407d3db7d150934e0479dfc629f27bf4579239231bc2850128dc39c66a"
+}

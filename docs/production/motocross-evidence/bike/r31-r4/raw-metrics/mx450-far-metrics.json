@@ -1,0 +1,59 @@
+{
+  "instance": "9b07fe1e-db98-4a17-b7db-1ab53fd616bd",
+  "hash": 2915758179,
+  "triangles": 11195,
+  "finiteGeometry": true,
+  "contacts": [
+    {
+      "handError": 0.020000000000000098,
+      "ankleError": 0.020000000000000046
+    },
+    {
+      "handError": 0.020000000000000098,
+      "ankleError": 0.020000000000000046
+    }
+  ],
+  "cockpit": null,
+  "calls": 45,
+  "glError": 0,
+  "bounds": {
+    "isBox3": true,
+    "min": {
+      "x": -0.5067652941543012,
+      "y": 0.004302114360619613,
+      "z": -1.0800000429153442
+    },
+    "max": {
+      "x": 0.5067652941543012,
+      "y": 1.8100030138644954,
+      "z": 1.1005603016828513
+    }
+  },
+  "resources": {
+    "geometries": 57,
+    "textures": 10,
+    "programs": 12
+  },
+  "mud": 0,
+  "wetness": 0,
+  "materials": [
+    "Slick tyre: fine grain",
+    "Motocross anodised rim and hub",
+    "Fork stanchion (low-friction coating)",
+    "",
+    "Radial caliper",
+    "Fork outer tube (anodised)",
+    "Frame aluminium",
+    "Motocross factory number board",
+    "Off-road plastics",
+    "Titanium exhaust (heat tint)",
+    "Rider jersey and pants (textile)",
+    "Rider helmet shell",
+    "Rider stretch fabric and seams",
+    "Tinted visor",
+    "Rider kit panels (textile)",
+    "Motocross moulded boot shell",
+    "Motocross layered factory plastics",
+    "Textured seat pad"
+  ]
+}

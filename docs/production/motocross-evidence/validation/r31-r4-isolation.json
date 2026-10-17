@@ -1,0 +1,508 @@
+{
+  "schemaVersion": 1,
+  "reviewedAtUtc": "2026-10-17T02:08:05.228709+00:00",
+  "status": "passed preservation and shared-reach review",
+  "scope": "Read-only preservation and shared-call-path review of the late MotoGP R3.1/R4 runtime integration through d4dd3e5 against the exact source inventory used by the completed motocross production journey. The update changes the shared motorcycle material pool and the crowd colour shader used by Valley grandstands and the initial road-venue menu. It is not described as GP-only isolation. Existing focused reports are referenced separately. No main45 captures, race gates, browser tests or GPU frames were rerun or relabeled by this review.",
+  "originalGameplayProof": {
+    "record": "docs/production/motocross-evidence/gameplay/test-run.json",
+    "recordSha256": "01b23d1cf0ca5c85fc7621b1116c86ddfdb5120be40c702a45a54d4caa254fba",
+    "checkpointSourceRecord": "motocross-release-validation/main45-camera-clearance/validated-source.json",
+    "checkpointSourceRecordSha256": "6e33625753b7e8d8f4232edcca5279891e5ca349f08318a3521f67eb6fcaf56c",
+    "sourceCount": 667,
+    "sourceSha256": "7733bb95ae33dc962eb2e6d07b2d3480dac3276a50753733268a68b22f500d36",
+    "buildFingerprintSha256": "82b5018336f9fb2c9ae1c2fcc7d11d1c3011209ec2e1c8471be5111c033c52e8",
+    "retainedScreenshotCount": 8,
+    "testStatus": "passed",
+    "testDurationMs": 661875,
+    "identityPreserved": "These eight captures remain evidence for the original 667-source / 7733bb95 / 82b50183 build; this record does not promote them to a rendered pass of the later GP build."
+  },
+  "finalRuntimeSource": {
+    "sourceCount": 670,
+    "sourceSha256": "acfc1a799a933ff9c135046aee17daa741366549f7808b8091200accf69f874d",
+    "buildFingerprintSha256": "a5a1575e169f6475439722adeb3ac6ae569bc91b6d604f14e465faf7eccc6de4",
+    "integratedParent": "d4dd3e541433a0eb7513b0b9124c932911a64bdb",
+    "validatedSourceRecord": "docs/production/motocross-evidence/validation/final-validated-source.json",
+    "validatedSourceRecordSha256": "3f384bde598dd74ecc34c45260b69d36153366af3caf0bfcd60558778a612d35",
+    "sourceHashEncoding": "SHA-256 of UTF-8 compact JSON (separators comma/colon), with lexicographically sorted path keys; values are file SHA-256 digests.",
+    "originalSourcesUnchanged": 661,
+    "originalSourcesModified": 6,
+    "newSources": 3,
+    "removedSources": 0,
+    "unexpectedChanges": [],
+    "unchangedSourceMapSha256": "b03188b6d7bbe6498a469ba81f570a2f6b5e51f907bf613cdfbee174012e9014",
+    "changes": [
+      {
+        "file": "src/rendering/bike-surface-detail.ts",
+        "change": "modified",
+        "gameplaySourceSha256": "93a7df59bc6160ef376a3e1b575e91b72e6ec8665fc76db0ea0a318cb0705f96",
+        "finalSourceSha256": "fa23b463dcd1c7331aa5359d0667b8b8eb11df7eb6dc04bd74c4e37d0636148e"
+      },
+      {
+        "file": "src/rendering/bike.ts",
+        "change": "modified",
+        "gameplaySourceSha256": "329be7147a095f63815c2fc46d8049b2e2eceb43f833078d0903e9ec0b440271",
+        "finalSourceSha256": "b19e6cac35c0e301cce9a8c8909e0f1bf4e75b512cb5e5f02d81a70c18af8389"
+      },
+      {
+        "file": "src/rendering/crowd.ts",
+        "change": "modified",
+        "gameplaySourceSha256": "e422a88f41e54c1ff901c45bd20ea5a24cf9cfe66e37a5c5e91450f0ecf7e214",
+        "finalSourceSha256": "464b01dbf13ef5407a927e646de29eeea9d8f8320bda2361be0dd88b418394f9"
+      },
+      {
+        "file": "src/rendering/gp-chain-drive.ts",
+        "change": "modified",
+        "gameplaySourceSha256": "57869f8c6427f8423d2cd309812c5f6b94cf846a0e5fc036823f10fb414e53c9",
+        "finalSourceSha256": "224bf3bbda75b957b523489419a7e38d2b869e5e0a6d036972986a62ba21e990"
+      },
+      {
+        "file": "src/rendering/gp-cooling-louvers.ts",
+        "change": "modified",
+        "gameplaySourceSha256": "aafb48612354eb752ee257354575f548381b58e5f0330f64c72d3d3bc1d72475",
+        "finalSourceSha256": "f32f42de3aeb37613da5f8ea60133053d5fb429652ee2e93a2809dac44c13e4b"
+      },
+      {
+        "file": "src/rendering/gp-disc-glow.ts",
+        "change": "added",
+        "gameplaySourceSha256": null,
+        "finalSourceSha256": "935645a98bb14bfc7a4cf55eb4f8d2f8e17630f7b82ed94731b1f76c4a762256"
+      },
+      {
+        "file": "src/rendering/gp-radial-caliper.ts",
+        "change": "added",
+        "gameplaySourceSha256": null,
+        "finalSourceSha256": "dba1b58b99d5c582d37bc169e5b73f0c0f0dc220c7afdb920bf17d1d6e6ce7a2"
+      },
+      {
+        "file": "src/simulation/bike-vehicle.ts",
+        "change": "modified",
+        "gameplaySourceSha256": "ca4dcfe776caa6ea9fe2578dfa8ef8ea39af8d1afb3fc612810300f037fbecc3",
+        "finalSourceSha256": "203cd5bf79c860609c453fda64713a25e4b7acb27e7a98d76afbb12904ab30b9"
+      },
+      {
+        "file": "src/simulation/gp-brake-fade.ts",
+        "change": "added",
+        "gameplaySourceSha256": null,
+        "finalSourceSha256": "44b747004eb4c7c1256b6d65ccd16dd9b60fb00a49174e77962c99bc29fe543c"
+      }
+    ],
+    "sharedDeclarationByteComparison": [
+      {
+        "file": "src/rendering/bike.ts",
+        "declaration": "BikeMaterials",
+        "beforeSha256": "5944af6451f6592ae34b960d4f06fe54752c952b27eed1f4a5662f41aa27fdbf",
+        "afterSha256": "5a5081ea591ef216cad53be82418672a32b9c290a6dc1d4987b0d20f5788029e",
+        "identical": false
+      },
+      {
+        "file": "src/rendering/bike.ts",
+        "declaration": "BikeShells",
+        "beforeSha256": "bff16062a0d1bf7f02454ad9394e1350acea24f4b5ff9aa9a9e539cdd299ba47",
+        "afterSha256": "bff16062a0d1bf7f02454ad9394e1350acea24f4b5ff9aa9a9e539cdd299ba47",
+        "identical": true
+      },
+      {
+        "file": "src/rendering/bike.ts",
+        "declaration": "BikeModel.dispose",
+        "beforeSha256": "878b5455cdd08a65bb4d27960e756718844bcff3edb9b50a0eca13c10984c678",
+        "afterSha256": "878b5455cdd08a65bb4d27960e756718844bcff3edb9b50a0eca13c10984c678",
+        "identical": true
+      }
+    ]
+  },
+  "callPathAndOwnershipFindings": [
+    {
+      "area": "Production dirt-bike model dispatch",
+      "finding": "BikeShells.build() selects DirtBikeModel for every definition with bike.offroad. MX250, MX450 and SM450 therefore use their own motocross chain, rotor, brake geometry and mud materials; GP chain/louver/radial-caliper constructors are not entered."
+    },
+    {
+      "area": "Shared imports and materials",
+      "finding": "The GP geometry modules define constructors/functions at import; their visible meshes are allocated only when GP model branches call them. BikeMaterials itself now adds normal/roughness paint maps to paint, secondary and accent. Every MX material pool therefore allocates these six data maps. DirtBikeModel and its rider reference none of those three paint materials and continue constructing their separate polypropylene/plastic/board materials. MX42 can cover the shared allocation/import/disposal path, while GP41 is the actual rendered paint-map coverage. The BikeShells declaration is byte-identical to the captured build."
+    },
+    {
+      "area": "Geometry lifetime",
+      "finding": "The new GP caliper merges and disposes intermediate geometries, borrows entrant-owned materials and is covered by the unchanged BikeModel.dispose traversal. Chain instance buffers use the existing InstancedMesh disposal branch. DirtBikeModel and its disposal/mud paths are whole-file unchanged."
+    },
+    {
+      "area": "Actual offroad dynamics",
+      "finding": "createEntrant and Festival dirt-bike spawning choose DirtBikeVehicle for bike.offroad definitions. DirtBikeVehicle overrides step(), calling the dynamics core directly without super.step(). The incoming brake fade lives in BikeVehicle.step() behind explicit gpr1/gpr2 checks and is not applied to actual MX250/MX450/SM450 steps."
+    },
+    {
+      "area": "Shared crowd shader",
+      "finding": "The new pixel-filtered warp/weft microrelief modifies installCrowdShader colour shading for mesh crowd LODs. Its condition gates the pixel footprint, sk < 0.01 and the shoe mask; it does not exclude accessory tags, so close non-skinned phone/cup shells may also receive relief and the 0.42 roughness floor. This is not described as clothing-only. Production Valley generic grandstands build CrowdClusters and receive the shader change, as does the initial road-venue menu. Arena SX skips generic grandstands and uses its independent Stadium clothing/skin materials. The unchanged world43 fixture contains OffroadScene, not Valley generic stands, so it does not compile this changed shader. The existing Phase27C crowd component exercises the same production colour/depth crowd shaders, near/mid/far handoffs, held/rewound pixels and memory; it is not a full MX venue capture."
+    },
+    {
+      "area": "World, camera and interface preservation",
+      "finding": "All motocross terrain/scanned-soil, course dressing, stadium, replay-camera placement, chase/onboard, menu/HUD, snapshot, AI and offroad race-control files are among the 661 original sources whose complete bytes are unchanged. This whole-file preservation does not imply the shared crowd or material pool are unchanged."
+    }
+  ],
+  "referencedFocusedChecks": [
+    {
+      "existingReport": "focused.json",
+      "existingReportSha256": "e7554e28b53618fa5c390268886e406a45cb44cea50529b942532b883c4ccab9",
+      "kind": "Referenced completed Vitest JSON, parsed by this read-only preservation review; no test was launched by this review.",
+      "total": 20,
+      "passed": 20,
+      "failed": 0,
+      "files": [
+        {
+          "file": "tests/bike-session.test.ts",
+          "tests": 14,
+          "passed": 14,
+          "nativeTestFileDurationMs": 15860.5556640625,
+          "testFileSha256AtReview": "a9caa63f9f81e0e3cf10de63d269a195c50c07ad2df12f3fee1d2a8f1e9199ec"
+        },
+        {
+          "file": "tests/gp-brake-fade.test.ts",
+          "tests": 3,
+          "passed": 3,
+          "nativeTestFileDurationMs": 2.776123046875,
+          "testFileSha256AtReview": "26d06cee0f4238998786fae7e2377733c12ae7c369fdfc12092297051857eeea"
+        },
+        {
+          "file": "tests/motocross-thermal.test.ts",
+          "tests": 3,
+          "passed": 3,
+          "nativeTestFileDurationMs": 612.8916015625,
+          "testFileSha256AtReview": "d64af6bfcf516d6048004de2fdc9431820948031722ff1582d054e14bd11db3a"
+        }
+      ]
+    },
+    {
+      "existingReport": "motocross-gp-crowd-textile-cpu.json",
+      "existingReportSha256": "dde25bdf910838fb2c4d7a0e6c17d155a698eee560d26c8b33c38114613a332d",
+      "kind": "Referenced completed Vitest JSON, parsed by this read-only preservation review; no test was launched by this review.",
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "files": [
+        {
+          "file": "tests/gp-crowd-textile.test.ts",
+          "tests": 1,
+          "passed": 1,
+          "nativeTestFileDurationMs": 2.3759765625,
+          "testFileSha256AtReview": "3efddbfbba1c35cdc0bb3138e7483357baa9ffa6789ecd5021d37d599ad0a1e3"
+        }
+      ]
+    }
+  ],
+  "referencedIncrementalRenderingCPU": {
+    "record": "docs/production/motocross-evidence/compatibility/r31-r4/cpu-validation.json",
+    "recordSha256": "3be5e62c7d6302322705054ee37a0250d1f1e081a258a0b7de9f67a3e1bbfa81",
+    "scope": "GP R3.1/R4 rendering integration CPU evidence; incremental real test batches and construction measurements. This is not a new full-game, hardware-renderer, Blender, or full-670-source CPU-suite claim.",
+    "method": "Parse all three retained lossless gzip Vitest reports, verify compressed and raw hashes/counts, then keep the latest status per (test file, full test name). These are incremental reports, not a single final-source CPU run.",
+    "batches": [
+      {
+        "id": "r31-r4-before-caliper-repair",
+        "scope": "The integrated 0e0326a GP rendering before the bounded caliper tessellation repair. This report intentionally retains both unchanged-budget failures.",
+        "passed": 28,
+        "failed": 2,
+        "total": 30,
+        "files": [
+          {
+            "file": "tests/bike-bodies.test.ts",
+            "status": "passed",
+            "tests": 2,
+            "passed": 2,
+            "failed": 0,
+            "nativeTestFileDurationMs": 1460.588134765625
+          },
+          {
+            "file": "tests/gp-chain-drive.test.ts",
+            "status": "passed",
+            "tests": 4,
+            "passed": 4,
+            "failed": 0,
+            "nativeTestFileDurationMs": 64.216064453125
+          },
+          {
+            "file": "tests/gp-chain-integrity.test.ts",
+            "status": "failed",
+            "tests": 10,
+            "passed": 9,
+            "failed": 1,
+            "nativeTestFileDurationMs": 3530.597412109375
+          },
+          {
+            "file": "tests/gp-louver-facing.test.ts",
+            "status": "passed",
+            "tests": 2,
+            "passed": 2,
+            "failed": 0,
+            "nativeTestFileDurationMs": 10.414306640625
+          },
+          {
+            "file": "tests/gp-radial-caliper.test.ts",
+            "status": "passed",
+            "tests": 2,
+            "passed": 2,
+            "failed": 0,
+            "nativeTestFileDurationMs": 145.50244140625
+          },
+          {
+            "file": "tests/motogp-reference.test.ts",
+            "status": "failed",
+            "tests": 10,
+            "passed": 9,
+            "failed": 1,
+            "nativeTestFileDurationMs": 1643.4814453125
+          }
+        ],
+        "retainedRawReport": {
+          "file": "vitest-before-caliper-repair.json.gz",
+          "encoding": "gzip, lossless original Vitest JSON",
+          "sha256": "5689dbd7000663cd7bc91f63935d4e87a6b20011d92b6ad627c04f645730b463",
+          "uncompressedSha256": "5cfaa6c027b99fe4aa228308c79d6d4a811eb3ce8085a9fbad1d9652d3179b80",
+          "compressedBytes": 2646,
+          "uncompressedBytes": 14710
+        }
+      },
+      {
+        "id": "r31-r4-after-caliper-repair",
+        "scope": "Targeted rerun of both failed gates, the caliper component including the new independent envelope/rotor-slot test, and actual MX250/MX450/SM450 cockpit controls. This precedes the d4dd3e5 glow/paint integration.",
+        "passed": 26,
+        "failed": 0,
+        "total": 26,
+        "files": [
+          {
+            "file": "tests/gp-chain-integrity.test.ts",
+            "status": "passed",
+            "tests": 10,
+            "passed": 10,
+            "failed": 0,
+            "nativeTestFileDurationMs": 3656.706787109375
+          },
+          {
+            "file": "tests/gp-radial-caliper.test.ts",
+            "status": "passed",
+            "tests": 3,
+            "passed": 3,
+            "failed": 0,
+            "nativeTestFileDurationMs": 126.741455078125
+          },
+          {
+            "file": "tests/motocross-cockpit-view.test.ts",
+            "status": "passed",
+            "tests": 3,
+            "passed": 3,
+            "failed": 0,
+            "nativeTestFileDurationMs": 750.83251953125
+          },
+          {
+            "file": "tests/motogp-reference.test.ts",
+            "status": "passed",
+            "tests": 10,
+            "passed": 10,
+            "failed": 0,
+            "nativeTestFileDurationMs": 1756.16064453125
+          }
+        ],
+        "retainedRawReport": {
+          "file": "vitest-after-caliper-repair.json.gz",
+          "encoding": "gzip, lossless original Vitest JSON",
+          "sha256": "0a5b6c75a54807fee2220597d4dbd6a36bbee7240f95c73987c6d4d411004c78",
+          "uncompressedSha256": "f5c29270ea27e75b819dd6f7d252c2043a1e5e75ddf57697676f14fcf84b5e9a",
+          "compressedBytes": 1995,
+          "uncompressedBytes": 10547
+        }
+      },
+      {
+        "id": "d4dd3e5-glow-paint-motocross",
+        "scope": "The two incoming glow/paint tests and the three existing MX250/MX450/SM450 construction/pose/restore/cleanup cases after the d4dd3e5 shared-material merge.",
+        "passed": 7,
+        "failed": 0,
+        "total": 7,
+        "files": [
+          {
+            "file": "tests/gp-disc-glow.test.ts",
+            "status": "passed",
+            "tests": 3,
+            "passed": 3,
+            "failed": 0,
+            "nativeTestFileDurationMs": 2.391357421875
+          },
+          {
+            "file": "tests/gp-paint-microfinish.test.ts",
+            "status": "passed",
+            "tests": 1,
+            "passed": 1,
+            "failed": 0,
+            "nativeTestFileDurationMs": 95.37744140625
+          },
+          {
+            "file": "tests/motocross-cockpit-view.test.ts",
+            "status": "passed",
+            "tests": 3,
+            "passed": 3,
+            "failed": 0,
+            "nativeTestFileDurationMs": 760.6376953125
+          }
+        ],
+        "retainedRawReport": {
+          "file": "vitest-glow-paint-mx.json.gz",
+          "encoding": "gzip, lossless original Vitest JSON",
+          "sha256": "bcb0f233355125d87e9e884af95275486c95a63a6279f5c076b3f4bb5817fbb4",
+          "uncompressedSha256": "f7b5106b1f124530e78ecb6c7db8e94ff0a34778b5727a2b28c19262a3aa9e52",
+          "compressedBytes": 866,
+          "uncompressedBytes": 3446
+        }
+      }
+    ],
+    "latestDistinctResults": {
+      "testCases": 38,
+      "testFiles": 9,
+      "passed": 38,
+      "failed": 0
+    },
+    "historicalFailuresRetained": [
+      {
+        "batch": "r31-r4-before-caliper-repair",
+        "file": "tests/gp-chain-integrity.test.ts",
+        "test": "GP chain real instance cost and mechanical continuity gpr1 retains the existing 110000-triangle model gate after expanding instances",
+        "firstFailureLine": "AssertionError: expected 110708 to be less than 110000"
+      },
+      {
+        "batch": "r31-r4-before-caliper-repair",
+        "file": "tests/motogp-reference.test.ts",
+        "test": "100-reference GP presentation keeps all three GP LODs posed and finite during lean, steer, braking and wheel service",
+        "firstFailureLine": "AssertionError: expected 110708 to be less than 110000"
+      }
+    ],
+    "repair": {
+      "problem": "Incoming GP-R1 high exceeded the existing complete-model gate in two independent tests: 110708 is not less than 110000.",
+      "change": "One bevel step instead of two, and 12 rather than 20 sides for the small piston cylinders. No threshold, authored profile curve, housing dimensions, bevel width/depth, mount, rotor slot, materials, hydraulic hose, or hardware placement change.",
+      "beforeExpandedGpr1HighTriangles": 110708,
+      "afterExpandedGpr1HighTriangles": 109764,
+      "beforeTrianglesPerCaliper": 2048,
+      "afterTrianglesPerCaliper": 1576
+    }
+  },
+  "referencedRenderedChecks": [
+    {
+      "record": "docs/production/motocross-evidence/validation/shared-crowd/test-run.json",
+      "recordSha256": "9f9268dfa2bba5d623c46894b1044e86aea251435ad91280bad67f060d6fe084",
+      "kind": "Referenced completed rendered component check on the final frozen source; this read-only review launched no browser or GPU process.",
+      "sourceSpec": "e2e/11-phase27c.spec.ts",
+      "scope": "Existing Phase 27C production CrowdCluster component with twelve seated people, real colour and shadow shaders, and controlled near/mid/far inputs on the frozen integrated d4dd3e5 source. The changed shader is used by Valley generic grandstands and the initial road-venue menu; this fixture is not a complete MX venue or race capture.",
+      "sourceSha256": "acfc1a799a933ff9c135046aee17daa741366549f7808b8091200accf69f874d",
+      "buildFingerprintSha256": "a5a1575e169f6475439722adeb3ac6ae569bc91b6d604f14e465faf7eccc6de4",
+      "status": "passed",
+      "tests": [
+        {
+          "title": "Phase 27C: actual crowd colour/depth shaders freeze and rewind exactly",
+          "durationMs": 6979,
+          "outcome": "expected"
+        }
+      ],
+      "captureCount": 8
+    },
+    {
+      "record": "docs/production/motocross-evidence/compatibility/r31-r4/test-run.json",
+      "recordSha256": "c5fa3e29d5426be9026deb4b3edbd3bc2d6db789d5be11cc788bd9beb6ca2ce4",
+      "kind": "Referenced completed rendered component check on the final frozen source; this read-only review launched no browser or GPU process.",
+      "sourceSpec": "e2e/41-motogp-reference.spec.ts",
+      "scope": "Production-model WebGL2 compatibility fixture after GP R3.1/R4, glow and shared paint integration. Vite bundles current production imports into a test-owned page; this is not the full game journey or a hardware performance benchmark.",
+      "sourceSha256": "acfc1a799a933ff9c135046aee17daa741366549f7808b8091200accf69f874d",
+      "buildFingerprintSha256": "a5a1575e169f6475439722adeb3ac6ae569bc91b6d604f14e465faf7eccc6de4",
+      "status": "passed",
+      "tests": [
+        {
+          "title": "GP reference R1.1: authored LODs, production onboard and same-instance wet rewind on WebGL2",
+          "durationMs": 107540,
+          "outcome": "expected"
+        }
+      ],
+      "captureCount": 14
+    },
+    {
+      "record": "docs/production/motocross-evidence/bike/r31-r4/test-run.json",
+      "recordSha256": "f67903b82f8055c1072e163c465916d8f4aa0e23fadad910524616044e3f3ac6",
+      "kind": "Referenced completed rendered component check on the final frozen source; this read-only review launched no browser or GPU process.",
+      "sourceSpec": "e2e/42-motocross-bike.spec.ts",
+      "scope": "Production DirtBikeModel WebGL2 component fixture after R3.1/R4 integration. Vite bundles production imports into a controlled test page; this is separate from the full game journey and is not a physical-hardware performance measurement.",
+      "sourceSha256": "acfc1a799a933ff9c135046aee17daa741366549f7808b8091200accf69f874d",
+      "buildFingerprintSha256": "a5a1575e169f6475439722adeb3ac6ae569bc91b6d604f14e465faf7eccc6de4",
+      "status": "passed",
+      "tests": [
+        {
+          "title": "Motocross reference R2: production bikes, reachable riding poses and reversible mud on WebGL2",
+          "durationMs": 40767,
+          "outcome": "expected"
+        }
+      ],
+      "captureCount": 21
+    }
+  ],
+  "controlledPhysicsDelta": {
+    "record": "docs/production/motocross-evidence/validation/r31-r4-physics.json",
+    "recordSha256": "d9150b3a855325c644ad42398f5db62f4759f059ad55e1342da7a50c9bd7af8c",
+    "scope": "Read and verify the retained controlled physics evidence; no dynamics probe or race is executed by this review.",
+    "recordedFocusedTests": 20,
+    "recordedFocusedFiles": 3,
+    "actualOffroadCallPath": [
+      {
+        "path": "src/simulation/offroad/session.ts",
+        "symbol": "createEntrant",
+        "finding": "MX250, MX450 and SM450 definitions select DirtBikeVehicle."
+      },
+      {
+        "path": "src/simulation/world.ts",
+        "symbol": "Simulation constructor",
+        "finding": "Race entrants are constructed through createEntrant."
+      },
+      {
+        "path": "src/simulation/open-world/session.ts",
+        "symbol": "makeCar",
+        "finding": "Festival also selects DirtBikeVehicle for offroad bike definitions."
+      },
+      {
+        "path": "src/simulation/offroad/dirt-bike-vehicle.ts",
+        "symbol": "DirtBikeVehicle.step",
+        "finding": "Overrides the entire step, calls dynamics.step directly with its own front/rear brake inputs, and never calls super.step; flight and recovery remain in the dirt adapter."
+      },
+      {
+        "path": "src/simulation/bike-vehicle.ts",
+        "symbol": "BikeVehicle.step",
+        "finding": "The new fading branch is inside the overridden road step and additionally permits only definition IDs gpr1 and gpr2."
+      }
+    ],
+    "historicalRaceRecord": {
+      "path": "docs/production/motocross-evidence/races/final-regression.json",
+      "sha256": "3ed049ab26750489fb57ae5592db45308fdb26075fff3620604d602d79266236"
+    },
+    "historicalRaceSourceComparison": {
+      "total": 14,
+      "identical": 13,
+      "changed": [
+        {
+          "path": "src/simulation/bike-vehicle.ts",
+          "recordedGateSHA256": "ca4dcfe776caa6ea9fe2578dfa8ef8ea39af8d1afb3fc612810300f037fbecc3",
+          "currentSHA256": "203cd5bf79c860609c453fda64713a25e4b7acb27e7a98d76afbb12904ab30b9",
+          "identical": false
+        }
+      ],
+      "completedRaceResultsRelabeled": false
+    },
+    "retainedProductionBindingProbe": {
+      "rawReportSha256": "6c83a932e7d6d62efb2d9c243109984122bebac4419bea1e0b801107d050a561",
+      "vehicles": 6,
+      "physicalStates": 36,
+      "scope": "Production createEntrant, adapter step and actual dynamics front/rear brake forces; no private solver or brake argument interception.",
+      "fixture": "Fresh independent physical states at 45 m, speed 28 m/s, Raw assists, front input 0.1 and rear input 0.1, one 1/240 s production step. Disc temperature is the only changed state between variants.",
+      "result": "At unsaturated front/rear input 0.1, each hot GP axle produces 0.78 times its cold force independently. SBK1000 and all three dirt adapters produce identical front/rear forces and resulting speed across all six temperature variants.",
+      "nonGpDirtAndSuperbikeForceAndSpeedEqualityRecheckedFromRetainedSamples": true,
+      "limits": "Assigned disc temperatures form controlled independent physical states, not a natural heat-up/cool-down experiment. These states are separate from the twenty focused assertions and the historical full race gate."
+    }
+  },
+  "verificationLimits": [
+    "The focused report identities/counts above are read from existing completed results. This review is not itself a new test invocation.",
+    "GP-rendered compatibility and integrated build/lint results are recorded by their release owners; this preservation record does not infer a new full-game render from source isolation.",
+    "The production-byte comparison covers src/. Incoming documentation, workflows, authoring tools and test-fixture changes are outside that runtime inventory."
+  ],
+  "reproduction": {
+    "method": "Hash every file under final src/, keyed by its repository-relative POSIX path. Verify the final source-map identity. Remove the three added paths and replace the six modified path hashes with gameplaySourceSha256 from changes. The reconstructed 667-entry map must hash to the original gameplay source identity. Compare JSON with sorted keys, compact comma/colon separators and UTF-8 encoding.",
+    "reverseDeltaReconstructedSourceCount": 667,
+    "reverseDeltaReconstructedSourceSha256": "7733bb95ae33dc962eb2e6d07b2d3480dac3276a50753733268a68b22f500d36",
+    "reverseDeltaMatchesOriginalFullManifest": true
+  }
+}

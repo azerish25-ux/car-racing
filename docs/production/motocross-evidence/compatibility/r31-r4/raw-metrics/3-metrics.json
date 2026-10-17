@@ -1,0 +1,81 @@
+{
+  "instance": "ef94cf43-7340-431b-b187-1981b82677c6",
+  "sourceFrameUnchanged": true,
+  "resources": {
+    "geometries": 115,
+    "textures": 25,
+    "programs": 55
+  },
+  "preparation": [
+    {
+      "wet": false,
+      "time": 2,
+      "sourceFrameUnchanged": true,
+      "resources": {
+        "geometries": 115,
+        "textures": 25,
+        "programs": 55
+      },
+      "addedPrograms": []
+    },
+    {
+      "wet": false,
+      "time": 2,
+      "sourceFrameUnchanged": true,
+      "resources": {
+        "geometries": 115,
+        "textures": 25,
+        "programs": 55
+      },
+      "addedPrograms": []
+    },
+    {
+      "wet": false,
+      "time": 2,
+      "sourceFrameUnchanged": true,
+      "resources": {
+        "geometries": 115,
+        "textures": 25,
+        "programs": 55
+      },
+      "addedPrograms": []
+    }
+  ],
+  "hash": 3035999874,
+  "cockpit": null,
+  "weather": {
+    "source": "presented-snapshot",
+    "dampness": 0,
+    "time": 2,
+    "rain": 0,
+    "meanWater": 0,
+    "materialRoles": {
+      "metal": 6,
+      "rubber": 1,
+      "paint": 10,
+      "fabric": 1,
+      "leather": 5
+    },
+    "roadMaterials": 0,
+    "offTrackWetness": "mean-track-water-and-rain approximation",
+    "extraTextures": 0,
+    "extraDraws": 0
+  },
+  "triangles": 100220,
+  "submittedTriangles": 200180,
+  "calls": 206,
+  "glError": 0,
+  "bounds": {
+    "isBox3": true,
+    "min": {
+      "x": -0.4654921646542646,
+      "y": -0.0962548337573153,
+      "z": -1.1049506470828327
+    },
+    "max": {
+      "x": 0.4654921646542646,
+      "y": 1.3146317426996332,
+      "z": 1.1162548337573153
+    }
+  }
+}

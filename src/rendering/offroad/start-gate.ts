@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { clamp } from '../../core/math.ts';
 import type { OffroadCourse } from '../../simulation/offroad/course.ts';
 import { GATE_DROP_SECONDS, gateSlots } from '../../simulation/offroad/session.ts';
@@ -52,16 +53,31 @@ export class StartGate {
   private build(riders: number) {
     const gate = this.course.spec.gate!;
     this.root.remove(this.body);
+    const oldGeometry = new Set<T.BufferGeometry>();
     this.body.traverse((o) => {
-      if (o instanceof T.Mesh) o.geometry.dispose();
+      if (o instanceof T.Mesh) oldGeometry.add(o.geometry);
     });
+    for (const g of oldGeometry) g.dispose();
     this.body = new T.Group();
     this.panels.length = 0;
     const { lateral } = gateSlots(this.track, this.course, riders);
     this.slots = lateral.length;
     const panelWidth = gate.spacing - PANEL.gap;
-    const grate = new T.BoxGeometry(panelWidth, PANEL.height, PANEL.thickness);
-    grate.translate(0, PANEL.height / 2, 0);
+    // Open welded bars reveal the soil and the front tyre through each
+    // panel. The hinge and release timing are still the session's gate.
+    const bars: T.BufferGeometry[] = [];
+    for (let i = 0; i < 9; i++)
+      bars.push(
+        new T.BoxGeometry(0.022, PANEL.height, PANEL.thickness).translate(
+          (i / 8 - 0.5) * (panelWidth - 0.022),
+          PANEL.height / 2,
+          0,
+        ),
+      );
+    for (const y of [0.02, PANEL.height * 0.46, PANEL.height - 0.02])
+      bars.push(new T.BoxGeometry(panelWidth, 0.024, PANEL.thickness).translate(0, y, 0));
+    const grate = mergeGeometries(bars, false)!;
+    for (const g of bars) g.dispose();
     const bar = new T.BoxGeometry(panelWidth, 0.05, 0.05);
     for (const l of lateral) {
       const hinge = new T.Group();
@@ -110,11 +126,14 @@ export class StartGate {
     for (const panel of this.panels) panel.rotation.x = angle;
   }
   dispose() {
+    const geometry = new Set<T.BufferGeometry>();
     this.root.traverse((o) => {
-      if (o instanceof T.Mesh) o.geometry.dispose();
+      if (o instanceof T.Mesh) geometry.add(o.geometry);
     });
+    for (const g of geometry) g.dispose();
     this.steel.dispose();
     this.frame.dispose();
     this.pad.dispose();
+    this.root.clear();
   }
 }

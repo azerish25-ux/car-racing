@@ -1,0 +1,64 @@
+{
+  "instance": "71a6bd5a-dabe-40e6-8e10-fffb25c0f20f",
+  "hash": 2501659002,
+  "triangles": 74562,
+  "finiteGeometry": true,
+  "contacts": [
+    {
+      "handError": 0.01999999999999997,
+      "ankleError": 0.020000000000000157
+    },
+    {
+      "handError": 0.02000000000000005,
+      "ankleError": 0.02000000000000008
+    }
+  ],
+  "cockpit": null,
+  "calls": 64,
+  "glError": 0,
+  "bounds": {
+    "isBox3": true,
+    "min": {
+      "x": -0.49328978832748593,
+      "y": -0.0008572532435370817,
+      "z": -1.0800000429153442
+    },
+    "max": {
+      "x": 0.5076862550949549,
+      "y": 1.9685015076803642,
+      "z": 1.1046095796082727
+    }
+  },
+  "resources": {
+    "geometries": 76,
+    "textures": 16,
+    "programs": 12
+  },
+  "mud": 0,
+  "wetness": 0,
+  "materials": [
+    "",
+    "Slick tyre: fine grain",
+    "Motocross anodised rim and hub",
+    "Motocross stainless wave rotor",
+    "Frame aluminium",
+    "Fork stanchion (low-friction coating)",
+    "Off-road plastics",
+    "Radial caliper",
+    "Fork outer tube (anodised)",
+    "Motocross factory number board",
+    "Titanium exhaust (heat tint)",
+    "Rider helmet shell",
+    "Tinted visor",
+    "Rider stretch fabric and seams",
+    "Motocross equipment trim",
+    "Rider jersey and pants (textile)",
+    "Rider kit panels (textile)",
+    "Rider armour caps",
+    "Motocross moulded boot shell",
+    "Off-road black plastics",
+    "Motocross layered factory plastics",
+    "Textured seat pad",
+    "Motocross roller chain"
+  ]
+}

@@ -1,0 +1,221 @@
+{
+  "instance": "33657540-a7e2-4190-8642-e2938ed9a7c4",
+  "hash": 1237179423,
+  "triangles": 74562,
+  "finiteGeometry": true,
+  "contacts": [
+    {
+      "handError": 0.019999999999999987,
+      "ankleError": 0.020000000000000046
+    },
+    {
+      "handError": 0.019999999999999987,
+      "ankleError": 0.020000000000000046
+    }
+  ],
+  "cockpit": {
+    "eye": [
+      0,
+      1.9100000000000001,
+      -0.4
+    ],
+    "fov": 68,
+    "headVisible": false,
+    "torsoVisible": false,
+    "handsVisible": [
+      true,
+      true
+    ],
+    "sleeveEntries": [
+      [
+        -1.1783567802488473,
+        -2.9115478914829,
+        0.8367216555778404
+      ],
+      [
+        1.1783567802488473,
+        -2.9115478914829,
+        0.8367216555778404
+      ]
+    ],
+    "controls": [
+      {
+        "name": "Motocross bar pad",
+        "ndc": [
+          0,
+          -0.5022195285754508,
+          0.9146625303279138
+        ],
+        "visible": true,
+        "distance": 0.7361426867758996,
+        "hitDistance": 0.7055241387594435,
+        "blocker": " / Off-road plastics"
+      },
+      {
+        "name": "Motocross left grip",
+        "ndc": [
+          -0.4855182413291998,
+          -0.5758324083242137,
+          0.9133878700889094
+        ],
+        "visible": true,
+        "distance": 0.820275029380964,
+        "hitDistance": 0.7897346297971367,
+        "blocker": " / Rider kit panels (textile)"
+      },
+      {
+        "name": "Motocross right grip",
+        "ndc": [
+          0.4855182413291998,
+          -0.5758324083242137,
+          0.9133878700889094
+        ],
+        "visible": true,
+        "distance": 0.820275029380964,
+        "hitDistance": 0.789720078479936,
+        "blocker": " / Rider kit panels (textile)"
+      }
+    ],
+    "visibleControls": 3,
+    "forward": [
+      {
+        "x": -0.37499999999999994,
+        "y": 0,
+        "clear": true,
+        "blocker": "none"
+      },
+      {
+        "x": -0.37499999999999994,
+        "y": 0.3,
+        "clear": true,
+        "blocker": "none"
+      },
+      {
+        "x": -0.37499999999999994,
+        "y": 0.6,
+        "clear": true,
+        "blocker": "none"
+      },
+      {
+        "x": -0.18749999999999997,
+        "y": 0,
+        "clear": true,
+        "blocker": "none"
+      },
+      {
+        "x": -0.18749999999999997,
+        "y": 0.3,
+        "clear": true,
+        "blocker": "none"
+      },
+      {
+        "x": -0.18749999999999997,
+        "y": 0.6,
+        "clear": true,
+        "blocker": "none"
+      },
+      {
+        "x": 0,
+        "y": 0,
+        "clear": true,
+        "blocker": "none"
+      },
+      {
+        "x": 0,
+        "y": 0.3,
+        "clear": true,
+        "blocker": "none"
+      },
+      {
+        "x": 0,
+        "y": 0.6,
+        "clear": true,
+        "blocker": "none"
+      },
+      {
+        "x": 0.18749999999999997,
+        "y": 0,
+        "clear": true,
+        "blocker": "none"
+      },
+      {
+        "x": 0.18749999999999997,
+        "y": 0.3,
+        "clear": true,
+        "blocker": "none"
+      },
+      {
+        "x": 0.18749999999999997,
+        "y": 0.6,
+        "clear": true,
+        "blocker": "none"
+      },
+      {
+        "x": 0.37499999999999994,
+        "y": 0,
+        "clear": true,
+        "blocker": "none"
+      },
+      {
+        "x": 0.37499999999999994,
+        "y": 0.3,
+        "clear": true,
+        "blocker": "none"
+      },
+      {
+        "x": 0.37499999999999994,
+        "y": 0.6,
+        "clear": true,
+        "blocker": "none"
+      }
+    ],
+    "clearForwardSamples": 15
+  },
+  "calls": 30,
+  "glError": 0,
+  "bounds": {
+    "isBox3": true,
+    "min": {
+      "x": -0.5103140551238002,
+      "y": 0.000023855178588771953,
+      "z": -1.0800000429153442
+    },
+    "max": {
+      "x": 0.5121536512605273,
+      "y": 1.8224976353941043,
+      "z": 1.1048164831356262
+    }
+  },
+  "resources": {
+    "geometries": 69,
+    "textures": 12,
+    "programs": 11
+  },
+  "mud": 0,
+  "wetness": 0,
+  "materials": [
+    "",
+    "Slick tyre: fine grain",
+    "Motocross anodised rim and hub",
+    "Motocross stainless wave rotor",
+    "Frame aluminium",
+    "Fork stanchion (low-friction coating)",
+    "Off-road plastics",
+    "Radial caliper",
+    "Fork outer tube (anodised)",
+    "Motocross factory number board",
+    "Titanium exhaust (heat tint)",
+    "Rider helmet shell",
+    "Tinted visor",
+    "Rider stretch fabric and seams",
+    "Motocross equipment trim",
+    "Rider jersey and pants (textile)",
+    "Rider kit panels (textile)",
+    "Rider armour caps",
+    "Motocross moulded boot shell",
+    "Off-road black plastics",
+    "Motocross layered factory plastics",
+    "Textured seat pad",
+    "Motocross roller chain"
+  ]
+}

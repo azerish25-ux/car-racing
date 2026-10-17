@@ -3,6 +3,20 @@ import { build } from 'vite';
 import { resolve } from 'node:path';
 import type { captureBike, captureBikeSequence } from './fixtures/motogp-reference-review.ts';
 
+function expectPrepared(result: ReturnType<typeof captureBike>) {
+  expect(result.preparation).toHaveLength(3);
+  for (const sample of result.preparation) {
+    expect(sample.wet).toBe(false);
+    expect(sample.time).toBe(2);
+    expect(sample.sourceFrameUnchanged).toBe(true);
+  }
+  // The second and third identical dry draws must have settled before any
+  // measured weather transition; no growing-resource tolerance is introduced.
+  expect(result.preparation[2].resources).toEqual(result.preparation[1].resources);
+  expect(result.preparation[2].addedPrograms).toEqual([]);
+  expect(result.resources).toEqual(result.preparation[2].resources);
+}
+
 test('GP reference R1.1: authored LODs, production onboard and same-instance wet rewind on WebGL2', async ({
   page,
 }, info) => {
@@ -57,6 +71,7 @@ test('GP reference R1.1: authored LODs, production onboard and same-instance wet
       body: JSON.stringify(result, (key, value) => (key === 'image' ? undefined : value), 2),
       contentType: 'application/json',
     });
+    expectPrepared(result);
     expect(result.glError).toBe(0);
     expect(result.hash).not.toBe(0);
     expect(result.calls).toBeLessThan(220);
@@ -84,6 +99,7 @@ test('GP reference R1.1: authored LODs, production onboard and same-instance wet
       body: JSON.stringify(result, (key, value) => (key === 'image' ? undefined : value), 2),
       contentType: 'application/json',
     });
+    expectPrepared(result);
     expect(result.glError).toBe(0);
     expect(result.cockpit?.facing).toBeGreaterThan(0.7);
     expect(result.cockpit?.visibleSamples).toBe(9);
@@ -116,6 +132,7 @@ test('GP reference R1.1: authored LODs, production onboard and same-instance wet
       contentType: 'image/png',
     });
     samples.push(sample);
+    expectPrepared({ image, ...sample });
     expect(sample.glError).toBe(0);
     expect(sample.sourceFrameUnchanged).toBe(true);
     expect(sample.instance).toBe(sequence[0].instance);

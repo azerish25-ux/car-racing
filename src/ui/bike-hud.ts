@@ -32,7 +32,10 @@ export class BikeHud {
     hud.dataset.bike = 'false';
   }
   update(frame: Float32Array) {
-    const readout = bikeReadout(frame);
+    // MX has its own jump/landing status stack and tested instrument layout.
+    // Keeping this flag exclusive prevents the GP stylesheet from replacing
+    // that cluster or showing a second motorcycle telemetry panel.
+    const readout = this.hud.dataset.motocross === 'true' ? null : bikeReadout(frame);
     const active = String(readout !== null);
     if (this.hud.dataset.bike !== active) {
       this.hud.dataset.bike = active;

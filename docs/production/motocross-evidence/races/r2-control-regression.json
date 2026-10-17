@@ -1,0 +1,932 @@
+{
+  "schemaVersion": 1,
+  "title": "Production witnesses for combined MotoGP R2 compatibility and motocross control corrections",
+  "status": "Complete: focused before/after witnesses and the final unchanged uninstrumented integrated 20-calibration / three-start / ten-event gate all verified.",
+  "retainedRemoteBehavior": "MotoGP R2 ABS and full braking utilization remain intact. R3 bikeSlipstreamDragScale is retained; DirtBikeVehicle overrides step and uses its existing standing-dependent drag path.",
+  "sourceFiles": [
+    "src/simulation/offroad/ai.ts",
+    "src/simulation/offroad/dirt-bike-vehicle.ts"
+  ],
+  "sourceHashes": {
+    "src/simulation/offroad/ai.ts": "3a5acf6d1ea40d940031aac4d5e4c55da8a0d0e2ea11a2fe77050dd96253be39",
+    "src/simulation/offroad/dirt-bike-vehicle.ts": "a0048db1805e3660c81e6a82486dd71684a96b5db911cb2aabd31d1b86178d56"
+  },
+  "tests": [
+    "tests/motocross-ai.test.ts",
+    "tests/motocross-collision.test.ts",
+    "tests/motocross-thermal.test.ts"
+  ],
+  "newControlRegressions": {
+    "before": {
+      "path": "/workspace/scratch/ce74d2c3df38/motocross-final-r2-gate/regression-uncorrected/regression-before.json",
+      "sha256": "5e8028930f74b63fb1827aad2e2fdb0818cbc4562e1e7580fba6b241d5b784c7",
+      "passed": 2,
+      "failed": 7,
+      "skipped": 13,
+      "cases": [
+        {
+          "name": "motocross committed jump handoff allows a real mx250 clear to settle without treating touchdown as a beached gap rider",
+          "status": "failed",
+          "failure": "AssertionError: expected 4 to be greater than 10"
+        },
+        {
+          "name": "motocross committed jump handoff allows a real mx450 clear to settle without treating touchdown as a beached gap rider",
+          "status": "failed",
+          "failure": "AssertionError: expected 4 to be greater than 10"
+        },
+        {
+          "name": "motocross committed jump handoff aborts the mx250 clear once when heading recovery brakes from side -1",
+          "status": "failed",
+          "failure": "AssertionError: expected +0 to be 1 // Object.is equality"
+        },
+        {
+          "name": "motocross committed jump handoff aborts the mx250 clear once when heading recovery brakes from side 1",
+          "status": "failed",
+          "failure": "AssertionError: expected +0 to be 1 // Object.is equality"
+        },
+        {
+          "name": "motocross committed jump handoff aborts the mx450 clear once when heading recovery brakes from side -1",
+          "status": "failed",
+          "failure": "AssertionError: expected +0 to be 1 // Object.is equality"
+        },
+        {
+          "name": "motocross committed jump handoff aborts the mx450 clear once when heading recovery brakes from side 1",
+          "status": "failed",
+          "failure": "AssertionError: expected +0 to be 1 // Object.is equality"
+        },
+        {
+          "name": "motocross AI rejoining slows a rider facing across the lane on side -1 before driving onward",
+          "status": "skipped",
+          "failure": null
+        },
+        {
+          "name": "motocross AI rejoining slows a rider facing across the lane on side 1 before driving onward",
+          "status": "skipped",
+          "failure": null
+        },
+        {
+          "name": "motocross AI rejoining holds one lane from the real stadium tabletop through its rollers and finish triple",
+          "status": "skipped",
+          "failure": null
+        },
+        {
+          "name": "motocross AI rejoining physically crosses timing gates during a long marshal recovery at 145.4 m",
+          "status": "skipped",
+          "failure": null
+        },
+        {
+          "name": "motocross AI rejoining physically crosses timing gates during a long marshal recovery at 448 m",
+          "status": "skipped",
+          "failure": null
+        },
+        {
+          "name": "motocross AI rejoining helps a beached rider with the exact 4 m/s rolling target without waiting for the slower fallback",
+          "status": "skipped",
+          "failure": null
+        },
+        {
+          "name": "motocross collision and sprung vertical velocity does not turn a real tilted two-bike position correction into the next contact impulse",
+          "status": "failed",
+          "failure": "AssertionError: expected -2.6046115220461274 to be close to -0.08172208333320441, received difference is 2.522889438712923, but expected 5e-11"
+        },
+        {
+          "name": "motocross collision and sprung vertical velocity keeps physical heave continuous through 'mx250' placement and remount",
+          "status": "passed",
+          "failure": null
+        },
+        {
+          "name": "motocross collision and sprung vertical velocity keeps physical heave continuous through 'mx450' placement and remount",
+          "status": "passed",
+          "failure": null
+        },
+        {
+          "name": "motocross barriers between adjacent stadium lanes does not push a bike across the median when its corner is nearest the next rhythm lane",
+          "status": "skipped",
+          "failure": null
+        },
+        {
+          "name": "motocross barriers between adjacent stadium lanes pushes an overlapping bike toward its own lane, including an angled front corner",
+          "status": "skipped",
+          "failure": null
+        },
+        {
+          "name": "motocross barriers between adjacent stadium lanes keeps the seeded eight-rider stadium start free of spurious high-energy launches",
+          "status": "skipped",
+          "failure": null
+        },
+        {
+          "name": "motocross barriers between adjacent stadium lanes projects a deep manual terrain contact without an impossible launch in raw",
+          "status": "skipped",
+          "failure": null
+        },
+        {
+          "name": "motocross barriers between adjacent stadium lanes projects a deep manual terrain contact without an impossible launch in sport",
+          "status": "skipped",
+          "failure": null
+        },
+        {
+          "name": "shared paved-circuit barriers retains inward barrier response for formula",
+          "status": "skipped",
+          "failure": null
+        },
+        {
+          "name": "shared paved-circuit barriers retains inward barrier response for motogp",
+          "status": "skipped",
+          "failure": null
+        }
+      ]
+    },
+    "after": {
+      "path": "/workspace/scratch/ce74d2c3df38/motocross-final-r2-gate/landing-contact-abort-candidate/regression-after-fixed.json",
+      "sha256": "dad1ed277dbec9ba2b7118d6c6ff07af7f9e91eb86447b07d8a2864c7e16d1ee",
+      "passed": 9,
+      "failed": 0,
+      "skipped": 13,
+      "cases": [
+        {
+          "name": "motocross committed jump handoff allows a real mx250 clear to settle without treating touchdown as a beached gap rider",
+          "status": "passed",
+          "failure": null
+        },
+        {
+          "name": "motocross committed jump handoff allows a real mx450 clear to settle without treating touchdown as a beached gap rider",
+          "status": "passed",
+          "failure": null
+        },
+        {
+          "name": "motocross committed jump handoff aborts the mx250 clear once when heading recovery brakes from side -1",
+          "status": "passed",
+          "failure": null
+        },
+        {
+          "name": "motocross committed jump handoff aborts the mx250 clear once when heading recovery brakes from side 1",
+          "status": "passed",
+          "failure": null
+        },
+        {
+          "name": "motocross committed jump handoff aborts the mx450 clear once when heading recovery brakes from side -1",
+          "status": "passed",
+          "failure": null
+        },
+        {
+          "name": "motocross committed jump handoff aborts the mx450 clear once when heading recovery brakes from side 1",
+          "status": "passed",
+          "failure": null
+        },
+        {
+          "name": "motocross AI rejoining slows a rider facing across the lane on side -1 before driving onward",
+          "status": "skipped",
+          "failure": null
+        },
+        {
+          "name": "motocross AI rejoining slows a rider facing across the lane on side 1 before driving onward",
+          "status": "skipped",
+          "failure": null
+        },
+        {
+          "name": "motocross AI rejoining holds one lane from the real stadium tabletop through its rollers and finish triple",
+          "status": "skipped",
+          "failure": null
+        },
+        {
+          "name": "motocross AI rejoining physically crosses timing gates during a long marshal recovery at 145.4 m",
+          "status": "skipped",
+          "failure": null
+        },
+        {
+          "name": "motocross AI rejoining physically crosses timing gates during a long marshal recovery at 448 m",
+          "status": "skipped",
+          "failure": null
+        },
+        {
+          "name": "motocross AI rejoining helps a beached rider with the exact 4 m/s rolling target without waiting for the slower fallback",
+          "status": "skipped",
+          "failure": null
+        },
+        {
+          "name": "motocross collision and sprung vertical velocity does not turn a real tilted two-bike position correction into the next contact impulse",
+          "status": "passed",
+          "failure": null
+        },
+        {
+          "name": "motocross collision and sprung vertical velocity keeps physical heave continuous through 'mx250' placement and remount",
+          "status": "passed",
+          "failure": null
+        },
+        {
+          "name": "motocross collision and sprung vertical velocity keeps physical heave continuous through 'mx450' placement and remount",
+          "status": "passed",
+          "failure": null
+        },
+        {
+          "name": "motocross barriers between adjacent stadium lanes does not push a bike across the median when its corner is nearest the next rhythm lane",
+          "status": "skipped",
+          "failure": null
+        },
+        {
+          "name": "motocross barriers between adjacent stadium lanes pushes an overlapping bike toward its own lane, including an angled front corner",
+          "status": "skipped",
+          "failure": null
+        },
+        {
+          "name": "motocross barriers between adjacent stadium lanes keeps the seeded eight-rider stadium start free of spurious high-energy launches",
+          "status": "skipped",
+          "failure": null
+        },
+        {
+          "name": "motocross barriers between adjacent stadium lanes projects a deep manual terrain contact without an impossible launch in raw",
+          "status": "skipped",
+          "failure": null
+        },
+        {
+          "name": "motocross barriers between adjacent stadium lanes projects a deep manual terrain contact without an impossible launch in sport",
+          "status": "skipped",
+          "failure": null
+        },
+        {
+          "name": "shared paved-circuit barriers retains inward barrier response for formula",
+          "status": "skipped",
+          "failure": null
+        },
+        {
+          "name": "shared paved-circuit barriers retains inward barrier response for motogp",
+          "status": "skipped",
+          "failure": null
+        }
+      ]
+    },
+    "interpretation": "Seven physical behavior checks fail on uncorrected source and pass after the three repairs; two no-contact placement/remount controls pass in both. The 13 skipped tests are older cases outside the deliberately targeted before/after pattern. The complete owned compatibility set later passes all 65 tests."
+  },
+  "mechanisms": [
+    {
+      "name": "Committed touchdown settlement",
+      "observation": "A real SKY TRIPLE touchdown before the survey end was classified as a beached gap bike; desired speed fell to 4 m/s and almost full brake was applied while the suspension was settling.",
+      "correction": "During the existing settleSeconds, retain upstream race/traffic limits only for the same locked clear plan, the same survey at the actual landing, a qualifying flight and a nonnegative landing age. Rolling/recovery behavior and thresholds stay unchanged.",
+      "witnesses": {
+        "before": [
+          {
+            "fixture": {
+              "vehicle": "mx450",
+              "jump": "SKY TRIPLE",
+              "runUp": 12,
+              "speedOffset": 0,
+              "lateral": 0
+            },
+            "landing": {
+              "time": 8.741666666666491,
+              "s": 609.8738339679364,
+              "distance": 21.493172249305726,
+              "takeoffSpeed": 15.491758608675891,
+              "airTime": 1.6333333333333289,
+              "pitchError": 0.1561619009632068,
+              "slope": -0.3375002942944297,
+              "normalSpeed": 3.5685634562273743,
+              "bottomSpeed": 0,
+              "outcome": "clean"
+            },
+            "minTarget": 4,
+            "maxBrake": 0.9999528776785405,
+            "crashes": 0
+          },
+          {
+            "fixture": {
+              "vehicle": "mx250",
+              "jump": "SKY TRIPLE",
+              "runUp": 12,
+              "speedOffset": 0,
+              "lateral": 0
+            },
+            "landing": {
+              "time": 8.658333333333163,
+              "s": 608.343464860731,
+              "distance": 19.97746435715781,
+              "takeoffSpeed": 15.203273526323411,
+              "airTime": 1.5458333333333292,
+              "pitchError": 0.06394802039729752,
+              "slope": -0.3374716863353837,
+              "normalSpeed": 2.963750831914105,
+              "bottomSpeed": 0,
+              "outcome": "clean"
+            },
+            "minTarget": 4,
+            "maxBrake": 0.9999175309625754,
+            "crashes": 0
+          }
+        ],
+        "after": [
+          {
+            "fixture": {
+              "vehicle": "mx450",
+              "jump": "SKY TRIPLE",
+              "runUp": 12,
+              "speedOffset": 0,
+              "lateral": 0
+            },
+            "landing": {
+              "time": 8.741666666666491,
+              "s": 609.8738339679364,
+              "distance": 21.493172249305726,
+              "takeoffSpeed": 15.491758608675891,
+              "airTime": 1.6333333333333289,
+              "pitchError": 0.1561619009632068,
+              "slope": -0.3375002942944297,
+              "normalSpeed": 3.5685634562273743,
+              "bottomSpeed": 0,
+              "outcome": "clean"
+            },
+            "minTarget": 21.147970644769657,
+            "maxBrake": 0,
+            "crashes": 0
+          },
+          {
+            "fixture": {
+              "vehicle": "mx250",
+              "jump": "SKY TRIPLE",
+              "runUp": 12,
+              "speedOffset": 0,
+              "lateral": 0
+            },
+            "landing": {
+              "time": 8.658333333333163,
+              "s": 608.343464860731,
+              "distance": 19.97746435715781,
+              "takeoffSpeed": 15.203273526323411,
+              "airTime": 1.5458333333333292,
+              "pitchError": 0.06394802039729752,
+              "slope": -0.3374716863353837,
+              "normalSpeed": 2.963750831914105,
+              "bottomSpeed": 0,
+              "outcome": "clean"
+            },
+            "minTarget": 21.519883542161377,
+            "maxBrake": 0,
+            "crashes": 0
+          }
+        ]
+      },
+      "scope": "These direct witnesses used the initial settlement guard; the final guard additionally requires locked commitment and nonnegative age, confirmed by the retained production tests."
+    },
+    {
+      "name": "Collision position correction and vertical velocity",
+      "observation": "Two normally placed tilted bikes overlap by about 7.6 cm. A roughly 1 cm positional correction was differentiated into false vertical velocities and fed into the next contact impulse.",
+      "correction": "Differentiate the adapter last-authoritative written position instead of collision-depenetrated body Y; preserve the existing discontinuity guard and all actual sprung motion.",
+      "fixture": {
+        "venue": "valley-ridge-mx",
+        "machines": [
+          "mx250",
+          "mx450"
+        ],
+        "stationsMetres": [
+          593.852,
+          591.752
+        ],
+        "lateralMetres": -0.667,
+        "physicsHz": 240,
+        "assignedImpactForcesOrVelocities": false
+      },
+      "witnesses": {
+        "before": {
+          "gap": 2.1,
+          "corrections": [
+            0.010512039327970513,
+            -0.010141696479016638
+          ],
+          "contacts": [
+            {
+              "a": 0,
+              "b": 1,
+              "point": {
+                "x": -19.838481709355097,
+                "y": 7.953531005711184,
+                "z": 89.33299899063498
+              },
+              "normal": {
+                "x": -0.799549775042198,
+                "y": 0.6005998311937578,
+                "z": 2.220446049250313e-16
+              },
+              "penetration": 0.07564273785930142,
+              "closing": -0.019238961071965623
+            },
+            {
+              "a": 0,
+              "b": 1,
+              "point": {
+                "x": -19.82549245113444,
+                "y": 7.950595030115115,
+                "z": 89.33299799328621
+              },
+              "normal": {
+                "x": -0.7990991003376687,
+                "y": 0.6011993245501266,
+                "z": 1.2755788998925025e-16
+              },
+              "penetration": 0.054256799180113724,
+              "closing": -3.0173651225980462
+            }
+          ],
+          "firstContacts": 1,
+          "velocity": [
+            {
+              "published": -2.6046115220461274,
+              "physical": -0.08172208333320441,
+              "vy": -0.08172208333333333,
+              "speed": 0.00023936370411705744
+            },
+            {
+              "published": 2.415042339163662,
+              "physical": -0.018964815800330825,
+              "vy": -0.018964815800374398,
+              "speed": 0.000239363704117058
+            }
+          ],
+          "speedAfterSecondSolve": [
+            1.924537272208967,
+            1.7732447198940213
+          ]
+        },
+        "after": {
+          "gap": 2.1,
+          "corrections": [
+            0.010512039327970513,
+            -0.010141696479016638
+          ],
+          "contacts": [
+            {
+              "a": 0,
+              "b": 1,
+              "point": {
+                "x": -19.838481709355097,
+                "y": 7.953531005711184,
+                "z": 89.33299899063498
+              },
+              "normal": {
+                "x": -0.799549775042198,
+                "y": 0.6005998311937578,
+                "z": 2.220446049250313e-16
+              },
+              "penetration": 0.07564273785930142,
+              "closing": -0.019238961071965623
+            },
+            {
+              "a": 0,
+              "b": 1,
+              "point": {
+                "x": -19.82549245113444,
+                "y": 7.950595030115115,
+                "z": 89.33299799328621
+              },
+              "normal": {
+                "x": -0.7990991003376687,
+                "y": 0.6011993245501266,
+                "z": 1.2755788998925025e-16
+              },
+              "penetration": 0.054256799180113724,
+              "closing": -0.037282238614660956
+            }
+          ],
+          "firstContacts": 1,
+          "velocity": [
+            {
+              "published": -0.08172208333320441,
+              "physical": -0.08172208333320441,
+              "vy": -0.08172208333333333,
+              "speed": 0.00023936370411705744
+            },
+            {
+              "published": -0.018964815800330825,
+              "physical": -0.018964815800330825,
+              "vy": -0.018964815800374398,
+              "speed": 0.000239363704117058
+            }
+          ],
+          "speedAfterSecondSolve": [
+            0.07124800485991654,
+            0.03232687210944065
+          ]
+        }
+      },
+      "noCollisionCalibration": {
+        "before": "/workspace/scratch/ce74d2c3df38/motocross-final-r2-gate/contact-equivalence-before/docs/offroad-calibration.json",
+        "after": "/workspace/scratch/ce74d2c3df38/motocross-final-r2-gate/contact-equivalence-after/docs/offroad-calibration.json",
+        "byteIdentical": true,
+        "sha256": "05a2a9e2a5be64558745131fcd72c368127c6cbfc2896b7dd4a5b74124f366b7",
+        "beforeFailures": [],
+        "afterFailures": []
+      },
+      "scope": "This removes a false derivative feedback term. It does not introduce full vertical rigid-body impulse integration or eliminate every physical collision."
+    },
+    {
+      "name": "Heading recovery after the jump planner",
+      "observation": "The final heading recovery guard brakes a committed approach after limitSpeed has already checked for obstructions; the locked clear therefore ignored the same tick braking constraint.",
+      "correction": "Abort that same locked clear once only when heading recovery actually lowers its target substantially on the bounded pre-face run-up. Keep the jump identity and locked roll state; do not abort on the face.",
+      "witnesses": {
+        "before": [
+          {
+            "fixture": {
+              "vehicle": "mx450",
+              "jump": "SKY TRIPLE",
+              "runUp": 16,
+              "speedOffset": -0.5,
+              "lateral": 0,
+              "heading": 0.6
+            },
+            "landing": {
+              "time": 8.46249999999984,
+              "s": 593.2951408367446,
+              "distance": 4.901572367091185,
+              "takeoffSpeed": 11.024799785251393,
+              "airTime": 0.46666666666666623,
+              "pitchError": -0.597298007209828,
+              "slope": 0.5477833366581645,
+              "normalSpeed": 6.573981034997918,
+              "bottomSpeed": 0,
+              "outcome": "crash-front"
+            },
+            "crashes": 1,
+            "finalS": 593.3639298701808
+          },
+          {
+            "fixture": {
+              "vehicle": "mx450",
+              "jump": "SKY TRIPLE",
+              "runUp": 16,
+              "speedOffset": -0.5,
+              "lateral": 0,
+              "heading": -0.6
+            },
+            "landing": {
+              "time": 8.52083333333317,
+              "s": 593.5351804858519,
+              "distance": 5.230680721852998,
+              "takeoffSpeed": 10.706417575352074,
+              "airTime": 0.5208333333333327,
+              "pitchError": -0.6423505780409073,
+              "slope": 0.5372996750383409,
+              "normalSpeed": 6.377120160540259,
+              "bottomSpeed": 0,
+              "outcome": "crash-front"
+            },
+            "crashes": 1,
+            "finalS": 593.6001622483288
+          },
+          {
+            "fixture": {
+              "vehicle": "mx250",
+              "jump": "SKY TRIPLE",
+              "runUp": 16,
+              "speedOffset": -0.5,
+              "lateral": 0,
+              "heading": 0.6
+            },
+            "landing": {
+              "time": 8.445833333333175,
+              "s": 593.2104553876563,
+              "distance": 4.838372699094574,
+              "takeoffSpeed": 11.051600017040988,
+              "airTime": 0.4583333333333329,
+              "pitchError": -0.6320624046965128,
+              "slope": 0.5542340967779275,
+              "normalSpeed": 6.652842110580953,
+              "bottomSpeed": 0,
+              "outcome": "crash-front"
+            },
+            "crashes": 1,
+            "finalS": 593.2796111281039
+          },
+          {
+            "fixture": {
+              "vehicle": "mx250",
+              "jump": "SKY TRIPLE",
+              "runUp": 16,
+              "speedOffset": -0.5,
+              "lateral": 0,
+              "heading": -0.6
+            },
+            "landing": {
+              "time": 8.487499999999839,
+              "s": 593.3780247903721,
+              "distance": 5.040870593491496,
+              "takeoffSpeed": 10.841484230274279,
+              "airTime": 0.49166666666666614,
+              "pitchError": -0.6419314567541838,
+              "slope": 0.5408676298782923,
+              "normalSpeed": 6.433825775809366,
+              "bottomSpeed": 0,
+              "outcome": "crash-front"
+            },
+            "crashes": 1,
+            "finalS": 593.4448352605127
+          }
+        ],
+        "after": [
+          {
+            "fixture": {
+              "vehicle": "mx450",
+              "jump": "SKY TRIPLE",
+              "runUp": 16,
+              "speedOffset": -0.5,
+              "lateral": 0,
+              "heading": 0.6
+            },
+            "landing": {
+              "time": 8.920833333333148,
+              "s": 590.8082895433502,
+              "distance": 2.794106533919491,
+              "takeoffSpeed": 5.267321616623105,
+              "airTime": 0.5541666666666659,
+              "pitchError": -0.8193220617714995,
+              "slope": 0.03358733387834642,
+              "normalSpeed": 4.059931130052464,
+              "bottomSpeed": 2.4379650135193804,
+              "outcome": "bottomed"
+            },
+            "crashes": 0,
+            "finalS": 592.4215795417538
+          },
+          {
+            "fixture": {
+              "vehicle": "mx450",
+              "jump": "SKY TRIPLE",
+              "runUp": 16,
+              "speedOffset": -0.5,
+              "lateral": 0,
+              "heading": -0.6
+            },
+            "landing": {
+              "time": 8.866666666666484,
+              "s": 590.8834867419205,
+              "distance": 2.770176876605617,
+              "takeoffSpeed": 5.574791553882619,
+              "airTime": 0.516666666666666,
+              "pitchError": -0.7781672440853099,
+              "slope": 0.06399707544466139,
+              "normalSpeed": 3.8635563339526713,
+              "bottomSpeed": 2.2382940273899576,
+              "outcome": "bottomed"
+            },
+            "crashes": 0,
+            "finalS": 592.5327045801112
+          },
+          {
+            "fixture": {
+              "vehicle": "mx250",
+              "jump": "SKY TRIPLE",
+              "runUp": 16,
+              "speedOffset": -0.5,
+              "lateral": 0,
+              "heading": 0.6
+            },
+            "landing": {
+              "time": 8.995833333333143,
+              "s": 590.7370360870289,
+              "distance": 2.885336407790793,
+              "takeoffSpeed": 5.034582225096368,
+              "airTime": 0.6083333333333324,
+              "pitchError": -0.9069945295563353,
+              "slope": 0.014567642002873577,
+              "normalSpeed": 4.315908632762659,
+              "bottomSpeed": 2.876610814319532,
+              "outcome": "bottomed"
+            },
+            "crashes": 0,
+            "finalS": 592.3167687960192
+          },
+          {
+            "fixture": {
+              "vehicle": "mx250",
+              "jump": "SKY TRIPLE",
+              "runUp": 16,
+              "speedOffset": -0.5,
+              "lateral": 0,
+              "heading": -0.6
+            },
+            "landing": {
+              "time": 8.958333333333146,
+              "s": 590.8512442058684,
+              "distance": 2.920682436554678,
+              "takeoffSpeed": 5.307143387761588,
+              "airTime": 0.5833333333333325,
+              "pitchError": -0.8741725740504432,
+              "slope": 0.05058965489566687,
+              "normalSpeed": 4.185124166995846,
+              "bottomSpeed": 2.751206075861839,
+              "outcome": "bottomed"
+            },
+            "crashes": 0,
+            "finalS": 592.4144915094378
+          }
+        ]
+      },
+      "scope": "All four mirrored MX250/MX450 physical approaches change from crash-front to a controlled rolling landing without changing nominal clear speed, player controls, brakes or landing tolerance."
+    },
+    {
+      "name": "Stationary drive effort interrupted by traffic",
+      "observation": "Actual traffic brake pauses erased prior drive effort without physical movement, delaying ordinary assistance beyond the original stop limit.",
+      "correction": "Pause while stationary without drive, count only actual drive ticks and require a current drive command to assist after the original four seconds. Actual motion, flight and nonriding state reset effort.",
+      "evidence": "docs/production/motocross-evidence/races/recovery-effort-regression.json",
+      "scope": "Four public Simulation regressions cover interrupted traffic, a continuously brake-held queue, a real external push and an actual manual remount. Shared fallback, player controls and recovery timings are unchanged."
+    }
+  ],
+  "thermalRegression": {
+    "schemaVersion": 1,
+    "scope": "Real Raw braking through natural fall and two seconds of recovery for all three DirtBikeVehicle definitions after concurrent MotoGP R2 integration.",
+    "test": "tests/motocross-thermal.test.ts",
+    "testSha256": "d64af6bfcf516d6048004de2fdc9431820948031722ff1582d054e14bd11db3a",
+    "inputs": {
+      "circuit": "valley-ridge-mx",
+      "startStationMetres": 45,
+      "initialSpeedMetresPerSecond": 28,
+      "physicsHz": 240,
+      "assist": "raw",
+      "brake": 1,
+      "clutchRearBrake": 1,
+      "steer": 1,
+      "throttle": 0
+    },
+    "fabricatedUtilization": false,
+    "forcedCrash": false,
+    "sourceChangedBetweenVariants": [
+      "src/simulation/offroad/dirt-bike-vehicle.ts: thermal-use guard only"
+    ],
+    "fix": "Keep shared full brake-demand telemetry. Feed tyre heating with clamped 0..1.5 use only while riding on the ground; flight and recovery contribute zero use.",
+    "variants": {
+      "before": {
+        "cwd": "/workspace/scratch/ce74d2c3df38/motocross-final-r2-gate/thermal-before",
+        "command": "node /workspace/scratch/ce74d2c3df38/Experiment-3/node_modules/vitest/vitest.mjs run tests/motocross-thermal.test.ts --reporter=default --reporter=json --outputFile=../thermal-before-results.json",
+        "exitCode": 1,
+        "report": {
+          "path": "thermal-before-results.json",
+          "sha256": "adf6d161c16801472ee8d192d06d3e77084ecd962f3983d5bab48dfd9346343c"
+        },
+        "sourceHashes": {
+          "src/simulation/bike.ts": "1fab3d119ab5d7a810b97a64a703d4920176f33d29ba11a328a6187bbab1e3ae",
+          "src/simulation/bike-vehicle.ts": "b9bd9c9ec10367e04f3030ed770dfde9254a68ee5fbf1d2dfaa64058f895302e",
+          "src/simulation/offroad/dirt-bike-vehicle.ts": "e700298e049d7874fd3690eea785b621717ba4dc9dc27a84ebf017815a346742"
+        },
+        "passed": 0,
+        "failed": 3,
+        "cases": [
+          {
+            "name": "'mx250' bounds real Raw braking heat and stops contact heating through recovery",
+            "status": "failed",
+            "durationMs": 150.23530699999992,
+            "measuredPeakCarcassCelsius": 123.86513167120785,
+            "requiredUpperBoundCelsius": 120
+          },
+          {
+            "name": "'mx450' bounds real Raw braking heat and stops contact heating through recovery",
+            "status": "failed",
+            "durationMs": 12.056377999999995,
+            "measuredPeakCarcassCelsius": 125.47600294372147,
+            "requiredUpperBoundCelsius": 120
+          },
+          {
+            "name": "'sm450' bounds real Raw braking heat and stops contact heating through recovery",
+            "status": "failed",
+            "durationMs": 8.86280399999987,
+            "measuredPeakCarcassCelsius": 123.82144820423399,
+            "requiredUpperBoundCelsius": 120
+          }
+        ]
+      },
+      "after": {
+        "cwd": "/workspace/scratch/ce74d2c3df38/motocross-final-r2-gate/thermal-after",
+        "command": "node /workspace/scratch/ce74d2c3df38/Experiment-3/node_modules/vitest/vitest.mjs run tests/motocross-thermal.test.ts --reporter=default --reporter=json --outputFile=../thermal-after-results.json",
+        "exitCode": 0,
+        "report": {
+          "path": "thermal-after-results.json",
+          "sha256": "385d04f42c6c986ab82cecb0b815f324ec60040b3f379bedfb324ce9a4d37574"
+        },
+        "sourceHashes": {
+          "src/simulation/bike.ts": "1fab3d119ab5d7a810b97a64a703d4920176f33d29ba11a328a6187bbab1e3ae",
+          "src/simulation/bike-vehicle.ts": "b9bd9c9ec10367e04f3030ed770dfde9254a68ee5fbf1d2dfaa64058f895302e",
+          "src/simulation/offroad/dirt-bike-vehicle.ts": "976d38947610c2392fde61dad264b20f7137f1d917ebf54d3fb5d168bb99dd56"
+        },
+        "passed": 3,
+        "failed": 0,
+        "cases": [
+          {
+            "name": "'mx250' bounds real Raw braking heat and stops contact heating through recovery",
+            "status": "passed",
+            "durationMs": 301.9416289999999
+          },
+          {
+            "name": "'mx450' bounds real Raw braking heat and stops contact heating through recovery",
+            "status": "passed",
+            "durationMs": 192.21737300000018
+          },
+          {
+            "name": "'sm450' bounds real Raw braking heat and stops contact heating through recovery",
+            "status": "passed",
+            "durationMs": 194.59614499999998
+          }
+        ]
+      }
+    },
+    "limits": [
+      "These are deterministic scripted CPU cases, not measured real tyre temperatures.",
+      "The focused thermal cases cover recovery; flight correctness also depends on the broader riding and jump-calibration gates."
+    ]
+  },
+  "exactDryDiagnostic": {
+    "command": "OFFROAD_RACE=valley-ridge-mx-moto-1 node --experimental-transform-types diagnosed-race.mjs",
+    "instrumentation": "Read-only wrappers observe production Simulation/Bike/DirtBikeVehicle calls and import the unmodified original race script. Inputs, physics, checkpoints and pass criteria are not overridden.",
+    "before": {
+      "report": "docs/production/motocross-evidence/races/r2-before-control-corrections/offroad-races.json",
+      "trace": "dry-r2-before.json.gz",
+      "traceSha256": "ef9bc8eb0273f381358ef93e82a91826efd7ff712676cac9abb2492cc65d0975",
+      "raceSeconds": 397.01,
+      "crashes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        3,
+        2,
+        0
+      ],
+      "retired": [],
+      "longestStopSeconds": 13.59
+    },
+    "after": {
+      "source": "Isolated three-correction candidate; only explanatory source comments were added afterward before live promotion. The final production gate is separate.",
+      "trace": "dry-three-corrections-after.json.gz",
+      "traceSha256": "54ab7137026050227121c9a5c05d526a18c7ce430d0068f74df0ab00713ff8a4",
+      "raceSeconds": 390.28,
+      "crashes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        0,
+        0
+      ],
+      "retired": [],
+      "longestStopSeconds": 9.78
+    }
+  },
+  "fullFocusedCompatibility": {
+    "command": "node node_modules/vitest/vitest.mjs run tests/bike.test.ts tests/bike-session.test.ts tests/motocross-riding.test.ts tests/motocross-ai.test.ts tests/motocross-collision.test.ts tests/motocross-race-control.test.ts tests/motocross-thermal.test.ts",
+    "cwd": "/workspace/scratch/ce74d2c3df38/Experiment-3",
+    "exitCode": 0,
+    "passed": 69,
+    "failed": 0,
+    "files": 7,
+    "report": "docs/production/motocross-evidence/races/recovery-effort/focused-69.json",
+    "reportSha256": "39806cd3e2cb3febde4f808d6034656976b90e747c632a7a40f12ad68bbecf8a"
+  },
+  "limits": [
+    "Seeded scripted CPU evidence; no all-seed guarantee, hardware graphics performance claim or claim of zero crashes.",
+    "The different candidate race trajectories couple traffic, flags and terrain; do not attribute the whole race-count change to one repair.",
+    "The preserved dry diagnostics are intermediate evidence. Final race figures come from the later uninstrumented complete original gate."
+  ],
+  "threeCorrectionSourceHashes": {
+    "src/simulation/offroad/ai.ts": "1841eeada2852a76b1372742d81c583fbc50e50c9ef8b1b8375da78ff484a29b",
+    "src/simulation/offroad/dirt-bike-vehicle.ts": "a0048db1805e3660c81e6a82486dd71684a96b5db911cb2aabd31d1b86178d56"
+  },
+  "precedingFocusedCompatibility": {
+    "command": "node node_modules/vitest/vitest.mjs run tests/bike.test.ts tests/bike-session.test.ts tests/motocross-riding.test.ts tests/motocross-ai.test.ts tests/motocross-collision.test.ts tests/motocross-race-control.test.ts tests/motocross-thermal.test.ts",
+    "cwd": "/workspace/scratch/ce74d2c3df38/Experiment-3",
+    "exitCode": 0,
+    "passed": 65,
+    "failed": 0,
+    "files": 7,
+    "report": "/workspace/scratch/ce74d2c3df38/motocross-final-r2-gate/focused-final-corrections.json",
+    "reportSha256": "a5605c538e34e0d519be095f86bc88658ec488072ed45a8609fc797a8b722fc1"
+  },
+  "fullIntegratedGate": {
+    "path": "docs/production/motocross-evidence/races/final-regression.json",
+    "sha256": "3ed049ab26750489fb57ae5592db45308fdb26075fff3620604d602d79266236",
+    "exitCode": 0,
+    "sourceFingerprintCount": 14,
+    "sourceHashes": {
+      "scripts/offroad-calibration.ts": "a994af9827d5587dd015533290a5725d458b80e2c176ef74915a73de08672718",
+      "scripts/offroad-races.ts": "f117567b26e82941a756e55ec77a1bae5300ad442c72050ca836e6c82ba41420",
+      "src/simulation/offroad/dirt-bike-vehicle.ts": "a0048db1805e3660c81e6a82486dd71684a96b5db911cb2aabd31d1b86178d56",
+      "src/simulation/offroad/ai.ts": "3a5acf6d1ea40d940031aac4d5e4c55da8a0d0e2ea11a2fe77050dd96253be39",
+      "src/simulation/bike-ai.ts": "668a736db9168c9deb64797aa928971788a4c52a07e41b2bbc8bc8c0852c64e6",
+      "src/simulation/collision.ts": "02c8320bc909a556ca19d3b912f8be707db0463b6a23085b141ef652c678613e",
+      "src/simulation/driver-brain.ts": "d851cde01ebb016668daaedfa016bcc77536083b47284c812405ece28754f727",
+      "src/simulation/world.ts": "26500be30f1c8c1a666d6df4fed21ddc9a5f2aec6f29d163d866ab46caba501b",
+      "src/simulation/events.ts": "6231f596497857b0eda19a786b2e1444c6df413505f677b63d4dd7c64b5370e4",
+      "src/simulation/offroad/formats.ts": "8f80f9eacd13cf1a80b727c3ef4ad2ed0cb792a35f4e480b5e5bde6279608c5a",
+      "src/simulation/race.ts": "7f5017105700ff50e474a2a641cd0b4170a485c59be866d793aa280b62c1e952",
+      "src/simulation/bike.ts": "1fab3d119ab5d7a810b97a64a703d4920176f33d29ba11a328a6187bbab1e3ae",
+      "src/simulation/bike-vehicle.ts": "ca4dcfe776caa6ea9fe2578dfa8ef8ea39af8d1afb3fc612810300f037fbecc3",
+      "src/simulation/bike-slipstream.ts": "69249d407d3db7d150934e0479dfc629f27bf4579239231bc2850128dc39c66a"
+    },
+    "jumpCalibrationCases": 20,
+    "standingStartCases": 3,
+    "raceScenarios": 10,
+    "classifiedEntrantStarts": 74,
+    "retirements": 0
+  }
+}

@@ -55,13 +55,19 @@ const ruleset = (
     ...extra,
   });
 export const OFFROAD_RULESETS: Readonly<Record<string, RulesetDefinition>> = Object.freeze({
-  'motocross-moto': ruleset('motocross-moto', 'MOTOCROSS MOTO', ['motocross'], {
-    kind: 'moto',
-    start: 'gate',
-    jumpStartPenalty: 10,
-    motoPoints: MOTO_POINTS,
-    motos: 2,
-  }),
+  'motocross-moto': ruleset(
+    'motocross-moto',
+    'MOTOCROSS MOTO',
+    ['motocross'],
+    {
+      kind: 'moto',
+      start: 'gate',
+      jumpStartPenalty: 10,
+      motoPoints: MOTO_POINTS,
+      motos: 2,
+    },
+    { safetyCar: false },
+  ),
   'supermoto-moto': ruleset('supermoto-moto', 'SUPERMOTO MOTO', ['supermoto'], {
     kind: 'moto',
     start: 'gate',

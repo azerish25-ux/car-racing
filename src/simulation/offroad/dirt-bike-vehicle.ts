@@ -10,13 +10,18 @@ import type { VehicleDefinition } from '../vehicles.ts';
 import { TrackTerrainSurface } from './course-terrain.ts';
 import { offroadCourse } from './venues.ts';
 import type { OffroadBikeSpec } from './types.ts';
+import { LANDING_RULES } from './riding-feedback.ts';
 
 const TAU = Math.PI * 2;
-/** Take-off speed (m/s) below which a flight is a rolling hop. */
-const ROLLING_HOP = 6.5;
 /** How far (m) the rider's body moves fore/aft over the pegs at full lean;
  * on the ground that shifts the system CG (a weight-shift pitch torque). */
 const RIDER_REACH = 0.25;
+/** Deep terrain overlap is a contact-position error, not additional spring
+ * travel. Normal bottoming keeps the calibrated bump stop; a discontinuous
+ * surface step more than 12 cm past full travel is projected to its 15 mm
+ * compliant stop before force integration can turn it into launch energy. */
+const DEEP_CONTACT = 0.12,
+  STOP_COMPLIANCE = 0.015;
 /** Nose-up margin (rad) the pitch aid aims for over the landing slope. */
 const LANDING_NOSE_UP = 0.1;
 /** Where the last flight ended, for the landing licence, snapshot and tests. */
@@ -67,6 +72,9 @@ export class DirtBikeVehicle extends BikeVehicle {
   forceRear = 0;
   /** Rear wheel spin while airborne (rad/s). */
   rearSpin = 0;
+  /** Front wheel spin in flight (rad/s); its brake has a finite nose-down
+   * reaction, so holding the brake after the wheel stops cannot add torque. */
+  frontSpin = 0;
   standing = 0;
   dab = 0;
   /** Rider body position fore/aft, -1 back .. +1 forward. */
@@ -164,6 +172,7 @@ export class DirtBikeVehicle extends BikeVehicle {
     this.airTime = 0;
     this.freeSteps = 0;
     this.rearSpin = this.dynamics.speed / this.bikeSpec.rearWheelRadius;
+    this.frontSpin = this.dynamics.speed / this.bikeSpec.frontWheelRadius;
     this.writeBody(this.lastTrack!, 0);
   }
   private lastTrack: Track | null = null;
@@ -375,10 +384,19 @@ export class DirtBikeVehicle extends BikeVehicle {
     if (ai) {
       pedal = clamp(wanted * 1.2, 0, 1);
       rearBrake = clamp(-wanted * 1.2, 0, 1);
-      this.input.throttle = pedal;
-      this.input.clutch = rearBrake;
+      // Air-pitch corrections belong to this flight step. Touchdown can
+      // occur before the next AI update: writing the shared inputs here
+      // would apply a rear-brake tap as a grounded command on that substep.
+      this.throttle = pedal;
+      this.rearBrake = rearBrake;
     }
-    this.riderBody = approach(this.riderBody, assisted ? clamp(-wanted * 0.9, -1, 1) : 0, dt * 4);
+    // The raw rider braces forward under braking and draws back with drive;
+    // Sport retains the calibrated landing-slope body aid. These are the
+    // existing pedal inputs, so replays and network controls remain identical.
+    const bodyTarget = assisted
+      ? clamp(-wanted * 0.9, -1, 1)
+      : clamp(0.55 * brake + 0.4 * rear - 0.3 * throttle, -0.3, 0.8);
+    this.riderBody = approach(this.riderBody, bodyTarget, dt * 4);
     // Rear wheel: the engine spins it up toward the limiter in this gear;
     // the rear brake stops it. The chassis takes the reaction torque.
     // The engaged ratio through the setup's gearing, as on the ground
@@ -393,13 +411,36 @@ export class DirtBikeVehicle extends BikeVehicle {
     );
     this.rpm = clamp((this.rearSpin * ratio * 30) / Math.PI, spec.idleRPM, spec.limiterRPM);
     const spinTorque = (a.spinInertia * (this.rearSpin - previous)) / dt;
+    const frontCoast = this.frontSpin * Math.exp(-0.4 * dt);
+    this.frontSpin = Math.max(0, frontCoast - (ai ? 0 : brake * a.spinBrake * 0.7 * dt));
+    // Decelerating the front wheel also pitches the machine nose-down. The
+    // player can use the normal brake, including the touch brake, in flight.
+    // AI retains its surveyed rear-brake controller without a second pedal.
+    const frontBrakeTorque = (spec.wheelInertia * (this.frontSpin - frontCoast)) / dt;
     // Forward body (+) pitches the bike nose-down.
     const bodyTorque = -this.riderBody * a.bodyTorque;
-    this.airTorque = spinTorque + bodyTorque;
+    this.airTorque = spinTorque + frontBrakeTorque + bodyTorque;
+    if (!ai) this.airLean(dt);
     d.steer = approach(d.steer, 0, dt * 2);
     d.driveForce = d.frontBrakeForce = d.rearBrakeForce = 0;
     this.longitudinal = 0;
-    void brake;
+  }
+  /** The rider can bank the chassis in flight without steering the ballistic
+   * path. Releasing the stick levels the bike; Sport progressively asks for
+   * level wheels as touchdown approaches. Bounded rate prevents a keyboard
+   * tap from snapping the bike sideways, and no stunt/boost is awarded. */
+  private airLean(dt: number) {
+    const d = this.dynamics,
+      assisted = this.assist === 'sport',
+      settle = assisted ? clamp((this.landingIn - 0.1) / 0.38, 0, 1) : 1,
+      target = clamp(this.input.steer, -1, 1) * (assisted ? 0.36 : 0.52) * settle,
+      wantedRate = clamp((target - d.lean) * 6, -1.8, 1.8);
+    // Reverse the roll response promptly when a key/stick is released. A
+    // slow rate reversal kept adding lean for most of a short tabletop.
+    d.leanRate = approach(d.leanRate, wantedRate, dt * 16);
+    const previous = d.lean;
+    d.lean = clamp(d.lean + d.leanRate * dt, -this.bikeSpec.maxLean, this.bikeSpec.maxLean);
+    if (d.lean === previous && Math.abs(d.lean) >= this.bikeSpec.maxLean) d.leanRate = 0;
   }
   /** A machine whose rider came off in the air (a contact crash): no
    * inputs and no pitch aid; it keeps its flight speed until it lands. */
@@ -414,6 +455,7 @@ export class DirtBikeVehicle extends BikeVehicle {
     d.x += Math.sin(d.heading) * this.flightSpeed * dt;
     d.z += Math.cos(d.heading) * this.flightSpeed * dt;
     this.rearSpin = Math.max(0, this.rearSpin - 2 * dt);
+    this.frontSpin *= Math.exp(-0.4 * dt);
     this.airTorque = 0;
     d.steer = approach(d.steer, 0, dt * 2);
     d.driveForce = d.frontBrakeForce = d.rearBrakeForce = 0;
@@ -576,8 +618,15 @@ export class DirtBikeVehicle extends BikeVehicle {
       cos = Math.cos(this.pitch);
     const freeF = this.cgY + fa * sin - HF * cos,
       freeR = this.cgY - ra * sin - HR * cos;
-    const cF = this.contacts[0].height - freeF,
+    let cF = this.contacts[0].height - freeF,
       cR = this.contacts[2].height - freeR;
+    const penetration = Math.max(cF - spec.forkTravel, cR - spec.shockTravel);
+    if (penetration > DEEP_CONTACT) {
+      const correction = penetration - STOP_COMPLIANCE;
+      this.cgY += correction;
+      cF -= correction;
+      cR -= correction;
+    }
     const vh = this.airborne ? this.flightSpeed : d.speed * Math.cos(this.roadPitch);
     const slope = (i: number) => {
       const n = this.contacts[i].normal,
@@ -666,6 +715,7 @@ export class DirtBikeVehicle extends BikeVehicle {
         d.speed = Math.max(0, along);
         d.pitch = 0;
         this.rearSpin = d.speed / spec.rearWheelRadius;
+        this.frontSpin = d.speed / spec.frontWheelRadius;
         this.bottomPeak = 0;
         this.pendingLanding = {
           time: this.clock,
@@ -679,7 +729,11 @@ export class DirtBikeVehicle extends BikeVehicle {
           bottomSpeed: 0,
           outcome: 'clean',
         };
-        this.settleTime = 0.25;
+        // Publish the touchdown immediately. Its shared record is refined
+        // during settlement, avoiding a one-step stale landing in the HUD,
+        // roost burst and replay camera on the AIRBORNE falling edge.
+        this.lastLanding = this.pendingLanding;
+        this.settleTime = LANDING_RULES.settleSeconds;
       }
     } else if (!contact) {
       // Leaving the ground: both wheels unloaded for a few substeps.
@@ -697,6 +751,7 @@ export class DirtBikeVehicle extends BikeVehicle {
         // wheelie); the core's relative pitch has no say in the air.
         d.pitch = 0;
         this.rearSpin = d.speed / spec.rearWheelRadius;
+        this.frontSpin = d.speed / spec.frontWheelRadius;
         this.predictClock = 0;
       }
     } else {
@@ -720,15 +775,21 @@ export class DirtBikeVehicle extends BikeVehicle {
     // real flights are judged on pitch (and only with a real impact).
     // Skimming whoops and rollers the rider expects the hops: wider limits.
     const course = this.lastTrack ? offroadCourse(this.lastTrack.circuit) : null,
-      tolerance = course?.isRough(r.s) ? 1.5 : 1;
+      tolerance = course?.isRough(r.s) ? LANDING_RULES.roughTolerance : 1;
     // A hop at rolling pace (over a sharp crest, down a backside) is ridden
     // out: pitch decides only a real jump or a hard touchdown.
-    const real = r.takeoffSpeed > ROLLING_HOP;
-    if (r.outcome === 'clean' && r.airTime > 0.12 && real) {
-      if (r.pitchError < -a.noseDownLimit * tolerance && r.normalSpeed > 1.5) {
+    const real = r.takeoffSpeed > LANDING_RULES.rollingHopSpeed;
+    if (r.outcome === 'clean' && r.airTime > LANDING_RULES.minimumAirTime && real) {
+      if (
+        r.pitchError < -a.noseDownLimit * tolerance &&
+        r.normalSpeed > LANDING_RULES.noseDownNormalSpeed
+      ) {
         r.outcome = 'crash-front';
         d.fall('highside');
-      } else if (r.pitchError > a.noseUpLimit * tolerance && r.normalSpeed > 2) {
+      } else if (
+        r.pitchError > a.noseUpLimit * tolerance &&
+        r.normalSpeed > LANDING_RULES.noseUpNormalSpeed
+      ) {
         r.outcome = 'crash-rear';
         d.fall('lowside');
       }
@@ -737,7 +798,7 @@ export class DirtBikeVehicle extends BikeVehicle {
       if (r.bottomSpeed > a.bottomOutSpeed) {
         r.outcome = 'crash-flat';
         d.fall('lowside');
-      } else if (r.bottomSpeed > 0.05 && r.outcome === 'clean') {
+      } else if (r.bottomSpeed > LANDING_RULES.bottomedShaftSpeed && r.outcome === 'clean') {
         r.outcome = 'bottomed';
         // A hard bottom costs speed (the rider absorbs the rest).
         d.speed *= 1 - 0.12 * clamp(r.bottomSpeed / a.bottomOutSpeed, 0, 1);
@@ -785,7 +846,7 @@ export class DirtBikeVehicle extends BikeVehicle {
       const rolling = (riding || d.state === 'remount') && !this.airborne;
       t.omega = this.airborne
         ? front
-          ? t.omega * Math.exp(-0.4 * dt)
+          ? this.frontSpin
           : this.rearSpin
         : rolling
           ? d.speed / t.radius
@@ -801,7 +862,9 @@ export class DirtBikeVehicle extends BikeVehicle {
       t.length = (front ? spec.forkTravel : spec.shockTravel) - t.compression + 0.2;
       t.water = c.water;
       t.surface = c.surface;
-      const use = front ? d.frontUse : d.rearUse;
+      // A locked, unloaded tyre reports force demand, not unlimited heat.
+      // Flight and recovery have no contact work, even if that sample remains.
+      const use = grounded ? clamp(front ? d.frontUse : d.rearUse, 0, 1.5) : 0;
       const work = Math.hypot(t.fx, t.fy) * d.speed;
       t.energy = work * 0.02;
       t.wear = Math.min(1, t.wear + (work * dt) / (COMPOUNDS[t.compound].lifeJ * 10));
@@ -840,7 +903,10 @@ export class DirtBikeVehicle extends BikeVehicle {
     this.contactPoints[1].copy(front);
     this.contactPoints[3].copy(rear);
     this.roadPitch = Math.asin(clamp((front.y - rear.y) / L, -0.6, 0.6));
-    const previousY = b.position.y;
+    // The collision solver may depenetrate body Y between physical steps.
+    // Differentiate our last authoritative pose so that correction cannot
+    // become a false vertical speed fed back into the next contact impulse.
+    const previousY = this.written.position.y;
     if (dt > 0) this.vertical(dt);
     else if (this.cgY === 0 && this.pitch === 0) {
       this.pitch = this.roadPitch;
@@ -911,8 +977,36 @@ export class DirtBikeVehicle extends BikeVehicle {
     }
   }
   override restart(track: Track) {
+    this.planRemount(track);
+    const d = this.dynamics;
+    if (!this.inPit && Math.hypot(this.remount.x - d.x, this.remount.z - d.z) > 3) {
+      // A beached machine is assisted across the feature visibly. An
+      // instantaneous 20–40 m restart can skip a timing gate, leaving the
+      // rider a whole circulation behind despite having reached the exit.
+      // Recovery crosses that ground; no lap progress is manufactured.
+      d.speed = 0;
+      d.state = 'remount';
+      d.stateClock = 0;
+      d.leanRate = 0;
+      this.lastState = 'remount';
+      this.slide = this.yawKick = this.stuckClock = 0;
+      this.pendingLanding = null;
+      this.settle();
+      return;
+    }
     super.restart(track);
     this.settle();
+  }
+  protected override pushToRemount(dt: number) {
+    if (!(dt > 0) || !this.remount.active) return;
+    const d = this.dynamics,
+      distance = Math.hypot(this.remount.x - d.x, this.remount.z - d.z),
+      remaining = Math.max(dt, BIKE_RECOVERY.maxPush - d.stateClock),
+      // Long feature recoveries used to snap their remaining distance when
+      // the five-second remount timeout expired. Spread that assistance
+      // across the same bounded interval so every timing gate is crossed.
+      assistedStep = Math.max(dt, (distance * dt) / (BIKE_RECOVERY.pushSpeed * remaining));
+    super.pushToRemount(assistedStep);
   }
   /** The remount (and marshal restart) point: the road bike's — on the
    * course inside its edge, facing the course — moved past a jump whose face

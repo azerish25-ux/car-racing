@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "scope": "Every listed original PNG from the final sequential renderer checkpoint was individually displayed and reviewed by the release owner. These are component fixtures, not complete motocross playthrough images.",
+  "sourceFilesSha256": "acfc1a799a933ff9c135046aee17daa741366549f7808b8091200accf69f874d",
+  "buildFingerprintSha256": "a5a1575e169f6475439722adeb3ac6ae569bc91b6d604f14e465faf7eccc6de4",
+  "testSource": "e2e/11-phase27c.spec.ts",
+  "testRunSha256": "9f9268dfa2bba5d623c46894b1044e86aea251435ad91280bad67f060d6fe084",
+  "images": [
+    {
+      "file": "crowd-time-0.png",
+      "reviewed": true,
+      "method": "individual-display",
+      "observation": "Twelve figures occupy the stepped fixture with distinct red, green, cream and navy clothing, varied skin tones and hats. Folded and resting arms, shoes and cast shadows are present in the near model.",
+      "sha256": "e499a786a1ddf3d494a8c19f972082cc12dac106f38accfacc5b6b379c5a70d9",
+      "width": 1280,
+      "height": 720
+    },
+    {
+      "file": "crowd-paused.png",
+      "reviewed": true,
+      "method": "individual-display",
+      "observation": "The held frame retains the same people, poses, clothing and shadows as time zero. No missing material or geometry is visible.",
+      "sha256": "e499a786a1ddf3d494a8c19f972082cc12dac106f38accfacc5b6b379c5a70d9",
+      "width": 1280,
+      "height": 720
+    },
+    {
+      "file": "crowd-time-2.png",
+      "reviewed": true,
+      "method": "individual-display",
+      "observation": "The later frame has small pose changes in the seated crowd while the clothing colours, step contact and shadow silhouettes remain coherent.",
+      "sha256": "790914240a5949160c85f639794f1208e66a59440d937ab6ab3a712eee7020d6",
+      "width": 1280,
+      "height": 720
+    },
+    {
+      "file": "crowd-rewind.png",
+      "reviewed": true,
+      "method": "individual-display",
+      "observation": "The rewind restores the original near-crowd pose and shadow arrangement without residual stretched parts or material changes.",
+      "sha256": "e499a786a1ddf3d494a8c19f972082cc12dac106f38accfacc5b6b379c5a70d9",
+      "width": 1280,
+      "height": 720
+    },
+    {
+      "file": "crowd-repeat.png",
+      "reviewed": true,
+      "method": "individual-display",
+      "observation": "The repeated time-zero frame again shows the original twelve figures and their near-model details. The retained image hash also matches the first frame.",
+      "sha256": "e499a786a1ddf3d494a8c19f972082cc12dac106f38accfacc5b6b379c5a70d9",
+      "width": 1280,
+      "height": 720
+    },
+    {
+      "file": "crowd-handoff-52.png",
+      "reviewed": true,
+      "method": "individual-display",
+      "observation": "The controlled near/mid handoff keeps all twelve people on the steps, their colour distribution and recognizable poses. The forced handoff is shown close up, so reduced facial detail is visible.",
+      "sha256": "338e1006266d8cb06729a35931e12b9b3a7aa04a6ccab4fe07c960417e0f0bdd",
+      "width": 1280,
+      "height": 720
+    },
+    {
+      "file": "crowd-handoff-300.png",
+      "reviewed": true,
+      "method": "individual-display",
+      "observation": "The forced far model preserves the twelve-person arrangement and colour silhouettes. Faces and folded-arm geometry are visibly simplified or absent at this artificially close fixture camera; this is a far-LOD compatibility capture, not a near-crowd quality claim.",
+      "sha256": "b18eb0628691ce4f1f09b5505fa20b7e5b59833e908bd6d7ad56f8aabaffba6b",
+      "width": 1280,
+      "height": 720
+    },
+    {
+      "file": "crowd-handoff-52-return.png",
+      "reviewed": true,
+      "method": "individual-display",
+      "observation": "Returning to the near/mid handoff restores the more detailed arms and faces. The arrangement is visually the same as the earlier 52-unit handoff and the retained PNG hash matches it.",
+      "sha256": "338e1006266d8cb06729a35931e12b9b3a7aa04a6ccab4fe07c960417e0f0bdd",
+      "width": 1280,
+      "height": 720
+    }
+  ]
+}

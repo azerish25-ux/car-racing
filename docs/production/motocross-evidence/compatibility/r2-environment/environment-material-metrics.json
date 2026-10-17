@@ -1,0 +1,232 @@
+{
+  "scope": "Production circuit surface components, two bounded Aurel segments, high scanned materials; not a full race",
+  "captures": [
+    {
+      "name": "apex-bike-dry",
+      "hash": 1456878152,
+      "nonzero": 400000,
+      "calls": 16,
+      "triangles": 27840,
+      "resources": {
+        "geometries": 17,
+        "textures": 20,
+        "programs": 6
+      },
+      "rubber": {
+        "mode": "motorcycle",
+        "cachedLayers": 2,
+        "activeMeshes": 6,
+        "treadWidth": 0.18
+      }
+    },
+    {
+      "name": "apex-car-dry",
+      "hash": 1527667693,
+      "nonzero": 400000,
+      "calls": 16,
+      "triangles": 27392,
+      "resources": {
+        "geometries": 17,
+        "textures": 20,
+        "programs": 6
+      },
+      "rubber": {
+        "mode": "car",
+        "cachedLayers": 2,
+        "activeMeshes": 4,
+        "treadWidth": 0.3
+      }
+    },
+    {
+      "name": "apex-bike-held",
+      "hash": 1456878152,
+      "nonzero": 400000,
+      "calls": 16,
+      "triangles": 27840,
+      "resources": {
+        "geometries": 17,
+        "textures": 20,
+        "programs": 6
+      },
+      "rubber": {
+        "mode": "motorcycle",
+        "cachedLayers": 2,
+        "activeMeshes": 6,
+        "treadWidth": 0.18
+      }
+    },
+    {
+      "name": "apex-bike-wet",
+      "hash": 475091431,
+      "nonzero": 400000,
+      "calls": 16,
+      "triangles": 27840,
+      "resources": {
+        "geometries": 17,
+        "textures": 20,
+        "programs": 6
+      },
+      "rubber": {
+        "mode": "motorcycle",
+        "cachedLayers": 2,
+        "activeMeshes": 6,
+        "treadWidth": 0.18
+      }
+    },
+    {
+      "name": "apex-bike-wet-held",
+      "hash": 475091431,
+      "nonzero": 400000,
+      "calls": 16,
+      "triangles": 27840,
+      "resources": {
+        "geometries": 17,
+        "textures": 20,
+        "programs": 6
+      },
+      "rubber": {
+        "mode": "motorcycle",
+        "cachedLayers": 2,
+        "activeMeshes": 6,
+        "treadWidth": 0.18
+      }
+    },
+    {
+      "name": "apex-bike-rewound",
+      "hash": 1456878152,
+      "nonzero": 400000,
+      "calls": 16,
+      "triangles": 27840,
+      "resources": {
+        "geometries": 17,
+        "textures": 20,
+        "programs": 6
+      },
+      "rubber": {
+        "mode": "motorcycle",
+        "cachedLayers": 2,
+        "activeMeshes": 6,
+        "treadWidth": 0.18
+      }
+    },
+    {
+      "name": "kerb-runoff-verge",
+      "hash": 2309978390,
+      "nonzero": 400000,
+      "calls": 15,
+      "triangles": 26480,
+      "resources": {
+        "geometries": 17,
+        "textures": 20,
+        "programs": 6
+      },
+      "rubber": {
+        "mode": "motorcycle",
+        "cachedLayers": 2,
+        "activeMeshes": 6,
+        "treadWidth": 0.18
+      }
+    },
+    {
+      "name": "launch-bike",
+      "hash": 1741214278,
+      "nonzero": 400000,
+      "calls": 14,
+      "triangles": 27936,
+      "resources": {
+        "geometries": 31,
+        "textures": 20,
+        "programs": 6
+      },
+      "rubber": {
+        "mode": "motorcycle",
+        "cachedLayers": 2,
+        "activeMeshes": 6,
+        "treadWidth": 0.18
+      }
+    },
+    {
+      "name": "launch-car",
+      "hash": 1021897926,
+      "nonzero": 400000,
+      "calls": 14,
+      "triangles": 27936,
+      "resources": {
+        "geometries": 31,
+        "textures": 20,
+        "programs": 6
+      },
+      "rubber": {
+        "mode": "car",
+        "cachedLayers": 2,
+        "activeMeshes": 4,
+        "treadWidth": 0.3
+      }
+    },
+    {
+      "name": "launch-bike-restored",
+      "hash": 1741214278,
+      "nonzero": 400000,
+      "calls": 14,
+      "triangles": 27936,
+      "resources": {
+        "geometries": 31,
+        "textures": 20,
+        "programs": 6
+      },
+      "rubber": {
+        "mode": "motorcycle",
+        "cachedLayers": 2,
+        "activeMeshes": 6,
+        "treadWidth": 0.18
+      }
+    }
+  ],
+  "before": {
+    "geometries": 17,
+    "textures": 20,
+    "programs": 6
+  },
+  "after": {
+    "geometries": 31,
+    "textures": 20,
+    "programs": 6
+  },
+  "scanned": {
+    "preset": "high",
+    "enabled": true,
+    "hex": true,
+    "resident": [
+      "asphalt",
+      "concrete",
+      "lawn",
+      "meadow"
+    ],
+    "failed": [],
+    "formats": {
+      "asphalt": {
+        "color": "webp",
+        "normal": "webp",
+        "orm": "webp"
+      },
+      "concrete": {
+        "color": "webp",
+        "normal": "webp",
+        "orm": "webp"
+      },
+      "lawn": {
+        "color": "webp",
+        "normal": "webp",
+        "orm": "webp"
+      },
+      "meadow": {
+        "color": "webp",
+        "normal": "webp",
+        "orm": "webp"
+      }
+    },
+    "materials": 4,
+    "scanned": 4
+  },
+  "glError": 0
+}

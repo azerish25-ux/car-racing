@@ -84,26 +84,27 @@ export class BikeAIDriver extends AIDriver {
     if (!c.pitRequested || c.inPit || entryGap > track.length - 20) this.pitCorridor = false;
     else if (entryGap < pitPreparationDistance(c.speed, c.lateral, track.pit.side * 6))
       this.pitCorridor = true;
-    const line = racingLineFor(track),
-      v = d.speed,
+    const v = d.speed,
       near = clamp(6 + c.speed * 0.48, 8, 46),
       absolute = c.inPit || this.pitCorridor;
-    const tactical = absolute ? 0 : c.aiOffset - line.offsetAt(c.s + near);
+    const tactical = absolute ? 0 : c.aiOffset - this.steeringLineOffset(track, c.s + near);
     const p = track.at(c.s, this.preview);
     const reach = Math.max(1, p.width - 1.4);
-    const target = absolute ? c.aiOffset : clamp(line.offsetAt(c.s) + tactical, -reach, reach);
+    const target = absolute
+      ? c.aiOffset
+      : clamp(this.steeringLineOffset(track, c.s) + tactical, -reach, reach);
     const pathSlope = absolute
       ? c.inPit
         ? (track.pitOffset(c.s + 3) - track.pitOffset(c.s - 3)) / 6
         : 0
-      : (line.offsetAt(c.s + 3) - line.offsetAt(c.s - 3)) / 6;
+      : (this.steeringLineOffset(track, c.s + 3) - this.steeringLineOffset(track, c.s - 3)) / 6;
     const slope = pathSlope / Math.max(0.5, 1 - p.curvature * target);
     const heading = mod(d.heading - Math.atan2(p.tx, p.tz) + Math.PI, Math.PI * 2) - Math.PI;
     const error = target - c.lateral,
       headingError = Math.atan(slope) - heading;
     // Feed-forward: the lane's curvature where the bike will be once it has leaned.
     const ahead = c.s + v * BIKE_AI.preview;
-    const k = absolute ? track.at(ahead, this.ahead).curvature : line.curvatureAt(ahead);
+    const k = absolute ? track.at(ahead, this.ahead).curvature : this.steeringLineCurvature(track, ahead);
     const feedForward = k / Math.max(0.5, 1 - k * (absolute ? target : tactical));
     const w = BIKE_AI.bandwidth;
     // Corrections are gentle: their lateral acceleration is bounded, so a
@@ -114,6 +115,15 @@ export class BikeAIDriver extends AIDriver {
       (BIKE_AI.correctionG * G) / (v * v),
     );
     return leanFromCurvature(c, feedForward + correction, steer);
+  }
+  /** The lane used by the lean tracker. Venue riders can choose a different
+   * path; its slope and feed-forward must agree with the path planner. The
+   * default preserves the road-bike racing line and its solved curvature. */
+  protected steeringLineOffset(track: Track, s: number) {
+    return racingLineFor(track).offsetAt(s);
+  }
+  protected steeringLineCurvature(track: Track, s: number) {
+    return racingLineFor(track).curvatureAt(s);
   }
 }
 /** Bike path-tracking gains: preview (s), bandwidth (rad/s), damping ratio. */

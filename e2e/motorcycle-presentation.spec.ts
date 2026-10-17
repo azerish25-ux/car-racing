@@ -32,7 +32,9 @@ test('motorcycle HUD: responsive production layout, real tyre channels and bike/
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await page.setContent('<!doctype html><title>Motorcycle interface layout verification</title>');
-  await page.addStyleTag({ content: await readFile('src/ui/style.css', 'utf8') });
+  await page.addStyleTag({
+    content: await readFile('src/ui/style.css', 'utf8'),
+  });
   for (const variant of ['normal', 'italic']) {
     const data = await readFile(
       `node_modules/@fontsource-variable/saira/files/saira-latin-wdth-${variant}.woff2`,
@@ -46,9 +48,30 @@ test('motorcycle HUD: responsive production layout, real tyre channels and bike/
   await test.step('each presented motorcycle snapshot updates instruments without repeated calls', async () => {
     const samples = [
       { time: 20, speed: 25, gear: 2, rpm: 6100, lean: 0, displayLean: '0°' },
-      { time: 21, speed: 40, gear: 3, rpm: 8300, lean: 0.4, displayLean: 'L 26°' },
-      { time: 22, speed: 55, gear: 5, rpm: 11200, lean: -0.6, displayLean: 'R 39°' },
-      { time: 23, speed: 65, gear: 6, rpm: 12600, lean: 0.1, displayLean: 'L 7°' },
+      {
+        time: 21,
+        speed: 40,
+        gear: 3,
+        rpm: 8300,
+        lean: 0.4,
+        displayLean: 'L 26°',
+      },
+      {
+        time: 22,
+        speed: 55,
+        gear: 5,
+        rpm: 11200,
+        lean: -0.6,
+        displayLean: 'R 39°',
+      },
+      {
+        time: 23,
+        speed: 65,
+        gear: 6,
+        rpm: 12600,
+        lean: 0.1,
+        displayLean: 'L 7°',
+      },
     ];
     for (const sample of samples) {
       const shown = await page.evaluate((sample) => {
@@ -73,26 +96,33 @@ test('motorcycle HUD: responsive production layout, real tyre channels and bike/
       });
     }
   });
-  await test.step('a machine change restores car panels immediately while car cadence stays at one in three', async () => {
-    const showCar = (speed: number) =>
-      page.evaluate((speed) => {
-        window.MotorcycleHudFixture.showMotorcycleHud('apx01', 'chase', false, {
-          time: 24 + speed,
-          speed,
-          gear: 3,
-        });
-        return {
-          bike: document.getElementById('hud')!.dataset.bike,
-          speed: document.getElementById('speed')!.textContent,
-        };
-      }, speed);
+  await test.step('car panels restore immediately, throttle close samples and refresh sparse snapshots', async () => {
+    const showCar = (time: number, speed: number) =>
+      page.evaluate(
+        ({ time, speed }) => {
+          window.MotorcycleHudFixture.showMotorcycleHud('apx01', 'chase', false, {
+            time,
+            speed,
+            gear: 3,
+          });
+          return {
+            bike: document.getElementById('hud')!.dataset.bike,
+            speed: document.getElementById('speed')!.textContent,
+          };
+        },
+        { time, speed },
+      );
     // The four distinct bike frames above leave the next update outside the
     // normal car refresh slot, so the family transition must bypass it.
-    expect(await showCar(30)).toEqual({ bike: 'false', speed: '108' });
-    expect(await showCar(35)).toEqual({ bike: 'false', speed: '126' });
-    expect(await showCar(36)).toEqual({ bike: 'false', speed: '126' });
-    expect(await showCar(38)).toEqual({ bike: 'false', speed: '126' });
-    expect(await showCar(40)).toEqual({ bike: 'false', speed: '144' });
+    expect(await showCar(24, 30)).toEqual({ bike: 'false', speed: '108' });
+    // Closely spaced presentations retain the one-in-three DOM cadence.
+    // Advancing seconds per sample here would instead represent a slow GPU,
+    // which must not leave older telemetry on screen.
+    expect(await showCar(24.01, 35)).toEqual({ bike: 'false', speed: '108' });
+    expect(await showCar(24.02, 36)).toEqual({ bike: 'false', speed: '108' });
+    expect(await showCar(24.03, 38)).toEqual({ bike: 'false', speed: '137' });
+    expect(await showCar(24.03, 38)).toEqual({ bike: 'false', speed: '137' });
+    expect(await showCar(25, 50)).toEqual({ bike: 'false', speed: '180' });
   });
   const measurements = [];
   for (const viewport of [

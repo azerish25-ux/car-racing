@@ -239,7 +239,7 @@ export class RaceDirector {
       this.cars,
       this.order[0],
       this.control,
-      racing && this.finishStartedAt < 0,
+      racing && this.ruleset.safetyCar !== false && this.finishStartedAt < 0,
     );
     let leaderLaps = 0;
     for (const lap of this.laps) leaderLaps = Math.max(leaderLaps, lap.completed);

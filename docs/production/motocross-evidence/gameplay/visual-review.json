@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "scope": "Root reviewer individually displayed and inspected all eight original final camera-clearance production-journey PNGs. These observations describe the captured views; complete hardware performance and all-venue visual approval are outside this review.",
+  "sourceFilesSha256": "7733bb95ae33dc962eb2e6d07b2d3480dac3276a50753733268a68b22f500d36",
+  "buildFingerprintSha256": "82b5018336f9fb2c9ae1c2fcc7d11d1c3011209ec2e1c8471be5111c033c52e8",
+  "testSource": "e2e/45-motocross-gameplay.spec.ts",
+  "images": [
+    {
+      "file": "valley-ridge-mx-actual-menu.png",
+      "reviewed": true,
+      "observation": "The corrected-build outdoor paddock shows the selected MX450 as a complete bike and rider, with shaped plastics, wheels, frame, engine/radiator details and riding equipment. OUTDOOR MX, the route card, three ride presets and the native ENTER CIRCUIT action are readable. The setup fields remain in their intended scrolling panel above the reserved entry row; the existing paddock background remains visible.",
+      "sha256": "ff7dc728a65b66b062881ba2893410f181afe4f3c07ea0969460c9fea3809de9",
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "file": "valley-ridge-mx-actual-chase.png",
+      "reviewed": true,
+      "observation": "The complete outdoor race presents the articulated rider and MX450, knobby rear tire, seat, frame, contact shadow and dirt surface from the chase camera. Track markers, padded barriers, trees, spectators and two other moving riders remain visible. The replay-camera support visible beyond the inside barrier is outside the riding lane. The single bike HUD, position list, jump guidance and a real track-limits warning are legible without obscuring the immediate front wheel path.",
+      "sha256": "a3234766b75b94f74c619a337b0fa33933e7004eeec861a08fe8be1bb7ee9cb0",
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "file": "valley-ridge-mx-actual-onboard.png",
+      "reviewed": true,
+      "observation": "The actual outdoor onboard view keeps the next bend, dirt surface, course stakes, outer pads and other racers in the central sight corridor. Both gloved hands sit on their real grips; brake levers, cables, bar pad, fork area and the plain reverse of the number plate are visible below the riding line. No helmet or torso blocks the view. The existing local double-yellow warning and single motorcycle HUD remain readable.",
+      "sha256": "7446e3f4e97ddf474cd6b9d936ff5ba22c58f6a0bc4b6eb661b41bad82acf2ce",
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "file": "valley-ridge-mx-actual-pause.png",
+      "reviewed": true,
+      "observation": "The outdoor pause overlay is centered and completely visible over the blurred held race. MOTOCROSS MOTO, Valley Ridge National, live position/lap/track information, Resume, Restart, Garage Settings and Return to Paddock are readable. The five secondary camera/replay/photo/AI/academy actions fit inside the panel and the selected Resume action has a clear keyboard focus border.",
+      "sha256": "e88d42a756e5b98b3dd14cdfee6b3f6cf4c3b60c228375a7b95cffd255996640",
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "file": "arena-nord-sx-actual-menu.png",
+      "reviewed": true,
+      "observation": "The selected Stadium SX paddock presents the MX250 with its two-stroke label and a fully visible bike/rider preview, including expansion exhaust, radiator, spokes, knobby tires, front disc, goggles and jersey. Arena Nord, the indoor route card, three ride presets, native session/weather/grid fields and ENTER CIRCUIT remain legible. The lower controls occupy their intended scroll area above the reserved entry button; the background is the retained menu presentation.",
+      "sha256": "94ecea4032e337199e8be21541ea40d7900f1406a8cd98faea67be73243ac171",
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "file": "arena-nord-sx-actual-chase.png",
+      "reviewed": true,
+      "observation": "The corrected stadium chase view shows the MX250 and standing rider on the triple rhythm section, with the next jump face unobstructed. All visible gray replay-camera posts and bases sit beyond the padded lane boundary; no support crosses this riding corridor. Soil detail, yellow stakes, soft blocks, roof fixtures, seating rows and other racers establish the indoor venue. The jump card, local double-yellow flag and single bike HUD remain visible.",
+      "sha256": "e04d3a8bde7d4e98e092c7f9e60a83ce3ebd593b31f2e8f967d663ddcb3ffc6c",
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "file": "arena-nord-sx-actual-onboard.png",
+      "reviewed": true,
+      "observation": "The actual Arena onboard view exposes the tabletop approach and adjacent separated lane, with the gloved arms, grips, levers, cables, bar pad and reverse number plate below the forward view. The rider's own head and torso are absent from the cockpit sight corridor. The leaned camera, moving opponents, indoor soil and padded course boundaries remain coherent; no replay-camera support appears in the lane. The real +5-second race-control notice, position list, jump guidance and single motorcycle HUD remain readable.",
+      "sha256": "f38b5fea4110a7c7edb4d95b82066907f05e993c5502e4edded5308f9e1510c5",
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "file": "arena-nord-sx-actual-pause.png",
+      "reviewed": true,
+      "observation": "The stadium pause overlay fully fits the viewport and identifies SUPERCROSS MOTO at Arena Nord. Position, lap, tire and dry-track status are readable, with Resume, Restart, Garage Settings and Return to Paddock plus all five secondary actions visible. The keyboard focus border is clear, and the held onboard scene is blurred behind the centered dialog without leaking additional active controls over it.",
+      "sha256": "1cf74068e8882823c3e42afbe2ed6177376c165a61a1c881db92872d30666355",
+      "width": 1280,
+      "height": 800
+    }
+  ]
+}

@@ -97,9 +97,19 @@ export function sessionHeading(
     };
   if (mode === 'qualifying') {
     if (frame[o + F.FINISH] > 0)
-      return { session: 'QUALIFYING', label: 'SESSION', current: 'COMPLETE', total: '' };
+      return {
+        session: 'QUALIFYING',
+        label: 'SESSION',
+        current: 'COMPLETE',
+        total: '',
+      };
     if (!(frame[o + F.LAP_TIME] > 0))
-      return { session: 'QUALIFYING', label: '', current: 'OUT LAP', total: '' };
+      return {
+        session: 'QUALIFYING',
+        label: '',
+        current: 'OUT LAP',
+        total: '',
+      };
     return {
       session: 'QUALIFYING',
       label: 'LAP',
@@ -141,7 +151,14 @@ function banner(
   sub = '',
   persistent = false,
 ): RaceBanner {
-  return { kind, swatch, title, sub, persistent, text: sub ? `${title} · ${sub}` : title };
+  return {
+    kind,
+    swatch,
+    title,
+    sub,
+    persistent,
+    text: sub ? `${title} · ${sub}` : title,
+  };
 }
 /** The race-control message that applies to the player in this frame. */
 export function raceBanner(frame: Float32Array, auto: boolean): RaceBanner {
@@ -295,7 +312,7 @@ function clusterSvg(id: string) {
 <defs><linearGradient id="${id}" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#9cc054"/><stop offset="1" stop-color="#e4f084"/></linearGradient></defs>
 <path class="f1-body" d="${SHAPE}"/>
 <circle class="f1-ticks" cx="${LX}" cy="${CY}" r="43"/><circle class="f1-ticks" cx="${RX}" cy="${CY}" r="43"/>
-${ring('f1-track', LX, ERS_R)}${ring('f1-ers', LX, ERS_R, false, ` stroke="url(#${id})"`)}
+${ring('f1-track f1-energy-track', LX, ERS_R)}${ring('f1-ers', LX, ERS_R, false, ` stroke="url(#${id})"`)}
 ${ring('f1-track f1-thin', RX, RPM_R)}${ring('f1-rpm', RX, RPM_R)}
 ${ring('f1-thr', RX, PEDAL_R, false, '', 0)}${ring('f1-brk', RX, PEDAL_R, true, '', 0)}
 </svg>`;
@@ -557,7 +574,7 @@ export class F1Hud {
       q(`#${id}`).setAttribute('aria-label', `Car ${side}`);
   }
 
-  /** Panel refresh (a third of the presented frames, as the rest of the HUD). */
+  /** Panel refresh on Interface's cadence, using the selected machine's spec. */
   update(s: F1Frame) {
     const { frame } = s,
       o = carBase(0),
@@ -571,10 +588,15 @@ export class F1Hud {
 
     // Cluster arcs and status.
     const clamp = (v: number) => (Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : 0);
-    const spec = vehicleAt(Math.round(frame[o + RACE_BASE + R.VEHICLE])).spec;
+    const machine = vehicleAt(Math.round(frame[o + RACE_BASE + R.VEHICLE])),
+      spec = machine.spec;
     this.dash(
       this.arcs.ers,
-      spec.maxBatteryJ > 0 ? clamp(frame[o + F.BATTERY] / spec.maxBatteryJ) : 0,
+      machine.classId === 'motocross'
+        ? clamp(frame[o + F.FUEL] / machine.bike!.fuel)
+        : spec.maxBatteryJ > 0
+          ? clamp(frame[o + F.BATTERY] / spec.maxBatteryJ)
+          : 0,
     );
     const rpm = frame[o + F.RPM];
     this.dash(this.arcs.rpm, clamp((rpm - spec.idleRPM) / (spec.limiterRPM - spec.idleRPM)));
@@ -689,7 +711,11 @@ export class F1Hud {
         since: time,
       };
     else if (warningsRose)
-      this.event = { title: 'TRACK LIMITS', sub: trackLimitWarning(warnings), since: time };
+      this.event = {
+        title: 'TRACK LIMITS',
+        sub: trackLimitWarning(warnings),
+        since: time,
+      };
     this.warnings = warnings;
     this.penalty = penalty;
     if (this.event && time - this.event.since >= BANNER_SECONDS) this.event = null;

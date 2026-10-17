@@ -7,6 +7,7 @@ import { clamp } from '../core/math.ts';
 import { grassApronOffset } from './ground-profile.ts';
 import { inStandFootprint } from './grandstand.ts';
 import { tracksideRigs } from './trackside.ts';
+import { LightPools } from './studio/light-pools.ts';
 
 export interface VenueLampSite {
   s: number;
@@ -89,6 +90,7 @@ export function venueLightWeight(distance: number, boundary: number) {
 
 export class VenueLighting {
   readonly root = new T.Group();
+  readonly hardware = new T.Group();
   readonly lamps: T.InstancedMesh;
   readonly sites: readonly VenueLampSite[];
   readonly lights: T.PointLight[];
@@ -101,7 +103,7 @@ export class VenueLighting {
   private readonly landmarkSolids: T.Mesh[];
   private readonly sightlineOwners = new WeakSet<BroadcastSightlines>();
   private lampMaterial = new T.MeshBasicMaterial({ color: 0x62666b, toneMapped: false });
-  constructor(track: Track) {
+  constructor(track: Track, roadHardware = true) {
     this.root.name = 'Original floodlit circuit and LED sphere · references 039 079 080 087';
     this.sites = venueLampPlan(track);
     const count = this.sites.length;
@@ -136,7 +138,12 @@ export class VenueLighting {
     poles.computeBoundingSphere();
     this.lamps.computeBoundingSphere();
     this.lights = Array.from({ length: 4 }, () => new T.PointLight(0xd9e8ff, 0, 135, 2));
-    this.root.add(poles, this.lamps, ...this.lights);
+    // These roadside masts are presentation only. MX/SX keep the real light
+    // sources, but their compact adjacent lanes cannot host the road hardware.
+    this.hardware.name = 'Road floodlight mast hardware';
+    this.hardware.visible = roadHardware;
+    this.hardware.add(poles, this.lamps);
+    this.root.add(this.hardware, ...this.lights);
     const landmark = buildVenueLandmark(track);
     this.display = landmark.display;
     this.landmarkSite = landmark.site;
@@ -188,6 +195,7 @@ export class VenueLighting {
   diagnostics() {
     return {
       masts: this.locations.length,
+      visibleMasts: this.hardware.visible ? this.locations.length : 0,
       landmark: {
         ...this.landmarkSite,
         emission: this.display.material.emissiveIntensity,
@@ -198,4 +206,17 @@ export class VenueLighting {
       lightSites: Array.from(this.nearest),
     };
   }
+}
+
+/** The renderer and complete-venue regression share this construction path.
+ * MX/SX retain the same bounded PointLights and analytic floor pools while
+ * their own roof/event dressing supplies visible fixtures. Other venues keep
+ * the existing roadside hardware and illumination unchanged. */
+export function buildVenueLighting(track: Track) {
+  const kind = track.circuit.offroad?.kind;
+  const roadHardware = kind !== 'motocross' && kind !== 'supercross';
+  return {
+    venueLighting: new VenueLighting(track, roadHardware),
+    lightPools: new LightPools(track, roadHardware),
+  };
 }

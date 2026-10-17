@@ -1,0 +1,903 @@
+{
+  "schemaVersion": 4,
+  "title": "Motocross baseline, diagnostic and final integrated race evidence",
+  "baselineCommit": "f91463cf506f6feced1a4db9c43af48ac3632410",
+  "validationScript": {
+    "repositoryPath": "scripts/offroad-races.ts",
+    "baselineAndCurrentSha256": "f117567b26e82941a756e55ec77a1bae5300ad442c72050ca836e6c82ba41420",
+    "unchangedFromExactBaseline": true,
+    "dtSeconds": 0.008333333333333333,
+    "wholeCatalogueReport": "docs/offroad-races.json",
+    "wholeCatalogueStatus": "Final original npm run test:offroad on integrated MotoGP R2/R3 plus motocross control/contact repairs passed all 20 jump calibrations, three standing starts and ten race scenarios. All 74 entrant starts classified; no retirements. Exact frozen hashes and results are in final-regression.json."
+  },
+  "interpretation": [
+    "Entrant arrays use zero-based car IDs in grid-array order. finishTimes are the recorded classified times including penalties, so a penalized time may exceed raceSeconds.",
+    "crashesPerRiderLap is the validator value rounded to three decimals. Its denominator is entrants times scheduled laps, including the baseline runs that failed to complete.",
+    "The validator stop clock excludes entrants already marked inPit, finished, parked, or awaiting their scheduled start. Wet-baseline longestStopSeconds therefore does not measure the hundreds of seconds lost in invalid PIT SERVICE.",
+    "wallSeconds records these CPU test processes, with different diagnostic overhead and concurrent workloads. It is not a graphics frame-rate or hardware-performance comparison.",
+    "The passing runs still contain real crashes and marshal pushes, shown below. These deterministic AI event checks do not establish flawless handling, all-seed success, human lap pace, or console visual parity.",
+    "The fixed wet event includes collision, line-following and continuous-recovery fixes as well as pit eligibility. Its entire crash-count improvement must not be attributed to the pit guard alone.",
+    "The after records are the final uninstrumented whole-gate results after concurrent MotoGP R2/R3 integration and the measured dirt compatibility repairs. Pre-R2 passing figures remain under preR2Integration; earlier pre-caution integration remains under precedingIntegration; isolated diagnostics remain under intermediateAfter. None is substituted for the final result."
+  ],
+  "comparisons": [
+    {
+      "race": "Arena Nord supercross main",
+      "configuration": {
+        "circuit": "arena-nord-sx",
+        "ruleset": "motocross-moto",
+        "laps": 3,
+        "weather": "clear",
+        "seed": 41003,
+        "vehicles": [
+          "mx450",
+          "mx450",
+          "mx450",
+          "mx450",
+          "mx450",
+          "mx450",
+          "mx450",
+          "mx450"
+        ]
+      },
+      "originalLimits": {
+        "simulationSecondsIncludingStartSequence": 600,
+        "maximumCrashesPerRiderScheduledLap": 0.75,
+        "maximumCrashesForOneRider": 2,
+        "longestStopMustBeBelowSeconds": 20,
+        "allEntrantsMustBeClassified": true,
+        "minimumDeformedTerrainCells": 1000,
+        "minimumDeepestRutMeters": 0.01
+      },
+      "before": {
+        "source": {
+          "path": "/workspace/scratch/ce74d2c3df38/sx-baseline/docs/offroad-races.json",
+          "sha256": "791e763b4264493792f8bc5dd47019474b2c353ee7360278d83e72b9ebb7a5b7"
+        },
+        "passed": false,
+        "failures": [
+          "Arena Nord supercross main: did not finish in 600 s",
+          "Arena Nord supercross main: not classified 1, 2, 3, 5",
+          "Arena Nord supercross main: 1.75 crashes per rider per lap (bound 0.75)",
+          "Arena Nord supercross main: one rider crashed 10 times in 3 laps"
+        ],
+        "raceSeconds": 593.89,
+        "wallSeconds": 144.5,
+        "finishTimes": [
+          470.44,
+          0,
+          0,
+          0,
+          523.6,
+          0,
+          552.22,
+          512.5
+        ],
+        "classifiedCount": 4,
+        "unclassifiedIds": [
+          1,
+          2,
+          3,
+          5
+        ],
+        "retiredIds": [],
+        "crashes": [
+          3,
+          3,
+          8,
+          4,
+          4,
+          3,
+          7,
+          10
+        ],
+        "totalCrashes": 42,
+        "crashesPerRiderLap": 1.75,
+        "maximumRiderCrashes": 10,
+        "longestStopSeconds": 13.57,
+        "longestStop": {
+          "car": 7,
+          "s": 477.9,
+          "time": 145.9
+        },
+        "aiMarshalPushes": [
+          5,
+          7,
+          8,
+          10,
+          8,
+          7,
+          4,
+          7
+        ],
+        "holeshotId": 7,
+        "deformedTerrainCells": 35810,
+        "deepestRutMeters": 0.024332191795110703,
+        "run": {
+          "revision": "f91463cf506f6feced1a4db9c43af48ac3632410",
+          "cwd": "/workspace/scratch/ce74d2c3df38/sx-baseline",
+          "command": "OFFROAD_RACE='Arena Nord supercross main' node --experimental-transform-types scripts/offroad-races.ts",
+          "endedBy": "600-second simulation limit; four entrants had no classification"
+        }
+      },
+      "after": {
+        "source": {
+          "path": "docs/offroad-races.json",
+          "sha256": "c8ce1d390670e17f5164909254a8988966f65a6ce6cd4809582ec7922e017bbc",
+          "race": "Arena Nord supercross main"
+        },
+        "passed": true,
+        "failures": [],
+        "raceSeconds": 274.57,
+        "wallSeconds": 65.1,
+        "finishTimes": [
+          273.86,
+          268.27,
+          274.56,
+          252.55,
+          224.79,
+          262.81,
+          261.04,
+          221.74
+        ],
+        "classifiedCount": 8,
+        "unclassifiedIds": [],
+        "retiredIds": [],
+        "crashes": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "totalCrashes": 0,
+        "crashesPerRiderLap": 0,
+        "maximumRiderCrashes": 0,
+        "longestStopSeconds": 10.4,
+        "longestStop": {
+          "car": 3,
+          "s": 165,
+          "time": 99.2
+        },
+        "aiMarshalPushes": [
+          4,
+          6,
+          5,
+          4,
+          2,
+          4,
+          3,
+          2
+        ],
+        "holeshotId": 7,
+        "deformedTerrainCells": 28984,
+        "deepestRutMeters": 0.011558185331523418,
+        "run": {
+          "revision": "Final integrated working tree with preserved MotoGP R2/R3/Festival changes and measured motocross contact/control corrections; see exact simulation/script fingerprints.",
+          "command": "npm run test:offroad",
+          "workingDirectory": "/workspace/scratch/ce74d2c3df38/motocross-final-recovery-gate",
+          "sourceHashes": "docs/production/motocross-evidence/races/final-regression.json",
+          "instrumentation": "Original production scripts with no diagnostic wrapper or modified validation limits.",
+          "endedBy": "All entrants classified"
+        }
+      },
+      "correctedMechanisms": [
+        {
+          "paths": [
+            "src/simulation/collision.ts",
+            "src/simulation/offroad/dirt-bike-vehicle.ts"
+          ],
+          "change": "Keep distant adjacent-lane corner projections anchored to the current corridor; resolve deep terrain penetration as position overlap instead of injecting extreme spring energy. Normal contact and crash thresholds remain in force."
+        },
+        {
+          "paths": [
+            "src/simulation/bike-ai.ts",
+            "src/simulation/offroad/ai.ts"
+          ],
+          "change": "Use the same feature-held path in planning and lean tracking; slow cross-lane rejoining and recognize a beached rider actually asking for drive."
+        },
+        {
+          "paths": [
+            "src/simulation/offroad/dirt-bike-vehicle.ts"
+          ],
+          "change": "Move long feature recoveries continuously within the existing five-second remount interval, so real position samples cross timing gates instead of a final large teleport skipping them."
+        },
+        {
+          "paths": [
+            "src/simulation/events.ts",
+            "src/simulation/offroad/formats.ts",
+            "src/simulation/race.ts"
+          ],
+          "change": "Only motocross-moto opts out of global VSC/safety-car neutralisation. Local yellow/double-yellow warnings, caution speeds and penalties remain active; all omitted settings preserve their legacy road/MotoGP/Supermoto behavior."
+        }
+      ],
+      "intermediateAfter": {
+        "source": {
+          "path": "/workspace/scratch/ce74d2c3df38/sx-debug/continuous-recovery-race.json",
+          "sha256": "e97cc36411826523133db046062c7c349ce55dfd2ecf81a1135cecfe78343ef2"
+        },
+        "passed": true,
+        "failures": [],
+        "raceSeconds": 281.22,
+        "wallSeconds": 129.6,
+        "finishTimes": [
+          254.31,
+          257.78,
+          278.04,
+          221.96,
+          231.44,
+          258.71,
+          281.21,
+          279.77
+        ],
+        "classifiedCount": 8,
+        "unclassifiedIds": [],
+        "retiredIds": [],
+        "crashes": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          2
+        ],
+        "totalCrashes": 4,
+        "crashesPerRiderLap": 0.167,
+        "maximumRiderCrashes": 2,
+        "longestStopSeconds": 18.02,
+        "longestStop": {
+          "car": 1,
+          "s": 114.1,
+          "time": 30.7
+        },
+        "aiMarshalPushes": [
+          4,
+          3,
+          4,
+          4,
+          3,
+          1,
+          3,
+          4
+        ],
+        "holeshotId": 7,
+        "deformedTerrainCells": 27178,
+        "deepestRutMeters": 0.021047573536634445,
+        "run": {
+          "revision": "Integrated working tree over f91463cf506f6feced1a4db9c43af48ac3632410",
+          "cwd": "/workspace/scratch/ce74d2c3df38/sx-debug",
+          "command": "OFFROAD_RACE='Arena Nord supercross main' node --experimental-transform-types diagnosed-race.mjs",
+          "diagnosticWrapper": {
+            "path": "/workspace/scratch/ce74d2c3df38/sx-debug/diagnosed-race.mjs",
+            "sha256": "569b27d1f57282fca86bc682c5dd2f423e19f5f8c93073a6d81f2171ad72b693"
+          },
+          "diagnosticTrace": {
+            "path": "/workspace/scratch/ce74d2c3df38/sx-debug/diagnosed-race-trace.json",
+            "sha256": "0b9711b6432b5bfceb001d941177a60e97654573601b4951798a919587bf4007"
+          },
+          "instrumentation": "The wrapper calls the production Simulation.step unchanged, reads state, then imports the original production scripts/offroad-races.ts. It does not override inputs, collision, physics, gates, or pass criteria.",
+          "endedBy": "All eight entrants classified"
+        }
+      },
+      "precedingIntegration": {
+        "source": {
+          "path": "docs/production/motocross-evidence/races/preceding-integration-offroad-races.json",
+          "sha256": "ae01b7694fb4a60b1f2ef19440e8426772d53b6b9f92e25d91abeeeafcd64a62",
+          "race": "Arena Nord supercross main"
+        },
+        "passed": true,
+        "failures": [],
+        "raceSeconds": 290.71,
+        "wallSeconds": 95.6,
+        "finishTimes": [
+          242.49,
+          274.76,
+          290.71,
+          268.98,
+          245.59,
+          276.91,
+          285.59,
+          244.17
+        ],
+        "classifiedCount": 8,
+        "unclassifiedIds": [],
+        "retiredIds": [],
+        "crashes": [
+          0,
+          1,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0
+        ],
+        "totalCrashes": 2,
+        "crashesPerRiderLap": 0.083,
+        "maximumRiderCrashes": 1,
+        "longestStopSeconds": 18.02,
+        "longestStop": {
+          "car": 1,
+          "s": 114.1,
+          "time": 30.7
+        },
+        "aiMarshalPushes": [
+          5,
+          4,
+          6,
+          3,
+          1,
+          3,
+          4,
+          4
+        ],
+        "holeshotId": 7,
+        "deformedTerrainCells": 28279,
+        "deepestRutMeters": 0.013739673420786858,
+        "run": {
+          "revision": "Preceding integrated working tree over f91463cf506f6feced1a4db9c43af48ac3632410, before the explicit motocross VSC/safety-car opt-out",
+          "command": "npm run test:offroad",
+          "workingDirectory": "/workspace/scratch/ce74d2c3df38/motocross-final-race-gate",
+          "sourceHashes": "docs/production/motocross-evidence/races/preceding-integration-regression.json",
+          "instrumentation": "Original production scripts, no diagnostic wrapper, no modified validation limits.",
+          "endedBy": "All entrants classified"
+        }
+      },
+      "preR2Integration": {
+        "source": {
+          "path": "docs/production/motocross-evidence/races/pre-r2-integration/offroad-races.json",
+          "sha256": "5e86ae9232cd8967d30a2e46bbcecad9d0ca3c2f8412c3fb6f5c5792416fa8c0",
+          "race": "Arena Nord supercross main"
+        },
+        "passed": true,
+        "failures": [],
+        "raceSeconds": 302.33,
+        "wallSeconds": 87.4,
+        "finishTimes": [
+          267.6,
+          302.33,
+          291.29,
+          245.51,
+          250.05,
+          307.82,
+          281.97,
+          273.3
+        ],
+        "classifiedCount": 8,
+        "unclassifiedIds": [],
+        "retiredIds": [],
+        "crashes": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1
+        ],
+        "totalCrashes": 2,
+        "crashesPerRiderLap": 0.083,
+        "maximumRiderCrashes": 1,
+        "longestStopSeconds": 18.02,
+        "longestStop": {
+          "car": 1,
+          "s": 114.1,
+          "time": 30.7
+        },
+        "aiMarshalPushes": [
+          2,
+          6,
+          2,
+          5,
+          7,
+          6,
+          3,
+          5
+        ],
+        "holeshotId": 7,
+        "deformedTerrainCells": 29112,
+        "deepestRutMeters": 0.016256801784038544,
+        "run": {
+          "revision": "Final integrated working tree over f91463cf506f6feced1a4db9c43af48ac3632410, including the explicit motocross VSC/safety-car opt-out",
+          "command": "npm run test:offroad",
+          "workingDirectory": "/workspace/scratch/ce74d2c3df38/motocross-final-rules-gate",
+          "sourceHashes": "docs/production/motocross-evidence/races/pre-r2-integration/final-regression.json",
+          "instrumentation": "Original production scripts, no diagnostic wrapper, no modified validation limits.",
+          "endedBy": "All entrants classified"
+        }
+      }
+    },
+    {
+      "race": "event valley-ridge-mx-moto-2",
+      "configuration": {
+        "circuit": "valley-ridge-mx",
+        "ruleset": "motocross-moto",
+        "laps": 4,
+        "weather": "changeable",
+        "seed": 41002,
+        "vehicles": [
+          "mx450",
+          "mx450",
+          "mx250",
+          "mx450",
+          "mx250",
+          "mx450",
+          "mx250",
+          "mx450",
+          "mx250",
+          "mx450"
+        ]
+      },
+      "originalLimits": {
+        "simulationSecondsIncludingStartSequence": 1200,
+        "maximumCrashesPerRiderScheduledLap": 0.5,
+        "maximumCrashesForOneRider": 2,
+        "longestStopMustBeBelowSeconds": 20,
+        "allEntrantsMustBeClassified": true,
+        "minimumDeformedTerrainCells": 1000,
+        "minimumDeepestRutMeters": 0.01
+      },
+      "before": {
+        "source": {
+          "path": "/workspace/scratch/ce74d2c3df38/motocross-pre-race-fix-reports/offroad-races.json",
+          "sha256": "bcea5f1831eb288094618d513df1a7779eec566c7b69ab49006d367f9da267ac"
+        },
+        "passed": false,
+        "failures": [
+          "event valley-ridge-mx-moto-2: not classified 0, 1, 2, 4, 5, 7"
+        ],
+        "raceSeconds": 836.23,
+        "wallSeconds": 92,
+        "finishTimes": [
+          0,
+          0,
+          0,
+          671.22,
+          0,
+          0,
+          665.9,
+          0,
+          812.02,
+          699.57
+        ],
+        "classifiedCount": 4,
+        "unclassifiedIds": [
+          0,
+          1,
+          2,
+          4,
+          5,
+          7
+        ],
+        "retiredIds": [
+          0,
+          1,
+          2,
+          4,
+          5,
+          7
+        ],
+        "crashes": [
+          1,
+          1,
+          1,
+          1,
+          0,
+          0,
+          2,
+          0,
+          1,
+          1
+        ],
+        "totalCrashes": 8,
+        "crashesPerRiderLap": 0.2,
+        "maximumRiderCrashes": 2,
+        "longestStopSeconds": 13.52,
+        "longestStop": {
+          "car": 0,
+          "s": 785.6,
+          "time": 118.9
+        },
+        "aiMarshalPushes": [
+          1,
+          2,
+          2,
+          6,
+          2,
+          4,
+          0,
+          4,
+          2,
+          5
+        ],
+        "holeshotId": 8,
+        "deformedTerrainCells": 48850,
+        "deepestRutMeters": 0.059682317078113556,
+        "run": {
+          "revision": "Pre-race-fix integrated report, independently reproduced from exact baseline f91463cf506f6feced1a4db9c43af48ac3632410",
+          "cwd": "/workspace/scratch/ce74d2c3df38/Experiment-3",
+          "command": "npm run test:offroad",
+          "preservedReport": "/workspace/scratch/ce74d2c3df38/motocross-pre-race-fix-reports/offroad-races.json",
+          "endedBy": "Existing 180-second finish grace expired with six healthy entrants in PIT SERVICE; not the 1200-second script limit"
+        },
+        "exactBaseReproduction": {
+          "revision": "f91463cf506f6feced1a4db9c43af48ac3632410",
+          "cwd": "/workspace/scratch/ce74d2c3df38",
+          "command": "node --experimental-transform-types wet-valley-trace.mjs /workspace/scratch/ce74d2c3df38/sx-baseline /workspace/scratch/ce74d2c3df38/wet-valley-baseline-trace.json > wet-valley-baseline-trace.log 2>&1",
+          "script": {
+            "path": "/workspace/scratch/ce74d2c3df38/wet-valley-trace.mjs",
+            "sha256": "45768633d3fa5e4393f8e54b55efd6236b0e74f12a17f2f18f1e15a5ebe175d7"
+          },
+          "trace": {
+            "path": "/workspace/scratch/ce74d2c3df38/wet-valley-baseline-trace.json",
+            "sha256": "5fec352bcca5c5b8382fc29511ed54c96806ff7e3326d523c09e872ad8f7240e"
+          },
+          "raceSeconds": 836.227,
+          "finishStartedAtSeconds": 656.22,
+          "finishGraceSeconds": 180,
+          "retiredIds": [
+            0,
+            1,
+            2,
+            4,
+            5,
+            7
+          ],
+          "crashes": [
+            1,
+            1,
+            1,
+            1,
+            0,
+            0,
+            2,
+            0,
+            1,
+            1
+          ],
+          "retirementDecision": "PIT SERVICE",
+          "retainedRepositoryEvidence": "docs/production/motocross-evidence/wet-valley-pit-regression.json"
+        }
+      },
+      "after": {
+        "source": {
+          "path": "docs/offroad-races.json",
+          "sha256": "c8ce1d390670e17f5164909254a8988966f65a6ce6cd4809582ec7922e017bbc",
+          "race": "event valley-ridge-mx-moto-2"
+        },
+        "passed": true,
+        "failures": [],
+        "raceSeconds": 777.94,
+        "wallSeconds": 141.5,
+        "finishTimes": [
+          787.93,
+          733.4,
+          741.12,
+          750.77,
+          766.81,
+          726.01,
+          744.88,
+          725.79,
+          742.86,
+          785.33
+        ],
+        "classifiedCount": 10,
+        "unclassifiedIds": [],
+        "retiredIds": [],
+        "crashes": [
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "totalCrashes": 1,
+        "crashesPerRiderLap": 0.025,
+        "maximumRiderCrashes": 1,
+        "longestStopSeconds": 17.67,
+        "longestStop": {
+          "car": 8,
+          "s": 331.1,
+          "time": 154.5
+        },
+        "aiMarshalPushes": [
+          13,
+          9,
+          12,
+          11,
+          13,
+          11,
+          13,
+          10,
+          10,
+          12
+        ],
+        "holeshotId": 8,
+        "deformedTerrainCells": 63264,
+        "deepestRutMeters": 0.046493370085954666,
+        "run": {
+          "revision": "Final integrated working tree with preserved MotoGP R2/R3/Festival changes and measured motocross contact/control corrections; see exact simulation/script fingerprints.",
+          "command": "npm run test:offroad",
+          "workingDirectory": "/workspace/scratch/ce74d2c3df38/motocross-final-recovery-gate",
+          "sourceHashes": "docs/production/motocross-evidence/races/final-regression.json",
+          "instrumentation": "Original production scripts with no diagnostic wrapper or modified validation limits.",
+          "endedBy": "All entrants classified"
+        }
+      },
+      "correctedMechanisms": [
+        {
+          "paths": [
+            "src/simulation/driver-brain.ts",
+            "src/simulation/world.ts"
+          ],
+          "change": "Honor ruleset.service.pitStops for AI strategy, manual requests, and physical pit-service updates. The moto already forbids in-race pit stops; no format, finish-grace, or tyre-service timing was changed."
+        },
+        {
+          "paths": [
+            "src/simulation/events.ts",
+            "src/simulation/offroad/formats.ts",
+            "src/simulation/race.ts"
+          ],
+          "change": "Only motocross-moto opts out of global VSC/safety-car neutralisation. Local yellow/double-yellow warnings, caution speeds and penalties remain active; all omitted settings preserve their legacy road/MotoGP/Supermoto behavior."
+        }
+      ],
+      "intermediateAfter": {
+        "source": {
+          "path": "/workspace/scratch/ce74d2c3df38/wet-valley-pit-fix-check/docs/offroad-races.json",
+          "sha256": "4d11a68607097bfbe23db1fb8afcdd2c9ae82099350b2143c48e3ad1e87fdbef"
+        },
+        "passed": true,
+        "failures": [],
+        "raceSeconds": 808.45,
+        "wallSeconds": 224.3,
+        "finishTimes": [
+          818.45,
+          712.28,
+          714.32,
+          802.19,
+          800.67,
+          718.33,
+          747.31,
+          654.66,
+          720.18,
+          794.77
+        ],
+        "classifiedCount": 10,
+        "unclassifiedIds": [],
+        "retiredIds": [],
+        "crashes": [
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          2,
+          0,
+          1
+        ],
+        "totalCrashes": 4,
+        "crashesPerRiderLap": 0.1,
+        "maximumRiderCrashes": 2,
+        "longestStopSeconds": 15.17,
+        "longestStop": {
+          "car": 0,
+          "s": 616.3,
+          "time": 110.7
+        },
+        "aiMarshalPushes": [
+          7,
+          10,
+          11,
+          12,
+          13,
+          10,
+          13,
+          10,
+          9,
+          11
+        ],
+        "holeshotId": 8,
+        "deformedTerrainCells": 61534,
+        "deepestRutMeters": 0.05452965199947357,
+        "run": {
+          "revision": "Integrated working tree over f91463cf506f6feced1a4db9c43af48ac3632410",
+          "cwd": "/workspace/scratch/ce74d2c3df38/wet-valley-pit-fix-check",
+          "command": "OFFROAD_RACE=valley-ridge-mx-moto-2 node --experimental-transform-types /workspace/scratch/ce74d2c3df38/Experiment-3/scripts/offroad-races.ts > wet-valley-check.log 2>&1",
+          "sourceState": "Run began after the final continuous marshal-recovery implementation and includes the pit eligibility guards.",
+          "endedBy": "All ten entrants classified"
+        }
+      },
+      "precedingIntegration": {
+        "source": {
+          "path": "docs/production/motocross-evidence/races/preceding-integration-offroad-races.json",
+          "sha256": "ae01b7694fb4a60b1f2ef19440e8426772d53b6b9f92e25d91abeeeafcd64a62",
+          "race": "event valley-ridge-mx-moto-2"
+        },
+        "passed": true,
+        "failures": [],
+        "raceSeconds": 790.89,
+        "wallSeconds": 155.1,
+        "finishTimes": [
+          774.93,
+          712.83,
+          767.17,
+          754.61,
+          795.88,
+          703.63,
+          658.25,
+          698.66,
+          752.62,
+          784.69
+        ],
+        "classifiedCount": 10,
+        "unclassifiedIds": [],
+        "retiredIds": [],
+        "crashes": [
+          0,
+          1,
+          1,
+          0,
+          0,
+          1,
+          0,
+          1,
+          0,
+          0
+        ],
+        "totalCrashes": 4,
+        "crashesPerRiderLap": 0.1,
+        "maximumRiderCrashes": 1,
+        "longestStopSeconds": 13.9,
+        "longestStop": {
+          "car": 1,
+          "s": 331.3,
+          "time": 342.3
+        },
+        "aiMarshalPushes": [
+          13,
+          14,
+          10,
+          8,
+          12,
+          12,
+          12,
+          10,
+          11,
+          7
+        ],
+        "holeshotId": 8,
+        "deformedTerrainCells": 56742,
+        "deepestRutMeters": 0.06387820839881897,
+        "run": {
+          "revision": "Preceding integrated working tree over f91463cf506f6feced1a4db9c43af48ac3632410, before the explicit motocross VSC/safety-car opt-out",
+          "command": "npm run test:offroad",
+          "workingDirectory": "/workspace/scratch/ce74d2c3df38/motocross-final-race-gate",
+          "sourceHashes": "docs/production/motocross-evidence/races/preceding-integration-regression.json",
+          "instrumentation": "Original production scripts, no diagnostic wrapper, no modified validation limits.",
+          "endedBy": "All entrants classified"
+        }
+      },
+      "preR2Integration": {
+        "source": {
+          "path": "docs/production/motocross-evidence/races/pre-r2-integration/offroad-races.json",
+          "sha256": "5e86ae9232cd8967d30a2e46bbcecad9d0ca3c2f8412c3fb6f5c5792416fa8c0",
+          "race": "event valley-ridge-mx-moto-2"
+        },
+        "passed": true,
+        "failures": [],
+        "raceSeconds": 797.17,
+        "wallSeconds": 176.4,
+        "finishTimes": [
+          805.95,
+          724.85,
+          736.32,
+          757.05,
+          807.16,
+          697.48,
+          657.96,
+          698.82,
+          757.68,
+          751.21
+        ],
+        "classifiedCount": 10,
+        "unclassifiedIds": [],
+        "retiredIds": [],
+        "crashes": [
+          1,
+          1,
+          1,
+          0,
+          0,
+          1,
+          0,
+          2,
+          0,
+          0
+        ],
+        "totalCrashes": 6,
+        "crashesPerRiderLap": 0.15,
+        "maximumRiderCrashes": 2,
+        "longestStopSeconds": 13.91,
+        "longestStop": {
+          "car": 5,
+          "s": 785.7,
+          "time": 226.5
+        },
+        "aiMarshalPushes": [
+          9,
+          11,
+          8,
+          14,
+          14,
+          10,
+          12,
+          11,
+          11,
+          12
+        ],
+        "holeshotId": 8,
+        "deformedTerrainCells": 61496,
+        "deepestRutMeters": 0.063724584877491,
+        "run": {
+          "revision": "Final integrated working tree over f91463cf506f6feced1a4db9c43af48ac3632410, including the explicit motocross VSC/safety-car opt-out",
+          "command": "npm run test:offroad",
+          "workingDirectory": "/workspace/scratch/ce74d2c3df38/motocross-final-rules-gate",
+          "sourceHashes": "docs/production/motocross-evidence/races/pre-r2-integration/final-regression.json",
+          "instrumentation": "Original production scripts, no diagnostic wrapper, no modified validation limits.",
+          "endedBy": "All entrants classified"
+        }
+      }
+    }
+  ],
+  "readOnlyIntegrationReview": {
+    "concreteNewRegressionsFound": [],
+    "reviewedPaths": [
+      "src/simulation/collision.ts",
+      "src/simulation/bike-ai.ts",
+      "src/simulation/offroad/ai.ts",
+      "src/simulation/offroad/dirt-bike-vehicle.ts",
+      "src/simulation/offroad/riding-feedback.ts",
+      "src/simulation/driver-brain.ts",
+      "src/simulation/world.ts",
+      "src/simulation/events.ts",
+      "src/simulation/offroad/formats.ts",
+      "src/simulation/race.ts"
+    ],
+    "checks": [
+      "The collision fallback requires both an off-road course and an off-road motorcycle. Other classes use the original branch.",
+      "Road-bike steering hooks default to the same cached racing line and curvature. Player air-roll and front-brake reaction torque are not applied to the AI-controlled rider.",
+      "AI unstick requires riding state; the continuous recovery uses remount state and calls the inherited push once. The two clocks do not trigger duplicate recoveries.",
+      "Pit guards cover distinct request and execution boundaries. The ruleset is immutable for each Simulation, while permitted practice and road sessions retain service.",
+      "Base BikeVehicle recovery, LapTracker, built-in event configurations and both original validation scripts remain unchanged. RaceDirector now adds the explicit ruleset eligibility check; only motocross-moto opts out, while local marshal behavior is retained.",
+      "The committed-landing exception requires the same locked clear plan and actual survey, a qualifying flight and a nonnegative age within the existing settle interval; rolling and beached recovery retain their prior branch.",
+      "The final heading guard aborts only a genuinely lowered target before the face on the same nearby locked clear, retaining a locked roll to prevent immediate recommitment. Triggering-tick steering/braking remains unchanged.",
+      "The dirt body writer differentiates its last authoritative pose, excluding collision position correction from the reported vertical speed. Actual no-collision jump calibration is byte-identical before and after this derivative repair, and place/remount resets are covered.",
+      "MotoGP R2 ABS and full-force utilization remain intact. Dirt heating bounds real grounded utilization and ignores stale flight/recovery work. The R3 slipstream helper is retained for BikeVehicle while DirtBikeVehicle keeps its existing full step/drag override.",
+      "Stationary AI drive effort pauses across genuine traffic brake commands rather than resetting without movement. Four production cases require four accumulated drive seconds and a current drive command to assist, retain a continuously brake-held queue and reset on real movement or actual remount. The shared fallback and recovery timings are unchanged."
+    ],
+    "focusedRegressionSources": [
+      "tests/motocross-collision.test.ts",
+      "tests/motocross-ai.test.ts",
+      "tests/motocross-riding.test.ts",
+      "tests/pit-session-eligibility.test.ts",
+      "tests/motocross-race-control.test.ts"
+    ],
+    "scope": "Historical source review extended by the final frozen integration review. The seven owned physics test files pass 69 tests after the R2/R3 merge and narrow repairs. Original whole-catalogue results are independently recorded above; renderer and full-app verification are separate."
+  },
+  "r2Compatibility": {
+    "evidence": "docs/production/motocross-evidence/races/r2-control-regression.json",
+    "scope": "The initial R2 integration surfaced real thermal, landing-control and collision-feedback defects. Production witnesses and untouched whole-race gates substantiate the narrow dirt repairs; retained MotoGP ABS/force utilization is not reverted."
+  }
+}
