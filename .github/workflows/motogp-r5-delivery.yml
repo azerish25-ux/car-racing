@@ -53,6 +53,38 @@ jobs:
           git apply --check --index "$EVIDENCE/r5.patch"
           git apply --index "$EVIDENCE/r5.patch"
           git diff --cached --name-only > "$EVIDENCE/patched-paths.txt"
+      - name: Preserve asset provenance and candidate source for mismatch diagnosis
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$EVIDENCE/source" "$EVIDENCE/baseline" "$EVIDENCE/native"
+          git show HEAD:src/rendering/human-kit.json > "$EVIDENCE/baseline/human-kit.json"
+          git show HEAD:src/rendering/assets/gp-bodywork.mesh.json > "$EVIDENCE/baseline/gp-bodywork.mesh.json"
+          while IFS= read -r path; do
+            if test -f "$path"; then
+              mkdir -p "$EVIDENCE/source/$(dirname "$path")"
+              cp "$path" "$EVIDENCE/source/$path"
+            fi
+          done < "$EVIDENCE/patched-paths.txt"
+          echo '=== EXACT R5 ASSET VERIFIER ==='
+          cat tools/motogp/verify_r5_assets.py
+          echo '=== PATCHED PATHS ==='
+          cat "$EVIDENCE/patched-paths.txt"
+          echo '=== HUMAN AUTHORING INPUT/OUTPUT CONTRACT ==='
+          cat scripts/author-humans.ts
+          echo '=== BASELINE METADATA ==='
+          python - <<'PY'
+          import json, pathlib, hashlib, os
+          root=pathlib.Path(os.environ['EVIDENCE'])/'baseline'
+          for path in sorted(root.glob('*.json')):
+              raw=path.read_bytes(); data=json.loads(raw)
+              print(path.name, 'bytes',len(raw),'sha256',hashlib.sha256(raw).hexdigest())
+              print('keys',list(data))
+              print('metadata', {k:v for k,v in data.items() if k not in ('meshes','high','mid','upperHigh','upperMid')})
+              for name, mesh in data.get('meshes',{}).items():
+                  payload=json.dumps(mesh,sort_keys=True,separators=(',',':')).encode()
+                  print(name,hashlib.sha256(payload).hexdigest(),mesh.get('vertices'),mesh.get('triangles'))
+          PY
       - name: Install the locked development dependencies
         run: npm ci --no-audit --no-fund
       - name: Install checksum-pinned Blender and Mesa libraries
@@ -76,7 +108,21 @@ jobs:
           cp "$RUNNER_TEMP/r5-bodywork/motobound-gp-bodywork.blend" authoring/motogp/motobound-gp-bodywork.blend
           cp "$RUNNER_TEMP/r5-bodywork/motobound-gp-bodywork.glb" authoring/motogp/motobound-gp-bodywork.glb
           cp "$RUNNER_TEMP/r5-bodywork/gp-bodywork-stats.json" tools/motogp/gp-bodywork-stats.json
+          cp "$RUNNER_TEMP/r5-bodywork/"* "$EVIDENCE/native/"
           node --experimental-transform-types scripts/author-humans.ts spectator 2>&1 | tee "$EVIDENCE/spectator-bake.log"
+          cp src/rendering/human-kit.json "$EVIDENCE/native/human-kit.json"
+          python - <<'PY'
+          import json, pathlib, hashlib, os
+          root=pathlib.Path(os.environ['EVIDENCE'])
+          before=json.loads((root/'baseline/human-kit.json').read_bytes())
+          after=json.loads((root/'native/human-kit.json').read_bytes())
+          print('=== GENERATED HUMAN KIT COMPARISON ===')
+          print('metadata', {k:v for k,v in after.items() if k!='meshes'})
+          print('changedMeshes',[k for k,v in after['meshes'].items() if before['meshes'].get(k)!=v])
+          for name, mesh in after['meshes'].items():
+              payload=json.dumps(mesh,sort_keys=True,separators=(',',':')).encode()
+              print(name,hashlib.sha256(payload).hexdigest(),mesh.get('vertices'),mesh.get('triangles'))
+          PY
           python tools/motogp/verify_r5_assets.py --report "$EVIDENCE/asset-verification.json"
           python tools/motogp/build_r5_reference_audit.py 2>&1 | tee "$EVIDENCE/reference-audit.log"
           git add -- authoring/motogp/motobound-gp-bodywork.blend authoring/motogp/motobound-gp-bodywork.glb src/rendering/assets/gp-bodywork.mesh.json src/rendering/human-kit.json docs/motogp-reference-r5.json docs/MOTOGP_R5_REFERENCE_REVIEW.md tools/motogp/gp-bodywork-stats.json
@@ -124,8 +170,6 @@ jobs:
           if unstaged: raise RuntimeError(f'Tracked inputs changed after staging: {unstaged}')
           subprocess.run(['git','diff','--cached','--check'],check=True)
           PY
-          mkdir -p "$EVIDENCE/native"
-          cp authoring/motogp/motobound-gp-bodywork.blend authoring/motogp/motobound-gp-bodywork.glb "$EVIDENCE/native/"
           cp docs/MOTOGP_R5_REFERENCE_REVIEW.md docs/motogp-reference-r5.json "$EVIDENCE/"
           git diff --cached --binary > "$EVIDENCE/accepted-r5.patch"
       - name: Promote once only when main still equals this tested staging commit
@@ -146,8 +190,6 @@ jobs:
           printf '%s\n' "$sha" > "$EVIDENCE/promoted-commit.txt"
           echo "sha=$sha" >> "$GITHUB_OUTPUT"
           echo "Validated R5 source promoted on main: $sha" >> "$GITHUB_STEP_SUMMARY"
-          # GITHUB_TOKEN pushes do not recursively trigger ordinary push workflows.
-          # Dispatch the existing FULL release pipeline; do not publish this candidate build.
           gh workflow run ci.yml --ref main
       - name: Preserve exact validation results and failed-stage evidence
         if: always()
