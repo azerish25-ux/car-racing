@@ -1,0 +1,94 @@
+name: Solvane R2 entry and integration validation
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/solvane-r2-finish.yml
+      - .github/solvane-r2-reviewed-browser.mjs
+      - .github/solvane-r2-entry-contract.test.ts
+permissions:
+  contents: read
+  actions: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      R2_OUT: /tmp/solvane-r2-finish
+      APEX_BROWSER_BACKEND: mesa
+      LIBGL_ALWAYS_SOFTWARE: 'true'
+      GALLIUM_DRIVER: llvmpipe
+      HORIZON_REVIEW_URL: http://127.0.0.1:5174
+      HORIZON_REVIEW_PORT: '5174'
+      HORIZON_REVIEW_OUTPUT: /tmp/solvane-r2-finish/browser
+      HORIZON_REVIEW_IDENTITY: /tmp/solvane-r2-finish/source-identity.json
+      SOLVANE_R2_CANDIDATE: '1'
+      SOLVANE_R2_VIEW: pace
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - run: npm ci --no-audit --no-fund
+      - uses: actions/download-artifact@v4
+        with:
+          artifact-ids: '12111288449'
+          run-id: '39060789251'
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/prepared
+          merge-multiple: true
+      - name: Verify candidate bytes and current source before applying the saved upgrade
+        run: |
+          set -euo pipefail
+          mkdir -p "$R2_OUT"
+          node - <<'JS'
+          const fs=require('fs'),path=require('path'),crypto=require('crypto'),cp=require('child_process');
+          const hash=b=>crypto.createHash('sha256').update(b).digest('hex');
+          const blob=b=>crypto.createHash('sha1').update(`blob ${b.length}\0`).update(b).digest('hex');
+          const found=[];
+          function walk(p){for(const d of fs.readdirSync(p,{withFileTypes:true})){const f=path.join(p,d.name);if(d.isDirectory())walk(f);else if(d.isFile()&&d.name==='candidate-manifest.json')found.push(f);}}
+          walk(path.join(process.env.RUNNER_TEMP,'prepared'));
+          if(found.length!==1)throw Error('Ambiguous candidate');
+          const bytes=fs.readFileSync(found[0]);
+          if(hash(bytes)!=='c531b6cbda53ecf040fb57c3a5b78547ab54f53d3cabafc5ace4095ef1ff6758')throw Error('Manifest changed');
+          const m=JSON.parse(bytes),archive=path.join(path.dirname(found[0]),'candidate-files.tar.gz');
+          if(hash(fs.readFileSync(archive))!==m.archiveSHA256||m.files.length!==20)throw Error('Candidate changed');
+          const names=cp.execFileSync('tar',['-tzf',archive],{encoding:'utf8'}).trim().split('\n').sort();
+          if(JSON.stringify(names)!==JSON.stringify(m.files.map(f=>f.path).sort())||names.some(n=>n.includes('..')||n.startsWith('/')))throw Error('Invalid candidate paths');
+          for(const f of m.files){if(f.baseBlob===null?fs.existsSync(f.path):!fs.existsSync(f.path)||blob(fs.readFileSync(f.path))!==f.baseBlob)throw Error('Concurrent source change: '+f.path);}
+          cp.execFileSync('tar',['-xzf',archive]);
+          for(const f of m.files)if(hash(fs.readFileSync(f.path))!==f.sha256)throw Error('Hydration mismatch: '+f.path);
+          fs.copyFileSync('.github/solvane-r2-reviewed-browser.mjs','scripts/solvane-r2-browser-review.mjs');
+          fs.copyFileSync('.github/solvane-r2-entry-contract.test.ts','tests/solvane-r2-entry-contract.test.ts');
+          fs.writeFileSync(process.env.R2_OUT+'/candidate-manifest.json',bytes);
+          JS
+          node .github/solvane-r2-candidate.cjs identity
+      - name: Regression contracts and production build without changing source
+        run: |
+          set -euo pipefail
+          node --experimental-transform-types scripts/source-stability.ts -- npx vitest run tests/solvane-r2-entry-contract.test.ts tests/solvane-pace-coach-r2.test.ts tests/solvane-street-kit-r2.test.ts tests/solvane-contact-shadows-r2.test.ts tests/solvane-detail-kit.test.ts tests/solvane-driving-detail.test.ts tests/solvane-asset-loading.test.ts tests/festival-presentation.test.ts tests/festival-effects-integration.test.ts tests/festival-skill-chain.test.ts tests/festival-car-switch.test.ts tests/festival-ground-height.test.ts --reporter=json --outputFile="$R2_OUT/tests.json" 2>&1 | tee "$R2_OUT/tests.log"
+          node --experimental-transform-types scripts/source-stability.ts -- npm run lint 2>&1 | tee "$R2_OUT/lint.log"
+          node --experimental-transform-types scripts/source-stability.ts -- npm run validate:content 2>&1 | tee "$R2_OUT/content.log"
+          node --experimental-transform-types scripts/source-stability.ts -- npm run build 2>&1 | tee "$R2_OUT/build.log"
+          cp dist/BUILD_IDENTITY.json "$R2_OUT/BUILD_IDENTITY.json"
+      - run: npx playwright install --with-deps chromium
+      - run: sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb
+      - name: Real race-card pace lifecycle and keyboard drive-through drift entry
+        run: |
+          set -euo pipefail
+          node scripts/solvane-review-server.mjs > "$R2_OUT/server.log" 2>&1 & server=$!
+          trap 'kill "$server" 2>/dev/null || true' EXIT
+          for i in $(seq 1 60); do curl -fsS "$HORIZON_REVIEW_URL/e2e/fixtures/horizon-session.html" >/dev/null && break; sleep 1; done
+          curl -fsS "$HORIZON_REVIEW_URL/e2e/fixtures/horizon-session.html" >/dev/null
+          xvfb-run -a -s '-screen 0 1920x1080x24' node --experimental-transform-types scripts/solvane-r2-browser-review.mjs
+          printf '{"passed":true,"runtimePromoted":false}\n' > "$R2_OUT/finish-result.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: solvane-r2-entry-integration
+          path: /tmp/solvane-r2-finish/
+          if-no-files-found: error
+          retention-days: 14
