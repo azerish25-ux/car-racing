@@ -52,7 +52,7 @@ jobs:
                       target=Path(name);target.parent.mkdir(parents=True,exist_ok=True);target.write_text(item['content'])
                   if 'sha256' in item: assert hashlib.sha256(Path(name).read_bytes()).hexdigest()==item['sha256']
               for name,expected in payload.get('allSourceSha256',{}).items(): assert hashlib.sha256(Path(name).read_bytes()).hexdigest()==expected,name
-          name='tests/solvane-finial-mount.test.ts';assert not Path(name).exists();Path(name).write_bytes(blob('38f037eb6c8bf4e5854df2b394d27892c6eb565e'));paths[name]=None
+          name='tests/solvane-finial-mount.test.ts';assert not Path(name).exists();Path(name).write_bytes(blob('86018ed5aaaf08522288a80db1e64b8e5dbfd2c4'));paths[name]=None
           Path(os.environ['RUNNER_TEMP'],'code-paths.json').write_text(json.dumps(paths))
           print('Verified',len(paths),'final source files; no branch updated')
           PY
