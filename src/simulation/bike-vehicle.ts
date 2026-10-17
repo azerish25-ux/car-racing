@@ -1,3 +1,4 @@
+import { gpBrakeEfficiency } from './gp-brake-fade.ts';
 import { approach, clamp, G, lerp, mod, Quat, Vec3 } from '../core/math.ts';
 import { BIKE_STATES, Bike, EXPERT, NOVICE, type BikeAssists } from './bike.ts';
 import {
@@ -317,12 +318,21 @@ export class BikeVehicle extends Vehicle {
       this.contactCrash = false;
       d.fall(Math.abs(this.slide) > 6 || d.speed > 45 ? 'highside' : 'lowside');
     }
+    // Previously integrated disc heat is deterministic under pause/replay.
+    // Only the two GP prototypes gain a bounded, recoverable high-heat fade.
+    const gpPrototype = this.definition.id === 'gpr1' || this.definition.id === 'gpr2';
+    const frontBrakeGain = gpPrototype
+      ? gpBrakeEfficiency((this.tires[0].discTemp + this.tires[1].discTemp) * 0.5)
+      : 1;
+    const rearBrakeGain = gpPrototype
+      ? gpBrakeEfficiency((this.tires[2].discTemp + this.tires[3].discTemp) * 0.5)
+      : 1;
     d.step(
       {
         lean: this.input.steer,
         throttle,
-        frontBrake: brake,
-        rearBrake: rear,
+        frontBrake: brake * frontBrakeGain,
+        rearBrake: rear * rearBrakeGain,
         rider: hang,
         drive: force,
       },

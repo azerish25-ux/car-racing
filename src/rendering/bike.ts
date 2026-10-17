@@ -3,6 +3,7 @@ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.j
 import { batchBikeRigidMeshes } from './bike-rigid-batch.ts';
 import { addGPIdentity } from './bike-livery.ts';
 import { gpBodywork, gpUpperCowl } from './gp-bodywork.ts';
+import { gpRadialBrakeCaliper } from './gp-radial-caliper.ts';
 import { gpCoolingLouvers } from './gp-cooling-louvers.ts';
 import { GPChainDrive } from './gp-chain-drive.ts';
 import { bikeSurfaceMaps } from './bike-surface-detail.ts';
@@ -983,42 +984,50 @@ export class BikeModel {
         FORK_OFFSET,
       );
       if (detail !== 'far') {
-        // Radial monobloc caliper straddling the disc behind the axle.
-        const caliper = add(
-          this.forkLower,
-          detail === 'high'
-            ? new RoundedBoxGeometry(0.04, 0.12, 0.055, 2, 0.01)
-            : new T.BoxGeometry(0.04, 0.12, 0.055),
-          m.caliper,
-          side * 0.066,
-          -0.02,
-          FORK_OFFSET - 0.135,
-        );
-        caliper.rotation.x = 0.35;
-        if (detail === 'high') {
-          for (const y of [-0.049, 0.031])
+        if (detail === 'high' && (authored || definition.id === 'gpr2')) {
+          // The four-piston forged monobloc moves with the fork lower; the
+          // carbon rotor remains free to spin inside its open jaw.
+          const caliper = gpRadialBrakeCaliper(side as -1 | 1, m);
+          caliper.position.set(side * 0.066, -0.02, FORK_OFFSET - 0.135);
+          this.forkLower.add(caliper);
+        } else {
+          // Radial monobloc caliper straddling the disc behind the axle.
+          const caliper = add(
+            this.forkLower,
+            detail === 'high'
+              ? new RoundedBoxGeometry(0.04, 0.12, 0.055, 2, 0.01)
+              : new T.BoxGeometry(0.04, 0.12, 0.055),
+            m.caliper,
+            side * 0.066,
+            -0.02,
+            FORK_OFFSET - 0.135,
+          );
+          caliper.rotation.x = 0.35;
+          if (detail === 'high') {
+            for (const y of [-0.049, 0.031])
+              add(
+                this.forkLower,
+                new T.CylinderGeometry(0.008, 0.008, 0.004, 10),
+                m.forkLower,
+                side * 0.087,
+                y,
+                FORK_OFFSET - 0.134,
+              ).rotation.z = Math.PI / 2;
             add(
               this.forkLower,
-              new T.CylinderGeometry(0.008, 0.008, 0.004, 10),
-              m.forkLower,
-              side * 0.087,
-              y,
-              FORK_OFFSET - 0.134,
-            ).rotation.z = Math.PI / 2;
-          add(
-            this.forkLower,
-            tube(
-              [
-                [side * 0.071, 0.035, FORK_OFFSET - 0.13],
-                [side * 0.125, 0.11, FORK_OFFSET - 0.11],
-                [side * 0.132, 0.23, FORK_OFFSET - 0.035],
-              ],
-              0.0026,
-              12,
-              5,
-            ),
-            m.dark,
-          );
+              tube(
+                [
+                  [side * 0.071, 0.035, FORK_OFFSET - 0.13],
+                  [side * 0.125, 0.11, FORK_OFFSET - 0.11],
+                  [side * 0.132, 0.23, FORK_OFFSET - 0.035],
+                ],
+                0.0026,
+                12,
+                5,
+              ),
+              m.dark,
+            );
+          }
         }
       }
     }
