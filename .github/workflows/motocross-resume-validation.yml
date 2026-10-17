@@ -1,0 +1,225 @@
+name: Motocross integrated candidate validation
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [.github/workflows/motocross-resume-validation.yml]
+permissions:
+  contents: read
+concurrency:
+  group: motocross-resume-validation
+  cancel-in-progress: false
+jobs:
+  prepare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    permissions:
+      contents: write
+    env:
+      MX_OUT: ${{ runner.temp }}/mx-integrated
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - uses: actions/download-artifact@v4
+        with:
+          name: motocross-authored-candidate
+          run-id: 39053725842
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/mx-prior
+      - name: Authenticate retained source, preserve current main, merge independent rider changes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$MX_OUT"
+          node --input-type=module <<'JS'
+          import * as fs from 'node:fs';
+          import path from 'node:path';
+          import { createHash } from 'node:crypto';
+          import { brotliDecompressSync } from 'node:zlib';
+          import { execFileSync, spawnSync } from 'node:child_process';
+          const out=process.env.MX_OUT, prior=`${process.env.RUNNER_TEMP}/mx-prior`;
+          const hash=b=>createHash('sha256').update(b).digest('hex');
+          const blob=b=>createHash('sha1').update(`blob ${b.length}\0`).update(b).digest('hex');
+          const git=(...a)=>execFileSync('git',a,{encoding:'utf8'}).trim();
+          const save=(name,obj)=>fs.writeFileSync(`${out}/${name}`,JSON.stringify(obj,null,2)+'\n');
+          const safe=p=>typeof p==='string'&&/^(src|tests|e2e|authoring\/motocross|docs\/production)\/[\w./-]+$/.test(p)&&!p.includes('..');
+          async function api(url){const r=await fetch(`https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}/${url}`,{headers:{Authorization:`Bearer ${process.env.GH_TOKEN}`,Accept:'application/vnd.github+json'}});if(!r.ok)throw Error(`GitHub ${r.status}: ${url}`);return r.json()}
+          async function readBlob(sha){const j=await api(`git/blobs/${sha}`);if(j.encoding!=='base64')throw Error('Unexpected blob encoding');const b=Buffer.from(j.content,'base64');if(blob(b)!==sha)throw Error('Blob integrity');return b}
+          const current=p=>{try{return git('rev-parse','--verify',`HEAD:${p}`)}catch{return null}};
+          if(git('status','--porcelain'))throw Error('Dirty source checkout');
+          if(hash(fs.readFileSync(`${prior}/source-changes.tar.gz`))!=='6183f3b009b3b9a8f595ad0eaea0ad585069cac627502244203223cdd4fdb8cc')throw Error('Retained source archive identity');
+          if(hash(fs.readFileSync(`${prior}/candidate-manifest.json`))!=='a4c26fbfdd02c6bf694132465d0f60c74602411ad21b778f41d926a92ae23d7c')throw Error('Retained manifest identity');
+          const m=JSON.parse(fs.readFileSync(`${prior}/candidate-manifest.json`));
+          if(m.baseCommit!=='24eb0340057018adbe35e14dd69a71ce3929a0d3'||m.files.length!==21)throw Error('Unexpected retained candidate');
+          const rider='src/rendering/rider.ts', base={};
+          const oldRider=await readBlob('7e0ec9d999898b7fe72cc7608413b5d7b5970027');
+          const gpRider=fs.readFileSync(rider);
+          if(blob(gpRider)!=='424ccbdca54b52d0d4c0fc4193c6fb2414ce0da9')throw Error('New concurrent rider revision requires review');
+          for(const f of m.files){if(!safe(f.path))throw Error('Unsafe retained path');base[f.path]=current(f.path);if(f.path!==rider&&base[f.path]!==f.before)throw Error(`Concurrent change: ${f.path}`)}
+          const delta=await api(`compare/5b31aef72d14f4bd35e567f126aac0a0bc327d9f...${process.env.GITHUB_SHA}`);
+          if(delta.files.length>=300)throw Error('Baseline delta truncated');
+          const baseline=delta.files.map(f=>({path:f.filename,removed:f.status==='removed',blob:f.status==='removed'?null:current(f.filename)}));
+          const existing=baseline.filter(f=>!f.removed).map(f=>f.path);
+          if(existing.length)execFileSync('git',['archive','--format=tar.gz',`--output=${out}/baseline-delta.tar.gz`,'HEAD','--',...existing]);
+          save('baseline-delta.json',{commit:process.env.GITHUB_SHA,sourceBase:'5b31aef72d14f4bd35e567f126aac0a0bc327d9f',files:baseline});
+          execFileSync('tar',['-xzf',`${prior}/source-changes.tar.gz`,'--',...m.files.map(f=>f.path)]);
+          for(const f of m.files){const b=fs.readFileSync(f.path);if(hash(b)!==f.sha256||blob(b)!==f.blob)throw Error(`Retained bytes: ${f.path}`)}
+          const mxRider=fs.readFileSync(rider,'utf8');
+          const mxImport="import { mxAuthoredGeometry } from './offroad/authored-kit.ts';\n";
+          if(mxRider.split(mxImport).length!==2)throw Error('Unexpected MX import');
+          fs.writeFileSync(`${out}/rider-current.ts`,gpRider);fs.writeFileSync(`${out}/rider-base.ts`,oldRider);
+          fs.writeFileSync(`${out}/rider-mx.ts`,mxRider.replace(mxImport,''));
+          const merge=spawnSync('git',['merge-file','-p',`${out}/rider-current.ts`,`${out}/rider-base.ts`,`${out}/rider-mx.ts`],{encoding:'utf8'});
+          if(merge.status!==0)throw Error('Rider merge conflict; never discard either implementation');
+          const anchor="import { sampleProfile } from './profile-sampling.ts';\n";
+          if(merge.stdout.split(anchor).length!==2||!merge.stdout.includes('installGpLeatherFinish'))throw Error('Road-rider preservation failure');
+          fs.writeFileSync(rider,merge.stdout.replace(anchor,anchor+mxImport));
+          fs.writeFileSync(`${out}/rider-integrated.ts`,fs.readFileSync(rider));
+          const packed=Buffer.concat(await Promise.all(['e2297adb16881ddb6b3cad83c8be0e33fa71c2fd','dcff4059c98943920552c498815b91b13ac774d7'].map(readBlob)));
+          if(packed.length!==25013||blob(packed)!=='220f80ec8c975a12497d9040b2e8733978fc23dd')throw Error('Corrective transfer identity');
+          const bytes=brotliDecompressSync(packed,{maxOutputLength:100000});
+          if(bytes.length!==95106||hash(bytes)!=='6180ef113d6b78724fdaa89d531794f4da7ae6283a7d6442244aaaeb74655598')throw Error('Corrective source identity');
+          const p=JSON.parse(bytes);
+          if(p.schema!==1||p.candidateArtifact!==12108258383||p.files.length!==10)throw Error('Corrective schema');
+          for(const f of p.files){
+            if(!safe(f.path)||f.path===rider||blob(Buffer.from(f.text))!==f.blob)throw Error('Unsafe correction');
+            const before=fs.existsSync(f.path)?blob(fs.readFileSync(f.path)):null;
+            if(before!==f.before)throw Error(`Corrective input differs: ${f.path}`);
+            if(!(f.path in base))base[f.path]=current(f.path);
+            fs.mkdirSync(path.dirname(f.path),{recursive:true});fs.writeFileSync(f.path,f.text);
+          }
+          git('add','--',...Object.keys(base));
+          if(git('diff','--cached','--name-only').split('\n').length!==Object.keys(base).length)throw Error('Candidate path-set mismatch');
+          save('base-inputs.json',base);
+          fs.writeFileSync(`${out}/integrated.patch`,execFileSync('git',['diff','--cached','--binary','--full-index']));
+          console.log('Preserved current main; merged road and MX rider paths; hydrated',Object.keys(base).length,'candidate files.');
+          JS
+      - name: Install unchanged locked tools
+        run: npm ci --no-audit --no-fund
+      - name: Original lint, content, focused contracts and production build
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --experimental-transform-types scripts/source-stability.ts -- bash -c 'npm run lint && npm run validate:content && npx vitest run tests/motocross-authored-kit.test.ts tests/motocross-rhythm-coach.test.ts tests/motocross-reference-review.test.ts tests/motocross-shoulder-recovery.test.ts tests/motocross-hud.test.ts tests/normal-residency.test.ts tests/texture-loader-lifecycle.test.ts tests/gp-r5-materials.test.ts tests/gp-engine-braking.test.ts && npm run build' 2>&1 | tee "$MX_OUT/prepare.log"
+      - name: Preserve exact integrated candidate without moving a branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'JS'
+          import * as fs from 'node:fs';import {createHash} from 'node:crypto';import {execFileSync} from 'node:child_process';
+          const out=process.env.MX_OUT,base=JSON.parse(fs.readFileSync(`${out}/base-inputs.json`));
+          const files=[];
+          for(const [path,before]of Object.entries(base)){
+            const b=fs.readFileSync(path),sha=createHash('sha1').update(`blob ${b.length}\0`).update(b).digest('hex');
+            const r=await fetch(`https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}/git/blobs`,{method:'POST',headers:{Authorization:`Bearer ${process.env.GH_TOKEN}`,Accept:'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify({encoding:'base64',content:b.toString('base64')})});
+            if(!r.ok||(await r.json()).sha!==sha)throw Error(`Candidate upload identity: ${path}`);
+            files.push({path,before,blob:sha,sha256:createHash('sha256').update(b).digest('hex'),bytes:b.length});
+          }
+          execFileSync('tar',['-czf',`${out}/candidate-files.tar.gz`,'--',...files.map(f=>f.path)]);
+          const archiveSHA256=createHash('sha256').update(fs.readFileSync(`${out}/candidate-files.tar.gz`)).digest('hex');
+          fs.writeFileSync(`${out}/candidate-manifest.json`,JSON.stringify({baseCommit:process.env.GITHUB_SHA,files,archiveSHA256,notReleaseApproval:true},null,2)+'\n');
+          JS
+          git diff --exit-code
+          mkdir -p "$RUNNER_TEMP/mx-integrated-web"
+          tar -czf "$RUNNER_TEMP/mx-integrated-web/dist.tar.gz" dist
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: motocross-integrated-candidate
+          path: ${{ env.MX_OUT }}/
+          retention-days: 14
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: motocross-integrated-web
+          path: ${{ runner.temp }}/mx-integrated-web/
+          compression-level: 0
+          retention-days: 7
+          if-no-files-found: error
+  qa:
+    needs: prepare
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: [models-interface, world, journey, units, scenarios]
+    env:
+      APEX_BROWSER_BACKEND: mesa
+      LIBGL_ALWAYS_SOFTWARE: 'true'
+      GALLIUM_DRIVER: llvmpipe
+      LP_NUM_THREADS: '4'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - uses: actions/download-artifact@v4
+        with:
+          name: motocross-integrated-candidate
+          path: ${{ runner.temp }}/mx-integrated
+      - name: Authenticate and restore the tested candidate only
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/mx-qa"
+          python - <<'PY'
+          import pathlib,json,os,hashlib,subprocess
+          p=pathlib.Path(os.environ['RUNNER_TEMP'])/'mx-integrated'
+          m=json.loads((p/'candidate-manifest.json').read_text())
+          assert m['baseCommit']==os.environ['GITHUB_SHA']
+          assert hashlib.sha256((p/'candidate-files.tar.gz').read_bytes()).hexdigest()==m['archiveSHA256']
+          subprocess.run(['tar','-xzf',str(p/'candidate-files.tar.gz')],check=True)
+          for f in m['files']: assert hashlib.sha256(pathlib.Path(f['path']).read_bytes()).hexdigest()==f['sha256'],f['path']
+          subprocess.run(['git','add','--',*[f['path'] for f in m['files']]],check=True)
+          PY
+          npm ci --no-audit --no-fund
+      - uses: actions/download-artifact@v4
+        if: matrix.suite != 'units' && matrix.suite != 'scenarios'
+        with:
+          name: motocross-integrated-web
+          path: ${{ runner.temp }}/mx-integrated-web
+      - name: Install original browser and Mesa
+        if: matrix.suite != 'units' && matrix.suite != 'scenarios'
+        run: |
+          tar -xzf "$RUNNER_TEMP/mx-integrated-web/dist.tar.gz"
+          npx playwright install --with-deps chromium
+          sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb
+      - name: Unchanged original acceptance assertions
+        shell: bash
+        run: |
+          set -euo pipefail
+          suite='${{ matrix.suite }}'
+          case "$suite" in
+            models-interface) command=(xvfb-run -a -s '-screen 0 1920x1080x24' npx playwright test e2e/42-motocross-bike.spec.ts e2e/44-motocross-interface.spec.ts e2e/46-motocross-normal-residency.spec.ts --config playwright.motocross.config.ts);;
+            world) command=(xvfb-run -a -s '-screen 0 1920x1080x24' npx playwright test e2e/43-motocross-world.spec.ts --config playwright.motocross.config.ts);;
+            journey) command=(xvfb-run -a -s '-screen 0 1920x1080x24' npx playwright test e2e/45-motocross-gameplay.spec.ts --config playwright.motocross.config.ts);;
+            units) command=(node --experimental-transform-types scripts/source-stability.ts -- npm test);;
+            scenarios) command=(npm run test:offroad)
+              cp docs/offroad-calibration.json "$RUNNER_TEMP/mx-qa/before-calibration.json"
+              cp docs/offroad-races.json "$RUNNER_TEMP/mx-qa/before-races.json"
+              trap 'cp docs/offroad-calibration.json "$RUNNER_TEMP/mx-qa/offroad-calibration.json"; cp docs/offroad-races.json "$RUNNER_TEMP/mx-qa/offroad-races.json"; cp "$RUNNER_TEMP/mx-qa/before-calibration.json" docs/offroad-calibration.json; cp "$RUNNER_TEMP/mx-qa/before-races.json" docs/offroad-races.json' EXIT;;
+            *) exit 2;;
+          esac
+          if "${command[@]}" 2>&1 | tee "$RUNNER_TEMP/mx-qa/$suite.log"; then echo 0 > "$RUNNER_TEMP/mx-qa/exit.txt"; else code=$?; echo "$code" > "$RUNNER_TEMP/mx-qa/exit.txt"; exit "$code"; fi
+      - name: Verify candidate source stability
+        run: git diff --exit-code
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: motocross-integrated-qa-${{ matrix.suite }}
+          path: |
+            ${{ runner.temp }}/mx-qa/
+            test-results/motocross/
+          retention-days: 14
+          if-no-files-found: error
