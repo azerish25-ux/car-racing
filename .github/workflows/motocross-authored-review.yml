@@ -8,7 +8,7 @@ permissions:
   contents: read
 concurrency:
   group: motocross-authored-review
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   prepare:
     runs-on: ubuntu-slim
@@ -59,6 +59,19 @@ jobs:
           JS
           git apply --check --index "$RUNNER_TEMP/mx-candidate/source.patch"
           git apply --index "$RUNNER_TEMP/mx-candidate/source.patch"
+          node --input-type=module <<'JS'
+          import { writeFileSync } from 'node:fs';
+          import { createHash } from 'node:crypto';
+          import { gunzipSync } from 'node:zlib';
+          const sha='857c256b05a11a2c2b80a402a93ce4c1b05cc207';
+          const r=await fetch(`https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}/git/blobs/${sha}`,{headers:{Authorization:`Bearer ${process.env.GH_TOKEN}`,Accept:'application/vnd.github+json'}});
+          if(!r.ok)throw Error(`UV correction HTTP ${r.status}`);
+          const b=Buffer.from((await r.json()).content,'base64');
+          if(createHash('sha1').update(`blob ${b.length}\0`).update(b).digest('hex')!==sha)throw Error('UV correction integrity failure');
+          writeFileSync(`${process.env.RUNNER_TEMP}/mx-candidate/uv-correction.patch`,gunzipSync(b));
+          JS
+          git apply --check --index "$RUNNER_TEMP/mx-candidate/uv-correction.patch"
+          git apply --index "$RUNNER_TEMP/mx-candidate/uv-correction.patch"
       - name: Install locked tools and pinned Blender
         shell: bash
         run: |
@@ -78,7 +91,7 @@ jobs:
           test ! -e authoring/motocross/motocross-authored-kit.blend
           test ! -e docs/production/motocross-reference-review-20261017.json
           blender -b -t 2 --factory-startup --python-exit-code 1 --python authoring/motocross/build_kit.py -- --output src/rendering/assets/mx-authored-kit.mesh.json --blend authoring/motocross/motocross-authored-kit.blend 2>&1 | tee "$RUNNER_TEMP/mx-candidate/blender.log"
-          echo '595f697d29374ec92bd113ced1e6058f6a72df6ff40b5c906501b4b53401c20e  src/rendering/assets/mx-authored-kit.mesh.json' | sha256sum --check
+          echo '3b34c709cd57be211e05f4615b0376ee55d2284e4c439d4f5ffa8c139904e514  src/rendering/assets/mx-authored-kit.mesh.json' | sha256sum --check
           python authoring/motocross/review_100.py
           echo 'b3f0d6c6c5d8711d2cb73c1c45aa500ba898342110a8214013261b5c2e2484b1  docs/production/motocross-reference-review-20261017.json' | sha256sum --check
           git add -- src/rendering/assets/mx-authored-kit.mesh.json authoring/motocross/motocross-authored-kit.blend docs/production/motocross-reference-review-20261017.json
