@@ -1,0 +1,145 @@
+name: Solvane authored detail review
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/solvane-review-stage.yml']
+permissions:
+  contents: read
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    permissions:
+      contents: write
+    env:
+      APEX_BROWSER_BACKEND: mesa
+      LIBGL_ALWAYS_SOFTWARE: 'true'
+      GALLIUM_DRIVER: llvmpipe
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Preserve the exact pre-upgrade source
+        run: |
+          mkdir -p "$RUNNER_TEMP/baseline" "$RUNNER_TEMP/evidence"
+          git archive HEAD | tar -x -C "$RUNNER_TEMP/baseline"
+          git rev-parse HEAD > "$RUNNER_TEMP/evidence/base-commit.txt"
+      - name: Apply only the reviewed, integrity-checked candidate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import os, json, base64, lzma, hashlib, urllib.request, subprocess
+          from pathlib import Path, PurePosixPath
+          shas=['59fe9616e88cd43cff277b82162648ded726a13b','c142ef366b943cf20d941e8cc51d06d4367d8adb','58939a68bdf9e981c791a0f2021abdae444ad9d4']
+          encoded=b''
+          for sha in shas:
+              req=urllib.request.Request('https://api.github.com/repos/'+os.environ['GITHUB_REPOSITORY']+'/git/blobs/'+sha,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
+              with urllib.request.urlopen(req,timeout=60) as response: obj=json.load(response)
+              data=base64.b64decode(obj['content'])
+              assert hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()==sha
+              encoded+=data
+          compressed=base64.b64decode(encoded,validate=True)
+          assert hashlib.sha256(compressed).hexdigest()=='b226b26af1b3b981aa4406ddeb67a87df65b1e474deab907c898dbfb28da2654'
+          payload=json.loads(lzma.decompress(compressed))
+          for name,item in payload['files'].items():
+              p=PurePosixPath(name)
+              assert not p.is_absolute() and '..' not in p.parts and p.parts[0] in ('src','scripts','e2e','tests','authoring')
+              target=Path(name)
+              if item['before']:
+                  assert subprocess.check_output(['git','hash-object',name],text=True).strip()==item['before'], 'Concurrent edit requires reconciliation: '+name
+                  subprocess.run(['git','apply','--check','-'],input=item['patch'],text=True,check=True)
+              else: assert not target.exists(), 'New path already exists: '+name
+          for name,item in payload['files'].items():
+              if item['before']: subprocess.run(['git','apply','-'],input=item['patch'],text=True,check=True)
+              else:
+                  target=Path(name);target.parent.mkdir(parents=True,exist_ok=True);target.write_text(item['content'])
+          Path(os.environ['RUNNER_TEMP'],'code-paths.json').write_text(json.dumps({p:v['before'] for p,v in payload['files'].items()}))
+          print('Verified and applied',len(payload['files']),'reviewed source files; branch unchanged')
+          PY
+      - name: Install locked tools and pinned Blender
+        run: |
+          npm ci --no-audit --no-fund
+          curl --fail --location --retry 3 https://download.blender.org/release/Blender5.2/blender-5.2.2-linux-x64.tar.xz -o "$RUNNER_TEMP/blender.tar.xz"
+          echo "84098912789dc450e95697c4184fb8a90acbe5111c2ba4aede3fecb57806a168  $RUNNER_TEMP/blender.tar.xz" | sha256sum -c -
+          mkdir "$RUNNER_TEMP/blender"
+          tar -xJf "$RUNNER_TEMP/blender.tar.xz" -C "$RUNNER_TEMP/blender" --strip-components=1
+      - name: Author native source and verify its independent re-export
+        run: |
+          "$RUNNER_TEMP/blender/blender" -b -t 2 --factory-startup --python-exit-code 1 --python authoring/solvane/build_detail_kit.py -- --output-root "$PWD" --render > "$RUNNER_TEMP/evidence/blender-author.log" 2>&1
+          "$RUNNER_TEMP/blender/blender" -b -t 2 --factory-startup --python-exit-code 1 --python authoring/solvane/build_detail_kit.py -- --source "$PWD/authoring/solvane/detail-kit.blend" --output-root "$RUNNER_TEMP/reopened" > "$RUNNER_TEMP/evidence/blender-reopen.log" 2>&1
+          cmp public/models/solvane/detail-kit.glb "$RUNNER_TEMP/reopened/public/models/solvane/detail-kit.glb"
+      - name: Type, lint, content, focused regressions, driving journeys and production build
+        run: |
+          npx tsc --noEmit
+          npm run lint > "$RUNNER_TEMP/evidence/lint.log" 2>&1
+          npm run validate:content > "$RUNNER_TEMP/evidence/content.log" 2>&1
+          npx vitest run tests/solvane-detail-kit.test.ts tests/solvane-driving-detail.test.ts tests/solvane-street-light-pools.test.ts tests/festival-skill-chain.test.ts > "$RUNNER_TEMP/evidence/focused-tests.log" 2>&1
+          node --experimental-transform-types scripts/horizon-gameplay-validation.ts > "$RUNNER_TEMP/evidence/driving-journeys.log" 2>&1
+          npm run build > "$RUNNER_TEMP/evidence/build.log" 2>&1
+          cp dist/BUILD_IDENTITY.json "$RUNNER_TEMP/evidence/BUILD_IDENTITY.json"
+      - name: Install the explicit Mesa browser backend
+        run: |
+          npx playwright install --with-deps chromium
+          sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb
+      - name: Start exact baseline and candidate development fixtures
+        run: |
+          ln -s "$PWD/node_modules" "$RUNNER_TEMP/baseline/node_modules"
+          cp e2e/fixtures/horizon-session.ts "$RUNNER_TEMP/baseline/e2e/fixtures/horizon-session.ts"
+          npm run dev -- --host 127.0.0.1 > "$RUNNER_TEMP/evidence/candidate-server.log" 2>&1 &
+          (cd "$RUNNER_TEMP/baseline" && "$GITHUB_WORKSPACE/node_modules/.bin/vite" --host 127.0.0.1 --port 5174 > "$RUNNER_TEMP/evidence/baseline-server.log" 2>&1) &
+          for i in $(seq 1 30); do curl -fsS http://127.0.0.1:5173/ >/dev/null && curl -fsS http://127.0.0.1:5174/ >/dev/null && break; sleep 1; done
+      - name: Actual baseline game compositions
+        env:
+          HORIZON_REVIEW_URL: http://127.0.0.1:5174
+          HORIZON_REVIEW_OUTPUT: test-results/solvane-baseline
+          SOLVANE_CANDIDATE: '0'
+        run: xvfb-run -a -s '-screen 0 1920x1080x24' node --experimental-transform-types scripts/solvane-browser-review.mjs > "$RUNNER_TEMP/evidence/baseline-browser.log" 2>&1
+      - name: Actual upgraded game compositions and asset assertions
+        env:
+          HORIZON_REVIEW_URL: http://127.0.0.1:5173
+          HORIZON_REVIEW_OUTPUT: test-results/solvane-candidate
+          SOLVANE_CANDIDATE: '1'
+        run: xvfb-run -a -s '-screen 0 1920x1080x24' node --experimental-transform-types scripts/solvane-browser-review.mjs > "$RUNNER_TEMP/evidence/candidate-browser.log" 2>&1
+      - name: Real keyboard, garage, map, race, results and disposal journey
+        env:
+          HORIZON_REVIEW_URL: http://127.0.0.1:5173
+          HORIZON_REVIEW_OUTPUT: test-results/solvane-journey
+          HORIZON_REVIEW_QUALITY: low
+        run: xvfb-run -a -s '-screen 0 1920x1080x24' node --experimental-transform-types scripts/horizon-browser-review.mjs > "$RUNNER_TEMP/evidence/input-browser.log" 2>&1
+      - name: Retain verified immutable Git objects without moving a branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import os,json,base64,hashlib,urllib.request,shutil
+          from pathlib import Path
+          root=Path.cwd(); evidence=Path(os.environ['RUNNER_TEMP'],'evidence'); paths=json.loads(Path(os.environ['RUNNER_TEMP'],'code-paths.json').read_text())
+          for p in ['authoring/solvane/detail-kit.blend','public/models/solvane/detail-kit.glb','public/models/solvane/detail-kit.manifest.json']:
+              paths[p]=None
+          for p in Path('docs/production/solvane-blender-evidence').glob('*.png'): paths[str(p)]=None
+          entries=[]
+          for name,before in paths.items():
+              data=(root/name).read_bytes(); expected=hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()
+              req=urllib.request.Request('https://api.github.com/repos/'+os.environ['GITHUB_REPOSITORY']+'/git/blobs',data=json.dumps({'content':base64.b64encode(data).decode(),'encoding':'base64'}).encode(),headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json'},method='POST')
+              with urllib.request.urlopen(req,timeout=90) as response: result=json.load(response)
+              assert result['sha']==expected
+              entries.append({'path':name,'mode':'100644','type':'blob','sha':expected,'before':before,'bytes':len(data),'sha256':hashlib.sha256(data).hexdigest()})
+              target=evidence/'source'/name;target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(data)
+          receipt={'sourceCommit':os.environ['GITHUB_SHA'],'branchUpdated':False,'roundtripIdentical':True,'entries':entries,'buildIdentity':json.loads((evidence/'BUILD_IDENTITY.json').read_text()),'browserBackend':'Mesa llvmpipe software; not a hardware performance acceptance'}
+          (evidence/'authoring-receipt.json').write_text(json.dumps(receipt,indent=2)+'\n')
+          print(json.dumps(receipt,indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: solvane-authored-review
+          path: |
+            ${{ runner.temp }}/evidence/
+            test-results/solvane-*/
+          retention-days: 14
+          if-no-files-found: error
