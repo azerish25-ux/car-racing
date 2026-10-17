@@ -1,0 +1,162 @@
+# Temporary source transfer and acceptance. Removes itself only after validation.
+name: MotoGP R5 guarded delivery
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/motogp-r5-delivery.yml
+      - .github/motogp-r5-transfer/**
+permissions:
+  contents: write
+  actions: write
+concurrency:
+  group: motogp-r5-guarded-delivery
+  cancel-in-progress: false
+jobs:
+  validate-and-integrate:
+    if: github.repository == 'cheshmakzanoon-ops/Experiment-3' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      EVIDENCE: ${{ runner.temp }}/motogp-r5-evidence
+      APEX_BROWSER_BACKEND: mesa
+      LIBGL_ALWAYS_SOFTWARE: 'true'
+      GALLIUM_DRIVER: llvmpipe
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+          cache: npm
+      - name: Decode and verify the narrow source patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$EVIDENCE"
+          node --input-type=module <<'JS'
+          import { readFileSync, writeFileSync } from 'node:fs';
+          import { createHash } from 'node:crypto';
+          import { brotliDecompressSync } from 'node:zlib';
+          const packed = Buffer.concat(Array.from({length:6},(_,i)=>readFileSync(`.github/motogp-r5-transfer/part-${i+1}.br`)));
+          const patch = brotliDecompressSync(packed);
+          const sha = createHash('sha256').update(patch).digest('hex');
+          if (patch.length !== 113846 || sha !== 'bcec2a979400774f9419fe769d050dc4dcb1e773815677b73cb500deb5a0061f') throw Error('Source patch integrity failure');
+          writeFileSync(`${process.env.EVIDENCE}/r5.patch`, patch);
+          writeFileSync(`${process.env.EVIDENCE}/staging-commit.txt`, process.env.GITHUB_SHA+'\n');
+          console.log('Verified source patch',patch.length,sha);
+          JS
+          git apply --check --index "$EVIDENCE/r5.patch"
+          git apply --index "$EVIDENCE/r5.patch"
+          git diff --cached --name-only > "$EVIDENCE/patched-paths.txt"
+      - name: Install the locked development dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Install checksum-pinned Blender and Mesa libraries
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y libgl1 libxrender1 libxi6 libxfixes3 libxkbcommon0 libsm6 libice6 libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb
+          cd "$RUNNER_TEMP"
+          curl --fail --location --retry 3 --max-time 240 -o blender-r5.tar.xz https://download.blender.org/release/Blender5.2/blender-5.2.2-linux-x64.tar.xz
+          echo '84098912789dc450e95697c4184fb8a90acbe5111c2ba4aede3fecb57806a168  blender-r5.tar.xz' | sha256sum --check
+          tar -xf blender-r5.tar.xz
+          echo "$RUNNER_TEMP/blender-5.2.2-linux-x64" >> "$GITHUB_PATH"
+      - name: Author and verify actual native and runtime assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          blender --version | tee "$EVIDENCE/blender-version.txt"
+          blender -b --factory-startup -t 2 --python-exit-code 1 --python tools/motogp/build_gp_bodywork.py -- --out "$RUNNER_TEMP/r5-bodywork" 2>&1 | tee "$EVIDENCE/blender-bake.log"
+          cp "$RUNNER_TEMP/r5-bodywork/gp-bodywork.mesh.json" src/rendering/assets/gp-bodywork.mesh.json
+          cp "$RUNNER_TEMP/r5-bodywork/motobound-gp-bodywork.blend" authoring/motogp/motobound-gp-bodywork.blend
+          cp "$RUNNER_TEMP/r5-bodywork/motobound-gp-bodywork.glb" authoring/motogp/motobound-gp-bodywork.glb
+          cp "$RUNNER_TEMP/r5-bodywork/gp-bodywork-stats.json" tools/motogp/gp-bodywork-stats.json
+          node --experimental-transform-types scripts/author-humans.ts spectator 2>&1 | tee "$EVIDENCE/spectator-bake.log"
+          python tools/motogp/verify_r5_assets.py --report "$EVIDENCE/asset-verification.json"
+          python tools/motogp/build_r5_reference_audit.py 2>&1 | tee "$EVIDENCE/reference-audit.log"
+          git add -- authoring/motogp/motobound-gp-bodywork.blend authoring/motogp/motobound-gp-bodywork.glb src/rendering/assets/gp-bodywork.mesh.json src/rendering/human-kit.json docs/motogp-reference-r5.json docs/MOTOGP_R5_REFERENCE_REVIEW.md tools/motogp/gp-bodywork-stats.json
+          node --experimental-transform-types --input-type=module <<'JS'
+          import { snapshotSource } from './scripts/source-stability.ts';
+          import { writeFileSync } from 'node:fs';
+          writeFileSync(`${process.env.EVIDENCE}/tested-inputs.json`, JSON.stringify(Object.fromEntries(snapshotSource(process.cwd())),null,2)+'\n');
+          JS
+      - name: Full unmodified lint, content, unit, type and production-build checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --experimental-transform-types scripts/source-stability.ts -- npm run check 2>&1 | tee "$EVIDENCE/full-check.log"
+          echo CHECK_EXIT=0 > "$EVIDENCE/full-check.exit.txt"
+      - name: Complete original motorcycle simulation scenarios
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp docs/bike-race.json "$EVIDENCE/original-bike-race.json"
+          trap 'cp "$EVIDENCE/original-bike-race.json" docs/bike-race.json' EXIT
+          npm run test:bikes 2>&1 | tee "$EVIDENCE/bike-race.log"
+          cp docs/bike-race.json "$EVIDENCE/bike-race.json"
+          echo BIKE_RACE_EXIT=0 > "$EVIDENCE/bike-race.exit.txt"
+      - name: Install the pinned browser
+        run: npx playwright install --with-deps chromium
+      - name: Original MotoGP model and circuit WebGL checks plus recorded tyre states
+        shell: bash
+        run: |
+          set -euo pipefail
+          xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e -- e2e/41-motogp-reference.spec.ts e2e/42-motogp-environment.spec.ts e2e/gp-r5-tyre-review.spec.ts 2>&1 | tee "$EVIDENCE/motogp-webgl.log"
+          echo GPU_EXIT=0 > "$EVIDENCE/motogp-webgl.exit.txt"
+      - name: Check exact staged scope and preserve review assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/motogp/verify_r5_assets.py --report "$EVIDENCE/final-asset-verification.json"
+          python - <<'PY'
+          import os, pathlib, subprocess
+          evidence=pathlib.Path(os.environ['EVIDENCE'])
+          expected=set((evidence/'patched-paths.txt').read_text().splitlines())
+          expected.update(['authoring/motogp/motobound-gp-bodywork.blend','authoring/motogp/motobound-gp-bodywork.glb','src/rendering/assets/gp-bodywork.mesh.json','src/rendering/human-kit.json','docs/motogp-reference-r5.json','docs/MOTOGP_R5_REFERENCE_REVIEW.md'])
+          actual=set(subprocess.check_output(['git','diff','--cached','--name-only'],text=True).splitlines())
+          if actual != expected: raise RuntimeError(f'Unexpected staged scope: missing={expected-actual}, extra={actual-expected}')
+          unstaged=subprocess.check_output(['git','diff','--name-only'],text=True).strip()
+          if unstaged: raise RuntimeError(f'Tracked inputs changed after staging: {unstaged}')
+          subprocess.run(['git','diff','--cached','--check'],check=True)
+          PY
+          mkdir -p "$EVIDENCE/native"
+          cp authoring/motogp/motobound-gp-bodywork.blend authoring/motogp/motobound-gp-bodywork.glb "$EVIDENCE/native/"
+          cp docs/MOTOGP_R5_REFERENCE_REVIEW.md docs/motogp-reference-r5.json "$EVIDENCE/"
+          git diff --cached --binary > "$EVIDENCE/accepted-r5.patch"
+      - name: Promote once only when main still equals this tested staging commit
+        id: promote
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin main
+          test "$(git rev-parse origin/main)" = "$GITHUB_SHA" || { echo 'Newer main exists; retain evidence and reconcile instead of overwriting.' >&2; exit 1; }
+          git rm -- .github/workflows/motogp-r5-delivery.yml .github/motogp-r5-transfer/part-{1,2,3,4,5,6}.br
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'feat(motogp): integrate R5 Blender bodywork, rider, tyre and spectator realism' -m 'Rebuild original GP-R1 composite shell and conforming identity, refine road-rider gear and leather, shade recorded GP tyre condition, rebake spectator silhouettes within existing budgets, repair wet-finish composition and include engine braking in combined grip. Preserve concurrent Festival and motocross work. All 100 references are individually audited: 73 partial transfers and 27 context-only, not full-scene parity.' -m 'Validate checksum-pinned Blender runtime/retained-asset identity, the complete unmodified npm check, all 19 original motorcycle scenarios and the original MotoGP WebGL gates plus held/rewound tyre states. Remove temporary source transport. Full release CI and hardware acceptance remain separate.'
+          sha="$(git rev-parse HEAD)"
+          git push origin HEAD:main
+          printf '%s\n' "$sha" > "$EVIDENCE/promoted-commit.txt"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          echo "Validated R5 source promoted on main: $sha" >> "$GITHUB_STEP_SUMMARY"
+          # GITHUB_TOKEN pushes do not recursively trigger ordinary push workflows.
+          # Dispatch the existing FULL release pipeline; do not publish this candidate build.
+          gh workflow run ci.yml --ref main
+      - name: Preserve exact validation results and failed-stage evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: motogp-r5-delivery-evidence
+          path: |
+            ${{ runner.temp }}/motogp-r5-evidence/
+            test-results/
+            playwright-report/
+            browser-backend.json
+            browser-progress.json
+          retention-days: 14
+          if-no-files-found: error
