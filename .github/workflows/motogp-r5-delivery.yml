@@ -53,6 +53,31 @@ jobs:
           git apply --check --index "$EVIDENCE/r5.patch"
           git apply --index "$EVIDENCE/r5.patch"
           git diff --cached --name-only > "$EVIDENCE/patched-paths.txt"
+      - name: Apply checksummed refined R5 continuation source
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'JS'
+          import { readFileSync, writeFileSync } from 'node:fs';
+          import { createHash } from 'node:crypto';
+          import { brotliDecompressSync } from 'node:zlib';
+          const pieces = Array.from({length: 5}, (_, i) =>
+            readFileSync('.github/motogp-r5-continuation/part-' + (i + 1) + '.br'));
+          const packed = Buffer.concat(pieces);
+          const hash = data => createHash('sha256').update(data).digest('hex');
+          if (packed.length !== 32022 ||
+              hash(packed) !== '47b6a0c1538834463a160b7114115f337b5a8431f694c427f1c87a5b540f8888')
+            throw Error('MotoGP R5 source continuation transfer SHA-256 mismatch');
+          const patch = brotliDecompressSync(packed);
+          if (patch.length !== 115655 ||
+              hash(patch) !== '24e0220f86723f71ed943fde60a37059fb9c8331699bf4cdccf05cc7d920e10e')
+            throw Error('MotoGP R5 source continuation patch SHA-256 mismatch');
+          writeFileSync(process.env.EVIDENCE + '/r5-continuation.patch', patch);
+          console.log('R5 continuation source verified:', patch.length, hash(patch));
+          JS
+          git apply --check --index "$EVIDENCE/r5-continuation.patch"
+          git apply --index "$EVIDENCE/r5-continuation.patch"
+          git diff --cached --name-only > "$EVIDENCE/patched-paths.txt"
       - name: Preserve asset provenance and candidate source for mismatch diagnosis
         shell: bash
         run: |
@@ -109,40 +134,13 @@ jobs:
           cp "$RUNNER_TEMP/r5-bodywork/motobound-gp-bodywork.glb" authoring/motogp/motobound-gp-bodywork.glb
           cp "$RUNNER_TEMP/r5-bodywork/gp-bodywork-stats.json" tools/motogp/gp-bodywork-stats.json
           cp "$RUNNER_TEMP/r5-bodywork/"* "$EVIDENCE/native/"
-          # Test a serialization-only explanation without changing a single
-          # acceptance digest. An unmatched export still fails the original guard.
-          node --input-type=module <<'JS'
-          import { readFileSync, writeFileSync } from 'node:fs';
-          import { createHash } from 'node:crypto';
-          import { isDeepStrictEqual } from 'node:util';
-          import * as prettier from 'prettier';
-          const path = 'src/rendering/assets/gp-bodywork.mesh.json';
-          const raw = readFileSync(path, 'utf8');
-          const original = JSON.parse(raw);
-          const expected = 'b6df2445a626e7f541d27bb134e8b16c1c76a620cad96eaa9b2fc07c11574670';
-          const hash = text => createHash('sha256').update(text).digest('hex');
-          const config = await prettier.resolveConfig(path) ?? {};
-          const formatted = await prettier.format(raw, { ...config, filepath: path });
-          const candidates = [
-            ['raw', raw],
-            ['raw-no-final-newline', raw.replace(/\r?\n$/, '')],
-            ['repository-prettier', formatted],
-            ['repository-prettier-no-final-newline', formatted.replace(/\r?\n$/, '')],
-            ['javascript-compact', JSON.stringify(original) + '\n'],
-            ['javascript-indent-2', JSON.stringify(original, null, 2) + '\n'],
-            ['javascript-indent-4', JSON.stringify(original, null, 4) + '\n'],
-          ];
-          const attempts = candidates.map(([format, text]) => ({
-            format, bytes: Buffer.byteLength(text), sha256: hash(text),
-            identicalData: isDeepStrictEqual(JSON.parse(text), original),
-          }));
-          const match = attempts.findIndex(item => item.sha256 === expected && item.identicalData);
-          const report = { expected, rawSHA256: hash(raw), selected: match < 0 ? null : attempts[match].format, attempts };
-          writeFileSync(`${process.env.EVIDENCE}/bodywork-format-diagnosis.json`, JSON.stringify(report, null, 2) + '\n');
-          console.log('BODYWORK_SERIALIZATION_DIAGNOSIS', JSON.stringify(report));
-          if (match >= 0) writeFileSync(path, candidates[match][1]);
-          else console.log('No lossless formatting candidate matches; preserve raw export and fail the unchanged asset verifier.');
-          JS
+          # Verify the revised numeric smoothing algorithm without rewriting
+          # accepted checksums or masking an export mismatch.
+          python -m unittest discover -s tools/motogp -p test_deterministic_normals.py -v 2>&1 | tee "$EVIDENCE/deterministic-normals.log"
+          # Open the SAVED authoring project and independently export its
+          # runtime attributes without rebuilding or modifying that project.
+          blender -b --factory-startup -t 2 --python-exit-code 1 --python tools/motogp/reexport_saved_gp.py -- --source authoring/motogp/motobound-gp-bodywork.blend --out "$RUNNER_TEMP/r5-saved-roundtrip" 2>&1 | tee "$EVIDENCE/saved-blender-roundtrip.log"
+          cmp src/rendering/assets/gp-bodywork.mesh.json "$RUNNER_TEMP/r5-saved-roundtrip/gp-bodywork.mesh.json"
           node --experimental-transform-types scripts/author-humans.ts spectator 2>&1 | tee "$EVIDENCE/spectator-bake.log"
           cp src/rendering/human-kit.json "$EVIDENCE/native/human-kit.json"
           python - <<'PY'
@@ -215,7 +213,7 @@ jobs:
           set -euo pipefail
           git fetch --no-tags origin main
           test "$(git rev-parse origin/main)" = "$GITHUB_SHA" || { echo 'Newer main exists; retain evidence and reconcile instead of overwriting.' >&2; exit 1; }
-          git rm -- .github/workflows/motogp-r5-delivery.yml .github/workflows/motogp-r5-source-inspection.yml .github/motogp-r5-transfer/part-{1,2,3,4,5,6}.br
+          git rm -- .github/workflows/motogp-r5-delivery.yml .github/workflows/motogp-r5-source-inspection.yml .github/motogp-r5-transfer/part-{1,2,3,4,5,6}.br .github/motogp-r5-continuation/part-{1,2,3,4,5}.br
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git commit -m 'feat(motogp): integrate R5 Blender bodywork, rider, tyre and spectator realism' -m 'Rebuild original GP-R1 composite shell and conforming identity, refine road-rider gear and leather, shade recorded GP tyre condition, rebake spectator silhouettes within existing budgets, repair wet-finish composition and include engine braking in combined grip. Preserve concurrent Festival and motocross work. All 100 references are individually audited: 73 partial transfers and 27 context-only, not full-scene parity.' -m 'Validate checksum-pinned Blender runtime/retained-asset identity, the complete unmodified npm check, all 19 original motorcycle scenarios and the original MotoGP WebGL gates plus held/rewound tyre states. Remove temporary source transport. Full release CI and hardware acceptance remain separate.'
