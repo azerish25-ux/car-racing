@@ -104,6 +104,9 @@ export interface BikeInput {
   /** Drive force at the rear contact before traction limits (N). When absent
    * the constant-power research drive is used. */
   drive?: number;
+  /** Closed-throttle drivetrain braking at the rear contact, newtons. It
+   * consumes the SAME rear friction circle as the pedal and lateral load. */
+  engineBrake?: number;
 }
 export interface BikeAssists {
   lean: boolean;
@@ -170,6 +173,8 @@ export class Bike {
   driveForce = 0;
   frontBrakeForce = 0;
   rearBrakeForce = 0;
+  /** Share of rearBrakeForce dissipated by the drivetrain, not the brake disc. */
+  engineBrakeForce = 0;
   intervention = 0;
   constructor(
     public assists: BikeAssists = NOVICE,
@@ -282,7 +287,12 @@ export class Bike {
     this.intervention = requested > 1 ? clamp(1 - drive / requested, 0, 1) : 0;
     // Stoppie assist (with the wheelie assist): like lift-mitigating ABS, cap
     // front force at the deceleration where the rear would leave the road.
-    const brakeR = p.rearBrake * rear * (v > 0.2 ? 1 : 0);
+    const engineRequest =
+      Number.isFinite(input.engineBrake) && throttle <= 0.02 && this.speed > 3
+        ? Math.max(0, input.engineBrake ?? 0)
+        : 0;
+    const rearServiceRequest = p.rearBrake * rear * (v > 0.2 ? 1 : 0);
+    const brakeR = rearServiceRequest + engineRequest;
     // What the rear can actually take (a light rear locks and slides).
     const rearHeld = Math.min(brakeR, mu * this.rearLoad);
     const liftLimit = a.wheelie
@@ -342,6 +352,7 @@ export class Bike {
     this.driveForce = Math.max(0, rearApplied);
     this.frontBrakeForce = -frontApplied;
     this.rearBrakeForce = Math.max(0, -rearApplied);
+    this.engineBrakeForce = brakeR > 0 ? this.rearBrakeForce * (engineRequest / brakeR) : 0;
     const dragForce = p.drag * this.dragScale * this.speed * this.speed,
       rolling = this.speed > 0.05 ? (p.rolling ?? 0) * m * G : 0;
     const ax = (rearApplied + frontApplied - dragForce - rolling) / m - G * this.slope;
@@ -418,7 +429,12 @@ export class Bike {
     this.state = kind;
     this.stateClock = 0;
     this.crashes++;
-    this.driveForce = this.frontBrakeForce = this.rearBrakeForce = this.intervention = 0;
+    this.driveForce =
+      this.frontBrakeForce =
+      this.rearBrakeForce =
+      this.engineBrakeForce =
+      this.intervention =
+        0;
     return this.state;
   }
   /** Crash → rider separation → remount: a single rider identity throughout,

@@ -1,7 +1,7 @@
 {
-  "highTriangles": 20756,
-  "midTriangles": 4616,
-  "highDrawCalls": 5,
-  "midDrawCalls": 5,
-  "sourceObjects": 25
+  "highTriangles": 16684,
+  "midTriangles": 4050,
+  "highDrawCalls": 6,
+  "midDrawCalls": 6,
+  "sourceObjects": 38
 }

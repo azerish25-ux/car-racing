@@ -1,0 +1,11 @@
+import { build } from 'vite';
+import { resolve } from 'node:path';
+import { readFileSync,writeFileSync } from 'node:fs';
+const result=await build({configFile:false,logLevel:'error',build:{write:false,minify:true,lib:{entry:resolve('tools/motogp/review/inspector.ts'),name:'MOTOBOUNDInspector',formats:['iife']}}});
+const output=Array.isArray(result)?result[0]:result;
+const chunk=output.output.find(o=>o.type==='chunk');
+if(!chunk||chunk.type!=='chunk')throw new Error('No inspector code emitted');
+const template=readFileSync(resolve('tools/motogp/review/inspector.html'),'utf8');
+const code=chunk.code.replace(/<\/script/gi,'<\\/script');
+writeFileSync(resolve(process.argv[2]??'../handoff/MOTOBOUND_GP_Inspector.html'),template.replace('/* PRODUCTION_BUNDLE */',code));
+console.log('Inspector emitted',chunk.code.length,'bytes; no external assets or fonts');

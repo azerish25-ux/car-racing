@@ -1,13 +1,20 @@
 {
-  "runtime": "Blender 5.2.2 LTS official Linux x64 desktop binary",
+  "runtime": "Blender 5.2.2 LTS Linux x64 desktop binary",
   "buildHash": "d13f752e3b9c",
   "archiveSHA256": "84098912789dc450e95697c4184fb8a90acbe5111c2ba4aede3fecb57806a168",
-  "meshSHA256": "29aed319fbbc6a70805704c9c88c125b6481abd38514a2619e246f0569dd847f",
-  "command": "blender -b --factory-startup -t 2 --python tools/motogp/build_gp_bodywork.py -- --out OUTPUT",
-  "localIndependentMatchingBakes": 2,
-  "hostedIndependentMatchingBakes": 2,
-  "repair": "Retain deterministic fin/fence UV projection. Add an actual rounded instrument recess and shared high/mid upper-cowl geometry for road-racing cockpits.",
-  "scope": "Deterministic bodywork bake and component contracts; not full navigation, consumer GPU performance, PS5 parity or live-site certification.",
-  "revision": "MotoGP R1.1 cockpit",
-  "meshSchemaVersion": 2
+  "meshSHA256": "72a7fb6e2e47c2be0abd1b89495f74d1e9c64dc1f4c755540aa8b0983dadd3d4",
+  "command": "blender -b --factory-startup -t 2 --python-exit-code 1 --python tools/motogp/build_gp_bodywork.py -- --out OUTPUT",
+  "localIndependentMatchingRuntimeBakes": 2,
+  "hostedIndependentMatchingRuntimeBakes": 0,
+  "repair": "Rebuild original GP-R1 composite shell, open inlet, side panels, saddle, tail and aero; retain upperHigh/upperMid byte arrays for the non-GP compatibility cowl.",
+  "scope": "New versioned runtime-normal convention and refined bodywork, with exact saved-native-to-runtime JSON re-export. Not a claim of cross-host native binary identity, full navigation, hardware performance or PS5 parity.",
+  "revision": "MotoGP R5 refined composite",
+  "meshSchemaVersion": 3,
+  "normalAlgorithm": "integer-area-decimal-normal-v1",
+  "savedNativeRuntimeReexportVerified": true,
+  "priorFailure": {
+    "cause": "Blender corner-normal last-bit reduction across processors; 39 paint-normal scalars differed by at most 2e-6. Positions, UVs, indices and material batches agreed.",
+    "priorReviewedSHA256": "b6df2445a626e7f541d27bb134e8b16c1c76a620cad96eaa9b2fc07c11574670",
+    "priorHostedSHA256": "295d8fd1364a0cef6b5b5221ec34283888c5090be025897d6702ad8cad8b1ab0"
+  }
 }

@@ -1,3 +1,4 @@
+import { CROWD_WARDROBE_GLSL } from './crowd-wardrobe.ts';
 import * as T from 'three';
 
 /** Original analytic seated-person card, not a photograph or licensed atlas.
@@ -20,12 +21,13 @@ export function installCrowdImpostorShader(material: T.MeshStandardMaterial, ran
     shader.uniforms.crowdLodRange = { value: range };
     shader.vertexShader =
       `attribute float spectatorPhase; attribute vec3 spectatorSkin; attribute vec4 spectatorStyle; varying vec4 vSpectatorStyle;
-      varying float vCrowdRank; varying vec2 vPerson; varying vec3 vSkin;
+      varying float vCrowdRank; varying float vGarmentPhase; varying vec2 vPerson; varying vec3 vSkin;
       ` + shader.vertexShader;
     shader.vertexShader = shader.vertexShader.replace(
       '#include <begin_vertex>',
       `
       #include <begin_vertex>
+      vGarmentPhase = spectatorPhase;
       vPerson = position.xy; vSkin = spectatorSkin; vSpectatorStyle = spectatorStyle;
       vCrowdRank = min(.9999999, spectatorPhase / 6.28318530718);`,
     );
@@ -50,17 +52,20 @@ export function installCrowdImpostorShader(material: T.MeshStandardMaterial, ran
         + inverseTransformDirection(vec3(0.,1.,0.), viewMatrix) * position.y * crowdScale.y;`,
     );
     shader.fragmentShader =
-      `uniform vec2 crowdLodRange; varying float vCrowdRank;
+      CROWD_WARDROBE_GLSL +
+      `uniform vec2 crowdLodRange; varying float vCrowdRank; varying float vGarmentPhase;
       varying vec2 vPerson; varying vec3 vSkin; varying vec4 vSpectatorStyle;
       float personEllipse(vec2 p, vec2 centre, vec2 radius) {
         return (length((p-centre)/radius)-1.) * min(radius.x,radius.y);
       }
-      ` + shader.fragmentShader;
+      ` +
+      shader.fragmentShader;
     shader.fragmentShader = shader.fragmentShader.replace(
       '#include <color_fragment>',
       `
       #include <color_fragment>
-      vec3 shirt = diffuseColor.rgb;
+      vec3 shirt = crowdGarmentColour(diffuseColor.rgb, vGarmentPhase);
+      diffuseColor.rgb = shirt;
       vec2 p = vPerson;
       p.x /= vSpectatorStyle.x;
       if (p.y > .1) p.y = .1 + (p.y-.1) / vSpectatorStyle.y;
@@ -96,5 +101,5 @@ export function installCrowdImpostorShader(material: T.MeshStandardMaterial, ran
       #include <alphatest_fragment>`,
     );
   };
-  material.customProgramCacheKey = () => 'apex-procedural-impostor-v5-caps';
+  material.customProgramCacheKey = () => 'apex-procedural-impostor-v6-wardrobe';
 }

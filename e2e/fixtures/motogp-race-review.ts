@@ -1,18 +1,32 @@
 import * as T from 'three';
+import type { QualityPreset } from '../../src/rendering/options.ts';
 
 const offlineAssets: Record<string, string> = {};
+const originalFetch = globalThis.fetch.bind(globalThis);
 
 /** Offline review only: identical local asset bytes, no network requests. */
 export function installOfflineAssets(assets: Record<string, string>) {
   Object.assign(offlineAssets, assets);
+  // Controlled fixture acquisition only: feed the actual local JPEG/KTX2 bytes
+  // to the production decoders. This does not exercise HTTP or app navigation.
+  globalThis.fetch = (input, init) => {
+    const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+    const path = url.replace(/^\.\//, '').replace(/^\//, '');
+    return originalFetch(offlineAssets[path] ?? input, init);
+  };
   T.DefaultLoadingManager.setURLModifier(
     (url) => offlineAssets[url.replace(/^\.\//, '').replace(/^\//, '')] ?? url,
   );
 }
 
 /** Integration capture from the real simulation and full racing renderer.
- * Small deterministic sample; not a hardware frame-rate benchmark. */
-export async function captureGPRace(weather: 'clear' | 'rain' = 'clear') {
+ * Constructor-based controlled composition: the production simulation and
+ * renderer, but not the asynchronous native pit-asset factory, UI navigation,
+ * human playtesting or a hardware frame-rate benchmark. */
+export async function captureGPRace(
+  weather: 'clear' | 'rain' = 'clear',
+  preset: QualityPreset = 'high',
+) {
   const [
     { Simulation },
     { DEFAULT_OPTIONS },
@@ -43,41 +57,41 @@ export async function captureGPRace(weather: 'clear' | 'rain' = 'clear') {
   document.body.style.cssText = 'margin:0';
   document.body.append(canvas);
   const renderer = new RacingRenderer(canvas, simulation.track);
-  renderer.setQuality('high', {
-    ...graphicsPreset('high'),
+  renderer.setQuality(preset, {
+    ...graphicsPreset(preset),
     resolutionScale: 1,
     reflections: 'environment',
   });
   const captures: { view: string; image: string; draws: number; triangles: number }[] = [];
-  let frame = simulation.makeFrame(),
-    unchanged = true;
+  const frame = simulation.makeFrame();
+  let unchanged = true;
   try {
-    for (let display = 0; display < 3; display++) {
-      for (let tick = 0; tick < 6; tick++) simulation.step(1 / 120);
-      frame = simulation.makeFrame();
-      const copy = frame.slice();
-      renderer.draw(frame, frame, 1, 1 / 20, false);
-      unchanged &&= frame.every((value, i) => value === copy[i]);
-      await new Promise((resolve) => setTimeout(resolve, display === 0 ? 2000 : 0));
-    }
-    for (const view of ['chase', 'cockpit', 'trackside'] as const)
-      await new Promise<void>((resolve, reject) => {
-        requestAnimationFrame(() => {
-          try {
-            renderer.changeCamera(view);
-            renderer.draw(frame, frame, 1, 1 / 60, false);
-            captures.push({
-              view,
-              image: canvas.toDataURL('image/png'),
-              draws: renderer.renderer.info.render.calls,
-              triangles: renderer.renderer.info.render.triangles,
-            });
-            resolve();
-          } catch (error) {
-            reject(error);
-          }
-        });
+    const yieldGpu = () => new Promise<void>((resolve) => setTimeout(resolve, 12));
+    const copy = frame.slice();
+    const prepared = await renderer.prepare(
+      frame,
+      (stage) => console.log(stage),
+      () => false,
+      yieldGpu,
+    );
+    if (!prepared) throw new Error('GP composition preparation cancelled');
+    for (const view of ['chase', 'cockpit', 'trackside'] as const) {
+      await renderer.waitForPreparedFrame(() => false, yieldGpu);
+      renderer.changeCamera(view);
+      // Camera damping receives the SAME held state throughout this inspection.
+      for (let display = 0; display < 3; display++) {
+        await yieldGpu();
+        renderer.draw(frame, frame, 1, 1 / 60, false);
+        await renderer.waitForPreparedFrame(() => false, yieldGpu);
+      }
+      captures.push({
+        view,
+        image: canvas.toDataURL('image/png'),
+        draws: renderer.renderer.info.render.calls,
+        triangles: renderer.renderer.info.render.triangles,
       });
+      unchanged &&= frame.every((value, i) => value === copy[i]);
+    }
     return {
       captures,
       unchanged,
@@ -86,10 +100,13 @@ export async function captureGPRace(weather: 'clear' | 'rain' = 'clear') {
       speed: frame[carBase(0) + F.SPEED],
       time: frame[H.TIME],
       weather,
+      preset,
       glError: renderer.renderer.getContext().getError(),
     };
   } finally {
     renderer.dispose();
     canvas.remove();
+    globalThis.fetch = originalFetch;
+    T.DefaultLoadingManager.setURLModifier((url) => url);
   }
 }

@@ -1,3 +1,9 @@
+import {
+  bindGpBareMetal,
+  calibrateGpMaterials,
+  gpFrontFender,
+  gpSilencer,
+} from './gp-appearance.ts';
 import * as T from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { batchBikeRigidMeshes } from './bike-rigid-batch.ts';
@@ -5,6 +11,7 @@ import { addGPIdentity } from './bike-livery.ts';
 import { gpBodywork, gpUpperCowl } from './gp-bodywork.ts';
 import { gpRadialBrakeCaliper } from './gp-radial-caliper.ts';
 import { gpDiscGlow } from './gp-disc-glow.ts';
+import { bindGpTyre, installGpTyreFinish, type GpTyreAppearance } from './gp-tyre-finish.ts';
 import { gpCoolingLouvers } from './gp-cooling-louvers.ts';
 import { GPChainDrive } from './gp-chain-drive.ts';
 import { bikeSurfaceMaps } from './bike-surface-detail.ts';
@@ -206,7 +213,7 @@ export function tyreGeometry(
   for (let i = 4; i >= 0; i--) points.push(wall(i / 4, 1));
   const g = new T.LatheGeometry(points, sides);
   g.rotateZ(Math.PI / 2);
-  return g;
+  return bindGpTyre(g, halfWidth);
 }
 export function ringGeometry(outer: number, inner: number, thickness: number, sides: number) {
   const shape = new T.Shape();
@@ -383,6 +390,7 @@ export class BikeMaterials {
   readonly aluminium: T.MeshStandardMaterial;
   readonly titanium: T.MeshStandardMaterial;
   readonly rubber: T.MeshStandardMaterial;
+  readonly tyreFinish: ReturnType<typeof installGpTyreFinish>;
   readonly wheel: T.MeshPhysicalMaterial;
   readonly forkUpper: T.MeshStandardMaterial;
   readonly forkLower: T.MeshStandardMaterial;
@@ -465,6 +473,7 @@ export class BikeMaterials {
         name: 'Slick tyre: fine grain',
       }),
     );
+    this.tyreFinish = installGpTyreFinish(this.rubber);
     this.wheel = add(
       new T.MeshPhysicalMaterial({
         side: T.DoubleSide,
@@ -609,6 +618,7 @@ export function add(
   z = 0,
   shadow = true,
 ) {
+  bindGpBareMetal(g, m);
   const mesh = new T.Mesh(g, m);
   mesh.position.set(x, y, z);
   mesh.castShadow = shadow;
@@ -669,6 +679,8 @@ export class BikeModel {
       naked = look.fairing === 'naked',
       classic = look.fairing === 'classic',
       authored = definition.id === 'gpr1';
+    calibrateGpMaterials(m, definition.id);
+    const gpPrototype = authored || definition.id === 'gpr2';
     this.sag = staticSag(definition);
     this.root.name = `${definition.name} ${id + 1} (${detail})`;
     this.root.add(this.sprung);
@@ -1054,14 +1066,17 @@ export class BikeModel {
     m.list.push(guardMaterial);
     const guard = add(
       this.forkLower,
-      new T.CylinderGeometry(frontR + 0.03, frontR + 0.03, 0.13, sides, 1, true, 0.87, 1.75),
+      gpPrototype && detail !== 'far'
+        ? gpFrontFender(frontR, detail)
+        : new T.CylinderGeometry(frontR + 0.03, frontR + 0.03, 0.13, sides, 1, true, 0.87, 1.75),
       guardMaterial,
       0,
       0,
       FORK_OFFSET,
     );
     // Undo the rake so the guard arcs over the top of the tyre.
-    guard.rotation.set(RAKE, 0, Math.PI / 2);
+    guard.rotation.set(RAKE, 0, gpPrototype && detail !== 'far' ? 0 : Math.PI / 2);
+    if (gpPrototype && detail !== 'far') guard.name = 'Crowned carbon front fender';
     this.forkLower.add(this.frontSpin);
     this.frontSpin.position.set(0, 0, FORK_OFFSET);
     wheel(this.frontSpin, frontR, 0.06, b.crownRadius, true);
@@ -1176,7 +1191,12 @@ export class BikeModel {
         exhaustGeometry(pipe, 0.03, detail === 'high' ? 40 : 14, detail === 'far' ? 5 : 10),
         m.titanium,
       );
-      if (look.exhaust === 'side-high') {
+      if (gpPrototype && detail !== 'far' && look.exhaust === 'side-high') {
+        const silencer = gpSilencer(detail, m);
+        silencer.position.set(-0.165, -0.08, -0.74);
+        silencer.rotation.x = Math.PI / 2 - 0.35;
+        this.sprung.add(silencer);
+      } else if (look.exhaust === 'side-high') {
         const can = add(
           this.sprung,
           new T.CylinderGeometry(0.05, 0.057, 0.3, sides / 2),
@@ -1256,7 +1276,7 @@ export class BikeModel {
         m.accent,
       );
     // Number plates on the nose and the flanks.
-    if (full && detail !== 'far') {
+    if (full && !authored && detail !== 'far') {
       const plate = add(
         this.sprung,
         new T.CircleGeometry(0.062, 24),
@@ -1516,7 +1536,7 @@ export class BikeModel {
     // a rounded hump.
     if (authored) {
       const shell = gpBodywork(m, detail);
-      if (detail !== 'far') addGPIdentity(shell, m);
+      if (detail !== 'far') addGPIdentity(shell, m, id);
       this.sprung.add(shell);
       if (detail !== 'far') this.sprung.add(gpCoolingLouvers(detail, m.carbon, m.steel));
       add(this.sprung, new T.BoxGeometry(0.05, 0.025, 0.012), m.lamp, 0, 0.302, -0.83, false);
@@ -1735,6 +1755,7 @@ export class BikeModel {
     const b = this.definition.bike!,
       L = this.definition.spec.wheelbase;
     this.cockpit?.update(v);
+    this.m.tyreFinish.update(v, this.definition.id === 'gpr1' || this.definition.id === 'gpr2');
     // Sprung mass dips and pitches on the springs; the tyres stay on the road.
     const df = (v.fork - this.sag.fork) * Math.cos(RAKE),
       dr = v.shock - this.sag.shock;
@@ -1805,7 +1826,7 @@ export class BikeModel {
     });
   }
 }
-export interface BikePoseValues {
+export interface BikePoseValues extends GpTyreAppearance {
   /** Snapshot values for the near cockpit; metres/second and protocol gear index. */
   speed?: number;
   rpm?: number;
@@ -2057,6 +2078,13 @@ export class BikeShells {
     v.brake = lerp(o + F.BRAKE);
     v.rearBrake = lerp(k + B.REAR_BRAKE);
     v.discTemp = b[wheel(0) + W.DISC_TEMP];
+    v.compound = Math.round(b[o + F.COMPOUND]);
+    v.frontWear = lerp(wheel(0) + W.WEAR);
+    v.rearWear = lerp(wheel(2) + W.WEAR);
+    v.frontSurfaceTemp = lerp(wheel(0) + W.SURFACE_TEMP);
+    v.rearSurfaceTemp = lerp(wheel(2) + W.SURFACE_TEMP);
+    v.frontWater = lerp(wheel(0) + W.WATER);
+    v.rearWater = lerp(wheel(2) + W.WATER);
     v.compoundColour = COMPOUND_COLOURS[Math.round(b[o + F.COMPOUND])] ?? 0xffffff;
     const state = BIKE_STATES[Math.round(b[k + B.STATE])] ?? 'riding';
     v.riding = state === 'riding';

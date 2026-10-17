@@ -7,7 +7,7 @@ import type { RiderDetail } from './rider.ts';
  * Only the rigid sprung shell is replaced. Forks, wheels, controls, rider IK
  * and pit-service articulation retain their production owners. No async swap
  * or late unshadowed mesh can appear during a replay. Geometry is owned by each
- * model; its existing disposal path releases it. Five material batches per LOD. */
+ * model; its existing disposal path releases it. Six material batches per LOD. */
 function buildGroup(materials: BikeMaterials, source: typeof bodywork.high, name: string): T.Group {
   const group = new T.Group();
   group.name = name;
@@ -20,7 +20,9 @@ function buildGroup(materials: BikeMaterials, source: typeof bodywork.high, name
     geometry.computeBoundingBox();
     geometry.computeBoundingSphere();
     const material =
-      materials[part.material as 'paint' | 'secondary' | 'accent' | 'carbon' | 'dark' | 'seat'];
+      materials[
+        part.material as 'paint' | 'secondary' | 'accent' | 'carbon' | 'dark' | 'seat' | 'aluminium'
+      ];
     if (!material) throw new Error(`Unbound GP bodywork material: ${part.material}`);
     const mesh = new T.Mesh(geometry, material);
     mesh.name = `GP bodywork / ${part.material}`;
@@ -28,7 +30,7 @@ function buildGroup(materials: BikeMaterials, source: typeof bodywork.high, name
     group.add(mesh);
   }
   group.userData.authoredIn = 'Blender 5.2.2';
-  group.userData.referenceRevision = 'motogp-100-r1.1';
+  group.userData.referenceRevision = 'motogp-100-r5-composite';
   return group;
 }
 

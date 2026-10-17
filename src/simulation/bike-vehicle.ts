@@ -223,18 +223,22 @@ export class BikeVehicle extends Vehicle {
   protected bumpGrip(i: number, click: number) {
     return this.contacts[i].surface === SURFACE.KERB ? 1 - 0.06 * (click - 0.5) * 2 : 1;
   }
-  /** Closed-throttle engine braking (engine-brake map > 0): drag torque at the
-   * rear contact as a share of the wide-open torque at the current rpm,
-   * through the engaged gear, held inside what the rear tyre can take. A
-   * reduced-order term applied after the core step; map 0 free-wheels. */
-  protected applyEngineBraking(dt: number, throttle: number) {
+  /** Closed-throttle pump torque enters the rear contact solver BEFORE load
+   * transfer and ABS. Never subtract speed after the tyre solver: that bypasses
+   * the cornering budget and makes force/thermal telemetry disagree with motion. */
+  protected requestedEngineBraking(throttle: number) {
     const d = this.dynamics,
       spec = this.spec;
-    if (!this.riding || throttle > 0.02 || d.speed < 3 || this.shiftClock > 0) return;
-    const ratio = spec.gearRatios[this.gear + 1] * spec.finalDrive * this.gearing,
-      torque = this.engineBrake * engineTorque(this.rpm, spec),
-      force = Math.min((torque * ratio) / spec.wheelRadius, 0.5 * d.p.mu * d.grip * d.rearLoad);
-    d.speed = Math.max(0, d.speed - (force / d.mass) * dt);
+    if (
+      !this.riding ||
+      this.engineBrake <= 0 ||
+      throttle > 0.02 ||
+      d.speed < 3 ||
+      this.shiftClock > 0
+    )
+      return 0;
+    const ratio = spec.gearRatios[this.gear + 1] * spec.finalDrive * this.gearing;
+    return (this.engineBrake * engineTorque(this.rpm, spec) * ratio) / spec.wheelRadius;
   }
   /** Grip multiplier of a contact patch relative to a fresh dry slick. */
   protected surfaceGrip(i: number) {
@@ -335,10 +339,10 @@ export class BikeVehicle extends Vehicle {
         rearBrake: rear * rearBrakeGain,
         rider: hang,
         drive: force,
+        engineBrake: this.requestedEngineBraking(throttle),
       },
       dt,
     );
-    if (this.engineBrake > 0) this.applyEngineBraking(dt, throttle);
     if (was === 'riding' && d.state !== 'riding') this.separate();
     this.lastState = d.state;
     if (was === 'separated' && d.state === 'remount') this.planRemount(track);
@@ -600,7 +604,10 @@ export class BikeVehicle extends Vehicle {
       const carcass = ideal - 4 + 10 * use - 6 * clamp(c.water, 0, 1);
       t.carcassTemp += (carcass - t.carcassTemp) * (1 - Math.exp(-dt / 30));
       t.surfaceTemp += (t.carcassTemp + 8 * use - t.surfaceTemp) * (1 - Math.exp(-dt / 3));
-      const brakePower = (front ? d.frontBrakeForce : d.rearBrakeForce) * d.speed * 0.5;
+      const discForce = front
+        ? d.frontBrakeForce
+        : Math.max(0, d.rearBrakeForce - d.engineBrakeForce);
+      const brakePower = discForce * d.speed * 0.5;
       t.discTemp +=
         (brakePower / (front ? 1600 : 900) - (t.discTemp - 40) * (0.015 + 0.003 * d.speed)) * dt;
       this.wheelSteering[i] = front ? d.steer : 0;

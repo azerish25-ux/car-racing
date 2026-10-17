@@ -5,6 +5,7 @@ import { helmetLiveryTexture, riderPanelTexture } from './bike-livery.ts';
 import { bikeSurfaceMaps } from './bike-surface-detail.ts';
 import { batchBikeRigidMeshes } from './bike-rigid-batch.ts';
 import { sampleProfile } from './profile-sampling.ts';
+import { gpRacingBoot, installGpLeatherFinish } from './gp-rider-gear.ts';
 import { motocrossFabricMaps, motocrossGraphics } from './offroad/motocross-detail.ts';
 import {
   addMotocrossBoot,
@@ -427,11 +428,22 @@ export class Rider {
       name: 'Tinted visor',
     });
     if (!mx && detail !== 'far') {
+      // Smoked polymer is a dark dielectric, not a grey metal mirror. Keep
+      // the actual visor and eye-port geometry and the near-camera shadow.
+      visor.color.setHex(0x071018);
+      visor.metalness = 0;
+      visor.roughness = 0.13;
+      visor.clearcoat = 0.82;
+      visor.clearcoatRoughness = 0.09;
+      helmet.metalness = 0;
+      helmet.roughness = 0.29;
+      helmet.clearcoat = 0.78;
+      helmet.clearcoatRoughness = 0.18;
       const surface = bikeSurfaceMaps('leather');
       Object.assign(leather, surface);
       Object.assign(panel, surface);
-      leather.normalScale.set(0.32, 0.32);
-      panel.normalScale.set(0.28, 0.28);
+      leather.normalScale.set(0.09, 0.09);
+      panel.normalScale.set(0.08, 0.08);
       leather.roughness = 0.72;
       leather.clearcoat = 0.035;
       panel.roughness = 0.75;
@@ -488,6 +500,8 @@ export class Rider {
       helmet.color.setHex(0xffffff);
     }
     this.materials.push(torsoLeather);
+    if (!mx && detail !== 'far')
+      for (const material of [leather, panel, torsoLeather]) installGpLeatherFinish(material);
     for (const m of [leather, panel, torsoLeather])
       tagWeatherSurface(m, mx ? 'fabric' : 'leather', 0.85);
     tagWeatherSurface(flex, 'fabric', 0.65);
@@ -526,10 +540,12 @@ export class Rider {
         this.torso,
         bodyLoft(
           [
-            [0.16, -0.08, 0.04, 0.02, 0.03],
-            [0.3, -0.1, 0.085, 0.03, 0.06],
-            [0.46, -0.08, 0.095, 0.03, 0.07],
-            [0.58, -0.05, 0.06, 0.02, 0.05],
+            [0.12, -0.075, 0.012, 0.016, 0.018],
+            [0.23, -0.1, 0.068, 0.025, 0.046],
+            [0.36, -0.104, 0.086, 0.024, 0.052],
+            [0.46, -0.085, 0.072, 0.021, 0.048],
+            [0.54, -0.048, 0.032, 0.014, 0.027],
+            [0.57, -0.035, 0.003, 0.003, 0.004],
           ],
           sides,
         ),
@@ -883,36 +899,15 @@ export class Rider {
       if (mx) foot.name = `Motocross ${i === 0 ? 'left' : 'right'} boot`;
       if (mx) addMotocrossBoot(foot, detail, side, mxBoot!, flex, armour);
       else
-        part(
-          foot,
-          new RoundedBoxGeometry(0.084, 0.072, 0.247, detail === 'far' ? 1 : 3, 0.029),
-          glove,
-        ).position.set(0, -0.015, 0.048);
-      if (!mx && detail !== 'far') {
-        const ankle = part(foot, limbGeometry(0.043, 0.035, 0.145, sides), panel);
-        ankle.position.set(0, -0.01, -0.03);
-        ankle.rotation.x = Math.PI;
-        part(foot, new RoundedBoxGeometry(0.087, 0.014, 0.253, 2, 0.006), flex).position.set(
-          0,
-          0.023,
-          0.048,
+        foot.add(
+          gpRacingBoot(detail, side, {
+            leather: glove,
+            panel,
+            sole: flex,
+            armour,
+            slider,
+          }),
         );
-        for (let rib = 0; rib < 4; rib++)
-          part(foot, new RoundedBoxGeometry(0.07, 0.008, 0.028, 2, 0.003), flex).position.set(
-            0,
-            -0.045,
-            -0.015 + rib * 0.026,
-          );
-        const heel = part(foot, new RoundedBoxGeometry(0.073, 0.047, 0.045, 2, 0.014), panel);
-        heel.position.set(0, -0.015, -0.071);
-        const anklePivot = part(foot, new T.CylinderGeometry(0.017, 0.017, 0.006, 12), armour);
-        anklePivot.rotation.z = Math.PI / 2;
-        anklePivot.position.set(side * 0.04, -0.068, -0.037);
-      }
-      if (detail !== 'far' && !mx) {
-        const toe = part(foot, new RoundedBoxGeometry(0.018, 0.016, 0.058, 2, 0.005), slider);
-        toe.position.set(side * 0.045, -0.05, 0.16);
-      }
       this.shins[i].group.add(foot);
       foot.position.set(0, RIDER.shin + 0.02, 0);
       this.feet.push(foot);

@@ -176,8 +176,10 @@ export class WeatherPresentation {
           varying vec3 vWeatherWorld;`,
         )
         .replace(
-          '#include <color_fragment>',
-          `#include <color_fragment>
+          '#include <lights_physical_fragment>',
+          `// Apply weather after the complete dry finish and scanned maps.
+          // Inserting at roughnessmap_fragment put this before previously
+          // chained kerb/tyre assignments, which silently restored dry roughness.
           // Up-facing surfaces collect a film; verticals retain a subdued damp
           // response and downward-facing undersides remain dry. No roof-ray claim.
           float weatherUp = vWeatherUp;
@@ -191,16 +193,13 @@ export class WeatherPresentation {
           float weatherResolved = 1.-smoothstep(.5,2.,length(fwidth(vWeatherWorld)));
           float surfaceWet = aurelSurfaceWeather.x * weatherExposure * ${exposure.toFixed(6)} *
             (.94 + .06*weatherBroad*weatherResolved);
-          diffuseColor.rgb *= 1.-surfaceWet*${darkening.toFixed(3)};`,
-        )
-        .replace(
-          '#include <roughnessmap_fragment>',
-          `#include <roughnessmap_fragment>
-          roughnessFactor = mix(roughnessFactor, min(roughnessFactor, ${wetRoughness.toFixed(3)}), surfaceWet);`,
+          diffuseColor.rgb *= 1.-surfaceWet*${darkening.toFixed(3)};
+          roughnessFactor = mix(roughnessFactor, min(roughnessFactor, ${wetRoughness.toFixed(3)}), surfaceWet);
+          #include <lights_physical_fragment>`,
         );
     };
     material.customProgramCacheKey = () =>
-      `${key}|aurel-snapshot-dampness-v2:${role}:${exposure}:${mask}`;
+      `${key}|aurel-snapshot-dampness-v3:${role}:${exposure}:${mask}`;
     material.needsUpdate = true;
   }
   update(frame: Float32Array, enabled = true) {

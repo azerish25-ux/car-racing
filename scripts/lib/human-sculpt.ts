@@ -893,7 +893,7 @@ function spectatorArm(
   const [, elbow, wrist, tip] = spectatorArmJoints(pose, 1, sh);
   const px = x * s;
   // Deltoid, then a tapering upper arm with a slight biceps swell.
-  let arm = ellipsoid(px, y, z, sh + 0.005, 0.475, -0.09, 0.05, 0.07, 0.055);
+  let arm = ellipsoid(px, y, z, sh + 0.004, 0.462, -0.09, 0.049, 0.059, 0.054);
   arm = smin(
     arm,
     roundCone(px, y, z, sh + 0.01, 0.48, -0.09, elbow[0], elbow[1], elbow[2], 0.045, 0.036),
@@ -963,7 +963,25 @@ function spectatorField(
       roundCone(ax, y, z, 0, 0.49, -0.095, sh - 0.02, 0.485, -0.09, 0.055, 0.045),
       0.04,
     );
-    torso = smin(torso, roundCone(x, y, z, 0, 0.47, -0.095, 0, 0.6, -0.085, 0.05, 0.045), 0.03); // neck
+    // Trapezius slope into the neck and a rounded sleeve cap, not a pair of
+    // raised shoulder balls beside a flat block. Rig pivots stay unchanged.
+    torso = smin(
+      torso,
+      roundCone(ax, y, z, 0.026, 0.524, -0.09, sh - 0.023, 0.477, -0.093, 0.027, 0.044),
+      0.026,
+    );
+    torso = smin(torso, roundCone(x, y, z, 0, 0.505, -0.093, 0, 0.6, -0.085, 0.046, 0.043), 0.025);
+    // Original seated cotton drape. Millimetre-scale geometry is authored
+    // once, with the same folded-arm correspondence and triangle limits.
+    const clothFront = smoothstep(-0.055, 0.018, z);
+    const belly = smoothstep(0.185, 0.22, y) * (1 - smoothstep(0.32, 0.37, y));
+    const drape = Math.sin(y * 94 + Math.sin(x * 17) * 1.2 + z * 15);
+    const shoulderFold =
+      smoothstep(0.35, 0.4, y) * (1 - smoothstep(0.47, 0.51, y)) * smoothstep(0.065, 0.13, ax);
+    torso -= 0.0038 * drape * belly * clothFront;
+    torso -= 0.0023 * Math.sin(y * 126 + ax * 61) * shoulderFold;
+    // Turned shirt hem above the lap, not just a painted trouser boundary.
+    torso -= 0.0018 * Math.exp(-(((y - 0.191) / 0.006) ** 2)) * clothFront;
     // Head on the neck (centre 0.665): the crew head sculpt (skull, orbital
     // hollows, lidded eyes, nose, lips, jaw, carved ears) at spectator scale,
     // with ledge-free hair so the hairline is painted, never stair-stepped.
@@ -978,23 +996,27 @@ function spectatorField(
     const arm = Math.min(armL, armR),
       hand = Math.min(handL, handR);
     // Legs: thighs on the seat, shins down, shoes on the tread.
-    const thigh = roundCone(
-      ax,
-      y,
-      z,
-      0.085,
-      0.1,
-      -0.03,
-      0.1,
-      0.12,
-      0.36,
-      fem ? 0.078 : 0.074,
-      0.055,
-    );
+    let thigh = roundCone(ax, y, z, 0.085, 0.1, -0.03, 0.1, 0.12, 0.36, fem ? 0.078 : 0.074, 0.055);
+    thigh -=
+      0.0024 *
+      Math.sin(z * 85 + (ax - 0.085) * 28) *
+      smoothstep(0.08, 0.15, z) *
+      (1 - smoothstep(0.29, 0.34, z)) *
+      smoothstep(0.12, 0.16, y);
     let shin = roundCone(ax, y, z, 0.1, 0.12, 0.36, 0.11, -0.22, 0.4, 0.052, 0.038);
     shin = smin(shin, ellipsoid(ax, y, z, 0.1, 0.0, 0.34, 0.045, 0.08, 0.045), 0.03);
-    let foot = roundBox(ax, y, z, 0.11, -0.265, 0.44, 0.045, 0.035, 0.11, 0.03);
-    foot = smax(foot, -(y + 0.3), 0.004);
+    // Worn everyday shoes: heel cup, lower forefoot and thin sole replace
+    // the oversized rounded-box clog. Feet remain on the same stair tread.
+    let foot = roundBox(ax, y, z, 0.11, -0.263, 0.414, 0.038, 0.028, 0.073, 0.021);
+    foot = smin(foot, ellipsoid(ax, y, z, 0.11, -0.269, 0.499, 0.047, 0.026, 0.074), 0.016);
+    foot = smin(
+      foot,
+      roundCone(ax, y, z, 0.11, -0.264, 0.383, 0.11, -0.216, 0.388, 0.038, 0.033),
+      0.018,
+    );
+    const sole = roundBox(ax, y, z, 0.11, -0.294, 0.448, 0.043, 0.004, 0.104, 0.011);
+    foot = smin(foot, sole, 0.007);
+    foot = smax(foot, -(y + 0.3), 0.003);
     let cap = 1;
     {
       let crown = ellipsoid(ax, hy, hz, 0, 0.038, -0.012, 0.083, 0.092, 0.106);
@@ -1031,14 +1053,24 @@ function spectatorField(
 /** Separate accessory shells (shown per spectator by the crowd shader). */
 function spectatorCapField(x: number, y: number, z: number, fem = false) {
   // Sized over the hair: a fuller crown over the longer (b) hair mass.
-  const k = fem ? 1.08 : 1.02;
+  const k = fem ? 1.065 : 1.015;
   const ax = Math.abs(x) / k,
     hy = (y - 0.665) / k,
     hz = (z + 0.06) / k;
-  let crown = ellipsoid(ax, hy, hz, 0, 0.04, -0.012, 0.086, 0.095, 0.109);
+  let crown = ellipsoid(ax, hy, hz, 0, 0.037, -0.013, 0.083, 0.092, 0.105);
   crown = smax(crown, 0.026 + 0.02 * smoothstep(0.0, -0.08, hz) - hy, 0.004);
   const brim = smax(
-    ellipsoid(ax, hy, hz, 0, 0.034 - 0.03 * (hz - 0.09), 0.105, 0.08, 0.005, 0.08),
+    ellipsoid(
+      ax,
+      hy + 0.17 * ax + 0.13 * Math.max(0, hz - 0.1),
+      hz,
+      0,
+      0.034,
+      0.105,
+      0.077,
+      0.0045,
+      0.079,
+    ),
     0.06 - hz,
     0.004,
   );
@@ -1207,8 +1239,11 @@ export function sculptSpectator(
   const rotations = boneSets.map((set) => set.map((b) => q(b.dirSeat, b.dirStand)));
   for (let i = 0; i < n; i++) {
     const x = mesh.positions[i * 3],
-      y = mesh.positions[i * 3 + 1],
+      y = Math.max(-0.3, mesh.positions[i * 3 + 1]),
       z = mesh.positions[i * 3 + 2];
+    // QEM edge collapse can overshoot the flat sole by tens of micrometres.
+    // Bake the actual tread contact plane rather than allowing shoes to sink.
+    mesh.positions[i * 3 + 1] = y;
     probes[origin[i]](x, y, z);
     const sideIndex = x < 0 ? 0 : 1;
     const bones = boneSets[sideIndex],
@@ -1244,7 +1279,9 @@ export function sculptSpectator(
       p[2] += ((r[2] + bone.stand[2]) * k) / sum;
     }
     // Export frame: facing -X, lateral Z.
-    standing.set([-p[2], p[1], p[0]], i * 3);
+    // The blended standing correspondence keeps the same planted sole.
+    // Its normal buffer is recomputed from these final constrained vertices.
+    standing.set([-p[2], Math.max(-0.3, p[1]), p[0]], i * 3);
     // Tags: crowd joint (0 body, 1 left arm, 2 right arm, 3 head), skin mask
     // (0 cloth, 1 skin, 2 hair), accessory (0 none, 1 cap, 2 phone).
     const headPart = Math.min(parts[SP.Head], parts[SP.Hair]);

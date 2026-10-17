@@ -1,0 +1,2017 @@
+{
+  "revision": "MotoGP R5 composite, rider, spectators and tyre/weather response",
+  "originalR5Baseline": "ede738ec800445cd513083d01b05e99b6568a23f",
+  "integrationBaseline": "5b31aef72d14f4bd35e567f126aac0a0bc327d9f",
+  "runtimeEquivalentRemoteHead": "8060d6fca6b5d5e7b215b82bc8e3fb89f8c9e45f",
+  "image_count": 100,
+  "verified_sha256_payloads": 100,
+  "visually_reviewed": 100,
+  "review_sheets": 10,
+  "status_counts": {
+    "partially-transferred": 73,
+    "reviewed-context-only": 27
+  },
+  "references": [
+    {
+      "number": 1,
+      "file": "01_official_ps5_store/REF_001_candidate_0001.jpg",
+      "sha256": "b84362eab51ab28c8136ab297a7b011f0cc8f9184b1d738c0086f2d13b870bcb",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Front-quarter pack shot; curved nose and central intake, loop-like aero winglets, matte crowned slicks and distinct fork/rotor metal.",
+      "r5_links": [
+        "bodywork",
+        "tyres"
+      ],
+      "implementation_files": [
+        "src/rendering/bike-livery.ts",
+        "src/rendering/bike.ts",
+        "src/rendering/gp-appearance.ts",
+        "src/rendering/gp-bodywork.ts",
+        "src/rendering/gp-tyre-finish.ts",
+        "tools/motogp/build_gp_bodywork.py"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 2,
+      "file": "01_official_ps5_store/REF_002_candidate_0002.jpg",
+      "sha256": "a3741289c3813d37b887934e7eac9a6ea1a1c3272aeaf990e20fdb03130bdf40",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Cornering rider hangs torso and inside knee to the right of bike centre, outside arm spans the tank; raised kerb/runoff and sunlit granular asphalt.",
+      "r5_links": [
+        "rider",
+        "tyres",
+        "braking-context"
+      ],
+      "implementation_files": [
+        "src/rendering/bike.ts",
+        "src/rendering/gp-rider-gear.ts",
+        "src/rendering/gp-tyre-finish.ts",
+        "src/rendering/rider.ts",
+        "src/simulation/bike-vehicle.ts",
+        "src/simulation/bike.ts",
+        "tests/gp-engine-braking.test.ts"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 3,
+      "file": "01_official_ps5_store/REF_003_candidate_0003.jpg",
+      "sha256": "343a6072fb69f9887b3ebe4e50b78f8543de556d73eccb3345658485c2e30ccb",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Two bikes use distinct painted, carbon and metal surfaces; narrow fork legs and rotor carriers remain visible; rubbered lines trace the corner.",
+      "r5_links": [
+        "bodywork",
+        "tyres"
+      ],
+      "implementation_files": [
+        "src/rendering/bike-livery.ts",
+        "src/rendering/bike.ts",
+        "src/rendering/gp-appearance.ts",
+        "src/rendering/gp-bodywork.ts",
+        "src/rendering/gp-tyre-finish.ts",
+        "tools/motogp/build_gp_bodywork.py"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 4,
+      "file": "01_official_ps5_store/REF_004_candidate_0004.jpg",
+      "sha256": "c7b8f6484f389cf37cbe1938a773f0d66617e6ce9fa44685e34603b64093daf1",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "High camera reveals teardrop transparent windscreen, round fuel cap, narrow saddle and aero back hump, with worn paint on raised kerb.",
+      "r5_links": [
+        "bodywork",
+        "rider"
+      ],
+      "implementation_files": [
+        "src/rendering/bike-livery.ts",
+        "src/rendering/gp-appearance.ts",
+        "src/rendering/gp-bodywork.ts",
+        "src/rendering/gp-rider-gear.ts",
+        "src/rendering/rider.ts",
+        "tools/motogp/build_gp_bodywork.py"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 5,
+      "file": "01_official_ps5_store/REF_005_candidate_0005.jpg",
+      "sha256": "bcb937ed6d7ad5b859c83e59005d57a7b40f88e90b4f9d2711c4c2e4d46f2e88",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Supermoto rider wears a peaked helmet/goggles and sits taller; polished long fork tubes and thin spokes are exposed; woodland casts broken shadows.",
+      "r5_links": [],
+      "implementation_files": [],
+      "r5_disposition": "reviewed-context-only",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 6,
+      "file": "01_official_ps5_store/REF_006_candidate_0006.jpg",
+      "sha256": "450108af626e6534fe2f35ed67e6d31dc0073447007af103d9593aad79399305",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Straight-line GP rider is fully tucked behind tall screen; nose air intake sits between stacked wing channels; tyre and fork shadows contact asphalt.",
+      "r5_links": [
+        "bodywork",
+        "rider",
+        "tyres"
+      ],
+      "implementation_files": [
+        "src/rendering/bike-livery.ts",
+        "src/rendering/bike.ts",
+        "src/rendering/gp-appearance.ts",
+        "src/rendering/gp-bodywork.ts",
+        "src/rendering/gp-rider-gear.ts",
+        "src/rendering/gp-tyre-finish.ts",
+        "src/rendering/rider.ts",
+        "tools/motogp/build_gp_bodywork.py"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 7,
+      "file": "01_official_ps5_store/REF_007_candidate_0007.jpg",
+      "sha256": "6b75fe8f1f1b79df2281882270449b926169e8c19f54c08d45dbd0ae6a04a66f",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Small training bike on terracotta indoor circuit; rider leans independently with inside knee out, red/white tyre barriers and structural shadows.",
+      "r5_links": [],
+      "implementation_files": [],
+      "r5_disposition": "reviewed-context-only",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 8,
+      "file": "01_official_ps5_store/REF_008_candidate_0008.jpg",
+      "sha256": "2f7c2df0335d4e4176498b3733391e1d60213dfce226cbcb3b331dd17c87a6be",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Telephoto composition isolates a sharp approaching rider with heavily blurred near racers and background; fine screen specular stripe.",
+      "r5_links": [],
+      "implementation_files": [],
+      "r5_disposition": "reviewed-context-only",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 9,
+      "file": "01_official_ps5_store/REF_009_candidate_0009.jpg",
+      "sha256": "a22ca34ae1c75159d22c0c7214bf529c5683c466aea84f5a8c9c8459287675a7",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Indoor supermoto scene with tyre barriers, upright torso/low inside leg and pronounced narrow-spoke wheels; overhead structure casts strip shadows.",
+      "r5_links": [],
+      "implementation_files": [],
+      "r5_disposition": "reviewed-context-only",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 10,
+      "file": "01_official_ps5_store/REF_010_candidate_0010.jpg",
+      "sha256": "b075be8a32703a4802e41ddd241049f96e027743ef69525dc715086f6bc83f93",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Wet GP track under flat grey sky: low-contrast reflections and stippled water, rain streaks, softened distant stands; bright livery remains readable.",
+      "r5_links": [
+        "tyres",
+        "wet-composition"
+      ],
+      "implementation_files": [
+        "src/rendering/bike.ts",
+        "src/rendering/gp-tyre-finish.ts",
+        "src/rendering/weather-presentation.ts",
+        "tests/gp-wet-finish-order.test.ts"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 11,
+      "file": "02_ui_menus_hud/REF_011_candidate_0011.jpg",
+      "sha256": "5f53c4bb2833fd5c49042b729db656c351d3b976634ce290a23048a68b7bad95",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Rider identity form aligns labels and selected values over an in-world room; close-up suit has leather grain, seam and zipper.",
+      "r5_links": [
+        "rider"
+      ],
+      "implementation_files": [
+        "src/rendering/gp-rider-gear.ts",
+        "src/rendering/rider.ts"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 12,
+      "file": "02_ui_menus_hud/REF_012_candidate_0012.jpg",
+      "sha256": "df193ef51721f14a779984dd51e357c91d6d8c7c85e3ee37de51c5e905c4b224",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Garage suspension menu shows numeric detents with selected row and adjacent explanation; bike side view exposes carbon tank pad, chain and rear paddock stand.",
+      "r5_links": [],
+      "implementation_files": [],
+      "r5_disposition": "reviewed-context-only",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 13,
+      "file": "02_ui_menus_hud/REF_013_candidate_0013.jpg",
+      "sha256": "97bc85bc7112d4efa40bb4a968829c36bbbfcd06f264e62be053ecf818bfa2b5",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Vertical split-screen race uses compact corner speed/gear dials, leader/gap tower, mini map and high rear camera with opponents readable.",
+      "r5_links": [],
+      "implementation_files": [],
+      "r5_disposition": "reviewed-context-only",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 14,
+      "file": "03_gameplay_models_tracks/REF_014_candidate_0014.jpg",
+      "sha256": "96c75a68062ecf2785daa950b96fd36ba52b3a3fe0ec8b9ca278eb18d432d630",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Grid view shows staggered bikes, feet resting on ground, red start lights, painted grid boxes and deep pit/stand perspective.",
+      "r5_links": [
+        "spectators"
+      ],
+      "implementation_files": [
+        "scripts/lib/human-sculpt.ts",
+        "src/rendering/crowd-impostor.ts",
+        "src/rendering/crowd-wardrobe.ts",
+        "src/rendering/crowd.ts",
+        "src/rendering/human-kit.json"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 15,
+      "file": "03_gameplay_models_tracks/REF_015_candidate_0015.jpg",
+      "sha256": "4786737af8affae47288864274dafb07eef9a8a206d18459f4ef3c7a70cb1fc1",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Rear chase corner shows rider hip offset and knee down while bike follows raised worn red/white kerb; guide arrows follow curve.",
+      "r5_links": [
+        "rider",
+        "spectators",
+        "braking-context"
+      ],
+      "implementation_files": [
+        "scripts/lib/human-sculpt.ts",
+        "src/rendering/crowd-impostor.ts",
+        "src/rendering/crowd-wardrobe.ts",
+        "src/rendering/crowd.ts",
+        "src/rendering/gp-rider-gear.ts",
+        "src/rendering/human-kit.json",
+        "src/rendering/rider.ts",
+        "src/simulation/bike-vehicle.ts",
+        "src/simulation/bike.ts",
+        "tests/gp-engine-braking.test.ts"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 16,
+      "file": "03_gameplay_models_tracks/REF_016_candidate_0016.jpg",
+      "sha256": "625811b015735e520957f9bd8a2c30ecb4b8c137dc282ba73e0e9cb9104b3fd2",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Pre-start side-front view: planted inside boot, compact bent-arm crouch and staggered pack inside white grid slots; longitudinal rubber marks.",
+      "r5_links": [
+        "rider",
+        "spectators"
+      ],
+      "implementation_files": [
+        "scripts/lib/human-sculpt.ts",
+        "src/rendering/crowd-impostor.ts",
+        "src/rendering/crowd-wardrobe.ts",
+        "src/rendering/crowd.ts",
+        "src/rendering/gp-rider-gear.ts",
+        "src/rendering/human-kit.json",
+        "src/rendering/rider.ts"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 17,
+      "file": "03_gameplay_models_tracks/REF_017_candidate_0017.jpg",
+      "sha256": "b66c1559a2650df0208b5697e64b0849dbc243cd10f551f642ce1d8f714c81b1",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Rain onboard view shows screen edge, triple clamp/hex adjusters, carbon weave, compact digital dash and droplets; track stays visible above screen.",
+      "r5_links": [
+        "wet-composition"
+      ],
+      "implementation_files": [
+        "src/rendering/weather-presentation.ts",
+        "tests/gp-wet-finish-order.test.ts"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 18,
+      "file": "03_gameplay_models_tracks/REF_018_candidate_0018.jpg",
+      "sha256": "00bd3c544fc28315189390e7385bca13607075a56e9583ae9d7d460d393c05e8",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Side close-up reveals ribbed shoulder/hip leather stretch panels, bent boot articulation, chain/sprocket, twin spar frame and thin fairing perimeter.",
+      "r5_links": [
+        "bodywork",
+        "rider",
+        "tyres"
+      ],
+      "implementation_files": [
+        "src/rendering/bike-livery.ts",
+        "src/rendering/bike.ts",
+        "src/rendering/gp-appearance.ts",
+        "src/rendering/gp-bodywork.ts",
+        "src/rendering/gp-rider-gear.ts",
+        "src/rendering/gp-tyre-finish.ts",
+        "src/rendering/rider.ts",
+        "tools/motogp/build_gp_bodywork.py"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 19,
+      "file": "03_gameplay_models_tracks/REF_019_candidate_0019.jpg",
+      "sha256": "bb3f07104daec87a7f56b88e099d72e155e0a3e001f8a0664b2f1888119f676f",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Front leaning GP has separated curved wing blades, visible central intake and slender screen with tyre crown contact; inside knee and elbow low.",
+      "r5_links": [
+        "bodywork",
+        "rider",
+        "tyres",
+        "braking-context"
+      ],
+      "implementation_files": [
+        "src/rendering/bike-livery.ts",
+        "src/rendering/bike.ts",
+        "src/rendering/gp-appearance.ts",
+        "src/rendering/gp-bodywork.ts",
+        "src/rendering/gp-rider-gear.ts",
+        "src/rendering/gp-tyre-finish.ts",
+        "src/rendering/rider.ts",
+        "src/simulation/bike-vehicle.ts",
+        "src/simulation/bike.ts",
+        "tests/gp-engine-braking.test.ts",
+        "tools/motogp/build_gp_bodywork.py"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 20,
+      "file": "03_gameplay_models_tracks/REF_020_candidate_0020.jpg",
+      "sha256": "9858e612e73459b2ff352b3ac4874eef3db02e8a945e2190d25847364bf776b6",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Near frontal racers display broad nose number plate, layered carbon wing profile and texture variation across tyre tread shoulder; rider helmet sits well inside curve.",
+      "r5_links": [
+        "bodywork",
+        "tyres"
+      ],
+      "implementation_files": [
+        "src/rendering/bike-livery.ts",
+        "src/rendering/bike.ts",
+        "src/rendering/gp-appearance.ts",
+        "src/rendering/gp-bodywork.ts",
+        "src/rendering/gp-tyre-finish.ts",
+        "tools/motogp/build_gp_bodywork.py"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 21,
+      "file": "03_gameplay_models_tracks/REF_021_candidate_0044.jpg",
+      "sha256": "110a4b7bdb5bbf366f7449e046bc450b70df237e5b3d901cb1289a20ea2dce05",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Two GP families side by side have clearly different nose and wing widths, fork fairings and colours while sharing plausible tyre size.",
+      "r5_links": [
+        "bodywork",
+        "tyres"
+      ],
+      "implementation_files": [
+        "src/rendering/bike-livery.ts",
+        "src/rendering/bike.ts",
+        "src/rendering/gp-appearance.ts",
+        "src/rendering/gp-bodywork.ts",
+        "src/rendering/gp-tyre-finish.ts",
+        "tools/motogp/build_gp_bodywork.py"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 22,
+      "file": "03_gameplay_models_tracks/REF_022_candidate_0045.jpg",
+      "sha256": "bbaa37be774225250f387af16db3e44732ca0aea6298d0e2e544506a07e51864",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Extreme nose close-up exposes blue panel fasteners, rimmed central air inlet, layered wing underside, hose loops and radiator mesh.",
+      "r5_links": [
+        "bodywork",
+        "tyres"
+      ],
+      "implementation_files": [
+        "src/rendering/bike-livery.ts",
+        "src/rendering/bike.ts",
+        "src/rendering/gp-appearance.ts",
+        "src/rendering/gp-bodywork.ts",
+        "src/rendering/gp-tyre-finish.ts",
+        "tools/motogp/build_gp_bodywork.py"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 23,
+      "file": "03_gameplay_models_tracks/REF_023_candidate_0046.jpg",
+      "sha256": "bf2e1318692231694627c42262f554221e4280b054ed96899a83de6e1868ea8a",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Indoor small-bike lean has narrow radiator/grille, bare fork and glossy damp strip beside matte terracotta slabs; long structural shadows.",
+      "r5_links": [],
+      "implementation_files": [],
+      "r5_disposition": "reviewed-context-only",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 24,
+      "file": "03_gameplay_models_tracks/REF_024_candidate_0047.jpg",
+      "sha256": "0753a3b3bd31579310def5200de1cf0238b7ea449e9cf5cd78eb79214144062b",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Supermoto front-side shot exposes curved exhaust header, ribbed radiator, engine side case and spoke-wheel hub; cloth barriers are individually wrinkled.",
+      "r5_links": [],
+      "implementation_files": [],
+      "r5_disposition": "reviewed-context-only",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 25,
+      "file": "03_gameplay_models_tracks/REF_025_candidate_0048.jpg",
+      "sha256": "4cc46d5c8405dae66136ed41c55a0837077c0ef5fa3dad14e5fe8be36e35a4ac",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Training circuit corner shows braking rider torso more upright, inside leg extended and numerous wheel streaks crossing worn kerb paint.",
+      "r5_links": [
+        "rider",
+        "braking-context"
+      ],
+      "implementation_files": [
+        "src/rendering/gp-rider-gear.ts",
+        "src/rendering/rider.ts",
+        "src/simulation/bike-vehicle.ts",
+        "src/simulation/bike.ts",
+        "tests/gp-engine-braking.test.ts"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 26,
+      "file": "03_gameplay_models_tracks/REF_026_candidate_0049.jpg",
+      "sha256": "3bea48f919adf91016c94b5757fcc1e0952a3cf241bad36950208125efd5d300",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Dirt-grid side view uses near-upright torso, extended forks, high front fender, wire spokes and clear engine/exhaust assembly; subtle dust at wheel height.",
+      "r5_links": [],
+      "implementation_files": [],
+      "r5_disposition": "reviewed-context-only",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 27,
+      "file": "03_gameplay_models_tracks/REF_027_candidate_0050.jpg",
+      "sha256": "dd7d66ffc47f08d31e5fb04c45bb3eff666176480a5d8912274385cddf3684cd",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Very low apex shot shows a fully leaned GP with inside knee almost grazing red/white kerb, flat painted aero undersides and tire crown touching road.",
+      "r5_links": [
+        "bodywork",
+        "rider",
+        "tyres",
+        "spectators",
+        "braking-context"
+      ],
+      "implementation_files": [
+        "scripts/lib/human-sculpt.ts",
+        "src/rendering/bike-livery.ts",
+        "src/rendering/bike.ts",
+        "src/rendering/crowd-impostor.ts",
+        "src/rendering/crowd-wardrobe.ts",
+        "src/rendering/crowd.ts",
+        "src/rendering/gp-appearance.ts",
+        "src/rendering/gp-bodywork.ts",
+        "src/rendering/gp-rider-gear.ts",
+        "src/rendering/gp-tyre-finish.ts",
+        "src/rendering/human-kit.json",
+        "src/rendering/rider.ts",
+        "src/simulation/bike-vehicle.ts",
+        "src/simulation/bike.ts",
+        "tests/gp-engine-braking.test.ts",
+        "tools/motogp/build_gp_bodywork.py"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 28,
+      "file": "03_gameplay_models_tracks/REF_028_candidate_0051.jpg",
+      "sha256": "34b10b48bbe6eab658903c48b29536f4b5cae8a91ec15eaa735e77e078c4beb1",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Road sportbike close-up has smooth painted compound surfaces, transparent screen and layered headlamp covers; near rider knee and elbow clearly sculpted.",
+      "r5_links": [
+        "bodywork",
+        "rider",
+        "tyres",
+        "spectators",
+        "braking-context"
+      ],
+      "implementation_files": [
+        "scripts/lib/human-sculpt.ts",
+        "src/rendering/bike-livery.ts",
+        "src/rendering/bike.ts",
+        "src/rendering/crowd-impostor.ts",
+        "src/rendering/crowd-wardrobe.ts",
+        "src/rendering/crowd.ts",
+        "src/rendering/gp-appearance.ts",
+        "src/rendering/gp-bodywork.ts",
+        "src/rendering/gp-rider-gear.ts",
+        "src/rendering/gp-tyre-finish.ts",
+        "src/rendering/human-kit.json",
+        "src/rendering/rider.ts",
+        "src/simulation/bike-vehicle.ts",
+        "src/simulation/bike.ts",
+        "tests/gp-engine-braking.test.ts",
+        "tools/motogp/build_gp_bodywork.py"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 29,
+      "file": "03_gameplay_models_tracks/REF_029_candidate_0052.jpg",
+      "sha256": "a351affc12c2a10bdc75f62cb1572ad64f8b582a44e70201e99fc6c7fc1b18a8",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Road sportbike with minimally branded red front cowling; mounting screws circle the screen and simple large number stays readable.",
+      "r5_links": [
+        "bodywork",
+        "rider",
+        "tyres",
+        "spectators"
+      ],
+      "implementation_files": [
+        "scripts/lib/human-sculpt.ts",
+        "src/rendering/bike-livery.ts",
+        "src/rendering/bike.ts",
+        "src/rendering/crowd-impostor.ts",
+        "src/rendering/crowd-wardrobe.ts",
+        "src/rendering/crowd.ts",
+        "src/rendering/gp-appearance.ts",
+        "src/rendering/gp-bodywork.ts",
+        "src/rendering/gp-rider-gear.ts",
+        "src/rendering/gp-tyre-finish.ts",
+        "src/rendering/human-kit.json",
+        "src/rendering/rider.ts",
+        "tools/motogp/build_gp_bodywork.py"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 30,
+      "file": "03_gameplay_models_tracks/REF_030_candidate_0055.jpg",
+      "sha256": "cfd6ab8f4bd16a80732269b56d12c4bbf9615fdae333661c6b87e174db6dad31",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Overhead front corner exposes upper tank through the screen, a small nose camera, gloved knuckle protection and broad painted wing blades.",
+      "r5_links": [],
+      "implementation_files": [],
+      "r5_disposition": "reviewed-context-only",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 31,
+      "file": "03_gameplay_models_tracks/REF_031_candidate_0056.jpg",
+      "sha256": "6cc408eed20ba484b136b914f0a14159b0c12a766270f07b571cf7c4fa89284c",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "High overhead GP apex view shows narrow seat, tail fins, vented tail spine, fuel cap and ribbed rider back/side panels against dense rubber lines.",
+      "r5_links": [
+        "spectators"
+      ],
+      "implementation_files": [
+        "scripts/lib/human-sculpt.ts",
+        "src/rendering/crowd-impostor.ts",
+        "src/rendering/crowd-wardrobe.ts",
+        "src/rendering/crowd.ts",
+        "src/rendering/human-kit.json"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 32,
+      "file": "03_gameplay_models_tracks/REF_032_candidate_0057.jpg",
+      "sha256": "0123a8d391441706bcda3771df6b71b05d2d4bf9686694e7ee06da6f4d4bc526",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Tilted straight shot has compact tucked rider, long tyre shadows and a narrow nose behind wide aero shelves, against restrained pit architecture.",
+      "r5_links": [
+        "spectators"
+      ],
+      "implementation_files": [
+        "scripts/lib/human-sculpt.ts",
+        "src/rendering/crowd-impostor.ts",
+        "src/rendering/crowd-wardrobe.ts",
+        "src/rendering/crowd.ts",
+        "src/rendering/human-kit.json"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 33,
+      "file": "03_gameplay_models_tracks/REF_033_candidate_0058.jpg",
+      "sha256": "6d3a359b817b320845204c5e1c9338d0070580f65b7d3860861c601face9264b",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Wide side-front straight shot shows rider rising from tuck with elbows bent, visible chassis side livery and ordered layers of runoff, fence and crowds.",
+      "r5_links": [
+        "spectators"
+      ],
+      "implementation_files": [
+        "scripts/lib/human-sculpt.ts",
+        "src/rendering/crowd-impostor.ts",
+        "src/rendering/crowd-wardrobe.ts",
+        "src/rendering/crowd.ts",
+        "src/rendering/human-kit.json"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 34,
+      "file": "03_gameplay_models_tracks/REF_034_candidate_0059.jpg",
+      "sha256": "6e33b0372f71830e3ddcb8a8c85522d3f910a808fd859922d379787da58d5d06",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Wet straight under gantry has fine spray/rain haze, muted road reflections and red bike readable in shadow; drying/rubber marks remain visible.",
+      "r5_links": [
+        "tyres",
+        "wet-composition"
+      ],
+      "implementation_files": [
+        "src/rendering/bike.ts",
+        "src/rendering/gp-tyre-finish.ts",
+        "src/rendering/weather-presentation.ts",
+        "tests/gp-wet-finish-order.test.ts"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 35,
+      "file": "03_gameplay_models_tracks/REF_035_candidate_0060.jpg",
+      "sha256": "9496fa64434c4a223f8786310180810f1b61acaeacd34fea6d9f23b028bf7b7d",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Rain streaks cross a grey, softly lit race scene; the wet asphalt retains fine aggregate instead of becoming a uniform mirror.",
+      "r5_links": [
+        "rider",
+        "tyres",
+        "wet-composition",
+        "braking-context"
+      ],
+      "implementation_files": [
+        "src/rendering/bike.ts",
+        "src/rendering/gp-rider-gear.ts",
+        "src/rendering/gp-tyre-finish.ts",
+        "src/rendering/rider.ts",
+        "src/rendering/weather-presentation.ts",
+        "src/simulation/bike-vehicle.ts",
+        "src/simulation/bike.ts",
+        "tests/gp-engine-braking.test.ts",
+        "tests/gp-wet-finish-order.test.ts"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 36,
+      "file": "03_gameplay_models_tracks/REF_036_candidate_0061.jpg",
+      "sha256": "3c615a65b92466e5a9647ed25689c030529a129c992a3dc05388ec68bbe3e843",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "A reflective wet strip pools beside the inside rumble curb while the main racing surface has a subtler sheen.",
+      "r5_links": [
+        "wet-composition"
+      ],
+      "implementation_files": [
+        "src/rendering/weather-presentation.ts",
+        "tests/gp-wet-finish-order.test.ts"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 37,
+      "file": "03_gameplay_models_tracks/REF_037_candidate_0062.jpg",
+      "sha256": "eb211b2314a47f8c19cf0c74baa726b3839c44ab71602f4a6e489afc3f335778",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Several dark, roughly parallel rubber trails bend across the track behind a deeply leaning motorcycle.",
+      "r5_links": [
+        "rider",
+        "tyres",
+        "wet-composition",
+        "braking-context"
+      ],
+      "implementation_files": [
+        "src/rendering/bike.ts",
+        "src/rendering/gp-rider-gear.ts",
+        "src/rendering/gp-tyre-finish.ts",
+        "src/rendering/rider.ts",
+        "src/rendering/weather-presentation.ts",
+        "src/simulation/bike-vehicle.ts",
+        "src/simulation/bike.ts",
+        "tests/gp-engine-braking.test.ts",
+        "tests/gp-wet-finish-order.test.ts"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 38,
+      "file": "03_gameplay_models_tracks/REF_038_candidate_0063.jpg",
+      "sha256": "87742d5beb685d09167094eb8e79150de5f25a131892369a460d3e29d89abfb4",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "The elevated camera reveals a narrow seat, raised tail, tapered fuel tank, rider back hump and transparent screen as separate shapes.",
+      "r5_links": [
+        "tyres",
+        "wet-composition"
+      ],
+      "implementation_files": [
+        "src/rendering/bike.ts",
+        "src/rendering/gp-tyre-finish.ts",
+        "src/rendering/weather-presentation.ts",
+        "tests/gp-wet-finish-order.test.ts"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 39,
+      "file": "03_gameplay_models_tracks/REF_039_candidate_0064.jpg",
+      "sha256": "e9458e0980d8d3cab62985339266148d3950c476325bde0389d22056086ebc68",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Dry asphalt is matte and finely granular with strong but limited bike contact shadows.",
+      "r5_links": [
+        "bodywork",
+        "rider",
+        "braking-context"
+      ],
+      "implementation_files": [
+        "src/rendering/bike-livery.ts",
+        "src/rendering/gp-appearance.ts",
+        "src/rendering/gp-bodywork.ts",
+        "src/rendering/gp-rider-gear.ts",
+        "src/rendering/rider.ts",
+        "src/simulation/bike-vehicle.ts",
+        "src/simulation/bike.ts",
+        "tests/gp-engine-braking.test.ts",
+        "tools/motogp/build_gp_bodywork.py"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 40,
+      "file": "03_gameplay_models_tracks/REF_040_candidate_0065.jpg",
+      "sha256": "6818d38c5a739d5627c59c7601939884344c31bb8f06a57ed4c4dc0538913a23",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "This is a supermoto-style bike with exposed engine, long fork, narrow front fender and spoked wheels, not a fully faired GP prototype.",
+      "r5_links": [],
+      "implementation_files": [],
+      "r5_disposition": "reviewed-context-only",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 41,
+      "file": "03_gameplay_models_tracks/REF_041_candidate_0066.jpg",
+      "sha256": "0c9f840c95498afa2cb3ae885dbd36663836ce5ac3657dcfa526115755426c2f",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Three supermoto bikes lean across a tan gritty surface with long parallel grooves and dirt accumulation.",
+      "r5_links": [],
+      "implementation_files": [],
+      "r5_disposition": "reviewed-context-only",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 42,
+      "file": "03_gameplay_models_tracks/REF_042_candidate_0067.jpg",
+      "sha256": "4cfe3e5979315675fa457e326e5176b40350f6d8b459a2d8c7c732be35cebbdb",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Supermoto riders pass from strong sunlight into an industrial structure with grid-like floor slab joints.",
+      "r5_links": [],
+      "implementation_files": [],
+      "r5_disposition": "reviewed-context-only",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 43,
+      "file": "03_gameplay_models_tracks/REF_043_candidate_0068.jpg",
+      "sha256": "17086cb950cd43fabe692368cd3f65857d793521e665bf32375fbab7c68cae90",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "An indoor corner is bounded by multi-row tire stacks, roof beams and small paddock tents.",
+      "r5_links": [],
+      "implementation_files": [],
+      "r5_disposition": "reviewed-context-only",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 44,
+      "file": "03_gameplay_models_tracks/REF_044_candidate_0069.jpg",
+      "sha256": "184a8ecc17d6e4051c1a82dcb6a87d109b2ea9558393ea83d693f855ebf02cc8",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "A red road-style bike rides along a heavily rubbered red-white curb next to bright blue painted runoff.",
+      "r5_links": [
+        "spectators",
+        "braking-context"
+      ],
+      "implementation_files": [
+        "scripts/lib/human-sculpt.ts",
+        "src/rendering/crowd-impostor.ts",
+        "src/rendering/crowd-wardrobe.ts",
+        "src/rendering/crowd.ts",
+        "src/rendering/human-kit.json",
+        "src/simulation/bike-vehicle.ts",
+        "src/simulation/bike.ts",
+        "tests/gp-engine-braking.test.ts"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 45,
+      "file": "03_gameplay_models_tracks/REF_045_candidate_0070.jpg",
+      "sha256": "985ff52f3ecab69c2abc23e1e95e6f475ef9188844ad98e6b7aeba04c3c44ffc",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Black tire scuffs cross repeated red-white curb panels and the blue runoff beside them.",
+      "r5_links": [
+        "spectators",
+        "braking-context"
+      ],
+      "implementation_files": [
+        "scripts/lib/human-sculpt.ts",
+        "src/rendering/crowd-impostor.ts",
+        "src/rendering/crowd-wardrobe.ts",
+        "src/rendering/crowd.ts",
+        "src/rendering/human-kit.json",
+        "src/simulation/bike-vehicle.ts",
+        "src/simulation/bike.ts",
+        "tests/gp-engine-braking.test.ts"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 46,
+      "file": "03_gameplay_models_tracks/REF_046_candidate_0071.jpg",
+      "sha256": "e1866f02683479445e4db715b0e5ab455ecbb1724b3484136a069d6ce6837b57",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "An orange sport bike has a large drilled front brake disc and a dark inset fender; a group of opponents follows with staggered separation.",
+      "r5_links": [],
+      "implementation_files": [],
+      "r5_disposition": "reviewed-context-only",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 47,
+      "file": "03_gameplay_models_tracks/REF_047_candidate_0072.jpg",
+      "sha256": "7b1ac10c950e85a44e1fbaa9c8475b4e93dab71cbc9f15c45d0e7936d84c74ad",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "A broad curb is heavily scrubbed with black tire deposits; a coarse blue-yellow runoff strip sits behind it.",
+      "r5_links": [],
+      "implementation_files": [],
+      "r5_disposition": "reviewed-context-only",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 48,
+      "file": "04_official_trailer_frames/REF_048_video_01_ref_048_pass_01_047_14_6_frame_00002.jpg",
+      "sha256": "b9320a3e95fba3bc15d3b1f29587b4cad1befd5a01203c8c0e7e1dd1a3182a61",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "A letterboxed overhead tracking shot frames two closely spaced motorcycles with motion-blurred pavement.",
+      "r5_links": [],
+      "implementation_files": [],
+      "r5_disposition": "reviewed-context-only",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 49,
+      "file": "04_official_trailer_frames/REF_049_video_01_ref_049_pass_01_047_14_6_frame_00014.jpg",
+      "sha256": "b3a5b2f3e3e706fac99853c62c2ffe551384f66085b50da684ce52e12251a2e3",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "An extreme close view of the red front fairing shows a large central intake and a tiny camera above it.",
+      "r5_links": [
+        "bodywork",
+        "rider",
+        "tyres"
+      ],
+      "implementation_files": [
+        "src/rendering/bike-livery.ts",
+        "src/rendering/bike.ts",
+        "src/rendering/gp-appearance.ts",
+        "src/rendering/gp-bodywork.ts",
+        "src/rendering/gp-rider-gear.ts",
+        "src/rendering/gp-tyre-finish.ts",
+        "src/rendering/rider.ts",
+        "tools/motogp/build_gp_bodywork.py"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 50,
+      "file": "04_official_trailer_frames/REF_050_video_01_ref_050_pass_01_047_14_6_frame_00020.jpg",
+      "sha256": "0e0be08b262097b6d5a6847a8cc599a066970b61399fa151e74576fec620963f",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "A low rear-facing on-bike camera places close carbon-weave bodywork at the right and a staggered pack across the road.",
+      "r5_links": [
+        "bodywork",
+        "rider",
+        "tyres",
+        "spectators"
+      ],
+      "implementation_files": [
+        "scripts/lib/human-sculpt.ts",
+        "src/rendering/bike-livery.ts",
+        "src/rendering/bike.ts",
+        "src/rendering/crowd-impostor.ts",
+        "src/rendering/crowd-wardrobe.ts",
+        "src/rendering/crowd.ts",
+        "src/rendering/gp-appearance.ts",
+        "src/rendering/gp-bodywork.ts",
+        "src/rendering/gp-rider-gear.ts",
+        "src/rendering/gp-tyre-finish.ts",
+        "src/rendering/human-kit.json",
+        "src/rendering/rider.ts",
+        "tools/motogp/build_gp_bodywork.py"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 51,
+      "file": "04_official_trailer_frames/REF_051_video_01_ref_051_pass_01_047_14_6_frame_00038.jpg",
+      "sha256": "0b2f2ff12f9e8cc499bafa2951ce9c40be60320fb32499ed2a6d5aaf325b556b",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "A rider travels upright with one gloved hand raised; the other stays near the handlebar.",
+      "r5_links": [
+        "bodywork",
+        "rider",
+        "spectators"
+      ],
+      "implementation_files": [
+        "scripts/lib/human-sculpt.ts",
+        "src/rendering/bike-livery.ts",
+        "src/rendering/crowd-impostor.ts",
+        "src/rendering/crowd-wardrobe.ts",
+        "src/rendering/crowd.ts",
+        "src/rendering/gp-appearance.ts",
+        "src/rendering/gp-bodywork.ts",
+        "src/rendering/gp-rider-gear.ts",
+        "src/rendering/human-kit.json",
+        "src/rendering/rider.ts",
+        "tools/motogp/build_gp_bodywork.py"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 52,
+      "file": "04_official_trailer_frames/REF_052_video_01_ref_052_pass_01_047_14_6_frame_00044.jpg",
+      "sha256": "d617cfd83fa5e5efcc5dbe9931dd8d9dd17208afd2767ad98812d78e1cfb3681",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "A dense starting grid contains different bike silhouettes and liveries on staggered white grid slots.",
+      "r5_links": [
+        "bodywork",
+        "rider",
+        "spectators"
+      ],
+      "implementation_files": [
+        "scripts/lib/human-sculpt.ts",
+        "src/rendering/bike-livery.ts",
+        "src/rendering/crowd-impostor.ts",
+        "src/rendering/crowd-wardrobe.ts",
+        "src/rendering/crowd.ts",
+        "src/rendering/gp-appearance.ts",
+        "src/rendering/gp-bodywork.ts",
+        "src/rendering/gp-rider-gear.ts",
+        "src/rendering/human-kit.json",
+        "src/rendering/rider.ts",
+        "tools/motogp/build_gp_bodywork.py"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 53,
+      "file": "04_official_trailer_frames/REF_053_video_01_ref_053_pass_01_047_14_6_frame_00050.jpg",
+      "sha256": "990bb62277028ecb6d8fe4f573cd635d1a432617f63ec990d4ac28aac19401f8",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "A low rear-quarter pack shot emphasizes broad rear tires, tail silhouettes and close lateral spacing.",
+      "r5_links": [
+        "spectators"
+      ],
+      "implementation_files": [
+        "scripts/lib/human-sculpt.ts",
+        "src/rendering/crowd-impostor.ts",
+        "src/rendering/crowd-wardrobe.ts",
+        "src/rendering/crowd.ts",
+        "src/rendering/human-kit.json"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 54,
+      "file": "04_official_trailer_frames/REF_054_video_01_ref_054_pass_01_047_14_6_frame_00062.jpg",
+      "sha256": "28323035956cdd843389f59502be906fc943c3d90a3c48b5aed7dc76691205a2",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "A front-mounted rear-looking view shows the rider behind a transparent curved screen, with a raised padded glove.",
+      "r5_links": [
+        "rider"
+      ],
+      "implementation_files": [
+        "src/rendering/gp-rider-gear.ts",
+        "src/rendering/rider.ts"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 55,
+      "file": "04_official_trailer_frames/REF_055_video_01_ref_055_pass_01_047_14_6_frame_00074.jpg",
+      "sha256": "e6bdf92022729bc0b15b905376320a8e65d07b155e5196f7fe20b2b2372d5baa",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "A reverse-facing long shot shows motorcycles along a broad straight, with two bikes side by side behind the leader.",
+      "r5_links": [
+        "bodywork",
+        "tyres",
+        "spectators"
+      ],
+      "implementation_files": [
+        "scripts/lib/human-sculpt.ts",
+        "src/rendering/bike-livery.ts",
+        "src/rendering/bike.ts",
+        "src/rendering/crowd-impostor.ts",
+        "src/rendering/crowd-wardrobe.ts",
+        "src/rendering/crowd.ts",
+        "src/rendering/gp-appearance.ts",
+        "src/rendering/gp-bodywork.ts",
+        "src/rendering/gp-tyre-finish.ts",
+        "src/rendering/human-kit.json",
+        "tools/motogp/build_gp_bodywork.py"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 56,
+      "file": "05_official_ps5_detail_crops/REF_056_PS5_DETAIL_AERO_BODYWORK_RIDER.jpg",
+      "sha256": "b25f8de8ebd1303dc615014b395882e73dc4db048878a36e66a894009b36aeca",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "This official PS5 detail crop shows bright yellow aerodynamic surfaces with openings and supports, an inset front intake and a lightly tinted clear screen.",
+      "r5_links": [
+        "bodywork",
+        "rider",
+        "tyres",
+        "spectators",
+        "braking-context"
+      ],
+      "implementation_files": [
+        "scripts/lib/human-sculpt.ts",
+        "src/rendering/bike-livery.ts",
+        "src/rendering/bike.ts",
+        "src/rendering/crowd-impostor.ts",
+        "src/rendering/crowd-wardrobe.ts",
+        "src/rendering/crowd.ts",
+        "src/rendering/gp-appearance.ts",
+        "src/rendering/gp-bodywork.ts",
+        "src/rendering/gp-rider-gear.ts",
+        "src/rendering/gp-tyre-finish.ts",
+        "src/rendering/human-kit.json",
+        "src/rendering/rider.ts",
+        "src/simulation/bike-vehicle.ts",
+        "src/simulation/bike.ts",
+        "tests/gp-engine-braking.test.ts",
+        "tools/motogp/build_gp_bodywork.py"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 57,
+      "file": "04_official_trailer_frames/REF_057_video_01_ref_057_pass_01_047_14_6_frame_00000.jpg",
+      "sha256": "e8038abd45494b4ff959ac4b0e412132d07a388cf916b4b9719011f1823ec7a3",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "A close-up of gloved hands adjusting a wrist closure shows individual finger shapes, hard knuckle pads and stitching.",
+      "r5_links": [
+        "rider"
+      ],
+      "implementation_files": [
+        "src/rendering/gp-rider-gear.ts",
+        "src/rendering/rider.ts"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 58,
+      "file": "04_official_trailer_frames/REF_058_video_01_ref_058_pass_01_047_14_6_frame_00001.jpg",
+      "sha256": "fd1a801dc6b58cc3ec9ddc407a791215c7390a4b1454460e409a891610242dea",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "A separate moment of the overhead two-bike shot shows the grass edge, narrow pale worn verge and white boundary line.",
+      "r5_links": [
+        "bodywork",
+        "rider",
+        "tyres"
+      ],
+      "implementation_files": [
+        "src/rendering/bike-livery.ts",
+        "src/rendering/bike.ts",
+        "src/rendering/gp-appearance.ts",
+        "src/rendering/gp-bodywork.ts",
+        "src/rendering/gp-rider-gear.ts",
+        "src/rendering/gp-tyre-finish.ts",
+        "src/rendering/rider.ts",
+        "tools/motogp/build_gp_bodywork.py"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 59,
+      "file": "04_official_trailer_frames/REF_059_video_01_ref_059_pass_01_047_14_6_frame_00004.jpg",
+      "sha256": "1defd8a1c2b71883239782d15264a18e917307e3c8b085f1eb931327369e3dc1",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "A side-on tracking view shows a rider tucked low over the tank, tail raised behind the seat, large rear slick and exposed rear mechanical structure.",
+      "r5_links": [
+        "bodywork",
+        "rider",
+        "tyres",
+        "braking-context"
+      ],
+      "implementation_files": [
+        "src/rendering/bike-livery.ts",
+        "src/rendering/bike.ts",
+        "src/rendering/gp-appearance.ts",
+        "src/rendering/gp-bodywork.ts",
+        "src/rendering/gp-rider-gear.ts",
+        "src/rendering/gp-tyre-finish.ts",
+        "src/rendering/rider.ts",
+        "src/simulation/bike-vehicle.ts",
+        "src/simulation/bike.ts",
+        "tests/gp-engine-braking.test.ts",
+        "tools/motogp/build_gp_bodywork.py"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 60,
+      "file": "05_official_ps5_detail_crops/REF_060_PS5_DETAIL_FAIRINGS_WHEELS_LEAN.jpg",
+      "sha256": "6983a17ee84c8e295ec280a3b2f0e7da34108f5685be54790d2e64901d2112d3",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "This official PS5 crop shows two differently shaped front fairings, inset carbon openings, brake hardware and slim wing surfaces.",
+      "r5_links": [
+        "bodywork",
+        "rider",
+        "tyres",
+        "braking-context"
+      ],
+      "implementation_files": [
+        "src/rendering/bike-livery.ts",
+        "src/rendering/bike.ts",
+        "src/rendering/gp-appearance.ts",
+        "src/rendering/gp-bodywork.ts",
+        "src/rendering/gp-rider-gear.ts",
+        "src/rendering/gp-tyre-finish.ts",
+        "src/rendering/rider.ts",
+        "src/simulation/bike-vehicle.ts",
+        "src/simulation/bike.ts",
+        "tests/gp-engine-braking.test.ts",
+        "tools/motogp/build_gp_bodywork.py"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 61,
+      "file": "04_official_trailer_frames/REF_061_video_01_ref_061_pass_01_047_14_6_frame_00009.jpg",
+      "sha256": "60c150b0fec1df8f2937e327c55c934fe828bf4762c150d323c59ed6542ad03e",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "A night-time rear close-up emphasizes a broad dark tire, compact tail, exhaust outlet detail and nearby rider boots.",
+      "r5_links": [
+        "tyres",
+        "wet-composition"
+      ],
+      "implementation_files": [
+        "src/rendering/bike.ts",
+        "src/rendering/gp-tyre-finish.ts",
+        "src/rendering/weather-presentation.ts",
+        "tests/gp-wet-finish-order.test.ts"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 62,
+      "file": "04_official_trailer_frames/REF_062_video_02_ref_062_pass_02_061_13_6_frame_00008.jpg",
+      "sha256": "6e413799ccf8a441d965937bbb032a5ece06513f9093ddf0f20c90b63476be1e",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "An empty start straight has a substantial start-light bridge, visible grid rectangles, pit garages and guardrails under a warm pink-purple sky.",
+      "r5_links": [
+        "wet-composition",
+        "spectators"
+      ],
+      "implementation_files": [
+        "scripts/lib/human-sculpt.ts",
+        "src/rendering/crowd-impostor.ts",
+        "src/rendering/crowd-wardrobe.ts",
+        "src/rendering/crowd.ts",
+        "src/rendering/human-kit.json",
+        "src/rendering/weather-presentation.ts",
+        "tests/gp-wet-finish-order.test.ts"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 63,
+      "file": "04_official_trailer_frames/REF_063_video_02_ref_063_pass_02_061_13_6_frame_00020.jpg",
+      "sha256": "1a32f78fddc56c066d2e01d99e335b954485d9d92cf7794f06d12e859692c08a",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "A single bike crosses a broad shadowed straight; the pit side includes parallel white rails, a red lane strip and cars beyond the barrier.",
+      "r5_links": [
+        "spectators"
+      ],
+      "implementation_files": [
+        "scripts/lib/human-sculpt.ts",
+        "src/rendering/crowd-impostor.ts",
+        "src/rendering/crowd-wardrobe.ts",
+        "src/rendering/crowd.ts",
+        "src/rendering/human-kit.json"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 64,
+      "file": "04_official_trailer_frames/REF_064_video_02_ref_064_pass_02_061_13_6_frame_00026.jpg",
+      "sha256": "9145a4c5a5fe93423356ffe987f53959fa4aa6cb5b74b50f2df8da73633cce0f",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "A night race is lit by tall cool-white rectangular floodlights, with matte dark asphalt and a vivid blue runoff edge.",
+      "r5_links": [
+        "wet-composition",
+        "spectators"
+      ],
+      "implementation_files": [
+        "scripts/lib/human-sculpt.ts",
+        "src/rendering/crowd-impostor.ts",
+        "src/rendering/crowd-wardrobe.ts",
+        "src/rendering/crowd.ts",
+        "src/rendering/human-kit.json",
+        "src/rendering/weather-presentation.ts",
+        "tests/gp-wet-finish-order.test.ts"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 65,
+      "file": "04_official_trailer_frames/REF_065_video_02_ref_065_pass_02_061_13_6_frame_00032.jpg",
+      "sha256": "634ccdbd07cd67ffc559fc3cb4e90c6d5c5ffba8e32c0e8072f790c7fb53374c",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "A close cockpit-side view shows levers, reservoirs, metal fasteners, windscreen mounts and a rider's protected shoulders.",
+      "r5_links": [
+        "bodywork",
+        "rider"
+      ],
+      "implementation_files": [
+        "src/rendering/bike-livery.ts",
+        "src/rendering/gp-appearance.ts",
+        "src/rendering/gp-bodywork.ts",
+        "src/rendering/gp-rider-gear.ts",
+        "src/rendering/rider.ts",
+        "tools/motogp/build_gp_bodywork.py"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 66,
+      "file": "04_official_trailer_frames/REF_066_video_02_ref_066_pass_02_061_13_6_frame_00038.jpg",
+      "sha256": "2876aa3d19262b2d6f0ec1c2e3abc93ca20f11e8dfb0121c78c778bb3b2f6f78",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "The trailer overlays large white text advertising physics on top of a bike view; this text is promotional rather than a measurement.",
+      "r5_links": [],
+      "implementation_files": [],
+      "r5_disposition": "reviewed-context-only",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 67,
+      "file": "04_official_trailer_frames/REF_067_video_02_ref_067_pass_02_061_13_6_frame_00044.jpg",
+      "sha256": "6cb0735509e89a8f30e09e41654d5160e714c45e8006d7917d24a02e7bed5a96",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "An elevated close view shows a rider's torso and knee offset to the inside of a turn relative to the tank and tail.",
+      "r5_links": [
+        "bodywork",
+        "rider",
+        "tyres",
+        "spectators",
+        "braking-context"
+      ],
+      "implementation_files": [
+        "scripts/lib/human-sculpt.ts",
+        "src/rendering/bike-livery.ts",
+        "src/rendering/bike.ts",
+        "src/rendering/crowd-impostor.ts",
+        "src/rendering/crowd-wardrobe.ts",
+        "src/rendering/crowd.ts",
+        "src/rendering/gp-appearance.ts",
+        "src/rendering/gp-bodywork.ts",
+        "src/rendering/gp-rider-gear.ts",
+        "src/rendering/gp-tyre-finish.ts",
+        "src/rendering/human-kit.json",
+        "src/rendering/rider.ts",
+        "src/simulation/bike-vehicle.ts",
+        "src/simulation/bike.ts",
+        "tests/gp-engine-braking.test.ts",
+        "tools/motogp/build_gp_bodywork.py"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 68,
+      "file": "04_official_trailer_frames/REF_068_video_02_ref_068_pass_02_061_13_6_frame_00050.jpg",
+      "sha256": "2485116c9b53e1ccd7e98b7dd08539bddcb4087d10835427a7d97ffac7cc6cc5",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Indoor minibike racing frame: compact wheelbase, pronounced rounded tire shoulders, exposed fork/controls, a forward rider with one knee opened into the turn, alternating roof shadows and localized floor sheen.",
+      "r5_links": [],
+      "implementation_files": [],
+      "r5_disposition": "reviewed-context-only",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 69,
+      "file": "04_official_trailer_frames/REF_069_video_02_ref_069_pass_02_061_13_6_frame_00056.jpg",
+      "sha256": "1e7df12ad0fac61f09dcda8f5149f81ee7c667ebe0aecd19c0cd49e91241c585",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Three seated riders in a dark press setting; colored fabric panels, seams, caps and helmet props remain readable against near-black walls. This is a character/presentation frame, not track gameplay.",
+      "r5_links": [],
+      "implementation_files": [],
+      "r5_disposition": "reviewed-context-only",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 70,
+      "file": "04_official_trailer_frames/REF_070_video_02_ref_070_pass_02_061_13_6_frame_00062.jpg",
+      "sha256": "4fba7eb25ec0128e7aef5bb5ea4602c6e34a35b3190e5fdb1830fe3e13c44cc8",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Low front-three-quarter wet race view: several deeply leaned bikes, cool overcast lighting, low-contrast distance and dark tire contact region. Large trailer typography obscures the center.",
+      "r5_links": [
+        "bodywork",
+        "rider",
+        "tyres",
+        "wet-composition",
+        "braking-context"
+      ],
+      "implementation_files": [
+        "src/rendering/bike-livery.ts",
+        "src/rendering/bike.ts",
+        "src/rendering/gp-appearance.ts",
+        "src/rendering/gp-bodywork.ts",
+        "src/rendering/gp-rider-gear.ts",
+        "src/rendering/gp-tyre-finish.ts",
+        "src/rendering/rider.ts",
+        "src/rendering/weather-presentation.ts",
+        "src/simulation/bike-vehicle.ts",
+        "src/simulation/bike.ts",
+        "tests/gp-engine-braking.test.ts",
+        "tests/gp-wet-finish-order.test.ts",
+        "tools/motogp/build_gp_bodywork.py"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 71,
+      "file": "04_official_trailer_frames/REF_071_video_02_ref_071_pass_02_061_13_6_frame_00068.jpg",
+      "sha256": "fb52560156425a4e7af52300b22fbce2624e237d5c25b9acb852695eca106bd7",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Very low rear close-up shows a broad rounded slick, visible chain and sprocket, paired circular exhaust mouths, carbon rear panels and a heavily displaced rider hip/knee. Sunlight produces a short contact shadow under the leaned assembly.",
+      "r5_links": [
+        "bodywork",
+        "rider",
+        "tyres"
+      ],
+      "implementation_files": [
+        "src/rendering/bike-livery.ts",
+        "src/rendering/bike.ts",
+        "src/rendering/gp-appearance.ts",
+        "src/rendering/gp-bodywork.ts",
+        "src/rendering/gp-rider-gear.ts",
+        "src/rendering/gp-tyre-finish.ts",
+        "src/rendering/rider.ts",
+        "tools/motogp/build_gp_bodywork.py"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 72,
+      "file": "04_official_trailer_frames/REF_072_video_02_ref_072_pass_02_061_13_6_frame_00074.jpg",
+      "sha256": "afd1428b5a6b2bb7519473b54f874c0c012e7fe037c87e2476e26c6c66fc1a87",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Night corner pack under rows of tall white floodlights, with burgundy/white barriers and broad turquoise runoff. Bikes have separated glossy fairing highlights and dark suit silhouettes.",
+      "r5_links": [
+        "wet-composition",
+        "spectators"
+      ],
+      "implementation_files": [
+        "scripts/lib/human-sculpt.ts",
+        "src/rendering/crowd-impostor.ts",
+        "src/rendering/crowd-wardrobe.ts",
+        "src/rendering/crowd.ts",
+        "src/rendering/human-kit.json",
+        "src/rendering/weather-presentation.ts",
+        "tests/gp-wet-finish-order.test.ts"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 73,
+      "file": "04_official_trailer_frames/REF_073_video_02_ref_073_pass_02_061_13_6_frame_00003.jpg",
+      "sha256": "1441bf23866b445dd371bd51b6c485a03707396dfb6b058037a07adbb5aceafa",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Static glove-and-bodywork close-up: white molded knuckle protectors, stitched red leather fingers, tiny suit perforations, rounded fairing vents with black depth and a satin red shell.",
+      "r5_links": [
+        "bodywork",
+        "rider",
+        "tyres"
+      ],
+      "implementation_files": [
+        "src/rendering/bike-livery.ts",
+        "src/rendering/bike.ts",
+        "src/rendering/gp-appearance.ts",
+        "src/rendering/gp-bodywork.ts",
+        "src/rendering/gp-rider-gear.ts",
+        "src/rendering/gp-tyre-finish.ts",
+        "src/rendering/rider.ts",
+        "tools/motogp/build_gp_bodywork.py"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 74,
+      "file": "04_official_trailer_frames/REF_074_video_02_ref_074_pass_02_061_13_6_frame_00075.jpg",
+      "sha256": "77cb2de81910f464a6cf6033b46c5e3de2ef5a1f43d7baf2238abc31a8ef5eeb",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "On-bike straight view: windscreen and fork crowns frame the lower scene, compact shift lights surround an LCD, while the horizon and distant rider remain visible. The rider's helmet occupies the right edge.",
+      "r5_links": [
+        "rider",
+        "spectators"
+      ],
+      "implementation_files": [
+        "scripts/lib/human-sculpt.ts",
+        "src/rendering/crowd-impostor.ts",
+        "src/rendering/crowd-wardrobe.ts",
+        "src/rendering/crowd.ts",
+        "src/rendering/gp-rider-gear.ts",
+        "src/rendering/human-kit.json",
+        "src/rendering/rider.ts"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 75,
+      "file": "04_official_trailer_frames/REF_075_video_01_ref_075_pass_01_074_6_11_frame_00016.jpg",
+      "sha256": "6a1cccc0e137c8d9da528c418e82b3a2f27ac66f34d8c55f8c7925955a7a628c",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Rear-mounted close camera looks back over a large carbon panel and twin exhausts at a pursuing race pack. Strong bank angle tilts curb/horizon and the nearby curb is motion blurred.",
+      "r5_links": [
+        "bodywork",
+        "rider",
+        "tyres",
+        "spectators"
+      ],
+      "implementation_files": [
+        "scripts/lib/human-sculpt.ts",
+        "src/rendering/bike-livery.ts",
+        "src/rendering/bike.ts",
+        "src/rendering/crowd-impostor.ts",
+        "src/rendering/crowd-wardrobe.ts",
+        "src/rendering/crowd.ts",
+        "src/rendering/gp-appearance.ts",
+        "src/rendering/gp-bodywork.ts",
+        "src/rendering/gp-rider-gear.ts",
+        "src/rendering/gp-tyre-finish.ts",
+        "src/rendering/human-kit.json",
+        "src/rendering/rider.ts",
+        "tools/motogp/build_gp_bodywork.py"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 76,
+      "file": "04_official_trailer_frames/REF_076_video_01_ref_076_pass_01_074_6_11_frame_00027.jpg",
+      "sha256": "e88eb852b8717c7738cac3e173a59994cd6e3bed0ca0a2aeb91c916b73630439",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Close left-side mounted cockpit view along a sunny pit straight: pale fork caps, individual colored handlebar buttons, cable loops, dark carbon, a glove wrapped around the grip and a large helmet silhouette.",
+      "r5_links": [
+        "rider"
+      ],
+      "implementation_files": [
+        "src/rendering/gp-rider-gear.ts",
+        "src/rendering/rider.ts"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 77,
+      "file": "04_official_trailer_frames/REF_077_video_01_ref_077_pass_01_074_6_11_frame_00038.jpg",
+      "sha256": "e5eaf2e1dce91fdcb92837c4ecced3436cc16151e7e9f182fcc49225434a7bdc",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "On-bike view through a race start/straight with staggered bikes across the road and one close rival on the right. Pit building roof trusses and fencing create repeated perspective cues. Image has directional motion blur.",
+      "r5_links": [
+        "rider"
+      ],
+      "implementation_files": [
+        "src/rendering/gp-rider-gear.ts",
+        "src/rendering/rider.ts"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 78,
+      "file": "04_official_trailer_frames/REF_078_video_01_ref_078_pass_01_074_6_11_frame_00049.jpg",
+      "sha256": "0144905a82c90c9a2592e398cafd179cfec68b4991d2f05fa2227056ae7dc4e7",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Letterboxed garage scene with a helmeted rider gesturing and mechanics beside a bike. The suit has layered shoulder/forearm armor and fine colored seams; helmet visor stays dark with a soft highlight.",
+      "r5_links": [
+        "rider"
+      ],
+      "implementation_files": [
+        "src/rendering/gp-rider-gear.ts",
+        "src/rendering/rider.ts"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 79,
+      "file": "04_official_trailer_frames/REF_079_video_01_ref_079_pass_01_074_6_11_frame_00000.jpg",
+      "sha256": "d430318d12136f9b420e1fab84262334a1c7b0237fffab99ad6db20a558984ed",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Wide overhead shot of two bikes side by side near a track edge. Gray asphalt has directional patch variation, narrow bright edge paint, tan wear at the grass boundary, and soft short bike shadows.",
+      "r5_links": [
+        "bodywork",
+        "rider",
+        "tyres",
+        "spectators"
+      ],
+      "implementation_files": [
+        "scripts/lib/human-sculpt.ts",
+        "src/rendering/bike-livery.ts",
+        "src/rendering/bike.ts",
+        "src/rendering/crowd-impostor.ts",
+        "src/rendering/crowd-wardrobe.ts",
+        "src/rendering/crowd.ts",
+        "src/rendering/gp-appearance.ts",
+        "src/rendering/gp-bodywork.ts",
+        "src/rendering/gp-rider-gear.ts",
+        "src/rendering/gp-tyre-finish.ts",
+        "src/rendering/human-kit.json",
+        "src/rendering/rider.ts",
+        "tools/motogp/build_gp_bodywork.py"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 80,
+      "file": "04_official_trailer_frames/REF_080_video_01_ref_080_pass_01_074_6_11_frame_00001.jpg",
+      "sha256": "840af5085a193dad8a6f335804b7ed2b2bbb8cfaadd117dc5759fe832132c97a",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Second overhead straight frame with two near-abreast riders crouched tightly over tanks. Track edge is irregular tan-to-green while black rubber traces run longitudinally through the gray surface.",
+      "r5_links": [
+        "bodywork",
+        "rider",
+        "tyres",
+        "spectators"
+      ],
+      "implementation_files": [
+        "scripts/lib/human-sculpt.ts",
+        "src/rendering/bike-livery.ts",
+        "src/rendering/bike.ts",
+        "src/rendering/crowd-impostor.ts",
+        "src/rendering/crowd-wardrobe.ts",
+        "src/rendering/crowd.ts",
+        "src/rendering/gp-appearance.ts",
+        "src/rendering/gp-bodywork.ts",
+        "src/rendering/gp-rider-gear.ts",
+        "src/rendering/gp-tyre-finish.ts",
+        "src/rendering/human-kit.json",
+        "src/rendering/rider.ts",
+        "tools/motogp/build_gp_bodywork.py"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 81,
+      "file": "04_official_trailer_frames/REF_081_video_02_ref_081_pass_02_080_6_11_frame_00005.jpg",
+      "sha256": "2132b94d283bde04397ea8ca5c42da45ec6bd1090449ffa14622acd49b0af6c9",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Close helmet portrait with partially lifted visor, thick textile cheek padding, molded rim, glossy shell and a bright elongated reflection. A hand crosses the foreground.",
+      "r5_links": [],
+      "implementation_files": [],
+      "r5_disposition": "reviewed-context-only",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 82,
+      "file": "04_official_trailer_frames/REF_082_video_02_ref_082_pass_02_080_6_11_frame_00016.jpg",
+      "sha256": "7b87f15db735b58bd86ef4530a37d410f033db4cb0e9ae89dd859ff53da43ef5",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Elevated race view through a descending sweeping bend: staggered pack, red/white outside curb, green runoff, blue/white tire walls, service paths, safety rails and a foreground crowd/flag.",
+      "r5_links": [
+        "spectators"
+      ],
+      "implementation_files": [
+        "scripts/lib/human-sculpt.ts",
+        "src/rendering/crowd-impostor.ts",
+        "src/rendering/crowd-wardrobe.ts",
+        "src/rendering/crowd.ts",
+        "src/rendering/human-kit.json"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 83,
+      "file": "04_official_trailer_frames/REF_083_video_02_ref_083_pass_02_080_6_11_frame_00038.jpg",
+      "sha256": "160d374fa8826c31573dbe113f193b47c3d9d41cd37854b7b87ba6876f543e96",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Rear view of sport bikes on a sunny circuit with dense tree canopy, repeated fencing, sloped grass and dark longitudinal rubber marks. Promotional text masks large portions.",
+      "r5_links": [],
+      "implementation_files": [],
+      "r5_disposition": "reviewed-context-only",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 84,
+      "file": "04_official_trailer_frames/REF_084_video_02_ref_084_pass_02_080_6_11_frame_00049.jpg",
+      "sha256": "63b043e263074f81cf4f7eedbbc529c13cb829991e51bd745ab05076fcb98584",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Office/contract meeting close-up: seated rider, brown leather folder, pen, dark tablet and ribbed paper cup, under soft daylight. No race or physical handling evidence is present.",
+      "r5_links": [],
+      "implementation_files": [],
+      "r5_disposition": "reviewed-context-only",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 85,
+      "file": "04_official_trailer_frames/REF_085_video_02_ref_085_pass_02_080_6_11_frame_00060.jpg",
+      "sha256": "31314d5682b71914c62f480e6ae58de65a7f7683cc2aed60c2d45c7fd670a9c4",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Front chase shot with a rider hanging left of a moderately leaned GP bike; multiple thin aero elements and pointed fairing silhouette are legible. Tire has a rounded cross-section and a compact track shadow.",
+      "r5_links": [
+        "bodywork",
+        "rider",
+        "tyres",
+        "spectators",
+        "braking-context"
+      ],
+      "implementation_files": [
+        "scripts/lib/human-sculpt.ts",
+        "src/rendering/bike-livery.ts",
+        "src/rendering/bike.ts",
+        "src/rendering/crowd-impostor.ts",
+        "src/rendering/crowd-wardrobe.ts",
+        "src/rendering/crowd.ts",
+        "src/rendering/gp-appearance.ts",
+        "src/rendering/gp-bodywork.ts",
+        "src/rendering/gp-rider-gear.ts",
+        "src/rendering/gp-tyre-finish.ts",
+        "src/rendering/human-kit.json",
+        "src/rendering/rider.ts",
+        "src/simulation/bike-vehicle.ts",
+        "src/simulation/bike.ts",
+        "tests/gp-engine-braking.test.ts",
+        "tools/motogp/build_gp_bodywork.py"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 86,
+      "file": "04_official_trailer_frames/REF_086_video_02_ref_086_pass_02_080_6_11_frame_00063.jpg",
+      "sha256": "43e782601a6a7353888866de849c1844b0f780979687841dfcca9eeb1be3c203",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Very close night corner shot of blue/black bike: fairing shows a narrow strong blue highlight while rubber stays dark; fork/disc internals are visible in the front wheel. Broad white lamps line the background.",
+      "r5_links": [
+        "wet-composition",
+        "spectators"
+      ],
+      "implementation_files": [
+        "scripts/lib/human-sculpt.ts",
+        "src/rendering/crowd-impostor.ts",
+        "src/rendering/crowd-wardrobe.ts",
+        "src/rendering/crowd.ts",
+        "src/rendering/human-kit.json",
+        "src/rendering/weather-presentation.ts",
+        "tests/gp-wet-finish-order.test.ts"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 87,
+      "file": "04_official_trailer_frames/REF_087_video_01_ref_087_pass_01_086_6_14_frame_00034.jpg",
+      "sha256": "533e2916681ba97b49f5a69d4febc7614d8700a149d04d888a9286f789bed46f",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Direct rear chase on a straight shows crouched rider, aerodynamic seat tail with small fins, broad slick, exposed chain and asymmetrical right exhaust. Track occupies most of the view around the bike.",
+      "r5_links": [
+        "bodywork",
+        "rider",
+        "tyres"
+      ],
+      "implementation_files": [
+        "src/rendering/bike-livery.ts",
+        "src/rendering/bike.ts",
+        "src/rendering/gp-appearance.ts",
+        "src/rendering/gp-bodywork.ts",
+        "src/rendering/gp-rider-gear.ts",
+        "src/rendering/gp-tyre-finish.ts",
+        "src/rendering/rider.ts",
+        "tools/motogp/build_gp_bodywork.py"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 88,
+      "file": "04_official_trailer_frames/REF_088_video_01_ref_088_pass_01_086_6_14_frame_00048.jpg",
+      "sha256": "dd1dfc0a5e6af6a4e93348f050e813541df4d8fd985bb0242d11c91e3150d128",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Central cockpit start view with a broad transparent windscreen outline, instruments below the road, and many staggered opponents. Grandstand and pit roof structures add distinct repeating shapes.",
+      "r5_links": [
+        "bodywork",
+        "rider"
+      ],
+      "implementation_files": [
+        "src/rendering/bike-livery.ts",
+        "src/rendering/gp-appearance.ts",
+        "src/rendering/gp-bodywork.ts",
+        "src/rendering/gp-rider-gear.ts",
+        "src/rendering/rider.ts",
+        "tools/motogp/build_gp_bodywork.py"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 89,
+      "file": "04_official_trailer_frames/REF_089_video_01_ref_089_pass_01_086_6_14_frame_00075.jpg",
+      "sha256": "4f4840a6b514e32ad5471c8b2d9cbb3843dc559b82490a7ebcbfb746d1ea21c4",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Front-facing pack view on a pit straight: tucked rider helmets are low behind tall screens, aero winglets stand out, grid slots and worn grass edges establish scale. Crowds/flags occupy the far fence.",
+      "r5_links": [
+        "spectators"
+      ],
+      "implementation_files": [
+        "scripts/lib/human-sculpt.ts",
+        "src/rendering/crowd-impostor.ts",
+        "src/rendering/crowd-wardrobe.ts",
+        "src/rendering/crowd.ts",
+        "src/rendering/human-kit.json"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 90,
+      "file": "04_official_trailer_frames/REF_090_video_01_ref_090_pass_01_086_6_14_frame_00073.jpg",
+      "sha256": "61c969c4b8274a57562bd14dec9b96dc50f5b20f24f1254975b9f3c39014e5a4",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Two bikes abreast on an uphill straight with a trailing line in the distance, visible horizon crest, safety fencing and flags. Each rider is compact behind the screen; separation is apparent.",
+      "r5_links": [
+        "spectators"
+      ],
+      "implementation_files": [
+        "scripts/lib/human-sculpt.ts",
+        "src/rendering/crowd-impostor.ts",
+        "src/rendering/crowd-wardrobe.ts",
+        "src/rendering/crowd.ts",
+        "src/rendering/human-kit.json"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 91,
+      "file": "04_official_trailer_frames/REF_091_video_01_ref_091_pass_01_086_6_14_frame_00011.jpg",
+      "sha256": "61ac45becde65a82bab0b154b8df7ace9f2f1f071bd6a0b5c9bcc1c8c857bda6",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Side profile of off-road/supermoto-type bike on compact dirt: wire-spoked wheels, long front fork, raised mudguard, exposed engine/pipe and upright rider with an inside boot low. This is not a GP slick-racing silhouette.",
+      "r5_links": [],
+      "implementation_files": [],
+      "r5_disposition": "reviewed-context-only",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 92,
+      "file": "04_official_trailer_frames/REF_092_video_01_ref_092_pass_01_086_6_14_frame_00072.jpg",
+      "sha256": "84e852ba565c994fe4a545f64739e265ee1a11a71a89c06668bb9531a72c8afd",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Low front pack view of compact minibikes with high rider-to-bike size ratio, short windshields, tightly bent legs and stacked red/white tire barriers beside industrial buildings.",
+      "r5_links": [
+        "bodywork",
+        "rider",
+        "tyres",
+        "spectators"
+      ],
+      "implementation_files": [
+        "scripts/lib/human-sculpt.ts",
+        "src/rendering/bike-livery.ts",
+        "src/rendering/bike.ts",
+        "src/rendering/crowd-impostor.ts",
+        "src/rendering/crowd-wardrobe.ts",
+        "src/rendering/crowd.ts",
+        "src/rendering/gp-appearance.ts",
+        "src/rendering/gp-bodywork.ts",
+        "src/rendering/gp-rider-gear.ts",
+        "src/rendering/gp-tyre-finish.ts",
+        "src/rendering/human-kit.json",
+        "src/rendering/rider.ts",
+        "tools/motogp/build_gp_bodywork.py"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 93,
+      "file": "05_official_ps5_detail_crops/REF_093_PS5_DETAIL_DIRT_RIDER_SUSPENSION.jpg",
+      "sha256": "2042946d60959c0c685acc5ea32361a111a195d7e26e7251ec85b966148332f3",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Official detail crop of dirt riders: peaked helmet and goggles, colored handguards, long reflective fork tubes, contoured number board and raised front fender. Sunlight distinguishes woven suit from hard plastic.",
+      "r5_links": [],
+      "implementation_files": [],
+      "r5_disposition": "reviewed-context-only",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 94,
+      "file": "04_official_trailer_frames/REF_094_video_02_ref_094_pass_02_092_6_14_frame_00020.jpg",
+      "sha256": "dbc63b27255fc3e2b04ddea2f0199e2b7214a2b9ac67d0d53a90595ab12dcad8",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Another elevated sweeping-bend frame with separated riders, green/red runoff, a layered blue/white impact barrier, access lanes and large flags partially obscuring the foreground.",
+      "r5_links": [
+        "bodywork",
+        "spectators"
+      ],
+      "implementation_files": [
+        "scripts/lib/human-sculpt.ts",
+        "src/rendering/bike-livery.ts",
+        "src/rendering/crowd-impostor.ts",
+        "src/rendering/crowd-wardrobe.ts",
+        "src/rendering/crowd.ts",
+        "src/rendering/gp-appearance.ts",
+        "src/rendering/gp-bodywork.ts",
+        "src/rendering/human-kit.json",
+        "tools/motogp/build_gp_bodywork.py"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 95,
+      "file": "04_official_trailer_frames/REF_095_video_02_ref_095_pass_02_092_6_14_frame_00034.jpg",
+      "sha256": "1b348d9b9d0be60d78c444e7b43dfbb65ebff47060c603cd5e22b3bbdc0fd4ef",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Garage-lit rider/cockpit close-up with strongly articulated elbow, glove fingers wrapped around the grip, tall curved screen and visible brake hose/reservoir. Perforated suit and white armor contrast with smooth paint.",
+      "r5_links": [
+        "rider"
+      ],
+      "implementation_files": [
+        "src/rendering/gp-rider-gear.ts",
+        "src/rendering/rider.ts"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 96,
+      "file": "05_official_ps5_detail_crops/REF_096_PS5_DETAIL_WET_MATERIALS_TIRE.jpg",
+      "sha256": "8f0ce89251e7322febda3f069e9bae53c395f6a27882d1fcd5e91d70dc5f0193",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Official wet detail crop: red GP fairing, white/orange suit, articulated inside elbow, raindrops on windscreen and a grooved wet front tire. Track is gray/damp with fine grain and distant haze, without a uniformly mirror-like reflection.",
+      "r5_links": [
+        "tyres",
+        "wet-composition"
+      ],
+      "implementation_files": [
+        "src/rendering/bike.ts",
+        "src/rendering/gp-tyre-finish.ts",
+        "src/rendering/weather-presentation.ts",
+        "tests/gp-wet-finish-order.test.ts"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 97,
+      "file": "04_official_trailer_frames/REF_097_video_02_ref_097_pass_02_092_6_14_frame_00062.jpg",
+      "sha256": "d358c5e789ae0a4efc0ecef87f3bf3c1d08b283c32efd6294505907097aea02d",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Hospitality/career interior with upper mezzanine, vertical exterior louvers, long diagonal sunlight shadows, small groups of staff and a display bike. Large promotional text covers the center.",
+      "r5_links": [],
+      "implementation_files": [],
+      "r5_disposition": "reviewed-context-only",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 98,
+      "file": "04_official_trailer_frames/REF_098_video_02_ref_098_pass_02_092_6_14_frame_00076.jpg",
+      "sha256": "959eb7e78e00e4186eaba07146a676659989d5cad47c73ed2dd6ee34e7bbe086",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Close daytime apex image: very deep left lean, helmet and inside elbow near asphalt, inside knee spread, rounded tire shoulder in contact and near-flat fairing underside. Blue/white curb shows worn paint and concrete texture.",
+      "r5_links": [
+        "bodywork",
+        "rider",
+        "tyres",
+        "spectators",
+        "braking-context"
+      ],
+      "implementation_files": [
+        "scripts/lib/human-sculpt.ts",
+        "src/rendering/bike-livery.ts",
+        "src/rendering/bike.ts",
+        "src/rendering/crowd-impostor.ts",
+        "src/rendering/crowd-wardrobe.ts",
+        "src/rendering/crowd.ts",
+        "src/rendering/gp-appearance.ts",
+        "src/rendering/gp-bodywork.ts",
+        "src/rendering/gp-rider-gear.ts",
+        "src/rendering/gp-tyre-finish.ts",
+        "src/rendering/human-kit.json",
+        "src/rendering/rider.ts",
+        "src/simulation/bike-vehicle.ts",
+        "src/simulation/bike.ts",
+        "tests/gp-engine-braking.test.ts",
+        "tools/motogp/build_gp_bodywork.py"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 99,
+      "file": "04_official_trailer_frames/REF_099_video_01_ref_099_pass_01_098_2_17_frame_00000.jpg",
+      "sha256": "4ee673731f326b05665f796aae867668ca002ad29972a1f790d9d51f0508eace",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Third overhead straight shot of two close parallel bikes with compact tuck, narrow inter-bike gap and visible short offset shadows. Asphalt has gray streaking, rough tan edges and uneven grassy boundary.",
+      "r5_links": [
+        "bodywork",
+        "rider",
+        "tyres",
+        "spectators"
+      ],
+      "implementation_files": [
+        "scripts/lib/human-sculpt.ts",
+        "src/rendering/bike-livery.ts",
+        "src/rendering/bike.ts",
+        "src/rendering/crowd-impostor.ts",
+        "src/rendering/crowd-wardrobe.ts",
+        "src/rendering/crowd.ts",
+        "src/rendering/gp-appearance.ts",
+        "src/rendering/gp-bodywork.ts",
+        "src/rendering/gp-rider-gear.ts",
+        "src/rendering/gp-tyre-finish.ts",
+        "src/rendering/human-kit.json",
+        "src/rendering/rider.ts",
+        "tools/motogp/build_gp_bodywork.py"
+      ],
+      "r5_disposition": "partially-transferred",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    },
+    {
+      "number": 100,
+      "file": "04_official_trailer_frames/REF_100_video_01_ref_100_pass_01_098_2_17_frame_00004.jpg",
+      "sha256": "2d205661970a830948445e379ab30ac14d463274761d7a690193bcb808bf8b94",
+      "review": "Individually inspected as a labelled 10-image sheet at useful resolution; original observation checked against the image. No OCR used.",
+      "observation": "Front/side dirt-bike frame with upright chest, inside boot extended down, tall fork/mudguard, slim seat and exposed engine. Background blur and blue padded barriers distinguish it from circuit GP stills.",
+      "r5_links": [],
+      "implementation_files": [],
+      "r5_disposition": "reviewed-context-only",
+      "limit": "Only the listed visual cues are transferred to original assets. The photographed scene, licensed teams, faces, venues, and menu content are not rebuilt. No coefficient is measured from a screenshot."
+    }
+  ]
+}

@@ -1,3 +1,4 @@
+import { CROWD_WARDROBE_GLSL } from './crowd-wardrobe.ts';
 import { audienceAtlas } from './start-finish-assets.ts';
 import {
   HEAD_VARIATION_GLSL,
@@ -122,12 +123,18 @@ mat3 crowdTurn() {
   }
   if (crowdJoint < 0.5) angle = 0.0;
   float c = cos(angle), s = sin(angle);
-  if (crowdJoint > 2.5) return mat3(c,0.,-s, 0.,1.,0., s,0.,c);
+  if (crowdJoint > 2.5) {
+    float gaze = angle + (fract(spectatorPhase*3.71)-.5)*.22;
+    float gc=cos(gaze), gs=sin(gaze);
+    return mat3(gc,0.,-gs, 0.,1.,0., gs,0.,gc);
+  }
   return mat3(c,s,0., -s,c,0., 0.,0.,1.);
 }
+float crowdRestLean() { return (fract(spectatorPhase*1.93)-.5)*.09; }
 vec3 crowdShape(vec3 p) {
   p.z *= spectatorStyle.x;
   if (p.y > .1) p.y = .1 + (p.y-.1) * spectatorStyle.y;
+  p.x += max(0.,p.y-.12)*crowdRestLean();
   return p;
 }
 vec3 crowdPivot() {
@@ -182,6 +189,10 @@ if (vCrowdAccessory < .5) transformed = crowdPivot();`,
 objectNormal = mix(objectNormal,standingNormal,spectatorStyle.z);
 objectNormal.z /= spectatorStyle.x;
 if (mix(position.y,standingPosition.y,spectatorStyle.z) > .1) objectNormal.y /= spectatorStyle.y;
+// Inverse-transpose of the stable torso shear, shared with shadow poses.
+float shapedY=mix(position.y,standingPosition.y,spectatorStyle.z);
+if(shapedY>.1) shapedY=.1+(shapedY-.1)*spectatorStyle.y;
+if(shapedY>.12) objectNormal.y-=crowdRestLean()*objectNormal.x;
 objectNormal = crowdTurn() * normalize(objectNormal);`,
     );
     // Complementary half-open ranges use the same rank in colour AND depth.
@@ -197,6 +208,7 @@ objectNormal = crowdTurn() * normalize(objectNormal);`,
     );
     if (colour) {
       shader.fragmentShader =
+        CROWD_WARDROBE_GLSL +
         'varying float vCrowdCloth; varying vec4 vCrowdBind; varying vec4 vCrowdTop; varying vec3 vCrowdSkinTone; varying vec2 vCrowdTags; varying vec3 vCrowdSurface;\n' +
         'float crowdSkinLight; float crowdBump; float crowdRough; float crowdGlint; float crowdAo;\n' +
         HUMAN_TONE_GLSL +
@@ -215,7 +227,7 @@ objectNormal = crowdTurn() * normalize(objectNormal);`,
   vec3 p = vCrowdBind.xyz;
   float joint = vCrowdBind.w;
   float ph = vCrowdTop.w;
-  vec3 top = vCrowdTop.rgb;
+  vec3 top = crowdGarmentColour(vCrowdTop.rgb, ph);
   vec3 skin = vCrowdSkinTone;
   // Derivatives first, in uniform control flow (pixel footprint in metres).
   float px = length(fwidth(p));
@@ -224,7 +236,7 @@ objectNormal = crowdTurn() * normalize(objectNormal);`,
   float aa = max(px, 1e-4);
   float h2 = fract(ph*5.31), h3 = fract(ph*7.13), h4 = fract(ph*2.19), h5 = fract(ph*11.7), h6 = fract(ph*3.91), h7 = fract(ph*13.3), h8 = fract(ph*17.9);
   vec3 trousers = h2<.42 ? vec3(.06,.085,.15) : h2<.66 ? vec3(.022,.022,.026) : h2<.82 ? vec3(.26,.22,.15) : h2<.92 ? vec3(.14,.14,.15) : vec3(.55,.53,.48);
-  vec3 shoes = h3<.45 ? vec3(.6,.6,.58) : h3<.75 ? vec3(.035,.035,.04) : vec3(.3,.2,.12);
+  vec3 shoes = h3<.27 ? vec3(.38,.37,.34) : h3<.79 ? vec3(.024,.025,.028) : vec3(.15,.10,.06);
   float shortSleeve = step(h4,.62), shorts = step(h3,.2);
   // Arms are separate shells (joint exactly 1 or 2, away from the neck);
   // body/head boundary triangles interpolate 0..3 and split at 1.5.
@@ -326,13 +338,22 @@ objectNormal = crowdTurn() * normalize(objectNormal);`,
   // Separate accessory shells: caps in a team tint, phones dark.
   if (vCrowdTags.y > 5.5) { c = mix(vec3(.9,.89,.86), vec3(.7,.08,.06), step(abs(p.y - .26), .018)); rough = .45; bump = 0.; crowdSkinLight = 0.; }
   else if (vCrowdTags.y > 1.5 && vCrowdTags.y < 2.5) { c = vec3(.02,.02,.025); rough = .22; bump = 0.; crowdSkinLight = 0.; }
-  else if (vCrowdTags.y > .5 && vCrowdTags.y < 1.5) { c = top*.7; rough = .72; bump = 0.; crowdSkinLight = 0.; }
+  else if (vCrowdTags.y > .5 && vCrowdTags.y < 1.5) {
+    c=top*.7; rough=.85; crowdSkinLight=0.;
+    float capAngle=atan(p.z,.06-p.x);
+    float panelEdge=abs(sin(capAngle*3.));
+    float resolved=1.-smoothstep(.0015,.006,px);
+    bump=-.00055*(1.-smoothstep(.018,.07,panelEdge))*resolved;
+    float band=1.-smoothstep(.002,.007,abs(p.y-.700));
+    c*=1.-.10*band;
+  }
   // Original close-range cotton weave. The warp/weft microrelief fades as
   // its pitch approaches screen pixels; it cannot glitter over a distant
   // packed grandstand or turn skin into fabric. No new texture or draw call.
   float textilePixel = 1. - smoothstep(.0012, .0060, px);
   float textileShoeMask = step(p.y, -.205) * step(p.x, -.2);
-  if (textilePixel > .005 && sk < .01 && textileShoeMask < .5) {
+  bool garment = arm || (!head && vCrowdTags.y < .5);
+  if (textilePixel > .005 && sk < .01 && textileShoeMask < .5 && garment) {
     float warp = sin(p.y * 920. + p.x * 23. + ph * .6);
     float weft = sin(p.z * 1050. - p.y * 13. + ph * .9);
     bump += .00024 * (warp * .6 + weft * .4) * textilePixel;
@@ -388,7 +409,7 @@ vColor.rgb = vec3(1.);`,
       );
     }
   };
-  material.customProgramCacheKey = () => `apex-procedural-crowd-v13-${colour ? 'colour' : 'depth'}`;
+  material.customProgramCacheKey = () => `apex-procedural-crowd-v15-${colour ? 'colour' : 'depth'}`;
 }
 
 export function crowdDetail(distance: number, previous: CrowdDetail): CrowdDetail {
