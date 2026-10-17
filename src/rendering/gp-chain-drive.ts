@@ -1,32 +1,28 @@
 import * as T from 'three';
-import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 
-/**
- * Original GP-R1 close-range drive chain, rather than the former two straight
- * boxes. Every chain link shares one roller and two side-plate instanced draws;
- * the rear sprocket is one toothed metal shell that spins with the wheel.
+/** Original GP prototype drivetrain, in metres, +Z forward and X along the axle.
+ * REF 018 supplies chain/plate layering; REF 087 supplies rear assembly context.
+ * Dimensions and tooth counts are authored game values, not measured from a still.
  *
- * The 42-tooth pitch phase is taken exclusively from the replay's rear wheel
- * angle. Advancing it by 2π permutes identical links, so modulo-wrapped wheel
- * snapshots cannot introduce a visible discontinuity. No simulation state,
- * unbounded object creation or wall-clock timing is involved.
- *
- * Form and scale: the supplied REF 018 and REF 087 motorcycle close-ups.
- * Neither licensed meshes nor source images are included.
+ * Two instanced draws retain the individual rollers and waisted side plates.
+ * The caller owns the wheel-driven sprocket, swingarm transform and disposal.
+ * No source frame, material, wheel transform or wall-clock state is modified.
  */
 const TAU = Math.PI * 2;
 const REAR_TEETH = 42;
+const FRONT_TEETH = 18;
 const CHAIN_PITCH = 0.015875;
-const SAMPLES = 512;
+const REAR_RADIUS = CHAIN_PITCH / (2 * Math.sin(Math.PI / REAR_TEETH));
+const FRONT_RADIUS = CHAIN_PITCH / (2 * Math.sin(Math.PI / FRONT_TEETH));
 const X = 0.115;
 
 function sprocketGeometry() {
   const shape = new T.Shape();
   for (let i = 0; i <= REAR_TEETH * 8; i++) {
     const angle = (TAU * i) / (REAR_TEETH * 8);
-    const radius = 0.103 + 0.0022 * Math.cos(REAR_TEETH * angle);
-    const a = radius * Math.cos(angle);
-    const b = radius * Math.sin(angle);
+    const radius = REAR_RADIUS - 0.003 + 0.0022 * Math.cos(REAR_TEETH * angle);
+    const a = radius * Math.cos(angle),
+      b = radius * Math.sin(angle);
     if (i === 0) shape.moveTo(a, b);
     else shape.lineTo(a, b);
   }
@@ -39,7 +35,38 @@ function sprocketGeometry() {
     steps: 1,
     curveSegments: 12,
   });
-  // Shape local XY -> motorcycle YZ with thickness along the axle (X).
+  geometry.rotateY(Math.PI / 2);
+  geometry.computeBoundingSphere();
+  return geometry;
+}
+
+/** Twelve outline vertices give rounded pin lobes and a narrower waist, instead
+ * of subdividing all six faces of a rounded box 192+ times. Flat metal faces
+ * retain their own normals. There are 44 triangles per plate, not 300. */
+function linkPlateGeometry() {
+  const shape = new T.Shape(),
+    radius = 0.0043;
+  for (let i = 0; i <= 4; i++) {
+    const angle = -Math.PI / 2 + (i * Math.PI) / 4;
+    const x = CHAIN_PITCH / 2 + radius * Math.cos(angle),
+      y = radius * Math.sin(angle);
+    if (i === 0) shape.moveTo(x, y);
+    else shape.lineTo(x, y);
+  }
+  shape.lineTo(0, 0.0028);
+  for (let i = 0; i <= 4; i++) {
+    const angle = Math.PI / 2 + (i * Math.PI) / 4;
+    shape.lineTo(-CHAIN_PITCH / 2 + radius * Math.cos(angle), radius * Math.sin(angle));
+  }
+  shape.lineTo(0, -0.0028);
+  shape.closePath();
+  const geometry = new T.ExtrudeGeometry(shape, {
+    depth: 0.0028,
+    bevelEnabled: false,
+    steps: 1,
+    curveSegments: 1,
+  });
+  geometry.translate(0, 0, -0.0014);
   geometry.rotateY(Math.PI / 2);
   geometry.computeBoundingSphere();
   return geometry;
@@ -51,7 +78,11 @@ export class GPChainDrive {
   readonly rollers: T.InstancedMesh;
   readonly plates: T.InstancedMesh;
   readonly links: number;
-  private readonly samples: T.Vector3[];
+  private readonly tangentAngle: number;
+  private readonly straightLength: number;
+  private readonly rearArcLength: number;
+  private readonly length: number;
+  private readonly spacing: number;
   private readonly qRoller = new T.Quaternion().setFromAxisAngle(
     new T.Vector3(0, 0, 1),
     -Math.PI / 2,
@@ -59,57 +90,54 @@ export class GPChainDrive {
   private readonly qLink = new T.Quaternion();
   private readonly axis = new T.Vector3(1, 0, 0);
   private readonly p = new T.Vector3();
+  private readonly next = new T.Vector3();
+  private readonly midpoint = new T.Vector3();
   private readonly tangent = new T.Vector3();
   private readonly matrix = new T.Matrix4();
   private readonly one = new T.Vector3(1, 1, 1);
+  private readonly linkScale = new T.Vector3(1, 1, 1);
   private lastWheelPhase = Number.NaN;
 
-  constructor(arm: number, steel: T.Material, chainSide: T.Material, aluminium: T.Material) {
+  constructor(
+    private readonly arm: number,
+    steel: T.Material,
+    chainSide: T.Material,
+    aluminium: T.Material,
+  ) {
     if (!Number.isFinite(arm) || arm < 0.3 || arm > 1.1)
       throw new Error('Invalid GP motorcycle swingarm length');
-    // Continuous route around dissimilar sprocket radii. The small tangency
-    // angle is smoothed at the four handovers without stretching the links.
-    const path = new T.CatmullRomCurve3(
-      [
-        [0.046, 0],
-        [0.061, -arm * 0.27],
-        [0.089, -arm * 0.73],
-        [0.106, -arm],
-        [0.075, -arm - 0.074],
-        [0, -arm - 0.106],
-        [-0.075, -arm - 0.074],
-        [-0.106, -arm],
-        [-0.089, -arm * 0.73],
-        [-0.061, -arm * 0.27],
-        [-0.046, 0],
-        [-0.033, 0.031],
-        [0, 0.046],
-        [0.033, 0.031],
-      ].map(([y, z]) => new T.Vector3(X, y, z)),
-      true,
-      'centripetal',
-    );
-    path.arcLengthDivisions = SAMPLES;
-    this.samples = path.getSpacedPoints(SAMPLES);
-    this.links = Math.max(70, Math.round(path.getLength() / CHAIN_PITCH));
-    this.root.name = 'GP-R1 animated steel chain (articulated with swingarm)';
+    // Two exact external tangents and two circular wraps. A free spline can
+    // bulge away from the teeth and wiggle along the nominally taut runs.
+    this.tangentAngle = Math.asin((REAR_RADIUS - FRONT_RADIUS) / arm);
+    this.straightLength = Math.sqrt(arm * arm - (REAR_RADIUS - FRONT_RADIUS) ** 2);
+    this.rearArcLength = REAR_RADIUS * (Math.PI + 2 * this.tangentAngle);
+    this.length =
+      2 * this.straightLength +
+      this.rearArcLength +
+      FRONT_RADIUS * (Math.PI - 2 * this.tangentAngle);
+    // Even count closes the alternating inner/outer plate pattern at the seam.
+    // Spacing follows this visual loop; it is not a chain-tension simulation.
+    this.links = 2 * Math.round(this.length / CHAIN_PITCH / 2);
+    this.spacing = this.length / this.links;
+    this.root.name = 'GP prototype animated steel chain (articulated with swingarm)';
     this.rollers = new T.InstancedMesh(
-      new T.CylinderGeometry(0.004, 0.004, 0.016, 8),
+      new T.CylinderGeometry(0.004, 0.004, 0.0255, 8),
       steel,
       this.links,
     );
     this.rollers.name = 'Steel chain pins and rollers';
-    this.plates = new T.InstancedMesh(
-      new RoundedBoxGeometry(0.0028, 0.009, 0.014, 2, 0.0012),
-      chainSide,
-      this.links * 2,
-    );
+    this.plates = new T.InstancedMesh(linkPlateGeometry(), chainSide, this.links * 2);
     this.plates.name = 'Paired articulated link plates';
+    const envelope = new T.Box3(
+      new T.Vector3(X - 0.016, -REAR_RADIUS - 0.012, -arm - REAR_RADIUS - 0.012),
+      new T.Vector3(X + 0.016, REAR_RADIUS + 0.012, FRONT_RADIUS + 0.012),
+    );
     for (const mesh of [this.rollers, this.plates]) {
       mesh.castShadow = mesh.receiveShadow = true;
-      // Instances move through the fixed belt envelope, not the bounding
-      // sphere computed from their identity matrices.
-      mesh.frustumCulled = false;
+      // Immutable conservative bounds cover every link and phase. Do not
+      // disable culling or recompute an instance-wide sphere on each frame.
+      mesh.boundingBox = envelope.clone();
+      mesh.boundingSphere = envelope.getBoundingSphere(new T.Sphere());
       mesh.instanceMatrix.setUsage(T.DynamicDrawUsage);
       this.root.add(mesh);
     }
@@ -118,34 +146,62 @@ export class GPChainDrive {
     gear.position.x = X - 0.0035;
     gear.castShadow = gear.receiveShadow = true;
     this.sprocket = gear;
-    this.root.userData.referenceRevision = 'motogp-100-r3-chain';
+    this.root.userData.referenceRevision = 'motogp-r3.1-chain';
     this.update(0);
   }
 
+  private sample(distance: number, out: T.Vector3) {
+    const s = ((distance % this.length) + this.length) % this.length;
+    const a = this.tangentAngle,
+      c = Math.cos(a),
+      sn = Math.sin(a);
+    if (s < this.straightLength) {
+      const t = s / this.straightLength;
+      out.set(
+        X,
+        c * (FRONT_RADIUS + (REAR_RADIUS - FRONT_RADIUS) * t),
+        FRONT_RADIUS * sn + (-this.arm + (REAR_RADIUS - FRONT_RADIUS) * sn) * t,
+      );
+    } else if (s < this.straightLength + this.rearArcLength) {
+      const angle = a - (s - this.straightLength) / REAR_RADIUS;
+      out.set(X, REAR_RADIUS * Math.cos(angle), -this.arm + REAR_RADIUS * Math.sin(angle));
+    } else if (s < 2 * this.straightLength + this.rearArcLength) {
+      const t = (s - this.straightLength - this.rearArcLength) / this.straightLength;
+      out.set(
+        X,
+        -c * (REAR_RADIUS + (FRONT_RADIUS - REAR_RADIUS) * t),
+        -this.arm + REAR_RADIUS * sn + (this.arm + (FRONT_RADIUS - REAR_RADIUS) * sn) * t,
+      );
+    } else {
+      const angle = Math.PI - a - (s - 2 * this.straightLength - this.rearArcLength) / FRONT_RADIUS;
+      out.set(X, FRONT_RADIUS * Math.cos(angle), FRONT_RADIUS * Math.sin(angle));
+    }
+    return out;
+  }
+
   update(rearRotation: number) {
-    if (!Number.isFinite(rearRotation)) rearRotation = 0;
-    if (rearRotation === this.lastWheelPhase) return;
-    this.lastWheelPhase = rearRotation;
-    // Repeated, identical links mean a wheel rotation of 2π simply permutes
-    // the observed links by exactly REAR_TEETH places.
-    const phase = (rearRotation / TAU) * REAR_TEETH;
+    // Reduce before multiplying: even a finite MAX_VALUE must not overflow
+    // to an infinite link index. A full revolution permutes 42 (even) links.
+    const angle = Number.isFinite(rearRotation) ? ((rearRotation % TAU) + TAU) % TAU : 0;
+    if (angle === this.lastWheelPhase) return;
+    this.lastWheelPhase = angle;
+    // This loop traverses the rear sprocket clockwise in YZ; wheel.rotation.x
+    // is anticlockwise. The old positive sign drove the chain backwards.
+    const phase = -(angle / TAU) * REAR_TEETH;
     for (let i = 0; i < this.links; i++) {
-      const slot = (((i + phase) % this.links) + this.links) % this.links;
-      const at = (slot / this.links) * SAMPLES;
-      const k = Math.floor(at);
-      const t = at - k;
-      this.p.lerpVectors(this.samples[k], this.samples[k + 1], t);
-      this.tangent.subVectors(this.samples[k + 1], this.samples[k]);
+      const distance = (i + phase) * this.spacing;
+      this.sample(distance, this.p);
+      this.sample(distance + this.spacing, this.next);
+      this.tangent.subVectors(this.next, this.p);
+      this.midpoint.addVectors(this.p, this.next).multiplyScalar(0.5);
       this.qLink.setFromAxisAngle(this.axis, Math.atan2(-this.tangent.y, this.tangent.z));
+      this.linkScale.z = this.tangent.length() / CHAIN_PITCH;
       this.matrix.compose(this.p, this.qRoller, this.one);
       this.rollers.setMatrixAt(i, this.matrix);
-      for (const side of [-1, 1]) {
-        const index = i * 2 + (side + 1) / 2;
-        const x = this.p.x;
-        this.p.x = x + side * 0.009;
-        this.matrix.compose(this.p, this.qLink, this.one);
-        this.plates.setMatrixAt(index, this.matrix);
-        this.p.x = x;
+      for (let side = 0; side < 2; side++) {
+        this.midpoint.x = X + (side * 2 - 1) * (i % 2 ? 0.0104 : 0.0076);
+        this.matrix.compose(this.midpoint, this.qLink, this.linkScale);
+        this.plates.setMatrixAt(i * 2 + side, this.matrix);
       }
     }
     this.rollers.instanceMatrix.needsUpdate = true;

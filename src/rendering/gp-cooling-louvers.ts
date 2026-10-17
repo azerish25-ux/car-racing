@@ -104,8 +104,12 @@ export function gpCoolingLouvers(
             if (side > 0) screwIndices.push(a, b, c, a, c, d);
             else screwIndices.push(d, c, b, d, b, a);
           }
-          for (let i = 1; i < 9; i++)
-            screwIndices.push(base + 10, base + 10 + i, base + 10 + i + 1);
+          // Mirroring X reverses the cap winding as well as the sidewall.
+          // Otherwise the left screw heads are backfaces and disappear.
+          for (let i = 1; i < 9; i++) {
+            if (side > 0) screwIndices.push(base + 10, base + 10 + i, base + 10 + i + 1);
+            else screwIndices.push(base + 10, base + 10 + i + 1, base + 10 + i);
+          }
         }
       }
     }

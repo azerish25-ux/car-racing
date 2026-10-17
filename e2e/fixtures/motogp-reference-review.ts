@@ -93,12 +93,21 @@ export function captureBikeSequence(
   scene.updateMatrixWorld(true);
   camera.updateMatrixWorld(true);
   const cockpit = view === 'onboard' ? inspectBikeCockpit(bike.root, camera) : null;
+  // Instancing shares storage, not triangle submission. Count every link,
+  // keeping the existing model budget meaningful after procedural instancing.
   let triangles = 0;
   bike.root.traverse((o) => {
     if (o instanceof T.Mesh)
-      triangles += (o.geometry.index?.count ?? o.geometry.getAttribute('position').count) / 3;
+      triangles +=
+        ((o.geometry.index?.count ?? o.geometry.getAttribute('position').count) / 3) *
+        (o instanceof T.InstancedMesh ? o.count : 1);
   });
   try {
+    // Match production shader preparation before observing resource stability.
+    // In r180 a cold shadow pass otherwise keys depth variants with an empty
+    // light layout; mixed instanced/rigid draws compile two more on frame two.
+    // compile() renders no extra frames and does not alter weather or pixels.
+    renderer.compile(scene, camera);
     return samples.map((sample) => {
       weatherFrame[H.TIME] = sample.time;
       weatherFrame[H.RAIN] = sample.wet ? 20 : 0;
