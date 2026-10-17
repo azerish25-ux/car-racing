@@ -17,8 +17,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
-      R2_OUT: ${{ runner.temp }}/solvane-r2
-      HORIZON_GAMEPLAY_OUTPUT: ${{ runner.temp }}/solvane-r2/driving.json
+      R2_OUT: /tmp/solvane-r2
+      HORIZON_GAMEPLAY_OUTPUT: /tmp/solvane-r2/driving.json
     steps:
       - uses: actions/checkout@v4
         with:
@@ -56,7 +56,7 @@ jobs:
         with:
           name: solvane-r2-prepared
           path: |
-            ${{ runner.temp }}/solvane-r2/
+            /tmp/solvane-r2/
             evidence/native-street/
           retention-days: 14
           if-no-files-found: error
@@ -72,7 +72,7 @@ jobs:
       APEX_BROWSER_BACKEND: mesa
       LIBGL_ALWAYS_SOFTWARE: 'true'
       GALLIUM_DRIVER: llvmpipe
-      R2_OUT: ${{ runner.temp }}/solvane-r2-browser
+      R2_OUT: /tmp/solvane-r2-browser
       SOLVANE_R2_VIEW: ${{ matrix.view }}
     steps:
       - uses: actions/checkout@v4
@@ -106,8 +106,8 @@ jobs:
         if: matrix.view != 'pace' && matrix.view != 'input-journey'
         env:
           HORIZON_REVIEW_URL: http://127.0.0.1:5173
-          HORIZON_REVIEW_OUTPUT: ${{ runner.temp }}/solvane-r2-browser/before
-          HORIZON_REVIEW_IDENTITY: ${{ runner.temp }}/solvane-r2-browser/before-identity.json
+          HORIZON_REVIEW_OUTPUT: /tmp/solvane-r2-browser/before
+          HORIZON_REVIEW_IDENTITY: /tmp/solvane-r2-browser/before-identity.json
           R2_IDENTITY_NAME: before-identity.json
           SOLVANE_R2_CANDIDATE: '0'
         run: |
@@ -132,8 +132,8 @@ jobs:
         env:
           HORIZON_REVIEW_URL: http://127.0.0.1:5174
           HORIZON_REVIEW_PORT: '5174'
-          HORIZON_REVIEW_OUTPUT: ${{ runner.temp }}/solvane-r2-browser/after
-          HORIZON_REVIEW_IDENTITY: ${{ runner.temp }}/solvane-r2-browser/after-identity.json
+          HORIZON_REVIEW_OUTPUT: /tmp/solvane-r2-browser/after
+          HORIZON_REVIEW_IDENTITY: /tmp/solvane-r2-browser/after-identity.json
           SOLVANE_R2_CANDIDATE: '1'
           HORIZON_REVIEW_QUALITY: low
         run: |
@@ -149,6 +149,6 @@ jobs:
         if: always()
         with:
           name: solvane-r2-${{ matrix.view }}
-          path: ${{ runner.temp }}/solvane-r2-browser/
+          path: /tmp/solvane-r2-browser/
           retention-days: 14
           if-no-files-found: error
