@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "archiveName": "Forza-Horizon-6-Developer-Reference-Pack-100-Images(1).zip",
+  "archiveSha256": "fa010b4b80fe39eb68b51d67bac06de1f3845619ab4ed546083d3caaffc65e59",
+  "archiveBytes": 403291338,
+  "manifestPath": "manifest.json",
+  "manifestSha256": "c3efc3f6317f932e47f4e808a667a3994c7002cbe1340c94f308af4a2ba636cb",
+  "count": 100,
+  "uniqueImageHashes": 100,
+  "runtimeCheckpoint": "2cacf1d1709ac0e58328a06d1ffcb0790b46d033",
+  "originalLedger": "HORIZON_REFERENCE_IMPLEMENTATION.md",
+  "continuationLedger": "SOLVANE_REFERENCE_CONTINUATION.md",
+  "additionalReferenceCount": 39,
+  "retainedReferenceCount": 55,
+  "contextOnlyReferenceCount": 6,
+  "scope": "The two hashes anchor the exact uploaded ZIP and its full 100-entry manifest. The audit checks every image against that anchored manifest and its filename/source URL against the original ledger. Integrity is not visual parity."
+}

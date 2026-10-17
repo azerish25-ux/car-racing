@@ -119,6 +119,8 @@ scripts/, tools/ Validation and asset tooling
 | [Open-world festival](docs/production/OPEN_WORLD.md) | Solvane Coast, free roam, events, traffic and known limits. |
 | [100-image festival reference record](docs/production/HORIZON_REFERENCE_IMPLEMENTATION.md) | Individual observations and original implementations for every supplied reference, with code links and limits. |
 | [Festival upgrade validation](docs/production/HORIZON_UPGRADE_VALIDATION.md) | Final screenshots, real driving/event evidence, test results and the guarded production build. |
+| [Solvane Blender continuation](docs/production/SOLVANE_CONTINUATION_VALIDATION.md) | Native detail assets, all eight committed-source validation jobs, actual game captures and the 100-reference continuation ledger. |
+| [Solvane authoring guide](authoring/solvane/README.md) | Editable Blender source, template contracts, safe re-export and reference-integrity verification. |
 | [Production documents](docs/production/README.md) | Design, implementation status, development plans and validation protocols. |
 
 ### Assets and attribution
