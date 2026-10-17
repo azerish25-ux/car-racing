@@ -30,10 +30,26 @@ describe('independent CI diagnostics with strict release gates', () => {
     }
   });
 
+  it('runs the complete original offroad gate with guarded temporary reports', () => {
+    const offroad = job('offroad-scenarios');
+    expect(offroad).toContain('timeout-minutes: 35');
+    expect(offroad).toContain('timeout-minutes: 30');
+    expect(offroad).toContain('scripts/source-stability.ts -- bash -c');
+    expect(offroad).toContain('unset OFFROAD_RACE');
+    expect(offroad).toContain('cd "$RUNNER_TEMP/offroad-gate"');
+    expect(offroad).toContain('"$GITHUB_WORKSPACE/scripts/offroad-calibration.ts"');
+    expect(offroad).toContain('"$GITHUB_WORKSPACE/scripts/offroad-races.ts"');
+    expect(offroad.match(/set -euo pipefail/g)).toHaveLength(2);
+    expect(offroad).toContain('tee "$RUNNER_TEMP/offroad-gate/offroad-gate.log"');
+    expect(offroad).toContain('if: always()');
+    expect(offroad).toContain('${{ runner.temp }}/offroad-gate/docs/offroad-races.json');
+    expect(offroad).not.toMatch(/continue-on-error|OFFROAD_RACE=/);
+  });
+
   it('cannot publish unless the unit suite and every other required job succeed', () => {
     const publish = job('publish');
     expect(publish).toContain(
-      'needs: [validate, unit-tests, scenarios, browser, wet-presentation]',
+      'needs: [validate, unit-tests, scenarios, offroad-scenarios, browser, wet-presentation]',
     );
     expect(publish).toContain('success() &&');
     expect(publish.split('    steps:')[0]).not.toContain('continue-on-error');

@@ -88,6 +88,44 @@ jobs:
             docs/vellamar-race.json
             docs/reference-targets.json
           retention-days: 7
+  offroad-scenarios:
+    runs-on: ubuntu-latest
+    # The full original gate took about 14 minutes locally. Give it a separate
+    # bounded job so it cannot exhaust the existing 15-minute scenario job.
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+      - name: Full offroad calibrations and races without source changes
+        # Leave time to upload partial reports and the log if the gate times out.
+        timeout-minutes: 30
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/offroad-gate/docs"
+          # Guard the repository while the unchanged validators write their
+          # relative docs/ reports outside the committed application inputs.
+          node --experimental-transform-types scripts/source-stability.ts -- bash -c '
+            set -euo pipefail
+            unset OFFROAD_RACE
+            cd "$RUNNER_TEMP/offroad-gate"
+            node --experimental-transform-types "$GITHUB_WORKSPACE/scripts/offroad-calibration.ts"
+            node --experimental-transform-types "$GITHUB_WORKSPACE/scripts/offroad-races.ts"
+          ' 2>&1 | tee "$RUNNER_TEMP/offroad-gate/offroad-gate.log"
+      - name: Offroad evidence, including failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: offroad-scenarios
+          path: |
+            ${{ runner.temp }}/offroad-gate/docs/offroad-calibration.json
+            ${{ runner.temp }}/offroad-gate/docs/offroad-races.json
+            ${{ runner.temp }}/offroad-gate/offroad-gate.log
+          retention-days: 7
   browser:
     # Run every original case on a verified software renderer capable of
     # continuous observation. The separate SwiftShader GPU gate is retained.
@@ -267,7 +305,7 @@ jobs:
   publish:
     # Ship exactly the build tested above, never a parallel unvalidated rebuild.
     # The CDN workflow consumes this gated artifact, not an independent build.
-    needs: [validate, unit-tests, scenarios, browser, wet-presentation]
+    needs: [validate, unit-tests, scenarios, offroad-scenarios, browser, wet-presentation]
     # Manual validation of the current main must produce the SAME gated artifact.
     # Keep success() and all needs: a dispatch never bypasses a failed test.
     if: >-
