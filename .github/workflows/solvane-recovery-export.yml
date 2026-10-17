@@ -1,0 +1,53 @@
+name: Solvane recovery export
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/solvane-recovery-export.yml']
+permissions:
+  contents: read
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Recover candidate bytes without executing or applying them
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/solvane-recovery"
+          python3 - <<'PY'
+          import os,json,base64,lzma,hashlib,urllib.request
+          from pathlib import Path
+          shas=['59fe9616e88cd43cff277b82162648ded726a13b','c142ef366b943cf20d941e8cc51d06d4367d8adb','58939a68bdf9e981c791a0f2021abdae444ad9d4']
+          encoded=b''
+          for sha in shas:
+              req=urllib.request.Request('https://api.github.com/repos/'+os.environ['GITHUB_REPOSITORY']+'/git/blobs/'+sha,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
+              with urllib.request.urlopen(req,timeout=60) as response: obj=json.load(response)
+              data=base64.b64decode(obj['content'])
+              assert hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()==sha
+              encoded+=data
+          compressed=base64.b64decode(encoded,validate=True)
+          assert hashlib.sha256(compressed).hexdigest()=='b226b26af1b3b981aa4406ddeb67a87df65b1e474deab907c898dbfb28da2654'
+          payload=lzma.decompress(compressed)
+          json.loads(payload)
+          Path(os.environ['RUNNER_TEMP'],'solvane-recovery','candidate.json').write_bytes(payload)
+          print('Recovered candidate:',len(payload),'bytes; not applied or executed')
+          PY
+      - name: Archive the exact current committed source and identity
+        run: |
+          git archive HEAD | gzip -1 > "$RUNNER_TEMP/solvane-recovery/source.tar.gz"
+          git rev-parse HEAD > "$RUNNER_TEMP/solvane-recovery/commit.txt"
+          git ls-tree -r HEAD > "$RUNNER_TEMP/solvane-recovery/tree.txt"
+          cd "$RUNNER_TEMP/solvane-recovery"
+          sha256sum candidate.json source.tar.gz tree.txt > SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: solvane-recovered-source
+          path: ${{ runner.temp }}/solvane-recovery/
+          compression-level: 0
+          retention-days: 3
+          if-no-files-found: error
