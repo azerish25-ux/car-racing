@@ -19,11 +19,13 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     env:
-      EVIDENCE: ${{ runner.temp }}/motogp-r5-evidence
       APEX_BROWSER_BACKEND: mesa
       LIBGL_ALWAYS_SOFTWARE: 'true'
       GALLIUM_DRIVER: llvmpipe
     steps:
+      - name: Resolve the runner-local evidence directory
+        shell: bash
+        run: echo "EVIDENCE=$RUNNER_TEMP/motogp-r5-evidence" >> "$GITHUB_ENV"
       - uses: actions/checkout@v4
         with:
           fetch-depth: 1
