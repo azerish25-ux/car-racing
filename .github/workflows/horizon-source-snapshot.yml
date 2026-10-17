@@ -1,0 +1,33 @@
+name: Horizon source snapshot
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [.github/workflows/horizon-source-snapshot.yml]
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-slim
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Preserve exact source and blob identities without rebuilding assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/horizon-source"
+          git archive HEAD | gzip -1 > "$RUNNER_TEMP/horizon-source/source.tar.gz"
+          git rev-parse HEAD > "$RUNNER_TEMP/horizon-source/commit.txt"
+          git ls-files -s > "$RUNNER_TEMP/horizon-source/git-index.txt"
+          cd "$RUNNER_TEMP/horizon-source"
+          sha256sum source.tar.gz git-index.txt > SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: horizon-source-snapshot
+          path: ${{ runner.temp }}/horizon-source/
+          compression-level: 0
+          retention-days: 3
+          if-no-files-found: error
