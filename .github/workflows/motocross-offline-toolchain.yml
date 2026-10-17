@@ -1,0 +1,40 @@
+name: Motocross offline toolchain
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [.github/workflows/motocross-offline-toolchain.yml]
+permissions:
+  contents: read
+jobs:
+  toolchain:
+    runs-on: ubuntu-slim
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Install the unchanged locked development dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Package offline development tools without credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/motocross-toolchain"
+          git diff --exit-code -- package.json package-lock.json
+          tar -czf "$RUNNER_TEMP/motocross-toolchain/node-modules.tar.gz" node_modules
+          cp package.json package-lock.json "$RUNNER_TEMP/motocross-toolchain/"
+          git rev-parse HEAD > "$RUNNER_TEMP/motocross-toolchain/commit.txt"
+          node --version > "$RUNNER_TEMP/motocross-toolchain/node-version.txt"
+          cd "$RUNNER_TEMP/motocross-toolchain"
+          sha256sum node-modules.tar.gz package.json package-lock.json > SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: motocross-offline-toolchain
+          path: ${{ runner.temp }}/motocross-toolchain/
+          compression-level: 0
+          retention-days: 3
+          if-no-files-found: error
