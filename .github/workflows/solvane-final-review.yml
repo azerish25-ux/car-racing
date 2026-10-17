@@ -134,7 +134,7 @@ jobs:
       GALLIUM_DRIVER: llvmpipe
       HORIZON_REVIEW_URL: http://127.0.0.1:5173
       HORIZON_REVIEW_OUTPUT: test-results/solvane-view
-      HORIZON_REVIEW_IDENTITY: ${{ runner.temp }}/identity.json
+      HORIZON_REVIEW_IDENTITY: /tmp/solvane-identity.json
       SOLVANE_REVIEW_VIEW: ${{ matrix.view }}
       SOLVANE_CANDIDATE: ${{ matrix.scope != 'baseline' && '1' || '0' }}
       HORIZON_REVIEW_QUALITY: low
@@ -194,7 +194,7 @@ jobs:
           name: solvane-final-${{ matrix.scope }}-${{ matrix.view }}
           path: |
             test-results/solvane-view/
-            ${{ runner.temp }}/identity.json
+            /tmp/solvane-identity.json
             ${{ runner.temp }}/server.log
             ${{ runner.temp }}/browser.log
           retention-days: 14
