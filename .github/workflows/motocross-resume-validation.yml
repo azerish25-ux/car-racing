@@ -6,6 +6,7 @@ on:
     paths: [.github/workflows/motocross-resume-validation.yml]
 permissions:
   contents: read
+  actions: read
 concurrency:
   group: motocross-resume-validation
   cancel-in-progress: false
@@ -15,9 +16,10 @@ jobs:
     timeout-minutes: 25
     permissions:
       contents: write
-    env:
-      MX_OUT: ${{ runner.temp }}/mx-integrated
+      actions: read
     steps:
+      - name: Initialize runner-local evidence directory
+        run: echo "MX_OUT=$RUNNER_TEMP/mx-integrated" >> "$GITHUB_ENV"
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
