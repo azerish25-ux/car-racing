@@ -1,3 +1,4 @@
+# Refresh the reproducible workspace for the Forza reference/Blender pass.
 name: MotoGP offline workspace
 on:
   workflow_dispatch:
