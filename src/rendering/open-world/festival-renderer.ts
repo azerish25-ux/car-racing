@@ -67,6 +67,8 @@ import {
 import { StreetLightPools } from './street-light-pools.ts';
 import { surfaceDampness } from '../weather-presentation.ts';
 import { SolvaneDetails } from './solvane-details.ts';
+import { StreetDetails } from './street-details.ts';
+import { FestivalContactShadows } from './contact-shadows.ts';
 import { clearCameraBoom } from './camera-clearance.ts';
 import { HorizonGuidance } from './horizon-guidance.ts';
 import { FestivalTrails } from './festival-trails.ts';
@@ -107,6 +109,9 @@ export class FestivalRenderer {
   readonly dressing: HorizonDressing;
   details: SolvaneDetails | null = null;
   private detailLoading: Promise<boolean> | null = null;
+  streetDetails: StreetDetails | null = null;
+  private streetLoading: Promise<boolean> | null = null;
+  readonly contacts = new FestivalContactShadows();
   private readonly cameraAnchor = new T.Vector3();
   readonly vegetation = new Vegetation();
   /** Photographic trees and shrubs, when loaded (see loadPhotoVegetation). */
@@ -191,6 +196,7 @@ export class FestivalRenderer {
       this.effects.group,
       this.guidance.root,
       this.trails.root,
+      this.contacts.root,
     ];
     this.effects.looseColours = new Map([
       [MATERIAL.DIRT, [0.43, 0.32, 0.19] as const],
@@ -246,6 +252,7 @@ export class FestivalRenderer {
       this.effects.group,
       this.guidance.root,
       this.trails.root,
+      this.contacts.root,
     );
     installSpecularIBL(scene);
     installSpecularIBLMaterial(this.terrain.material);
@@ -366,6 +373,30 @@ export class FestivalRenderer {
         this.detailLoading = null;
       });
     return this.detailLoading;
+  }
+  loadStreetDetails(): Promise<boolean> {
+    if (this.disposed) return Promise.resolve(false);
+    if (this.streetDetails) return Promise.resolve(true);
+    if (this.streetLoading) return this.streetLoading;
+    this.streetLoading = StreetDetails.load(this.world, this.structures, () => this.disposed)
+      .then((kit) => {
+        // Closing the session can race the microtask after the loader resolves.
+        if (this.disposed) {
+          kit.dispose();
+          return false;
+        }
+        this.streetDetails = kit;
+        this.scene.add(kit.root);
+        return true;
+      })
+      .catch((error: unknown) => {
+        if (!this.disposed) console.warn('Festival street detail fallback:', error);
+        return false;
+      })
+      .finally(() => {
+        this.streetLoading = null;
+      });
+    return this.streetLoading;
   }
   setQuality(preset: QualityPreset, options: GraphicsOptions = graphicsPreset(preset)) {
     const flagTierChanged = (preset === 'low') !== (this.preset === 'low');
@@ -615,6 +646,12 @@ export class FestivalRenderer {
       this.preset,
       surfaceDampness(presented[H.RAIN], presented[H.WATER]),
     );
+    this.streetDetails?.update(
+      this.camera,
+      this.preset,
+      surfaceDampness(presented[H.RAIN], presented[H.WATER]),
+    );
+    this.contacts.update(presented, this.camera, this.preset, this.heightAt);
     this.streetLights.update(this.camera, night, this.preset, dt);
     if (this.details?.poseAero(presented, subject ?? null, dt, this.camera))
       this.cars.bodies.hideRearWing(0);
@@ -773,6 +810,9 @@ export class FestivalRenderer {
     this.dressing.dispose();
     this.details?.dispose();
     this.details = null;
+    this.streetDetails?.dispose();
+    this.streetDetails = null;
+    this.contacts.dispose();
     this.vegetation.dispose();
     this.photoVegetation?.dispose();
     this.photoVegetation = null;

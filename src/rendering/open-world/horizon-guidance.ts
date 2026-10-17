@@ -1,5 +1,5 @@
 import * as T from 'three';
-import { brakingEnvelope } from './braking-envelope.ts';
+import { paceEnvelope, type PaceCue } from './pace-coach.ts';
 import { clamp } from '../../core/math.ts';
 import type { FestivalEvent } from '../../simulation/open-world/festival-events.ts';
 import { pathPoint } from '../../simulation/open-world/route-path.ts';
@@ -33,6 +33,9 @@ export class HorizonGuidance {
   readonly capacity = 28;
   private readonly curvature = new Float64Array(64);
   private readonly advisedSpeed = new Float64Array(64);
+  private readonly grip = new Float64Array(64);
+  private readonly heights = new Float64Array(64);
+  cue: PaceCue | null = null;
   private readonly flagCloths: T.MeshStandardMaterial[] = [];
   private readonly retired = new Set<T.BufferGeometry | T.Material>();
   /** Take private copies: guidance and the asset library have independent lifetimes. */
@@ -121,6 +124,7 @@ export class HorizonGuidance {
     this.flags.visible = false;
   }
   reset() {
+    this.cue = null;
     this.current = null;
     this.gateKey = '';
   }
@@ -132,6 +136,7 @@ export class HorizonGuidance {
     height: (x: number, z: number, y?: number) => number,
     wetness = 0,
   ) {
+    this.cue = null;
     this.root.visible = !!event;
     if (!event) {
       this.current = null;
@@ -150,9 +155,28 @@ export class HorizonGuidance {
       const distance = this.station + 7 + i * spacing;
       if (!path.closed && distance > path.finishDistance) break;
       path.at(distance, this.point);
-      this.curvature[samples++] = this.point.curvature;
+      this.curvature[samples] = this.point.curvature;
+      this.heights[samples] = this.point.y;
+      this.grip[samples] = path.network.edges[this.point.edge].spec.grip;
+      samples++;
     }
-    brakingEnvelope(this.curvature, samples, spacing, wetness, this.advisedSpeed);
+    this.cue = paceEnvelope(
+      this.curvature,
+      this.grip,
+      this.heights,
+      samples,
+      spacing,
+      wetness,
+      speed,
+      this.advisedSpeed,
+    );
+    path.at(this.station, this.point);
+    // A route preview is not valid corner advice when the driver leaves that road.
+    if (
+      Math.hypot(subject.x - this.point.x, subject.z - this.point.z) > this.point.halfWidth + 14 ||
+      Math.abs(subject.y - this.point.y) > 5
+    )
+      this.cue = null;
     let count = 0;
     for (let i = 0; i < this.capacity; i++) {
       const distance = this.station + 7 + i * spacing;

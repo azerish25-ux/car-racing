@@ -179,7 +179,7 @@ export class FestivalSession {
     host.loading('Loading photographed trees…');
     await renderer.loadPhotoVegetation();
     host.loading('Loading authored coastal details…');
-    await renderer.loadAuthoredDetails();
+    await Promise.all([renderer.loadAuthoredDetails(), renderer.loadStreetDetails()]);
     for (const id of this.save.discovered) renderer.discovered.add(id);
     // Ambient traffic (instanced) and motorcycles (the bike presentation)
     // share the festival scene; both are posed before each draw.
@@ -512,6 +512,7 @@ export class FestivalSession {
         minimapHeading(fx, fz),
         Math.round(presented[o + F.GEAR]),
         (presented[o + F.RPM] - spec.idleRPM) / Math.max(1, spec.limiterRPM - spec.idleRPM),
+        renderer.guidance.cue,
       );
     this.host.audio?.update(
       presented,

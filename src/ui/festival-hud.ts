@@ -1,4 +1,5 @@
 import './festival-hud.css';
+import type { PaceCue } from '../rendering/open-world/pace-coach.ts';
 import {
   EVENT_KIND_LABEL,
   isRace,
@@ -81,6 +82,7 @@ export class FestivalHud {
     root.setAttribute('aria-label', 'Festival');
     root.innerHTML = `
       <div class="fest-road" role="status"><span class="fest-limit" id="festLimit">90</span><div><span class="fest-eyebrow">MOTOBOUND / SOLVANE COAST</span><b id="festRoad">—</b><span id="festSurface">asphalt</span></div></div>
+      <div class="fest-pace" id="festPace" aria-label="Corner advisory" hidden><span class="fest-eyebrow">ROUTE ADVISORY</span><b id="festPaceTurn"></b><span id="festPaceAction"></span><small id="festPaceSurface"></small></div>
       <div class="fest-hint" id="festHint"><kbd>C</kbd> CAMERA · <kbd>T</kbd> MAP · <kbd>ESC</kbd> MENU</div>
       <div class="fest-explore" id="festExplore"><span class="fest-eyebrow">THE ROAD IS YOURS</span><b id="festExploreName">Explore Solvane Coast</b><small id="festExploreDistance"></small></div>
       <div class="fest-skills" id="festSkills" hidden role="status"><span id="festSkillLabel"></span><div><b id="festSkillScore">0</b><i id="festSkillMultiplier">×1.0</i></div><small id="festSkillBank"></small><div class="fest-chain-track"><i id="festSkillTimer"></i></div></div>
@@ -400,7 +402,31 @@ export class FestivalHud {
     heading: number,
     gear: number,
     rpm01: number,
+    pace: PaceCue | null = null,
   ) {
+    const showPace =
+      !!pace &&
+      !!status.event &&
+      status.mode !== 'finished' &&
+      !this.menuOpen &&
+      !this.mapOpen &&
+      !this.photoOpen;
+    this.show('festPace', showPace);
+    if (pace && showPace) {
+      this.get('festPace').dataset.action = pace.action;
+      this.text(
+        'festPaceTurn',
+        `${pace.direction === 'left' ? '↰ LEFT' : 'RIGHT ↱'} ${pace.severity.toUpperCase()} · ${Math.round(pace.distance / 10) * 10} M`,
+      );
+      this.text(
+        'festPaceAction',
+        `${pace.action === 'brake' ? 'BRAKE EARLY' : pace.action === 'lift' ? 'EASE OFF' : 'LOOK AHEAD'} · ~${Math.max(5, Math.round((pace.targetSpeed * 3.6) / 5) * 5)} KM/H`,
+      );
+      this.text(
+        'festPaceSurface',
+        `${pace.wet ? 'WET · ' : ''}${pace.loose ? 'LOOSE SURFACE' : 'PAVED'} · GUIDE, NOT A LIMIT`,
+      );
+    }
     const discovered = new Set(status.discovered);
     this.discovered = discovered;
     this.playerAt = { x, z };

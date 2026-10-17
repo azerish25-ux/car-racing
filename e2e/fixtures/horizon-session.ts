@@ -69,6 +69,9 @@ const state = () => {
       : null,
     details:
       (internal?.renderer as unknown as { details?: { stats: unknown } })?.details?.stats ?? null,
+    street: internal?.renderer?.streetDetails?.stats ?? null,
+    contacts: internal?.renderer?.contacts.stats ?? null,
+    pace: internal?.renderer?.guidance.cue ?? null,
     lampSockets:
       (internal?.renderer as unknown as { streetLights?: { activeSockets: number[] } })
         ?.streetLights?.activeSockets ?? [],

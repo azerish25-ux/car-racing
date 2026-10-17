@@ -1013,3 +1013,68 @@
     transition: none;
   }
 }
+
+/* Corner guidance remains separate from score chains, results and legal limits. */
+.fest-pace {
+  position: absolute;
+  top: 140px;
+  left: 30px;
+  width: 230px;
+  padding: 10px 12px;
+  background: rgba(9, 21, 26, 0.86);
+  border-left: 3px solid #9ae2d2;
+  font-variant-numeric: tabular-nums;
+}
+.fest-pace b,
+.fest-pace > span:not(.fest-eyebrow),
+.fest-pace small {
+  display: block;
+}
+.fest-pace b {
+  font-size: 13px;
+  font-weight: 600;
+}
+.fest-pace > span:not(.fest-eyebrow) {
+  font-size: 12px;
+  margin: 3px 0;
+}
+.fest-pace small {
+  font-size: 8px;
+  letter-spacing: 0.06em;
+  color: #c8d3d2;
+}
+.fest-pace[data-action='lift'] {
+  border-color: #e6c36f;
+}
+.fest-pace[data-action='brake'] {
+  border-color: #ef9d7c;
+}
+.fest-pace[data-action='brake'] > span:not(.fest-eyebrow) {
+  color: #ffd2be;
+}
+@media (max-width: 900px) {
+  .fest-pace {
+    top: 115px;
+    left: 18px;
+    width: 205px;
+  }
+}
+@media (max-width: 620px), (max-height: 500px) {
+  .fest-pace {
+    top: auto;
+    bottom: 163px;
+    left: 10px;
+    width: 180px;
+    padding: 6px 8px;
+  }
+  .fest-pace .fest-eyebrow {
+    display: none;
+  }
+  .fest-pace b,
+  .fest-pace > span:not(.fest-eyebrow) {
+    font-size: 10px;
+  }
+  .fest-pace small {
+    font-size: 7px;
+  }
+}
