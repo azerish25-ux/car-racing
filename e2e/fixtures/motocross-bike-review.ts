@@ -19,6 +19,8 @@ export interface MotocrossPoseSample {
   forkOffset?: number;
   shockOffset?: number;
   speed?: number;
+  frontRotation?: number;
+  rearRotation?: number;
 }
 
 /** Actual production DirtBikeModel in a controlled inspection scene. The
@@ -70,29 +72,55 @@ export function captureMotocrossBike(
   else if (view === 'front') camera.position.set(0.38, 1.5, 4.1);
   else if (view === 'rear') camera.position.set(-2.85, 1.9, -3.5);
   else if (view === 'helmet') camera.position.set(0.75, 1.75, 1.2);
+  else if (view === 'drivetrain') camera.position.set(1.45, 0.67, -0.54);
   else camera.position.set(-3.05, 1.72, 3.6);
   camera.lookAt(0, view === 'helmet' ? 1.59 : 0.93, 0);
+  if (view === 'drivetrain') camera.lookAt(0.095, 0.38, -0.45);
   if (view === 'bodywork') model.rider.root.visible = false;
   let triangles = 0,
     finiteGeometry = true;
   const materialsUsed = new Set<string>();
   model.root.traverse((o) => {
     if (!(o instanceof T.Mesh)) return;
-    triangles += (o.geometry.index?.count ?? o.geometry.getAttribute('position').count) / 3;
+    triangles +=
+      ((o.geometry.index?.count ?? o.geometry.getAttribute('position').count) / 3) *
+      (o instanceof T.InstancedMesh ? o.count : 1);
     for (const attribute of Object.values(o.geometry.attributes) as T.BufferAttribute[]) {
       for (const value of attribute.array) if (!Number.isFinite(value)) finiteGeometry = false;
     }
     for (const material of Array.isArray(o.material) ? o.material : [o.material])
       materialsUsed.add(material.name);
   });
+  const chainMeshes = [
+    'Motocross steel chain pins and rollers',
+    'Motocross paired articulated link plates',
+  ].map((name) => model.root.getObjectByName(name));
+  const inspectChain = () => {
+    if (!chainMeshes.every((mesh): mesh is T.InstancedMesh => mesh instanceof T.InstancedMesh))
+      return null;
+    let hash = 2166136261;
+    for (const mesh of chainMeshes) {
+      const array = mesh.instanceMatrix.array;
+      for (const byte of new Uint8Array(array.buffer, array.byteOffset, array.byteLength))
+        hash = Math.imul(hash ^ byte, 16777619) >>> 0;
+    }
+    return {
+      hash,
+      counts: chainMeshes.map((mesh) => mesh.count),
+      versions: chainMeshes.map((mesh) => mesh.instanceMatrix.version),
+      finite: chainMeshes.every((mesh) =>
+        Array.from(mesh.instanceMatrix.array).every(Number.isFinite),
+      ),
+    };
+  };
   try {
     return samples.map((sample) => {
       model.pose({
         fork: sag.fork + (sample.forkOffset ?? 0),
         shock: sag.shock + (sample.shockOffset ?? 0),
         steer: sample.steer ?? 0,
-        frontRotation: 0,
-        rearRotation: 0,
+        frontRotation: sample.frontRotation ?? 0,
+        rearRotation: sample.rearRotation ?? 0,
         chassisLean: sample.lean ?? 0,
         riderOffset: 0,
         tuck: 0,
@@ -148,9 +176,11 @@ export function captureMotocrossBike(
         instance: model.root.uuid,
         hash,
         triangles,
+        submittedTriangles: renderer.info.render.triangles,
         finiteGeometry,
         contacts,
         cockpit,
+        chain: inspectChain(),
         calls: renderer.info.render.calls,
         glError: gl.getError(),
         // A raked wheel's transformed local AABB overstates its radius. Inspect

@@ -1,0 +1,63 @@
+{
+  "baseCommit": "7b67f94e3f1e8cb41edb118368d35e771e47c85c",
+  "scope": "Fresh reconstruction after scratch reset, not a claim of recovering identical lost follow-up bytes.",
+  "files": [
+    {
+      "path": "src/rendering/chain-geometry.ts",
+      "bytes": 3555,
+      "sha256": "c7c753f5b435d9cf24be8e17edd6ce684a86410ae2d27a4fb4665d91bac369de"
+    },
+    {
+      "path": "src/rendering/gp-chain-drive.ts",
+      "bytes": 6053,
+      "sha256": "c7b665ecdafc79e9960e0ccca084028f2a4cb52d92c6b330e694f4b85e9891f7"
+    },
+    {
+      "path": "src/rendering/offroad/dirt-bike-model.ts",
+      "bytes": 30885,
+      "sha256": "8efcd1ae2faae5e52111b275a28de679511c08fd04bc852742baf29d4d666f67"
+    },
+    {
+      "path": "src/rendering/offroad/motocross-detail.ts",
+      "bytes": 10353,
+      "sha256": "acfd17deaf132be49537148bb02127a62ed7f443bc17dac1222552ad290abcbc"
+    },
+    {
+      "path": "src/rendering/offroad/motocross-chain-drive.ts",
+      "bytes": 5976,
+      "sha256": "b0141e00ae21d920bb925587782a9da1edc66cb6e5a505936b4a02e9db5ff682"
+    },
+    {
+      "path": "tests/motocross-chain-drive.test.ts",
+      "bytes": 12977,
+      "sha256": "07721487922cbde2a1e97d7e3e2250f3c09d9843088516cf7317c7f3fed86d7f"
+    },
+    {
+      "path": "tests/motocross-lever-contact.test.ts",
+      "bytes": 6430,
+      "sha256": "db41576b27c8d51b69ab75990966dd3f475ba125da27001cef5909bc2b5e9092"
+    },
+    {
+      "path": "e2e/42-motocross-bike.spec.ts",
+      "bytes": 6731,
+      "sha256": "5ee046de6abea353da67ba24eb8a2b4a7ee663410b655e304dd34e880d87cc3f"
+    },
+    {
+      "path": "e2e/fixtures/motocross-bike-review.ts",
+      "bytes": 8543,
+      "sha256": "44553800258fd910ad4bfbf703db603ae45c7f6a882c7a04428195773968aae4"
+    }
+  ],
+  "cpu": {
+    "report": "tests-r2.json",
+    "passed": 36,
+    "failed": 0,
+    "durationSeconds": 8.42
+  },
+  "gpu": "Pending root-owned fresh browser captures; no GPU result claimed by this source package.",
+  "gpContinuity": "gp-continuity.json",
+  "checks": {
+    "ownedFilesEslint": "pass",
+    "ownedDiffWhitespace": "pass"
+  }
+}

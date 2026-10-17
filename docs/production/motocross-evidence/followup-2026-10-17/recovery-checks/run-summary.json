@@ -1,0 +1,81 @@
+{
+  "stage": "checks-r1",
+  "startedAt": "2026-10-17T14:55:54.750062+00:00",
+  "command": [
+    "node",
+    "--experimental-transform-types",
+    "scripts/source-stability.ts",
+    "--",
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+    "/workspace/scratch/ce74d2c3df38/motocross-recovery-verification/run-checks.py",
+    "checks-r1",
+    "--child"
+  ],
+  "exitCode": 0,
+  "wallSeconds": 124.67862050399981,
+  "sourceStable": true,
+  "changedInputs": [],
+  "memory": {
+    "scope": "shared cgroup, bracket readings only",
+    "before": {
+      "timestamp": "2026-10-17T14:55:54.749142+00:00",
+      "monotonic": 2179.293732765,
+      "memory.current": 5133176832,
+      "memory.peak": 5845872640,
+      "memory.max": 8589934592,
+      "memory.events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "memory.events.local": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      }
+    },
+    "after": {
+      "timestamp": "2026-10-17T14:57:59.427273+00:00",
+      "monotonic": 2303.971865242,
+      "memory.current": 5375561728,
+      "memory.peak": 8100171776,
+      "memory.max": 8589934592,
+      "memory.events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "memory.events.local": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      }
+    },
+    "eventDeltas": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "passed": true,
+  "buildIdentity": {
+    "version": 1,
+    "commit": null,
+    "fingerprint": "608e6b44a3aec28d7de35112614728f9de119297904bc015e87d217b9c8b50af"
+  }
+}

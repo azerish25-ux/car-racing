@@ -58,6 +58,10 @@ test('Motocross reference R2: production bikes, reachable riding poses and rever
     expect(result.hash).not.toBe(0);
     expect(result.calls).toBeLessThan(200);
     expect(result.triangles).toBeLessThan(130000);
+    if (result.chain) {
+      expect(result.chain.finite).toBe(true);
+      expect(result.chain.counts).toEqual([96, 192]);
+    }
     expect(result.bounds.min.y).toBeGreaterThan(-0.006);
     for (const contact of result.contacts) {
       // Bone endpoints carry a deliberate 2 cm wrist/ankle offset; anything
@@ -132,5 +136,34 @@ test('Motocross reference R2: production bikes, reachable riding poses and rever
   expect(sequence[0].hash).not.toBe(sequence[1].hash);
   expect(sequence[1].hash).toBe(sequence[2].hash);
   expect(sequence[0].hash).toBe(sequence[3].hash);
+  for (const [id, detail] of [
+    ['mx450', 'high'],
+    ['mx250', 'mid'],
+  ] as const) {
+    const drive = await capture({
+      id,
+      detail,
+      view: 'drivetrain',
+      samples: [
+        { rearRotation: 0.2, forkOffset: 0.04, shockOffset: -0.01 },
+        { rearRotation: 1.1, forkOffset: 0.04, shockOffset: -0.01 },
+        { rearRotation: 1.1, forkOffset: 0.04, shockOffset: -0.01 },
+        { rearRotation: 0.2, forkOffset: 0.04, shockOffset: -0.01 },
+      ],
+    });
+    for (const [i, result] of drive.entries()) {
+      await attach(`${id}-${detail}-drive-${i}`, result);
+      expect(result.chain).not.toBeNull();
+      expect(result.instance).toBe(drive[0].instance);
+      expect(result.resources).toEqual(drive[0].resources);
+    }
+    expect(drive[0].chain!.hash).not.toBe(drive[1].chain!.hash);
+    expect(drive[1].chain!.hash).toBe(drive[2].chain!.hash);
+    expect(drive[0].chain!.hash).toBe(drive[3].chain!.hash);
+    expect(drive[1].chain!.versions).toEqual(drive[2].chain!.versions);
+    expect(drive[0].hash).not.toBe(drive[1].hash);
+    expect(drive[1].hash).toBe(drive[2].hash);
+    expect(drive[0].hash).toBe(drive[3].hash);
+  }
   expect(errors).toEqual([]);
 });

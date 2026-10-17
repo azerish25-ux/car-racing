@@ -1,0 +1,29 @@
+{
+  "status": "pass",
+  "scope": "Fresh reconstruction against current main; exact CPU geometry attributes, indices, groups, bounds and instance matrices at five arm lengths and eight phases.",
+  "sources": [
+    {
+      "source": "/workspace/scratch/ce74d2c3df38/bike-recovery-witness/gp-chain-drive-before.ts",
+      "sha256": "224bf3bbda75b957b523489419a7e38d2b869e5e0a6d036972986a62ba21e990",
+      "bytes": 8704
+    },
+    {
+      "source": "/workspace/scratch/ce74d2c3df38/Experiment-3/src/rendering/gp-chain-drive.ts",
+      "sha256": "c7b665ecdafc79e9960e0ccca084028f2a4cb52d92c6b330e694f4b85e9891f7",
+      "bytes": 6053
+    },
+    {
+      "source": "/workspace/scratch/ce74d2c3df38/Experiment-3/src/rendering/chain-geometry.ts",
+      "sha256": "c7c753f5b435d9cf24be8e17edd6ce684a86410ae2d27a4fb4665d91bac369de",
+      "bytes": 3555
+    }
+  ],
+  "before": {
+    "bytes": 5180989,
+    "sha256": "e0a15b8e695156b9b20c352ea0fb905c716862eb827098d96827a01c70c233be"
+  },
+  "after": {
+    "bytes": 5180989,
+    "sha256": "e0a15b8e695156b9b20c352ea0fb905c716862eb827098d96827a01c70c233be"
+  }
+}

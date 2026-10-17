@@ -11,6 +11,8 @@ import { materials } from '../materials/index.ts';
 import { installScannedSoil, soilSlotOf, soilSlots, writeSoilSlot } from '../ground/soil-splat.ts';
 import type { ScanLayer } from '../ground/scan-store.ts';
 import { installMxSoilDetail, MX_SOIL_COLOURS } from './mx-soil-detail.ts';
+import { mxSoilSample, sampleMxSoilTransition } from './mx-soil-transition.ts';
+import { installMxTerrainShadow } from './mx-terrain-shadow.ts';
 
 /** Soil albedo per kind (sRGB; the soil detail map multiplies it). */
 export const SOIL_COLOURS: Readonly<Record<SoilKind, number>> = Object.freeze({
@@ -85,7 +87,10 @@ export class TerrainView {
           ? 'dryEarth'
           : this.soilSlots[0];
     installScannedSoil(this.material, this.soilSlots, this.soilMacro);
-    if (this.motocross) installMxSoilDetail(this.material);
+    if (this.motocross) {
+      installMxSoilDetail(this.material);
+      installMxTerrainShadow(this.material);
+    }
     for (let first = 0; first < t.renderRows; first += CHUNK_ROWS)
       this.chunks.push(this.buildChunk(first, Math.min(CHUNK_ROWS, t.renderRows - first)));
   }
@@ -97,6 +102,11 @@ export class TerrainView {
       p = trackPoint(),
       q = trackPoint(),
       colour = new T.Color();
+    const sample = this.motocross ? mxSoilSample() : null;
+    const palette = this.motocross
+      ? SOIL_KINDS.map((kind) => new T.Color(MX_SOIL_COLOURS[kind]))
+      : [];
+    const slots = this.motocross ? SOIL_KINDS.map((kind) => soilSlotOf(kind, this.soilSlots)) : [];
     const vx = cols + 1,
       vz = rows + 1,
       count = vx * vz;
@@ -140,19 +150,36 @@ export class TerrainView {
           s,
         );
         const kind = cell < 0 ? 'turf' : t.soilKind(cell);
-        // Three's setHex already decodes sRGB. Decoding again crushed the
-        // motocross loam into almost-black soil under cloud/stadium light.
-        colour.setHex((this.motocross ? MX_SOIL_COLOURS : SOIL_COLOURS)[kind]);
-        if (!this.motocross) colour.convertSRGBToLinear();
+        if (sample) {
+          sampleMxSoilTransition(t, lateral, s, sample);
+          colour.setRGB(0, 0, 0);
+          for (let soil = 0; soil < SOIL_KINDS.length; soil++) {
+            const weight = sample.weights[soil];
+            colour.r += palette[soil].r * weight;
+            colour.g += palette[soil].g * weight;
+            colour.b += palette[soil].b * weight;
+            if (slots[soil] < this.soilSlots.length - 1) layers[k * 4 + slots[soil]] += weight;
+          }
+          state[k * 3] = sample.moisture;
+        } else {
+          // Preserve the pre-existing RX/stage rendering byte for byte.
+          colour.setHex(SOIL_COLOURS[kind]).convertSRGBToLinear();
+          state[k * 3] = cell < 0 ? 0 : t.baseMoisture[cell] / 255;
+          writeSoilSlot(layers, k, soilSlotOf(kind, this.soilSlots), this.soilSlots.length);
+        }
         colours[k * 3] = colour.r;
         colours[k * 3 + 1] = colour.g;
         colours[k * 3 + 2] = colour.b;
-        state[k * 3] = cell < 0 ? 0 : t.baseMoisture[cell] / 255;
-        writeSoilSlot(layers, k, soilSlotOf(kind, this.soilSlots), this.soilSlots.length);
         if (mxCourse) {
           mxCourse[k * 4] = lateral;
           mxCourse[k * 4 + 1] = s;
-          mxCourse[k * 4 + 2] = kind === 'turf' || kind === 'asphalt' ? 0 : 1;
+          mxCourse[k * 4 + 2] = sample
+            ? 1 -
+              sample.weights[SOIL_KINDS.indexOf('turf')] -
+              sample.weights[SOIL_KINDS.indexOf('asphalt')]
+            : kind === 'turf' || kind === 'asphalt'
+              ? 0
+              : 1;
           mxCourse[k * 4 + 3] = clamp(p.curvature * 20, -1, 1);
         }
       }
@@ -187,6 +214,7 @@ export class TerrainView {
     const mesh = new T.Mesh(geometry, this.material);
     mesh.name = `Course terrain ${first}-${first + rows} m`;
     mesh.receiveShadow = true;
+    mesh.castShadow = this.motocross;
     this.group.add(mesh);
     return { mesh, first, rows, base, dirty: false };
   }

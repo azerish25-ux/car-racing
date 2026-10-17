@@ -1,3 +1,4 @@
+import { MENU_STARTUP_TIMEOUT_MS } from './menu-startup.ts';
 import { finishRaceEntry } from './race-entry.ts';
 import { expect, test } from '@playwright/test';
 import { build } from 'vite';
@@ -16,7 +17,7 @@ test('A22 normal startup loads one authored garage and retains it through practi
     if (message.type() === 'error') errors.push(message.text());
   });
   await page.goto('/');
-  await expect(page.locator('#menu')).toBeVisible({ timeout: 90000 });
+  await expect(page.locator('#menu')).toBeVisible({ timeout: MENU_STARTUP_TIMEOUT_MS });
   const read = () => page.evaluate(() => window.apexDiagnostics());
   const loaded = await read();
   expect(loaded.renderer?.environmentAssets.garage).toMatchObject({

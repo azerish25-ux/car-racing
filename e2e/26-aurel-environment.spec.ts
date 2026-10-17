@@ -1,3 +1,4 @@
+import { MENU_STARTUP_TIMEOUT_MS } from './menu-startup.ts';
 import { finishRaceEntry } from './race-entry.ts';
 import { expect, test } from '@playwright/test';
 
@@ -10,7 +11,7 @@ test('27H.4 normal startup constructs the upgraded districts and retained event 
     if (m.type() === 'error') errors.push(m.text());
   });
   await page.goto('/');
-  await expect(page.locator('#menu')).toBeVisible({ timeout: 90000 });
+  await expect(page.locator('#menu')).toBeVisible({ timeout: MENU_STARTUP_TIMEOUT_MS });
   const read = () => page.evaluate(() => window.apexDiagnostics());
   const loaded = await read();
   const environment = loaded.renderer?.environmentAssets;

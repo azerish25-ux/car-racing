@@ -50,17 +50,44 @@ test('27H.6 menu access: real interface keeps all actions reachable with mouse a
     expect(bounds).not.toBeNull();
     expect(bounds!.y).toBeGreaterThanOrEqual(header!.y + header!.height);
     expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(footer!.y);
-    const controls = page.locator('#menu select, #menu button');
-    // The circuit selector is the first control.
-    await page.locator('#circuit').focus();
-    for (let i = 0; i < (await controls.count()); i++) {
+    // Include the native scroll region and discipline navigation, and exclude
+    // the hidden MX controls. Traverse the complete real Tab order once.
+    const count = await page.evaluate(() => {
+      const controls = Array.from(
+        document.querySelectorAll<HTMLElement>(
+          '#menu button, #menu select, #menu input, #menu a[href], #menu [tabindex]',
+        ),
+      ).filter(
+        (element) =>
+          element.tabIndex >= 0 &&
+          !element.matches(':disabled') &&
+          element.getClientRects().length > 0 &&
+          getComputedStyle(element).visibility !== 'hidden',
+      );
+      controls.forEach((element, index) => {
+        element.dataset.menuKeyboardProbe = String(index);
+      });
+      return controls.length;
+    });
+    const controls = page.locator('#menu [data-menu-keyboard-probe]');
+    expect(count).toBeGreaterThan(0);
+    await controls.first().focus();
+    const visited = new Set<number>();
+    for (let i = 0; i < count; i++) {
       const active = page.locator('#menu :focus');
       await expect(active).toHaveCount(1);
+      const index = await active.getAttribute('data-menu-keyboard-probe');
+      expect(index).not.toBeNull();
+      expect(visited.has(Number(index))).toBe(false);
+      visited.add(Number(index));
       const rect = await active.boundingBox();
       expect(rect!.y).toBeGreaterThanOrEqual(bounds!.y - 1);
       expect(rect!.y + rect!.height).toBeLessThanOrEqual(bounds!.y + bounds!.height + 1);
       await page.keyboard.press('Tab');
     }
+    expect([...visited].sort((a, b) => a - b)).toEqual(
+      Array.from({ length: count }, (_, index) => index),
+    );
     // Native wheel input must reach the menu rather than the canvas underneath.
     if (height <= 600) {
       await page.locator('#mode').focus();

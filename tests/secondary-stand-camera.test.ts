@@ -2,14 +2,60 @@ import { expect, it, vi } from 'vitest';
 import * as T from 'three';
 import { RacingRenderer } from '../src/rendering/renderer.ts';
 import {
+  MotocrossChaseCamera,
+  type MotocrossCameraFrame,
+} from '../src/rendering/offroad/chase-camera.ts';
+import type { Track } from '../src/simulation/track.ts';
+import {
   selectSecondaryStandView,
   secondaryStandCameraEvidence,
   requireSecondaryStandChaseCamera,
 } from '../e2e/fixtures/secondary-stand-camera.ts';
 
+const flat: Pick<Track, 'at' | 'sample'> = {
+  at(s, out) {
+    Object.assign(out, { x: 0, y: 0, z: s, s, tx: 0, tz: 1, nx: 1, nz: 0, width: 5 });
+    return out;
+  },
+  sample(x, z, out) {
+    out.height = 0;
+    out.normal.set(0, 1, 0);
+    out.s = z;
+    out.lateral = x;
+    return out;
+  },
+};
+const landed: MotocrossCameraFrame = {
+  anchor: new T.Vector3(0, 0.86, 0),
+  heading: 0,
+  s: 0,
+  speed: 15,
+  cgHeight: 0.86,
+  lean: 0.2,
+  airborne: false,
+  airTime: 0,
+  landingSpeed: 5,
+  bottom: 0.2,
+  motion: 0.35,
+};
+const cameraPose = (camera: MotocrossChaseCamera) => ({
+  eye: camera.eye.toArray(),
+  gaze: camera.gaze.toArray(),
+  up: camera.up.toArray(),
+  fov: camera.fov,
+});
+function primeLanding(camera: MotocrossChaseCamera) {
+  camera.update(0, flat, { ...landed, airborne: true, airTime: 0.7, lean: 0.5 });
+  camera.update(1 / 60, flat, landed);
+  return cameraPose(camera);
+}
+
 function view() {
   const reset = vi.fn();
-  const motocrossReset = vi.fn();
+  // The production constructor owns this stateful controller in every mode.
+  // Keep it real so a view cut must actually clear flight/landing history.
+  const motocrossCamera = new MotocrossChaseCamera();
+  const motocrossReset = vi.spyOn(motocrossCamera, 'reset');
   const target = {
     mode: 'cockpit',
     initialized: true,
@@ -21,36 +67,47 @@ function view() {
     cameraClock: { reset },
     inertia: { reset },
     viewOrientation: { reset },
+    motocrossCamera,
     trackside: { reset },
-    motocrossCamera: { reset: motocrossReset },
     changeCamera: RacingRenderer.prototype.changeCamera,
   } as unknown as RacingRenderer;
-  return { target, reset, motocrossReset };
+  return { target, reset, motocrossCamera, motocrossReset };
 }
 it('switches a held cockpit to chase through the production camera transaction', () => {
-  const { target, reset, motocrossReset } = view();
+  const { target, reset, motocrossCamera, motocrossReset } = view();
+  const continuing = primeLanding(motocrossCamera);
+  const fresh = cameraPose(new MotocrossChaseCamera().update(0, flat, landed));
+  expect(continuing).not.toEqual(fresh);
   selectSecondaryStandView(target, 'chase');
   expect(target.mode).toBe('chase');
   expect((target as unknown as { initialized: boolean }).initialized).toBe(false);
   expect(target.lookX).toBe(0);
   expect(target.lookY).toBe(0);
   expect(reset).toHaveBeenCalledTimes(7);
-  expect(motocrossReset).toHaveBeenCalledTimes(1);
+  expect(motocrossReset).toHaveBeenCalledOnce();
+  expect(cameraPose(motocrossCamera.update(0, flat, landed))).toEqual(fresh);
 });
 it('does not reset camera continuation when consecutive samples keep the same view', () => {
-  const { target, reset, motocrossReset } = view();
+  const { target, reset, motocrossCamera, motocrossReset } = view();
+  const initial = primeLanding(motocrossCamera);
   selectSecondaryStandView(target, 'cockpit');
   expect(reset).not.toHaveBeenCalled();
   expect(motocrossReset).not.toHaveBeenCalled();
+  expect(cameraPose(motocrossCamera.update(0, flat, landed))).toEqual(initial);
   selectSecondaryStandView(target, 'chase');
   reset.mockClear();
   motocrossReset.mockClear();
+  const continuing = primeLanding(motocrossCamera);
   selectSecondaryStandView(target, 'chase');
   expect(reset).not.toHaveBeenCalled();
   expect(motocrossReset).not.toHaveBeenCalled();
+  expect(cameraPose(motocrossCamera.update(0, flat, landed))).toEqual(continuing);
   selectSecondaryStandView(target, 'cockpit');
   expect(reset).toHaveBeenCalledTimes(7);
-  expect(motocrossReset).toHaveBeenCalledTimes(1);
+  expect(motocrossReset).toHaveBeenCalledOnce();
+  expect(cameraPose(motocrossCamera.update(0, flat, landed))).toEqual(
+    cameraPose(new MotocrossChaseCamera().update(0, flat, landed)),
+  );
 });
 it('measures the actual translated/rotated car eye and visible body centre', () => {
   const car = new T.Group();

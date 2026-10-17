@@ -144,8 +144,24 @@ export async function captureMotocrossWorld(
     compiledMacroSampler =
       shader.fragmentShader.match(/vec3 apexMacro = apexScanMacro\(\s*(\w+),/)?.[1] ?? null;
   });
+  // Observe actual depth submissions while preserving Three's original
+  // per-color-pass statistics and every shipped quality setting.
+  const renderBufferDirect = renderer.renderBufferDirect.bind(renderer);
+  let shadowCalls = 0,
+    shadowTriangles = 0;
+  renderer.renderBufferDirect = (...args) => {
+    const calls = renderer.info.render.calls,
+      triangles = renderer.info.render.triangles;
+    renderBufferDirect(...args);
+    if (args[0] === key.shadow.camera) {
+      shadowCalls += renderer.info.render.calls - calls;
+      shadowTriangles += renderer.info.render.triangles - triangles;
+    }
+  };
   const capture = (label: string) => {
     scene.updateMatrixWorld(true);
+    shadowCalls = 0;
+    shadowTriangles = 0;
     renderer.render(scene, camera);
     const gl = renderer.getContext(),
       pixels = new Uint8Array(1280 * 800 * 4);
@@ -159,6 +175,9 @@ export async function captureMotocrossWorld(
       glError: gl.getError(),
       calls: renderer.info.render.calls,
       triangles: renderer.info.render.triangles,
+      shadowWork: { calls: shadowCalls, triangles: shadowTriangles },
+      totalCalls: renderer.info.render.calls + shadowCalls,
+      terrainCasters: world.terrain!.group.children.filter((child) => child.castShadow).length,
       bikes: shells.count,
       particles: world.roost.active,
       contactShadows: world.roost.contactShadows?.count ?? 0,
@@ -208,6 +227,11 @@ export async function captureMotocrossWorld(
     samples.push(capture('held-wet-soil'));
     world.showAt(frame[H.TIME]);
     samples.push(capture('rewound-soil'));
+    const casters = world.terrain!.group.children.filter((child) => child.castShadow);
+    for (const mesh of casters) mesh.castShadow = false;
+    samples.push(capture('same-scene-terrain-casters-off'));
+    for (const mesh of casters) mesh.castShadow = true;
+    samples.push(capture('restored-terrain-casters'));
     return samples;
   } finally {
     lightPoolUniforms.lightPoolStrength.value = strength;

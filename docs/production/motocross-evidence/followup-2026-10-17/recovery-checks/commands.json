@@ -1,0 +1,61 @@
+[
+  {
+    "command": [
+      "npm",
+      "run",
+      "lint"
+    ],
+    "exitCode": 0,
+    "wallSeconds": 17.01183708399958
+  },
+  {
+    "command": [
+      "npm",
+      "run",
+      "validate:content"
+    ],
+    "exitCode": 0,
+    "wallSeconds": 3.361385831000007
+  },
+  {
+    "command": [
+      "/workspace/scratch/ce74d2c3df38/Experiment-3/node_modules/.bin/vitest",
+      "run",
+      "tests/motocross-chain-drive.test.ts",
+      "tests/motocross-lever-contact.test.ts",
+      "tests/gp-chain-drive.test.ts",
+      "tests/gp-chain-integrity.test.ts",
+      "tests/motocross-cockpit-view.test.ts",
+      "tests/motocross-soil-transition.test.ts",
+      "tests/motocross-environment.test.ts",
+      "tests/motocross-terrain-shadow.test.ts",
+      "tests/ci-workflow.test.ts",
+      "tests/source-stability.test.ts",
+      "tests/secondary-stand-camera.test.ts",
+      "tests/motocross-camera.test.ts",
+      "tests/motocross-presentation.test.ts",
+      "tests/motocross-venue-integration.test.ts",
+      "tests/offroad.test.ts",
+      "tests/solvane-asset-loading.test.ts",
+      "tests/solvane-detail-kit.test.ts",
+      "tests/solvane-driving-detail.test.ts",
+      "tests/solvane-finial-mount.test.ts",
+      "tests/solvane-street-light-pools.test.ts",
+      "tests/festival-skill-chain.test.ts",
+      "--reporter=default",
+      "--reporter=json",
+      "--outputFile=/workspace/scratch/ce74d2c3df38/motocross-recovery-verification/checks-r1/unit-tests.json"
+    ],
+    "exitCode": 0,
+    "wallSeconds": 66.86134176699989
+  },
+  {
+    "command": [
+      "npm",
+      "run",
+      "build"
+    ],
+    "exitCode": 0,
+    "wallSeconds": 36.410260650000055
+  }
+]

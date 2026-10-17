@@ -1,16 +1,16 @@
 import * as T from 'three';
 import { describe, expect, it } from 'vitest';
-import { clamp } from '../src/core/math.ts';
 import { BuildQueue } from '../src/rendering/build-queue.ts';
 import { OffroadScene } from '../src/rendering/offroad/index.ts';
 import { MxCourseDressing } from '../src/rendering/offroad/mx-course-dressing.ts';
 import { MX_SOIL_COLOURS, MX_SOIL_DETAIL_HOOK } from '../src/rendering/offroad/mx-soil-detail.ts';
+import { sampleMxSoilTransition } from '../src/rendering/offroad/mx-soil-transition.ts';
 import { Roost, ROOST_CAPACITY } from '../src/rendering/offroad/roost.ts';
 import { Stadium } from '../src/rendering/offroad/stadium.ts';
 import { StartGate } from '../src/rendering/offroad/start-gate.ts';
 import { TerrainView, SOIL_COLOURS } from '../src/rendering/offroad/terrain-view.ts';
 import { studioHookKeys, type StudioShader } from '../src/rendering/studio/shader-hooks.ts';
-import { COURSE_CELL } from '../src/simulation/offroad/course.ts';
+import { SOIL_KINDS } from '../src/simulation/offroad/course.ts';
 import { TrackTerrainSurface } from '../src/simulation/offroad/course-terrain.ts';
 import { rigTrack } from '../src/simulation/offroad/jump-rig.ts';
 import {
@@ -133,13 +133,12 @@ describe('reference-informed MX environments', () => {
       const lateral = coordinates.getX(i),
         s = coordinates.getY(i);
       expect(position.getY(i)).toBeCloseTo(t.baseHeight(s, lateral), 4);
-      const cell = t.cellIndex(
-        clamp(lateral, t.lateralMin, t.lateralMin + t.columns * COURSE_CELL.lateral - 0.01),
-        s,
+      const sample = sampleMxSoilTransition(t, lateral, s);
+      const expected = SOIL_KINDS.reduce(
+        (sum, kind, index) => sum + new T.Color(MX_SOIL_COLOURS[kind]).r * sample.weights[index],
+        0,
       );
-      const kind = cell < 0 ? 'turf' : t.soilKind(cell),
-        expected = new T.Color(MX_SOIL_COLOURS[kind]);
-      expect(color.getX(i)).toBeCloseTo(expected.r, 6);
+      expect(color.getX(i)).toBeCloseTo(expected, 5);
       if (coordinates.getZ(i) > 0.5) soilSamples++;
     }
     expect(soilSamples).toBeGreaterThan(10);

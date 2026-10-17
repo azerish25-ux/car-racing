@@ -18,8 +18,8 @@ import { Rider, type RiderDetail } from '../rider.ts';
 import { installMudOn, type MudUniforms } from './mud.ts';
 import { forkLocalOffset } from '../bike-pit-service.ts';
 import { batchBikeRigidMeshes } from '../bike-rigid-batch.ts';
+import { MotocrossChainDrive } from './motocross-chain-drive.ts';
 import {
-  motocrossChain,
   motocrossGraphics,
   motocrossRotor,
   motocrossSidePanel,
@@ -67,6 +67,8 @@ export class DirtBikeModel {
   private readonly scratch = new T.Vector3();
   private readonly matrix = new T.Matrix4();
   private readonly plastics: T.MeshStandardMaterial[] = [];
+  private readonly chain?: MotocrossChainDrive;
+  private disposed = false;
   constructor(
     readonly definition: VehicleDefinition,
     readonly id: number,
@@ -287,13 +289,15 @@ export class DirtBikeModel {
           barZ + 0.07,
         );
         lever.rotation.y = side * 0.25;
+        // Join the ball to the actual outer blade endpoint after its yaw.
+        // An independent forward offset leaves a visible gap from the cockpit.
         add(
           this.steer,
           new T.SphereGeometry(0.006, 8, 6),
           this.m.aluminium,
-          side * 0.37,
+          side * (0.3 + Math.cos(0.25) * 0.07),
           barY - 0.01,
-          barZ + 0.085,
+          barZ + 0.07 - Math.sin(0.25) * 0.07,
         );
         add(
           this.steer,
@@ -847,7 +851,8 @@ export class DirtBikeModel {
     add(this.swingarm, new T.CylinderGeometry(0.018, 0.018, 0.26, 10), this.m.steel).rotation.z =
       Math.PI / 2;
     if (detail !== 'far') {
-      add(this.swingarm, motocrossChain(arm, detail), chainMaterial, 0.095);
+      this.chain = new MotocrossChainDrive(arm, detail, chainMaterial, this.mud);
+      this.swingarm.add(this.chain.root);
       add(
         this.swingarm,
         new RoundedBoxGeometry(0.018, 0.027, 0.26, 1, 0.007),
@@ -919,6 +924,7 @@ export class DirtBikeModel {
       dz = this.rearAxle.z - p.z;
     this.swingarm.rotation.x = Math.atan2(dy, -dz);
     this.swingarm.scale.z = Math.hypot(dy, dz) / this.armLength;
+    this.chain?.update(v.rearRotation, this.swingarm.scale.z);
     this.m.disc.emissiveIntensity = 0;
     this.mud.offroadMud.value = T.MathUtils.clamp(v.mud ?? 0, 0, 1);
     this.mud.offroadMudWet.value = T.MathUtils.clamp((v.mudWet ?? 0) * 1.6, 0, 1);
@@ -941,8 +947,12 @@ export class DirtBikeModel {
     }
   }
   dispose() {
+    if (this.disposed) return;
+    this.disposed = true;
+    this.rider.root.removeFromParent();
     this.rider.dispose();
     this.root.traverse((o) => {
+      if (o instanceof T.InstancedMesh) o.dispose();
       if (o instanceof T.Mesh) o.geometry.dispose();
     });
     for (const m of this.plastics) {

@@ -312,39 +312,3 @@ export function motocrossTread(radius: number, halfWidth: number, height: number
   for (const g of parts) g.dispose();
   return result;
 }
-
-/** Roller chain on the articulated swingarm, rather than two solid rods. */
-export function motocrossChain(length: number, detail: RiderDetail) {
-  const points: T.Vector3[] = [];
-  const rearR = 0.112,
-    frontR = 0.036;
-  for (let i = 0; i <= 20; i++) {
-    const a = (i / 20) * Math.PI;
-    points.push(new T.Vector3(0, rearR * Math.cos(a), -length - rearR * Math.sin(a)));
-  }
-  for (let i = 0; i <= 12; i++) {
-    const a = Math.PI + (i / 12) * Math.PI;
-    points.push(new T.Vector3(0, frontR * Math.cos(a), -frontR * Math.sin(a)));
-  }
-  const curve = new T.CatmullRomCurve3(points, true, 'centripetal');
-  const count = detail === 'high' ? 88 : 42,
-    parts: T.BufferGeometry[] = [],
-    yAxis = new T.Vector3(0, 1, 0);
-  for (let i = 0; i < count; i++) {
-    const point = curve.getPointAt(i / count),
-      direction = curve.getTangentAt(i / count);
-    const roller = new T.CylinderGeometry(0.0039, 0.0039, 0.014, 5);
-    roller.rotateZ(Math.PI / 2);
-    roller.translate(point.x, point.y, point.z);
-    parts.push(roller);
-    for (const side of [-1, 1]) {
-      const plate = new T.BoxGeometry(0.0035, 0.017, 0.008);
-      plate.applyQuaternion(new T.Quaternion().setFromUnitVectors(yAxis, direction));
-      plate.translate(side * 0.008, point.y, point.z);
-      parts.push(plate);
-    }
-  }
-  const result = mergeGeometries(parts, false)!;
-  for (const g of parts) g.dispose();
-  return result;
-}

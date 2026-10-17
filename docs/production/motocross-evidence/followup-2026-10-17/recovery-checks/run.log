@@ -1,0 +1,209 @@
+(node:5) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Native command: npm run lint
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> apex-formula-laboratory@0.1.0 lint
+> eslint src tests e2e scripts
+
+Native command: npm run validate:content
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> apex-formula-laboratory@0.1.0 validate:content
+> node --experimental-transform-types scripts/validate-content.ts
+
+(node:48) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Content valid
+Native command: /workspace/scratch/ce74d2c3df38/Experiment-3/node_modules/.bin/vitest run tests/motocross-chain-drive.test.ts tests/motocross-lever-contact.test.ts tests/gp-chain-drive.test.ts tests/gp-chain-integrity.test.ts tests/motocross-cockpit-view.test.ts tests/motocross-soil-transition.test.ts tests/motocross-environment.test.ts tests/motocross-terrain-shadow.test.ts tests/ci-workflow.test.ts tests/source-stability.test.ts tests/secondary-stand-camera.test.ts tests/motocross-camera.test.ts tests/motocross-presentation.test.ts tests/motocross-venue-integration.test.ts tests/offroad.test.ts tests/solvane-asset-loading.test.ts tests/solvane-detail-kit.test.ts tests/solvane-driving-detail.test.ts tests/solvane-finial-mount.test.ts tests/solvane-street-light-pools.test.ts tests/festival-skill-chain.test.ts --reporter=default --reporter=json --outputFile=/workspace/scratch/ce74d2c3df38/motocross-recovery-verification/checks-r1/unit-tests.json
+
+ RUN  v3.2.4 /workspace/scratch/ce74d2c3df38/Experiment-3
+
+ ✓ tests/offroad.test.ts (24 tests) 24163ms
+   ✓ WP37 dirt-bike jump ballistics and landing > rolls a gap jump at walking pace down into the gap and out past its end  354ms
+   ✓ WP38 deformable course terrain > is deterministic run to run and identical after a re-simulation  3822ms
+   ✓ WP42 off-road formats > holds the field at the gate, releases it together and flags a jump start  821ms
+   ✓ WP42 off-road formats > counts the joker only through all three checkpoints on the joker road  1434ms
+   ✓ WP42 off-road formats > penalises a missed joker at the flag, the last car to finish included  12128ms
+   ✓ WP42 off-road formats > starts a rally stage at intervals and stops the clock at the finish  2278ms
+   ✓ WP42 off-road formats > lets the first stage starter go on the green, with a countdown before it  657ms
+   ✓ WP41 terrain presentation > poses the render grid from worker keyframes and rewinds them for replays  572ms
+   ✓ off-road integration guards > loops a raw rider out on the ground at full throttle, never into a flight  478ms
+   ✓ off-road integration guards > judges a gate start once: no penalty for a tap the gate held back  387ms
+ ✓ tests/motocross-environment.test.ts (9 tests) 2533ms
+   ✓ reference-informed MX environments > keeps valley-ridge-mx race lines clear while batching surveyed course furniture  390ms
+   ✓ reference-informed MX environments > keeps render heights exact while adding MX-only grading and a single color decode  1250ms
+   ✓ reference-informed MX environments > uses prepared earth rather than the synthetic turf slot for the actual SX course macro  627ms
+ ✓ tests/solvane-detail-kit.test.ts (10 tests) 1204ms
+   ✓ Blender source to Festival runtime contract > ships all 12 immutable templates inside a verified, texture-free 2 MB budget  336ms
+ ✓ tests/festival-skill-chain.test.ts (11 tests) 1015ms
+   ✓ festival rolling gates and measurement > crosses a passive gate in the same moving car without teleporting or repairing it  688ms
+ ✓ tests/motocross-venue-integration.test.ts (4 tests) 10447ms
+   ✓ full motocross venue construction > valley-ridge-mx has low marked boundaries without road furniture across its dirt lanes  3940ms
+   ✓ full motocross venue construction > arena-nord-sx has low marked boundaries without road furniture across its dirt lanes  2664ms
+   ✓ full motocross venue construction > retains actual paved pit ribbons and both road lighting hardware systems on Aurel  3799ms
+ ✓ tests/motocross-camera.test.ts (8 tests) 187ms
+ ✓ tests/gp-chain-integrity.test.ts (10 tests) 2994ms
+   ✓ GP chain real instance cost and mechanical continuity > retains bounded culling volumes through every chain phase  2448ms
+ ✓ tests/motocross-cockpit-view.test.ts (3 tests) 676ms
+ ✓ tests/motocross-chain-drive.test.ts (15 tests) 636ms
+ ✓ tests/solvane-driving-detail.test.ts (26 tests) 18ms
+ ✓ tests/motocross-soil-transition.test.ts (7 tests) 2941ms
+   ✓ MX construction-time soil boundary integration > valley-ridge-mx uses the same area weights in color, scan layers and displayed base moisture  1618ms
+   ✓ MX construction-time soil boundary integration > arena-nord-sx uses the same area weights in color, scan layers and displayed base moisture  1213ms
+ ✓ tests/motocross-terrain-shadow.test.ts (9 tests) 2510ms
+   ✓ material-local MX terrain shadow correction > valley-ridge-mx casts the same deforming chunks without a second depth mesh  711ms
+   ✓ material-local MX terrain shadow correction > arena-nord-sx casts the same deforming chunks without a second depth mesh  655ms
+   ✓ material-local MX terrain shadow correction > kestrel-rx keeps its previous caster/material policy  609ms
+   ✓ material-local MX terrain shadow correction > pinewood-stage keeps its previous caster/material policy  528ms
+ ✓ tests/motocross-lever-contact.test.ts (4 tests) 602ms
+ ✓ tests/secondary-stand-camera.test.ts (4 tests) 8ms
+ ✓ tests/motocross-presentation.test.ts (4 tests) 63ms
+stderr | tests/source-stability.test.ts > rejects a build-time modification or addition to src/example.ts
+Command rewrote application inputs:
+src/example.ts
+
+stderr | tests/source-stability.test.ts > rejects a build-time modification or addition to src/new.ts
+Command rewrote application inputs:
+src/new.ts
+
+stderr | tests/source-stability.test.ts > rejects a build-time modification or addition to docs/guide.md
+Command rewrote application inputs:
+docs/guide.md
+
+stderr | tests/source-stability.test.ts > rejects a build-time modification or addition to package.json
+Command rewrote application inputs:
+package.json
+
+stderr | tests/source-stability.test.ts > rejects deleted input even when the child command fails
+Command rewrote application inputs:
+src/example.ts
+
+stderr | tests/source-stability.test.ts > propagates a failing command and fails closed for a missing executable
+spawnSync /tmp/source-stability-iOkVDD/nonexistent-executable ENOENT
+
+ ✓ tests/source-stability.test.ts (9 tests) 198ms
+ ✓ tests/gp-chain-drive.test.ts (4 tests) 46ms
+ ✓ tests/solvane-street-light-pools.test.ts (4 tests) 16ms
+ ✓ tests/ci-workflow.test.ts (4 tests) 4ms
+ ✓ tests/solvane-asset-loading.test.ts (2 tests) 43ms
+ ✓ tests/solvane-finial-mount.test.ts (1 test) 19ms
+
+ Test Files  21 passed (21)
+      Tests  172 passed (172)
+   Start at  23:56:15
+   Duration  66.54s (transform 3.06s, setup 0ms, collect 12.93s, tests 50.32s, environment 3ms, prepare 996ms)
+
+JSON report written to /workspace/scratch/ce74d2c3df38/motocross-recovery-verification/checks-r1/unit-tests.json
+Native command: npm run build
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> apex-formula-laboratory@0.1.0 prebuild
+> npm run generate:player-lods
+
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> apex-formula-laboratory@0.1.0 generate:player-lods
+> node --experimental-strip-types scripts/build-player-lods.mjs
+
+mesh 0: 32262 -> 8860 near triangles
+mesh 1: 50456 -> 29174 near triangles
+mesh 2: 241852 -> 131054 near triangles
+mesh 3: 44752 -> 10318 near triangles
+mesh 4: 2 -> 2 near triangles
+mesh 5: 7108 -> 2946 near triangles
+mesh 6: 504 -> 416 near triangles
+mesh 7: 752047 -> 406205 near triangles
+mesh 8: 51920 -> 47482 near triangles
+mesh 9: 21133 -> 21025 near triangles
+mesh 10: 38706 -> 37002 near triangles
+mesh 11: 51680 -> 39384 near triangles
+mesh 12: 51680 -> 39342 near triangles
+mesh 13: 51680 -> 39360 near triangles
+mesh 14: 51680 -> 39396 near triangles
+mesh 15: 108 -> 108 near triangles
+mesh 16: 108 -> 108 near triangles
+mesh 17: 7440 -> 3472 near triangles
+{
+  "version": 2,
+  "generator": "meshoptimizer@0.25.0 / exact livery surfaces, locked seams, opaque triangle cache order",
+  "sourceSHA256": "013a47f059bf34a0a28bd31ae8f407f07ed6e2b55755753aed9a942c895e132b",
+  "sha256": "2bcd661c78be3df21090c042c43ffd2fb828b9db42465d1fd4111fac8d48437d",
+  "compressedSHA256": "1553e32eef4a6f89d02fb8f44a45f000620ee8539466d41704654e5f5dd09b58",
+  "bytes": 13037000,
+  "compressedBytes": 4213368,
+  "primitives": 172,
+  "triangles": [
+    1455118,
+    855654,
+    814806,
+    797386
+  ],
+  "cacheModel": {
+    "name": "FIFO-16 vertex misses, not hardware timings",
+    "levels": [
+      {
+        "before": 992010,
+        "after": 622914
+      },
+      {
+        "before": 952099,
+        "after": 595999
+      },
+      {
+        "before": 933925,
+        "after": 583328
+      }
+    ]
+  },
+  "levels": [
+    {
+      "name": "efficient-close",
+      "ratio": 0.15,
+      "error": 0.002
+    },
+    {
+      "name": "medium",
+      "ratio": 0.075,
+      "error": 0.006
+    },
+    {
+      "name": "distant",
+      "ratio": 0.025,
+      "error": 0.012
+    }
+  ]
+}
+
+> apex-formula-laboratory@0.1.0 build
+> tsc --noEmit && vite build
+
+vite v7.1.7 building for production...
+transforming...
+✓ 662 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/BUILD_IDENTITY.json                                      0.12 kB │ gzip:     0.12 kB
+dist/index.html                                               0.96 kB │ gzip:     0.54 kB
+dist/assets/saira-vietnamese-wdth-normal-Dabr_kLY.woff2      26.80 kB
+dist/assets/saira-vietnamese-wdth-italic-52KPIsOu.woff2      29.93 kB
+dist/assets/saira-latin-ext-wdth-normal-3Ba4ICIc.woff2       67.19 kB
+dist/assets/saira-latin-ext-wdth-italic-CqU2kHDy.woff2       77.37 kB
+dist/assets/saira-latin-wdth-normal-X2eA-qfZ.woff2           98.91 kB
+dist/assets/saira-latin-wdth-italic-wJlFlYW8.woff2          116.24 kB
+dist/assets/a61-rival-far.glb-ClvD6mFa.gz                   161.38 kB
+dist/assets/apx01-driver.glb-CNKxI3ag.gz                    209.40 kB
+dist/assets/a61-rival-mid.glb-CAutdD2Z.gz                   397.76 kB
+dist/assets/apx01-shell.glb-B2AhAkfx.gz                   1,142.77 kB
+dist/assets/a61-rival-near.glb-DNe8_BZp.gz                1,219.90 kB
+dist/assets/free-roam-e2pdnuXO.css                           14.88 kB │ gzip:     3.96 kB
+dist/assets/index-DsWC2xfY.css                               74.66 kB │ gzip:    17.14 kB
+dist/assets/three-apO36rea.js                               617.62 kB │ gzip:   158.92 kB │ map: 2,889.65 kB
+dist/assets/free-roam-C0KCg8oE.js                           712.98 kB │ gzip:   239.10 kB │ map:   840.65 kB
+dist/assets/index-DpxLnBIx.js                            14,717.19 kB │ gzip: 4,393.04 kB │ map: 8,527.52 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 14.35s
