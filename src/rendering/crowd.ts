@@ -331,7 +331,8 @@ objectNormal = crowdTurn() * normalize(objectNormal);`,
   // its pitch approaches screen pixels; it cannot glitter over a distant
   // packed grandstand or turn skin into fabric. No new texture or draw call.
   float textilePixel = 1. - smoothstep(.0012, .0060, px);
-  if (textilePixel > .005 && sk < .01 && shoe < .01) {
+  float textileShoeMask = step(p.y, -.205) * step(p.x, -.2);
+  if (textilePixel > .005 && sk < .01 && textileShoeMask < .5) {
     float warp = sin(p.y * 920. + p.x * 23. + ph * .6);
     float weft = sin(p.z * 1050. - p.y * 13. + ph * .9);
     bump += .00024 * (warp * .6 + weft * .4) * textilePixel;

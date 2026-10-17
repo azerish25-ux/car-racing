@@ -17,6 +17,7 @@ describe('MotoGP crowd clothing finish', () => {
     };
     m.onBeforeCompile(shader as Parameters<T.Material['onBeforeCompile']>[0], {} as T.WebGLRenderer);
     expect(shader.fragmentShader).toContain('float textilePixel = 1. - smoothstep(.0012, .0060, px);');
+    expect(shader.fragmentShader).toContain('float textileShoeMask = step(p.y, -.205) * step(p.x, -.2);');
     expect(shader.fragmentShader).toContain('bump += .00024');
     expect(shader.fragmentShader).toContain('rough = clamp(rough + .022');
     m.dispose();
