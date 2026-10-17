@@ -216,6 +216,14 @@ export class VehicleBodies {
   constructor() {
     this.root.name = 'Vehicle bodies (procedural catalogue exteriors)';
   }
+  /** Festival-only imported aero replaces this component after normal damage
+   * posing. Circuit bodies and other parts remain entirely unchanged. */
+  hideRearWing(id: number) {
+    const body = this.bodies.get(id);
+    if (!body) return;
+    for (const lod of body.lods)
+      for (const node of lod.rear) if (node.name === 'Rear wing (detachable)') node.visible = false;
+  }
   private build(id: number, definition: VehicleDefinition, sheet: BodySheet) {
     const built = buildVehicleBody(id, definition, sheet);
     this.root.add(built.root);

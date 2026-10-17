@@ -1,4 +1,5 @@
 import * as T from 'three';
+import type { StreetLightSocket } from './street-light-pools.ts';
 import {
   installScannedDetail,
   installScannedMaps,
@@ -220,6 +221,7 @@ function installScannedVerge(material: T.MeshStandardMaterial) {
  */
 export class RoadMeshes {
   readonly root = new T.Group();
+  readonly lampSockets: StreetLightSocket[] = [];
   readonly materials: Record<Layer, T.Material>;
   readonly lampMaterial: T.MeshStandardMaterial;
   readonly reflectorMaterial = new T.MeshStandardMaterial({
@@ -449,6 +451,10 @@ export class RoadMeshes {
       lamps.forEach((m, i) => {
         poles.setMatrixAt(i, m);
         heads.setMatrixAt(i, m);
+        this.lampSockets.push({
+          position: new T.Vector3(1.25, 6.82, 0).applyMatrix4(m),
+          target: new T.Vector3(2.3, 0.08, 0).applyMatrix4(m),
+        });
       });
       poles.name = 'Town lamp posts';
       heads.name = 'Town lamp heads';

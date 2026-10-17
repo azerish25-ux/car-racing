@@ -1,0 +1,125 @@
+name: Solvane committed-source validation
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/solvane-validation.yml
+      - src/rendering/open-world/solvane-details.ts
+      - public/models/solvane/**
+      - authoring/solvane/build_detail_kit.py
+      - authoring/solvane/detail-kit.blend
+permissions:
+  contents: read
+concurrency:
+  group: solvane-committed-validation-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - run: npm ci --no-audit --no-fund
+      - name: Source-guarded focused contracts and production build
+        env:
+          HORIZON_GAMEPLAY_OUTPUT: ${{ runner.temp }}/solvane-driving.json
+        run: |
+          node --experimental-transform-types scripts/source-stability.ts -- npx vitest run tests/solvane-detail-kit.test.ts tests/solvane-driving-detail.test.ts tests/solvane-street-light-pools.test.ts tests/festival-skill-chain.test.ts tests/secondary-stand-camera.test.ts tests/solvane-finial-mount.test.ts tests/solvane-asset-loading.test.ts
+          node --experimental-transform-types scripts/source-stability.ts -- npm run lint
+          node --experimental-transform-types scripts/source-stability.ts -- npm run validate:content
+          node --experimental-transform-types scripts/source-stability.ts -- node --experimental-transform-types scripts/horizon-gameplay-validation.ts
+          node --experimental-transform-types scripts/source-stability.ts -- npm run build
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: solvane-committed-build-identity
+          path: |
+            dist/BUILD_IDENTITY.json
+            ${{ runner.temp }}/solvane-driving.json
+          if-no-files-found: error
+  native-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify the pinned authoring tool
+        run: |
+          curl --fail --location --retry 3 https://download.blender.org/release/Blender5.2/blender-5.2.2-linux-x64.tar.xz -o "$RUNNER_TEMP/blender.tar.xz"
+          echo "84098912789dc450e95697c4184fb8a90acbe5111c2ba4aede3fecb57806a168  $RUNNER_TEMP/blender.tar.xz" | sha256sum -c -
+          mkdir "$RUNNER_TEMP/blender"
+          tar -xJf "$RUNNER_TEMP/blender.tar.xz" -C "$RUNNER_TEMP/blender" --strip-components=1
+      - name: Reopen the committed native source; never rebuild it in place
+        run: |
+          "$RUNNER_TEMP/blender/blender" -b -t 2 --factory-startup --python-exit-code 1 --python authoring/solvane/build_detail_kit.py -- --source "$PWD/authoring/solvane/detail-kit.blend" --output-root "$RUNNER_TEMP/reexport"
+          cmp public/models/solvane/detail-kit.glb "$RUNNER_TEMP/reexport/public/models/solvane/detail-kit.glb"
+          git diff --exit-code
+  browser:
+    needs: [contracts, native-source]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        view: [day-drive, day-shopfront, night-rain-street, coastal-launch, low-drive, input-journey]
+    env:
+      APEX_BROWSER_BACKEND: mesa
+      LIBGL_ALWAYS_SOFTWARE: 'true'
+      GALLIUM_DRIVER: llvmpipe
+      HORIZON_REVIEW_URL: http://127.0.0.1:5173
+      HORIZON_REVIEW_OUTPUT: test-results/solvane-${{ matrix.view }}
+      HORIZON_REVIEW_IDENTITY: /tmp/solvane-identity.json
+      SOLVANE_REVIEW_VIEW: ${{ matrix.view }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - run: npm ci --no-audit --no-fund
+      - run: npm run generate:player-lods
+      - run: npx playwright install --with-deps chromium
+      - run: sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb
+      - name: Identify exact source and start the isolated fixture server
+        run: |
+          python3 - <<'PY'
+          import os,json,hashlib,subprocess
+          from pathlib import Path
+          files={}
+          for folder in ['src','public','e2e','scripts']:
+              for p in sorted(Path(folder).rglob('*')):
+                  if p.is_file() and p.name!='supplied-player-lods.bin.gz': files[p.as_posix()]=hashlib.sha256(p.read_bytes()).hexdigest()
+          identity={'commit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'workingTreeChanges':subprocess.check_output(['git','status','--porcelain'],text=True),'sourceAndAssetSHA256':files,'notHardwarePerformance':True}
+          Path(os.environ['HORIZON_REVIEW_IDENTITY']).write_text(json.dumps(identity,indent=2)+'\n')
+          PY
+          node scripts/solvane-review-server.mjs > "$RUNNER_TEMP/solvane-server.log" 2>&1 &
+          for i in $(seq 1 30); do curl -fsS "$HORIZON_REVIEW_URL/e2e/fixtures/horizon-session.html" >/dev/null && break; sleep 1; done
+          curl -fsS "$HORIZON_REVIEW_URL/e2e/fixtures/horizon-session.html" >/dev/null
+      - name: Actual medium/low compositions and loaded-asset assertions
+        if: matrix.view != 'input-journey'
+        env:
+          SOLVANE_CANDIDATE: '1'
+        run: xvfb-run -a -s '-screen 0 1920x1080x24' node --experimental-transform-types scripts/solvane-browser-review.mjs
+      - name: Real keyboard journey; explicitly assisted race completion
+        if: matrix.view == 'input-journey'
+        env:
+          HORIZON_REVIEW_QUALITY: low
+        run: xvfb-run -a -s '-screen 0 1920x1080x24' node --experimental-transform-types scripts/horizon-browser-review.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: solvane-committed-${{ matrix.view }}
+          path: |
+            test-results/solvane-${{ matrix.view }}/
+            /tmp/solvane-identity.json
+            ${{ runner.temp }}/solvane-server.log
+          retention-days: 14
+          if-no-files-found: error

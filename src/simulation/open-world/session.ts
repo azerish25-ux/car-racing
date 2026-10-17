@@ -33,6 +33,7 @@ import { trackPoint, type Track } from '../track.ts';
 import type { Vehicle } from '../vehicle.ts';
 import { vehicleIndex, VEHICLES } from '../vehicles.ts';
 import { AmbientTraffic } from './ambient-traffic.ts';
+import { NearMissDetector } from './near-miss.ts';
 import {
   DriftMeter,
   isRace,
@@ -233,6 +234,7 @@ export class OpenWorldSimulation {
   private readonly session: string;
   private runs = 0;
   private readonly obstacles: RouteObstacle[] = [];
+  private readonly nearMisses = new NearMissDetector();
   private readonly skillSample: FestivalSkillSample = {
     lateral: 0,
     forward: 0,
@@ -846,6 +848,13 @@ export class OpenWorldSimulation {
     sample.grounded = skillCar.up.y > 0.45 && skillCar.tires.some((t) => t.load > 20);
     sample.impact = skillCar.impact > 0.25;
     sample.assisted = this.autopilot || !!(this.run && isRace(this.run.event.spec.kind));
+    sample.nearMiss =
+      this.nearMisses.update(
+        skillCar,
+        this.traffic.cars,
+        dt,
+        sample.onRoad && sample.grounded && !sample.impact && !sample.assisted && !this.run,
+      ) > 0;
     this.skills.update(sample, dt);
     if (this.messageClock > 0) {
       this.messageClock -= dt;

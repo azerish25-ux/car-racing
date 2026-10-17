@@ -9,6 +9,7 @@ import {
 
 function view() {
   const reset = vi.fn();
+  const motocrossReset = vi.fn();
   const target = {
     mode: 'cockpit',
     initialized: true,
@@ -21,29 +22,35 @@ function view() {
     inertia: { reset },
     viewOrientation: { reset },
     trackside: { reset },
+    motocrossCamera: { reset: motocrossReset },
     changeCamera: RacingRenderer.prototype.changeCamera,
   } as unknown as RacingRenderer;
-  return { target, reset };
+  return { target, reset, motocrossReset };
 }
 it('switches a held cockpit to chase through the production camera transaction', () => {
-  const { target, reset } = view();
+  const { target, reset, motocrossReset } = view();
   selectSecondaryStandView(target, 'chase');
   expect(target.mode).toBe('chase');
   expect((target as unknown as { initialized: boolean }).initialized).toBe(false);
   expect(target.lookX).toBe(0);
   expect(target.lookY).toBe(0);
   expect(reset).toHaveBeenCalledTimes(7);
+  expect(motocrossReset).toHaveBeenCalledTimes(1);
 });
 it('does not reset camera continuation when consecutive samples keep the same view', () => {
-  const { target, reset } = view();
+  const { target, reset, motocrossReset } = view();
   selectSecondaryStandView(target, 'cockpit');
   expect(reset).not.toHaveBeenCalled();
+  expect(motocrossReset).not.toHaveBeenCalled();
   selectSecondaryStandView(target, 'chase');
   reset.mockClear();
+  motocrossReset.mockClear();
   selectSecondaryStandView(target, 'chase');
   expect(reset).not.toHaveBeenCalled();
+  expect(motocrossReset).not.toHaveBeenCalled();
   selectSecondaryStandView(target, 'cockpit');
   expect(reset).toHaveBeenCalledTimes(7);
+  expect(motocrossReset).toHaveBeenCalledTimes(1);
 });
 it('measures the actual translated/rotated car eye and visible body centre', () => {
   const car = new T.Group();

@@ -64,6 +64,10 @@ import {
   installSpecularIBLMaterial,
   setIblEnergy,
 } from '../studio/ibl-energy.ts';
+import { StreetLightPools } from './street-light-pools.ts';
+import { surfaceDampness } from '../weather-presentation.ts';
+import { SolvaneDetails } from './solvane-details.ts';
+import { clearCameraBoom } from './camera-clearance.ts';
 import { HorizonGuidance } from './horizon-guidance.ts';
 import { FestivalTrails } from './festival-trails.ts';
 import { HorizonDressing } from './horizon-dressing.ts';
@@ -98,8 +102,12 @@ export class FestivalRenderer {
   readonly camera = new T.PerspectiveCamera(60, 1, 0.3, 26000);
   readonly terrain: TerrainStreamer;
   readonly roads: RoadMeshes;
+  readonly streetLights: StreetLightPools;
   readonly buildings: Buildings;
   readonly dressing: HorizonDressing;
+  details: SolvaneDetails | null = null;
+  private detailLoading: Promise<boolean> | null = null;
+  private readonly cameraAnchor = new T.Vector3();
   readonly vegetation = new Vegetation();
   /** Photographic trees and shrubs, when loaded (see loadPhotoVegetation). */
   photoVegetation: VegetationLibrary | null = null;
@@ -164,7 +172,7 @@ export class FestivalRenderer {
     readonly canvas: HTMLCanvasElement,
     readonly world: OpenWorld,
     events: readonly FestivalEvent[],
-    structures: readonly Structure[],
+    readonly structures: readonly Structure[],
     tileWorker: Worker,
   ) {
     const scene = this.scene;
@@ -219,6 +227,8 @@ export class FestivalRenderer {
     this.sun.shadow.normalBias = 0.02;
     this.terrain = new TerrainStreamer(tileWorker, TERRAIN_BUDGETS.medium);
     this.roads = new RoadMeshes(world.network, world.field);
+    this.streetLights = new StreetLightPools(this.roads.lampSockets);
+    scene.add(this.streetLights.root);
     this.buildings = new Buildings(structures);
     this.dressing = new HorizonDressing(world, structures);
     this.water = new Water(world.field);
@@ -336,8 +346,32 @@ export class FestivalRenderer {
       return false;
     }
   }
+  loadAuthoredDetails(): Promise<boolean> {
+    if (this.details) return Promise.resolve(true);
+    if (this.detailLoading) return this.detailLoading;
+    this.detailLoading = SolvaneDetails.load(this.world, this.structures, () => this.disposed)
+      .then((kit) => {
+        this.details = kit;
+        this.scene.add(kit.root);
+        this.reflection.probeExclusions.push(kit.aero);
+        this.guidance.useFlagTemplate(kit.flagTemplate(this.preset === 'low'));
+        if (kit.stats.boats === this.dressing.stats.boats) this.dressing.useAuthoredBoats();
+        return true;
+      })
+      .catch((error: unknown) => {
+        if (!this.disposed) console.warn('Festival authored detail fallback:', error);
+        return false;
+      })
+      .finally(() => {
+        this.detailLoading = null;
+      });
+    return this.detailLoading;
+  }
   setQuality(preset: QualityPreset, options: GraphicsOptions = graphicsPreset(preset)) {
+    const flagTierChanged = (preset === 'low') !== (this.preset === 'low');
     this.preset = preset;
+    if (this.details && flagTierChanged)
+      this.guidance.useFlagTemplate(this.details.flagTemplate(preset === 'low'));
     this.graphics = this.ultra.deviceGraphics(validateGraphics(options, preset));
     const g = this.graphics,
       tier = detailTier(preset);
@@ -497,9 +531,12 @@ export class FestivalRenderer {
         )
         .applyQuaternion(this.basis)
         .add(this.target);
+      this.cameraAnchor.copy(this.target);
+      this.cameraAnchor.y += 0.9;
       // Never below the ground (hills behind the car).
       const ground = this.groundHeight(this.desired.x, this.desired.z, this.target.y) + 0.8;
       if (this.desired.y < ground) this.desired.y = ground;
+      clearCameraBoom(this.cameraAnchor, this.desired, this.structures, this.desired);
       this.temp.set(0, 0, 1).applyQuaternion(this.basis);
       this.gaze.copy(this.target).addScaledVector(this.temp, rig.lookAhead);
       this.gaze.y += rig.lift;
@@ -521,6 +558,17 @@ export class FestivalRenderer {
           this.camera.position.addScaledVector(this.velocity, h);
         }
       }
+    }
+    if (!this.photo && this.mode !== 'hood') {
+      if (
+        clearCameraBoom(
+          this.cameraAnchor,
+          this.camera.position,
+          this.structures,
+          this.camera.position,
+        )
+      )
+        this.velocity.set(0, 0, 0);
     }
     this.initialized = true;
     this.camera.up.set(0, 1, 0);
@@ -545,6 +593,7 @@ export class FestivalRenderer {
       this.target,
       speed,
       this.heightAt,
+      surfaceDampness(presented[H.RAIN], presented[H.WATER]),
     );
     if (this.photo) this.guidance.root.visible = false;
     if (discontinuity) {
@@ -559,14 +608,23 @@ export class FestivalRenderer {
     this.roads.setNight(night);
     this.buildings.setNight(night);
     this.dressing.update(time, night, this.camera, this.preset);
+    this.details?.update(
+      time,
+      night,
+      this.camera,
+      this.preset,
+      surfaceDampness(presented[H.RAIN], presented[H.WATER]),
+    );
+    this.streetLights.update(this.camera, night, this.preset, dt);
+    if (this.details?.poseAero(presented, subject ?? null, dt, this.camera))
+      this.cars.bodies.hideRearWing(0);
     // --- Lighting -----------------------------------------------------------
     const mode = this.lighting,
       daylight = circuitLightState(presented[H.CLOUD], presented[H.RAIN], mode);
     if (mode === 'night') {
-      // The region's emissive street lamps do not supply the circuit's real
-      // floodlight pools. Keep a modest diffuse night floor so the player's
-      // unlit rear and roadside architecture retain shape. Raising exposure
-      // instead only clipped the nearby headlights and luminous windows.
+      // Local town fixtures now illuminate the road. Keep a modest diffuse
+      // floor for rural sections outside those bounded pools so the unlit
+      // rear and roadside architecture retain shape without clipping lamps.
       daylight.sun = 0.28 * (1 - daylight.cover * 0.35);
       daylight.fill = 1.0 + daylight.cover * 0.15;
       daylight.environment = 0.2 + daylight.cover * 0.04;
@@ -710,8 +768,11 @@ export class FestivalRenderer {
     scannedGround.detach(this.renderer);
     this.terrain.dispose();
     this.roads.dispose();
+    this.streetLights.dispose();
     this.buildings.dispose();
     this.dressing.dispose();
+    this.details?.dispose();
+    this.details = null;
     this.vegetation.dispose();
     this.photoVegetation?.dispose();
     this.photoVegetation = null;

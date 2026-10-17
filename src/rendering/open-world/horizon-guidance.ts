@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { brakingEnvelope } from './braking-envelope.ts';
 import { clamp } from '../../core/math.ts';
 import type { FestivalEvent } from '../../simulation/open-world/festival-events.ts';
 import { pathPoint } from '../../simulation/open-world/route-path.ts';
@@ -30,6 +31,38 @@ export class HorizonGuidance {
   private gateKey = '';
   private readonly poles: T.Group[] = [];
   readonly capacity = 28;
+  private readonly curvature = new Float64Array(64);
+  private readonly advisedSpeed = new Float64Array(64);
+  private readonly flagCloths: T.MeshStandardMaterial[] = [];
+  private readonly retired = new Set<T.BufferGeometry | T.Material>();
+  /** Take private copies: guidance and the asset library have independent lifetimes. */
+  useFlagTemplate(template: T.Object3D) {
+    // A quality switch must recolour the replacement on the same checkpoint.
+    this.gateKey = '';
+    this.flagCloths.length = 0;
+    for (const pole of this.poles) {
+      pole.traverse((node) => {
+        if (!(node instanceof T.Mesh)) return;
+        this.retired.add(node.geometry);
+        for (const m of Array.isArray(node.material) ? node.material : [node.material])
+          this.retired.add(m);
+      });
+      pole.clear();
+      const flag = template.clone(true);
+      flag.traverse((node) => {
+        if (!(node instanceof T.Mesh)) return;
+        node.geometry = node.geometry.clone();
+        node.material = Array.isArray(node.material)
+          ? node.material.map((m) => m.clone())
+          : node.material.clone();
+        for (const m of Array.isArray(node.material) ? node.material : [node.material])
+          if (m instanceof T.MeshStandardMaterial && m.name === 'fabric') this.flagCloths.push(m);
+      });
+      pole.add(flag);
+    }
+    for (const resource of this.retired) resource.dispose();
+    this.retired.clear();
+  }
   constructor() {
     this.root.name = 'Festival route guidance';
     const arrow = new T.BufferGeometry();
@@ -97,6 +130,7 @@ export class HorizonGuidance {
     subject: T.Vector3,
     speed: number,
     height: (x: number, z: number, y?: number) => number,
+    wetness = 0,
   ) {
     this.root.visible = !!event;
     if (!event) {
@@ -111,6 +145,14 @@ export class HorizonGuidance {
       this.gateKey = '';
     } else this.station = path.locate(subject.x, subject.z, this.station, 150);
     const spacing = clamp(5 + Math.abs(speed) * 0.08, 5, 11);
+    let samples = 0;
+    for (let i = 0; i < this.curvature.length; i++) {
+      const distance = this.station + 7 + i * spacing;
+      if (!path.closed && distance > path.finishDistance) break;
+      path.at(distance, this.point);
+      this.curvature[samples++] = this.point.curvature;
+    }
+    brakingEnvelope(this.curvature, samples, spacing, wetness, this.advisedSpeed);
     let count = 0;
     for (let i = 0; i < this.capacity; i++) {
       const distance = this.station + 7 + i * spacing;
@@ -139,10 +181,8 @@ export class HorizonGuidance {
       this.matrix.scale.set(size, 1, size * 1.7);
       this.matrix.updateMatrix();
       this.arrows.setMatrixAt(count, this.matrix.matrix);
-      // A visual braking cue, derived from lateral acceleration; it is not
-      // a claim to a measured optimum speed for every vehicle or surface.
-      const bend = Math.abs(p.curvature) * speed * speed;
-      this.colour.setHex(bend > 9 ? 0xf28a51 : bend > 5 ? 0xf0d071 : 0x76e4d0);
+      const ratio = Math.abs(speed) / Math.max(1, this.advisedSpeed[i]);
+      this.colour.setHex(ratio > 1.12 ? 0xf28a51 : ratio > 0.91 ? 0xf0d071 : 0x76e4d0);
       this.arrows.setColorAt(count++, this.colour);
     }
     this.arrows.count = count;
@@ -155,6 +195,7 @@ export class HorizonGuidance {
       const d = path.locate(gate.x, gate.z, path.length / 2, path.length);
       path.at(d, this.point);
       this.flagMaterial.color.setHex(EVENT_COLOURS[event.spec.kind]);
+      for (const material of this.flagCloths) material.color.setHex(EVENT_COLOURS[event.spec.kind]);
       for (let i = 0; i < this.poles.length; i++) {
         const side = i === 0 ? -1 : 1,
           p = this.point;

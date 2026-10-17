@@ -3,22 +3,24 @@
  * Still frames pause GPU submissions after boot; simulation and real input
  * continue normally. This is functional evidence, not a frame-rate benchmark. */
 import assert from 'node:assert/strict';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { chromium } from 'playwright';
+import { browserBackend, requireBrowserBackend } from './browser-backend.ts';
 
 const baseURL = process.env.HORIZON_REVIEW_URL ?? 'http://127.0.0.1:5173';
 const output = resolve(process.env.HORIZON_REVIEW_OUTPUT ?? 'test-results/horizon-review');
 const quality = process.env.HORIZON_REVIEW_QUALITY ?? 'low';
 await mkdir(output, { recursive: true });
+const sourceIdentityPath = process.env.HORIZON_REVIEW_IDENTITY;
+const reviewSourceIdentity = sourceIdentityPath
+  ? JSON.parse(await readFile(sourceIdentityPath, 'utf8'))
+  : null;
+const backend = browserBackend(process.env.APEX_BROWSER_BACKEND);
 const browser = await chromium.launch({
-  headless: true,
-  args: [
-    '--no-sandbox',
-    '--use-gl=angle',
-    '--use-angle=swiftshader',
-    '--enable-unsafe-swiftshader',
-  ],
+  executablePath: process.env.HORIZON_REVIEW_EXECUTABLE || undefined,
+  headless: backend.headless,
+  args: ['--no-sandbox', ...backend.args],
 });
 const page = await browser.newPage({ viewport: { width: 960, height: 540 } });
 page.setDefaultTimeout(300000);
@@ -79,6 +81,7 @@ try {
       ? gl.getParameter(extension.UNMASKED_RENDERER_WEBGL)
       : gl.getParameter(gl.RENDERER);
   });
+  requireBrowserBackend(backend.name, renderer);
   pass('real session boot and natural harbour discovery', {
     discoveries: initial.status.discovered,
     renderer,
@@ -150,7 +153,7 @@ try {
   });
 
   phase = 'garage round trip';
-  for (const vehicle of ['apx01', 'rh3', 'tc1']) {
+  for (const vehicle of ['apx01', 'eh3', 'rh3', 'tc1']) {
     await page.keyboard.press('Escape');
     await page.locator(`[data-fest="vehicle"][data-value="${vehicle}"]`).click();
     await page.waitForFunction(
@@ -243,6 +246,8 @@ try {
         version: 1,
         completed: phase === 'complete',
         sourceIdentity,
+        reviewSourceIdentity,
+        browserVersion: browser.version(),
         renderer,
         quality,
         viewport: { width: 960, height: 540 },

@@ -259,6 +259,11 @@ export class HorizonDressing {
   };
   private readonly atlas = signAtlas();
   private readonly materials: Record<BatchKind, T.MeshStandardMaterial>;
+  private batchScope = '';
+  private authoredBoats = false;
+  useAuthoredBoats() {
+    this.authoredBoats = true;
+  }
   private readonly chunks = new Map<string, StaticChunk>();
   private readonly primitives = {
     box: new T.BoxGeometry(1, 1, 1),
@@ -335,7 +340,9 @@ export class HorizonDressing {
     };
     this.shopfronts();
     this.harbourStrings();
+    this.batchScope = 'legacy-boats ';
     this.coastalBoats();
+    this.batchScope = '';
     this.buildMeadow();
     this.makeLanterns();
     for (const [key, chunk] of this.chunks) {
@@ -343,6 +350,7 @@ export class HorizonDressing {
       const mesh = new T.Mesh(g, this.materials[chunk.kind]);
       mesh.name = `Solvane ${key}`;
       mesh.userData.horizonDetailKind = chunk.kind;
+      mesh.userData.legacyBoat = key.startsWith('legacy-boats ');
       mesh.castShadow = chunk.kind !== 'sign' && chunk.kind !== 'bulb';
       mesh.receiveShadow = chunk.kind !== 'bulb';
       mesh.matrixAutoUpdate = false;
@@ -357,7 +365,7 @@ export class HorizonDressing {
   }
 
   private batch(kind: BatchKind, x: number, z: number) {
-    const key = `${kind} ${Math.floor(x / CHUNK)},${Math.floor(z / CHUNK)}`;
+    const key = `${this.batchScope}${kind} ${Math.floor(x / CHUNK)},${Math.floor(z / CHUNK)}`;
     let chunk = this.chunks.get(key);
     if (!chunk) {
       chunk = { kind, batch: new GeometryBatch() };
@@ -923,7 +931,9 @@ if (diffuseColor.a < 0.01) discard;`,
       const sphere = mesh.geometry.boundingSphere!;
       const reach =
         mesh.userData.horizonDetailKind === 'sign' ? detailDistance * 1.18 : detailDistance;
-      mesh.visible = this.eye.distanceTo(sphere.center) - sphere.radius < reach;
+      mesh.visible =
+        !(this.authoredBoats && mesh.userData.legacyBoat) &&
+        this.eye.distanceTo(sphere.center) - sphere.radius < reach;
     }
     const distance =
       preset === 'low' ? 0 : preset === 'medium' ? 75 : preset === 'high' ? 115 : 150;

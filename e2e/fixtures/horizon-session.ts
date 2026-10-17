@@ -12,6 +12,7 @@ import type { FestivalRenderer } from '../../src/rendering/open-world/festival-r
 import type { WeatherPreset } from '../../src/simulation/config.ts';
 import type { LightingMode } from '../../src/rendering/daylight.ts';
 import { SOLVANE } from '../../src/simulation/open-world/region-data.ts';
+import type { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { F, carBase } from '../../src/simulation/protocol.ts';
 
 const params = new URLSearchParams(location.search);
@@ -66,12 +67,34 @@ const state = () => {
           z: internal.current[carBase(0) + F.Z],
         }
       : null,
+    details:
+      (internal?.renderer as unknown as { details?: { stats: unknown } })?.details?.stats ?? null,
+    lampSockets:
+      (internal?.renderer as unknown as { streetLights?: { activeSockets: number[] } })
+        ?.streetLights?.activeSockets ?? [],
+    aero: internal?.renderer?.scene.getObjectByName('EH-3 articulated rear aero')?.visible ?? false,
     frame: internal?.current ? Array.from(internal.current) : null,
   };
 };
 Object.assign(window, {
   horizonReview: {
     state,
+    // Fixed-camera inspection only, excluded from the shipped application.
+    // Pauses through the real session; never changes a car, worker, physics
+    // sample, material, mesh or quality level. Gameplay evidence uses input.
+    inspect: (position: [number, number, number], target: [number, number, number]) => {
+      if (!session) throw new Error('Session is not loaded');
+      if (!session.isPaused) session.action('pause');
+      const renderer = (session as unknown as { renderer: FestivalRenderer }).renderer;
+      renderer.setPhoto(true);
+      const orbit = (renderer as unknown as { orbit: OrbitControls }).orbit;
+      orbit.enableDamping = false;
+      orbit.maxDistance = 20000;
+      orbit.maxPolarAngle = Math.PI;
+      orbit.target.fromArray(target);
+      renderer.camera.position.fromArray(position);
+      orbit.update();
+    },
     command: (command: Parameters<FestivalSession['command']>[0]) => session?.command(command),
     // Stop submitting GPU frames only for a still capture. This does not alter
     // simulation state, renderer quality, assets, or the production code path.

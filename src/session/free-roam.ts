@@ -178,6 +178,8 @@ export class FestivalSession {
     renderer.lighting = host.lighting;
     host.loading('Loading photographed trees…');
     await renderer.loadPhotoVegetation();
+    host.loading('Loading authored coastal details…');
+    await renderer.loadAuthoredDetails();
     for (const id of this.save.discovered) renderer.discovered.add(id);
     // Ambient traffic (instanced) and motorcycles (the bike presentation)
     // share the festival scene; both are posed before each draw.

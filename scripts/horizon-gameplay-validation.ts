@@ -4,12 +4,15 @@
  * node --experimental-transform-types scripts/horizon-gameplay-validation.ts
  */
 import { createHash } from 'node:crypto';
+import { dirname } from 'node:path';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import type { FestivalResult } from '../src/simulation/open-world/festival-result.ts';
 import { RouteDriver } from '../src/simulation/open-world/route-driver.ts';
 import { OpenWorldSimulation } from '../src/simulation/open-world/session.ts';
 
-const output = 'docs/production/horizon-gameplay-validation.json';
+// A separate output preserves earlier immutable evidence when this harness is reused.
+const output =
+  process.env.HORIZON_GAMEPLAY_OUTPUT ?? 'docs/production/horizon-gameplay-validation.json';
 const command = 'node --experimental-transform-types scripts/horizon-gameplay-validation.ts';
 const dt = 1 / 120;
 const settings = {
@@ -147,6 +150,7 @@ const sourceFiles = [
   'src/simulation/open-world/region-data.ts',
   'src/simulation/open-world/route-driver.ts',
   'src/simulation/open-world/skill-chain.ts',
+  'src/simulation/open-world/near-miss.ts',
   'src/simulation/vehicle.ts',
   'src/simulation/vehicles.ts',
 ];
@@ -207,7 +211,7 @@ const report = {
     Object.values(route.checks).every((value) => value === null || value),
   ),
 };
-mkdirSync('docs/production', { recursive: true });
+mkdirSync(dirname(output), { recursive: true });
 writeFileSync(output, JSON.stringify(report, null, 2) + '\n');
 console.log(
   JSON.stringify(

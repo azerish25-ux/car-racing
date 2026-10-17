@@ -26,6 +26,8 @@ export interface FestivalSkillSample {
   grounded: boolean;
   impact: boolean;
   assisted: boolean;
+  /** Only set by the post-contact, front-to-back traffic pass detector. */
+  nearMiss?: boolean;
 }
 
 export const FESTIVAL_SKILLS = Object.freeze({
@@ -59,6 +61,13 @@ export class FestivalSkillChain {
   private sessionTotal = 0;
   private bestChain = 0;
   private sequence = 0;
+  private slideSide = 0;
+  private sideDwell = 0;
+  private priorSide = 0;
+  private transitionWindow = 0;
+  private transitionCooldown = 0;
+  private bonusFeedback = 0;
+  private bonusLabel = '';
 
   /** A reset, new machine or manual event start must not bank a teleport. */
   reset(reason = 'CHAIN LOST') {
@@ -79,6 +88,10 @@ export class FestivalSkillChain {
     this.offRoad = 0;
     this.cleanTime = 0;
     this.driftTime = 0;
+    this.slideSide = this.priorSide = 0;
+    this.sideDwell = this.transitionWindow = this.transitionCooldown = 0;
+    this.bonusFeedback = 0;
+    this.bonusLabel = '';
   }
 
   private multiplier() {
@@ -109,6 +122,9 @@ export class FestivalSkillChain {
     // accepting a huge/invalid delta would otherwise award a whole chain.
     if (!Number.isFinite(dt) || dt <= 0 || dt > 0.25) return;
     this.cooldown = Math.max(0, this.cooldown - dt);
+    this.transitionCooldown = Math.max(0, this.transitionCooldown - dt);
+    this.transitionWindow = Math.max(0, this.transitionWindow - dt);
+    this.bonusFeedback = Math.max(0, this.bonusFeedback - dt);
     this.feedback = Math.max(0, this.feedback - dt);
     if (this.feedback === 0 && (this.phase === 'banked' || this.phase === 'lost')) {
       this.phase = 'idle';
@@ -146,6 +162,38 @@ export class FestivalSkillChain {
     const clean = valid && speed >= FESTIVAL_SKILLS.cleanSpeed && angle < 0.11;
     this.cleanTime = clean ? this.cleanTime + dt : 0;
     this.driftTime = drifting ? this.driftTime + dt : 0;
+    let bonus = 0;
+    if (drifting) {
+      const side = Math.sign(sample.lateral);
+      if (side !== this.slideSide) {
+        this.slideSide = side;
+        this.sideDwell = 0;
+      }
+      this.sideDwell += dt;
+      // Both sides must be sustained physical slides, not steering flips.
+      if (this.sideDwell >= 0.65) {
+        if (
+          this.priorSide !== 0 &&
+          this.priorSide !== side &&
+          this.transitionWindow > 0 &&
+          this.transitionCooldown === 0
+        ) {
+          bonus = 180;
+          this.bonusLabel = 'DRIFT TRANSITION';
+          this.transitionCooldown = 1.5;
+        }
+        this.priorSide = side;
+        this.transitionWindow = 1.2;
+      }
+    } else {
+      this.slideSide = 0;
+      this.sideDwell = 0;
+    }
+    if (valid && sample.nearMiss === true && speed >= 14) {
+      bonus += 150;
+      this.bonusLabel = 'CLEAN PASS';
+    }
+    if (bonus > 0) this.bonusFeedback = 1.1;
     let rate = 0;
     if (drifting) {
       rate = 180 * clamp((angle - 0.15) / 0.6, 0.2, 1) * clamp(speed / 26, 0.35, 1.35);
@@ -155,12 +203,13 @@ export class FestivalSkillChain {
       rate = 45 + Math.min(60, (speed - FESTIVAL_SKILLS.cleanSpeed) * 2);
       this.label = speed > 45 ? 'HIGH SPEED' : 'CLEAN LINE';
     }
-    if (rate > 0) {
+    if (this.bonusFeedback > 0) this.label = this.bonusLabel;
+    if (rate > 0 || bonus > 0) {
       this.phase = 'active';
       this.feedback = 0;
       this.calm = 0;
       this.scoringTime += dt;
-      this.points = Math.min(FESTIVAL_SKILLS.maxChainPoints, this.points + rate * dt);
+      this.points = Math.min(FESTIVAL_SKILLS.maxChainPoints, this.points + rate * dt + bonus);
     } else if (this.points > 0) {
       this.calm += dt;
       // Land and recover the road before banking a chain. Airborne motion
