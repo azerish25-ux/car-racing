@@ -406,6 +406,8 @@ export class BikeMaterials {
         roughness: 0.4,
         clearcoat: 0.72,
         clearcoatRoughness: 0.18,
+        ...bikeSurfaceMaps('paint'),
+        normalScale: new T.Vector2(0.065, 0.065),
         name: 'Bike fairing paint (clear coat)',
       }),
     );
@@ -416,6 +418,8 @@ export class BikeMaterials {
         roughness: 0.36,
         clearcoat: 1,
         clearcoatRoughness: 0.06,
+        ...bikeSurfaceMaps('paint'),
+        normalScale: new T.Vector2(0.065, 0.065),
         name: 'Bike secondary paint',
       }),
     );
@@ -426,6 +430,8 @@ export class BikeMaterials {
         roughness: 0.38,
         clearcoat: 1,
         clearcoatRoughness: 0.06,
+        ...bikeSurfaceMaps('paint'),
+        normalScale: new T.Vector2(0.065, 0.065),
       }),
     );
     this.carbon = add(carbonMaterial('lacquered'));
