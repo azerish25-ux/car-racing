@@ -327,6 +327,16 @@ objectNormal = crowdTurn() * normalize(objectNormal);`,
   if (vCrowdTags.y > 5.5) { c = mix(vec3(.9,.89,.86), vec3(.7,.08,.06), step(abs(p.y - .26), .018)); rough = .45; bump = 0.; crowdSkinLight = 0.; }
   else if (vCrowdTags.y > 1.5 && vCrowdTags.y < 2.5) { c = vec3(.02,.02,.025); rough = .22; bump = 0.; crowdSkinLight = 0.; }
   else if (vCrowdTags.y > .5 && vCrowdTags.y < 1.5) { c = top*.7; rough = .72; bump = 0.; crowdSkinLight = 0.; }
+  // Original close-range cotton weave. The warp/weft microrelief fades as
+  // its pitch approaches screen pixels; it cannot glitter over a distant
+  // packed grandstand or turn skin into fabric. No new texture or draw call.
+  float textilePixel = 1. - smoothstep(.0012, .0060, px);
+  if (textilePixel > .005 && sk < .01 && shoe < .01) {
+    float warp = sin(p.y * 920. + p.x * 23. + ph * .6);
+    float weft = sin(p.z * 1050. - p.y * 13. + ph * .9);
+    bump += .00024 * (warp * .6 + weft * .4) * textilePixel;
+    rough = clamp(rough + .022 * warp * weft * textilePixel, .42, 1.);
+  }
   crowdRough = rough;
   crowdBump = bump;
   // Faces keep only a little of the baked occlusion (no dark eye sockets).

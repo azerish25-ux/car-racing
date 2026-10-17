@@ -16,3 +16,7 @@ This is an incremental fidelity milestone, **not** a claim that all 100 scenes w
 ## Remaining quality gates
 
 Check CI/build, Chromium/Firefox browser render and GPU draw/triangle budgets on low/mid/high presets. Reassess brake sizing on a replay with wheel rotation and fork travel. Broader photorealism requires professionally authored rider meshes and motion capture, calibrated reflectance/normal maps, photogrammetry for circuit assets and spectator improvements with LOD checks.
+
+## R4b: light and spectator surface calibration
+
+GP-R1 and GP-R2 carbon rotors now stop showing exaggerated bright-orange emissive light at ordinary race temperatures. A smooth temperature response begins above 620 C, saturating at a restrained 0.58 scale at 1080 C; the hue shifts to deep red. Non-GP vehicle material behavior remains unchanged. The crowd's existing sculpted near LOD now includes a fine anisotropic textile relief and roughness variation, mathematically filtered out at long-distance pixel footprints to avoid shimmering; no spectator mesh or draw-call growth. These are visual-only functions, not additional forces or state. See `tests/gp-disc-glow.test.ts` and `tests/gp-crowd-textile.test.ts`.

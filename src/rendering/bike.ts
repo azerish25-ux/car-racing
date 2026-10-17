@@ -4,6 +4,7 @@ import { batchBikeRigidMeshes } from './bike-rigid-batch.ts';
 import { addGPIdentity } from './bike-livery.ts';
 import { gpBodywork, gpUpperCowl } from './gp-bodywork.ts';
 import { gpRadialBrakeCaliper } from './gp-radial-caliper.ts';
+import { gpDiscGlow } from './gp-disc-glow.ts';
 import { gpCoolingLouvers } from './gp-cooling-louvers.ts';
 import { GPChainDrive } from './gp-chain-drive.ts';
 import { bikeSurfaceMaps } from './bike-surface-detail.ts';
@@ -1755,7 +1756,15 @@ export class BikeModel {
       dz = this.rearAxle.z - p.z;
     this.swingarm.rotation.x = Math.atan2(dy, -dz);
     this.swingarm.scale.z = Math.hypot(dy, dz) / this.armLength;
-    this.m.disc.emissiveIntensity = T.MathUtils.clamp((v.discTemp - 450) / 350, 0, 1) * 1.6;
+    if (this.definition.id === 'gpr1' || this.definition.id === 'gpr2') {
+      // Carbon-carbon rotors dark at moderate temperatures; only extreme heat
+      // emits a restrained red glow instead of a neon-orange disc.
+      this.m.disc.emissive.setHex(0xb9210a);
+      this.m.disc.emissiveIntensity = gpDiscGlow(v.discTemp);
+    } else {
+      this.m.disc.emissive.setHex(0xff4a10);
+      this.m.disc.emissiveIntensity = T.MathUtils.clamp((v.discTemp - 450) / 350, 0, 1) * 1.6;
+    }
     this.m.lamp.emissiveIntensity = v.brake > 0.05 || v.rearBrake > 0.05 ? 3 : 0.2;
     for (const ring of this.rings)
       (ring.material as T.MeshStandardMaterial).color.setHex(v.compoundColour);
