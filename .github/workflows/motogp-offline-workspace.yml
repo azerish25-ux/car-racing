@@ -1,4 +1,4 @@
-# Refresh exact main, including concurrent MX and Festival work, for MotoGP R5.
+# Refresh exact main for the Horizon 100-reference Blender pass; preserve concurrent MotoGP and MX work.
 name: MotoGP offline workspace
 on:
   workflow_dispatch:
