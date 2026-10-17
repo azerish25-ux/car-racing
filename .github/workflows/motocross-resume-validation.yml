@@ -99,7 +99,7 @@ jobs:
           git('add','--',...Object.keys(base));
           if(git('diff','--cached','--name-only').split('\n').length!==Object.keys(base).length)throw Error('Candidate path-set mismatch');
           save('base-inputs.json',base);
-          fs.writeFileSync(`${out}/integrated.patch`,execFileSync('git',['diff','--cached','--binary','--full-index']));
+          execFileSync('git',['diff','--cached','--binary','--full-index',`--output=${out}/integrated.patch`]);
           console.log('Preserved current main; merged road and MX rider paths; hydrated',Object.keys(base).length,'candidate files.');
           JS
       - name: Install unchanged locked tools
