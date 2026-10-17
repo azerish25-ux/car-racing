@@ -1,0 +1,154 @@
+name: Solvane R2 candidate validation
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/solvane-r2-validation.yml
+      - .github/solvane-r2-candidate.cjs
+      - .github/solvane-r2-transfer/**
+permissions:
+  contents: read
+concurrency:
+  group: solvane-r2-candidate
+  cancel-in-progress: false
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      R2_OUT: ${{ runner.temp }}/solvane-r2
+      HORIZON_GAMEPLAY_OUTPUT: ${{ runner.temp }}/solvane-r2/driving.json
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - run: npm ci --no-audit --no-fund
+      - name: Authenticate all source bytes and preserve concurrent changes
+        run: node .github/solvane-r2-candidate.cjs apply
+      - name: Verify the exact authoring tool
+        run: |
+          curl --fail --location --retry 3 https://download.blender.org/release/Blender5.2/blender-5.2.2-linux-x64.tar.xz -o "$RUNNER_TEMP/blender.tar.xz"
+          echo "84098912789dc450e95697c4184fb8a90acbe5111c2ba4aede3fecb57806a168  $RUNNER_TEMP/blender.tar.xz" | sha256sum -c -
+          mkdir "$RUNNER_TEMP/blender"
+          tar -xJf "$RUNNER_TEMP/blender.tar.xz" -C "$RUNNER_TEMP/blender" --strip-components=1
+      - name: Generate original native geometry and independently reopen the saved source
+        run: |
+          "$RUNNER_TEMP/blender/blender" -b -t 2 --factory-startup --python-exit-code 1 --python authoring/solvane/build_street_kit.py -- --output-root "$PWD" --render > "$R2_OUT/native-generation.log" 2>&1
+          "$RUNNER_TEMP/blender/blender" -b -t 2 --factory-startup --python-exit-code 1 --python authoring/solvane/build_street_kit.py -- --source "$PWD/authoring/solvane/street-kit.blend" --output-root "$RUNNER_TEMP/street-reexport" > "$R2_OUT/native-reopen.log" 2>&1
+          for f in street-kit.glb street-kit.bin street-kit.manifest.json; do cmp "public/models/solvane/$f" "$RUNNER_TEMP/street-reexport/public/models/solvane/$f"; done
+          node .github/solvane-r2-candidate.cjs pack
+      - name: Focused contracts, lint, content, actual driving and production build
+        run: |
+          set -euo pipefail
+          node --experimental-transform-types scripts/source-stability.ts -- npx vitest run tests/solvane-street-kit-r2.test.ts tests/solvane-contact-shadows-r2.test.ts tests/solvane-pace-coach-r2.test.ts tests/solvane-detail-kit.test.ts tests/solvane-driving-detail.test.ts tests/solvane-street-light-pools.test.ts tests/solvane-finial-mount.test.ts tests/solvane-asset-loading.test.ts tests/festival-ground-height.test.ts tests/festival-effects-integration.test.ts tests/festival-skill-chain.test.ts tests/festival-car-switch.test.ts tests/festival-presentation.test.ts --reporter=json --outputFile="$R2_OUT/focused-tests.json" 2>&1 | tee "$R2_OUT/contracts.log"
+          node --experimental-transform-types scripts/source-stability.ts -- npm run lint 2>&1 | tee "$R2_OUT/lint.log"
+          node --experimental-transform-types scripts/source-stability.ts -- npm run validate:content 2>&1 | tee "$R2_OUT/content.log"
+          node --experimental-transform-types scripts/source-stability.ts -- node --experimental-transform-types scripts/horizon-gameplay-validation.ts 2>&1 | tee "$R2_OUT/driving.log"
+          node --experimental-transform-types scripts/source-stability.ts -- npm run build 2>&1 | tee "$R2_OUT/build.log"
+          cp dist/BUILD_IDENTITY.json "$R2_OUT/BUILD_IDENTITY.json"
+          printf '{"contracts":true,"lint":true,"content":true,"scriptedDriving":true,"productionBuild":true,"nativeReopen":true}\n' > "$R2_OUT/prepare-result.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: solvane-r2-prepared
+          path: |
+            ${{ runner.temp }}/solvane-r2/
+            evidence/native-street/
+          retention-days: 14
+          if-no-files-found: error
+  browser:
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        view: [low-drive, street-construction, night-rain, pace, input-journey]
+    env:
+      APEX_BROWSER_BACKEND: mesa
+      LIBGL_ALWAYS_SOFTWARE: 'true'
+      GALLIUM_DRIVER: llvmpipe
+      R2_OUT: ${{ runner.temp }}/solvane-r2-browser
+      SOLVANE_R2_VIEW: ${{ matrix.view }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - run: npm ci --no-audit --no-fund
+      - run: npm run generate:player-lods
+      - run: npx playwright install --with-deps chromium
+      - run: sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb
+      - uses: actions/download-artifact@v4
+        with:
+          name: solvane-r2-prepared
+          path: ${{ runner.temp }}/prepared
+      - name: Locate the authenticated prepared file archive
+        run: |
+          archive=$(find "$RUNNER_TEMP/prepared" -type f -name candidate-files.tar.gz)
+          test -n "$archive"
+          test "$(printf '%s\n' "$archive" | wc -l)" -eq 1
+          echo "R2_ARCHIVE=$archive" >> "$GITHUB_ENV"
+          mkdir -p "$R2_OUT"
+          cp "$(dirname "$archive")/candidate-manifest.json" "$R2_OUT/"
+          R2_ARCHIVE="$archive" node - <<'JS'
+          const fs=require('fs'),crypto=require('crypto');
+          const m=JSON.parse(fs.readFileSync(process.env.R2_OUT+'/candidate-manifest.json'));
+          if(m.archiveSHA256!==crypto.createHash('sha256').update(fs.readFileSync(process.env.R2_ARCHIVE)).digest('hex'))throw Error('Artifact digest mismatch');
+          JS
+      - name: Matched unmodified-runtime baseline compositions
+        if: matrix.view != 'pace' && matrix.view != 'input-journey'
+        env:
+          HORIZON_REVIEW_URL: http://127.0.0.1:5173
+          HORIZON_REVIEW_OUTPUT: ${{ runner.temp }}/solvane-r2-browser/before
+          HORIZON_REVIEW_IDENTITY: ${{ runner.temp }}/solvane-r2-browser/before-identity.json
+          R2_IDENTITY_NAME: before-identity.json
+          SOLVANE_R2_CANDIDATE: '0'
+        run: |
+          set -euo pipefail
+          tar -xzf "$R2_ARCHIVE" scripts/solvane-r2-browser-review.mjs
+          node .github/solvane-r2-candidate.cjs identity
+          node scripts/solvane-review-server.mjs > "$R2_OUT/before-server.log" 2>&1 & server=$!
+          trap 'kill "$server" 2>/dev/null || true' EXIT
+          for i in $(seq 1 60); do curl -fsS "$HORIZON_REVIEW_URL/e2e/fixtures/horizon-session.html" >/dev/null && break; sleep 1; done
+          curl -fsS "$HORIZON_REVIEW_URL/e2e/fixtures/horizon-session.html" >/dev/null
+          xvfb-run -a -s '-screen 0 1920x1080x24' node --experimental-transform-types scripts/solvane-r2-browser-review.mjs
+      - name: Install only the prepared candidate files and record their exact identity
+        run: |
+          tar -xzf "$R2_ARCHIVE"
+          node - <<'JS'
+          const fs=require('fs'),crypto=require('crypto');
+          const m=JSON.parse(fs.readFileSync(process.env.R2_OUT+'/candidate-manifest.json'));
+          for(const f of m.files)if(crypto.createHash('sha256').update(fs.readFileSync(f.path)).digest('hex')!==f.sha256)throw Error('Candidate mismatch: '+f.path);
+          JS
+          R2_IDENTITY_NAME=after-identity.json node .github/solvane-r2-candidate.cjs identity
+      - name: Actual candidate compositions and input lifecycle checks
+        env:
+          HORIZON_REVIEW_URL: http://127.0.0.1:5174
+          HORIZON_REVIEW_PORT: '5174'
+          HORIZON_REVIEW_OUTPUT: ${{ runner.temp }}/solvane-r2-browser/after
+          HORIZON_REVIEW_IDENTITY: ${{ runner.temp }}/solvane-r2-browser/after-identity.json
+          SOLVANE_R2_CANDIDATE: '1'
+          HORIZON_REVIEW_QUALITY: low
+        run: |
+          set -euo pipefail
+          node scripts/solvane-review-server.mjs > "$R2_OUT/after-server.log" 2>&1 & server=$!
+          trap 'kill "$server" 2>/dev/null || true' EXIT
+          for i in $(seq 1 60); do curl -fsS "$HORIZON_REVIEW_URL/e2e/fixtures/horizon-session.html" >/dev/null && break; sleep 1; done
+          curl -fsS "$HORIZON_REVIEW_URL/e2e/fixtures/horizon-session.html" >/dev/null
+          script=scripts/solvane-r2-browser-review.mjs
+          if [ "$SOLVANE_R2_VIEW" = input-journey ]; then script=scripts/horizon-browser-review.mjs; fi
+          xvfb-run -a -s '-screen 0 1920x1080x24' node --experimental-transform-types "$script"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: solvane-r2-${{ matrix.view }}
+          path: ${{ runner.temp }}/solvane-r2-browser/
+          retention-days: 14
+          if-no-files-found: error
