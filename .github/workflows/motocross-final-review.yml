@@ -9,7 +9,7 @@ permissions:
   actions: read
 concurrency:
   group: motocross-final-review
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   prepare:
     runs-on: ubuntu-24.04
@@ -76,6 +76,29 @@ jobs:
           git('apply','--check','--index',`${out}/uv-correction.patch`);
           git('apply','--index',`${out}/uv-correction.patch`);
           fs.writeFileSync(`${out}/base-inputs.json`,JSON.stringify(base,null,2)+'\n');
+          JS
+      - name: Correct production linear metadata and add shipped-texture fidelity regression
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'JS'
+          import * as fs from 'node:fs';
+          import {createHash} from 'node:crypto';
+          import {gunzipSync} from 'node:zlib';
+          import {execFileSync} from 'node:child_process';
+          const sha='187075963f158d93e2e520cf60b98a2fca44ed6f';
+          const r=await fetch(`https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}/git/blobs/${sha}`,{headers:{Authorization:`Bearer ${process.env.GH_TOKEN}`,Accept:'application/vnd.github+json'}});
+          if(!r.ok)throw Error(`Linear metadata patch HTTP ${r.status}`);
+          const b=Buffer.from((await r.json()).content,'base64');
+          if(createHash('sha1').update(`blob ${b.length}\0`).update(b).digest('hex')!==sha)throw Error('Linear metadata patch blob integrity');
+          const patch=gunzipSync(b);
+          if(patch.length!==10624||createHash('sha256').update(patch).digest('hex')!=='88f86af183da81296ae94cf2ed8fa694ed54ff4139438af17101ea772063b172')throw Error('Linear metadata patch integrity');
+          const out=`${process.env.RUNNER_TEMP}/mx-final/linear-metadata.patch`;
+          fs.writeFileSync(out,patch);
+          execFileSync('git',['apply','--check','--index',out]);
+          execFileSync('git',['apply','--index',out]);
           JS
       - name: Install locked tools and checksum-pinned Blender
         shell: bash
@@ -151,14 +174,14 @@ jobs:
           compression-level: 0
           retention-days: 7
           if-no-files-found: error
-  browser:
+  qa:
     needs: prepare
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
-        suite: [models-world, journey]
+        suite: [models-world, journey, units, scenarios]
     env:
       APEX_BROWSER_BACKEND: mesa
       LIBGL_ALWAYS_SOFTWARE: 'true'
@@ -176,6 +199,7 @@ jobs:
           name: motocross-final-candidate
           path: ${{ runner.temp }}/mx-final
       - uses: actions/download-artifact@v4
+        if: matrix.suite == 'models-world' || matrix.suite == 'journey'
         with:
           name: motocross-final-web
           path: ${{ runner.temp }}/mx-final-web
@@ -194,20 +218,31 @@ jobs:
           for f in m['files']: assert hashlib.sha256(pathlib.Path(f['path']).read_bytes()).hexdigest()==f['sha256'],f['path']
           subprocess.run(['git','add','--',*[f['path'] for f in m['files']]],check=True)
           PY
-          tar -xzf "$RUNNER_TEMP/mx-final-web/dist.tar.gz"
           npm ci --no-audit --no-fund
-          npx playwright install --with-deps chromium
-          sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb
-      - name: Original full-quality browser and gameplay assertions
+      - name: Install original browser and full-quality web build
+        if: matrix.suite == 'models-world' || matrix.suite == 'journey'
         shell: bash
         run: |
           set -euo pipefail
-          if [ '${{ matrix.suite }}' = journey ]; then
-            specs=(e2e/45-motocross-gameplay.spec.ts)
-          else
-            specs=(e2e/42-motocross-bike.spec.ts e2e/43-motocross-world.spec.ts e2e/44-motocross-interface.spec.ts e2e/46-motocross-normal-residency.spec.ts)
-          fi
-          if xvfb-run -a -s '-screen 0 1920x1080x24' npx playwright test "${specs[@]}" --config playwright.motocross.config.ts 2>&1 | tee "$RUNNER_TEMP/mx-qa/browser.log"; then echo 0 > "$RUNNER_TEMP/mx-qa/exit.txt"; else code=$?; echo "$code" > "$RUNNER_TEMP/mx-qa/exit.txt"; exit "$code"; fi
+          tar -xzf "$RUNNER_TEMP/mx-final-web/dist.tar.gz"
+          npx playwright install --with-deps chromium
+          sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb
+      - name: Original full-quality browser, complete unit suite and gameplay assertions
+        shell: bash
+        run: |
+          set -euo pipefail
+          suite='${{ matrix.suite }}'
+          case "$suite" in
+            models-world) command=(xvfb-run -a -s '-screen 0 1920x1080x24' npx playwright test e2e/42-motocross-bike.spec.ts e2e/43-motocross-world.spec.ts e2e/44-motocross-interface.spec.ts e2e/46-motocross-normal-residency.spec.ts --config playwright.motocross.config.ts);;
+            journey) command=(xvfb-run -a -s '-screen 0 1920x1080x24' npx playwright test e2e/45-motocross-gameplay.spec.ts --config playwright.motocross.config.ts);;
+            units) command=(node --experimental-transform-types scripts/source-stability.ts -- npm test);;
+            scenarios) command=(npm run test:offroad)
+              cp docs/offroad-calibration.json "$RUNNER_TEMP/mx-qa/before-calibration.json"
+              cp docs/offroad-races.json "$RUNNER_TEMP/mx-qa/before-races.json"
+              trap 'cp docs/offroad-calibration.json "$RUNNER_TEMP/mx-qa/offroad-calibration.json"; cp docs/offroad-races.json "$RUNNER_TEMP/mx-qa/offroad-races.json"; cp "$RUNNER_TEMP/mx-qa/before-calibration.json" docs/offroad-calibration.json; cp "$RUNNER_TEMP/mx-qa/before-races.json" docs/offroad-races.json' EXIT;;
+            *) exit 2;;
+          esac
+          if "${command[@]}" 2>&1 | tee "$RUNNER_TEMP/mx-qa/$suite.log"; then echo 0 > "$RUNNER_TEMP/mx-qa/exit.txt"; else code=$?; echo "$code" > "$RUNNER_TEMP/mx-qa/exit.txt"; exit "$code"; fi
           git diff --exit-code
       - uses: actions/upload-artifact@v4
         if: always()
