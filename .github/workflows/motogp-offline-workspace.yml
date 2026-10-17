@@ -1,4 +1,4 @@
-# Refresh the reproducible workspace for the Forza reference/Blender pass.
+# Refresh exact main, including concurrent MX and Festival work, for MotoGP R5.
 name: MotoGP offline workspace
 on:
   workflow_dispatch:
