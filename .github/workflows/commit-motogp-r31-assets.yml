@@ -1,0 +1,100 @@
+name: Commit verified MotoGP R3.1 Blender assets
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/commit-motogp-r31-assets.yml']
+permissions:
+  contents: write
+concurrency:
+  group: motogp-r31-native-assets-main
+  cancel-in-progress: false
+jobs:
+  retain:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+          cache: npm
+      - name: Restore locked development dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Verify and unpack Blender 5.2.2 LTS
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 2 --max-time 240 'https://download.blender.org/release/Blender5.2/blender-5.2.2-linux-x64.tar.xz' -o "$RUNNER_TEMP/blender.tar.xz"
+          echo "84098912789dc450e95697c4184fb8a90acbe5111c2ba4aede3fecb57806a168  $RUNNER_TEMP/blender.tar.xz" | sha256sum --check
+          tar -xJf "$RUNNER_TEMP/blender.tar.xz" -C "$RUNNER_TEMP"
+      - name: Generate original authored assets and exact live runtime drivetrain
+        shell: bash
+        run: |
+          set -euo pipefail
+          b="$RUNNER_TEMP/blender-5.2.2-linux-x64/blender"
+          out="$RUNNER_TEMP/motogp-r31"
+          mkdir -p "$out" authoring/motogp
+          "$b" -b -t 4 --factory-startup --python-exit-code 1 --python tools/motogp/author_gp_cooling_louvers.py -- --out "$out"
+          "$b" -b -t 4 --factory-startup --python-exit-code 1 --python tools/motogp/author_gp_chain_drive.py -- --out "$out"
+          node --experimental-transform-types tools/motogp/export_gp_drivetrain_review.ts --out "$out"
+          "$b" -b -t 4 --factory-startup --python-exit-code 1 --python tools/motogp/review_gp_drivetrain.py -- --input "$out/gp-drivetrain-runtime.json" --out "$out"
+          python - "$out" <<'PY'
+          import hashlib, json, sys
+          from pathlib import Path
+          source=Path(sys.argv[1])
+          names=('gp-cooling-louvers.blend','gp-cooling-louvers.glb',
+                 'gp-chain-drive.blend','gp-chain-drive.glb',
+                 'gp-drivetrain-r31.blend','gp-drivetrain-r31.glb')
+          target=Path('authoring/motogp')
+          for name in names:
+              raw=(source/name).read_bytes()
+              assert len(raw)>1000,(name,len(raw))
+              assert raw.startswith(b'BLENDER' if name.endswith('.blend') else b'glTF'),name
+              (target/name).write_bytes(raw)
+          verification=json.loads((source/'blender-transfer-verification.json').read_text())
+          assert verification['expandedTriangles']==12960,verification
+          assert verification['links']==96,verification
+          assert verification['sharedMeshDatablocks']==3,verification
+          assert verification['stageIncludedInGLB'] is False,verification
+          (target/'gp-drivetrain-r31-verification.json').write_text(
+              json.dumps(verification,sort_keys=True,indent=2)+'\n')
+          sha=hashlib.sha256(Path('src/rendering/gp-chain-drive.ts').read_bytes()).hexdigest()
+          assert sha==verification['sourceSHA256'], (sha,verification['sourceSHA256'])
+          digest=(f'{hashlib.sha256((target/n).read_bytes()).hexdigest()}  {n}\n' for n in names)
+          (target/'R31-ASSETS-SHA256SUMS.txt').write_text(''.join(digest))
+          print('Validated native Blender binaries, runtime source digest and triangle count')
+          PY
+      - name: Fast-forward main and retain assets without altering game code
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -- authoring/motogp/R31-ASSETS-SHA256SUMS.txt authoring/motogp/gp-cooling-louvers.blend authoring/motogp/gp-cooling-louvers.glb authoring/motogp/gp-chain-drive.blend authoring/motogp/gp-chain-drive.glb authoring/motogp/gp-drivetrain-r31.blend authoring/motogp/gp-drivetrain-r31.glb authoring/motogp/gp-drivetrain-r31-verification.json
+          git diff --cached --check
+          if git diff --cached --quiet; then
+            echo "All original authored assets already retained."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "art(motogp): retain editable Blender sources and GLB exports for R3.1"
+          git fetch origin main
+          if ! git merge-base --is-ancestor origin/main HEAD; then
+            # Preserve any concurrent commits on main; never force-push.
+            git rebase origin/main
+          fi
+          git push origin HEAD:refs/heads/main
+          git rev-parse HEAD
+      - name: Keep generated assets available even if branch advances
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: motogp-r31-original-blender-assets
+          path: |
+            authoring/motogp/gp-*.blend
+            authoring/motogp/gp-*.glb
+            authoring/motogp/*R31*.txt
+          retention-days: 7
+          if-no-files-found: warn
