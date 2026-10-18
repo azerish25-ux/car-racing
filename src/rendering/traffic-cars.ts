@@ -232,14 +232,15 @@ export const TRAFFIC_SHAPES: Readonly<Record<TrafficBody, Shape>> = {
       [-1.15, 0.97, 0.98],
       [1.15, 0.97, 0.98],
       [1.2, 0.96, 1.18],
-      [2.8, 0.96, 1.18],
-      [2.95, 0.93, 1.05],
-      [3.0, 0.9, 0.85],
+      [2.8, 0.96, 1.2],
+      [2.96, 0.94, 1.16],
+      [3.0, 0.92, 1.08],
     ],
     crown: 0.03,
     cabin: {
-      base: [2.92, 1.2],
-      roof: [2.45, 1.22],
+      // Cab-over: a tall, lightly raked screen over a flat lamp panel.
+      base: [2.94, 1.2],
+      roof: [2.66, 1.22],
       roofY: 2.2,
       roofHalf: 0.9,
       pillars: [2.0],
@@ -248,7 +249,7 @@ export const TRAFFIC_SHAPES: Readonly<Record<TrafficBody, Shape>> = {
     bed: [-3.0, 1.12, 0.42],
     wheels: 'steel',
     kei: false,
-    head: 0.9,
+    head: 0.82,
     tail: 0.78,
     tallTail: false,
   },
@@ -256,7 +257,7 @@ export const TRAFFIC_SHAPES: Readonly<Record<TrafficBody, Shape>> = {
 export const TRAFFIC_BODIES = Object.keys(TRAFFIC_SHAPES) as TrafficBody[];
 
 /** Per-vertex material classes: [paint, roughness, metalness, clearcoat] and
- * an emitter class (0 none, 1 head, 2 tail, 3 indicator, 4 plate). */
+ * an emitter class (EMIT). */
 type Finish = readonly [number, number, number, number];
 const PAINT: Finish = [1, 0.45, 0.15, 1];
 const GLASS: Finish = [0, 0.04, 0.0, 1];
