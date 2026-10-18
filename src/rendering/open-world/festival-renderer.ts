@@ -61,6 +61,7 @@ import { Buildings } from './buildings.ts';
 import { FestivalCars } from './festival-cars.ts';
 import { EventMarkers } from './markers.ts';
 import { RoadMeshes } from './roads.ts';
+import { RoadFurniture } from './road-furniture.ts';
 import { TERRAIN_BUDGETS, TerrainStreamer } from './terrain.ts';
 import { Vegetation } from './vegetation.ts';
 import { photoVegetationEnabled, VegetationLibrary } from '../vegetation/library.ts';
@@ -118,6 +119,7 @@ export class FestivalRenderer {
   readonly camera = new T.PerspectiveCamera(60, 1, 0.3, 26000);
   readonly terrain: TerrainStreamer;
   readonly roads: RoadMeshes;
+  readonly furniture: RoadFurniture;
   readonly streetLights: StreetLightPools;
   readonly buildings: Buildings;
   readonly dressing: HorizonDressing;
@@ -185,6 +187,7 @@ export class FestivalRenderer {
   private readonly velocity = new T.Vector3();
   private readonly forward = new T.Vector3();
   private readonly temp = new T.Vector3();
+  private readonly temp2 = new T.Vector2();
   private readonly basis = new T.Quaternion();
   private readonly euler = new T.Euler();
   private initialized = false;
@@ -260,7 +263,11 @@ export class FestivalRenderer {
     this.sun.shadow.normalBias = 0.02;
     this.terrain = new TerrainStreamer(tileWorker, TERRAIN_BUDGETS.medium);
     this.roads = new RoadMeshes(world.network, world.field);
-    this.streetLights = new StreetLightPools(this.roads.lampSockets);
+    this.furniture = new RoadFurniture(world, structures, (x, z) => this.groundHeight(x, z));
+    this.streetLights = new StreetLightPools([
+      ...this.roads.lampSockets,
+      ...this.furniture.lampSockets,
+    ]);
     scene.add(this.streetLights.root);
     this.buildings = new Buildings(structures);
     this.dressing = new HorizonDressing(world, structures);
@@ -270,6 +277,7 @@ export class FestivalRenderer {
     scene.add(
       this.terrain.root,
       this.roads.root,
+      this.furniture.root,
       this.buildings.root,
       this.dressing.root,
       this.vegetation.root,
@@ -675,6 +683,12 @@ export class FestivalRenderer {
     this.effects.setSignalLights(presented, true);
     this.trails.update(presented, this.heightAt);
     this.roads.setNight(night);
+    this.furniture.setNight(night);
+    this.furniture.update(
+      this.camera,
+      this.preset,
+      this.renderer.getDrawingBufferSize(this.temp2).y,
+    );
     this.buildings.setNight(night);
     this.dressing.update(time, night, this.camera, this.preset);
     this.details?.update(
@@ -843,6 +857,7 @@ export class FestivalRenderer {
     scannedGround.detach(this.renderer);
     this.terrain.dispose();
     this.roads.dispose();
+    this.furniture.dispose();
     this.streetLights.dispose();
     this.buildings.dispose();
     this.dressing.dispose();
