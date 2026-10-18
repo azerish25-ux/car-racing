@@ -43,10 +43,15 @@ export const FESTIVAL_AIR = Object.freeze({
   haze: Object.freeze({ day: [1.6, 9], sunset: [5.5, 7], night: [2.5, 6] } as const),
   /** Breadth of the sun-side glow over distant ground (cosine power). */
   sunPower: 9,
-  /** Golden-hour haze away from the sun, relative colour (linear R:G:B):
-   * the pink-lilac of refs 044 (#c6b5c7) and 051 (#ceb6b2), at the
-   * luminance of the art-bible's golden-hour horizon. */
-  goldenHaze: Object.freeze([1, 0.78, 0.85] as const),
+  /** Clear-sky haze away from the sun, relative colour (linear R:G:B) at the
+   * luminance of the art-bible horizon: by day the horizon of ref 036
+   * (#a6c1e6, B/R 2.07; the art-bible's 2.7 left 20 km ridges more saturated
+   * than 036's #486694), at golden hour the pink-lilac of refs 044 (#c6b5c7)
+   * and 051 (#ceb6b2). Cloud returns to the deck's grey. */
+  hazeTint: Object.freeze({
+    day: Object.freeze([1, 1.4, 2.07] as const),
+    sunset: Object.freeze([1, 0.78, 0.85] as const),
+  }),
   /** Skyline (degrees) the festival imposes on photographed skies whose own
    * land would otherwise rise above the region's horizon. */
   skyline: Object.freeze({ 'kiara-5-noon': 9.8, 'waterbuck-trail': 11.5 } as Record<
@@ -319,13 +324,12 @@ gl_FragColor.rgb = fhAerial(gl_FragColor.rgb, vFhAirRay);
     // #d9a27c), the references' blue (036 #a6c1e6, 021 #b2c0da), rather than
     // the greyer physical horizon (B/R 1.4) or the clear-day photo's brown.
     const colour = aerialFogColor(cover, rain, mode);
-    if (mode === 'sunset') {
-      // Same luminance, the references' warm veil instead of blue-grey.
-      const [r, g, b] = FESTIVAL_AIR.goldenHaze,
-        scale = luminance(colour) / luminance([r, g, b]);
-      colour[0] = r * scale;
-      colour[1] = g * scale;
-      colour[2] = b * scale;
+    if (mode !== 'night') {
+      // Same luminance, the references' hue; fades out as the deck closes.
+      const tint = FESTIVAL_AIR.hazeTint[mode],
+        scale = luminance(colour) / luminance(tint),
+        clear = 1 - Math.min(1, Math.max(0, (cover - 0.3) / 0.6));
+      for (let k = 0; k < 3; k++) colour[k] += (tint[k] * scale - colour[k]) * clear;
     }
     this.inscatter.setRGB(colour[0], colour[1], colour[2], T.LinearSRGBColorSpace);
     u.fhApInscatter.value.set(colour[0], colour[1], colour[2]);

@@ -290,8 +290,10 @@ export class DistantRelief {
         peaks = ridged(x / 3300 + 11.3, z / 3300 - 4.1, s.peaks, 4),
         relief = 0.62 * crest + 0.38 * peaks,
         alpine = 0.4 + 0.6 * smoothstep(-0.15, 0.45, fbm(theta * 1.6, 2.7, s.alpine, 2)),
+        // Relief grows to ~1.4 km 9 km out, so each layer stands above the
+        // region's own 0.6-0.8 km edge hills seen from the Varda pass.
         amp =
-          (450 + 550 * smoothstep(0, 8000, e) + 1300 * smoothstep(9000, 28000, e) * alpine) *
+          (500 + 900 * smoothstep(0, 9000, e) + 1200 * smoothstep(9000, 28000, e) * alpine) *
           (0.2 + 0.8 * free),
         // The outermost band rises as a wall of ranges, so even from the
         // highest roads the skyline is mountains, never the mesh's rim.
