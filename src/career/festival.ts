@@ -48,6 +48,10 @@ export const FESTIVAL_RULES: Readonly<
   'road-race': { reputation: 6, completion: 6000 },
   circuit: { reputation: 12, completion: 7000 },
   showcase: { reputation: 20, completion: 5000 },
+  // A ten-second quarter mile pays less than a sprint; a head-to-head down
+  // the pass needs a little standing, as a road race does.
+  drag: { reputation: 0, completion: 2000 },
+  touge: { reputation: 6, completion: 4500 },
 });
 export const FESTIVAL_PAY = Object.freeze({
   /** Per rival beaten in a race. */
@@ -191,6 +195,7 @@ export function validateFestivalResult(value: unknown): FestivalResult | null {
   for (const k of ['time', 'trapKmh', 'averageKmh', 'driftScore'])
     if (!nullableFinite(r[k]) || (finite(r[k]) && (r[k] as number) < 0)) return null;
   if (!finite(r.offRouteSeconds) || (r.offRouteSeconds as number) < 0) return null;
+  if (r.rewinds !== undefined && (!Number.isInteger(r.rewinds) || (r.rewinds as number) < 0)) return null;
   return value as FestivalResult;
 }
 const scale = (amount: number, stakes: number) => Math.round((amount * stakes) / 10) * 10;
@@ -364,11 +369,16 @@ export function settleFestival(
         amount: scale(FESTIVAL_PAY.personalBest, stakes),
       });
   }
-  const clean = result.offRouteSeconds <= FESTIVAL_PAY.cleanSeconds;
+  // A rewound run is paid, but marked: rewinding undoes the moments the
+  // clean-route line measures, so it earns no clean-route bonus.
+  const rewound = (result.rewinds ?? 0) > 0;
+  const clean = !rewound && result.offRouteSeconds <= FESTIVAL_PAY.cleanSeconds;
   lines.push({
-    label: clean
-      ? 'On the route throughout'
-      : `Off the route for ${result.offRouteSeconds.toFixed(1)} s`,
+    label: rewound
+      ? `Rewound ${result.rewinds} time${result.rewinds === 1 ? '' : 's'}: no clean-route bonus`
+      : clean
+        ? 'On the route throughout'
+        : `Off the route for ${result.offRouteSeconds.toFixed(1)} s`,
     amount: clean ? scale(FESTIVAL_PAY.clean, stakes) : 0,
   });
   // Reputation already paid by this event (older records: their own stars

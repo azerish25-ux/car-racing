@@ -92,6 +92,7 @@ import { DistantLandscape } from './distant-landscape.ts';
 import { FestivalAtmosphere, festivalGrade, festivalSkyline } from './festival-atmosphere.ts';
 import { FestivalDriftSmoke } from './drift-smoke.ts';
 import { FestivalEventDressing } from './event-dressing.ts';
+import { DragStrip, type DragView } from './drag-strip.ts';
 import { FestivalSpeedBlur } from './speed-blur.ts';
 import { applySeason, SEASONS, type Season } from './season.ts';
 import { architecturePlan } from './japan-architecture.ts';
@@ -225,6 +226,9 @@ export class FestivalRenderer {
   readonly discovered = new Set<string>();
   activeEvent: string | null = null;
   gate: { x: number; z: number } | null = null;
+  /** The running drag's tree and lanes (status), sequencing the 3D lights. */
+  drag: DragView | null = null;
+  readonly dragStrip: DragStrip;
   stats = { drawCalls: 0, triangles: 0, renderMs: 0 };
   constructor(
     readonly renderer: T.WebGLRenderer,
@@ -313,6 +317,11 @@ export class FestivalRenderer {
     this.markers = new EventMarkers(events, (x, z) => this.groundHeight(x, z));
     this.reflection.probeExclusions.push(this.markers.root);
     this.eventDressing = new FestivalEventDressing(events, world, structures, this.heightAt);
+    this.dragStrip = new DragStrip(
+      events.find((e) => e.spec.kind === 'drag') ?? null,
+      this.eventDressing.startLamps,
+      this.heightAt,
+    );
     scene.add(
       this.terrain.root,
       this.roads.root,
@@ -331,6 +340,7 @@ export class FestivalRenderer {
       this.contacts.root,
       this.smoke.root,
       this.eventDressing.root,
+      this.dragStrip.root,
     );
     installSpecularIBL(scene);
     installSpecularIBLMaterial(this.terrain.material);
@@ -749,6 +759,7 @@ export class FestivalRenderer {
     this.distant.setQuality(this.preset);
     this.distant.update(this.lighting, SEASONS.indexOf(this.currentSeason));
     this.eventDressing.update(this.camera, night, this.preset, time);
+    this.dragStrip.update(time, this.drag, this.camera);
     this.signage.update(time, night, this.camera, this.preset);
     this.details?.update(
       time,
@@ -965,6 +976,7 @@ export class FestivalRenderer {
     this.trails.dispose();
     this.smoke.dispose();
     this.eventDressing.dispose();
+    this.dragStrip.dispose();
     this.speedBlur.dispose();
     this.guidance.dispose();
     this.orbit.dispose();

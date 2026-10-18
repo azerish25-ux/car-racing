@@ -589,7 +589,6 @@ export class FestivalEventDressing {
       emissiveMap: this.flags,
       emissiveIntensity: 0.05,
     }),
-    lamp: new T.MeshBasicMaterial({ vertexColors: true }),
     crowd: new T.MeshStandardMaterial({ vertexColors: true, roughness: 0.82 }),
   };
   private readonly crowdBody = crowdBodyGeometry();
@@ -599,6 +598,10 @@ export class FestivalEventDressing {
   private readonly flareSites: T.Vector3[] = [];
   /** Night flares at race and drift starts (ref 048). */
   readonly flares: FestivalStartFlares;
+  /** Lamp sockets of the hub's start-light trees (world matrix of each
+   * flattened lamp, its tree row 0-6 top down and the drag lane its column
+   * shows): drag-strip.ts lights them in sequence. */
+  readonly startLamps: { matrix: T.Matrix4; row: number; lane: number }[] = [];
   constructor(
     readonly events: readonly FestivalEvent[],
     readonly world: OpenWorld,
@@ -845,12 +848,10 @@ export class FestivalEventDressing {
     const half = this.span(p) + 0.6;
     const frame = new Frame().set(p.x, this.height(p.x, p.z, p.y), p.z, p.tx, p.tz);
     const metal = new Batch(),
-      print = new Batch(),
-      lamps = new Batch();
+      print = new Batch();
     const box = new T.BoxGeometry(1, 1, 1),
       cylinder = new T.CylinderGeometry(1, 1, 1, 4, 1, true),
-      plane = new T.PlaneGeometry(1, 1),
-      sphere = new T.SphereGeometry(1, 8, 6);
+      plane = new T.PlaneGeometry(1, 1);
     const ground = (lx: number, lz: number) => {
       const w = frame.point(lx, 0, lz);
       return this.height(w.x, w.z, p.y) - frame.origin.y;
@@ -923,15 +924,15 @@ export class FestivalEventDressing {
         y = ground(x, z);
       metal.add(cylinder, frame.matrix(x, y + 1.3, z, 0.07, 2.6, 0.07), 0x202225);
       metal.add(box, frame.matrix(x, y + 2.75, z, 0.42, 1.9, 0.22), 0x17181b);
-      const colours = [0x5aa8ff, 0x5aa8ff, 0x553311, 0x553311, 0x553311, 0x18ff5a, 0x441111];
-      colours.forEach((c, i) => {
+      // Seven rows (pre-stage, stage, three ambers, green, red), one column
+      // per drag lane: the left tree shows lanes 0-1, the right lanes 2-3.
+      for (let row = 0; row < 7; row++)
         for (const dx of [-0.11, 0.11])
-          lamps.add(
-            sphere,
-            frame.matrix(x + dx, y + 3.55 - i * 0.26, z - 0.13, 0.075, 0.075, 0.03),
-            c,
-          );
-      });
+          this.startLamps.push({
+            matrix: frame.matrix(x + dx, y + 3.55 - row * 0.26, z - 0.13, 0.075, 0.075, 0.03),
+            row,
+            lane: side > 0 ? (dx > 0 ? 0 : 1) : dx > 0 ? 2 : 3,
+          });
     }
     // Crowd barriers with printed skins along both runway edges.
     for (const side of [1, -1]) {
@@ -964,13 +965,11 @@ export class FestivalEventDressing {
     box.dispose();
     cylinder.dispose();
     plane.dispose();
-    sphere.dispose();
     const centre = frame.point(0, 4, 40);
     const group = this.group('Kestrel festival hub', centre, 1500);
     group.add(
       this.mesh(metal, this.materials.frame, 'Hub gantry, lights and barriers'),
       this.mesh(print, this.materials.banner, 'Hub printed skins'),
-      this.mesh(lamps, this.materials.lamp, 'Hub start lamps', false),
     );
     // Teardrop pennants along both edges.
     const pennants: T.Matrix4[] = [],

@@ -188,6 +188,9 @@ export class RoutePath {
     readonly network: RoadNetwork,
     planned: readonly RouteLeg[],
     readonly closed: boolean,
+    /** Measured finish (m from the start) of a point-to-point route, when
+     * shorter than the route less its run-out (a drag strip). */
+    readonly finishAt?: number,
   ) {
     const xs: number[] = [],
       ys: number[] = [],
@@ -518,7 +521,9 @@ export class RoutePath {
   /** Distance of the finish line: the start of a circuit's lap, or short of
    * a point-to-point route's end so cars can stop beyond it. */
   get finishDistance() {
-    return this.closed ? this.length : this.length - Math.min(60, this.length * 0.2);
+    if (this.closed) return this.length;
+    const runout = this.length - Math.min(60, this.length * 0.2);
+    return this.finishAt !== undefined && this.finishAt > 0 ? Math.min(this.finishAt, runout) : runout;
   }
   /** Widest road half-width on the route (RouteProgress tolerance). */
   maxHalfWidth() {

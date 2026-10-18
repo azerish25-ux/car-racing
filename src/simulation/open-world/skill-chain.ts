@@ -38,6 +38,13 @@ export const SKILL_TIERS = Object.freeze({
     [150, 'GREAT SPEED'],
     [0, 'SPEED'],
   ] as const),
+  // Jumps: 260 points a second of air (a 0.5 s crest hop is GREAT AIR).
+  air: Object.freeze([
+    [520, 'ULTIMATE AIR'],
+    [260, 'AWESOME AIR'],
+    [130, 'GREAT AIR'],
+    [0, 'AIR'],
+  ] as const),
 });
 export type SkillKind = keyof typeof SKILL_TIERS;
 export function skillName(kind: SkillKind, points: number) {
@@ -71,6 +78,14 @@ export const FESTIVAL_SKILLS = Object.freeze({
   maxDriftAngle: 1.2,
   maxMultiplier: 5,
   maxChainPoints: 100_000,
+  /** Air: off the ground this long (s) at this speed (m/s) or more, landed
+   * cleanly on the road, earns airRate points per second of air. A longer
+   * flight than maxAirTime is a fall from a height (an 11 m drop), not a
+   * jump: the region has crests, not ramps. */
+  minAirTime: 0.35,
+  maxAirTime: 1.5,
+  minAirSpeed: 14,
+  airRate: 260,
 });
 
 /** A bounded, time-based free-roam skill chain. It consumes real motion;
@@ -101,6 +116,7 @@ export class FestivalSkillChain {
   private segmentKind: SkillKind | null = null;
   private segmentPoints = 0;
   private segmentGap = 0;
+  private airTime = 0;
   private awardId = 0;
   private lastAward: FestivalSkillStatus['award'] = null;
 
@@ -140,6 +156,7 @@ export class FestivalSkillChain {
     this.sideDwell = this.transitionWindow = this.transitionCooldown = 0;
     this.bonusFeedback = 0;
     this.bonusLabel = '';
+    this.airTime = 0;
     this.closeSegment(false);
     this.lastAward = null;
   }
@@ -245,7 +262,23 @@ export class FestivalSkillChain {
     }
     if (valid && sample.nearMiss === true && speed >= 14) {
       bonus += 150;
-      this.bonusLabel = 'CLEAN PASS';
+      this.bonusLabel = 'NEAR MISS';
+    }
+    // Air: time off the ground at speed, awarded on a clean landing (a hard
+    // landing is an impact and has already lost the chain above).
+    if (!sample.grounded && speed >= FESTIVAL_SKILLS.minAirSpeed && sample.forward > 3)
+      this.airTime += dt;
+    else if (this.airTime > 0) {
+      if (
+        valid &&
+        this.airTime + 1e-8 >= FESTIVAL_SKILLS.minAirTime &&
+        this.airTime <= FESTIVAL_SKILLS.maxAirTime
+      ) {
+        const air = Math.round(FESTIVAL_SKILLS.airRate * this.airTime);
+        bonus += air;
+        this.bonusLabel = skillName('air', air);
+      }
+      this.airTime = 0;
     }
     if (bonus > 0) this.bonusFeedback = 1.1;
     let rate = 0,

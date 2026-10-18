@@ -8,6 +8,8 @@ import {
   type FestivalResult,
 } from '../simulation/open-world/festival-events.ts';
 import type { FestivalStatus } from '../simulation/open-world/session.ts';
+import { TREE_ROWS, treeLamps } from '../simulation/open-world/drag.ts';
+import { REWIND } from '../simulation/open-world/rewind.ts';
 import type { OpenWorld } from '../simulation/open-world/world.ts';
 import type { VehicleDefinition } from '../simulation/vehicles.ts';
 import { EVENT_COLOURS } from '../rendering/open-world/markers.ts';
@@ -42,6 +44,12 @@ const clock = (seconds: number) => {
   return `${m}:${s.toFixed(2).padStart(5, '0')}`;
 };
 const stars = (n: number) => '★'.repeat(n) + '☆'.repeat(Math.max(0, 3 - n));
+/** A drag timing slip (FH6 ref 077-079): reaction, 60 ft, eighth mile,
+ * elapsed time and trap speed. */
+function dragSlipHtml(slip: NonNullable<FestivalResult['drag']>) {
+  const s = (v: number | null, digits = 3) => (v === null ? '—' : `${v.toFixed(digits)}`);
+  return `<dl class="fest-slip"><div><dt>REACTION</dt><dd class="${slip.redLight ? 'fest-red' : ''}">${s(slip.reaction)}</dd></div><div><dt>60 FT</dt><dd>${s(slip.sixtyFoot)}</dd></div><div><dt>1/8 MILE</dt><dd>${s(slip.eighthMile)}</dd></div><div><dt>1/4 MILE ET</dt><dd>${s(slip.elapsed)}</dd></div><div><dt>TRAP KM/H</dt><dd>${s(slip.trapKmh, 1)}</dd></div></dl>`;
+}
 const points = (n: number) => Math.round(n).toLocaleString('en');
 const titleCase = (s: string) =>
   s.toLowerCase().replace(/(^|[\s·-])\p{L}/gu, (c) => c.toUpperCase());
@@ -149,7 +157,10 @@ export class FestivalHud {
     root.innerHTML = `
       <div class="fest-pace" id="festPace" aria-label="Corner advisory" hidden><span class="fest-eyebrow">ROUTE ADVISORY</span><b id="festPaceTurn"></b><span id="festPaceAction"></span><small id="festPaceSurface"></small></div>
       <div class="fest-drift" id="festDrift" aria-label="Drift angle advisory" hidden><div><span id="festDriftAction"></span><b id="festDriftAngle"></b></div><div class="fest-drift-track"><i id="festDriftMarker"></i></div><small id="festDriftTip"></small></div>
-      <div class="fest-hint" id="festHint"><kbd>C</kbd> CAMERA · <kbd>T</kbd> MAP · <kbd>ESC</kbd> MENU</div>
+      <div class="fest-hint" id="festHint"><kbd>C</kbd> CAMERA · <kbd>T</kbd> MAP · <kbd>⌫</kbd> REWIND · <kbd>ESC</kbd> MENU</div>
+      <div class="fest-rewind-veil" id="festRewindVeil" hidden aria-hidden="true"></div>
+      <div class="fest-rewind" id="festRewind" hidden role="status" aria-label="Rewind"><b><span aria-hidden="true">◀◀</span> REWIND</b><div class="fest-rewind-track" aria-hidden="true"><i id="festRewindBar"></i></div><small id="festRewindText"></small></div>
+      <div class="fest-tree" id="festTree" hidden role="status" aria-label="Drag start lights"><div class="fest-tree-lamps">${TREE_ROWS.map((row, i) => `<i class="fest-lamp-${row}" data-row="${i}" data-lane="0"></i><i class="fest-lamp-${row}" data-row="${i}" data-lane="1"></i>`).join('')}</div><b id="festTreeLabel">PRE-STAGE</b><small id="festTreeSub"></small></div>
       <div class="fest-explore" id="festExplore"><span class="fest-eyebrow">THE ROAD IS YOURS</span><b id="festExploreName">Explore Solvane Coast</b><small id="festExploreDistance"></small></div>
       <div class="fest-skills" id="festSkills" hidden role="status" aria-label="Skill chain"><div class="fest-chain-track" aria-hidden="true"><i id="festSkillTimer"></i></div><div class="fest-skill-total"><b id="festSkillScore">0</b><i id="festSkillMultiplier">x1.0</i></div><div class="fest-skill-line"><span id="festSkillName"></span><b id="festSkillPoints"></b></div><small id="festSkillBank"></small><span class="fest-sr" id="festSkillLabel"></span></div>
       <div class="fest-event" id="festEvent" hidden role="group" aria-label="Running event"><div class="fest-event-best"><span>Current Best</span><b id="festEventBest">—</b></div><div class="fest-event-head"><i class="fest-event-icon" id="festEventIcon" aria-hidden="true"></i><h2 id="festEventName"></h2><em id="festEventSide"></em></div><div class="fest-event-value"><span class="fest-chevrons" aria-hidden="true"></span><b id="festEventBig"></b><span class="fest-chevrons" aria-hidden="true"></span></div><div class="fest-row" id="festEventRow"></div><div class="fest-progress"><i id="festProgress"></i></div></div>
@@ -520,6 +531,8 @@ export class FestivalHud {
     rpm01: number,
     pace: PaceCue | null = null,
     drift: DriftCue | null = null,
+    /** Simulation time of the presented frame (drag tree lamps). */
+    simTime: number | null = null,
   ) {
     const showPace =
       !!pace &&
@@ -621,7 +634,10 @@ export class FestivalHud {
         : null;
     this.show('festEvent', !!ev && status.mode !== 'finished');
     if (ev) this.eventPanel(ev);
-    const count = ev && status.mode === 'countdown' ? Math.ceil(ev.countdown) : 0;
+    this.dragTree(status, simTime);
+    this.rewindIndicator(status);
+    // The drag strip counts down on its tree, not in digits.
+    const count = ev && !ev.drag && status.mode === 'countdown' ? Math.ceil(ev.countdown) : 0;
     this.show('festCountdown', count > 0);
     if (count > 0) this.text('festCountdown', String(count));
     // Card at a race marker.
@@ -757,7 +773,8 @@ export class FestivalHud {
               : `${Math.round(best.value)} KM/H`,
     );
     let big: string;
-    if (race) big = `${ordinal(ev.position)} / ${ev.entrants}`;
+    if (ev.kind === 'touge' && ev.live) big = ev.live.value;
+    else if (race) big = `${ordinal(ev.position)} / ${ev.entrants}`;
     else if (ev.kind === 'drift-zone') big = `${points(Number(ev.live?.value ?? 0))} PTS`;
     else big = ev.live?.value ?? '—';
     this.text('festEventBig', big);
@@ -766,8 +783,10 @@ export class FestivalHud {
       ev.laps > 1 ? `LAP ${ev.lap}/${ev.laps}` : `${Math.round(ev.progress * 100)}%`,
     );
     const cells: [string, string][] = [['TIME', clock(ev.elapsed)]];
-    if (ev.live && race) cells.push([ev.live.label, ev.live.value]);
+    if (ev.kind === 'touge') cells.push(['POSITION', `${ordinal(ev.position)} / ${ev.entrants}`]);
+    else if (ev.live && race) cells.push([ev.live.label, ev.live.value]);
     else if (ev.live && ev.kind !== 'drift-zone') cells.push([ev.live.label, ev.live.value]);
+    if (ev.rewinds > 0) cells.push(['REWIND', `×${ev.rewinds}`]);
     if (ev.offRoute) cells.push(['ROUTE', 'RETURN TO ROUTE']);
     const html = cells
       .map(([k, v]) => `<div><span>${escapeHtml(k)}</span><b>${escapeHtml(v)}</b></div>`)
@@ -783,16 +802,95 @@ export class FestivalHud {
           `<tr class="${s.car === 0 ? 'fest-you' : ''}"><td>${i + 1}</td><td>${escapeHtml(s.name)}</td><td>${escapeHtml(s.vehicleId.toUpperCase())}</td><td>${s.time !== null ? clock(s.time) : `${Math.round(s.progress * 100)}%`}</td></tr>`,
       )
       .join('');
-    const headline = r.abandoned
-      ? 'DID NOT FINISH'
-      : r.position === 1
-        ? 'WINNER'
-        : `P${r.position} OF ${r.entrants}`;
+    const headline = r.drag?.redLight
+      ? 'RED LIGHT — DISQUALIFIED'
+      : r.abandoned
+        ? 'DID NOT FINISH'
+        : r.position === 1
+          ? 'WINNER'
+          : `P${r.position} OF ${r.entrants}`;
+    const marks = [
+      r.assisted ? 'autopilot assisted' : '',
+      r.rewinds ? `rewound ×${r.rewinds}` : '',
+    ].filter(Boolean);
+    const margin =
+      r.margin !== undefined && r.margin !== null
+        ? `<div class="fest-margin">${r.margin >= 0 ? 'Ahead of your rival by' : 'Behind your rival by'} <b>${Math.abs(r.margin).toFixed(2)} s</b></div>`
+        : '';
     return `<div class="fest-kind">${escapeHtml(EVENT_KIND_LABEL[r.eventKind])} · RESULT</div><h2>${escapeHtml(r.eventName)} — ${headline}</h2>
       <div class="fest-stars" aria-label="${r.stars} of 3 stars">${stars(r.stars)}</div>
-      ${r.time !== null ? `<div>Time ${clock(r.time)}${r.assisted ? ' · autopilot assisted' : ''}</div>` : ''}
+      ${r.time !== null || marks.length ? `<div>${r.time !== null ? `Time ${clock(r.time)}` : ''}${marks.length ? `${r.time !== null ? ' · ' : ''}${marks.join(' · ')}` : ''}</div>` : ''}
+      ${margin}${r.drag ? dragSlipHtml(r.drag) : ''}
       <table>${rows}</table>
       <button class="fest-primary" data-fest="continue">CONTINUE <kbd>ENTER</kbd></button>`;
+  }
+  /** Drag start tree (the player's lane and the next lane), lit from the
+   * presented frame's simulation clock so it keeps step with the 3D tree. */
+  private dragTree(status: FestivalStatus, simTime: number | null) {
+    const drag = status.event?.drag;
+    const show =
+      !!drag &&
+      simTime !== null &&
+      status.mode !== 'finished' &&
+      (status.mode === 'countdown' || simTime < drag.tree.green + 2.5) &&
+      !this.menuOpen &&
+      !this.mapOpen &&
+      !this.photoOpen;
+    this.show('festTree', show);
+    if (!show || !drag || simTime === null) return;
+    const mine = drag.lanes.find((l) => l.lane === drag.lane) ?? drag.lanes[0],
+      next =
+        drag.lanes.find((l) => l.lane === drag.lane + 1) ??
+        drag.lanes.find((l) => l.lane === drag.lane - 1) ??
+        null;
+    const columns = [mine, next];
+    for (const lamp of this.get('festTree').querySelectorAll<HTMLElement>('i')) {
+      const column = columns[Number(lamp.dataset.lane)],
+        lit = column
+          ? treeLamps(drag.tree, simTime, column.leftAt)[Number(lamp.dataset.row)]
+          : false;
+      lamp.classList.toggle('lit', lit);
+    }
+    const slip = drag.slip,
+      tree = drag.tree;
+    const label = slip?.redLight
+      ? 'RED LIGHT'
+      : simTime >= tree.green
+        ? 'GO'
+        : simTime >= tree.ambers[0]
+          ? '·'
+          : simTime >= tree.staged
+            ? 'STAGED'
+            : 'PRE-STAGE';
+    this.text('festTreeLabel', label);
+    this.get('festTree').dataset.state = slip?.redLight
+      ? 'red'
+      : simTime >= tree.green
+        ? 'go'
+        : 'wait';
+    this.text(
+      'festTreeSub',
+      slip && slip.reaction !== null
+        ? `REACTION ${slip.reaction.toFixed(3)} S`
+        : simTime < tree.green
+          ? 'HOLD THE BRAKE · LAUNCH ON GREEN'
+          : '',
+    );
+  }
+  /** Rewind indicator: while held, the seconds rewound and the history left. */
+  private rewindIndicator(status: FestivalStatus) {
+    const rewind = status.rewind,
+      active = !!rewind?.active && !this.menuOpen && !this.mapOpen && !this.photoOpen;
+    this.show('festRewind', active);
+    this.show('festRewindVeil', active);
+    this.root.classList.toggle('fest-rewinding', active);
+    if (!active || !rewind) return;
+    this.get('festRewindBar').style.transform =
+      `scaleX(${Math.min(1, rewind.available / REWIND.seconds).toFixed(3)})`;
+    this.text(
+      'festRewindText',
+      `−${rewind.back.toFixed(1)} S · ${rewind.available.toFixed(1)} S LEFT · RELEASE TO DRIVE`,
+    );
   }
   /** Pause menu (free roam): resume, reset, time of day, machine, autopilot,
    * traffic, travel, exit. */
@@ -835,7 +933,7 @@ export class FestivalHud {
               `<button data-fest="travel" data-value="${escapeHtml(e.spec.id)}">${escapeHtml(e.spec.name)} · ${escapeHtml(EVENT_KIND_LABEL[e.spec.kind])}</button>`,
           )
           .join('') || '<span>Drive near an event marker to discover it.</span>'
-      }</div></section><section class="fest-driving-note"><h3>Make the drive count</h3><p>Link clean speed and drifts into a skill chain. Keep the car clear of impacts, then let the chain bank. Autopilot runs are marked assisted.</p><p><kbd>R</kbd> Reset to road &nbsp; <kbd>G</kbd> Autopilot</p></section></div></div>`;
+      }</div></section><section class="fest-driving-note"><h3>Make the drive count</h3><p>Link clean speed, drifts, near misses and air into a skill chain. Keep the car clear of impacts, then let the chain bank. Autopilot runs are marked assisted; rewound runs are marked and earn no clean-route bonus.</p><p><kbd>R</kbd> Reset to road &nbsp; <kbd>G</kbd> Autopilot &nbsp; <kbd>⌫</kbd> Hold to rewind</p></section></div></div>`;
     node.querySelector<HTMLElement>('[data-fest="resume"]')?.focus();
   }
   /** Is a dialog that owns Enter visible? */
