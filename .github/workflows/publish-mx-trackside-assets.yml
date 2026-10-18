@@ -1,4 +1,4 @@
-name: Publish verified motocross trackside Blender assets
+name: Verify committed motocross Blender assets
 
 on:
   workflow_dispatch:
@@ -6,108 +6,63 @@ on:
     branches: [main]
     paths:
       - .github/workflows/publish-mx-trackside-assets.yml
+      - authoring/motocross/native/**
+      - public/models/motocross/trackside/**
+      - docs/production/mx-trackside-native-receipt.json
+      - docs/production/mx-trackside-glb-verification.json
+      - docs/production/mx-trackside-source.sha256
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: publish-mx-trackside-assets
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
-  publish:
-    name: Export, verify and commit 13 native model assets
-    runs-on: ubuntu-24.04
-    timeout-minutes: 45
+  verify:
+    name: Verify all 13 Git-tracked model binaries without generating replacements
+    runs-on: ubuntu-slim
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
-          persist-credentials: true
-          fetch-depth: 12
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22.16.0'
-          cache: npm
-      - name: Install exactly locked tools
-        run: npm ci --no-audit --no-fund
-      - name: Fetch pinned Blender 5.2.2 LTS and verify release bytes
+          persist-credentials: false
+      - name: Check full binary integrity against native export receipt
         shell: bash
         run: |
           set -euo pipefail
-          sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends libx11-6 libxxf86vm1 libxfixes3 libxi6 libxrender1 libgl1 libxkbcommon0 libsm6 libice6
-          curl --fail --location --retry 3 --retry-delay 5 --max-time 400 \
-            'https://download.blender.org/release/Blender5.2/blender-5.2.2-linux-x64.tar.xz' \
-            --output "$RUNNER_TEMP/blender.tar.xz"
-          printf '%s  %s\n' \
-            84098912789dc450e95697c4184fb8a90acbe5111c2ba4aede3fecb57806a168 \
-            "$RUNNER_TEMP/blender.tar.xz" | sha256sum --check
-          tar -xJf "$RUNNER_TEMP/blender.tar.xz" -C "$RUNNER_TEMP"
-      - name: Rebuild from committed runtime source and validate GLBs
-        shell: bash
-        run: |
-          set -euo pipefail
-          out="$RUNNER_TEMP/mx-trackside-native"
-          mkdir -p "$out"
-          node --experimental-transform-types scripts/export-mx-trackside.ts "$out"
-          printf '%s  %s\n' \
-            7a5003f3963ce723dbe05cc1852edc1f124aa05cf1b9bd248897f5c67e8ed5e0 \
-            "$out/mx-trackside-source.json" | sha256sum --check
-          "$RUNNER_TEMP/blender-5.2.2-linux-x64/blender" \
-            -b --factory-startup --threads 2 \
-            --python authoring/motocross/export_trackside_blender.py -- "$out"
-          node scripts/verify-mx-trackside-glb.mjs "$out"
-          "$RUNNER_TEMP/blender-5.2.2-linux-x64/blender" \
-            -b "$out/MOTOBOUND_MX_Trackside_Models.blend" --python-expr \
-            "import bpy; s=bpy.context.scene; assert s['mx_source_sha256']=='7a5003f3963ce723dbe05cc1852edc1f124aa05cf1b9bd248897f5c67e8ed5e0'; assert len([o for o in bpy.data.objects if o.type=='MESH']) == 733; assert s['mx_variant_count']==12; print('MX native file open PASS')"
-          (cd "$out" && sha256sum --check <<'SHA'
-          d4840b044e318f853f0bfad1b8b0a61277263be05c3b4e0b325d937af60ae97e  canopy-near.glb
-          8e8c798603b945bf8033653f273f7457c064b482b9523b9aeed3ca6c83fc6dea  canopy-course.glb
-          cc4be892ba6b15217920ccd8ffc5779b12d0e6facd933287d57b871a8099fe5d  tool-trolley-near.glb
-          3716effbbc623d8e530cd0596d9fc2bea5a08bac658f99f6c2009126431c59a0  tool-trolley-course.glb
-          f187324420ff3123a2d936ff18a0235978a1e18d939f480e6d20c3edb0381335  pressure-washer-near.glb
-          45705d8b64fa2e03d0101ebe603e96501e34adf88374842b8ba0564efa98ede9  pressure-washer-course.glb
-          01c7696e9c05385f5a22b565762b490949e6c3c0ded69011a14ee5467449798e  water-tank-near.glb
-          c8055dbf60505b154384ecf986eeaf39306730d0ffc82c194d7a4ee954c55786  water-tank-course.glb
-          08a8583170fa41b39b964a05528cd9bb7d3c3c92db6edce842042c89d47d8568  marshal-post-near.glb
-          d76d12f52a25eaa36b28e3ba0e289415ee5f51f8f65b9f9ffbdef6494914615b  marshal-post-course.glb
-          ce9cb5c7a595be8731d70005e1de80c2d41d0af2eac39874fa53d14a5a6525c1  speaker-stack-near.glb
-          9b192aa14dd0e2972704123b2037ffb4ef9a6de846897cf8f988e09a7128ab9f  speaker-stack-course.glb
-          SHA
-          )
-      - name: Commit generated binaries to main without losing concurrent changes
-        shell: bash
-        run: |
-          set -euo pipefail
-          out="$RUNNER_TEMP/mx-trackside-native"
-          mkdir -p public/models/motocross/trackside authoring/motocross/native docs/production
-          cp "$out"/*.glb public/models/motocross/trackside/
-          cp "$out/MOTOBOUND_MX_Trackside_Models.blend" authoring/motocross/native/
-          cp "$out/blender-export-receipt.json" docs/production/mx-trackside-native-receipt.json
-          cp "$out/glb-verification.json" docs/production/mx-trackside-glb-verification.json
-          cp "$out/mx-trackside-source.sha256" docs/production/mx-trackside-source.sha256
-          git add -- public/models/motocross/trackside authoring/motocross/native/MOTOBOUND_MX_Trackside_Models.blend docs/production/mx-trackside-native-receipt.json docs/production/mx-trackside-glb-verification.json docs/production/mx-trackside-source.sha256
-          if git diff --cached --quiet; then
-            echo 'Already committed; no new revision needed.'
-            exit 0
-          fi
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'assets(motocross): publish verified editable Blender and 12 runtime GLBs'
-          for attempt in 1 2 3; do
-            git fetch origin main --depth=20
-            for path in src/rendering/offroad/mx-trackside-models.ts scripts/export-mx-trackside.ts authoring/motocross/export_trackside_blender.py; do
-              if [ "$(git rev-parse "$GITHUB_SHA:$path")" != "$(git rev-parse "FETCH_HEAD:$path")" ]; then
-                echo "Source changed during export: $path" >&2
-                exit 1
-              fi
-            done
-            git rebase FETCH_HEAD
-            if git push origin HEAD:main; then
-              echo 'Native Blender asset commit was published to main.'
-              exit 0
-            fi
-            echo "Non-fast-forward update on attempt $attempt; retrying without force." >&2
-          done
-          echo 'Could not fast-forward push to main; no force push attempted.' >&2
-          exit 1
+          python - <<'PYCODE'
+          from pathlib import Path
+          from hashlib import sha256
+          import json
+          import subprocess
+          base = Path('.')
+          receipt = json.loads((base / 'docs/production/mx-trackside-native-receipt.json').read_text())
+          checks = json.loads((base / 'docs/production/mx-trackside-glb-verification.json').read_text())
+          original = (base / 'docs/production/mx-trackside-source.sha256').read_text().strip()
+          assert original == receipt['sourceSHA256'], 'Source fingerprint mismatch'
+          assert checks['passed'] and len(checks['results']) == 12
+          assert len(receipt['variants']) == 12
+          assert { (x['model'],x['detail']) for x in receipt['variants'] } == {
+              (x['model'],x['detail']) for x in checks['results'] }
+          total = 0
+          for item in receipt['variants']:
+              p = base / 'public/models/motocross/trackside' / item['file']
+              content = p.read_bytes()
+              assert len(content) == item['bytes'], p
+              assert sha256(content).hexdigest() == item['sha256'], p
+              subprocess.run(['git', 'ls-files', '--error-unmatch', str(p)], check=True,
+                             stdout=subprocess.DEVNULL)
+              total += 1
+          native = receipt['native']
+          assert native['meshObjects'] == 733
+          p = base / 'authoring/motocross/native' / native['file']
+          assert len(p.read_bytes()) == native['bytes']
+          assert sha256(p.read_bytes()).hexdigest() == native['sha256']
+          subprocess.run(['git', 'ls-files', '--error-unmatch', str(p)], check=True,
+                         stdout=subprocess.DEVNULL)
+          assert (base / 'docs/production/mx-trackside-model-preview.jpg').is_file()
+          print(f'MX COMMITTED ASSETS VERIFIED: {total} GLBs, 1 Blender source, fingerprint {original}')
+          PYCODE
+          test -z "$(git status --porcelain)"
