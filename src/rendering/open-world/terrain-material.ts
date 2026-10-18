@@ -146,6 +146,9 @@ vec3 owMeadowColour(vec2 p, float macro, float meso, float forest) {
 }
 `;
 
+/** The grass carpet over the terrain (ground-cover.ts sets it per frame):
+ * (eye x, eye z, carpet reach m, strength 0..1). */
+export const TERRAIN_CARPET = { value: new T.Vector4(0, 0, 0, 0) };
 export interface TerrainUniforms {
   owWet: { value: number };
   owSnowTint: { value: number };
@@ -176,6 +179,7 @@ export function terrainMaterial(): T.MeshStandardMaterial & { userData: { ow: Te
   material.userData.ow = uniforms;
   material.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms, scannedGround.uniformsFor(FESTIVAL_SCAN_LAYERS));
+    shader.uniforms.owCarpet = TERRAIN_CARPET;
     bindSeasonUniforms(shader);
     shader.vertexShader = shader.vertexShader
       .replace(
@@ -200,6 +204,7 @@ vOwWorld = (modelMatrix * vec4(transformed, 1.0)).xyz;`,
         `#include <common>
 uniform float owWet;
 uniform float owSnowTint;
+uniform vec4 owCarpet;
 ${SEASON_GLSL}
 varying vec4 vSplat;
 varying vec4 vShade;
@@ -247,6 +252,10 @@ ${SCAN_COMMON_GLSL}`,
   grass = mix(grass, mix(vec3(0.17, 0.165, 0.15), vec3(0.11, 0.15, 0.06), smoothstep(0.4, 0.7, meso)), town * 0.8);
   float petals = owCherryZone(p) * smoothstep(0.5, 0.85, owFbm(p * 0.09, near)) * (1.0 - 0.6 * forest);
   grass = owMeadowSeason(grass, p, meso, micro, forest, town, petals);
+  // Under the grass carpet the ground reads as the shaded base of the
+  // blades (no pale gaps between clumps), fading out with the carpet.
+  float carpet = owCarpet.w * (1.0 - smoothstep(owCarpet.z * 0.5, owCarpet.z, distance(p, owCarpet.xy)));
+  grass = mix(grass, grass * vec3(0.7, 0.78, 0.62), carpet);
   vec3 rockC = mix(vec3(0.17, 0.16, 0.145), vec3(0.29, 0.27, 0.24), owFbm(vec2(p.x * 0.05, vOwWorld.y * 0.6), mid));
   rockC *= 0.85 + 0.3 * micro;
   // Fields (the flat ones become paddies below): one crop per 34 x 61 m
@@ -348,7 +357,7 @@ normal = apexScanPerturb(normal, owScanN, 1.1);
 #endif`,
       );
   };
-  material.customProgramCacheKey = () => 'festival-terrain-seasons-v3';
+  material.customProgramCacheKey = () => 'festival-terrain-seasons-v4';
   scannedGround.register(material, FESTIVAL_SCAN_LAYERS);
   return material;
 }

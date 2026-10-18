@@ -14,7 +14,7 @@ import { useStudioUniforms } from '../studio/studio-frame.ts';
 import { FLORA_ZONE_GLSL } from './flora-roles.ts';
 import { bindSeasonUniforms } from './season.ts';
 import { SEASON_DECL_GLSL } from './season-flora.ts';
-import { OW_MEADOW_GLSL, OW_NOISE_GLSL } from './terrain-material.ts';
+import { OW_MEADOW_GLSL, OW_NOISE_GLSL, TERRAIN_CARPET } from './terrain-material.ts';
 
 /**
  * Ground cover of the festival meadows and woods (MEDIUM and above): a
@@ -56,7 +56,7 @@ export const GROUND_COVER = Object.freeze({
   /** Understory reach (m). */
   understory: Object.freeze({ low: 0, medium: 105, high: 150, ultra: 190 }),
   /** Clumps per patch (near grass, far grass, understory). */
-  clumps: Object.freeze([96, 30, 14] as const),
+  clumps: Object.freeze([120, 36, 16] as const),
   /** Window of finest tiles held in the ground texture (tiles per side). */
   window: 3,
 });
@@ -545,6 +545,8 @@ void gcPlace() {
     float ground = smoothstep(0.05, 0.3, grass) * smoothstep(1.0, 1.8, edge);
     float sasaZ = smoothstep(0.45, 0.6, owFloraZone(xz, 3.3));
     float want = floorW * 0.9 + verge * (0.3 + 0.5 * smoothstep(0.05, 0.3, forest)) + margin * 0.45 + 0.05;
+    // Undergrowth gathers in drifts (fern beds, sasa thickets), not evenly.
+    want *= 0.45 + 1.1 * smoothstep(0.3, 0.7, owNoise(xz * 0.06 + 5.0));
     keep = ground * want * gcTier.y;
     if (seed2 < floorW) tile = seed3 < sasaZ ? ${COVER_TILE.SASA}.0 : ${COVER_TILE.FERN}.0;
     else if (seed2 < floorW + (verge + margin) * 0.7) tile = forest > 0.08 || seed3 < 0.35 ? ${COVER_TILE.SHRUB}.0 : ${COVER_TILE.WEEDS}.0;
@@ -861,6 +863,7 @@ export class GroundCover {
     const range = GROUND_COVER.grass[preset],
       under = GROUND_COVER.understory[preset];
     this.root.visible = range > 0 || under > 0;
+    TERRAIN_CARPET.value.w = 0;
     if (!this.root.visible) return;
     camera.getWorldPosition(this.eye);
     this.updateWindow(this.eye.x, this.eye.z, version, tileAt);
@@ -882,6 +885,8 @@ export class GroundCover {
       Math.round(this.eye.z / TILE_STEP) * TILE_STEP,
     );
     const height = below >= 0 ? this.eye.y - this.window[below] : Infinity;
+    // The terrain darkens under the carpet (terrain-material.ts).
+    TERRAIN_CARPET.value.set(this.eye.x, this.eye.z, range, height > range * 0.8 ? 0 : 1);
     const reach = (r: number) => (height > r * 0.8 ? 0 : r);
     const [nearRing, farRing, underRing] = this.rings,
       patch = GROUND_COVER.patch,
