@@ -313,7 +313,7 @@ export class FestivalSpectators {
         mesh.material = this.levelMaterials[level].color;
       }
       mesh.castShadow = level === 0;
-      mesh.visible = share > 0 && count > 0;
+      mesh.visible = share > 0 && count > 0 && d < FESTIVAL_SPECTATORS.card * 2.5;
       mesh.count = count;
     }
   }

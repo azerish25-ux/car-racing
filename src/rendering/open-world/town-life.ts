@@ -7,6 +7,7 @@ import type { QualityPreset } from '../options.ts';
 import { isApartment, LOT, type ArchitecturePlan } from './japan-architecture.ts';
 import { approachStation, junctionApproaches, junctionClearance } from './road-layout.ts';
 import type { SignLight } from './festival-signage.ts';
+import { crowdLine, FestivalSpectators } from './festival-crowd.ts';
 
 /** Street life of the festival towns (refs 014, 030, 038, 053, 066, 068,
  * 069, 086): the small things on a Japanese pavement and at its junctions.
@@ -401,6 +402,7 @@ export class FestivalTownLife {
     busStops: 0,
     phones: 0,
     coinParks: 0,
+    spectators: 0,
     pools: 0,
     chunks: 0,
     triangles: 0,
@@ -415,6 +417,8 @@ export class FestivalTownLife {
   readonly material = propsMaterial(this.atlas, this.uniforms);
   readonly poolMaterial = poolMaterial(this.uniforms);
   readonly kitMaterial = kitMaterial();
+  /** Onlookers at the store meets (authored crowd sculpts). */
+  readonly spectators = new FestivalSpectators();
   private readonly kitGeometries = new Map<Kit, T.BufferGeometry>();
   private readonly chunks = new Map<string, ChunkEntry>();
   private readonly meshes: {
@@ -456,6 +460,7 @@ export class FestivalTownLife {
     this.manholes();
     this.busStops();
     this.pools(lights);
+    this.meets();
     for (const kind of KITS) this.kitGeometries.set(kind, this.kitGeometry(kind));
     const c = new T.Color();
     for (const [key, { props, signals, pools, kits }] of this.chunks) {
@@ -1263,7 +1268,55 @@ export class FestivalTownLife {
     });
   }
 
+  /** The store car parks are the festival meets (refs 080-083): a line
+   * of crowd barriers along the open side of each lot and onlookers two
+   * deep behind it (the authored crowd sculpts), facing the parked cars. */
+  private meets() {
+    for (const [i, side] of this.plan.lotSide) {
+      const s = this.structures[i],
+        front = this.plan.front[i],
+        c = Math.cos(s.heading),
+        n = Math.sin(s.heading);
+      const at = (x: number, z: number) =>
+        new T.Vector3(
+          s.x + c * side * x - n * front * (s.hz + z),
+          0,
+          s.z + n * side * x + c * front * (s.hz + z),
+        );
+      const edge = s.hx + LOT.offset + LOT.length,
+        deep = s.hz * 2;
+      // Barrier panels just outside the lot's far side.
+      let barriers = 0;
+      for (let z = -1.2; z > -deep + 0.8; z -= 2.05) {
+        const a = at(edge + 1.3, z),
+          b0 = at(edge + 1.3, z + 0.95),
+          b1 = at(edge + 1.3, z - 0.95);
+        if (!this.free(a.x, a.z, 0.3)) continue;
+        this.place('fence', a.x, a.z, Math.atan2(b1.x - b0.x, b1.z - b0.z), 0x9aa0a6);
+        this.take(a.x, a.z, 0.9);
+        barriers++;
+      }
+      if (!barriers) continue;
+      const facing = new T.Vector3(-c * side, 0, -n * side);
+      const people = crowdLine(
+        at(edge + 2.1, -0.8),
+        at(edge + 2.1, -deep + 0.8),
+        facing,
+        (x, z) => this.height(x, z),
+        7800 + i,
+        2,
+      ).filter((person) => {
+        const q = new T.Vector3().setFromMatrixPosition(person.matrix);
+        return this.free(q.x, q.z, 0.25);
+      });
+      if (!people.length) continue;
+      this.spectators.add(people, this.root, 7800 + i);
+      this.stats.spectators += people.length;
+    }
+  }
+
   update(camera: T.Camera, night: number, preset: QualityPreset, time: number, wet = 0) {
+    this.spectators.update(camera, time, preset);
     this.uniforms.townNight.value = night;
     this.uniforms.townTime.value = time;
     this.uniforms.townWet.value = wet;
@@ -1279,6 +1332,7 @@ export class FestivalTownLife {
     }
   }
   dispose() {
+    this.spectators.dispose();
     for (const { mesh } of this.meshes)
       if (mesh instanceof T.InstancedMesh) mesh.dispose();
       else mesh.geometry.dispose();

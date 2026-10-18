@@ -15,6 +15,7 @@ import {
   dippedBeamTexture,
 } from '../src/rendering/open-world/headlight-beam.ts';
 import { ParkedCars, TRAFFIC_SHAPES } from '../src/rendering/traffic-cars.ts';
+import { SPECTATOR_FEET } from '../src/rendering/open-world/festival-crowd.ts';
 
 const world = openWorld();
 const structures = regionStructures(world);
@@ -78,6 +79,7 @@ describe('festival town life', () => {
     expect(s.manholes).toBeGreaterThan(100);
     expect(s.busStops).toBeGreaterThan(3);
     expect(s.coinParks).toBeGreaterThan(0);
+    expect(s.spectators).toBeGreaterThan(10);
     expect(s.pools).toBeGreaterThan(500);
     expect(s.triangles).toBeLessThan(600_000);
   });
@@ -89,7 +91,9 @@ describe('festival town life', () => {
       if (!(node instanceof T.InstancedMesh)) return;
       for (let i = 0; i < node.count; i++) {
         node.getMatrixAt(i, m);
-        at.setFromMatrixPosition(m);
+        // Spectators stand on their feet (bind space), the kit on its origin.
+        if (node.name === 'Festival spectators') at.copy(SPECTATOR_FEET).applyMatrix4(m);
+        else at.setFromMatrixPosition(m);
         expect(outsideLanes(at.x, at.z), node.name).toBeGreaterThan(0.1);
         expect(
           structures.some((s) => insideFootprint(s, at.x, at.z, 0)),
