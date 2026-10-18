@@ -753,9 +753,11 @@ export class FestivalRenderer {
     // The region is kilometres deep: the circuit haze, thinned.
     fog.density = daylight.fogDensity * 0.3;
     fog.color.setRGB(daylight.fogRed, daylight.fogGreen, daylight.fogBlue);
-    // Shaded side of the drift smoke: the sky fill the scene gets from IBL.
-    const fill = 0.62 * daylight.environment;
-    this.smoke.setFill(fog.color.r * fill, fog.color.g * fill, fog.color.b * fill);
+    // Shaded side of the drift smoke: a neutral sky fill standing in for the
+    // IBL the scene's opaque surfaces receive (rubber smoke reads white-grey,
+    // not the colour of the horizon haze).
+    const fill = 0.8 * daylight.environment;
+    this.smoke.setFill(0.7 * fill, 0.74 * fill, 0.8 * fill);
     const uniforms = this.sky.material.uniforms;
     uniforms.cloudCover.value = daylight.cover;
     uniforms.skyRadiance.value = daylight.skyRadiance;

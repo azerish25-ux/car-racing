@@ -38,7 +38,7 @@ export const DRIFT_SMOKE = Object.freeze({
   scatter: 0.9,
   /** Relaxation (1/s) of puff velocity toward still air. */
   drag: 0.9,
-  alpha: 0.5,
+  alpha: 0.62,
   minSpeed: 2.5,
   /** Slip power (W) at which a tyre smokes at its full rate. */
   fullPower: 16000,
@@ -168,9 +168,9 @@ export class FestivalDriftSmoke {
           #endif
           #if NUM_DIR_LIGHTS > 0
             for (int i = 0; i < NUM_DIR_LIGHTS; i++)
-              light += directionalLights[i].color * (0.05 + 0.25 * max(0.0, dot(n, directionalLights[i].direction)));
+              light += directionalLights[i].color * (0.08 + 0.22 * max(0.0, dot(n, directionalLights[i].direction)));
           #endif
-          vec3 albedo = vec3(0.86, 0.86, 0.84) * (0.9 + 0.2 * billow);
+          vec3 albedo = vec3(0.9, 0.9, 0.89) * (0.9 + 0.2 * billow);
           gl_FragColor = vec4(min(albedo * light, vec3(2.2)), alpha);
           #include <tonemapping_fragment>
           #include <colorspace_fragment>
@@ -228,7 +228,8 @@ export class FestivalDriftSmoke {
     this.strength[i] = intensity;
     this.puffs[i * 4] = k.size[0] + r.next() * (k.size[1] - k.size[0]);
     this.puffs[i * 4 + 1] = 0;
-    this.puffs[i * 4 + 2] = y - 0.12;
+    // The road under the birth point (puffs are born 0.32 m above it).
+    this.puffs[i * 4 + 2] = y - 0.36;
     this.puffs[i * 4 + 3] = r.next() * 6.2831853;
   }
   /** Advance by the presented snapshot's simulation time. Births over the

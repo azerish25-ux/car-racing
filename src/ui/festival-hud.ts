@@ -288,10 +288,14 @@ export class FestivalHud {
     const ctx = canvas.getContext('2d')!;
     const net = this.world.network,
       field = this.world.field;
-    // Ground relief: a coarse shaded height map, lit from the image's left.
+    // Ground relief: a coarse shaded height map, lit from the image's left,
+    // one pixel per cell and upscaled bilinearly (no blocks on the minimap).
     const cells = 256,
       cell = MAP_SIZE / cells,
       step = (2 * MAP_HALF) / cells;
+    const relief = document.createElement('canvas');
+    relief.width = relief.height = cells;
+    const pixels = relief.getContext('2d')!;
     for (let j = 0; j < cells; j++)
       for (let i = 0; i < cells; i++) {
         const [x, z] = mapToWorld((i + 0.5) * cell, (j + 0.5) * cell),
@@ -308,9 +312,12 @@ export class FestivalHud {
         else if (h > field.snowLine(x, z)) [r, g, b] = [214, 218, 224];
         else if (field.forestDensity(x, z) > 0.45) [r, g, b] = [36, 62, 33];
         else [r, g, b] = [74 + h * 0.03, 96 + h * 0.01, 50];
-        ctx.fillStyle = `rgb(${(r * shade) | 0},${(g * shade) | 0},${(b * shade) | 0})`;
-        ctx.fillRect(i * cell, j * cell, cell + 1, cell + 1);
+        pixels.fillStyle = `rgb(${(r * shade) | 0},${(g * shade) | 0},${(b * shade) | 0})`;
+        pixels.fillRect(i, j, 1, 1);
       }
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(relief, 0, 0, MAP_SIZE, MAP_SIZE);
     // Roads by class: paved roads white, trails orange (ref 055).
     const style: Record<string, [string, number]> = {
       highway: ['#fbfbf8', 7],
