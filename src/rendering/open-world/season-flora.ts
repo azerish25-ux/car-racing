@@ -61,7 +61,8 @@ float owLeafKeep(vec3 texel) {
   if (owSeason.w < 0.5 || !owDeciduous(vOwTree.x)) return 1.0;
   // Each painted leaf has one flat colour: its luminance picks the leaves
   // that stay (leaf-shaped, identical in the colour and shadow passes).
-  float pick = fract(dot(texel, vec3(0.2126, 0.7152, 0.0722)) * 173.0 + vOwTree.y);
+  // (High gain: the dark, low-contrast photographic atlases need it too.)
+  float pick = fract(dot(texel, vec3(613.0, 1361.0, 307.0)) + vOwTree.y);
   return max(1.0 - leaf, step(0.74, pick));
 }
 /** Seasonal colour of a leaf texel (\`base\`: map x colour x tint). */
