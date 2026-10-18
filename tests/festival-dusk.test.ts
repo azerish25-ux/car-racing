@@ -71,7 +71,7 @@ describe('festival time of day', () => {
     expect('lighting' in loaded).toBe(false);
     expect(validateFestivalSave({ ...old, lighting: 'dusk' })!.lighting).toBe('dusk');
     expect('lighting' in validateFestivalSave({ ...old, lighting: 'twilight' })!).toBe(false);
-    const menu = festivalMenuState(null, { ...loaded, lighting: 'dusk' }, 'dusk');
+    const menu = festivalMenuState(null, loaded, 'dusk');
     expect(menu.lighting).toBe('dusk');
   });
 });
