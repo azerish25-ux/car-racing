@@ -12,6 +12,7 @@ import {
   type TrafficBody,
 } from '../traffic-cars.ts';
 import { LOT, type ArchitecturePlan } from './japan-architecture.ts';
+import { MEET_MODELS } from './meet-cars.ts';
 
 type Height = (x: number, z: number, y?: number) => number;
 
@@ -83,15 +84,21 @@ export function parkedSites(
         const r = hash(i, k, z);
         if (r > 0.74) continue;
         const [x, w] = at(lot0 + 0.5 + k * 2.5 + 1.25, z);
+        // A store-lot meet (refs 080-083): three in four are festival
+        // sports cars, the rest everyday traffic.
+        const sport = hash(i, k, 11) < 0.75;
         spots.push({
           x,
           y: height(x, w) + 0.03,
           z: w,
           yaw: back + (hash(i, k, 7) < 0.25 ? Math.PI : 0) + (hash(i, k, 9) - 0.5) * 0.06,
-          body: body(hash(i, k, 3)),
-          paint: trafficPaint(id + k),
+          body: sport ? 'sedan' : body(hash(i, k, 3)),
+          paint: sport
+            ? MEET_PAINT[Math.floor(hash(i, k, 13) * MEET_PAINT.length)]
+            : trafficPaint(id + k),
           plate: id + k * 7,
           lit: false,
+          ...(sport ? { model: MEET_MODELS[Math.floor(hash(i, k, 17) * MEET_MODELS.length)] } : {}),
         });
         id++;
       }
@@ -160,9 +167,10 @@ export function parkedSites(
             y: height(x, z) + 0.02,
             z,
             yaw: toStrip + side * 0.6,
-            body: (['sedan', 'hatch', 'kei', 'minivan', 'sedan', 'hatch'] as const)[
-              Math.floor(hash(k, row, side, 2) * 6)
-            ],
+            // The festival's own sports cars (meet-cars.ts); the sedan
+            // body sizes the bay and its contact shade.
+            body: 'sedan',
+            model: MEET_MODELS[Math.floor(hash(k, row, side, 2) * MEET_MODELS.length)],
             paint: MEET_PAINT[Math.floor(hash(k, row, side, 4) * MEET_PAINT.length)],
             plate: ++id * 5,
             lit: hash(k, row, side, 6) < 0.6,
