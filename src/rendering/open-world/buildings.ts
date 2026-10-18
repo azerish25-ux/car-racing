@@ -7,16 +7,20 @@ import {
   WALL_FINISH,
   type FacadeLayout,
   type FacadePlacement,
+  type FacadeVariant,
 } from './facade-layout.ts';
 import { FacadeJoinery } from './facade-joinery.ts';
 import {
   ARCH_CODE,
   isApartment,
+  SKIN,
   stairSide,
+  visualStructure,
   type ArchitecturePlan,
   type VisualLandmark,
 } from './japan-architecture.ts';
 import { SEASON_GLSL, bindSeasonUniforms } from './season.ts';
+import { FROSTED_CODE, URBAN_FACADE_GLSL, URBAN_REFLECTION_GLSL } from './facade-richness.ts';
 import type { QualityPreset } from '../options.ts';
 
 const KIND_CODE: Record<Structure['kind'], number> = {
@@ -43,7 +47,25 @@ const ROOFS = [0x8a3f2a, 0x6d3426, 0x45484c, 0x5b5d5f, 0x7a5a3e];
  * concrete and painted render (030, 038, 089). */
 const KAWARA = [0x3f4349, 0x363a3f, 0x4a4e53, 0x2f3338];
 const PLASTER = [0xe6e2d8, 0xdcd6c8, 0xcbb995];
-const URBAN = [...WALL_FINISH.tile, ...WALL_FINISH.concrete, 0xe2dccb, 0xa9b2a3, 0xcfc6b4];
+const URBAN = [
+  ...WALL_FINISH.tile,
+  ...WALL_FINISH.concrete,
+  ...WALL_FINISH.largeTile,
+  0xe2dccb,
+  0xa9b2a3,
+  0xcfc6b4,
+];
+/** Office skins (ribbon windows): precast, large tile, terracotta and brown
+ * mosaic tile, composite panels (refs 030, 089, 097). Curtain walls sit in
+ * composite-panel or dark-tile frames. */
+const OFFICE = [
+  ...WALL_FINISH.precast,
+  ...WALL_FINISH.largeTile,
+  ...WALL_FINISH.panel,
+  0xc4643f,
+  0x7d5d4c,
+];
+const CURTAIN = [...WALL_FINISH.panel, 0x4d4a47, 0xb5b0a6];
 const TIMBER = 0x2e2620;
 const ALUMINIUM = 0xb9bdbd;
 
@@ -334,7 +356,7 @@ interface RoofSpec {
  * individually lit windows at night. Japanese styles add kawara roof
  * courses, mosaic tile, cedar boards, formed concrete and siding, koshi
  * lattice and shoji glazing, lit store interiors and winter snow. */
-function facadeMaterial(night: { value: number }, wet: { value: number }) {
+function facadeMaterial(night: { value: number }, wet: { value: number }, rich: { value: number }) {
   const material = new T.MeshStandardMaterial({
     vertexColors: true,
     roughness: 0.85,
@@ -345,6 +367,7 @@ function facadeMaterial(night: { value: number }, wet: { value: number }) {
   material.onBeforeCompile = (shader) => {
     shader.uniforms.owNight = night;
     shader.uniforms.owWet = wet;
+    shader.uniforms.owRich = rich;
     bindSeasonUniforms(shader);
     shader.vertexShader = shader.vertexShader
       .replace(
@@ -358,6 +381,7 @@ function facadeMaterial(night: { value: number }, wet: { value: number }) {
         `#include <common>
 uniform float owNight;
 uniform float owWet;
+uniform float owRich;
 ${SEASON_GLSL}
 varying vec4 vFacade;
 ${OW_NOISE_GLSL}
@@ -371,6 +395,11 @@ float owWallRoughness;
 vec3 owLamp;`,
       )
       .replace(
+        '#include <clipping_planes_pars_fragment>',
+        `#include <clipping_planes_pars_fragment>
+${URBAN_FACADE_GLSL}`,
+      )
+      .replace(
         '#include <color_fragment>',
         `#include <color_fragment>
 {
@@ -380,16 +409,18 @@ vec3 owLamp;`,
   vec2 q = vUv;
   owGlass = 0.0; owLit = 0.0; owGlow = 0.0; owRib = 0.0; owSnow = 0.0; owWallRelief = 0.0;
   owWallRoughness = -1.0; owLamp = vec3(1.0, 0.7, 0.42);
+  owEmit = vec3(0.0); owMirror = 0.0; owSpecBoost = 1.0; owMirrorSeed = 0.0;
   bool shed = arch < 0.5 && (kind > 4.5 && kind < 5.5 || kind > 8.5);
   bool roof = vFacade.z < -0.5 && vFacade.z > -1.5;
   bool trim = vFacade.z < -1.5;
   bool physicalPane = abs(vFacade.z + 4.0) < 0.1;
   bool physicalWall = abs(vFacade.z + 3.0) < 0.1;
   bool glowPanel = abs(vFacade.z + 6.0) < 0.1;
+  bool frosted = abs(vFacade.z - (${FROSTED_CODE}.0)) < 0.1;
   // Weathering: rain streaks down from sills, grime near the ground.
   float streak = owNoise(vec2(q.x * 1.7, q.y * 0.08 + style * 13.0));
   float grime = 1.0 - smoothstep(0.0, 1.6, q.y);
-  if (!physicalPane && !glowPanel) diffuseColor.rgb *= physicalWall
+  if (!physicalPane && !glowPanel && !frosted) diffuseColor.rgb *= physicalWall
     ? (0.945 + 0.055 * streak) * (1.0 - 0.14 * grime)
     : (0.86 + 0.18 * streak) * (1.0 - 0.25 * grime);
   if (physicalPane && arch > 0.5 && arch < 1.5) {
@@ -441,6 +472,9 @@ vec3 owLamp;`,
     // The lit interior emits its own albedo, so shelves stay legible.
     owGlow = (1.0 - frame) * (1.0 + 2.6 * strip);
     owLamp = interior * vec3(0.95, 0.98, 1.0);
+  } else if (physicalPane && arch > 1.5) {
+    // City glazing: interior-mapped rooms, coverings, joinery, reflections.
+    owCityPane(q, vFacade.x, vFacade.w, vNormal, vViewPosition, owNight, diffuseColor.rgb);
   } else if (physicalPane) {
     // Geometry supplies the actual reveal depth. This inset pane adds a
     // bounded interior illustration, not a ray-traced or enterable room.
@@ -483,6 +517,8 @@ vec3 owLamp;`,
     // Backlit acrylic (store fascia, light boxes): vertex colour is the face.
     owGlow = vFacade.w;
     owLamp = diffuseColor.rgb;
+  } else if (frosted) {
+    owFrosted(q, style, diffuseColor.rgb, owWallRoughness);
   } else if (physicalWall) {
     // Metre-scaled surface detail. Derivative fades remove sub-pixel grit
     // and mortar instead of adding sparkling high-frequency noise at speed.
@@ -492,7 +528,8 @@ vec3 owLamp;`,
     diffuseColor.rgb *= 1.0 + (grit-0.5)*0.055*gritFade;
     owWallRelief = (grit-0.5)*0.0012*gritFade;
     owWallRoughness = 0.87 + (grit-0.5)*0.08*gritFade;
-    float finish = vFacade.w;
+    // w packs the finish and (city walls) the wall height: finish + 16 * top.
+    float finish = mod(vFacade.w, 16.0), wallTop = floor(vFacade.w / 16.0 + 0.01);
     if (finish > 0.5 && finish < 3.5) {
       // Brick, dressed stone and glazed mosaic tile share a bonded grid.
       bool stone = finish > 1.5 && finish < 2.5;
@@ -542,7 +579,7 @@ vec3 owLamp;`,
       diffuseColor.rgb *= (0.93 + 0.12 * owHash(floor(panel) + style * 3.0)) * mix(0.82, 1.0, seam) * (1.0 - 0.35 * hole);
       owWallRelief += (seam - 1.0) * 0.003 - hole * 0.004;
       owWallRoughness = 0.9;
-    } else if (finish > 5.5) {
+    } else if (finish > 5.5 && finish < 6.5) {
       // Lap siding: 200 mm horizontal boards with a shadow line.
       float lap = fract(q.y / 0.2);
       float resolve = 1.0 - smoothstep(0.2, 0.6, aa.y / 0.2);
@@ -550,6 +587,19 @@ vec3 owLamp;`,
       diffuseColor.rgb *= shadow;
       owWallRelief += lap * 0.006 * resolve;
       owWallRoughness = 0.7;
+    }
+    if (arch > 1.5 && arch < 2.5)
+      owCityWall(q, finish, style, wallTop, diffuseColor.rgb, owWallRelief, owWallRoughness);
+    else if (arch > 0.5 && arch < 1.5 && finish < 0.5 && (kind < 3.5 || kind > 4.5)
+             && owHash(vec2(floor(style * 1024.0 + 0.5), 5.0)) > 0.45) {
+      // Shinkabe (ref 056): dark posts every 1.82 m and nuki rails every
+      // 0.9 m show through the plaster of about half the houses.
+      float pf = abs(fract(q.x / 1.82 + 0.5) - 0.5) * 1.82;
+      float rf = abs(fract(q.y / 0.9 + 0.5) - 0.5) * 0.9;
+      float timberLine = max(1.0 - smoothstep(0.055, 0.055 + aa.x, pf), 1.0 - smoothstep(0.04, 0.04 + aa.y, rf));
+      timberLine *= 1.0 - smoothstep(0.05, 0.12, max(aa.x, aa.y));
+      diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.05, 0.04, 0.032), timberLine);
+      owWallRelief += timberLine * 0.004;
     }
   } else if (trim) {
     // Physical cornices, pilasters, sills and roof equipment carry their
@@ -623,7 +673,7 @@ vec3 owLamp;`,
       * (1.0 - smoothstep(0.09, 0.19, abs(pane.x - (0.25 + room * 0.43))));
     owLit *= ceiling * furnishing;
   }
-  if (!(physicalPane && (arch > 0.5 && arch < 1.5 || arch > 2.5))) {
+  if (!(physicalPane && arch > 0.5)) {
     // Unequal room depth, sill shadow and a few closed blinds make each bay
     // read as a recess instead of a flat repeated black rectangle. These are
     // authored facade cues; the material does not claim to ray trace rooms.
@@ -678,10 +728,16 @@ if (abs(owRib) > 0.001) normal = normalize(normal + (viewMatrix * vec4(0.0, 0.0,
       .replace(
         '#include <emissivemap_fragment>',
         `#include <emissivemap_fragment>
-totalEmissiveRadiance += owLamp * (owLit * owNight * 0.32 + owGlow * (0.3 + owNight * 1.5));`,
+totalEmissiveRadiance += owLamp * (owLit * owNight * 0.32 + owGlow * (0.3 + owNight * 1.5));
+totalEmissiveRadiance += owEmit;`,
+      )
+      .replace(
+        '#include <lights_fragment_maps>',
+        `#include <lights_fragment_maps>
+${URBAN_REFLECTION_GLSL}`,
       );
   };
-  material.customProgramCacheKey = () => 'festival-facades-v8-japan-wet';
+  material.customProgramCacheKey = () => 'festival-facades-v9-city-rich';
   return material;
 }
 
@@ -700,6 +756,8 @@ export class Buildings {
   readonly root = new T.Group();
   readonly night = { value: 0 };
   readonly wet = { value: 0 };
+  /** City glazing detail: interiors and street reflections (0 on LOW). */
+  readonly rich = { value: 1 };
   readonly material: T.MeshStandardMaterial;
   readonly lantern: T.MeshStandardMaterial;
   readonly joinery: FacadeJoinery;
@@ -710,7 +768,7 @@ export class Buildings {
     private readonly plan: ArchitecturePlan | null = null,
   ) {
     this.root.name = 'Festival buildings';
-    this.material = facadeMaterial(this.night, this.wet);
+    this.material = facadeMaterial(this.night, this.wet, this.rich);
     this.lantern = new T.MeshStandardMaterial({
       color: 0xfff6d8,
       emissive: 0xfff0c0,
@@ -764,11 +822,12 @@ export class Buildings {
     if (style === 'urban')
       return this.urban(
         f,
-        s,
+        visualStructure(s, this.plan?.extraFloors[index] ?? 0),
         kind,
         front,
         this.plan?.konbiniFloor.has(index) ?? false,
         this.plan?.rearStair.has(index) ?? false,
+        this.plan?.skin[index] ?? SKIN.punched,
       );
     if (style === 'konbini')
       return this.konbini(
@@ -789,10 +848,11 @@ export class Buildings {
     f: Frame,
     s: Structure,
     kind: number,
-    variant: 'urban' | 'traditional',
+    variant: Exclude<FacadeVariant, 'european'>,
     wall: number,
     options: Parameters<typeof addRecessedFacade>[9],
     top = s.base + s.height,
+    blindSides = false,
   ) {
     const layouts: (FacadeLayout | null)[] = [];
     const sides: [number, number, number, number, number, number][] = [
@@ -806,7 +866,13 @@ export class Buildings {
       const len = Math.hypot(x1 - x0, z1 - z0);
       const a = f.at(x0, s.base, z0),
         b = f.at(x1, s.base, z1);
-      const layout = facadeLayout(s, len, sideIndex, variant);
+      const layout = facadeLayout(
+        s,
+        len,
+        sideIndex,
+        variant,
+        blindSides && sideIndex % 2 === 1 ? 1 : Infinity,
+      );
       layouts.push(layout);
       const normal = f.dir(nx, 0, nz);
       if (layout) {
@@ -1216,7 +1282,9 @@ export class Buildings {
       });
     } else {
       // Entrance canopy over the front sliding doors.
-      this.pent(f, Math.min(4.2, s.hx * 1.2), s.base + 2.75, front, s.hz, 0.9, tile, rf);
+      const door = Math.min(4.2, s.hx * 1.2);
+      this.pent(f, door, s.base + 2.75, front, s.hz, 0.9, tile, rf);
+      this.engawa(f, s, front, door);
       const along = s.hx >= s.hz;
       const roofFrame = along ? f : this.turned(f);
       this.roof(roofFrame, {
@@ -1239,7 +1307,32 @@ export class Buildings {
     f.box(side * (s.hx + 0.36), s.base + 0.65, -front * (s.hz - 1.2), 0.02, 0.4, 0.4, 0x3d4143);
   }
 
-  /** City mid-rises and shop buildings. */
+  /** Engawa (ref 034): a 0.85 m timber veranda 0.45 m above the base course
+   * along the front either side of the entrance, under the 0.95 m eaves,
+   * on short posts with a dark skirt, and a stone step (kutsunugi-ishi) at
+   * each run's end. */
+  private engawa(f: Frame, s: Structure, front: number, door: number) {
+    const deck = 0x7a5a3c,
+      y = s.base + 0.95;
+    const z = front * (s.hz + 0.43);
+    for (const side of [-1, 1]) {
+      const a = door / 2 + 0.15,
+        b = s.hx - 0.1;
+      if (b - a < 1.2) continue;
+      const x = (side * (a + b)) / 2,
+        len = b - a;
+      f.box(x, y, z, len, 0.07, 0.85, deck);
+      f.box(x, y - 0.28, front * (s.hz + 0.1), len, 0.5, 0.06, 0x2e2620);
+      for (let k = 0; k <= Math.ceil(len / 1.8); k++) {
+        const px = side * (a + (k * len) / Math.ceil(len / 1.8));
+        f.box(px, y - 0.25, front * (s.hz + 0.8), 0.1, 0.45, 0.1, 0x4a3628);
+      }
+      f.box(side * (a + 0.4), s.base + 0.58, front * (s.hz + 1.15), 0.7, 0.16, 0.45, 0x8e8b83);
+    }
+  }
+
+  /** City mid-rises, offices and shop buildings, drawn at their visual
+   * height (visual storeys above the collider stay on its footprint). */
   private urban(
     f: Frame,
     s: Structure,
@@ -1247,17 +1340,35 @@ export class Buildings {
     front: number,
     konbini: boolean,
     stair: boolean,
+    skin: number,
   ) {
     const pick = <V>(list: readonly V[], salt: number) => list[(s.style >>> salt) % list.length];
-    const wall = pick(URBAN, 7);
+    const wall = pick(skin === SKIN.curtain ? CURTAIN : skin === SKIN.ribbon ? OFFICE : URBAN, 7);
     const top = s.base + s.height,
       floors = Math.max(1, Math.floor(s.floors)),
       floorH = (s.height - 0.6) / floors;
     const styleN = (s.style % 9973) / 9973;
     const store = kind - 16 * ARCH_CODE.urban + 16 * ARCH_CODE.konbini;
-    const layouts = this.walls(f, s, kind, 'urban', wall, {
-      pane: (hole) => (konbini && hole.kind === 'shop' && hole.row0 === 0 ? store : kind),
-    });
+    // City panes: mode (window, shop, ribbon, curtain) + 4 * a per-building
+    // bucket that picks the joinery colour and glass tint.
+    const bucket = 4 * Math.floor(styleN * 32);
+    const ribbonMode = skin === SKIN.curtain ? 3 : 2;
+    const layouts = this.walls(
+      f,
+      s,
+      kind,
+      skin === SKIN.curtain ? 'curtain' : skin === SKIN.ribbon ? 'ribbon' : 'urban',
+      wall,
+      {
+        pane: (hole) => (konbini && hole.kind === 'shop' && hole.row0 === 0 ? store : kind),
+        paneTag: (hole) => (hole.kind === 'shop' ? 1 : hole.lites ? ribbonMode : 0) + bucket,
+        wallTop: s.height,
+      },
+      top,
+      // Most city side walls are blank party walls above the ground floor
+      // (refs 014, 030); curtain-wall towers stay glazed all round.
+      skin !== SKIN.curtain && hashOf(s.style, 5, 9) % 20 < 13,
+    );
     const coping = 0xc4c6c4;
     // A plinth course of dark tile.
     f.box(0, s.base + 0.3, 0, s.hx * 2 + 0.04, 0.6, s.hz * 2 + 0.04, 0x55534f);
@@ -1273,13 +1384,25 @@ export class Buildings {
       }
     // Balconies or open corridors with solid parapets (ref 089), from the
     // first floor up, projecting 0.9 m inside the 1.2 m town setback.
+    const frostedBalcony = ((s.style >>> 13) & 1) === 0;
+    const frosted: Facade = [styleN, kind, FROSTED_CODE, 0];
     if (apartment)
       for (let floor = 1; floor < floors; floor++) {
         const y = s.base + floor * floorH;
         const z = front * (s.hz + 0.45);
         const parapet = (s.style & 64) === 0 ? 0xe2e0d8 : 0x9aa7a8;
         f.box(0, y + 0.02, z, s.hx * 2 - 0.3, 0.18, 0.9, 0xc9c6bd, f.detail, true);
-        f.box(0, y + 0.62, front * (s.hz + 0.86), s.hx * 2 - 0.3, 1.0, 0.08, parapet);
+        // Solid parapets or frosted glass in aluminium frames (ref 089).
+        f.box(
+          0,
+          y + 0.62,
+          front * (s.hz + 0.86),
+          s.hx * 2 - 0.3,
+          1.0,
+          0.08,
+          parapet,
+          frostedBalcony ? frosted : f.detail,
+        );
         f.box(0, y + 1.14, front * (s.hz + 0.86), s.hx * 2 - 0.26, 0.05, 0.1, 0x6e7272);
         for (const sx of [-1, 1]) f.box(sx * (s.hx - 0.19), y + 0.62, z, 0.08, 1.0, 0.9, parapet);
         // Unit partitions and an AC unit per unit on the slab.
@@ -1324,6 +1447,7 @@ export class Buildings {
         0.1,
         0x6c6d68,
       );
+    this.services(f, s, front, floors, floorH);
     // Roof: flat membrane, a stair tower, an elevated water tank and plant.
     f.poly(
       [
@@ -1342,6 +1466,29 @@ export class Buildings {
       f.box(side * (s.hx - 0.1), top + 0.45, 0, 0.2, 0.9, s.hz * 2 - 0.4, wall);
       f.box(0, top + 0.93, side * (s.hz - 0.1), s.hx * 2 + 0.06, 0.06, 0.28, coping);
       f.box(side * (s.hx - 0.1), top + 0.93, 0, 0.28, 0.06, s.hz * 2 - 0.2, coping);
+    }
+    // Tall blocks carry a steel safety railing on the parapet (refs 030,
+    // 089): posts at <= 3 m and two rails, 1.1 m above the coping.
+    if (floors >= 8 || (s.style >>> 14) % 3 === 0) {
+      const steel = 0x8d9393,
+        y = top + 0.96;
+      for (const side of [-1, 1]) {
+        for (const [ax, len] of [
+          [0, s.hx * 2 - 0.2],
+          [1, s.hz * 2 - 0.2],
+        ] as const) {
+          const count = Math.max(2, Math.ceil(len / 3));
+          for (let k = 0; k <= count; k++) {
+            const t = -len / 2 + (k * len) / count;
+            if (ax === 0) f.box(t, y + 0.55, side * (s.hz - 0.1), 0.05, 1.1, 0.05, steel);
+            else if (k > 0 && k < count)
+              f.box(side * (s.hx - 0.1), y + 0.55, t, 0.05, 1.1, 0.05, steel);
+          }
+          for (const ry of [0.55, 1.08])
+            if (ax === 0) f.box(0, y + ry, side * (s.hz - 0.1), len, 0.045, 0.045, steel);
+            else f.box(side * (s.hx - 0.1), y + ry, 0, 0.045, 0.045, len, steel);
+        }
+      }
     }
     const rear = -front;
     if (s.kind === 'block') {
@@ -1429,6 +1576,33 @@ export class Buildings {
         0.06,
         0x8b8f8f,
       );
+  }
+
+  /** Building services on one side wall (refs 012, 014, 038): a 100 mm
+   * drain and a 50 mm gas riser near the rear corner, AC condensers on
+   * brackets at about half the floors with their refrigerant lines run back
+   * to the riser, and a meter cabinet at street level. Nothing projects more
+   * than 0.32 m into the >= 1.5 m gap between buildings. */
+  private services(f: Frame, s: Structure, front: number, floors: number, floorH: number) {
+    const sx = (s.style & 2048) === 0 ? 1 : -1,
+      rear = -front,
+      x = sx * (s.hx + 0.06),
+      zr = rear * (s.hz - 0.55),
+      h = s.height;
+    f.box(x, s.base + h / 2, zr, 0.1, h, 0.1, 0x8a8b86);
+    f.box(sx * (s.hx + 0.04), s.base + h / 2, zr - rear * 0.18, 0.05, h, 0.05, 0xb8b49a);
+    for (let floor = 1; floor < floors; floor++) {
+      if (hashOf(s.style, floor, 77) % 20 >= 9) continue;
+      const y = s.base + floor * floorH + 0.25,
+        z = rear * (s.hz * (0.05 + 0.5 * ((hashOf(s.style, floor, 3) % 100) / 100)) - 0.6);
+      f.box(sx * (s.hx + 0.04), y - 0.04, z, 0.08, 0.04, 0.7, 0x5c5f60);
+      this.acUnit(f, sx * (s.hx + 0.17), y, z, 0, sx);
+      const run = Math.abs(zr - z);
+      if (run > 0.5) f.box(sx * (s.hx + 0.04), y + 0.12, (z + zr) / 2, 0.05, 0.05, run, 0xd9d7cf);
+    }
+    const zm = front * (s.hz - 1.2);
+    f.box(sx * (s.hx + 0.08), s.base + 1.75, zm, 0.16, 0.6, 0.42, 0xa3a59f);
+    f.box(sx * (s.hx + 0.08), s.base + 1.75, zm - front * 0.5, 0.16, 0.45, 0.32, 0x8f938e);
   }
 
   /** 0.8 x 0.55 x 0.29 m outdoor AC condenser with a dark fan grille,
@@ -2202,6 +2376,7 @@ export class Buildings {
   }
   update(camera: T.Camera, quality: QualityPreset) {
     this.joinery.update(camera, quality);
+    this.rich.value = quality === 'low' ? 0 : 1;
   }
   /** Surface water (0 dry .. 1 soaked) from the weather presentation. */
   setWet(wet: number) {
