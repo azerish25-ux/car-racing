@@ -1,0 +1,63 @@
+name: Motocross R3 verified helmet authoring
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/motocross-r3-authoring.yml
+      - authoring/motocross/build_helmet.py
+permissions:
+  contents: read
+jobs:
+  author:
+    runs-on: ubuntu-slim
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Prepare pinned Blender runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends libx11-6 libxxf86vm1 libxfixes3 libxi6 libxrender1 libgl1 libxkbcommon0 libsm6 libice6
+          curl --fail --location --retry 2 --max-time 240 https://download.blender.org/release/Blender5.2/blender-5.2.2-linux-x64.tar.xz -o "$RUNNER_TEMP/blender.tar.xz"
+          echo "84098912789dc450e95697c4184fb8a90acbe5111c2ba4aede3fecb57806a168  $RUNNER_TEMP/blender.tar.xz" | sha256sum --check
+          tar -xJf "$RUNNER_TEMP/blender.tar.xz" -C "$RUNNER_TEMP"
+      - name: Rebuild original native source and verify tested runtime bytes
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$RUNNER_TEMP/blender-5.2.2-linux-x64/blender" -b --factory-startup --threads 2 --python authoring/motocross/build_helmet.py
+          echo '506335197407794e3dac39cdad0d09f16f1cf4e8e49e36d8d85324ec0576bcc0  src/rendering/assets/mx-helmet.mesh.json' | sha256sum --check
+          "$RUNNER_TEMP/blender-5.2.2-linux-x64/blender" -b authoring/motocross/mx-helmet.blend --python-expr "import bpy; assert bpy.context.scene['runtime_transport_sha256'] == '506335197407794e3dac39cdad0d09f16f1cf4e8e49e36d8d85324ec0576bcc0'; assert all(any(o.get('detail') == d for o in bpy.data.objects) for d in ('high','mid','far')); assert not any(i.source == 'FILE' for i in bpy.data.images)"
+      - name: Store verified asset objects without moving any branch
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('node:fs');
+            const crypto = require('node:crypto');
+            const paths = ['src/rendering/assets/mx-helmet.mesh.json','authoring/motocross/mx-helmet.blend'];
+            const receipt = {sourceCommit: context.sha, workflowRun: context.runId, files: []};
+            for (const path of paths) {
+              const bytes = fs.readFileSync(path);
+              const sha256 = crypto.createHash('sha256').update(bytes).digest('hex');
+              const expectedBlob = crypto.createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex');
+              const {data} = await github.rest.git.createBlob({...context.repo, content: bytes.toString('base64'), encoding:'base64'});
+              if (data.sha !== expectedBlob) throw new Error(`Blob mismatch: ${path}`);
+              receipt.files.push({path, bytes:bytes.length, sha256, blob:data.sha});
+            }
+            fs.writeFileSync('motocross-r3-authoring-receipt.json', JSON.stringify(receipt,null,2)+'\n');
+            core.info(JSON.stringify(receipt));
+      - uses: actions/upload-artifact@v4
+        with:
+          name: motocross-r3-verified-helmet
+          path: |
+            src/rendering/assets/mx-helmet.mesh.json
+            authoring/motocross/mx-helmet.blend
+            motocross-r3-authoring-receipt.json
+          retention-days: 7
+          if-no-files-found: error
