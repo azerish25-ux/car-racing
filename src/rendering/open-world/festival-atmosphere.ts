@@ -4,6 +4,7 @@ import type { GradeProfile } from '../broadcast-grade.ts';
 import { lightingDirection, type LightingMode } from '../daylight.ts';
 import { aerialFogColor, aerialSunGlow, AERIAL_PERSPECTIVE } from '../studio/aerial-perspective.ts';
 import { chainShaderHook } from '../studio/shader-hooks.ts';
+import { installFestivalCloudShadow } from './festival-cloud-shadow.ts';
 import { studioUniforms } from '../studio/studio-frame.ts';
 
 /**
@@ -270,6 +271,8 @@ export class FestivalAtmosphere {
     }
     this.installed.add(material);
     this.materialCount++;
+    // Cloud shadows on the landscape's sun light (festival-cloud-shadow.ts).
+    installFestivalCloudShadow(material);
     return chainShaderHook(material, SKIP_KEY, (shader) => {
       // Only shaders with both of three's fog chunks (custom shaders without
       // them keep whatever they do).

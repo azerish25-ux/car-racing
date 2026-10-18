@@ -21,6 +21,12 @@ import * as T from 'three';
  * 0) clamp radiance to `photoCaptureClamp`, since the directional light
  * already carries the sun, and keep `photoCaptureSaturation` of its chroma
  * (renderers without the IBL colour balance of `ibl-energy.ts`).
+ * `photoClouds` (0 by default; the festival's cloud-free photos) lays the
+ * dome's baked cumulus and cirrus (sky-clouds.ts) over the photograph, lit by
+ * the same sun and sky as on the procedural dome (daylight.ts SKY_FRAGMENT).
+ * `photoTone` (chroma gain, ramp in radians, luminance gain; gains 1 by
+ * default) deepens the visible photograph's colour from its skyline upward
+ * (festival grade of the dome; captures keep the photo's own colour).
  */
 export const PHOTO_SKY_UNIFORMS = `
 uniform sampler2D photoBaseA;
@@ -34,6 +40,8 @@ uniform float photoAmount;
 uniform float photoCaptureClamp;
 uniform float photoCaptureSaturation;
 uniform vec4 photoHorizon;
+uniform float photoClouds;
+uniform vec4 photoTone;
 `;
 export const PHOTO_SKY_SAMPLE = `
 vec3 photoSkyDecode(vec4 base, float gain, vec4 photo) {
@@ -78,7 +86,17 @@ vec3 photoSky(vec3 direction, bool capture) {
   vec3 photo = photoSkySample(photoBaseA, photoGainA, photoA, direction);
   if (photoWeight > 0.0)
     photo = mix(photo, photoSkySample(photoBaseB, photoGainB, photoB, direction), photoWeight);
-  if (!capture) return photo;
+  if (!capture) {
+    if (photoTone.x != 1.0 || photoTone.z != 1.0) {
+      // Chroma about the luminance and the luminance itself, rising from the
+      // skyline over photoTone.y.
+      float skyline = mix(photoA.w, photoB.w, photoWeight);
+      float k = smoothstep(skyline, skyline + photoTone.y, asin(clamp(direction.y, -1.0, 1.0)));
+      float y = dot(photo, vec3(0.2126, 0.7152, 0.0722));
+      photo = max(mix(vec3(y), photo, mix(1.0, photoTone.x, k)), 0.0) * mix(1.0, photoTone.z, k);
+    }
+    return photo;
+  }
   photo = mix(vec3(dot(photo, vec3(0.2126, 0.7152, 0.0722))), photo, photoCaptureSaturation);
   return min(photo, vec3(photoCaptureClamp));
 }
@@ -96,6 +114,8 @@ export interface PhotoSkyUniforms {
   photoCaptureClamp: { value: number };
   photoCaptureSaturation: { value: number };
   photoHorizon: { value: T.Vector4 };
+  photoClouds: { value: number };
+  photoTone: { value: T.Vector4 };
 }
 export const PHOTO_SKY_UNIFORM_NAMES = Object.freeze([
   'photoBaseA',
@@ -108,6 +128,7 @@ export const PHOTO_SKY_UNIFORM_NAMES = Object.freeze([
   'photoAmount',
   'photoCaptureClamp',
   'photoCaptureSaturation',
+  'photoClouds',
 ] as const);
 /** Unbound: the procedural sky only. */
 export function createPhotoSkyUniforms(): PhotoSkyUniforms {
@@ -123,5 +144,7 @@ export function createPhotoSkyUniforms(): PhotoSkyUniforms {
     photoCaptureClamp: { value: 65504 },
     photoCaptureSaturation: { value: 1 },
     photoHorizon: { value: new T.Vector4(0, 0, 0, 0) },
+    photoClouds: { value: 0 },
+    photoTone: { value: new T.Vector4(1, 0.35, 1, 0) },
   };
 }
