@@ -1261,7 +1261,8 @@ export class FestivalTownLife {
         dir = Math.sign(lateral) || 1,
         x = l.x - p.nx * dir * 0.6,
         z = l.z - p.nz * dir * 0.6;
-      this.chunk(x, z).pools.add(x, z, l.radius, l.radius, 1, 0, l.color, 0.32 * l.glow, surface);
+      const r = l.radius * 0.85;
+      this.chunk(x, z).pools.add(x, z, r, r, 1, 0, l.color, 0.24 * l.glow, surface);
       this.stats.pools++;
     }
     this.structures.forEach((s, i) => {
