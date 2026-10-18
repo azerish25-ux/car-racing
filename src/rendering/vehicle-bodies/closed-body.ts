@@ -141,6 +141,10 @@ export class ClosedBodyModel {
   topY(z: number) {
     return this.top.at(z);
   }
+  /** Roof height above the road (m): the sheet's (a festival form may lower it). */
+  roofHeight() {
+    return this.s.roof;
+  }
   /** Arch at z: the ceiling height and tub wall, or null outside the wheels. */
   arch(z: number) {
     for (const a of this.arches) {
@@ -416,13 +420,13 @@ export class Greenhouse {
   readonly roofY: number;
   protected readonly roof: Track;
   constructor(readonly model: ClosedBodyModel) {
-    const { f, s } = model;
+    const { f } = model;
     const [ws, rf, rr, rw] = model.cabinStations();
     const zWs = (this.zWs = f.z(ws)),
       zRF = (this.zRF = f.z(rf)),
       zRR = (this.zRR = f.z(rr)),
       zRW = (this.zRW = f.z(rw));
-    const roofY = (this.roofY = f.y(s.roof));
+    const roofY = (this.roofY = f.y(model.roofHeight()));
     const base = (z: number) => this.base(z);
     this.roof = new Track([
       [zRW, base(zRW) + 0.004],
@@ -845,12 +849,12 @@ export function buildClosedBody(
     parts.add(
       roundedBox(0.26, 0.09, 0.4, 0.035, seg),
       mats.paint,
-      placed(0, f.y(s.roof) + 0.035, zs),
+      placed(0, f.y(model.roofHeight()) + 0.035, zs),
     );
     parts.add(
       roundedBox(0.2, 0.05, 0.02, 0.01, 1),
       grille,
-      placed(0, f.y(s.roof) + 0.045, zs + 0.2),
+      placed(0, f.y(model.roofHeight()) + 0.045, zs + 0.2),
     );
   }
   // Mirrors on short stalks at the A-pillar base (a festival form builds its own).
@@ -908,7 +912,7 @@ export function buildClosedBody(
     const fin = new T.Shape();
     fin.moveTo(0, 0);
     fin.lineTo(z0 - z1, 0);
-    fin.lineTo(z0 - z1, f.y(s.roof) - model.topY(z1) - 0.05);
+    fin.lineTo(z0 - z1, f.y(model.roofHeight()) - model.topY(z1) - 0.05);
     fin.lineTo(0, 0.05);
     const g = new T.ExtrudeGeometry(fin, { depth: 0.012, bevelEnabled: false });
     g.rotateY(-Math.PI / 2).translate(0.006, model.topY(z1) - 0.01, z1);
@@ -926,7 +930,7 @@ export function buildClosedBody(
     parts.add(
       roundedBox(s.width * 0.6, 0.07, 0.08, 0.02, 2),
       mats.head,
-      placed(0, f.y(s.roof) + 0.06, zRF - 0.05),
+      placed(0, f.y(model.roofHeight()) + 0.06, zRF - 0.05),
     );
   if (s.extras.includes('bullbar') && detail < 2) {
     const zb = model.zFront + 0.04,
@@ -954,7 +958,7 @@ export function buildClosedBody(
         [
           [x, f.y(s.belt), zs + 0.1],
           [x - 0.02, f.y(s.cowl + 0.1), zs + 0.05],
-          [x + 0.06, f.y(s.roof + 0.04), zs - 0.15],
+          [x + 0.06, f.y(model.roofHeight() + 0.04), zs - 0.15],
         ],
         0.045,
         14,
@@ -981,7 +985,7 @@ export function buildClosedBody(
   if (s.extras.includes('cage') && s.style === 'truck' && detail < 2) {
     // Exposed bed cage: tubes from the cab roof to the tail, shock towers.
     const steel = sharedMaterials.steel(),
-      y1 = f.y(s.roof) - 0.04,
+      y1 = f.y(model.roofHeight()) - 0.04,
       zt = model.zRear + 0.12,
       yt = model.topY(zt) + 0.32;
     for (const side of [-1, 1]) {
@@ -1039,7 +1043,7 @@ export function buildClosedBody(
   if (s.extras.includes('cage') && detail === 0 && !openCockpit && s.style !== 'truck' && !cabin) {
     // Roll cage visible through the glass (a cabin builds the full cage).
     const y0 = model.topY(zRR) - 0.05,
-      y1 = f.y(s.roof) - 0.07;
+      y1 = f.y(model.roofHeight()) - 0.07;
     for (const side of [-1, 1]) {
       const x0 = side * hw(zRR) * 0.62,
         x1 = side * hw(zRR) * s.roofWidth * 0.85;
@@ -1183,7 +1187,8 @@ function extraFurniture(
           );
     }
   }
-  if (has('canards') && detail < 2)
+  // A festival form fits its own dive planes to its nose (festival-hardware.ts).
+  if (has('canards') && detail < 2 && !model.festival)
     for (const side of [-1, 1])
       for (const [dz, dy] of [
         [0.18, 0.04],

@@ -35,7 +35,14 @@ import {
 import { cabinShiftLights, cabinReadout } from '../src/rendering/vehicle-bodies/cabin-display.ts';
 import { COCKPIT_FOV } from '../src/rendering/options.ts';
 import { bodyFrame } from '../src/rendering/vehicle-bodies/frame.ts';
-import { festivalFormFor } from '../src/rendering/vehicle-bodies/festival-form.ts';
+import {
+  festivalCabinFor,
+  festivalFormFor,
+} from '../src/rendering/vehicle-bodies/festival-form.ts';
+/** The layout a variant is built with: a festival form carries its cabin
+ * under its lowered roof. */
+const layoutOf = (def: VehicleDefinition, label: string) =>
+  label.endsWith('(festival form)') ? festivalCabinFor(def)! : cabinFor(def)!;
 
 type Body = ReturnType<typeof buildVehicleBody>;
 const catalogue = Object.values(VEHICLES).filter((d) => bodySheetFor(d));
@@ -224,7 +231,7 @@ describe('cars loose ends: per-vehicle cabins', () => {
   it('derives a cockpit eye inside every catalogue cabin, clear of the near plane', () => {
     expect(catalogue.length).toBeGreaterThanOrEqual(40);
     for (const { def, label, make } of variants) {
-      const layout = cabinFor(def)!,
+      const layout = layoutOf(def, label),
         b = make(),
         root = b.lods[0].group;
       expect(layout, label).not.toBeNull();
@@ -271,7 +278,7 @@ describe('cars loose ends: per-vehicle cabins', () => {
   });
   it('mounts the onboard camera by family and sets lenses per class', () => {
     for (const { def, label, make } of variants) {
-      const layout = cabinFor(def)!;
+      const layout = layoutOf(def, label);
       const roofed = layout.family === 'closed';
       const kind =
         layout.family === 'open-wheel'
@@ -338,7 +345,7 @@ describe('cars loose ends: per-vehicle cabins', () => {
     // and a no-airbox single-seater's inside the headrest bulkhead.
     const L = CABIN_MOTION_LIMIT;
     for (const { def, label, make } of variants) {
-      const layout = cabinFor(def)!,
+      const layout = layoutOf(def, label),
         b = make(),
         root = b.lods[0].group,
         cabin = b.lods[0].cabin!;

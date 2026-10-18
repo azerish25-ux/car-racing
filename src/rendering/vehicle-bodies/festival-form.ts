@@ -1,15 +1,25 @@
 import * as T from 'three';
 import { clamp, smooth } from '../../core/math.ts';
 import type { VehicleDefinition } from '../../simulation/vehicles.ts';
-import type { ClosedSheet, WingSheet } from './body-sheet.ts';
+import { bodySheetFor, type ClosedSheet, type WingSheet } from './body-sheet.ts';
+import { cabinLayout } from './cabin.ts';
 import { ClosedBodyModel, Greenhouse, M } from './closed-body.ts';
 import type { BuiltLod, CarMaterials } from './common.ts';
 import type { BodyFrame } from './frame.ts';
 import { insetProfile, roundedBox, sampleProfile, Track, type Pt, type Ring } from './loft.ts';
 import { endBand, festivalFasciaOpenings } from './festival-detail.ts';
+import { addFestivalHardware } from './festival-hardware.ts';
 import { sharedMaterials, type PanelGap } from './materials.ts';
 import { Parts, placed } from './parts.ts';
 import type { Detail } from './wheel.ts';
+import {
+  displaceSection,
+  mergeStations,
+  onRecessFloor,
+  recessAt,
+  recessStations,
+  type Recess,
+} from './festival-sculpt.ts';
 
 /** Festival road-car form (open-world only: FestivalCars builds its bodies
  * with `{ festival: true }`; the circuit catalogue keeps the plain lofts).
@@ -90,7 +100,32 @@ export interface FestivalForm {
   /** Station (fraction of the wheelbase) where the side glass ends; behind it
    * a body-colour C-pillar (absent: the sheet's rear window base decides). */
   dlo?: number;
+  /** Proportions over the sheet (refs 017, 019, 037, 097, 098): the roof
+   * lowered (m), the glass base raised along the cabin (m) for a slimmer
+   * glass band, and extra rear-haunch half width (m). */
+  roofDrop: number;
+  beltRise: number;
+  haunch: number;
+  /** Concave surfacing (festival-sculpt.ts): a side scoop ahead of each rear
+   * wheel (depth m; cars whose sheet has a side intake; refs 013, 090, 097)
+   * and a vertical gill behind each front wheel (depth m; refs 011, 014,
+   * 019, 037). 0: none. */
+  scoop: number;
+  gill: number;
+  /** Rear exhaust layout of a sheet with rear exhausts (festival-hardware.ts;
+   * refs 018, 035, 053, 069, 099). */
+  exhaust?: 'quad' | 'twin' | 'centre';
+  /** A hooked end on each side of a full-width LED tail bar (refs 018, 035). */
+  tailHook?: boolean;
+  /** A third hood vent ahead of the twin vents (ref 019). */
+  centreVent?: boolean;
+  /** Competition dress: a red tow hook and carbon dive planes (refs 001,
+   * 009, 045, 066, 074). */
+  towHook?: boolean;
+  canards?: boolean;
 }
+/** Competition classes carry a tow hook and dive planes. */
+const COMPETITION = new Set(['gt', 'gt-sport', 'touring', 'club']);
 const STYLE_FORMS: Record<ClosedSheet['style'], FestivalForm> = {
   supercar: {
     sill: 0.78,
@@ -122,6 +157,11 @@ const STYLE_FORMS: Record<ClosedSheet['style'], FestivalForm> = {
     bPillar: 'black',
     roofTaper: 0.14,
     bed: null,
+    roofDrop: 0.03,
+    beltRise: 0.03,
+    haunch: 0.035,
+    scoop: 0.075,
+    gill: 0.02,
   },
   gt: {
     sill: 0.8,
@@ -153,6 +193,11 @@ const STYLE_FORMS: Record<ClosedSheet['style'], FestivalForm> = {
     bPillar: 'black',
     roofTaper: 0.1,
     bed: null,
+    roofDrop: 0.03,
+    beltRise: 0.035,
+    haunch: 0.02,
+    scoop: 0.065,
+    gill: 0.018,
   },
   roadster: {
     sill: 0.8,
@@ -184,6 +229,11 @@ const STYLE_FORMS: Record<ClosedSheet['style'], FestivalForm> = {
     bPillar: 'black',
     roofTaper: 0.06,
     bed: null,
+    roofDrop: 0,
+    beltRise: 0,
+    haunch: 0.015,
+    scoop: 0,
+    gill: 0,
   },
   saloon: {
     sill: 0.86,
@@ -215,6 +265,11 @@ const STYLE_FORMS: Record<ClosedSheet['style'], FestivalForm> = {
     bPillar: 'black',
     roofTaper: 0.05,
     bed: null,
+    roofDrop: 0.035,
+    beltRise: 0.04,
+    haunch: 0.01,
+    scoop: 0,
+    gill: 0,
   },
   truck: {
     sill: 0.9,
@@ -246,6 +301,11 @@ const STYLE_FORMS: Record<ClosedSheet['style'], FestivalForm> = {
     bPillar: 'black',
     roofTaper: 0.03,
     bed: { floor: 0.82, rail: 0.075 },
+    roofDrop: 0,
+    beltRise: 0,
+    haunch: 0,
+    scoop: 0,
+    gill: 0,
   },
   rally: null as unknown as FestivalForm,
   prototype: null as unknown as FestivalForm,
@@ -262,6 +322,8 @@ const CAR_FORMS: Readonly<Record<string, Partial<FestivalForm>>> = {
     bonnet: 0.79,
     noseBar: true,
     cornerVents: true,
+    scoop: 0.085,
+    tailHook: true,
   },
   // Mid-engined wedge: sharp, flat engine deck between rear crests (refs 014, 092).
   sc7: {
@@ -272,9 +334,21 @@ const CAR_FORMS: Readonly<Record<string, Partial<FestivalForm>>> = {
     crown: 0.008,
     bonnet: 0.76,
     cornerVents: true,
+    scoop: 0.08,
+    exhaust: 'centre',
+    tailHook: true,
+    centreVent: true,
   },
   // Long-hood luxury GT, fastback with set-back cabin (refs 018, 019, 093).
-  lx12: { noseWidth: 0.62, noseWrap: 0.55, fender: [0.045, 0.075], noseBar: true },
+  lx12: {
+    noseWidth: 0.62,
+    noseWrap: 0.55,
+    fender: [0.045, 0.075],
+    noseBar: true,
+    exhaust: 'quad',
+    tailHook: true,
+    centreVent: true,
+  },
   // Front-engined muscle coupe: blunt, wide grille face, flat hood (ref 063 stance).
   rm8: {
     noseWidth: 0.76,
@@ -283,6 +357,7 @@ const CAR_FORMS: Readonly<Record<string, Partial<FestivalForm>>> = {
     fender: [0.03, 0.06],
     hoodEdge: 0.74,
     lampFace: true,
+    gill: 0,
   },
   // 1960s GT: rounded nose, soft crowned fenders, chrome-era body-colour sills (ref 012).
   rg63: {
@@ -296,10 +371,12 @@ const CAR_FORMS: Readonly<Record<string, Partial<FestivalForm>>> = {
     aPillar: 'paint',
     bPillar: 'paint',
     roofTaper: 0.08,
+    gill: 0,
+    haunch: 0.01,
   },
   rd2: { noseWidth: 0.62, fender: [0.045, 0.055] },
   // Sports saloon and hot hatch: crisp shoulders, black skirts (refs 011, 091, 096).
-  rs5: { fender: [0.025, 0.03], rockerDark: true, cornerVents: true },
+  rs5: { fender: [0.025, 0.03], rockerDark: true, cornerVents: true, exhaust: 'quad' },
   // The hatch glass runs down to a short deck above a compact tail.
   rh3: {
     noseWidth: 0.7,
@@ -311,9 +388,17 @@ const CAR_FORMS: Readonly<Record<string, Partial<FestivalForm>>> = {
     roofEnd: 0.9,
     dlo: 0.9,
     cornerVents: true,
+    towHook: true,
   },
   // Rally-bred road saloon: wider arch flares, a deeper sill (refs 007, 061).
-  rr4: { lip: 0.016, rockerDark: true, noseWidth: 0.72, cornerVents: true, lampFace: true },
+  rr4: {
+    lip: 0.016,
+    rockerDark: true,
+    noseWidth: 0.72,
+    cornerVents: true,
+    lampFace: true,
+    towHook: true,
+  },
   // Full-size pickup: tall flat hood ending in an upright grille face (ref 063).
   rp6: {
     hoodEdge: 0.88,
@@ -333,15 +418,32 @@ export function festivalFormFor(def: VehicleDefinition, sheet: ClosedSheet): Fes
   if (!FORM_CLASSES.has(String(def.classId)) || sheet.open) return null;
   const base = STYLE_FORMS[sheet.style];
   if (!base) return null;
-  return Object.freeze({ ...base, ...CAR_FORMS[def.id] });
+  const race = COMPETITION.has(String(def.classId));
+  return Object.freeze({
+    ...base,
+    exhaust: 'twin' as const,
+    towHook: race,
+    canards: race && sheet.splitter >= 0.05,
+    ...CAR_FORMS[def.id],
+  });
+}
+/** The cabin a festival build carries (under its lowered roof); the sheet's
+ * cabin for a car without a form. */
+export function festivalCabinFor(def: VehicleDefinition) {
+  const sheet = bodySheetFor(def);
+  if (!sheet) return null;
+  const form = sheet.kind === 'closed' ? festivalFormFor(def, sheet) : null;
+  return cabinLayout(def, sheet, form?.roofDrop ?? 0);
 }
 
 /** Section feature points (see FestivalBodyModel.control) and their creases. */
 const CREASES = [1, 3, 4, 6, 8] as const;
 const C = { shoulder: 6, edge: 8, inner: 9 } as const;
+// The door (door bottom to shoulder) carries the scoops and gills: about
+// 4.5 cm between samples on the near LOD.
 const COUNTS: Record<Detail, readonly number[]> = {
-  0: [1, 1, 1, 1, 2, 3, 3, 2, 3, 3],
-  1: [1, 1, 1, 1, 1, 2, 2, 1, 2, 2],
+  0: [1, 1, 1, 1, 4, 4, 3, 2, 3, 3],
+  1: [1, 1, 1, 1, 2, 2, 2, 1, 2, 2],
   2: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
 };
 const STEP: Record<Detail, readonly [number, number]> = {
@@ -436,6 +538,10 @@ export class FestivalBodyModel extends ClosedBodyModel {
   private readonly tailWrap: number;
   /** Ducktail / lip height at the deck's trailing edge (m). */
   private readonly duck: number;
+  /** Scoops, gills and shut-line grooves (festival-sculpt.ts). */
+  readonly recesses: Recess[] = [];
+  /** The last section `slot` evaluated (one station's faces share it). */
+  private slotRing: { z: number; detail: Detail; half: readonly Pt[] } | null = null;
   constructor(
     f: BodyFrame,
     s: ClosedSheet,
@@ -477,12 +583,21 @@ export class FestivalBodyModel extends ClosedBodyModel {
           [zR + tr * 0.35, y(tail - tr * 0.4)],
           [zR + tr * 1.2, y(tail)],
         ];
+    // A closed form raises its glass base along the cabin (a slimmer glass
+    // band, refs 019, 037): it climbs from the windscreen foot within 0.3 m.
+    const rise = open ? 0 : fm.beltRise,
+      mid = (z(rw) + z(ws)) / 2,
+      shoulderKey: [number, number][] =
+        rise > 0 && z(ws) - 0.3 > mid + 0.1
+          ? [[z(ws) - 0.3, y(s.cowl + (cockpit + rise - s.cowl) * 0.85)]]
+          : [];
     this.ftop = new Track(
       [
         ...back,
         [Math.min(z(rw), zR + 0.32), y(deck)],
-        [z(rw) + 0.02, y(open ? cockpit : deck)],
-        [(z(rw) + z(ws)) / 2, y(cockpit)],
+        [z(rw) + 0.02, y(open ? cockpit : deck + rise * 0.6)],
+        [mid, y(cockpit + rise)],
+        ...shoulderKey,
         [z(ws) - 0.02, y(open ? cockpit : s.cowl)],
         [Math.max(z(ws) + 0.05, (z(ws) + f.frontAxle) / 2), y((s.cowl + bonnet) / 2)],
         [f.frontAxle, y(bonnet)],
@@ -516,6 +631,67 @@ export class FestivalBodyModel extends ClosedBodyModel {
       [zF - noseWrap * 0.12, nw + (1 - nw) * 0.45],
       [zF, nw],
     ]);
+    this.recesses.push(...this.sculpt());
+  }
+  /** The form's recesses: a scoop from the rear door shut line to the rear
+   * wheel opening, a gill between the front wheel opening and the front door
+   * shut line, and a groove along each door shut line (near LOD). */
+  private sculpt(): Recess[] {
+    const f = this.f,
+      s = this.s,
+      fm = this.form,
+      out: Recess[] = [];
+    const [, rf, rr] = s.cabin,
+      [front, rear] = this.arches;
+    const band = (z: number) => {
+      const c = this.control(z);
+      return { sill: c[3][1], shoulder: c[C.shoulder][1] };
+    };
+    if (fm.scoop > 0 && s.sideIntake) {
+      const lip = Math.max(f.rearAxle + f.radius + 0.12, f.z((rf + rr) / 2 + 0.12)) - 0.004,
+        end = rear.z + rear.r + 0.03,
+        { sill, shoulder } = band(lip);
+      if (lip - end > 0.25 && shoulder - sill > 0.25)
+        out.push({
+          kind: 'scoop',
+          front: lip,
+          rear: end,
+          lo: sill + 0.035,
+          hi: shoulder - 0.04,
+          depth: fm.scoop,
+          soft: 0.035,
+        });
+    }
+    if (fm.gill > 0) {
+      const lip = front.z - front.r - 0.02,
+        { sill, shoulder } = band(lip);
+      if (shoulder - sill > 0.25)
+        out.push({
+          kind: 'gill',
+          front: lip,
+          rear: lip - 0.042,
+          lo: sill + 0.09,
+          hi: shoulder - 0.07,
+          depth: fm.gill,
+          soft: 0.02,
+        });
+    }
+    // Door shut lines (a pickup's cab/bed gap stays the wide shader line).
+    for (const gap of this.gaps())
+      if (gap.n[2] === 1 && gap.min[0] > 0 && gap.min[1] > f.y(s.floor + 0.1))
+        out.push({
+          kind: 'groove',
+          front: gap.d,
+          rear: gap.d,
+          lo: gap.min[1],
+          hi: gap.max[1],
+          depth: 0.0028,
+          soft: 0,
+        });
+    return out;
+  }
+  override roofHeight() {
+    return this.s.roof - (this.s.style === 'roadster' || this.s.open ? 0 : this.form.roofDrop);
   }
   override get festival() {
     return true;
@@ -638,10 +814,12 @@ export class FestivalBodyModel extends ClosedBodyModel {
   }
   override halfWidth(z: number) {
     let hw = this.halfBase * this.ftaper.at(z);
-    for (const a of this.arches) {
-      const u = (z - a.z) / (a.r * 1.55);
-      if (Math.abs(u) < 1) hw += a.flare * Math.cos((u * Math.PI) / 2) ** 2;
-    }
+    this.arches.forEach((a, i) => {
+      // The rear haunch stands wider than the sheet's flare (refs 013, 018).
+      const u = (z - a.z) / (a.r * 1.55),
+        flare = a.flare + (i === 1 ? this.form.haunch : 0);
+      if (Math.abs(u) < 1) hw += flare * Math.cos((u * Math.PI) / 2) ** 2;
+    });
     return hw;
   }
   override sillX(z: number) {
@@ -673,7 +851,8 @@ export class FestivalBodyModel extends ClosedBodyModel {
   /** The shoulder crease (at most `cap`) climbs over each arch to 7.5 cm
    * above its crown, even above a low hood (a fender ridge). */
   private shoulderY(z: number, cap: number) {
-    const base = Math.min(this.belt.at(z) + this.form.shoulder, cap);
+    // A raised glass base carries the shoulder with it (a crisp, high belt).
+    const base = Math.min(this.belt.at(z) + this.form.shoulder + this.form.beltRise * 0.8, cap);
     let lift = 0;
     for (const a of this.arches) {
       const u = (z - a.z) / (a.r * 2);
@@ -745,7 +924,17 @@ export class FestivalBodyModel extends ClosedBodyModel {
     ];
   }
   override ring(z: number, detail: Detail): Ring {
-    return { z, half: sampleCreased(this.control(z), COUNTS[detail], CREASES) };
+    const half = sampleCreased(this.control(z), COUNTS[detail], CREASES);
+    // Recesses move the side from the rocker to the hood / sill / deck edge.
+    if (this.recesses.length)
+      displaceSection(
+        this.recesses,
+        z,
+        half,
+        LAYOUT[detail].first[2],
+        LAYOUT[detail].first[C.edge] + 1,
+      );
+    return { z, half };
   }
   override profile(z: number): readonly Pt[] {
     return this.ring(z, 0).half;
@@ -785,7 +974,24 @@ export class FestivalBodyModel extends ClosedBodyModel {
     out.push(this.zFront);
     for (const a of this.arches)
       for (const e of [a.z - a.r, a.z + a.r]) out.push(e - 0.0015, e + 0.0015);
-    return out.sort((p, q) => p - q).filter((z, i, all) => i === 0 || z - all[i - 1] > 0.0008);
+    return mergeStations(
+      out.sort((p, q) => p - q).filter((z, i, all) => i === 0 || z - all[i - 1] > 0.0008),
+      recessStations(this.recesses, detail),
+    );
+  }
+  /** Whether face j at zMid lies in the deep, dark pocket of a scoop or
+   * gill (behind its lip, more than half its depth in). */
+  private pocket(zMid: number, j: number, detail: Detail) {
+    const r = this.recesses.find((q) => onRecessFloor(q, zMid));
+    if (!r) return false;
+    if (this.slotRing?.z !== zMid || this.slotRing.detail !== detail)
+      this.slotRing = { z: zMid, detail, half: this.ring(zMid, detail).half };
+    const half = this.slotRing.half,
+      y = (half[j][1] + half[j + 1][1]) / 2;
+    // A scoop's dark throat lies under its lip (refs 013, 090); its floor
+    // behind runs out in paint to the haunch.
+    if (r.kind === 'scoop' && zMid < r.front - 0.13) return false;
+    return recessAt(r, zMid, y) > r.depth * 0.5;
   }
   override slot(zMid: number, j: number, detail: Detail) {
     const seg = LAYOUT[detail].segment[j];
@@ -796,6 +1002,7 @@ export class FestivalBodyModel extends ClosedBodyModel {
     if (seg === 1) return arch ? M.liner : M.floor;
     if (seg === 2) return arch || fm.rockerDark || fm.cladding ? M.liner : M.paint;
     if (seg === 3) return (arch ? fm.cladding : fm.rockerDark || fm.cladding) ? M.liner : M.paint;
+    if (seg < 7 && !arch && this.pocket(zMid, j, detail)) return M.liner;
     const [ws, , , rw] = this.s.cabin;
     if (seg >= 8) {
       if (this.s.style === 'roadster' && zMid < this.f.z(ws) && zMid > this.f.z(rw))
@@ -930,6 +1137,7 @@ export class FestivalBodyModel extends ClosedBodyModel {
     }
     if (this.s.splitter > 0) addSplitter(this, detail, lod);
     if (this.s.wing?.kind === 'roof' && gh) addRoofSpoiler(this, gh, mats, detail, lod);
+    addFestivalHardware(parts, this, mats, detail, lod, gh);
   }
 }
 
