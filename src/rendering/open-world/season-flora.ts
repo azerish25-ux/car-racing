@@ -118,8 +118,10 @@ vec3 owLeafSeason(vec3 base, float lumRef) {
 /** Snow lying on upward-facing foliage (\`up\`: normal . world up): caps
  * and ledges, the crown underneath stays dark (003, 064). */
 vec3 owLeafSnow(vec3 c, float up, vec2 band) {
-  float hold = owDeciduous(vOwTree.x) ? 0.25 : 0.85;
-  float snow = owSnowCover * hold * smoothstep(band.x, band.y, up + 0.7 * (owLeafNoise(23.0) - 0.5));
+  float hold = owDeciduous(vOwTree.x) ? 0.25 : 0.7;
+  // Per painted leaf / needle spray (its flat texel colour), not per UV cell.
+  float n = fract(dot(owTexel, vec3(613.0, 1361.0, 307.0)) * 0.618 + vOwTree.y);
+  float snow = owSnowCover * hold * smoothstep(band.x, band.y, up + 0.7 * (n - 0.5));
   return mix(c, vec3(0.8, 0.82, 0.86), snow);
 }
 `;
