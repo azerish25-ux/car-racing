@@ -66,7 +66,7 @@ export interface FestivalForm {
   lip: number;
   cladding: boolean;
   /** Roof and pillar finishes; roof plan taper toward the rear window. */
-  roof: 'paint' | 'black';
+  roof: 'paint' | 'black' | 'carbon';
   aPillar: 'paint' | 'black';
   bPillar: 'paint' | 'black';
   roofTaper: number;
@@ -323,6 +323,8 @@ const CAR_FORMS: Readonly<Record<string, Partial<FestivalForm>>> = {
     noseBar: true,
     cornerVents: true,
     scoop: 0.085,
+    // Carbon canopy roof (refs 001, 013, 074).
+    roof: 'carbon',
     tailHook: true,
   },
   // Mid-engined wedge: sharp, flat engine deck between rear crests (refs 014, 092).
@@ -375,6 +377,8 @@ const CAR_FORMS: Readonly<Record<string, Partial<FestivalForm>>> = {
     haunch: 0.01,
   },
   rd2: { noseWidth: 0.62, fender: [0.045, 0.055] },
+  // Mid-engined GT racer: carbon canopy roof (refs 001, 066).
+  gt10m: { roof: 'carbon' },
   // Sports saloon and hot hatch: crisp shoulders, black skirts (refs 011, 091, 096).
   rs5: { fender: [0.025, 0.03], rockerDark: true, cornerVents: true, exhaust: 'quad' },
   // The hatch glass runs down to a short deck above a compact tail.
@@ -1000,8 +1004,13 @@ export class FestivalBodyModel extends ClosedBodyModel {
       arch = !!this.arch(zMid);
     if (seg === 0) return M.floor;
     if (seg === 1) return arch ? M.liner : M.floor;
-    if (seg === 2) return arch || fm.rockerDark || fm.cladding ? M.liner : M.paint;
-    if (seg === 3) return (arch ? fm.cladding : fm.rockerDark || fm.cladding) ? M.liner : M.paint;
+    // A supercar's dark sills are carbon (refs 013, 014, 090): the floor's satin weave.
+    const sill = this.s.style === 'supercar' ? M.floor : M.liner;
+    if (seg === 2) return arch || fm.cladding ? M.liner : fm.rockerDark ? sill : M.paint;
+    if (seg === 3) {
+      if (fm.cladding) return M.liner;
+      return !arch && fm.rockerDark ? sill : M.paint;
+    }
     if (seg < 7 && !arch && this.pocket(zMid, j, detail)) return M.liner;
     const [ws, , , rw] = this.s.cabin;
     if (seg >= 8) {
@@ -1018,7 +1027,7 @@ export class FestivalBodyModel extends ClosedBodyModel {
     return new FestivalGreenhouse(this);
   }
   override greenhouseMaterials(paint: T.Material, glass: T.Material): T.Material[] {
-    return [paint, glass, sharedMaterials.trim(), festivalGlossBlack()];
+    return [paint, glass, sharedMaterials.trim(), festivalGlossBlack(), sharedMaterials.carbon()];
   }
   override mirrorAt(side: number): readonly [number, number, number] {
     const zm = this.zWs - 0.17,
@@ -1361,10 +1370,10 @@ export class FestivalGreenhouse extends Greenhouse {
       pillarB = (zRF + zRR) / 2 - 0.08,
       fastback = s.style === 'supercar' || s.style === 'gt',
       quarter = fm.dlo !== undefined ? m.f.z(fm.dlo) : zRR - (zRR - zRW) * 0.4;
-    // 0 paint, 1 glass, 2 trim, 3 gloss black.
+    // 0 paint, 1 glass, 2 trim, 3 gloss black, 4 carbon.
     const a = fm.aPillar === 'black' ? 3 : 0,
       bp = fm.bPillar === 'black' ? 3 : 0,
-      roof = fm.roof === 'black' ? 3 : 0;
+      roof = fm.roof === 'black' ? 3 : fm.roof === 'carbon' ? 4 : 0;
     return (zMid: number, j: number) => {
       if (segment[j] < 0) return -1;
       const side = j < glassTop,
