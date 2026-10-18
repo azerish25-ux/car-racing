@@ -33,12 +33,15 @@ import { trackPoint, type Track } from '../track.ts';
 import type { Vehicle } from '../vehicle.ts';
 import { vehicleIndex, VEHICLES } from '../vehicles.ts';
 import { AmbientTraffic } from './ambient-traffic.ts';
+import { DRAG, dragLanes, DragTimer, dragTree, type DragTree } from './drag.ts';
 import { NearMissDetector } from './near-miss.ts';
 import {
   DriftMeter,
   isRace,
   resolveEvents,
   starsFor,
+  type DragSlip,
+  type DriftSnapshot,
   type FestivalEvent,
   type FestivalResult,
   type Participant,
@@ -62,6 +65,15 @@ import {
 import { SOLVANE, SPEED_CLASS_KMH, type RegionDefinition } from './region-data.ts';
 import { RouteDriver, type RouteObstacle } from './route-driver.ts';
 import { pathPoint, planRoute, RoutePath } from './route-path.ts';
+import {
+  captureCar,
+  CAR_RECORD,
+  poseCar,
+  REWIND,
+  RewindBuffer,
+  type RewindFrame,
+  type RunRecord,
+} from './rewind.ts';
 import {
   FestivalSkillChain,
   type FestivalSkillSample,
@@ -106,7 +118,9 @@ export type FestivalCommand =
   | { type: 'autopilot'; value: boolean }
   | { type: 'vehicle'; id: string }
   | { type: 'travel'; event: string }
-  | { type: 'traffic'; value: boolean };
+  | { type: 'traffic'; value: boolean }
+  /** Hold to rewind (true), release to resume from there (false). */
+  | { type: 'rewind'; active: boolean };
 export interface FestivalCard {
   id: string;
   name: string;
@@ -139,6 +153,16 @@ export interface FestivalStatus {
     live: { label: string; value: string } | null;
     /** Next checkpoint position (world) for the guidance arrow/marker. */
     gate: { x: number; z: number } | null;
+    /** Rewinds used in this run so far. */
+    rewinds: number;
+    /** Drag strip: the tree's simulation times, each lane's roll-out time
+     * (lamps are sequenced from the frame clock) and the player's slip. */
+    drag: {
+      tree: DragTree;
+      lane: number;
+      lanes: { lane: number; leftAt: number | null }[];
+      slip: DragSlip | null;
+    } | null;
   } | null;
   result: FestivalResult | null;
   discovered: string[];
@@ -150,6 +174,10 @@ export interface FestivalStatus {
   traffic: { enabled: boolean; cars: number };
   /** Manual driving skill chains; separate from event/career rewards. */
   skills: FestivalSkillStatus;
+  /** Rewind: held now, seconds of history behind the car, seconds rewound
+   * in the current hold, whether it may be used here and rewinds used in
+   * this free-roam session. */
+  rewind?: { active: boolean; allowed: boolean; available: number; back: number; count: number };
 }
 interface Run {
   event: FestivalEvent;
@@ -167,12 +195,27 @@ interface Run {
   /** Actual route station at activation. Rolling zones retain the player's
    * run-up, and measure only the distance covered after they start timing. */
   entryDistance: number;
+  /** Rewinds used in this run. */
+  rewinds: number;
+  /** Drag strip: tree, lanes, per-car timers and AI reaction times. */
+  drag: {
+    tree: DragTree;
+    lanes: number[];
+    offsets: number[];
+    timers: DragTimer[];
+    reaction: number[];
+  } | null;
+  /** Touge: each participant's legal distance against event time (s from
+   * the start), for the live gap and the finishing margin. */
+  traces: { d: number[]; t: number[] }[] | null;
 }
 const SPAWN = { x: 560, z: -2602, heading: Math.PI / 2 };
 /** Event reset: route search window around the legal progress (m, well
  * inside RouteProgress's 60 m maxStep) and the most it may place a car
  * ahead of that progress. */
 const RESET_WINDOW = 30;
+/** Touge grid: both cars side by side this far down the route (m). */
+const TOUGE_GRID = 4;
 const RESET_AHEAD = 8;
 
 /**
@@ -245,6 +288,11 @@ export class OpenWorldSimulation {
   };
   /** Seconds a riderless motorcycle has been down (bounded fallback reset). */
   private riderDown = 0;
+  /** Rewind history and the scrub in progress (simulation time shown). */
+  readonly rewindBuffer = new RewindBuffer();
+  private rewinding: { cursor: number; from: number } | null = null;
+  /** Rewinds used in free roam this session (runs count their own). */
+  private rewindsRoam = 0;
   constructor(readonly options: FreeRoamOptions = {}) {
     this.world = openWorld(options.region ?? SOLVANE);
     this.track = new OpenWorldTrack(
@@ -319,6 +367,19 @@ export class OpenWorldSimulation {
       p.y + 0.5,
     );
   }
+  /** Stage a car on a drag strip: front bumper on the start line (the
+   * route start), `lateral` across in its lane, facing along the strip. */
+  private stage(car: Vehicle, path: RoutePath, lateral: number) {
+    const p = path.at(0, this.pp),
+      back = car.definition.halfExtents[2];
+    this.placeAt(
+      car,
+      p.x - p.tx * back + p.nx * lateral,
+      p.z - p.tz * back + p.nz * lateral,
+      Math.atan2(p.tx, p.tz),
+      p.y + 0.5,
+    );
+  }
   /** Fresh car (repairs damage) at the nearest road, aligned with travel. */
   resetToRoad(index = 0, reason = 'Reset to the road') {
     const old = this.cars[index],
@@ -343,10 +404,10 @@ export class OpenWorldSimulation {
       if (path.closed)
         ahead = (((ahead % path.length) + path.length * 1.5) % path.length) - path.length / 2;
       const d = ahead > RESET_AHEAD ? legal + RESET_AHEAD : found;
-      this.placeOnPath(fresh, path, d, 0);
+      this.placeOnPath(fresh, path, d, run.drag?.offsets[slot] ?? 0);
       const driver = run.drivers[slot];
       if (driver) {
-        run.drivers[slot] = new RouteDriver(fresh, path, driver.skill);
+        run.drivers[slot] = driverLike(driver, fresh);
         run.drivers[slot]!.relocate(d);
       }
     } else {
@@ -372,6 +433,9 @@ export class OpenWorldSimulation {
     }
     if (index === 0 && this.autopilotDriver) this.autopilotDriver = null;
     if (index === 0) {
+      // A reset is a new car: nothing before it can be rewound to.
+      this.rewindBuffer.clear();
+      this.rewinding = null;
       this.skills.reset();
       run?.drift?.invalidate(this.time);
       this.parked = true;
@@ -423,6 +487,8 @@ export class OpenWorldSimulation {
         break;
       case 'autopilot':
         this.autopilot = !!cmd.value;
+        this.rewindBuffer.clear();
+        this.rewinding = null;
         if (this.autopilot) this.skills.reset('AUTOPILOT · PRACTICE');
         this.autopilotDriver = null;
         if (!this.autopilot) Object.assign(this.player.input, controls());
@@ -432,6 +498,8 @@ export class OpenWorldSimulation {
           throw new Error(`Vehicle ${cmd.id} cannot run in the festival`);
         if (this.run) this.abandon();
         this.skills.reset();
+        this.rewindBuffer.clear();
+        this.rewinding = null;
         const old = this.player,
           fresh = this.makeCar(0, cmd.id),
           q = old.body.orientation;
@@ -449,6 +517,8 @@ export class OpenWorldSimulation {
         if (!this.discovered.has(event.spec.id)) throw new Error('Travel needs a discovered event');
         if (this.run) this.abandon();
         this.skills.reset();
+        this.rewindBuffer.clear();
+        this.rewinding = null;
         const fresh = this.makeCar(0, this.player.definition.id);
         this.cars[0] = fresh;
         this.placeOnPath(fresh, event.path, 0, 0);
@@ -461,6 +531,10 @@ export class OpenWorldSimulation {
         this.trafficEnabled = !!cmd.value;
         if (!this.trafficEnabled) this.traffic.clear();
         this.say(this.trafficEnabled ? 'Traffic on' : 'Traffic off');
+        break;
+      case 'rewind':
+        if (cmd.active) this.beginRewind();
+        else this.endRewind();
         break;
     }
   }
@@ -496,20 +570,43 @@ export class OpenWorldSimulation {
     this.cardEvent = null;
     // Ambient traffic is off while an event runs (it returns in free roam).
     this.traffic.clear();
+    // Nothing before an event start can be rewound to.
+    this.rewindBuffer.clear();
+    this.rewinding = null;
     this.runs++;
-    const rivals = race ? Math.max(0, Math.min(7, event.spec.rivals ?? 0)) : 0;
+    const kind = event.spec.kind;
+    const rivals = race
+      ? Math.max(0, Math.min(kind === 'drag' ? DRAG.lanes - 1 : 7, event.spec.rivals ?? 0))
+      : 0;
     const ids = this.rivalVehicles(event, rivals);
     const player = keepPlayer ? existingPlayer : this.makeCar(0, existingPlayer.definition.id);
     const cars = [player, ...ids.map((id, i) => this.makeCar(i + 1, id))];
     this.cars = cars;
     // Grid: two columns on wide roads, single file on narrow ones; the
-    // player starts at the back.
+    // player starts at the back. A drag strip stages every car side by side
+    // with its front at the line, the player in a middle lane; a touge
+    // battle starts its two cars side by side (FH6 ref 048).
     const path = event.path,
       start = this.pp;
     path.at(0, start);
     const twoWide = start.halfWidth >= 4.4,
       order = [...cars.slice(1), player];
-    if (!keepPlayer)
+    const strip = kind === 'drag' ? dragLanes(cars.length) : null;
+    const lanes = strip
+      ? cars.map((_, i) => {
+          // The player takes the lane left of centre; rivals fill the rest.
+          const mine = Math.floor((strip.length - 1) / 2);
+          return strip[i === 0 ? mine : i <= mine ? i - 1 : i];
+        })
+      : null;
+    if (!keepPlayer && lanes) cars.forEach((car, i) => this.stage(car, path, lanes[i].offset));
+    else if (!keepPlayer && kind === 'touge') {
+      // 4 m down the route: the start arch (11 m) and its night flares
+      // (8.5 m, beside the towers) stand just ahead, in the chase view.
+      const column = Math.min(1.7, start.halfWidth - 1.5);
+      this.placeOnPath(player, path, TOUGE_GRID, -column);
+      cars.slice(1).forEach((car, i) => this.placeOnPath(car, path, TOUGE_GRID + i * 9, column));
+    } else if (!keepPlayer)
       order.forEach((car, slot) => {
         const row = twoWide ? Math.floor(slot / 2) : slot,
           column = twoWide ? (slot % 2 === 0 ? -1 : 1) * Math.min(2.6, start.halfWidth - 1.7) : 0;
@@ -536,13 +633,33 @@ export class OpenWorldSimulation {
       participants[0].progress.s,
     );
     const skill = (i: number) =>
-      event.spec.kind === 'showcase' ? 0.97 : 0.86 + ((i * 37 + this.seed) % 9) * 0.012;
+      kind === 'showcase'
+        ? 0.97
+        : kind === 'touge'
+          ? 0.92
+          : 0.86 + ((i * 37 + this.seed) % 9) * 0.012;
+    // Deterministic per seed and run: the tree's auto-start delay and each
+    // AI lane's reaction (0.11-0.23 s).
+    const draw = (k: number) =>
+      (((this.seed * 7919 + this.runs * 104729 + k * 15485863) >>> 0) % 997) / 997;
+    const tree = strip ? dragTree(this.time, draw(0)) : null;
+    const drivers = cars.map((car, i) => {
+      if (i === 0) return null;
+      const driver = new RouteDriver(car, path, skill(i), lanes ? lanes[i].offset : 0);
+      // Drag lanes stay in lane, before and after their finish.
+      if (lanes) {
+        driver.overtake = false;
+        driver.keepLane = true;
+      }
+      return driver;
+    });
+    const begins = tree ? tree.green : this.time + (race ? 3 : 0);
     this.run = {
       event,
       participants,
-      drivers: cars.map((car, i) => (i === 0 ? null : new RouteDriver(car, path, skill(i)))),
-      start: this.time + (race ? 3 : 0),
-      countdown: race ? 3 : 0,
+      drivers,
+      start: begins,
+      countdown: begins - this.time,
       offRoute: 0,
       drift: event.spec.kind === 'drift-zone' ? new DriftMeter() : null,
       trapKmh: null,
@@ -550,6 +667,18 @@ export class OpenWorldSimulation {
       progressClock: 0,
       lost: 0,
       entryDistance,
+      rewinds: 0,
+      drag:
+        tree && lanes
+          ? {
+              tree,
+              lanes: lanes.map((l) => l.lane),
+              offsets: lanes.map((l) => l.offset),
+              timers: cars.map(() => new DragTimer(path.finishDistance)),
+              reaction: cars.map((_, i) => (i === 0 ? 0 : 0.11 + draw(i) * 0.12)),
+            }
+          : null,
+      traces: kind === 'touge' ? cars.map(() => ({ d: [0], t: [0] })) : null,
     };
     this.parked = false;
     this.autopilotDriver = null;
@@ -568,7 +697,12 @@ export class OpenWorldSimulation {
   }
   /** Remove rivals and return to free roam. */
   private endRun() {
-    if (this.run) this.cars = [this.player];
+    if (this.run) {
+      this.cars = [this.player];
+      // The field changed: the history no longer matches it.
+      this.rewindBuffer.clear();
+      this.rewinding = null;
+    }
     this.run = null;
     this.mode = 'free';
   }
@@ -579,11 +713,20 @@ export class OpenWorldSimulation {
     const player = run.participants[0];
     const elapsed = Math.max(0, (player.finishTime ?? this.time) - run.start);
     const drift = run.drift?.finish(this.time) ?? null;
+    // Drag: the player's timing slip; leaving before green is a red light,
+    // a disqualification (last place, no result).
+    const slip = run.drag ? run.drag.timers[0].slip(run.drag.lanes[0], run.drag.tree.green) : null;
+    if (slip?.redLight) completed = false;
     const ranking = run.participants
       .map((p, i) => ({
         p,
         i,
-        key: p.finishTime !== null ? -1e9 + p.finishTime : -p.progress.distance,
+        key:
+          i === 0 && slip?.redLight
+            ? Infinity
+            : p.finishTime !== null
+              ? -1e9 + p.finishTime
+              : -p.progress.distance,
       }))
       .sort((a, b) => a.key - b.key);
     const position = ranking.findIndex((r) => r.i === 0) + 1;
@@ -601,7 +744,12 @@ export class OpenWorldSimulation {
       position: isRace(spec.kind) ? position : null,
       entrants: run.participants.length,
       time: completed && spec.kind !== 'speed-trap' ? elapsed : null,
-      trapKmh: spec.kind === 'speed-trap' && completed ? run.trapKmh : null,
+      trapKmh:
+        spec.kind === 'speed-trap' && completed
+          ? run.trapKmh
+          : completed && slip
+            ? slip.trapKmh
+            : null,
       // The authored path includes braking run-out beyond the finish gate.
       // Crediting that un-driven tail inflated every previous zone result.
       averageKmh:
@@ -624,6 +772,9 @@ export class OpenWorldSimulation {
       })),
       at: this.time,
       assisted: run.assisted,
+      rewinds: run.rewinds,
+      margin: run.traces ? this.tougeMargin(run) : null,
+      drag: slip,
     };
     result.stars = starsFor(spec, result);
     this.results.push(result);
@@ -662,6 +813,15 @@ export class OpenWorldSimulation {
       return;
     }
     if (this.mode !== 'running') return;
+    const drag = run.drag;
+    if (
+      drag &&
+      ((drag.timers[0].leftAt === null && this.time > run.start + DRAG.noShow) ||
+        this.time > run.start + DRAG.limit)
+    ) {
+      this.finishRun(false, true);
+      return;
+    }
     // The player's ground was sampled last in step(): drift validity reads it.
     run.drift?.update(
       this.player,
@@ -675,10 +835,15 @@ export class OpenWorldSimulation {
     if (run.progressClock < 1 / 30) return;
     const step = run.progressClock;
     run.progressClock = 0;
-    for (const p of run.participants) {
+    for (const [i, p] of run.participants.entries()) {
       if (p.finishTime !== null) continue;
       const pos = p.car.body.position;
       p.progress.update({ x: pos.x, y: pos.y, z: pos.z });
+      const trace = run.traces?.[i];
+      if (trace && p.progress.distance > trace.d[trace.d.length - 1]) {
+        trace.d.push(p.progress.distance);
+        trace.t.push(this.time - run.start);
+      }
       if (!race) {
         // RouteProgress counts positive movement for race bookkeeping.
         // A zone uses net route station: reversing and re-driving the same
@@ -694,6 +859,13 @@ export class OpenWorldSimulation {
     const player = run.participants[0];
     if (player.progress.offRoute) run.offRoute += step;
     if (player.finishTime !== null) {
+      // A drag result waits briefly for the other lanes' time slips.
+      if (
+        drag &&
+        this.time < player.finishTime + DRAG.settle &&
+        run.participants.some((p) => p.finishTime === null)
+      )
+        return;
       if (event.spec.kind === 'speed-trap') run.trapKmh = this.player.speed * 3.6;
       this.finishRun(true);
       return;
@@ -762,21 +934,42 @@ export class OpenWorldSimulation {
   step(dt: number) {
     this.tick++;
     this.time += dt;
+    // Rewinding: the cars are posed from the history; nothing is integrated.
+    if (this.rewinding) {
+      this.scrub(dt);
+      return;
+    }
     const run = this.run;
     // Drivers.
     if (run) {
       const hold = this.mode === 'countdown',
+        drag = run.drag,
         traffic = this.cars.filter((_, i) => i === 0 || run.participants[i]?.finishTime === null);
       run.drivers.forEach((driver, i) => {
         const p = run.participants[i];
         if (!driver) return;
-        driver.update(dt, traffic, hold, p.finishTime !== null || this.mode === 'finished');
+        // A drag lane launches its own reaction time after green and races
+        // on to its own finish after the player's.
+        const held = hold || (!!drag && this.time < run.start + drag.reaction[i]);
+        driver.update(
+          dt,
+          traffic,
+          held,
+          p.finishTime !== null || (this.mode === 'finished' && !drag),
+        );
         if (driver.wantsReset) this.resetToRoad(i, 'Rival reset');
       });
       if (hold) {
         const input = this.player.input;
-        input.throttle = 0;
-        input.brake = 1;
+        if (drag) {
+          // Staged: the brakes hold the car while the throttle is closed
+          // (rev against them for a launch). Driving off before green is
+          // the driver's own jump start.
+          if (input.throttle < 0.05) input.brake = Math.max(input.brake, 1);
+        } else {
+          input.throttle = 0;
+          input.brake = 1;
+        }
       }
       if (this.autopilot && this.mode === 'running') {
         this.autopilotDriver ??= new RouteDriver(this.player, run.event.path, 0.9);
@@ -834,6 +1027,7 @@ export class OpenWorldSimulation {
     }
     this.track.tiles.prefetch(this.tick % 2 === 0 ? 1.2 : 0);
     // Events and discovery.
+    if (run?.drag) this.updateDrag(run);
     this.updateRun(dt);
     this.discoveryClock += dt;
     if (this.discoveryClock > 0.2) {
@@ -860,6 +1054,234 @@ export class OpenWorldSimulation {
       this.messageClock -= dt;
       if (this.messageClock <= 0) this.message = null;
     }
+    // Rewind history at a fixed interval of driving time.
+    if (this.rewindAllowed && this.rewindBuffer.due(dt))
+      this.rewindBuffer.push(this.captureFrame());
+  }
+  /** Drag strip timing: every lane's front bumper past the start line,
+   * every step (crossings are interpolated between steps). */
+  private updateDrag(run: Run) {
+    const drag = run.drag!,
+      path = run.event.path;
+    run.participants.forEach((p, i) => {
+      const car = p.car,
+        timer = drag.timers[i],
+        front = car.definition.halfExtents[2],
+        x = car.body.position.x + car.forward.x * front,
+        z = car.body.position.z + car.forward.z * front;
+      // Station along the strip (the runway bows gently: not a straight
+      // projection), searched near the last one.
+      timer.update(this.time, path.locate(x, z, Math.max(0, timer.distance), 30));
+      if (timer.finishAt !== null && p.finishTime === null) p.finishTime = timer.finishAt;
+    });
+  }
+  /** Touge: the player's margin over the rival at the player's finish (s,
+   * negative behind); the rival still running is measured from the
+   * player's own trace (how long ago the player passed the rival's place). */
+  private tougeMargin(run: Run) {
+    const me = run.participants[0],
+      rival = run.participants[1],
+      traces = run.traces;
+    if (!rival || !traces || me.finishTime === null) return null;
+    if (rival.finishTime !== null) return rival.finishTime - me.finishTime;
+    const passed = traceTime(traces[0], rival.progress.distance);
+    return passed === null ? null : me.finishTime - run.start - passed;
+  }
+  /** Touge live gap to the rival (s, positive ahead). */
+  private tougeGap(run: Run) {
+    const me = run.participants[0],
+      rival = run.participants[1],
+      traces = run.traces;
+    if (!rival || !traces) return null;
+    const now = Math.max(0, (me.finishTime ?? this.time) - run.start),
+      mine = me.progress.distance,
+      theirs = rival.progress.distance;
+    if (mine >= theirs) {
+      const t = traceTime(traces[0], theirs);
+      return t === null ? null : now - t;
+    }
+    const t = traceTime(traces[1], mine);
+    return t === null ? null : -(now - t);
+  }
+  // --- Rewind -------------------------------------------------------------
+  /** Rewind is for driving: free roam off the autopilot, and running races
+   * and skill challenges; never on the drag strip (the start is the event),
+   * in a countdown or on a result. */
+  get rewindAllowed() {
+    if (this.autopilot) return false;
+    if (this.mode === 'free' || this.mode === 'card') return true;
+    return this.mode === 'running' && !!this.run && !this.run.drag;
+  }
+  private captureFrame(): RewindFrame {
+    const run = this.run;
+    let record: RunRecord | null = null;
+    if (run)
+      record = {
+        elapsed: this.time - run.start,
+        offRoute: run.offRoute,
+        lost: run.lost,
+        progressClock: run.progressClock,
+        progress: run.participants.map((p) => ({
+          edge: p.progress.edge,
+          s: p.progress.s,
+          checkpoint: p.progress.checkpoint,
+          laps: p.progress.laps,
+          finished: p.progress.finished,
+          distance: p.progress.distance,
+          offRoute: p.progress.offRoute,
+          finish: p.finishTime === null ? null : p.finishTime - run.start,
+        })),
+        drivers: run.drivers.map((d) => (d ? d.d : null)),
+        drift: run.drift?.snapshot() ?? null,
+        traces: run.traces?.map((t) => t.d.length) ?? null,
+      };
+    return {
+      time: this.time,
+      vehicles: this.cars.map((c) => c.definition.id),
+      cars: this.cars.map((c) => captureCar(c)),
+      run: record,
+    };
+  }
+  private beginRewind() {
+    if (this.rewinding) return;
+    if (!this.rewindAllowed || this.rewindBuffer.size < 2) {
+      this.say(this.rewindAllowed ? 'Nothing to rewind yet' : 'Rewind is not available here');
+      return;
+    }
+    const newest = this.rewindBuffer.newest;
+    this.rewinding = { cursor: newest, from: newest };
+  }
+  /** One step of the scrub: back through the history at REWIND.rate,
+   * posing every car (and the event clock) at the cursor. */
+  private scrub(dt: number) {
+    const r = this.rewinding!,
+      history = this.rewindBuffer;
+    r.cursor = Math.max(history.oldest, r.cursor - dt * REWIND.rate);
+    const span = history.around(r.cursor);
+    if (!span || span.a.cars.length !== this.cars.length) {
+      this.rewinding = null;
+      return;
+    }
+    this.cars.forEach((car, i) => poseCar(car, span.a.cars[i], span.b.cars[i], span.t));
+    const run = this.run;
+    if (run && span.a.run && span.b.run)
+      run.start =
+        this.time - (span.a.run.elapsed + (span.b.run.elapsed - span.a.run.elapsed) * span.t);
+    if (this.messageClock > 0) {
+      this.messageClock -= dt;
+      if (this.messageClock <= 0) this.message = null;
+    }
+  }
+  /** Release: resume from the history frame at the cursor. */
+  private endRewind() {
+    const r = this.rewinding;
+    if (!r) return;
+    this.rewinding = null;
+    const frame = this.rewindBuffer.at(r.cursor);
+    if (!frame || frame.cars.length !== this.cars.length) return;
+    const span = r.from - frame.time;
+    this.restoreFrame(frame);
+    // The restored instant is now: the history before it stays usable.
+    this.rewindBuffer.truncate(frame.time);
+    this.rewindBuffer.shift(this.time - frame.time);
+    if (this.run) this.run.rewinds++;
+    else this.rewindsRoam++;
+    this.say(`Rewound ${span.toFixed(1)} s`);
+  }
+  /** Put every car and the running event back to a history frame. Cars are
+   * fresh (as a reset: damage repaired) with the recorded pose, velocities,
+   * wheel spin and gear; legal progress, clocks and drift state are the
+   * recorded ones, so nothing driven after the frame stays credited. */
+  private restoreFrame(frame: RewindFrame) {
+    const run = this.run;
+    frame.cars.forEach((record, i) => {
+      const old = this.cars[i];
+      if (!old || old.definition.id !== frame.vehicles[i]) return;
+      const fresh = this.makeCar(i, old.definition.id);
+      Object.assign(fresh.input, old.input);
+      this.applyRecord(fresh, record);
+      this.cars[i] = fresh;
+      if (!run) return;
+      run.participants[i].car = fresh;
+      const driver = run.drivers[i];
+      if (driver) {
+        run.drivers[i] = driverLike(driver, fresh);
+        run.drivers[i]!.relocate(frame.run?.drivers[i] ?? driver.d);
+      }
+    });
+    const record = frame.run;
+    if (run && record) {
+      run.start = this.time - record.elapsed;
+      run.offRoute = record.offRoute;
+      run.lost = record.lost;
+      run.progressClock = record.progressClock;
+      record.progress.forEach((q, i) => {
+        const p = run.participants[i];
+        if (!p) return;
+        Object.assign(p.progress, {
+          edge: q.edge,
+          s: q.s,
+          checkpoint: q.checkpoint,
+          laps: q.laps,
+          finished: q.finished,
+          distance: q.distance,
+          offRoute: q.offRoute,
+        });
+        p.finishTime = q.finish === null ? null : run.start + q.finish;
+      });
+      if (run.drift && record.drift) run.drift.restore(record.drift as DriftSnapshot);
+      run.traces?.forEach((trace, i) => {
+        const keep = record.traces?.[i] ?? trace.d.length;
+        trace.d.length = Math.min(trace.d.length, keep);
+        trace.t.length = Math.min(trace.t.length, keep);
+      });
+    }
+    this.autopilotDriver = null;
+    this.parked = false;
+    this.upset = this.drowned = this.riderDown = 0;
+    this.skills.reset('REWIND');
+    this.nearMisses.reset();
+    const pos = this.player.body.position;
+    this.traffic.clearNear(pos.x, pos.z, 18);
+    this.prefetchAround(this.player, 0);
+  }
+  /** A history record onto a fresh car. */
+  private applyRecord(car: Vehicle, r: Float64Array) {
+    const C = CAR_RECORD,
+      b = car.body;
+    if (car instanceof BikeVehicle) {
+      const ground = this.track.groundHeight(r[C.BIKE_X], r[C.BIKE_Z], r[C.PY]);
+      car.placeFree(this.asTrack, r[C.BIKE_X], r[C.BIKE_Z], r[C.BIKE_HEADING], ground);
+      const d = car.dynamics;
+      d.speed = r[C.BIKE_SPEED];
+      d.lean = r[C.BIKE_LEAN];
+      d.leanRate = r[C.BIKE_LEAN_RATE];
+      d.steer = r[C.BIKE_STEER];
+    } else {
+      b.position.set(r[C.PX], r[C.PY], r[C.PZ]);
+      b.orientation.x = r[C.QX];
+      b.orientation.y = r[C.QY];
+      b.orientation.z = r[C.QZ];
+      b.orientation.w = r[C.QW];
+      b.velocity.set(r[C.VX], r[C.VY], r[C.VZ]);
+      b.omega.set(r[C.WX], r[C.WY], r[C.WZ]);
+    }
+    for (let i = 0; i < 4; i++) if (car.tires[i]) car.tires[i].omega = r[C.WHEELS + i];
+    car.gear = r[C.GEAR];
+    car.rpm = r[C.RPM];
+    // The engine turns at the recorded speed, the clutch closed on it (a
+    // fresh engine at idle would slip and brake the car on release).
+    car.clutch.engineOmega = (r[C.RPM] * Math.PI) / 30;
+    car.clutch.engagement = 1;
+    car.retired = false;
+    car.upsetClock = 0;
+    car.lateral = this.track.nearest(
+      b.position.x,
+      b.position.z,
+      car.trackPosition,
+      b.position.y + 1,
+    );
+    car.s = car.trackPosition.s;
   }
   private prefetchAround(car: Vehicle, lookahead: number) {
     const b = car.body;
@@ -1044,6 +1466,23 @@ export class OpenWorldSimulation {
           value: `${elapsed > 0.5 ? Math.round((p.progress.distance / elapsed) * 3.6) : 0} KM/H`,
         };
       else if (run.drift) live = { label: 'DRIFT', value: `${run.drift.live(this.time)}` };
+      else if (run.traces) {
+        const gap = this.tougeGap(run);
+        live = {
+          label: 'GAP',
+          value: gap === null ? '—' : `${gap >= 0 ? '+' : '−'}${Math.abs(gap).toFixed(2)} S`,
+        };
+      } else if (run.drag) {
+        const slip = run.drag.timers[0].slip(run.drag.lanes[0], run.drag.tree.green);
+        live = {
+          label: 'REACTION',
+          value: slip.redLight
+            ? 'RED LIGHT'
+            : slip.reaction === null
+              ? '—'
+              : `${slip.reaction.toFixed(3)} S`,
+        };
+      }
       const gate = run.event.graph.spec.checkpoints[p.progress.checkpoint];
       let gatePoint: { x: number; z: number } | null = null;
       if (gate) {
@@ -1074,6 +1513,18 @@ export class OpenWorldSimulation {
         offRoute: p.progress.offRoute,
         live,
         gate: gatePoint,
+        rewinds: run.rewinds,
+        drag: run.drag
+          ? {
+              tree: run.drag.tree,
+              lane: run.drag.lanes[0],
+              lanes: run.drag.timers.map((timer, i) => ({
+                lane: run.drag!.lanes[i],
+                leftAt: timer.leftAt,
+              })),
+              slip: run.drag.timers[0].slip(run.drag.lanes[0], run.drag.tree.green),
+            }
+          : null,
       };
     }
     const card = this.cardEvent;
@@ -1108,6 +1559,15 @@ export class OpenWorldSimulation {
       streaming: { ...this.track.tiles.stats },
       traffic: { enabled: this.trafficEnabled, cars: this.traffic.cars.length },
       skills: this.skills.status(),
+      rewind: {
+        active: !!this.rewinding,
+        allowed: this.rewindAllowed && this.rewindBuffer.size >= 2,
+        available: this.rewinding
+          ? Math.max(0, this.rewinding.cursor - this.rewindBuffer.oldest)
+          : this.rewindBuffer.available(this.rewindBuffer.newest),
+        back: this.rewinding ? this.rewinding.from - this.rewinding.cursor : 0,
+        count: run ? run.rewinds : this.rewindsRoam,
+      },
     };
   }
   /** Snapshot in the circuit frame layout (race fields neutral). */
@@ -1157,6 +1617,29 @@ const SAMPLE = {
   cell: 0,
   pit: false,
 };
+/** A fresh driver like `driver` for a replacement car (reset, rewind). */
+function driverLike(driver: RouteDriver, car: Vehicle) {
+  const fresh = new RouteDriver(car, driver.path, driver.skill, driver.laneOffset, driver.speedCap);
+  fresh.overtake = driver.overtake;
+  fresh.keepLane = driver.keepLane;
+  return fresh;
+}
+/** Event time (s from the start) at which a trace reached `distance`. */
+function traceTime(trace: { d: number[]; t: number[] }, distance: number) {
+  const d = trace.d,
+    n = d.length;
+  if (!n || distance > d[n - 1]) return null;
+  let lo = 0,
+    hi = n - 1;
+  while (hi - lo > 1) {
+    const mid = (lo + hi) >> 1;
+    if (d[mid] < distance) lo = mid;
+    else hi = mid;
+  }
+  if (d[lo] >= distance) return trace.t[lo];
+  const span = d[hi] - d[lo];
+  return trace.t[lo] + (span > 0 ? ((distance - d[lo]) / span) * (trace.t[hi] - trace.t[lo]) : 0);
+}
 /** Car perimeter sample points in half-extent units (x: left, z: forward). */
 const PERIMETER: readonly (readonly [number, number])[] = Object.freeze([
   [-1, -1],

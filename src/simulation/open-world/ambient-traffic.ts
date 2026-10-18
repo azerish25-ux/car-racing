@@ -237,6 +237,14 @@ export class AmbientTraffic {
     this.cars.length = 0;
     this.claims.clear();
   }
+  /** Remove the cars within `radius` of (x, z): the player was put back
+   * there (rewind) and must not start inside one. */
+  clearNear(x: number, z: number, radius: number) {
+    for (let i = this.cars.length - 1; i >= 0; i--) {
+      const p = this.cars[i].position;
+      if (Math.hypot(p.x - x, p.z - z) < radius) this.remove(i);
+    }
+  }
   /** One fixed step. `player` is the car the traffic is around (spawn ring,
    * following, junction occupancy). */
   step(dt: number, player: Vehicle) {

@@ -228,7 +228,9 @@ export type FestivalEventKind =
   | 'speed-trap'
   | 'speed-zone'
   | 'drift-zone'
-  | 'showcase';
+  | 'showcase'
+  | 'touge'
+  | 'drag';
 export interface FestivalEventSpec {
   id: string;
   name: string;
@@ -241,10 +243,21 @@ export interface FestivalEventSpec {
   /** AI rivals (races only). */
   rivals?: number;
   /** Skill-challenge target values for one, two and three stars: km/h for
-   * traps and zones, points for drift zones; seconds for showcases. */
+   * traps and zones, points for drift zones; seconds for showcases; for a
+   * touge battle the margin over the rival at the finish (s, negative:
+   * behind). */
   stars?: readonly [number, number, number];
+  /** Measured distance (m) from the start line to the finish, when shorter
+   * than the authored path less its run-out (a drag strip's quarter mile on
+   * a runway that leaves the rest for braking). */
+  finish?: number;
+  /** Time of day the event is staged at (the presentation switches to it
+   * for the run and back afterwards; the player may still change it). */
+  lighting?: 'sunset' | 'night';
   blurb: string;
 }
+/** A quarter mile (m): the drag strip's measured distance. */
+export const QUARTER_MILE = 402.336;
 export interface RegionDefinition {
   id: string;
   name: string;
@@ -939,6 +952,37 @@ export const SOLVANE: RegionDefinition = Object.freeze({
       stars: [110, 160, 210],
       blurb:
         'Build speed along the broad runway and cross the speed gate. Three reachable targets from road cars to supercars.',
+    },
+    {
+      id: 'varda-touge',
+      name: 'Varda Touge Battle',
+      kind: 'touge',
+      // Downhill from below the summit to the first switchback: four
+      // hairpins (R 12-20 m) on the narrow mountain road.
+      waypoints: [
+        [-2560, 2795],
+        [-1760, 2840],
+      ],
+      rivals: 1,
+      stars: [-3, 0.001, 2],
+      lighting: 'sunset',
+      blurb:
+        'Head to head down the Varda switchbacks at dusk. Side by side from a standing start, four hairpins, one rival. Win by two seconds for three stars.',
+    },
+    {
+      id: 'kestrel-drag',
+      name: 'Kestrel Quarter Mile',
+      kind: 'drag',
+      // The festival hub's launch line on the runway; the measured quarter
+      // mile leaves 840 m of runway to stop.
+      waypoints: [
+        [2150, 1820],
+        [3450, 1820],
+      ],
+      rivals: 3,
+      finish: QUARTER_MILE,
+      blurb:
+        'Four lanes, one quarter mile from a standing start. Stage, watch the tree, launch on green. Leave before green and you are disqualified.',
     },
   ],
 } as RegionDefinition);

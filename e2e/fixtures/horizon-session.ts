@@ -161,6 +161,27 @@ Object.assign(window, {
       return out;
     },
     command: (command: Parameters<FestivalSession['command']>[0]) => session?.command(command),
+    // Cost review: keep a named scene object hidden (its own per-frame
+    // visibility writes are ignored) to measure what it adds to a frame.
+    hide: (name: string) => {
+      const renderer = (session as unknown as { renderer: FestivalRenderer } | null)?.renderer;
+      const node = renderer?.scene.getObjectByName(name);
+      if (!node) return false;
+      Object.defineProperty(node, 'visible', {
+        get: () => false,
+        set: () => undefined,
+        configurable: true,
+      });
+      return true;
+    },
+    // Hold or release the simulation worker without a menu (timed gameplay
+    // captures: a drag tree at a given lamp, a rewind in progress). The
+    // production pause message; nothing else changes.
+    freeze: (value: boolean) =>
+      (session as unknown as { post(message: unknown): void } | null)?.post({
+        type: 'pause',
+        value,
+      }),
     // Stop submitting GPU frames only for a still capture. This does not alter
     // simulation state, renderer quality, assets, or the production code path.
     rendering: (enabled: boolean) => {

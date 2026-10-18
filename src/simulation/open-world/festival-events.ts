@@ -11,6 +11,7 @@ export {
   FESTIVAL_RESULT_VERSION,
   isRace,
   RACE_KINDS,
+  type DragSlip,
   type FestivalResult,
 } from './festival-result.ts';
 
@@ -35,6 +36,7 @@ export function resolveEvents(world: OpenWorld): FestivalEvent[] {
       world.network,
       planRoute(world.network, spec.waypoints, closed),
       closed,
+      spec.finish,
     );
     const routeSpec = path.routeSpec(spec.id);
     const errors = validateRoute(routeSpec);
@@ -145,6 +147,35 @@ export class DriftMeter {
   get drifting() {
     return this.active;
   }
+  /** Rewind: the meter's state now, and back to such a state (closed
+   * drifts are only ever appended, so a count restores them). */
+  snapshot(): DriftSnapshot {
+    return {
+      events: this.events.length,
+      active: this.active,
+      quality: this.quality,
+      duration: this.duration,
+      calm: this.calm,
+      invalid: this.invalid,
+    };
+  }
+  restore(s: DriftSnapshot) {
+    this.events.length = Math.min(this.events.length, s.events);
+    this.active = s.active;
+    this.quality = s.quality;
+    this.duration = s.duration;
+    this.calm = s.calm;
+    this.invalid = s.invalid;
+    this.angle = 0;
+  }
+}
+export interface DriftSnapshot {
+  events: number;
+  active: boolean;
+  quality: number;
+  duration: number;
+  calm: number;
+  invalid: boolean;
 }
 
 /** Participant of a running event. */
@@ -159,12 +190,17 @@ export function starsFor(
   spec: FestivalEventSpec,
   result: Pick<
     FestivalResult,
-    'completed' | 'position' | 'trapKmh' | 'averageKmh' | 'driftScore' | 'time'
+    'completed' | 'position' | 'trapKmh' | 'averageKmh' | 'driftScore' | 'time' | 'margin'
   >,
 ) {
   if (!result.completed) return 0;
   const t = spec.stars;
   switch (spec.kind) {
+    case 'touge': {
+      // Head to head: the margin over the rival at the finish (s).
+      const margin = result.margin ?? (result.position === 1 ? 0.001 : -Infinity);
+      return t ? t.filter((v) => margin >= v).length : result.position === 1 ? 3 : 1;
+    }
     case 'speed-trap':
       return t ? t.filter((v) => (result.trapKmh ?? 0) >= v).length : 0;
     case 'speed-zone':

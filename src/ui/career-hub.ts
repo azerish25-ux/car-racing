@@ -172,15 +172,18 @@ function festivalCard(e: FestivalCareerEvent, registry: CareerRegistry) {
   const ev = e.event,
     rec = e.record,
     race = isRace(ev.kind);
-  const targets = ev.stars
-    ? `<dt>Star targets</dt><dd>${ev.stars
-        .map((t) =>
-          ev.kind === 'showcase' ? clockText(t) : ev.kind === 'drift-zone' ? `${t} pts` : `${t} km/h`,
-        )
-        .join(' · ')}</dd>`
-    : race
-      ? '<dt>Stars</dt><dd>3 win · 2 podium · 1 finish</dd>'
-      : '';
+  const targets =
+    ev.kind === 'touge' && ev.stars
+      ? `<dt>Star targets</dt><dd>finish within ${Math.abs(ev.stars[0])} s · win · win by ${ev.stars[2]} s</dd>`
+      : ev.stars
+        ? `<dt>Star targets</dt><dd>${ev.stars
+            .map((t) =>
+              ev.kind === 'showcase' ? clockText(t) : ev.kind === 'drift-zone' ? `${t} pts` : `${t} km/h`,
+            )
+            .join(' · ')}</dd>`
+        : race
+          ? `<dt>Stars</dt><dd>3 win · 2 podium · 1 finish${ev.kind === 'drag' ? ' · a red light disqualifies' : ''}</dd>`
+          : '';
   const bestLine = (title: string, b: FestivalBest | undefined) =>
     b && b.runs > 0
       ? `<dt>${title}</dt><dd>${starLine(b.stars)}${b.bestPosition !== null ? ` · P${b.bestPosition}` : ''}${b.bestTime !== null && race ? ` · ${clockText(b.bestTime)}` : ''}${b.bestValue !== null ? ` · ${Math.round(b.bestValue)}${ev.kind === 'drift-zone' ? ' pts' : ' km/h'}` : ''} · ${b.runs} paid run${b.runs === 1 ? '' : 's'}</dd>`
