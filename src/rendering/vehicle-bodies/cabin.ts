@@ -167,11 +167,12 @@ function seated(x: number, seatY: number, z: number, s: number, rise = EYE_RISE)
 /** A single-seater driver lies back: the eyes sit a little below the helmet
  * centre, under the halo's top bar (the Formula P6 framing). */
 const RECLINED_EYE_RISE = -0.025;
-/** Build the layout for a definition and its sheet (pure, deterministic). */
-export function cabinLayout(def: VehicleDefinition, sheet: BodySheet): CabinLayout {
+/** Build the layout for a definition and its sheet (pure, deterministic);
+ * `roofDrop` (m) lowers a closed roof (a festival form, festival-form.ts). */
+export function cabinLayout(def: VehicleDefinition, sheet: BodySheet, roofDrop = 0): CabinLayout {
   const f = bodyFrame(def);
   const race = def.classId !== 'road';
-  if (sheet.kind === 'closed') return closedCabin(def, f, sheet, race);
+  if (sheet.kind === 'closed') return closedCabin(def, f, sheet, race, roofDrop);
   if (sheet.kind === 'open-wheel') {
     const s = sheet,
       scale = 0.92,
@@ -314,9 +315,11 @@ function closedCabin(
   f: BodyFrame,
   s: ClosedSheet,
   race: boolean,
+  roofDrop: number,
 ): CabinLayout {
   const model = new ClosedBodyModel(f, s, [s.wheels.width[0] / 2, s.wheels.width[1] / 2]);
   const open = s.style === 'roadster' || !!s.open;
+  const roofH = s.roof - (open ? 0 : roofDrop);
   const [ws, rf, rr, rw] = s.cabin,
     zWs = f.z(ws),
     zRF = f.z(rf),
@@ -342,7 +345,7 @@ function closedCabin(
     cushion = race ? 0.1 : upright ? 0.2 : 0.14,
     rise = HEAD_RISE * scale + EYE_RISE;
   let eyeH = Math.max(floorH + cushion + rise, s.cowl + Math.max(0.06, 0.09 * (zWs - eyeZ)));
-  if (!open) eyeH = Math.min(eyeH, s.roof - 0.12);
+  if (!open) eyeH = Math.min(eyeH, roofH - 0.12);
   const seatY = f.y(eyeH - rise);
   // Lateral: the usual offset, but inboard of a narrow roof's cantrail (a
   // prototype's bubble), so the helmet stays under the roof and the eyes look
@@ -381,7 +384,7 @@ function closedCabin(
     mount = {
       kind: 'roof',
       // On the roof ahead of any scoop.
-      eye: v3(0, f.y(s.roof) + (s.roofScoop ? 0.16 : 0.11), zRF - 0.06),
+      eye: v3(0, f.y(roofH) + (s.roofScoop ? 0.16 : 0.11), zRF - 0.06),
       pitch: -0.09,
       fov: MOUNT_FOV.roof,
     };
@@ -418,7 +421,7 @@ function closedCabin(
     ),
     cell: Object.freeze({ front: zWs + 0.12, rear, floor }),
     dash: Object.freeze({ front: zWs + 0.1, rear: dashRear, top: dashTop }),
-    roof: roofed ? f.y(s.roof) - 0.03 : null,
+    roof: roofed ? f.y(roofH) - 0.03 : null,
     hoop: cage ? Math.max(rear + 0.04, seatZ - 0.42) : null,
     // Gaze: the scuttle line about 0.08 rad below the view centre (a sports
     // car looks nearly level; a truck's high seat looks down over its bonnet).

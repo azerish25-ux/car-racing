@@ -59,6 +59,9 @@ export interface FasciaOpening {
   height: number;
   radius: number;
   depth: number;
+  /** A festival form's sharp intake outline (refs 011, 014, 019, 020, 093):
+   * a trapezoid widening downward, or a fang rising to the outer corner. */
+  shape?: 'trapezoid' | 'fang';
 }
 /** Openings are bounded by the real end section, not invented car dimensions.
  * Keeping the same aperture outline in LOD0/1 prevents a grille pop at 35 m. */
@@ -90,6 +93,8 @@ export function festivalFasciaOpenings(model: ClosedBodyModel, rear = false): Fa
   if (!(width > 0.14 && height > 0.025)) return [];
   const depth = rear ? 0.09 : s.style === 'truck' ? 0.15 : 0.11;
   const split = !rear && (s.style === 'supercar' || s.style === 'prototype');
+  // Festival intakes are sharp; a round-lamp classic keeps a rounded mouth.
+  const sharp = model.festival && !rear && s.lamps.front !== 'round';
   if (split)
     return [-1, 1].map((side) => ({
       x: side * width * 0.26,
@@ -98,8 +103,61 @@ export function festivalFasciaOpenings(model: ClosedBodyModel, rear = false): Fa
       height,
       radius: Math.min(height * 0.22, 0.025),
       depth,
+      ...(sharp ? { shape: 'fang' as const } : {}),
     }));
-  return [{ x: 0, y, width, height, radius: Math.min(height * 0.22, 0.035), depth }];
+  return [
+    {
+      x: 0,
+      y,
+      width,
+      height,
+      radius: Math.min(height * 0.22, 0.035),
+      depth,
+      ...(sharp ? { shape: 'trapezoid' as const } : {}),
+    },
+  ];
+}
+/** A sharp intake outline (counter-clockwise, centred on the mouth), with
+ * points every `step` m along its edges so a curved face can bend it. */
+function sharpOutline(mouth: FasciaOpening, step: number): Pt[] {
+  const w = mouth.width,
+    h = mouth.height,
+    side = Math.sign(mouth.x) || 1;
+  const unit: Pt[] =
+    mouth.shape === 'trapezoid'
+      ? [
+          [-0.5, -0.5],
+          [0.5, -0.5],
+          [0.5, -0.3],
+          [0.4, 0.5],
+          [-0.4, 0.5],
+          [-0.5, -0.3],
+        ]
+      : [
+          [-0.5, 0.12],
+          [-0.3, -0.5],
+          [0.5, -0.5],
+          [0.5, 0.5],
+          [-0.18, 0.5],
+        ].map(([u, v]) => [u * side, v] as const);
+  // Keep the winding counter-clockwise when the fang is mirrored.
+  const corners = (side < 0 && mouth.shape === 'fang' ? [...unit].reverse() : unit).map(
+    ([u, v]) => [u * w, v * h] as const,
+  );
+  const out: Pt[] = [];
+  corners.forEach((a, i) => {
+    const b = corners[(i + 1) % corners.length],
+      n = Math.max(1, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / step));
+    for (let k = 0; k < n; k++)
+      out.push([a[0] + ((b[0] - a[0]) * k) / n, a[1] + ((b[1] - a[1]) * k) / n]);
+  });
+  return out;
+}
+/** The mouth's outline: sharp (festival) or a rounded rectangle. */
+function mouthOutline(mouth: FasciaOpening, segments: number, step: number) {
+  return mouth.shape
+    ? sharpOutline(mouth, step > 0 ? step : 0.05)
+    : roundedOutline(mouth.width, mouth.height, mouth.radius, segments, step);
 }
 
 /** A rounded rectangle outline; `step` > 0 adds points along the straight
@@ -211,13 +269,7 @@ export function festivalFasciaCap(model: ClosedBodyModel, detail: Detail, rear =
   const shape = new T.Shape(asVectors(outline));
   const step = model.festival ? 0.05 : 0;
   for (const mouth of festivalFasciaOpenings(model, rear)) {
-    const contour = roundedOutline(
-      mouth.width,
-      mouth.height,
-      mouth.radius,
-      detail === 0 ? 4 : 2,
-      step,
-    );
+    const contour = mouthOutline(mouth, detail === 0 ? 4 : 2, step);
     shape.holes.push(new T.Path(contour.map(([x, y]) => new T.Vector2(x + mouth.x, y + mouth.y))));
   }
   let geometry: T.BufferGeometry = new T.ShapeGeometry(shape).translate(0, 0, z);
@@ -275,13 +327,7 @@ function addFascia(
     rear ? 'Sculpted rear fascia' : 'Sculpted front fascia',
   );
   for (const mouth of festivalFasciaOpenings(model, rear)) {
-    const contour = roundedOutline(
-      mouth.width,
-      mouth.height,
-      mouth.radius,
-      detail === 0 ? 4 : 2,
-      model.festival ? 0.05 : 0,
-    );
+    const contour = mouthOutline(mouth, detail === 0 ? 4 : 2, model.festival ? 0.05 : 0);
     const at = placed(mouth.x, mouth.y, z);
     // Cooling cavities need a rough, dark liner. Exposed satin carbon on the
     // lower rear tunnel caught the bright sky as a white strip in chase view.
@@ -297,9 +343,20 @@ function addFascia(
     // core left an edge seam that could reveal the body interior obliquely.
     parts.add(
       roundedBox(mouth.width * 0.94, mouth.height * 0.94, 0.014, 0.003, 1),
-      rear ? sharedMaterials.plastic() : darkOptics,
+      rear ? sharedMaterials.plastic() : mouth.shape ? sharedMaterials.grille() : darkOptics,
       placed(mouth.x, mouth.y, coreZ - sign * 0.01),
     );
+    if (mouth.shape) {
+      // A sharp festival intake: a honeycomb core behind two horizontal
+      // louvres (refs 019, 020, 037), no radiator rows.
+      for (const v of [-0.17, 0.17])
+        parts.add(
+          roundedBox(mouth.width * 1.02, 0.008, 0.03, 0.002, 1),
+          sharedMaterials.trim(),
+          placed(mouth.x, mouth.y + v * mouth.height, z - sign * 0.03, sign * 0.35),
+        );
+      continue;
+    }
     const rows = detail === 0 ? Math.max(4, Math.round(mouth.height / 0.012)) : 4;
     for (let k = 0; k < rows; k++) {
       const y = mouth.y + ((k + 0.5) / rows - 0.5) * mouth.height * 0.8;
@@ -764,7 +821,8 @@ export function festivalExhaustGeometry(radius: number, length: number, segments
 }
 function addExhausts(parts: Parts, model: ClosedBodyModel, detail: Detail) {
   const { f, s } = model;
-  if (s.extras.includes('exhaust-rear'))
+  // A festival form fits its own deep tips (festival-hardware.ts).
+  if (s.extras.includes('exhaust-rear') && !model.festival)
     for (const side of [-1, 1]) {
       const x = side * model.halfWidth(model.zRear) * 0.45;
       const y = f.y(s.floor + 0.14);
@@ -798,7 +856,8 @@ function addExhausts(parts: Parts, model: ClosedBodyModel, detail: Detail) {
 
 function addVents(parts: Parts, model: ClosedBodyModel, mats: CarMaterials, detail: Detail) {
   const { f, s } = model;
-  if (s.bonnetVents)
+  // A festival form fits trapezoid mesh vents (festival-hardware.ts).
+  if (s.bonnetVents && !model.festival)
     for (const side of [-1, 1]) {
       const z = (f.frontAxle + f.z(s.cabin[0])) / 2 + 0.05;
       const x = side * model.halfWidth(z) * 0.45;
@@ -819,7 +878,8 @@ function addVents(parts: Parts, model: ClosedBodyModel, mats: CarMaterials, deta
       const edge = surround(roundedOutline(0.231, 0.275, 0.018, 3), 0.005).rotateX(-Math.PI / 2);
       parts.add(edge, mats.paint, inLocal(at, 0, 0.008, 0));
     }
-  if (s.sideIntake)
+  // A festival form sculpts its side intake into the body (festival-sculpt.ts).
+  if (s.sideIntake && !model.festival)
     for (const side of [-1, 1]) {
       const z = f.rearAxle + f.radius + 0.36,
         y = f.y(s.belt) - 0.04;
@@ -874,12 +934,13 @@ function addHardware(
         placed(side * (x + 0.018), y + 0.002, z),
       );
     }
+    // A festival form seals its glass on the real base (festival-hardware.ts).
     const seal: [number, number, number][] = [];
-    for (let k = 0; k <= 18; k++) {
+    for (let k = 0; k <= 18 && !model.festival; k++) {
       const z = f.z(ws + ((rw - ws) * k) / 18);
       seal.push([side * (model.halfWidth(z) * 0.8 - 0.01), model.topY(z) + 0.006, z]);
     }
-    parts.add(tubeGeometry(seal, classic ? 0.004 : 0.003, 22, 5), trim);
+    if (seal.length) parts.add(tubeGeometry(seal, classic ? 0.004 : 0.003, 22, 5), trim);
     if (s.mirrors && !model.festival) {
       const z = f.z(ws) - 0.14,
         y = model.topY(z) + 0.08;
@@ -916,12 +977,13 @@ function addHardware(
       );
     }
   }
-  // Wipers lie on the evaluated windscreen crown, clear of the cockpit volume.
+  // Wipers lie on the evaluated windscreen crown, clear of the cockpit volume
+  // (a festival form parks its own on the glass, festival-hardware.ts).
   if (greenhouse) {
     const z = f.z(ws) - Math.max(0.055, (f.z(ws) - f.z(rf)) * 0.12);
     const crown = greenhouse.control(z);
     const y = crown[crown.length - 1][1] + 0.008;
-    for (const side of [-1, 1])
+    for (const side of model.festival ? [] : [-1, 1])
       parts.add(
         rodGeometry(
           new T.Vector3(side * 0.09, y, z),

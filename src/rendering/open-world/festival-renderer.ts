@@ -72,6 +72,7 @@ import { Water } from './water.ts';
 import { Effects } from '../effects.ts';
 import { EffectPlayback } from '../effect-playback.ts';
 import { ReflectionSystem } from '../reflections.ts';
+import { FestivalCarProbe } from './festival-car-probe.ts';
 import {
   iblUniforms,
   installSpecularIBL,
@@ -226,6 +227,7 @@ export class FestivalRenderer {
   private readonly speedBlur: FestivalSpeedBlur;
   private readonly bufferSize = new T.Vector2();
   private readonly reflection = new ReflectionSystem();
+  private readonly carProbe = new FestivalCarProbe();
   private readonly reflectionMaterials: T.MeshStandardMaterial[] = [];
   private reflectionVersion = -1;
   private readonly vehicleRoots: T.Object3D[] = [];
@@ -1111,6 +1113,19 @@ export class FestivalRenderer {
       daylight.environment,
       iblUniforms.apexSpecularIBL.value,
     );
+    // Medium: a cheap local probe for the car paint (festival-car-probe.ts);
+    // released before the High probe records its materials' originals.
+    this.carProbe.update(
+      this.renderer,
+      this.scene,
+      subject,
+      this.cars.reflectivePaint,
+      this.graphics.reflections !== 'local' && this.preset !== 'low',
+      time,
+      this.reflection.probeExclusions,
+      this.sky.material.uniforms.probeSkyIntensity,
+      iblUniforms.apexSpecularIBL.value,
+    );
     if (subject)
       this.reflection.updateProbe(
         this.renderer,
@@ -1270,6 +1285,7 @@ export class FestivalRenderer {
     this.guidance.dispose();
     this.orbit.dispose();
     this.reflection.dispose();
+    this.carProbe.dispose();
     this.vehiclePaint.length = 0;
     this.vehicleRoots.length = 0;
     this.environment.dispose();

@@ -10,6 +10,7 @@ import { vehicleAt, type VehicleDefinition } from '../simulation/vehicles.ts';
 import { installSpecularIBL } from './studio/ibl-energy.ts';
 import { chainShaderHook, injectAfter, injectDeclarations } from './studio/shader-hooks.ts';
 import { PLATE, plateAtlas, plateSlot, plateUv } from './open-world/festival-plates.ts';
+import { MeetCars } from './open-world/meet-cars.ts';
 
 /** Most ambient cars drawn at once (the simulation caps the field lower). */
 export const TRAFFIC_CAPACITY = 48;
@@ -1692,6 +1693,9 @@ export interface ParkedSpot {
   paint: number;
   plate: number;
   lit: boolean;
+  /** A festival production-form model id (meet-cars.ts) drawn instead of
+   * the traffic body (`body` still sizes its bay and contact shade). */
+  model?: string;
 }
 /** A site of parked cars (a store car park, a coin park, the festival
  * meet), drawn within `range` of the camera. */
@@ -1718,6 +1722,7 @@ export class ParkedCars {
     root: T.Group;
     centre: T.Vector3;
     lamps: { attribute: T.InstancedBufferAttribute; lit: boolean[] }[];
+    meet: MeetCars | null;
   }[] = [];
   private readonly bodies: T.InstancedMesh[] = [];
   private night = -1;
@@ -1736,7 +1741,7 @@ export class ParkedCars {
       root.name = `Parked cars: ${site.name}`;
       const lamps: { attribute: T.InstancedBufferAttribute; lit: boolean[] }[] = [];
       for (const body of TRAFFIC_BODIES) {
-        const spots = site.spots.filter((s) => s.body === body);
+        const spots = site.spots.filter((s) => s.body === body && !s.model);
         if (!spots.length) continue;
         let base = this.bases.get(body);
         if (!base) this.bases.set(body, (base = trafficBodyGeometry(body)));
@@ -1791,16 +1796,34 @@ export class ParkedCars {
       contact.computeBoundingSphere();
       root.add(contact);
       this.stats.draws++;
+      // Meet cars: the festival's own sports-car bodies (meet-cars.ts).
+      const meetSpots = site.spots.filter((s) => s.model);
+      const meet = meetSpots.length
+        ? new MeetCars(
+            meetSpots.map((s) => ({
+              x: s.x,
+              y: s.y,
+              z: s.z,
+              yaw: s.yaw,
+              model: s.model!,
+              paint: s.paint,
+            })),
+          )
+        : null;
+      if (meet) root.add(meet.root);
       this.stats.cars += site.spots.length;
       this.stats.sites++;
       this.root.add(root);
-      this.sites.push({ root, centre: site.centre.clone(), lamps });
+      this.sites.push({ root, centre: site.centre.clone(), lamps, meet });
     }
     installSpecularIBL(this.root);
   }
   update(camera: T.Camera, night: number, range: number, shadows = true) {
     const eye = camera.position;
-    for (const site of this.sites) site.root.visible = site.centre.distanceTo(eye) < range;
+    for (const site of this.sites) {
+      site.root.visible = site.centre.distanceTo(eye) < range;
+      if (site.root.visible) site.meet?.update(camera, shadows);
+    }
     if (shadows !== this.shadows) {
       this.shadows = shadows;
       for (const mesh of this.bodies) mesh.castShadow = shadows;
@@ -1823,6 +1846,7 @@ export class ParkedCars {
       }
   }
   dispose() {
+    for (const site of this.sites) site.meet?.dispose();
     this.root.traverse((node) => {
       if (node instanceof T.InstancedMesh) {
         if (node.geometry !== this.contactGeometry) node.geometry.dispose();

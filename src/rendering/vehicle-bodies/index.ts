@@ -90,11 +90,12 @@ export function buildVehicleBody(
   options: BodyOptions = {},
 ) {
   const frame = bodyFrame(definition);
-  const cabin = { layout: cabinLayout(definition, sheet), def: definition };
   const closed = sheet.kind === 'closed' ? sheet : null;
+  const form = closed && options.festival ? festivalFormFor(definition, closed) : null;
+  // A festival form's lowered roof carries its cabin (headliner, cage, mount).
+  const cabin = { layout: cabinLayout(definition, sheet, form?.roofDrop ?? 0), def: definition };
   const finish = sheet.paint;
   const tyres = [sheet.wheels.width[0] / 2, sheet.wheels.width[1] / 2] as const;
-  const form = closed && options.festival ? festivalFormFor(definition, closed) : null;
   const model = closed
     ? form
       ? new FestivalBodyModel(frame, closed, tyres, form)
