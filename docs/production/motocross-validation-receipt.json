@@ -1,0 +1,384 @@
+{
+  "schemaVersion": 1,
+  "title": "Motocross source checkpoint verification",
+  "recordedUTC": "2026-10-18T00:04:33.068958+00:00",
+  "originalDesignBaseline": "5b31aef72d14f4bd35e567f126aac0a0bc327d9f",
+  "localRuntimeBaseline": "7e423d18b4d7ea1b2478bb23ed70e6a367d57adf",
+  "retainedUVCandidateBase": "e792eb1e65cbebb3e93efaaaa12284621a21ebae",
+  "reviewedIntegrationParent": "d54bc6829a716dc7e4af095ceaa0729214e45cda",
+  "validation": {
+    "fullUnitSuite": {
+      "passedTests": 3388,
+      "passedFiles": 408,
+      "failedTests": 0,
+      "sourceStable": true,
+      "exitCode": 0
+    },
+    "lint": true,
+    "contentValidation": true,
+    "typescript": true,
+    "viteBuild": true,
+    "finalComponentBrowser": {
+      "passed": 4,
+      "failed": 0,
+      "backend": "Mesa llvmpipe LLVM 19.1.7, OpenGL 4.5",
+      "wholeApplication": false,
+      "coverage": [
+        "original MX bikes, poses, mud restoration",
+        "original compact interface",
+        "NoColorSpace mip fidelity and renderer replacement",
+        "LinearSRGBColorSpace mip fidelity and renderer replacement"
+      ]
+    },
+    "savedNativeReexport": {
+      "blender": "5.2.2 LTS",
+      "sceneSHA256": "29cc0c866219a0225fe7f3b8311f18669f2a8e21d79b3788de8f79bcec759f4c",
+      "runtimeSHA256": "cedd5be0c520542a2362e6fb796736391fd46d5619b7cb7b6fa4b71f66149ed9",
+      "sceneReopened": true,
+      "sourceSceneRegenerated": false,
+      "objectCount": 7,
+      "meshes": [
+        {
+          "part": "torso",
+          "detail": "high",
+          "triangles": 4320,
+          "positionsNormalsUVsAndIndicesIdentical": true
+        },
+        {
+          "part": "torso",
+          "detail": "mid",
+          "triangles": 1100,
+          "positionsNormalsUVsAndIndicesIdentical": true
+        },
+        {
+          "part": "upper-arm",
+          "detail": "high",
+          "triangles": 2112,
+          "positionsNormalsUVsAndIndicesIdentical": true
+        },
+        {
+          "part": "upper-arm",
+          "detail": "mid",
+          "triangles": 540,
+          "positionsNormalsUVsAndIndicesIdentical": true
+        },
+        {
+          "part": "forearm",
+          "detail": "high",
+          "triangles": 2112,
+          "positionsNormalsUVsAndIndicesIdentical": true
+        },
+        {
+          "part": "forearm",
+          "detail": "mid",
+          "triangles": 540,
+          "positionsNormalsUVsAndIndicesIdentical": true
+        },
+        {
+          "part": "thigh",
+          "detail": "high",
+          "triangles": 2112,
+          "positionsNormalsUVsAndIndicesIdentical": true
+        },
+        {
+          "part": "thigh",
+          "detail": "mid",
+          "triangles": 540,
+          "positionsNormalsUVsAndIndicesIdentical": true
+        },
+        {
+          "part": "shin",
+          "detail": "high",
+          "triangles": 2112,
+          "positionsNormalsUVsAndIndicesIdentical": true
+        },
+        {
+          "part": "shin",
+          "detail": "mid",
+          "triangles": 540,
+          "positionsNormalsUVsAndIndicesIdentical": true
+        },
+        {
+          "part": "safety-pad",
+          "detail": "high",
+          "triangles": 1152,
+          "positionsNormalsUVsAndIndicesIdentical": true
+        },
+        {
+          "part": "safety-pad",
+          "detail": "mid",
+          "triangles": 256,
+          "positionsNormalsUVsAndIndicesIdentical": true
+        }
+      ]
+    },
+    "shippedNormalFidelity": {
+      "passed": true,
+      "assets": [
+        {
+          "asset": "public/assets/third-party/ground/ground-forest-floor/ground-forest-floor_normal.ktx2",
+          "sourceSHA256": "80ce90a1c0a5341b4e95d15448e287f64c89bddec64cd4c01744ec0bd64e30fd",
+          "mips": 11,
+          "allMipsByteIdentical": true,
+          "allReplacementMipsByteIdentical": true,
+          "sourceColorSpace": "srgb-linear",
+          "expandedColorSpace": "srgb-linear",
+          "filteringPreserved": true,
+          "residentBytes": 5592404,
+          "glErrors": [0, 0]
+        },
+        {
+          "asset": "public/assets/third-party/ground/ground-dry-earth/ground-dry-earth_normal.ktx2",
+          "sourceSHA256": "fc08fa7621f37b5cdcd11d81c27fdfc3188a3c3623027adb138cb1d0e55cacca",
+          "mips": 11,
+          "allMipsByteIdentical": true,
+          "allReplacementMipsByteIdentical": true,
+          "sourceColorSpace": "srgb-linear",
+          "expandedColorSpace": "srgb-linear",
+          "filteringPreserved": true,
+          "residentBytes": 5592404,
+          "glErrors": [0, 0]
+        },
+        {
+          "asset": "public/assets/third-party/ground/ground-wet-earth/ground-wet-earth_normal.ktx2",
+          "sourceSHA256": "d9ee4e77333289adc8a4a85854451f917bef92ba7dbb9b28fd7dad5e7ac98554",
+          "mips": 11,
+          "allMipsByteIdentical": true,
+          "allReplacementMipsByteIdentical": true,
+          "sourceColorSpace": "srgb-linear",
+          "expandedColorSpace": "srgb-linear",
+          "filteringPreserved": true,
+          "residentBytes": 5592404,
+          "glErrors": [0, 0]
+        }
+      ]
+    },
+    "referenceReview": {
+      "numberedImages": 100,
+      "individuallyViewedInLabelledTiles": 100,
+      "sourceSHA256Matches": 100,
+      "fullResolutionReviewOfEveryImage": false
+    }
+  },
+  "limits": [
+    "The local full-suite snapshot predates concurrent Solvane R2 integration. Combined-main CI remains separate.",
+    "Only additive verification helpers, browser coverage and documentation changed after the full unit run; production runtime was not changed.",
+    "Full world and real-input browser journeys remain unverified for this corrected source; the hosted attempt was queued at last inspection.",
+    "Earlier integrated offroad scenarios passed on run 39062655109; this is not a new combined-main release result.",
+    "No live deployment, release approval, target-device FPS or commercial-reference photorealism is claimed."
+  ],
+  "sourceFiles": [
+    {
+      "path": "authoring/motocross/build_kit.py",
+      "sha256": "a27d11d3224ec627d059b83df5666afd41349fd1fda8343acc1ca3d126ec1aa1",
+      "bytes": 12472
+    },
+    {
+      "path": "authoring/motocross/motocross-authored-kit.blend",
+      "sha256": "29cc0c866219a0225fe7f3b8311f18669f2a8e21d79b3788de8f79bcec759f4c",
+      "bytes": 146135
+    },
+    {
+      "path": "authoring/motocross/reference-observations.txt",
+      "sha256": "e10884a5f2a59c5bd89219f6f250e9a448f55f89344b3aa961d9cddfc06a8545",
+      "bytes": 21095
+    },
+    {
+      "path": "authoring/motocross/review_100.py",
+      "sha256": "534d8b09cde0a04c0010d50ccba49fc2f75faafce76bc39647df817236391b89",
+      "bytes": 4508
+    },
+    {
+      "path": "docs/production/motocross-authored-pass.md",
+      "sha256": "62823f8fb20d8b2ebd8b44e1aa64ad547c7d7b87f34c76787a037ae2379c0db7",
+      "bytes": 7304
+    },
+    {
+      "path": "docs/production/motocross-reference-review-20261017.json",
+      "sha256": "b3f0d6c6c5d8711d2cb73c1c45aa500ba898342110a8214013261b5c2e2484b1",
+      "bytes": 138628
+    },
+    {
+      "path": "e2e/fixtures/motocross-bike-review.ts",
+      "sha256": "39eae5b770031a5787d7e62115c7778df10c3c6e6d5547a909830b09e7b75ad2",
+      "bytes": 9084
+    },
+    {
+      "path": "src/rendering/assets/mx-authored-kit.mesh.json",
+      "sha256": "cedd5be0c520542a2362e6fb796736391fd46d5619b7cb7b6fa4b71f66149ed9",
+      "bytes": 682972
+    },
+    {
+      "path": "src/rendering/offroad/authored-kit.ts",
+      "sha256": "abd2ef642adf32ae16e4b756d85093edd1bcb65590242aa63f9eb970989148e0",
+      "bytes": 1533
+    },
+    {
+      "path": "src/rendering/offroad/mx-boundary.ts",
+      "sha256": "db9f1d08c96a905e0802341e3e589c5271334e3bbcf7e4678d824fedc22f8715",
+      "bytes": 3575
+    },
+    {
+      "path": "src/rendering/offroad/mx-course-dressing.ts",
+      "sha256": "2c994328454554a03d32051ad1d36485d201bc9fb5881d91f9c7176c9de9e311",
+      "bytes": 17924
+    },
+    {
+      "path": "src/rendering/offroad/mx-padding.ts",
+      "sha256": "748425072015fa64af4a64d383864e795e7c0c1a94e5b47ff2f85224ef5f879f",
+      "bytes": 2989
+    },
+    {
+      "path": "src/rendering/offroad/stadium.ts",
+      "sha256": "ee3277468b9250eed2cd84c48f0463b50c9f448d06d14913f76239ddf80bfe13",
+      "bytes": 17727
+    },
+    {
+      "path": "src/rendering/rider.ts",
+      "sha256": "f658af1c324ca0b05e4b4852049b57bcfa39ed56e17509aad446607af242de14",
+      "bytes": 43415
+    },
+    {
+      "path": "src/simulation/offroad/ai.ts",
+      "sha256": "fba28a91ced7cbcd15e55c5f715f918c709f06a508293c66836dbb37253c0a66",
+      "bytes": 25405
+    },
+    {
+      "path": "src/simulation/offroad/jump-target.ts",
+      "sha256": "083aec63010da088331229746c59d90a946806e6e74118fe9a9b741967bc3cc5",
+      "bytes": 1477
+    },
+    {
+      "path": "src/simulation/offroad/rhythm-coach.ts",
+      "sha256": "ff1c5a124db6820dfb191f34b360587e3d3612e77628c47146b4d470e3aa854b",
+      "bytes": 4402
+    },
+    {
+      "path": "src/ui/offroad-hud.ts",
+      "sha256": "36f8bf1b0944a14ecd695a6f1dcac42b396cd0b08f8a85b6a0defcb04ae16fa3",
+      "bytes": 14951
+    },
+    {
+      "path": "tests/motocross-authored-kit.test.ts",
+      "sha256": "84530cdb2408e74805a13141015076bff8eb864cdf910ddf2aaee65a6f89ca03",
+      "bytes": 5940
+    },
+    {
+      "path": "tests/motocross-reference-review.test.ts",
+      "sha256": "a344e58a6aa4a7b3673e8fcc2947fd3fb669230bd10a17537e53b92e3c81444f",
+      "bytes": 1537
+    },
+    {
+      "path": "tests/motocross-rhythm-coach.test.ts",
+      "sha256": "e57db1c223bdd850f15cb22ed6926a97a65fce0fe05e2ca3f61ddcb1a3cb565d",
+      "bytes": 4511
+    },
+    {
+      "path": "e2e/46-motocross-normal-residency.spec.ts",
+      "sha256": "6b388b604c06b4fb254cf779d185a2b0c5a15c8d0b3377f9ed8fa8920fd6f692",
+      "bytes": 3082
+    },
+    {
+      "path": "e2e/fixtures/motocross-normal-residency.ts",
+      "sha256": "f7535b9e87e237d7e7070a71d6d554fdf6e67d242c55b905f9cb8137141c0ea7",
+      "bytes": 7442
+    },
+    {
+      "path": "src/rendering/assets/texture-loader.ts",
+      "sha256": "a21c8eb620b1631644fe48d6b2af9180274fb61e8662ad8f2f6d891a97a140ee",
+      "bytes": 7466
+    },
+    {
+      "path": "src/rendering/ground/normal-residency.ts",
+      "sha256": "a03b39a0b256ef2b8c69a40dc46bc88a2abad5f6586125be18a33380244ca78b",
+      "bytes": 8080
+    },
+    {
+      "path": "src/rendering/ground/scan-store.ts",
+      "sha256": "f80bfed39901a79db30154632a288ca9e7045cb8b3b05af1f3ca5c38dc233358",
+      "bytes": 10910
+    },
+    {
+      "path": "tests/motocross-hud.test.ts",
+      "sha256": "9fbc668fede4340bba68746d348cbc5e8da0f8e06e31706e7fca500da951dcad",
+      "bytes": 8028
+    },
+    {
+      "path": "tests/motocross-shoulder-recovery.test.ts",
+      "sha256": "5122ea9208bf171b7c229d4a9c2b13b8eb0c8092309b1231005169c531564927",
+      "bytes": 1913
+    },
+    {
+      "path": "tests/normal-residency.test.ts",
+      "sha256": "5c7c0040eead2354b6992838292abe5f2f10a4e8a69b496f2c6f3d91bb5f14b1",
+      "bytes": 5766
+    },
+    {
+      "path": "src/rendering/offroad/dirt-bike-model.ts",
+      "sha256": "7646fc38c642252754b8596ebaee4a4bafbb8f4ea10f2a4f262b6c6516e94e44",
+      "bytes": 30756
+    },
+    {
+      "path": "src/rendering/offroad/number-plate-uv.ts",
+      "sha256": "aa9dc67d42853b9c9882b99add2abbd7d65770f93640cc852a88f5b703a6cf39",
+      "bytes": 1768
+    },
+    {
+      "path": "tests/motocross-uv-footprint.test.ts",
+      "sha256": "18c61ba6fb4b01ffe3150568075f2050890ed838777980079bdee4f0a64288d6",
+      "bytes": 3366
+    },
+    {
+      "path": "authoring/motocross/verify_saved_kit.py",
+      "sha256": "3de04997449971df2d8cda6eeac6b556413e37f994d2c0501546e6c59bd07a47",
+      "bytes": 3364
+    },
+    {
+      "path": "authoring/motocross/verify_normal_fidelity.mjs",
+      "sha256": "8f127be7461429ddb1da809eb228692919bdefccdbc4213749ec5c19211821ce",
+      "bytes": 6295
+    },
+    {
+      "path": ".github/workflows/motocross-final-review.yml",
+      "sha256": "7ce0813fe9b98439223f665d48be70c083f1ca63a3f94fe2b49f5e0a0c585fc0",
+      "bytes": 6380
+    }
+  ],
+  "evidenceLogs": [
+    {
+      "file": "local-full-validation.log",
+      "sha256": "06bb900958e713dac4e8fe23234bda2657439e81bce9dfaaca73b18bdab7a086",
+      "bytes": 123505
+    },
+    {
+      "file": "continuation-static.log",
+      "sha256": "92047114ea3e0ded2cfa26a3298dc131f543eed456c64e5c05def5718505d65b",
+      "bytes": 247
+    },
+    {
+      "file": "continuation-browser.log",
+      "sha256": "ecbe462fe5f134696e6514e2c85a3c72f94e824838743c11bd928d8a5ed9dc06",
+      "bytes": 925
+    },
+    {
+      "file": "committed-shipped-proof.log",
+      "sha256": "ccd577964b43a172aa591738014feed31eb5b3a1e51f2cf18cab1fbc84004e0e",
+      "bytes": 806
+    },
+    {
+      "file": "typescript.log",
+      "sha256": "8d08150bbe72c2e07edb34f4f23cbe7ce017d4d39f61ac2ebe1fefa5328b12d1",
+      "bytes": 972
+    },
+    {
+      "file": "vite.log",
+      "sha256": "eb1115f07dc72463a406e52f6275f01775aa460dbcb02d6a0e235028aa72bf75",
+      "bytes": 2969
+    },
+    {
+      "file": "saved-native-reexport.log",
+      "sha256": "8fd10bb84a70d83a40029100e913ff62a2e115f6d7dd4a402ef023c10a8ea5f6",
+      "bytes": 2159
+    }
+  ]
+}

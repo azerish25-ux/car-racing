@@ -13,9 +13,11 @@ import {
   OFFROAD_BASE,
 } from '../simulation/protocol.ts';
 import { PHASE } from '../simulation/race.ts';
+import { FLAG } from '../simulation/marshal.ts';
 import type { Track } from '../simulation/track.ts';
 import { clamp, mod } from '../core/math.ts';
 import { vehicleAt } from '../simulation/vehicles.ts';
+import { motocrossApproachCue, MotocrossRhythm } from '../simulation/offroad/rhythm-coach.ts';
 import { assessMotocrossLanding } from '../simulation/offroad/riding-feedback.ts';
 
 function clock(seconds: number) {
@@ -34,6 +36,7 @@ export class OffroadHud {
   private element: HTMLElement | null = null;
   private ride: HTMLElement | null = null;
   private rideFields: HTMLElement[] = [];
+  private readonly rhythm = new MotocrossRhythm();
   private airUntil = 0;
   private airTime = 0;
   private landedAirTime = 0;
@@ -88,6 +91,10 @@ export class OffroadHud {
     const s = mod(frame[base + F.S], track.length),
       time = frame[H.TIME];
     const crashed = frame[base + BIKE_BASE + B.STATE] > 0.5;
+    const globalFlag = frame[H.FLAG],
+      localFlag = frame[base + F.LOCAL_FLAG];
+    const doubleYellow = globalFlag === FLAG.DOUBLE_YELLOW || localFlag === FLAG.DOUBLE_YELLOW;
+    const caution = doubleYellow || globalFlag === FLAG.YELLOW || localFlag === FLAG.YELLOW;
     let next = course.jumps[0],
       distance = Infinity;
     for (const jump of course.jumps) {
@@ -116,12 +123,27 @@ export class OffroadHud {
       tag = next.kind.toUpperCase();
       metric = 'ON COURSE';
     }
+    if (next) {
+      const approach = motocrossApproachCue(
+        next,
+        mod(next.takeoff - s, track.length),
+        frame[base + F.SPEED],
+        frame[o + O.MOISTURE] > 0.58,
+      );
+      if (approach) {
+        tag = `LIP ~${approach.targetKph} KM/H`;
+        note = approach.cue;
+        tone = approach.kind === 'roll' || approach.kind === 'ease' ? 'heavy' : 'approach';
+      }
+    }
     if (next && distance > 160) {
       title = 'BUILD YOUR RHYTHM';
       note = `Next: ${next.name.toLowerCase()} · ${Math.round(distance)} m`;
       metric = '';
       progress = 0;
     }
+    if (options.mode === 'practice' && this.rhythm.completed > 0)
+      heading += ` · RUN ${this.rhythm.streak}/3`;
     if (options.mode === 'race' && frame[H.PHASE] < PHASE.RACING) {
       heading = 'START GATE';
       tag = 'READY';
@@ -136,6 +158,18 @@ export class OffroadHud {
       tone = 'crash';
       note = 'The rider is recovering. Prepare a smooth restart.';
       progress = 0;
+    } else if (caution) {
+      // A surveyed lip speed is not permission to jump under race control.
+      // Already-airborne riders cannot roll a face: finish that landing first.
+      heading = 'TRACK CAUTION';
+      tag = doubleYellow ? 'DOUBLE YELLOW' : 'YELLOW FLAG';
+      title = airborne ? 'LAND THEN SLOW DOWN' : 'ROLL THE NEXT JUMP';
+      metric = airborne ? `${this.airTime.toFixed(2)} S` : '';
+      note = airborne
+        ? 'Match the downslope, then reduce speed. No overtaking.'
+        : 'Reduce speed · no overtaking or jumping. Follow the marshal.';
+      tone = 'heavy';
+      progress = 0;
     } else if (airborne) {
       heading = 'IN FLIGHT';
       tag = next?.name ?? 'AIR';
@@ -146,10 +180,15 @@ export class OffroadHud {
       progress = Math.round(clamp(this.airTime / 2, 0, 1) * 100);
     } else if (time < this.airUntil && this.landing) {
       heading = 'LAST JUMP';
-      tag = 'TOUCHDOWN';
+      tag =
+        options.mode === 'practice' && this.rhythm.streak > 0
+          ? `${this.rhythm.streak} CLEAN IN A ROW`
+          : 'TOUCHDOWN';
       title = this.landing.label.toUpperCase();
       metric = `${this.landedAirTime.toFixed(2)} S`;
       note = this.landing.cue;
+      if (options.mode === 'practice' && this.rhythm.streak >= 3)
+        note = `Rhythm target reached · best run ${this.rhythm.best}. Keep it flowing.`;
       tone =
         this.landing.tone === 'good'
           ? 'clean'
@@ -219,6 +258,7 @@ export class OffroadHud {
       if (this.element) this.element.hidden = true;
       if (this.ride) this.ride.hidden = true;
       this.lastTrack = null;
+      this.rhythm.reset();
       return;
     }
     const format = rulesetFor(options).format,
@@ -271,6 +311,23 @@ export class OffroadHud {
         this.landingRough,
       );
     }
+    const player = carBase(0);
+    const riderSpec = vehicleAt(Math.round(frame[player + RACE_BASE + R.VEHICLE])).bike?.offroad;
+    this.rhythm.update({
+      course: track,
+      time,
+      airborne,
+      airTime: frame[o + O.AIR_TIME],
+      crashed: frame[player + BIKE_BASE + B.STATE] > 0.5,
+      landing: assessMotocrossLanding(
+        frame[o + O.LANDING_PITCH],
+        frame[o + O.LANDING_SPEED],
+        frame[o + O.BOTTOM],
+        frame[player + BIKE_BASE + B.STATE] > 0.5,
+        riderSpec,
+        course.isRough(mod(frame[player + F.S], track.length)),
+      ),
+    });
     this.wasAirborne = airborne;
     const motocross = course.kind === 'motocross' || course.kind === 'supercross';
     if (motocross) this.updateRide(frame, track, options, airborne);

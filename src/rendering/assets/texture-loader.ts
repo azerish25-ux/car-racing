@@ -1,6 +1,7 @@
 import * as T from 'three';
 import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';
 import { assetUrl, thirdPartyAsset, type ShippedFile } from './third-party.ts';
+import { disposeNormalResidency } from '../ground/normal-residency.ts';
 
 /**
  * PBR texture sets from the third-party manifest.
@@ -60,7 +61,10 @@ const loaderDisposals = new WeakMap<T.WebGLRenderer, Promise<void>>();
 export function disposeTextureLoaders(renderer: T.WebGLRenderer) {
   let disposal = loaderDisposals.get(renderer);
   if (!disposal) {
-    disposal = Promise.allSettled(sources.get(renderer)?.values() ?? []).then(() => {
+    disposal = Promise.allSettled([
+      ...(sources.get(renderer)?.values() ?? []),
+      disposeNormalResidency(renderer),
+    ]).then(() => {
       // A fallback may have created the KTX2 pool while the roles drained.
       ktx2Loaders.get(renderer)?.dispose();
       ktx2Loaders.delete(renderer);

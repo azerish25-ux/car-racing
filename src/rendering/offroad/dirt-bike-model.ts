@@ -19,6 +19,7 @@ import { installMudOn, type MudUniforms } from './mud.ts';
 import { forkLocalOffset } from '../bike-pit-service.ts';
 import { batchBikeRigidMeshes } from '../bike-rigid-batch.ts';
 import { MotocrossChainDrive } from './motocross-chain-drive.ts';
+import { mapUnprintedPlateBack } from './number-plate-uv.ts';
 import {
   motocrossGraphics,
   motocrossRotor,
@@ -348,10 +349,7 @@ export class DirtBikeModel {
     plate.name = 'Motocross sculpted front number plate';
     // Race numbers are printed on the front. The cockpit sees the unprinted
     // moulding, not a mirrored duplicate of the graphics through the plate.
-    const plateNormals = plate.geometry.getAttribute('normal'),
-      plateUv = plate.geometry.getAttribute('uv');
-    for (let i = 0; i < plateNormals.count; i++)
-      if (plateNormals.getZ(i) < 0.5) plateUv.setXY(i, 8 / 512, 0.5);
+    mapUnprintedPlateBack(plate.geometry);
     // High front fender on the lower clamp: the wheel rises into the gap.
     const fender = superLoft(
       [

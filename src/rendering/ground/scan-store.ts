@@ -2,6 +2,7 @@ import * as T from 'three';
 import { loadPbrSet, type PbrSet } from '../assets/texture-loader.ts';
 import { thirdPartyAsset } from '../assets/third-party.ts';
 import type { QualityPreset } from '../options.ts';
+import { expandSampledNormal } from './normal-residency.ts';
 
 /**
  * Photographed ground sets (assets/third-party/sources/ground.json, plus the
@@ -175,6 +176,9 @@ export class ScanStore {
       resident: [...this.sets.keys()],
       failed: [...this.failed],
       formats: Object.fromEntries([...this.sets].map(([k, s]) => [k, s.formats])),
+      normalResidency: Object.fromEntries(
+        [...this.sets].map(([k, s]) => [k, s.maps.normalMap?.userData.normalResidency ?? 'source']),
+      ),
       materials: this.materials.size,
       scanned: on,
     };
@@ -199,6 +203,25 @@ export class ScanStore {
     const id = SCAN_LAYERS[layer];
     try {
       const set = await loadPbrSet(renderer, id, { anisotropy: 16 });
+      const originalNormal = set.maps.normalMap;
+      if (originalNormal) {
+        try {
+          const prepared = await expandSampledNormal(renderer, originalNormal);
+          if (prepared !== originalNormal) {
+            set.maps.normalMap = prepared;
+            const release = set.dispose.bind(set);
+            set.dispose = () => {
+              prepared.dispose();
+              release();
+            };
+            originalNormal.dispose();
+          }
+        } catch (error) {
+          // Preserve the loaded scan, not a procedural or lower-resolution
+          // substitute, when this optional residency optimization is unavailable.
+          console.warn(`Normal residency for ${id} kept compressed:`, error);
+        }
+      }
       this.adopt(layer, set);
       return true;
     } catch (error) {

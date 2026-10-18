@@ -14,6 +14,7 @@ import {
 } from '../src/simulation/protocol.ts';
 import { vehicleIndex } from '../src/simulation/vehicles.ts';
 import { OffroadHud } from '../src/ui/offroad-hud.ts';
+import { FLAG } from '../src/simulation/marshal.ts';
 
 /** Text/style targets for the production HUD's DOM writes. Layout and browser
  * behavior are covered by the UI Playwright fixture; these tests exercise
@@ -82,6 +83,10 @@ function harness() {
   frame[base + F.S] = 215;
   frame[base + RACE_BASE + R.VEHICLE] = vehicleIndex('mx450');
   return {
+    flags(global: number, local: number = FLAG.GREEN) {
+      frame[H.FLAG] = global;
+      frame[base + F.LOCAL_FLAG] = local;
+    },
     present(
       time: number,
       airborne: boolean,
@@ -159,5 +164,49 @@ describe('motocross HUD flight transitions', () => {
     expect(landed).toContain('CLEAN LANDING');
     expect(landed).toContain('0.35 S');
     expect(h.present(1.3, false, 0.35)).toBe(landed);
+  });
+});
+
+describe('motocross HUD race-control priority', () => {
+  it.each([FLAG.YELLOW, FLAG.DOUBLE_YELLOW])(
+    'replaces acceleration and gap targets under global caution %s',
+    (flag) => {
+      const h = harness();
+      h.flags(flag);
+      const text = h.present(1, false, 0);
+      expect(text).toContain('TRACK CAUTION');
+      expect(text).toContain('ROLL THE NEXT JUMP');
+      expect(text).toContain('no overtaking or jumping');
+      expect(text).not.toContain('Build drive');
+      expect(text).not.toContain('LIP ~');
+    },
+  );
+  it.each([FLAG.YELLOW, FLAG.DOUBLE_YELLOW])(
+    'obeys the player sector flag %s even while the global flag is green',
+    (flag) => {
+      const h = harness();
+      h.flags(FLAG.GREEN, flag);
+      expect(h.present(1, false, 0)).toContain('ROLL THE NEXT JUMP');
+      h.flags(FLAG.GREEN);
+      expect(h.present(1.1, false, 0)).not.toContain('TRACK CAUTION');
+    },
+  );
+  it('does not tell a rider already in flight to roll a jump', () => {
+    const h = harness();
+    h.flags(FLAG.DOUBLE_YELLOW);
+    const text = h.present(1, true, 0.8);
+    expect(text).toContain('LAND THEN SLOW DOWN');
+    expect(text).toContain('0.80 S');
+    expect(text).toContain('Match the downslope');
+    expect(text).not.toContain('ROLL THE NEXT JUMP');
+  });
+  it('does not let landing praise hide a new caution', () => {
+    const h = harness();
+    h.present(1, true, 0.8);
+    expect(h.present(1.02, false, 0.82)).toContain('CLEAN LANDING');
+    h.flags(FLAG.DOUBLE_YELLOW);
+    const text = h.present(1.1, false, 0.82);
+    expect(text).toContain('DOUBLE YELLOW');
+    expect(text).not.toContain('CLEAN LANDING');
   });
 });

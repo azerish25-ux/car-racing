@@ -1,4 +1,6 @@
 import * as T from 'three';
+import { mxAuthoredGeometry } from './authored-kit.ts';
+import { mxPaddingMaterial } from './mx-padding.ts';
 import { mod } from '../../core/math.ts';
 import { TrackTerrainSurface } from '../../simulation/offroad/course-terrain.ts';
 import { Track, trackPoint } from '../../simulation/track.ts';
@@ -68,25 +70,12 @@ export function buildMotocrossBoundary(track: Track) {
       rows[Math.floor(s / (spacing * 3)) % 2].push(pose.matrix.clone());
     }
   }
-  // Taper the shoulder and bevel the top silhouette with a low-poly convex
-  // profile. Blocks share geometry and two original canvas colors.
-  const shape = new T.Shape();
-  shape.moveTo(-width / 2, -height / 2);
-  shape.lineTo(width / 2, -height / 2);
-  shape.lineTo(width / 2, height * 0.3);
-  shape.lineTo(width * 0.32, height / 2);
-  shape.lineTo(-width * 0.32, height / 2);
-  shape.lineTo(-width / 2, height * 0.3);
-  shape.closePath();
-  const geometry = new T.ExtrudeGeometry(shape, { depth: length, bevelEnabled: false, steps: 1 });
-  geometry.translate(0, 0, -length / 2);
+  // The authored canvas remains inside the unchanged physical pad envelope.
+  // Mid detail is 256 triangles, shared by every instance in both batches.
+  const geometry = mxAuthoredGeometry('safety-pad', 'mid');
   for (let index = 0; index < rows.length; index++) {
     if (!rows[index].length) continue;
-    const material = new T.MeshStandardMaterial({
-      color: index ? 0xc8c3a5 : 0x263c37,
-      roughness: 0.93,
-      name: 'MX outer canvas padding',
-    });
+    const material = mxPaddingMaterial(index === 1);
     const mesh = new T.InstancedMesh(geometry, material, rows[index].length);
     mesh.name = `MX boundary pads ${index ? 'pale' : 'dark'}`;
     rows[index].forEach((matrix, i) => mesh.setMatrixAt(i, matrix));

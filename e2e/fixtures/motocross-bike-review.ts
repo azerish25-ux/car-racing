@@ -114,7 +114,7 @@ export function captureMotocrossBike(
     };
   };
   try {
-    return samples.map((sample) => {
+    return samples.map((sample, sampleIndex) => {
       model.pose({
         fork: sag.fork + (sample.forkOffset ?? 0),
         shock: sag.shock + (sample.shockOffset ?? 0),
@@ -165,6 +165,13 @@ export function captureMotocrossBike(
           ankleError: boot.getWorldPosition(new T.Vector3()).distanceTo(target),
         };
       });
+      // Three r180 builds shadow programs before the first render's light
+      // setup. Compile the actual posed scene once to initialize that light
+      // state, as the production loader does. Otherwise frame two adds two
+      // depth-only variants even on an unchanged baseline bike, which is cold
+      // renderer initialization rather than a mud/chain resource allocation.
+      // Keep the first measured pixels, all poses and every resource invariant.
+      if (sampleIndex === 0) renderer.compile(scene, camera);
       renderer.render(scene, camera);
       const gl = renderer.getContext(),
         pixels = new Uint8Array(1280 * 800 * 4);

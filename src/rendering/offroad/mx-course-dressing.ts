@@ -1,4 +1,6 @@
 import * as T from 'three';
+import { mxAuthoredGeometry } from './authored-kit.ts';
+import { mxPaddingMaterial } from './mx-padding.ts';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { clamp, mod, Random } from '../../core/math.ts';
 import { TrackTerrainSurface } from '../../simulation/offroad/course-terrain.ts';
@@ -135,21 +137,18 @@ export class MxCourseDressing {
       roughness: 0.49,
       name: 'MX galvanised event frames',
     });
-    const pad = new T.MeshStandardMaterial({
-      color: 0x243430,
-      roughness: 0.93,
-      name: 'MX foam barrier canvas',
-    });
+    const pad = mxPaddingMaterial(false);
+    for (const texture of [pad.map, pad.normalMap, pad.roughnessMap])
+      if (texture) this.ownedTextures.add(texture);
     const r = new Random(36072);
     const stakes: T.Matrix4[] = [],
       blocks: T.Matrix4[] = [],
       markers: T.Matrix4[] = [];
     const pole = new T.CylinderGeometry(0.027, 0.034, 0.82, 7).translate(0, 0.41, 0);
-    const block = new T.BoxGeometry(1.6, 0.38, 0.55).translate(0, 0.19, 0);
-    // Rounded shoulders stop the safety blocks reading as razor-edged cubes.
-    const bp = block.getAttribute('position');
-    for (let i = 0; i < bp.count; i++) if (bp.getY(i) > 0.3) bp.setX(i, bp.getX(i) * 0.93);
-    block.computeVertexNormals();
+    const block = mxAuthoredGeometry('safety-pad', 'mid')
+      .scale(0.55 / 0.68, 0.38 / 0.58, 1.6 / 2.1)
+      .rotateY(Math.PI / 2)
+      .translate(0, 0.19, 0);
     for (let s = 4; s < track.length - 3; s += indoor ? 7 : 8) {
       track.at(s, this.point);
       for (const side of [-1, 1] as const) {

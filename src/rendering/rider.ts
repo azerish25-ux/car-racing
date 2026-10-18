@@ -5,6 +5,7 @@ import { helmetLiveryTexture, riderPanelTexture } from './bike-livery.ts';
 import { bikeSurfaceMaps } from './bike-surface-detail.ts';
 import { batchBikeRigidMeshes } from './bike-rigid-batch.ts';
 import { sampleProfile } from './profile-sampling.ts';
+import { mxAuthoredGeometry } from './offroad/authored-kit.ts';
 import { gpRacingBoot, installGpLeatherFinish } from './gp-rider-gear.ts';
 import { motocrossFabricMaps, motocrossGraphics } from './offroad/motocross-detail.ts';
 import {
@@ -533,7 +534,13 @@ export class Rider {
           [0.5, 0.02, 0.17, 0.08, 0.08],
           [0.55, 0.03, 0.08, 0.05, 0.05],
         ];
-    part(this.torso, fabric(bodyLoft(torsoSections, sides)), torsoLeather);
+    const torsoGeometry =
+      mx && detail !== 'far'
+        ? mxAuthoredGeometry('torso', detail)
+        : fabric(bodyLoft(torsoSections, sides));
+    part(this.torso, torsoGeometry, torsoLeather).name = mx
+      ? 'Motocross sculpted textile torso'
+      : 'Rider leather torso';
     // Aero hump (spine protector and airbag housing) on the back.
     if (detail !== 'far' && !mx)
       part(
@@ -555,8 +562,10 @@ export class Rider {
     for (const side of [1, -1]) {
       if (detail === 'far') break;
       if (mx) {
-        const flank = part(this.torso, limbGeometry(0.035, 0.03, 0.3, sides), panel);
-        flank.position.set(side * 0.15, 0.08, 0);
+        // Printed side inserts already follow the baked garment UV. A second
+        // capsule here used to protrude from the ribs like rigid body armour.
+        // The cloth shoulder saddle is part of the same continuous surface.
+        continue;
       } else {
         const centreAngle = side > 0 ? 0 : Math.PI;
         const flank = part(
@@ -582,6 +591,17 @@ export class Rider {
       );
       cap.position.set(side * 0.175, 0.46, 0.0);
       cap.scale.set(0.75, 0.55, 1.0);
+    }
+    if (mx && detail !== 'far') {
+      const collar = part(
+        this.torso,
+        new T.TorusGeometry(0.061, 0.007, 6, detail === 'high' ? 32 : 16),
+        flex,
+      );
+      collar.name = 'Motocross rib-knit jersey collar';
+      collar.rotation.x = Math.PI / 2;
+      collar.position.set(0, 0.536, 0.027);
+      collar.scale.y = 0.88;
     }
     if (detail !== 'far' && !mx) {
       // A turned leather collar closes the neck opening instead of leaving
@@ -702,11 +722,19 @@ export class Rider {
     ) => {
       const bone = new Bone(length, this.root);
       const geometry =
-        !mx && detail !== 'far'
-          ? bodyLoft(roadLimbSections(shape, length), sides, 1)
-          : limbGeometry(r0, r1, length, sides);
-      const segment = part(bone.group, fabric(geometry), material);
-      if (!mx) segment.name = `Rider ${shape} leather volume`;
+        mx && detail !== 'far'
+          ? mxAuthoredGeometry(shape, detail)
+          : !mx && detail !== 'far'
+            ? bodyLoft(roadLimbSections(shape, length), sides, 1)
+            : limbGeometry(r0, r1, length, sides);
+      // The Blender cloth already carries intentional tension and compression
+      // folds; applying a second procedural displacement would distort them.
+      const segment = part(
+        bone.group,
+        mx && detail !== 'far' ? geometry : fabric(geometry),
+        material,
+      );
+      segment.name = mx ? `Motocross sculpted ${shape}` : `Rider ${shape} leather volume`;
       return bone;
     };
     this.upperArms = [0, 1].map(() => limb('upper-arm', 0.046, 0.038, RIDER.upperArm, leather));
