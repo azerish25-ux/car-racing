@@ -87,6 +87,9 @@ import { FestivalChaseDynamics, advanceChaseSpring } from './chase-dynamics.ts';
 import { driftFeedback, type DriftCue } from '../../simulation/open-world/drift-feedback.ts';
 import { HorizonGuidance } from './horizon-guidance.ts';
 import { FestivalTrails } from './festival-trails.ts';
+import { SeasonParticles } from './season-particles.ts';
+import { SnowWalls } from './snow-walls.ts';
+import { FestivalAttractions } from './festival-attractions.ts';
 import { HorizonDressing } from './horizon-dressing.ts';
 import { DistantLandscape } from './distant-landscape.ts';
 import { FestivalAtmosphere, festivalGrade } from './festival-atmosphere.ts';
@@ -182,6 +185,13 @@ export class FestivalRenderer {
   private readonly effectPlayback = new EffectPlayback(this.effects);
   readonly guidance = new HorizonGuidance();
   readonly trails = new FestivalTrails();
+  /** Falling petals, leaves and snow around the camera. */
+  readonly flakes = new SeasonParticles();
+  /** Winter plough walls on high mountain roads. */
+  readonly snowWalls: SnowWalls;
+  /** Ferris wheel and night fireworks at the Kestrel hub. */
+  readonly attractions: FestivalAttractions;
+  private readonly flakeLight = new T.Color();
   readonly smoke = new FestivalDriftSmoke();
   readonly eventDressing: FestivalEventDressing;
   private readonly speedBlur: FestivalSpeedBlur;
@@ -279,7 +289,15 @@ export class FestivalRenderer {
       this.trails.root,
       this.contacts.root,
       this.smoke.root,
+      this.flakes.root,
     ];
+    this.scene.add(this.flakes.root);
+    this.snowWalls = new SnowWalls(world.network, (x, z) => world.field.height(x, z));
+    this.scene.add(this.snowWalls.root);
+    this.attractions = new FestivalAttractions(world.network, structures, (x, z) =>
+      carvedGroundHeight(world.carver, x, z),
+    );
+    this.scene.add(this.attractions.root);
     this.effects.looseColours = new Map([
       [MATERIAL.DIRT, [0.43, 0.32, 0.19] as const],
       [MATERIAL.MUD, [0.23, 0.19, 0.14] as const],
@@ -876,6 +894,14 @@ export class FestivalRenderer {
     // not the colour of the horizon haze).
     const fill = 0.8 * daylight.environment;
     this.smoke.setFill(0.7 * fill, 0.74 * fill, 0.8 * fill);
+    // Thin flakes: half the key's diffuse share plus the sky fill.
+    this.flakeLight
+      .copy(this.sun.color)
+      .multiplyScalar((this.sun.intensity * 0.5) / Math.PI)
+      .addScalar(0.5 * fill);
+    this.flakes.update(this.camera, this.preset, this.flakeLight);
+    this.snowWalls.update();
+    this.attractions.update(time, night, this.camera);
     const uniforms = this.sky.material.uniforms;
     uniforms.cloudCover.value = daylight.cover;
     uniforms.skyRadiance.value = daylight.skyRadiance;
@@ -1039,6 +1065,9 @@ export class FestivalRenderer {
     this.markers.dispose();
     this.cars.dispose();
     this.trails.dispose();
+    this.flakes.dispose();
+    this.snowWalls.dispose();
+    this.attractions.dispose();
     this.smoke.dispose();
     this.eventDressing.dispose();
     this.dragStrip.dispose();
