@@ -214,6 +214,19 @@ describe('festival air', () => {
     const own = new T.MeshStandardMaterial();
     own.userData.festivalAir = false;
     expect(air.installMaterial(own)).toBe(false);
+    // Scene installs skip excluded subtrees (vehicles, effects, overlays).
+    const scene = new T.Scene(),
+      car = new T.Group(),
+      ground = new T.MeshStandardMaterial(),
+      paint = new T.MeshStandardMaterial();
+    car.add(new T.Mesh(new T.BoxGeometry(), paint));
+    scene.add(new T.Mesh(new T.BoxGeometry(), ground), car);
+    air.install(scene, [car]);
+    expect(ground.customProgramCacheKey()).toContain('festival-air-v1');
+    expect(paint.customProgramCacheKey()).not.toContain('festival-air-v1');
+    // Golden hour veils far ground in a warm haze, not the day's blue.
+    air.update('sunset', 0.12, 0);
+    expect(air.inscatter.r).toBeGreaterThan(air.inscatter.b);
   });
 
   it('writes clean-air state and a blue horizon for the clear day', () => {

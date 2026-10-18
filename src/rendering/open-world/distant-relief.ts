@@ -32,11 +32,11 @@ export const DISTANT_RELIEF = Object.freeze({
   volcano: Object.freeze({
     /** East of Port Ilse, across the bay: the spawn street (Harbour Front,
      * heading east; +z is on the right) frames it at its end, 26 km away and
-     * 1.3 degrees right of the street axis, in the middle of the gap between
-     * the facades; the Varda pass road and the airfield runway look at it
-     * from 24-30 km. */
+     * half a degree left of the street axis (the event beacon stands 1.5
+     * degrees right of it); the Varda pass road and the airfield runway look
+     * at it from 24-30 km. */
     x: 26550,
-    z: -2020,
+    z: -2830,
     /** Radius (m) to height (m) above the sea: crater floor, rim, then the
      * concave flank (slopes in the comment of DISTANT_RELIEF). */
     profile: Object.freeze([
