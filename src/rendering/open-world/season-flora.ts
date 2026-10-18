@@ -291,7 +291,14 @@ float owRoadNoise(vec2 p) {
 float owLitter(vec2 p, float scale, float cover, float salt) {
   vec2 q = p * scale;
   float px = length(fwidth(q));
-  float piece = step(1.0 - cover, owRoadHash(floor(q) + salt));
+  // One petal or leaf per occupied cell: a turned ellipse (2.2 : 1) filling
+  // ~32 % of the cell, so the mean coverage stays \`cover\`.
+  vec2 cell = floor(q);
+  float a = owRoadHash(cell + salt + 31.0) * 6.2832;
+  vec2 f = fract(q) - 0.5;
+  f = mat2(cos(a), -sin(a), sin(a), cos(a)) * f;
+  float inside = step(length(f * vec2(1.0, 2.2)), 0.47);
+  float piece = step(1.0 - min(1.0, cover / 0.32), owRoadHash(cell + salt)) * inside;
   return mix(piece, cover, smoothstep(0.35, 1.2, px));
 }
 `;

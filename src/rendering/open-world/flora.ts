@@ -350,14 +350,14 @@ function susukiFieldGeometry() {
   return b.geometry();
 }
 
-/** Bamboo clump (unit: metres): eleven culms 9-13 m with node rings implied
+/** Bamboo clump (unit: metres): sixteen culms 9-13 m with node rings implied
  * by the shader and drooping leaf sprays on the upper half. */
 function bambooGeometry() {
   const parts: T.BufferGeometry[] = [];
   const sprays = new Parts();
-  for (let i = 0; i < 11; i++) {
+  for (let i = 0; i < 16; i++) {
     const a = i * 2.399963,
-      r = 0.25 + hash01(i, 8, 79) * 1.6,
+      r = 0.2 + Math.sqrt(hash01(i, 8, 79)) * 2,
       h = 9 + hash01(i, 9, 79) * 4,
       lean = 0.03 + hash01(i, 10, 79) * 0.06;
     const base = new T.Vector3(Math.sin(a) * r, 0, Math.cos(a) * r),
@@ -378,13 +378,13 @@ function bambooGeometry() {
     for (let k = 0; k < uv.count; k++) uv.setXY(k, 0.05, p.getY(k) / 0.45);
     parts.push(culm);
     // Leaf sprays from 45 % of the height to the tip, drooping outward.
-    for (let s = 0; s < 3; s++) {
-      const t = 0.5 + s * 0.17 + hash01(i, s, 80) * 0.05,
+    for (let s = 0; s < 4; s++) {
+      const t = 0.45 + s * 0.14 + hash01(i, s, 80) * 0.05,
         at = base.clone().addScaledVector(dir, h * t);
       const out = a + s * 1.9;
       const side = new T.Vector3(Math.cos(out), 0, -Math.sin(out)),
         down = new T.Vector3(Math.sin(out) * 0.6, -0.8, Math.cos(out) * 0.6).normalize();
-      const len = 1.5 + hash01(i, s, 81) * 0.9;
+      const len = 2.1 + hash01(i, s, 81) * 1.3;
       sprays.card(
         at,
         down,
@@ -611,8 +611,8 @@ export function planFloraChunk(world: OpenWorld, grid: StructureGrid, cx: number
         flowerZ = floraZone(x, z, FLOWER_SEED),
         bambooZ = floraZone(x, z, BAMBOO_SEED);
       // Cheap rejection before the field queries.
-      // Bamboo: small groves (about one clump per 50 m² inside a grove zone).
-      const bambooHere = bambooZ > 0.74 && pick < 0.2;
+      // Bamboo: small groves (about one clump per 34 m² inside a grove zone).
+      const bambooHere = bambooZ > 0.74 && pick < 0.3;
       const flowerHere = flowerZ > 0.62 && pick < 0.22;
       // Susuki fields: textured patches nearly touching inside the zone.
       const fieldHere = susukiZ > 0.56 && pick < 0.85 * Math.min(1, (susukiZ - 0.56) * 6);

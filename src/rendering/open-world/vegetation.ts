@@ -36,55 +36,6 @@ function shrubGeometry() {
   return g;
 }
 
-/** Sugi (Cryptomeria) crown: a narrow column of small ragged tiers on the
- * upper ~60 % of a straight bare trunk (093: forest-grown cedars carry no
- * branches low down). Unit height; drawn at width 0.42 x height. */
-function cedarGeometry(segments: number, tiers: number) {
-  const parts: T.BufferGeometry[] = [];
-  for (let k = 0; k < tiers; k++) {
-    const t = k / tiers,
-      // Irregular, overlapping tiers slightly off the axis: a lumpy column
-      // rather than a regular cone stack.
-      jitter = 0.85 + 0.3 * Math.abs((Math.sin(k * 12.9898) * 43758.5453) % 1),
-      radius = (0.3 * Math.pow(1 - t, 0.8) + 0.04) * jitter,
-      height = 0.22 * (1 - 0.4 * t),
-      base = 0.36 + t * 0.56,
-      ox = 0.025 * Math.sin(k * 2.7),
-      oz = 0.025 * Math.cos(k * 1.9);
-    const cone = new T.ConeGeometry(radius, height, segments, 2, true);
-    cone.rotateY(k * 1.1);
-    const p = cone.getAttribute('position');
-    for (let i = 0; i < p.count; i++) {
-      const y = p.getY(i) + height / 2,
-        a = Math.atan2(p.getZ(i), p.getX(i));
-      // Ragged drooping rim and a rounded shoulder (clumps of sprays).
-      const rim = y < height * 0.2,
-        mid = !rim && y < height * 0.7;
-      const wobble = rim
-        ? 1 + 0.24 * Math.sin(a * 4 + k * 2.3) + 0.12 * Math.sin(a * 9 + k)
-        : mid
-          ? 1.14 + 0.12 * Math.sin(a * 5 + k * 1.3)
-          : 1;
-      p.setXYZ(
-        i,
-        p.getX(i) * wobble + ox,
-        y + base - (rim ? 0.03 * wobble : 0),
-        p.getZ(i) * wobble + oz,
-      );
-    }
-    cone.computeVertexNormals();
-    const n = cone.getAttribute('normal');
-    const v = new T.Vector3();
-    for (let i = 0; i < n.count; i++) {
-      v.set(p.getX(i) - ox, 0.45, p.getZ(i) - oz).normalize();
-      n.setXYZ(i, v.x, v.y, v.z);
-    }
-    parts.push(cone);
-  }
-  const merged = mergeGeometries(parts, false)!;
-  parts.forEach((g) => g.dispose());
-  return merged;
-}
 /** Japanese black pine (026, 027): flat cloud-pruned pads of needles on a
  * leaning trunk with a few bare limbs. Unit height; drawn at 0.9 x height. */
 const PINE_PADS: readonly (readonly [number, number, number, number])[] = [
@@ -154,7 +105,7 @@ const ROLE_FORM: Readonly<Record<number, readonly [number, number]>> = {
   [FLORA_ROLE.BROADLEAF]: [1, 0.86],
   [FLORA_ROLE.CHERRY]: [0.62, 1.22],
   [FLORA_ROLE.MAPLE]: [0.72, 1.0],
-  [FLORA_ROLE.CEDAR]: [1.25, 0.42],
+  [FLORA_ROLE.CEDAR]: [1.15, 0.5],
   [FLORA_ROLE.PINE]: [0.72, 0.9],
   [FLORA_ROLE.SHRUB]: [1, 1.3],
   [FLORA_ROLE.AZALEA]: [0.85, 1.45],
@@ -245,9 +196,6 @@ export class Vegetation {
     leaf: T.BufferGeometry;
     trunk: T.BufferGeometry;
     distant: T.BufferGeometry;
-    conifer: T.BufferGeometry;
-    coniferTrunk: T.BufferGeometry;
-    coniferFar: T.BufferGeometry;
     pine: T.BufferGeometry;
     pineTrunk: T.BufferGeometry;
     pineFar: T.BufferGeometry;
@@ -263,9 +211,6 @@ export class Vegetation {
       leaf: leafGeometry,
       trunk: trunkGeometry,
       distant: distantLeafGeometry,
-      conifer: cedarGeometry(8, 8),
-      coniferTrunk: new T.CylinderGeometry(0.008, 0.045, 0.92, 6).translate(0, 0.46, 0),
-      coniferFar: cedarGeometry(5, 3),
       pine: pineGeometry(1),
       pineTrunk: pineTrunkGeometry(),
       pineFar: pineGeometry(0, 3),
@@ -287,8 +232,8 @@ export class Vegetation {
     });
     installFoliageAtlas(this.depth);
     this.bark = new T.MeshStandardMaterial({ color: 0x5b5242, roughness: 1 });
-    // Sugi and black pine: dark olive needles (093 crowns #43482c lit
-    // #71794c; 026 pines #393f27).
+    // Black pine pads: dark olive needles (026 #393f27, p80 #616a4c). Sugi
+    // use the painted conifer crown cards of the foliage atlas.
     this.needles = materials.vegetation({ color: 0x2a3820, translucency: 0.2 });
     this.needles.side = T.FrontSide;
     this.shrub = materials.vegetation({ color: 0x3a4a24, translucency: 0.3 });
@@ -300,10 +245,10 @@ export class Vegetation {
       speckle: 'vec3(vMapUv * 170.0, 0.0)',
       shadows: [this.depth],
     });
-    // Crown normals lean up (soft lighting): snow only on the flattest
-    // ledges, patchy (003: dusted, still dark green).
+    // Pad normals lean up (soft lighting): snow only on the flattest tops,
+    // patchy (003: dusted, still dark green).
     installSeasonFoliage(this.needles, {
-      role: FLORA_ROLE.CEDAR,
+      role: FLORA_ROLE.PINE,
       lumRef: 0.034,
       speckle: 'position * 70.0',
       snowBand: [0.9, 1.15],
@@ -418,20 +363,18 @@ export class Vegetation {
       trees = data.trees,
       roles = tileRoles(tile),
       near = level === 0,
-      // Card crowns (broadleaf, cherry, maple), cedar, pine, shrubs.
-      buckets: number[][] = [[], [], [], []],
+      // Card crowns (broadleaf, cherry, maple, cedar), pine, shrubs.
+      buckets: number[][] = [[], [], []],
       roleOf = new Map<number, number>();
     for (let i = 0, k = 0; i < trees.length; i += TILE_TREE_STRIDE, k++) {
       const role = roles[k];
       roleOf.set(i, role);
       const bucket =
-        role === FLORA_ROLE.CEDAR
+        role === FLORA_ROLE.PINE
           ? 1
-          : role === FLORA_ROLE.PINE
+          : role === FLORA_ROLE.SHRUB || role === FLORA_ROLE.AZALEA
             ? 2
-            : role === FLORA_ROLE.SHRUB || role === FLORA_ROLE.AZALEA
-              ? 3
-              : 0;
+            : 0;
       buckets[bucket].push(i);
     }
     const transform = new T.Object3D(),
@@ -469,22 +412,18 @@ export class Vegetation {
       mesh.matrixAutoUpdate = false;
       group.add(mesh);
     };
-    const [cards, cedar, pine, shrubs] = buckets;
+    const [cards, pine, shrubs] = buckets;
     if (near) {
       add(cards, this.geometry.leaf, this.foliage, true);
       add(cards, this.geometry.trunk, this.bark, true);
-      add(cedar, this.geometry.conifer, this.needles, true);
-      add(cedar, this.geometry.coniferTrunk, this.bark, true);
       add(pine, this.geometry.pine, this.needles, true);
       add(pine, this.geometry.pineTrunk, this.bark, true);
       add(shrubs, this.geometry.shrub, this.shrub, false);
     } else {
       add(cards, this.geometry.distant, this.foliage, false);
-      add(cedar, this.geometry.coniferFar, this.needles, false);
       add(pine, this.geometry.pineFar, this.needles, false);
     }
-    group.userData.instances =
-      cards.length + cedar.length + pine.length + (near ? shrubs.length : 0);
+    group.userData.instances = cards.length + pine.length + (near ? shrubs.length : 0);
     group.name = `Vegetation L${level}`;
     this.root.add(group);
     return group;
