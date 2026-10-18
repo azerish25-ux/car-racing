@@ -16,7 +16,37 @@ export interface FestivalSkillStatus {
   bestChain: number;
   /** Increments on a bank or loss, so presentation can announce it once. */
   sequence: number;
+  /** The named skill scoring now (its own unmultiplied points), or the last
+   * award while the chain is still pending; null when idle. */
+  skill: { name: string; points: number } | null;
+  /** The most recently completed skill; `id` increments once per award. */
+  award: { name: string; points: number; id: number } | null;
 }
+
+/** Skill names by the points one continuous skill has earned (unmultiplied).
+ * A sustained 3 s slide near 35 degrees at 90 km/h is about 600 points. */
+export const SKILL_TIERS = Object.freeze({
+  drift: Object.freeze([
+    [1200, 'ULTIMATE DRIFT'],
+    [700, 'AWESOME DRIFT'],
+    [300, 'GREAT DRIFT'],
+    [0, 'DRIFT'],
+  ] as const),
+  speed: Object.freeze([
+    [800, 'ULTIMATE SPEED'],
+    [400, 'AWESOME SPEED'],
+    [150, 'GREAT SPEED'],
+    [0, 'SPEED'],
+  ] as const),
+});
+export type SkillKind = keyof typeof SKILL_TIERS;
+export function skillName(kind: SkillKind, points: number) {
+  for (const [threshold, name] of SKILL_TIERS[kind]) if (points >= threshold) return name;
+  return SKILL_TIERS[kind][SKILL_TIERS[kind].length - 1][1];
+}
+/** A continuous skill closes after this many seconds without its motion
+ * (a brief wobble below the drift angle does not split one slide in two). */
+const SKILL_GAP = 0.4;
 
 export interface FestivalSkillSample {
   /** Chassis-local horizontal velocities, in metres per second. */
@@ -68,6 +98,24 @@ export class FestivalSkillChain {
   private transitionCooldown = 0;
   private bonusFeedback = 0;
   private bonusLabel = '';
+  private segmentKind: SkillKind | null = null;
+  private segmentPoints = 0;
+  private segmentGap = 0;
+  private awardId = 0;
+  private lastAward: FestivalSkillStatus['award'] = null;
+
+  private award(name: string, points: number) {
+    this.lastAward = { name, points: Math.round(points), id: ++this.awardId };
+  }
+  /** Close the running skill segment as an award (dropped when `keep` is
+   * false: a lost chain does not announce its last skill). */
+  private closeSegment(keep = true) {
+    if (this.segmentKind && keep && this.segmentPoints >= 1)
+      this.award(skillName(this.segmentKind, this.segmentPoints), this.segmentPoints);
+    this.segmentKind = null;
+    this.segmentPoints = 0;
+    this.segmentGap = 0;
+  }
 
   /** A reset, new machine or manual event start must not bank a teleport. */
   reset(reason = 'CHAIN LOST') {
@@ -92,6 +140,8 @@ export class FestivalSkillChain {
     this.sideDwell = this.transitionWindow = this.transitionCooldown = 0;
     this.bonusFeedback = 0;
     this.bonusLabel = '';
+    this.closeSegment(false);
+    this.lastAward = null;
   }
 
   private multiplier() {
@@ -106,12 +156,16 @@ export class FestivalSkillChain {
   }
 
   private bank() {
+    this.closeSegment();
+    const award = this.lastAward;
     const total = this.projected();
     this.lastBank = total;
     this.sessionTotal += total;
     this.bestChain = Math.max(this.bestChain, total);
     this.sequence++;
     this.clearPending();
+    // The banked card still names the chain's final skill.
+    this.lastAward = award;
     this.phase = 'banked';
     this.label = 'SKILL CHAIN BANKED';
     this.feedback = FESTIVAL_SKILLS.feedbackSeconds;
@@ -194,16 +248,31 @@ export class FestivalSkillChain {
       this.bonusLabel = 'CLEAN PASS';
     }
     if (bonus > 0) this.bonusFeedback = 1.1;
-    let rate = 0;
+    let rate = 0,
+      kind: SkillKind | null = null;
     if (drifting) {
       rate = 180 * clamp((angle - 0.15) / 0.6, 0.2, 1) * clamp(speed / 26, 0.35, 1.35);
+      kind = 'drift';
       this.label =
         this.driftTime > 4 ? 'EXCELLENT DRIFT' : this.driftTime > 1.5 ? 'GREAT DRIFT' : 'DRIFT';
     } else if (clean && this.cleanTime > FESTIVAL_SKILLS.cleanLeadIn) {
       rate = 45 + Math.min(60, (speed - FESTIVAL_SKILLS.cleanSpeed) * 2);
+      kind = 'speed';
       this.label = speed > 45 ? 'HIGH SPEED' : 'CLEAN LINE';
     }
     if (this.bonusFeedback > 0) this.label = this.bonusLabel;
+    // Named skills: one continuous motion is one skill, its tier by its own
+    // points; a change of motion or a short calm closes it as an award.
+    if (kind && kind !== this.segmentKind) this.closeSegment();
+    if (kind) {
+      this.segmentKind = kind;
+      this.segmentPoints += rate * dt;
+      this.segmentGap = 0;
+    } else if (this.segmentKind) {
+      this.segmentGap += dt;
+      if (this.segmentGap > SKILL_GAP) this.closeSegment();
+    }
+    if (bonus > 0) this.award(this.bonusLabel, bonus);
     if (rate > 0 || bonus > 0) {
       this.phase = 'active';
       this.feedback = 0;
@@ -231,6 +300,15 @@ export class FestivalSkillChain {
       sessionTotal: this.sessionTotal,
       bestChain: this.bestChain,
       sequence: this.sequence,
+      skill: this.segmentKind
+        ? {
+            name: skillName(this.segmentKind, this.segmentPoints),
+            points: Math.round(this.segmentPoints),
+          }
+        : this.lastAward && this.phase !== 'idle'
+          ? { name: this.lastAward.name, points: this.lastAward.points }
+          : null,
+      award: this.lastAward ? { ...this.lastAward } : null,
     };
   }
 }

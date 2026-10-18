@@ -5,6 +5,8 @@ import { pathPoint } from '../src/simulation/open-world/route-path.ts';
 import { OpenWorldSimulation } from '../src/simulation/open-world/session.ts';
 import {
   FestivalSkillChain,
+  SKILL_TIERS,
+  skillName,
   type FestivalSkillSample,
 } from '../src/simulation/open-world/skill-chain.ts';
 import { Vehicle } from '../src/simulation/vehicle.ts';
@@ -106,6 +108,57 @@ describe('festival manual driving chains', () => {
     expect(chain.status().sessionTotal).toBe(0);
     chain.update(calm, 1 / 120);
     expect(chain.status().sessionTotal).toBeGreaterThan(50);
+  });
+});
+
+describe('festival named skills (HUD popups)', () => {
+  it('names one continuous slide by its own points and awards it once on exit', () => {
+    const chain = new FestivalSkillChain();
+    advance(chain, slide, 0.5);
+    const early = chain.status().skill!;
+    expect(early.name).toBe('DRIFT');
+    advance(chain, slide, 5.5);
+    const late = chain.status().skill!;
+    expect(late.points).toBeGreaterThan(early.points);
+    expect(late.name).toBe(skillName('drift', late.points));
+    expect(late.name).not.toBe('DRIFT');
+    expect(chain.status().award).toBeNull();
+    // A short calm (longer than the 0.4 s wobble allowance) closes the skill.
+    advance(chain, calm, 0.5);
+    const award = chain.status().award!;
+    expect(award).toMatchObject({ id: 1, name: late.name });
+    expect(Math.abs(award.points - late.points)).toBeLessThanOrEqual(1);
+    // The chain still pends: the popup keeps naming the last skill.
+    expect(chain.status().skill).toEqual({ name: award.name, points: award.points });
+    // Unmultiplied skill points equal the chain points of one skill.
+    expect(Math.abs(chain.status().score - award.points)).toBeLessThanOrEqual(1);
+    advance(chain, calm, 4);
+    expect(chain.status().phase).toBe('banked');
+    expect(chain.status().award).toEqual(award);
+  });
+
+  it('splits drift and speed into separate skills, and a lost chain names nothing', () => {
+    const chain = new FestivalSkillChain();
+    const fast = { ...calm, forward: 35 };
+    advance(chain, slide, 1.2);
+    advance(chain, fast, 4);
+    expect(chain.status().award?.name).toBe(skillName('drift', chain.status().award!.points));
+    expect(chain.status().skill?.name).toMatch(/SPEED$/);
+    chain.update({ ...fast, impact: true }, 1 / 120);
+    expect(chain.status().phase).toBe('lost');
+    expect(chain.status().skill).toBeNull();
+    expect(chain.status().award).toBeNull();
+  });
+
+  it('uses fixed, ordered point thresholds for every tier', () => {
+    expect(skillName('drift', 0)).toBe('DRIFT');
+    expect(skillName('drift', 299)).toBe('DRIFT');
+    expect(skillName('drift', 300)).toBe('GREAT DRIFT');
+    expect(skillName('drift', 700)).toBe('AWESOME DRIFT');
+    expect(skillName('drift', 1200)).toBe('ULTIMATE DRIFT');
+    expect(skillName('speed', 150)).toBe('GREAT SPEED');
+    for (const tiers of Object.values(SKILL_TIERS))
+      for (let i = 1; i < tiers.length; i++) expect(tiers[i][0]).toBeLessThan(tiers[i - 1][0]);
   });
 });
 
