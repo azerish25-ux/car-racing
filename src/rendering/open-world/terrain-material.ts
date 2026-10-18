@@ -135,8 +135,9 @@ vec3 owMeadowSeason(vec3 grass, vec2 p, float meso, float micro, float forest, f
   autumnG = mix(autumnG, vec3(0.15, 0.065, 0.028) * (0.75 + 0.5 * micro), smoothstep(0.3, 0.8, forest) * 0.85);
   springG = mix(springG, vec3(0.62, 0.45, 0.5), petals * 0.45);
   vec3 winterG = mix(vec3(0.15, 0.13, 0.095), vec3(0.1, 0.09, 0.07), micro);
-  // Summer: deep olive green (016 #626931, 021 #63632d sunlit).
-  vec3 summerG = grass * vec3(0.92, 1.0, 0.72);
+  // Summer: deep olive green (016 #626931, 021 #65642f sunlit; the
+  // rendered meadow read #596e2e, too green, before the warmer factor).
+  vec3 summerG = grass * vec3(1.0, 0.93, 0.68);
   return owSeason.x * springG + owSeason.y * summerG + owSeason.z * autumnG + owSeason.w * winterG;
 }
 /** Season meadow colour for blades (no petals, mid micro). */
@@ -301,7 +302,7 @@ ${SCAN_COMMON_GLSL}`,
     vec3 flowerC = (owSeason.x + owSeason.y) * bloom + owSeason.z * vec3(0.2, 0.15, 0.09) + owSeason.w * vec3(0.14, 0.11, 0.08);
     // Flower farms gather where the wildflower zone is (051), not as stripes
     // scattered over every farm (from above those read as banding).
-    bool flowers = plot < 0.4 && owFloraZone(p, ${FLOWER_SEED.toFixed(2)}) > 0.7;
+    bool flowers = plot < 0.3 && owFloraZone(p, ${FLOWER_SEED.toFixed(2)}) > 0.76;
     vec3 plotC = flowers ? flowerC : paddyC;
     plotC = mix(plotC, vec3(0.085, 0.12, 0.04) * (0.8 + 0.4 * micro), bund);
     float use = farmW * step(plot, 0.82);

@@ -112,12 +112,12 @@ function coverAtlas() {
     const meadow = (rnd: () => number, n: number, minLen: number) => {
       for (let i = 0; i < n; i++) {
         const x = 24 + rnd() * (w - 48),
-          len = h * (minLen + (1 - minLen) * rnd() ** 0.7),
+          len = h * (minLen + (1 - minLen) * rnd() ** 1.35),
           lean = (rnd() - 0.5) * 120 * (len / h);
         blade(x, len, lean, 2.2 + rnd() * 3.2, 0.25 + 0.75 * rnd());
       }
     };
-    tile(COVER_TILE.GRASS, (rnd) => meadow(rnd, 72, 0.45));
+    tile(COVER_TILE.GRASS, (rnd) => meadow(rnd, 78, 0.3));
     tile(COVER_TILE.SEED, (rnd) => {
       meadow(rnd, 46, 0.35);
       // Panicles: thin stems nodding over at the top, loose branches with
@@ -654,14 +654,14 @@ function coverMaterial(uniforms: Record<string, T.IUniform>, map: T.Texture) {
   vec4 tex = diffuseColor;
   // Dark at the base, lit at the tips; far clumps average toward the
   // ground's own tone (the carpet fades into the terrain colour).
-  float base = mix(mix(0.38, 1.16, smoothstep(0.0, 0.85, vGc.y)), 0.92, vGc.w * 0.65);
+  float base = mix(mix(0.38, 1.16, smoothstep(0.0, 0.85, vGc.y)), 1.12, vGc.w * 0.7);
   vec3 blade = vGcTint * base * (0.55 + 0.75 * tex.g);
   float accent = clamp(tex.r * 1.4, 0.0, 1.0);
   // Sasa: pale withered leaf margins in winter.
   if (abs(vGc.x - ${COVER_TILE.SASA}.0) < 0.5) accent = owSeason.w * smoothstep(0.75, 0.95, tex.g) * 0.6;
   diffuseColor.rgb = mix(blade, vGcAccent * (0.7 + 0.45 * tex.g), accent);
   // Thin blades keep their coverage when minified.
-  diffuseColor.a = tex.a * (1.0 + 1.3 * smoothstep(6.0, 40.0, length(vViewPosition)));
+  diffuseColor.a = tex.a * (1.0 + 0.45 * smoothstep(8.0, 45.0, length(vViewPosition)));
 }`,
       'fragment',
     );

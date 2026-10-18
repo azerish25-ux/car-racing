@@ -249,7 +249,13 @@ export class FestivalRenderer {
   /** The running drag's tree and lanes (status), sequencing the 3D lights. */
   drag: DragView | null = null;
   readonly dragStrip: DragStrip;
-  stats = { drawCalls: 0, triangles: 0, renderMs: 0 };
+  stats: {
+    drawCalls: number;
+    triangles: number;
+    renderMs: number;
+    /** Landscape density (ground cover patches, far crowns, rocks, trees). */
+    landscape?: Record<string, unknown>;
+  } = { drawCalls: 0, triangles: 0, renderMs: 0 };
   constructor(
     readonly renderer: T.WebGLRenderer,
     readonly canvas: HTMLCanvasElement,
@@ -992,6 +998,12 @@ export class FestivalRenderer {
     this.ultra.afterFrame();
     this.stats.drawCalls = this.renderer.info.render.calls;
     this.stats.triangles = this.renderer.info.render.triangles;
+    this.stats.landscape = {
+      cover: this.groundCover.stats,
+      canopy: this.farCanopy.stats,
+      rocks: this.rocks.stats,
+      trees: this.vegetation.stats.instances,
+    };
     this.stats.renderMs = this.stats.renderMs * 0.9 + (performance.now() - start) * 0.1;
   }
   /** Snapshot length check for the session controller. */

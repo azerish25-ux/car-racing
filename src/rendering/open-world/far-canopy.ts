@@ -212,9 +212,9 @@ function canopyMaterial(eye: { value: T.Vector3 }) {
   // Leaf clumps: lit tufts and shadowed gaps inside the crown.
   float clump = fcNoise(q * vec2(7.0, 9.0) + h * 31.0) * 0.6 + fcNoise(q * vec2(17.0, 21.0) + h * 7.0) * 0.4;
   float occlusion = mix(0.55, 1.0, smoothstep(0.1, 0.85, q.y)) * mix(0.55, 1.15, clump);
-  vec3 base = vec3(0.058, 0.086, 0.014) * (0.8 + 0.4 * vFcTint) * occlusion;
+  vec3 base = vec3(0.074, 0.1, 0.02) * (0.8 + 0.4 * vFcTint) * occlusion;
   owTexel = base;
-  diffuseColor.rgb = owLeafSeason(base, 0.078);
+  diffuseColor.rgb = owLeafSeason(base, 0.094);
   // Winter: bare deciduous crowns read as a grey-brown haze of twigs.
   if (owSeason.w > 0.5 && owDeciduous(role)) cover *= step(0.4, fcNoise(q * 23.0 + h * 5.0));
   diffuseColor.a = cover;
