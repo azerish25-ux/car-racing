@@ -258,7 +258,7 @@ export const TRAFFIC_BODIES = Object.keys(TRAFFIC_SHAPES) as TrafficBody[];
 /** Per-vertex material classes: [paint, roughness, metalness, clearcoat] and
  * an emitter class (0 none, 1 head, 2 tail, 3 indicator, 4 plate). */
 type Finish = readonly [number, number, number, number];
-const PAINT: Finish = [1, 0.32, 0.18, 1];
+const PAINT: Finish = [1, 0.45, 0.15, 1];
 const GLASS: Finish = [0, 0.04, 0.0, 1];
 const PLASTIC: Finish = [0, 0.62, 0.0, 0];
 const GLOSS_BLACK: Finish = [0, 0.3, 0.05, 0];
@@ -977,6 +977,9 @@ function trafficMaterial(plates: T.Texture | null) {
     metalness: 1,
     clearcoat: 1,
     clearcoatRoughness: 0.05,
+    // Base-layer sheen sits under the clear coat (as on the festival cars);
+    // glass and lenses reflect through their coat class.
+    specularIntensity: 0.35,
   });
   chainShaderHook(material, SHADER_KEY, (shader) => {
     injectDeclarations(

@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { FestivalCars } from '../src/rendering/open-world/festival-cars.ts';
 import {
   FESTIVAL_LAMPS,
+  FESTIVAL_PAINT,
   festivalRoadGlass,
   installFestivalFinish,
   platePlacement,
@@ -145,6 +146,25 @@ describe('festival vehicle finish', () => {
     expect(uses(circuit.root, sharedMaterials.roadGlass())).toBeGreaterThan(0);
     expect(uses(circuit.root, festivalRoadGlass())).toBe(0);
     expect(festivalRoadGlass().userData.vehicleGlass).toBe('road');
+    // Clear-coated paint with the base sheen under the coat; circuit untouched.
+    expect(road.materials.paint.userData.paintFinish).toBe('metallic');
+    expect(road.materials.paint.specularIntensity).toBeCloseTo(
+      FESTIVAL_PAINT.metallic.specularIntensity,
+      6,
+    );
+    expect(road.materials.paint.clearcoat).toBe(1);
+    expect(road.materials.paint.clearcoatRoughness).toBeCloseTo(
+      FESTIVAL_PAINT.clearcoatRoughness,
+      6,
+    );
+    expect(circuit.materials.paint.specularIntensity).toBe(1);
+    expect(circuit.materials.paint.clearcoatRoughness).toBeCloseTo(0.04, 6);
+    // Lacquered festival rims on every LOD; the circuit keeps the shared alloy.
+    const rimsOf = (root: T.Object3D) =>
+      named(root, 'Rim').map((m) => (m.material as T.Material).name);
+    expect(rimsOf(road.root).length).toBe(12);
+    expect(rimsOf(road.root).every((n) => n.startsWith('Festival lacquered rim'))).toBe(true);
+    expect(rimsOf(circuit.root).some((n) => n.startsWith('Festival'))).toBe(false);
   });
 
   it('drives open-road lamp levels: running tail bars by day, a brake flare, night levels', () => {

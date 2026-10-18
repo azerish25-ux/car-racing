@@ -82,10 +82,79 @@ export function festivalRoadGlass() {
   }
   return roadGlass;
 }
+const rims = new Map<string, T.MeshPhysicalMaterial>();
+/** Festival wheel finish (refs 019, 025, 078, 098): lacquered alloy under a
+ * clear coat, or gloss-black paint on a dark wheel, so rims carry crisp
+ * reflections; deep-dish spoked designs get a polished outer lip (object
+ * space: the outboard-facing band beyond 90% of the bead radius). */
+export function festivalRimMaterial(color: number, rimRadius: number, lip: boolean) {
+  const key = `${color}|${lip ? rimRadius.toFixed(4) : '-'}`;
+  let material = rims.get(key);
+  if (material) return material;
+  const linear = new T.Color(color),
+    dark = linear.r * 0.2126 + linear.g * 0.7152 + linear.b * 0.0722 < 0.05;
+  material = new T.MeshPhysicalMaterial({
+    name: `Festival lacquered rim ${color.toString(16)}`,
+    color,
+    metalness: dark ? 0.3 : 0.9,
+    roughness: dark ? 0.34 : 0.24,
+    clearcoat: 1,
+    clearcoatRoughness: 0.035,
+  });
+  if (lip) {
+    const radius = { value: rimRadius };
+    chainShaderHook(material, 'festival-rim-lip-v1', (shader) => {
+      shader.uniforms.festivalRimRadius = radius;
+      injectDeclarations(
+        shader,
+        'common',
+        'varying vec3 vRimPosition; varying vec3 vRimNormal;',
+        'vertex',
+      );
+      injectAfter(
+        shader,
+        'begin_vertex',
+        'vRimPosition = position; vRimNormal = normal;',
+        'vertex',
+      );
+      injectDeclarations(
+        shader,
+        'common',
+        'uniform float festivalRimRadius; varying vec3 vRimPosition; varying vec3 vRimNormal;',
+        'fragment',
+      );
+      injectAfter(
+        shader,
+        'color_fragment',
+        `float rimLip = smoothstep(0.895, 0.91, length(vRimPosition.yz) / festivalRimRadius)
+          * smoothstep(0.35, 0.6, abs(vRimNormal.x));
+        diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.86, 0.87, 0.88), rimLip);`,
+        'fragment',
+      );
+      injectAfter(
+        shader,
+        'roughnessmap_fragment',
+        'roughnessFactor = mix(roughnessFactor, 0.12, rimLip);',
+        'fragment',
+      );
+      injectAfter(
+        shader,
+        'metalnessmap_fragment',
+        'metalnessFactor = mix(metalnessFactor, 1.0, rimLip);',
+        'fragment',
+      );
+    });
+  }
+  rims.set(key, material);
+  return material;
+}
+
 /** Release the shared festival finishes (session exit). */
 export function disposeFestivalFinish() {
   runningLight?.dispose();
   runningLight = null;
+  for (const material of rims.values()) material.dispose();
+  rims.clear();
   roadGlass?.dispose();
   roadGlass = null;
   disposePlates();
@@ -147,6 +216,27 @@ export function drillBrakeDisc(material: T.MeshStandardMaterial, radius: number)
   });
 }
 
+/** Festival paint (refs 002, 010, 018, 019, 091, 097): the base coat sits
+ * under the clear coat, so its own white dielectric sheen is mostly hidden
+ * (specularIntensity 0.15) and the saturated pigment shows through a sharp
+ * coat (roughness 0.03). Solid colours keep a diffuse base; metallic ones a
+ * broader coloured flake lobe (the "flop"). Satin and matte wraps keep the
+ * library finish. Per-car materials only. */
+export const FESTIVAL_PAINT = Object.freeze({
+  gloss: Object.freeze({ metalness: 0, roughness: 0.5, specularIntensity: 0.15 }),
+  metallic: Object.freeze({ metalness: 0.45, roughness: 0.42, specularIntensity: 0.15 }),
+  clearcoatRoughness: 0.03,
+});
+export function tuneFestivalPaint(material: T.MeshPhysicalMaterial) {
+  const finish = material.userData.paintFinish as string | undefined;
+  if (finish !== 'gloss' && finish !== 'metallic') return false;
+  Object.assign(material, FESTIVAL_PAINT[finish]);
+  material.clearcoat = 1;
+  material.clearcoatRoughness = FESTIVAL_PAINT.clearcoatRoughness;
+  material.userData.festivalPaint = true;
+  return true;
+}
+
 /** Where a plate fits on a closed body's end face (car frame), or null. */
 export function platePlacement(model: ClosedBodyModel, rear: boolean) {
   const { f, s } = model;
@@ -197,6 +287,8 @@ function runningLightPath(
 
 /** Install the festival finish on a newly built body (LOD0 and LOD1). */
 export function installFestivalFinish(body: BuiltVehicleBody, id: number) {
+  tuneFestivalPaint(body.materials.paint);
+  tuneFestivalPaint(body.materials.accent);
   const sheet = bodySheetFor(body.definition);
   if (!sheet || sheet.kind !== 'closed') return;
   const model = new ClosedBodyModel(body.frame, sheet, [
@@ -222,6 +314,12 @@ export function installFestivalFinish(body: BuiltVehicleBody, id: number) {
           node.material = node.material.map((m) => (m === circuitGlass ? festivalRoadGlass() : m));
       } else if (node.material === circuitGlass) node.material = festivalRoadGlass();
     });
+  const lipped = sheet.wheels.style === 'straight' || sheet.wheels.style === 'split';
+  const rim = festivalRimMaterial(sheet.wheels.rimColor, sheet.wheels.rimRadius, lipped);
+  for (const corners of body.wheels)
+    for (const wheel of corners)
+      for (const node of wheel.spin.children)
+        if (node instanceof T.Mesh && node.name === 'Rim') node.material = rim;
   for (const [detail, lod] of body.lods.entries()) {
     if (detail > 1) break;
     for (const wheel of body.wheels[detail])
