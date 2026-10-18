@@ -164,13 +164,16 @@ export class FestivalSky implements PhotoSkyBinding {
  * the crisp midday key of 4-6:1 (shade 012 #44423d vs #1b1d20, 020, 094).
  * Where the baked clouds are in the captured dome (the clear-day photo, the
  * procedural dome) the diffuse IBL is scaled back to the dome of the
- * simulated cover (`festivalEnvironment`); always times `diffuse`. The
- * specular gain (ibl-energy.ts) keeps reflections at the dome's full
- * radiance, clouds included.
+ * simulated cover (`festivalEnvironment`); always times `diffuse`. The CPU
+ * dome model under-reads the bright cloud sides of the capture (it predicts
+ * x1.6 where shade rose x2.4), so `diffuse` by day is set on the fixed street
+ * view: 0.9 left lit/shaded asphalt at 0.072/0.017 (4.3:1), 0.75 restores
+ * the pre-cloud 5:1. The specular gain (ibl-energy.ts) keeps reflections at
+ * the dome's full radiance, clouds included.
  */
 export const FESTIVAL_LIGHT = Object.freeze({
   exposure: Object.freeze({ day: 1, sunset: 1.6, night: 1 } as const),
-  diffuse: Object.freeze({ day: 0.9, sunset: 0.9, night: 1 } as const),
+  diffuse: Object.freeze({ day: 0.75, sunset: 0.9, night: 1 } as const),
 });
 const Y = (c: T.Color) => 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
 /** Diffuse sky share for a simulated cover when the dome carries the
