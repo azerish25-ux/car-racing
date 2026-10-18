@@ -196,7 +196,9 @@ describe('festival event dressing', () => {
     const medium = drawn('medium'),
       ultra = drawn('ultra');
     expect(medium.people).toBeLessThan(ultra.people * 0.7);
-    expect(ultra.people).toBe(dressing.stats.people);
+    // Every hub spectator on ULTRA; distant lines (the harbour corner) are culled.
+    expect(ultra.people).toBeGreaterThan(600);
+    expect(ultra.people).toBeLessThanOrEqual(dressing.stats.people);
     // Mid sculpts only near the camera: well under the all-mid count.
     expect(medium.triangles).toBeLessThan(medium.people * 1100);
   });
