@@ -798,7 +798,12 @@ export class FestivalRenderer {
       time,
       surfaceDampness(presented[H.RAIN], presented[H.WATER]),
     );
-    this.parked.update(this.camera, night, PARKED_RANGE[this.preset]);
+    this.parked.update(
+      this.camera,
+      night,
+      PARKED_RANGE[this.preset],
+      this.preset === 'high' || this.preset === 'ultra',
+    );
     this.details?.update(
       time,
       night,

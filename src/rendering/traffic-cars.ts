@@ -1703,7 +1703,8 @@ export interface ParkedSite {
 /** Parked cars of the festival towns and meets (refs 012, 025, 076,
  * 080-083): the ambient traffic bodies, paints and plates at their real
  * size, static and instanced. One draw per body type present at a site,
- * one for their ground contact; nothing collides. */
+ * one for their ground contact; nothing collides. Bodies cast shadows only
+ * when `update` is asked to (HIGH and ULTRA); the contact shade stays. */
 export class ParkedCars {
   readonly root = new T.Group();
   readonly stats = { cars: 0, sites: 0, draws: 0 };
@@ -1718,7 +1719,9 @@ export class ParkedCars {
     centre: T.Vector3;
     lamps: { attribute: T.InstancedBufferAttribute; lit: boolean[] }[];
   }[] = [];
+  private readonly bodies: T.InstancedMesh[] = [];
   private night = -1;
+  private shadows = true;
   constructor(sites: readonly ParkedSite[]) {
     this.root.name = 'Parked cars';
     const m = new T.Matrix4(),
@@ -1763,6 +1766,7 @@ export class ParkedCars {
         });
         mesh.computeBoundingSphere();
         lamps.push({ attribute: lamp, lit: spots.map((s) => s.lit) });
+        this.bodies.push(mesh);
         root.add(mesh);
         this.stats.draws++;
       }
@@ -1794,9 +1798,13 @@ export class ParkedCars {
     }
     installSpecularIBL(this.root);
   }
-  update(camera: T.Camera, night: number, range: number) {
+  update(camera: T.Camera, night: number, range: number, shadows = true) {
     const eye = camera.position;
     for (const site of this.sites) site.root.visible = site.centre.distanceTo(eye) < range;
+    if (shadows !== this.shadows) {
+      this.shadows = shadows;
+      for (const mesh of this.bodies) mesh.castShadow = shadows;
+    }
     if (Math.abs(night - this.night) < 0.01) return;
     this.night = night;
     // Parked cars are dark; meet cars wait with their lamps on at night.

@@ -163,15 +163,19 @@ export function crowdMeshes(
  * standing correspondence, per-person build and garments) in their standing
  * pose, on the festival crowd lines. Each cluster of up to 96 people is one
  * instanced draw at one level: the mid sculpt (1.4 k triangles) near the
- * camera, the low sculpt (0.6 k) beyond, the lit card past 300 m. MEDIUM
- * draws two in three people (instances sorted by a stable rank), HIGH most,
- * ULTRA all; LOW none. The circuit grandstands are not touched. */
+ * camera, the low sculpt (0.6 k) beyond, the lit card past 150 / 220 / 300 m
+ * (MEDIUM / HIGH / ULTRA). MEDIUM draws two in three people (instances sorted
+ * by a stable rank), HIGH most, ULTRA all; LOW none. The circuit grandstands
+ * are not touched. */
 export const FESTIVAL_SPECTATORS = Object.freeze({
   cluster: 96,
   /** Mid-sculpt range (m) and the share of people drawn, per tier. */
   near: { low: 0, medium: 32, high: 48, ultra: 64 } as Record<string, number>,
   share: { low: 0, medium: 0.66, high: 0.85, ultra: 1 } as Record<string, number>,
-  card: 300,
+  /** Low-sculpt range (m) per tier; the lit card beyond. */
+  card: { low: 0, medium: 150, high: 220, ultra: 300 } as Record<string, number>,
+  /** Nothing is drawn past this distance (m). */
+  far: 750,
 });
 /** The crowd bodies face -X with the standing body centred 0.49 m behind
  * the seat origin, feet 0.30 m below it, 1.6 m tall: turn them to face +z
@@ -299,12 +303,13 @@ export class FestivalSpectators {
   update(camera: T.Camera, time: number, preset: string) {
     camera.getWorldPosition(this.eye);
     const near = FESTIVAL_SPECTATORS.near[preset] ?? 32,
-      share = FESTIVAL_SPECTATORS.share[preset] ?? 0.66;
+      share = FESTIVAL_SPECTATORS.share[preset] ?? 0.66,
+      card = FESTIVAL_SPECTATORS.card[preset] ?? 150;
     const cycle = Math.PI * 2;
     this.uniforms.crowdClock.value.set((time * 0.71) % cycle, (time * 0.43) % cycle);
     for (const cluster of this.clusters) {
       const d = cluster.centre.distanceTo(this.eye),
-        level = d < near ? 0 : d < FESTIVAL_SPECTATORS.card ? 1 : 2,
+        level = d < near ? 0 : d < card ? 1 : 2,
         count = Math.round(cluster.count * share);
       const mesh = cluster.mesh;
       if (level !== cluster.level) {
@@ -313,7 +318,7 @@ export class FestivalSpectators {
         mesh.material = this.levelMaterials[level].color;
       }
       mesh.castShadow = level === 0;
-      mesh.visible = share > 0 && count > 0 && d < FESTIVAL_SPECTATORS.card * 2.5;
+      mesh.visible = share > 0 && count > 0 && d < FESTIVAL_SPECTATORS.far;
       mesh.count = count;
     }
   }

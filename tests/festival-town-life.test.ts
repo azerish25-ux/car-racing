@@ -172,7 +172,17 @@ describe('festival parked cars', () => {
     expect(cars).toBeGreaterThan(30);
     const parked = new ParkedCars(sites);
     expect(parked.stats.cars).toBe(cars);
-    parked.update(new T.PerspectiveCamera(), 1, 300);
+    // MEDIUM: no parked body in the shadow pass (the contact shade stays).
+    parked.update(new T.PerspectiveCamera(), 1, 300, false);
+    parked.root.traverse((node) => {
+      if (node instanceof T.InstancedMesh) expect(node.castShadow).toBe(false);
+    });
+    parked.update(new T.PerspectiveCamera(), 1, 300, true);
+    let casting = 0;
+    parked.root.traverse((node) => {
+      if (node instanceof T.InstancedMesh && node.castShadow) casting++;
+    });
+    expect(casting).toBe(parked.stats.draws - parked.stats.sites);
     parked.dispose();
   });
 });
