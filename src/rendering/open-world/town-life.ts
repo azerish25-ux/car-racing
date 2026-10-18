@@ -300,29 +300,41 @@ varying vec3 vTownGlow;
 float townPhase(float axis, float offset) {
   float t = mod(townTime + offset + axis * townCycle * 0.5, townCycle) / townCycle;
   return t < 0.42 ? 0.0 : t < 0.5 ? 1.0 : 2.0;
+}
+/** Lamp level of this fragment (0 when dark). */
+float townOn() {
+  float kind = vTownGlow.x;
+  if (kind > 0.5 && kind < 1.5) return vTownGlow.y * (0.06 + townNight);
+  float axis = floor(vTownGlow.z), offset = fract(vTownGlow.z) * townCycle;
+  if (kind > 1.5 && kind < 2.5) {
+    // Lamp index in y (0 green, 1 amber, 2 red), group in z.
+    float lamp = floor(vTownGlow.y + 0.5);
+    return abs(townPhase(axis, offset) - lamp) < 0.5 ? 1.6 + townNight * 2.4 : 0.0;
+  }
+  if (kind > 2.5) {
+    // Walk signal: red figure (y 0) unless the parallel traffic is green.
+    float walk = townPhase(axis, offset) < 0.5 ? 1.0 : 0.0;
+    return abs(walk - vTownGlow.y) < 0.5 ? 1.2 + townNight * 2.0 : 0.0;
+  }
+  return 0.0;
 }`,
+      )
+      .replace(
+        '#include <color_fragment>',
+        `#include <color_fragment>
+float townLit = townOn();
+vec3 townLamp = diffuseColor.rgb;
+// Dark signal lenses read smoked grey; only the lit lamp shows its colour.
+if (vTownGlow.x > 1.5 && townLit <= 0.0) diffuseColor.rgb *= 0.12;
+else if (vTownGlow.x > 1.5) diffuseColor.rgb *= 0.35;`,
       )
       .replace(
         '#include <emissivemap_fragment>',
         `#include <emissivemap_fragment>
-{
-  float kind = vTownGlow.x, on = 0.0;
-  if (kind > 0.5 && kind < 1.5) on = vTownGlow.y * (0.06 + townNight);
-  else if (kind > 1.5 && kind < 2.5) {
-    // Lamp index in y (0 green, 1 amber, 2 red), group in z.
-    float lamp = floor(vTownGlow.y + 0.5), axis = floor(vTownGlow.z), offset = fract(vTownGlow.z) * townCycle;
-    on = abs(townPhase(axis, offset) - lamp) < 0.5 ? 1.6 + townNight * 2.4 : 0.0;
-  } else if (kind > 2.5) {
-    // Walk signal: red figure (y 0) unless the parallel traffic is green.
-    float axis = floor(vTownGlow.z), offset = fract(vTownGlow.z) * townCycle;
-    float walk = townPhase(axis, offset) < 0.5 ? 1.0 : 0.0;
-    on = abs(walk - vTownGlow.y) < 0.5 ? 1.2 + townNight * 2.0 : 0.0;
-  }
-  totalEmissiveRadiance += diffuseColor.rgb * on;
-}`,
+totalEmissiveRadiance += townLamp * townLit;`,
       );
   };
-  material.customProgramCacheKey = () => 'festival-town-life-v1';
+  material.customProgramCacheKey = () => 'festival-town-life-v2';
   return material;
 }
 /** Street kit (bicycles, bollards, fences, cones, planters): one instanced
