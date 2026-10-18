@@ -52,6 +52,9 @@ export interface ArchitecturePlan {
   extraFloors: Uint8Array;
   /** City facade skin per structure: SKIN.punched / ribbon / curtain. */
   skin: Uint8Array;
+  /** Side walls (bit 0: local -x, bit 1: +x) that another building stands
+   * within 4 m of: drawn as blank party walls above the ground floor. */
+  partyWall: Uint8Array;
 }
 export const SKIN = Object.freeze({ punched: 0, ribbon: 1, curtain: 2 });
 /** Roads whose frontages rise as commercial canyons. */
@@ -344,7 +347,27 @@ export function architecturePlan(
           ? SKIN.ribbon
           : SKIN.punched;
   });
+  // Party walls (refs 014, 030): a side wall with a neighbour close beside
+  // it keeps no windows; a side facing a street or an open lot does.
+  const partyWall = new Uint8Array(structures.length);
+  structures.forEach((s, i) => {
+    if (style[i] !== 'urban') return;
+    const c = Math.cos(s.heading),
+      n = Math.sin(s.heading);
+    for (const [bit, side] of [
+      [1, -1],
+      [2, 1],
+    ] as const) {
+      let hits = 0;
+      for (const lz of [-s.hz * 0.6, 0, s.hz * 0.6]) {
+        const lx = side * (s.hx + 2.5);
+        if (grid.blocks(s.x + c * lx - n * lz, s.z + n * lx + c * lz, 1.5)) hits++;
+      }
+      if (hits >= 2) partyWall[i] |= bit;
+    }
+  });
   const plan = {
+    partyWall,
     style,
     front,
     extraFloors,

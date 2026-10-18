@@ -1,6 +1,10 @@
 import * as T from 'three';
 import { carvedGroundHeight } from '../../simulation/open-world/ground-height.ts';
-import { StructureGrid, type Structure } from '../../simulation/open-world/placement.ts';
+import {
+  insideFootprint,
+  StructureGrid,
+  type Structure,
+} from '../../simulation/open-world/placement.ts';
 import { trackPoint } from '../../simulation/track.ts';
 import type { OpenWorld } from '../../simulation/open-world/world.ts';
 import type { QualityPreset } from '../options.ts';
@@ -973,6 +977,27 @@ export class FestivalSignage {
     this.stats.columns++;
   }
 
+  /** Highest visual roof among the buildings standing within 4 m of a
+   * structure's side wall (local x = side * hx); -Infinity if none. */
+  private neighbourTop(s: Structure, side: number) {
+    this.grid ??= new StructureGrid(this.structures);
+    const c = Math.cos(s.heading),
+      n = Math.sin(s.heading);
+    let top = -Infinity;
+    for (const lz of [-s.hz * 0.8, 0, s.hz * 0.8])
+      for (const out of [0.6, 2.5, 4]) {
+        const lx = side * (s.hx + out),
+          x = s.x + c * lx - n * lz,
+          z = s.z + n * lx + c * lz;
+        for (const j of this.grid.near(x, z)) {
+          const o = this.structures[j];
+          if (o === s || !insideFootprint(o, x, z, 0.3)) continue;
+          top = Math.max(top, o.base + o.height + 3.2 * this.plan.extraFloors[j] + 1);
+        }
+      }
+    return top;
+  }
+
   /** World point on a side wall (local x = side * hx), `z` along the
    * frontage normal from the centre, `out` metres off the wall. */
   private side(s: Structure, side: number, z: number, y: number, out: number) {
@@ -1143,10 +1168,13 @@ export class FestivalSignage {
     // the neighbours (ref 030), with lamp arms; a few central towers carry
     // an animated LED screen instead.
     if (floors >= 7 && !isApartment(s) && h % 2 === 0) {
-      const side = (h >>> 5) % 2 ? 1 : -1;
+      let side = (h >>> 5) % 2 ? 1 : -1;
       const w = Math.min(9, s.hz * 2 - 1.2),
         bh = w / 2;
-      if (w > 3) {
+      // A side whose neighbour rises past the board's foot is skipped.
+      const foot = top - 1.2 - bh;
+      if (this.neighbourTop(collider, side) > foot - 0.5) side = -side;
+      if (w > 3 && this.neighbourTop(collider, side) <= foot - 0.5) {
         const centre = this.side(s, side, 0, top - 1.2 - bh / 2, 0.22);
         const out = this.t.clone().multiplyScalar(side);
         if (floors >= 9 && (h >>> 7) % 3 === 0) {

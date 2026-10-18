@@ -828,6 +828,7 @@ export class Buildings {
         this.plan?.konbiniFloor.has(index) ?? false,
         this.plan?.rearStair.has(index) ?? false,
         this.plan?.skin[index] ?? SKIN.punched,
+        this.plan?.partyWall[index] ?? 0,
       );
     if (style === 'konbini')
       return this.konbini(
@@ -852,7 +853,7 @@ export class Buildings {
     wall: number,
     options: Parameters<typeof addRecessedFacade>[9],
     top = s.base + s.height,
-    blindSides = false,
+    party = 0,
   ) {
     const layouts: (FacadeLayout | null)[] = [];
     const sides: [number, number, number, number, number, number][] = [
@@ -871,7 +872,8 @@ export class Buildings {
         len,
         sideIndex,
         variant,
-        blindSides && sideIndex % 2 === 1 ? 1 : Infinity,
+        // Sides 1 and 3 are the local +x and -x walls (party bits 2 and 1).
+        (sideIndex === 1 && party & 2) || (sideIndex === 3 && party & 1) ? 1 : Infinity,
       );
       layouts.push(layout);
       const normal = f.dir(nx, 0, nz);
@@ -1341,6 +1343,7 @@ export class Buildings {
     konbini: boolean,
     stair: boolean,
     skin: number,
+    party: number,
   ) {
     const pick = <V>(list: readonly V[], salt: number) => list[(s.style >>> salt) % list.length];
     const wall = pick(skin === SKIN.curtain ? CURTAIN : skin === SKIN.ribbon ? OFFICE : URBAN, 7);
@@ -1365,9 +1368,9 @@ export class Buildings {
         wallTop: s.height,
       },
       top,
-      // Most city side walls are blank party walls above the ground floor
-      // (refs 014, 030); curtain-wall towers stay glazed all round.
-      skin !== SKIN.curtain && hashOf(s.style, 5, 9) % 20 < 13,
+      // Side walls beside a neighbour are blank party walls above the
+      // ground floor (refs 014, 030); curtain-wall towers stay glazed.
+      skin === SKIN.curtain ? 0 : party,
     );
     const coping = 0xc4c6c4;
     // A plinth course of dark tile.
@@ -1447,7 +1450,7 @@ export class Buildings {
         0.1,
         0x6c6d68,
       );
-    this.services(f, s, front, floors, floorH);
+    this.services(f, s, front, floors, floorH, party);
     // Roof: flat membrane, a stair tower, an elevated water tank and plant.
     f.poly(
       [
@@ -1583,15 +1586,27 @@ export class Buildings {
    * brackets at about half the floors with their refrigerant lines run back
    * to the riser, and a meter cabinet at street level. Nothing projects more
    * than 0.32 m into the >= 1.5 m gap between buildings. */
-  private services(f: Frame, s: Structure, front: number, floors: number, floorH: number) {
-    const sx = (s.style & 2048) === 0 ? 1 : -1,
-      rear = -front,
+  private services(
+    f: Frame,
+    s: Structure,
+    front: number,
+    floors: number,
+    floorH: number,
+    party: number,
+  ) {
+    // Prefer a side wall with open space beside it (party bits: 1 = -x,
+    // 2 = +x); between two neighbours only the flush pipes remain.
+    let sx = (s.style & 2048) === 0 ? 1 : -1;
+    const bit = (side: number) => (side < 0 ? 1 : 2);
+    if (party & bit(sx)) sx = -sx;
+    const crowded = (party & bit(sx)) !== 0;
+    const rear = -front,
       x = sx * (s.hx + 0.06),
       zr = rear * (s.hz - 0.55),
       h = s.height;
     f.box(x, s.base + h / 2, zr, 0.1, h, 0.1, 0x8a8b86);
     f.box(sx * (s.hx + 0.04), s.base + h / 2, zr - rear * 0.18, 0.05, h, 0.05, 0xb8b49a);
-    for (let floor = 1; floor < floors; floor++) {
+    for (let floor = 1; floor < floors && !crowded; floor++) {
       if (hashOf(s.style, floor, 77) % 20 >= 9) continue;
       const y = s.base + floor * floorH + 0.25,
         z = rear * (s.hz * (0.05 + 0.5 * ((hashOf(s.style, floor, 3) % 100) / 100)) - 0.6);
@@ -1600,6 +1615,7 @@ export class Buildings {
       const run = Math.abs(zr - z);
       if (run > 0.5) f.box(sx * (s.hx + 0.04), y + 0.12, (z + zr) / 2, 0.05, 0.05, run, 0xd9d7cf);
     }
+    if (crowded) return;
     const zm = front * (s.hz - 1.2);
     f.box(sx * (s.hx + 0.08), s.base + 1.75, zm, 0.16, 0.6, 0.42, 0xa3a59f);
     f.box(sx * (s.hx + 0.08), s.base + 1.75, zm - front * 0.5, 0.16, 0.45, 0.32, 0x8f938e);

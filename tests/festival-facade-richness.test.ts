@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import * as T from 'three';
 import { openWorld } from '../src/simulation/open-world/world.ts';
-import { regionStructures } from '../src/simulation/open-world/placement.ts';
+import { regionStructures, StructureGrid } from '../src/simulation/open-world/placement.ts';
 import {
   architecturePlan,
   SKIN,
@@ -118,6 +118,30 @@ describe('Ribbon and curtain-wall facades', () => {
       }
     });
     expect(bands).toBeGreaterThan(1000);
+  });
+  it('blank only side walls with a neighbour close beside them', () => {
+    const grid = new StructureGrid(structures);
+    let party = 0;
+    structures.forEach((s, i) => {
+      const bits = plan.partyWall[i];
+      if (!bits) return;
+      expect(plan.style[i]).toBe('urban');
+      const c = Math.cos(s.heading),
+        n = Math.sin(s.heading);
+      for (const [bit, side] of [
+        [1, -1],
+        [2, 1],
+      ] as const) {
+        if (!(bits & bit)) continue;
+        party++;
+        const lx = side * (s.hx + 2.5);
+        expect(grid.blocks(s.x + c * lx, s.z + n * lx, 1.5 + s.hz)).toBe(true);
+        const v = visualStructure(s, plan.extraFloors[i]);
+        const layout = facadeLayout(v, v.hz * 2, side > 0 ? 1 : 3, 'urban', 1)!;
+        expect(layout.openings.every((o) => o.row0 === 0)).toBe(true);
+      }
+    });
+    expect(party).toBeGreaterThan(200);
   });
   it('assign the office finishes by palette identity', () => {
     for (const color of WALL_FINISH.largeTile) expect(facadeFinish(color)).toBe(7);

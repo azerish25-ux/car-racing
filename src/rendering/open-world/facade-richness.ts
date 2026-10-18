@@ -219,10 +219,16 @@ void owCityPane(vec2 q, float room, float tag, vec3 nrm, vec3 viewPos, float nig
   vec3 lamp = shop ? mix(vec3(1.0, 0.84, 0.66), vec3(0.92, 0.96, 1.0), step(0.5, seed))
                    : mix(vec3(1.0, 0.7, 0.44), vec3(0.84, 0.9, 1.0), step(0.72, litH) + (ribbon || curtain ? 0.6 : 0.0));
   lamp = min(lamp, vec3(1.0));
-  // LOW quality keeps a flat room tone and the PMREM sky in the glass.
-  vec3 interior = owRich > 0.5
-    ? owRoom(p, rd, xr, sill, head, depth, seed, shop ? 1.0 : 0.0, lit, lamp, night, resolve)
-    : vec3(0.45, 0.42, 0.38) * mix(shop ? 0.3 : 0.08, (shop ? 1.2 : 0.4) * lit, night) * lamp;
+  // Panes a few pixels wide (and every pane on LOW) take the room's average
+  // radiance; the traced room only runs where it resolves, blended in.
+  vec3 far = vec3(0.46, 0.44, 0.41) * mix(
+    vec3(shop ? 0.26 : 0.095),
+    mix(vec3(shop ? 0.02 : 0.008), lamp * (shop ? 1.0 : 0.5), lit),
+    night);
+  float near = owRich * smoothstep(0.0, 0.5, resolve);
+  vec3 interior = far;
+  if (near > 0.0)
+    interior = mix(far, owRoom(p, rd, xr, sill, head, depth, seed, shop ? 1.0 : 0.0, lit, lamp, night, resolve), near);
   // Coverings 5-10 cm behind the glass (refs 030, 089): blinds lowered to
   // any height, curtains drawn from the sides, lace; posters on some shop
   // glass; half-open shutters.
