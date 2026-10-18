@@ -146,6 +146,9 @@ Object.assign(window, {
         await new Promise((resolve) => setTimeout(resolve, 60));
         quiet = terrain.inFlight === 0 && terrain.stats.requested === requested ? quiet + 1 : 0;
       }
+      // The far forest canopy of the settled tiles.
+      renderer.farCanopy.sync(renderer.terrain.canopyTiles);
+      renderer.farCanopy.flush(renderer.camera, renderer.preset);
       return quiet >= 6;
     },
     /** Drawn ambient traffic positions (vehicle visual review). */

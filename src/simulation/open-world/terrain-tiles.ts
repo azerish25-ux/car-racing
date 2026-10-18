@@ -22,6 +22,13 @@ export interface CarveResult {
   road: Float32Array;
   /** Distance to the nearest road centreline (m), capped at 255. */
   distance: Float32Array;
+  /** Clear distance beyond the nearest usable road edge (carriageway plus
+   * shoulder, m; negative on it), capped at 255. Rendering keeps ground
+   * cover off the drivable surface with it. */
+  edge: Float32Array;
+  /** Ground removed by the carving (m): positive in cuttings, negative on
+   * embankment fills. */
+  cut: Float32Array;
 }
 
 /**
@@ -37,14 +44,17 @@ export class TerrainCarver {
   private stampId = 1;
   private bestW = new Float32Array(0);
   private bestD = new Float32Array(0);
+  private bestE = new Float32Array(0);
   private target = new Float32Array(0);
   constructor(
     readonly field: TerrainField,
     readonly network: RoadNetwork,
   ) {}
   /** Heights of an (res + 1)² vertex grid with origin (x0, z0) and spacing
-   * `step`; `border` extra vertices on every side (for normals). */
-  build(x0: number, z0: number, step: number, res: number, border = 0): CarveResult {
+   * `step`; `border` extra vertices on every side (for normals). `edgeSpan`
+   * (m beyond the usable edge) widens the band where `edge` is measured past
+   * the carving reach (rendering only; heights are unaffected). */
+  build(x0: number, z0: number, step: number, res: number, border = 0, edgeSpan = 0): CarveResult {
     const side = res + 1 + 2 * border,
       count = side * side,
       ox = x0 - border * step,
@@ -52,16 +62,20 @@ export class TerrainCarver {
       minWavelength = step <= TILE_STEP ? 0 : step * 1.5;
     const heights = new Float32Array(count),
       road = new Float32Array(count),
-      distance = new Float32Array(count).fill(255);
+      distance = new Float32Array(count).fill(255),
+      edge = new Float32Array(count).fill(255),
+      cut = new Float32Array(count);
     for (let j = 0; j < side; j++)
       for (let i = 0; i < side; i++) heights[j * side + i] = this.field.height(ox + i * step, oz + j * step, minWavelength);
     if (this.bestW.length < count) {
       this.bestW = new Float32Array(count);
       this.bestD = new Float32Array(count);
+      this.bestE = new Float32Array(count);
       this.target = new Float32Array(count);
     }
     this.bestW.fill(0, 0, count);
     this.bestD.fill(Infinity, 0, count);
+    this.bestE.fill(Infinity, 0, count);
     const net = this.network,
       g = net.grid,
       reach = 96,
@@ -80,18 +94,31 @@ export class TerrainCarver {
           const s = g.items[k];
           if (this.stamp[s] === id) continue;
           this.stamp[s] = id;
-          this.carveSegment(s, ox, oz, step, side, heights);
+          this.carveSegment(s, ox, oz, step, side, heights, edgeSpan);
         }
       }
     for (let v = 0; v < count; v++) {
       const w = this.bestW[v];
-      if (w > 0) heights[v] += (this.target[v] - heights[v]) * w;
+      if (w > 0) {
+        const before = heights[v];
+        heights[v] += (this.target[v] - heights[v]) * w;
+        cut[v] = before - heights[v];
+      }
       road[v] = w;
       if (this.bestD[v] < 255) distance[v] = this.bestD[v];
+      if (this.bestE[v] < 255) edge[v] = this.bestE[v];
     }
-    return { heights, road, distance };
+    return { heights, road, distance, edge, cut };
   }
-  private carveSegment(i: number, ox: number, oz: number, step: number, side: number, raw: Float32Array) {
+  private carveSegment(
+    i: number,
+    ox: number,
+    oz: number,
+    step: number,
+    side: number,
+    raw: Float32Array,
+    edgeSpan: number,
+  ) {
     const net = this.network,
       j = i + 1,
       e = net.edges[net.edgeOf[i]],
@@ -99,17 +126,18 @@ export class TerrainCarver {
       hw = spec.halfWidth,
       shoulder = hw + spec.shoulder,
       bridge = (net.flags[i] & ROAD_FLAG.BRIDGE) !== 0 && (net.flags[j] & ROAD_FLAG.BRIDGE) !== 0,
-      reach = Math.max(net.influence[i], net.influence[j]);
+      reach = Math.max(net.influence[i], net.influence[j]),
+      span = Math.max(reach, shoulder + edgeSpan);
     const ax = net.x[i],
       az = net.z[i],
       dx = net.x[j] - ax,
       dz = net.z[j] - az,
       len2 = dx * dx + dz * dz || 1,
       len = Math.sqrt(len2);
-    const i0 = Math.max(0, Math.floor((Math.min(ax, ax + dx) - reach - ox) / step)),
-      i1 = Math.min(side - 1, Math.ceil((Math.max(ax, ax + dx) + reach - ox) / step)),
-      j0 = Math.max(0, Math.floor((Math.min(az, az + dz) - reach - oz) / step)),
-      j1 = Math.min(side - 1, Math.ceil((Math.max(az, az + dz) + reach - oz) / step));
+    const i0 = Math.max(0, Math.floor((Math.min(ax, ax + dx) - span - ox) / step)),
+      i1 = Math.min(side - 1, Math.ceil((Math.max(ax, ax + dx) + span - ox) / step)),
+      j0 = Math.max(0, Math.floor((Math.min(az, az + dz) - span - oz) / step)),
+      j1 = Math.min(side - 1, Math.ceil((Math.max(az, az + dz) + span - oz) / step));
     if (i0 > i1 || j0 > j1) return;
     const crown = spec.crown;
     for (let vj = j0; vj <= j1; vj++)
@@ -120,8 +148,10 @@ export class TerrainCarver {
           px = ax + dx * t,
           pz = az + dz * t,
           d = Math.hypot(x - px, z - pz);
-        if (d > reach) continue;
+        if (d > span) continue;
         const v = vj * side + vi;
+        if (d - shoulder < this.bestE[v]) this.bestE[v] = d - shoulder;
+        if (d > reach) continue;
         // Nearest road wins the distance; the strongest carve wins the height.
         if (d < this.bestD[v]) this.bestD[v] = d;
         if (bridge) continue;

@@ -9,6 +9,9 @@ import { TILE_SIZE } from '../../simulation/open-world/terrain-tiles.ts';
 import type { OpenWorld } from '../../simulation/open-world/world.ts';
 import type { TileMeshData, TileRequest } from '../../workers/open-world-protocol.ts';
 
+/** Metres beyond the usable road edge over which the finest tiles measure
+ * the edge clearance (ground cover: mown verge, shrub bands). */
+const EDGE_SPAN = 14;
 /** Packed tree stride in tile data: the placement fields plus ground y. */
 export const TILE_TREE_STRIDE = TREE_STRIDE + 1;
 
@@ -18,7 +21,8 @@ export const TILE_TREE_STRIDE = TREE_STRIDE + 1;
  * finest level), normals, PBR layer weights by slope, height and biome
  * (rock, soil, sand, snow; grass is the remainder) and shading masks (road
  * verge, forest floor, field pattern, town/airfield ground), plus the trees
- * standing on it for the near levels.
+ * standing on it for the near levels and, on the finest level, the ground
+ * cover masks of the grass carpet (ground-cover.ts).
  */
 export function buildTileData(
   world: OpenWorld,
@@ -32,12 +36,15 @@ export function buildTileData(
     field = world.field,
     region = world.region;
   // One border vertex each side for normals.
-  const carved = world.carver.build(x0, z0, step, res, 1),
+  const carved = world.carver.build(x0, z0, step, res, 1, size <= TILE_SIZE ? EDGE_SPAN : 0),
     full = side + 2;
   const heights = new Float32Array(side * side),
     normals = new Float32Array(side * side * 3),
     splat = new Float32Array(side * side * 4),
-    shade = new Float32Array(side * side * 4);
+    shade = new Float32Array(side * side * 4),
+    // Ground cover on the finest level only (the grass carpet's reach).
+    finest = size <= TILE_SIZE,
+    cover = new Float32Array(finest ? side * side * 2 : 0);
   let minY = Infinity,
     maxY = -Infinity;
   for (let j = 0; j < side; j++)
@@ -64,7 +71,10 @@ export function buildTileData(
       const snow =
         smoothstep(snowLine - 25, snowLine + 35, h) * (1 - smoothstep(0.75, 1.05, slope));
       // Rock: steep ground, cuttings beside roads, high bare ground.
-      const cut = road > 0.05 && road < 0.98 && slope > 0.45 ? 0.8 : 0;
+      // Rock in the steep road cuttings only: fills and gentle earth cuts
+      // are grassed (042, 050: grass down to the guardrail).
+      const cut =
+        road > 0.05 && road < 0.98 && carved.cut[c] > 0.4 ? 0.8 * smoothstep(0.6, 0.95, slope) : 0;
       const rock =
         Math.max(smoothstep(0.5, 0.85, slope), cut, smoothstep(480, 620, h) * 0.45) *
         (1 - snow * 0.7);
@@ -98,6 +108,21 @@ export function buildTileData(
       shade[v * 4 + 1] = forest;
       shade[v * 4 + 2] = farm ? field.farmPattern(x, z) : 0;
       shade[v * 4 + 3] = Math.max(town, airfield);
+      if (finest) {
+        // Grass grows on the natural ground: not on rock, sand, snow, town
+        // paving, the dusty verge, in water or inside a building; mown short
+        // on the airfield (farm plots are decided per plot by the shader).
+        let grass =
+          (1 - smoothstep(0.15, 0.55, rock)) *
+          (1 - smoothstep(0.2, 0.6, sand)) *
+          (1 - snow) *
+          (1 - town) *
+          (1 - 0.65 * airfield) *
+          (1 - 0.55 * verge);
+        if (h < region.seaLevel + 1.2 || valley.channel || structures.blocks(x, z, 1)) grass = 0;
+        cover[v * 2] = grass;
+        cover[v * 2 + 1] = carved.edge[c];
+      }
     }
   // Trees on the near levels, grounded on this tile's own surface.
   let trees = new Float32Array(0);
@@ -139,6 +164,7 @@ export function buildTileData(
     splat,
     shade,
     trees,
+    cover,
     minY,
     maxY,
     ms: performance.now() - start,

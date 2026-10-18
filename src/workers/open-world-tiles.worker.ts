@@ -27,6 +27,7 @@ function pump() {
         data.splat.buffer,
         data.shade.buffer,
         data.trees.buffer,
+        data.cover.buffer,
       ]);
     } catch (error) {
       scope.postMessage({ type: 'error', id: req.id, message: error instanceof Error ? error.message : String(error) });
