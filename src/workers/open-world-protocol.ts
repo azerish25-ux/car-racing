@@ -52,6 +52,9 @@ export interface TileMeshData {
   shade: Float32Array;
   /** Packed trees (TREE_STRIDE) with ground y appended per tree. */
   trees: Float32Array;
+  /** Finest level only (else empty): ground cover per vertex, (grass
+   * density 0..1, clear metres beyond the usable road edge). */
+  cover: Float32Array;
   minY: number;
   maxY: number;
   ms: number;

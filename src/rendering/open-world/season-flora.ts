@@ -28,7 +28,7 @@ uniform float owSnowCover;
 `;
 
 /** Vertex declarations (role, plant hash and speckle lattice varyings). */
-const LEAF_VERTEX_GLSL = /* glsl */ `
+export const LEAF_VERTEX_GLSL = /* glsl */ `
 ${SEASON_DECL_GLSL}
 varying vec3 vOwTree;
 varying vec3 vOwSpeck;
@@ -38,7 +38,9 @@ float owLeafHash(vec2 p) {
   return fract((p3.x + p3.y) * p3.z);
 }
 `;
-const LEAF_GLSL = /* glsl */ `
+/** Fragment side: leaf colour per role and season (owLeafSeason), bare
+ * winter crowns (owLeafKeep) and snow on the crowns (owLeafSnow). */
+export const LEAF_GLSL = /* glsl */ `
 ${LEAF_VERTEX_GLSL}
 vec3 owTexel = vec3(0.0, 1.0, 0.0);
 float owLeafNoise(float salt) {

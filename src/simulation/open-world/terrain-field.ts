@@ -231,7 +231,8 @@ export class TerrainField {
     for (const f of this.region.flats) if (f.kind === kind) w = Math.max(w, this.flatMask(f, x, z));
     return w;
   }
-  /** Forest density 0..1 (authored woods modulated by noise). */
+  /** Forest density 0..1: the authored woods modulated by noise, scattered
+   * copses and hedgerows, and the woods of the hills (hillWoods). */
   forestDensity(x: number, z: number) {
     let d = 0;
     for (const f of this.region.forests) {
@@ -240,7 +241,35 @@ export class TerrainField {
     }
     const n = valueNoise(x / 210, z / 210, this.seeds.forest) * 0.5 + 0.5;
     // Scattered copses and hedgerows outside the authored woods.
-    return Math.min(1, Math.max(0, d * (0.55 + 0.6 * n) + Math.max(0, n - 0.78) * 1.6));
+    const authored = Math.min(1, Math.max(0, d * (0.55 + 0.6 * n) + Math.max(0, n - 0.78) * 1.6));
+    return Math.max(authored, this.hillWoods(x, z));
+  }
+  /** Japan's hills and mountain flanks are wooded and its valley floors and
+   * coastal plains farmed (016, 024, 036, 043, 050, 052): woods where the
+   * rolling-hill relief of `unflattened` stands over ~20-30 m, on the
+   * massifs' flanks and on the ranges at the region's edge, broken by
+   * clearings, never on the Ashvale valley floor. Depends only on (x, z),
+   * like the rest of the field (physics and rendering agree). */
+  private hillWoods(x: number, z: number) {
+    const region = this.region;
+    const hills = fbm(x / 1500, z / 1500, this.seeds.hills, 4) * 0.5 + 0.5;
+    const inland = Math.max(0, this.coastDistance(x, z, 400));
+    const relief = 58 * hills ** 1.4 * (0.3 + 0.7 * smoothstep(150, 2600, inland));
+    let w = smoothstep(18, 30, relief);
+    for (const p of region.peaks) {
+      const r = Math.hypot(x - p.x, z - p.z) / p.radius;
+      if (r < 1) w = Math.max(w, smoothstep(1, 0.72, r));
+    }
+    // The ranges at the edge, with a ragged (not ruled) inner treeline.
+    const edge = Math.max(Math.abs(x), z) - region.half;
+    if (edge > -900)
+      w = Math.max(w, smoothstep(-600, 0, edge + 420 * valueNoise(x / 520, z / 520, this.seeds.forest + 3)));
+    if (w <= 0) return 0;
+    // (closest() only: the valley sample callers hold stays untouched.)
+    this.closest(this.valley, x, z);
+    w *= smoothstep(region.valley.width * 0.6, region.valley.width * 1.5, this.closestDistance);
+    const n = valueNoise(x / 170, z / 170, this.seeds.forest + 7) * 0.5 + 0.5;
+    return w * smoothstep(0.3, 0.48, n) * 0.85;
   }
   /** Field pattern of the lowland farms 0..1 (crop tone, not a surface). */
   farmPattern(x: number, z: number) {
@@ -250,8 +279,9 @@ export class TerrainField {
   snowLine(x: number, z: number) {
     return 600 + 45 * valueNoise(x / 300, z / 300, this.seeds.detail);
   }
-  /** Natural ground class at (x, z) given its height and slope (rise/run). */
-  biome(x: number, z: number, height: number, slope: number): Biome {
+  /** Natural ground class at (x, z) given its height and slope (rise/run);
+   * `forest` = forestDensity(x, z) when the caller already has it. */
+  biome(x: number, z: number, height: number, slope: number, forest?: number): Biome {
     const sea = this.region.seaLevel;
     if (this.flatWeight('airfield', x, z) > 0.6) return BIOME.AIRFIELD;
     if (this.flatWeight('town', x, z) > 0.55 && height > sea - 0.5) return BIOME.TOWN;
@@ -261,7 +291,7 @@ export class TerrainField {
     if (height < sea + 3.2 && this.coastDistance(x, z) < 180) return BIOME.BEACH;
     if (height > this.snowLine(x, z)) return BIOME.SNOW;
     if (slope > 0.62) return BIOME.ROCK;
-    if (this.forestDensity(x, z) > 0.42 && height < 520) return BIOME.FOREST;
+    if ((forest ?? this.forestDensity(x, z)) > 0.42 && height < 520) return BIOME.FOREST;
     if (height < 140 && this.farmPattern(x, z) > 0.42) return BIOME.FARMLAND;
     return BIOME.MEADOW;
   }

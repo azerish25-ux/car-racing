@@ -101,7 +101,7 @@ function pineTrunkGeometry() {
 /** Crown proportions per role: [height factor, width / height]. The width
  * ratio also picks the foliage atlas silhouette (landscape.ts foliageTile):
  * cherries the widest lobes, maples the round ones. */
-const ROLE_FORM: Readonly<Record<number, readonly [number, number]>> = {
+export const ROLE_FORM: Readonly<Record<number, readonly [number, number]>> = {
   [FLORA_ROLE.BROADLEAF]: [1, 0.86],
   [FLORA_ROLE.CHERRY]: [0.62, 1.22],
   [FLORA_ROLE.MAPLE]: [0.72, 1.0],

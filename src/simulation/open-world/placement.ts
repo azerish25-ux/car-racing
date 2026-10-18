@@ -252,18 +252,19 @@ export function treesForTile(
         r1 = (h >>> 16) / 65536;
       const x = x0 + (i + 0.15 + 0.7 * r0) * cell,
         z = z0 + (j + 0.15 + 0.7 * r1) * cell;
-      const forest = field.forestDensity(x, z),
-        pick = hash01(Math.floor(x * 7), Math.floor(z * 7), seed + 1);
+      const pick = hash01(Math.floor(x * 7), Math.floor(z * 7), seed + 1);
       // Forest stands: about one tree per 8 m cell at full density; open
       // ground: rare field trees and shrubs.
-      const chance = forest > 0.25 ? forest * 0.62 : 0.022;
+      if (pick > 0.62) continue;
+      const forest = field.forestDensity(x, z),
+        chance = forest > 0.25 ? forest * 0.62 : 0.022;
       if (pick > chance) continue;
       const thinned = pick > chance * density;
       if (thinned && !keepColliders) continue;
       if (Math.abs(x) > region.half + 1200 || Math.abs(z) > region.half + 1200) continue;
       const height = field.height(x, z),
         slope = Math.hypot(field.height(x + 2, z) - height, field.height(x, z + 2) - height) / 2;
-      const biome = field.biome(x, z, height, slope);
+      const biome = field.biome(x, z, height, slope, forest);
       if (
         biome === BIOME.SEA ||
         biome === BIOME.BEACH ||

@@ -64,6 +64,9 @@ import { RoadFurniture } from './road-furniture.ts';
 import { TERRAIN_BUDGETS, TerrainStreamer } from './terrain.ts';
 import { Vegetation } from './vegetation.ts';
 import { FestivalFlora } from './flora.ts';
+import { GroundCover } from './ground-cover.ts';
+import { FarCanopy } from './far-canopy.ts';
+import { RockOutcrops } from './rocks.ts';
 import { installSeasonLibrary, installSeasonMeadow, installSeasonRoads } from './season-flora.ts';
 import { photoVegetationEnabled, VegetationLibrary } from '../vegetation/library.ts';
 import { speciesForPalette } from '../vegetation/species.ts';
@@ -163,6 +166,12 @@ export class FestivalRenderer {
   readonly vegetation = new Vegetation();
   /** Susuki, wildflowers and bamboo groves (decorative, season-shaded). */
   readonly flora: FestivalFlora;
+  /** Grass carpet and understory around the camera (ground-cover.ts). */
+  readonly groundCover = new GroundCover();
+  /** Forest canopy beyond the planted terrain levels (far-canopy.ts). */
+  readonly farCanopy = new FarCanopy();
+  /** Rock outcrops on the steep and high ground (rocks.ts). */
+  readonly rocks = new RockOutcrops();
   /** Photographic trees and shrubs, when loaded (see loadPhotoVegetation). */
   photoVegetation: VegetationLibrary | null = null;
   readonly water: Water;
@@ -342,6 +351,9 @@ export class FestivalRenderer {
       this.signage.root,
       this.vegetation.root,
       this.flora.root,
+      this.groundCover.root,
+      this.farCanopy.root,
+      this.rocks.root,
       this.water.root,
       this.markers.root,
       this.cars.root,
@@ -733,6 +745,16 @@ export class FestivalRenderer {
       this.vegetation.sync(this.terrain.treeTiles);
     }
     this.vegetation.update(this.camera, this.preset);
+    if (this.terrain.canopyChanged) {
+      this.terrain.canopyChanged = false;
+      this.farCanopy.sync(this.terrain.canopyTiles);
+    }
+    this.farCanopy.update(this.camera, this.preset);
+    if (this.terrain.nearChanged) {
+      this.terrain.nearChanged = false;
+      this.rocks.sync(this.terrain.nearTiles);
+    }
+    this.rocks.update(this.camera, this.preset);
     this.markers.update(time, this.discovered, this.activeEvent, this.gate, (x, z) =>
       this.groundHeight(x, z),
     );
@@ -767,6 +789,13 @@ export class FestivalRenderer {
     this.buildings.setNight(night);
     this.dressing.update(time, night, this.camera, this.preset);
     this.flora.update(this.camera, this.preset);
+    this.groundCover.update(
+      this.camera,
+      this.preset,
+      this.terrain.version,
+      (x0, z0) => this.terrain.finestTile(x0, z0),
+      { x: this.target.x, z: this.target.z, yaw: bodyYaw },
+    );
     this.distant.setQuality(this.preset);
     this.distant.update(this.lighting, SEASONS.indexOf(this.currentSeason));
     this.eventDressing.update(this.camera, night, this.preset, time);
@@ -988,6 +1017,9 @@ export class FestivalRenderer {
     this.contacts.dispose();
     this.vegetation.dispose();
     this.flora.dispose();
+    this.groundCover.dispose();
+    this.farCanopy.dispose();
+    this.rocks.dispose();
     this.photoVegetation?.dispose();
     this.photoVegetation = null;
     this.water.dispose();

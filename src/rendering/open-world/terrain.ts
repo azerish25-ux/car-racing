@@ -8,6 +8,9 @@ import { terrainMaterial } from './terrain-material.ts';
 export const TERRAIN_LEVELS = 6;
 export const TERRAIN_EXTENT = TILE_SIZE * 2 ** TERRAIN_LEVELS;
 const ORIGIN = -TERRAIN_EXTENT / 2;
+/** Levels (first, last) whose drawn tiles carry the far forest canopy
+ * (far-canopy.ts): beyond the planted levels 0-1, up to 4 km tiles. */
+export const FAR_CANOPY_LEVELS = Object.freeze([2, 4] as const);
 
 export interface TerrainBudget {
   /** Split distance as a multiple of the tile edge (detail falloff). */
@@ -63,6 +66,14 @@ export class TerrainStreamer {
   /** Tree data of drawn near tiles changed (vegetation rebuilds instances). */
   readonly treeTiles = new Map<number, { data: TileMeshData; level: number; ix: number; iz: number }>();
   treesChanged = false;
+  /** Drawn tiles of the planted levels 0-1, trees or not (rock outcrops). */
+  readonly nearTiles = new Map<number, { data: TileMeshData; level: number; ix: number; iz: number }>();
+  nearChanged = false;
+  /** Drawn tiles of the far canopy levels (FAR_CANOPY_LEVELS), like treeTiles. */
+  readonly canopyTiles = new Map<number, { data: TileMeshData; level: number; ix: number; iz: number }>();
+  canopyChanged = false;
+  /** Bumped whenever a tile is built (ground cover re-reads its window). */
+  version = 0;
   private readonly camera = new T.Vector3();
   constructor(
     private readonly worker: Worker,
@@ -79,6 +90,7 @@ export class TerrainStreamer {
     if (!tile || msg.type === 'error') return;
     tile.data = msg;
     tile.mesh = this.build(tile, msg);
+    this.version++;
     this.stats.built++;
     this.stats.workerMs = this.stats.workerMs * 0.9 + msg.ms * 0.1;
   };
@@ -267,7 +279,36 @@ export class TerrainStreamer {
       }
     }
     if (changed) this.treesChanged = true;
+    this.trackDrawn(this.nearTiles, 0, 1, () => (this.nearChanged = true));
+    this.trackDrawn(this.canopyTiles, FAR_CANOPY_LEVELS[0], FAR_CANOPY_LEVELS[1], () => (this.canopyChanged = true));
     this.evict();
+  }
+  /** Keep `map` equal to the drawn tiles (with data) of levels [first, last]. */
+  private trackDrawn(
+    map: Map<number, { data: TileMeshData; level: number; ix: number; iz: number }>,
+    first: number,
+    last: number,
+    changed: () => void,
+  ) {
+    let dirty = false;
+    for (const t of this.tiles.values()) {
+      const drawn = t.mesh?.visible && t.level >= first && t.level <= last && t.data;
+      if (drawn && !map.has(t.key)) {
+        map.set(t.key, { data: t.data!, level: t.level, ix: t.ix, iz: t.iz });
+        dirty = true;
+      } else if (!drawn && map.has(t.key)) {
+        map.delete(t.key);
+        dirty = true;
+      }
+    }
+    if (dirty) changed();
+  }
+  /** Data of the resident finest-level tile whose origin is (x0, z0), the
+   * same grid as the physics tiles (null while it streams). */
+  finestTile(x0: number, z0: number) {
+    const ix = Math.round((x0 - ORIGIN) / TILE_SIZE),
+      iz = Math.round((z0 - ORIGIN) / TILE_SIZE);
+    return this.tiles.get(key(0, ix, iz))?.data ?? null;
   }
   private distance(t: Tile) {
     const size = TILE_SIZE * 2 ** t.level;
@@ -293,6 +334,8 @@ export class TerrainStreamer {
         t.requested = false;
         this.tiles.delete(t.key);
         this.treeTiles.delete(t.key);
+        if (this.nearTiles.delete(t.key)) this.nearChanged = true;
+        if (this.canopyTiles.delete(t.key)) this.canopyChanged = true;
         this.stats.evicted++;
       });
     this.stats.resident = Math.min(resident.length, this.budget.maxTiles);
