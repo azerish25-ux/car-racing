@@ -698,7 +698,7 @@ export class FestivalRenderer {
     this.roads.setNight(night);
     this.buildings.setNight(night);
     this.dressing.update(time, night, this.camera, this.preset);
-    this.eventDressing.update(this.camera, night, this.preset);
+    this.eventDressing.update(this.camera, night, this.preset, time);
     this.details?.update(
       time,
       night,

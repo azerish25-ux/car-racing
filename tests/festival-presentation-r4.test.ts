@@ -210,6 +210,25 @@ describe('festival event dressing', () => {
     dressing.update(camera, 0, 'high');
     expect(dressing.root.getObjectByName('Kestrel festival hub')?.visible).toBe(true);
   });
+  it('lights start flares only at night near a race or drift start', () => {
+    const camera = new T.PerspectiveCamera();
+    const start = events.find((e) => e.spec.id === 'harbour-welcome')!;
+    camera.position.set(start.marker.x - 30, start.marker.y + 2, start.marker.z);
+    dressing.update(camera, 0, 'medium', 12);
+    expect(dressing.flares.mesh.visible).toBe(false);
+    dressing.update(camera, 1, 'medium', 12);
+    expect(dressing.flares.mesh.visible).toBe(true);
+    // Two flares per race/drift arch, each on the ground beside a tower.
+    const origin = dressing.flares.mesh.geometry.getAttribute('origin');
+    expect(origin.count).toBeGreaterThanOrEqual(2 * 8 * 22);
+    for (let i = 0; i < origin.count; i += 22)
+      expect(Math.abs(origin.getY(i) - groundHeight(origin.getX(i), origin.getZ(i)))).toBeLessThan(
+        0.01,
+      );
+    camera.position.set(5000, 10, 5000);
+    dressing.update(camera, 1, 'medium', 12);
+    expect(dressing.flares.mesh.visible).toBe(false);
+  });
 });
 
 describe('festival speedometer scale', () => {

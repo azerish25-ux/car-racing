@@ -6,6 +6,7 @@ import { pathPoint, type PathPoint } from '../../simulation/open-world/route-pat
 import { ROAD_CLASSES } from '../../simulation/open-world/region-data.ts';
 import type { OpenWorld } from '../../simulation/open-world/world.ts';
 import { trackPoint } from '../../simulation/track.ts';
+import { FestivalStartFlares } from './start-flares.ts';
 
 /** Festival event dressing measured from the reference event frames (FH6 ref
  * 025/040/041/042/046/047/049/072/076/077/078): truss arches over the road
@@ -301,8 +302,8 @@ function flagSheet() {
   ctx.fill();
   ctx.save();
   ctx.clip();
-  ctx.fillStyle = 'rgba(20,22,26,0.85)';
-  ctx.fillRect(256, 520, 256, 46);
+  ctx.fillStyle = 'rgba(20,22,26,0.35)';
+  ctx.fillRect(256, 600, 256, 16);
   ctx.fillStyle = 'rgba(255,255,255,0.9)';
   ctx.font = `italic 900 70px ${FONT}`;
   ctx.textAlign = 'center';
@@ -582,6 +583,9 @@ export class FestivalEventDressing {
     lamp: new T.MeshBasicMaterial({ vertexColors: true }),
   };
   private readonly geometries: T.BufferGeometry[] = [];
+  private readonly flareSites: T.Vector3[] = [];
+  /** Night flares at race and drift starts (ref 048). */
+  readonly flares: FestivalStartFlares;
   constructor(
     readonly events: readonly FestivalEvent[],
     readonly world: OpenWorld,
@@ -609,6 +613,7 @@ export class FestivalEventDressing {
     if (hub) this.festivalHub(hub);
     const opening = events.find((e) => e.spec.id === 'harbour-welcome');
     if (opening) this.welcomeCorner(opening);
+    this.flares = new FestivalStartFlares(this.flareSites);
     this.root.traverse((node) => {
       if (node instanceof T.Mesh) {
         const g = node.geometry as T.BufferGeometry;
@@ -616,6 +621,7 @@ export class FestivalEventDressing {
         this.stats.triangles += node instanceof T.InstancedMesh ? count * node.count : count;
       }
     });
+    this.root.add(this.flares.mesh);
   }
   private nearHub(event: FestivalEvent, hub: FestivalEvent) {
     return (
@@ -744,6 +750,13 @@ export class FestivalEventDressing {
       this.mesh(print, this.materials.banner, 'Arch banner'),
     );
     this.stats.arches++;
+    // Night start flares just before each tower of a race or drift start.
+    if (row === ROW.festival || row === ROW.drift)
+      for (const side of [1, -1]) {
+        const at = frame.point(side * (half + 0.9), 0, -2.5);
+        at.y = this.height(at.x, at.z, p.y);
+        this.flareSites.push(at);
+      }
   }
   /** Neon chevron flags on the outside of the drift zone's corners and,
    * sparsely, along its straights. */
@@ -1082,19 +1095,21 @@ export class FestivalEventDressing {
   }
   /** Distance visibility by preset and night lighting of the printed and
    * fabric surfaces (floodlit at night, as ref 072). */
-  update(camera: T.Camera, night: number, preset: string) {
+  update(camera: T.Camera, night: number, preset: string, time = 0) {
     const scale = preset === 'low' ? 0.45 : preset === 'medium' ? 0.75 : 1;
     const eye = camera.position;
     for (const p of this.placed) p.root.visible = eye.distanceTo(p.centre) < p.range * scale;
     this.materials.banner.emissiveIntensity = 0.06 + night * 0.55;
     this.materials.fabric.emissiveIntensity = night * 0.35;
     this.materials.flag.emissiveIntensity = 0.05 + night * 0.4;
+    this.flares.update(camera, night, time);
   }
   dispose() {
     for (const g of this.geometries) g.dispose();
     for (const m of Object.values(this.materials)) m.dispose();
     this.banners.dispose();
     this.flags.dispose();
+    this.flares.dispose();
     this.root.clear();
   }
 }
