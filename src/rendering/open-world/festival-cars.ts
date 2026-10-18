@@ -17,6 +17,7 @@ import {
   setLampHalos,
 } from './festival-car-finish.ts';
 import { setPlateLamp } from './festival-plates.ts';
+import { DIPPED_BEAM, installDippedBeam } from './headlight-beam.ts';
 
 /** The festival constructs the procedural Formula model without borrowed
  * hero/driver assets. Capture its own resources before reflection/mirror
@@ -59,9 +60,12 @@ export class FestivalCars {
   private readonly formula = new Map<number, FormulaCar>();
   private readonly releaseFormula = new Map<number, () => void>();
   // The festival uses a low night exposure, not the circuit's floodlights.
-  // An inverse-square dipped beam keeps nearby paint out of the broad white
-  // clipping produced by the old 2600 / distance^1.6 spotlight.
+  // An inverse-square dipped beam with a real cut-off pattern
+  // (headlight-beam.ts): cars ahead are lit below their belt line, not
+  // turned into a clipped white box.
   private readonly headlight = new T.SpotLight(0xfff2dc, 0, 85, 0.36, 0.72, 2);
+  private readonly beam = installDippedBeam(this.headlight);
+  private readonly up = new T.Vector3();
   readonly reflectivePaint: T.Material[] = [];
   private readonly paintSet = new Set<T.Material>();
   paintVersion = 0;
@@ -208,7 +212,7 @@ export class FestivalCars {
     }
     // Headlights at night on the followed car.
     const lead = this.holders[0]?.root;
-    this.headlight.intensity = night > 0.05 ? 140 * night : 0;
+    this.headlight.intensity = night > 0.05 ? DIPPED_BEAM.peak * night : 0;
     if (lead) {
       const vehicle = Math.round(presented[carBase(0) + RACE_BASE + R.VEHICLE]);
       if (vehicle !== this.headlightVehicle) {
@@ -226,11 +230,14 @@ export class FestivalCars {
         .set(0, this.lamp.y, this.lamp.front + 0.05)
         .applyQuaternion(lead.quaternion)
         .add(lead.position);
+      // Aimed along the lamp's own horizontal: the beam pattern carries the
+      // cut-off and the downward spread, and rolls and pitches with the car.
       this.headlight.target.position
-        .set(0, this.lamp.ground, this.lamp.front + 26)
+        .set(0, this.lamp.y, this.lamp.front + 26)
         .applyQuaternion(lead.quaternion)
         .add(lead.position);
       this.headlight.target.updateMatrixWorld();
+      this.headlight.shadow.camera.up.copy(this.up.set(0, 1, 0).applyQuaternion(lead.quaternion));
     }
   }
   /** Clear all entrants; repeated garage swaps reuse bounded Formula entries,
@@ -252,6 +259,7 @@ export class FestivalCars {
   }
   dispose() {
     this.clear();
+    this.beam.dispose();
     disposeFestivalFinish();
   }
 }

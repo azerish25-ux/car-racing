@@ -7,7 +7,7 @@ import { ROAD_CLASSES } from '../../simulation/open-world/region-data.ts';
 import type { OpenWorld } from '../../simulation/open-world/world.ts';
 import { trackPoint } from '../../simulation/track.ts';
 import { FestivalStartFlares } from './start-flares.ts';
-import { crowdBodyGeometry, crowdHeadGeometry, crowdLine, crowdMeshes } from './festival-crowd.ts';
+import { crowdLine, FestivalSpectators } from './festival-crowd.ts';
 
 /** Festival event dressing measured from the reference event frames (FH6 ref
  * 025/040/041/042/046/047/049/072/076/077/078): truss arches over the road
@@ -592,9 +592,8 @@ export class FestivalEventDressing {
     lamp: new T.MeshBasicMaterial({ vertexColors: true }),
     crowd: new T.MeshStandardMaterial({ vertexColors: true, roughness: 0.82 }),
   };
-  private readonly crowdBody = crowdBodyGeometry();
-  private readonly crowdHead = crowdHeadGeometry();
-  private readonly crowds: T.Object3D[] = [];
+  /** Authored standing spectators (the game's sculpted crowd bodies). */
+  readonly spectators = new FestivalSpectators();
   private readonly geometries: T.BufferGeometry[] = [];
   private readonly flareSites: T.Vector3[] = [];
   /** Night flares at race and drift starts (ref 048). */
@@ -635,8 +634,10 @@ export class FestivalEventDressing {
     const opening = events.find((e) => e.spec.id === 'harbour-welcome');
     if (opening) this.welcomeCorner(opening);
     this.flares = new FestivalStartFlares(this.flareSites);
+    // Spectators are levelled and thinned per frame (festival-crowd.ts) and
+    // budgeted there, not in the static dressing.
     this.root.traverse((node) => {
-      if (node instanceof T.Mesh) {
+      if (node instanceof T.Mesh && node.name !== 'Festival spectators') {
         const g = node.geometry as T.BufferGeometry;
         const count = (g.index?.count ?? g.getAttribute('position').count) / 3;
         this.stats.triangles += node instanceof T.InstancedMesh ? count * node.count : count;
@@ -1052,9 +1053,7 @@ export class FestivalEventDressing {
       );
     }
     if (people.length) {
-      const crowd = crowdMeshes(people, this.crowdBody, this.crowdHead, this.materials.crowd);
-      this.crowds.push(...crowd);
-      group.add(...crowd);
+      this.spectators.add(people, group, 7701);
       this.stats.people += people.length;
     }
   }
@@ -1123,9 +1122,7 @@ export class FestivalEventDressing {
       );
     }
     if (people.length) {
-      const crowd = crowdMeshes(people, this.crowdBody, this.crowdHead, this.materials.crowd);
-      this.crowds.push(...crowd);
-      group.add(...crowd);
+      this.spectators.add(people, group, 7703);
       this.stats.people += people.length;
     }
     for (const [list, make, material, name] of [
@@ -1157,8 +1154,9 @@ export class FestivalEventDressing {
     const scale = preset === 'low' ? 0.45 : preset === 'medium' ? 0.75 : 1;
     const eye = camera.position;
     for (const p of this.placed) p.root.visible = eye.distanceTo(p.centre) < p.range * scale;
-    // Spectators are a MEDIUM+ detail (about 110 triangles a person).
-    for (const crowd of this.crowds) crowd.visible = preset !== 'low';
+    // Spectators are a MEDIUM+ detail: the authored sculpts, levelled and
+    // thinned per tier (festival-crowd.ts).
+    this.spectators.update(camera, time, preset);
     this.materials.banner.emissiveIntensity = 0.06 + night * 0.55;
     this.materials.fabric.emissiveIntensity = night * 0.35;
     this.materials.flag.emissiveIntensity = 0.05 + night * 0.4;
@@ -1166,8 +1164,7 @@ export class FestivalEventDressing {
   }
   dispose() {
     for (const g of this.geometries) g.dispose();
-    this.crowdBody.dispose();
-    this.crowdHead.dispose();
+    this.spectators.dispose();
     for (const m of Object.values(this.materials)) m.dispose();
     this.banners.dispose();
     this.flags.dispose();

@@ -1,4 +1,6 @@
 import * as T from 'three';
+import { installCrowdShader, spectatorGeometry } from '../crowd.ts';
+import { installCrowdImpostorShader, spectatorImpostorGeometry } from '../crowd-impostor.ts';
 
 /** Standing festival crowd for the event dressing, measured from the
  * reference meet and drag frames (FH6 ref 025/049/072/077/079): people stand
@@ -153,4 +155,176 @@ export function crowdMeshes(
     mesh.computeBoundingSphere();
   }
   return [bodies, heads] as const;
+}
+
+/** Authored standing spectators for the festival meets and hub (refs 025,
+ * 046, 047, 072, 078-081): the game's sculpted crowd bodies (crowd.ts /
+ * human-kit: clothed torso, arms, faces, caps, phones and cups, seated and
+ * standing correspondence, per-person build and garments) in their standing
+ * pose, on the festival crowd lines. Each cluster of up to 96 people is one
+ * instanced draw at one level: the mid sculpt (1.4 k triangles) near the
+ * camera, the low sculpt (0.6 k) beyond, the lit card past 300 m. MEDIUM
+ * draws two in three people (instances sorted by a stable rank), HIGH most,
+ * ULTRA all; LOW none. The circuit grandstands are not touched. */
+export const FESTIVAL_SPECTATORS = Object.freeze({
+  cluster: 96,
+  /** Mid-sculpt range (m) and the share of people drawn, per tier. */
+  near: { low: 0, medium: 32, high: 48, ultra: 64 } as Record<string, number>,
+  share: { low: 0, medium: 0.66, high: 0.85, ultra: 1 } as Record<string, number>,
+  card: 300,
+});
+/** The crowd bodies face -X with the standing body centred 0.49 m behind
+ * the seat origin, feet 0.30 m below it, 1.6 m tall: turn them to face +z
+ * (the crowd-line forward) on the line's ground point at its height. The
+ * feet (bind space) land on that point. */
+export const SPECTATOR_FEET = new T.Vector3(-0.49, -0.3, 0);
+export const STANDING = new T.Matrix4()
+  .makeScale(1.75 / 1.6, 1.75 / 1.6, 1.75 / 1.6)
+  .multiply(new T.Matrix4().makeRotationY(Math.PI / 2))
+  .multiply(new T.Matrix4().makeTranslation(0.49, 0.3, 0));
+function rank(i: number, seed: number) {
+  let h = Math.imul((i + 1) ^ seed, 0x7feb352d);
+  h = Math.imul(h ^ (h >>> 15), 0x846ca68b);
+  return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+}
+export class FestivalSpectators {
+  readonly root = new T.Group();
+  readonly stats = { people: 0, clusters: 0 };
+  private readonly uniforms = {
+    crowdClock: { value: new T.Vector2() },
+    crowdMotion: { value: 0.55 },
+    crowdReaction: { value: new T.Vector2() },
+  };
+  private readonly geometries: T.BufferGeometry[];
+  private readonly materials: T.Material[] = [];
+  private readonly levelMaterials: { color: T.MeshStandardMaterial; range: T.Vector2 }[] = [];
+  private readonly clusters: {
+    mesh: T.InstancedMesh;
+    levels: T.BufferGeometry[];
+    centre: T.Vector3;
+    count: number;
+    level: number;
+  }[] = [];
+  private readonly eye = new T.Vector3();
+  constructor() {
+    this.root.name = 'Festival spectators (authored)';
+    this.geometries = [
+      spectatorGeometry(1, 'a'),
+      spectatorGeometry(2, 'a'),
+      spectatorImpostorGeometry(),
+    ];
+    for (let level = 0; level < 3; level++) {
+      const range = new T.Vector2(0, 1);
+      const color = new T.MeshStandardMaterial({ roughness: 0.82, metalness: 0 });
+      color.vertexColors = true;
+      const uniforms = { ...this.uniforms, crowdLodRange: { value: range } };
+      if (level === 2) installCrowdImpostorShader(color, range);
+      else installCrowdShader(color, uniforms, true);
+      this.levelMaterials.push({ color, range });
+      this.materials.push(color);
+    }
+    const depth = new T.MeshDepthMaterial({ depthPacking: T.RGBADepthPacking });
+    installCrowdShader(
+      depth,
+      { ...this.uniforms, crowdLodRange: { value: new T.Vector2(0, 1) } },
+      false,
+    );
+    this.materials.push(depth);
+  }
+  /** People of one crowd line (crowdLine), parented to `parent`. */
+  add(people: ReturnType<typeof crowdLine>, parent: T.Object3D, seed: number) {
+    const order = people
+      .map((p, i) => ({ p, r: rank(i, seed) }))
+      .sort((a, b) => a.r - b.r)
+      .map((e) => e.p);
+    // Spatial clusters along the line, each sorted by rank so a tier can
+    // draw a stable leading share.
+    for (let start = 0; start < people.length; start += FESTIVAL_SPECTATORS.cluster) {
+      const group = people
+        .slice(start, start + FESTIVAL_SPECTATORS.cluster)
+        .map((p) => ({ p, r: order.indexOf(p) }))
+        .sort((a, b) => a.r - b.r)
+        .map((e) => e.p);
+      const n = group.length,
+        phase = new Float32Array(n),
+        skin = new Float32Array(n * 3),
+        style = new Float32Array(n * 4),
+        centre = new T.Vector3(),
+        m = new T.Matrix4(),
+        c = new T.Color();
+      group.forEach((person, i) => {
+        const h = rank(start + i, seed ^ 0x51ed);
+        phase[i] = h * Math.PI * 2;
+        skin.set(c.setHex(person.skin).toArray(), i * 3);
+        style.set(
+          [0.9 + rank(i, seed + 3) * 0.2, 0.94 + rank(i, seed + 5) * 0.12, 1, rank(i, seed + 7)],
+          i * 4,
+        );
+        centre.add(new T.Vector3().setFromMatrixPosition(person.matrix));
+      });
+      centre.multiplyScalar(1 / n);
+      const attributes = {
+        spectatorPhase: new T.InstancedBufferAttribute(phase, 1),
+        spectatorSkin: new T.InstancedBufferAttribute(skin, 3),
+        spectatorStyle: new T.InstancedBufferAttribute(style, 4),
+      };
+      const levels = this.geometries.map((base) => {
+        const geometry = new T.BufferGeometry();
+        for (const [name, attribute] of Object.entries(base.attributes))
+          geometry.setAttribute(name, attribute);
+        geometry.setIndex(base.index);
+        geometry.boundingBox = base.boundingBox;
+        geometry.boundingSphere = base.boundingSphere;
+        for (const [name, attribute] of Object.entries(attributes))
+          geometry.setAttribute(name, attribute);
+        return geometry;
+      });
+      const mesh = new T.InstancedMesh(levels[1], this.levelMaterials[1].color, n);
+      group.forEach((person, i) => {
+        mesh.setMatrixAt(i, m.multiplyMatrices(person.matrix, STANDING));
+        mesh.setColorAt(i, c.setHex(person.shirt));
+      });
+      mesh.name = 'Festival spectators';
+      mesh.receiveShadow = true;
+      mesh.customDepthMaterial = this.materials[3] as T.MeshDepthMaterial;
+      mesh.computeBoundingSphere();
+      mesh.boundingSphere!.radius += 0.6;
+      mesh.visible = false;
+      parent.add(mesh);
+      this.clusters.push({ mesh, levels, centre, count: n, level: 1 });
+      this.stats.people += n;
+      this.stats.clusters++;
+    }
+  }
+  update(camera: T.Camera, time: number, preset: string) {
+    camera.getWorldPosition(this.eye);
+    const near = FESTIVAL_SPECTATORS.near[preset] ?? 32,
+      share = FESTIVAL_SPECTATORS.share[preset] ?? 0.66;
+    const cycle = Math.PI * 2;
+    this.uniforms.crowdClock.value.set((time * 0.71) % cycle, (time * 0.43) % cycle);
+    for (const cluster of this.clusters) {
+      const d = cluster.centre.distanceTo(this.eye),
+        level = d < near ? 0 : d < FESTIVAL_SPECTATORS.card ? 1 : 2,
+        count = Math.round(cluster.count * share);
+      const mesh = cluster.mesh;
+      if (level !== cluster.level) {
+        cluster.level = level;
+        mesh.geometry = cluster.levels[level];
+        mesh.material = this.levelMaterials[level].color;
+      }
+      mesh.castShadow = level === 0;
+      mesh.visible = share > 0 && count > 0;
+      mesh.count = count;
+    }
+  }
+  dispose() {
+    for (const cluster of this.clusters) {
+      cluster.mesh.removeFromParent();
+      cluster.mesh.dispose();
+      for (const g of cluster.levels) g.dispose();
+    }
+    for (const g of this.geometries) g.dispose();
+    for (const m of this.materials) m.dispose();
+    this.clusters.length = 0;
+  }
 }

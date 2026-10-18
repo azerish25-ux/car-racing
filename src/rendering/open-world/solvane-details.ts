@@ -217,10 +217,12 @@ export class SolvaneDetails {
       plan = architecturePlan(world, structures);
     for (const [index, s] of structures.entries()) {
       if (s.kind !== 'shop' && s.kind !== 'block') continue;
-      // Convenience stores have their own glazed fronts; village machiya
-      // their lattice fronts.
+      // The kit's timber shopfronts (stall risers, pilasters, cornice) are
+      // European. Every Japanese reading carries its own ground floor in the
+      // building mesh: aluminium sash glazing and roller shutters on city
+      // blocks (030/038), lattice fronts on machiya, glazed store fronts.
       const style = plan.style[index];
-      if (style === 'konbini' || style === 'machiya' || plan.konbiniFloor.has(index)) continue;
+      if (style !== 'legacy') continue;
       world.network.nearest(s.x, s.z, p);
       const c = Math.cos(s.heading),
         n = Math.sin(s.heading);
