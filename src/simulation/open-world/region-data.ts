@@ -252,8 +252,9 @@ export interface FestivalEventSpec {
    * a runway that leaves the rest for braking). */
   finish?: number;
   /** Time of day the event is staged at (the presentation switches to it
-   * for the run and back afterwards; the player may still change it). */
-  lighting?: 'sunset' | 'night';
+   * for the run and back afterwards; the player may still change it).
+   * 'dusk' is the festival's blue hour (session/festival-lighting.ts). */
+  lighting?: 'sunset' | 'dusk' | 'night';
   blurb: string;
 }
 /** A quarter mile (m): the drag strip's measured distance. */
@@ -965,7 +966,8 @@ export const SOLVANE: RegionDefinition = Object.freeze({
       ],
       rivals: 1,
       stars: [-3, 0.001, 2],
-      lighting: 'sunset',
+      // Blue hour on the pass (FH6 043, 085): headlights and start flares lit.
+      lighting: 'dusk',
       blurb:
         'Head to head down the Varda switchbacks at dusk. Side by side from a standing start, four hairpins, one rival. Win by two seconds for three stars.',
     },

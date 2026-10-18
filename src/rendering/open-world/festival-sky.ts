@@ -4,6 +4,7 @@ import { SKY_RAMPS, skyBlend } from '../assets/sky-catalogue.ts';
 import { skyCosineRadiance, type LightingMode, type PhotoSkyBinding } from '../daylight.ts';
 import { SkyClouds, type SkyCloudUniforms } from '../studio/sky-clouds.ts';
 import { festivalSkyline } from './festival-atmosphere.ts';
+import { bindDuskSky } from './festival-dusk.ts';
 
 /**
  * The festival's sky (render only): the photographed dome with the baked
@@ -111,16 +112,27 @@ export class FestivalSky implements PhotoSkyBinding {
   /** Share of the baked clouds in the dome of the last visible bind: the
    * photo's `photoClouds`, or 1 for the procedural dome (no photograph). */
   capturedClouds = 1;
+  /** The festival's blue hour (festival-dusk.ts): on the night state, the
+   * dusk dome replaces the photograph in the visible dome and the captures. */
+  dusk = false;
   constructor(readonly photo: PhotoSky) {}
   get key() {
-    return this.photo.key;
+    return this.dusk ? `${this.photo.key}|dusk` : this.photo.key;
   }
   fogPalette(cover: number, mode: LightingMode) {
     return this.photo.fogPalette(cover, mode);
   }
   bind(material: T.ShaderMaterial, cover: number, mode: LightingMode, capture: boolean) {
-    const bound = this.photo.bind(material, cover, mode, capture);
     const u = material.uniforms;
+    // Dusk (on the night state) draws its own dome: no photograph is bound.
+    const dusk = this.dusk && mode === 'night';
+    if (bindDuskSky(material, dusk ? 1 : 0) && dusk) {
+      if (u.photoAmount) u.photoAmount.value = 0;
+      if (u.photoClouds) u.photoClouds.value = 0;
+      if (!capture) this.capturedClouds = 1;
+      return false;
+    }
+    const bound = this.photo.bind(material, cover, mode, capture);
     if (!bound) {
       if (u.photoClouds) u.photoClouds.value = 0;
       if (!capture) this.capturedClouds = 1;

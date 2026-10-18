@@ -1,11 +1,13 @@
 import * as T from 'three';
 import { ATMOSPHERE } from '../atmosphere.ts';
 import type { GradeProfile } from '../broadcast-grade.ts';
-import { lightingDirection, type LightingMode } from '../daylight.ts';
+import { lightingDirection } from '../daylight.ts';
 import { aerialFogColor, aerialSunGlow, AERIAL_PERSPECTIVE } from '../studio/aerial-perspective.ts';
 import { chainShaderHook } from '../studio/shader-hooks.ts';
 import { installFestivalCloudShadow } from './festival-cloud-shadow.ts';
 import { studioUniforms } from '../studio/studio-frame.ts';
+import type { FestivalLighting } from '../../session/festival-lighting.ts';
+import { DUSK_KEY, DUSK_SUN, FESTIVAL_DUSK } from './festival-dusk.ts';
 
 /**
  * Aerial perspective of the festival region (render only).
@@ -40,8 +42,14 @@ export const FESTIVAL_AIR = Object.freeze({
   /** Aerosol level (multiples of the atmosphere's reference aerosol) per
    * lighting at cover 0 and the increase to cover 1. Day 1.6 matches the
    * clear references; golden hour carries the warm forward-scattering veil
-   * of 017/029/098; night a little moist air. */
-  haze: Object.freeze({ day: [1.6, 9], sunset: [5.5, 7], night: [2.5, 6] } as const),
+   * of 017/029/098; night a little moist air; the blue hour's evening air
+   * (festival-dusk.ts). */
+  haze: Object.freeze({
+    day: [1.6, 9],
+    sunset: [5.5, 7],
+    dusk: FESTIVAL_DUSK.air.haze,
+    night: [2.5, 6],
+  } as const),
   /** Breadth of the sun-side glow over distant ground (cosine power). */
   sunPower: 9,
   /** Clear-sky haze away from the sun, relative colour (linear R:G:B) at the
@@ -114,7 +122,7 @@ export function bindFestivalAir(shader: { uniforms: Record<string, T.IUniform> }
 }
 
 /** Extinction (1/m at 680/550/440 nm, sea level) of the festival air. */
-export function festivalExtinction(mode: LightingMode, cover: number, rain: number) {
+export function festivalExtinction(mode: FestivalLighting, cover: number, rain: number) {
   const [clear, overcast] = FESTIVAL_AIR.haze[mode],
     c = Math.min(1, Math.max(0, cover)),
     haze = clear + overcast * c,
@@ -130,7 +138,7 @@ export function festivalExtinction(mode: LightingMode, cover: number, rain: numb
 /** CPU reference of the shader: fraction of the ground colour left (per
  * channel) for a camera height, a point height and a distance (m). */
 export function festivalTransmittance(
-  mode: LightingMode,
+  mode: FestivalLighting,
   cover: number,
   rain: number,
   cameraHeight: number,
@@ -186,7 +194,10 @@ export function festivalSkyline(
  * more saturated than the day: frame saturation 0.41-0.45 in 017/029/034/098
  * where the festival's golden hour read 0.23-0.34 (saturation 1.04 -> 1.12,
  * vibrance 0.03 -> 0.1: +0.03 on the measured frames). Night keeps the shared
- * profile.
+ * profile. The blue hour (over the night profile) keeps the dome's violet
+ * and the lamps' warmth apart: a little more saturation (frame saturation
+ * 0.33-0.41 in 061/081/083), warm highlights, violet shadows (061 asphalt
+ * B/R 2.3).
  */
 export const FESTIVAL_GRADE = Object.freeze({
   day: {
@@ -203,11 +214,19 @@ export const FESTIVAL_GRADE = Object.freeze({
     highlight: [1.02, 0.99, 0.95],
     shadow: [0.98, 0.99, 1.03],
   },
+  dusk: {
+    contrast: 0.02,
+    saturation: 1.08,
+    vibrance: 0.06,
+    highlight: [1.02, 0.995, 0.97],
+    shadow: [0.99, 0.98, 1.03],
+  },
   night: { contrast: 0, saturation: 1, vibrance: 0, highlight: [1, 1, 1], shadow: [1, 1, 1] },
 } as const);
-const graded = new WeakMap<object, Map<LightingMode, GradeProfile>>();
-/** BroadcastGradePass.profileAdjust of the festival (memoised per profile). */
-export function festivalGrade(mode: LightingMode, base: Readonly<GradeProfile>): GradeProfile {
+const graded = new WeakMap<object, Map<FestivalLighting, GradeProfile>>();
+/** BroadcastGradePass.profileAdjust of the festival (memoised per profile;
+ * dusk adjusts the shared night profile). */
+export function festivalGrade(mode: FestivalLighting, base: Readonly<GradeProfile>): GradeProfile {
   let byMode = graded.get(base);
   if (!byMode) graded.set(base, (byMode = new Map()));
   let profile = byMode.get(mode);
@@ -320,11 +339,32 @@ gl_FragColor.rgb = fhAerial(gl_FragColor.rgb, vFhAirRay);
     });
   }
   /** This frame's air for the lighting, cloud cover and rain rate. */
-  update(mode: LightingMode, cover: number, rain: number) {
+  update(lighting: FestivalLighting, cover: number, rain: number) {
     const u = festivalAirUniforms,
-      { rayleigh, mie } = festivalExtinction(mode, cover, rain);
+      { rayleigh, mie } = festivalExtinction(lighting, cover, rain);
     u.fhApRayleigh.value.set(...rayleigh);
     u.fhApMie.value.set(...mie);
+    // FogExp2 for materials outside the installer: equal to the green
+    // channel's haze at 8 km along the ground ((rho d)^2 = beta d).
+    this.fogDensity = Math.sqrt((rayleigh[1] + mie[1]) / 8000);
+    if (lighting === 'dusk') {
+      // Blue-violet evening air, greying under a deck, glowing toward the
+      // set sun; the shared sun direction follows the dusk key.
+      const deck = Math.min(1, Math.max(0, (cover - 0.3) / 0.6)),
+        air = FESTIVAL_DUSK.air;
+      this.inscatter.setRGB(
+        air.inscatter[0] + (air.deck[0] - air.inscatter[0]) * deck,
+        air.inscatter[1] + (air.deck[1] - air.inscatter[1]) * deck,
+        air.inscatter[2] + (air.deck[2] - air.inscatter[2]) * deck,
+        T.LinearSRGBColorSpace,
+      );
+      u.fhApInscatter.value.set(this.inscatter.r, this.inscatter.g, this.inscatter.b);
+      u.fhApSunGlow.value.set(...air.glow).multiplyScalar(1 - deck);
+      u.fhApSunDir.value.copy(DUSK_SUN);
+      studioUniforms.studioSunDir.value.copy(DUSK_KEY);
+      return;
+    }
+    const mode = lighting;
     // The art-bible horizon (studio/aerial-perspective.ts colours: clear day
     // #9db8d3 away from the sun, #c9d3dc toward it; golden hour #7d84a0 and
     // #d9a27c), the references' blue (036 #a6c1e6, 021 #b2c0da), rather than
@@ -345,8 +385,5 @@ gl_FragColor.rgb = fhAerial(gl_FragColor.rgb, vFhAirRay);
     // The festival has no studio frame: keep the shared sun direction (foliage
     // translucency, lens flare) on this lighting's key while it draws.
     studioUniforms.studioSunDir.value.copy(u.fhApSunDir.value);
-    // FogExp2 for materials outside the installer: equal to the green
-    // channel's haze at 8 km along the ground ((rho d)^2 = beta d).
-    this.fogDensity = Math.sqrt((rayleigh[1] + mie[1]) / 8000);
   }
 }
