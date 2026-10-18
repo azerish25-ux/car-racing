@@ -1,4 +1,8 @@
-import { StructureGrid, type Structure } from '../../simulation/open-world/placement.ts';
+import {
+  insideFootprint,
+  StructureGrid,
+  type Structure,
+} from '../../simulation/open-world/placement.ts';
 import { carvedGroundHeight } from '../../simulation/open-world/ground-height.ts';
 import type { TownSpec } from '../../simulation/open-world/region-data.ts';
 import type { OpenWorld } from '../../simulation/open-world/world.ts';
@@ -46,6 +50,26 @@ export interface ArchitecturePlan {
   /** Highest carved ground under each temple footprint: its stone terrace
    * rises to this level so the halls stand on the surrounding grade. */
   terrace: Map<number, number>;
+  /** Visual-only storeys stacked on a city block above its collider (same
+   * footprint, no overhang; no car reaches a roof). Denser toward the town
+   * centre (refs 030, 039, 089). */
+  extraFloors: Uint8Array;
+  /** City facade skin per structure: SKIN.punched / ribbon / curtain. */
+  skin: Uint8Array;
+  /** Party walls: storeys of each side wall (index 2i: local -x, 2i + 1:
+   * +x) that a neighbour within 4 m covers (0: no neighbour). Those storeys
+   * above the ground floor are blank; the wall above the neighbour keeps
+   * its windows. */
+  partyRows: Uint8Array;
+}
+export const SKIN = Object.freeze({ punched: 0, ribbon: 1, curtain: 2 });
+/** Roads whose frontages rise as commercial canyons. */
+const MAIN_STREETS = new Set(['harbour', 'market']);
+/** Storey height of the generated city buildings (placement.ts). */
+const STOREY = 3.2;
+/** A structure as drawn: its collider with `extra` visual storeys on top. */
+export function visualStructure(s: Structure, extra: number): Structure {
+  return extra > 0 ? { ...s, floors: s.floors + extra, height: s.height + extra * STOREY } : s;
 }
 /** A castle keep (ref 033): stone base from `y` (lowest ground of its 20 m
  * square) and a three-tier keep, facing the town at `heading`. */
@@ -201,13 +225,15 @@ export function architecturePlan(
   const terrace = new Map<number, number>();
   const style: Architecture[] = [],
     front = new Int8Array(structures.length),
-    roadClass: string[] = [];
+    roadClass: string[] = [],
+    roadId: string[] = [];
   structures.forEach((s, i) => {
     net.nearest(s.x, s.z, p);
     const c = Math.cos(s.heading),
       n = Math.sin(s.heading);
     front[i] = (p.x - s.x) * -n + (p.z - s.z) * c >= 0 ? 1 : -1;
     roadClass[i] = net.edges[net.edgeOf[net.lastSegment]].roadClass;
+    roadId[i] = net.edges[net.edgeOf[net.lastSegment]].road.id;
     const town = world.region.towns.find((t) => inside(t, s.x, s.z, 40));
     if (s.kind === 'chapel') {
       style[i] = 'temple';
@@ -291,9 +317,80 @@ export function architecturePlan(
       }
     rearStair.add(i);
   });
+  // Skyline: visual storeys on city blocks (and on shops toward the middle),
+  // likelier and taller toward the centre of the (non-village) town: 22 %
+  // of the blocks at its edge with 1-3 more storeys, 90 % at its centre with
+  // up to 12 (capped at 12 storeys, 14 for a few central towers). Office
+  // blocks (not apartments) carry ribbon windows, the tallest curtain walls.
+  const extraFloors = new Uint8Array(structures.length),
+    skin = new Uint8Array(structures.length);
+  structures.forEach((s, i) => {
+    if (style[i] !== 'urban' || (s.kind !== 'block' && s.kind !== 'shop')) return;
+    const town = world.region.towns.find((t) => !village(t) && inside(t, s.x, s.z, 40));
+    if (!town) return;
+    const r = Math.hypot(
+      (s.x - (town.x0 + town.x1) / 2) / ((town.x1 - town.x0) / 2),
+      (s.z - (town.z0 + town.z1) / 2) / ((town.z1 - town.z0) / 2),
+    );
+    // The two commercial main streets (Harbour Front, Market Street) are
+    // canyons along their whole length (refs 014, 030, 069).
+    const w = Math.max(Math.min(1, Math.max(0, 1 - r)), MAIN_STREETS.has(roadId[i]) ? 0.55 : 0);
+    const h = mix(s.style ^ 0x27d4eb2d);
+    let extra = 0;
+    const chance = s.kind === 'block' ? 0.22 + 0.68 * w : 0.55 * Math.max(0, w - 0.2);
+    if ((h % 1000) / 1000 < chance) {
+      extra = 1 + Math.round((((h >>> 10) % 1000) / 1000) * (2 + 9 * w));
+      const cap = w > 0.7 && (h >>> 20) % 4 === 0 ? 14 : 12;
+      extra = Math.max(0, Math.min(extra, cap - s.floors));
+    }
+    extraFloors[i] = extra;
+    if (isApartment(s) || s.kind !== 'block') return;
+    const floors = s.floors + extra;
+    skin[i] =
+      floors >= 10 && (h >>> 24) % 3 !== 0
+        ? SKIN.curtain
+        : floors >= 8 || (h >>> 26) % 3 === 0
+          ? SKIN.ribbon
+          : SKIN.punched;
+  });
+  // Party walls (refs 014, 030): a side wall with a neighbour close beside
+  // it keeps no windows up to the neighbour's (visual) roof; a side facing a
+  // street or an open lot, or rising above the neighbour, keeps them.
+  const partyRows = new Uint8Array(structures.length * 2);
+  structures.forEach((s, i) => {
+    if (style[i] !== 'urban') return;
+    const c = Math.cos(s.heading),
+      n = Math.sin(s.heading),
+      floorH = (s.height - 0.6) / Math.max(1, s.floors);
+    for (const [slot, side] of [
+      [0, -1],
+      [1, 1],
+    ] as const) {
+      let hits = 0,
+        top = -Infinity;
+      for (const lz of [-s.hz * 0.6, 0, s.hz * 0.6]) {
+        const lx = side * (s.hx + 2.5),
+          x = s.x + c * lx - n * lz,
+          z = s.z + n * lx + c * lz;
+        let hit = false;
+        for (const j of grid.near(x, z)) {
+          const o = structures[j];
+          if (j === i || !insideFootprint(o, x, z, 1.5)) continue;
+          hit = true;
+          top = Math.max(top, o.base + o.height + STOREY * extraFloors[j]);
+        }
+        if (hit) hits++;
+      }
+      if (hits >= 2)
+        partyRows[i * 2 + slot] = Math.min(255, Math.max(1, Math.ceil((top - s.base) / floorH)));
+    }
+  });
   const plan = {
+    partyRows,
     style,
     front,
+    extraFloors,
+    skin,
     konbiniFloor,
     chain,
     lotSide,
