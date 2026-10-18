@@ -1,0 +1,35 @@
+name: MotoGP R6 source snapshot
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/motogp-r6-source-snapshot.yml']
+permissions:
+  contents: read
+concurrency:
+  group: motogp-r6-source-snapshot
+  cancel-in-progress: false
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Capture immutable tracked source
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/motogp-r6-source"
+          git archive HEAD | gzip -1 > "$RUNNER_TEMP/motogp-r6-source/source.tar.gz"
+          git rev-parse HEAD > "$RUNNER_TEMP/motogp-r6-source/commit.txt"
+          cd "$RUNNER_TEMP/motogp-r6-source"
+          sha256sum source.tar.gz > SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: motogp-r6-source
+          path: ${{ runner.temp }}/motogp-r6-source/
+          compression-level: 0
+          retention-days: 7
+          if-no-files-found: error
