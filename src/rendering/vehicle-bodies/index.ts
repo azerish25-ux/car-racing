@@ -17,6 +17,7 @@ import type { ShadowSubstitute } from '../shadow-proxies.ts';
 import { wheelPhase, wheelTravel } from '../wheel-pose.ts';
 import { bodySheetFor, type BodySheet } from './body-sheet.ts';
 import { buildClosedBody, ClosedBodyModel } from './closed-body.ts';
+import { FestivalBodyModel, festivalFormFor } from './festival-form.ts';
 import { carMaterials, emptyLod, type BuiltLod, type CarMaterials } from './common.ts';
 import { bodyFrame, type BodyFrame } from './frame.ts';
 import { buildKart, buildOpenWheel, type Link } from './open-wheel.ts';
@@ -60,6 +61,8 @@ interface Built {
   links: { mesh: T.Mesh; link: Link }[][];
   materials: CarMaterials;
   frame: BodyFrame;
+  /** The closed body's surface model (null for open machines). */
+  model: ClosedBodyModel | null;
   level: number;
   /** The coarser LOD the last rear-view feed pass showed (null: none); its
    * wheels are posed too, so the feed never shows a stale wheel set. */
@@ -72,16 +75,30 @@ interface Built {
 /** A built catalogue body as handed to `VehicleBodies.onBuild`. */
 export type BuiltVehicleBody = Pick<
   Built,
-  'definition' | 'root' | 'lods' | 'wheels' | 'materials' | 'frame'
+  'definition' | 'root' | 'lods' | 'wheels' | 'materials' | 'frame' | 'model'
 >;
+/** Build options: `festival` draws road cars with the open-world production
+ * form (festival-form.ts); circuit and replay bodies stay the plain lofts. */
+export interface BodyOptions {
+  festival?: boolean;
+}
 const LOD_NAMES = ['near', 'mid', 'far'];
-export function buildVehicleBody(id: number, definition: VehicleDefinition, sheet: BodySheet) {
+export function buildVehicleBody(
+  id: number,
+  definition: VehicleDefinition,
+  sheet: BodySheet,
+  options: BodyOptions = {},
+) {
   const frame = bodyFrame(definition);
   const cabin = { layout: cabinLayout(definition, sheet), def: definition };
   const closed = sheet.kind === 'closed' ? sheet : null;
   const finish = sheet.paint;
+  const tyres = [sheet.wheels.width[0] / 2, sheet.wheels.width[1] / 2] as const;
+  const form = closed && options.festival ? festivalFormFor(definition, closed) : null;
   const model = closed
-    ? new ClosedBodyModel(frame, closed, [sheet.wheels.width[0] / 2, sheet.wheels.width[1] / 2])
+    ? form
+      ? new FestivalBodyModel(frame, closed, tyres, form)
+      : new ClosedBodyModel(frame, closed, tyres)
     : null;
   const materials = carMaterials(id, finish, model ? model.gaps() : []);
   const root = new T.Group();
@@ -142,6 +159,7 @@ export function buildVehicleBody(id: number, definition: VehicleDefinition, shee
     links,
     materials,
     frame,
+    model,
     level: 0,
     feedLevel: null,
     near: false,
@@ -220,7 +238,7 @@ export class VehicleBodies {
   private readonly hub = new T.Vector3();
   private readonly end = new T.Vector3();
   private readonly up = new T.Vector3(0, 1, 0);
-  constructor() {
+  constructor(private readonly options: BodyOptions = {}) {
     this.root.name = 'Vehicle bodies (procedural catalogue exteriors)';
   }
   /** Festival-only imported aero replaces this component after normal damage
@@ -232,7 +250,7 @@ export class VehicleBodies {
       for (const node of lod.rear) if (node.name === 'Rear wing (detachable)') node.visible = false;
   }
   private build(id: number, definition: VehicleDefinition, sheet: BodySheet) {
-    const built = buildVehicleBody(id, definition, sheet);
+    const built = buildVehicleBody(id, definition, sheet, this.options);
     this.root.add(built.root);
     this.onBuild(built.root, built, id);
     return built;
