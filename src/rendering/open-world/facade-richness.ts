@@ -310,7 +310,7 @@ void owCityPane(vec2 q, float room, float tag, vec3 nrm, vec3 viewPos, float nig
   owEmit = (coverGlow * cover + interior * tint * (1.0 - cover)) * (1.0 - fr);
   owGlass = 1.0 - fr;
   owMirror = (1.0 - fr) * owRich;
-  owSpecBoost = curtain ? 2.6 : ribbon && bucket > 0.7 ? 1.9 : 1.3;
+  owSpecBoost = curtain ? 2.0 : ribbon && bucket > 0.7 ? 1.5 : 1.0;
   owMirrorSeed = bucket * 11.0 + room;
 }
 // Urban wall finishes 7-9 and weathering. q: wall UV (m); finish code;
@@ -386,7 +386,9 @@ if (owMirror > 0.0) {
   vec3 owR = inverseTransformDirection(reflect(-geometryViewDir, geometryNormal), viewMatrix);
   vec3 owNbGlow;
   vec4 owNb = owNeighbour(owR, owMirrorSeed, owNight, owNbGlow);
-  vec3 owNbLit = owNb.rgb * iblIrradiance * RECIPROCAL_PI * (2.4 - 1.8 * owNight) + owNbGlow;
+  // Facades across a street stand partly in shade: about the sky light a
+  // vertical wall receives.
+  vec3 owNbLit = owNb.rgb * iblIrradiance * RECIPROCAL_PI * (1.3 - 0.9 * owNight) + owNbGlow;
   radiance = mix(radiance, owNbLit, owNb.a * owMirror) * mix(1.0, owSpecBoost, owMirror);
 }
 #endif

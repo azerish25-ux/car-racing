@@ -119,29 +119,35 @@ describe('Ribbon and curtain-wall facades', () => {
     });
     expect(bands).toBeGreaterThan(1000);
   });
-  it('blank only side walls with a neighbour close beside them', () => {
+  it('blank side walls only beside a neighbour and only up to its roof', () => {
     const grid = new StructureGrid(structures);
-    let party = 0;
+    let party = 0,
+      above = 0;
     structures.forEach((s, i) => {
-      const bits = plan.partyWall[i];
-      if (!bits) return;
-      expect(plan.style[i]).toBe('urban');
-      const c = Math.cos(s.heading),
-        n = Math.sin(s.heading);
-      for (const [bit, side] of [
-        [1, -1],
-        [2, 1],
+      for (const [slot, side] of [
+        [0, -1],
+        [1, 1],
       ] as const) {
-        if (!(bits & bit)) continue;
+        const rows = plan.partyRows[i * 2 + slot];
+        if (!rows) continue;
         party++;
-        const lx = side * (s.hx + 2.5);
+        expect(plan.style[i]).toBe('urban');
+        const c = Math.cos(s.heading),
+          n = Math.sin(s.heading),
+          lx = side * (s.hx + 2.5);
         expect(grid.blocks(s.x + c * lx, s.z + n * lx, 1.5 + s.hz)).toBe(true);
         const v = visualStructure(s, plan.extraFloors[i]);
-        const layout = facadeLayout(v, v.hz * 2, side > 0 ? 1 : 3, 'urban', 1)!;
-        expect(layout.openings.every((o) => o.row0 === 0)).toBe(true);
+        const layout = facadeLayout(v, v.hz * 2, side > 0 ? 1 : 3, 'urban', 1, rows)!;
+        for (const o of layout.openings)
+          expect(o.row0 === 0 || o.row0 >= (rows - 0.01) * ((v.height - 0.6) / v.floors)).toBe(
+            true,
+          );
+        if (layout.openings.some((o) => o.row0 > 0)) above++;
       }
     });
     expect(party).toBeGreaterThan(200);
+    // Towers rising above their neighbours keep windows up there.
+    expect(above).toBeGreaterThan(30);
   });
   it('assign the office finishes by palette identity', () => {
     for (const color of WALL_FINISH.largeTile) expect(facadeFinish(color)).toBe(7);

@@ -1,4 +1,8 @@
-import { StructureGrid, type Structure } from '../../simulation/open-world/placement.ts';
+import {
+  insideFootprint,
+  StructureGrid,
+  type Structure,
+} from '../../simulation/open-world/placement.ts';
 import { carvedGroundHeight } from '../../simulation/open-world/ground-height.ts';
 import type { TownSpec } from '../../simulation/open-world/region-data.ts';
 import type { OpenWorld } from '../../simulation/open-world/world.ts';
@@ -52,9 +56,11 @@ export interface ArchitecturePlan {
   extraFloors: Uint8Array;
   /** City facade skin per structure: SKIN.punched / ribbon / curtain. */
   skin: Uint8Array;
-  /** Side walls (bit 0: local -x, bit 1: +x) that another building stands
-   * within 4 m of: drawn as blank party walls above the ground floor. */
-  partyWall: Uint8Array;
+  /** Party walls: storeys of each side wall (index 2i: local -x, 2i + 1:
+   * +x) that a neighbour within 4 m covers (0: no neighbour). Those storeys
+   * above the ground floor are blank; the wall above the neighbour keeps
+   * its windows. */
+  partyRows: Uint8Array;
 }
 export const SKIN = Object.freeze({ punched: 0, ribbon: 1, curtain: 2 });
 /** Roads whose frontages rise as commercial canyons. */
@@ -348,26 +354,39 @@ export function architecturePlan(
           : SKIN.punched;
   });
   // Party walls (refs 014, 030): a side wall with a neighbour close beside
-  // it keeps no windows; a side facing a street or an open lot does.
-  const partyWall = new Uint8Array(structures.length);
+  // it keeps no windows up to the neighbour's (visual) roof; a side facing a
+  // street or an open lot, or rising above the neighbour, keeps them.
+  const partyRows = new Uint8Array(structures.length * 2);
   structures.forEach((s, i) => {
     if (style[i] !== 'urban') return;
     const c = Math.cos(s.heading),
-      n = Math.sin(s.heading);
-    for (const [bit, side] of [
-      [1, -1],
-      [2, 1],
+      n = Math.sin(s.heading),
+      floorH = (s.height - 0.6) / Math.max(1, s.floors);
+    for (const [slot, side] of [
+      [0, -1],
+      [1, 1],
     ] as const) {
-      let hits = 0;
+      let hits = 0,
+        top = -Infinity;
       for (const lz of [-s.hz * 0.6, 0, s.hz * 0.6]) {
-        const lx = side * (s.hx + 2.5);
-        if (grid.blocks(s.x + c * lx - n * lz, s.z + n * lx + c * lz, 1.5)) hits++;
+        const lx = side * (s.hx + 2.5),
+          x = s.x + c * lx - n * lz,
+          z = s.z + n * lx + c * lz;
+        let hit = false;
+        for (const j of grid.near(x, z)) {
+          const o = structures[j];
+          if (j === i || !insideFootprint(o, x, z, 1.5)) continue;
+          hit = true;
+          top = Math.max(top, o.base + o.height + STOREY * extraFloors[j]);
+        }
+        if (hit) hits++;
       }
-      if (hits >= 2) partyWall[i] |= bit;
+      if (hits >= 2)
+        partyRows[i * 2 + slot] = Math.min(255, Math.max(1, Math.ceil((top - s.base) / floorH)));
     }
   });
   const plan = {
-    partyWall,
+    partyRows,
     style,
     front,
     extraFloors,

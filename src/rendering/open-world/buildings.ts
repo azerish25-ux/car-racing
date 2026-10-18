@@ -828,7 +828,7 @@ export class Buildings {
         this.plan?.konbiniFloor.has(index) ?? false,
         this.plan?.rearStair.has(index) ?? false,
         this.plan?.skin[index] ?? SKIN.punched,
-        this.plan?.partyWall[index] ?? 0,
+        [this.plan?.partyRows[index * 2] ?? 0, this.plan?.partyRows[index * 2 + 1] ?? 0],
       );
     if (style === 'konbini')
       return this.konbini(
@@ -853,7 +853,7 @@ export class Buildings {
     wall: number,
     options: Parameters<typeof addRecessedFacade>[9],
     top = s.base + s.height,
-    party = 0,
+    party: readonly [number, number] = [0, 0],
   ) {
     const layouts: (FacadeLayout | null)[] = [];
     const sides: [number, number, number, number, number, number][] = [
@@ -872,8 +872,9 @@ export class Buildings {
         len,
         sideIndex,
         variant,
-        // Sides 1 and 3 are the local +x and -x walls (party bits 2 and 1).
-        (sideIndex === 1 && party & 2) || (sideIndex === 3 && party & 1) ? 1 : Infinity,
+        // Sides 1 and 3 are the local +x and -x walls.
+        1,
+        sideIndex === 1 ? party[1] : sideIndex === 3 ? party[0] : 0,
       );
       layouts.push(layout);
       const normal = f.dir(nx, 0, nz);
@@ -1343,7 +1344,7 @@ export class Buildings {
     konbini: boolean,
     stair: boolean,
     skin: number,
-    party: number,
+    party: readonly [number, number],
   ) {
     const pick = <V>(list: readonly V[], salt: number) => list[(s.style >>> salt) % list.length];
     const wall = pick(skin === SKIN.curtain ? CURTAIN : skin === SKIN.ribbon ? OFFICE : URBAN, 7);
@@ -1370,7 +1371,7 @@ export class Buildings {
       top,
       // Side walls beside a neighbour are blank party walls above the
       // ground floor (refs 014, 030); curtain-wall towers stay glazed.
-      skin === SKIN.curtain ? 0 : party,
+      skin === SKIN.curtain ? [0, 0] : party,
     );
     const coping = 0xc4c6c4;
     // A plinth course of dark tile.
@@ -1592,14 +1593,14 @@ export class Buildings {
     front: number,
     floors: number,
     floorH: number,
-    party: number,
+    party: readonly [number, number],
   ) {
-    // Prefer a side wall with open space beside it (party bits: 1 = -x,
-    // 2 = +x); between two neighbours only the flush pipes remain.
+    // Prefer a side wall with open space beside it (party: storeys covered
+    // on -x, +x); between two neighbours only the flush pipes remain.
     let sx = (s.style & 2048) === 0 ? 1 : -1;
-    const bit = (side: number) => (side < 0 ? 1 : 2);
-    if (party & bit(sx)) sx = -sx;
-    const crowded = (party & bit(sx)) !== 0;
+    const near = (side: number) => party[side < 0 ? 0 : 1] > 0;
+    if (near(sx)) sx = -sx;
+    const crowded = near(sx);
     const rear = -front,
       x = sx * (s.hx + 0.06),
       zr = rear * (s.hz - 0.55),

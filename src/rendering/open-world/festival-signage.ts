@@ -1294,7 +1294,10 @@ export class FestivalSignage {
 
   /** A 0.5 x 0.9 m lit stand sign on the pavement, faces along the street. */
   private standSign(s: Structure, x: number, seed: number) {
-    const p = this.at(s, x, 0, 0.72);
+    // 0.9 m out clears the 0.72 m dressing planters; skip beside a banner
+    // or machine already standing there.
+    const p = this.at(s, x, 0, 0.9);
+    if (this.fixtures.some((f) => Math.hypot(f.x - p.x, f.z - p.z) < f.r + 0.45)) return;
     const g = this.ground(p);
     this.fixtures.push({ x: p.x, z: p.z, r: 0.4 });
     this.light(new T.Vector3(p.x, g, p.z), 0xfff2e0, 0.35, 1.1);

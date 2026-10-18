@@ -43,13 +43,15 @@ const BANDS = Object.freeze({
 });
 /** Dimensions follow the actual footprint. Centred complete bays never cut a
  * window through a corner pilaster or a floor band. There is no random state.
- * Storeys from `blindFrom` up are blank wall (city party walls). */
+ * Storeys from `blindFrom` to below `blindTo` are blank wall (city party
+ * walls beside a neighbour). */
 export function facadeLayout(
   s: Structure,
   length: number,
   side = 0,
   variant: FacadeVariant = 'european',
   blindFrom = Infinity,
+  blindTo = Infinity,
 ): FacadeLayout | null {
   if (
     !SUPPORTED.has(s.kind) ||
@@ -74,7 +76,7 @@ export function facadeLayout(
     const row0 = row * floorH,
       row1 = (row + 1) * floorH;
     // Blank party walls (refs 014, 030): one wall rectangle per storey.
-    if (row >= blindFrom) {
+    if (row >= blindFrom && row < blindTo) {
       rect(0, row0, length, row1);
       continue;
     }
