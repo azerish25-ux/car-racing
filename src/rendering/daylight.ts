@@ -570,8 +570,23 @@ void main() {
   // Photographed sky (assets/photo-sky-shader.ts) over the physical one; the
   // procedural dome is not evaluated at all once a photo fully replaces it.
   vec3 radiance = photoAmount < 1.0 ? proceduralSky(direction) : vec3(0.0);
-  if (photoAmount > 0.0)
+  if (photoAmount > 0.0) {
     radiance = mix(radiance, photoSky(direction, sunDiscAmount <= 0.0), photoAmount);
+    // Opt-in (festival): the baked clouds over a cloud-free photograph, lit as
+    // on the procedural dome; by night moonlit greys as there.
+    float baked = photoClouds * photoAmount;
+    if (baked > 0.0) {
+      vec4 clouds = skyCloudTerms(direction) * baked;
+      vec3 light = skyCloudLight(clouds);
+      if (nightAmount > 0.5) {
+        float moonLit = clouds.r / max(clouds.a, 0.02);
+        float moonCos = dot(direction, moonDirection);
+        light = clouds.a * mix(vec3(.0075, .0092, .0135), vec3(.02, .022, .027),
+          clamp(.25 + .3 * moonLit + .35 * max(0.0, moonCos) * moonAmount, 0.0, 1.0));
+      }
+      radiance = radiance * (1.0 - clouds.a) + light;
+    }
+  }
   ${SKY_GROUND_GLSL}
   gl_FragColor=vec4(radiance * probeSkyIntensity,1.0);
   #include <tonemapping_fragment>

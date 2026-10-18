@@ -4,6 +4,7 @@ import type { GradeProfile } from '../broadcast-grade.ts';
 import { lightingDirection, type LightingMode } from '../daylight.ts';
 import { aerialFogColor, aerialSunGlow, AERIAL_PERSPECTIVE } from '../studio/aerial-perspective.ts';
 import { chainShaderHook } from '../studio/shader-hooks.ts';
+import { installFestivalCloudShadow } from './festival-cloud-shadow.ts';
 import { studioUniforms } from '../studio/studio-frame.ts';
 
 /**
@@ -181,8 +182,11 @@ export function festivalSkyline(
  * 0.41-0.44) where the festival showed #90abdc (0.35), so a little more
  * saturation and vibrance (which lifts the muted sky and foliage, not the
  * already saturated liveries); golden hour keys warmer highlights against
- * cooler shade (017 #f9dbb9 sky, 098 #efc7a8, shadows blue-grey). Night keeps
- * the shared profile.
+ * cooler shade (017 #f9dbb9 sky, 098 #efc7a8, shadows blue-grey), and is
+ * more saturated than the day: frame saturation 0.41-0.45 in 017/029/034/098
+ * where the festival's golden hour read 0.23-0.34 (saturation 1.04 -> 1.12,
+ * vibrance 0.03 -> 0.1: +0.03 on the measured frames). Night keeps the shared
+ * profile.
  */
 export const FESTIVAL_GRADE = Object.freeze({
   day: {
@@ -194,8 +198,8 @@ export const FESTIVAL_GRADE = Object.freeze({
   },
   sunset: {
     contrast: 0,
-    saturation: 1.04,
-    vibrance: 0.03,
+    saturation: 1.12,
+    vibrance: 0.1,
     highlight: [1.02, 0.99, 0.95],
     shadow: [0.98, 0.99, 1.03],
   },
@@ -270,6 +274,8 @@ export class FestivalAtmosphere {
     }
     this.installed.add(material);
     this.materialCount++;
+    // Cloud shadows on the landscape's sun light (festival-cloud-shadow.ts).
+    installFestivalCloudShadow(material);
     return chainShaderHook(material, SKIP_KEY, (shader) => {
       // Only shaders with both of three's fog chunks (custom shaders without
       // them keep whatever they do).
