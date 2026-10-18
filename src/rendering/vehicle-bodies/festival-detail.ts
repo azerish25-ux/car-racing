@@ -70,10 +70,21 @@ export function festivalFasciaOpenings(model: ClosedBodyModel, rear = false): Fa
   const profile = model.ring(z, 0).half;
   const bottom = Math.min(...profile.map((p) => p[1]));
   const top = Math.max(...profile.map((p) => p[1]));
+  // A festival form's fascia is mostly intake (refs 011, 014, 019, 090).
+  const share = model.festival ? 0.58 : 0.5;
+  const most = model.festival
+    ? s.style === 'truck'
+      ? 0.3
+      : 0.26
+    : s.style === 'truck'
+      ? 0.27
+      : 0.2;
   const height = rear
     ? Math.min(0.14, Math.max(0.075, (top - bottom) * 0.21))
-    : Math.min(s.style === 'truck' ? 0.27 : 0.2, (top - bottom) * 0.5);
-  const y = rear ? Math.min(f.y(s.tail) - 0.3, top - height * 0.8) : bottom + (top - bottom) * 0.49;
+    : Math.min(most, (top - bottom) * share);
+  const y = rear
+    ? Math.min(f.y(s.tail) - 0.3, top - height * 0.8)
+    : bottom + (top - bottom) * (model.festival ? 0.47 : 0.49);
   const available = Math.min(model.sideX(z, y - height * 0.5), model.sideX(z, y + height * 0.5));
   const width = available * (rear ? 1.62 : 1.55);
   if (!(width > 0.14 && height > 0.025)) return [];
@@ -91,19 +102,92 @@ export function festivalFasciaOpenings(model: ClosedBodyModel, rear = false): Fa
   return [{ x: 0, y, width, height, radius: Math.min(height * 0.22, 0.035), depth }];
 }
 
-function roundedOutline(w: number, h: number, r: number, segments: number): Pt[] {
+/** A rounded rectangle outline; `step` > 0 adds points along the straight
+ * sides (a festival form curves its end faces, and the contour must follow). */
+function roundedOutline(w: number, h: number, r: number, segments: number, step = 0): Pt[] {
   r = Math.min(r, w * 0.48, h * 0.48);
   const out: Pt[] = [];
-  for (const [x, y, angle] of [
+  const corners = [
     [w / 2 - r, -h / 2 + r, -Math.PI / 2],
     [w / 2 - r, h / 2 - r, 0],
     [-w / 2 + r, h / 2 - r, Math.PI / 2],
     [-w / 2 + r, -h / 2 + r, Math.PI],
-  ])
+  ];
+  corners.forEach(([x, y, angle], c) => {
     for (let k = 0; k <= segments; k++) {
       const a = angle + ((k / segments) * Math.PI) / 2;
       out.push([x + Math.cos(a) * r, y + Math.sin(a) * r]);
     }
+    if (step <= 0) return;
+    const from = out[out.length - 1],
+      [nx, ny, na] = corners[(c + 1) % 4],
+      to: Pt = [nx + Math.cos(na) * r, ny + Math.sin(na) * r];
+    const n = Math.floor(Math.hypot(to[0] - from[0], to[1] - from[1]) / step);
+    for (let k = 1; k < n; k++)
+      out.push([from[0] + ((to[0] - from[0]) * k) / n, from[1] + ((to[1] - from[1]) * k) / n]);
+  });
+  return out;
+}
+/** Conforming refinement of a flat indexed geometry until no edge is longer
+ * than `max` (each long edge is halved everywhere it is shared). */
+export function refineFlat(geometry: T.BufferGeometry, max: number) {
+  const pos = Array.from(geometry.getAttribute('position').array as ArrayLike<number>);
+  let tris = Array.from(geometry.getIndex()!.array as ArrayLike<number>);
+  const length = (a: number, b: number) =>
+    Math.hypot(
+      pos[a * 3] - pos[b * 3],
+      pos[a * 3 + 1] - pos[b * 3 + 1],
+      pos[a * 3 + 2] - pos[b * 3 + 2],
+    );
+  for (let pass = 0; pass < 8; pass++) {
+    const mids = new Map<string, number>();
+    const mid = (a: number, b: number) => {
+      if (length(a, b) <= max) return -1;
+      const key = a < b ? `${a},${b}` : `${b},${a}`;
+      let m = mids.get(key);
+      if (m === undefined) {
+        m = pos.length / 3;
+        for (let k = 0; k < 3; k++) pos.push((pos[a * 3 + k] + pos[b * 3 + k]) / 2);
+        mids.set(key, m);
+      }
+      return m;
+    };
+    const next: number[] = [];
+    for (let t = 0; t < tris.length; t += 3) {
+      let [a, b, c] = [tris[t], tris[t + 1], tris[t + 2]];
+      let ab = mid(a, b),
+        bc = mid(b, c),
+        ca = mid(c, a);
+      const split = (ab >= 0 ? 1 : 0) + (bc >= 0 ? 1 : 0) + (ca >= 0 ? 1 : 0);
+      if (split === 0) next.push(a, b, c);
+      else if (split === 3) next.push(a, ab, ca, ab, b, bc, ca, bc, c, ab, bc, ca);
+      else if (split === 1) {
+        if (ab >= 0) next.push(a, ab, c, ab, b, c);
+        else if (bc >= 0) next.push(a, b, bc, a, bc, c);
+        else next.push(a, b, ca, ca, b, c);
+      } else {
+        // Rotate so the unsplit edge is c-a.
+        while (ca >= 0) {
+          [a, b, c] = [b, c, a];
+          [ab, bc, ca] = [bc, ca, ab];
+        }
+        next.push(ab, b, bc, a, ab, bc, a, bc, c);
+      }
+    }
+    const done = next.length === tris.length;
+    tris = next;
+    if (done) break;
+  }
+  const normal = new T.Vector3(),
+    first = geometry.getAttribute('normal');
+  if (first) normal.fromBufferAttribute(first, 0);
+  const out = new T.BufferGeometry();
+  out.setAttribute('position', new T.Float32BufferAttribute(pos, 3));
+  const normals = new Float32Array(pos.length);
+  for (let i = 0; i < pos.length; i += 3) normals.set([normal.x, normal.y, normal.z], i);
+  out.setAttribute('normal', new T.BufferAttribute(normals, 3));
+  out.setIndex(tris);
+  geometry.dispose();
   return out;
 }
 function asVectors(points: readonly Pt[]) {
@@ -113,7 +197,10 @@ function asVectors(points: readonly Pt[]) {
  * filled triangle fan only at the near/mid LOD; it is not a black decal. */
 export function festivalFasciaCap(model: ClosedBodyModel, detail: Detail, rear = false) {
   const z = rear ? model.zRear : model.zFront;
-  const half = model.ring(z, detail).half;
+  // A festival form duplicates its crease points; the outline needs each once.
+  const half = model
+    .ring(z, detail)
+    .half.filter((p, i, all) => i === 0 || p[0] !== all[i - 1][0] || p[1] !== all[i - 1][1]);
   const outline = [
     ...half,
     ...half
@@ -122,11 +209,20 @@ export function festivalFasciaCap(model: ClosedBodyModel, detail: Detail, rear =
       .map(([x, y]) => [-x, y] as const),
   ];
   const shape = new T.Shape(asVectors(outline));
+  const step = model.festival ? 0.05 : 0;
   for (const mouth of festivalFasciaOpenings(model, rear)) {
-    const contour = roundedOutline(mouth.width, mouth.height, mouth.radius, detail === 0 ? 4 : 2);
+    const contour = roundedOutline(
+      mouth.width,
+      mouth.height,
+      mouth.radius,
+      detail === 0 ? 4 : 2,
+      step,
+    );
     shape.holes.push(new T.Path(contour.map(([x, y]) => new T.Vector2(x + mouth.x, y + mouth.y))));
   }
-  const geometry = new T.ShapeGeometry(shape).translate(0, 0, z);
+  let geometry: T.BufferGeometry = new T.ShapeGeometry(shape).translate(0, 0, z);
+  // A festival form curves the face afterwards: refine it so it bends.
+  if (model.festival) geometry = refineFlat(geometry, detail === 0 ? 0.13 : 0.24);
   // An array material needs an explicit draw group in Three.js.
   geometry.addGroup(0, geometry.index?.count ?? geometry.getAttribute('position').count, 0);
   return rear ? flipWinding(geometry) : geometry;
@@ -179,12 +275,19 @@ function addFascia(
     rear ? 'Sculpted rear fascia' : 'Sculpted front fascia',
   );
   for (const mouth of festivalFasciaOpenings(model, rear)) {
-    const contour = roundedOutline(mouth.width, mouth.height, mouth.radius, detail === 0 ? 4 : 2);
+    const contour = roundedOutline(
+      mouth.width,
+      mouth.height,
+      mouth.radius,
+      detail === 0 ? 4 : 2,
+      model.festival ? 0.05 : 0,
+    );
     const at = placed(mouth.x, mouth.y, z);
     // Cooling cavities need a rough, dark liner. Exposed satin carbon on the
     // lower rear tunnel caught the bright sky as a white strip in chase view.
     // Keep the higher-sheen carbon at the front, where it is an exposed duct.
-    const liner = rear ? sharedMaterials.plastic() : sharedMaterials.carbonSatin();
+    const liner =
+      rear || model.festival ? sharedMaterials.plastic() : sharedMaterials.carbonSatin();
     parts.add(tunnel(contour, mouth.depth, 0.89, sign), liner, at);
     const lip = surround(contour, 0.01);
     if (rear) lip.rotateY(Math.PI);
@@ -296,14 +399,24 @@ function opticalPanel(width: number, depth: number, height: number, side: number
  * and, for a swept optical panel, its width and depth (m). */
 export function festivalHeadlampFrames(model: ClosedBodyModel) {
   const { s } = model;
-  const z = model.zFront - (s.style === 'truck' ? 0.14 : s.lamps.front === 'pod' ? 0.3 : 0.16);
+  const z =
+    model.zFront -
+    (model.lampSetback() ?? (s.style === 'truck' ? 0.14 : s.lamps.front === 'pod' ? 0.3 : 0.16));
+  const face = model.lampFace();
   return [-1, 1].map((side) => {
-    const half = model.halfWidth(z);
-    const x = side * half * (s.lamps.front === 'bar' ? 0.49 : 0.68);
+    const half = model.halfWidth(face === null ? z : model.zFront);
+    const x = side * half * (s.lamps.front === 'bar' ? 0.49 : face === null ? 0.68 : 0.6);
+    // A festival form's lamps sit flush in the nose roll (or set into the
+    // upright bumper face of a truck or muscle car), not on top of it.
+    const base =
+      face === null
+        ? surfacePlacement(model, x, z)
+        : placed(x, face, model.zFront, Math.PI / 2, 0, 0);
+    if (model.festival) base.multiply(placed(0, -0.022, 0));
     return {
       side,
       half,
-      base: surfacePlacement(model, x, z),
+      base,
       width: s.lamps.front === 'bar' ? half * 0.56 : s.lamps.front === 'pod' ? 0.17 : 0.31,
       depth: s.lamps.front === 'pod' ? 0.2 : 0.12,
     };
@@ -378,8 +491,198 @@ function addHeadlamps(parts: Parts, model: ClosedBodyModel, mats: CarMaterials, 
   }
 }
 
+/** A band lying on a body end: along both sides from `reach` m inboard of the
+ * end face round onto it, between car-frame heights `lo` and `hi`, `out` m
+ * proud of the surface. `inner`: the face part stops that far inboard of each
+ * corner (corner units) instead of crossing the face; `fade`: the side parts
+ * rise from that offset to `out` toward the face; `ledge`: top and bottom
+ * ledges close the gap to the surface (a bumper standing proud of the body). */
+export function endBand(
+  model: ClosedBodyModel,
+  rear: boolean,
+  lo: number,
+  hi: number,
+  reach: number,
+  out: number,
+  steps: number,
+  options: { inner?: number; fade?: number; ledge?: boolean } = {},
+) {
+  const zEnd = rear ? model.zRear : model.zFront,
+    inward = rear ? 1 : -1,
+    { inner, fade, ledge } = options;
+  const position: number[] = [],
+    index: number[] = [];
+  /** A grid between successive polylines (rows), wound to face `outward`. */
+  const grid = (rows: T.Vector3[][], outward: T.Vector3) => {
+    const base = position.length / 3,
+      n = rows[0].length;
+    for (const row of rows) for (const p of row) position.push(p.x, p.y, p.z);
+    const normal = new T.Vector3()
+      .subVectors(rows[0][1], rows[0][0])
+      .cross(new T.Vector3().subVectors(rows[1][0], rows[0][0]));
+    const flip = normal.dot(outward) < 0;
+    for (let r = 0; r < rows.length - 1; r++)
+      for (let k = 0; k < n - 1; k++) {
+        const a = base + r * n + k,
+          b = a + 1,
+          c = a + n,
+          d = c + 1;
+        if (flip) index.push(a, c, b, b, c, d);
+        else index.push(a, b, c, b, d, c);
+      }
+  };
+  // Rows every 2.5 cm, so a tall band follows the section's curvature.
+  const rowCount = Math.max(1, Math.ceil((hi - lo) / 0.025)),
+    heights = Array.from({ length: rowCount + 1 }, (_, r) => lo + ((hi - lo) * r) / rowCount);
+  // Offset along the side parts: constant, or rising from `fade` to `out`.
+  const offset = (k: number) => {
+    if (fade === undefined) return out;
+    const t = k / steps;
+    return fade + (out - fade) * t * t * (3 - 2 * t);
+  };
+  const flush = 0.0015,
+    ks = Array.from({ length: steps + 1 }, (_, k) => k);
+  for (const side of [-1, 1]) {
+    // Proud of the surface along its plan normal: round the corner wrap the
+    // surface faces the end, where an x offset would slide along it.
+    const at = (k: number, y: number, o: number) => {
+      const z = zEnd + inward * reach * (1 - k / steps),
+        x = model.sideX(z, y),
+        slope = (model.sideX(z + 0.004, y) - model.sideX(z - 0.004, y)) / 0.008,
+        n = Math.hypot(1, slope);
+      return new T.Vector3(side * (x + o / n), y, z - (o * slope) / n);
+    };
+    grid(
+      heights.map((y) => ks.map((k) => at(k, y, offset(k)))),
+      new T.Vector3(side, 0, 0),
+    );
+    if (ledge)
+      for (const [y, up] of [
+        [hi, 1],
+        [lo, -1],
+      ])
+        grid(
+          [ks.map((k) => at(k, y, flush)), ks.map((k) => at(k, y, offset(k)))],
+          new T.Vector3(0, up, 0),
+        );
+  }
+  const face = new T.Vector3(0, 0, -inward);
+  const across = (
+    x0: (y: number, o: number) => number,
+    x1: (y: number, o: number) => number,
+    n: number,
+  ) => {
+    const row = (y: number, o: number) =>
+      Array.from(
+        { length: n + 1 },
+        (_, k) => new T.Vector3(x0(y, o) + ((x1(y, o) - x0(y, o)) * k) / n, y, zEnd - inward * o),
+      );
+    grid(
+      heights.map((y) => row(y, out)),
+      face,
+    );
+    if (ledge)
+      for (const [y, up] of [
+        [hi, 1],
+        [lo, -1],
+      ])
+        grid([row(y, flush), row(y, out)], new T.Vector3(0, up, 0));
+  };
+  const xe = (y: number, o: number) => model.sideX(zEnd, y) + o;
+  if (inner === undefined) across((y, o) => -xe(y, o), xe, 16);
+  else
+    for (const side of [-1, 1])
+      across(
+        (y, o) => side * Math.max(0.02, xe(y, o) - inner),
+        (y, o) => side * xe(y, o),
+        4,
+      );
+  const g = new T.BufferGeometry();
+  g.setAttribute('position', new T.Float32BufferAttribute(position, 3));
+  g.setIndex(index);
+  g.computeVertexNormals();
+  return g;
+}
+/** A festival form's rear bumper: it stands `depth` proud of the tail below
+ * a crease under the lamps (and under any rear cooling aperture), with a
+ * black valance along its foot. Null for a plain catalogue body. */
+export function festivalRearBumper(model: ClosedBodyModel) {
+  if (!model.festival) return null;
+  const { f, s } = model;
+  const lamps = Math.min(f.y(s.tail) - 0.13, model.topY(model.zRear) - 0.06);
+  const half = s.lamps.rear === 'strip' ? 0.0375 : s.lamps.rear === 'bar' ? 0.05 : 0.0575;
+  const lo = model.endFloor(true) + 0.004;
+  let hi = lo + (lamps - half - lo) * 0.62;
+  for (const mouth of festivalFasciaOpenings(model, true))
+    hi = Math.min(hi, mouth.y - mouth.height / 2 - 0.03);
+  if (hi - lo < 0.12) return null;
+  return { lo, hi, depth: s.style === 'truck' ? 0.04 : 0.026 };
+}
+function addRearBumper(parts: Parts, model: ClosedBodyModel, mats: CarMaterials, detail: Detail) {
+  const bumper = festivalRearBumper(model),
+    steps = detail === 0 ? 14 : 5;
+  const valance = model.endFloor(true) + (model.valanceHeight() ?? 0.12);
+  // The bumper wraps forward to the rear wheel opening.
+  const f = model.f,
+    reach = Math.max(0.2, Math.min(0.5, f.rearAxle - f.radius - 0.08 - model.zRear));
+  if (!bumper) {
+    parts.add(
+      endBand(model, true, model.endFloor(true) + 0.004, valance, 0.24, 0.007, steps),
+      sharedMaterials.plastic(),
+    );
+    return;
+  }
+  const { lo, hi, depth } = bumper;
+  parts.add(
+    endBand(model, true, lo, hi, reach, depth, steps, { fade: 0.004, ledge: true }),
+    mats.paint,
+  );
+  parts.add(
+    endBand(model, true, lo, Math.min(valance, hi - 0.03), reach, depth + 0.004, steps, {
+      fade: 0.009,
+    }),
+    sharedMaterials.plastic(),
+  );
+}
+/** Festival form tail lamps: a dark gloss band wrapping round the tail's
+ * corners with continuous emitters (refs 013, 018, 053, 059). */
+function addWrapTailLamps(
+  parts: Parts,
+  model: ClosedBodyModel,
+  mats: CarMaterials,
+  detail: Detail,
+) {
+  const { f, s } = model;
+  const y = Math.min(f.y(s.tail) - 0.13, model.topY(model.zRear) - 0.06);
+  const steps = detail === 0 ? 10 : 4,
+    kind = s.lamps.rear;
+  const hh = kind === 'strip' ? 0.075 : kind === 'bar' ? 0.1 : 0.115;
+  parts.add(endBand(model, true, y - hh / 2, y + hh / 2, 0.17, 0.003, steps), darkOptics);
+  if (kind === 'strip') {
+    parts.add(endBand(model, true, y + 0.004, y + 0.022, 0.15, 0.006, steps), mats.tail);
+    parts.add(
+      endBand(model, true, y - 0.028, y - 0.004, 0.15, 0.006, steps, { inner: 0.16 }),
+      mats.tail,
+    );
+  } else if (kind === 'bar') {
+    parts.add(
+      endBand(model, true, y - 0.032, y + 0.032, 0.15, 0.006, steps, { inner: 0.34 }),
+      mats.tail,
+    );
+    parts.add(endBand(model, true, y + 0.006, y + 0.02, 0.15, 0.006, steps), mats.tail);
+  } else
+    parts.add(
+      endBand(model, true, y - 0.04, y + 0.04, 0.15, 0.006, steps, { inner: 0.3 }),
+      mats.tail,
+    );
+}
+
 function addTailLamps(parts: Parts, model: ClosedBodyModel, mats: CarMaterials, detail: Detail) {
   const { f, s } = model;
+  if (model.festival && s.lamps.rear !== 'round') {
+    addWrapTailLamps(parts, model, mats, detail);
+    return;
+  }
   const z = model.zRear - 0.006;
   const half = model.halfWidth(model.zRear) * 0.8;
   const y = Math.min(f.y(s.tail) - 0.13, model.topY(model.zRear) - 0.06);
@@ -500,6 +803,8 @@ function addVents(parts: Parts, model: ClosedBodyModel, mats: CarMaterials, deta
       const z = (f.frontAxle + f.z(s.cabin[0])) / 2 + 0.05;
       const x = side * model.halfWidth(z) * 0.45;
       const at = surfacePlacement(model, x, z);
+      // A festival form sinks the vent into its hood: slats at the surface.
+      if (model.festival) at.multiply(placed(0, -0.016, 0));
       parts.add(roundedBox(0.235, 0.018, 0.28, 0.018, 2), darkOptics, inLocal(at, 0, 0.006, 0));
       const count = detail === 0 ? 7 : 4;
       for (let k = 0; k < count; k++) {
@@ -575,7 +880,7 @@ function addHardware(
       seal.push([side * (model.halfWidth(z) * 0.8 - 0.01), model.topY(z) + 0.006, z]);
     }
     parts.add(tubeGeometry(seal, classic ? 0.004 : 0.003, 22, 5), trim);
-    if (s.mirrors) {
+    if (s.mirrors && !model.festival) {
       const z = f.z(ws) - 0.14,
         y = model.topY(z) + 0.08;
       const x = side * (model.halfWidth(z) * 0.8 + 0.08);
@@ -794,6 +1099,7 @@ export function buildFestivalDetail(
   addFascia(parts, model, mats, detail, true);
   addHeadlamps(parts, model, mats, detail);
   addTailLamps(parts, model, mats, detail);
+  if (model.festival) addRearBumper(parts, model, mats, detail);
   addExhausts(parts, model, detail);
   addVents(parts, model, mats, detail);
   if (detail === 0) addHardware(parts, model, mats, greenhouse);

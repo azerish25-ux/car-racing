@@ -3,7 +3,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { VehicleDefinition } from '../../simulation/vehicles.ts';
 import { bodySheetFor, type ClosedSheet } from '../vehicle-bodies/body-sheet.ts';
 import { ClosedBodyModel } from '../vehicle-bodies/closed-body.ts';
-import { festivalHeadlampFrames } from '../vehicle-bodies/festival-detail.ts';
+import { festivalHeadlampFrames, festivalRearBumper } from '../vehicle-bodies/festival-detail.ts';
 import type { BuiltVehicleBody } from '../vehicle-bodies/index.ts';
 import { tubeGeometry } from '../vehicle-bodies/loft.ts';
 import { sharedMaterials } from '../vehicle-bodies/materials.ts';
@@ -279,8 +279,20 @@ export function platePlacement(model: ClosedBodyModel, rear: boolean) {
     y = Math.max(bottom, f.y(s.floor)) + 0.035 + h;
     if (y + h > top - 0.005) return null;
   }
+  // A festival form's proud rear bumper carries the plate below its crease
+  // (or, when it is too low for one, the plate stays above it).
+  const bumper = rear ? festivalRearBumper(model) : null;
+  let proud = 0;
+  if (bumper && y - h < bumper.hi + 0.015) {
+    const onBumper = Math.min(y, bumper.hi - h - 0.018);
+    if (onBumper - h > bumper.lo + 0.03) {
+      y = onBumper;
+      proud = bumper.depth;
+    } else y = bumper.hi + h + 0.02;
+  }
   if (Math.min(model.sideX(z, y - h), model.sideX(z, y + h)) < PLATE.width / 2 + 0.04) return null;
-  return { x: 0, y, z: z + (rear ? -0.011 : 0.011) };
+  // A festival form carries the front plate clear of its intake surrounds.
+  return { x: 0, y, z: z + (rear ? -0.011 - proud : model.festival ? 0.02 : 0.011) };
 }
 
 /** The running-light guide of one swept headlamp, in its surface frame. */
@@ -289,7 +301,18 @@ function runningLightPath(
   width: number,
   depth: number,
   side: number,
+  flush = false,
 ) {
+  // A festival form's lamp lies flush in the nose roll: the guide runs along
+  // its lower (forward) edge and hooks down at the outer corner (refs 019,
+  // 020, 097), not as a brow above it.
+  if (flush && kind !== 'bar')
+    return [
+      [-side * width * 0.46, 0.03, depth * 0.36],
+      [side * width * 0.18, 0.03, depth * 0.45],
+      [side * width * 0.42, 0.03, depth * 0.38],
+      [side * width * 0.5, 0.03, depth * 0.1],
+    ] as const;
   if (kind === 'bar')
     return [
       [-width * 0.47, 0.036, depth * 0.34],
@@ -421,10 +444,10 @@ export function installFestivalFinish(body: BuiltVehicleBody, id: number) {
   const sheet = bodySheetFor(body.definition);
   if (!sheet || sheet.kind !== 'closed') return null;
   const halo = lampHaloMaterial();
-  const model = new ClosedBodyModel(body.frame, sheet, [
-    sheet.wheels.width[0] / 2,
-    sheet.wheels.width[1] / 2,
-  ]);
+  // The body's own surface model (a festival form curves the end faces).
+  const model =
+    body.model ??
+    new ClosedBodyModel(body.frame, sheet, [sheet.wheels.width[0] / 2, sheet.wheels.width[1] / 2]);
   const plated = festivalPlated(body.definition);
   const placements = plated ? [platePlacement(model, false), platePlacement(model, true)] : [];
   const modern = sheet.lamps.front === 'slim' || sheet.lamps.front === 'bar';
@@ -465,7 +488,7 @@ export function installFestivalFinish(body: BuiltVehicleBody, id: number) {
       plates.push(g.translate(at.x, at.y, at.z));
     });
     if (plates.length) {
-      const merged = mergeGeometries(plates, false);
+      const merged = model.warpGeometry(mergeGeometries(plates, false));
       for (const g of plates) g.dispose();
       const mesh = new T.Mesh(merged, plateMaterial());
       mesh.name = 'Festival registration plates';
@@ -476,10 +499,10 @@ export function installFestivalFinish(body: BuiltVehicleBody, id: number) {
     if (modern && sheet.style !== 'rally') {
       const strips: T.BufferGeometry[] = [];
       for (const { side, base, width, depth } of festivalHeadlampFrames(model)) {
-        const path = runningLightPath(sheet.lamps.front, width, depth, side);
+        const path = runningLightPath(sheet.lamps.front, width, depth, side, model.festival);
         strips.push(tubeGeometry(path, 0.0052, detail === 0 ? 24 : 12, 6).applyMatrix4(base));
       }
-      const merged = mergeGeometries(strips, false);
+      const merged = model.warpGeometry(mergeGeometries(strips, false));
       for (const g of strips) g.dispose();
       const mesh = new T.Mesh(merged, runningLightMaterial());
       mesh.name = 'Festival LED running lights';
@@ -487,7 +510,7 @@ export function installFestivalFinish(body: BuiltVehicleBody, id: number) {
       mesh.receiveShadow = false;
       lod.group.add(mesh);
     }
-    const halos = new T.Mesh(haloGeometry(lampHaloSites(model)), halo);
+    const halos = new T.Mesh(model.warpGeometry(haloGeometry(lampHaloSites(model))), halo);
     halos.name = 'Festival lamp halos';
     halos.frustumCulled = false;
     halos.castShadow = halos.receiveShadow = false;

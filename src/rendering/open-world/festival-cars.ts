@@ -55,7 +55,7 @@ function ownFormulaResources(car: FormulaCar) {
 export class FestivalCars {
   readonly root = new T.Group();
   /** Non-Formula bodies (the circuit renderer's library). */
-  readonly bodies = new VehicleBodies();
+  readonly bodies = new VehicleBodies({ festival: true });
   private readonly holders: { root: T.Object3D; lodLevel: number }[] = [];
   private readonly formula = new Map<number, FormulaCar>();
   private readonly releaseFormula = new Map<number, () => void>();

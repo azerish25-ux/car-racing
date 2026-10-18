@@ -35,6 +35,7 @@ import {
 import { cabinShiftLights, cabinReadout } from '../src/rendering/vehicle-bodies/cabin-display.ts';
 import { COCKPIT_FOV } from '../src/rendering/options.ts';
 import { bodyFrame } from '../src/rendering/vehicle-bodies/frame.ts';
+import { festivalFormFor } from '../src/rendering/vehicle-bodies/festival-form.ts';
 
 type Body = ReturnType<typeof buildVehicleBody>;
 const catalogue = Object.values(VEHICLES).filter((d) => bodySheetFor(d));
@@ -44,6 +45,30 @@ const body = (def: VehicleDefinition) => {
   if (!b) built.set(def.id, (b = buildVehicleBody(1, def, bodySheetFor(def)!)));
   return b;
 };
+/** Every catalogue body, plus the open-world production form of each road
+ * car (FestivalCars builds those with `{ festival: true }`). */
+const festivalBuilt = new Map<string, Body>();
+const variants: { def: VehicleDefinition; label: string; make: () => Body }[] = [
+  ...catalogue.map((def) => ({ def, label: def.id, make: () => body(def) })),
+  ...catalogue
+    .filter((def) => {
+      const sheet = bodySheetFor(def);
+      return sheet?.kind === 'closed' && !!festivalFormFor(def, sheet);
+    })
+    .map((def) => ({
+      def,
+      label: `${def.id} (festival form)`,
+      make: () => {
+        let b = festivalBuilt.get(def.id);
+        if (!b)
+          festivalBuilt.set(
+            def.id,
+            (b = buildVehicleBody(1, def, bodySheetFor(def)!, { festival: true })),
+          );
+        return b;
+      },
+    })),
+];
 /** Visible-in-scene test that ignores the root's own LOD switch. */
 const drawn = (o: T.Object3D, root: T.Object3D) => {
   for (let p: T.Object3D | null = o; p && p !== root; p = p.parent) if (!p.visible) return false;
@@ -198,56 +223,54 @@ const isGlass = (h: T.Intersection | null) => {
 describe('cars loose ends: per-vehicle cabins', () => {
   it('derives a cockpit eye inside every catalogue cabin, clear of the near plane', () => {
     expect(catalogue.length).toBeGreaterThanOrEqual(40);
-    for (const def of catalogue) {
+    for (const { def, label, make } of variants) {
       const layout = cabinFor(def)!,
-        b = body(def),
+        b = make(),
         root = b.lods[0].group;
-      expect(layout, def.id).not.toBeNull();
+      expect(layout, label).not.toBeNull();
       expect(cabinFor(VEHICLES.apx01)).toBeNull();
       cockpitView(b);
       const eye = v3(layout.eye);
       // Inside the machine's collision box, ahead of the seat back and behind
       // the steering wheel.
-      expect(Math.abs(eye.x), def.id).toBeLessThan(def.halfExtents[0]);
-      expect(Math.abs(eye.z), def.id).toBeLessThan(def.halfExtents[2]);
-      expect(layout.wheel.centre[2] - eye.z, def.id).toBeGreaterThan(0.25);
-      expect(layout.wheel.centre[1], def.id).toBeLessThan(eye.y - 0.2);
+      expect(Math.abs(eye.x), label).toBeLessThan(def.halfExtents[0]);
+      expect(Math.abs(eye.z), label).toBeLessThan(def.halfExtents[2]);
+      expect(layout.wheel.centre[2] - eye.z, label).toBeGreaterThan(0.25);
+      expect(layout.wheel.centre[1], label).toBeLessThan(eye.y - 0.2);
       // Nothing drawn within the camera's near plane (0.045 m) of the eye.
       const near = clearance(root, eye);
-      expect(near.distance, `${def.id} ${near.name}`).toBeGreaterThan(0.05);
+      expect(near.distance, `${label} ${near.name}`).toBeGreaterThan(0.05);
       // Something to sit on below the eye: the driver's body or the seat.
       const down = firstHit(root, eye, new T.Vector3(0, -1, 0), 1.2);
-      expect(down, def.id).not.toBeNull();
+      expect(down, label).not.toBeNull();
       const gaze = cabinDirection(layout.cockpit, new T.Vector3());
       const ahead = firstHit(root, eye, gaze, 6);
       if (layout.family === 'closed') {
         // Roofed: under the roof (the headliner or cage), enclosed at the sides
         // and behind, and looking out through the windscreen.
         const up = firstHit(root, eye, new T.Vector3(0, 1, 0), 0.5);
-        expect(up, def.id).not.toBeNull();
-        expect(layout.roof! - eye.y, def.id).toBeGreaterThan(0.08);
+        expect(up, label).not.toBeNull();
+        expect(layout.roof! - eye.y, label).toBeGreaterThan(0.08);
         for (const x of [-1, 1])
           expect(
             firstHit(root, eye, new T.Vector3(x, 0, 0), def.halfExtents[0] * 2),
-            def.id,
+            label,
           ).not.toBeNull();
-        expect(firstHit(root, eye, new T.Vector3(0, 0, -1), 1.5), def.id).not.toBeNull();
-        expect(isGlass(ahead), `${def.id} sees ${ahead?.object.name}`).toBe(true);
-        expect(ahead!.distance, def.id).toBeGreaterThan(0.3);
+        expect(firstHit(root, eye, new T.Vector3(0, 0, -1), 1.5), label).not.toBeNull();
+        expect(isGlass(ahead), `${label} sees ${ahead?.object.name}`).toBe(true);
+        expect(ahead!.distance, label).toBeGreaterThan(0.3);
         // The level horizon is seen through the windscreen too.
         const level = firstHit(root, eye, new T.Vector3(0, 0, 1), 6);
-        expect(isGlass(level), `${def.id} level ${level?.object.name}`).toBe(true);
+        expect(isGlass(level), `${label} level ${level?.object.name}`).toBe(true);
       } else {
         // Open cockpits: nothing directly in front of the eyes, and the eyes
         // above the cockpit rim (a sideways ray at eye height escapes).
-        expect(ahead === null || ahead.distance > 0.3, `${def.id} ${ahead?.object.name}`).toBe(
-          true,
-        );
+        expect(ahead === null || ahead.distance > 0.3, `${label} ${ahead?.object.name}`).toBe(true);
       }
     }
   });
   it('mounts the onboard camera by family and sets lenses per class', () => {
-    for (const def of catalogue) {
+    for (const { def, label, make } of variants) {
       const layout = cabinFor(def)!;
       const roofed = layout.family === 'closed';
       const kind =
@@ -256,17 +279,17 @@ describe('cars loose ends: per-vehicle cabins', () => {
           : layout.family === 'buggy' || (roofed && layout.race)
             ? 'roof'
             : 'bonnet';
-      expect(layout.mount.kind, def.id).toBe(kind);
+      expect(layout.mount.kind, label).toBe(kind);
       // The mount is outside the cabin: above the roof, the bonnet or the airbox.
-      const b = body(def),
+      const b = make(),
         root = b.lods[0].group;
       const below = firstHit(root, v3(layout.mount.eye), new T.Vector3(0, -1, 0), 1);
       if (layout.family !== 'kart') {
-        expect(below, def.id).not.toBeNull();
-        expect(below!.distance, def.id).toBeGreaterThan(0.03);
+        expect(below, label).not.toBeNull();
+        expect(below!.distance, label).toBeGreaterThan(0.03);
       }
       if (layout.mount.kind === 'roof' && roofed)
-        expect(layout.mount.eye[1], def.id).toBeGreaterThan(layout.roof!);
+        expect(layout.mount.eye[1], label).toBeGreaterThan(layout.roof!);
       // Class lenses: the Formula default widened for closed cars, karts most.
       expect(cabinFov(layout, COCKPIT_FOV.default)).toBe(layout.cockpit.fov);
       expect(layout.cockpit.fov).toBeGreaterThanOrEqual(COCKPIT_FOV.default);
@@ -314,9 +337,9 @@ describe('cars loose ends: per-vehicle cabins', () => {
     // sat 1 cm behind its light bar, a kart's nose camera behind the wheel rim
     // and a no-airbox single-seater's inside the headrest bulkhead.
     const L = CABIN_MOTION_LIMIT;
-    for (const def of catalogue) {
+    for (const { def, label, make } of variants) {
       const layout = cabinFor(def)!,
-        b = body(def),
+        b = make(),
         root = b.lods[0].group,
         cabin = b.lods[0].cabin!;
       // The onboard view: the helmet drawn, the followed car's detail shown.
@@ -337,7 +360,7 @@ describe('cars loose ends: per-vehicle cabins', () => {
             mountEye(layout, motion.set(x * L[0] * 2, y * L[1] * 2, z * L[2] * 2), at);
             expect(
               intrudesNearVolume(triangles, at, view, mountFov(layout, 1e3), 21 / 9, 0.06),
-              `${def.id} mount ${x},${y},${z}`,
+              `${label} mount ${x},${y},${z}`,
             ).toBe(false);
           }
     }
