@@ -777,7 +777,7 @@ export class FestivalRenderer {
       daylight.environment = 0.2 + daylight.cover * 0.04;
       daylight.exposure = 1.12 - clamp(presented[H.RAIN], 0, 60) * 0.0005;
     }
-    festivalLight(daylight, mode);
+    festivalLight(daylight, mode, this.festivalSky.capturedClouds);
     // The festival's own air (festival-atmosphere.ts): the art-bible horizon
     // as in-scatter, not the photographed dome's (its clear-day photo has a
     // brown desert horizon), and clean-air extinction per lighting.

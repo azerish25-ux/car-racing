@@ -1,7 +1,7 @@
 import * as T from 'three';
 import type { PhotoSky } from '../assets/photo-sky.ts';
 import { SKY_RAMPS, skyBlend } from '../assets/sky-catalogue.ts';
-import type { LightingMode, PhotoSkyBinding } from '../daylight.ts';
+import { skyCosineRadiance, type LightingMode, type PhotoSkyBinding } from '../daylight.ts';
 import { SkyClouds, type SkyCloudUniforms } from '../studio/sky-clouds.ts';
 import { festivalSkyline } from './festival-atmosphere.ts';
 
@@ -56,6 +56,16 @@ export const FESTIVAL_SKY = Object.freeze({
     sunset: Object.freeze([1.1, 15, 1] as const),
     night: Object.freeze([1.6, 15, 1] as const),
   }),
+  /** Tint of the visible photograph above its skyline (rgb gain, unit
+   * luminance). Golden hour: the sky away from the sun is lilac in the
+   * references (032 #bdb6d2, R/G 1.09, B/G 1.38; 029 #e9e6f7; 061 #a29eda)
+   * where the broken-cloud evening photo reads blue-grey (#9da9be, R/G 0.85),
+   * in the hue of the golden-hour haze under it (FESTIVAL_AIR.hazeTint). */
+  tint: Object.freeze({
+    day: Object.freeze([1, 1, 1] as const),
+    sunset: Object.freeze([1.2, 0.96, 1.02] as const),
+    night: Object.freeze([1, 1, 1] as const),
+  }),
 });
 
 /** Cover the festival's baked clouds show for a simulated cover. */
@@ -98,6 +108,9 @@ export class FestivalSkyClouds extends SkyClouds {
 export class FestivalSky implements PhotoSkyBinding {
   /** Festival horizon (linear, scene units): the aerial in-scatter. */
   readonly horizon = new T.Color();
+  /** Share of the baked clouds in the dome of the last visible bind: the
+   * photo's `photoClouds`, or 1 for the procedural dome (no photograph). */
+  capturedClouds = 1;
   constructor(readonly photo: PhotoSky) {}
   get key() {
     return this.photo.key;
@@ -110,6 +123,7 @@ export class FestivalSky implements PhotoSkyBinding {
     const u = material.uniforms;
     if (!bound) {
       if (u.photoClouds) u.photoClouds.value = 0;
+      if (!capture) this.capturedClouds = 1;
       return false;
     }
     // The visible bind reports its pair; a capture binds this bin's ramp pair.
@@ -118,7 +132,9 @@ export class FestivalSky implements PhotoSkyBinding {
         : this.photo.shownPair,
       weight = (u.photoWeight?.value as number | undefined) ?? 0;
     festivalSkyline(material, pair, this.horizon, FESTIVAL_SKY.horizonAmount[mode]);
-    if (u.photoClouds) u.photoClouds.value = festivalPhotoClouds(pair, weight);
+    const clouds = festivalPhotoClouds(pair, weight);
+    if (u.photoClouds) u.photoClouds.value = clouds;
+    if (!capture) this.capturedClouds = clouds;
     const [chroma, ramp, luminance] = FESTIVAL_SKY.tone[mode];
     (u.photoTone?.value as T.Vector4 | undefined)?.set(
       chroma,
@@ -126,23 +142,56 @@ export class FestivalSky implements PhotoSkyBinding {
       luminance,
       0,
     );
+    const [r, g, b] = FESTIVAL_SKY.tint[mode];
+    (u.photoTint?.value as T.Vector3 | undefined)?.set(r, g, b);
     return true;
   }
 }
 
 /**
- * The festival camera over the shared lighting state (circuitLightState):
- * exposure multipliers per lighting, from the references' luminance
- * histograms. Golden hour: the shared 1.62 left the festival's sunset frame
- * at a linear mean of 0.10 and a median luma of 0.21 where 017/032/063/098
- * sit at 0.27-0.34 and 0.35-0.46 (the low sun lights the facades the chase
- * camera sees; the circuit's grandstand framing looks into the sun).
+ * The festival camera and sky light over the shared lighting state
+ * (circuitLightState), from the references' luminance histograms.
+ *
+ * Exposure per lighting. Golden hour: the shared 1.62 left the festival's
+ * sunset frame at a linear mean of 0.10 and a median luma of 0.21 where
+ * 017/032/063/098 sit at 0.27-0.34 and 0.35-0.46 (the low sun lights the
+ * facades the chase camera sees).
+ *
+ * Diffuse sky share. The fair-weather clouds the festival shows over the
+ * simulated cover brighten the captured dome (white cumulus outshine the blue
+ * sky): at the clear preset the open shadow on the spawn street rose 2.4x and
+ * sunlit/shaded asphalt fell from 4.7:1 to 2.9:1, where the references keep
+ * the crisp midday key of 4-6:1 (shade 012 #44423d vs #1b1d20, 020, 094).
+ * Where the baked clouds are in the captured dome (the clear-day photo, the
+ * procedural dome) the diffuse IBL is scaled back to the dome of the
+ * simulated cover (`festivalEnvironment`); always times `diffuse`. The
+ * specular gain (ibl-energy.ts) keeps reflections at the dome's full
+ * radiance, clouds included.
  */
 export const FESTIVAL_LIGHT = Object.freeze({
-  exposure: Object.freeze({ day: 1, sunset: 1.45, night: 1 } as const),
+  exposure: Object.freeze({ day: 1, sunset: 1.6, night: 1 } as const),
+  diffuse: Object.freeze({ day: 0.9, sunset: 0.9, night: 1 } as const),
 });
-/** Apply the festival camera to a frame's lighting state (in place). */
-export function festivalLight<L extends { exposure: number }>(light: L, mode: LightingMode) {
+const Y = (c: T.Color) => 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
+/** Diffuse sky share for a simulated cover when the dome carries the
+ * festival's baked clouds (`clouds` 0-1): the cosine-weighted radiance of the
+ * dome at that cover over the one the festival shows (CPU dome model). */
+export function festivalEnvironment(cover: number, mode: LightingMode, clouds = 1) {
+  if (mode === 'night') return FESTIVAL_LIGHT.diffuse.night;
+  const shown = Y(skyCosineRadiance(festivalCloudCover(cover, mode), mode)),
+    ratio = Y(skyCosineRadiance(cover, mode)) / Math.max(shown, 1e-6),
+    share = Math.min(1, Math.max(0, clouds));
+  return (1 + (ratio - 1) * share) * FESTIVAL_LIGHT.diffuse[mode];
+}
+/** Apply the festival camera and sky light to a frame's lighting state (in
+ * place; night keeps its own authored fill). `clouds`: share of the baked
+ * clouds in the captured dome (FestivalSky.capturedClouds). */
+export function festivalLight<L extends { exposure: number; environment: number; cover: number }>(
+  light: L,
+  mode: LightingMode,
+  clouds = 1,
+) {
   light.exposure *= FESTIVAL_LIGHT.exposure[mode];
+  if (mode !== 'night') light.environment *= festivalEnvironment(light.cover, mode, clouds);
   return light;
 }

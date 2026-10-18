@@ -25,8 +25,9 @@ import * as T from 'three';
  * dome's baked cumulus and cirrus (sky-clouds.ts) over the photograph, lit by
  * the same sun and sky as on the procedural dome (daylight.ts SKY_FRAGMENT).
  * `photoTone` (chroma gain, ramp in radians, luminance gain; gains 1 by
- * default) deepens the visible photograph's colour from its skyline upward
- * (festival grade of the dome; captures keep the photo's own colour).
+ * default) and `photoTint` (rgb gain, white by default) grade the visible
+ * photograph from its skyline upward (the festival's dome; captures keep the
+ * photo's own colour).
  */
 export const PHOTO_SKY_UNIFORMS = `
 uniform sampler2D photoBaseA;
@@ -42,6 +43,7 @@ uniform float photoCaptureSaturation;
 uniform vec4 photoHorizon;
 uniform float photoClouds;
 uniform vec4 photoTone;
+uniform vec3 photoTint;
 `;
 export const PHOTO_SKY_SAMPLE = `
 vec3 photoSkyDecode(vec4 base, float gain, vec4 photo) {
@@ -87,13 +89,14 @@ vec3 photoSky(vec3 direction, bool capture) {
   if (photoWeight > 0.0)
     photo = mix(photo, photoSkySample(photoBaseB, photoGainB, photoB, direction), photoWeight);
   if (!capture) {
-    if (photoTone.x != 1.0 || photoTone.z != 1.0) {
-      // Chroma about the luminance and the luminance itself, rising from the
-      // skyline over photoTone.y.
+    if (photoTone.x != 1.0 || photoTone.z != 1.0 || photoTint != vec3(1.0)) {
+      // Chroma about the luminance, the luminance itself and a tint, rising
+      // from the skyline over photoTone.y.
       float skyline = mix(photoA.w, photoB.w, photoWeight);
       float k = smoothstep(skyline, skyline + photoTone.y, asin(clamp(direction.y, -1.0, 1.0)));
       float y = dot(photo, vec3(0.2126, 0.7152, 0.0722));
-      photo = max(mix(vec3(y), photo, mix(1.0, photoTone.x, k)), 0.0) * mix(1.0, photoTone.z, k);
+      photo = max(mix(vec3(y), photo, mix(1.0, photoTone.x, k)), 0.0) *
+        mix(vec3(1.0), photoTint * photoTone.z, k);
     }
     return photo;
   }
@@ -116,6 +119,7 @@ export interface PhotoSkyUniforms {
   photoHorizon: { value: T.Vector4 };
   photoClouds: { value: number };
   photoTone: { value: T.Vector4 };
+  photoTint: { value: T.Vector3 };
 }
 export const PHOTO_SKY_UNIFORM_NAMES = Object.freeze([
   'photoBaseA',
@@ -146,5 +150,6 @@ export function createPhotoSkyUniforms(): PhotoSkyUniforms {
     photoHorizon: { value: new T.Vector4(0, 0, 0, 0) },
     photoClouds: { value: 0 },
     photoTone: { value: new T.Vector4(1, 0.35, 1, 0) },
+    photoTint: { value: new T.Vector3(1, 1, 1) },
   };
 }

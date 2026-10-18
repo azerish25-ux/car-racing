@@ -14,6 +14,7 @@ import {
   FestivalSky,
   FestivalSkyClouds,
   festivalCloudCover,
+  festivalEnvironment,
   festivalLight,
   festivalPhotoClouds,
 } from '../src/rendering/open-world/festival-sky.ts';
@@ -123,11 +124,21 @@ describe('festival sky', () => {
     expect(shader.uniforms.apexCloudField).toBeDefined();
   });
 
-  it('opens the golden-hour camera up and leaves day and night to the shared state', () => {
-    expect(festivalLight({ exposure: 1 }, 'day').exposure).toBe(FESTIVAL_LIGHT.exposure.day);
-    expect(FESTIVAL_LIGHT.exposure.sunset).toBeGreaterThan(1);
-    expect(festivalLight({ exposure: 1.62 }, 'sunset').exposure).toBeCloseTo(
-      1.62 * FESTIVAL_LIGHT.exposure.sunset,
-    );
+  it('opens the golden-hour camera up and keeps the midday key crisp under the extra cloud', () => {
+    const at = (mode: 'day' | 'sunset' | 'night', clouds = 1, exposure = 1) =>
+      festivalLight({ exposure, environment: 1, cover: 0.12 }, mode, clouds);
+    expect(at('day').exposure).toBe(FESTIVAL_LIGHT.exposure.day);
+    expect(at('sunset', 0, 1.62).exposure).toBeCloseTo(1.62 * FESTIVAL_LIGHT.exposure.sunset);
+    // The shown clouds brighten the captured dome: its diffuse share is
+    // scaled back toward the simulated cover's dome.
+    const day = at('day').environment;
+    expect(day).toBeLessThan(FESTIVAL_LIGHT.diffuse.day);
+    expect(day).toBeGreaterThan(0.3);
+    // A photo with its own clouds (no baked clouds in the capture) keeps the
+    // dome's light; night keeps its authored fill.
+    expect(at('sunset', 0).environment).toBeCloseTo(FESTIVAL_LIGHT.diffuse.sunset);
+    expect(at('night').environment).toBe(1);
+    // At or above the cloud floor nothing is shown beyond the simulation.
+    expect(festivalEnvironment(0.6, 'day')).toBeCloseTo(FESTIVAL_LIGHT.diffuse.day);
   });
 });
