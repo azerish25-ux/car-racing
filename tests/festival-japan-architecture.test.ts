@@ -4,7 +4,11 @@ import { openWorld } from '../src/simulation/open-world/world.ts';
 import { regionStructures, StructureGrid } from '../src/simulation/open-world/placement.ts';
 import { carvedGroundHeight } from '../src/simulation/open-world/ground-height.ts';
 import { trackPoint } from '../src/simulation/track.ts';
-import { architecturePlan, LOT } from '../src/rendering/open-world/japan-architecture.ts';
+import {
+  architecturePlan,
+  LOT,
+  stairSide,
+} from '../src/rendering/open-world/japan-architecture.ts';
 import {
   facadeFinish,
   facadeLayout,
@@ -76,6 +80,30 @@ describe('Japanese reading of the festival structures', () => {
           high = Math.max(high, y);
         }
       expect(high - low).toBeLessThan(0.8);
+    }
+  });
+  it('hangs rear stairs only where they clear every other building and road', () => {
+    expect(plan.rearStair.size).toBeGreaterThan(50);
+    const grid = new StructureGrid(structures);
+    const p = trackPoint();
+    for (const i of plan.rearStair) {
+      const s = structures[i],
+        rear = -plan.front[i];
+      const c = Math.cos(s.heading),
+        n = Math.sin(s.heading),
+        sx = stairSide(s);
+      // The stair's plan: 5.1 m along the rear wall, 1.85 m deep, 0.5 m lattice.
+      for (let a = -4.8; a <= 0.3; a += 0.5)
+        for (let b = 0.25; b <= 2.1; b += 0.5) {
+          const lx = sx * (s.hx + a),
+            lz = rear * (s.hz + b);
+          const x = s.x + c * lx - n * lz,
+            z = s.z + n * lx + c * lz;
+          expect(grid.blocks(x, z, 0)).toBe(false);
+          const lateral = Math.abs(world.network.nearest(x, z, p));
+          const edge = world.network.edges[world.network.edgeOf[world.network.lastSegment]];
+          expect(lateral).toBeGreaterThan(edge.spec.halfWidth + edge.spec.shoulder);
+        }
     }
   });
   it('sites the visual-only castle on an open hilltop far from roads and buildings', () => {

@@ -40,6 +40,9 @@ export interface ArchitecturePlan {
   lotSide: Map<number, number>;
   /** Visual-only landmarks on open hilltops (no collider, no road). */
   landmarks: VisualLandmark[];
+  /** Apartment blocks whose rear exterior stair stands clear of every other
+   * building and road. */
+  rearStair: Set<number>;
   /** Highest carved ground under each temple footprint: its stone terrace
    * rises to this level so the halls stand on the surrounding grade. */
   terrace: Map<number, number>;
@@ -165,6 +168,11 @@ export function isApartment(s: Structure) {
   return s.kind === 'block' && (s.style >>> 4) % 3 === 0;
 }
 
+/** Local x end (+1/-1) of an apartment block's rear stair. */
+export function stairSide(s: Structure) {
+  return (s.style & 1024) === 0 ? 1 : -1;
+}
+
 /** Villages are the towns whose buildings never exceed three storeys. */
 function village(town: TownSpec) {
   return town.floors[1] <= 3;
@@ -193,17 +201,13 @@ export function architecturePlan(
   const terrace = new Map<number, number>();
   const style: Architecture[] = [],
     front = new Int8Array(structures.length),
-    gap = new Float32Array(structures.length),
     roadClass: string[] = [];
   structures.forEach((s, i) => {
-    const lateral = net.nearest(s.x, s.z, p),
-      edge = net.edges[net.edgeOf[net.lastSegment]];
+    net.nearest(s.x, s.z, p);
     const c = Math.cos(s.heading),
       n = Math.sin(s.heading);
     front[i] = (p.x - s.x) * -n + (p.z - s.z) * c >= 0 ? 1 : -1;
-    // Clear ground between the facade and the usable road edge.
-    gap[i] = Math.abs(lateral) - s.hz - edge.spec.halfWidth - edge.spec.shoulder;
-    roadClass[i] = edge.roadClass;
+    roadClass[i] = net.edges[net.edgeOf[net.lastSegment]].roadClass;
     const town = world.region.towns.find((t) => inside(t, s.x, s.z, 40));
     if (s.kind === 'chapel') {
       style[i] = 'temple';
@@ -269,7 +273,34 @@ export function architecturePlan(
     const site = castleSite(world, grid, town, p);
     if (site) landmarks.push(site);
   }
-  const plan = { style, front, konbiniFloor, chain, lotSide, landmarks, terrace };
+  const rearStair = new Set<number>();
+  structures.forEach((s, i) => {
+    if (style[i] !== 'urban' || !isApartment(s) || s.floors < 3) return;
+    const rear = -front[i],
+      sx = stairSide(s),
+      c = Math.cos(s.heading),
+      n = Math.sin(s.heading);
+    for (const lx of [sx * (s.hx - 4.8), sx * (s.hx - 2.5), sx * (s.hx + 0.3)])
+      for (const lz of [rear * (s.hz + 0.25), rear * (s.hz + 1.2), rear * (s.hz + 2.1)]) {
+        const x = s.x + c * lx - n * lz,
+          z = s.z + n * lx + c * lz;
+        if (grid.blocks(x, z, 0.1)) return;
+        const lateral = Math.abs(net.nearest(x, z, p)),
+          edge = net.edges[net.edgeOf[net.lastSegment]];
+        if (lateral < edge.spec.halfWidth + edge.spec.shoulder + 0.3) return;
+      }
+    rearStair.add(i);
+  });
+  const plan = {
+    style,
+    front,
+    konbiniFloor,
+    chain,
+    lotSide,
+    landmarks,
+    terrace,
+    rearStair,
+  };
   cache.set(structures, plan);
   return plan;
 }

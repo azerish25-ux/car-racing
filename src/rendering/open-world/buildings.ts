@@ -12,6 +12,7 @@ import { FacadeJoinery } from './facade-joinery.ts';
 import {
   ARCH_CODE,
   isApartment,
+  stairSide,
   type ArchitecturePlan,
   type VisualLandmark,
 } from './japan-architecture.ts';
@@ -500,7 +501,11 @@ vec3 owLamp;`,
       bool ishigaki = stone && arch > 0.5;
       vec2 course = ishigaki ? vec2(1.05,0.52) : stone ? vec2(0.61,0.285) : tile ? vec2(0.1,0.05) : vec2(0.245,0.078);
       vec2 cellUv = q/course;
-      cellUv.x += mod(floor(cellUv.y),2.0)*0.5;
+      if (ishigaki) {
+        // Uneven block lengths and a random offset per course.
+        float row = floor(cellUv.y);
+        cellUv.x = q.x / (course.x * (0.7 + 0.6 * owHash(vec2(row, style * 7.0)))) + owHash(vec2(row, 3.1));
+      } else cellUv.x += mod(floor(cellUv.y),2.0)*0.5;
       vec2 f = fract(cellUv), edge = min(f,1.0-f)*course;
       float joint = ishigaki ? 0.03 : stone ? 0.0045 : tile ? 0.0028 : 0.003;
       vec2 mask = smoothstep(vec2(joint),vec2(joint)+aa,edge);
@@ -508,7 +513,7 @@ vec3 owLamp;`,
       float resolve = 1.0-smoothstep(0.3,0.9,max(aa.x/course.x,aa.y/course.y));
       float variation = owHash(floor(cellUv)+vec2(style*37.0,style*19.0));
       vec3 unitColor = diffuseColor.rgb*(tile ? 0.9+0.17*variation : ishigaki ? 0.7+0.55*variation : 0.88+0.22*variation);
-      vec3 mortar = tile ? vec3(0.42,0.41,0.385) : vec3(0.22,0.215,0.195)*(0.97+0.06*streak);
+      vec3 mortar = tile ? vec3(0.42,0.41,0.385) : ishigaki ? vec3(0.07,0.068,0.062) : vec3(0.22,0.215,0.195)*(0.97+0.06*streak);
       vec3 detailed = mix(mortar,unitColor,face);
       // The unresolved average stays close to the resolved material value.
       diffuseColor.rgb = mix(mix(diffuseColor.rgb,mortar,stone ? 0.055 : tile ? 0.1 : 0.11),detailed,resolve);
@@ -757,7 +762,14 @@ export class Buildings {
     const f = new Frame(m, s.x, s.z, s.heading, detail);
     if (style === 'minka' || style === 'machiya') return this.traditional(f, s, kind, front, style);
     if (style === 'urban')
-      return this.urban(f, s, kind, front, this.plan?.konbiniFloor.has(index) ?? false);
+      return this.urban(
+        f,
+        s,
+        kind,
+        front,
+        this.plan?.konbiniFloor.has(index) ?? false,
+        this.plan?.rearStair.has(index) ?? false,
+      );
     if (style === 'konbini')
       return this.konbini(
         f,
@@ -851,7 +863,9 @@ export class Buildings {
     if (form === 'irimoya' && G < 0.6) form = 'yosemune';
     if (form === 'yosemune') G = Math.max(0, A - B);
     const zg = form === 'irimoya' ? B - (A - G) : 0;
-    const ym = y0 + (form === 'irimoya' ? (A - G) * p : 0);
+    // Upper corners of the long slopes: the gable foot (irimoya) or the
+    // ridge itself (yosemune, where the hips meet the ridge ends).
+    const ym = form === 'irimoya' ? y0 + (A - G) * p : yr;
     const eaveY = (x: number) => y0 + lift * (Math.abs(x) / A) ** 4;
     for (const side of [-1, 1]) {
       const z = side * B,
@@ -1226,7 +1240,14 @@ export class Buildings {
   }
 
   /** City mid-rises and shop buildings. */
-  private urban(f: Frame, s: Structure, kind: number, front: number, konbini: boolean) {
+  private urban(
+    f: Frame,
+    s: Structure,
+    kind: number,
+    front: number,
+    konbini: boolean,
+    stair: boolean,
+  ) {
     const pick = <V>(list: readonly V[], salt: number) => list[(s.style >>> salt) % list.length];
     const wall = pick(URBAN, 7);
     const top = s.base + s.height,
@@ -1341,6 +1362,64 @@ export class Buildings {
     }
     for (let k = 0; k < 2 + ((s.style >>> 9) & 1); k++)
       this.acUnit(f, -s.hx + 1.6 + k * 1.0, top + 0.3, rear * (s.hz - 1.2), rear);
+    // Exterior steel switch-back stair on the rear of apartment blocks
+    // (ref 089): 0.9 m flights rising half a storey each, landings at
+    // every half floor, handrails; painted pale green-grey.
+    if (stair) {
+      const steel = 0x8f9c95,
+        sx = stairSide(s);
+      const x0 = sx * (s.hx - 3.6),
+        x1 = sx * (s.hx - 0.9),
+        outer = rear * (s.hz + 1.55),
+        inner = rear * (s.hz + 0.6);
+      for (let floor = 0; floor < floors - 1; floor++) {
+        const y = s.base + 0.6 + floor * floorH,
+          mid = y + floorH / 2,
+          next = y + floorH;
+        f.beam([x0, y, outer], [x1, mid, outer], 0.9, 0.14, steel);
+        f.beam([x1, mid, inner], [x0, next, inner], 0.9, 0.14, steel);
+        f.beam(
+          [x0, y + 1.0, outer + rear * 0.42],
+          [x1, mid + 1.0, outer + rear * 0.42],
+          0.05,
+          0.05,
+          steel,
+        );
+        f.box(
+          x1 + sx * 0.55,
+          mid - 0.07,
+          (outer + inner) / 2,
+          1.1,
+          0.14,
+          2.0,
+          steel,
+          f.detail,
+          true,
+        );
+        f.box(x1 + sx * 1.08, mid + 0.5, (outer + inner) / 2, 0.05, 1.0, 2.0, steel);
+        f.box(
+          x0 - sx * 0.55,
+          next - 0.07,
+          (outer + inner) / 2,
+          1.1,
+          0.14,
+          2.0,
+          steel,
+          f.detail,
+          true,
+        );
+      }
+      for (const px of [x0 - sx * 1.05, x1 + sx * 1.05])
+        f.box(
+          px,
+          s.base + ((floors - 1) * floorH) / 2 + 0.6,
+          outer + rear * 0.45,
+          0.12,
+          (floors - 1) * floorH,
+          0.12,
+          steel,
+        );
+    }
     // Antenna mast.
     if ((s.style & 512) !== 0)
       f.beam(
@@ -1524,14 +1603,45 @@ export class Buildings {
       0xb8b1a2,
       f.detail,
     );
-    // Low plastered compound wall with a tiled cap round the terrace edge.
-    const ochre = 0xd2b07a;
+    // Low plastered compound wall with a tiled cap round the terrace edge,
+    // opened on the road side by a small roofed gate (refs 026, 027).
+    const ochre = 0xd2b07a,
+      gate = 1.4,
+      face = front >= 0 ? 1 : -1;
     for (const side of [-1, 1]) {
-      f.box(0, top + 0.6, side * (s.hz - 0.2), s.hx * 2 - 0.2, 1.2, 0.3, ochre, wf);
-      f.box(0, top + 1.28, side * (s.hz - 0.2), s.hx * 2, 0.16, 0.6, 0x3c4045, rf);
+      if (side === face)
+        for (const sx of [-1, 1]) {
+          const x = (sx * (s.hx + gate)) / 2,
+            w = s.hx - gate - 0.1;
+          f.box(x, top + 0.6, side * (s.hz - 0.2), w, 1.2, 0.3, ochre, wf);
+          f.box(x, top + 1.28, side * (s.hz - 0.2), w + 0.1, 0.16, 0.6, 0x3c4045, rf);
+        }
+      else {
+        f.box(0, top + 0.6, side * (s.hz - 0.2), s.hx * 2 - 0.2, 1.2, 0.3, ochre, wf);
+        f.box(0, top + 1.28, side * (s.hz - 0.2), s.hx * 2, 0.16, 0.6, 0x3c4045, rf);
+      }
       f.box(side * (s.hx - 0.2), top + 0.6, 0, 0.3, 1.2, s.hz * 2 - 0.2, ochre, wf);
       f.box(side * (s.hx - 0.2), top + 1.28, 0, 0.6, 0.16, s.hz * 2, 0x3c4045, rf);
     }
+    const gz = face * (s.hz - 0.2);
+    for (const sx of [-1, 1]) f.box(sx * gate, top + 1.4, gz, 0.28, 2.8, 0.28, 0x3a2a20);
+    f.box(0, top + 2.65, gz, gate * 2 + 0.5, 0.24, 0.3, 0x3a2a20);
+    for (const sx of [-1, 1])
+      f.box(sx * gate * 0.5, top + 1.25, gz, gate * 0.95, 2.3, 0.06, 0x4a3426);
+    this.roof(new Frame(f.m, ...this.offset(f, 0, gz), Math.atan2(f.n, f.c), f.detail), {
+      hx: gate + 0.3,
+      hz: 0.7,
+      plate: top + 2.8,
+      pitch: 0.6,
+      eave: 0.55,
+      verge: 0.45,
+      form: 'kirizuma',
+      tile: 0x3c4045,
+      gable: 0xd9d2c0,
+      lift: 0.12,
+      facade: rf,
+      wallFacade: wf,
+    });
     // Main hall on the half facing the road, raised on a stone plinth.
     const hx = 4.6,
       hz = 3.0,
