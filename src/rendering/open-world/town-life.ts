@@ -681,7 +681,7 @@ export class FestivalTownLife {
     this.stats.bicycles++;
   }
   private planter(x: number, z: number, yaw: number) {
-    this.place('planter', x, z, yaw + Math.PI / 2);
+    this.place('planter', x, z, yaw);
     this.take(x, z, 0.75);
     this.stats.planters++;
   }
@@ -1275,9 +1275,7 @@ export class FestivalTownLife {
       mesh.visible =
         kind === 'signals'
           ? d < signal
-          : kind === 'pools'
-            ? night > 0.05 && d < range * 1.4
-            : d < range;
+          : range > 0 && (kind === 'pools' ? night > 0.05 && d < range * 1.4 : d < range);
     }
   }
   dispose() {

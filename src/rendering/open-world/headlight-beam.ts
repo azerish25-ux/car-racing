@@ -20,7 +20,7 @@ import * as T from 'three';
 export const DIPPED_BEAM = Object.freeze({
   /** Cone half angle (rad) and the projected pattern's half field. */
   angle: 0.62,
-  peak: 260,
+  peak: 230,
   range: 90,
   cutOff: -0.57,
   kerbStep: 15,

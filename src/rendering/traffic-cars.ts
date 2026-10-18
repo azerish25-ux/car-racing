@@ -277,7 +277,7 @@ const CHROME: Finish = [0, 0.18, 1.0, 0];
 const RUBBER: Finish = [0, 0.82, 0.0, 0];
 const ALLOY: Finish = [0, 0.32, 0.85, 0];
 const STEEL_WHEEL: Finish = [0, 0.45, 0.6, 0];
-const LENS: Finish = [0, 0.1, 0.1, 1];
+const LENS: Finish = [0, 0.16, 0.1, 0.35];
 const PLATE_FACE: Finish = [0, 0.42, 0.15, 0];
 /** Emitter classes; 4 and 5 are the lit rear and unlit front plates. */
 const EMIT = { none: 0, head: 1, tail: 2, amber: 3, plate: 4, frontPlate: 5 } as const;
