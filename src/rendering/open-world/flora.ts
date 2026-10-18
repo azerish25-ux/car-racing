@@ -495,7 +495,7 @@ function floraMaterial(atlas: T.Texture, range: { value: number }, depth: boolea
     roughness: 0.82,
     metalness: 0,
   });
-  chainShaderHook(material, 'festival-flora-v1', (shader) => {
+  chainShaderHook(material, 'festival-flora-v2', (shader) => {
     hookVertex(shader);
     injectAfter(shader, 'common', FLORA_FRAGMENT, 'fragment');
     injectAfter(
@@ -532,6 +532,9 @@ function floraMaterial(atlas: T.Texture, range: { value: number }, depth: boolea
 }`,
       'fragment',
     );
+    // Both faces lit like the front: a card turned from the sun must not
+    // drop to the dark underside of its flipped normal.
+    injectAfter(shader, 'normal_fragment_begin', 'normal = normalize(vNormal);', 'fragment');
     injectAfter(
       shader,
       'normal_fragment_maps',

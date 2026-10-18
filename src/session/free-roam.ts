@@ -16,7 +16,7 @@ import {
 import { openWorld } from '../simulation/open-world/world.ts';
 import { F, H, R, RACE_BASE, carBase } from '../simulation/protocol.ts';
 import { vehicleAt } from '../simulation/vehicles.ts';
-import type { LightingMode } from '../rendering/daylight.ts';
+import type { FestivalLighting } from './festival-lighting.ts';
 import type { Season } from './festival-season.ts';
 import { FestivalRenderer } from '../rendering/open-world/festival-renderer.ts';
 import { FestivalRiders } from '../rendering/festival-riders.ts';
@@ -24,6 +24,7 @@ import { TrafficCars } from '../rendering/traffic-cars.ts';
 import type { GraphicsOptions, QualityPreset } from '../rendering/options.ts';
 import type { AudioView } from '../audio/spatial.ts';
 import { FestivalHud } from '../ui/festival-hud.ts';
+import { FestivalPhotoPanel } from '../ui/festival-photo-lens.ts';
 import { minimapHeading } from '../ui/festival-map.ts';
 import { FestivalControls, festivalMenuState } from './festival-controls.ts';
 import {
@@ -45,7 +46,9 @@ export interface FestivalHost {
   element: HTMLElement;
   quality: QualityPreset;
   graphics: GraphicsOptions;
-  lighting: LightingMode;
+  /** Initial time of day (the circuit lightings, or the festival's dusk);
+   * the festival save's own choice wins when it has one. */
+  lighting: FestivalLighting;
   /** Initial season; the festival save's season wins when absent. */
   season?: Season;
   loading(text: string): void;
@@ -102,6 +105,8 @@ export class FestivalSession {
   private tiles: Worker;
   private renderer: FestivalRenderer | null = null;
   private hud: FestivalHud | null = null;
+  /** Photo mode lens controls (aperture, focus, zoom, exposure, look). */
+  private photoPanel: FestivalPhotoPanel | null = null;
   private current: Float32Array | null = null;
   private previous: Float32Array | null = null;
   private receivedAt = 0;
@@ -128,7 +133,7 @@ export class FestivalSession {
   private lastKey = '';
   private rewindTimer = 0;
   /** Lighting to restore when an event staged at dusk or night ends. */
-  private stagedLighting: { previous: LightingMode; staged: LightingMode } | null = null;
+  private stagedLighting: { previous: FestivalLighting; staged: FestivalLighting } | null = null;
   private readonly photoKeys = (event: KeyboardEvent) => {
     if (!this.renderer?.photo || event.code !== 'Escape') return;
     event.preventDefault();
@@ -206,7 +211,7 @@ export class FestivalSession {
     );
     this.renderer = renderer;
     renderer.setQuality(host.quality, host.graphics);
-    renderer.lighting = host.lighting;
+    renderer.lighting = this.save.lighting ?? host.lighting;
     renderer.season = host.season ?? this.save.season ?? 'summer';
     this.save.season = renderer.season;
     host.loading('Loading photographed trees…');
@@ -237,6 +242,8 @@ export class FestivalSession {
       exit: () => this.host.exit(),
       lighting: (mode) => {
         renderer.lighting = mode;
+        this.save.lighting = mode;
+        void this.persist();
         this.openMenu();
       },
       season: (season) => {
@@ -267,6 +274,13 @@ export class FestivalSession {
       photoAngle: (angle) => renderer.photoAngle(angle),
     });
     const hud = this.hud;
+    const photoHost = host.element.querySelector<HTMLElement>('#festPhoto');
+    if (photoHost)
+      this.photoPanel = new FestivalPhotoPanel(
+        photoHost,
+        (settings) => renderer.photoLens.set(settings),
+        renderer.photoLens.settings,
+      );
     // Current Best on the event panel (the save object is updated in place).
     hud.best = this.save.best;
     this.controls = new FestivalControls(hud, {
@@ -313,7 +327,8 @@ export class FestivalSession {
       renderer.prestream(x, z);
       await new Promise<void>((resolve) => setTimeout(resolve, 20));
     }
-    if (renderer.photoSky.enabled) {
+    // Dusk draws the festival's own blue-hour dome (no photograph).
+    if (renderer.photoSky.enabled && renderer.lighting !== 'dusk') {
       host.loading('Loading the photographed sky…');
       await renderer.photoSky.ready(frame[H.CLOUD], renderer.lighting);
     }
@@ -630,6 +645,8 @@ export class FestivalSession {
     this.riders?.dispose();
     this.riders = null;
     this.renderer?.dispose();
+    this.photoPanel?.dispose();
+    this.photoPanel = null;
     this.hud?.dispose();
     this.renderer = null;
     this.hud = null;

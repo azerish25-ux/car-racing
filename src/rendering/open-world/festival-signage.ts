@@ -1,9 +1,21 @@
 import * as T from 'three';
 import { carvedGroundHeight } from '../../simulation/open-world/ground-height.ts';
-import type { Structure } from '../../simulation/open-world/placement.ts';
+import {
+  insideFootprint,
+  StructureGrid,
+  type Structure,
+} from '../../simulation/open-world/placement.ts';
+import { trackPoint } from '../../simulation/track.ts';
 import type { OpenWorld } from '../../simulation/open-world/world.ts';
 import type { QualityPreset } from '../options.ts';
-import { isApartment, LOT, type ArchitecturePlan } from './japan-architecture.ts';
+import {
+  isApartment,
+  LOT,
+  SKIN,
+  visualStructure,
+  type ArchitecturePlan,
+} from './japan-architecture.ts';
+import { LedScreens } from './led-screens.ts';
 
 /** Japanese street signage of the festival towns, all original: generic
  * words (ラーメン, 居酒屋, 薬, 営業中, 駐車場, ...) and invented shop names on
@@ -102,6 +114,88 @@ const NOBORI: readonly (readonly [string, string, string])[] = [
   ['祭', '#f2f2ee', '#c81d1d'],
   ['大売出し', '#e3001b', '#ffffff'],
 ];
+/** Tenant boxes stacked into columns, one tenant per floor (ref 014):
+ * generic trades only. */
+const TENANTS: readonly string[] = [
+  '喫茶',
+  'バー',
+  'スナック',
+  '麻雀',
+  '整体',
+  '歯科',
+  '塾',
+  '英会話',
+  '寿司',
+  '焼鳥',
+  'カラオケ',
+  'ネイル',
+  '美容室',
+  '不動産',
+  '占い',
+  '居酒屋',
+  '中華',
+  '焼肉',
+  '餃子',
+  'そば',
+  'うどん',
+  '天ぷら',
+  'ラーメン',
+  'カフェ',
+  'パブ',
+  '漫画',
+  'ゲーム',
+  '古着',
+  '靴',
+  '時計',
+  '眼鏡',
+  '薬',
+  '医院',
+  '内科',
+  '眼科',
+  '整骨院',
+  '司法書士',
+  '税理士',
+  '保険',
+  '旅行',
+  '写真',
+  '花',
+  '酒',
+  'パン',
+  'ケーキ',
+  '和菓子',
+  '茶',
+  '書道',
+  'ヨガ',
+  'ジム',
+  'ダンス',
+  '囲碁',
+  '将棋',
+  '金券',
+  '質',
+  '両替',
+  '携帯',
+  '電器',
+  'ホテル',
+  'サウナ',
+  '銭湯',
+  '鍵',
+  '釣具',
+  '模型',
+];
+const TENANT_COLORS: readonly (readonly [string, string])[] = [
+  ['#d42a1e', '#ffffff'],
+  ['#f7d117', '#141414'],
+  ['#ffffff', '#d0121b'],
+  ['#141414', '#ffd23a'],
+  ['#1b4fa0', '#ffffff'],
+  ['#1f7a43', '#ffffff'],
+  ['#e0218a', '#ffffff'],
+  ['#ff7a00', '#111111'],
+  ['#6a2fa0', '#ffffff'],
+  ['#18b0c8', '#ffffff'],
+  ['#f2f2ee', '#1d2b6b'],
+  ['#0b0a08', '#3dff8c'],
+];
 const NOREN = [
   ['そば', '#21305e'],
   ['酒', '#2a2a2a'],
@@ -130,8 +224,14 @@ const LAYOUT = {
   white: [1920, 1536, 64, 64] as Rect,
   steel: [1984, 1536, 64, 64] as Rect,
   dark: [1920, 1600, 64, 64] as Rect,
+  tenant: (i: number): Rect => [(i % 32) * 64, 1920 + Math.floor(i / 32) * 64, 64, 64],
   asphalt: [1984, 1600, 64, 64] as Rect,
   concrete: [1920, 1664, 64, 64] as Rect,
+  // Village garden boundaries: split-bamboo fence (kenninji-gaki), clipped
+  // hedge foliage and a dry-laid stone course, each ~1 m of real surface.
+  bamboo: [1024, 1792, 128, 128] as Rect,
+  hedge: [1152, 1792, 128, 128] as Rect,
+  stones: [1280, 1792, 128, 128] as Rect,
 };
 
 function verticalText(
@@ -394,6 +494,77 @@ function paintAtlas(): T.Texture {
     ctx.font = `900 34px ${FONT}`;
     ctx.fillText(chain.name, x + w / 2, y + h / 2 + 2);
   });
+  TENANTS.forEach((word, i) => {
+    const [x, y, w, h] = LAYOUT.tenant(i);
+    const [bg, fg] = TENANT_COLORS[(i * 7) % TENANT_COLORS.length];
+    ctx.fillStyle = bg;
+    ctx.fillRect(x, y, w, h);
+    ctx.strokeStyle = 'rgba(0,0,0,0.35)';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(x + 1.5, y + 1.5, w - 3, h - 3);
+    ctx.fillStyle = fg;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = `800 11px ${FONT}`;
+    ctx.fillText(`${1 + (i % 7)}F`, x + 12, y + 10);
+    const n = [...word].length;
+    const size = n <= 1 ? 34 : n === 2 ? 25 : n === 3 ? 18 : 14;
+    ctx.font = `900 ${size}px ${FONT}`;
+    ctx.fillText(word, x + w / 2, y + h / 2 + 5, w - 6);
+  });
+  {
+    // Split bamboo slats ~45 mm wide (6 px per 1.0 m tile of 128 px), nodes
+    // staggered, dark gaps; three horizontal rails.
+    const [x, y, w, h] = LAYOUT.bamboo;
+    ctx.fillStyle = '#2a2316';
+    ctx.fillRect(x, y, w, h);
+    for (let k = 0; k < w / 6; k++) {
+      const tone = 0.82 + 0.18 * (((k * 37) % 11) / 11);
+      ctx.fillStyle = `rgb(${Math.round(186 * tone)},${Math.round(160 * tone)},${Math.round(98 * tone)})`;
+      ctx.fillRect(x + k * 6 + 0.5, y, 5, h);
+      ctx.fillStyle = 'rgba(70,52,26,0.55)';
+      for (let n = ((k * 19) % 23) + 4; n < h; n += 31) ctx.fillRect(x + k * 6 + 0.5, y + n, 5, 2);
+    }
+    ctx.fillStyle = '#6e5a35';
+    for (const r of [0.18, 0.5, 0.82]) ctx.fillRect(x, y + h * r - 3, w, 6);
+  }
+  {
+    const [x, y, w, h] = LAYOUT.hedge;
+    ctx.fillStyle = '#2c4422';
+    ctx.fillRect(x, y, w, h);
+    for (let k = 0; k < 700; k++) {
+      const lx = (k * 53) % w,
+        ly = (k * 97 + ((k * k) % 13)) % h,
+        g = 60 + ((k * 31) % 70);
+      ctx.fillStyle = `rgb(${Math.round(g * 0.55)},${g},${Math.round(g * 0.38)})`;
+      ctx.beginPath();
+      ctx.ellipse(x + lx, y + ly, 3 + (k % 3), 2 + (k % 2), (k % 7) * 0.45, 0, 7);
+      ctx.fill();
+    }
+  }
+  {
+    // Dry-laid stones in uneven courses with dark joints.
+    const [x, y, w, h] = LAYOUT.stones;
+    ctx.fillStyle = '#3a3936';
+    ctx.fillRect(x, y, w, h);
+    let row = 0;
+    for (let yy = 0; yy < h; row++) {
+      const ch = 18 + ((row * 7) % 9);
+      for (let xx = -((row * 23) % 30); xx < w; ) {
+        const cw = 26 + ((row * 13 + xx * 3) % 22);
+        const g = 120 + ((row * 31 + xx) % 40);
+        ctx.fillStyle = `rgb(${g},${g - 4},${g - 12})`;
+        ctx.fillRect(
+          x + Math.max(0, xx) + 2,
+          y + yy + 2,
+          Math.min(cw, w - Math.max(0, xx)) - 4,
+          Math.min(ch, h - yy) - 4,
+        );
+        xx += cw;
+      }
+      yy += ch;
+    }
+  }
   const patch = (r: Rect, color: string, noise = 0) => {
     ctx.fillStyle = color;
     ctx.fillRect(r[0], r[1], r[2], r[3]);
@@ -495,6 +666,8 @@ export class FestivalSignage {
     lanterns: 0,
     stores: 0,
     bays: 0,
+    columns: 0,
+    screens: 0,
     triangles: 0,
     chunks: 0,
   };
@@ -504,6 +677,8 @@ export class FestivalSignage {
     signNight: { value: 0 },
     signTime: { value: 0 },
   };
+  /** Animated LED screens on a few tall central blocks (own material). */
+  readonly screens = new LedScreens();
   private readonly batches = new Map<string, { batch: Batch; small: boolean }>();
   private readonly meshes: { mesh: T.Mesh; small: boolean }[] = [];
   private readonly eye = new T.Vector3();
@@ -574,6 +749,12 @@ export class FestivalSignage {
     }
     this.stats.chunks = this.batches.size;
     this.batches.clear();
+    const screens = this.screens.finish();
+    if (screens) {
+      this.root.add(screens);
+      this.stats.screens = this.screens.count;
+      this.stats.triangles += this.screens.triangles;
+    }
   }
 
   private batch(x: number, z: number) {
@@ -748,6 +929,83 @@ export class FestivalSignage {
     this.stats.signs++;
   }
 
+  /** A column of tenant boxes (0.56 x 0.5 m faces, 0.3 m deep) stacked one
+   * per tenant and projecting from the facade on brackets (ref 014). */
+  private column(s: Structure, x: number, y0: number, y1: number, seed: number) {
+    const boxH = 0.5,
+      n = Math.floor((y1 - y0) / boxH),
+      width = 0.56,
+      depth = 0.3,
+      out = 0.24 + width / 2;
+    if (n < 3) return;
+    this.slab(
+      this.at(s, x, y0 + (n * boxH) / 2, out),
+      this.t,
+      width + 0.05,
+      n * boxH + 0.08,
+      depth,
+      null,
+      null,
+      0x2b2d2f,
+    );
+    const back = this.t.clone().negate();
+    for (let k = 0; k < n; k++) {
+      const tenant = mix(seed, k) % TENANTS.length;
+      const c = this.at(s, x, y0 + (k + 0.5) * boxH + 0.04, out);
+      const glow = (mix(seed, k + 50) & 7) === 0 ? 1.4 : 0.6;
+      for (const face of [this.t, back])
+        this.panel(
+          c.clone().addScaledVector(face, depth / 2 + 0.006),
+          face,
+          width - 0.04,
+          boxH - 0.06,
+          LAYOUT.tenant(tenant),
+          0xffffff,
+          glow,
+          (mix(seed, k + 90) % 1000) / 1000,
+        );
+    }
+    for (const y of [y0 + 0.25, y0 + n * boxH - 0.25])
+      this.slab(this.at(s, x, y, 0.12), this.n, 0.06, 0.06, 0.24, null, null, 0x4a4d4f);
+    const [bg] = TENANT_COLORS[((mix(seed, 0) % TENANTS.length) * 7) % TENANT_COLORS.length];
+    this.light(
+      this.at(s, x, y0, 1.6),
+      new T.Color(bg).getHex(),
+      0.6,
+      2.6 + Math.min(1.6, (y1 - y0) * 0.12),
+    );
+    this.stats.columns++;
+  }
+
+  /** Highest visual roof among the buildings standing within 4 m of a
+   * structure's side wall (local x = side * hx); -Infinity if none. */
+  private neighbourTop(s: Structure, side: number) {
+    this.grid ??= new StructureGrid(this.structures);
+    const c = Math.cos(s.heading),
+      n = Math.sin(s.heading);
+    let top = -Infinity;
+    for (const lz of [-s.hz * 0.8, 0, s.hz * 0.8])
+      for (const out of [0.6, 2.5, 4]) {
+        const lx = side * (s.hx + out),
+          x = s.x + c * lx - n * lz,
+          z = s.z + n * lx + c * lz;
+        for (const j of this.grid.near(x, z)) {
+          const o = this.structures[j];
+          if (o === s || !insideFootprint(o, x, z, 0.3)) continue;
+          top = Math.max(top, o.base + o.height + 3.2 * this.plan.extraFloors[j] + 1);
+        }
+      }
+    return top;
+  }
+
+  /** World point on a side wall (local x = side * hx), `z` along the
+   * frontage normal from the centre, `out` metres off the wall. */
+  private side(s: Structure, side: number, z: number, y: number, out: number) {
+    return new T.Vector3(s.x, y, s.z)
+      .addScaledVector(this.t, side * (s.hx + out))
+      .addScaledVector(this.n, z);
+  }
+
   private vending(s: Structure, x: number, seed: number, face = 0.38) {
     const p = this.at(s, x, 0, face);
     const g = this.ground(p);
@@ -820,7 +1078,9 @@ export class FestivalSignage {
     this.stats.lanterns++;
   }
 
-  private urban(s: Structure, i: number) {
+  private urban(collider: Structure, i: number) {
+    // Signs follow the building as drawn, including its visual storeys.
+    const s = visualStructure(collider, this.plan.extraFloors[i]);
     const front = this.plan.front[i];
     this.frame(s, front);
     const h = mix(s.style, 11);
@@ -829,19 +1089,36 @@ export class FestivalSignage {
       top = s.base + s.height;
     const store = this.plan.konbiniFloor.has(i);
     this.small = false;
-    // Projecting signs from the first floor up, one or two per building.
-    // Two or three on blocks and one or two on shops (refs 014, 030, 069).
-    const count = isApartment(s) ? 0 : s.kind === 'block' ? 2 + (h % 2) : 1 + (h % 2);
-    for (let k = 0; k < count; k++) {
+    // Projecting signs and tenant-box columns from the first floor up
+    // (refs 014, 030, 069): on blocks one per ~2.6 m of frontage (3-6),
+    // on shops two or three, in slots >= 1.3 m apart along the frontage,
+    // alternating faces so the street reads as a canyon of boards.
+    const count = isApartment(s)
+      ? 0
+      : s.kind === 'block'
+        ? Math.min(6, Math.max(3, Math.round((s.hx * 2) / 2.6)))
+        : 2 + (h % 2);
+    const span = s.hx * 2 - 1.1,
+      slots = Math.min(count, Math.floor(span / 1.3) + 1);
+    const columns = s.kind === 'block' && floors >= 4 ? 1 + ((h >>> 3) % 2) : 0;
+    let signs = 0;
+    for (let k = 0; k < slots; k++) {
       const seed = mix(s.style, 20 + k);
-      // Alternate ends; a third sign hangs mid-frontage on a pier.
-      const x =
-        k === 2 ? (seed % 2 ? 1 : -1) * 0.4 : (k === 0 ? 1 : -1) * (s.hx - 0.55 - (seed % 3) * 0.4);
-      const y0 = s.base + floorH + 0.35;
+      const x = slots > 1 ? -s.hx + 0.55 + (k * span) / (slots - 1) : (seed % 2 ? 1 : -1) * 0.4;
+      // Every third slot starts a storey higher; columns take the slots
+      // nearest the middle of the frontage.
+      const lift = k % 3 === 1 && floors >= 4 ? floorH : 0;
+      const y0 = s.base + floorH + 0.35 + lift;
+      const middle = Math.abs(k - (slots - 1) / 2) < columns / 2 + 0.01;
+      if (middle && columns) {
+        const y1 = Math.min(top - 0.5, y0 + Math.min(16, 0.5 * (6 + (seed % 12))));
+        if (y1 - y0 > 2) this.column(s, x, y0, y1, seed);
+        continue;
+      }
       const tall = seed % 5 === 0 && floors >= 4;
       const y1 = Math.min(
         top - 0.4,
-        y0 + (tall ? floorH * (floors - 1.4) : 2.4 + (seed % 3) * 1.2),
+        y0 + (tall ? Math.min(16, floorH * (floors - 1.4)) : 2.4 + (seed % 3) * 1.2),
       );
       if (y1 - y0 < 1.8) continue;
       const stacked = seed % 4 === 0 && y1 - y0 > 4,
@@ -861,7 +1138,83 @@ export class FestivalSignage {
         stacked ? 0.55 : sign.neon ? 1.5 : 0.6,
         stacked ? 0xffe6c4 : new T.Color(sign.neon ? sign.fg : sign.bg).getHex(),
       );
+      signs++;
     }
+    // Flat lit boards on the facade between the window bands of busy
+    // blocks: one per floor on two or three floors (ref 069).
+    if (s.kind === 'block' && !isApartment(s) && h % 3 !== 2 && s.hx > 4.5) {
+      const boards = Math.min(floors - 1, 2 + (h % 2));
+      for (let k = 0; k < boards; k++) {
+        const seed = mix(s.style, 60 + k);
+        const y = s.base + (k + 1) * floorH + 0.42;
+        const w = Math.min(4.2, s.hx * 0.8);
+        const x = ((k % 2 ? 1 : -1) * (s.hx - w / 2 - 0.9)) / 2;
+        this.slab(
+          this.at(s, x, y, 0.1),
+          this.n,
+          w,
+          0.62,
+          0.16,
+          LAYOUT.tenant(seed % TENANTS.length),
+          null,
+          0x2c2e30,
+          0.55,
+          (seed % 1000) / 1000,
+        );
+        this.stats.billboards++;
+      }
+    }
+    // Side-wall billboards on tall blocks, high on the wall where they clear
+    // the neighbours (ref 030), with lamp arms; a few central towers carry
+    // an animated LED screen instead.
+    if (floors >= 7 && !isApartment(s) && h % 2 === 0) {
+      let side = (h >>> 5) % 2 ? 1 : -1;
+      const w = Math.min(9, s.hz * 2 - 1.2),
+        bh = w / 2;
+      // A side whose neighbour rises past the board's foot is skipped.
+      const foot = top - 1.2 - bh;
+      if (this.neighbourTop(collider, side) > foot - 0.5) side = -side;
+      if (w > 3 && this.neighbourTop(collider, side) <= foot - 0.5) {
+        const centre = this.side(s, side, 0, top - 1.2 - bh / 2, 0.22);
+        const out = this.t.clone().multiplyScalar(side);
+        if (floors >= 9 && (h >>> 7) % 3 === 0) {
+          this.screens.add(centre, out, w, bh * 1.1, mix(s.style, 99));
+        } else {
+          this.slab(
+            centre,
+            out,
+            w,
+            bh,
+            0.2,
+            LAYOUT.billboard((h >>> 9) % BILLBOARDS),
+            null,
+            0x50565a,
+            0.35,
+            0,
+          );
+          for (const lz of [-w / 4, w / 4])
+            this.slab(
+              this.side(s, side, lz, top - 1.0, 0.7),
+              out,
+              0.12,
+              0.1,
+              0.9,
+              null,
+              null,
+              0x3a3f42,
+            );
+        }
+        this.stats.billboards++;
+      }
+    }
+    // Curtain-wall towers: a front LED screen high on one corner (ref 030).
+    if (this.plan.skin[i] === SKIN.curtain && h % 3 === 1 && s.hx > 5) {
+      const w = Math.min(10, s.hx * 1.2),
+        bh = w * 0.5625,
+        x = ((h >>> 11) % 2 ? 1 : -1) * (s.hx - w / 2 - 0.4);
+      this.screens.add(this.at(s, x, top - 1.6 - bh / 2, 0.3), this.n, w, bh, mix(s.style, 98));
+    }
+    const count2 = signs;
     // Rooftop billboard facing the street on about a third of the blocks.
     if (s.kind === 'block' && h % 3 === 0 && s.hx > 6) {
       const w = Math.min(9, s.hx * 1.3),
@@ -902,7 +1255,7 @@ export class FestivalSignage {
     }
     // Large wall banner over the side bays of tall blocks, on the side
     // away from the first projecting sign.
-    if (floors >= 5 && h % 4 === 1 && count < 2 && !isApartment(s)) {
+    if (floors >= 5 && h % 4 === 1 && count2 < 3 && !isApartment(s)) {
       const x = -(s.hx - 1.6);
       const y0 = s.base + floorH * 1.4,
         y1 = top - 0.8;
@@ -935,6 +1288,32 @@ export class FestivalSignage {
     if (s.kind === 'shop' && h % 5 === 2)
       for (let k = 0; k < 2 + (h % 2); k++) this.nobori(s, -s.hx + 2.4 + k * 1.15, (h >>> 9) + k);
     if (h % 7 === 3) for (const x of [-1.6, 1.6]) this.lantern(this.attach(s, x, 2.35, 0.32));
+    // Lit stand signs on the pavement by a third of the doors (refs 014, 030).
+    if (h % 3 === 2) this.standSign(s, -s.hx + 1.1 + ((h >>> 4) % 3) * 0.8, h >>> 6);
+  }
+
+  /** A 0.5 x 0.9 m lit stand sign on the pavement, faces along the street. */
+  private standSign(s: Structure, x: number, seed: number) {
+    // 0.9 m out clears the 0.72 m dressing planters; skip beside a banner
+    // or machine already standing there.
+    const p = this.at(s, x, 0, 0.9);
+    if (this.fixtures.some((f) => Math.hypot(f.x - p.x, f.z - p.z) < f.r + 0.45)) return;
+    const g = this.ground(p);
+    this.fixtures.push({ x: p.x, z: p.z, r: 0.4 });
+    this.light(new T.Vector3(p.x, g, p.z), 0xfff2e0, 0.35, 1.1);
+    this.slab(
+      new T.Vector3(p.x, g + 0.5, p.z),
+      this.t,
+      0.46,
+      0.9,
+      0.22,
+      LAYOUT.tenant(seed % TENANTS.length),
+      LAYOUT.tenant((seed >>> 6) % TENANTS.length),
+      0x2b2d2f,
+      0.45,
+      0,
+    );
+    this.stats.signs++;
   }
 
   /** Ground-floor convenience store in a city building. */
@@ -987,7 +1366,296 @@ export class FestivalSignage {
         );
       if (h % 4 === 1) for (const x of [-1.2, 1.2]) this.lantern(this.attach(s, x, 2.45, 0.35));
       if (h % 5 === 0) this.vending(s, s.hx - 1.2, h >>> 5);
-    } else if (h % 6 === 0) this.vending(s, s.hx - 1.0, h >>> 5, 0.42);
+      // Curved bamboo guards (inuyarai) along the wall base either side of
+      // the door, a timber bench and potted plants (refs 020, 014).
+      for (const side of [-1, 1]) {
+        const x0 = side * 1.25,
+          x1 = side * (s.hx - 0.5);
+        if (Math.abs(x1) - Math.abs(x0) < 1) continue;
+        if (h % 5 === 0 && side > 0) continue;
+        this.inuyarai(s, Math.min(x0, x1), Math.max(x0, x1));
+      }
+      if ((h >>> 4) % 2 === 0) this.bench(s, -(s.hx * 0.5), 0.95);
+      this.pots(s, 1.1, 2 + ((h >>> 6) % 3), h >>> 9);
+    } else {
+      if (h % 6 === 0) this.vending(s, s.hx - 1.0, h >>> 5, 0.42);
+      this.garden(s, h);
+    }
+  }
+
+  private grid: StructureGrid | null = null;
+  private readonly roadPoint = trackPoint();
+  /** Clearance (m) from (x, z) to the nearest road's usable edge. */
+  private roadClear(x: number, z: number) {
+    const net = this.world.network,
+      lateral = net.nearest(x, z, this.roadPoint),
+      e = net.edges[net.edgeOf[net.lastSegment]];
+    return Math.abs(lateral) - (e.spec.halfWidth + e.spec.shoulder);
+  }
+  /** True where a garden piece at (x, z) stays off roads and buildings. */
+  private open(x: number, z: number) {
+    this.grid ??= new StructureGrid(this.structures);
+    return this.roadClear(x, z) > 0.8 && !this.grid.blocks(x, z, 0.25);
+  }
+
+  /** Minka front garden (refs 020, 034, 056): a boundary 2.4-3.6 m in
+   * front of the house along the frontage with a gate gap (clipped hedge on
+   * a dry-stone course, a split-bamboo fence or a plastered wall with a
+   * tiled cap), returns back to the house, a stone lantern, clipped shrubs,
+   * stepping stones to the door and potted plants. Every piece stands on
+   * the carved ground and keeps 0.8 m off the road edge. */
+  private garden(s: Structure, h: number) {
+    const type = h % 10;
+    let zb = 0;
+    for (const z of [3.6, 3.0, 2.4]) {
+      let ok = true;
+      for (let x = -s.hx; x <= s.hx + 1e-6 && ok; x += s.hx / 3) {
+        const p = this.at(s, x, 0, z);
+        ok = this.roadClear(p.x, p.z) > 0.8;
+      }
+      if (ok) {
+        zb = z;
+        break;
+      }
+    }
+    if (!zb) return;
+    // Hillside plots (more than 1.2 m of fall across the garden) keep their
+    // natural slope: no walls, paths or pots.
+    let high = -Infinity,
+      low = Infinity;
+    for (const x of [-s.hx, 0, s.hx])
+      for (const z of [0.3, zb]) {
+        const y = this.ground(this.at(s, x, 0, z));
+        high = Math.max(high, y);
+        low = Math.min(low, y);
+      }
+    if (high - low > 1.2) return;
+    if (type < 9) {
+      const gate = 1.25;
+      const pieces: [number, number, number][] = [];
+      // Front run in <= 1.1 m pieces either side of the gate, then returns.
+      for (const side of [-1, 1]) {
+        const a = gate,
+          b = s.hx + 0.3,
+          n = Math.max(1, Math.ceil((b - a) / 1.1));
+        for (let k = 0; k < n; k++)
+          pieces.push([side * (a + ((k + 0.5) * (b - a)) / n), zb, (b - a) / n]);
+      }
+      const returns: [number, number, number][] = [];
+      for (const side of [-1, 1]) {
+        const n = Math.max(1, Math.ceil((zb - 0.4) / 1.1));
+        for (let k = 0; k < n; k++)
+          returns.push([side * (s.hx + 0.3), 0.4 + ((k + 0.5) * (zb - 0.4)) / n, (zb - 0.4) / n]);
+      }
+      const place = (x: number, z: number, len: number, along: boolean) => {
+        const c = this.at(s, x, 0, z);
+        if (!this.open(c.x, c.z)) return;
+        // Stand on the highest ground under the piece; skip slopes steeper
+        // than ~40 % across it (a real wall would step there).
+        let g = -Infinity,
+          low = Infinity;
+        for (const a of [-0.5, 0.5])
+          for (const b of [-0.3, 0.3]) {
+            const q = along ? this.at(s, x + a * len, 0, z + b) : this.at(s, x + b, 0, z + a * len);
+            const y = this.ground(q);
+            g = Math.max(g, y);
+            low = Math.min(low, y);
+          }
+        if (g - low > 0.45) return;
+        const face = along ? this.n : this.t;
+        if (type < 4) {
+          // Dry-stone course 0.5 m and a clipped hedge 0.9 m above it.
+          this.slab(
+            c.clone().setY(g + 0.22),
+            face,
+            len + 0.02,
+            0.56,
+            0.45,
+            LAYOUT.stones,
+            LAYOUT.stones,
+            0x8a877e,
+          );
+          this.slab(
+            c.clone().setY(g + 0.95),
+            face,
+            len + 0.04,
+            0.9,
+            0.62,
+            LAYOUT.hedge,
+            LAYOUT.hedge,
+            0x3d5a2c,
+          );
+        } else if (type < 7) {
+          this.slab(
+            c.clone().setY(g + 0.78),
+            face,
+            len,
+            1.56,
+            0.06,
+            LAYOUT.bamboo,
+            LAYOUT.bamboo,
+            0x8f7a4c,
+          );
+          this.slab(c.clone().setY(g + 1.6), face, len + 0.02, 0.07, 0.12, null, null, 0x5e4a2c);
+        } else {
+          const plaster = (h >>> 8) % 2 ? 0xe4dfd2 : 0xcfb48a;
+          this.slab(
+            c.clone().setY(g + 0.2),
+            face,
+            len + 0.01,
+            0.4,
+            0.34,
+            LAYOUT.stones,
+            LAYOUT.stones,
+            0x8a877e,
+          );
+          this.slab(c.clone().setY(g + 0.95), face, len, 1.1, 0.26, null, null, plaster);
+          this.slab(c.clone().setY(g + 1.58), face, len + 0.04, 0.16, 0.52, null, null, 0x3c4045);
+        }
+      };
+      for (const [x, z, len] of pieces) place(x, z, len, true);
+      for (const [x, z, len] of returns) place(x, z, len, false);
+      // Gate posts.
+      for (const side of [-1, 1]) {
+        const c = this.at(s, side * (gate - 0.12), 0, zb);
+        if (!this.open(c.x, c.z)) continue;
+        this.post(
+          c.setY(this.ground(c)),
+          type < 4 ? 1.3 : 1.85,
+          0.2,
+          type < 4 ? 0x8d8a82 : 0x3a2c22,
+        );
+      }
+    }
+    // Stepping stones from the gate to the door.
+    for (let k = 0; k < 4; k++) {
+      const c = this.at(s, k % 2 ? 0.15 : -0.12, 0, zb - 0.55 - k * ((zb - 1.0) / 3.5));
+      if (!this.open(c.x, c.z)) continue;
+      const g = this.ground(c);
+      this.slab(c.setY(g + 0.03), this.n, 0.55, 0.06, 0.42, null, null, 0x8e8b83);
+    }
+    // A stone lantern and clipped shrub mounds in the garden.
+    const lx = ((h >>> 5) % 2 ? 1 : -1) * Math.min(s.hx - 0.8, 2.6 + ((h >>> 6) % 3) * 0.6);
+    const lantern = this.at(s, lx, 0, zb * 0.5);
+    if (this.open(lantern.x, lantern.z)) this.toro(lantern.setY(this.ground(lantern)));
+    for (let k = 0; k < 3; k++) {
+      const x = -lx * (0.4 + 0.25 * k) + (k - 1) * 0.6,
+        z = zb * (0.3 + 0.18 * k);
+      const c = this.at(s, x, 0, z);
+      if (!this.open(c.x, c.z)) continue;
+      const size = 0.7 + ((h >>> (k + 3)) % 3) * 0.2;
+      this.slab(
+        c.setY(this.ground(c) + size * 0.4),
+        this.n,
+        size * 1.2,
+        size * 0.8,
+        size,
+        LAYOUT.hedge,
+        LAYOUT.hedge,
+        0x3f5e2d,
+      );
+    }
+    this.pots(s, 0.6, 1 + ((h >>> 11) % 3), h >>> 13);
+  }
+
+  /** A granite toro (1.4 m): base, shaft, lit fire box, roof and finial. */
+  private toro(base: T.Vector3) {
+    const stone = 0x8d8a82;
+    const at = (y: number) => base.clone().setY(base.y + y);
+    this.slab(at(0.12), this.n, 0.5, 0.24, 0.5, null, null, stone);
+    this.slab(at(0.55), this.n, 0.18, 0.62, 0.18, null, null, stone);
+    this.slab(at(0.92), this.n, 0.42, 0.12, 0.42, null, null, stone);
+    this.slab(at(1.1), this.n, 0.32, 0.26, 0.32, LAYOUT.white, LAYOUT.white, 0xe8c27a, 0.5, 0);
+    this.slab(at(1.29), this.n, 0.62, 0.12, 0.62, null, null, 0x7f7b74);
+    this.slab(at(1.42), this.n, 0.12, 0.14, 0.12, null, null, 0x7f7b74);
+    this.light(base, 0xffb070, 0.3, 1.4);
+    this.stats.lanterns++;
+  }
+
+  /** Inuyarai: a curved bamboo guard leaning from 0.9 m on the wall to the
+   * ground 0.5 m out, between local x0 and x1 (in 1 m pieces). */
+  private inuyarai(s: Structure, x0: number, x1: number) {
+    const n = Math.max(1, Math.round(x1 - x0));
+    for (let k = 0; k < n; k++) {
+      const a = x0 + ((x1 - x0) * k) / n,
+        b = x0 + ((x1 - x0) * (k + 1)) / n;
+      const ga = this.ground(this.at(s, a, 0, 0.5)),
+        gb = this.ground(this.at(s, b, 0, 0.5));
+      const mid = this.at(s, (a + b) / 2, 0, 0.3);
+      this.fixtures.push({ x: mid.x, z: mid.z, r: 0.6 });
+      const corners = [
+        this.at(s, a, ga + 0.02, 0.52),
+        this.at(s, b, gb + 0.02, 0.52),
+        this.at(s, b, gb + 0.9, 0.06),
+        this.at(s, a, ga + 0.9, 0.06),
+      ];
+      const normal = this.n
+        .clone()
+        .multiplyScalar(0.9)
+        .add(UP.clone().multiplyScalar(0.5))
+        .normalize();
+      // Wind the quad so it faces out along the frontage normal.
+      const e1 = corners[1].clone().sub(corners[0]),
+        e2 = corners[3].clone().sub(corners[0]);
+      const ordered =
+        e1.cross(e2).dot(normal) < 0 ? [corners[1], corners[0], corners[3], corners[2]] : corners;
+      this.batch(corners[0].x, corners[0].z).quad(ordered, normal, LAYOUT.bamboo, 0xa08a5a, 0, 0);
+    }
+  }
+
+  /** A low timber bench (shogi) against the front wall. */
+  private bench(s: Structure, x: number, z: number) {
+    const c = this.at(s, x, 0, z);
+    if (!this.open(c.x, c.z)) return;
+    const g = this.ground(c);
+    this.fixtures.push({ x: c.x, z: c.z, r: 1.0 });
+    this.slab(c.clone().setY(g + 0.43), this.n, 1.8, 0.06, 0.45, null, null, 0x6b4a2e);
+    for (const side of [-1, 1])
+      this.slab(
+        this.at(s, x + side * 0.75, g + 0.2, z),
+        this.n,
+        0.08,
+        0.4,
+        0.4,
+        null,
+        null,
+        0x4f3622,
+      );
+  }
+
+  /** A row of glazed pots with clipped foliage by the door. */
+  private pots(s: Structure, z: number, count: number, seed: number) {
+    const glaze = [0x7a3b26, 0x2c4a6e, 0x3c3a36, 0x8a6a4a];
+    const x0 = ((seed % 2) * 2 - 1) * 1.0;
+    for (let k = 0; k < count; k++) {
+      const x = x0 + Math.sign(x0) * k * 0.55;
+      if (Math.abs(x) > s.hx - 0.3) break;
+      const c = this.at(s, x, 0, z);
+      if (!this.open(c.x, c.z)) continue;
+      const g = this.ground(c);
+      this.fixtures.push({ x: c.x, z: c.z, r: 0.35 });
+      const size = 0.3 + ((seed >>> k) % 3) * 0.08;
+      this.slab(
+        c.clone().setY(g + size / 2),
+        this.n,
+        size,
+        size,
+        size,
+        null,
+        null,
+        glaze[(seed + k) % glaze.length],
+      );
+      this.slab(
+        c.clone().setY(g + size + 0.18),
+        this.n,
+        size + 0.1,
+        0.36,
+        size + 0.1,
+        LAYOUT.hedge,
+        LAYOUT.hedge,
+        0x3f6a2d,
+      );
+    }
   }
 
   /** Stand-alone store: pole sign at the street corner of its side car
@@ -1129,6 +1797,7 @@ export class FestivalSignage {
   update(time: number, night: number, camera: T.Camera, preset: QualityPreset) {
     this.uniforms.signTime.value = time;
     this.uniforms.signNight.value = night;
+    this.screens.update(time, night);
     camera.getWorldPosition(this.eye);
     const range =
       preset === 'low' ? 420 : preset === 'medium' ? 650 : preset === 'high' ? 900 : 1200;
@@ -1138,9 +1807,15 @@ export class FestivalSignage {
       const sphere = mesh.geometry.boundingSphere!;
       mesh.visible = this.eye.distanceTo(sphere.center) - sphere.radius < (small ? street : range);
     }
+    const screens = this.screens.mesh;
+    if (screens) {
+      const sphere = screens.geometry.boundingSphere!;
+      screens.visible = this.eye.distanceTo(sphere.center) - sphere.radius < range;
+    }
   }
 
   dispose() {
+    this.screens.dispose();
     for (const { mesh } of this.meshes) mesh.geometry.dispose();
     this.meshes.length = 0;
     this.material.dispose();

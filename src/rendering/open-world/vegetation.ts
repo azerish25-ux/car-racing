@@ -101,7 +101,7 @@ function pineTrunkGeometry() {
 /** Crown proportions per role: [height factor, width / height]. The width
  * ratio also picks the foliage atlas silhouette (landscape.ts foliageTile):
  * cherries the widest lobes, maples the round ones. */
-const ROLE_FORM: Readonly<Record<number, readonly [number, number]>> = {
+export const ROLE_FORM: Readonly<Record<number, readonly [number, number]>> = {
   [FLORA_ROLE.BROADLEAF]: [1, 0.86],
   [FLORA_ROLE.CHERRY]: [0.62, 1.22],
   [FLORA_ROLE.MAPLE]: [0.72, 1.0],
@@ -175,7 +175,19 @@ export function tileRoles(tile: VegetationTile) {
 interface TileTrees {
   group: T.Group;
   forest: PhotoForest | null;
+  /** Finest procedural tiles: full trees near the camera, the light crowns
+   * of the next level beyond `VEGETATION_LOD` (same instances, so every
+   * trunk the physics collides with stays drawn). */
+  lod?: { detail: T.Group; light: T.Group; x0: number; z0: number; size: number };
 }
+/** Distance (m) from the camera to a finest tile beyond which its trees
+ * draw as the next level's light crowns (no trunks, no shadows). */
+export const VEGETATION_LOD: Readonly<Record<QualityPreset, number>> = Object.freeze({
+  low: 110,
+  medium: 160,
+  high: 230,
+  ultra: 320,
+});
 /**
  * Instanced vegetation on the near terrain tiles: broadleaf trees from the
  * shared foliage-card crowns and atlas (the same crowns as the circuit
@@ -272,8 +284,20 @@ export class Vegetation {
   }
   /** Per frame: near-LOD switching of photographic tiles. */
   update(camera: T.Camera, preset: QualityPreset) {
-    for (const tile of this.tiles.values()) tile.forest?.update(camera, preset);
+    camera.getWorldPosition(this.eye);
+    const reach = VEGETATION_LOD[preset];
+    for (const tile of this.tiles.values()) {
+      tile.forest?.update(camera, preset);
+      if (!tile.lod) continue;
+      const { x0, z0, size } = tile.lod,
+        dx = Math.max(x0 - this.eye.x, 0, this.eye.x - x0 - size),
+        dz = Math.max(z0 - this.eye.z, 0, this.eye.z - z0 - size),
+        near = Math.hypot(dx, dz) < reach;
+      tile.lod.detail.visible = near;
+      tile.lod.light.visible = !near;
+    }
   }
+  private readonly eye = new T.Vector3();
   /** Bring the instanced tiles in line with the terrain's near tiles. */
   sync(near: ReadonlyMap<number, VegetationTile>) {
     for (const [key, tile] of this.tiles)
@@ -290,7 +314,7 @@ export class Vegetation {
         if (this.photo) {
           const forest = this.buildPhoto(entry);
           this.tiles.set(key, { group: forest.root, forest });
-        } else this.tiles.set(key, { group: this.build(entry), forest: null });
+        } else this.tiles.set(key, this.build(entry));
       }
     let instances = 0;
     for (const t of this.tiles.values()) instances += t.group.userData.instances as number;
@@ -357,7 +381,7 @@ export class Vegetation {
     this.root.add(forest.root);
     return forest;
   }
-  private build(tile: VegetationTile) {
+  private build(tile: VegetationTile): TileTrees {
     const group = new T.Group(),
       { data, level } = tile,
       trees = data.trees,
@@ -384,6 +408,7 @@ export class Vegetation {
       geometry: T.BufferGeometry,
       material: T.Material,
       shadows: boolean,
+      parent: T.Group = group,
     ) => {
       if (!indices.length) return;
       const mesh = new T.InstancedMesh(geometry, material, indices.length);
@@ -410,15 +435,32 @@ export class Vegetation {
       mesh.computeBoundingBox();
       mesh.computeBoundingSphere();
       mesh.matrixAutoUpdate = false;
-      group.add(mesh);
+      parent.add(mesh);
     };
     const [cards, pine, shrubs] = buckets;
+    let lod: TileTrees['lod'];
     if (near) {
-      add(cards, this.geometry.leaf, this.foliage, true);
-      add(cards, this.geometry.trunk, this.bark, true);
-      add(pine, this.geometry.pine, this.needles, true);
-      add(pine, this.geometry.pineTrunk, this.bark, true);
+      const detail = new T.Group(),
+        light = new T.Group(),
+        size = TILE_SIZE * 2 ** level;
+      add(cards, this.geometry.leaf, this.foliage, true, detail);
+      add(cards, this.geometry.trunk, this.bark, true, detail);
+      add(pine, this.geometry.pine, this.needles, true, detail);
+      add(pine, this.geometry.pineTrunk, this.bark, true, detail);
+      add(cards, this.geometry.distant, this.foliage, false, light);
+      add(pine, this.geometry.pineFar, this.needles, false, light);
       add(shrubs, this.geometry.shrub, this.shrub, false);
+      light.visible = false;
+      group.add(detail, light);
+      lod = {
+        detail,
+        light,
+        x0: -TERRAIN_EXTENT / 2 + (tile.ix ?? 0) * size,
+        z0: -TERRAIN_EXTENT / 2 + (tile.iz ?? 0) * size,
+        size,
+      };
+      if (tile.ix === undefined || tile.iz === undefined) lod = undefined;
+      if (!lod) light.removeFromParent();
     } else {
       add(cards, this.geometry.distant, this.foliage, false);
       add(pine, this.geometry.pineFar, this.needles, false);
@@ -426,7 +468,7 @@ export class Vegetation {
     group.userData.instances = cards.length + pine.length + (near ? shrubs.length : 0);
     group.name = `Vegetation L${level}`;
     this.root.add(group);
-    return group;
+    return { group, forest: null, lod };
   }
   dispose() {
     this.sync(new Map());

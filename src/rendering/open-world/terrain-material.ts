@@ -9,7 +9,7 @@ import {
   scanUniformDeclarations,
   type ScanLayer,
 } from '../ground/scan-store.ts';
-import { FLORA_ZONE_GLSL, SUSUKI_SEED } from './flora-roles.ts';
+import { FLORA_ZONE_GLSL, FLOWER_SEED, SUSUKI_SEED } from './flora-roles.ts';
 
 /** Photographed sets of the festival terrain (Medium and above): meadow
  * grass, rock (slope-aligned), forest-floor soil, sandy gravel, snow. */
@@ -27,9 +27,14 @@ const FESTIVAL_SCAN_GLSL = /* glsl */ `
 #ifdef APEX_SCAN
   vec2 scanDx = dFdx(vOwWorld.xz), scanDy = dFdy(vOwWorld.xz);
   vec3 scanWorldN = normalize((vec4(vNormal, 0.0) * viewMatrix).xyz);
-  vec3 scanContour = normalize(vec3(-scanWorldN.z, 0.0, scanWorldN.x) + vec3(1e-4, 0.0, 0.0));
-  vec2 scanFace = vec2(dot(vOwWorld, scanContour), vOwWorld.y);
-  vec2 scanFaceDx = dFdx(scanFace), scanFaceDy = dFdy(scanFace);
+  // Rock faces: two fixed vertical projections (and the plan view on flat
+  // rock) blended by the normal. A projection turning with the normal
+  // swings the texture by metres per degree this far from the origin and
+  // drew herringbone streaks over the faceted cuttings.
+  vec2 scanFaceX = vec2(vOwWorld.z, vOwWorld.y), scanFaceZ = vec2(vOwWorld.x, vOwWorld.y);
+  vec2 scanXDx = dFdx(scanFaceX), scanXDy = dFdy(scanFaceX), scanZDx = dFdx(scanFaceZ), scanZDy = dFdy(scanFaceZ);
+  float scanTop = smoothstep(0.8, 0.95, scanWorldN.y);
+  float scanSideX = smoothstep(0.3, 0.7, abs(scanWorldN.x) / (abs(scanWorldN.x) + abs(scanWorldN.z) + 1e-4));
   ApexScanSample sGrass = ${scanLayerCall('meadow', 'p', 'scanDx', 'scanDy', 1.5)};
   vec3 scanGrass = mix(vec3(dot(sGrass.ratio, ${SCAN_LUMA})), sGrass.ratio, 0.55);
   vec3 scanMacro = ${scanMacroCall('meadow', 'p', 0.08)};
@@ -39,9 +44,26 @@ const FESTIVAL_SCAN_GLSL = /* glsl */ `
   owScanRough = sGrass.rough;
   ApexScanSample sLayer;
   if (rock > 0.004) {
-    sLayer = ${scanLayerCall('rock', 'scanFace', 'scanFaceDx', 'scanFaceDy', 1.5, false)};
-    rockC *= sLayer.ratio;
-    owScanN = apexScanMixNormal(owScanN, sLayer.n, rock);
+    vec3 rockRatio = vec3(0.0), rockN = vec3(0.0);
+    float wTop = scanTop, wX = (1.0 - scanTop) * scanSideX, wZ = (1.0 - scanTop) * (1.0 - scanSideX);
+    if (wTop > 0.01) {
+      sLayer = ${scanLayerCall('rock', 'p', 'scanDx', 'scanDy', 1.5, false)};
+      rockRatio += sLayer.ratio * wTop;
+      rockN += sLayer.n * wTop;
+    }
+    if (wX > 0.01) {
+      sLayer = ${scanLayerCall('rock', 'scanFaceX', 'scanXDx', 'scanXDy', 1.5, false)};
+      rockRatio += sLayer.ratio * wX;
+      rockN += sLayer.n * wX;
+    }
+    if (wZ > 0.01) {
+      sLayer = ${scanLayerCall('rock', 'scanFaceZ', 'scanZDx', 'scanZDy', 1.5, false)};
+      rockRatio += sLayer.ratio * wZ;
+      rockN += sLayer.n * wZ;
+    }
+    float wSum = max(wTop * step(0.01, wTop) + wX * step(0.01, wX) + wZ * step(0.01, wZ), 1e-3);
+    rockC *= rockRatio / wSum;
+    owScanN = apexScanMixNormal(owScanN, normalize(rockN), rock);
   }
   if (soil > 0.004) {
     sLayer = ${scanLayerCall('forest', 'p', 'scanDx', 'scanDy', 1.5, false)};
@@ -82,6 +104,51 @@ float owFbm(vec2 p, float detail) {
 }
 `;
 
+/** Meadow grass of the festival (linear albedo), shared by the terrain and
+ * the grass carpet drawn over it (ground-cover.ts) so the blades fade into
+ * the ground's own colour. Needs OW_NOISE_GLSL, FLORA_ZONE_GLSL and the
+ * season uniforms. */
+export const OW_MEADOW_GLSL = /* glsl */ `
+/** Before the season: lush to dry over kilometres (macro), patches of tens
+ * of metres (darker, greener hollows and paler dry ground: 016, 021, 032 are
+ * never one green), brightness (meso), darker forest floor. */
+vec3 owMeadowBase(vec2 p, float macro, float meso, float micro, float forest) {
+  vec3 lush = vec3(0.075, 0.13, 0.035), dry = vec3(0.16, 0.17, 0.065);
+  vec3 grass = mix(lush, dry, smoothstep(0.35, 0.75, macro));
+  vec2 q = p * 0.0085 + vec2(owNoise(p * 0.0037 + 3.7), owNoise(p * 0.0037 - 5.1)) * 2.2;
+  float patches = owNoise(q) * 0.65 + owNoise(q * 2.3 + 11.0) * 0.35;
+  grass = mix(grass, grass * vec3(0.74, 0.9, 0.66), smoothstep(0.56, 0.8, patches) * 0.85);
+  grass = mix(grass, vec3(0.2, 0.185, 0.085), smoothstep(0.4, 0.14, patches) * 0.5);
+  grass *= 0.82 + 0.36 * meso;
+  return mix(grass, vec3(0.055, 0.07, 0.03) * (0.8 + 0.4 * micro), smoothstep(0.3, 0.8, forest) * 0.85);
+}
+/** The season (021, 032, 036, 042, 052, 064): fresh spring green, deep
+ * summer olive, straw and russet in autumn with leaf litter under the woods
+ * and the susuki fields silver-gold, dormant grey-brown under winter snow;
+ * cherry petals (weight \`petals\`) in spring. */
+vec3 owMeadowSeason(vec3 grass, vec2 p, float meso, float micro, float forest, float town, float petals) {
+  float gl = max(dot(grass, vec3(0.2126, 0.7152, 0.0722)), 1e-4);
+  vec3 springG = mix(grass, vec3(0.1, 0.17, 0.033) * (gl / 0.105), 0.55);
+  vec3 autumnG = mix(vec3(0.24, 0.185, 0.075), vec3(0.17, 0.105, 0.05), smoothstep(0.35, 0.8, meso)) * clamp(gl / 0.1, 0.6, 1.3);
+  float susuki = smoothstep(0.5, 0.62, owFloraZone(p, ${SUSUKI_SEED.toFixed(2)})) * (1.0 - smoothstep(0.2, 0.5, forest)) * (1.0 - town);
+  autumnG = mix(autumnG, vec3(0.44, 0.36, 0.22) * (0.85 + 0.3 * micro), susuki * 0.75);
+  autumnG = mix(autumnG, vec3(0.15, 0.065, 0.028) * (0.75 + 0.5 * micro), smoothstep(0.3, 0.8, forest) * 0.85);
+  springG = mix(springG, vec3(0.62, 0.45, 0.5), petals * 0.45);
+  vec3 winterG = mix(vec3(0.15, 0.13, 0.095), vec3(0.1, 0.09, 0.07), micro);
+  // Summer: deep olive green (016 #626931, 021 #65642f sunlit; the
+  // rendered meadow read #596e2e, too green, before the warmer factor).
+  vec3 summerG = grass * vec3(1.0, 0.93, 0.68);
+  return owSeason.x * springG + owSeason.y * summerG + owSeason.z * autumnG + owSeason.w * winterG;
+}
+/** Season meadow colour for blades (no petals, mid micro). */
+vec3 owMeadowColour(vec2 p, float macro, float meso, float forest) {
+  return owMeadowSeason(owMeadowBase(p, macro, meso, 0.5, forest), p, meso, 0.5, forest, 0.0, 0.0);
+}
+`;
+
+/** The grass carpet over the terrain (ground-cover.ts sets it per frame):
+ * (eye x, eye z, carpet reach m, strength 0..1). */
+export const TERRAIN_CARPET = { value: new T.Vector4(0, 0, 0, 0) };
 export interface TerrainUniforms {
   owWet: { value: number };
   owSnowTint: { value: number };
@@ -112,6 +179,7 @@ export function terrainMaterial(): T.MeshStandardMaterial & { userData: { ow: Te
   material.userData.ow = uniforms;
   material.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms, scannedGround.uniformsFor(FESTIVAL_SCAN_LAYERS));
+    shader.uniforms.owCarpet = TERRAIN_CARPET;
     bindSeasonUniforms(shader);
     shader.vertexShader = shader.vertexShader
       .replace(
@@ -136,12 +204,14 @@ vOwWorld = (modelMatrix * vec4(transformed, 1.0)).xyz;`,
         `#include <common>
 uniform float owWet;
 uniform float owSnowTint;
+uniform vec4 owCarpet;
 ${SEASON_GLSL}
 varying vec4 vSplat;
 varying vec4 vShade;
 varying vec3 vOwWorld;
 ${OW_NOISE_GLSL}
 ${FLORA_ZONE_GLSL}
+${OW_MEADOW_GLSL}
 float owRoughness;
 vec2 owBump;
 #ifdef APEX_SCAN
@@ -177,39 +247,39 @@ ${SCAN_COMMON_GLSL}`,
   snow = max(snow, owSnowCover * smoothstep(0.6, 0.84, owN.y + 0.14 * (meso - 0.5)) * (0.86 + 0.14 * micro) * (1.0 - 0.7 * rock));
   float town = vShade.w;
   float forest = vShade.y;
-  // Grass: lush to dry by macro noise, darker forest floor under woods.
-  vec3 lush = vec3(0.075, 0.13, 0.035), dry = vec3(0.16, 0.17, 0.065);
-  vec3 grass = mix(lush, dry, smoothstep(0.35, 0.75, macro));
-  grass *= 0.82 + 0.36 * meso;
-  grass = mix(grass, vec3(0.055, 0.07, 0.03) * (0.8 + 0.4 * micro), smoothstep(0.3, 0.8, forest) * 0.85);
+  vec3 grass = owMeadowBase(p, macro, meso, micro, forest);
   // Short airfield and park turf, worn paving in towns.
   grass = mix(grass, mix(vec3(0.17, 0.165, 0.15), vec3(0.11, 0.15, 0.06), smoothstep(0.4, 0.7, meso)), town * 0.8);
-  // Season (references 021, 032, 036, 042, 052, 064): fresh spring green,
-  // deep summer green, straw and russet in autumn with leaf litter under
-  // the woods, dormant grey-brown under the winter snow.
-  {
-    float gl = max(dot(grass, vec3(0.2126, 0.7152, 0.0722)), 1e-4);
-    vec3 springG = mix(grass, vec3(0.1, 0.17, 0.033) * (gl / 0.105), 0.55);
-    vec3 autumnG = mix(vec3(0.24, 0.185, 0.075), vec3(0.17, 0.105, 0.05), smoothstep(0.35, 0.8, meso)) * clamp(gl / 0.1, 0.6, 1.3);
-    // Susuki fields read silver-gold from afar (036); petals lie under the
-    // cherry groves in spring (050).
-    float susuki = smoothstep(0.5, 0.62, owFloraZone(p, ${SUSUKI_SEED.toFixed(2)})) * (1.0 - smoothstep(0.2, 0.5, forest)) * (1.0 - town);
-    autumnG = mix(autumnG, vec3(0.44, 0.36, 0.22) * (0.85 + 0.3 * micro), susuki * 0.75);
-    autumnG = mix(autumnG, vec3(0.15, 0.065, 0.028) * (0.75 + 0.5 * micro), smoothstep(0.3, 0.8, forest) * 0.85);
-    float petals = owCherryZone(p) * smoothstep(0.5, 0.85, owFbm(p * 0.09, near)) * (1.0 - 0.6 * forest);
-    springG = mix(springG, vec3(0.62, 0.45, 0.5), petals * 0.45);
-    vec3 winterG = mix(vec3(0.15, 0.13, 0.095), vec3(0.1, 0.09, 0.07), micro);
-    // Summer: deep olive green (016 #626931, 021 #63632d sunlit).
-    vec3 summerG = grass * vec3(0.92, 1.0, 0.72);
-    grass = owSeason.x * springG + owSeason.y * summerG + owSeason.z * autumnG + owSeason.w * winterG;
-  }
+  float petals = owCherryZone(p) * smoothstep(0.5, 0.85, owFbm(p * 0.09, near)) * (1.0 - 0.6 * forest);
+  grass = owMeadowSeason(grass, p, meso, micro, forest, town, petals);
+  // Under the grass carpet the ground reads as the shaded base of the
+  // blades (no pale gaps between clumps), fading out with the carpet.
+  float carpet = owCarpet.w * (1.0 - smoothstep(owCarpet.z * 0.5, owCarpet.z, distance(p, owCarpet.xy)));
+  grass = mix(grass, grass * vec3(0.7, 0.78, 0.62), carpet);
   vec3 rockC = mix(vec3(0.17, 0.16, 0.145), vec3(0.29, 0.27, 0.24), owFbm(vec2(p.x * 0.05, vOwWorld.y * 0.6), mid));
   rockC *= 0.85 + 0.3 * micro;
-  // Fields: crop strips from the farm pattern, else bare earth.
+  // Fields (the flat ones become paddies below): one crop per 34 x 61 m
+  // plot like the paddies, rows along the plot and grass bunds between
+  // plots, not contour stripes of the field noise (from above those read as
+  // camouflage bands). Vegetables, tilled soil, tea rows, fallow grass.
   float field = vShade.z;
-  vec3 crop = mix(vec3(0.33, 0.27, 0.12), vec3(0.11, 0.17, 0.04), step(0.62, fract(field * 7.3)));
+  float farm = smoothstep(0.42, 0.5, field);
   vec3 earth = mix(vec3(0.16, 0.115, 0.075), vec3(0.24, 0.19, 0.13), micro);
-  vec3 soilC = mix(earth, crop, field > 0.0 ? 0.75 : 0.0);
+  vec3 soilC = earth;
+  if (field > 0.0) {
+    vec2 fg = vec2(p.x / 34.0, p.y / 61.0);
+    vec2 fcell = floor(fg), ff = fract(fg);
+    float kind = owHash(fcell + 29.0), kind2 = owHash(fcell + 53.0);
+    float rowsF = smoothstep(0.3, 0.7, abs(fract((kind2 < 0.5 ? p.x : p.y) / 1.1) - 0.5) * 2.0);
+    vec3 tilled = mix(vec3(0.12, 0.085, 0.055), vec3(0.19, 0.14, 0.095), micro);
+    vec3 veg = mix(tilled, vec3(0.07, 0.14, 0.035) * (0.8 + 0.4 * kind2), mix(0.55, rowsF, near));
+    vec3 tea = mix(vec3(0.03, 0.06, 0.02), vec3(0.065, 0.11, 0.03), mix(0.6, rowsF, near));
+    bool teaPlot = kind >= 0.55 && kind < 0.7;
+    vec3 cropC = kind < 0.35 ? veg : (kind < 0.55 ? tilled : (teaPlot ? tea : grass * (0.9 + 0.2 * kind2)));
+    cropC = mix(cropC, teaPlot ? tea : mix(tilled, vec3(0.14, 0.12, 0.09), 0.5), owSeason.w * 0.8);
+    float fEdge = min(min(ff.x, 1.0 - ff.x) * 34.0, min(ff.y, 1.0 - ff.y) * 61.0);
+    soilC = mix(cropC, grass, 1.0 - smoothstep(0.4, 0.8, fEdge));
+  }
   vec3 sandC = mix(vec3(0.42, 0.37, 0.27), vec3(0.6, 0.54, 0.41), meso) * (0.9 + 0.2 * micro);
   vec3 snowC = vec3(0.82, 0.84, 0.88) * (0.94 + 0.06 * micro) * owSnowTint;
   ${FESTIVAL_SCAN_GLSL}
@@ -217,7 +287,7 @@ ${SCAN_COMMON_GLSL}`,
   // embankments beyond stay grassed (042, 050: grass to the guardrail).
   float verge = smoothstep(0.9, 1.0, vShade.x) * (1.0 - snow);
   vec3 col = grass;
-  col = mix(col, soilC, soil);
+  col = mix(col, soilC, max(soil, farm * 0.85 * (1.0 - rock) * (1.0 - sand)));
   // Rice paddies and flower fields on the flat lowland farms: plots with
   // grass bunds (050, 028), flooded in spring, green in summer, gold in
   // autumn; some plots are flower strips in spring and summer (051).
@@ -239,11 +309,14 @@ ${SCAN_COMMON_GLSL}`,
     vec3 bloom = stripe < 0.2 ? vec3(0.5, 0.03, 0.03) : (stripe < 0.4 ? vec3(0.6, 0.42, 0.02) : (stripe < 0.6 ? vec3(0.2, 0.05, 0.33) : (stripe < 0.8 ? vec3(0.62, 0.62, 0.58) : vec3(0.62, 0.18, 0.32))));
     bloom = mix(bloom, vec3(0.06, 0.1, 0.03), smoothstep(0.42, 0.5, abs(fract(p.x / 1.5) - 0.5)) * 0.6);
     vec3 flowerC = (owSeason.x + owSeason.y) * bloom + owSeason.z * vec3(0.2, 0.15, 0.09) + owSeason.w * vec3(0.14, 0.11, 0.08);
-    vec3 plotC = plot < 0.14 ? flowerC : paddyC;
+    // Flower farms gather where the wildflower zone is (051), not as stripes
+    // scattered over every farm (from above those read as banding).
+    bool flowers = plot < 0.3 && owFloraZone(p, ${FLOWER_SEED.toFixed(2)}) > 0.76;
+    vec3 plotC = flowers ? flowerC : paddyC;
     plotC = mix(plotC, vec3(0.085, 0.12, 0.04) * (0.8 + 0.4 * micro), bund);
     float use = farmW * step(plot, 0.82);
     col = mix(col, plotC, use);
-    owPaddyWet = use * owSeason.x * (1.0 - bund) * step(0.14, plot) * (1.0 - step(0.75, plot2));
+    owPaddyWet = use * owSeason.x * (1.0 - bund) * (flowers ? 0.0 : 1.0) * (1.0 - step(0.75, plot2));
   }
   col = mix(col, sandC, sand);
   col = mix(col, rockC, rock);
@@ -284,7 +357,7 @@ normal = apexScanPerturb(normal, owScanN, 1.1);
 #endif`,
       );
   };
-  material.customProgramCacheKey = () => 'festival-terrain-seasons-v2';
+  material.customProgramCacheKey = () => 'festival-terrain-seasons-v4';
   scannedGround.register(material, FESTIVAL_SCAN_LAYERS);
   return material;
 }

@@ -30,11 +30,8 @@ import {
   circuitLightState,
   configureSky,
   lightingDirection,
-  shadowAnchor,
   SkyEnvironment,
-  type LightingMode,
 } from '../daylight.ts';
-import { FarShadow } from '../far-shadow.ts';
 import { PresentedFrame } from '../frame-state.ts';
 import { LensBloomPass } from '../lens-bloom.ts';
 import { applyCircuitLightPalette } from '../lighting-coherence.ts';
@@ -52,6 +49,7 @@ import { postLensFrame } from '../studio/lens-effects.ts';
 import { SKY_CLOUDS } from '../studio/sky-clouds.ts';
 import { studioUniforms } from '../studio/studio-frame.ts';
 import { UltraPipeline } from '../ultra/pipeline.ts';
+import { installSsrMask } from '../ultra/ssr-mask.ts';
 import { PhotoSky } from '../assets/photo-sky.ts';
 import { scannedGround } from '../ground/scan-store.ts';
 import { FESTIVAL_PALETTE } from '../assets/sky-catalogue.ts';
@@ -64,6 +62,9 @@ import { RoadFurniture } from './road-furniture.ts';
 import { TERRAIN_BUDGETS, TerrainStreamer } from './terrain.ts';
 import { Vegetation } from './vegetation.ts';
 import { FestivalFlora } from './flora.ts';
+import { GroundCover } from './ground-cover.ts';
+import { FarCanopy } from './far-canopy.ts';
+import { RockOutcrops } from './rocks.ts';
 import { installSeasonLibrary, installSeasonMeadow, installSeasonRoads } from './season-flora.ts';
 import { photoVegetationEnabled, VegetationLibrary } from '../vegetation/library.ts';
 import { speciesForPalette } from '../vegetation/species.ts';
@@ -88,6 +89,9 @@ import { FestivalChaseDynamics, advanceChaseSpring } from './chase-dynamics.ts';
 import { driftFeedback, type DriftCue } from '../../simulation/open-world/drift-feedback.ts';
 import { HorizonGuidance } from './horizon-guidance.ts';
 import { FestivalTrails } from './festival-trails.ts';
+import { SeasonParticles } from './season-particles.ts';
+import { SnowWalls } from './snow-walls.ts';
+import { FestivalAttractions } from './festival-attractions.ts';
 import { HorizonDressing } from './horizon-dressing.ts';
 import { DistantLandscape } from './distant-landscape.ts';
 import { FestivalAtmosphere, festivalGrade } from './festival-atmosphere.ts';
@@ -100,6 +104,19 @@ import {
 } from './festival-sky.ts';
 import { setCloudShadow } from '../studio/cloud-shadow.ts';
 import { FestivalDriftSmoke } from './drift-smoke.ts';
+import {
+  DUSK_KEY,
+  FESTIVAL_DUSK,
+  duskLightColours,
+  duskShadowAnchor,
+  festivalDuskLight,
+  installDuskSky,
+} from './festival-dusk.ts';
+import {
+  festivalBaseLighting,
+  festivalNightAmount,
+  type FestivalLighting,
+} from '../../session/festival-lighting.ts';
 import { FestivalEventDressing } from './event-dressing.ts';
 import { DragStrip, type DragView } from './drag-strip.ts';
 import { FestivalSpeedBlur } from './speed-blur.ts';
@@ -108,6 +125,15 @@ import { architecturePlan } from './japan-architecture.ts';
 import { FestivalSignage } from './festival-signage.ts';
 import { FestivalTownLife } from './town-life.ts';
 import { parkedSites } from './parked-cars.ts';
+import { FestivalShadows } from './festival-shadows.ts';
+import {
+  FESTIVAL_AO,
+  FESTIVAL_WET_SSR,
+  FESTIVAL_WET_SSR_FROM,
+  festivalGraphics,
+} from './festival-quality.ts';
+import { FestivalPhotoLens } from './festival-photo-lens.ts';
+import { FestivalFrameHistory } from './festival-temporal.ts';
 import { ParkedCars } from '../traffic-cars.ts';
 
 /** Parked-car draw distance (m) per tier. */
@@ -174,6 +200,12 @@ export class FestivalRenderer {
   readonly vegetation = new Vegetation();
   /** Susuki, wildflowers and bamboo groves (decorative, season-shaded). */
   readonly flora: FestivalFlora;
+  /** Grass carpet and understory around the camera (ground-cover.ts). */
+  readonly groundCover = new GroundCover();
+  /** Forest canopy beyond the planted terrain levels (far-canopy.ts). */
+  readonly farCanopy = new FarCanopy();
+  /** Rock outcrops on the steep and high ground (rocks.ts). */
+  readonly rocks = new RockOutcrops();
   /** Photographic trees and shrubs, when loaded (see loadPhotoVegetation). */
   photoVegetation: VegetationLibrary | null = null;
   readonly water: Water;
@@ -183,6 +215,13 @@ export class FestivalRenderer {
   private readonly effectPlayback = new EffectPlayback(this.effects);
   readonly guidance = new HorizonGuidance();
   readonly trails = new FestivalTrails();
+  /** Falling petals, leaves and snow around the camera. */
+  readonly flakes = new SeasonParticles();
+  /** Winter plough walls on high mountain roads. */
+  readonly snowWalls: SnowWalls;
+  /** Ferris wheel and night fireworks at the Kestrel hub. */
+  readonly attractions: FestivalAttractions;
+  private readonly flakeLight = new T.Color();
   readonly smoke = new FestivalDriftSmoke();
   readonly eventDressing: FestivalEventDressing;
   private readonly speedBlur: FestivalSpeedBlur;
@@ -215,11 +254,20 @@ export class FestivalRenderer {
   private readonly grade = new BroadcastGradePass();
   private readonly fxaa = new ShaderPass(FXAAShader);
   readonly ultra: UltraPipeline;
-  private readonly farShadow = new FarShadow(1024);
+  /** Near (camera-led) + far (re-rendered) sun maps; the mid cascade is ULTRA's. */
+  readonly shadows: FestivalShadows;
+  /** Photo mode lens (depth of field, zoom, exposure, look). */
+  readonly photoLens: FestivalPhotoLens;
+  /** The festival's own frame history (TAA, temporal AO, SSR noise). */
+  private readonly history = new FestivalFrameHistory();
+  private readonly shadowHidden: (T.Object3D | null)[] = [];
+  private traffic: T.Object3D | null = null;
   private readonly wet = new WetRoadReflection();
   graphics: GraphicsOptions = graphicsPreset('medium');
   preset: QualityPreset = 'medium';
-  lighting: LightingMode = 'day';
+  /** Time of day: a shared circuit lighting, or the festival's blue hour
+   * ('dusk', drawn on the night state with festival-dusk.ts overrides). */
+  lighting: FestivalLighting = 'day';
   private currentSeason: Season = 'summer';
   /** Presentation season (foliage, ground cover, snow, petals). */
   get season(): Season {
@@ -238,6 +286,7 @@ export class FestivalRenderer {
   private readonly forward = new T.Vector3();
   private readonly temp = new T.Vector3();
   private readonly temp2 = new T.Vector2();
+  private readonly flareFill = new T.Vector3();
   private readonly basis = new T.Quaternion();
   private readonly euler = new T.Euler();
   private initialized = false;
@@ -252,7 +301,13 @@ export class FestivalRenderer {
   /** The running drag's tree and lanes (status), sequencing the 3D lights. */
   drag: DragView | null = null;
   readonly dragStrip: DragStrip;
-  stats = { drawCalls: 0, triangles: 0, renderMs: 0 };
+  stats: {
+    drawCalls: number;
+    triangles: number;
+    renderMs: number;
+    /** Landscape density (ground cover patches, far crowns, rocks, trees). */
+    landscape?: Record<string, unknown>;
+  } = { drawCalls: 0, triangles: 0, renderMs: 0 };
   constructor(
     readonly renderer: T.WebGLRenderer,
     readonly canvas: HTMLCanvasElement,
@@ -262,6 +317,7 @@ export class FestivalRenderer {
     tileWorker: Worker,
   ) {
     const scene = this.scene;
+    this.shadows = new FestivalShadows(this.sun, renderer);
     // The season uniforms are shared module state: start every session clean.
     applySeason(this.currentSeason);
     this.events = new Map(events.map((event) => [event.spec.id, event]));
@@ -281,7 +337,15 @@ export class FestivalRenderer {
       this.trails.root,
       this.contacts.root,
       this.smoke.root,
+      this.flakes.root,
     ];
+    this.scene.add(this.flakes.root);
+    this.snowWalls = new SnowWalls(world.network, (x, z) => world.field.height(x, z));
+    this.scene.add(this.snowWalls.root);
+    this.attractions = new FestivalAttractions(world.network, structures, (x, z) =>
+      carvedGroundHeight(world.carver, x, z),
+    );
+    this.scene.add(this.attractions.root);
     this.effects.looseColours = new Map([
       [MATERIAL.DIRT, [0.43, 0.32, 0.19] as const],
       [MATERIAL.MUD, [0.23, 0.19, 0.14] as const],
@@ -296,6 +360,8 @@ export class FestivalRenderer {
     this.sky.scale.setScalar(450000);
     this.sky.userData.excludeMotionBlur = true;
     configureSky(this.sky);
+    // The festival's blue-hour dome (off unless the time of day is dusk).
+    installDuskSky(this.sky.material);
     this.clouds = FestivalSkyClouds.forFestival(this.sky.material, lightingDirection);
     this.photoSky.setQuality(this.preset);
     this.environment = new SkyEnvironment(this.sky, this.clouds, this.festivalSky);
@@ -303,18 +369,11 @@ export class FestivalRenderer {
     scene.environmentIntensity = 0.7;
     scene.fog = new T.FogExp2(0xb9c7c1, 0.00012);
     scene.add(this.hemisphere, this.sun, this.sun.target);
+    // After the sun: the shared shader patch reads it as directional shadow 1.
+    scene.add(this.shadows.far.light, this.shadows.far.light.target);
     this.sun.castShadow = true;
     this.sun.shadow.mapSize.set(2048, 2048);
-    Object.assign(this.sun.shadow.camera, {
-      left: -70,
-      right: 70,
-      top: 70,
-      bottom: -70,
-      near: 20,
-      far: 900,
-    });
-    this.sun.shadow.bias = -0.00003;
-    this.sun.shadow.normalBias = 0.02;
+    // Frustum, PCSS and offsets: FestivalShadows.configure (setQuality).
     this.terrain = new TerrainStreamer(tileWorker, TERRAIN_BUDGETS.medium);
     this.roads = new RoadMeshes(world.network, world.field);
     this.furniture = new RoadFurniture(world, structures, (x, z) => this.groundHeight(x, z));
@@ -374,6 +433,9 @@ export class FestivalRenderer {
       this.parked.root,
       this.vegetation.root,
       this.flora.root,
+      this.groundCover.root,
+      this.farCanopy.root,
+      this.rocks.root,
       this.water.root,
       this.markers.root,
       this.cars.root,
@@ -383,6 +445,7 @@ export class FestivalRenderer {
       this.contacts.root,
       this.smoke.root,
       this.eventDressing.root,
+      this.eventDressing.flares.lightRoot,
       this.dragStrip.root,
     );
     installSpecularIBL(scene);
@@ -393,13 +456,18 @@ export class FestivalRenderer {
     // Festival speed blur: the shared depth-reprojected camera blur, gathered
     // in this scene pass's composite (no extra draw).
     this.speedBlur = new FestivalSpeedBlur(renderer.extensions.has('EXT_color_buffer_float'));
-    this.scenePass.attach(this.speedBlur.motion);
+    // The sun also casts the scene pass's screen-space contact shadows; the
+    // obscurance works at street scale (festival-quality.ts FESTIVAL_AO).
+    this.scenePass.attach(this.speedBlur.motion, this.sun);
+    this.scenePass.setObscurance(FESTIVAL_AO);
     this.composer.addPass(this.bloom);
     this.composer.addPass(new OutputPass());
     this.composer.addPass(this.fxaa);
     this.composer.addPass(this.grade);
-    // The festival's own grade over the shared profiles (festival-atmosphere.ts).
-    this.grade.profileAdjust = festivalGrade;
+    // The festival's own grade over the shared profiles (festival-atmosphere.ts);
+    // dusk adjusts the night profile it runs on.
+    this.grade.profileAdjust = (profile, base) =>
+      festivalGrade(profile === 'night' && this.lighting === 'dusk' ? 'dusk' : profile, base);
     this.ultra = new UltraPipeline({
       renderer,
       scene,
@@ -409,10 +477,12 @@ export class FestivalRenderer {
       bloom: this.bloom,
       grade: this.grade,
       sun: this.sun,
-      farShadow: this.farShadow,
+      farShadow: this.shadows.far,
       wetReflection: this.wet,
       roadMaterial: this.roads.materials.asphalt,
     });
+    this.photoLens = new FestivalPhotoLens(this.camera, this.scenePass.target.depthTexture!);
+    this.composer.insertPass(this.photoLens.pass, 1);
     prewarmSky('day');
   }
   /** Separately posed motorcycles belong to the same reflection system,
@@ -541,7 +611,10 @@ export class FestivalRenderer {
     this.preset = preset;
     if (this.details && flagTierChanged)
       this.guidance.useFlagTemplate(this.details.flagTemplate(preset === 'low'));
-    this.graphics = this.ultra.deviceGraphics(validateGraphics(options, preset));
+    // The festival's pipeline over the preset (festival-quality.ts).
+    this.graphics = this.ultra.deviceGraphics(
+      festivalGraphics(preset, validateGraphics(options, preset)),
+    );
     const g = this.graphics,
       tier = detailTier(preset);
     this.renderer.shadowMap.enabled = g.shadowSize > 0;
@@ -567,6 +640,20 @@ export class FestivalRenderer {
     this.photoSky.setQuality(preset);
     scannedGround.attach(this.renderer, preset);
     this.ultra.configure(preset, g);
+    this.shadows.configure(preset, g);
+    // Wet roads, sea and river join the SSR mask wherever SSR may run (the
+    // encode is inert until the stage draws).
+    if (g.ssr || FESTIVAL_WET_SSR[preset])
+      for (const material of [
+        this.roads.materials.asphalt,
+        this.roads.materials.asphaltMajor,
+        this.roads.materials.town,
+        this.water.sea.material as T.Material,
+        this.water.river.material as T.Material,
+      ])
+        installSsrMask(material);
+    // Facade glazing (roughness 0.1) reflects the street where SSR always runs.
+    if (g.ssr) installSsrMask(this.buildings.material);
     this.resize();
   }
   resize() {
@@ -617,7 +704,7 @@ export class FestivalRenderer {
   }
   /** Night amount of the current lighting (lamps, windows, headlights). */
   get night() {
-    return this.lighting === 'night' ? 1 : this.lighting === 'sunset' ? 0.25 : 0;
+    return festivalNightAmount(this.lighting);
   }
   /** Is the terrain under (x, z) and the coarse cover resident? */
   ready(x: number, z: number) {
@@ -639,6 +726,10 @@ export class FestivalRenderer {
     const presented = this.presented.sample(a, b, a === b ? 1 : clamp(alpha, 0, 1));
     const time = presented[H.TIME];
     const night = this.night;
+    // The shared lighting machinery this time of day runs on (dusk: night).
+    const timeOfDay = this.lighting,
+      mode = festivalBaseLighting(timeOfDay),
+      dusk = timeOfDay === 'dusk';
     this.cars.update(
       a,
       b,
@@ -765,6 +856,16 @@ export class FestivalRenderer {
       this.vegetation.sync(this.terrain.treeTiles);
     }
     this.vegetation.update(this.camera, this.preset);
+    if (this.terrain.canopyChanged) {
+      this.terrain.canopyChanged = false;
+      this.farCanopy.sync(this.terrain.canopyTiles);
+    }
+    this.farCanopy.update(this.camera, this.preset);
+    if (this.terrain.nearChanged) {
+      this.terrain.nearChanged = false;
+      this.rocks.sync(this.terrain.nearTiles);
+    }
+    this.rocks.update(this.camera, this.preset);
     this.markers.update(time, this.discovered, this.activeEvent, this.gate, (x, z) =>
       this.groundHeight(x, z),
     );
@@ -799,9 +900,19 @@ export class FestivalRenderer {
     this.buildings.setNight(night);
     this.dressing.update(time, night, this.camera, this.preset);
     this.flora.update(this.camera, this.preset);
+    this.groundCover.update(
+      this.camera,
+      this.preset,
+      this.terrain.version,
+      (x0, z0) => this.terrain.finestTile(x0, z0),
+      { x: this.target.x, z: this.target.z, yaw: bodyYaw },
+    );
     this.distant.setQuality(this.preset);
-    this.distant.update(this.lighting, SEASONS.indexOf(this.currentSeason));
-    this.eventDressing.update(this.camera, night, this.preset, time);
+    this.distant.update(mode, SEASONS.indexOf(this.currentSeason));
+    // Sky light on the start flares' smoke: the dusk dome, or the night's.
+    if (dusk) this.flareFill.fromArray(FESTIVAL_DUSK.light.smokeFill).multiplyScalar(0.5);
+    else this.flareFill.set(0.008, 0.01, 0.016);
+    this.eventDressing.update(this.camera, night, this.preset, time, this.flareFill);
     this.dragStrip.update(time, this.drag, this.camera);
     this.signage.update(time, night, this.camera, this.preset);
     this.townLife.update(
@@ -834,8 +945,7 @@ export class FestivalRenderer {
     if (this.details?.poseAero(presented, subject ?? null, dt, this.camera))
       this.cars.bodies.hideRearWing(0);
     // --- Lighting -----------------------------------------------------------
-    const mode = this.lighting,
-      daylight = circuitLightState(presented[H.CLOUD], presented[H.RAIN], mode);
+    const daylight = circuitLightState(presented[H.CLOUD], presented[H.RAIN], mode);
     if (mode === 'night') {
       // Local town fixtures now illuminate the road. Keep a modest diffuse
       // floor for rural sections outside those bounded pools so the unlit
@@ -851,24 +961,36 @@ export class FestivalRenderer {
       this.festivalSky.capturedClouds,
       sunFacing(this.camera.getWorldDirection(this.temp), lightingDirection(mode)),
     );
+    // Blue hour: no sun, the dusk dome's light, a dim key from the western sky.
+    if (dusk) festivalDuskLight(daylight, presented[H.RAIN]);
     // The festival's own air (festival-atmosphere.ts): the art-bible horizon
     // as in-scatter, not the photographed dome's (its clear-day photo has a
     // brown desert horizon), and clean-air extinction per lighting.
-    this.atmosphere.update(mode, daylight.cover, presented[H.RAIN]);
+    this.atmosphere.update(timeOfDay, daylight.cover, presented[H.RAIN]);
     applyCircuitLightPalette(this.sun, this.hemisphere, daylight.cover, mode);
+    if (dusk)
+      duskLightColours(
+        daylight.cover,
+        this.sun.color,
+        this.hemisphere.color,
+        this.hemisphere.groundColor,
+      );
     this.sun.intensity = daylight.sun;
     this.hemisphere.intensity = daylight.fill;
     this.scene.environmentIntensity = daylight.environment;
     // Festival may follow any circuit lighting state in the shared renderer.
     // Set its own sky energy every frame instead of inheriting that state.
     setIblEnergy(daylight.environment, mode);
-    const saturation = this.photoSky.irradianceSaturation(
-      daylight.cover,
-      mode,
-      iblUniforms.apexSkyIrradianceSaturation.value,
-    );
+    const saturation = dusk
+      ? FESTIVAL_DUSK.light.irradianceSaturation
+      : this.photoSky.irradianceSaturation(
+          daylight.cover,
+          mode,
+          iblUniforms.apexSkyIrradianceSaturation.value,
+        );
     if (saturation !== null) iblUniforms.apexSkyIrradianceSaturation.value = saturation;
-    this.renderer.toneMappingExposure = daylight.exposure;
+    this.renderer.toneMappingExposure =
+      daylight.exposure * (this.photo ? 2 ** this.photoLens.settings.exposure : 1);
     const fog = this.scene.fog as T.FogExp2;
     // FogExp2 only for materials without the festival air (see atmosphere).
     fog.density = this.atmosphere.fogDensity;
@@ -877,7 +999,16 @@ export class FestivalRenderer {
     // IBL the scene's opaque surfaces receive (rubber smoke reads white-grey,
     // not the colour of the horizon haze).
     const fill = 0.8 * daylight.environment;
-    this.smoke.setFill(0.7 * fill, 0.74 * fill, 0.8 * fill);
+    if (dusk) this.smoke.setFill(...FESTIVAL_DUSK.light.smokeFill);
+    else this.smoke.setFill(0.7 * fill, 0.74 * fill, 0.8 * fill);
+    // Thin flakes: half the key's diffuse share plus the sky fill.
+    this.flakeLight
+      .copy(this.sun.color)
+      .multiplyScalar((this.sun.intensity * 0.5) / Math.PI)
+      .addScalar(0.5 * fill);
+    this.flakes.update(this.camera, this.preset, this.flakeLight);
+    this.snowWalls.update();
+    this.attractions.update(time, night, this.camera);
     const uniforms = this.sky.material.uniforms;
     uniforms.cloudCover.value = daylight.cover;
     uniforms.skyRadiance.value = daylight.skyRadiance;
@@ -885,20 +1016,43 @@ export class FestivalRenderer {
     uniforms.sunsetAmount.value = mode === 'sunset' ? 1 : 0;
     uniforms.sunPosition.value.copy(lightingDirection(mode));
     bindSkyCelestial(this.sky.material, mode);
+    this.festivalSky.dusk = dusk;
     this.festivalSky.horizon.copy(this.atmosphere.inscatter);
     this.festivalSky.bind(this.sky.material, daylight.cover, mode, false);
     uniforms.cloudDrift.value = (time * SKY_CLOUDS.driftPerSecond) % 1;
-    shadowAnchor(
-      this.target,
-      this.sun.shadow.mapSize.x,
-      this.sun.shadow.camera.right,
-      this.sun.target.position,
-      mode,
+    // Near map led along the view; far map re-rendered when due (all
+    // festival-shadows.ts). Before any render this frame, so no program
+    // compiles twice when the far light first joins the light list.
+    this.shadowHidden.length = 0;
+    this.traffic ??= this.scene.children.find((c) => c.name === 'Ambient traffic') ?? null;
+    this.shadowHidden.push(
+      this.cars.root,
+      this.traffic,
+      this.effects.group,
+      this.guidance.root,
+      this.trails.root,
+      this.contacts.root,
+      this.smoke.root,
+      this.markers.root,
+      ...this.vehicleRoots,
     );
-    this.sun.position
-      .copy(this.sun.target.position)
-      .add(this.temp.copy(lightingDirection(mode)).normalize().multiplyScalar(400));
-    this.sun.target.updateMatrixWorld();
+    this.shadows.update(
+      {
+        camera: this.camera,
+        lighting: mode,
+        time: performance.now() / 1000,
+        height: this.heightAt,
+        terrain: this.terrain.root,
+        streamed: this.terrain.stats.built + this.terrain.stats.evicted,
+        hidden: this.shadowHidden,
+        farCasters: [this.vegetation.root],
+        key: `${this.currentSeason}|${this.preset}`,
+        direction: dusk ? DUSK_KEY : undefined,
+        snap: dusk ? duskShadowAnchor : undefined,
+      },
+      this.scene,
+    );
+    this.history.update(presented, this.camera, this.sun, this.photo ? 'photo' : this.mode);
     const wet = clamp(presented[H.WATER] / 0.8, 0, 1);
     this.roads.setWet(wet);
     this.buildings.setWet(wet);
@@ -983,6 +1137,9 @@ export class FestivalRenderer {
         this.sky.material.uniforms.probeSkyIntensity,
       );
     this.audioView.update(this.camera, time, 0, this.mode === 'hood', 0);
+    this.grade.photoOverride = this.photo
+      ? this.photoLens.look(mode, this.grade.filmic, this.grade.profileAdjust)
+      : null;
     postLensFrame(
       this.grade,
       this.bloom,
@@ -1001,13 +1158,23 @@ export class FestivalRenderer {
       !this.photo,
       this.renderer.getDrawingBufferSize(this.bufferSize).x,
     );
+    // MEDIUM traces reflections only on wet roads (festival-quality.ts).
+    this.ultra.ssr.enabled =
+      this.graphics.ssr || (FESTIVAL_WET_SSR[this.preset] && wet > FESTIVAL_WET_SSR_FROM);
+    if (this.photo) {
+      // Photo zoom (the panel's focal length; 45 deg by default).
+      this.camera.fov = this.photoLens.fov ?? 45;
+      this.camera.updateProjectionMatrix();
+    }
+    this.photoLens.update(this.photo, this.orbit.target);
     this.ultra.prepareFrame({
       presented,
       cars: [
         { reflectivePaint: this.cars.reflectivePaint },
         { reflectivePaint: this.vehiclePaint },
       ],
-      subject: this.target,
+      // The mid cascade leads the camera (photo and inspection views too).
+      subject: this.camera.position,
       cameraMode: 'chase',
       lighting: mode,
       studio: false,
@@ -1021,7 +1188,58 @@ export class FestivalRenderer {
     this.ultra.afterFrame();
     this.stats.drawCalls = this.renderer.info.render.calls;
     this.stats.triangles = this.renderer.info.render.triangles;
+    this.stats.landscape = {
+      cover: this.groundCover.stats,
+      canopy: this.farCanopy.stats,
+      rocks: this.rocks.stats,
+      trees: this.vegetation.stats.instances,
+    };
     this.stats.renderMs = this.stats.renderMs * 0.9 + (performance.now() - start) * 0.1;
+  }
+  /** Image pipeline state: shadow ranges, AA, AO, reflections, lens. */
+  pipelineDiagnostics() {
+    const ultra = this.ultra.diagnostics();
+    return {
+      preset: this.preset,
+      graphics: {
+        msaa: this.scenePass.samples,
+        temporalAA: this.graphics.temporalAA,
+        taaSharpen: this.graphics.taaSharpen,
+        ambientOcclusion: this.graphics.ambientOcclusion,
+        ssr: this.graphics.ssr,
+        shadowCascades: this.graphics.shadowCascades,
+        lightShafts: this.graphics.lightShafts,
+      },
+      shadows: this.shadows.diagnostics(),
+      cascades: ultra.shadowCascades,
+      scenePass: this.scenePass.diagnostics(),
+      ssr: ultra.ssr,
+      aoTemporal: ultra.aoTemporal,
+      sharpen: ultra.taaSharpen,
+      lightShafts: ultra.lightShafts,
+      photoLens: this.photoLens.diagnostics(),
+      materials: this.materialCensus(),
+    };
+  }
+  /** Drawn materials by shading model: PBR ones take the sky IBL, others
+   * (unlit emitters, custom shaders) do not. */
+  private materialCensus() {
+    const seen = new Set<T.Material>(),
+      byType: Record<string, number> = {},
+      unlit: string[] = [];
+    this.scene.traverseVisible((object) => {
+      const mesh = object as T.Mesh;
+      if (!mesh.isMesh) return;
+      for (const m of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) {
+        if (seen.has(m)) continue;
+        seen.add(m);
+        byType[m.type] = (byType[m.type] ?? 0) + 1;
+        const pbr = (m as T.MeshStandardMaterial).isMeshStandardMaterial;
+        if (!pbr && unlit.length < 60)
+          unlit.push(`${m.type}:${m.name || mesh.name || mesh.parent?.name || '?'}`);
+      }
+    });
+    return { byType, unlit };
   }
   /** Snapshot length check for the session controller. */
   static frameLength(cars: number) {
@@ -1048,12 +1266,18 @@ export class FestivalRenderer {
     this.contacts.dispose();
     this.vegetation.dispose();
     this.flora.dispose();
+    this.groundCover.dispose();
+    this.farCanopy.dispose();
+    this.rocks.dispose();
     this.photoVegetation?.dispose();
     this.photoVegetation = null;
     this.water.dispose();
     this.markers.dispose();
     this.cars.dispose();
     this.trails.dispose();
+    this.flakes.dispose();
+    this.snowWalls.dispose();
+    this.attractions.dispose();
     this.smoke.dispose();
     this.eventDressing.dispose();
     this.dragStrip.dispose();
@@ -1066,7 +1290,9 @@ export class FestivalRenderer {
     this.vehicleRoots.length = 0;
     this.environment.dispose();
     this.wet.dispose();
-    this.farShadow.dispose();
+    this.shadows.dispose();
+    this.photoLens.dispose();
+    this.history.restore();
     this.effectPlayback.reset();
     this.effects.group.traverse((node) => {
       if (node instanceof T.Mesh || node instanceof T.Points) {

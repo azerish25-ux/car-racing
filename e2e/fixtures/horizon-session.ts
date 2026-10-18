@@ -10,7 +10,7 @@ import { graphicsPreset, type QualityPreset } from '../../src/rendering/options.
 import type { FestivalStatus } from '../../src/simulation/open-world/session.ts';
 import type { FestivalRenderer } from '../../src/rendering/open-world/festival-renderer.ts';
 import type { WeatherPreset } from '../../src/simulation/config.ts';
-import type { LightingMode } from '../../src/rendering/daylight.ts';
+import { isFestivalLighting } from '../../src/session/festival-lighting.ts';
 import { SOLVANE } from '../../src/simulation/open-world/region-data.ts';
 import type { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { F, carBase } from '../../src/simulation/protocol.ts';
@@ -20,6 +20,8 @@ import { controls } from '../../src/simulation/config.ts';
 
 const params = new URLSearchParams(location.search);
 const quality = (params.get('quality') ?? 'medium') as QualityPreset;
+// day | sunset | dusk | night (dusk: the festival's blue hour).
+const lighting = params.get('lighting');
 const canvas = document.querySelector<HTMLCanvasElement>('#world')!;
 const root = document.querySelector<HTMLElement>('#app')!;
 const loading = document.querySelector<HTMLElement>('#loading')!;
@@ -146,6 +148,9 @@ Object.assign(window, {
         await new Promise((resolve) => setTimeout(resolve, 60));
         quiet = terrain.inFlight === 0 && terrain.stats.requested === requested ? quiet + 1 : 0;
       }
+      // The far forest canopy of the settled tiles.
+      renderer.farCanopy.sync(renderer.terrain.canopyTiles);
+      renderer.farCanopy.flush(renderer.camera, renderer.preset);
       return quiet >= 6;
     },
     /** Drawn ambient traffic positions (vehicle visual review). */
@@ -161,6 +166,17 @@ Object.assign(window, {
       return out;
     },
     command: (command: Parameters<FestivalSession['command']>[0]) => session?.command(command),
+    // Photo mode lens (the photo panel's settings) for lens captures.
+    photoLens: (settings: Parameters<FestivalRenderer['photoLens']['set']>[0]) => {
+      const renderer = (session as unknown as { renderer: FestivalRenderer } | null)?.renderer;
+      renderer?.photoLens.set(settings);
+      return renderer?.photoLens.diagnostics() ?? null;
+    },
+    // Image pipeline state (shadow ranges, temporal AA, SSR, photo lens).
+    pipeline: () => {
+      const renderer = (session as unknown as { renderer: FestivalRenderer } | null)?.renderer;
+      return renderer?.pipelineDiagnostics() ?? null;
+    },
     // Cost review: keep a named scene object hidden (its own per-frame
     // visibility writes are ignored) to measure what it adds to a frame.
     hide: (name: string) => {
@@ -256,7 +272,7 @@ async function boot() {
       element: root,
       quality,
       graphics: graphicsPreset(quality),
-      lighting: (params.get('lighting') ?? 'day') as LightingMode,
+      lighting: isFestivalLighting(lighting) ? lighting : 'day',
       season: isSeason(params.get('season')) ? (params.get('season') as Season) : undefined,
       loading: (text) => {
         loading.textContent = text;

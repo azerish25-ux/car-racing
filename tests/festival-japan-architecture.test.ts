@@ -215,7 +215,9 @@ describe('Japanese buildings and signage geometry', () => {
     expect(signage.stats.vending).toBeGreaterThan(100);
     expect(signage.stats.stores).toBeGreaterThan(5);
     expect(signage.stats.bays).toBeGreaterThan(5);
-    expect(signage.stats.triangles).toBeLessThan(120_000);
+    // Round 3 (facade richness) doubles the sign canyon: tenant columns,
+    // flat boards, stand signs, LED screens and village gardens.
+    expect(signage.stats.triangles).toBeLessThan(160_000);
     const p = trackPoint();
     let checked = 0;
     for (const node of signage.root.children) {
