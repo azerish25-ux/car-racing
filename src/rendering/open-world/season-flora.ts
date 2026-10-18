@@ -313,6 +313,8 @@ float owLitter(vec2 p, float scale, float cover, float salt) {
 export function installSeasonRoad(material: T.Material, surface: RoadSurface) {
   // Litter drifts to the road edges (uv.x: metres from the centre line);
   // dirt tracks keep a cleaner wheel path, verges are all edge.
+  // Pale gravel tracks show petals less than dark tarmac (033).
+  const litter = surface === 'dirt' ? 0.4 : surface === 'paving' ? 0.55 : 0.75;
   const edgeBias =
     surface === 'asphalt'
       ? 'smoothstep(1.2, 4.6, abs(vOwRoadUv.x))'
@@ -345,7 +347,7 @@ export function installSeasonRoad(material: T.Material, surface: RoadSurface) {
   float drift = owRoadNoise(p * 0.31) * 0.6 + owRoadNoise(p * 0.07 + 3.1) * 0.4;
   // Spring: petals under the cherry groves.
   float petals = owCherryZone(p) * smoothstep(0.3, 0.8, drift) * (0.2 + 0.8 * edge);
-  float petal = owLitter(p, 26.0, clamp(petals * 0.75, 0.0, 0.75), 0.0);
+  float petal = owLitter(p, 26.0, clamp(petals * ${litter.toFixed(2)}, 0.0, 0.75), 0.0);
   vec3 petalC = mix(vec3(0.72, 0.5, 0.57), vec3(0.8, 0.66, 0.7), owRoadHash(floor(p * 26.0) + 7.0));
   diffuseColor.rgb = mix(diffuseColor.rgb, petalC, petal * owSeason.x);
   // Autumn: maple and broadleaf leaves, more in the maple groves.

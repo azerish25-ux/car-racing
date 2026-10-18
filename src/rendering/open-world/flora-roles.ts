@@ -106,7 +106,8 @@ export function floraRole(site: TreeSite): FloraRole {
   }
   if (site.species === TREE_SPECIES.CONIFER)
     return y < 160 && pick < 0.3 ? FLORA_ROLE.PINE : FLORA_ROLE.CEDAR;
-  // Sugi plantations: whole stands of cedar on the lower hills.
-  if (cedar > 0.6 && y > 60 && second > 0.25) return FLORA_ROLE.CEDAR;
+  // Sugi plantations: whole stands of cedar on the hills; scattered sugi
+  // in the mixed woods elsewhere (052, 090: evergreens among the maples).
+  if (y > 60 && (cedar > 0.5 ? second > 0.2 : second > 0.62)) return FLORA_ROLE.CEDAR;
   return FLORA_ROLE.BROADLEAF;
 }
