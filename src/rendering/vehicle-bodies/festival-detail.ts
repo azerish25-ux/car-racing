@@ -395,11 +395,16 @@ export function festivalHeadlampFrames(model: ClosedBodyModel) {
   const z =
     model.zFront -
     (model.lampSetback() ?? (s.style === 'truck' ? 0.14 : s.lamps.front === 'pod' ? 0.3 : 0.16));
+  const face = model.lampFace();
   return [-1, 1].map((side) => {
-    const half = model.halfWidth(z);
-    const x = side * half * (s.lamps.front === 'bar' ? 0.49 : 0.68);
-    // A festival form's lamps sit flush in the nose roll, not on top of it.
-    const base = surfacePlacement(model, x, z);
+    const half = model.halfWidth(face === null ? z : model.zFront);
+    const x = side * half * (s.lamps.front === 'bar' ? 0.49 : face === null ? 0.68 : 0.6);
+    // A festival form's lamps sit flush in the nose roll (or set into the
+    // upright bumper face of a truck or muscle car), not on top of it.
+    const base =
+      face === null
+        ? surfacePlacement(model, x, z)
+        : placed(x, face, model.zFront, Math.PI / 2, 0, 0);
     if (model.festival) base.multiply(placed(0, -0.022, 0));
     return {
       side,

@@ -79,6 +79,9 @@ export interface FestivalForm {
   /** A gloss black bar across the top of the bumper face joining the
    * headlamps (refs 019, 020, 090). */
   noseBar?: boolean;
+  /** Headlamps set into an upright bumper face (trucks, muscle cars; ref
+   * 063) instead of the nose roll. */
+  lampFace?: boolean;
   /** Black corner intakes wrapping the front bumper corners (refs 011, 014,
    * 019, 096). */
   cornerVents?: boolean;
@@ -273,7 +276,14 @@ const CAR_FORMS: Readonly<Record<string, Partial<FestivalForm>>> = {
   // Long-hood luxury GT, fastback with set-back cabin (refs 018, 019, 093).
   lx12: { noseWidth: 0.62, noseWrap: 0.55, fender: [0.045, 0.075], noseBar: true },
   // Front-engined muscle coupe: blunt, wide grille face, flat hood (ref 063 stance).
-  rm8: { noseWidth: 0.76, noseWrap: 0.42, noseRoll: 0.06, fender: [0.03, 0.06], hoodEdge: 0.74 },
+  rm8: {
+    noseWidth: 0.76,
+    noseWrap: 0.42,
+    noseRoll: 0.06,
+    fender: [0.03, 0.06],
+    hoodEdge: 0.74,
+    lampFace: true,
+  },
   // 1960s GT: rounded nose, soft crowned fenders, chrome-era body-colour sills (ref 012).
   rg63: {
     noseWidth: 0.6,
@@ -303,9 +313,17 @@ const CAR_FORMS: Readonly<Record<string, Partial<FestivalForm>>> = {
     cornerVents: true,
   },
   // Rally-bred road saloon: wider arch flares, a deeper sill (refs 007, 061).
-  rr4: { lip: 0.016, rockerDark: true, noseWidth: 0.72, cornerVents: true },
+  rr4: { lip: 0.016, rockerDark: true, noseWidth: 0.72, cornerVents: true, lampFace: true },
   // Full-size pickup: tall flat hood ending in an upright grille face (ref 063).
-  rp6: { hoodEdge: 0.88, nose: 1.17, noseRoll: 0.035 },
+  rp6: {
+    hoodEdge: 0.88,
+    nose: 1.17,
+    noseRoll: 0.035,
+    noseWidth: 0.9,
+    noseWrap: 0.2,
+    noseCurve: 0.03,
+    lampFace: true,
+  },
 };
 /** Classes drawn with the festival road form. */
 const FORM_CLASSES = new Set(['road', 'street']);
@@ -506,6 +524,12 @@ export class FestivalBodyModel extends ClosedBodyModel {
   /** Headlamps sit on the nose roll, facing forward and up. */
   override lampSetback() {
     return Math.max(0.05, this.form.noseRoll * 0.55);
+  }
+  override lampFace() {
+    if (!this.form.lampFace) return null;
+    const top = this.topY(this.zFront),
+      bottom = this.endFloor(false);
+    return top - Math.max(0.075, (top - bottom) * 0.16);
   }
   /** The end warp at a body-frame point: z offset and its partial
    * derivatives (x, y, z). Near the nose every point moves back by the plan
@@ -841,7 +865,16 @@ export class FestivalBodyModel extends ClosedBodyModel {
       },
     );
     const lid = this.zRW - 0.08;
-    if (!this.form.bed)
+    // A pickup's bed stands apart from the cab: a wide, dark gap.
+    if (this.form.bed)
+      out.push({
+        n: [0, 0, 1],
+        d: this.zRW - 0.03,
+        min: [this.halfBase * 0.5, f.y(s.floor + 0.05), this.zRW - 0.06],
+        max: [big, big, this.zRW],
+        width: 0.006,
+      });
+    else
       out.push({
         n: [0, 0, 1],
         d: lid,
@@ -850,7 +883,7 @@ export class FestivalBodyModel extends ClosedBodyModel {
       });
     void rw;
     // Wider grooves than a race shell: they read at chase-camera distance.
-    return out.map((g) => ({ ...g, width: 0.0021 }));
+    return out.map((g) => ({ ...g, width: g.width ?? 0.0021 }));
   }
   override addFormDetail(
     parts: Parts,

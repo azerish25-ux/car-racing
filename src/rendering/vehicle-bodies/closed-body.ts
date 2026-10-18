@@ -259,6 +259,11 @@ export class ClosedBodyModel {
   lampSetback(): number | null {
     return null;
   }
+  /** Height (car frame y) of headlamps set into the bumper face rather than
+   * the nose's upper surface, or null. */
+  lampFace(): number | null {
+    return null;
+  }
   /** The greenhouse standing on this body. */
   greenhouse(): Greenhouse {
     return new Greenhouse(this);
