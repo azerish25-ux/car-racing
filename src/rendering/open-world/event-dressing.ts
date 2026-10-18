@@ -593,6 +593,14 @@ export class FestivalEventDressing {
     readonly height: Height,
   ) {
     this.root.name = 'Festival event dressing';
+    // Floodlit print keeps its dye at night: tint the self-lit term by the
+    // pennant's instance colour, as the lit term already is.
+    this.materials.flag.onBeforeCompile = (shader) => {
+      shader.fragmentShader = shader.fragmentShader.replace(
+        '#include <emissivemap_fragment>',
+        '#include <emissivemap_fragment>\n#ifdef USE_COLOR\n  totalEmissiveRadiance *= vColor;\n#endif',
+      );
+    };
     this.grid = new StructureGrid(structures);
     const hub = events.find((e) => e.spec.id === 'runway-launch') ?? null;
     for (const event of events) {
