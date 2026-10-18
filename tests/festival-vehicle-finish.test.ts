@@ -21,6 +21,7 @@ import { ClosedBodyModel } from '../src/rendering/vehicle-bodies/closed-body.ts'
 import { bodyFrame } from '../src/rendering/vehicle-bodies/frame.ts';
 import { buildVehicleBody, VehicleBodies } from '../src/rendering/vehicle-bodies/index.ts';
 import { sharedMaterials } from '../src/rendering/vehicle-bodies/materials.ts';
+import { studioHookKeys } from '../src/rendering/studio/shader-hooks.ts';
 import {
   CAR_STRIDE,
   F,
@@ -157,6 +158,8 @@ describe('festival vehicle finish', () => {
       FESTIVAL_PAINT.clearcoatRoughness,
       6,
     );
+    expect(studioHookKeys(road.materials.paint)).toContain('festival-coat-reflection-v1');
+    expect(studioHookKeys(circuit.materials.paint)).not.toContain('festival-coat-reflection-v1');
     expect(circuit.materials.paint.specularIntensity).toBe(1);
     expect(circuit.materials.paint.clearcoatRoughness).toBeCloseTo(0.04, 6);
     // Lacquered festival rims on every LOD; the circuit keeps the shared alloy.

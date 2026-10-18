@@ -230,6 +230,12 @@ export const FESTIVAL_PAINT = Object.freeze({
   gloss: Object.freeze({ metalness: 0, roughness: 0.5, specularIntensity: 0.15 }),
   metallic: Object.freeze({ metalness: 0.45, roughness: 0.42, specularIntensity: 0.15 }),
   clearcoatRoughness: 0.03,
+  /** Image-based reflection carried by the coat. The sky dome and probe are
+   * displayed radiance, lower than the sunlit sky and clouds a real coat
+   * mirrors: sampled on refs 019/074/091, bonnet reflections of sky reach
+   * 0.4-0.6 sRGB above the base colour at 45-60 degree views, which the
+   * unscaled coat (F0 0.04) cannot reach. Diffuse and sun light unchanged. */
+  coatReflection: 1.6,
 });
 export function tuneFestivalPaint(material: T.MeshPhysicalMaterial) {
   const finish = material.userData.paintFinish as string | undefined;
@@ -238,6 +244,16 @@ export function tuneFestivalPaint(material: T.MeshPhysicalMaterial) {
   material.clearcoat = 1;
   material.clearcoatRoughness = FESTIVAL_PAINT.clearcoatRoughness;
   material.userData.festivalPaint = true;
+  chainShaderHook(material, 'festival-coat-reflection-v1', (shader) => {
+    injectAfter(
+      shader,
+      'lights_fragment_maps',
+      `#if defined( USE_CLEARCOAT ) && defined( RE_IndirectSpecular )
+        clearcoatRadiance *= ${FESTIVAL_PAINT.coatReflection.toFixed(3)};
+      #endif`,
+      'fragment',
+    );
+  });
   return true;
 }
 
