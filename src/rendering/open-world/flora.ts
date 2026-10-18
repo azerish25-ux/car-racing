@@ -27,7 +27,7 @@ import { SEASON_DECL_GLSL } from './season-flora.ts';
  */
 export const FLORA = Object.freeze({
   /** Chunk edge (m). */
-  chunk: 96,
+  chunk: 144,
   /** Candidate spacing (m). */
   cell: 3.2,
   /** Grass and flower draw distance (m) per preset. */
@@ -454,7 +454,7 @@ vec3 floraColour(float part, float bend, vec3 seed) {
       mix(vec3(0.12, 0.1, 0.07), vec3(0.34, 0.3, 0.24), bend));
   } else if (part < 1.5) {
     // Silver-gold plumes (036 #c5a57d..#e5c69a sunlit), reddish when young.
-    vec3 gold = mix(vec3(0.56, 0.42, 0.24), vec3(0.72, 0.62, 0.46), seed.z);
+    vec3 gold = mix(vec3(0.44, 0.32, 0.17), vec3(0.58, 0.47, 0.31), seed.z);
     c = floraSeason(vec3(0.36, 0.17, 0.13), mix(vec3(0.36, 0.17, 0.13), gold, 0.3), gold, vec3(0.58, 0.54, 0.48));
   } else if (part < 2.5) {
     c = mix(vec3(0.05, 0.075, 0.025), vec3(0.11, 0.14, 0.05), seed.z) * (0.85 + 0.3 * bend);
