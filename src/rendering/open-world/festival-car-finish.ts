@@ -19,11 +19,12 @@ import {
 
 /** Festival-only exterior finish for the shared catalogue bodies, installed by
  * FestivalCars when a body is built (the circuit renderer never calls it):
+ * clear-coated paint, darker road glazing, lacquered rims and drilled discs,
  * Japanese registration plates on road cars, an always-on LED running-light
- * signature on modern headlamps, and the lamp levels of an open-road car
- * (running tail bars by day, a hard brake flare). Measured from references
- * 005, 013, 018, 019, 037, 058, 059 and 074. Adds at most two draws per near
- * LOD (plates, running lights), both on shared materials. */
+ * signature on modern headlamps, night lamp halos and the lamp levels of an
+ * open-road car. Measured from references 001-098 (docs/production/fh6-r4/
+ * vehicles.md). Adds at most three draws per near LOD (plates, running
+ * lights, halos at night or braking); every finish but the halo is shared. */
 const PLATED = new Set(['road', 'street']);
 export function festivalPlated(def: VehicleDefinition) {
   return PLATED.has(String(def.classId));

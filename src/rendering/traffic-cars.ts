@@ -23,7 +23,8 @@ export const TRAFFIC_CAPACITY = 48;
  * real and wheels stay round (a vertex correction undoes the stretch on the
  * wheels). One instanced draw per body type carries paint, glass, trim,
  * wheels, lamps and plates through per-vertex material classes; one more
- * draws the soft ground contact under every car. */
+ * draws the soft ground contact under every car, and at night one draws
+ * every lamp's glow. */
 export type TrafficBody = 'sedan' | 'hatch' | 'kei' | 'keiTruck' | 'minivan' | 'truck';
 interface Shape {
   body: TrafficBody;
@@ -1100,6 +1101,53 @@ function contactMaterial() {
   });
 }
 
+/** Night lamp halos for the whole field (refs 058, 086): one camera-facing
+ * additive quad per lamp, sized and aimed by its instance matrix (z axis the
+ * lamp axis), coloured by its instance colour (lens colour x level). */
+function haloMaterial() {
+  return new T.ShaderMaterial({
+    name: 'Ambient traffic lamp halos',
+    transparent: true,
+    depthWrite: false,
+    blending: T.AdditiveBlending,
+    vertexShader: `attribute vec2 haloCorner; varying vec2 vCorner; varying vec3 vGlow;
+      void main() {
+        mat4 m = modelViewMatrix * instanceMatrix;
+        vec4 c = m * vec4(0.0, 0.0, 0.0, 1.0);
+        vec3 axis = normalize(mat3(m) * vec3(0.0, 0.0, 1.0));
+        float facing = max(0.0, dot(axis, normalize(-c.xyz)));
+        vGlow = instanceColor * pow(facing, 0.6);
+        vCorner = haloCorner;
+        c.xyz += normalize(-c.xyz) * 0.12;
+        c.xy += haloCorner * length(instanceMatrix[0].xyz);
+        gl_Position = projectionMatrix * c;
+      }`,
+    fragmentShader: `varying vec2 vCorner; varying vec3 vGlow;
+      void main() {
+        float r2 = dot(vCorner, vCorner);
+        float a = exp(-r2 * 4.5) * (1.0 - smoothstep(0.6, 1.0, r2));
+        gl_FragColor = vec4(vGlow * a, 1.0);
+        #include <tonemapping_fragment>
+        #include <colorspace_fragment>
+      }`,
+  });
+}
+/** Lamp centres of a body type (native frame): two head, two tail. */
+function haloSites(s: Shape) {
+  const zf = s.rings[s.rings.length - 1][0],
+    zr = s.rings[0][0];
+  const front = profile(s, zf).half * 0.68,
+    rear = profile(s, zr).half * (s.tallTail ? 0.86 : 0.7),
+    tailY = s.tail + (s.tallTail ? 0.32 : 0.11) * 0.18;
+  return [
+    { at: new T.Vector3(front, s.head, zf + 0.05), head: true },
+    { at: new T.Vector3(-front, s.head, zf + 0.05), head: true },
+    { at: new T.Vector3(rear, tailY, zr - 0.05), head: false },
+    { at: new T.Vector3(-rear, tailY, zr - 0.05), head: false },
+  ];
+}
+const HALO_SITES = 4;
+
 interface Batch {
   body: TrafficBody;
   mesh: T.InstancedMesh;
@@ -1108,13 +1156,22 @@ interface Batch {
   spin: T.InstancedBufferAttribute;
   count: number;
 }
-/** One instanced draw per body type plus one for the ground contact. Pose,
+/** One instanced draw per body type, one for the ground contact and, at
+ * night, one for the lamp halos. Pose,
  * interpolation, registry footprint, ids, paint and lamp state keep their
  * snapshot mapping; physics and traffic AI are unchanged. */
 export class TrafficCars {
   readonly root = new T.Group();
   readonly batches: readonly Batch[];
   readonly contact: T.InstancedMesh;
+  /** Night lamp halos, four per car (hidden by day). */
+  readonly halos: T.InstancedMesh;
+  private readonly sites = new Map<TrafficBody, { at: T.Vector3; head: boolean }[]>();
+  private readonly site = new T.Vector3();
+  private readonly lampAxis = new T.Quaternion();
+  private readonly halfTurn = new T.Quaternion().setFromAxisAngle(new T.Vector3(0, 1, 0), Math.PI);
+  private readonly haloMatrix = new T.Matrix4();
+  private readonly haloScale = new T.Vector3();
   private readonly matrix = new T.Matrix4();
   private readonly shadeMatrix = new T.Matrix4();
   private readonly position = new T.Vector3();
@@ -1156,7 +1213,17 @@ export class TrafficCars {
     );
     this.contact.name = 'Ambient traffic ground contact (instanced)';
     this.contact.renderOrder = 1;
-    for (const mesh of [...this.batches.map((b) => b.mesh), this.contact]) {
+    const quad = new T.BufferGeometry();
+    quad.setAttribute('position', new T.Float32BufferAttribute(new Float32Array(12), 3));
+    quad.setAttribute('haloCorner', new T.Float32BufferAttribute([-1, -1, 1, -1, 1, 1, -1, 1], 2));
+    quad.setIndex([0, 1, 2, 0, 2, 3]);
+    this.halos = new T.InstancedMesh(quad, haloMaterial(), TRAFFIC_CAPACITY * HALO_SITES);
+    this.halos.name = 'Ambient traffic lamp halos (instanced)';
+    this.halos.renderOrder = 2;
+    for (let i = 0; i < TRAFFIC_CAPACITY * HALO_SITES; i++)
+      this.halos.setColorAt(i, this.colour.setRGB(0, 0, 0));
+    for (const body of TRAFFIC_BODIES) this.sites.set(body, haloSites(TRAFFIC_SHAPES[body]));
+    for (const mesh of [...this.batches.map((b) => b.mesh), this.contact, this.halos]) {
       mesh.frustumCulled = false;
       mesh.count = 0;
       mesh.visible = false;
@@ -1247,6 +1314,20 @@ export class TrafficCars {
         tail = Math.max(0.35 + night * 1.6, brake > 0.05 ? 2.6 : 0),
         amber = hazard ? 3 : 0;
       batch.lamp.setXYZW(i, head, tail, amber, night * 0.45);
+      // Night halos: warm-white heads, red tails flaring under braking.
+      const glowHead = night * 0.3,
+        glowTail = night * (0.45 + (brake > 0.05 ? 0.45 : 0));
+      this.sites.get(body)!.forEach((site, j) => {
+        this.site.copy(site.at).applyMatrix4(this.matrix);
+        this.lampAxis.copy(this.quaternion);
+        if (!site.head) this.lampAxis.multiply(this.halfTurn);
+        this.haloScale.setScalar(site.head ? 0.22 : 0.2);
+        this.haloMatrix.compose(this.site, this.lampAxis, this.haloScale);
+        this.halos.setMatrixAt(k * HALO_SITES + j, this.haloMatrix);
+        if (site.head) this.colour.setRGB(glowHead, glowHead * 0.92, glowHead * 0.8);
+        else this.colour.setRGB(glowTail, glowTail * 0.035, glowTail * 0.015);
+        this.halos.setColorAt(k * HALO_SITES + j, this.colour);
+      });
       const slot = plateSlot(Math.round(id), shape.kei);
       const [u0, v0] = plateUv(slot),
         [b0, c0] = plateUv(0);
@@ -1258,10 +1339,14 @@ export class TrafficCars {
       live.add(id);
     }
     for (const id of this.phase.keys()) if (!live.has(id)) this.phase.delete(id);
-    this.finish(n);
+    this.finish(n, night);
   }
-  private finish(n: number) {
+  private finish(n: number, night = 0) {
     this.count = n;
+    this.halos.count = n * HALO_SITES;
+    this.halos.visible = n > 0 && night > 0.05;
+    this.halos.instanceMatrix.needsUpdate = true;
+    if (this.halos.instanceColor) this.halos.instanceColor.needsUpdate = true;
     for (const batch of this.batches) {
       const mesh = batch.mesh;
       mesh.count = batch.count;
@@ -1288,7 +1373,7 @@ export class TrafficCars {
   }
   dispose() {
     this.root.removeFromParent();
-    for (const mesh of [...this.batches.map((b) => b.mesh), this.contact]) {
+    for (const mesh of [...this.batches.map((b) => b.mesh), this.contact, this.halos]) {
       mesh.geometry.dispose();
       (mesh.material as T.Material).dispose();
       mesh.dispose();

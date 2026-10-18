@@ -181,6 +181,8 @@ describe('festival traffic visual geometry', () => {
       cars.contact.getMatrixAt(k, matrix);
       expect(new T.Vector3().setFromMatrixPosition(matrix).distanceTo(position)).toBeLessThan(1e-5);
     }
+    // Daylight: no halo draw.
+    expect(cars.halos.visible).toBe(false);
     expect(cars.lampsOf(0)![2]).toBeCloseTo(3, 5);
     expect(cars.lampsOf(1)![1]).toBeCloseTo(2.6, 5);
     const pose = new T.Matrix4();
@@ -192,8 +194,8 @@ describe('festival traffic visual geometry', () => {
   it('keeps the existing capacity, clears all batches on an absent block and disposes owned assets', () => {
     const cars = new TrafficCars(),
       all = meshes(cars);
-    // One instanced draw per body type plus the ground contact.
-    expect(all).toHaveLength(TRAFFIC_BODIES.length + 1);
+    // One instanced draw per body type, the ground contact and the halos.
+    expect(all).toHaveLength(TRAFFIC_BODIES.length + 2);
     const full = block(
       Array.from({ length: TRAFFIC_CAPACITY + 3 }, (_, i) => ({
         id: i,
@@ -206,6 +208,9 @@ describe('festival traffic visual geometry', () => {
     expect(cars.count).toBe(TRAFFIC_CAPACITY);
     expect(cars.batches.reduce((n, b) => n + b.mesh.count, 0)).toBe(TRAFFIC_CAPACITY);
     expect(cars.contact.count).toBe(TRAFFIC_CAPACITY);
+    // Night (1): four lamp halos per car.
+    expect(cars.halos.count).toBe(TRAFFIC_CAPACITY * 4);
+    expect(cars.halos.visible).toBe(true);
     cars.update(null, null, 1, 1, 0);
     expect(cars.count).toBe(0);
     for (const mesh of all) {
