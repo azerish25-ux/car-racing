@@ -30,19 +30,21 @@ import { retroReflective, type RetroUniforms } from './retro-reflect.ts';
 const CHUNK = 512;
 type SurfaceHeight = (point: TrackPoint, lateral: number) => number;
 type ChunkBuilder = (x: number, z: number, layer: Layer) => Builder;
+/** Surface layers a patch can target; orange lines are tinted paint. */
+type PaintLayer = Layer | 'orange';
 /** Painted line: lateral centre, width, dash pattern (0: solid). */
 interface Stripe {
   lateral: number;
   width: number;
   dash: number;
   gap: number;
-  layer: Layer;
+  layer: PaintLayer;
   /** Continues through junction mouths (runway centreline). */
   junction: boolean;
   /** Painted only where this holds (edge-local station). */
   when?: (s: number) => boolean;
 }
-const solid = (lateral: number, width: number, layer: Layer = 'paint'): Stripe => ({
+const solid = (lateral: number, width: number, layer: PaintLayer = 'paint'): Stripe => ({
   lateral,
   width,
   dash: 0,
@@ -78,6 +80,10 @@ class Builder {
   normals: number[] = [];
   uvs: number[] = [];
   indices: number[] = [];
+  /** Per-vertex tint (kept only for the paint layer: white and orange
+   * lines share one draw per chunk). */
+  colors: number[] = [];
+  tint: readonly [number, number, number] = WHITE;
   get count() {
     return this.positions.length / 3;
   }
@@ -85,6 +91,7 @@ class Builder {
     this.positions.push(x, y, z);
     this.normals.push(nx, ny, nz);
     this.uvs.push(u, v);
+    this.colors.push(this.tint[0], this.tint[1], this.tint[2]);
     return this.count - 1;
   }
   quad(a: number, b: number, c: number, d: number) {
@@ -109,10 +116,11 @@ class Builder {
     if (nx * fx + ny * fy + nz * fz > 0) this.indices.push(a, b, c, a, c, d);
     else this.indices.push(a, c, b, a, d, c);
   }
-  geometry() {
+  geometry(tinted = false) {
     if (!this.indices.length) return null;
     const g = new T.BufferGeometry();
     g.setAttribute('position', new T.Float32BufferAttribute(this.positions, 3));
+    if (tinted) g.setAttribute('color', new T.Float32BufferAttribute(this.colors, 3));
     g.setAttribute('normal', new T.Float32BufferAttribute(this.normals, 3));
     g.setAttribute('uv', new T.Float32BufferAttribute(this.uvs, 2));
     g.setAttribute('uv1', new T.Float32BufferAttribute(this.uvs, 2));
@@ -122,6 +130,10 @@ class Builder {
     return g;
   }
 }
+const WHITE = [1, 1, 1] as const;
+/** Orange (黄色) line paint relative to the white paint albedo: sRGB
+ * 0xe0952e over 0xdedcd5, channel by channel in linear light. */
+const ORANGE = [1.02, 0.415, 0.041] as const;
 type Layer =
   | 'asphaltMajor'
   | 'asphalt'
@@ -130,7 +142,6 @@ type Layer =
   | 'verge'
   | 'paving'
   | 'paint'
-  | 'yellow'
   | 'antiskid'
   | 'glyph'
   | 'rail'
@@ -444,10 +455,12 @@ export class RoadMeshes {
     // no-overtaking centre lines, measured on the references at about
     // sRGB (225, 150, 46) once motion blur and asphalt bleed are removed.
     const paint = wornPaint(
-      new T.MeshStandardMaterial({ color: 0xdedcd5, roughness: 0.55, metalness: 0 }),
-    );
-    const yellow = wornPaint(
-      new T.MeshStandardMaterial({ color: 0xe0952e, roughness: 0.55, metalness: 0 }),
+      new T.MeshStandardMaterial({
+        color: 0xdedcd5,
+        vertexColors: true,
+        roughness: 0.55,
+        metalness: 0,
+      }),
     );
     const glyph = new T.MeshStandardMaterial({
       color: 0xdedcd5,
@@ -457,7 +470,7 @@ export class RoadMeshes {
       metalness: 0,
     });
     glyph.name = 'Painted Japanese road text';
-    for (const m of [paint, yellow, glyph]) {
+    for (const m of [paint, glyph]) {
       m.polygonOffset = true;
       m.polygonOffsetFactor = -2;
       m.polygonOffsetUnits = -6;
@@ -487,7 +500,6 @@ export class RoadMeshes {
       verge: installScannedVerge(vergeMaterial()),
       paving: pavingMaterial(this.pavingWet),
       paint,
-      yellow,
       antiskid: antiSkidMaterial(this.pavingWet),
       glyph,
       rail: Object.assign(paintedSteel(0xeeece6, 'u'), { side: T.DoubleSide }),
@@ -633,7 +645,7 @@ export class RoadMeshes {
       const group = new T.Group();
       group.name = `Roads ${key}`;
       for (const [layer, b] of chunk) {
-        const g = b.geometry();
+        const g = b.geometry(layer === 'paint');
         if (!g) continue;
         triangles.n += b.indices.length / 3;
         const mesh = new T.Mesh(g, this.materials[layer]);
@@ -708,7 +720,7 @@ export class RoadMeshes {
   private patch(
     e: RoadEdge,
     builder: ChunkBuilder,
-    layer: Layer,
+    layer: PaintLayer,
     s0: number,
     s1: number,
     l0: number,
@@ -730,7 +742,8 @@ export class RoadMeshes {
       const sa = s0 + ((s1 - s0) * k) / pieces,
         sb = s0 + ((s1 - s0) * (k + 1)) / pieces;
       net.at(e.offset + sb, b);
-      const out = builder((a.x + b.x) / 2, (a.z + b.z) / 2, layer);
+      const out = builder((a.x + b.x) / 2, (a.z + b.z) / 2, layer === 'orange' ? 'paint' : layer);
+      out.tint = layer === 'orange' ? ORANGE : WHITE;
       const corner = (pt: TrackPoint, s: number, l: number) => {
         const t = uv?.(s, l);
         return out.vertex(
@@ -760,7 +773,7 @@ export class RoadMeshes {
     const lines: Stripe[] = [];
     if (spec.markings === 'motorway') {
       lines.push(solid(-(hw - 0.75), 0.2), solid(hw - 0.75, 0.2));
-      lines.push(solid(-0.15, 0.15, 'yellow'), solid(0.15, 0.15, 'yellow'));
+      lines.push(solid(-0.15, 0.15, 'orange'), solid(0.15, 0.15, 'orange'));
       lines.push(dashed(-3.6, 0.15, 8, 12), dashed(3.6, 0.15, 8, 12));
     } else if (spec.markings === 'centre') {
       const town = e.roadClass === 'town',
@@ -769,7 +782,7 @@ export class RoadMeshes {
       if (town) lines.push(dashed(0, 0.15, 5, 5));
       else {
         const orange = noOvertaking(this.network, e);
-        lines.push({ ...solid(0, 0.15, 'yellow'), when: orange });
+        lines.push({ ...solid(0, 0.15, 'orange'), when: orange });
         lines.push({ ...dashed(0, 0.15, 6, 9), when: (s) => !orange(s) });
       }
     } else if (spec.markings === 'runway') {
@@ -815,6 +828,7 @@ export class RoadMeshes {
           if (k === 0) continue;
           const l = k * 1.9,
             bb = builder(a.x, a.z, 'paint');
+          bb.tint = WHITE;
           const corner = (pt: TrackPoint, ll: number, v: number) =>
             bb.vertex(
               pt.x + pt.nx * ll,
@@ -1011,6 +1025,7 @@ export class RoadMeshes {
       ol = ((sb - sa) / len) * (width / 2);
     net.at(e.offset + (sa + sb) / 2, p);
     const out = builder(p.x, p.z, 'paint');
+    out.tint = WHITE;
     const corner = (s: number, l: number) => {
       net.at(e.offset + s, p);
       return out.vertex(

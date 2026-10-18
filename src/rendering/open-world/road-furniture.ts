@@ -26,7 +26,9 @@ const CHUNK = 256;
 export const FURNITURE_RANGE = Object.freeze({ low: 220, medium: 420, high: 640, ultra: 860 });
 /** Power-line spans fade out over the last part of the chunk range. */
 const WIRE_FADE = Object.freeze({ low: 160, medium: 300, high: 460, ultra: 620 });
-type Kind = 'matte' | 'metal' | 'sign' | 'mirror' | 'lamp' | 'wire';
+/** Part finishes; matte and metal share one merged 'body' material. */
+type Kind = 'matte' | 'metal' | 'sign' | 'mirror' | 'lamp';
+type BatchKind = 'body' | 'sign' | 'mirror' | 'lamp';
 type Rect = readonly [number, number, number, number];
 const UP = new T.Vector3(0, 1, 0);
 /** Solid swatch of the chevron board's yellow (delineator lenses). */
@@ -47,11 +49,20 @@ class Batch {
   readonly normal: number[] = [];
   readonly uv: number[] = [];
   readonly color: number[] = [];
+  /** 1 for galvanised steel, 0 for concrete and paint (body material). */
+  readonly metal: number[] = [];
   readonly index: number[] = [];
   private readonly c = new T.Color();
   /** Append `geometry` transformed by `m` = rotation x axis scale `scale`
    * (no shear), so normals need only M3 · (n / s²), not an inverse. */
-  add(geometry: T.BufferGeometry, m: T.Matrix4, scale: T.Vector3, tint: number, rect?: Rect) {
+  add(
+    geometry: T.BufferGeometry,
+    m: T.Matrix4,
+    scale: T.Vector3,
+    tint: number,
+    rect?: Rect,
+    metal = 0,
+  ) {
     const pos = geometry.getAttribute('position').array,
       nor = geometry.getAttribute('normal').array,
       uv = geometry.getAttribute('uv')?.array,
@@ -85,6 +96,7 @@ class Batch {
       if (rect) this.uv.push(rect[0] + (rect[2] - rect[0]) * u, rect[1] + (rect[3] - rect[1]) * v);
       else this.uv.push(u, v);
       this.color.push(r, g, b);
+      this.metal.push(metal);
     }
     const index = geometry.index;
     if (index) {
@@ -98,6 +110,7 @@ class Batch {
     g.setAttribute('normal', new T.Float32BufferAttribute(this.normal, 3));
     g.setAttribute('uv', new T.Float32BufferAttribute(this.uv, 2));
     g.setAttribute('color', new T.Float32BufferAttribute(this.color, 3));
+    g.setAttribute('furnitureMetal', new T.Float32BufferAttribute(this.metal, 1));
     g.setIndex(this.index);
     g.computeBoundingSphere();
     return g;
@@ -159,6 +172,34 @@ class WireBatch {
     g.computeBoundingSphere();
     return g;
   }
+}
+
+/** Concrete, paint and galvanised steel in one program: vertex colour,
+ * and a per-vertex metal flag (roughness 0.82 -> 0.48, metalness 0 -> 0.55). */
+function bodyMaterial() {
+  const material = new T.MeshStandardMaterial({ vertexColors: true, roughness: 1, metalness: 1 });
+  material.name = 'Roadside concrete, paint and galvanised steel';
+  material.onBeforeCompile = (shader) => {
+    shader.vertexShader = shader.vertexShader
+      .replace(
+        '#include <common>',
+        '#include <common>\nattribute float furnitureMetal;\nvarying float vFurnitureMetal;',
+      )
+      .replace(
+        '#include <begin_vertex>',
+        '#include <begin_vertex>\nvFurnitureMetal = furnitureMetal;',
+      );
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', '#include <common>\nvarying float vFurnitureMetal;')
+      .replace(
+        '#include <metalnessmap_fragment>',
+        `#include <metalnessmap_fragment>
+roughnessFactor = mix(0.82, 0.48, vFurnitureMetal);
+metalnessFactor = 0.55 * vFurnitureMetal;`,
+      );
+  };
+  material.customProgramCacheKey = () => 'festival-roadside-body-v1';
+  return material;
 }
 
 function wireMaterial(uniforms: {
@@ -262,7 +303,7 @@ export class RoadFurniture {
   private readonly atlas = roadSignAtlas();
   private readonly retro = retroUniforms();
   private readonly wireUniforms = { owWireViewport: { value: 1080 }, owWireFade: { value: 400 } };
-  private readonly materials: Record<Kind, T.Material>;
+  private readonly materials: Record<BatchKind | 'wire', T.Material>;
   private readonly lampMaterial: T.MeshStandardMaterial;
   private readonly batches = new Map<string, Batch>();
   private readonly wires = new Map<string, WireBatch>();
@@ -307,22 +348,19 @@ export class RoadFurniture {
     });
     sign.name = 'Retroreflective sign faces';
     this.materials = {
-      matte: new T.MeshStandardMaterial({ vertexColors: true, roughness: 0.82, metalness: 0 }),
-      metal: new T.MeshStandardMaterial({ vertexColors: true, roughness: 0.48, metalness: 0.55 }),
+      body: bodyMaterial(),
       sign: retroReflective(sign, this.retro, 3.2, 26, 'festival-sign-retro'),
       mirror: new T.MeshStandardMaterial({ color: 0xe9edf0, roughness: 0.04, metalness: 1 }),
       lamp: this.lampMaterial,
       wire: wireMaterial(this.wireUniforms),
     };
-    this.materials.matte.name = 'Roadside concrete and paint';
-    this.materials.metal.name = 'Roadside galvanised steel';
     this.materials.mirror.name = 'Convex traffic mirror';
     this.build();
     for (const shape of Object.values(this.shapes)) shape.dispose();
   }
 
   // --- Placement helpers ----------------------------------------------------
-  private batch(kind: Exclude<Kind, 'wire'>, x: number, z: number) {
+  private batch(kind: BatchKind, x: number, z: number) {
     const key = `${kind} ${Math.floor(x / CHUNK)},${Math.floor(z / CHUNK)}`;
     let b = this.batches.get(key);
     if (!b) this.batches.set(key, (b = new Batch()));
@@ -341,7 +379,7 @@ export class RoadFurniture {
   }
   /** Add `shape` scaled by (sx, sy, sz) at local (lx, ly, lz) in `frame`. */
   private part(
-    kind: Exclude<Kind, 'wire'>,
+    kind: Kind,
     shape: T.BufferGeometry,
     frame: T.Matrix4,
     lx: number,
@@ -357,7 +395,15 @@ export class RoadFurniture {
     this.q.setFromAxisAngle(UP, yaw);
     this.m.compose(this.v.set(lx, ly, lz), this.q, this.s.set(sx, sy, sz)).premultiply(frame);
     const e = this.m.elements;
-    this.batch(kind, e[12], e[14]).add(shape, this.m, this.s, tint, rect);
+    const metal = kind === 'metal';
+    this.batch(metal || kind === 'matte' ? 'body' : kind, e[12], e[14]).add(
+      shape,
+      this.m,
+      this.s,
+      tint,
+      rect,
+      metal ? 1 : 0,
+    );
   }
   /** Free of every road footprint (with `margin`) and every building. */
   private clear(x: number, y: number, z: number, margin: number) {
@@ -425,11 +471,11 @@ export class RoadFurniture {
   private finish() {
     const kinds = new Map<string, number>();
     for (const [key, batch] of this.batches) {
-      const kind = key.split(' ')[0] as Exclude<Kind, 'wire'>;
+      const kind = key.split(' ')[0] as BatchKind;
       const g = batch.geometry(),
         mesh = new T.Mesh(g, this.materials[kind]);
       mesh.name = `Roadside ${key}`;
-      mesh.castShadow = kind === 'matte' || kind === 'metal';
+      mesh.castShadow = kind === 'body';
       mesh.receiveShadow = kind !== 'lamp';
       mesh.matrixAutoUpdate = false;
       mesh.userData.furnitureKind = kind;
