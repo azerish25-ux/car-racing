@@ -15,6 +15,7 @@ import { SOLVANE } from '../../src/simulation/open-world/region-data.ts';
 import type { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { F, carBase } from '../../src/simulation/protocol.ts';
 import { isSeason, type Season } from '../../src/session/festival-season.ts';
+import { controls } from '../../src/simulation/config.ts';
 
 const params = new URLSearchParams(location.search);
 const quality = (params.get('quality') ?? 'medium') as QualityPreset;
@@ -39,6 +40,7 @@ const captureFrames = params.get('capture') === '1' ? Number(params.get('frames'
 let session: FestivalSession | null = null,
   exited = false,
   rendering = true,
+  scripted = false,
   draws = 0;
 const input = new InputController(settings, (action) => session?.action(action));
 const results: unknown[] = [];
@@ -105,6 +107,58 @@ Object.assign(window, {
     rendering: (enabled: boolean) => {
       rendering = enabled;
     },
+    // Held-input drive for software-GL captures, where one frame takes
+    // seconds: the production input message is re-sent every 50 ms (the
+    // worker brakes after 750 ms of silence) while GPU frames are held, and
+    // the snapshot-driven tyre effects advance on the latest real snapshot as
+    // a 10 Hz renderer would. `freeze` then holds the worker (no menu) so the
+    // captured frames keep the car's speed, slip and skill state.
+    drive: (options: {
+      ms: number;
+      steer?: number;
+      steerAt?: number;
+      steerMs?: number;
+      throttle?: number;
+      freeze?: boolean;
+    }) =>
+      new Promise<void>((resolve) => {
+        if (!session) return resolve();
+        const internal = session as unknown as {
+          renderer: FestivalRenderer;
+          current: Float32Array | null;
+          post(message: unknown): void;
+        };
+        const height = (x: number, z: number, y?: number) =>
+          internal.renderer.groundHeight(x, z, y);
+        const effects = internal.renderer as unknown as Record<
+          string,
+          { update?: (frame: Float32Array, h: typeof height) => void } | undefined
+        >;
+        rendering = false;
+        scripted = true;
+        const start = performance.now();
+        let last = 0;
+        const timer = setInterval(() => {
+          const t = performance.now() - start,
+            steerAt = options.steerAt ?? 0,
+            steering =
+              t >= steerAt && t < steerAt + (options.steerMs ?? options.ms)
+                ? (options.steer ?? 0)
+                : 0;
+          session?.input({ ...controls(), throttle: options.throttle ?? 1, steer: steering });
+          if (t - last >= 100 && internal.current) {
+            last = t;
+            for (const name of ['trails', 'smoke'])
+              effects[name]?.update?.(internal.current, height);
+          }
+          if (t >= options.ms) {
+            clearInterval(timer);
+            scripted = false;
+            if (options.freeze !== false) internal.post({ type: 'pause', value: true });
+            setTimeout(resolve, 120);
+          }
+        }, 50);
+      }),
     image: () => canvas.toDataURL('image/png'),
     draw: () => {
       if (session) {
@@ -163,7 +217,7 @@ async function boot() {
   const tick = (time: number) => {
     if (!session) return;
     if (session.isPaused) input.pollActions(['pause']);
-    else session.input(input.update(Math.min(0.08, (time - previous) / 1000)));
+    else if (!scripted) session.input(input.update(Math.min(0.08, (time - previous) / 1000)));
     previous = time;
     if (rendering) {
       session.frame(time);

@@ -42,13 +42,69 @@ const clock = (seconds: number) => {
   return `${m}:${s.toFixed(2).padStart(5, '0')}`;
 };
 const stars = (n: number) => '★'.repeat(n) + '☆'.repeat(Math.max(0, 3 - n));
+const points = (n: number) => Math.round(n).toLocaleString('en');
+const titleCase = (s: string) =>
+  s.toLowerCase().replace(/(^|[\s·-])\p{L}/gu, (c) => c.toUpperCase());
+const ordinal = (n: number) =>
+  `${n}${n % 100 >= 11 && n % 100 <= 13 ? 'TH' : (['TH', 'ST', 'ND', 'RD'][n % 10] ?? 'TH')}`;
+/** Best saved result per event (FestivalSave.best), shown as Current Best. */
+export type FestivalBest = Readonly<
+  Record<string, { stars: number; time: number | null; value: number | null }>
+>;
+
+/** Speedometer geometry in SVG units, measured from the reference HUD
+ * (FH6 ref 041/042): a 225 degree arc open at the lower right, zero at the
+ * lower left (135 degrees, screen clockwise) to the top of the scale at three
+ * o'clock; the digits sit in the open quadrant, the gear in a ring at the
+ * centre and the last tenth of the scale is the magenta redline. */
+export const GAUGE = Object.freeze({ cx: 104, cy: 98, r: 80, start: 135, sweep: 225 });
+function gaugePoint(fraction: number, radius: number) {
+  const a = ((GAUGE.start + GAUGE.sweep * fraction) * Math.PI) / 180;
+  return [GAUGE.cx + radius * Math.cos(a), GAUGE.cy + radius * Math.sin(a)] as const;
+}
+function arcPath(from: number, to: number, radius: number) {
+  const [x0, y0] = gaugePoint(from, radius),
+    [x1, y1] = gaugePoint(to, radius);
+  const large = GAUGE.sweep * (to - from) > 180 ? 1 : 0;
+  return `M${x0.toFixed(2)} ${y0.toFixed(2)}A${radius} ${radius} 0 ${large} 1 ${x1.toFixed(2)} ${y1.toFixed(2)}`;
+}
+function gaugeArcs() {
+  return `<path class="fest-gauge-track" d="${arcPath(0, 1, GAUGE.r)}"></path><path class="fest-gauge-red" id="festRedline" d="${arcPath(0.9, 1, GAUGE.r + 3.5)}"></path><path class="fest-gauge-rpm" id="festRpm" pathLength="1" d="${arcPath(0, 1, GAUGE.r)}"></path>`;
+}
+/** Scale of the rev gauge in thousands of rpm for a machine's limiter:
+ * whole thousands to the next one above the limiter, labelled every 1, 2 or
+ * 4 thousand so a high-revving machine never crowds the arc. */
+export function gaugeScale(limiterRpm: number) {
+  const top = Math.max(4, Math.ceil(Math.max(0, limiterRpm) / 1000 + 1e-6));
+  const step = top > 16 ? 4 : top > 9 ? 2 : 1;
+  const max = Math.ceil(top / step) * step;
+  return { max, step, red: Math.min(1, Math.max(0, (limiterRpm * 0.9) / (max * 1000))) };
+}
+function gaugeTicks(scale: ReturnType<typeof gaugeScale>) {
+  let svg = '';
+  for (let k = 0; k <= scale.max * 2; k++) {
+    const f = k / (scale.max * 2),
+      major = k % (scale.step * 2) === 0;
+    const [x0, y0] = gaugePoint(f, GAUGE.r - 1.5),
+      [x1, y1] = gaugePoint(f, GAUGE.r - (major ? 8 : 4));
+    svg += `<line x1="${x0.toFixed(1)}" y1="${y0.toFixed(1)}" x2="${x1.toFixed(1)}" y2="${y1.toFixed(1)}" class="${major ? 'fest-tick-major' : 'fest-tick'}"></line>`;
+    if (major) {
+      const [lx, ly] = gaugePoint(f, GAUGE.r - 17);
+      svg += `<text x="${lx.toFixed(1)}" y="${(ly + 0.5).toFixed(1)}" class="fest-tick-label${f >= scale.red - 1e-6 ? ' fest-tick-red' : ''}">${k / 2}</text>`;
+    }
+  }
+  return svg;
+}
 
 /**
- * Festival heads-up display and menus: road name, speed-limit sign and
- * surface; speed, gear and revs; a heading-up minimap of the road network
- * with event markers and the active route; the event card at a marker; the
- * running event (countdown, position, lap, time, progress, live trap/zone/
- * drift metric); results with stars and standings; messages; the pause menu
+ * Festival heads-up display and menus, laid out as the reference in-race HUD
+ * (FH6 ref 041/042) with original styling: a circular heading-up minimap
+ * (route in cyan, north on the ring) with road/limit pills below it at the
+ * lower left; an arc rev gauge with redline, gear ring and italic speed
+ * digits at the lower right; skill popups (chain points x multiplier, named
+ * skill and points) at the top centre; the running event panel (current best,
+ * event, big live value, time, progress) at the bottom centre; the event card
+ * at a marker; countdown; results with stars and standings; messages; the pause menu
  * (resume, reset, time of day, machine from the vehicle registry, autopilot,
  * ambient traffic, travel to discovered events, exit) and a full world map.
  */
@@ -71,6 +127,12 @@ export class FestivalHud {
   private previousPadButtons = new Set<number>();
   private readonly listeners = new AbortController();
   private photoOpen = false;
+  private gaugeVehicle = '';
+  private scale = gaugeScale(8000);
+  private lastSpeed = -1;
+  private lastAward = 0;
+  /** Saved bests (the session's FestivalSave.best, updated in place). */
+  best: FestivalBest | null = null;
   menuOpen = false;
   mapOpen = false;
   constructor(
@@ -85,13 +147,12 @@ export class FestivalHud {
     root.id = 'festivalHud';
     root.setAttribute('aria-label', 'Festival');
     root.innerHTML = `
-      <div class="fest-road" role="status"><span class="fest-limit" id="festLimit">90</span><div><span class="fest-eyebrow">MOTOBOUND / SOLVANE COAST</span><b id="festRoad">—</b><span id="festSurface">asphalt</span></div></div>
       <div class="fest-pace" id="festPace" aria-label="Corner advisory" hidden><span class="fest-eyebrow">ROUTE ADVISORY</span><b id="festPaceTurn"></b><span id="festPaceAction"></span><small id="festPaceSurface"></small></div>
       <div class="fest-drift" id="festDrift" aria-label="Drift angle advisory" hidden><div><span id="festDriftAction"></span><b id="festDriftAngle"></b></div><div class="fest-drift-track"><i id="festDriftMarker"></i></div><small id="festDriftTip"></small></div>
       <div class="fest-hint" id="festHint"><kbd>C</kbd> CAMERA · <kbd>T</kbd> MAP · <kbd>ESC</kbd> MENU</div>
       <div class="fest-explore" id="festExplore"><span class="fest-eyebrow">THE ROAD IS YOURS</span><b id="festExploreName">Explore Solvane Coast</b><small id="festExploreDistance"></small></div>
-      <div class="fest-skills" id="festSkills" hidden role="status"><span id="festSkillLabel"></span><div><b id="festSkillScore">0</b><i id="festSkillMultiplier">×1.0</i></div><small id="festSkillBank"></small><div class="fest-chain-track"><i id="festSkillTimer"></i></div></div>
-      <div class="fest-event" id="festEvent" hidden><h2 id="festEventName"></h2><div class="fest-row" id="festEventRow"></div><div class="fest-progress"><i id="festProgress"></i></div></div>
+      <div class="fest-skills" id="festSkills" hidden role="status" aria-label="Skill chain"><div class="fest-chain-track" aria-hidden="true"><i id="festSkillTimer"></i></div><div class="fest-skill-total"><b id="festSkillScore">0</b><i id="festSkillMultiplier">x1.0</i></div><div class="fest-skill-line"><span id="festSkillName"></span><b id="festSkillPoints"></b></div><small id="festSkillBank"></small><span class="fest-sr" id="festSkillLabel"></span></div>
+      <div class="fest-event" id="festEvent" hidden role="status" aria-label="Running event"><div class="fest-event-best"><span>Current Best</span><b id="festEventBest">—</b></div><div class="fest-event-head"><i class="fest-event-icon" id="festEventIcon" aria-hidden="true"></i><h2 id="festEventName"></h2><em id="festEventSide"></em></div><div class="fest-event-value"><span class="fest-chevrons" aria-hidden="true"></span><b id="festEventBig"></b><span class="fest-chevrons" aria-hidden="true"></span></div><div class="fest-row" id="festEventRow"></div><div class="fest-progress"><i id="festProgress"></i></div></div>
       <div class="fest-countdown" id="festCountdown" hidden></div>
       <div class="fest-message" id="festMessage" role="status" aria-live="polite" hidden></div>
       <div class="fest-card" id="festCard" hidden role="dialog" aria-label="Event"></div>
@@ -99,8 +160,9 @@ export class FestivalHud {
       <div class="fest-menu" id="festMenu" hidden role="dialog" aria-label="Festival menu"></div>
       <div class="fest-map" id="festMap" hidden role="dialog" aria-modal="true" aria-label="World map"><header><div><span class="fest-eyebrow">MOTOBOUND / EXPLORE</span><h2>Solvane Coast</h2></div><button class="fest-secondary" data-fest="mapClose">CLOSE</button></header><div class="fest-map-layout"><div class="fest-map-art"><canvas id="festMapCanvas" width="1024" height="1024" aria-label="Solvane road network and selected event route"></canvas><span class="fest-map-key">N ↑ &nbsp; PAVED ROADS · MOUNTAIN PASSES · DIRT TRAILS</span></div><aside><div class="fest-map-filters"><button data-fest="mapFilter" data-value="all" aria-pressed="true">All</button><button data-fest="mapFilter" data-value="races" aria-pressed="false">Races</button><button data-fest="mapFilter" data-value="skills" aria-pressed="false">Skills</button></div><div id="festMapEvents" class="fest-map-events"></div><div id="festMapDetail" class="fest-map-detail"></div></aside></div></div>
       <div class="fest-photo" id="festPhoto" hidden><div><span class="fest-eyebrow">MOTOBOUND / PHOTO MODE</span><b>Find your angle.</b><span>Drag to orbit · Scroll to zoom</span></div><nav><button data-fest="photoLeft" aria-label="Orbit camera left">←</button><button data-fest="photoRight" aria-label="Orbit camera right">→</button><button data-fest="photoHide">HIDE CONTROLS</button><button data-fest="photoClose">RETURN TO DRIVE <kbd>ESC</kbd></button></nav></div>
-      <div class="fest-minimap"><span class="fest-map-caption">SOLVANE <i id="festDiscovered">0 DISCOVERED</i></span><canvas id="festMinimap" width="440" height="440" aria-label="Minimap"></canvas></div>
-      <div class="fest-speed"><span class="fest-machine-label" id="festMachineName"></span><div class="fest-speed-readout"><b id="festSpeed">0</b><div><strong id="festGear">N</strong><small>GEAR</small></div></div><small>KILOMETRES / HOUR</small><i id="festRpm"></i><span class="fest-drive-state" id="festDriveState">FREE ROAM</span></div>`;
+      <div class="fest-minimap"><canvas id="festMinimap" width="360" height="360" aria-label="Minimap: heading up, the event route in cyan"></canvas><span class="fest-north" id="festNorth" aria-hidden="true">N</span></div>
+      <div class="fest-pills"><div class="fest-road" role="status" aria-label="Road"><span class="fest-limit" id="festLimit" aria-label="Speed limit">90</span><b id="festRoad">—</b><span id="festSurface">asphalt</span></div><span class="fest-pill" id="festDiscovered">0 DISCOVERED</span></div>
+      <div class="fest-speed" role="group" aria-label="Speed, gear and revs"><span class="fest-machine-label" id="festMachineName"></span><svg class="fest-gauge" viewBox="0 0 220 190" aria-hidden="true">${gaugeArcs()}<g id="festTicks"></g><circle class="fest-gear-ring" cx="${GAUGE.cx}" cy="${GAUGE.cy}" r="19"></circle><text class="fest-gear" id="festGear" x="${GAUGE.cx}" y="${GAUGE.cy + 1}">N</text></svg><div class="fest-speed-readout"><small>KM/H</small><b id="festSpeed" role="status" aria-label="0 kilometres per hour"><span class="fest-dim">00</span>0</b></div><span class="fest-drive-state" id="festDriveState">FREE ROAM</span></div>`;
     parent.appendChild(root);
     this.root = root;
     this.minimap = this.get('festMinimap') as HTMLCanvasElement;
@@ -237,22 +299,26 @@ export class FestivalHud {
           // Rise toward the image's right (world -x).
           hx = field.height(x - step, z, step) - h;
         const shade = Math.max(0.55, Math.min(1.25, 0.9 - (hx / step) * 2.2));
+        // Satellite-like palette (ref 055): deep forest greens, lighter
+        // farmland, turquoise shallows into a dark blue sea.
         let r: number, g: number, b: number;
-        if (h < field.region.seaLevel) [r, g, b] = [18, 38, 58];
-        else if (h > field.snowLine(x, z)) [r, g, b] = [205, 210, 218];
-        else if (field.forestDensity(x, z) > 0.45) [r, g, b] = [34, 58, 34];
-        else [r, g, b] = [58 + h * 0.05, 74 + h * 0.03, 46];
+        const depth = field.region.seaLevel - h;
+        if (depth > 6) [r, g, b] = [16, 44, 70];
+        else if (depth > 0) [r, g, b] = [28 + depth * -2, 104 - depth * 9, 118 - depth * 7];
+        else if (h > field.snowLine(x, z)) [r, g, b] = [214, 218, 224];
+        else if (field.forestDensity(x, z) > 0.45) [r, g, b] = [36, 62, 33];
+        else [r, g, b] = [74 + h * 0.03, 96 + h * 0.01, 50];
         ctx.fillStyle = `rgb(${(r * shade) | 0},${(g * shade) | 0},${(b * shade) | 0})`;
         ctx.fillRect(i * cell, j * cell, cell + 1, cell + 1);
       }
-    // Roads by class.
+    // Roads by class: paved roads white, trails orange (ref 055).
     const style: Record<string, [string, number]> = {
-      highway: ['#f2c14e', 7],
-      runway: ['#9aa0a6', 12],
-      country: ['#eef0f2', 4.2],
-      mountain: ['#ff9b5e', 4.2],
-      town: ['#c9d2e3', 3.4],
-      dirt: ['#b98a5a', 3],
+      highway: ['#fbfbf8', 7],
+      runway: ['#c3c8cc', 12],
+      country: ['#eef0f0', 4.4],
+      mountain: ['#eef0f0', 4.4],
+      town: ['#dfe3e8', 3.6],
+      dirt: ['#e0864f', 3.2],
     };
     for (const pass of [0, 1])
       for (const e of net.edges) {
@@ -282,17 +348,20 @@ export class FestivalHud {
       ctx.beginPath();
       ctx.arc(x, y, radius, 0, Math.PI * 2);
       ctx.fillStyle = known ? colour(EVENT_COLOURS[event.spec.kind]) : 'rgba(200,200,200,0.45)';
+      ctx.lineWidth = radius * 0.55;
+      ctx.strokeStyle = 'rgba(0,0,0,0.55)';
+      ctx.stroke();
       ctx.fill();
-      ctx.lineWidth = radius * 0.35;
-      ctx.strokeStyle = 'rgba(0,0,0,0.7)';
+      ctx.lineWidth = radius * 0.28;
+      ctx.strokeStyle = known ? '#ffffff' : 'rgba(255,255,255,0.5)';
       ctx.stroke();
     }
   }
+  /** The event route: a cyan line with a dark casing (ref 041/042). */
   private drawRoute(ctx: CanvasRenderingContext2D, width: number, event = this.routeEvent) {
     if (!event) return;
     const path = event.path;
-    ctx.strokeStyle = colour(EVENT_COLOURS[event.spec.kind]);
-    ctx.lineWidth = width;
+    ctx.lineJoin = ctx.lineCap = 'round';
     ctx.beginPath();
     for (let i = 0; i < path.count; i += 3) {
       const [x, y] = worldToMap(path.x[i], path.z[i]);
@@ -300,34 +369,66 @@ export class FestivalHud {
       else ctx.lineTo(x, y);
     }
     if (path.closed) ctx.closePath();
+    ctx.strokeStyle = 'rgba(4, 30, 38, 0.75)';
+    ctx.lineWidth = width * 1.7;
+    ctx.stroke();
+    ctx.strokeStyle = '#2fd8ee';
+    ctx.lineWidth = width;
     ctx.stroke();
   }
-  /** Heading-up minimap around the player (±650 m); `heading` from
-   * minimapHeading(forward). */
+  /** Circular heading-up minimap (ref 041/042): ±420 m across, the player a
+   * fifth of the radius below the centre so more road shows ahead; the
+   * north marker rides the ring. `heading` from minimapHeading(forward). */
   private paintMinimap(x: number, z: number, heading: number, discovered: ReadonlySet<string>) {
     const ctx = this.minimap.getContext('2d')!,
       size = this.minimap.width,
-      range = 650;
+      range = 420,
+      lift = size * 0.1;
     ctx.save();
-    ctx.fillStyle = '#0b1016';
+    ctx.clearRect(0, 0, size, size);
+    ctx.beginPath();
+    ctx.arc(size / 2, size / 2, size / 2 - 1, 0, Math.PI * 2);
+    ctx.clip();
+    ctx.fillStyle = 'rgba(9, 13, 17, 0.62)';
     ctx.fillRect(0, 0, size, size);
-    ctx.setTransform(...minimapMatrix(x, z, heading, size, range));
+    const [a, b, c, d, e, f] = minimapMatrix(x, z, heading, size, range);
+    ctx.setTransform(a, b, c, d, e, f + lift);
+    ctx.globalAlpha = 0.86;
     ctx.drawImage(this.mapImage, 0, 0);
-    this.drawRoute(ctx, 6);
-    this.drawMarkers(ctx, discovered, 9);
+    ctx.globalAlpha = 1;
+    this.drawRoute(ctx, 5.2);
+    this.drawMarkers(ctx, discovered, 7.5);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    // Inner rim shade, as the reference's glass ring.
+    const rim = ctx.createRadialGradient(
+      size / 2,
+      size / 2,
+      size * 0.36,
+      size / 2,
+      size / 2,
+      size / 2,
+    );
+    rim.addColorStop(0, 'rgba(0,0,0,0)');
+    rim.addColorStop(1, 'rgba(0,0,0,0.42)');
+    ctx.fillStyle = rim;
+    ctx.fillRect(0, 0, size, size);
     ctx.restore();
     // Player arrow (always up).
+    const px = size / 2,
+      py = size / 2 + lift;
     ctx.fillStyle = '#ffffff';
-    ctx.strokeStyle = '#000';
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = 'rgba(0,0,0,0.75)';
+    ctx.lineWidth = 3;
+    ctx.lineJoin = 'round';
     ctx.beginPath();
-    ctx.moveTo(size / 2, size / 2 - 16);
-    ctx.lineTo(size / 2 + 11, size / 2 + 12);
-    ctx.lineTo(size / 2, size / 2 + 6);
-    ctx.lineTo(size / 2 - 11, size / 2 + 12);
+    ctx.moveTo(px, py - 17);
+    ctx.lineTo(px + 12, py + 13);
+    ctx.lineTo(px, py + 6);
+    ctx.lineTo(px - 12, py + 13);
     ctx.closePath();
-    ctx.fill();
     ctx.stroke();
+    ctx.fill();
+    this.get('festNorth').style.setProperty('--north', `${heading.toFixed(4)}rad`);
   }
   showMap(open: boolean, discovered: ReadonlySet<string> = this.discovered, at = this.playerAt) {
     const wasOpen = this.mapOpen;
@@ -485,42 +586,8 @@ export class FestivalHud {
     this.text('festRoad', status.road.onRoad ? status.road.name : 'Off road');
     this.text('festSurface', status.road.surface);
     this.text('festLimit', String(status.road.limitKmh));
-    this.text('festSpeed', String(Math.round(status.speedKmh)));
-    this.text('festGear', gear < 0 ? 'R' : gear === 0 ? 'N' : String(gear));
-    this.get('festRpm').style.transform = `scaleX(${Math.max(0, Math.min(1, rpm01)).toFixed(3)})`;
-    this.get('festSpeed').classList.toggle(
-      'fest-over-limit',
-      status.speedKmh > status.road.limitKmh + 10,
-    );
-    const skills = status.skills;
-    this.show(
-      'festSkills',
-      !!skills && skills.phase !== 'idle' && !this.menuOpen && !this.mapOpen && !this.photoOpen,
-    );
-    if (skills) {
-      this.get('festSkills').dataset.phase = skills.phase;
-      this.text('festSkillLabel', skills.label);
-      this.text(
-        'festSkillScore',
-        Math.round(skills.phase === 'banked' ? skills.lastBank : skills.score).toLocaleString('en'),
-      );
-      this.text(
-        'festSkillMultiplier',
-        skills.phase === 'active'
-          ? `×${skills.multiplier.toFixed(1)}`
-          : skills.phase === 'lost'
-            ? 'LOST'
-            : 'BANKED',
-      );
-      this.text(
-        'festSkillBank',
-        skills.phase === 'active'
-          ? `${Math.round(skills.total).toLocaleString('en')} PTS TO BANK`
-          : `SESSION ${Math.round(skills.sessionTotal).toLocaleString('en')} PTS`,
-      );
-      this.get('festSkillTimer').style.transform =
-        `scaleX(${Math.min(1, skills.bankRemaining / 4)})`;
-    }
+    this.speedometer(status, gear, rpm01);
+    this.skillPopup(status);
     const nearby = this.events
       .filter((event) => !discovered.has(event.spec.id))
       .sort(
@@ -546,26 +613,7 @@ export class FestivalHud {
         ? (this.events.find((e) => e.spec.id === status.card!.id) ?? null)
         : null;
     this.show('festEvent', !!ev && status.mode !== 'finished');
-    if (ev) {
-      this.root.style.setProperty(
-        '--fest-accent',
-        colour(EVENT_COLOURS[ev.kind as keyof typeof EVENT_COLOURS] ?? 0xff6a2a),
-      );
-      this.text('festEventName', ev.name);
-      const race = isRace(ev.kind as never);
-      const cells: [string, string][] = [];
-      if (race) cells.push(['POSITION', `${ev.position}/${ev.entrants}`]);
-      if (ev.laps > 1) cells.push(['LAP', `${ev.lap}/${ev.laps}`]);
-      cells.push(['TIME', clock(ev.elapsed)]);
-      if (ev.live) cells.push([ev.live.label, ev.live.value]);
-      if (ev.offRoute) cells.push(['ROUTE', 'RETURN TO ROUTE']);
-      const html = cells
-        .map(([k, v]) => `<div><span>${escapeHtml(k)}</span><b>${escapeHtml(v)}</b></div>`)
-        .join('');
-      const row = this.get('festEventRow');
-      if (row.innerHTML !== html) row.innerHTML = html;
-      this.get('festProgress').style.transform = `scaleX(${ev.progress.toFixed(4)})`;
-    }
+    if (ev) this.eventPanel(ev);
     const count = ev && status.mode === 'countdown' ? Math.ceil(ev.countdown) : 0;
     this.show('festCountdown', count > 0);
     if (count > 0) this.text('festCountdown', String(count));
@@ -599,6 +647,127 @@ export class FestivalHud {
     this.text('festMessage', status.message ?? '');
     this.show('festMessage', !!status.message && !this.menuOpen);
     if (!this.photoOpen) this.paintMinimap(x, z, heading, discovered);
+  }
+  /** Arc rev gauge with redline, gear ring and three italic digits (leading
+   * zeros dimmed), rebuilt only when the machine changes. */
+  private speedometer(status: FestivalStatus, gear: number, rpm01: number) {
+    const machine = this.vehicles.find((v) => v.id === status.vehicleId);
+    if (machine && machine.id !== this.gaugeVehicle) {
+      this.gaugeVehicle = machine.id;
+      this.scale = gaugeScale(machine.spec.limiterRPM);
+      this.get('festTicks').innerHTML = gaugeTicks(this.scale);
+      this.get('festRedline').setAttribute('d', arcPath(this.scale.red, 1, GAUGE.r + 3.5));
+    }
+    const kmh = Math.max(0, Math.min(999, Math.round(status.speedKmh)));
+    if (kmh !== this.lastSpeed) {
+      this.lastSpeed = kmh;
+      const digits = String(kmh).padStart(3, '0'),
+        lead = digits.length - String(kmh).length;
+      const node = this.get('festSpeed');
+      node.innerHTML = `${lead ? `<span class="fest-dim">${digits.slice(0, lead)}</span>` : ''}${digits.slice(lead)}`;
+      node.setAttribute('aria-label', `${kmh} kilometres per hour`);
+    }
+    this.get('festSpeed').classList.toggle(
+      'fest-over-limit',
+      status.speedKmh > status.road.limitKmh + 10,
+    );
+    this.text('festGear', gear < 0 ? 'R' : gear === 0 ? 'N' : String(gear));
+    const spec = machine?.spec;
+    const rpm = spec
+      ? spec.idleRPM + Math.max(0, Math.min(1, rpm01)) * (spec.limiterRPM - spec.idleRPM)
+      : Math.max(0, Math.min(1, rpm01)) * this.scale.max * 900;
+    const fraction = Math.max(0, Math.min(1, rpm / (this.scale.max * 1000)));
+    const arc = this.get('festRpm');
+    arc.style.strokeDashoffset = (1 - fraction).toFixed(4);
+    arc.classList.toggle('fest-gauge-hot', fraction >= this.scale.red);
+  }
+  /** Top-centre skill popup: chain points x multiplier in yellow, the named
+   * skill and its points below, the bank timer above; a new award pops. */
+  private skillPopup(status: FestivalStatus) {
+    const skills = status.skills;
+    this.show(
+      'festSkills',
+      !!skills && skills.phase !== 'idle' && !this.menuOpen && !this.mapOpen && !this.photoOpen,
+    );
+    if (!skills) return;
+    const node = this.get('festSkills');
+    node.dataset.phase = skills.phase;
+    this.text('festSkillLabel', skills.label);
+    this.text('festSkillScore', points(skills.phase === 'banked' ? skills.lastBank : skills.score));
+    this.text(
+      'festSkillMultiplier',
+      skills.phase === 'active'
+        ? `x${skills.multiplier.toFixed(1)}`
+        : skills.phase === 'banked'
+          ? 'BANKED'
+          : '',
+    );
+    const skill = skills.skill;
+    this.text('festSkillName', skill ? titleCase(skill.name) : titleCase(skills.label));
+    this.text('festSkillPoints', skill ? points(skill.points) : '');
+    this.text(
+      'festSkillBank',
+      skills.phase === 'active'
+        ? `${points(skills.total)} PTS TO BANK`
+        : skills.phase === 'lost'
+          ? skills.label
+          : `SESSION ${points(skills.sessionTotal)} PTS`,
+    );
+    this.get('festSkillTimer').style.transform =
+      `scaleX(${Math.min(1, skills.bankRemaining / 4).toFixed(3)})`;
+    const award = skills.award?.id ?? 0;
+    if (award !== this.lastAward) {
+      this.lastAward = award;
+      if (award) {
+        // Restart the pop animation for each newly completed skill.
+        node.classList.remove('fest-skill-pop');
+        void node.offsetWidth;
+        node.classList.add('fest-skill-pop');
+      }
+    }
+  }
+  /** Bottom-centre event panel (ref 041/042): current best, the event and
+   * its format icon, a big live value between chevrons, time and progress. */
+  private eventPanel(ev: NonNullable<FestivalStatus['event']>) {
+    const kind = ev.kind as keyof typeof EVENT_COLOURS;
+    this.root.style.setProperty('--fest-accent', colour(EVENT_COLOURS[kind] ?? 0xff6a2a));
+    this.get('festEvent').dataset.kind = ev.kind;
+    this.text('festEventName', ev.name);
+    const race = isRace(ev.kind as never);
+    const best = this.best?.[ev.id];
+    this.text(
+      'festEventBest',
+      !best
+        ? '—'
+        : race
+          ? best.time !== null
+            ? clock(best.time)
+            : '—'
+          : best.value === null
+            ? '—'
+            : ev.kind === 'drift-zone'
+              ? `${points(best.value)} PTS`
+              : `${Math.round(best.value)} KM/H`,
+    );
+    let big: string;
+    if (race) big = `${ordinal(ev.position)} / ${ev.entrants}`;
+    else if (ev.kind === 'drift-zone') big = `${points(Number(ev.live?.value ?? 0))} PTS`;
+    else big = ev.live?.value ?? '—';
+    this.text('festEventBig', big);
+    this.text(
+      'festEventSide',
+      ev.laps > 1 ? `LAP ${ev.lap}/${ev.laps}` : `${Math.round(ev.progress * 100)}%`,
+    );
+    const cells: [string, string][] = [['TIME', clock(ev.elapsed)]];
+    if (ev.live && race) cells.push([ev.live.label, ev.live.value]);
+    else if (ev.live && ev.kind !== 'drift-zone') cells.push([ev.live.label, ev.live.value]);
+    if (ev.offRoute) cells.push(['ROUTE', 'RETURN TO ROUTE']);
+    const html = cells
+      .map(([k, v]) => `<div><span>${escapeHtml(k)}</span><b>${escapeHtml(v)}</b></div>`)
+      .join('');
+    const row = this.get('festEventRow');
+    if (row.innerHTML !== html) row.innerHTML = html;
+    this.get('festProgress').style.transform = `scaleX(${ev.progress.toFixed(4)})`;
   }
   private resultsHtml(r: FestivalResult) {
     const rows = r.standings
