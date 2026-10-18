@@ -320,7 +320,7 @@ export function installSeasonRoad(material: T.Material, surface: RoadSurface) {
   const litter = surface === 'dirt' ? 0.4 : surface === 'paving' ? 0.55 : 0.75;
   const edgeBias =
     surface === 'asphalt'
-      ? 'smoothstep(1.2, 4.6, abs(vOwRoadUv.x))'
+      ? 'smoothstep(2.6, 5.5, abs(vOwRoadUv.x))'
       : surface === 'dirt'
         ? 'smoothstep(0.6, 2.6, abs(vOwRoadUv.x))'
         : '1.0';
@@ -350,9 +350,11 @@ export function installSeasonRoad(material: T.Material, surface: RoadSurface) {
   float drift = owRoadNoise(p * 0.31) * 0.6 + owRoadNoise(p * 0.07 + 3.1) * 0.4;
   // Spring: petals under the cherry groves.
   float petals = owCherryZone(p) * smoothstep(0.3, 0.8, drift) * (0.2 + 0.8 * edge);
-  float petal = owLitter(p, 26.0, clamp(petals * ${litter.toFixed(2)}, 0.0, 0.75), 0.0);
-  vec3 petalC = mix(vec3(0.72, 0.5, 0.57), vec3(0.8, 0.66, 0.7), owRoadHash(floor(p * 26.0) + 7.0));
-  diffuseColor.rgb = mix(diffuseColor.rgb, petalC, petal * owSeason.x);
+  // Petals ~6 cm cells (read at driving distance), translucent pink: the
+  // carpet tints the road (096) instead of speckling it white.
+  float petal = owLitter(p, 16.0, clamp(petals * ${litter.toFixed(2)}, 0.0, 0.6), 0.0);
+  vec3 petalC = mix(vec3(0.6, 0.38, 0.45), vec3(0.7, 0.52, 0.58), owRoadHash(floor(p * 16.0) + 7.0));
+  diffuseColor.rgb = mix(diffuseColor.rgb, petalC, 0.8 * petal * owSeason.x);
   // Autumn: maple and broadleaf leaves, more in the maple groves.
   float leaves = (0.25 + 0.75 * owMapleZone(p)) * smoothstep(0.3, 0.8, drift) * (0.2 + 0.8 * edge);
   float leafPiece = owLitter(p, 11.0, clamp(leaves * 0.75, 0.0, 0.75), 3.0);
