@@ -93,6 +93,7 @@ import {
   FestivalSkyClouds,
   festivalCloudCover,
   festivalLight,
+  sunFacing,
 } from './festival-sky.ts';
 import { setCloudShadow } from '../studio/cloud-shadow.ts';
 import { FestivalDriftSmoke } from './drift-smoke.ts';
@@ -777,7 +778,12 @@ export class FestivalRenderer {
       daylight.environment = 0.2 + daylight.cover * 0.04;
       daylight.exposure = 1.12 - clamp(presented[H.RAIN], 0, 60) * 0.0005;
     }
-    festivalLight(daylight, mode, this.festivalSky.capturedClouds);
+    festivalLight(
+      daylight,
+      mode,
+      this.festivalSky.capturedClouds,
+      sunFacing(this.camera.getWorldDirection(this.temp), lightingDirection(mode)),
+    );
     // The festival's own air (festival-atmosphere.ts): the art-bible horizon
     // as in-scatter, not the photographed dome's (its clear-day photo has a
     // brown desert horizon), and clean-air extinction per lighting.

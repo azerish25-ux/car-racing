@@ -152,10 +152,14 @@ export class FestivalSky implements PhotoSkyBinding {
  * The festival camera and sky light over the shared lighting state
  * (circuitLightState), from the references' luminance histograms.
  *
- * Exposure per lighting. Golden hour: the shared 1.62 left the festival's
- * sunset frame at a linear mean of 0.10 and a median luma of 0.21 where
- * 017/032/063/098 sit at 0.27-0.34 and 0.35-0.46 (the low sun lights the
- * facades the chase camera sees).
+ * Exposure per lighting, with the eye adaptation of the golden hour: the low
+ * sun makes the frame's brightness depend on where the camera looks. Away
+ * from the sun the shared 1.62 left the spawn street at a linear mean of 0.15
+ * and a median luma of 0.26 (refs 032/063 and the sunlit sides of 017/098:
+ * 0.27-0.34, 0.35-0.46), x1.6 brings it to 0.20-0.21 / 0.32-0.37; into the
+ * sun the hazy glow already read 0.58 / 0.85 (017: 0.31 / 0.41, 098 0.28 /
+ * 0.35), so the camera closes to x0.75 as it turns toward the sun
+ * (`intoSun`, by the horizontal facing, `festivalLight`).
  *
  * Diffuse sky share. The fair-weather clouds the festival shows over the
  * simulated cover brighten the captured dome (white cumulus outshine the blue
@@ -173,6 +177,7 @@ export class FestivalSky implements PhotoSkyBinding {
  */
 export const FESTIVAL_LIGHT = Object.freeze({
   exposure: Object.freeze({ day: 1, sunset: 1.6, night: 1 } as const),
+  intoSun: Object.freeze({ day: 1, sunset: 0.75, night: 1 } as const),
   diffuse: Object.freeze({ day: 0.75, sunset: 0.9, night: 1 } as const),
 });
 const Y = (c: T.Color) => 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
@@ -186,15 +191,33 @@ export function festivalEnvironment(cover: number, mode: LightingMode, clouds = 
     share = Math.min(1, Math.max(0, clouds));
   return (1 + (ratio - 1) * share) * FESTIVAL_LIGHT.diffuse[mode];
 }
+/** Exposure multiplier for a lighting and the camera's horizontal facing
+ * toward the sun (cosine, -1 away .. 1 into it). */
+export function festivalExposure(mode: LightingMode, facing = -1) {
+  const t = Math.min(1, Math.max(0, (facing + 0.1) / 1)),
+    k = t * t * (3 - 2 * t);
+  return (
+    FESTIVAL_LIGHT.exposure[mode] +
+    (FESTIVAL_LIGHT.intoSun[mode] - FESTIVAL_LIGHT.exposure[mode]) * k
+  );
+}
 /** Apply the festival camera and sky light to a frame's lighting state (in
  * place; night keeps its own authored fill). `clouds`: share of the baked
- * clouds in the captured dome (FestivalSky.capturedClouds). */
+ * clouds in the captured dome (FestivalSky.capturedClouds); `facing`: the
+ * camera's horizontal facing toward the sun. */
 export function festivalLight<L extends { exposure: number; environment: number; cover: number }>(
   light: L,
   mode: LightingMode,
   clouds = 1,
+  facing = -1,
 ) {
-  light.exposure *= FESTIVAL_LIGHT.exposure[mode];
+  light.exposure *= festivalExposure(mode, facing);
   if (mode !== 'night') light.environment *= festivalEnvironment(light.cover, mode, clouds);
   return light;
+}
+/** Horizontal facing of a view direction toward a sun direction (cosine). */
+export function sunFacing(view: T.Vector3, sun: T.Vector3) {
+  const v = Math.hypot(view.x, view.z),
+    s = Math.hypot(sun.x, sun.z);
+  return v > 1e-6 && s > 1e-6 ? (view.x * sun.x + view.z * sun.z) / (v * s) : 0;
 }

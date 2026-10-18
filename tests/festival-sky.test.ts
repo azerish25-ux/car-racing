@@ -15,7 +15,9 @@ import {
   FestivalSkyClouds,
   festivalCloudCover,
   festivalEnvironment,
+  festivalExposure,
   festivalLight,
+  sunFacing,
   festivalPhotoClouds,
 } from '../src/rendering/open-world/festival-sky.ts';
 
@@ -140,5 +142,22 @@ describe('festival sky', () => {
     expect(at('night').environment).toBe(1);
     // At or above the cloud floor nothing is shown beyond the simulation.
     expect(festivalEnvironment(0.6, 'day')).toBeCloseTo(FESTIVAL_LIGHT.diffuse.day);
+  });
+
+  it('adapts the golden-hour exposure to the camera facing the sun', () => {
+    const sun = new T.Vector3(-215, 45, -150);
+    expect(sunFacing(new T.Vector3(-215, -20, -150), sun)).toBeCloseTo(1);
+    expect(sunFacing(new T.Vector3(215, 0, 150), sun)).toBeCloseTo(-1);
+    expect(festivalExposure('sunset', -1)).toBe(FESTIVAL_LIGHT.exposure.sunset);
+    expect(festivalExposure('sunset', 1)).toBeCloseTo(FESTIVAL_LIGHT.intoSun.sunset);
+    let previous = Infinity;
+    for (let f = -1; f <= 1.0001; f += 0.1) {
+      const e = festivalExposure('sunset', f);
+      expect(e).toBeLessThanOrEqual(previous + 1e-9);
+      previous = e;
+    }
+    // Midday and night do not adapt.
+    expect(festivalExposure('day', 1)).toBe(festivalExposure('day', -1));
+    expect(festivalExposure('night', 1)).toBe(festivalExposure('night', -1));
   });
 });
