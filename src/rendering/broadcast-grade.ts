@@ -236,6 +236,12 @@ export class BroadcastGradePass extends Pass {
   /** Photo mode's look (photo-camera.ts photoGrade), or null for the gameplay
    * profile. Set by the renderer only while the photo studio is open. */
   photoOverride: Readonly<GradeProfile> | null = null;
+  /** Opt-in per-lighting adjustments of one renderer's grade (the festival
+   * region's), laid over the gameplay profile; null keeps the shared
+   * profiles unchanged (circuit renderer). Never applied over a photo look. */
+  profileAdjust:
+    | ((profile: LightingMode, base: Readonly<GradeProfile>) => Readonly<GradeProfile>)
+    | null = null;
   /** ULTRA restrained lateral chromatic aberration, added to the profile's
    * fringe (0 on every other preset; never applied over a photo look). */
   lensFringe = 0;
@@ -257,7 +263,12 @@ export class BroadcastGradePass extends Pass {
    * `wet` (0..1, standing water) blends the profile LUT toward the wet LUT. */
   apply(profile: LightingMode | 'studio', seed = 0, wet = 0) {
     this.profile = profile;
-    const p = this.photoOverride ?? (this.filmic ? FILMIC_GRADE_PROFILES : GRADE_PROFILES)[profile];
+    const base =
+      this.photoOverride ?? (this.filmic ? FILMIC_GRADE_PROFILES : GRADE_PROFILES)[profile];
+    const p =
+      this.photoOverride || profile === 'studio' || !this.profileAdjust
+        ? base
+        : this.profileAdjust(profile, base);
     const u = this.material.uniforms;
     u.contrast.value = p.contrast;
     u.saturation.value = p.saturation;

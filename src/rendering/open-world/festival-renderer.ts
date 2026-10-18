@@ -55,7 +55,6 @@ import { UltraPipeline } from '../ultra/pipeline.ts';
 import { PhotoSky } from '../assets/photo-sky.ts';
 import { scannedGround } from '../ground/scan-store.ts';
 import { FESTIVAL_PALETTE } from '../assets/sky-catalogue.ts';
-import { aerialFogColor } from '../studio/aerial-perspective.ts';
 import { WetRoadReflection } from '../wet-reflection.ts';
 import { Buildings } from './buildings.ts';
 import { FestivalCars } from './festival-cars.ts';
@@ -86,7 +85,9 @@ import { driftFeedback, type DriftCue } from '../../simulation/open-world/drift-
 import { HorizonGuidance } from './horizon-guidance.ts';
 import { FestivalTrails } from './festival-trails.ts';
 import { HorizonDressing } from './horizon-dressing.ts';
-import { applySeason, type Season } from './season.ts';
+import { applySeason, SEASONS, type Season } from './season.ts';
+import { DistantLandscape } from './distant-landscape.ts';
+import { FestivalAtmosphere, festivalGrade, festivalSkyline } from './festival-atmosphere.ts';
 import {
   createFestivalContactOffset,
   festivalContactEnabled,
@@ -115,12 +116,19 @@ const RIGS = {
  */
 export class FestivalRenderer {
   readonly scene = new T.Scene();
-  readonly camera = new T.PerspectiveCamera(60, 1, 0.3, 26000);
+  // Far plane past the distant ranges and the volcano (to 48 km from any
+  // point of the region). Depth precision is set by the near plane
+  // (d^2 / (near * 2^24)), so this costs nothing nearer than 26 km.
+  readonly camera = new T.PerspectiveCamera(60, 1, 0.3, 90000);
   readonly terrain: TerrainStreamer;
   readonly roads: RoadMeshes;
   readonly streetLights: StreetLightPools;
   readonly buildings: Buildings;
   readonly dressing: HorizonDressing;
+  /** Landmark volcano and the ranges beyond the streamed terrain. */
+  readonly distant: DistantLandscape;
+  /** Aerial perspective of the region (replaces FogExp2 on its materials). */
+  readonly atmosphere = new FestivalAtmosphere();
   details: SolvaneDetails | null = null;
   private detailLoading: Promise<boolean> | null = null;
   streetDetails: StreetDetails | null = null;
@@ -264,6 +272,11 @@ export class FestivalRenderer {
     scene.add(this.streetLights.root);
     this.buildings = new Buildings(structures);
     this.dressing = new HorizonDressing(world, structures);
+    this.distant = new DistantLandscape(
+      (x, z, wavelength) => world.field.height(x, z, wavelength),
+      world.field.region.seed,
+    );
+    scene.add(this.distant.root);
     this.water = new Water(world.field);
     this.markers = new EventMarkers(events, (x, z) => this.groundHeight(x, z));
     this.reflection.probeExclusions.push(this.markers.root);
@@ -290,6 +303,8 @@ export class FestivalRenderer {
     this.composer.addPass(new OutputPass());
     this.composer.addPass(this.fxaa);
     this.composer.addPass(this.grade);
+    // The festival's own grade over the shared profiles (festival-atmosphere.ts).
+    this.grade.profileAdjust = festivalGrade;
     this.ultra = new UltraPipeline({
       renderer,
       scene,
@@ -516,6 +531,8 @@ export class FestivalRenderer {
     this.camera.position.set(x, this.groundHeight(x, z) + 3, z);
     this.camera.updateMatrixWorld();
     this.terrain.update(this.camera);
+    // Built once per tier, while the loading screen is up.
+    this.distant.setQuality(this.preset);
   }
   draw(a: Float32Array, b: Float32Array, alpha: number, dt: number) {
     if (this.disposed) return;
@@ -677,6 +694,8 @@ export class FestivalRenderer {
     this.roads.setNight(night);
     this.buildings.setNight(night);
     this.dressing.update(time, night, this.camera, this.preset);
+    this.distant.setQuality(this.preset);
+    this.distant.update(this.lighting, SEASONS.indexOf(this.currentSeason));
     this.details?.update(
       time,
       night,
@@ -705,14 +724,10 @@ export class FestivalRenderer {
       daylight.environment = 0.2 + daylight.cover * 0.04;
       daylight.exposure = 1.12 - clamp(presented[H.RAIN], 0, 60) * 0.0005;
     }
-    const photoPalette = mode === 'night' ? null : this.photoSky.fogPalette(daylight.cover, mode);
-    if (photoPalette)
-      [daylight.fogRed, daylight.fogGreen, daylight.fogBlue] = aerialFogColor(
-        daylight.cover,
-        presented[H.RAIN],
-        mode,
-        photoPalette,
-      );
+    // The festival's own air (festival-atmosphere.ts): the art-bible horizon
+    // as in-scatter, not the photographed dome's (its clear-day photo has a
+    // brown desert horizon), and clean-air extinction per lighting.
+    this.atmosphere.update(mode, daylight.cover, presented[H.RAIN]);
     applyCircuitLightPalette(this.sun, this.hemisphere, daylight.cover, mode);
     this.sun.intensity = daylight.sun;
     this.hemisphere.intensity = daylight.fill;
@@ -728,9 +743,9 @@ export class FestivalRenderer {
     if (saturation !== null) iblUniforms.apexSkyIrradianceSaturation.value = saturation;
     this.renderer.toneMappingExposure = daylight.exposure;
     const fog = this.scene.fog as T.FogExp2;
-    // The region is kilometres deep: the circuit haze, thinned.
-    fog.density = daylight.fogDensity * 0.3;
-    fog.color.setRGB(daylight.fogRed, daylight.fogGreen, daylight.fogBlue);
+    // FogExp2 only for materials without the festival air (see atmosphere).
+    fog.density = this.atmosphere.fogDensity;
+    fog.color.copy(this.atmosphere.inscatter);
     const uniforms = this.sky.material.uniforms;
     uniforms.cloudCover.value = daylight.cover;
     uniforms.skyRadiance.value = daylight.skyRadiance;
@@ -739,6 +754,12 @@ export class FestivalRenderer {
     uniforms.sunPosition.value.copy(lightingDirection(mode));
     bindSkyCelestial(this.sky.material, mode);
     this.photoSky.bind(this.sky.material, daylight.cover, mode, false);
+    festivalSkyline(
+      this.sky.material,
+      this.photoSky.shownPair,
+      this.atmosphere.inscatter,
+      mode === 'night' ? 0.6 : 1,
+    );
     uniforms.cloudDrift.value = (time * SKY_CLOUDS.driftPerSecond) % 1;
     shadowAnchor(
       this.target,
@@ -758,6 +779,18 @@ export class FestivalRenderer {
     // A light onshore breeze for the planting (no weather wind in free roam).
     studioUniforms.studioWind.value.set(2.6, 1.4, time, 0.5);
     // --- Render ---------------------------------------------------------------
+    // Materials streamed or loaded since the last frame get the festival air
+    // before they first draw (vehicles, effects and overlays keep FogExp2).
+    this.atmosphere.install(this.scene, [
+      this.cars.root,
+      this.effects.group,
+      this.guidance.root,
+      this.trails.root,
+      this.contacts.root,
+      this.markers.root,
+      this.distant.root,
+      ...this.vehicleRoots,
+    ]);
     this.renderer.info.reset();
     this.renderer.info.autoReset = false;
     this.environment.update(this.renderer, this.scene, daylight.cover, mode);
@@ -846,6 +879,7 @@ export class FestivalRenderer {
     this.streetLights.dispose();
     this.buildings.dispose();
     this.dressing.dispose();
+    this.distant.dispose();
     this.details?.dispose();
     this.details = null;
     this.streetDetails?.dispose();

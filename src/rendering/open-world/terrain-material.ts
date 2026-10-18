@@ -1,5 +1,7 @@
 import * as T from 'three';
 import { SCAN_COMMON_GLSL } from '../ground/ground-glsl.ts';
+import { DISTANT_SNOW } from './distant-relief.ts';
+import { bindSeasonUniforms, SEASON_GLSL } from './season.ts';
 import {
   scanLayerCall,
   scanMacroCall,
@@ -94,7 +96,11 @@ export interface TerrainUniforms {
  * follow each layer; standing water darkens and smooths the porous layers.
  */
 export function terrainMaterial(): T.MeshStandardMaterial & { userData: { ow: TerrainUniforms } } {
-  const material = new T.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9, metalness: 0 }) as T.MeshStandardMaterial & {
+  const material = new T.MeshStandardMaterial({
+    color: 0xffffff,
+    roughness: 0.9,
+    metalness: 0,
+  }) as T.MeshStandardMaterial & {
     userData: { ow: TerrainUniforms };
   };
   material.name = 'Festival terrain (layered PBR)';
@@ -105,6 +111,7 @@ export function terrainMaterial(): T.MeshStandardMaterial & { userData: { ow: Te
   material.userData.ow = uniforms;
   material.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms, scannedGround.uniformsFor(FESTIVAL_SCAN_LAYERS));
+    bindSeasonUniforms(shader);
     shader.vertexShader = shader.vertexShader
       .replace(
         '#include <common>',
@@ -128,6 +135,7 @@ vOwWorld = (modelMatrix * vec4(transformed, 1.0)).xyz;`,
         `#include <common>
 uniform float owWet;
 uniform float owSnowTint;
+${SEASON_GLSL}
 varying vec4 vSplat;
 varying vec4 vShade;
 varying vec3 vOwWorld;
@@ -157,6 +165,11 @@ ${SCAN_COMMON_GLSL}`,
   float soil = clamp(vSplat.y * (0.7 + 0.6 * meso), 0.0, 1.0);
   float sand = clamp(vSplat.z * (0.85 + 0.3 * micro), 0.0, 1.0);
   float snow = clamp(vSplat.w * (0.8 + 0.5 * meso) - 0.05, 0.0, 1.0);
+  // The biome's snow (above ~600 m) lies only above the season's snow line
+  // (the distant ranges' own): none on summer hills, the high ground white
+  // in winter.
+  snow *= smoothstep(-80.0, 80.0, vOwWorld.y + 120.0 * (meso - 0.5)
+    - dot(owSeason, vec4(${DISTANT_SNOW.ranges.map((v) => v.toFixed(1)).join(', ')})));
   float town = vShade.w;
   float forest = vShade.y;
   // Grass: lush to dry by macro noise, darker forest floor under woods.
