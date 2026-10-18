@@ -38,11 +38,14 @@ export const FLORA = Object.freeze({
   buildsPerFrame: 1,
 });
 /** Part ids carried in the geometry (shader colour per part). */
-const PART = Object.freeze({ BLADE: 0, PLUME: 1, CULM: 2, LEAF: 3, PETAL: 4 });
+const PART = Object.freeze({ BLADE: 0, PLUME: 1, CULM: 2, LEAF: 3, PETAL: 4, FIELD: 5 });
 
-/** Atlas columns: blade (solid), susuki plume, bamboo leaf spray, flower. */
+/** Atlas (512 x 256): four 64 px columns — blade (solid), susuki plume,
+ * bamboo leaf spray, flower — and a 256 px susuki field card whose green
+ * channel draws blades and stems and red channel the plumes (the shader
+ * colours each per season and hides the plumes before late summer). */
 function floraAtlas() {
-  const w = 256,
+  const w = 512,
     h = 256;
   return canvasTexture(w, h, (c) => {
     c.clearRect(0, 0, w, h);
@@ -96,6 +99,49 @@ function floraAtlas() {
     c.beginPath();
     c.arc(224, 128, 7, 0, Math.PI * 2);
     c.fill();
+    // Susuki field card (036, 032): arching blades, upright stems and
+    // nodding feathery plumes, dense enough to read as a field.
+    c.lineCap = 'round';
+    for (let i = 0; i < 46; i++) {
+      const x = 262 + rnd() * 244,
+        top = 92 + rnd() * 70,
+        lean = (rnd() - 0.5) * 70;
+      c.strokeStyle = `rgba(0,${170 + Math.floor(rnd() * 85)},0,1)`;
+      c.lineWidth = 2 + rnd() * 2.2;
+      c.beginPath();
+      c.moveTo(x, 256);
+      c.quadraticCurveTo(x + lean * 0.2, top + 40, x + lean, top + 30 * rnd());
+      c.stroke();
+    }
+    for (let i = 0; i < 20; i++) {
+      const x = 268 + rnd() * 232,
+        top = 18 + rnd() * 62,
+        lean = (rnd() - 0.5) * 22,
+        side = rnd() < 0.5 ? -1 : 1;
+      c.strokeStyle = 'rgba(0,210,0,1)';
+      c.lineWidth = 1.6;
+      c.beginPath();
+      c.moveTo(x, 256);
+      c.quadraticCurveTo(x + lean * 0.3, (256 + top) / 2, x + lean, top + 38);
+      c.stroke();
+      // Plume: spikelet strands hanging to one side of the rachis.
+      c.strokeStyle = 'rgba(255,0,0,0.95)';
+      for (let k = 0; k < 14; k++) {
+        const t = k / 14,
+          y = top + 38 - t * 40,
+          len = 8 + 18 * Math.sin(Math.PI * Math.min(1, 0.2 + t)) * (0.6 + 0.4 * rnd());
+        c.lineWidth = 1.4 + rnd();
+        c.beginPath();
+        c.moveTo(x + lean, y);
+        c.quadraticCurveTo(
+          x + lean + side * len * 0.5,
+          y + len * 0.15,
+          x + lean + side * len * 0.8,
+          y + len * 0.75,
+        );
+        c.stroke();
+      }
+    }
   });
 }
 
@@ -109,7 +155,8 @@ class Parts {
   vertex(p: T.Vector3, n: T.Vector3, u: number, v: number, part: number, bend: number) {
     this.position.push(p.x, p.y, p.z);
     this.normal.push(n.x, n.y, n.z);
-    this.uv.push(u, v);
+    // Columns are authored over the left 256 px of the 512 px atlas.
+    this.uv.push(part === PART.FIELD ? u : u * 0.5, v);
     this.part.push(part, bend);
     return this.position.length / 3 - 1;
   }
@@ -215,8 +262,8 @@ function susukiGeometry() {
         top.clone().addScaledVector(nod, -0.02),
         nod,
         s,
-        0.26,
-        0.055,
+        0.32,
+        0.075,
         PART.PLUME,
         [0.27, 0.48, 0, 1],
         1,
@@ -275,6 +322,34 @@ function flowerGeometry() {
   return b.geometry();
 }
 
+/** Susuki field patch (unit height ~1.6 m at scale 1): eight textured
+ * cards standing across a ~3 m patch; cheap enough to carpet a field. */
+function susukiFieldGeometry() {
+  const b = new Parts();
+  for (let i = 0; i < 8; i++) {
+    const a = i * 2.399963,
+      r = 0.2 + hash01(i, 11, 83) * 1.1,
+      yaw = hash01(i, 12, 83) * Math.PI;
+    const centre = new T.Vector3(Math.sin(a) * r, 0, Math.cos(a) * r),
+      side = new T.Vector3(Math.cos(yaw), 0, Math.sin(yaw));
+    const half = 0.55 + hash01(i, 13, 83) * 0.25;
+    b.card(
+      centre,
+      new T.Vector3(0, 1, 0),
+      side,
+      0.85 + hash01(i, 14, 83) * 0.25,
+      half,
+      PART.FIELD,
+      // Canvas bottom (stems) at the card base.
+      [0.5, 1, 1, 0],
+      0,
+      1,
+      new T.Vector3(side.z * 0.35, 1, -side.x * 0.35).normalize(),
+    );
+  }
+  return b.geometry();
+}
+
 /** Bamboo clump (unit: metres): eleven culms 9-13 m with node rings implied
  * by the shader and drooping leaf sprays on the upper half. */
 function bambooGeometry() {
@@ -300,7 +375,7 @@ function bambooGeometry() {
     }
     culm.setAttribute('floraPart', new T.BufferAttribute(attr, 2));
     const uv = culm.getAttribute('uv') as T.BufferAttribute;
-    for (let k = 0; k < uv.count; k++) uv.setXY(k, 0.1, p.getY(k) / 0.45);
+    for (let k = 0; k < uv.count; k++) uv.setXY(k, 0.05, p.getY(k) / 0.45);
     parts.push(culm);
     // Leaf sprays from 45 % of the height to the tip, drooping outward.
     for (let s = 0; s < 3; s++) {
@@ -346,17 +421,17 @@ const FLORA_BEGIN = /* glsl */ `{
   // Plumes open in late summer, peak in autumn (036), none in spring.
   if (part > 0.5 && part < 1.5) vis *= owSeason.y * 0.75 + owSeason.z + owSeason.w * 0.9;
   // Flowers in spring and early summer only.
-  if (part > 3.5) vis *= owSeason.x + owSeason.y;
+  if (part > 3.5 && part < 4.5) vis *= owSeason.x + owSeason.y;
   transformed *= vis;
   // Winter: grass pressed and buried.
-  if (part < 1.5) transformed.y *= 1.0 - 0.45 * owSnowCover;
+  if (part < 1.5 || part > 4.5) transformed.y *= 1.0 - 0.45 * owSnowCover;
   vec2 wind = studioWind.xy;
   float speed = length(wind);
   vec2 dir = speed > 1e-3 ? wind / speed : vec2(0.7071, 0.7071);
   float phase = dot(fo.xz, vec2(0.37, 0.61));
   float t = studioWind.z;
   float amp = clamp(speed / 10.0, 0.15, 1.6) * (0.6 + 0.4 * studioWind.w);
-  float sway = bend * bend * amp * (part < 1.5 ? 0.12 : (part > 1.5 && part < 3.5 ? 0.35 : 0.05))
+  float sway = bend * bend * amp * (part < 1.5 || part > 4.5 ? 0.12 : (part > 1.5 && part < 3.5 ? 0.35 : 0.05))
     * (sin(1.3 * t + phase) + 0.4 * sin(3.1 * t + phase * 1.7) + 0.25 * sin(7.0 * t + phase * 3.1));
   mat3 basis = mat3(modelMatrix) * mat3(instanceMatrix);
   transformed += transpose(basis) * vec3(dir.x, 0.0, dir.y) * sway / max(dot(basis[0], basis[0]), 1e-6);
@@ -373,13 +448,14 @@ vec3 floraSeason(vec3 spring, vec3 summer, vec3 autumn, vec3 winter) {
 vec3 floraColour(float part, float bend, vec3 seed) {
   vec3 c;
   if (part < 0.5) {
-    vec3 base = mix(vec3(0.035, 0.055, 0.016), vec3(0.085, 0.15, 0.032), bend);
-    c = floraSeason(mix(base, vec3(0.1, 0.19, 0.035), 0.5), base,
-      mix(vec3(0.16, 0.11, 0.045), vec3(0.42, 0.32, 0.15), bend),
-      mix(vec3(0.1, 0.085, 0.06), vec3(0.3, 0.26, 0.2), bend));
+    vec3 base = mix(vec3(0.05, 0.08, 0.02), vec3(0.12, 0.19, 0.045), bend);
+    c = floraSeason(mix(base, vec3(0.13, 0.22, 0.045), 0.5), base,
+      mix(vec3(0.2, 0.14, 0.06), vec3(0.48, 0.38, 0.19), bend),
+      mix(vec3(0.12, 0.1, 0.07), vec3(0.34, 0.3, 0.24), bend));
   } else if (part < 1.5) {
-    vec3 gold = mix(vec3(0.5, 0.37, 0.2), vec3(0.68, 0.58, 0.42), seed.z);
-    c = floraSeason(vec3(0.34, 0.16, 0.12), mix(vec3(0.36, 0.15, 0.11), gold, 0.3), gold, vec3(0.56, 0.52, 0.46));
+    // Silver-gold plumes (036 #c5a57d..#e5c69a sunlit), reddish when young.
+    vec3 gold = mix(vec3(0.56, 0.42, 0.24), vec3(0.72, 0.62, 0.46), seed.z);
+    c = floraSeason(vec3(0.36, 0.17, 0.13), mix(vec3(0.36, 0.17, 0.13), gold, 0.3), gold, vec3(0.58, 0.54, 0.48));
   } else if (part < 2.5) {
     c = mix(vec3(0.05, 0.075, 0.025), vec3(0.11, 0.14, 0.05), seed.z) * (0.85 + 0.3 * bend);
     c = mix(c, vec3(0.13, 0.12, 0.07), owSeason.w * 0.3);
@@ -425,7 +501,7 @@ function floraMaterial(atlas: T.Texture, range: { value: number }, depth: boolea
     injectAfter(
       shader,
       'map_fragment',
-      'float floraLum = dot(diffuseColor.rgb, vec3(0.2126, 0.7152, 0.0722));',
+      'vec4 floraTex = diffuseColor;\nfloat floraLum = dot(diffuseColor.rgb, vec3(0.2126, 0.7152, 0.0722));',
       'fragment',
     );
     injectAfter(
@@ -439,6 +515,15 @@ function floraMaterial(atlas: T.Texture, range: { value: number }, depth: boolea
     vec3 seed = vec3(0.5, 1.0, 0.5);
   #endif
   vec3 c = floraColour(vFlora.x, vFlora.y, seed) * floraLum;
+  if (vFlora.x > 4.5) {
+    // Field card: green channel = blades and stems, red = plumes.
+    float plumes = floraTex.r * (owSeason.y * 0.75 + owSeason.z + owSeason.w * 0.9);
+    float w = floraTex.g + plumes;
+    c = (floraColour(0.0, vFlora.y, seed) * floraTex.g + floraColour(1.0, 1.0, seed) * plumes) / max(w, 1e-3);
+    diffuseColor.a = floraTex.a * clamp(w, 0.0, 1.0);
+  }
+  // Thin strands keep their coverage when minified.
+  diffuseColor.a *= 1.0 + 1.6 * smoothstep(12.0, 70.0, length(vViewPosition));
   // Culm node rings every ~0.45 m (uv.y carries metres / 0.45).
   #ifdef USE_MAP
   if (vFlora.x > 1.5 && vFlora.x < 2.5) c *= 1.0 - 0.35 * smoothstep(0.9, 0.97, fract(vMapUv.y));
@@ -452,7 +537,7 @@ function floraMaterial(atlas: T.Texture, range: { value: number }, depth: boolea
       'normal_fragment_maps',
       /* glsl */ `{
   float up = dot(normal, normalize((viewMatrix * vec4(0.0, 1.0, 0.0, 0.0)).xyz));
-  float hold = vFlora.x > 2.5 && vFlora.x < 3.5 ? 0.6 : (vFlora.x < 1.5 ? 0.35 : 0.0);
+  float hold = vFlora.x > 2.5 && vFlora.x < 3.5 ? 0.6 : (vFlora.x < 1.5 || vFlora.x > 4.5 ? 0.35 : 0.0);
   diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.8, 0.82, 0.86), owSnowCover * hold * smoothstep(0.2, 0.7, up * vFlora.y));
 }`,
       'fragment',
@@ -509,6 +594,7 @@ export function planFloraChunk(world: OpenWorld, grid: StructureGrid, cx: number
     cell = FLORA.cell,
     n = Math.round(size / cell);
   const susuki: FloraPlant[] = [],
+    fields: FloraPlant[] = [],
     flowers: FloraPlant[] = [],
     bamboo: FloraPlant[] = [];
   for (let j = 0; j < n; j++)
@@ -528,7 +614,9 @@ export function planFloraChunk(world: OpenWorld, grid: StructureGrid, cx: number
       // Bamboo: small groves (about one clump per 50 m² inside a grove zone).
       const bambooHere = bambooZ > 0.74 && pick < 0.2;
       const flowerHere = flowerZ > 0.62 && pick < 0.22;
-      if (!bambooHere && !flowerHere && pick > 0.62) continue;
+      // Susuki fields: textured patches nearly touching inside the zone.
+      const fieldHere = susukiZ > 0.56 && pick < 0.85 * Math.min(1, (susukiZ - 0.56) * 6);
+      if (!bambooHere && !flowerHere && !fieldHere && pick > 0.62) continue;
       const h = field.height(x, z);
       if (h < region.seaLevel + 2 || h > field.snowLine(x, z) - 60) continue;
       const slope = Math.hypot(field.height(x + 2, z) - h, field.height(x, z + 2) - h) / 2;
@@ -560,6 +648,19 @@ export function planFloraChunk(world: OpenWorld, grid: StructureGrid, cx: number
         continue;
       }
       if (biome !== BIOME.MEADOW) continue;
+      if (fieldHere) {
+        const s = 0.95 + 0.35 * r0;
+        fields.push({
+          x,
+          y: carvedGroundHeight(world.carver, x, z) - 0.05,
+          z,
+          yaw,
+          width: 1.05 * s,
+          height: 1.75 * s,
+          seed,
+        });
+        continue;
+      }
       const verge = clear < 10 && pick < 0.22;
       const meadow = susukiZ > 0.52 && pick < 0.36 * Math.min(1, (susukiZ - 0.52) * 8);
       if (verge || meadow) {
@@ -586,12 +687,12 @@ export function planFloraChunk(world: OpenWorld, grid: StructureGrid, cx: number
           seed,
         });
     }
-  return { susuki, flowers, bamboo };
+  return { susuki, fields, flowers, bamboo };
 }
 
 export class FestivalFlora {
   readonly root = new T.Group();
-  readonly stats = { chunks: 0, susuki: 0, flowers: 0, bamboo: 0 };
+  readonly stats = { chunks: 0, susuki: 0, fields: 0, flowers: 0, bamboo: 0 };
   private readonly chunks = new Map<number, Chunk>();
   private readonly grid: StructureGrid;
   private readonly atlas = floraAtlas();
@@ -602,6 +703,7 @@ export class FestivalFlora {
   private readonly bambooDepth: T.MeshDepthMaterial;
   private readonly geometry = {
     susuki: susukiGeometry(),
+    field: susukiFieldGeometry(),
     flower: flowerGeometry(),
     bamboo: bambooGeometry(),
   };
@@ -622,7 +724,7 @@ export class FestivalFlora {
   }
 
   private build(cx: number, cz: number): Chunk {
-    const { susuki, flowers, bamboo } = planFloraChunk(this.world, this.grid, cx, cz);
+    const { susuki, fields, flowers, bamboo } = planFloraChunk(this.world, this.grid, cx, cz);
     const chunk: Chunk = {
       key: chunkKey(cx, cz),
       centre: new T.Vector3((cx + 0.5) * FLORA.chunk, 0, (cz + 0.5) * FLORA.chunk),
@@ -657,9 +759,11 @@ export class FestivalFlora {
       chunk.meshes.push({ mesh, bamboo: isBamboo });
     };
     add(susuki, this.geometry.susuki, this.material, false);
+    add(fields, this.geometry.field, this.material, false);
     add(flowers, this.geometry.flower, this.material, false);
     add(bamboo, this.geometry.bamboo, this.bambooMaterial, true);
     this.stats.susuki += susuki.length;
+    this.stats.fields += fields.length;
     this.stats.flowers += flowers.length;
     this.stats.bamboo += bamboo.length;
     return chunk;

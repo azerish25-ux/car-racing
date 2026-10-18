@@ -113,7 +113,7 @@ describe('festival planting roles (presentation only)', () => {
 
 describe('festival ground flora (decorative, no colliders)', () => {
   it('plants susuki, flowers and bamboo deterministically, off the roads and buildings, on the ground', () => {
-    const totals = { susuki: 0, flowers: 0, bamboo: 0 };
+    const totals = { susuki: 0, fields: 0, flowers: 0, bamboo: 0 };
     // A sweep of chunks across meadows, farmland and forest edges.
     for (let cx = -24; cx <= 24; cx += 6)
       for (let cz = -24; cz <= 24; cz += 6) {
@@ -136,7 +136,8 @@ describe('festival ground flora (decorative, no colliders)', () => {
           }
         }
       }
-    expect(totals.susuki).toBeGreaterThan(200);
+    expect(totals.susuki).toBeGreaterThan(100);
+    expect(totals.fields).toBeGreaterThan(200);
     expect(totals.flowers).toBeGreaterThan(20);
     expect(totals.bamboo).toBeGreaterThan(5);
   });

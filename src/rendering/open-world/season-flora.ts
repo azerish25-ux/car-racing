@@ -40,6 +40,7 @@ float owLeafHash(vec2 p) {
 `;
 const LEAF_GLSL = /* glsl */ `
 ${LEAF_VERTEX_GLSL}
+vec3 owTexel = vec3(0.0, 1.0, 0.0);
 float owLeafNoise(float salt) {
   vec3 c = floor(vOwSpeck);
   return owLeafHash(c.xy + c.z * vec2(7.13, 3.31) + salt);
@@ -54,10 +55,14 @@ bool owDeciduous(float role) {
 /** Coverage multiplier: winter deciduous crowns keep their twigs and a few
  * dry leaves; cherries in bloom are fuller clouds than their summer leaves
  * (015, 050: no sky through the blossom). */
-float owLeafKeep(float leaf) {
+float owLeafKeep(vec3 texel) {
+  float leaf = owLeafMask(texel);
   if (owSeason.x > 0.5 && abs(vOwTree.x - ${FLORA_ROLE.CHERRY}.0) < 0.5) return 1.0 + 0.7 * leaf;
   if (owSeason.w < 0.5 || !owDeciduous(vOwTree.x)) return 1.0;
-  return max(1.0 - leaf, step(0.8, owLeafNoise(5.0)));
+  // Each painted leaf has one flat colour: its luminance picks the leaves
+  // that stay (leaf-shaped, identical in the colour and shadow passes).
+  float pick = fract(dot(texel, vec3(0.2126, 0.7152, 0.0722)) * 173.0 + vOwTree.y);
+  return max(1.0 - leaf, step(0.74, pick));
 }
 /** Seasonal colour of a leaf texel (\`base\`: map x colour x tint). */
 vec3 owLeafSeason(vec3 base, float lumRef) {
@@ -78,7 +83,9 @@ vec3 owLeafSeason(vec3 base, float lumRef) {
   } else if (role < 1.5) {
     // Somei-yoshino: blossom before the leaves, pale pink to near white.
     spring = mix(vec3(0.58, 0.35, 0.43), vec3(0.72, 0.58, 0.63), n) * (0.45 + 0.55 * b);
-    autumn = mix(vec3(0.46, 0.12, 0.03), vec3(0.42, 0.22, 0.03), n) * b;
+    // Autumn cherries turn orange-red to crimson, a few stay amber.
+    vec3 c = mix(vec3(0.5, 0.06, 0.03), vec3(0.5, 0.2, 0.03), h);
+    autumn = mix(c, vec3(0.45, 0.28, 0.03), n * 0.35) * b;
   } else if (role < 2.5) {
     spring = mix(fresh * vec3(1.1, 1.05, 1.0), vec3(0.26, 0.07, 0.03) * b, step(0.72, h));
     autumn = mix(vec3(0.5, 0.035, 0.02), vec3(0.52, 0.12, 0.012), n * n + 0.35 * step(0.8, h)) * (0.85 + 0.3 * h) * b;
@@ -107,10 +114,11 @@ vec3 owLeafSeason(vec3 base, float lumRef) {
   // Wood strokes keep their colour (darker cherry bark, grey twigs).
   return mix(base, c, leaf);
 }
-/** Snow lying on upward-facing foliage (\`up\`: normal . world up). */
-vec3 owLeafSnow(vec3 c, float up) {
-  float hold = owDeciduous(vOwTree.x) ? 0.75 : 1.0;
-  float snow = owSnowCover * hold * smoothstep(0.0, 0.55, up + 0.4 * (owLeafNoise(23.0) - 0.5));
+/** Snow lying on upward-facing foliage (\`up\`: normal . world up): caps
+ * and ledges, the crown underneath stays dark (003, 064). */
+vec3 owLeafSnow(vec3 c, float up, vec2 band) {
+  float hold = owDeciduous(vOwTree.x) ? 0.25 : 0.85;
+  float snow = owSnowCover * hold * smoothstep(band.x, band.y, up + 0.7 * (owLeafNoise(23.0) - 0.5));
   return mix(c, vec3(0.8, 0.82, 0.86), snow);
 }
 `;
@@ -144,6 +152,9 @@ export interface SeasonFoliageOptions {
   speckle: string;
   /** Depth / distance materials of the same plants (winter bare crowns). */
   shadows?: (T.MeshDepthMaterial | T.MeshDistanceMaterial | null)[];
+  /** Up-facing range (normal . up, with noise) that gathers snow; crowns
+   * whose normals lean up for soft lighting need a higher band. */
+  snowBand?: readonly [number, number];
 }
 
 /** Leaf-card and crown materials of the festival plants. */
@@ -153,19 +164,26 @@ export function installSeasonFoliage(material: T.Material, options: SeasonFoliag
     injectAfter(shader, 'common', LEAF_VERTEX_GLSL, 'vertex');
     injectAfter(shader, 'color_vertex', leafVertex(options.role, options.speckle, true), 'vertex');
     injectAfter(shader, 'common', LEAF_GLSL, 'fragment');
+    // Coverage from the untinted texel, as in the shadow pass (impostors
+    // replace map_fragment: their texel is taken after the tint).
+    const mapped = shader.fragmentShader.includes('#include <map_fragment>');
+    if (mapped) injectAfter(shader, 'map_fragment', 'owTexel = diffuseColor.rgb;', 'fragment');
     injectAfter(
       shader,
       'color_fragment',
-      /* glsl */ `{
-  diffuseColor.a *= owLeafKeep(owLeafMask(diffuseColor.rgb));
-  diffuseColor.rgb = owLeafSeason(diffuseColor.rgb, ${options.lumRef.toFixed(4)});
-}`,
+      `${mapped ? '' : 'owTexel = diffuseColor.rgb;\n'}diffuseColor.rgb = owLeafSeason(diffuseColor.rgb, ${options.lumRef.toFixed(4)});`,
+      'fragment',
+    );
+    injectBefore(
+      shader,
+      'alphatest_fragment',
+      'diffuseColor.a *= owLeafKeep(owTexel);',
       'fragment',
     );
     injectAfter(
       shader,
       'normal_fragment_maps',
-      'diffuseColor.rgb = owLeafSnow(diffuseColor.rgb, dot(normal, normalize((viewMatrix * vec4(0.0, 1.0, 0.0, 0.0)).xyz)));',
+      `diffuseColor.rgb = owLeafSnow(diffuseColor.rgb, dot(normal, normalize((viewMatrix * vec4(0.0, 1.0, 0.0, 0.0)).xyz)), vec2(${(options.snowBand ?? [0.45, 0.95]).map((v) => v.toFixed(2)).join(', ')}));`,
       'fragment',
     );
   });
@@ -184,7 +202,7 @@ export function installSeasonFoliage(material: T.Material, options: SeasonFoliag
         injectBefore(
           shader,
           'alphatest_fragment',
-          'diffuseColor.a *= owLeafKeep(owLeafMask(diffuseColor.rgb));',
+          'diffuseColor.a *= owLeafKeep(diffuseColor.rgb);',
           'fragment',
         );
       });
@@ -286,7 +304,14 @@ float owLitter(vec2 p, float scale, float cover, float salt) {
  * Driving surfaces and physics are unchanged (colour only).
  */
 export function installSeasonRoad(material: T.Material, surface: RoadSurface) {
-  const edgeBias = surface === 'asphalt' ? 'smoothstep(1.2, 4.6, abs(vOwRoadUv.x))' : '1.0';
+  // Litter drifts to the road edges (uv.x: metres from the centre line);
+  // dirt tracks keep a cleaner wheel path, verges are all edge.
+  const edgeBias =
+    surface === 'asphalt'
+      ? 'smoothstep(1.2, 4.6, abs(vOwRoadUv.x))'
+      : surface === 'dirt'
+        ? 'smoothstep(0.6, 2.6, abs(vOwRoadUv.x))'
+        : '1.0';
   chainShaderHook(material, `festival-season-road-${surface}-v1`, (shader) => {
     bindSeasonUniforms(shader);
     injectAfter(
@@ -302,16 +327,18 @@ export function installSeasonRoad(material: T.Material, surface: RoadSurface) {
       'vertex',
     );
     injectAfter(shader, 'common', ROAD_GLSL, 'fragment');
+    // After the surface's own colour stage: the festival verge, dirt and
+    // paving materials assign their colour in raw edits after color_fragment.
     injectAfter(
       shader,
-      'color_fragment',
+      'normal_fragment_maps',
       /* glsl */ `{
   vec2 p = vOwRoadWorld.xz;
   float edge = ${edgeBias};
   float drift = owRoadNoise(p * 0.31) * 0.6 + owRoadNoise(p * 0.07 + 3.1) * 0.4;
   // Spring: petals under the cherry groves.
-  float petals = owCherryZone(p) * smoothstep(0.25, 0.75, drift) * (0.35 + 0.65 * edge);
-  float petal = owLitter(p, 26.0, clamp(petals * 0.95, 0.0, 0.92), 0.0);
+  float petals = owCherryZone(p) * smoothstep(0.3, 0.8, drift) * (0.2 + 0.8 * edge);
+  float petal = owLitter(p, 26.0, clamp(petals * 0.75, 0.0, 0.75), 0.0);
   vec3 petalC = mix(vec3(0.72, 0.5, 0.57), vec3(0.8, 0.66, 0.7), owRoadHash(floor(p * 26.0) + 7.0));
   diffuseColor.rgb = mix(diffuseColor.rgb, petalC, petal * owSeason.x);
   // Autumn: maple and broadleaf leaves, more in the maple groves.

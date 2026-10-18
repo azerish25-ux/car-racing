@@ -188,7 +188,7 @@ ${SCAN_COMMON_GLSL}`,
   {
     float gl = max(dot(grass, vec3(0.2126, 0.7152, 0.0722)), 1e-4);
     vec3 springG = mix(grass, vec3(0.1, 0.17, 0.033) * (gl / 0.105), 0.55);
-    vec3 autumnG = mix(vec3(0.3, 0.225, 0.095), vec3(0.2, 0.12, 0.055), smoothstep(0.35, 0.8, meso)) * clamp(gl / 0.1, 0.6, 1.4);
+    vec3 autumnG = mix(vec3(0.24, 0.185, 0.075), vec3(0.17, 0.105, 0.05), smoothstep(0.35, 0.8, meso)) * clamp(gl / 0.1, 0.6, 1.3);
     // Susuki fields read silver-gold from afar (036); petals lie under the
     // cherry groves in spring (050).
     float susuki = smoothstep(0.5, 0.62, owFloraZone(p, ${SUSUKI_SEED.toFixed(2)})) * (1.0 - smoothstep(0.2, 0.5, forest)) * (1.0 - town);
@@ -197,7 +197,9 @@ ${SCAN_COMMON_GLSL}`,
     float petals = owCherryZone(p) * smoothstep(0.5, 0.85, owFbm(p * 0.09, near)) * (1.0 - 0.6 * forest);
     springG = mix(springG, vec3(0.62, 0.45, 0.5), petals * 0.45);
     vec3 winterG = mix(vec3(0.15, 0.13, 0.095), vec3(0.1, 0.09, 0.07), micro);
-    grass = owSeason.x * springG + owSeason.y * grass + owSeason.z * autumnG + owSeason.w * winterG;
+    // Summer: deep olive green (016 #626931, 021 #63632d sunlit).
+    vec3 summerG = grass * vec3(0.92, 1.0, 0.72);
+    grass = owSeason.x * springG + owSeason.y * summerG + owSeason.z * autumnG + owSeason.w * winterG;
   }
   vec3 rockC = mix(vec3(0.17, 0.16, 0.145), vec3(0.29, 0.27, 0.24), owFbm(vec2(p.x * 0.05, vOwWorld.y * 0.6), mid));
   rockC *= 0.85 + 0.3 * micro;
@@ -209,8 +211,9 @@ ${SCAN_COMMON_GLSL}`,
   vec3 sandC = mix(vec3(0.42, 0.37, 0.27), vec3(0.6, 0.54, 0.41), meso) * (0.9 + 0.2 * micro);
   vec3 snowC = vec3(0.82, 0.84, 0.88) * (0.94 + 0.06 * micro) * owSnowTint;
   ${FESTIVAL_SCAN_GLSL}
-  // Road verges: compacted, dusty.
-  float verge = smoothstep(0.25, 1.0, vShade.x) * (1.0 - snow);
+  // Road verges: compacted and dusty only beside the shoulder; the carved
+  // embankments beyond stay grassed (042, 050: grass to the guardrail).
+  float verge = smoothstep(0.9, 1.0, vShade.x) * (1.0 - snow);
   vec3 col = grass;
   col = mix(col, soilC, soil);
   // Rice paddies and flower fields on the flat lowland farms: plots with

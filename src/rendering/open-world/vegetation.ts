@@ -43,26 +43,40 @@ function cedarGeometry(segments: number, tiers: number) {
   const parts: T.BufferGeometry[] = [];
   for (let k = 0; k < tiers; k++) {
     const t = k / tiers,
-      radius = 0.3 * Math.pow(1 - t, 0.85) + 0.035,
-      height = 0.2 * (1 - 0.45 * t),
-      base = 0.36 + t * 0.56;
+      // Irregular, overlapping tiers slightly off the axis: a lumpy column
+      // rather than a regular cone stack.
+      jitter = 0.85 + 0.3 * Math.abs((Math.sin(k * 12.9898) * 43758.5453) % 1),
+      radius = (0.3 * Math.pow(1 - t, 0.8) + 0.04) * jitter,
+      height = 0.22 * (1 - 0.4 * t),
+      base = 0.36 + t * 0.56,
+      ox = 0.025 * Math.sin(k * 2.7),
+      oz = 0.025 * Math.cos(k * 1.9);
     const cone = new T.ConeGeometry(radius, height, segments, 2, true);
     cone.rotateY(k * 1.1);
-    cone.translate(0, base + height / 2, 0);
     const p = cone.getAttribute('position');
     for (let i = 0; i < p.count; i++) {
-      const y = p.getY(i) - base;
-      if (y < height * 0.25) {
-        const a = Math.atan2(p.getZ(i), p.getX(i));
-        const wobble = 1 + 0.22 * Math.sin(a * 4 + k * 2.3) + 0.1 * Math.sin(a * 9 + k);
-        p.setXYZ(i, p.getX(i) * wobble, p.getY(i) - 0.025 * wobble, p.getZ(i) * wobble);
-      }
+      const y = p.getY(i) + height / 2,
+        a = Math.atan2(p.getZ(i), p.getX(i));
+      // Ragged drooping rim and a rounded shoulder (clumps of sprays).
+      const rim = y < height * 0.2,
+        mid = !rim && y < height * 0.7;
+      const wobble = rim
+        ? 1 + 0.24 * Math.sin(a * 4 + k * 2.3) + 0.12 * Math.sin(a * 9 + k)
+        : mid
+          ? 1.14 + 0.12 * Math.sin(a * 5 + k * 1.3)
+          : 1;
+      p.setXYZ(
+        i,
+        p.getX(i) * wobble + ox,
+        y + base - (rim ? 0.03 * wobble : 0),
+        p.getZ(i) * wobble + oz,
+      );
     }
     cone.computeVertexNormals();
     const n = cone.getAttribute('normal');
     const v = new T.Vector3();
     for (let i = 0; i < n.count; i++) {
-      v.set(p.getX(i), 0.45, p.getZ(i)).normalize();
+      v.set(p.getX(i) - ox, 0.45, p.getZ(i) - oz).normalize();
       n.setXYZ(i, v.x, v.y, v.z);
     }
     parts.push(cone);
@@ -249,7 +263,7 @@ export class Vegetation {
       leaf: leafGeometry,
       trunk: trunkGeometry,
       distant: distantLeafGeometry,
-      conifer: cedarGeometry(8, 7),
+      conifer: cedarGeometry(8, 8),
       coniferTrunk: new T.CylinderGeometry(0.008, 0.045, 0.92, 6).translate(0, 0.46, 0),
       coniferFar: cedarGeometry(5, 3),
       pine: pineGeometry(1),
@@ -286,10 +300,13 @@ export class Vegetation {
       speckle: 'vec3(vMapUv * 170.0, 0.0)',
       shadows: [this.depth],
     });
+    // Crown normals lean up (soft lighting): snow only on the flattest
+    // ledges, patchy (003: dusted, still dark green).
     installSeasonFoliage(this.needles, {
       role: FLORA_ROLE.CEDAR,
       lumRef: 0.034,
       speckle: 'position * 70.0',
+      snowBand: [0.9, 1.15],
     });
     installSeasonFoliage(this.shrub, {
       role: FLORA_ROLE.SHRUB,
