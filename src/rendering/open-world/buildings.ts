@@ -1,6 +1,9 @@
 import * as T from 'three';
 import type { Structure } from '../../simulation/open-world/placement.ts';
 import { OW_NOISE_GLSL } from './terrain-material.ts';
+import { facadeLayout, addRecessedFacade, type FacadePlacement } from './facade-layout.ts';
+import { FacadeJoinery } from './facade-joinery.ts';
+import type { QualityPreset } from '../options.ts';
 
 const KIND_CODE: Record<Structure['kind'], number> = {
   house: 0,
@@ -107,6 +110,8 @@ ${OW_NOISE_GLSL}
 float owGlass;
 float owLit;
 float owRib;
+float owWallRelief;
+float owWallRoughness;
 vec3 owLamp;`,
       )
       .replace(
@@ -115,15 +120,66 @@ vec3 owLamp;`,
 {
   float style = vFacade.x, kind = vFacade.y, height = vFacade.w;
   vec2 q = vUv;
-  owGlass = 0.0; owLit = 0.0; owRib = 0.0; owLamp = vec3(1.0, 0.7, 0.42);
+  owGlass = 0.0; owLit = 0.0; owRib = 0.0; owWallRelief = 0.0; owWallRoughness = -1.0; owLamp = vec3(1.0, 0.7, 0.42);
   bool shed = kind > 4.5 && kind < 5.5 || kind > 8.5;
   bool roof = vFacade.z < -0.5 && vFacade.z > -1.5;
   bool trim = vFacade.z < -1.5;
+  bool physicalPane = abs(vFacade.z + 4.0) < 0.1;
+  bool physicalWall = abs(vFacade.z + 3.0) < 0.1;
   // Weathering: rain streaks down from sills, grime near the ground.
   float streak = owNoise(vec2(q.x * 1.7, q.y * 0.08 + style * 13.0));
   float grime = 1.0 - smoothstep(0.0, 1.6, q.y);
-  diffuseColor.rgb *= (0.86 + 0.18 * streak) * (1.0 - 0.25 * grime);
-  if (trim) {
+  if (!physicalPane) diffuseColor.rgb *= physicalWall
+    ? (0.945 + 0.055 * streak) * (1.0 - 0.14 * grime)
+    : (0.86 + 0.18 * streak) * (1.0 - 0.25 * grime);
+  if (physicalPane) {
+    // Geometry supplies the actual reveal depth. This inset pane adds a
+    // bounded interior illustration, not a ray-traced or enterable room.
+    float room = vFacade.x;
+    vec2 aa = max(fwidth(q), vec2(0.001));
+    float upright = vFacade.w > 0.5 ? min(abs(q.x-0.3333),abs(q.x-0.6667)) : abs(q.x-0.5);
+    float transom = abs(q.y - (vFacade.w > 0.5 ? 0.78 : 0.63));
+    float perimeter = min(min(q.x,1.0-q.x),min(q.y,1.0-q.y));
+    float frame = max(1.0-smoothstep(0.012,0.012+aa.x,upright),
+                      1.0-smoothstep(0.012,0.012+aa.y,transom));
+    frame = max(frame,1.0-smoothstep(0.028,0.028+max(aa.x,aa.y),perimeter));
+    owGlass = 1.0-frame;
+    diffuseColor.rgb = vec3(0.043,0.050,0.047);
+    float ceiling = 1.0 - smoothstep(0.77,1.0,q.y)*0.52;
+    float curtain = smoothstep(0.06,0.16,q.x)*smoothstep(0.06,0.16,1.0-q.x);
+    float furniture = 1.0-(1.0-smoothstep(0.19,0.32,q.y)) *
+      (1.0-smoothstep(0.09,0.23,abs(q.x-(0.30+room*0.35))))*0.68;
+    owLamp = mix(vec3(1.0,0.69,0.42),vec3(0.78,0.87,1.0),step(0.86,room));
+    owLit = step(0.57,room)*(0.34+room*0.45)*owGlass*ceiling*curtain*furniture;
+  } else if (physicalWall) {
+    // Metre-scaled surface detail. Derivative fades remove sub-pixel grit
+    // and mortar instead of adding sparkling high-frequency noise at speed.
+    vec2 aa = max(fwidth(q), vec2(0.00001));
+    float gritFade = 1.0-smoothstep(0.002,0.016,max(aa.x,aa.y));
+    float grit = owNoise(q*67.0 + vec2(style*27.0,style*31.0));
+    diffuseColor.rgb *= 1.0 + (grit-0.5)*0.055*gritFade;
+    owWallRelief = (grit-0.5)*0.0012*gritFade;
+    owWallRoughness = 0.87 + (grit-0.5)*0.08*gritFade;
+    if (vFacade.w > 0.5) {
+      bool stone = vFacade.w > 1.5;
+      vec2 course = stone ? vec2(0.61,0.285) : vec2(0.245,0.078);
+      vec2 tile = q/course;
+      tile.x += mod(floor(tile.y),2.0)*0.5;
+      vec2 f = fract(tile), edge = min(f,1.0-f)*course;
+      float joint = stone ? 0.0045 : 0.003;
+      vec2 mask = smoothstep(vec2(joint),vec2(joint)+aa,edge);
+      float face = mask.x*mask.y;
+      float resolve = 1.0-smoothstep(0.3,0.9,max(aa.x/course.x,aa.y/course.y));
+      float variation = owHash(floor(tile)+vec2(style*37.0,style*19.0));
+      vec3 unitColor = diffuseColor.rgb*(0.88+0.22*variation);
+      vec3 mortar = vec3(0.22,0.215,0.195)*(0.97+0.06*streak);
+      vec3 detailed = mix(mortar,unitColor,face);
+      // The unresolved average stays close to the resolved material value.
+      diffuseColor.rgb = mix(mix(diffuseColor.rgb,mortar,stone ? 0.055 : 0.11),detailed,resolve);
+      owWallRelief += (face-1.0)*(stone ? 0.0035 : 0.0025)*resolve;
+      owWallRoughness = stone ? 0.93 : 0.9;
+    }
+  } else if (trim) {
     // Physical cornices, pilasters, sills and roof equipment carry their
     // own vertex colour and must not inherit the facade's window grid.
     diffuseColor.rgb *= 0.92 + 0.1 * owNoise(q * 2.5 + style);
@@ -181,8 +237,8 @@ vec3 owLamp;`,
   // Unequal room depth, sill shadow and a few closed blinds make each bay
   // read as a recess instead of a flat repeated black rectangle. These are
   // authored facade cues; the material does not claim to ray trace rooms.
-  float roomId = owHash(floor(q / vec2(3.3, 3.2)) + style * 43.0);
-  vec2 roomUv = fract(q / vec2(3.3, 3.2));
+  float roomId = physicalPane ? vFacade.x : owHash(floor(q / vec2(3.3, 3.2)) + style * 43.0);
+  vec2 roomUv = physicalPane ? q : fract(q / vec2(3.3, 3.2));
   float blind = step(0.77, roomId) * (0.65 + 0.35 * sin(q.y * 56.0)
     * (1.0 - smoothstep(0.6, 3.2, fwidth(q.y * 56.0))));
   float reflectionBand = pow(clamp(1.0 - abs(roomUv.y - 0.67) * 2.0, 0.0, 1.0), 3.0);
@@ -196,12 +252,23 @@ vec3 owLamp;`,
       .replace(
         '#include <roughnessmap_fragment>',
         `#include <roughnessmap_fragment>
+if (owWallRoughness >= 0.0) roughnessFactor = owWallRoughness;
 roughnessFactor = mix(roughnessFactor, mix(0.1, 0.18, owNight), owGlass);
 roughnessFactor = mix(roughnessFactor, 0.5, step(0.001, abs(owRib)));`,
       )
       .replace(
         '#include <normal_fragment_maps>',
         `#include <normal_fragment_maps>
+if (owWallRoughness >= 0.0) {
+  // Surface-gradient bump in view space; stays correct on every rotated wall.
+  vec3 sx = dFdx(-vViewPosition), sy = dFdy(-vViewPosition);
+  vec3 r1 = cross(sy,normal), r2 = cross(normal,sx);
+  float determinant = dot(sx,r1);
+  if (abs(determinant) > 0.0000000001) {
+    vec3 gradient = sign(determinant)*(dFdx(owWallRelief)*r1+dFdy(owWallRelief)*r2);
+    normal = normalize(abs(determinant)*normal-gradient);
+  }
+}
 if (abs(owRib) > 0.001) normal = normalize(normal + (viewMatrix * vec4(0.0, 0.0, 0.0, 0.0)).xyz + cross(normal, vec3(0.0, 1.0, 0.0)) * owRib * 0.12);`,
       )
       .replace(
@@ -210,7 +277,7 @@ if (abs(owRib) > 0.001) normal = normalize(normal + (viewMatrix * vec4(0.0, 0.0,
 totalEmissiveRadiance += owLamp * owLit * owNight * 0.2;`,
       );
   };
-  material.customProgramCacheKey = () => 'festival-facades-v4-solvane';
+  material.customProgramCacheKey = () => 'festival-facades-v6-metric-recessed-joinery';
   return material;
 }
 
@@ -227,7 +294,9 @@ export class Buildings {
   readonly night = { value: 0 };
   readonly material: T.MeshStandardMaterial;
   readonly lantern: T.MeshStandardMaterial;
-  stats = { buildings: 0, triangles: 0 };
+  readonly joinery: FacadeJoinery;
+  private readonly openings: FacadePlacement[] = [];
+  stats = { buildings: 0, triangles: 0, openings: 0 };
   constructor(structures: readonly Structure[]) {
     this.root.name = 'Festival buildings';
     this.material = facadeMaterial(this.night);
@@ -264,7 +333,9 @@ export class Buildings {
       lamp.name = 'Lighthouse lantern';
       this.root.add(lamp);
     }
-    this.stats = { buildings: structures.length, triangles };
+    this.joinery = new FacadeJoinery(this.openings);
+    this.root.add(this.joinery.root);
+    this.stats = { buildings: structures.length, triangles, openings: this.openings.length };
   }
   private add(m: Mesher, s: Structure) {
     const c = Math.cos(s.heading),
@@ -471,12 +542,27 @@ export class Buildings {
       [-hx, hz, -hx, -hz, -1, 0],
     ];
     const eave = s.kind === 'hangar' ? top - s.hz * 0.45 : top;
-    for (const [x0, z0, x1, z1, nx, nz] of sides) {
+    for (const [sideIndex, [x0, z0, x1, z1, nx, nz]] of sides.entries()) {
       const len = Math.hypot(x1 - x0, z1 - z0);
       const a = local(x0, base, z0),
         b = local(x1, base, z1),
         d = local(x1, eave, z1),
         e = local(x0, eave, z0);
+      const layout = facadeLayout(s, len, sideIndex);
+      if (layout) {
+        addRecessedFacade(
+          m,
+          layout,
+          b,
+          [(a[0] - b[0]) / len, 0, (a[2] - b[2]) / len],
+          [c * nx - n * nz, 0, n * nx + c * nz],
+          wall,
+          style,
+          kind,
+          this.openings,
+        );
+        continue;
+      }
       // Counter-clockwise seen from outside.
       m.quad(
         [b, a, e, d],
@@ -577,7 +663,7 @@ export class Buildings {
             : [local(hx, top, hz), local(hx, top, -hz), local(hx, ridge, 0)],
           [c * side, 0, n * side],
           wall,
-          [style, kind, 0, s.height],
+          [style, kind, -3, s.height],
         );
       }
       if (s.kind === 'chapel') {
@@ -710,11 +796,15 @@ export class Buildings {
       box(0, eave - 0.35, 0, hx * 2 + 0.2, 0.25, hz * 2 + 0.2, 0x566367);
     }
   }
+  update(camera: T.Camera, quality: QualityPreset) {
+    this.joinery.update(camera, quality);
+  }
   setNight(night: number) {
     this.night.value = night;
     this.lantern.emissiveIntensity = 0.2 + night * 30;
   }
   dispose() {
+    this.joinery.dispose();
     this.root.traverse((o) => {
       if (o instanceof T.Mesh) o.geometry.dispose();
     });

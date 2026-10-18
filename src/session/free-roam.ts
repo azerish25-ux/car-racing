@@ -513,6 +513,7 @@ export class FestivalSession {
         Math.round(presented[o + F.GEAR]),
         (presented[o + F.RPM] - spec.idleRPM) / Math.max(1, spec.limiterRPM - spec.idleRPM),
         renderer.guidance.cue,
+        renderer.driftCue,
       );
     this.host.audio?.update(
       presented,

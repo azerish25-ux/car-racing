@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "blender": "5.2.2 LTS",
+  "source": "authoring/solvane/facade-joinery.blend",
+  "runtime": "src/rendering/assets/solvane-joinery.mesh.json",
+  "runtimeSha256": "af6efbdbfcb0a42a7cd376fbde9b0764805c823eb625fc87aec03d28257b370c",
+  "referenceIds": [
+    12,
+    13,
+    14,
+    20,
+    26,
+    27,
+    30,
+    31,
+    34,
+    38,
+    53,
+    56,
+    64,
+    66,
+    69,
+    80,
+    81,
+    82,
+    83,
+    86,
+    89,
+    96,
+    97
+  ],
+  "templates": {
+    "casement": {
+      "vertices": 1728,
+      "triangles": 864,
+      "materials": 2
+    },
+    "shop": {
+      "vertices": 2160,
+      "triangles": 1080,
+      "materials": 2
+    },
+    "shuttered": {
+      "vertices": 8208,
+      "triangles": 4104,
+      "materials": 3
+    }
+  }
+}

@@ -1,0 +1,2502 @@
+{
+  "schemaVersion": 1,
+  "pass": "Solvane R3 architectural joinery and driving presentation",
+  "inspectedImages": 100,
+  "allSourceHashesVerified": true,
+  "fullReferenceImplementation": false,
+  "commercialParityApproved": false,
+  "counts": {
+    "excluded_promotional": 6,
+    "partial_transfer": 58,
+    "reviewed_not_implemented_in_r3": 36
+  },
+  "interpretation": "Inspection is not implementation. Partial transfer means only the explicitly named original technique was applied. Native Blender reference_ids are an inspiration/study list, not an acceptance checklist. Promotional entries are not treated as finished game features. Images are not copied into this delivery.",
+  "records": [
+    {
+      "index": 1,
+      "filename": "001_FH_6_Car_Pack_01_Time_Attack_Group_01_16x9_WM_62c1b79ebc.jpg",
+      "localPathInOriginalPack": "01_Vehicles_Models/001_FH_6_Car_Pack_01_Time_Attack_Group_01_16x9_WM_62c1b79ebc.jpg",
+      "sha256": "4e2d27d976391f355cb34b219d9cc3a771a1a40c31fff689d275750be69338c7",
+      "bytes": 4515332,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_Car_Pack_01_Time_Attack_Group_01_16x9_WM_62c1b79ebc.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Time-attack pack: wide aero, close spacing and curb-level speed framing.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the motion-framing principle only: velocity/slip-aware chase heading, bounded speed/load cues and an exact damped tracking spring. No new car model or motion-blur parity is claimed."
+      ],
+      "sourceFiles": [
+        "src/rendering/open-world/chase-dynamics.ts",
+        "src/rendering/open-world/festival-renderer.ts"
+      ],
+      "evidenceFiles": [
+        "focused-tests-final.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "Accurate individual car silhouettes, tyre detail and race-pack composition remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 2,
+      "filename": "002_FH_6_Car_Pack_01_Time_Attack_HON_19_CRXWTA_90_01_16x9_WM_d9427349d3.jpg",
+      "localPathInOriginalPack": "01_Vehicles_Models/002_FH_6_Car_Pack_01_Time_Attack_HON_19_CRXWTA_90_01_16x9_WM_d9427349d3.jpg",
+      "sha256": "29f5a04ae057a5e3eb9fdb4e0235adf035abb795c492e36d27b7e2c7d30cd3e8",
+      "bytes": 3674919,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_Car_Pack_01_Time_Attack_HON_19_CRXWTA_90_01_16x9_WM_d9427349d3.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Pink compact: splitter and intake shape, rotating wheels and forest guardrail.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the motion-framing principle only: velocity/slip-aware chase heading, bounded speed/load cues and an exact damped tracking spring. No new car model or motion-blur parity is claimed."
+      ],
+      "sourceFiles": [
+        "src/rendering/open-world/chase-dynamics.ts",
+        "src/rendering/open-world/festival-renderer.ts"
+      ],
+      "evidenceFiles": [
+        "focused-tests-final.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "The compact body, aero fabrication, detailed wheels and forest dressing remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 3,
+      "filename": "003_FH_6_Car_Pack_01_Time_Attack_HON_21_Civic_WTA_92_01_16x9_WM_06b7b94d5f.jpg",
+      "localPathInOriginalPack": "01_Vehicles_Models/003_FH_6_Car_Pack_01_Time_Attack_HON_21_Civic_WTA_92_01_16x9_WM_06b7b94d5f.jpg",
+      "sha256": "adce0b8379a7fdfbfb1b5be8acc780db5020c4a3776d7b3c5b6aac1a9ef7d204",
+      "bytes": 4350833,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_Car_Pack_01_Time_Attack_HON_21_Civic_WTA_92_01_16x9_WM_06b7b94d5f.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Dark hatch in snow/rain: dirty bodywork, broad aero and winter surface response.",
+      "r3Disposition": "reviewed_not_implemented_in_r3",
+      "r3Applications": [],
+      "sourceFiles": [],
+      "evidenceFiles": [],
+      "remaining": "Vehicle dirt, snow adhesion, spray and season-specific car surfacing remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 4,
+      "filename": "004_FH_6_Car_Pack_01_Time_Attack_HON_33_Integra_WTA_01_01_16x9_WM_63a0b41c85.jpg",
+      "localPathInOriginalPack": "01_Vehicles_Models/004_FH_6_Car_Pack_01_Time_Attack_HON_33_Integra_WTA_01_01_16x9_WM_63a0b41c85.jpg",
+      "sha256": "3ecbd37386cb8050f52d3d01a9880b85e041ac17e56acb70761d198c955154ad",
+      "bytes": 4575363,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_Car_Pack_01_Time_Attack_HON_33_Integra_WTA_01_01_16x9_WM_63a0b41c85.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Coupe under a factory canopy: sculpted vents against corrugated service architecture.",
+      "r3Disposition": "reviewed_not_implemented_in_r3",
+      "r3Applications": [],
+      "sourceFiles": [],
+      "evidenceFiles": [],
+      "remaining": "The coupe, corrugated shed construction and industrial prop set remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 5,
+      "filename": "005_FH_6_Car_Pack_01_Time_Attack_HON_52_S2000_WTA_04_01_16x9_WM_9b48463d66.jpg",
+      "localPathInOriginalPack": "01_Vehicles_Models/005_FH_6_Car_Pack_01_Time_Attack_HON_52_S2000_WTA_04_01_16x9_WM_9b48463d66.jpg",
+      "sha256": "c5f708b1a548d69e617f50239860be6a801e508737f9c81192a6100b90192ad7",
+      "bytes": 3495856,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_Car_Pack_01_Time_Attack_HON_52_S2000_WTA_04_01_16x9_WM_9b48463d66.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Open sports-car profile: exposed cabin, large wing, spokes and warm industrial sunset.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the motion-framing principle only: velocity/slip-aware chase heading, bounded speed/load cues and an exact damped tracking spring. No new car model or motion-blur parity is claimed."
+      ],
+      "sourceFiles": [
+        "src/rendering/open-world/chase-dynamics.ts",
+        "src/rendering/open-world/festival-renderer.ts"
+      ],
+      "evidenceFiles": [
+        "focused-tests-final.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "Open-cockpit geometry, detailed running gear and the sunset light study remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 6,
+      "filename": "006_FH_6_Car_Pack_01_Time_Attack_MIT_269_Minicab_90_01_16x9_WM_19d00f1e49.jpg",
+      "localPathInOriginalPack": "01_Vehicles_Models/006_FH_6_Car_Pack_01_Time_Attack_MIT_269_Minicab_90_01_16x9_WM_19d00f1e49.jpg",
+      "sha256": "05102cd782f0053a0d9b0e606c893f87a5eb49047fb26f202c6d298d13cd3472",
+      "bytes": 3976941,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_Car_Pack_01_Time_Attack_MIT_269_Minicab_90_01_16x9_WM_19d00f1e49.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Racing mini-truck: roll cage visible through glass, asphalt grain and course barriers.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the motion-framing principle only: velocity/slip-aware chase heading, bounded speed/load cues and an exact damped tracking spring. No new car model or motion-blur parity is claimed."
+      ],
+      "sourceFiles": [
+        "src/rendering/open-world/chase-dynamics.ts",
+        "src/rendering/open-world/festival-renderer.ts"
+      ],
+      "evidenceFiles": [
+        "focused-tests-final.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "Mini-truck construction, believable glazing/cage relationships and barriers remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 7,
+      "filename": "007_FH_6_Car_Pack_01_Time_Attack_NIS_32_Skyline_WTA_93_01_16x9_WM_4bd832eaec.jpg",
+      "localPathInOriginalPack": "01_Vehicles_Models/007_FH_6_Car_Pack_01_Time_Attack_NIS_32_Skyline_WTA_93_01_16x9_WM_4bd832eaec.jpg",
+      "sha256": "1f1450758d9fe29461b373870bbfe6924adaa48ceaa3efafe1cf35ae221cbf66",
+      "bytes": 5811448,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_Car_Pack_01_Time_Attack_NIS_32_Skyline_WTA_93_01_16x9_WM_4bd832eaec.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Coupe rear: wing, circular lamps, autumn forest and event marquee.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the motion-framing principle only: velocity/slip-aware chase heading, bounded speed/load cues and an exact damped tracking spring. No new car model or motion-blur parity is claimed."
+      ],
+      "sourceFiles": [
+        "src/rendering/open-world/chase-dynamics.ts",
+        "src/rendering/open-world/festival-renderer.ts"
+      ],
+      "evidenceFiles": [
+        "focused-tests-final.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "The vehicle rear assembly, autumn vegetation and event marquees remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 8,
+      "filename": "008_FH_6_Car_Pack_01_Time_Attack_NIS_36_Silvia_WTA_00_01_16x9_WM_0855a9b948.jpg",
+      "localPathInOriginalPack": "01_Vehicles_Models/008_FH_6_Car_Pack_01_Time_Attack_NIS_36_Silvia_WTA_00_01_16x9_WM_0855a9b948.jpg",
+      "sha256": "b2d2b6cdbc80b5f797cb7848102cde8471b7907ba09c886dcff1a08ac8c4a37e",
+      "bytes": 4386655,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_Car_Pack_01_Time_Attack_NIS_36_Silvia_WTA_00_01_16x9_WM_0855a9b948.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "White coupe beside corrugated red siding: cone, tyres and panel edges.",
+      "r3Disposition": "reviewed_not_implemented_in_r3",
+      "r3Applications": [],
+      "sourceFiles": [],
+      "evidenceFiles": [],
+      "remaining": "Exact body proportions, conical safety equipment and sheet-metal cladding remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 9,
+      "filename": "009_FH_6_Car_Pack_01_Time_Attack_TOY_00_Supra_WTA_95_01_16x9_WM_ed08ce2476.jpg",
+      "localPathInOriginalPack": "01_Vehicles_Models/009_FH_6_Car_Pack_01_Time_Attack_TOY_00_Supra_WTA_95_01_16x9_WM_ed08ce2476.jpg",
+      "sha256": "5e7fec5b4c83fd72ad6a7f1d152f5cc3f52f26070949efc843205ca1dfabe5b9",
+      "bytes": 3049214,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_Car_Pack_01_Time_Attack_TOY_00_Supra_WTA_95_01_16x9_WM_ed08ce2476.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Silver frontal coupe: intake, hood sculpture and reflected surroundings.",
+      "r3Disposition": "reviewed_not_implemented_in_r3",
+      "r3Applications": [],
+      "sourceFiles": [],
+      "evidenceFiles": [],
+      "remaining": "The hero frontal model, headlamp optics and environment-reflection calibration remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 10,
+      "filename": "010_FH_6_Car_Pack_02_Italian_Passion_ALF_00_SE_048_SP_01_16x9_WM_9d9df31556.jpg",
+      "localPathInOriginalPack": "01_Vehicles_Models/010_FH_6_Car_Pack_02_Italian_Passion_ALF_00_SE_048_SP_01_16x9_WM_9d9df31556.jpg",
+      "sha256": "2c39af0923f6748ea4079fdad5822915c14b4f3537f8ed56658ee43c25950211",
+      "bytes": 7874068,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_Car_Pack_02_Italian_Passion_ALF_00_SE_048_SP_01_16x9_WM_9d9df31556.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Overhead prototype: canopy, vents, tyres and snowy pavement.",
+      "r3Disposition": "reviewed_not_implemented_in_r3",
+      "r3Applications": [],
+      "sourceFiles": [],
+      "evidenceFiles": [],
+      "remaining": "Prototype body/cabin topology and winter surface accumulation remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 11,
+      "filename": "011_FH_6_Car_Pack_02_Italian_Passion_ALF_Giulia_GT_Am_21_01_16x9_WM_e595f35e0b.jpg",
+      "localPathInOriginalPack": "01_Vehicles_Models/011_FH_6_Car_Pack_02_Italian_Passion_ALF_Giulia_GT_Am_21_01_16x9_WM_e595f35e0b.jpg",
+      "sha256": "4b1c5440f5097ffd906be5247d7fe39361afa7aed3a05ce392502a25ef10ce15",
+      "bytes": 5074736,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_Car_Pack_02_Italian_Passion_ALF_Giulia_GT_Am_21_01_16x9_WM_e595f35e0b.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Saloon beside illuminated temple/pagoda: shaped trees and dusk contrast.",
+      "r3Disposition": "reviewed_not_implemented_in_r3",
+      "r3Applications": [],
+      "sourceFiles": [],
+      "evidenceFiles": [],
+      "remaining": "Temple architecture, shaped vegetation, saloon detail and location-specific dusk remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 12,
+      "filename": "012_FH_6_Car_Pack_02_Italian_Passion_FER_275_GTS_67_01_16x9_WM_df3e0d7727.jpg",
+      "localPathInOriginalPack": "01_Vehicles_Models/012_FH_6_Car_Pack_02_Italian_Passion_FER_275_GTS_67_01_16x9_WM_df3e0d7727.jpg",
+      "sha256": "26e0b022e6a6e2bff83ed47047f25c831b8d4e06100b6a6f31302d81e36baa01",
+      "bytes": 4409503,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_Car_Pack_02_Italian_Passion_FER_275_GTS_67_01_16x9_WM_df3e0d7727.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Red convertible at a waterfront: sash-window housing and projecting cornices.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the generic architectural principle to original Solvane buildings: real inset openings, bevelled frame/sill/shutter meshes, metric wall finish and bounded lit-room cues. Not a reconstruction of the depicted location."
+      ],
+      "sourceFiles": [
+        "authoring/solvane/build_joinery.py",
+        "authoring/solvane/facade-joinery.blend",
+        "src/rendering/open-world/buildings.ts",
+        "src/rendering/open-world/facade-joinery.ts",
+        "src/rendering/open-world/facade-layout.ts"
+      ],
+      "evidenceFiles": [
+        "after-facade.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "Convertible modeling, unique waterfront architecture and its lighting remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 13,
+      "filename": "013_FH_6_Car_Pack_02_Italian_Passion_FER_F80_25_01_16x9_WM_9ac9175b0e.jpg",
+      "localPathInOriginalPack": "01_Vehicles_Models/013_FH_6_Car_Pack_02_Italian_Passion_FER_F80_25_01_16x9_WM_9ac9175b0e.jpg",
+      "sha256": "2205f0b3c0f0d8405542fef4fc6aa545320fc3d7d631620fafdad23c2fb62cbd",
+      "bytes": 4274578,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_Car_Pack_02_Italian_Passion_FER_F80_25_01_16x9_WM_9ac9175b0e.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Rear supercar on an urban street: low chase view and relative speed.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the generic architectural principle to original Solvane buildings: real inset openings, bevelled frame/sill/shutter meshes, metric wall finish and bounded lit-room cues. Not a reconstruction of the depicted location.",
+        "Transferred the motion-framing principle only: velocity/slip-aware chase heading, bounded speed/load cues and an exact damped tracking spring. No new car model or motion-blur parity is claimed."
+      ],
+      "sourceFiles": [
+        "authoring/solvane/build_joinery.py",
+        "authoring/solvane/facade-joinery.blend",
+        "src/rendering/open-world/buildings.ts",
+        "src/rendering/open-world/chase-dynamics.ts",
+        "src/rendering/open-world/facade-joinery.ts",
+        "src/rendering/open-world/facade-layout.ts",
+        "src/rendering/open-world/festival-renderer.ts"
+      ],
+      "evidenceFiles": [
+        "after-facade.json",
+        "focused-tests-final.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "Hero-car rear geometry, road-side density and a matched moving comparison remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 14,
+      "filename": "014_FH_6_Car_Pack_02_Italian_Passion_FER_F80_25_02_16x9_WM_80bf435e9e.jpg",
+      "localPathInOriginalPack": "01_Vehicles_Models/014_FH_6_Car_Pack_02_Italian_Passion_FER_F80_25_02_16x9_WM_80bf435e9e.jpg",
+      "sha256": "27f1ae0bd1b6cee5322ec313c36270f7a65e0f916004dc07b64babe7586daf59",
+      "bytes": 1921079,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_Car_Pack_02_Italian_Passion_FER_F80_25_02_16x9_WM_80bf435e9e.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Supercar in a neon corridor: deep shopfront bays, illuminated signs and layered facades.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the generic architectural principle to original Solvane buildings: real inset openings, bevelled frame/sill/shutter meshes, metric wall finish and bounded lit-room cues. Not a reconstruction of the depicted location."
+      ],
+      "sourceFiles": [
+        "authoring/solvane/build_joinery.py",
+        "authoring/solvane/facade-joinery.blend",
+        "src/rendering/open-world/buildings.ts",
+        "src/rendering/open-world/facade-joinery.ts",
+        "src/rendering/open-world/facade-layout.ts"
+      ],
+      "evidenceFiles": [
+        "after-facade.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "Neon-sign typography, layered shop interiors and the hero vehicle remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 15,
+      "filename": "015_FH_6_Car_Pack_02_Italian_Passion_FER_F80_25_03_16x9_WM_05f43fa672.jpg",
+      "localPathInOriginalPack": "01_Vehicles_Models/015_FH_6_Car_Pack_02_Italian_Passion_FER_F80_25_03_16x9_WM_05f43fa672.jpg",
+      "sha256": "8b54acb5156739fc408a2bfd91a5bed321a8282112d1c15eefe35a68e5f32968",
+      "bytes": 3669896,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_Car_Pack_02_Italian_Passion_FER_F80_25_03_16x9_WM_05f43fa672.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Supercar beneath blossom: petals on the road and rear aero.",
+      "r3Disposition": "reviewed_not_implemented_in_r3",
+      "r3Applications": [],
+      "sourceFiles": [],
+      "evidenceFiles": [],
+      "remaining": "Blossom clusters, petal distribution, vehicle geometry and vegetation lighting remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 16,
+      "filename": "016_FH_6_Car_Pack_02_Italian_Passion_Group_01_16x9_7815f41a63.jpg",
+      "localPathInOriginalPack": "01_Vehicles_Models/016_FH_6_Car_Pack_02_Italian_Passion_Group_01_16x9_7815f41a63.jpg",
+      "sha256": "844e2f00cc80215141db4d4c4c1354fd110a61a37b0e8dd988403dd18fcf7f11",
+      "bytes": 5818182,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_Car_Pack_02_Italian_Passion_Group_01_16x9_7815f41a63.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Parked performance cars at a cracked overlook: mountain layers and atmospheric distance.",
+      "r3Disposition": "reviewed_not_implemented_in_r3",
+      "r3Applications": [],
+      "sourceFiles": [],
+      "evidenceFiles": [],
+      "remaining": "Distinct parked cars, damaged overlook pavement and mountain atmosphere remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 17,
+      "filename": "017_FH_6_Car_Pack_02_Italian_Passion_Group_02_16x9_WM_0f9e14f37b.jpg",
+      "localPathInOriginalPack": "01_Vehicles_Models/017_FH_6_Car_Pack_02_Italian_Passion_Group_02_16x9_WM_0f9e14f37b.jpg",
+      "sha256": "c6e9750cea0632ddaf7afa3aa047f9fb613a1f505b1a25ac56c98fcd67fc749b",
+      "bytes": 6573051,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_Car_Pack_02_Italian_Passion_Group_02_16x9_WM_0f9e14f37b.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Cars at low sun: damp-road reflections and skyline separation.",
+      "r3Disposition": "reviewed_not_implemented_in_r3",
+      "r3Applications": [],
+      "sourceFiles": [],
+      "evidenceFiles": [],
+      "remaining": "Low-sun exposure, damp-reflection response, car lineup and skyline remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 18,
+      "filename": "018_FH_6_Cover_Car_GR_GT_01_16x9_WM_f1df060de6.jpg",
+      "localPathInOriginalPack": "01_Vehicles_Models/018_FH_6_Cover_Car_GR_GT_01_16x9_WM_f1df060de6.jpg",
+      "sha256": "c0fc83aad8b3d3a607f3eae7db01b30697577e08e9058c0d92e90d87c47b0d1b",
+      "bytes": 2798900,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_Cover_Car_GR_GT_01_16x9_WM_f1df060de6.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Rear three-quarter supercar at speed: tail lamps, exhaust and cloud structure.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the motion-framing principle only: velocity/slip-aware chase heading, bounded speed/load cues and an exact damped tracking spring. No new car model or motion-blur parity is claimed."
+      ],
+      "sourceFiles": [
+        "src/rendering/open-world/chase-dynamics.ts",
+        "src/rendering/open-world/festival-renderer.ts"
+      ],
+      "evidenceFiles": [
+        "focused-tests-final.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "Tail/exhaust construction, sky composition and dynamic photographic comparison remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 19,
+      "filename": "019_FH_6_Cover_Car_GR_GT_02_16x9_WM_4c33d04f17.jpg",
+      "localPathInOriginalPack": "01_Vehicles_Models/019_FH_6_Cover_Car_GR_GT_02_16x9_WM_4c33d04f17.jpg",
+      "sha256": "5b6f65fbd90d325b7f6b93bbb9047f74b590c0bec61fc4f9f87db754cf098215",
+      "bytes": 6283075,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_Cover_Car_GR_GT_02_16x9_WM_4c33d04f17.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "High red-car view: foliage reflections, stone path and edge barrier.",
+      "r3Disposition": "reviewed_not_implemented_in_r3",
+      "r3Applications": [],
+      "sourceFiles": [],
+      "evidenceFiles": [],
+      "remaining": "The car, leaf-reflection character, stone paving and retaining edge remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 20,
+      "filename": "020_FH_6_Cover_Car_GR_GT_Toyota_Land_Cruiser_01_16x9_WM_b9b413fef5.jpg",
+      "localPathInOriginalPack": "01_Vehicles_Models/020_FH_6_Cover_Car_GR_GT_Toyota_Land_Cruiser_01_16x9_WM_b9b413fef5.jpg",
+      "sha256": "41dd6174511134d05207f74979e07fdeec402a5c6bdadf4f793c2ac5be243ed8",
+      "bytes": 3712848,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_Cover_Car_GR_GT_Toyota_Land_Cruiser_01_16x9_WM_b9b413fef5.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Car and SUV in a small town: differing body heights and traditional frontages.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the generic architectural principle to original Solvane buildings: real inset openings, bevelled frame/sill/shutter meshes, metric wall finish and bounded lit-room cues. Not a reconstruction of the depicted location."
+      ],
+      "sourceFiles": [
+        "authoring/solvane/build_joinery.py",
+        "authoring/solvane/facade-joinery.blend",
+        "src/rendering/open-world/buildings.ts",
+        "src/rendering/open-world/facade-joinery.ts",
+        "src/rendering/open-world/facade-layout.ts"
+      ],
+      "evidenceFiles": [
+        "after-facade.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "The two vehicle types, traditional roof construction and unique local frontage remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 21,
+      "filename": "021_FH_6_Cover_Car_Toyota_Land_Cruiser_01_16x9_WM_48a48270c4.jpg",
+      "localPathInOriginalPack": "01_Vehicles_Models/021_FH_6_Cover_Car_Toyota_Land_Cruiser_01_16x9_WM_48a48270c4.jpg",
+      "sha256": "9a2dc6109e077046293ec34aba359dcab70f19381964c9254e5037bb35b713dd",
+      "bytes": 4591910,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_Cover_Car_Toyota_Land_Cruiser_01_16x9_WM_48a48270c4.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "SUV in tall meadow above a town: layered city/mountain view.",
+      "r3Disposition": "reviewed_not_implemented_in_r3",
+      "r3Applications": [],
+      "sourceFiles": [],
+      "evidenceFiles": [],
+      "remaining": "Meadow density, SUV stance, terrain shape and coherent distant settlement remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 22,
+      "filename": "022_FH_6_Cover_Car_Toyota_Land_Cruiser_02_16x9_WM_453107540f.jpg",
+      "localPathInOriginalPack": "01_Vehicles_Models/022_FH_6_Cover_Car_Toyota_Land_Cruiser_02_16x9_WM_453107540f.jpg",
+      "sha256": "561b7b90302fd08bd677b5dca3e24253d75ade260a7e5f27c1b09828ee2d9b92",
+      "bytes": 5024931,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_Cover_Car_Toyota_Land_Cruiser_02_16x9_WM_453107540f.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "SUV on wet rocks: suspension articulation and visible underbody.",
+      "r3Disposition": "reviewed_not_implemented_in_r3",
+      "r3Applications": [],
+      "sourceFiles": [],
+      "evidenceFiles": [],
+      "remaining": "Rock/vehicle contacts, articulated suspension, underbody and water interaction remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 23,
+      "filename": "023_FH_6_GTM_Car_Features_Decals_02_16x9_WM_8c4ff834ca.jpg",
+      "localPathInOriginalPack": "01_Vehicles_Models/023_FH_6_GTM_Car_Features_Decals_02_16x9_WM_8c4ff834ca.jpg",
+      "sha256": "b497fafa01eb1f3ad4b13297339c61fb5e4c074ea701e91a3df792ea473afb83",
+      "bytes": 2662088,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_GTM_Car_Features_Decals_02_16x9_WM_8c4ff834ca.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Close passenger window: decal, cabin depth and reflected environment.",
+      "r3Disposition": "reviewed_not_implemented_in_r3",
+      "r3Applications": [],
+      "sourceFiles": [],
+      "evidenceFiles": [],
+      "remaining": "Detailed car interior, trim, decal registration and glass optics remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 24,
+      "filename": "024_FH_6_GTM_Car_Features_Decals_03_16x9_WM_4ef0b521e9.jpg",
+      "localPathInOriginalPack": "01_Vehicles_Models/024_FH_6_GTM_Car_Features_Decals_03_16x9_WM_4ef0b521e9.jpg",
+      "sha256": "e8913116bbbf9c819838d03c0f6b702f0dacb13c737e658fabfd8710013f16c3",
+      "bytes": 5621378,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_GTM_Car_Features_Decals_03_16x9_WM_4ef0b521e9.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Rear slide beside forest: large black wing and lateral background motion.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the motion-framing principle only: velocity/slip-aware chase heading, bounded speed/load cues and an exact damped tracking spring. No new car model or motion-blur parity is claimed.",
+        "Added angle/direction/build-hold-recover advice derived from observed chassis motion with the existing skill thresholds. The new HUD does not award or invent score."
+      ],
+      "sourceFiles": [
+        "src/rendering/open-world/chase-dynamics.ts",
+        "src/rendering/open-world/festival-renderer.ts",
+        "src/session/free-roam.ts",
+        "src/simulation/open-world/drift-feedback.ts",
+        "src/ui/festival-hud.ts"
+      ],
+      "evidenceFiles": [
+        "focused-tests-final.json",
+        "hud-review.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "Vehicle wing/tyres, smoke evolution and a matched moving forest comparison remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 25,
+      "filename": "025_FH_6_OEM_Group_Shot_Audi_01_16x9_WM_d27e46e3dc.jpg",
+      "localPathInOriginalPack": "01_Vehicles_Models/025_FH_6_OEM_Group_Shot_Audi_01_16x9_WM_d27e46e3dc.jpg",
+      "sha256": "1668971ba06c51b51f48c514e438bacf5eca4cfd50c37faabdb94ebc2efc35fc",
+      "bytes": 2648563,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_OEM_Group_Shot_Audi_01_16x9_WM_d27e46e3dc.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Festival meet: canopies, PA poles and believable parked-car arrangement.",
+      "r3Disposition": "reviewed_not_implemented_in_r3",
+      "r3Applications": [],
+      "sourceFiles": [],
+      "evidenceFiles": [],
+      "remaining": "Festival layout, canopy/PA assets and parked-car social staging remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 26,
+      "filename": "026_FH_6_GTM_Seasons_03_Summer_Temple_16x9_WM_85da561784.jpg",
+      "localPathInOriginalPack": "02_Environments_World/026_FH_6_GTM_Seasons_03_Summer_Temple_16x9_WM_85da561784.jpg",
+      "sha256": "56fbf5dc99ef3f367ed5f5f624fb73c6062c2a536a19fd10647b5ec991a2c910",
+      "bytes": 7770755,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_GTM_Seasons_03_Summer_Temple_16x9_WM_85da561784.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Summer temple lane: stone, gravel, timber, plaster and deep eaves.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the generic architectural principle to original Solvane buildings: real inset openings, bevelled frame/sill/shutter meshes, metric wall finish and bounded lit-room cues. Not a reconstruction of the depicted location."
+      ],
+      "sourceFiles": [
+        "authoring/solvane/build_joinery.py",
+        "authoring/solvane/facade-joinery.blend",
+        "src/rendering/open-world/buildings.ts",
+        "src/rendering/open-world/facade-joinery.ts",
+        "src/rendering/open-world/facade-layout.ts"
+      ],
+      "evidenceFiles": [
+        "after-facade.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "Temple-specific timberwork, layered eaves, gravel and vegetation remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 27,
+      "filename": "027_FH_6_GTM_Seasons_04_Autumn_Temple_16x9_WM_98d8b42e9d.jpg",
+      "localPathInOriginalPack": "02_Environments_World/027_FH_6_GTM_Seasons_04_Autumn_Temple_16x9_WM_98d8b42e9d.jpg",
+      "sha256": "bd1297772268587780c45c6ea3004eff27c0fadc2f31a1e30cda0d0b72132794",
+      "bytes": 9192646,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_GTM_Seasons_04_Autumn_Temple_16x9_WM_98d8b42e9d.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Same lane in autumn: seasonal foliage and directed shafts of light.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the generic architectural principle to original Solvane buildings: real inset openings, bevelled frame/sill/shutter meshes, metric wall finish and bounded lit-room cues. Not a reconstruction of the depicted location."
+      ],
+      "sourceFiles": [
+        "authoring/solvane/build_joinery.py",
+        "authoring/solvane/facade-joinery.blend",
+        "src/rendering/open-world/buildings.ts",
+        "src/rendering/open-world/facade-joinery.ts",
+        "src/rendering/open-world/facade-layout.ts"
+      ],
+      "evidenceFiles": [
+        "after-facade.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "The authored autumn season, foliage change and volumetric-light study remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 28,
+      "filename": "028_FH_6_GTM_Seasons_08_Autumn_Sky_Lantern_Festival_16x9_WM_dbb05cdddb.jpg",
+      "localPathInOriginalPack": "02_Environments_World/028_FH_6_GTM_Seasons_08_Autumn_Sky_Lantern_Festival_16x9_WM_dbb05cdddb.jpg",
+      "sha256": "268d4ee8df02aa4274bf3302bd1e3bd90e4f50b21823da58f2a3fef8c260d38b",
+      "bytes": 6273867,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_GTM_Seasons_08_Autumn_Sky_Lantern_Festival_16x9_WM_dbb05cdddb.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Night lanterns above water: tents and repeated warm reflections.",
+      "r3Disposition": "reviewed_not_implemented_in_r3",
+      "r3Applications": [],
+      "sourceFiles": [],
+      "evidenceFiles": [],
+      "remaining": "Lantern models, tents, water reflections and location-specific night exposure remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 29,
+      "filename": "029_FH_6_GTM_Seasons_09_Summer_Unkai_Clouds_16x9_WM_6e1f1ee389.jpg",
+      "localPathInOriginalPack": "02_Environments_World/029_FH_6_GTM_Seasons_09_Summer_Unkai_Clouds_16x9_WM_6e1f1ee389.jpg",
+      "sha256": "d2e396f258a6459dfd4c7f6463620642f25af8c0437f3ede9bfe10c6424e7d7d",
+      "bytes": 4187579,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_GTM_Seasons_09_Summer_Unkai_Clouds_16x9_WM_6e1f1ee389.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Mountain sunrise: fog inversion, flowers and overlapping terrain silhouettes.",
+      "r3Disposition": "reviewed_not_implemented_in_r3",
+      "r3Applications": [],
+      "sourceFiles": [],
+      "evidenceFiles": [],
+      "remaining": "Mountain forms, valley mist, flowers and morning atmosphere remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 30,
+      "filename": "030_FH_6_PC_Capture_Tokyo_City_Street_01_16x9_WM_9f0b42cef4.jpg",
+      "localPathInOriginalPack": "02_Environments_World/030_FH_6_PC_Capture_Tokyo_City_Street_01_16x9_WM_9f0b42cef4.jpg",
+      "sha256": "4579d2dec39db307f752d6a74d518a853921a01e85fb65b8c7477c5212da5cfc",
+      "bytes": 5914001,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_PC_Capture_Tokyo_City_Street_01_16x9_WM_9f0b42cef4.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Vertical city street: signage, varied heights and distinct window rhythms.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the generic architectural principle to original Solvane buildings: real inset openings, bevelled frame/sill/shutter meshes, metric wall finish and bounded lit-room cues. Not a reconstruction of the depicted location."
+      ],
+      "sourceFiles": [
+        "authoring/solvane/build_joinery.py",
+        "authoring/solvane/facade-joinery.blend",
+        "src/rendering/open-world/buildings.ts",
+        "src/rendering/open-world/facade-joinery.ts",
+        "src/rendering/open-world/facade-layout.ts"
+      ],
+      "evidenceFiles": [
+        "after-facade.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "Building typology variation, dense signs and the reference city layout remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 31,
+      "filename": "031_FH_6_Static_Asset_4k_Mountain_423ce9ca2b.jpg",
+      "localPathInOriginalPack": "02_Environments_World/031_FH_6_Static_Asset_4k_Mountain_423ce9ca2b.jpg",
+      "sha256": "fcf9fa659f61394f409a6879e69d632e39352b4ed62388193087aede65d6a9d5",
+      "bytes": 752002,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_Static_Asset_4k_Mountain_423ce9ca2b.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Promotional title over a mountain, lake and tiled town.",
+      "r3Disposition": "excluded_promotional",
+      "r3Applications": [],
+      "sourceFiles": [],
+      "evidenceFiles": [],
+      "remaining": "Promotional title/branding is excluded; the depicted landscape is not recreated in this pass.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 32,
+      "filename": "032_Forza_Horizon6_Launch_02_Tokyo_Vista_16x9_WM_5e29666c37.jpg",
+      "localPathInOriginalPack": "02_Environments_World/032_Forza_Horizon6_Launch_02_Tokyo_Vista_16x9_WM_5e29666c37.jpg",
+      "sha256": "9f638f49718eb70361a0fc069b83cf6a4fc8bae96b3702bb910c39ea70f2bba9",
+      "bytes": 6376074,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/Forza_Horizon6_Launch_02_Tokyo_Vista_16x9_WM_5e29666c37.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Meadow SUV overlooking coast/city: long sightlines and distant mountain layers.",
+      "r3Disposition": "reviewed_not_implemented_in_r3",
+      "r3Applications": [],
+      "sourceFiles": [],
+      "evidenceFiles": [],
+      "remaining": "Meadow composition, shoreline, city skyline and SUV detail remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 33,
+      "filename": "033_Forza_Horizon6_Launch_03_Hirosaki_Castle_16x9_WM_405a5941e3.jpg",
+      "localPathInOriginalPack": "02_Environments_World/033_Forza_Horizon6_Launch_03_Hirosaki_Castle_16x9_WM_405a5941e3.jpg",
+      "sha256": "c8ad61856df2eb89fd970439db6e90e3f7e571258c8b2601baf280102939b973",
+      "bytes": 5614125,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/Forza_Horizon6_Launch_03_Hirosaki_Castle_16x9_WM_405a5941e3.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Rally car by castle/blossom: loose surface and directional dust.",
+      "r3Disposition": "reviewed_not_implemented_in_r3",
+      "r3Applications": [],
+      "sourceFiles": [],
+      "evidenceFiles": [],
+      "remaining": "Rally model, castle landmark, blossom placement and dust-ground coupling remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 34,
+      "filename": "034_Forza_Horizon6_Launch_04_Rural_Dream_16x9_WM_724ed64b10.jpg",
+      "localPathInOriginalPack": "02_Environments_World/034_Forza_Horizon6_Launch_04_Rural_Dream_16x9_WM_724ed64b10.jpg",
+      "sha256": "e12d289483e76a71902ab4c2fcdc9f5b83fddb4fed441f7f25fa61a615f0c28c",
+      "bytes": 3496422,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/Forza_Horizon6_Launch_04_Rural_Dream_16x9_WM_724ed64b10.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Touring coupe in a warm village: timber frontage, eaves and hanging banners.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the generic architectural principle to original Solvane buildings: real inset openings, bevelled frame/sill/shutter meshes, metric wall finish and bounded lit-room cues. Not a reconstruction of the depicted location."
+      ],
+      "sourceFiles": [
+        "authoring/solvane/build_joinery.py",
+        "authoring/solvane/facade-joinery.blend",
+        "src/rendering/open-world/buildings.ts",
+        "src/rendering/open-world/facade-joinery.ts",
+        "src/rendering/open-world/facade-layout.ts"
+      ],
+      "evidenceFiles": [
+        "after-facade.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "The coupe, timber/eave system, banners and matched warm lighting remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 35,
+      "filename": "035_Forza_Horizon6_Pre_Order_06_Cover_Car_Mt_Fuji_16x9_WM_3261c9e026.jpg",
+      "localPathInOriginalPack": "02_Environments_World/035_Forza_Horizon6_Pre_Order_06_Cover_Car_Mt_Fuji_16x9_WM_3261c9e026.jpg",
+      "sha256": "6c62dc5076d178f589269095314707ecb824294d78c7b900f0beb835cc60849a",
+      "bytes": 415254,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/Forza_Horizon6_Pre_Order_06_Cover_Car_Mt_Fuji_16x9_WM_3261c9e026.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Low rear supercar climbing toward a snowy mountain.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the motion-framing principle only: velocity/slip-aware chase heading, bounded speed/load cues and an exact damped tracking spring. No new car model or motion-blur parity is claimed."
+      ],
+      "sourceFiles": [
+        "src/rendering/open-world/chase-dynamics.ts",
+        "src/rendering/open-world/festival-renderer.ts"
+      ],
+      "evidenceFiles": [
+        "focused-tests-final.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "The car, climb vista, snow line and a moving hill-camera comparison remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 36,
+      "filename": "036_Forza_Horizon6_Pre_Order_10_Mt_Fuji_Vista_16x9_WM_d34422b325.jpg",
+      "localPathInOriginalPack": "02_Environments_World/036_Forza_Horizon6_Pre_Order_10_Mt_Fuji_Vista_16x9_WM_d34422b325.jpg",
+      "sha256": "77f68aba0ab4e1ebfd968bd80317bd00ff4f39905407899009eebbb141b74ec1",
+      "bytes": 952555,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/Forza_Horizon6_Pre_Order_10_Mt_Fuji_Vista_16x9_WM_d34422b325.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Unoccupied winding road: grasses, clouds and layered mountains.",
+      "r3Disposition": "reviewed_not_implemented_in_r3",
+      "r3Applications": [],
+      "sourceFiles": [],
+      "evidenceFiles": [],
+      "remaining": "Roadside habitat, mountain geology, sky composition and scenic route design remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 37,
+      "filename": "037_Forza_Horizon6_Pre_Order_12_Cover_Car_City_16x9_WM_68726f4738.jpg",
+      "localPathInOriginalPack": "02_Environments_World/037_Forza_Horizon6_Pre_Order_12_Cover_Car_City_16x9_WM_68726f4738.jpg",
+      "sha256": "a4c8f8962dcbe1c43087df87f2a3dc11ea8074ec73c922f28087b1592f55bdb9",
+      "bytes": 488376,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/Forza_Horizon6_Pre_Order_12_Cover_Car_City_16x9_WM_68726f4738.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Expressway car beneath an overpass: barrier rhythm and shadow transition.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the motion-framing principle only: velocity/slip-aware chase heading, bounded speed/load cues and an exact damped tracking spring. No new car model or motion-blur parity is claimed."
+      ],
+      "sourceFiles": [
+        "src/rendering/open-world/chase-dynamics.ts",
+        "src/rendering/open-world/festival-renderer.ts"
+      ],
+      "evidenceFiles": [
+        "focused-tests-final.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "Overpass structure, dense barriers, car details and driving light-transition tuning remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 38,
+      "filename": "038_Forza_Horizon6_Preview_01_City_Alley_16x9_WM_cc751b44f4.jpg",
+      "localPathInOriginalPack": "02_Environments_World/038_Forza_Horizon6_Preview_01_City_Alley_16x9_WM_cc751b44f4.jpg",
+      "sha256": "246c07e800940ef4415a4957f2be1802344be5b3ec263ebc7b0528868e062341",
+      "bytes": 4935181,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/Forza_Horizon6_Preview_01_City_Alley_16x9_WM_cc751b44f4.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Race car in a service alley: AC boxes, pipes, signs and inset stores.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the generic architectural principle to original Solvane buildings: real inset openings, bevelled frame/sill/shutter meshes, metric wall finish and bounded lit-room cues. Not a reconstruction of the depicted location."
+      ],
+      "sourceFiles": [
+        "authoring/solvane/build_joinery.py",
+        "authoring/solvane/facade-joinery.blend",
+        "src/rendering/open-world/buildings.ts",
+        "src/rendering/open-world/facade-joinery.ts",
+        "src/rendering/open-world/facade-layout.ts"
+      ],
+      "evidenceFiles": [
+        "after-facade.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "Service equipment, unique signage, alley routing and race-car details remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 39,
+      "filename": "039_Forza_Horizon6_Preview_11_City_Park_16x9_4aab28b687.jpg",
+      "localPathInOriginalPack": "02_Environments_World/039_Forza_Horizon6_Preview_11_City_Park_16x9_4aab28b687.jpg",
+      "sha256": "2cf739f5fd3cc59bc1b7adc5a03ed0aca3ddd1f45d34f9d40c3bc88d3741327e",
+      "bytes": 8086838,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/Forza_Horizon6_Preview_11_City_Park_16x9_4aab28b687.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Park canal and bridge: foliage against glass skyline.",
+      "r3Disposition": "reviewed_not_implemented_in_r3",
+      "r3Applications": [],
+      "sourceFiles": [],
+      "evidenceFiles": [],
+      "remaining": "Canal/bridge models, planting, reflection setup and distant tower architecture remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 40,
+      "filename": "040_FH_6_Gamescom_Drift_Attack_01_16x9_WM_bab41c7c53.jpg",
+      "localPathInOriginalPack": "03_Gameplay_Racing/040_FH_6_Gamescom_Drift_Attack_01_16x9_WM_bab41c7c53.jpg",
+      "sha256": "3547f25859e7c59212a6980db18e0f60a234d96a80ceb8a517fd1366048775e0",
+      "bytes": 4062995,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_Gamescom_Drift_Attack_01_16x9_WM_bab41c7c53.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Festival drift: rear-tyre smoke and a large gantry.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the motion-framing principle only: velocity/slip-aware chase heading, bounded speed/load cues and an exact damped tracking spring. No new car model or motion-blur parity is claimed.",
+        "Added angle/direction/build-hold-recover advice derived from observed chassis motion with the existing skill thresholds. The new HUD does not award or invent score."
+      ],
+      "sourceFiles": [
+        "src/rendering/open-world/chase-dynamics.ts",
+        "src/rendering/open-world/festival-renderer.ts",
+        "src/session/free-roam.ts",
+        "src/simulation/open-world/drift-feedback.ts",
+        "src/ui/festival-hud.ts"
+      ],
+      "evidenceFiles": [
+        "focused-tests-final.json",
+        "hud-review.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "Smoke emission/roll-up, tyre contact marks and the specific festival gantry remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 41,
+      "filename": "041_FH_6_Gamescom_Drift_Attack_02_Direct_Capture_WM_7562b2bdc7.jpg",
+      "localPathInOriginalPack": "03_Gameplay_Racing/041_FH_6_Gamescom_Drift_Attack_02_Direct_Capture_WM_7562b2bdc7.jpg",
+      "sha256": "9c5aef6a92be94584d531ddd9b9d685a37c60a9a0c55b0f92f5a316f4d58127f",
+      "bytes": 4062856,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_Gamescom_Drift_Attack_02_Direct_Capture_WM_7562b2bdc7.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Drift gameplay HUD: gear, speed, points, minimap and visible corner exit.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the motion-framing principle only: velocity/slip-aware chase heading, bounded speed/load cues and an exact damped tracking spring. No new car model or motion-blur parity is claimed.",
+        "Added angle/direction/build-hold-recover advice derived from observed chassis motion with the existing skill thresholds. The new HUD does not award or invent score."
+      ],
+      "sourceFiles": [
+        "src/rendering/open-world/chase-dynamics.ts",
+        "src/rendering/open-world/festival-renderer.ts",
+        "src/session/free-roam.ts",
+        "src/simulation/open-world/drift-feedback.ts",
+        "src/ui/festival-hud.ts"
+      ],
+      "evidenceFiles": [
+        "focused-tests-final.json",
+        "hud-review.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "Reference HUD reconstruction is not claimed; a completed human drift trial remains.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 42,
+      "filename": "042_FH_6_Gamescom_Drift_Attack_03_Direct_Capture_WM_de66346c60.jpg",
+      "localPathInOriginalPack": "03_Gameplay_Racing/042_FH_6_Gamescom_Drift_Attack_03_Direct_Capture_WM_de66346c60.jpg",
+      "sha256": "c245bf4d66ec511fc166acc9b208a546d5fb97937d1d6cfbc27f8af8cdbb45d0",
+      "bytes": 4031562,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_Gamescom_Drift_Attack_03_Direct_Capture_WM_de66346c60.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Continuation of the drift: changing slide direction and score-chain readout.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the motion-framing principle only: velocity/slip-aware chase heading, bounded speed/load cues and an exact damped tracking spring. No new car model or motion-blur parity is claimed.",
+        "Added angle/direction/build-hold-recover advice derived from observed chassis motion with the existing skill thresholds. The new HUD does not award or invent score."
+      ],
+      "sourceFiles": [
+        "src/rendering/open-world/chase-dynamics.ts",
+        "src/rendering/open-world/festival-renderer.ts",
+        "src/session/free-roam.ts",
+        "src/simulation/open-world/drift-feedback.ts",
+        "src/ui/festival-hud.ts"
+      ],
+      "evidenceFiles": [
+        "focused-tests-final.json",
+        "hud-review.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "Score-chain redesign, smoke and a matched, moving direction-change trial remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 43,
+      "filename": "043_FH_6_GTM_Touge_Arashiyama_01_16x9_WM_a79d1aa64a.jpg",
+      "localPathInOriginalPack": "03_Gameplay_Racing/043_FH_6_GTM_Touge_Arashiyama_01_16x9_WM_a79d1aa64a.jpg",
+      "sha256": "7ec2e1c85c524bd722237183b86620e97f9b18524f56dac8c3546e948dd89b6b",
+      "bytes": 4286321,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_GTM_Touge_Arashiyama_01_16x9_WM_a79d1aa64a.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Blue-hour switchbacks: headlight pools and route visibility.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the motion-framing principle only: velocity/slip-aware chase heading, bounded speed/load cues and an exact damped tracking spring. No new car model or motion-blur parity is claimed."
+      ],
+      "sourceFiles": [
+        "src/rendering/open-world/chase-dynamics.ts",
+        "src/rendering/open-world/festival-renderer.ts"
+      ],
+      "evidenceFiles": [
+        "focused-tests-final.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "Headlamp reach, blue-hour lighting and switchback scenic composition remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 44,
+      "filename": "044_FH_6_GTM_Touge_Hakone_01_16x9_WM_63a1894099.jpg",
+      "localPathInOriginalPack": "03_Gameplay_Racing/044_FH_6_GTM_Touge_Hakone_01_16x9_WM_63a1894099.jpg",
+      "sha256": "f553202ba2b5f86ad823ba3365f571a7d1ba861089344179f35c45e35e23e5cf",
+      "bytes": 3269541,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_GTM_Touge_Hakone_01_16x9_WM_63a1894099.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Two cars on a damp mountain road: spray, guardrail and mist.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the motion-framing principle only: velocity/slip-aware chase heading, bounded speed/load cues and an exact damped tracking spring. No new car model or motion-blur parity is claimed."
+      ],
+      "sourceFiles": [
+        "src/rendering/open-world/chase-dynamics.ts",
+        "src/rendering/open-world/festival-renderer.ts"
+      ],
+      "evidenceFiles": [
+        "focused-tests-final.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "Two-car dynamics, wet spray, mist and reference-level road barriers remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 45,
+      "filename": "045_FH_6_PC_Capture_Bridge_Race_01_16x9_WM_85ded3daad.jpg",
+      "localPathInOriginalPack": "03_Gameplay_Racing/045_FH_6_PC_Capture_Bridge_Race_01_16x9_WM_85ded3daad.jpg",
+      "sha256": "1cee905d4ba0671eb35bf7c32621fdfa52476e1a6ecfcdfe05a3a1c9c877eac4",
+      "bytes": 3460144,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_PC_Capture_Bridge_Race_01_16x9_WM_85ded3daad.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Close race through a girder bridge: supports and useful car spacing.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the motion-framing principle only: velocity/slip-aware chase heading, bounded speed/load cues and an exact damped tracking spring. No new car model or motion-blur parity is claimed."
+      ],
+      "sourceFiles": [
+        "src/rendering/open-world/chase-dynamics.ts",
+        "src/rendering/open-world/festival-renderer.ts"
+      ],
+      "evidenceFiles": [
+        "focused-tests-final.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "Girder/cable fabrication, varied cars and bridge race staging remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 46,
+      "filename": "046_FH_6_S04_EW_Mascot_Party_Circuit_01_16x9_WM_aa7cc51b57.jpg",
+      "localPathInOriginalPack": "03_Gameplay_Racing/046_FH_6_S04_EW_Mascot_Party_Circuit_01_16x9_WM_aa7cc51b57.jpg",
+      "sha256": "81be84dfff28b14097d6ca078ce1c215e56b82ad4b6854d221f9bc38fb5fac30",
+      "bytes": 5564108,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_S04_EW_Mascot_Party_Circuit_01_16x9_WM_aa7cc51b57.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Stadium aerial: parking grids, trees and site scale.",
+      "r3Disposition": "reviewed_not_implemented_in_r3",
+      "r3Applications": [],
+      "sourceFiles": [],
+      "evidenceFiles": [],
+      "remaining": "Stadium masterplanning, parked vehicles and species/age-varied planting remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 47,
+      "filename": "047_FH_6_S04_EW_Mascot_Party_Circuit_02_16x9_WM_b6b160d483.jpg",
+      "localPathInOriginalPack": "03_Gameplay_Racing/047_FH_6_S04_EW_Mascot_Party_Circuit_02_16x9_WM_b6b160d483.jpg",
+      "sha256": "2b1e7f9e22e3bdf2d1480e818e5d4573b0233ea2dc1c83a72602b29de0d5c1b0",
+      "bytes": 6599083,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_S04_EW_Mascot_Party_Circuit_02_16x9_WM_b6b160d483.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Event stadium: infield routes, stands and tents.",
+      "r3Disposition": "reviewed_not_implemented_in_r3",
+      "r3Applications": [],
+      "sourceFiles": [],
+      "evidenceFiles": [],
+      "remaining": "Stadium construction, playable event staging, tents and crowd density remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 48,
+      "filename": "048_Forza_Horizon6_Launch_05_Touge_Race_16x9_WM_9b9f59a04b.jpg",
+      "localPathInOriginalPack": "03_Gameplay_Racing/048_Forza_Horizon6_Launch_05_Touge_Race_16x9_WM_9b9f59a04b.jpg",
+      "sha256": "7085b7fdfd52f100bac50d6e9fffa0b570029d112f76215b9d78ad2232fe3c2c",
+      "bytes": 3454693,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/Forza_Horizon6_Launch_05_Touge_Race_16x9_WM_9b9f59a04b.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Night duel: orange flare plumes and guardrail illumination.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the motion-framing principle only: velocity/slip-aware chase heading, bounded speed/load cues and an exact damped tracking spring. No new car model or motion-blur parity is claimed."
+      ],
+      "sourceFiles": [
+        "src/rendering/open-world/chase-dynamics.ts",
+        "src/rendering/open-world/festival-renderer.ts"
+      ],
+      "evidenceFiles": [
+        "focused-tests-final.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "Flare effects, night-car lighting and safety-barrier illumination remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 49,
+      "filename": "049_Forza_Horizon6_Pre_Order_02_Festival_Drift_16x9_WM_b773809dfb.jpg",
+      "localPathInOriginalPack": "03_Gameplay_Racing/049_Forza_Horizon6_Pre_Order_02_Festival_Drift_16x9_WM_b773809dfb.jpg",
+      "sha256": "87af4603d35884b8d94d768c63611eda76da7cb0178f97d49fef3b95e501b5e5",
+      "bytes": 778989,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/Forza_Horizon6_Pre_Order_02_Festival_Drift_16x9_WM_b773809dfb.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Race start: festival gantry, crowds and stands.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the motion-framing principle only: velocity/slip-aware chase heading, bounded speed/load cues and an exact damped tracking spring. No new car model or motion-blur parity is claimed."
+      ],
+      "sourceFiles": [
+        "src/rendering/open-world/chase-dynamics.ts",
+        "src/rendering/open-world/festival-renderer.ts"
+      ],
+      "evidenceFiles": [
+        "focused-tests-final.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "Start-grid presentation, gantry models and convincing spectators remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 50,
+      "filename": "050_Forza_Horizon6_Pre_Order_05_Touge_16x9_WM_8269eed50a.jpg",
+      "localPathInOriginalPack": "03_Gameplay_Racing/050_Forza_Horizon6_Pre_Order_05_Touge_16x9_WM_8269eed50a.jpg",
+      "sha256": "b37f406ba9552aba2702b8973e8560c5baa4233d26a9f24212ff934962d2894d",
+      "bytes": 2045434,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/Forza_Horizon6_Pre_Order_05_Touge_16x9_WM_8269eed50a.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Mountain hairpins: retaining walls and blossom framing.",
+      "r3Disposition": "reviewed_not_implemented_in_r3",
+      "r3Applications": [],
+      "sourceFiles": [],
+      "evidenceFiles": [],
+      "remaining": "Hairpin scenery, retaining-wall construction and seasonal planting remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 51,
+      "filename": "051_Forza_Horizon6_Pre_Order_08_Offroad_Flowers_16x9_WM_878da27403.jpg",
+      "localPathInOriginalPack": "03_Gameplay_Racing/051_Forza_Horizon6_Pre_Order_08_Offroad_Flowers_16x9_WM_878da27403.jpg",
+      "sha256": "6f6d20e808ab74cfae599dad2ebe583c4b021091dc4510d25a95ad6d97682891",
+      "bytes": 704810,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/Forza_Horizon6_Pre_Order_08_Offroad_Flowers_16x9_WM_878da27403.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Off-road truck through flowers: foreground motion and suspension height.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the motion-framing principle only: velocity/slip-aware chase heading, bounded speed/load cues and an exact damped tracking spring. No new car model or motion-blur parity is claimed."
+      ],
+      "sourceFiles": [
+        "src/rendering/open-world/chase-dynamics.ts",
+        "src/rendering/open-world/festival-renderer.ts"
+      ],
+      "evidenceFiles": [
+        "focused-tests-final.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "Truck suspension, flowers, soil spray and off-road hero geometry remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 52,
+      "filename": "052_Forza_Horizon6_Preview_04_Offroad_Autumn_16x9_WM_be444947e3.jpg",
+      "localPathInOriginalPack": "03_Gameplay_Racing/052_Forza_Horizon6_Preview_04_Offroad_Autumn_16x9_WM_be444947e3.jpg",
+      "sha256": "9a655df692be6a1b47e931f65b05f096b059d38c76480c54a96009b0ef8d287b",
+      "bytes": 6538438,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/Forza_Horizon6_Preview_04_Offroad_Autumn_16x9_WM_be444947e3.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Forest off-road: uneven ground, warm dust and shafts of light.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the motion-framing principle only: velocity/slip-aware chase heading, bounded speed/load cues and an exact damped tracking spring. No new car model or motion-blur parity is claimed."
+      ],
+      "sourceFiles": [
+        "src/rendering/open-world/chase-dynamics.ts",
+        "src/rendering/open-world/festival-renderer.ts"
+      ],
+      "evidenceFiles": [
+        "focused-tests-final.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "Forest terrain, dust distribution and physically coherent light shafts remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 53,
+      "filename": "053_Forza_Horizon6_Preview_07_City_Drift_16x9_WM_4226938a23.jpg",
+      "localPathInOriginalPack": "03_Gameplay_Racing/053_Forza_Horizon6_Preview_07_City_Drift_16x9_WM_4226938a23.jpg",
+      "sha256": "565a0a37c9086d3d346a5ad42f3bb376de4435c96c2fbe48bd394b7114530212",
+      "bytes": 4082583,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/Forza_Horizon6_Preview_07_City_Drift_16x9_WM_4226938a23.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Yellow coupe drifting in a night city: traffic and shop lighting.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the generic architectural principle to original Solvane buildings: real inset openings, bevelled frame/sill/shutter meshes, metric wall finish and bounded lit-room cues. Not a reconstruction of the depicted location.",
+        "Transferred the motion-framing principle only: velocity/slip-aware chase heading, bounded speed/load cues and an exact damped tracking spring. No new car model or motion-blur parity is claimed.",
+        "Added angle/direction/build-hold-recover advice derived from observed chassis motion with the existing skill thresholds. The new HUD does not award or invent score."
+      ],
+      "sourceFiles": [
+        "authoring/solvane/build_joinery.py",
+        "authoring/solvane/facade-joinery.blend",
+        "src/rendering/open-world/buildings.ts",
+        "src/rendering/open-world/chase-dynamics.ts",
+        "src/rendering/open-world/facade-joinery.ts",
+        "src/rendering/open-world/facade-layout.ts",
+        "src/rendering/open-world/festival-renderer.ts",
+        "src/session/free-roam.ts",
+        "src/simulation/open-world/drift-feedback.ts",
+        "src/ui/festival-hud.ts"
+      ],
+      "evidenceFiles": [
+        "after-facade.json",
+        "focused-tests-final.json",
+        "hud-review.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "The coupe, believable traffic composition and night-city lighting remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 54,
+      "filename": "054_FH_6_Ltd_Ed_Controller_Headset_2026_f1c8af76b2.jpg",
+      "localPathInOriginalPack": "04_UI_Menu_Map/054_FH_6_Ltd_Ed_Controller_Headset_2026_f1c8af76b2.jpg",
+      "sha256": "5c01c4dca94da1c836a3f588e792d66c4cf7c4dd63f88614d9d8809176c3e809",
+      "bytes": 454342,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_Ltd_Ed_Controller_Headset_2026_f1c8af76b2.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Branded controller/headset promotional product composition.",
+      "r3Disposition": "excluded_promotional",
+      "r3Applications": [],
+      "sourceFiles": [],
+      "evidenceFiles": [],
+      "remaining": "Excluded: hardware merchandise and commercial branding are not game assets for this pass.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 55,
+      "filename": "055_FH_6_Map_Reveal_2160x2700_74bd92cbbc.jpg",
+      "localPathInOriginalPack": "04_UI_Menu_Map/055_FH_6_Map_Reveal_2160x2700_74bd92cbbc.jpg",
+      "sha256": "780047dce2a653723dfae6fc5b08647ad8fc33bd6642f689c8b8ef8428d2e039",
+      "bytes": 3242837,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_Map_Reveal_2160x2700_74bd92cbbc.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Illustrated regional map: roads, water and biome hierarchy.",
+      "r3Disposition": "reviewed_not_implemented_in_r3",
+      "r3Applications": [],
+      "sourceFiles": [],
+      "evidenceFiles": [],
+      "remaining": "Map-art redesign and matching region content remain; existing map behavior was retained and tested.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 56,
+      "filename": "056_FH_6_S01_Reward_Cars_HON_CR_Xsi_91_01_16x9_WM_ff6bf5627e.jpg",
+      "localPathInOriginalPack": "04_UI_Menu_Map/056_FH_6_S01_Reward_Cars_HON_CR_Xsi_91_01_16x9_WM_ff6bf5627e.jpg",
+      "sha256": "1fcb2d572d9f48068be11aea25aadb4aea87864c05fb87e7994cb16d964cc6aa",
+      "bytes": 3483126,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_S01_Reward_Cars_HON_CR_Xsi_91_01_16x9_WM_ff6bf5627e.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Modest red hatch on a wet village road: plaster, timber and overhead utilities.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the generic architectural principle to original Solvane buildings: real inset openings, bevelled frame/sill/shutter meshes, metric wall finish and bounded lit-room cues. Not a reconstruction of the depicted location."
+      ],
+      "sourceFiles": [
+        "authoring/solvane/build_joinery.py",
+        "authoring/solvane/facade-joinery.blend",
+        "src/rendering/open-world/buildings.ts",
+        "src/rendering/open-world/facade-joinery.ts",
+        "src/rendering/open-world/facade-layout.ts"
+      ],
+      "evidenceFiles": [
+        "after-facade.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "Hatch model, wet-weather finish, timber details and utility-network dressing remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 57,
+      "filename": "057_FH_6_S01_Reward_Cars_MAZ_Furai_08_01_16x9_WM_cb22472262.jpg",
+      "localPathInOriginalPack": "04_UI_Menu_Map/057_FH_6_S01_Reward_Cars_MAZ_Furai_08_01_16x9_WM_cb22472262.jpg",
+      "sha256": "8317cf89a82300fcd11b76f30c47c3671228483333fe755b9ec347dd566a1198",
+      "bytes": 3366996,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_S01_Reward_Cars_MAZ_Furai_08_01_16x9_WM_cb22472262.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Silver concept car in warm shafts: continuous, complex body curvature.",
+      "r3Disposition": "reviewed_not_implemented_in_r3",
+      "r3Applications": [],
+      "sourceFiles": [],
+      "evidenceFiles": [],
+      "remaining": "Hero body topology, surface fairness and warm-light calibration remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 58,
+      "filename": "058_FH_6_S01_Reward_Cars_MAZ_Furai_08_02_16x9_WM_32f14c6646.jpg",
+      "localPathInOriginalPack": "04_UI_Menu_Map/058_FH_6_S01_Reward_Cars_MAZ_Furai_08_02_16x9_WM_32f14c6646.jpg",
+      "sha256": "8bbae5c0f759541c0d03d3e3443ccdd56488141fcf05e9ffaebbc1410392ac0d",
+      "bytes": 3440497,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_S01_Reward_Cars_MAZ_Furai_08_02_16x9_WM_32f14c6646.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Silver concept under industrial roofing at blue hour: tail lamps and glazing.",
+      "r3Disposition": "reviewed_not_implemented_in_r3",
+      "r3Applications": [],
+      "sourceFiles": [],
+      "evidenceFiles": [],
+      "remaining": "Concept rear optics, roof construction and blue-hour glass/reflection response remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 59,
+      "filename": "059_FH_6_S01_Reward_Cars_TOY_Altezza_99_01_16x9_WM_ec0eca392a.jpg",
+      "localPathInOriginalPack": "04_UI_Menu_Map/059_FH_6_S01_Reward_Cars_TOY_Altezza_99_01_16x9_WM_ec0eca392a.jpg",
+      "sha256": "877eed5a775bc54bb34ccbe2888e88bd4c5efe83092580c8b92ee4651971b7e0",
+      "bytes": 4824527,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_S01_Reward_Cars_TOY_Altezza_99_01_16x9_WM_ec0eca392a.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Silver saloon by corrugated building and forest: rotating wheels.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the motion-framing principle only: velocity/slip-aware chase heading, bounded speed/load cues and an exact damped tracking spring. No new car model or motion-blur parity is claimed."
+      ],
+      "sourceFiles": [
+        "src/rendering/open-world/chase-dynamics.ts",
+        "src/rendering/open-world/festival-renderer.ts"
+      ],
+      "evidenceFiles": [
+        "focused-tests-final.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "Saloon model, wheel motion, sheet-metal building and forest dressing remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 60,
+      "filename": "060_FH_6_S01_Reward_Cars_TOY_Land_Cruiser_Arctic_16_01_16x9_WM_98cd649920.jpg",
+      "localPathInOriginalPack": "04_UI_Menu_Map/060_FH_6_S01_Reward_Cars_TOY_Land_Cruiser_Arctic_16_01_16x9_WM_98cd649920.jpg",
+      "sha256": "cdc00fc76ef336ac2bb88105b6ced06c8c4265b02561f22a8ad4dfcb438dfb21",
+      "bytes": 3775725,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_S01_Reward_Cars_TOY_Land_Cruiser_Arctic_16_01_16x9_WM_98cd649920.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Lifted SUV in deep snow: pronounced off-road tyres and ride height.",
+      "r3Disposition": "reviewed_not_implemented_in_r3",
+      "r3Applications": [],
+      "sourceFiles": [],
+      "evidenceFiles": [],
+      "remaining": "Snow displacement, deep-tread tyres, chassis detail and suspension remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 61,
+      "filename": "061_FH_6_S01_Reward_Cars_TOY_Starlet_Glanza_96_01_16x9_WM_4dacd05ea2.jpg",
+      "localPathInOriginalPack": "04_UI_Menu_Map/061_FH_6_S01_Reward_Cars_TOY_Starlet_Glanza_96_01_16x9_WM_4dacd05ea2.jpg",
+      "sha256": "fbee8c338ff57e094cd295acfbfb08f4b4b3651e6022c46cdf3f88c22b642121",
+      "bytes": 3300578,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_S01_Reward_Cars_TOY_Starlet_Glanza_96_01_16x9_WM_4dacd05ea2.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Small blue hatch at coastal sunset: glass, headlights and rims.",
+      "r3Disposition": "reviewed_not_implemented_in_r3",
+      "r3Applications": [],
+      "sourceFiles": [],
+      "evidenceFiles": [],
+      "remaining": "Hatch modeling, headlamp/rim detail and coastal-sunset lighting remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 62,
+      "filename": "062_FH_6_S02_Reward_Car_Calendar_3840x2160_b9be7f0bc1.jpg",
+      "localPathInOriginalPack": "04_UI_Menu_Map/062_FH_6_S02_Reward_Car_Calendar_3840x2160_b9be7f0bc1.jpg",
+      "sha256": "e75906abbc3f8cc7d7a43e6434229d077e9b99d440826d350f99074ff144271b",
+      "bytes": 1117499,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_S02_Reward_Car_Calendar_3840x2160_b9be7f0bc1.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Seasonal reward-calendar promotional graphic.",
+      "r3Disposition": "excluded_promotional",
+      "r3Applications": [],
+      "sourceFiles": [],
+      "evidenceFiles": [],
+      "remaining": "Excluded: release dates, rewards and commercial progression are not imported.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 63,
+      "filename": "063_FH_6_S02_Reward_Cars_DOD_Ram_SRT_10_06_01_16x9_WM_d1015d33d8.jpg",
+      "localPathInOriginalPack": "04_UI_Menu_Map/063_FH_6_S02_Reward_Cars_DOD_Ram_SRT_10_06_01_16x9_WM_d1015d33d8.jpg",
+      "sha256": "f9236b66350d05ab1846787db32591d6f8faa68020b47dc3fe8405a4e401791a",
+      "bytes": 4360419,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_S02_Reward_Cars_DOD_Ram_SRT_10_06_01_16x9_WM_d1015d33d8.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Pickup in a quarry: excavated soil and machinery.",
+      "r3Disposition": "reviewed_not_implemented_in_r3",
+      "r3Applications": [],
+      "sourceFiles": [],
+      "evidenceFiles": [],
+      "remaining": "Pickup model, quarry geology, machinery and coherent off-road interactions remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 64,
+      "filename": "064_FH_6_GTM_Seasons_01_Winter_Village_16x9_WM_fd34597fb9.jpg",
+      "localPathInOriginalPack": "05_Lighting_Weather/064_FH_6_GTM_Seasons_01_Winter_Village_16x9_WM_fd34597fb9.jpg",
+      "sha256": "e491aceb9f0c2645584af3676831492421dcfb0669caf98d03a795f871ed7185",
+      "bytes": 8694641,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_GTM_Seasons_01_Winter_Village_16x9_WM_fd34597fb9.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Snow village panorama: tiled/gabled roof layers.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the generic architectural principle to original Solvane buildings: real inset openings, bevelled frame/sill/shutter meshes, metric wall finish and bounded lit-room cues. Not a reconstruction of the depicted location."
+      ],
+      "sourceFiles": [
+        "authoring/solvane/build_joinery.py",
+        "authoring/solvane/facade-joinery.blend",
+        "src/rendering/open-world/buildings.ts",
+        "src/rendering/open-world/facade-joinery.ts",
+        "src/rendering/open-world/facade-layout.ts"
+      ],
+      "evidenceFiles": [
+        "after-facade.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "Snow loading, roof forms and seasonal terrain remain; generic facade principles only were applied.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 65,
+      "filename": "065_FH_6_PC_Spec_Infographic_3840x2160_114dba8461.jpg",
+      "localPathInOriginalPack": "05_Lighting_Weather/065_FH_6_PC_Spec_Infographic_3840x2160_114dba8461.jpg",
+      "sha256": "74457059db85bf55cfa96513ca68aebcfdff1588f65bcd0349550dc4ac20eb99",
+      "bytes": 1525187,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_PC_Spec_Infographic_3840x2160_114dba8461.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Commercial PC-specification infographic.",
+      "r3Disposition": "excluded_promotional",
+      "r3Applications": [],
+      "sourceFiles": [],
+      "evidenceFiles": [],
+      "remaining": "Excluded: another game's requirements do not establish MOTOBOUND hardware performance.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 66,
+      "filename": "066_Forza_Horizon6_Launch_01_City_Neon_16x9_WM_73f8102998.jpg",
+      "localPathInOriginalPack": "05_Lighting_Weather/066_Forza_Horizon6_Launch_01_City_Neon_16x9_WM_73f8102998.jpg",
+      "sha256": "5853dfb164994977991d55d4b17c525a9cd19a9bfaafccac9891d987bb7be7df",
+      "bytes": 4430139,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/Forza_Horizon6_Launch_01_City_Neon_16x9_WM_73f8102998.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "White car in a neon street: emitted light versus reflective paint.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the generic architectural principle to original Solvane buildings: real inset openings, bevelled frame/sill/shutter meshes, metric wall finish and bounded lit-room cues. Not a reconstruction of the depicted location."
+      ],
+      "sourceFiles": [
+        "authoring/solvane/build_joinery.py",
+        "authoring/solvane/facade-joinery.blend",
+        "src/rendering/open-world/buildings.ts",
+        "src/rendering/open-world/facade-joinery.ts",
+        "src/rendering/open-world/facade-layout.ts"
+      ],
+      "evidenceFiles": [
+        "after-facade.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "Vehicle paint/optics and local neon illumination remain; actual shop bay depth was the transferable detail.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 67,
+      "filename": "067_Forza_Horizon6_Launch_08_City_Night_Expressway_16x9_WM_9032b92999.jpg",
+      "localPathInOriginalPack": "05_Lighting_Weather/067_Forza_Horizon6_Launch_08_City_Night_Expressway_16x9_WM_9032b92999.jpg",
+      "sha256": "5a3204c5a5c0bdd90fc0715484076d414a26e79cc7c80768cdf54fd0177410df",
+      "bytes": 4921954,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/Forza_Horizon6_Launch_08_City_Night_Expressway_16x9_WM_9032b92999.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Turquoise car on a night expressway: lanes and barrier streaks.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the motion-framing principle only: velocity/slip-aware chase heading, bounded speed/load cues and an exact damped tracking spring. No new car model or motion-blur parity is claimed."
+      ],
+      "sourceFiles": [
+        "src/rendering/open-world/chase-dynamics.ts",
+        "src/rendering/open-world/festival-renderer.ts"
+      ],
+      "evidenceFiles": [
+        "focused-tests-final.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "Night-road exposure, vehicle construction and motion rendering remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 68,
+      "filename": "068_Forza_Horizon6_Launch_09_City_Neon_Detail_16x9_WM_302afa223c.jpg",
+      "localPathInOriginalPack": "05_Lighting_Weather/068_Forza_Horizon6_Launch_09_City_Neon_Detail_16x9_WM_302afa223c.jpg",
+      "sha256": "a62774cd516908bae5b0fa7d732f2ac98a4fa6bbc8b4dfb67d1a059351a876f0",
+      "bytes": 3688135,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/Forza_Horizon6_Launch_09_City_Neon_Detail_16x9_WM_302afa223c.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Close engine glazing and neon: visible mechanical depth.",
+      "r3Disposition": "reviewed_not_implemented_in_r3",
+      "r3Applications": [],
+      "sourceFiles": [],
+      "evidenceFiles": [],
+      "remaining": "Engine-bay components, glass layering and their illumination remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 69,
+      "filename": "069_Forza_Horizon6_Pre_Order_01_City_Night_Race_16x9_WM_515a9073f8.jpg",
+      "localPathInOriginalPack": "05_Lighting_Weather/069_Forza_Horizon6_Pre_Order_01_City_Night_Race_16x9_WM_515a9073f8.jpg",
+      "sha256": "b56ab113a158d324daf96b493e4b39b7ba8072ceb7d065996c63d60e3639fb6d",
+      "bytes": 743563,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/Forza_Horizon6_Pre_Order_01_City_Night_Race_16x9_WM_515a9073f8.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Rear night city race: cars passing lit shops.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the generic architectural principle to original Solvane buildings: real inset openings, bevelled frame/sill/shutter meshes, metric wall finish and bounded lit-room cues. Not a reconstruction of the depicted location.",
+        "Transferred the motion-framing principle only: velocity/slip-aware chase heading, bounded speed/load cues and an exact damped tracking spring. No new car model or motion-blur parity is claimed."
+      ],
+      "sourceFiles": [
+        "authoring/solvane/build_joinery.py",
+        "authoring/solvane/facade-joinery.blend",
+        "src/rendering/open-world/buildings.ts",
+        "src/rendering/open-world/chase-dynamics.ts",
+        "src/rendering/open-world/facade-joinery.ts",
+        "src/rendering/open-world/facade-layout.ts",
+        "src/rendering/open-world/festival-renderer.ts"
+      ],
+      "evidenceFiles": [
+        "after-facade.json",
+        "focused-tests-final.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "Night lighting, traffic composition and vehicle detail remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 70,
+      "filename": "070_Forza_Horizon6_Pre_Order_09_Snow_Road_16x9_WM_0fcfcf51b6.jpg",
+      "localPathInOriginalPack": "05_Lighting_Weather/070_Forza_Horizon6_Pre_Order_09_Snow_Road_16x9_WM_0fcfcf51b6.jpg",
+      "sha256": "d58f61db137e77294fa0e75ee0f8aff213a7c4e7557434a1b5eada27ffb9edef",
+      "bytes": 678039,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/Forza_Horizon6_Pre_Order_09_Snow_Road_16x9_WM_0fcfcf51b6.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Car group in a snowy mountain cut: mist and differing grip.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the motion-framing principle only: velocity/slip-aware chase heading, bounded speed/load cues and an exact damped tracking spring. No new car model or motion-blur parity is claimed."
+      ],
+      "sourceFiles": [
+        "src/rendering/open-world/chase-dynamics.ts",
+        "src/rendering/open-world/festival-renderer.ts"
+      ],
+      "evidenceFiles": [
+        "focused-tests-final.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "Snow/mist content and demonstrated seasonal handling remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 71,
+      "filename": "071_Forza_Horizon6_Preview_02_City_Night_Expressway_16x9_WM_2e52a11119.jpg",
+      "localPathInOriginalPack": "05_Lighting_Weather/071_Forza_Horizon6_Preview_02_City_Night_Expressway_16x9_WM_2e52a11119.jpg",
+      "sha256": "a6b05963bee5047fb0c6187fde47ad4c361e883c30fd6e50ba22f2d776caead5",
+      "bytes": 4265189,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/Forza_Horizon6_Preview_02_City_Night_Expressway_16x9_WM_2e52a11119.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Tight night traffic beneath a green girder bridge.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the motion-framing principle only: velocity/slip-aware chase heading, bounded speed/load cues and an exact damped tracking spring. No new car model or motion-blur parity is claimed."
+      ],
+      "sourceFiles": [
+        "src/rendering/open-world/chase-dynamics.ts",
+        "src/rendering/open-world/festival-renderer.ts"
+      ],
+      "evidenceFiles": [
+        "focused-tests-final.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "Bridge construction, traffic behavior and night lighting remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 72,
+      "filename": "072_Forza_Horizon6_Preview_05_Festival_Night_16x9_WM_ba922e10a2.jpg",
+      "localPathInOriginalPack": "05_Lighting_Weather/072_Forza_Horizon6_Preview_05_Festival_Night_16x9_WM_ba922e10a2.jpg",
+      "sha256": "d2647d3d2ffdd9aa2d2314b44c46c5cef01c24954fa42e783954df53c2c4b766",
+      "bytes": 6202414,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/Forza_Horizon6_Preview_05_Festival_Night_16x9_WM_ba922e10a2.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Festival aerial with fireworks: tents, lanes and crowd massing.",
+      "r3Disposition": "reviewed_not_implemented_in_r3",
+      "r3Applications": [],
+      "sourceFiles": [],
+      "evidenceFiles": [],
+      "remaining": "Fireworks, event masterplan, tent models and convincing crowd distribution remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 73,
+      "filename": "073_Forza_Horizon6_Preview_06_Snow_Race_16x9_WM_faabf2576b.jpg",
+      "localPathInOriginalPack": "05_Lighting_Weather/073_Forza_Horizon6_Preview_06_Snow_Race_16x9_WM_faabf2576b.jpg",
+      "sha256": "bc4fb55726325c78f022e3e5053124334900fb70bab9a5a3be664a43d8ffc605",
+      "bytes": 3501122,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/Forza_Horizon6_Preview_06_Snow_Race_16x9_WM_faabf2576b.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Off-road race in snow: ride height and snow/dust clouds.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the motion-framing principle only: velocity/slip-aware chase heading, bounded speed/load cues and an exact damped tracking spring. No new car model or motion-blur parity is claimed."
+      ],
+      "sourceFiles": [
+        "src/rendering/open-world/chase-dynamics.ts",
+        "src/rendering/open-world/festival-renderer.ts"
+      ],
+      "evidenceFiles": [
+        "focused-tests-final.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "Snow response, vehicle suspension, terrain and particulate effects remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 74,
+      "filename": "074_FH_6_GTM_Car_Features_Forza_Aero_01_16x9_WM_34bfb79f79.jpg",
+      "localPathInOriginalPack": "06_Garage_Customization/074_FH_6_GTM_Car_Features_Forza_Aero_01_16x9_WM_34bfb79f79.jpg",
+      "sha256": "5fb1a38a53242889f0473ebaf8c3f38d4b29f522ccf831289b5a3c38136c5516",
+      "bytes": 5173834,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_GTM_Car_Features_Forza_Aero_01_16x9_WM_34bfb79f79.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Close bolt-on aero: woven carbon, nose/splitter and attachment hardware.",
+      "r3Disposition": "reviewed_not_implemented_in_r3",
+      "r3Applications": [],
+      "sourceFiles": [],
+      "evidenceFiles": [],
+      "remaining": "Carbon material scale, aero thickness and fastener construction remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 75,
+      "filename": "075_FH_6_GTM_Car_Meets_Daikoku_01_16x9_WM_29753ba390.jpg",
+      "localPathInOriginalPack": "06_Garage_Customization/075_FH_6_GTM_Car_Meets_Daikoku_01_16x9_WM_29753ba390.jpg",
+      "sha256": "ff15753a143aa5d490b5d04104a3dc61c6e5840a024a0bd85425aec76639479f",
+      "bytes": 4165528,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_GTM_Car_Meets_Daikoku_01_16x9_WM_29753ba390.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Meet under looping elevated highways at dusk.",
+      "r3Disposition": "reviewed_not_implemented_in_r3",
+      "r3Applications": [],
+      "sourceFiles": [],
+      "evidenceFiles": [],
+      "remaining": "Elevated-road structures, car meet layout and dusk lighting remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 76,
+      "filename": "076_FH_6_GTM_Car_Meets_Festival_01_16x9_WM_74962c78df.jpg",
+      "localPathInOriginalPack": "06_Garage_Customization/076_FH_6_GTM_Car_Meets_Festival_01_16x9_WM_74962c78df.jpg",
+      "sha256": "b0463a52a2ee0d39da07fc96b9d1580c42cc56b0aa51b8dce3486985d0e242d4",
+      "bytes": 4807927,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_GTM_Car_Meets_Festival_01_16x9_WM_74962c78df.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Branded drift car at a festival meet: liveries, tents and PA hardware.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the motion-framing principle only: velocity/slip-aware chase heading, bounded speed/load cues and an exact damped tracking spring. No new car model or motion-blur parity is claimed.",
+        "Added angle/direction/build-hold-recover advice derived from observed chassis motion with the existing skill thresholds. The new HUD does not award or invent score."
+      ],
+      "sourceFiles": [
+        "src/rendering/open-world/chase-dynamics.ts",
+        "src/rendering/open-world/festival-renderer.ts",
+        "src/session/free-roam.ts",
+        "src/simulation/open-world/drift-feedback.ts",
+        "src/ui/festival-hud.ts"
+      ],
+      "evidenceFiles": [
+        "focused-tests-final.json",
+        "hud-review.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "Original livery authoring, crowd/prop staging and vehicle modeling remain; brands are not copied.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 77,
+      "filename": "077_FH_6_GTM_Drag_Meet_01_16x9_WM_328ccad21e.jpg",
+      "localPathInOriginalPack": "06_Garage_Customization/077_FH_6_GTM_Drag_Meet_01_16x9_WM_328ccad21e.jpg",
+      "sha256": "7e3ad349d6104b07409de2c13aa1c7571f6aeccd45194e0ae8918de4110c9a53",
+      "bytes": 2448938,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_GTM_Drag_Meet_01_16x9_WM_328ccad21e.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Overhead drag strip: gantry, staging alignment and grandstands.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the motion-framing principle only: velocity/slip-aware chase heading, bounded speed/load cues and an exact damped tracking spring. No new car model or motion-blur parity is claimed."
+      ],
+      "sourceFiles": [
+        "src/rendering/open-world/chase-dynamics.ts",
+        "src/rendering/open-world/festival-renderer.ts"
+      ],
+      "evidenceFiles": [
+        "focused-tests-final.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "Drag-strip staging, gantry/stands and an equivalent playable competition remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 78,
+      "filename": "078_FH_6_GTM_Drag_Meet_02_16x9_WM_fade7901bf.jpg",
+      "localPathInOriginalPack": "06_Garage_Customization/078_FH_6_GTM_Drag_Meet_02_16x9_WM_fade7901bf.jpg",
+      "sha256": "8675579c824fa17aa1cd5976112c73a272a2617d12887e0758d7a79f79d59f52",
+      "bytes": 1715932,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_GTM_Drag_Meet_02_16x9_WM_fade7901bf.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Side view of drag launch: squat, driver and side-window depth.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the motion-framing principle only: velocity/slip-aware chase heading, bounded speed/load cues and an exact damped tracking spring. No new car model or motion-blur parity is claimed."
+      ],
+      "sourceFiles": [
+        "src/rendering/open-world/chase-dynamics.ts",
+        "src/rendering/open-world/festival-renderer.ts"
+      ],
+      "evidenceFiles": [
+        "focused-tests-final.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "Visible suspension travel, driver/cabin modeling and a matched launch trial remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 79,
+      "filename": "079_FH_6_GTM_Drag_Meet_03_16x9_WM_bbae14775c.jpg",
+      "localPathInOriginalPack": "06_Garage_Customization/079_FH_6_GTM_Drag_Meet_03_16x9_WM_bbae14775c.jpg",
+      "sha256": "54db0766a1ea47cd0fb71f20f9fd4069b2f5f10b50e7e23156e8fa2a2b8b8b08",
+      "bytes": 1552114,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_GTM_Drag_Meet_03_16x9_WM_bbae14775c.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Classic muscle-car burnout: lateral motion, crowd and mountain backdrop.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the motion-framing principle only: velocity/slip-aware chase heading, bounded speed/load cues and an exact damped tracking spring. No new car model or motion-blur parity is claimed.",
+        "Added angle/direction/build-hold-recover advice derived from observed chassis motion with the existing skill thresholds. The new HUD does not award or invent score."
+      ],
+      "sourceFiles": [
+        "src/rendering/open-world/chase-dynamics.ts",
+        "src/rendering/open-world/festival-renderer.ts",
+        "src/session/free-roam.ts",
+        "src/simulation/open-world/drift-feedback.ts",
+        "src/ui/festival-hud.ts"
+      ],
+      "evidenceFiles": [
+        "focused-tests-final.json",
+        "hud-review.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "Muscle-car geometry, tyre smoke, spectators and background composition remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 80,
+      "filename": "080_FH_6_S06_EW_Horizon_Meets_feat_7_Eleven_01_Day_16x9_WM_8fa0d9bc00.jpg",
+      "localPathInOriginalPack": "06_Garage_Customization/080_FH_6_S06_EW_Horizon_Meets_feat_7_Eleven_01_Day_16x9_WM_8fa0d9bc00.jpg",
+      "sha256": "b8e11dacaa5d5bc4b2bb56a6318be44e93339469ff480ceef1c23b2e812a6d59",
+      "bytes": 4586001,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_S06_EW_Horizon_Meets_feat_7_Eleven_01_Day_16x9_WM_8fa0d9bc00.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Daytime convenience-store meet: masonry, glass, gutter, parapet and parking.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the generic architectural principle to original Solvane buildings: real inset openings, bevelled frame/sill/shutter meshes, metric wall finish and bounded lit-room cues. Not a reconstruction of the depicted location."
+      ],
+      "sourceFiles": [
+        "authoring/solvane/build_joinery.py",
+        "authoring/solvane/facade-joinery.blend",
+        "src/rendering/open-world/buildings.ts",
+        "src/rendering/open-world/facade-joinery.ts",
+        "src/rendering/open-world/facade-layout.ts"
+      ],
+      "evidenceFiles": [
+        "after-facade.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "Store-specific design, gutters, parking/cars and enterable interiors remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 81,
+      "filename": "081_FH_6_S06_EW_Horizon_Meets_feat_7_Eleven_01_Night_16x9_WM_9f29b37828.jpg",
+      "localPathInOriginalPack": "06_Garage_Customization/081_FH_6_S06_EW_Horizon_Meets_feat_7_Eleven_01_Night_16x9_WM_9f29b37828.jpg",
+      "sha256": "34bbc582906195267768f25894381a1e01670ae42e7c619f4a7130053187d4d8",
+      "bytes": 4068483,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_S06_EW_Horizon_Meets_feat_7_Eleven_01_Night_16x9_WM_9f29b37828.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Same store at dusk: lit interior behind glazing.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the generic architectural principle to original Solvane buildings: real inset openings, bevelled frame/sill/shutter meshes, metric wall finish and bounded lit-room cues. Not a reconstruction of the depicted location."
+      ],
+      "sourceFiles": [
+        "authoring/solvane/build_joinery.py",
+        "authoring/solvane/facade-joinery.blend",
+        "src/rendering/open-world/buildings.ts",
+        "src/rendering/open-world/facade-joinery.ts",
+        "src/rendering/open-world/facade-layout.ts"
+      ],
+      "evidenceFiles": [
+        "after-facade.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "Store-specific interior geometry and dusk light matching remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 82,
+      "filename": "082_FH_6_S06_EW_Horizon_Meets_feat_7_Eleven_02_Day_16x9_WM_e826918c5a.jpg",
+      "localPathInOriginalPack": "06_Garage_Customization/082_FH_6_S06_EW_Horizon_Meets_feat_7_Eleven_02_Day_16x9_WM_e826918c5a.jpg",
+      "sha256": "587fb1dbf6e20b8346ee2351067a0a8de80c58388bf6cf04933d30be09d741d6",
+      "bytes": 4656115,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_S06_EW_Horizon_Meets_feat_7_Eleven_02_Day_16x9_WM_e826918c5a.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Daytime storefront lineup: fascia, coping and scale against vehicles.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the generic architectural principle to original Solvane buildings: real inset openings, bevelled frame/sill/shutter meshes, metric wall finish and bounded lit-room cues. Not a reconstruction of the depicted location."
+      ],
+      "sourceFiles": [
+        "authoring/solvane/build_joinery.py",
+        "authoring/solvane/facade-joinery.blend",
+        "src/rendering/open-world/buildings.ts",
+        "src/rendering/open-world/facade-joinery.ts",
+        "src/rendering/open-world/facade-layout.ts"
+      ],
+      "evidenceFiles": [
+        "after-facade.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "Unique fascia/signage, coping details and the car lineup remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 83,
+      "filename": "083_FH_6_S06_EW_Horizon_Meets_feat_7_Eleven_02_Night_16x9_WM_44c9e5ca09.jpg",
+      "localPathInOriginalPack": "06_Garage_Customization/083_FH_6_S06_EW_Horizon_Meets_feat_7_Eleven_02_Night_16x9_WM_44c9e5ca09.jpg",
+      "sha256": "a84a94028dabd5c840009917bc9530736548f81f32233db8fe1a5deeeab48067",
+      "bytes": 5678111,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_S06_EW_Horizon_Meets_feat_7_Eleven_02_Night_16x9_WM_44c9e5ca09.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Twilight storefront: window/interior contrast and facade depth.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the generic architectural principle to original Solvane buildings: real inset openings, bevelled frame/sill/shutter meshes, metric wall finish and bounded lit-room cues. Not a reconstruction of the depicted location."
+      ],
+      "sourceFiles": [
+        "authoring/solvane/build_joinery.py",
+        "authoring/solvane/facade-joinery.blend",
+        "src/rendering/open-world/buildings.ts",
+        "src/rendering/open-world/facade-joinery.ts",
+        "src/rendering/open-world/facade-layout.ts"
+      ],
+      "evidenceFiles": [
+        "after-facade.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "Exact shop composition, interior models and twilight light matching remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 84,
+      "filename": "084_FH_6_Business_Offer_Pre_Order_3840x2160_1_986d909cc9.png",
+      "localPathInOriginalPack": "07_Mixed_Reference/084_FH_6_Business_Offer_Pre_Order_3840x2160_1_986d909cc9.png",
+      "sha256": "aa96247abf93d185a383c989cfb1047899f48f9a1e7629ce6f5ac47c5f83de5a",
+      "bytes": 1041985,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_Business_Offer_Pre_Order_3840x2160_1_986d909cc9.png",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Premium-edition/preorder promotional page.",
+      "r3Disposition": "excluded_promotional",
+      "r3Applications": [],
+      "sourceFiles": [],
+      "evidenceFiles": [],
+      "remaining": "Excluded: commercial offers and branding are not implemented as game content.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 85,
+      "filename": "085_FH_6_Horizon_Play_Game_Modes_f69f1c537d.jpg",
+      "localPathInOriginalPack": "07_Mixed_Reference/085_FH_6_Horizon_Play_Game_Modes_f69f1c537d.jpg",
+      "sha256": "3ddd71a33983ed486227ff399637414168631b0b089a16af49ea00813f2f8957",
+      "bytes": 1218831,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_Horizon_Play_Game_Modes_f69f1c537d.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Tiled mode-selection UI: categories and legible hierarchy.",
+      "r3Disposition": "reviewed_not_implemented_in_r3",
+      "r3Applications": [],
+      "sourceFiles": [],
+      "evidenceFiles": [],
+      "remaining": "A new mode-selection design or additional modes are not claimed by this pass.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 86,
+      "filename": "086_FH_6_OEM_Group_Shot_Aston_Martin_03_16x9_WM_663504f1bb.jpg",
+      "localPathInOriginalPack": "07_Mixed_Reference/086_FH_6_OEM_Group_Shot_Aston_Martin_03_16x9_WM_663504f1bb.jpg",
+      "sha256": "cd4420c780cb03fbc0a2b4322e7fdcba5516d2a7e3e8f98aaa2c36e14e1fd9f5",
+      "bytes": 1288647,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_OEM_Group_Shot_Aston_Martin_03_16x9_WM_663504f1bb.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Night neon car group: glazing, facades and light streaks.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the generic architectural principle to original Solvane buildings: real inset openings, bevelled frame/sill/shutter meshes, metric wall finish and bounded lit-room cues. Not a reconstruction of the depicted location."
+      ],
+      "sourceFiles": [
+        "authoring/solvane/build_joinery.py",
+        "authoring/solvane/facade-joinery.blend",
+        "src/rendering/open-world/buildings.ts",
+        "src/rendering/open-world/facade-joinery.ts",
+        "src/rendering/open-world/facade-layout.ts"
+      ],
+      "evidenceFiles": [
+        "after-facade.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "Night illumination, vehicle variety and cinematic motion rendering remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 87,
+      "filename": "087_FH_6_PC_Capture_Fishing_Boat_01_16x9_WM_063e7f6c31.jpg",
+      "localPathInOriginalPack": "07_Mixed_Reference/087_FH_6_PC_Capture_Fishing_Boat_01_16x9_WM_063e7f6c31.jpg",
+      "sha256": "088fa5442faafebf8b1ee0d6018f3646d228be2d84b1635376ba65a6f6d90542",
+      "bytes": 5247485,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_PC_Capture_Fishing_Boat_01_16x9_WM_063e7f6c31.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Worn fishing boat on shore: ropes, fenders and shingle.",
+      "r3Disposition": "reviewed_not_implemented_in_r3",
+      "r3Applications": [],
+      "sourceFiles": [],
+      "evidenceFiles": [],
+      "remaining": "Boat topology, maritime wear, ropes and shoreline material detail remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 88,
+      "filename": "088_FH_6_S01_Key_Art_Crops_3840x2160_29e8841eec.png",
+      "localPathInOriginalPack": "07_Mixed_Reference/088_FH_6_S01_Key_Art_Crops_3840x2160_29e8841eec.png",
+      "sha256": "d5d6a3b4b37e942cdd99340faf1c07a4ff5c6633b1dc1889df7ea85b6be92142",
+      "bytes": 11422498,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_S01_Key_Art_Crops_3840x2160_29e8841eec.png",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Illustrated promotional key art.",
+      "r3Disposition": "excluded_promotional",
+      "r3Applications": [],
+      "sourceFiles": [],
+      "evidenceFiles": [],
+      "remaining": "Excluded: key-art/branding reconstruction is not a runtime geometry requirement.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 89,
+      "filename": "089_FH_6_OEM_Group_Shot_BMW_03_16x9_WM_a83547d606.jpg",
+      "localPathInOriginalPack": "01_Vehicles_Models/089_FH_6_OEM_Group_Shot_BMW_03_16x9_WM_a83547d606.jpg",
+      "sha256": "b827f85ed913f2b787e8f2249ff909a631141198285ff3ce773e26cf17301b70",
+      "bytes": 3881593,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_OEM_Group_Shot_BMW_03_16x9_WM_a83547d606.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Saloon group against city towers: dense window grids and barriers.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the generic architectural principle to original Solvane buildings: real inset openings, bevelled frame/sill/shutter meshes, metric wall finish and bounded lit-room cues. Not a reconstruction of the depicted location.",
+        "Transferred the motion-framing principle only: velocity/slip-aware chase heading, bounded speed/load cues and an exact damped tracking spring. No new car model or motion-blur parity is claimed."
+      ],
+      "sourceFiles": [
+        "authoring/solvane/build_joinery.py",
+        "authoring/solvane/facade-joinery.blend",
+        "src/rendering/open-world/buildings.ts",
+        "src/rendering/open-world/chase-dynamics.ts",
+        "src/rendering/open-world/facade-joinery.ts",
+        "src/rendering/open-world/facade-layout.ts",
+        "src/rendering/open-world/festival-renderer.ts"
+      ],
+      "evidenceFiles": [
+        "after-facade.json",
+        "focused-tests-final.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "Detailed saloons, tower typology variation and expressway construction remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 90,
+      "filename": "090_FH_6_OEM_Group_Shot_Ferrari_01_16x9_WM_b2c1073902.jpg",
+      "localPathInOriginalPack": "01_Vehicles_Models/090_FH_6_OEM_Group_Shot_Ferrari_01_16x9_WM_b2c1073902.jpg",
+      "sha256": "263248415774f1dd5206f2cea1f038f444def9d9c2c373ac11c6fba9e495f0fa",
+      "bytes": 4581274,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_OEM_Group_Shot_Ferrari_01_16x9_WM_b2c1073902.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Supercars in autumn with overhead utility lines.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the motion-framing principle only: velocity/slip-aware chase heading, bounded speed/load cues and an exact damped tracking spring. No new car model or motion-blur parity is claimed."
+      ],
+      "sourceFiles": [
+        "src/rendering/open-world/chase-dynamics.ts",
+        "src/rendering/open-world/festival-renderer.ts"
+      ],
+      "evidenceFiles": [
+        "focused-tests-final.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "Vehicle detail, seasonal planting and physically routed cables remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 91,
+      "filename": "091_FH_6_OEM_Group_Shot_Honda_16x9_WM_746f6b60c4.jpg",
+      "localPathInOriginalPack": "01_Vehicles_Models/091_FH_6_OEM_Group_Shot_Honda_16x9_WM_746f6b60c4.jpg",
+      "sha256": "48064ab7d47696b3efac8cccd6f6cde374c93582bd256b1f141ac1ebbbbe141c",
+      "bytes": 1535950,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_OEM_Group_Shot_Honda_16x9_WM_746f6b60c4.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Car group on a suspension bridge: cables, skyline and mountains.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the motion-framing principle only: velocity/slip-aware chase heading, bounded speed/load cues and an exact damped tracking spring. No new car model or motion-blur parity is claimed."
+      ],
+      "sourceFiles": [
+        "src/rendering/open-world/chase-dynamics.ts",
+        "src/rendering/open-world/festival-renderer.ts"
+      ],
+      "evidenceFiles": [
+        "focused-tests-final.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "Bridge engineering, skyline and group-race staging remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 92,
+      "filename": "092_FH_6_OEM_Group_Shot_Lamborghini_01_16x9_WM_ab7e178d97.jpg",
+      "localPathInOriginalPack": "01_Vehicles_Models/092_FH_6_OEM_Group_Shot_Lamborghini_01_16x9_WM_ab7e178d97.jpg",
+      "sha256": "4aa10559a28b65e8fc45fc4e73df4eee70280ddee5bb51a02503eb21526f6203",
+      "bytes": 4445893,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_OEM_Group_Shot_Lamborghini_01_16x9_WM_ab7e178d97.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Curved elevated road: multiple cars and overpass shadow.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the motion-framing principle only: velocity/slip-aware chase heading, bounded speed/load cues and an exact damped tracking spring. No new car model or motion-blur parity is claimed."
+      ],
+      "sourceFiles": [
+        "src/rendering/open-world/chase-dynamics.ts",
+        "src/rendering/open-world/festival-renderer.ts"
+      ],
+      "evidenceFiles": [
+        "focused-tests-final.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "Urban road structures, traffic composition and shadow-transition tuning remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 93,
+      "filename": "093_FH_6_OEM_Group_Shot_Mercedes_AMG_16x9_WM_13b3efa126.jpg",
+      "localPathInOriginalPack": "01_Vehicles_Models/093_FH_6_OEM_Group_Shot_Mercedes_AMG_16x9_WM_13b3efa126.jpg",
+      "sha256": "50c0043b91b6950bc477129d03abf78780fadf538bee0c23cd466d66c67e905c",
+      "bytes": 1961908,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_OEM_Group_Shot_Mercedes_AMG_16x9_WM_13b3efa126.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Frontal forest car group: dappled illumination and speed framing.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the motion-framing principle only: velocity/slip-aware chase heading, bounded speed/load cues and an exact damped tracking spring. No new car model or motion-blur parity is claimed."
+      ],
+      "sourceFiles": [
+        "src/rendering/open-world/chase-dynamics.ts",
+        "src/rendering/open-world/festival-renderer.ts"
+      ],
+      "evidenceFiles": [
+        "focused-tests-final.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "Car models, species-varied forest and dappled-light coherence remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 94,
+      "filename": "094_FH_6_S01_Car_Pass_DAT_269_240_Z_72_01_16x9_WM_bd1aee45c2.jpg",
+      "localPathInOriginalPack": "01_Vehicles_Models/094_FH_6_S01_Car_Pass_DAT_269_240_Z_72_01_16x9_WM_bd1aee45c2.jpg",
+      "sha256": "2a8944bd53410f591d6e4b1aea5bfd5c79bc78dcdc95aeb2ece5d75a768de1cd",
+      "bytes": 3816485,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_S01_Car_Pass_DAT_269_240_Z_72_01_16x9_WM_bd1aee45c2.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Modified classic: extended arches, spoiler and splitter.",
+      "r3Disposition": "reviewed_not_implemented_in_r3",
+      "r3Applications": [],
+      "sourceFiles": [],
+      "evidenceFiles": [],
+      "remaining": "Classic body topology, aero joins and fabrication detail remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 95,
+      "filename": "095_FH_6_S01_Car_Pass_Group_01_16x9_WM_a39e4be2c3.jpg",
+      "localPathInOriginalPack": "01_Vehicles_Models/095_FH_6_S01_Car_Pass_Group_01_16x9_WM_a39e4be2c3.jpg",
+      "sha256": "d44e9c0f4b8bab7772c542a5ddd7929b0b6cb1bce4bd7f6af089cfa24837975a",
+      "bytes": 4132870,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_S01_Car_Pass_Group_01_16x9_WM_a39e4be2c3.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Classic-coupe duel: tracking-camera motion and wheel rotation.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the motion-framing principle only: velocity/slip-aware chase heading, bounded speed/load cues and an exact damped tracking spring. No new car model or motion-blur parity is claimed."
+      ],
+      "sourceFiles": [
+        "src/rendering/open-world/chase-dynamics.ts",
+        "src/rendering/open-world/festival-renderer.ts"
+      ],
+      "evidenceFiles": [
+        "focused-tests-final.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "Both hero cars, wheel detail and a matched moving duel remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 96,
+      "filename": "096_FH_6_S01_Car_Pass_HON_Civic_Type_R_08_01_16x9_WM_affd64642a.jpg",
+      "localPathInOriginalPack": "01_Vehicles_Models/096_FH_6_S01_Car_Pass_HON_Civic_Type_R_08_01_16x9_WM_affd64642a.jpg",
+      "sha256": "72a5517250ee459ace6c7cc4d179457c90c5e21e41be93e6fefa924bb7399806",
+      "bytes": 4207448,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_S01_Car_Pass_HON_Civic_Type_R_08_01_16x9_WM_affd64642a.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "White hatch in a blossom village: domestic windows and mouldings.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the generic architectural principle to original Solvane buildings: real inset openings, bevelled frame/sill/shutter meshes, metric wall finish and bounded lit-room cues. Not a reconstruction of the depicted location."
+      ],
+      "sourceFiles": [
+        "authoring/solvane/build_joinery.py",
+        "authoring/solvane/facade-joinery.blend",
+        "src/rendering/open-world/buildings.ts",
+        "src/rendering/open-world/facade-joinery.ts",
+        "src/rendering/open-world/facade-layout.ts"
+      ],
+      "evidenceFiles": [
+        "after-facade.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "Hatch model, blossom vegetation and individual village architecture remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 97,
+      "filename": "097_FH_6_S01_Car_Pass_KOE_Gemera_24_01_16x9_WM_51042b20e7.jpg",
+      "localPathInOriginalPack": "01_Vehicles_Models/097_FH_6_S01_Car_Pass_KOE_Gemera_24_01_16x9_WM_51042b20e7.jpg",
+      "sha256": "c3cc55744a2375869975d4beec40103c0bc1eece22d74bb340ced6f3f3641dcf",
+      "bytes": 3884367,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_S01_Car_Pass_KOE_Gemera_24_01_16x9_WM_51042b20e7.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Purple car on a high-rise street: facade rhythm and civic signs.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the generic architectural principle to original Solvane buildings: real inset openings, bevelled frame/sill/shutter meshes, metric wall finish and bounded lit-room cues. Not a reconstruction of the depicted location."
+      ],
+      "sourceFiles": [
+        "authoring/solvane/build_joinery.py",
+        "authoring/solvane/facade-joinery.blend",
+        "src/rendering/open-world/buildings.ts",
+        "src/rendering/open-world/facade-joinery.ts",
+        "src/rendering/open-world/facade-layout.ts"
+      ],
+      "evidenceFiles": [
+        "after-facade.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "Hero vehicle, varied towers, civic signs and road-side density remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 98,
+      "filename": "098_FH_6_S01_Car_Pass_NIS_12_Skyline_GTR_90_01_16x9_WM_e5ad2ff302.jpg",
+      "localPathInOriginalPack": "01_Vehicles_Models/098_FH_6_S01_Car_Pass_NIS_12_Skyline_GTR_90_01_16x9_WM_e5ad2ff302.jpg",
+      "sha256": "b6107eb4027116a9210a605507055cdf093794b9ea8e2e3b055ef22ef3f964e2",
+      "bytes": 3796581,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_S01_Car_Pass_NIS_12_Skyline_GTR_90_01_16x9_WM_e5ad2ff302.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Blue classic profile in orange sunset: window/spoke detail.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the motion-framing principle only: velocity/slip-aware chase heading, bounded speed/load cues and an exact damped tracking spring. No new car model or motion-blur parity is claimed."
+      ],
+      "sourceFiles": [
+        "src/rendering/open-world/chase-dynamics.ts",
+        "src/rendering/open-world/festival-renderer.ts"
+      ],
+      "evidenceFiles": [
+        "focused-tests-final.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "Classic car construction, spoke motion and sunset light response remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 99,
+      "filename": "099_FH_6_S02_Car_Pass_AUD_R8_GT_23_01_16x9_WM_79ac01acfb.jpg",
+      "localPathInOriginalPack": "01_Vehicles_Models/099_FH_6_S02_Car_Pass_AUD_R8_GT_23_01_16x9_WM_79ac01acfb.jpg",
+      "sha256": "96a0fe0cc015867e2c036986127c239a91840af79b744702c433831c3e584436",
+      "bytes": 5743166,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_S02_Car_Pass_AUD_R8_GT_23_01_16x9_WM_79ac01acfb.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Rear supercar on a gravel bamboo lane: lamps and foliage reflections.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the motion-framing principle only: velocity/slip-aware chase heading, bounded speed/load cues and an exact damped tracking spring. No new car model or motion-blur parity is claimed."
+      ],
+      "sourceFiles": [
+        "src/rendering/open-world/chase-dynamics.ts",
+        "src/rendering/open-world/festival-renderer.ts"
+      ],
+      "evidenceFiles": [
+        "focused-tests-final.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "Supercar rear assembly, bamboo, gravel/tyre interaction and reflections remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    },
+    {
+      "index": 100,
+      "filename": "100_FH_6_S02_Car_Pass_Group_01_16x9_WM_beb04b0404.jpg",
+      "localPathInOriginalPack": "01_Vehicles_Models/100_FH_6_S02_Car_Pass_Group_01_16x9_WM_beb04b0404.jpg",
+      "sha256": "df7e9e5bd91ef2b68b59130aca1330c3903dddb1ae6b825c9f02cfb3bd7fc81e",
+      "bytes": 5561057,
+      "sourcePage": "https://forza.net/media",
+      "imageSource": "https://cdn.forza.net/strapi-uploads/assets/FH_6_S02_Car_Pass_Group_01_16x9_WM_beb04b0404.jpg",
+      "copyrightHolderAsListed": "Microsoft / Xbox Game Studios / Playground Games",
+      "inspection": "Viewed as an individually labelled image in ordered contact sheets 01–10; image identity rechecked against original bytes.",
+      "observation": "Multiple drifting cars: smoke, lateral velocity, countersteer and exit lines.",
+      "r3Disposition": "partial_transfer",
+      "r3Applications": [
+        "Transferred the motion-framing principle only: velocity/slip-aware chase heading, bounded speed/load cues and an exact damped tracking spring. No new car model or motion-blur parity is claimed.",
+        "Added angle/direction/build-hold-recover advice derived from observed chassis motion with the existing skill thresholds. The new HUD does not award or invent score."
+      ],
+      "sourceFiles": [
+        "src/rendering/open-world/chase-dynamics.ts",
+        "src/rendering/open-world/festival-renderer.ts",
+        "src/session/free-roam.ts",
+        "src/simulation/open-world/drift-feedback.ts",
+        "src/ui/festival-hud.ts"
+      ],
+      "evidenceFiles": [
+        "focused-tests-final.json",
+        "hud-review.json",
+        "session-medium-after-review.json"
+      ],
+      "remaining": "Multi-car drift behavior, high-quality smoke and a full human drift session remain.",
+      "referenceImageRedistributed": false,
+      "pixelOrCommercialParityApproved": false
+    }
+  ]
+}

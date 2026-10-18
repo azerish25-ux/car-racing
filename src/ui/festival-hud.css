@@ -1078,3 +1078,90 @@
     font-size: 7px;
   }
 }
+
+/* Driving feedback uses observed angle, not a second scoring system. */
+.fest-drift {
+  position: absolute;
+  right: 30px;
+  bottom: 208px;
+  width: 224px;
+  padding: 10px 12px;
+  background: rgba(9, 21, 26, 0.88);
+  border-right: 2px solid #9ae2d2;
+  font-variant-numeric: tabular-nums;
+}
+.fest-drift > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+.fest-drift b {
+  font-weight: 600;
+  white-space: nowrap;
+}
+.fest-drift small {
+  display: block;
+  font-size: 9px;
+  margin-top: 6px;
+  color: #c8d3d2;
+}
+.fest-drift-track {
+  position: relative;
+  height: 5px;
+  margin: 10px 0;
+  background: linear-gradient(
+    to right,
+    #53646a 0 12.7%,
+    #7ebbaa 12.7% 56%,
+    #c09f62 56% 76.4%,
+    #b57464 76.4%
+  );
+}
+.fest-drift-track i {
+  position: absolute;
+  top: -3px;
+  width: 2px;
+  height: 11px;
+  transform: translateX(-1px);
+  background: #fff;
+}
+.fest-drift[data-action='recover'] {
+  border-color: #ef9d7c;
+}
+.fest-drift[data-action='recover'] > div:first-child {
+  color: #ffd2be;
+}
+@media (max-width: 900px) {
+  .fest-drift {
+    right: 18px;
+    bottom: 184px;
+    width: 198px;
+  }
+}
+@media (max-width: 620px), (max-height: 500px) {
+  .fest-drift {
+    right: 10px;
+    bottom: 145px;
+    width: 176px;
+    padding: 6px 8px;
+  }
+  .fest-drift small {
+    display: none;
+  }
+  .fest-drift > div:first-child {
+    font-size: 8px;
+  }
+  .fest-drift-track {
+    margin: 7px 0;
+  }
+}
+
+/* Dialog state changes synchronously, including when simulation time is paused. */
+.fest-menu-active > .fest-drift,
+.fest-menu-active > .fest-pace,
+.fest-map-active > .fest-drift,
+.fest-map-active > .fest-pace {
+  display: none;
+}

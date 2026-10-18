@@ -1,4 +1,5 @@
 import './festival-hud.css';
+import type { DriftCue } from '../simulation/open-world/drift-feedback.ts';
 import type { PaceCue } from '../rendering/open-world/pace-coach.ts';
 import {
   EVENT_KIND_LABEL,
@@ -83,6 +84,7 @@ export class FestivalHud {
     root.innerHTML = `
       <div class="fest-road" role="status"><span class="fest-limit" id="festLimit">90</span><div><span class="fest-eyebrow">MOTOBOUND / SOLVANE COAST</span><b id="festRoad">—</b><span id="festSurface">asphalt</span></div></div>
       <div class="fest-pace" id="festPace" aria-label="Corner advisory" hidden><span class="fest-eyebrow">ROUTE ADVISORY</span><b id="festPaceTurn"></b><span id="festPaceAction"></span><small id="festPaceSurface"></small></div>
+      <div class="fest-drift" id="festDrift" aria-label="Drift angle advisory" hidden><div><span id="festDriftAction"></span><b id="festDriftAngle"></b></div><div class="fest-drift-track"><i id="festDriftMarker"></i></div><small id="festDriftTip"></small></div>
       <div class="fest-hint" id="festHint"><kbd>C</kbd> CAMERA · <kbd>T</kbd> MAP · <kbd>ESC</kbd> MENU</div>
       <div class="fest-explore" id="festExplore"><span class="fest-eyebrow">THE ROAD IS YOURS</span><b id="festExploreName">Explore Solvane Coast</b><small id="festExploreDistance"></small></div>
       <div class="fest-skills" id="festSkills" hidden role="status"><span id="festSkillLabel"></span><div><b id="festSkillScore">0</b><i id="festSkillMultiplier">×1.0</i></div><small id="festSkillBank"></small><div class="fest-chain-track"><i id="festSkillTimer"></i></div></div>
@@ -403,6 +405,7 @@ export class FestivalHud {
     gear: number,
     rpm01: number,
     pace: PaceCue | null = null,
+    drift: DriftCue | null = null,
   ) {
     const showPace =
       !!pace &&
@@ -425,6 +428,37 @@ export class FestivalHud {
       this.text(
         'festPaceSurface',
         `${pace.wet ? 'WET · ' : ''}${pace.loose ? 'LOOSE SURFACE' : 'PAVED'} · GUIDE, NOT A LIMIT`,
+      );
+    }
+    const showDrift =
+      !!drift &&
+      status.road.onRoad &&
+      !status.autopilot &&
+      status.mode !== 'countdown' &&
+      status.mode !== 'finished' &&
+      !this.menuOpen &&
+      !this.mapOpen &&
+      !this.photoOpen;
+    this.show('festDrift', showDrift);
+    if (drift && showDrift) {
+      this.get('festDrift').dataset.action = drift.action;
+      this.text(
+        'festDriftAction',
+        drift.action === 'build'
+          ? 'BUILD ANGLE'
+          : drift.action === 'recover'
+            ? 'REDUCE ANGLE'
+            : 'CONTROLLED SLIDE',
+      );
+      this.text('festDriftAngle', `${Math.round(drift.angleDegrees)}° ${drift.side.toUpperCase()}`);
+      this.get('festDriftMarker').style.left = `${(drift.marker * 100).toFixed(1)}%`;
+      this.text(
+        'festDriftTip',
+        drift.action === 'recover'
+          ? 'Ease the slide. Look toward the exit.'
+          : drift.action === 'build'
+            ? 'Carry momentum into the corner.'
+            : 'Balance throttle. Countersteer smoothly.',
       );
     }
     const discovered = new Set(status.discovered);
@@ -592,6 +626,7 @@ export class FestivalHud {
     },
   ) {
     this.menuOpen = open;
+    this.root.classList.toggle('fest-menu-active', open);
     const node = this.get('festMenu');
     node.hidden = !open;
     if (!open || !state) return;

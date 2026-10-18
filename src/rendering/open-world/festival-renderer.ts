@@ -11,7 +11,18 @@ import type { FestivalEvent } from '../../simulation/open-world/festival-events.
 import { carvedGroundHeight } from '../../simulation/open-world/ground-height.ts';
 import type { Structure } from '../../simulation/open-world/placement.ts';
 import type { OpenWorld } from '../../simulation/open-world/world.ts';
-import { CAR_STRIDE, F, H, HEADER, R, RACE_BASE, carBase } from '../../simulation/protocol.ts';
+import {
+  CAR_STRIDE,
+  F,
+  H,
+  HEADER,
+  R,
+  RACE_BASE,
+  W,
+  WHEEL_BASE,
+  WHEEL_STRIDE,
+  carBase,
+} from '../../simulation/protocol.ts';
 import { MATERIAL } from '../../simulation/surface-material.ts';
 import { BroadcastGradePass } from '../broadcast-grade.ts';
 import {
@@ -70,6 +81,8 @@ import { SolvaneDetails } from './solvane-details.ts';
 import { StreetDetails } from './street-details.ts';
 import { FestivalContactShadows } from './contact-shadows.ts';
 import { clearCameraBoom } from './camera-clearance.ts';
+import { FestivalChaseDynamics, advanceChaseSpring } from './chase-dynamics.ts';
+import { driftFeedback, type DriftCue } from '../../simulation/open-world/drift-feedback.ts';
 import { HorizonGuidance } from './horizon-guidance.ts';
 import { FestivalTrails } from './festival-trails.ts';
 import { HorizonDressing } from './horizon-dressing.ts';
@@ -113,6 +126,8 @@ export class FestivalRenderer {
   private streetLoading: Promise<boolean> | null = null;
   readonly contacts = new FestivalContactShadows();
   private readonly cameraAnchor = new T.Vector3();
+  readonly chaseDynamics = new FestivalChaseDynamics();
+  driftCue: DriftCue | null = null;
   readonly vegetation = new Vegetation();
   /** Photographic trees and shrubs, when loaded (see loadPhotoVegetation). */
   photoVegetation: VegetationLibrary | null = null;
@@ -528,6 +543,16 @@ export class FestivalRenderer {
     this.lastVehicle = vehicle;
     this.lastTime = time;
     if (subject) this.forward.set(0, 0, 1).applyQuaternion(subject.quaternion);
+    const bodyYaw = Math.atan2(this.forward.x, this.forward.z);
+    const localLateral =
+      presented[o + F.VX] * Math.cos(bodyYaw) - presented[o + F.VZ] * Math.sin(bodyYaw);
+    const localForward =
+      presented[o + F.VX] * Math.sin(bodyYaw) + presented[o + F.VZ] * Math.cos(bodyYaw);
+    let grounded = false;
+    for (let w = 0; w < 4; w++)
+      grounded ||= presented[o + WHEEL_BASE + w * WHEEL_STRIDE + W.LOAD] > 40;
+    this.driftCue = driftFeedback(localLateral, localForward, grounded);
+
     if (this.photo) {
       this.orbit.update();
       // This orbit stays attached to the subject. Raising the camera under
@@ -549,16 +574,24 @@ export class FestivalRenderer {
     } else {
       const rig = RIGS[this.mode === 'far' ? 'far' : 'chase'];
       const pitch = Math.asin(clamp(this.forward.y, -0.4, 0.4));
-      let yaw = Math.atan2(this.forward.x, this.forward.z);
-      const velocityYaw = Math.atan2(presented[o + F.VX], presented[o + F.VZ]);
-      const slipYaw = Math.atan2(Math.sin(velocityYaw - yaw), Math.cos(velocityYaw - yaw));
-      yaw += clamp(slipYaw, -0.65, 0.65) * clamp((speed - 8) / 28, 0, 0.2);
+      const motion = this.chaseDynamics.update(
+        {
+          speed,
+          forward: localForward,
+          lateral: localLateral,
+          yawRate: presented[o + F.WY],
+          longitudinalG: presented[o + F.G_LONG],
+        },
+        Math.max(0, Math.min(elapsed, dt)),
+        cut,
+      );
+      const yaw = bodyYaw + motion.yaw;
       this.basis.setFromEuler(this.euler.set(-pitch, yaw + this.lookX, 0, 'YXZ'));
       this.desired
         .set(
           0,
-          rig.height + Math.min(0.6, Math.abs(speed) * 0.005),
-          -rig.distance - Math.abs(speed) * rig.perMs,
+          rig.height + Math.min(0.6, Math.abs(speed) * 0.005) + motion.height,
+          -rig.distance - Math.abs(speed) * rig.perMs - motion.distance,
         )
         .applyQuaternion(this.basis)
         .add(this.target);
@@ -568,26 +601,18 @@ export class FestivalRenderer {
       const ground = this.groundHeight(this.desired.x, this.desired.z, this.target.y) + 0.8;
       if (this.desired.y < ground) this.desired.y = ground;
       clearCameraBoom(this.cameraAnchor, this.desired, this.structures, this.desired);
-      this.temp.set(0, 0, 1).applyQuaternion(this.basis);
-      this.gaze.copy(this.target).addScaledVector(this.temp, rig.lookAhead);
+      this.temp
+        .set(Math.sin(motion.lookYaw), 0, Math.cos(motion.lookYaw))
+        .applyQuaternion(this.basis);
+      this.gaze.copy(this.target).addScaledVector(this.temp, rig.lookAhead + motion.lookAhead);
       this.gaze.y += rig.lift;
-      const fov = rig.fov + Math.min(9, Math.abs(speed) * 0.07);
+      const fov = rig.fov + motion.fov;
       this.camera.fov += (fov - this.camera.fov) * (cut ? 1 : 1 - Math.exp(-dt * 4));
       if (cut) {
         this.camera.position.copy(this.desired);
         this.velocity.set(0, 0, 0);
       } else {
-        const omega = 9,
-          n = Math.max(1, Math.ceil(dt * 120)),
-          h = dt / n;
-        for (let k = 0; k < n; k++) {
-          this.velocity.addScaledVector(
-            this.temp.copy(this.desired).sub(this.camera.position),
-            omega * omega * h,
-          );
-          this.velocity.multiplyScalar(Math.exp(-2 * omega * h));
-          this.camera.position.addScaledVector(this.velocity, h);
-        }
+        advanceChaseSpring(this.camera.position, this.velocity, this.desired, 9, dt);
       }
     }
     if (!this.photo && this.mode !== 'hood') {
@@ -608,6 +633,7 @@ export class FestivalRenderer {
     this.camera.updateMatrixWorld();
     // --- World streaming and dressing -------------------------------------
     this.terrain.update(this.camera);
+    this.buildings.update(this.camera, this.preset);
     if (this.terrain.treesChanged) {
       this.terrain.treesChanged = false;
       this.vegetation.sync(this.terrain.treeTiles);

@@ -1,0 +1,292 @@
+{
+  "schemaVersion": 1,
+  "revision": "Solvane R3",
+  "createdAt": "2026-10-18T05:45:27.273070+00:00",
+  "status": "LOCAL_SOURCE_CHECKPOINT",
+  "productionReleaseApproval": false,
+  "pushedToGitHub": false,
+  "deployed": false,
+  "repository": "cheshmakzanoon-ops/Experiment-3",
+  "base": {
+    "localSyntheticCommit": "7eebc817f9cdc557c70477bcb983a1cdeb7f853f",
+    "localComposition": "Remote e53f010a132546cef81aaa33732a6267f55bfd8c source snapshot plus verified Solvane R2 overlay",
+    "remoteCommitUsedForFiveFileVerification": "d7ef2a03f7dce0edc3360d2347acda9c900b0973",
+    "allFiveModifiedExistingFilesMatchRemoteBase": true,
+    "completeLaterCombinedMainReconstructed": false,
+    "instruction": "Apply only the selective patch. Do not push this reconstructed clone or replace current main with it."
+  },
+  "runtime": {
+    "node": "22.16.0",
+    "blender": "5.2.2 LTS",
+    "blenderBuildHash": "d13f752e3b9c",
+    "blenderArchiveSha256": "84098912789dc450e95697c4184fb8a90acbe5111c2ba4aede3fecb57806a168",
+    "browserAdapter": "ANGLE (Mesa, llvmpipe (LLVM 19.1.7 256 bits), OpenGL 4.5)",
+    "gpuWatchdogSeconds": 120
+  },
+  "buildIdentity": {
+    "version": 1,
+    "commit": null,
+    "fingerprint": "354ec74b16097f39f3ce9eb776b21f26efc9b356cafafea2b7135f25486e3299"
+  },
+  "automatedTests": {
+    "passed": true,
+    "testFiles": 404,
+    "total": 3356,
+    "passedTests": 3356,
+    "failedTests": 0,
+    "pendingTests": 0,
+    "vitestNestedSuiteCount": 943,
+    "sourceStabilityGuardExitCode": 0,
+    "newRegressionTests": 18,
+    "newRegressionFiles": [
+      "tests/solvane-driving-feedback-r3.test.ts",
+      "tests/solvane-facade-layout-r3.test.ts",
+      "tests/solvane-joinery-r3.test.ts"
+    ],
+    "focusedFinal": {
+      "testFiles": 4,
+      "passedTests": 29,
+      "failedTests": 0
+    },
+    "report": "evidence/full-tests-final.json"
+  },
+  "qualityGates": {
+    "lint": {
+      "passed": true,
+      "exitCode": 0,
+      "log": "evidence/lint.log"
+    },
+    "content": {
+      "passed": true,
+      "exitCode": 0,
+      "log": "evidence/content.log"
+    },
+    "build": {
+      "passed": true,
+      "exitCode": 0,
+      "log": "evidence/build.log"
+    }
+  },
+  "nativeAuthoring": {
+    "savedBlendOpened": true,
+    "meshesRegeneratedDuringReexport": false,
+    "allThreeExportsByteIdentical": true,
+    "log": "evidence/native-reexport.log",
+    "exports": [
+      {
+        "path": "src/rendering/assets/solvane-joinery.mesh.json",
+        "sha256": "af6efbdbfcb0a42a7cd376fbde9b0764805c823eb625fc87aec03d28257b370c",
+        "bytes": 475429
+      },
+      {
+        "path": "public/models/solvane/facade-joinery.glb",
+        "sha256": "21de11d983773bc8b77ba5e579d4fe50d9d69aae52233548f8595cff5d158074",
+        "bytes": 326536
+      },
+      {
+        "path": "public/models/solvane/facade-joinery.manifest.json",
+        "sha256": "a805dbc8bef497e30f8bf25d06a4c4492dc5e1536f26f31709a6f62730462c82",
+        "bytes": 759
+      }
+    ]
+  },
+  "componentRendering": {
+    "matchedPairs": 7,
+    "beforePassed": true,
+    "afterPassed": true,
+    "errors": [],
+    "scope": "Actual regional buildings in isolated identical lighting per before/after pair; not full-world lighting."
+  },
+  "actualSessionRendering": {
+    "quality": "medium",
+    "vehicle": "eh3",
+    "beforePassed": true,
+    "afterPassed": true,
+    "actualFestivalSession": true,
+    "actualProductionWorkers": true,
+    "exactDiskAssetBytes": true,
+    "errors": [],
+    "missingAssets": [],
+    "warnings": [],
+    "inputJourney": [
+      {
+        "name": "real-keyboard-throttle",
+        "passed": true,
+        "start": {
+          "x": 560.0064086914062,
+          "y": 4.974994659423828,
+          "z": -2602.21240234375
+        },
+        "end": {
+          "x": 563.1063232421875,
+          "y": 4.974595546722412,
+          "z": -2602.228271484375
+        },
+        "metres": 3.099955169316081,
+        "mode": "free",
+        "assisted": false
+      },
+      {
+        "name": "real-keyboard-camera",
+        "passed": true,
+        "camera": "far"
+      },
+      {
+        "name": "pause-freezes-worker",
+        "passed": true,
+        "at": {
+          "x": 563.1060180664062,
+          "y": 4.974565505981445,
+          "z": -2602.228271484375
+        }
+      },
+      {
+        "name": "real-menu-opens-map",
+        "passed": true
+      },
+      {
+        "name": "real-menu-photo-mode",
+        "passed": true
+      },
+      {
+        "name": "real-menu-exit-disposes-hud",
+        "passed": true
+      }
+    ],
+    "inputJourneyPassed": 6,
+    "scope": {
+      "nativeSubtle": false,
+      "digestImplementation": "Node crypto SHA-256 through fixture bridge",
+      "secureContext": false,
+      "assetTransport": "exact disk bytes through fixture bridge, no network",
+      "adapter": {
+        "renderer": "ANGLE (Mesa, llvmpipe (LLVM 19.1.7 256 bits), OpenGL 4.5)",
+        "contextLost": false,
+        "attributes": {
+          "alpha": true,
+          "antialias": false,
+          "depth": true,
+          "desynchronized": false,
+          "failIfMajorPerformanceCaveat": false,
+          "powerPreference": "high-performance",
+          "premultipliedAlpha": true,
+          "preserveDrawingBuffer": true,
+          "stencil": false,
+          "xrCompatible": false
+        }
+      },
+      "gpuWatchdogSeconds": 120
+    },
+    "inputRenderingPolicy": "Normal input polling and worker simulation; GPU frames submitted only for captures, not a frame-rate benchmark.",
+    "httpNavigationTest": false,
+    "allWeatherAllDistrictsTest": false,
+    "humanPlaytest": false,
+    "beforeReport": "evidence/session-medium-before-review.json",
+    "afterReport": "evidence/session-medium-after-review.json"
+  },
+  "sampledWholeFrameCost": {
+    "before": {
+      "drawCalls": 427,
+      "triangles": 1017845,
+      "renderMs": 4427.129999999982
+    },
+    "after": {
+      "drawCalls": 441,
+      "triangles": 2070245,
+      "renderMs": 4084.9600000000096
+    },
+    "interpretation": "Actual per-frame renderer counters, including all submitted passes, in separate settled same-location/vehicle/quality captures. Camera settles and traffic timing are not pixel-identical. This is not a hardware FPS benchmark or an isolated-cost benchmark. The increased geometry requires profiling and distant-building optimization."
+  },
+  "hud": {
+    "passed": true,
+    "cases": 17,
+    "componentOnly": true,
+    "syntheticCueCases": true,
+    "viewports": [
+      [
+        1280,
+        800
+      ],
+      [
+        390,
+        844
+      ],
+      [
+        375,
+        667
+      ],
+      [
+        844,
+        390
+      ]
+    ],
+    "report": "evidence/hud-review.json"
+  },
+  "scriptedDriving": {
+    "passed": true,
+    "cases": 4,
+    "humanDriven": false,
+    "report": "evidence/driving.json",
+    "interpretation": "Two session-autopilot and two externally scripted steering/full-throttle cases. Neither is a human or unassisted record. A complete drift playground run was not performed."
+  },
+  "references": {
+    "reviewed": 100,
+    "allOriginalFileHashesVerified": true,
+    "counts": {
+      "excluded_promotional": 6,
+      "partial_transfer": 58,
+      "reviewed_not_implemented_in_r3": 36
+    },
+    "allReferenceDetailsImplemented": false,
+    "interpretation": "Inspection is not implementation. Partial transfer means only the explicitly named original technique was applied. Native Blender reference_ids are an inspiration/study list, not an acceptance checklist. Promotional entries are not treated as finished game features. Images are not copied into this delivery."
+  },
+  "finalVisualInspection": [
+    "after-recess.png",
+    "after-stone-recess.png",
+    "after-night.png",
+    "after-brick-recess.png",
+    "session-medium-after-harbour.png",
+    "session-medium-before-harbour.png",
+    "hud-portrait.png",
+    "hud-landscape.png"
+  ],
+  "diagnostics": {
+    "initialFullSuite": "Initial run failed. It overlapped source edits and exposed a fixture-order boundary issue, a real complete-sill clearance issue and a missing generated player derivative. Fixes were made without weakening existing tests, the normal generation hook was run, and a frozen complete rerun passed.",
+    "initialMedium": "An initial medium pass produced empty shader-link errors before matching the repository's bounded Mesa watchdog setting. The final medium checks passed without lowering quality.",
+    "firstBeforeAdapterStall": "The first baseline medium browser attempt stalled during adapter access. Its own process subtree was terminated after observation. Cause unproven. An otherwise identical harness with an outer timeout then passed.",
+    "logsRetained": true
+  },
+  "limitations": [
+    "Not pushed to GitHub or deployed; current connector exposed read actions, not a write/push action.",
+    "Local full-suite results are not full latest combined-main CI.",
+    "Actual hardware performance and HTTP/CDN/secure-origin behavior not validated.",
+    "A full human driving/drift playtest, every district and weather state remain outstanding.",
+    "Hero cars, region-specific landmarks, terrain/vegetation, particles and remaining reference details are not fully rebuilt in R3.",
+    "Commercial-reference visual parity and production readiness are not claimed."
+  ],
+  "validatedChangedSourceSha256": {
+    "authoring/solvane/build_joinery.py": "0eee5764f9b356fcf3123cc34bbc7b8a8493e1335122436666020999bbfccebf",
+    "authoring/solvane/facade-joinery.blend": "94fd7b8731133edb3454b1dd92ae5a251cc0f1faa0c1e5f2d89d8c3a9471acd3",
+    "e2e/fixtures/solvane-facade-review.html": "8bf5cd773a7f56239eb093428576114d858c2ea227fffeef80b07435271d8741",
+    "e2e/fixtures/solvane-facade-review.ts": "257a22a6753da0c9b237e665fbe66907b3d309f16dd859e202ae56e3e526f839",
+    "e2e/fixtures/solvane-hud-review.ts": "141cfc4ec5b564ef61f3de0bee95b950a08261294d142e0bea0c45d65d579b12",
+    "public/models/solvane/facade-joinery.glb": "21de11d983773bc8b77ba5e579d4fe50d9d69aae52233548f8595cff5d158074",
+    "public/models/solvane/facade-joinery.manifest.json": "a805dbc8bef497e30f8bf25d06a4c4492dc5e1536f26f31709a6f62730462c82",
+    "scripts/solvane-r3-capture.mjs": "ce67ecc4e78b20f5ed8024486f1cd24df4b1f6459cfca985baf630652be4d735",
+    "scripts/solvane-r3-hud-review.mjs": "89e36ae3cb8fa786c5a9f92940e75c130e20594bc63cbe753bdaa6a5791e39a5",
+    "scripts/solvane-r3-offline-session.mjs": "fca8a67871254cf2b4ad766cbba8358996bb90811a64ac04f5df06eb747eaf59",
+    "src/rendering/assets/solvane-joinery.mesh.json": "af6efbdbfcb0a42a7cd376fbde9b0764805c823eb625fc87aec03d28257b370c",
+    "src/rendering/open-world/buildings.ts": "0cc7d467407fe1c62071c38840e982fd3cd8a46717b14cf54a721fb9ec14af1e",
+    "src/rendering/open-world/chase-dynamics.ts": "eaf6da263004730c1a8204a8d85e3787316a90d7cc937f5d6717f069a17fc501",
+    "src/rendering/open-world/facade-joinery.ts": "4a36286e9cc5fbb912cf0066beb6c4532905895881cc38c403925e38c3907938",
+    "src/rendering/open-world/facade-layout.ts": "7a52a22354a18e164efe9db002bc52203dc2eea00f42f570270338c53e9754ab",
+    "src/rendering/open-world/festival-renderer.ts": "95637e1933138516040924a8f9a03af7c5278a515ecb98d53bb9d398598e6e27",
+    "src/session/free-roam.ts": "f5065a150616f4eb7f4c956062aa8c74e5e5e28a408f55be7a9e8234452c9fa6",
+    "src/simulation/open-world/drift-feedback.ts": "4c4f76cb681498c00bf37d810e34c8eaa790af14ad43d373029acbf629e97ea8",
+    "src/ui/festival-hud.css": "f53a8d4f491a02fa5febcf88a9f0032a260487d79e370deb373afb19d483eb24",
+    "src/ui/festival-hud.ts": "f7431f095d3663af5d94ab8a4b25b8a9008d17931023c2d9ac3affb377929037",
+    "tests/solvane-driving-feedback-r3.test.ts": "8fe43936a78a301eb87a04332a08df7241fb55915ece5a31b56e0ad9ef2979ad",
+    "tests/solvane-facade-layout-r3.test.ts": "65799dabd10ab934f50d1d736824d8d12464f961a8371fe3c05f8b1efd6526d4",
+    "tests/solvane-joinery-r3.test.ts": "a7246010caf02e07329136671aa7300cda9dfbb945c70cb82d62179e231d9747"
+  }
+}
