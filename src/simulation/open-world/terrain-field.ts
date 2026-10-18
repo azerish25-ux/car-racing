@@ -252,6 +252,13 @@ export class TerrainField {
    * like the rest of the field (physics and rendering agree). */
   private hillWoods(x: number, z: number) {
     const region = this.region;
+    // Clearings and the valley floor first (cheap early outs).
+    const n = valueNoise(x / 170, z / 170, this.seeds.forest + 7) * 0.5 + 0.5;
+    if (n <= 0.3) return 0;
+    // (closest() only: the valley sample callers hold stays untouched.)
+    this.closest(this.valley, x, z);
+    const open = smoothstep(region.valley.width * 0.6, region.valley.width * 1.5, this.closestDistance);
+    if (open <= 0) return 0;
     const hills = fbm(x / 1500, z / 1500, this.seeds.hills, 4) * 0.5 + 0.5;
     const inland = Math.max(0, this.coastDistance(x, z, 400));
     const relief = 58 * hills ** 1.4 * (0.3 + 0.7 * smoothstep(150, 2600, inland));
@@ -264,12 +271,7 @@ export class TerrainField {
     const edge = Math.max(Math.abs(x), z) - region.half;
     if (edge > -900)
       w = Math.max(w, smoothstep(-600, 0, edge + 420 * valueNoise(x / 520, z / 520, this.seeds.forest + 3)));
-    if (w <= 0) return 0;
-    // (closest() only: the valley sample callers hold stays untouched.)
-    this.closest(this.valley, x, z);
-    w *= smoothstep(region.valley.width * 0.6, region.valley.width * 1.5, this.closestDistance);
-    const n = valueNoise(x / 170, z / 170, this.seeds.forest + 7) * 0.5 + 0.5;
-    return w * smoothstep(0.3, 0.48, n) * 0.85;
+    return w * open * smoothstep(0.3, 0.48, n) * 0.85;
   }
   /** Field pattern of the lowland farms 0..1 (crop tone, not a surface). */
   farmPattern(x: number, z: number) {
