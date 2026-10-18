@@ -24,6 +24,7 @@ import { TrafficCars } from '../rendering/traffic-cars.ts';
 import type { GraphicsOptions, QualityPreset } from '../rendering/options.ts';
 import type { AudioView } from '../audio/spatial.ts';
 import { FestivalHud } from '../ui/festival-hud.ts';
+import { FestivalPhotoPanel } from '../ui/festival-photo-lens.ts';
 import { minimapHeading } from '../ui/festival-map.ts';
 import { FestivalControls, festivalMenuState } from './festival-controls.ts';
 import {
@@ -102,6 +103,8 @@ export class FestivalSession {
   private tiles: Worker;
   private renderer: FestivalRenderer | null = null;
   private hud: FestivalHud | null = null;
+  /** Photo mode lens controls (aperture, focus, zoom, exposure, look). */
+  private photoPanel: FestivalPhotoPanel | null = null;
   private current: Float32Array | null = null;
   private previous: Float32Array | null = null;
   private receivedAt = 0;
@@ -267,6 +270,13 @@ export class FestivalSession {
       photoAngle: (angle) => renderer.photoAngle(angle),
     });
     const hud = this.hud;
+    const photoHost = host.element.querySelector<HTMLElement>('#festPhoto');
+    if (photoHost)
+      this.photoPanel = new FestivalPhotoPanel(
+        photoHost,
+        (settings) => renderer.photoLens.set(settings),
+        renderer.photoLens.settings,
+      );
     // Current Best on the event panel (the save object is updated in place).
     hud.best = this.save.best;
     this.controls = new FestivalControls(hud, {
@@ -630,6 +640,8 @@ export class FestivalSession {
     this.riders?.dispose();
     this.riders = null;
     this.renderer?.dispose();
+    this.photoPanel?.dispose();
+    this.photoPanel = null;
     this.hud?.dispose();
     this.renderer = null;
     this.hud = null;
