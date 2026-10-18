@@ -11,6 +11,8 @@ export const RACE_KINDS: readonly FestivalEventKind[] = Object.freeze([
   'circuit',
   'sprint',
   'showcase',
+  'touge',
+  'drag',
 ]);
 export const isRace = (kind: FestivalEventKind) => RACE_KINDS.includes(kind);
 export const EVENT_KIND_LABEL: Readonly<Record<FestivalEventKind, string>> = Object.freeze({
@@ -21,6 +23,8 @@ export const EVENT_KIND_LABEL: Readonly<Record<FestivalEventKind, string>> = Obj
   'speed-zone': 'Speed zone',
   'drift-zone': 'Drift zone',
   showcase: 'Showcase',
+  touge: 'Touge battle',
+  drag: 'Drag race',
 });
 
 /** Result of a festival event: the typed object the career/progression
@@ -63,5 +67,25 @@ export interface FestivalResult {
   at: number;
   /** The AI drove the player's car for part of the event (not a record). */
   assisted: boolean;
+  /** Times the player rewound during the run (allowed, but marked: the
+   * career pays no clean-route bonus for a rewound run). */
+  rewinds?: number;
+  /** Touge battle: seconds ahead of the rival at the player's finish
+   * (negative: behind). */
+  margin?: number | null;
+  /** Drag race timing slip (the player's run). */
+  drag?: DragSlip | null;
 }
-
+/** A drag run's timing slip (s, km/h): reaction from green to leaving the
+ * line (negative: a red light, disqualified), 18.3 m (60 ft) and 201 m
+ * (eighth mile) times and the elapsed time over the measured distance from
+ * leaving the line, and the trap speed over its last 20.1 m (66 ft). */
+export interface DragSlip {
+  lane: number;
+  reaction: number | null;
+  redLight: boolean;
+  sixtyFoot: number | null;
+  eighthMile: number | null;
+  elapsed: number | null;
+  trapKmh: number | null;
+}

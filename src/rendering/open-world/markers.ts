@@ -11,6 +11,9 @@ export const EVENT_COLOURS: Readonly<Record<FestivalEventKind, number>> = Object
   'speed-zone': 0x29e0a6,
   'drift-zone': 0xb46cff,
   showcase: 0xf2f2f2,
+  // Flare red (ref 048) and the drag hub's lime gantry (ref 077).
+  touge: 0xff2a3d,
+  drag: 0xc9f31d,
 });
 const beamVertex = /* glsl */ `
 varying float vHeight;

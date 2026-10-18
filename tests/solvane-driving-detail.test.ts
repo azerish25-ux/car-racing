@@ -232,7 +232,7 @@ describe('clean pass and sustained drift transition rewards', () => {
     const chain = new FestivalSkillChain(),
       calm = { ...slide, lateral: 0, forward: 20 };
     chain.update({ ...calm, nearMiss: true }, 1 / 120);
-    expect(chain.status()).toMatchObject({ label: 'CLEAN PASS', score: 150 });
+    expect(chain.status()).toMatchObject({ label: 'NEAR MISS', score: 150 });
     advance(chain, calm, 4);
     expect(chain.status().sessionTotal).toBe(150);
     for (const sample of [

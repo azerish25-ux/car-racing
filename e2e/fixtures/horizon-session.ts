@@ -161,6 +161,14 @@ Object.assign(window, {
       return out;
     },
     command: (command: Parameters<FestivalSession['command']>[0]) => session?.command(command),
+    // Hold or release the simulation worker without a menu (timed gameplay
+    // captures: a drag tree at a given lamp, a rewind in progress). The
+    // production pause message; nothing else changes.
+    freeze: (value: boolean) =>
+      (session as unknown as { post(message: unknown): void } | null)?.post({
+        type: 'pause',
+        value,
+      }),
     // Stop submitting GPU frames only for a still capture. This does not alter
     // simulation state, renderer quality, assets, or the production code path.
     rendering: (enabled: boolean) => {

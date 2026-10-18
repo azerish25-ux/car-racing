@@ -121,11 +121,36 @@ export class FestivalSession {
   private readyResolve: (() => void) | null = null;
   private readyReject: ((e: Error) => void) | null = null;
   private save: FestivalSave;
+  /** The key holding a rewind (Backspace, or the configurable Flashback
+   * binding, which arrives as an action), and the last key pressed. */
+  private rewindKey: string | null = null;
+  private readonly heldKeys = new Set<string>();
+  private lastKey = '';
+  private rewindTimer = 0;
+  /** Lighting to restore when an event staged at dusk or night ends. */
+  private stagedLighting: { previous: LightingMode; staged: LightingMode } | null = null;
   private readonly photoKeys = (event: KeyboardEvent) => {
     if (!this.renderer?.photo || event.code !== 'Escape') return;
     event.preventDefault();
     event.stopImmediatePropagation();
     this.setPhoto(false);
+  };
+  private readonly rewindDown = (event: KeyboardEvent) => {
+    this.lastKey = event.code;
+    this.heldKeys.add(event.code);
+    if (event.code !== 'Backspace' || event.repeat) return;
+    const target = event.target as HTMLElement | null;
+    if (target?.closest?.('input,select,textarea,dialog[open]')) return;
+    event.preventDefault();
+    this.holdRewind(event.code);
+  };
+  private readonly rewindUp = (event: KeyboardEvent) => {
+    this.heldKeys.delete(event.code);
+    if (event.code === this.rewindKey) this.releaseRewind();
+  };
+  private readonly rewindBlur = () => {
+    this.heldKeys.clear();
+    this.releaseRewind();
   };
   private constructor(
     private readonly host: FestivalHost,
@@ -144,6 +169,9 @@ export class FestivalSession {
     this.worker.onerror = (event) =>
       this.fail(new Error(event.message || 'Festival worker failed'));
     window.addEventListener('keydown', this.photoKeys, true);
+    window.addEventListener('keydown', this.rewindDown, true);
+    window.addEventListener('keyup', this.rewindUp, true);
+    window.addEventListener('blur', this.rewindBlur);
   }
   static async start(host: FestivalHost, options: FestivalStartOptions = {}) {
     host.loading('Building the Solvane festival region…');
@@ -242,7 +270,11 @@ export class FestivalSession {
     // Current Best on the event panel (the save object is updated in place).
     hud.best = this.save.best;
     this.controls = new FestivalControls(hud, {
-      pause: (value) => this.post({ type: 'pause', value }),
+      pause: (value) => {
+        // A menu over the road ends a rewind where it stands.
+        if (value) this.releaseRewind();
+        this.post({ type: 'pause', value });
+      },
       driving: (on) => host.driving?.(on),
       menuState: () => festivalMenuState(this.status, this.save, this.renderer?.lighting ?? 'day'),
       card: () => (hud.cardOpen ? (this.status?.card?.id ?? null) : null),
@@ -344,8 +376,11 @@ export class FestivalSession {
               }
             }
           }
-          this.renderer.activeEvent = msg.status.event?.id ?? null;
+          const active = msg.status.event?.id ?? null;
+          if (active !== this.renderer.activeEvent) this.stageLighting(active);
+          this.renderer.activeEvent = active;
           this.renderer.gate = msg.status.event?.gate ?? null;
+          this.renderer.drag = msg.status.event?.drag ?? null;
         }
         break;
       case 'result':
@@ -390,6 +425,35 @@ export class FestivalSession {
   }
   command(command: FestivalCommand) {
     this.post({ type: 'command', command });
+  }
+  /** Hold to rewind (the worker scrubs back), release to drive on from
+   * there. Ignored while paused, travelling or in photo mode. */
+  private holdRewind(code: string) {
+    if (this.rewindKey || this.isPaused || this.travelling || this.renderer?.photo) return;
+    this.rewindKey = code;
+    this.command({ type: 'rewind', active: true });
+  }
+  private releaseRewind() {
+    window.clearTimeout(this.rewindTimer);
+    if (!this.rewindKey) return;
+    this.rewindKey = null;
+    this.command({ type: 'rewind', active: false });
+  }
+  /** An event staged at dusk or night (the touge) switches the time of day
+   * for its run and back afterwards, unless the player changed it since. */
+  private stageLighting(active: string | null) {
+    const renderer = this.renderer;
+    if (!renderer) return;
+    const staged = active
+      ? this.events.find((e) => e.spec.id === active)?.spec.lighting
+      : undefined;
+    if (this.stagedLighting && renderer.lighting === this.stagedLighting.staged)
+      renderer.lighting = this.stagedLighting.previous;
+    this.stagedLighting = null;
+    if (staged && renderer.lighting === 'day') {
+      this.stagedLighting = { previous: renderer.lighting, staged };
+      renderer.lighting = staged;
+    }
   }
   /** Fast travel to a discovered event: the car is placed at once, and the
    * simulation stays held behind the loading screen until the terrain and
@@ -467,6 +531,16 @@ export class FestivalSession {
         // R: reset to the road (the festival has no replay).
         this.command({ type: 'reset' });
         return true;
+      case 'flashback':
+        // The Flashback binding holds a rewind until its key is released; a
+        // controller button (no key held) rewinds a fixed 3 s.
+        if (this.heldKeys.has(this.lastKey)) this.holdRewind(this.lastKey);
+        else {
+          this.holdRewind('button');
+          window.clearTimeout(this.rewindTimer);
+          this.rewindTimer = window.setTimeout(() => this.releaseRewind(), 1500);
+        }
+        return true;
       case 'autopilot':
         this.command({ type: 'autopilot', value: !this.status?.autopilot });
         return true;
@@ -527,6 +601,7 @@ export class FestivalSession {
         (presented[o + F.RPM] - spec.idleRPM) / Math.max(1, spec.limiterRPM - spec.idleRPM),
         renderer.guidance.cue,
         renderer.driftCue,
+        presented[H.TIME],
       );
     this.host.audio?.update(
       presented,
@@ -543,6 +618,9 @@ export class FestivalSession {
     if (this.disposed) return;
     this.disposed = true;
     window.removeEventListener('keydown', this.photoKeys, true);
+    window.removeEventListener('keydown', this.rewindDown, true);
+    window.removeEventListener('keyup', this.rewindUp, true);
+    window.removeEventListener('blur', this.rewindBlur);
     this.controls?.dispose();
     this.host.audio?.stop();
     this.worker.terminate();

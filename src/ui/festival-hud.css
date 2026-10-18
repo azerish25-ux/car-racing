@@ -1383,3 +1383,180 @@
     padding: 12px 16px;
   }
 }
+
+/* ---- Drag strip, touge and rewind (FH6 ref 077/078/085; original
+   styling). The start tree mirrors the 3D tree (ref 078: pre-stage and
+   stage pairs, three ambers, green, red), lit from the frame clock. ---- */
+.fest-event[data-kind='touge'] .fest-event-icon::after {
+  /* A hairpin: down, round and back. */
+  clip-path: polygon(
+    0 100%,
+    0 30%,
+    50% 0,
+    100% 30%,
+    100% 100%,
+    76% 100%,
+    76% 42%,
+    50% 26%,
+    24% 42%,
+    24% 100%
+  );
+}
+.fest-event[data-kind='drag'] .fest-event-icon::after {
+  /* A start-light tree: two lamp columns on a post. */
+  clip-path: polygon(14% 0, 86% 0, 86% 62%, 58% 62%, 58% 100%, 42% 100%, 42% 62%, 14% 62%);
+}
+.fest-tree {
+  position: absolute;
+  left: 50%;
+  top: calc(96 * var(--hud-u));
+  transform: translateX(-50%);
+  display: grid;
+  justify-items: center;
+  gap: calc(6 * var(--hud-u));
+  font-style: italic;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+}
+.fest-tree-lamps {
+  display: grid;
+  grid-template-columns: repeat(2, calc(22 * var(--hud-u)));
+  gap: calc(5 * var(--hud-u)) calc(8 * var(--hud-u));
+  padding: calc(10 * var(--hud-u)) calc(12 * var(--hud-u));
+  background: linear-gradient(180deg, #17191d, #0b0c0e);
+  border: calc(2 * var(--hud-u)) solid #2a2d33;
+  border-radius: calc(4 * var(--hud-u));
+  box-shadow: 0 calc(6 * var(--hud-u)) calc(18 * var(--hud-u)) rgba(0, 0, 0, 0.5);
+}
+.fest-tree-lamps i {
+  justify-self: center;
+  width: calc(20 * var(--hud-u));
+  height: calc(20 * var(--hud-u));
+  border-radius: 50%;
+  background: #23262b;
+  box-shadow: inset 0 0 0 calc(2 * var(--hud-u)) rgba(0, 0, 0, 0.55);
+}
+.fest-tree-lamps i.fest-lamp-prestage,
+.fest-tree-lamps i.fest-lamp-stage {
+  width: calc(12 * var(--hud-u));
+  height: calc(12 * var(--hud-u));
+}
+.fest-tree-lamps i.lit {
+  box-shadow: 0 0 calc(12 * var(--hud-u)) currentColor;
+  background: currentColor;
+}
+.fest-tree-lamps .fest-lamp-prestage,
+.fest-tree-lamps .fest-lamp-stage {
+  color: #f4f6ff;
+}
+.fest-tree-lamps .fest-lamp-amber {
+  color: #ffb21a;
+}
+.fest-tree-lamps .fest-lamp-green {
+  color: #3dff6b;
+}
+.fest-tree-lamps .fest-lamp-red {
+  color: #ff2b2b;
+}
+.fest-tree b {
+  font-size: calc(30 * var(--hud-u));
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #ffffff;
+}
+.fest-tree[data-state='go'] b {
+  color: #3dff6b;
+}
+.fest-tree[data-state='red'] b {
+  color: #ff2b2b;
+}
+.fest-tree small {
+  font-style: normal;
+  font-size: calc(10 * var(--hud-u));
+  letter-spacing: 0.16em;
+  color: rgba(255, 255, 255, 0.85);
+}
+.fest-rewind {
+  position: absolute;
+  left: 50%;
+  top: calc(118 * var(--hud-u));
+  transform: translateX(-50%);
+  min-width: calc(240 * var(--hud-u));
+  text-align: center;
+  font-style: italic;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+}
+.fest-rewind b {
+  display: block;
+  font-size: calc(34 * var(--hud-u));
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--hud-cyan);
+}
+.fest-rewind-track {
+  height: calc(5 * var(--hud-u));
+  margin: calc(8 * var(--hud-u)) auto calc(6 * var(--hud-u));
+  width: calc(200 * var(--hud-u));
+  background: rgba(255, 255, 255, 0.18);
+}
+.fest-rewind-track i {
+  display: block;
+  height: 100%;
+  background: var(--hud-cyan);
+  transform-origin: left center;
+}
+.fest-rewind small {
+  font-style: normal;
+  font-size: calc(9.5 * var(--hud-u));
+  letter-spacing: 0.15em;
+  color: rgba(255, 255, 255, 0.85);
+}
+/* Rewinding: a cool, streaked veil over the view (presentation only). */
+.fest-rewind-veil {
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(0deg, rgba(47, 216, 238, 0.06) 0 2px, transparent 2px 6px),
+    radial-gradient(ellipse at center, rgba(8, 40, 52, 0) 45%, rgba(8, 40, 52, 0.55) 100%);
+  mix-blend-mode: screen;
+}
+.fest-rewinding .fest-skills,
+.fest-rewinding .fest-pace,
+.fest-rewinding .fest-drift {
+  display: none;
+}
+.fest-margin {
+  margin: 4px 0 2px;
+  font-size: 13px;
+}
+.fest-margin b {
+  font-size: 16px;
+  color: var(--fest-accent);
+}
+.fest-slip {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin: 12px 0 4px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border-left: 3px solid var(--fest-accent);
+  font-variant-numeric: tabular-nums;
+}
+.fest-slip dt {
+  color: #aebfb9;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+}
+.fest-slip dd {
+  margin: 2px 0 0;
+  font-size: 17px;
+  font-weight: 600;
+}
+.fest-slip dd.fest-red {
+  color: #ff4d4d;
+}
+@media (max-width: 620px) {
+  .fest-slip {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

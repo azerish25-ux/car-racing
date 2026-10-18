@@ -53,6 +53,9 @@ export class RouteDriver {
   /** Take a lane beside a slower car ahead (racing); off, it only follows
    * (the free-roam cruise among ambient traffic). */
   overtake = true;
+  /** Hold the lane offset after finishing too (a drag lane), instead of
+   * pulling over to the right-hand verge. */
+  keepLane = false;
   /** Measured understeer: road-wheel angle over the geometric angle the
    * car's actual yaw rate implies (1 = neutral). Pure pursuit is geometric;
    * this scales it so a car that runs wide at speed still holds the line. */
@@ -139,7 +142,7 @@ export class RouteDriver {
     path.at(this.d + lookahead, this.target);
     const reach = Math.max(0.5, this.target.halfWidth - 1.3);
     // A finished car pulls over to the right-hand verge (negative lateral).
-    const offset = finished
+    const offset = finished && !this.keepLane
       ? -reach
       : clamp(path.lineAt(this.d + lookahead) * (this.laneOffset ? 0 : 1) + this.laneOffset + this.tactical, -reach, reach);
     this.delta.set(
@@ -284,7 +287,7 @@ export class RouteDriver {
       reach = Math.max(0.5, p.halfWidth - 1.3),
       lane = this.laneOffset !== 0;
     const line = (at: number) => (lane ? 0 : path.lineAt(at));
-    const target = finished ? -reach : clamp(line(this.d) + this.laneOffset + this.tactical, -reach, reach);
+    const target = finished && !this.keepLane ? -reach : clamp(line(this.d) + this.laneOffset + this.tactical, -reach, reach);
     const pathSlope = (line(this.d + 3) - line(this.d - 3)) / 6,
       slope = pathSlope / Math.max(0.5, 1 - p.curvature * target);
     const heading = mod(d.heading - Math.atan2(p.tx, p.tz) + Math.PI, Math.PI * 2) - Math.PI;
