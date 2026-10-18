@@ -282,7 +282,6 @@ export class RoadFurniture {
     thin: new T.CylinderGeometry(1, 1, 1, 6, 1, true).translate(0, 0.5, 0),
     box: new T.BoxGeometry(1, 1, 1),
     disc: new T.CylinderGeometry(1, 1, 1, 18).rotateX(Math.PI / 2),
-    lens: new T.CylinderGeometry(1, 1, 1, 8).rotateX(Math.PI / 2),
     dome: convexCap(),
     plane: new T.PlaneGeometry(1, 1),
   };
@@ -560,10 +559,11 @@ export class RoadFurniture {
   /** Service drops from a town pole across the street to a frontage. */
   private serviceDrop(e: RoadEdge, pole: Pole, r: number) {
     if (r > 0.65) return;
-    const reach = e.spec.halfWidth + e.spec.shoulder + 1.25,
+    // The pole stands 0.4 m and the frontage 1.2 m beyond the footway edge.
+    const edge = e.spec.halfWidth + e.spec.shoulder,
       // Across the street (back past the centreline) or to this side.
       across = r < 0.4,
-      d = across ? -(2 * reach - 0.4 - 1.25) : 1.25 - 0.4,
+      d = across ? -(2 * edge + 1.6) : 0.8,
       along = (r - 0.3) * 18,
       x = pole.x + pole.ox * d + pole.tx * along,
       z = pole.z + pole.oz * d + pole.tz * along;
@@ -761,21 +761,8 @@ export class RoadFurniture {
       if (!spot) continue;
       const f = this.frame(spot.x, spot.y, spot.z, p.nx * side, p.nz * side);
       this.part('matte', this.shapes.thin, f, 0, -0.25, 0, 0.032, 1.3, 0.032, 0xe9e8e2);
-      for (const dir of [-1, 1])
-        this.part(
-          'sign',
-          this.shapes.lens,
-          f,
-          dir * 0.035,
-          0.92,
-          0,
-          0.05,
-          0.05,
-          0.02,
-          0xffffff,
-          AMBER,
-          Math.PI / 2,
-        );
+      // One 100 mm amber prism block facing along the road both ways.
+      this.part('sign', this.shapes.box, f, 0, 0.92, 0, 0.075, 0.1, 0.1, 0xffffff, AMBER);
       this.stats.delineators++;
     }
   }

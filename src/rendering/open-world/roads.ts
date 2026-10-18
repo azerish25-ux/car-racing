@@ -211,7 +211,7 @@ function wornPaint(material: T.MeshStandardMaterial) {
  * neighbouring asphalt (linear albedo ~0.20/0.075/0.06), worn greyer in the
  * wheel paths and darkened when wet. */
 function antiSkidMaterial(wet: { value: number }) {
-  const material = new T.MeshStandardMaterial({ color: 0x7c4d45, roughness: 0.9, metalness: 0 });
+  const material = new T.MeshStandardMaterial({ color: 0x704a45, roughness: 0.9, metalness: 0 });
   material.name = 'Japanese red anti-skid surfacing';
   (material as unknown as { defines: Record<string, string> }).defines = { USE_UV: '' };
   material.polygonOffset = true;
@@ -582,12 +582,11 @@ export class RoadMeshes {
         if (bridge)
           this.bridgeSegment(
             builder(mx, mz, 'concrete'),
-            e.roadClass === 'highway' || e.roadClass === 'runway' ? null : builder(mx, mz, 'post'),
+            e.roadClass === 'highway' || e.roadClass === 'runway' ? null : builder(mx, mz, 'rail'),
             p,
             q,
             hw + spec.shoulder,
             height,
-            posts,
           );
         // Guardrails where the network marks them (not on bridges: parapets).
         // Expressways use a concrete barrier on the same collision-backed
@@ -649,9 +648,10 @@ export class RoadMeshes {
     // Guardrail posts and town lamps: instanced.
     if (posts.length) {
       // Round steel posts (φ140 mm pipe), painted like the beam, 0.85 m
-      // above the surface with 0.15 m into the verge.
+      // above the surface with 0.15 m into the verge. One world-wide
+      // instanced draw: kept to 14 triangles a post.
       const post = new T.InstancedMesh(
-        new T.CylinderGeometry(0.07, 0.07, 1, 8).translate(0, 0.35, 0),
+        new T.CylinderGeometry(0.07, 0.07, 1, 6, 1, true).translate(0, 0.35, 0).toNonIndexed(),
         this.materials.post,
         posts.length,
       );
@@ -661,14 +661,11 @@ export class RoadMeshes {
       post.computeBoundingSphere();
       this.root.add(post);
       // Delineators share existing rail-post anchors: no new obstacle in a
-      // shoulder. A φ100 mm amber prism on a short stem above every second
-      // post, facing along the road both ways (retroreflective at night).
-      const lens = new T.CylinderGeometry(0.05, 0.05, 0.035, 12)
-        .rotateZ(Math.PI / 2)
-        .translate(0, 0.98, 0);
-      const stem = new T.BoxGeometry(0.02, 0.12, 0.02).translate(0, 0.89, 0);
+      // shoulder. A 100 mm amber prism block on the post cap of every
+      // second post, facing along the road both ways (retroreflective at
+      // night).
       const reflectors = new T.InstancedMesh(
-        mergeGeometries([lens, stem], false)!,
+        new T.BoxGeometry(0.035, 0.1, 0.1).translate(0, 0.93, 0),
         this.reflectorMaterial,
         Math.ceil(posts.length / 2),
       );
@@ -1152,7 +1149,6 @@ export class RoadMeshes {
     q: TrackPoint,
     half: number,
     h: SurfaceHeight,
-    posts: T.Matrix4[],
   ) {
     for (const side of [-1, 1]) {
       const pa = [p.x + p.nx * side * half, h(p, side * half), p.z + p.nz * side * half],
@@ -1183,8 +1179,7 @@ export class RoadMeshes {
         k1 = b.vertex(qa[0], qa[1] - depth, qa[2], q.s, top + depth, nx, 0, nz);
       if (side > 0) b.quad(o0, o1, k0, k1);
       else b.quad(o1, o0, k1, k0);
-      if (railing)
-        this.bridgeRailing(railing, p, q, side, half - t / 2, pa[1] + top, qa[1] + top, posts);
+      if (railing) this.bridgeRailing(railing, p, q, side, half - t / 2, pa[1] + top, qa[1] + top);
     }
     // Soffit.
     const l = [p.x - p.nx * half, h(p, -half) - 1.5, p.z - p.nz * half],
@@ -1198,8 +1193,8 @@ export class RoadMeshes {
     b.quad(c, a, e, d);
   }
   /** Three 60 mm square rails at 0.3, 0.52 and 0.7 m above the kerb top
-   * (to 1.1 m over the deck), with a round post (shared with the guardrail
-   * posts) wherever the segment crosses a 2 m station. */
+   * (to 1.1 m over the deck), with a post wherever the segment crosses a
+   * 2 m station. */
   private bridgeRailing(
     b: Builder,
     p: TrackPoint,
@@ -1208,7 +1203,6 @@ export class RoadMeshes {
     lateral: number,
     ya: number,
     yb: number,
-    posts: T.Matrix4[],
   ) {
     const r = 0.03,
       nx = p.nx * side,
@@ -1241,14 +1235,36 @@ export class RoadMeshes {
           nz * fn,
         );
       }
-    if (Math.floor(p.s / 2) !== Math.floor(q.s / 2))
-      posts.push(
-        new T.Matrix4().compose(
-          new T.Vector3(ax, ya + 0.12, az),
-          new T.Quaternion().setFromAxisAngle(new T.Vector3(0, 1, 0), Math.atan2(p.nx, p.nz)),
-          new T.Vector3(0.55, 0.72, 0.55),
-        ),
-      );
+    // A 50 mm square post (four faces, in the chunked railing geometry).
+    if (Math.floor(p.s / 2) !== Math.floor(q.s / 2)) {
+      const tx = p.tx * 0.025,
+        tz = p.tz * 0.025,
+        ox = nx * 0.025,
+        oz = nz * 0.025,
+        top = ya + 0.73;
+      const corners = [
+        [ax - tx - ox, az - tz - oz],
+        [ax + tx - ox, az + tz - oz],
+        [ax + tx + ox, az + tz + oz],
+        [ax - tx + ox, az - tz + oz],
+      ];
+      for (let k = 0; k < 4; k++) {
+        const [x0, z0] = corners[k],
+          [x1, z1] = corners[(k + 1) % 4],
+          mx = (x0 + x1) / 2 - ax,
+          mz = (z0 + z1) / 2 - az,
+          len = Math.hypot(mx, mz) || 1;
+        b.quadFacing(
+          b.vertex(x0, ya, z0, 0, 0, mx / len, 0, mz / len),
+          b.vertex(x1, ya, z1, 0.05, 0, mx / len, 0, mz / len),
+          b.vertex(x1, top, z1, 0.05, 0.73, mx / len, 0, mz / len),
+          b.vertex(x0, top, z0, 0, 0.73, mx / len, 0, mz / len),
+          mx / len,
+          0,
+          mz / len,
+        );
+      }
+    }
   }
   /** Bridge piers down to the natural ground every ~32 m of span. */
   private piers(e: RoadEdge, builder: (x: number, z: number, layer: Layer) => Builder) {
