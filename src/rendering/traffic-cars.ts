@@ -203,8 +203,9 @@ export const TRAFFIC_SHAPES: Readonly<Record<TrafficBody, Shape>> = {
       [-1.8, 0.86, 1.05],
       [0, 0.86, 1.03],
       [1.3, 0.86, 0.98],
-      [1.95, 0.83, 0.88],
-      [2.35, 0.77, 0.76],
+      [2.0, 0.83, 0.87],
+      [2.25, 0.8, 0.79],
+      [2.35, 0.75, 0.7],
     ],
     crown: 0.04,
     cabin: {
@@ -547,7 +548,7 @@ function greenhouse(kit: Kit, s: Shape) {
       [bf.x, bf.y, base[0]],
     ],
     [0, base[0] - roof[0], Math.max(0.05, edgeY - bf.y)],
-    0.06,
+    0.05,
   );
   framed(
     [
@@ -557,7 +558,7 @@ function greenhouse(kit: Kit, s: Shape) {
       [-br.x, br.y, base[1]],
     ],
     [0, roof[1] - base[1], -Math.max(0.05, edgeY - br.y)],
-    s.cabin.rearInset ?? 0.06,
+    s.cabin.rearInset ?? 0.05,
   );
   // Side glass between pillars; the pillar faces are dark gloss trim.
   for (const side of [-1, 1]) {
