@@ -42,16 +42,16 @@ const SEGMENTS: Record<Detail, readonly number[]> = {
 };
 const SPACING: Record<Detail, number> = { 0: 0.03, 1: 0.075, 2: 0.2 };
 /** Body material slots (loft groups). */
-const M = { paint: 0, liner: 1, floor: 2, accent: 3, interior: 4 } as const;
+export const M = { paint: 0, liner: 1, floor: 2, accent: 3, interior: 4 } as const;
 export class ClosedBodyModel {
   readonly zFront: number;
   readonly zRear: number;
   readonly halfBase: number;
-  private readonly top: Track;
-  private readonly floor: Track;
-  private readonly belt: Track;
-  private readonly taper: Track;
-  private readonly arches: { z: number; hub: number; r: number; tub: number; flare: number }[];
+  protected readonly top: Track;
+  protected readonly floor: Track;
+  protected readonly belt: Track;
+  protected readonly taper: Track;
+  protected readonly arches: { z: number; hub: number; r: number; tub: number; flare: number }[];
   constructor(
     readonly f: BodyFrame,
     readonly s: ClosedSheet,
@@ -217,6 +217,79 @@ export class ClosedBodyModel {
   ring(z: number, detail: Detail): Ring {
     return { z, half: sampleProfile(this.control(z), SEGMENTS[detail]) };
   }
+  /** The near (LOD0) half profile at z, for placing furniture on the surface. */
+  profile(z: number): readonly Pt[] {
+    return sampleProfile(this.control(z), SEGMENTS[0]);
+  }
+  /** Festival road form (festival-form.ts): its own greenhouse, mirrors and
+   * extra form detail; the plain catalogue body is false. */
+  get festival() {
+    return false;
+  }
+  /** Greenhouse sill x at z (the glass stands on the body here). */
+  sillX(z: number) {
+    return this.halfWidth(z) * 0.8 - 0.01;
+  }
+  /** Rear-view mirror glass centre on `side` (car frame). */
+  mirrorAt(side: number): readonly [number, number, number] {
+    const zm = this.f.z(this.s.cabin[0]) - 0.14,
+      ym = this.topY(zm) + 0.08;
+    return [side * (this.halfWidth(zm) * 0.8 + 0.08), ym, zm - 0.049];
+  }
+  /** Whether the catalogue wing is built as a separate (detachable) part; a
+   * festival form shapes ducktails and lips into the deck itself. */
+  drawsWing(w: WingSheet) {
+    void w;
+    return true;
+  }
+  /** Greenhouse stations: windscreen base, roof front, roof rear, rear
+   * window base (the sheet's; a festival form may end the roof earlier). */
+  cabinStations(): readonly [number, number, number, number] {
+    return this.s.cabin;
+  }
+  /** Bottom of an end face (car frame y). */
+  endFloor(rear: boolean) {
+    return this.floor.at(rear ? this.zRear : this.zFront);
+  }
+  /** Black lower-valance height of a festival form (m), else null. */
+  valanceHeight(): number | null {
+    return null;
+  }
+  /** Headlamp station behind the bumper face (m), or null for the default. */
+  lampSetback(): number | null {
+    return null;
+  }
+  /** The greenhouse standing on this body. */
+  greenhouse(): Greenhouse {
+    return new Greenhouse(this);
+  }
+  /** Greenhouse face materials by loft group (0 paint, 1 glass, 2 trim). */
+  greenhouseMaterials(paint: T.Material, glass: T.Material): T.Material[] {
+    return [paint, glass, sharedMaterials.trim()];
+  }
+  /** Final pass over a built LOD (a festival form curves its end faces). */
+  finishLod(lod: BuiltLod): void {
+    void lod;
+  }
+  /** Deform a body-frame geometry as `finishLod` deforms the body (furniture
+   * added after the build: plates, running lights). */
+  warpGeometry(geometry: T.BufferGeometry): T.BufferGeometry {
+    return geometry;
+  }
+  /** Form detail beyond the catalogue furniture (none on the plain body). */
+  addFormDetail(
+    parts: Parts,
+    mats: CarMaterials,
+    detail: Detail,
+    lod: BuiltLod,
+    gh: Greenhouse | null,
+  ): void {
+    void parts;
+    void mats;
+    void detail;
+    void lod;
+    void gh;
+  }
   /** First sample of the deck-to-centreline segment (the top under the glass). */
   deckSample(detail: Detail) {
     return SEGMENTS[detail].slice(0, 7).reduce((a, b) => a + b, 0);
@@ -226,7 +299,7 @@ export class ClosedBodyModel {
    * inside it; the cabin's door cards stand on it. */
   cabinEdge(z: number): Pt {
     const half = this.ring(z, 0).half,
-      sill = this.halfWidth(z) * 0.8 - 0.01 + 0.02;
+      sill = this.sillX(z) + 0.02;
     for (let j = this.deckSample(0); j < half.length - 1; j++)
       if (half[j][0] <= sill) return half[j];
     return half[half.length - 2];
@@ -242,7 +315,7 @@ export class ClosedBodyModel {
   }
   /** Outer side x of the body at (z, height y) — for placing side furniture. */
   sideX(z: number, y: number) {
-    const half = sampleProfile(this.control(z), SEGMENTS[0]);
+    const half = this.profile(z);
     let best = 0;
     for (let i = 0; i < half.length - 1; i++) {
       const [x0, y0] = half[i],
@@ -254,7 +327,7 @@ export class ClosedBodyModel {
   }
   /** Upper surface y at (z, |x|). */
   surfaceY(z: number, x: number) {
-    const half = sampleProfile(this.control(z), SEGMENTS[0]);
+    const half = this.profile(z);
     let best = -Infinity;
     for (let i = 4; i < half.length - 1; i++) {
       const [x0, y0] = half[i],
@@ -266,7 +339,7 @@ export class ClosedBodyModel {
   }
   /** Material slot of a lower-body face: liners in the wheel wells, floor
    * underneath, interior in an open cockpit, accent stripes. */
-  slot(zMid: number, j: number, detail: Detail) {
+  slot(zMid: number, j: number, detail: Detail): number {
     const counts = SEGMENTS[detail];
     let seg = 0,
       acc = 0;
@@ -336,10 +409,10 @@ export class Greenhouse {
   readonly zRR: number;
   readonly zRW: number;
   readonly roofY: number;
-  private readonly roof: Track;
+  protected readonly roof: Track;
   constructor(readonly model: ClosedBodyModel) {
     const { f, s } = model;
-    const [ws, rf, rr, rw] = s.cabin;
+    const [ws, rf, rr, rw] = model.cabinStations();
     const zWs = (this.zWs = f.z(ws)),
       zRF = (this.zRF = f.z(rf)),
       zRR = (this.zRR = f.z(rr)),
@@ -366,7 +439,7 @@ export class Greenhouse {
       s = model.s;
     const b = this.base(z),
       top = Math.max(b + 0.004, this.roof.at(z)),
-      sill = model.halfWidth(z) * 0.8 - 0.01,
+      sill = model.sillX(z),
       hr = Math.min(
         sill - 0.02,
         (model.halfBase * s.roofWidth * model.halfWidth(z)) / model.halfBase,
@@ -400,7 +473,7 @@ export class Greenhouse {
     return rings;
   }
   /** Face material of the loft between samples j, j+1 at station zMid. */
-  material(detail: Detail) {
+  material(detail: Detail): (zMid: number, j: number) => number {
     const { zWs, zRF, zRR, zRW } = this,
       s = this.model.s,
       counts = this.counts(detail);
@@ -581,7 +654,7 @@ export function buildClosedBody(
         // The near cabin's opening (inside the greenhouse sill); elsewhere
         // under the glass a dark lid (parcel shelf, engine cover, tonneau).
         if (cell && zMid > cell.rear) {
-          const sill = model.halfWidth(zMid) * 0.8 - 0.01 + 0.02;
+          const sill = model.sillX(zMid) + 0.02;
           if (Math.max(rings[i].half[j][0], rings[i + 1].half[j][0]) <= sill) return -1;
         }
         if (!openCockpit) return M.interior;
@@ -603,10 +676,10 @@ export function buildClosedBody(
   );
   const glassMaterial =
     cabin && !cabin.layout.race ? sharedMaterials.roadGlass() : sharedMaterials.glass();
-  const gh = openCockpit ? null : new Greenhouse(model);
+  const gh = openCockpit ? null : model.greenhouse();
   if (gh) {
     const house = greenhouse(gh, detail),
-      materials = [mats.paint, glassMaterial, sharedMaterials.trim()];
+      materials = model.greenhouseMaterials(mats.paint, glassMaterial);
     parts.addGrouped(house.opaque, materials, 'Greenhouse');
     parts.addGrouped(house.glass, materials, 'Cabin glass');
     if (detail === 0 && cabin) parts.add(greenhouseLining(gh), sharedMaterials.interior());
@@ -703,7 +776,7 @@ export function buildClosedBody(
       placed(0, f.y(s.nose * 0.55 + s.floor * 0.45), model.zFront - 0.035),
     );
   }
-  if (s.splitter > 0 && detail < 2) {
+  if (s.splitter > 0 && detail < 2 && !model.festival) {
     const sp = roundedBox(hw(model.zFront - 0.25) * 2 * 0.94, 0.014, 0.5, 0.006, 1);
     lod.front.push(
       ...addDetachable(
@@ -775,8 +848,8 @@ export function buildClosedBody(
       placed(0, f.y(s.roof) + 0.045, zs + 0.2),
     );
   }
-  // Mirrors on short stalks at the A-pillar base.
-  if (s.mirrors && detail < 2)
+  // Mirrors on short stalks at the A-pillar base (a festival form builds its own).
+  if (s.mirrors && detail < 2 && !model.festival)
     for (const side of [-1, 1]) {
       const zm = zWs - 0.14,
         ym = model.topY(zm) + 0.08,
@@ -1017,6 +1090,7 @@ export function buildClosedBody(
       );
   }
   extraFurniture(parts, model, mats, detail, lod);
+  model.addFormDetail(parts, mats, detail, lod, gh);
   if (detailedFestival) buildFestivalDetail(parts, model, mats, detail, lod, gh);
   // Interior (near LOD): the cabin shell merges into this LOD's draws; its
   // detail, helmet and turning wheel are groups of their own (interior.ts).
@@ -1027,8 +1101,6 @@ export function buildClosedBody(
       floor: cell.floor,
       edge: (z) => model.cabinEdge(Math.min(z, zWs - 0.005)),
     };
-    const zm = zWs - 0.14,
-      ym = model.topY(zm) + 0.08;
     lod.cabin = buildClosedCabin({
       layout: cabin.layout,
       def: cabin.def,
@@ -1037,9 +1109,7 @@ export function buildClosedBody(
       lod,
       opening,
       greenhouse: gh,
-      mirrorAt: s.mirrors
-        ? [-1, 1].map((side) => [side * (hw(zm) * 0.8 + 0.08), ym, zm - 0.049] as const)
-        : [],
+      mirrorAt: s.mirrors ? [-1, 1].map((side) => model.mirrorAt(side)) : [],
     });
   }
   void rr;
@@ -1055,7 +1125,7 @@ export function buildClosedBody(
         lod.cabin!.glass.push(o);
       }
     });
-  if (s.wing) {
+  if (s.wing && model.drawsWing(s.wing)) {
     const built = wing(parts, model, s.wing, mats, detail, detailedFestival);
     if (built) {
       const g = new T.Group();
@@ -1066,6 +1136,7 @@ export function buildClosedBody(
     }
     parts.build(lod.group, detail === 0);
   }
+  model.finishLod(lod);
 }
 /** Catalogue-growth furniture: extractor fans, dive planes, a rally lamp
  * pod, a bonnet scoop and fender louvres (each only when the sheet asks). */

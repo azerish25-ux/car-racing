@@ -23,6 +23,8 @@ export interface PanelGap {
   /** Axis-aligned bounds the line is drawn inside (car frame, m). */
   min: readonly [number, number, number];
   max: readonly [number, number, number];
+  /** Half width of the groove (m); default 1.25 mm. */
+  width?: number;
 }
 const glslVec = (v: readonly number[]) => `vec3(${v.map((x) => x.toFixed(4)).join(',')})`;
 /** Recessed panel shut lines: a dark, rougher 2.5 mm groove with a filtered
@@ -38,8 +40,8 @@ export function installPanelGaps(material: T.MeshPhysicalMaterial, gaps: readonl
       if (all(greaterThanEqual(p, lo)) && all(lessThanEqual(p, hi))) {
         float dist = abs(dot(p, ${glslVec(g.n)}) - ${g.d.toFixed(4)});
         float fw = max(fwidth(dist), 1e-5);
-        float line = 1.0 - smoothstep(0.00125 - fw, 0.00125 + fw, dist);
-        gap = max(gap, mix(line, 0.0025 / (fw * 4.0), smoothstep(0.0012, 0.004, fw)));
+        float line = 1.0 - smoothstep(${(g.width ?? 0.00125).toFixed(5)} - fw, ${(g.width ?? 0.00125).toFixed(5)} + fw, dist);
+        gap = max(gap, mix(line, ${(2 * (g.width ?? 0.00125)).toFixed(4)} / (fw * 4.0), smoothstep(0.0012, 0.004, fw)));
       }
     }`,
     )
