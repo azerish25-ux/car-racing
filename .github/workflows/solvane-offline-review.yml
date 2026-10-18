@@ -1,0 +1,45 @@
+name: Solvane offline review snapshot
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [.github/workflows/solvane-offline-review.yml]
+permissions:
+  contents: read
+concurrency:
+  group: solvane-offline-review-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Install exactly the committed dependency lock
+        run: npm ci --no-audit --no-fund
+      - name: Archive tracked source and resolved dependencies, never credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          out="$RUNNER_TEMP/solvane-offline-review"
+          mkdir -p "$out"
+          git archive --format=tar HEAD | gzip -1 > "$out/checkout.tar.gz"
+          tar -czf "$out/node_modules.tar.gz" node_modules
+          git rev-parse HEAD > "$out/COMMIT.txt"
+          git ls-tree -r HEAD > "$out/GIT_TREE.txt"
+          node --version > "$out/NODE_VERSION.txt"
+          sha256sum package-lock.json > "$out/LOCK_SHA256.txt"
+          (cd "$out" && sha256sum checkout.tar.gz node_modules.tar.gz > SHA256SUMS.txt)
+          test -z "$(git status --porcelain)"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: solvane-offline-review-${{ github.sha }}
+          path: ${{ runner.temp }}/solvane-offline-review/
+          compression-level: 0
+          retention-days: 3
+          if-no-files-found: error
