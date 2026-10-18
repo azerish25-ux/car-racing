@@ -49,7 +49,7 @@ import {
 import { SceneAmbientPass } from '../scene-ambient-pass.ts';
 import { prewarmSky } from '../sky-light.ts';
 import { postLensFrame } from '../studio/lens-effects.ts';
-import { SKY_CLOUDS, SkyClouds } from '../studio/sky-clouds.ts';
+import { SKY_CLOUDS } from '../studio/sky-clouds.ts';
 import { studioUniforms } from '../studio/studio-frame.ts';
 import { UltraPipeline } from '../ultra/pipeline.ts';
 import { PhotoSky } from '../assets/photo-sky.ts';
@@ -89,7 +89,15 @@ import { HorizonGuidance } from './horizon-guidance.ts';
 import { FestivalTrails } from './festival-trails.ts';
 import { HorizonDressing } from './horizon-dressing.ts';
 import { DistantLandscape } from './distant-landscape.ts';
-import { FestivalAtmosphere, festivalGrade, festivalSkyline } from './festival-atmosphere.ts';
+import { FestivalAtmosphere, festivalGrade } from './festival-atmosphere.ts';
+import {
+  FestivalSky,
+  FestivalSkyClouds,
+  festivalCloudCover,
+  festivalLight,
+  sunFacing,
+} from './festival-sky.ts';
+import { setCloudShadow } from '../studio/cloud-shadow.ts';
 import { FestivalDriftSmoke } from './drift-smoke.ts';
 import { FestivalEventDressing } from './event-dressing.ts';
 import { DragStrip, type DragView } from './drag-strip.ts';
@@ -196,6 +204,9 @@ export class FestivalRenderer {
   private readonly environment: SkyEnvironment;
   /** Photographed CC0 sky of the region (assets/photo-sky.ts). */
   readonly photoSky = new PhotoSky(FESTIVAL_PALETTE, true);
+  /** The festival's binding of it: skyline, horizon band, baked clouds. */
+  private readonly festivalSky = new FestivalSky(this.photoSky);
+  private readonly clouds: FestivalSkyClouds;
   private readonly composer: EffectComposer;
   private readonly scenePass: SceneAmbientPass;
   private readonly bloom = new LensBloomPass();
@@ -283,9 +294,9 @@ export class FestivalRenderer {
     this.sky.scale.setScalar(450000);
     this.sky.userData.excludeMotionBlur = true;
     configureSky(this.sky);
-    const clouds = SkyClouds.forSky(this.sky.material, lightingDirection);
+    this.clouds = FestivalSkyClouds.forFestival(this.sky.material, lightingDirection);
     this.photoSky.setQuality(this.preset);
-    this.environment = new SkyEnvironment(this.sky, clouds, this.photoSky);
+    this.environment = new SkyEnvironment(this.sky, this.clouds, this.festivalSky);
     scene.add(this.sky);
     scene.environmentIntensity = 0.7;
     scene.fog = new T.FogExp2(0xb9c7c1, 0.00012);
@@ -832,6 +843,12 @@ export class FestivalRenderer {
       daylight.environment = 0.2 + daylight.cover * 0.04;
       daylight.exposure = 1.12 - clamp(presented[H.RAIN], 0, 60) * 0.0005;
     }
+    festivalLight(
+      daylight,
+      mode,
+      this.festivalSky.capturedClouds,
+      sunFacing(this.camera.getWorldDirection(this.temp), lightingDirection(mode)),
+    );
     // The festival's own air (festival-atmosphere.ts): the art-bible horizon
     // as in-scatter, not the photographed dome's (its clear-day photo has a
     // brown desert horizon), and clean-air extinction per lighting.
@@ -866,13 +883,8 @@ export class FestivalRenderer {
     uniforms.sunsetAmount.value = mode === 'sunset' ? 1 : 0;
     uniforms.sunPosition.value.copy(lightingDirection(mode));
     bindSkyCelestial(this.sky.material, mode);
-    this.photoSky.bind(this.sky.material, daylight.cover, mode, false);
-    festivalSkyline(
-      this.sky.material,
-      this.photoSky.shownPair,
-      this.atmosphere.inscatter,
-      mode === 'night' ? 0.6 : 1,
-    );
+    this.festivalSky.horizon.copy(this.atmosphere.inscatter);
+    this.festivalSky.bind(this.sky.material, daylight.cover, mode, false);
     uniforms.cloudDrift.value = (time * SKY_CLOUDS.driftPerSecond) % 1;
     shadowAnchor(
       this.target,
@@ -908,6 +920,14 @@ export class FestivalRenderer {
     this.renderer.info.reset();
     this.renderer.info.autoReset = false;
     this.environment.update(this.renderer, this.scene, daylight.cover, mode);
+    // Cloud shadows follow the clouds the festival dome shows.
+    setCloudShadow(
+      this.clouds.fieldTexture,
+      festivalCloudCover(daylight.cover, mode),
+      mode,
+      lightingDirection(mode),
+      uniforms.cloudDrift.value as number,
+    );
     if (
       this.reflectionVersion !== this.cars.paintVersion ||
       this.reflectedVehicleVersion !== this.vehiclePaintVersion
