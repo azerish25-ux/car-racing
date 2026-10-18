@@ -65,6 +65,13 @@ Japanese reading).
 | Street frontage, day | 360 / 2,288,789          | 367 / 2,453,928         |
 | Store lot, day       | 175 / 1,153,038          | 166 / 1,083,534         |
 | Village street, day  | 264 / 1,185,136          | 203 / 810,210           |
+| Night street (neon)  | 366 / 2,344,085          | 365 / 2,412,152         |
+| Night street, rain   | 367 / 2,361,973          | 368 / 2,471,816         |
+| Store lot, night     | 176 / 1,162,254          | 164 / 1,061,726         |
+| Temple, aerial       | 217 / 988,314            | 201 / 921,016           |
+| Apartment rear stair | 233 / 1,266,290          | 234 / 1,335,396         |
+| Castle hill, close   | 289 / 888,158            | 304 / 1,001,180         |
+| Village, winter      | 223 / 788,896            | 191 / 760,984           |
 
 Whole-region building mesh: 927,254 → 1,036,676 triangles (merged district
 meshes, same draw count per district); signage adds 48,520 triangles (970
