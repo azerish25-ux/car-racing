@@ -15,6 +15,7 @@ import { SOLVANE } from '../../src/simulation/open-world/region-data.ts';
 import type { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { F, carBase } from '../../src/simulation/protocol.ts';
 import { isSeason, type Season } from '../../src/session/festival-season.ts';
+import type { TrafficCars } from '../../src/rendering/traffic-cars.ts';
 
 const params = new URLSearchParams(location.search);
 const quality = (params.get('quality') ?? 'medium') as QualityPreset;
@@ -80,24 +81,61 @@ const state = () => {
     frame: internal?.current ? Array.from(internal.current) : null,
   };
 };
+// Fixed-camera inspection only, excluded from the shipped application.
+// Pauses through the real session; never changes a car, worker, physics
+// sample, material, mesh or quality level. Gameplay evidence uses input.
+function inspect(position: [number, number, number], target: [number, number, number]) {
+  if (!session) throw new Error('Session is not loaded');
+  if (!session.isPaused) session.action('pause');
+  const renderer = (session as unknown as { renderer: FestivalRenderer }).renderer;
+  renderer.setPhoto(true);
+  const orbit = (renderer as unknown as { orbit: OrbitControls }).orbit;
+  orbit.enableDamping = false;
+  orbit.maxDistance = 20000;
+  orbit.maxPolarAngle = Math.PI;
+  orbit.target.fromArray(target);
+  renderer.camera.position.fromArray(position);
+  orbit.update();
+}
 Object.assign(window, {
   horizonReview: {
     state,
-    // Fixed-camera inspection only, excluded from the shipped application.
-    // Pauses through the real session; never changes a car, worker, physics
-    // sample, material, mesh or quality level. Gameplay evidence uses input.
-    inspect: (position: [number, number, number], target: [number, number, number]) => {
+    inspect,
+    // Fixed inspection in a subject's own frame: the player car (-1) or the
+    // k-th drawn ambient traffic car (vehicle visual review). Returns false
+    // when that subject is not drawn.
+    inspectNear: (
+      which: number,
+      offset: [number, number, number],
+      target: [number, number, number],
+    ) => {
       if (!session) throw new Error('Session is not loaded');
-      if (!session.isPaused) session.action('pause');
       const renderer = (session as unknown as { renderer: FestivalRenderer }).renderer;
-      renderer.setPhoto(true);
-      const orbit = (renderer as unknown as { orbit: OrbitControls }).orbit;
-      orbit.enableDamping = false;
-      orbit.maxDistance = 20000;
-      orbit.maxPolarAngle = Math.PI;
-      orbit.target.fromArray(target);
-      renderer.camera.position.fromArray(position);
-      orbit.update();
+      const pose = new T.Matrix4();
+      if (which < 0) {
+        const subject = renderer.cars.subject(0);
+        if (!subject) return false;
+        pose.compose(subject.position, subject.quaternion, new T.Vector3(1, 1, 1));
+      } else {
+        const traffic = (session as unknown as { traffic: TrafficCars | null }).traffic;
+        if (!traffic || !traffic.poseOf(which, pose)) return false;
+      }
+      const at = (v: [number, number, number]) =>
+        new T.Vector3(...v).applyMatrix4(pose).toArray() as [number, number, number];
+      inspect(at(offset), at(target));
+      return true;
+    },
+    /** Drawn ambient traffic positions (vehicle visual review). */
+    traffic: () => {
+      const traffic = session
+        ? (session as unknown as { traffic: TrafficCars | null }).traffic
+        : null;
+      if (!traffic) return [];
+      const m = new T.Matrix4(),
+        out: number[][] = [];
+      for (let k = 0; k < traffic.count; k++)
+        if (traffic.poseOf(k, m)) out.push([m.elements[12], m.elements[13], m.elements[14]]);
+      return out;
     },
     command: (command: Parameters<FestivalSession['command']>[0]) => session?.command(command),
     // Stop submitting GPU frames only for a still capture. This does not alter

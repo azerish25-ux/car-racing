@@ -69,6 +69,11 @@ interface Built {
   /** Off-road mud coat (WP41), installed once the car first picks up mud. */
   mud?: MudUniforms;
 }
+/** A built catalogue body as handed to `VehicleBodies.onBuild`. */
+export type BuiltVehicleBody = Pick<
+  Built,
+  'definition' | 'root' | 'lods' | 'wheels' | 'materials' | 'frame'
+>;
 const LOD_NAMES = ['near', 'mid', 'far'];
 export function buildVehicleBody(id: number, definition: VehicleDefinition, sheet: BodySheet) {
   const frame = bodyFrame(definition);
@@ -208,8 +213,10 @@ function shadowProxy(far: T.Group, wheels: WheelAssembly[], def: VehicleDefiniti
 export class VehicleBodies {
   readonly root = new T.Group();
   private readonly bodies = new Map<number, Built>();
-  /** Called once per newly built body (renderer material installers). */
-  onBuild: (root: T.Object3D) => void = () => {};
+  /** Called once per newly built body (renderer material installers), with
+   * the entrant id and the built body (a festival installer adds its own
+   * furniture and finishes; the circuit renderer only reads `root`). */
+  onBuild: (root: T.Object3D, body: BuiltVehicleBody, id: number) => void = () => {};
   private readonly hub = new T.Vector3();
   private readonly end = new T.Vector3();
   private readonly up = new T.Vector3(0, 1, 0);
@@ -227,7 +234,7 @@ export class VehicleBodies {
   private build(id: number, definition: VehicleDefinition, sheet: BodySheet) {
     const built = buildVehicleBody(id, definition, sheet);
     this.root.add(built.root);
-    this.onBuild(built.root);
+    this.onBuild(built.root, built, id);
     return built;
   }
   /** Pose bodies over their entrants and hide the Formula representation.

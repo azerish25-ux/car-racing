@@ -292,13 +292,26 @@ function opticalPanel(width: number, depth: number, height: number, side: number
     steps: 1,
   }).rotateX(-Math.PI / 2);
 }
-function addHeadlamps(parts: Parts, model: ClosedBodyModel, mats: CarMaterials, detail: Detail) {
+/** Each headlamp's surface frame (local y along the body normal, z forward)
+ * and, for a swept optical panel, its width and depth (m). */
+export function festivalHeadlampFrames(model: ClosedBodyModel) {
   const { s } = model;
   const z = model.zFront - (s.style === 'truck' ? 0.14 : s.lamps.front === 'pod' ? 0.3 : 0.16);
-  for (const side of [-1, 1]) {
+  return [-1, 1].map((side) => {
     const half = model.halfWidth(z);
     const x = side * half * (s.lamps.front === 'bar' ? 0.49 : 0.68);
-    const base = surfacePlacement(model, x, z);
+    return {
+      side,
+      half,
+      base: surfacePlacement(model, x, z),
+      width: s.lamps.front === 'bar' ? half * 0.56 : s.lamps.front === 'pod' ? 0.17 : 0.31,
+      depth: s.lamps.front === 'pod' ? 0.2 : 0.12,
+    };
+  });
+}
+function addHeadlamps(parts: Parts, model: ClosedBodyModel, mats: CarMaterials, detail: Detail) {
+  const { s } = model;
+  for (const { side, base, width, depth } of festivalHeadlampFrames(model)) {
     const round = s.lamps.front === 'round' || s.lamps.front === 'twin';
     if (round) {
       const count = s.lamps.front === 'twin' ? 2 : 1;
@@ -324,8 +337,6 @@ function addHeadlamps(parts: Parts, model: ClosedBodyModel, mats: CarMaterials, 
       }
       continue;
     }
-    const width = s.lamps.front === 'bar' ? half * 0.56 : s.lamps.front === 'pod' ? 0.17 : 0.31;
-    const depth = s.lamps.front === 'pod' ? 0.2 : 0.12;
     parts.add(
       opticalPanel(width + 0.028, depth + 0.024, 0.026, side),
       darkOptics,
