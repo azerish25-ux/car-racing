@@ -10,6 +10,7 @@ import { PhotoForest, type PhotoPlant } from '../vegetation/forest.ts';
 import type { VegetationLibrary } from '../vegetation/library.ts';
 import { VEGETATION } from '../vegetation/materials.ts';
 import { SPECIES } from '../vegetation/species.ts';
+import { architecturePlan } from './japan-architecture.ts';
 
 /** Original Solvane scenery derived from the reference review's visual
  * principles: human-scale commercial detail, legible road edges, layered
@@ -75,24 +76,28 @@ class GeometryBatch {
   }
 }
 
+/** Original Japanese shop fascias (kanban): trade words and invented names
+ * built on the region's own place names. No real brand appears. */
 const SHOP_NAMES = [
-  ['ILSE MOTOR CLUB', 'COASTAL DRIVES · EST. 1986'],
-  ['NORTH PIER', 'COFFEE · KITCHEN · RECORDS'],
-  ['SOLVANE', 'COAST FESTIVAL'],
-  ['VALE WORKSHOP', 'SERVICE · PARTS · REPAIR'],
-  ['BLUE HOUR', 'RECORDS & LATE COFFEE'],
-  ['ASHVALE', 'BAKERY · PROVISIONS'],
-  ['SALT & STONE', 'COASTAL GOODS'],
-  ['PORT ILSE', 'VISITOR INFORMATION'],
-  ['THORNWOOD', 'OUTDOOR EQUIPMENT'],
-  ['THE LOFT', 'ROOMS BY THE WATER'],
-  ['TIDE CYCLES', 'WORKSHOP & RENTALS'],
-  ['KESTREL', 'MOTOR SUPPLY'],
-  ['QUAYSIDE', 'FISH MARKET'],
-  ['EASTERN LINE', 'DESIGN STUDIO'],
-  ['VARDA', 'GUIDES & OUTFITTERS'],
-  ['MOTOBOUND', 'FESTIVAL DRIVERS CLUB'],
+  ['イルセ自動車', 'ILSE MOTOR · 整備 · 車検', '#f5f5f0', '#1d2b6b'],
+  ['みなと食堂', '定食 · 海鮮丼 · 営業中', '#c8161d', '#ffffff'],
+  ['ソルヴァーネ', 'COAST FESTIVAL · 祭', '#141414', '#ffd23a'],
+  ['谷モータース', '修理 · 部品 · タイヤ', '#1f4fa3', '#ffffff'],
+  ['喫茶 青い時', 'COFFEE · RECORDS', '#2f5a3a', '#f4ead2'],
+  ['アシュベール製パン', 'BAKERY · 焼きたて', '#f5efe0', '#7a3a1d'],
+  ['塩と石', '雑貨 · COASTAL GOODS', '#ffffff', '#202020'],
+  ['観光案内所', 'PORT ILSE · INFORMATION', '#0e6b4f', '#ffffff'],
+  ['ソーンウッド', 'アウトドア用品', '#3d4a2c', '#f1e7c9'],
+  ['旅館 ろふと', '海の見える宿', '#2b2420', '#e9cf8a'],
+  ['潮サイクル', '自転車 · レンタル', '#f7d117', '#141414'],
+  ['ケストレル', 'カー用品 · MOTOR SUPPLY', '#e3001b', '#ffffff'],
+  ['鮮魚 浜市場', '朝獲れ · FISH MARKET', '#1b5fae', '#ffffff'],
+  ['東線デザイン', 'DESIGN STUDIO', '#e8e6e0', '#3a3a3a'],
+  ['ヴァルダ山岳', '登山 · 装備 · ガイド', '#7a1f1a', '#ffffff'],
+  ['モトバウンド', 'FESTIVAL DRIVERS CLUB', '#ff2f7a', '#ffffff'],
 ] as const;
+const SIGN_FONT =
+  '"Noto Sans JP","Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic","Meiryo","IPAGothic","WenQuanYi Zen Hei",sans-serif';
 
 /** One small atlas, authored at runtime: no individual sign textures and no
  * remote image dependency. The fallback allows geometry inspection in Node. */
@@ -107,38 +112,28 @@ function signAtlas() {
   canvas.height = 512;
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('Solvane sign atlas needs a 2D canvas context');
-  const colors = [
-    '#173b40',
-    '#ddd2b5',
-    '#b44c3c',
-    '#303d4b',
-    '#476858',
-    '#9e743e',
-    '#e4ded0',
-    '#274f60',
-  ];
-  SHOP_NAMES.forEach(([name, sub], i) => {
+  SHOP_NAMES.forEach(([name, sub, bg, fg], i) => {
     const x = (i % 4) * 256,
       y = Math.floor(i / 4) * 128;
-    const pale = i % 8 === 1 || i % 8 === 6;
-    ctx.fillStyle = colors[i % colors.length];
+    // Lit box fascia: face colour, a darker rim and a thin accent rule.
+    ctx.fillStyle = bg;
     ctx.fillRect(x, y, 256, 128);
-    ctx.strokeStyle = pale ? '#4d655b' : '#dccca7';
-    ctx.lineWidth = 1.2;
-    ctx.strokeRect(x + 7, y + 9, 242, 110);
-    ctx.fillStyle = pale ? '#1e3937' : '#f5efdc';
+    ctx.strokeStyle = 'rgba(0,0,0,0.28)';
+    ctx.lineWidth = 6;
+    ctx.strokeRect(x + 3, y + 3, 250, 122);
+    ctx.fillStyle = fg;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    let font = 25;
+    let font = 46;
     do {
-      ctx.font = `700 ${font--}px sans-serif`;
-    } while (ctx.measureText(name).width > 231 && font > 10);
-    ctx.fillText(name, x + 128, y + 51);
-    ctx.globalAlpha = 0.83;
-    ctx.font = '500 10px sans-serif';
-    ctx.fillText(sub, x + 128, y + 83);
+      ctx.font = `900 ${font--}px ${SIGN_FONT}`;
+    } while (ctx.measureText(name).width > 232 && font > 12);
+    ctx.fillText(name, x + 128, y + 54);
+    ctx.globalAlpha = 0.9;
+    ctx.font = `700 13px ${SIGN_FONT}`;
+    ctx.fillText(sub, x + 128, y + 98, 230);
     ctx.globalAlpha = 1;
-    ctx.fillRect(x + 107, y + 100, 42, 2);
+    ctx.fillRect(x + 20, y + 80, 216, 2);
   });
   const texture = new T.CanvasTexture(canvas);
   texture.name = 'Original Solvane commercial sign atlas';
@@ -416,9 +411,14 @@ export class HorizonDressing {
   }
 
   private shopfronts() {
-    const p = trackPoint();
-    for (const s of this.structures) {
+    const p = trackPoint(),
+      plan = architecturePlan(this.world, this.structures);
+    for (const [index, s] of this.structures.entries()) {
       if (s.kind !== 'shop' && s.kind !== 'block' && s.kind !== 'terminal') continue;
+      // Convenience stores carry their own backlit fascia (festival-signage).
+      // Village machiya carry pent roofs, noren and timber kanban instead.
+      const style = plan.style[index];
+      if (style === 'konbini' || style === 'machiya' || plan.konbiniFloor.has(index)) continue;
       this.world.network.nearest(s.x, s.z, p);
       const c = Math.cos(s.heading),
         n = Math.sin(s.heading);
@@ -559,39 +559,19 @@ export class HorizonDressing {
           const position = new T.Vector3(p.x + p.nx * l, y, p.z + p.nz * l);
           if (previous) this.beam('metal', previous, position, 0.016, 0x4c5656);
           previous = position;
-          if (k % 2 === 1) {
+          if (k > 0 && k < 20) {
+            // Paper chochin, alternately red and white, 0.34 x 0.5 m.
             this.part(
               'bulb',
               this.primitives.sphere,
               position.x,
-              position.y - 0.14,
+              position.y - 0.32,
               position.z,
-              0.09,
-              0.12,
-              0.09,
-              0xffffff,
+              0.17,
+              0.25,
+              0.17,
+              k % 2 ? 0xff6a4a : 0xfff2dc,
             );
-          } else if (k > 0 && k < 20) {
-            const triangle = new T.BufferGeometry();
-            triangle.setAttribute(
-              'position',
-              new T.Float32BufferAttribute([-0.32, 0, 0, 0.32, 0, 0, 0.09, -0.88, 0.045], 3),
-            );
-            triangle.computeVertexNormals();
-            const colors = [0xd7c497, 0x3d7374, 0xad5c44, 0xd0d5c3];
-            this.part(
-              'stone',
-              triangle,
-              position.x,
-              position.y,
-              position.z,
-              1,
-              1,
-              1,
-              colors[(k / 2) % colors.length],
-              Math.atan2(-p.nz, p.nx),
-            );
-            triangle.dispose();
           }
         }
       }
@@ -915,7 +895,7 @@ if (diffuseColor.a < 0.01) discard;`,
   update(time: number, night: number, camera: T.Camera, preset: QualityPreset) {
     this.windTime.value = time;
     this.lanternTime.value = time;
-    this.materials.sign.emissiveIntensity = 0.015 + night * 0.78;
+    this.materials.sign.emissiveIntensity = 0.03 + night * 1.6;
     this.materials.bulb.emissiveIntensity = 0.04 + night * 4.5;
     if (this.lanterns) {
       this.lanterns.visible = night > 0.08;

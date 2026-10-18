@@ -8,6 +8,7 @@ import type { QualityPreset } from '../options.ts';
 import type { Structure } from '../../simulation/open-world/placement.ts';
 import type { OpenWorld } from '../../simulation/open-world/world.ts';
 import { trackPoint } from '../../simulation/track.ts';
+import { architecturePlan, isApartment } from './japan-architecture.ts';
 
 export const STREET_KIT = manifest;
 const KINDS = ['awning', 'service', 'pipe'] as const;
@@ -244,13 +245,23 @@ export class StreetDetails {
       if (list) list.push(placement);
       else this.cells.set(key, [placement]);
     };
-    for (const s of structures) {
+    const plan = architecturePlan(world, structures);
+    for (const [index, s] of structures.entries()) {
       if (!['shop', 'block', 'house'].includes(s.kind) || s.hx < 3 || s.height < 3.5) continue;
+      const style = plan.style[index];
+      if (style === 'konbini') continue;
       world.network.nearest(s.x, s.z, p);
       const c = Math.cos(s.heading),
         n = Math.sin(s.heading);
       const side = (p.x - s.x) * -n + (p.z - s.z) * c >= 0 ? 1 : -1;
-      if (s.kind !== 'house' && s.style % 5 !== 0) {
+      // Canvas awnings over city shopfronts; village fronts have tiled pent
+      // roofs and stores a backlit fascia canopy.
+      if (
+        style === 'urban' &&
+        !plan.konbiniFloor.has(index) &&
+        !isApartment(s) &&
+        s.style % 5 !== 0
+      ) {
         const width = Math.min(s.hx * 1.48, 10.5);
         const bays = Math.max(1, Math.floor(width / 3.8));
         for (let i = 0; i < bays; i++)

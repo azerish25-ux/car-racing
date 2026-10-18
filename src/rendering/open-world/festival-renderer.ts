@@ -92,6 +92,8 @@ import { FestivalDriftSmoke } from './drift-smoke.ts';
 import { FestivalEventDressing } from './event-dressing.ts';
 import { FestivalSpeedBlur } from './speed-blur.ts';
 import { applySeason, SEASONS, type Season } from './season.ts';
+import { architecturePlan } from './japan-architecture.ts';
+import { FestivalSignage } from './festival-signage.ts';
 import {
   createFestivalContactOffset,
   festivalContactEnabled,
@@ -138,6 +140,7 @@ export class FestivalRenderer {
   readonly distant: DistantLandscape;
   /** Aerial perspective of the region (replaces FogExp2 on its materials). */
   readonly atmosphere = new FestivalAtmosphere();
+  readonly signage: FestivalSignage;
   details: SolvaneDetails | null = null;
   private detailLoading: Promise<boolean> | null = null;
   streetDetails: StreetDetails | null = null;
@@ -289,13 +292,15 @@ export class FestivalRenderer {
       ...this.furniture.lampSockets,
     ]);
     scene.add(this.streetLights.root);
-    this.buildings = new Buildings(structures);
+    const architecture = architecturePlan(world, structures);
+    this.buildings = new Buildings(structures, architecture);
     this.dressing = new HorizonDressing(world, structures);
     this.distant = new DistantLandscape(
       (x, z, wavelength) => world.field.height(x, z, wavelength),
       world.field.region.seed,
     );
     scene.add(this.distant.root);
+    this.signage = new FestivalSignage(world, structures, architecture);
     this.water = new Water(world.field);
     this.markers = new EventMarkers(events, (x, z) => this.groundHeight(x, z));
     this.reflection.probeExclusions.push(this.markers.root);
@@ -306,6 +311,7 @@ export class FestivalRenderer {
       this.furniture.root,
       this.buildings.root,
       this.dressing.root,
+      this.signage.root,
       this.vegetation.root,
       this.water.root,
       this.markers.root,
@@ -732,6 +738,7 @@ export class FestivalRenderer {
     this.distant.setQuality(this.preset);
     this.distant.update(this.lighting, SEASONS.indexOf(this.currentSeason));
     this.eventDressing.update(this.camera, night, this.preset, time);
+    this.signage.update(time, night, this.camera, this.preset);
     this.details?.update(
       time,
       night,
@@ -815,6 +822,7 @@ export class FestivalRenderer {
     this.sun.target.updateMatrixWorld();
     const wet = clamp(presented[H.WATER] / 0.8, 0, 1);
     this.roads.setWet(wet);
+    this.buildings.setWet(wet);
     this.terrain.material.userData.ow.owWet.value = wet;
     studioUniforms.studioTime.value = time;
     // A light onshore breeze for the planting (no weather wind in free roam).
@@ -930,6 +938,7 @@ export class FestivalRenderer {
     this.buildings.dispose();
     this.dressing.dispose();
     this.distant.dispose();
+    this.signage.dispose();
     this.details?.dispose();
     this.details = null;
     this.streetDetails?.dispose();
