@@ -70,10 +70,14 @@ export function festivalFasciaOpenings(model: ClosedBodyModel, rear = false): Fa
   const profile = model.ring(z, 0).half;
   const bottom = Math.min(...profile.map((p) => p[1]));
   const top = Math.max(...profile.map((p) => p[1]));
+  // A festival form's fascia is mostly intake (refs 011, 014, 019, 090).
+  const share = model.festival ? 0.58 : 0.5;
   const height = rear
     ? Math.min(0.14, Math.max(0.075, (top - bottom) * 0.21))
-    : Math.min(s.style === 'truck' ? 0.27 : 0.2, (top - bottom) * 0.5);
-  const y = rear ? Math.min(f.y(s.tail) - 0.3, top - height * 0.8) : bottom + (top - bottom) * 0.49;
+    : Math.min(s.style === 'truck' ? 0.3 : model.festival ? 0.26 : 0.2, (top - bottom) * share);
+  const y = rear
+    ? Math.min(f.y(s.tail) - 0.3, top - height * 0.8)
+    : bottom + (top - bottom) * (model.festival ? 0.47 : 0.49);
   const available = Math.min(model.sideX(z, y - height * 0.5), model.sideX(z, y + height * 0.5));
   const width = available * (rear ? 1.62 : 1.55);
   if (!(width > 0.14 && height > 0.025)) return [];
@@ -496,22 +500,28 @@ export function endBand(
     { inner, fade, ledge } = options;
   const position: number[] = [],
     index: number[] = [];
-  const piece = (lows: T.Vector3[], highs: T.Vector3[], outward: T.Vector3) => {
-    const base = position.length / 3;
-    lows.forEach((p, k) => position.push(p.x, p.y, p.z, highs[k].x, highs[k].y, highs[k].z));
-    const n = new T.Vector3()
-      .subVectors(lows[1], lows[0])
-      .cross(new T.Vector3().subVectors(highs[0], lows[0]));
-    const flip = n.dot(outward) < 0;
-    for (let k = 0; k < lows.length - 1; k++) {
-      const a = base + 2 * k,
-        c = a + 1,
-        b = a + 2,
-        d = a + 3;
-      if (flip) index.push(a, c, b, b, c, d);
-      else index.push(a, b, c, b, d, c);
-    }
+  /** A grid between successive polylines (rows), wound to face `outward`. */
+  const grid = (rows: T.Vector3[][], outward: T.Vector3) => {
+    const base = position.length / 3,
+      n = rows[0].length;
+    for (const row of rows) for (const p of row) position.push(p.x, p.y, p.z);
+    const normal = new T.Vector3()
+      .subVectors(rows[0][1], rows[0][0])
+      .cross(new T.Vector3().subVectors(rows[1][0], rows[0][0]));
+    const flip = normal.dot(outward) < 0;
+    for (let r = 0; r < rows.length - 1; r++)
+      for (let k = 0; k < n - 1; k++) {
+        const a = base + r * n + k,
+          b = a + 1,
+          c = a + n,
+          d = c + 1;
+        if (flip) index.push(a, c, b, b, c, d);
+        else index.push(a, b, c, b, d, c);
+      }
   };
+  // Rows every 2.5 cm, so a tall band follows the section's curvature.
+  const rowCount = Math.max(1, Math.ceil((hi - lo) / 0.025)),
+    heights = Array.from({ length: rowCount + 1 }, (_, r) => lo + ((hi - lo) * r) / rowCount);
   // Offset along the side parts: constant, or rising from `fade` to `out`.
   const offset = (k: number) => {
     if (fade === undefined) return out;
@@ -521,13 +531,17 @@ export function endBand(
   const flush = 0.0015,
     ks = Array.from({ length: steps + 1 }, (_, k) => k);
   for (const side of [-1, 1]) {
+    // Proud of the surface along its plan normal: round the corner wrap the
+    // surface faces the end, where an x offset would slide along it.
     const at = (k: number, y: number, o: number) => {
-      const z = zEnd + inward * reach * (1 - k / steps);
-      return new T.Vector3(side * (model.sideX(z, y) + o), y, z);
+      const z = zEnd + inward * reach * (1 - k / steps),
+        x = model.sideX(z, y),
+        slope = (model.sideX(z + 0.004, y) - model.sideX(z - 0.004, y)) / 0.008,
+        n = Math.hypot(1, slope);
+      return new T.Vector3(side * (x + o / n), y, z - (o * slope) / n);
     };
-    piece(
-      ks.map((k) => at(k, lo, offset(k))),
-      ks.map((k) => at(k, hi, offset(k))),
+    grid(
+      heights.map((y) => ks.map((k) => at(k, y, offset(k)))),
       new T.Vector3(side, 0, 0),
     );
     if (ledge)
@@ -535,9 +549,8 @@ export function endBand(
         [hi, 1],
         [lo, -1],
       ])
-        piece(
-          ks.map((k) => at(k, y, flush)),
-          ks.map((k) => at(k, y, offset(k))),
+        grid(
+          [ks.map((k) => at(k, y, flush)), ks.map((k) => at(k, y, offset(k)))],
           new T.Vector3(0, up, 0),
         );
   }
@@ -552,13 +565,16 @@ export function endBand(
         { length: n + 1 },
         (_, k) => new T.Vector3(x0(y, o) + ((x1(y, o) - x0(y, o)) * k) / n, y, zEnd - inward * o),
       );
-    piece(row(lo, out), row(hi, out), face);
+    grid(
+      heights.map((y) => row(y, out)),
+      face,
+    );
     if (ledge)
       for (const [y, up] of [
         [hi, 1],
         [lo, -1],
       ])
-        piece(row(y, flush), row(y, out), new T.Vector3(0, up, 0));
+        grid([row(y, flush), row(y, out)], new T.Vector3(0, up, 0));
   };
   const xe = (y: number, o: number) => model.sideX(zEnd, y) + o;
   if (inner === undefined) across((y, o) => -xe(y, o), xe, 16);
@@ -592,8 +608,11 @@ export function festivalRearBumper(model: ClosedBodyModel) {
 }
 function addRearBumper(parts: Parts, model: ClosedBodyModel, mats: CarMaterials, detail: Detail) {
   const bumper = festivalRearBumper(model),
-    steps = detail === 0 ? 12 : 5;
+    steps = detail === 0 ? 14 : 5;
   const valance = model.endFloor(true) + (model.valanceHeight() ?? 0.12);
+  // The bumper wraps forward to the rear wheel opening.
+  const f = model.f,
+    reach = Math.max(0.2, Math.min(0.5, f.rearAxle - f.radius - 0.08 - model.zRear));
   if (!bumper) {
     parts.add(
       endBand(model, true, model.endFloor(true) + 0.004, valance, 0.24, 0.007, steps),
@@ -603,11 +622,11 @@ function addRearBumper(parts: Parts, model: ClosedBodyModel, mats: CarMaterials,
   }
   const { lo, hi, depth } = bumper;
   parts.add(
-    endBand(model, true, lo, hi, 0.3, depth, steps, { fade: 0.004, ledge: true }),
+    endBand(model, true, lo, hi, reach, depth, steps, { fade: 0.004, ledge: true }),
     mats.paint,
   );
   parts.add(
-    endBand(model, true, lo, Math.min(valance, hi - 0.03), 0.3, depth + 0.004, steps, {
+    endBand(model, true, lo, Math.min(valance, hi - 0.03), reach, depth + 0.004, steps, {
       fade: 0.009,
     }),
     sharedMaterials.plastic(),

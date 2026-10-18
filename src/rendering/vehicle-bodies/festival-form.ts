@@ -6,7 +6,7 @@ import { ClosedBodyModel, Greenhouse, M } from './closed-body.ts';
 import type { BuiltLod, CarMaterials } from './common.ts';
 import type { BodyFrame } from './frame.ts';
 import { insetProfile, roundedBox, sampleProfile, Track, type Pt, type Ring } from './loft.ts';
-import { endBand } from './festival-detail.ts';
+import { endBand, festivalFasciaOpenings } from './festival-detail.ts';
 import { sharedMaterials, type PanelGap } from './materials.ts';
 import { Parts, placed } from './parts.ts';
 import type { Detail } from './wheel.ts';
@@ -76,6 +76,12 @@ export interface FestivalForm {
   noseRake: number;
   tailCurve: number;
   tailRake: number;
+  /** A gloss black bar across the top of the bumper face joining the
+   * headlamps (refs 019, 020, 090). */
+  noseBar?: boolean;
+  /** Black corner intakes wrapping the front bumper corners (refs 011, 014,
+   * 019, 096). */
+  cornerVents?: boolean;
   /** Station where the roof ends (a longer, more raked hatch glass). */
   roofEnd?: number;
   /** Station (fraction of the wheelbase) where the side glass ends; behind it
@@ -251,6 +257,8 @@ const CAR_FORMS: Readonly<Record<string, Partial<FestivalForm>>> = {
     fender: [0.07, 0.1],
     hoodEdge: 0.58,
     bonnet: 0.79,
+    noseBar: true,
+    cornerVents: true,
   },
   // Mid-engined wedge: sharp, flat engine deck between rear crests (refs 014, 092).
   sc7: {
@@ -260,9 +268,10 @@ const CAR_FORMS: Readonly<Record<string, Partial<FestivalForm>>> = {
     deckEdge: 0.6,
     crown: 0.008,
     bonnet: 0.76,
+    cornerVents: true,
   },
   // Long-hood luxury GT, fastback with set-back cabin (refs 018, 019, 093).
-  lx12: { noseWidth: 0.62, noseWrap: 0.55, fender: [0.045, 0.075] },
+  lx12: { noseWidth: 0.62, noseWrap: 0.55, fender: [0.045, 0.075], noseBar: true },
   // Front-engined muscle coupe: blunt, wide grille face, flat hood (ref 063 stance).
   rm8: { noseWidth: 0.76, noseWrap: 0.42, noseRoll: 0.06, fender: [0.03, 0.06], hoodEdge: 0.74 },
   // 1960s GT: rounded nose, soft crowned fenders, chrome-era body-colour sills (ref 012).
@@ -280,7 +289,7 @@ const CAR_FORMS: Readonly<Record<string, Partial<FestivalForm>>> = {
   },
   rd2: { noseWidth: 0.62, fender: [0.045, 0.055] },
   // Sports saloon and hot hatch: crisp shoulders, black skirts (refs 011, 091, 096).
-  rs5: { fender: [0.025, 0.03], rockerDark: true },
+  rs5: { fender: [0.025, 0.03], rockerDark: true, cornerVents: true },
   // The hatch glass runs down to a short deck above a compact tail.
   rh3: {
     noseWidth: 0.7,
@@ -291,9 +300,10 @@ const CAR_FORMS: Readonly<Record<string, Partial<FestivalForm>>> = {
     tail: 1.07,
     roofEnd: 0.9,
     dlo: 0.9,
+    cornerVents: true,
   },
   // Rally-bred road saloon: wider arch flares, a deeper sill (refs 007, 061).
-  rr4: { lip: 0.016, rockerDark: true, noseWidth: 0.72 },
+  rr4: { lip: 0.016, rockerDark: true, noseWidth: 0.72, cornerVents: true },
   // Full-size pickup: tall flat hood ending in an upright grille face (ref 063).
   rp6: { hoodEdge: 0.88, nose: 1.17, noseRoll: 0.035 },
 };
@@ -664,13 +674,19 @@ export class FestivalBodyModel extends ClosedBodyModel {
       zone = this.zone(z),
       e = this.edgeShare(z);
     const sh = Math.max(this.shoulderY(z, tp - 0.045), Math.min(fl + 0.16, tp - 0.06));
-    const crest = Math.max(tp + this.rise(z), sh + 0.03);
+    // Behind the greenhouse the deck crowns convexly out to its corners
+    // (no gutter); only a haunch rises above it.
+    const deck = this.form.bed ? 0 : 1 - smooth(this.zRW - 0.3, this.zRW, z);
+    const crest = Math.max(tp + this.rise(z) - fm.crown * 1.6 * deck, sh + 0.03);
     const ex = hw * e,
-      cx = ex + (hw - ex) * 0.45;
-    const edgeY = Math.min(
+      // Over the hood and deck the crest sits outboard: a broad fender top
+      // falling to the hood edge; along the cabin, a tumblehome.
+      cx = ex + (hw - ex) * (0.45 + 0.25 * zone);
+    const hoodEdge = Math.min(
       crest - 0.004,
       tp - fm.crown + zone * 0.35 * Math.max(0, crest - tp - 0.03),
     );
+    const edgeY = hoodEdge + (tp - fm.crown * 0.6 - hoodEdge) * deck;
     // Pickups: a narrow rail top inboard of the edge behind the cab.
     const bed = fm.bed ? 1 - smooth(this.zRW - 0.06, this.zRW, z) : 0,
       rail = fm.bed ? fm.bed.rail : 0,
@@ -850,8 +866,33 @@ export class FestivalBodyModel extends ClosedBodyModel {
     // Black lower valance round the tail and a chin under the bumper face.
     const steps = detail === 0 ? 10 : 4,
       plastic = sharedMaterials.plastic();
+    // The chin stays below the intakes.
     const front = this.endFloor(false);
-    parts.add(endBand(this, false, front + 0.004, front + 0.05, 0.3, 0.006, steps), plastic);
+    let chin = front + 0.05;
+    for (const mouth of festivalFasciaOpenings(this))
+      chin = Math.min(chin, mouth.y - mouth.height / 2 - 0.012);
+    if (chin > front + 0.02)
+      parts.add(endBand(this, false, front + 0.004, chin, 0.3, 0.006, steps), plastic);
+    if (this.form.cornerVents) {
+      // Beside the main intake, wrapping round onto the bumper's flank.
+      const mouths = festivalFasciaOpenings(this);
+      if (mouths.length) {
+        const lo = Math.min(...mouths.map((m) => m.y - m.height / 2)),
+          hi = Math.max(...mouths.map((m) => m.y + m.height / 2)) + 0.02;
+        parts.add(
+          endBand(this, false, lo, hi, 0.16, 0.005, steps, { inner: 0.075 }),
+          sharedMaterials.grille(),
+        );
+      }
+    }
+    if (this.form.noseBar) {
+      const top = this.topY(this.zFront) - 0.012;
+      let lo = top - 0.042;
+      for (const mouth of festivalFasciaOpenings(this))
+        lo = Math.max(lo, mouth.y + mouth.height / 2 + 0.008);
+      if (top - lo > 0.015)
+        parts.add(endBand(this, false, lo, top, 0.08, 0.004, steps), festivalGlossBlack());
+    }
     if (this.s.splitter > 0) addSplitter(this, detail, lod);
     if (this.s.wing?.kind === 'roof' && gh) addRoofSpoiler(this, gh, mats, detail, lod);
   }

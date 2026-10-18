@@ -291,7 +291,8 @@ export function platePlacement(model: ClosedBodyModel, rear: boolean) {
     } else y = bumper.hi + h + 0.02;
   }
   if (Math.min(model.sideX(z, y - h), model.sideX(z, y + h)) < PLATE.width / 2 + 0.04) return null;
-  return { x: 0, y, z: z + (rear ? -0.011 - proud : 0.011) };
+  // A festival form carries the front plate clear of its intake surrounds.
+  return { x: 0, y, z: z + (rear ? -0.011 - proud : model.festival ? 0.02 : 0.011) };
 }
 
 /** The running-light guide of one swept headlamp, in its surface frame. */
@@ -300,7 +301,18 @@ function runningLightPath(
   width: number,
   depth: number,
   side: number,
+  flush = false,
 ) {
+  // A festival form's lamp lies flush in the nose roll: the guide runs along
+  // its lower (forward) edge and hooks down at the outer corner (refs 019,
+  // 020, 097), not as a brow above it.
+  if (flush && kind !== 'bar')
+    return [
+      [-side * width * 0.46, 0.03, depth * 0.36],
+      [side * width * 0.18, 0.03, depth * 0.45],
+      [side * width * 0.42, 0.03, depth * 0.38],
+      [side * width * 0.5, 0.03, depth * 0.1],
+    ] as const;
   if (kind === 'bar')
     return [
       [-width * 0.47, 0.036, depth * 0.34],
@@ -487,7 +499,7 @@ export function installFestivalFinish(body: BuiltVehicleBody, id: number) {
     if (modern && sheet.style !== 'rally') {
       const strips: T.BufferGeometry[] = [];
       for (const { side, base, width, depth } of festivalHeadlampFrames(model)) {
-        const path = runningLightPath(sheet.lamps.front, width, depth, side);
+        const path = runningLightPath(sheet.lamps.front, width, depth, side, model.festival);
         strips.push(tubeGeometry(path, 0.0052, detail === 0 ? 24 : 12, 6).applyMatrix4(base));
       }
       const merged = model.warpGeometry(mergeGeometries(strips, false));
