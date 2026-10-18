@@ -9,6 +9,7 @@ import {
   scanUniformDeclarations,
   type ScanLayer,
 } from '../ground/scan-store.ts';
+import { FLORA_ZONE_GLSL, SUSUKI_SEED } from './flora-roles.ts';
 
 /** Photographed sets of the festival terrain (Medium and above): meadow
  * grass, rock (slope-aligned), forest-floor soil, sandy gravel, snow. */
@@ -140,6 +141,7 @@ varying vec4 vSplat;
 varying vec4 vShade;
 varying vec3 vOwWorld;
 ${OW_NOISE_GLSL}
+${FLORA_ZONE_GLSL}
 float owRoughness;
 vec2 owBump;
 #ifdef APEX_SCAN
@@ -157,6 +159,7 @@ ${SCAN_COMMON_GLSL}`,
   float near = 1.0 - smoothstep(60.0, 420.0, dist);
   float mid = 1.0 - smoothstep(400.0, 2600.0, dist);
   vec2 p = vOwWorld.xz;
+  vec3 owN = normalize((vec4(vNormal, 0.0) * viewMatrix).xyz);
   float macro = owFbm(p * 0.0021, 1.0);
   float meso = owFbm(p * 0.019, mid);
   float micro = owFbm(p * 0.21, near);
@@ -170,6 +173,8 @@ ${SCAN_COMMON_GLSL}`,
   // in winter.
   snow *= smoothstep(-80.0, 80.0, vOwWorld.y + 120.0 * (meso - 0.5)
     - dot(owSeason, vec4(${DISTANT_SNOW.ranges.map((v) => v.toFixed(1)).join(', ')})));
+  // Winter: snow lies on all but steep ground (064, 073, 003).
+  snow = max(snow, owSnowCover * smoothstep(0.6, 0.84, owN.y + 0.14 * (meso - 0.5)) * (0.86 + 0.14 * micro) * (1.0 - 0.7 * rock));
   float town = vShade.w;
   float forest = vShade.y;
   // Grass: lush to dry by macro noise, darker forest floor under woods.
@@ -179,6 +184,25 @@ ${SCAN_COMMON_GLSL}`,
   grass = mix(grass, vec3(0.055, 0.07, 0.03) * (0.8 + 0.4 * micro), smoothstep(0.3, 0.8, forest) * 0.85);
   // Short airfield and park turf, worn paving in towns.
   grass = mix(grass, mix(vec3(0.17, 0.165, 0.15), vec3(0.11, 0.15, 0.06), smoothstep(0.4, 0.7, meso)), town * 0.8);
+  // Season (references 021, 032, 036, 042, 052, 064): fresh spring green,
+  // deep summer green, straw and russet in autumn with leaf litter under
+  // the woods, dormant grey-brown under the winter snow.
+  {
+    float gl = max(dot(grass, vec3(0.2126, 0.7152, 0.0722)), 1e-4);
+    vec3 springG = mix(grass, vec3(0.1, 0.17, 0.033) * (gl / 0.105), 0.55);
+    vec3 autumnG = mix(vec3(0.24, 0.185, 0.075), vec3(0.17, 0.105, 0.05), smoothstep(0.35, 0.8, meso)) * clamp(gl / 0.1, 0.6, 1.3);
+    // Susuki fields read silver-gold from afar (036); petals lie under the
+    // cherry groves in spring (050).
+    float susuki = smoothstep(0.5, 0.62, owFloraZone(p, ${SUSUKI_SEED.toFixed(2)})) * (1.0 - smoothstep(0.2, 0.5, forest)) * (1.0 - town);
+    autumnG = mix(autumnG, vec3(0.44, 0.36, 0.22) * (0.85 + 0.3 * micro), susuki * 0.75);
+    autumnG = mix(autumnG, vec3(0.15, 0.065, 0.028) * (0.75 + 0.5 * micro), smoothstep(0.3, 0.8, forest) * 0.85);
+    float petals = owCherryZone(p) * smoothstep(0.5, 0.85, owFbm(p * 0.09, near)) * (1.0 - 0.6 * forest);
+    springG = mix(springG, vec3(0.62, 0.45, 0.5), petals * 0.45);
+    vec3 winterG = mix(vec3(0.15, 0.13, 0.095), vec3(0.1, 0.09, 0.07), micro);
+    // Summer: deep olive green (016 #626931, 021 #63632d sunlit).
+    vec3 summerG = grass * vec3(0.92, 1.0, 0.72);
+    grass = owSeason.x * springG + owSeason.y * summerG + owSeason.z * autumnG + owSeason.w * winterG;
+  }
   vec3 rockC = mix(vec3(0.17, 0.16, 0.145), vec3(0.29, 0.27, 0.24), owFbm(vec2(p.x * 0.05, vOwWorld.y * 0.6), mid));
   rockC *= 0.85 + 0.3 * micro;
   // Fields: crop strips from the farm pattern, else bare earth.
@@ -189,10 +213,38 @@ ${SCAN_COMMON_GLSL}`,
   vec3 sandC = mix(vec3(0.42, 0.37, 0.27), vec3(0.6, 0.54, 0.41), meso) * (0.9 + 0.2 * micro);
   vec3 snowC = vec3(0.82, 0.84, 0.88) * (0.94 + 0.06 * micro) * owSnowTint;
   ${FESTIVAL_SCAN_GLSL}
-  // Road verges: compacted, dusty.
-  float verge = smoothstep(0.25, 1.0, vShade.x) * (1.0 - snow);
+  // Road verges: compacted and dusty only beside the shoulder; the carved
+  // embankments beyond stay grassed (042, 050: grass to the guardrail).
+  float verge = smoothstep(0.9, 1.0, vShade.x) * (1.0 - snow);
   vec3 col = grass;
   col = mix(col, soilC, soil);
+  // Rice paddies and flower fields on the flat lowland farms: plots with
+  // grass bunds (050, 028), flooded in spring, green in summer, gold in
+  // autumn; some plots are flower strips in spring and summer (051).
+  float owPaddyWet = 0.0;
+  {
+    float farmW = smoothstep(0.42, 0.5, field) * smoothstep(0.95, 0.985, owN.y) * (1.0 - rock) * (1.0 - sand);
+    vec2 g = vec2(p.x / 34.0, p.y / 61.0);
+    vec2 cell = floor(g), f = fract(g);
+    float edgeM = min(min(f.x, 1.0 - f.x) * 34.0, min(f.y, 1.0 - f.y) * 61.0);
+    float bund = 1.0 - smoothstep(0.3, 0.55, edgeM);
+    float plot = owHash(cell + 17.0), plot2 = owHash(cell + 41.0);
+    float rows = smoothstep(0.55, 0.9, abs(fract(p.x * 3.3) - 0.5) * 2.0) * near;
+    vec3 water = vec3(0.03, 0.04, 0.042);
+    vec3 rice = mix(vec3(0.075, 0.15, 0.03), vec3(0.11, 0.18, 0.04), plot2) * (0.85 + 0.25 * rows);
+    vec3 gold = mix(vec3(0.36, 0.28, 0.09), vec3(0.24, 0.18, 0.1), step(0.65, plot2));
+    vec3 springP = mix(water, vec3(0.08, 0.13, 0.03), rows * 0.35 + step(0.75, plot2) * 0.7);
+    vec3 paddyC = owSeason.x * springP + owSeason.y * rice + owSeason.z * gold + owSeason.w * vec3(0.14, 0.11, 0.08);
+    float stripe = fract(p.x / 7.5 + plot * 3.0);
+    vec3 bloom = stripe < 0.2 ? vec3(0.5, 0.03, 0.03) : (stripe < 0.4 ? vec3(0.6, 0.42, 0.02) : (stripe < 0.6 ? vec3(0.2, 0.05, 0.33) : (stripe < 0.8 ? vec3(0.62, 0.62, 0.58) : vec3(0.62, 0.18, 0.32))));
+    bloom = mix(bloom, vec3(0.06, 0.1, 0.03), smoothstep(0.42, 0.5, abs(fract(p.x / 1.5) - 0.5)) * 0.6);
+    vec3 flowerC = (owSeason.x + owSeason.y) * bloom + owSeason.z * vec3(0.2, 0.15, 0.09) + owSeason.w * vec3(0.14, 0.11, 0.08);
+    vec3 plotC = plot < 0.14 ? flowerC : paddyC;
+    plotC = mix(plotC, vec3(0.085, 0.12, 0.04) * (0.8 + 0.4 * micro), bund);
+    float use = farmW * step(plot, 0.82);
+    col = mix(col, plotC, use);
+    owPaddyWet = use * owSeason.x * (1.0 - bund) * step(0.14, plot) * (1.0 - step(0.75, plot2));
+  }
   col = mix(col, sandC, sand);
   col = mix(col, rockC, rock);
   col = mix(col, vec3(0.19, 0.17, 0.14) * (0.85 + 0.3 * micro), verge * 0.6);
@@ -201,6 +253,7 @@ ${SCAN_COMMON_GLSL}`,
   owRoughness = mix(owRoughness, 0.96, soil * 0.6);
   owRoughness = mix(owRoughness, 0.88, sand);
   owRoughness = mix(owRoughness, 0.42, snow);
+  owRoughness = mix(owRoughness, 0.06, owPaddyWet * (1.0 - snow));
 #ifdef APEX_SCAN
   owRoughness = clamp(owRoughness * mix(owScanRough, 1.0, max(rock, snow)), 0.05, 1.0);
 #endif
@@ -231,7 +284,7 @@ normal = apexScanPerturb(normal, owScanN, 1.1);
 #endif`,
       );
   };
-  material.customProgramCacheKey = () => 'festival-terrain-v1';
+  material.customProgramCacheKey = () => 'festival-terrain-seasons-v2';
   scannedGround.register(material, FESTIVAL_SCAN_LAYERS);
   return material;
 }

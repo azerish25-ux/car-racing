@@ -1,6 +1,10 @@
 import { gridHeight } from '../../simulation/open-world/terrain-tiles.ts';
 import { smoothstep } from '../../simulation/open-world/noise.ts';
-import { treesForTile, TREE_STRIDE, type StructureGrid } from '../../simulation/open-world/placement.ts';
+import {
+  treesForTile,
+  TREE_STRIDE,
+  type StructureGrid,
+} from '../../simulation/open-world/placement.ts';
 import { TILE_SIZE } from '../../simulation/open-world/terrain-tiles.ts';
 import type { OpenWorld } from '../../simulation/open-world/world.ts';
 import type { TileMeshData, TileRequest } from '../../workers/open-world-protocol.ts';
@@ -16,7 +20,11 @@ export const TILE_TREE_STRIDE = TREE_STRIDE + 1;
  * verge, forest floor, field pattern, town/airfield ground), plus the trees
  * standing on it for the near levels.
  */
-export function buildTileData(world: OpenWorld, structures: StructureGrid, req: TileRequest): TileMeshData {
+export function buildTileData(
+  world: OpenWorld,
+  structures: StructureGrid,
+  req: TileRequest,
+): TileMeshData {
   const start = performance.now();
   const { x0, z0, size, res } = req,
     step = size / res,
@@ -53,21 +61,33 @@ export function buildTileData(world: OpenWorld, structures: StructureGrid, req: 
         roadDistance = carved.distance[c];
       // Layer weights.
       const snowLine = field.snowLine(x, z);
-      const snow = smoothstep(snowLine - 25, snowLine + 35, h) * (1 - smoothstep(0.75, 1.05, slope));
+      const snow =
+        smoothstep(snowLine - 25, snowLine + 35, h) * (1 - smoothstep(0.75, 1.05, slope));
       // Rock: steep ground, cuttings beside roads, high bare ground.
       const cut = road > 0.05 && road < 0.98 && slope > 0.45 ? 0.8 : 0;
-      const rock = Math.max(smoothstep(0.5, 0.85, slope), cut, smoothstep(480, 620, h) * 0.45) * (1 - snow * 0.7);
+      const rock =
+        Math.max(smoothstep(0.5, 0.85, slope), cut, smoothstep(480, 620, h) * 0.45) *
+        (1 - snow * 0.7);
       const coast = field.coastDistance(x, z, step);
       const valley = field.valleyAt(x, z);
-      const sand = Math.max(
-        (1 - smoothstep(region.seaLevel + 1.8, region.seaLevel + 4.2, h)) * (1 - smoothstep(140, 260, coast)),
-        valley.distance < region.valley.channel * 1.6 ? 0.75 : 0,
-      ) * (1 - rock);
-      const town = Math.max(field.flatWeight('town', x, z), field.flatWeight('village', x, z) * 0.6);
+      const sand =
+        Math.max(
+          (1 - smoothstep(region.seaLevel + 1.8, region.seaLevel + 4.2, h)) *
+            (1 - smoothstep(140, 260, coast)),
+          valley.distance < region.valley.channel * 1.6 ? 0.75 : 0,
+        ) *
+        (1 - rock);
+      const town = Math.max(
+        field.flatWeight('town', x, z),
+        field.flatWeight('village', x, z) * 0.6,
+      );
       const airfield = field.flatWeight('airfield', x, z);
-      const farm = h < 150 ? smoothstep(0.42, 0.5, field.farmPattern(x, z)) * (1 - town) * (1 - airfield) : 0;
+      const farm =
+        h < 150 ? smoothstep(0.42, 0.5, field.farmPattern(x, z)) * (1 - town) * (1 - airfield) : 0;
       // Soil: ploughed fields, bare verges and worn town ground.
-      const verge = road > 0 ? smoothstep(16, 2, roadDistance) * 0.7 : 0;
+      // Bare verge only on the first metres past the shoulder: Japanese
+      // roads keep grass and weeds up to the edge (042, 050, 090).
+      const verge = road > 0 ? smoothstep(8.5, 3.5, roadDistance) * 0.6 : 0;
       const soil = Math.min(1, farm * 0.55 + verge + town * 0.35) * (1 - rock) * (1 - sand);
       splat[v * 4] = rock;
       splat[v * 4 + 1] = soil;
@@ -86,7 +106,14 @@ export function buildTileData(world: OpenWorld, structures: StructureGrid, req: 
     for (let tz = z0; tz < z0 + size; tz += TILE_SIZE)
       for (let tx = x0; tx < x0 + size; tx += TILE_SIZE)
         parts.push(
-          treesForTile(world, Math.floor(tx / TILE_SIZE), Math.floor(tz / TILE_SIZE), structures, req.trees, !!req.colliders),
+          treesForTile(
+            world,
+            Math.floor(tx / TILE_SIZE),
+            Math.floor(tz / TILE_SIZE),
+            structures,
+            req.trees,
+            !!req.colliders,
+          ),
         );
     const count = parts.reduce((n, p) => n + p.length / TREE_STRIDE, 0);
     trees = new Float32Array(count * TILE_TREE_STRIDE);
@@ -94,7 +121,13 @@ export function buildTileData(world: OpenWorld, structures: StructureGrid, req: 
     for (const part of parts)
       for (let k = 0; k < part.length; k += TREE_STRIDE) {
         for (let f = 0; f < TREE_STRIDE; f++) trees[o + f] = part[k + f];
-        trees[o + TREE_STRIDE] = gridHeight(heights, side, (part[k] - x0) / step, (part[k + 1] - z0) / step, step);
+        trees[o + TREE_STRIDE] = gridHeight(
+          heights,
+          side,
+          (part[k] - x0) / step,
+          (part[k + 1] - z0) / step,
+          step,
+        );
         o += TILE_TREE_STRIDE;
       }
   }
