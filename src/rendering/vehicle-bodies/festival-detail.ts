@@ -72,9 +72,16 @@ export function festivalFasciaOpenings(model: ClosedBodyModel, rear = false): Fa
   const top = Math.max(...profile.map((p) => p[1]));
   // A festival form's fascia is mostly intake (refs 011, 014, 019, 090).
   const share = model.festival ? 0.58 : 0.5;
+  const most = model.festival
+    ? s.style === 'truck'
+      ? 0.3
+      : 0.26
+    : s.style === 'truck'
+      ? 0.27
+      : 0.2;
   const height = rear
     ? Math.min(0.14, Math.max(0.075, (top - bottom) * 0.21))
-    : Math.min(s.style === 'truck' ? 0.3 : model.festival ? 0.26 : 0.2, (top - bottom) * share);
+    : Math.min(most, (top - bottom) * share);
   const y = rear
     ? Math.min(f.y(s.tail) - 0.3, top - height * 0.8)
     : bottom + (top - bottom) * (model.festival ? 0.47 : 0.49);
@@ -215,7 +222,7 @@ export function festivalFasciaCap(model: ClosedBodyModel, detail: Detail, rear =
   }
   let geometry: T.BufferGeometry = new T.ShapeGeometry(shape).translate(0, 0, z);
   // A festival form curves the face afterwards: refine it so it bends.
-  if (model.festival) geometry = refineFlat(geometry, detail === 0 ? 0.07 : 0.14);
+  if (model.festival) geometry = refineFlat(geometry, detail === 0 ? 0.13 : 0.24);
   // An array material needs an explicit draw group in Three.js.
   geometry.addGroup(0, geometry.index?.count ?? geometry.getAttribute('position').count, 0);
   return rear ? flipWinding(geometry) : geometry;
@@ -796,6 +803,8 @@ function addVents(parts: Parts, model: ClosedBodyModel, mats: CarMaterials, deta
       const z = (f.frontAxle + f.z(s.cabin[0])) / 2 + 0.05;
       const x = side * model.halfWidth(z) * 0.45;
       const at = surfacePlacement(model, x, z);
+      // A festival form sinks the vent into its hood: slats at the surface.
+      if (model.festival) at.multiply(placed(0, -0.016, 0));
       parts.add(roundedBox(0.235, 0.018, 0.28, 0.018, 2), darkOptics, inLocal(at, 0, 0.006, 0));
       const count = detail === 0 ? 7 : 4;
       for (let k = 0; k < count; k++) {

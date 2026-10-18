@@ -53,15 +53,25 @@ const festivalBody = (def: VehicleDefinition) =>
 
 describe('Festival road-car production form', () => {
   it('leaves every plain (circuit) body exactly as it was', () => {
-    // Fingerprints of the near LOD before the festival form existed: a GT
-    // race car, the touring car, a prototype, and two road cars that also
-    // carry the class-gated festival detail on a circuit.
+    // Fingerprints of the near LOD before the festival form existed: race
+    // cars of each closed family, and every road car (which also carries the
+    // class-gated festival detail on a circuit).
     const before: Record<string, string> = {
       tc1: '166720/80192/3768821c',
       hy9: '185694/87810/e8f20e75',
       gt8f: '180512/84744/5e15da5a',
+      gt10m: '186624/86734/9cf5e6a8',
+      cr1: '143380/63206/48820d25',
       eh3: '178016/85102/38ad305a',
+      sc7: '183928/86098/b6e01c5a',
       rh3: '155272/76966/c364610a',
+      rs5: '157140/78830/48f2eb76',
+      rm8: '146352/73346/7aea7d07',
+      rg63: '165568/76882/8aa0d3c3',
+      rp6: '167106/84046/9bac2860',
+      rr4: '152208/75542/e715d130',
+      lx12: '163118/80954/a9ccf5c',
+      rd2: '135748/62404/1bf19861',
     };
     for (const [id, print] of Object.entries(before)) {
       const def = VEHICLES[id];
