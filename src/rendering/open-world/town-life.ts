@@ -382,9 +382,11 @@ function poolMaterial(uniforms: Record<string, T.IUniform>) {
       varying vec2 vPool; varying vec3 vPoolColor;
       void main() {
         float r2 = dot(vPool, vPool);
-        float a = exp(-r2 * 2.6) * (1.0 - smoothstep(0.55, 1.0, r2));
+        // Wet ground: a tighter, brighter core (the light reads specular)
+        // and less diffuse spill overall.
+        float a = exp(-r2 * (2.6 + townWet * 1.8)) * (1.0 - smoothstep(0.55, 1.0, r2));
         if (a * townNight < 0.002) discard;
-        gl_FragColor = vec4(vPoolColor * a * townNight * (1.0 + townWet * 0.7), 1.0);
+        gl_FragColor = vec4(vPoolColor * a * townNight * (1.0 + townWet * 0.3), 1.0);
         #include <tonemapping_fragment>
         #include <colorspace_fragment>
       }`,
