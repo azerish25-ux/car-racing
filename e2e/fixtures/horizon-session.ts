@@ -125,6 +125,27 @@ Object.assign(window, {
       inspect(at(offset), at(target));
       return true;
     },
+    /** Stream the terrain around the current (inspection) camera without
+     * drawing, until no tile is wanted or in flight (scenery review only). */
+    settle: async (limitMs = 60000) => {
+      if (!session) throw new Error('Session is not loaded');
+      const renderer = (session as unknown as { renderer: FestivalRenderer }).renderer;
+      const terrain = renderer.terrain as unknown as {
+        inFlight: number;
+        stats: { requested: number };
+        update(camera: T.Camera): void;
+      };
+      const deadline = performance.now() + limitMs;
+      let quiet = 0;
+      while (performance.now() < deadline && quiet < 6) {
+        const requested = terrain.stats.requested;
+        renderer.camera.updateMatrixWorld();
+        terrain.update(renderer.camera);
+        await new Promise((resolve) => setTimeout(resolve, 60));
+        quiet = terrain.inFlight === 0 && terrain.stats.requested === requested ? quiet + 1 : 0;
+      }
+      return quiet >= 6;
+    },
     /** Drawn ambient traffic positions (vehicle visual review). */
     traffic: () => {
       const traffic = session
