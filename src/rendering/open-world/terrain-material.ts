@@ -1,5 +1,7 @@
 import * as T from 'three';
 import { SCAN_COMMON_GLSL } from '../ground/ground-glsl.ts';
+import { DISTANT_SNOW } from './distant-relief.ts';
+import { bindSeasonUniforms, SEASON_GLSL } from './season.ts';
 import {
   scanLayerCall,
   scanMacroCall,
@@ -7,7 +9,6 @@ import {
   scanUniformDeclarations,
   type ScanLayer,
 } from '../ground/scan-store.ts';
-import { bindSeasonUniforms } from './season.ts';
 import { FLORA_ZONE_GLSL, SUSUKI_SEED } from './flora-roles.ts';
 
 /** Photographed sets of the festival terrain (Medium and above): meadow
@@ -135,11 +136,7 @@ vOwWorld = (modelMatrix * vec4(transformed, 1.0)).xyz;`,
         `#include <common>
 uniform float owWet;
 uniform float owSnowTint;
-#ifndef OW_SEASON_DECLARED
-#define OW_SEASON_DECLARED
-uniform vec4 owSeason;
-uniform float owSnowCover;
-#endif
+${SEASON_GLSL}
 varying vec4 vSplat;
 varying vec4 vShade;
 varying vec3 vOwWorld;
@@ -171,6 +168,11 @@ ${SCAN_COMMON_GLSL}`,
   float soil = clamp(vSplat.y * (0.7 + 0.6 * meso), 0.0, 1.0);
   float sand = clamp(vSplat.z * (0.85 + 0.3 * micro), 0.0, 1.0);
   float snow = clamp(vSplat.w * (0.8 + 0.5 * meso) - 0.05, 0.0, 1.0);
+  // The biome's snow (above ~600 m) lies only above the season's snow line
+  // (the distant ranges' own): none on summer hills, the high ground white
+  // in winter.
+  snow *= smoothstep(-80.0, 80.0, vOwWorld.y + 120.0 * (meso - 0.5)
+    - dot(owSeason, vec4(${DISTANT_SNOW.ranges.map((v) => v.toFixed(1)).join(', ')})));
   // Winter: snow lies on all but steep ground (064, 073, 003).
   snow = max(snow, owSnowCover * smoothstep(0.6, 0.84, owN.y + 0.14 * (meso - 0.5)) * (0.86 + 0.14 * micro) * (1.0 - 0.7 * rock));
   float town = vShade.w;

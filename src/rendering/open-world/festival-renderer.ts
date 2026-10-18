@@ -55,12 +55,12 @@ import { UltraPipeline } from '../ultra/pipeline.ts';
 import { PhotoSky } from '../assets/photo-sky.ts';
 import { scannedGround } from '../ground/scan-store.ts';
 import { FESTIVAL_PALETTE } from '../assets/sky-catalogue.ts';
-import { aerialFogColor } from '../studio/aerial-perspective.ts';
 import { WetRoadReflection } from '../wet-reflection.ts';
 import { Buildings } from './buildings.ts';
 import { FestivalCars } from './festival-cars.ts';
 import { EventMarkers } from './markers.ts';
 import { RoadMeshes } from './roads.ts';
+import { RoadFurniture } from './road-furniture.ts';
 import { TERRAIN_BUDGETS, TerrainStreamer } from './terrain.ts';
 import { Vegetation } from './vegetation.ts';
 import { FestivalFlora } from './flora.ts';
@@ -88,7 +88,12 @@ import { driftFeedback, type DriftCue } from '../../simulation/open-world/drift-
 import { HorizonGuidance } from './horizon-guidance.ts';
 import { FestivalTrails } from './festival-trails.ts';
 import { HorizonDressing } from './horizon-dressing.ts';
-import { applySeason, type Season } from './season.ts';
+import { DistantLandscape } from './distant-landscape.ts';
+import { FestivalAtmosphere, festivalGrade, festivalSkyline } from './festival-atmosphere.ts';
+import { FestivalDriftSmoke } from './drift-smoke.ts';
+import { FestivalEventDressing } from './event-dressing.ts';
+import { FestivalSpeedBlur } from './speed-blur.ts';
+import { applySeason, SEASONS, type Season } from './season.ts';
 import {
   createFestivalContactOffset,
   festivalContactEnabled,
@@ -97,9 +102,13 @@ import {
 
 export type FestivalCamera = 'chase' | 'far' | 'hood';
 const CAMERAS: readonly FestivalCamera[] = ['chase', 'far', 'hood'];
-/** Chase rigs (m): distance behind, height, look-ahead, look lift, fov. */
+/** Chase rigs (m): distance behind, height, look-ahead, look lift, fov.
+ * The chase rig is measured from the in-race reference frames (FH6 ref
+ * 041/042): at rest the horizon sits at ~40 % of the frame height, the
+ * car's rear bumper at ~92 % and its roof at ~55 %, the car ~30 % of the
+ * frame width (eye ~1.9 m above the road, ~5 m behind the car's centre). */
 const RIGS = {
-  chase: { distance: 5.8, height: 1.85, perMs: 0.018, lookAhead: 9, lift: 0.82, fov: 57 },
+  chase: { distance: 5.0, height: 1.45, perMs: 0.016, lookAhead: 8, lift: 0.08, fov: 57 },
   far: { distance: 11, height: 3.6, perMs: 0.03, lookAhead: 10, lift: 1.1, fov: 58 },
 } as const;
 
@@ -117,12 +126,20 @@ const RIGS = {
  */
 export class FestivalRenderer {
   readonly scene = new T.Scene();
-  readonly camera = new T.PerspectiveCamera(60, 1, 0.3, 26000);
+  // Far plane past the distant ranges and the volcano (to 48 km from any
+  // point of the region). Depth precision is set by the near plane
+  // (d^2 / (near * 2^24)), so this costs nothing nearer than 26 km.
+  readonly camera = new T.PerspectiveCamera(60, 1, 0.3, 90000);
   readonly terrain: TerrainStreamer;
   readonly roads: RoadMeshes;
+  readonly furniture: RoadFurniture;
   readonly streetLights: StreetLightPools;
   readonly buildings: Buildings;
   readonly dressing: HorizonDressing;
+  /** Landmark volcano and the ranges beyond the streamed terrain. */
+  readonly distant: DistantLandscape;
+  /** Aerial perspective of the region (replaces FogExp2 on its materials). */
+  readonly atmosphere = new FestivalAtmosphere();
   details: SolvaneDetails | null = null;
   private detailLoading: Promise<boolean> | null = null;
   streetDetails: StreetDetails | null = null;
@@ -143,6 +160,10 @@ export class FestivalRenderer {
   private readonly effectPlayback = new EffectPlayback(this.effects);
   readonly guidance = new HorizonGuidance();
   readonly trails = new FestivalTrails();
+  readonly smoke = new FestivalDriftSmoke();
+  readonly eventDressing: FestivalEventDressing;
+  private readonly speedBlur: FestivalSpeedBlur;
+  private readonly bufferSize = new T.Vector2();
   private readonly reflection = new ReflectionSystem();
   private readonly reflectionMaterials: T.MeshStandardMaterial[] = [];
   private reflectionVersion = -1;
@@ -189,6 +210,7 @@ export class FestivalRenderer {
   private readonly velocity = new T.Vector3();
   private readonly forward = new T.Vector3();
   private readonly temp = new T.Vector3();
+  private readonly temp2 = new T.Vector2();
   private readonly basis = new T.Quaternion();
   private readonly euler = new T.Euler();
   private initialized = false;
@@ -228,6 +250,7 @@ export class FestivalRenderer {
       this.guidance.root,
       this.trails.root,
       this.contacts.root,
+      this.smoke.root,
     ];
     this.effects.looseColours = new Map([
       [MATERIAL.DIRT, [0.43, 0.32, 0.19] as const],
@@ -264,7 +287,11 @@ export class FestivalRenderer {
     this.sun.shadow.normalBias = 0.02;
     this.terrain = new TerrainStreamer(tileWorker, TERRAIN_BUDGETS.medium);
     this.roads = new RoadMeshes(world.network, world.field);
-    this.streetLights = new StreetLightPools(this.roads.lampSockets);
+    this.furniture = new RoadFurniture(world, structures, (x, z) => this.groundHeight(x, z));
+    this.streetLights = new StreetLightPools([
+      ...this.roads.lampSockets,
+      ...this.furniture.lampSockets,
+    ]);
     scene.add(this.streetLights.root);
     this.buildings = new Buildings(structures);
     this.dressing = new HorizonDressing(world, structures);
@@ -272,12 +299,19 @@ export class FestivalRenderer {
     // Season cover on the festival's own road and meadow materials.
     installSeasonRoads(this.roads.materials);
     installSeasonMeadow(this.dressing.root);
+    this.distant = new DistantLandscape(
+      (x, z, wavelength) => world.field.height(x, z, wavelength),
+      world.field.region.seed,
+    );
+    scene.add(this.distant.root);
     this.water = new Water(world.field);
     this.markers = new EventMarkers(events, (x, z) => this.groundHeight(x, z));
     this.reflection.probeExclusions.push(this.markers.root);
+    this.eventDressing = new FestivalEventDressing(events, world, structures, this.heightAt);
     scene.add(
       this.terrain.root,
       this.roads.root,
+      this.furniture.root,
       this.buildings.root,
       this.dressing.root,
       this.vegetation.root,
@@ -289,16 +323,24 @@ export class FestivalRenderer {
       this.guidance.root,
       this.trails.root,
       this.contacts.root,
+      this.smoke.root,
+      this.eventDressing.root,
     );
     installSpecularIBL(scene);
     installSpecularIBLMaterial(this.terrain.material);
     this.composer = new EffectComposer(renderer);
     this.scenePass = new SceneAmbientPass(scene, this.camera, this.graphics.msaa);
     this.composer.addPass(this.scenePass);
+    // Festival speed blur: the shared depth-reprojected camera blur, gathered
+    // in this scene pass's composite (no extra draw).
+    this.speedBlur = new FestivalSpeedBlur(renderer.extensions.has('EXT_color_buffer_float'));
+    this.scenePass.attach(this.speedBlur.motion);
     this.composer.addPass(this.bloom);
     this.composer.addPass(new OutputPass());
     this.composer.addPass(this.fxaa);
     this.composer.addPass(this.grade);
+    // The festival's own grade over the shared profiles (festival-atmosphere.ts).
+    this.grade.profileAdjust = festivalGrade;
     this.ultra = new UltraPipeline({
       renderer,
       scene,
@@ -459,6 +501,7 @@ export class FestivalRenderer {
     this.effects.enabled = g.particleDensity > 0;
     this.effects.density = g.particleDensity;
     this.trails.enabled = preset !== 'low';
+    this.smoke.setQuality(preset);
     const budget = TERRAIN_BUDGETS[tier];
     this.terrain.budget = { ...budget, trees: budget.trees * clamp(g.vegetationDensity, 0, 1) };
     this.environment.highDetail = g.reflections === 'local';
@@ -526,6 +569,8 @@ export class FestivalRenderer {
     this.camera.position.set(x, this.groundHeight(x, z) + 3, z);
     this.camera.updateMatrixWorld();
     this.terrain.update(this.camera);
+    // Built once per tier, while the loading screen is up.
+    this.distant.setQuality(this.preset);
   }
   draw(a: Float32Array, b: Float32Array, alpha: number, dt: number) {
     if (this.disposed) return;
@@ -684,10 +729,20 @@ export class FestivalRenderer {
     this.effectPlayback.update(presented, true, true);
     this.effects.setSignalLights(presented, true);
     this.trails.update(presented, this.heightAt);
+    this.smoke.update(presented, this.heightAt);
     this.roads.setNight(night);
+    this.furniture.setNight(night);
+    this.furniture.update(
+      this.camera,
+      this.preset,
+      this.renderer.getDrawingBufferSize(this.temp2).y,
+    );
     this.buildings.setNight(night);
     this.dressing.update(time, night, this.camera, this.preset);
     this.flora.update(this.camera, this.preset);
+    this.distant.setQuality(this.preset);
+    this.distant.update(this.lighting, SEASONS.indexOf(this.currentSeason));
+    this.eventDressing.update(this.camera, night, this.preset, time);
     this.details?.update(
       time,
       night,
@@ -716,14 +771,10 @@ export class FestivalRenderer {
       daylight.environment = 0.2 + daylight.cover * 0.04;
       daylight.exposure = 1.12 - clamp(presented[H.RAIN], 0, 60) * 0.0005;
     }
-    const photoPalette = mode === 'night' ? null : this.photoSky.fogPalette(daylight.cover, mode);
-    if (photoPalette)
-      [daylight.fogRed, daylight.fogGreen, daylight.fogBlue] = aerialFogColor(
-        daylight.cover,
-        presented[H.RAIN],
-        mode,
-        photoPalette,
-      );
+    // The festival's own air (festival-atmosphere.ts): the art-bible horizon
+    // as in-scatter, not the photographed dome's (its clear-day photo has a
+    // brown desert horizon), and clean-air extinction per lighting.
+    this.atmosphere.update(mode, daylight.cover, presented[H.RAIN]);
     applyCircuitLightPalette(this.sun, this.hemisphere, daylight.cover, mode);
     this.sun.intensity = daylight.sun;
     this.hemisphere.intensity = daylight.fill;
@@ -739,9 +790,14 @@ export class FestivalRenderer {
     if (saturation !== null) iblUniforms.apexSkyIrradianceSaturation.value = saturation;
     this.renderer.toneMappingExposure = daylight.exposure;
     const fog = this.scene.fog as T.FogExp2;
-    // The region is kilometres deep: the circuit haze, thinned.
-    fog.density = daylight.fogDensity * 0.3;
-    fog.color.setRGB(daylight.fogRed, daylight.fogGreen, daylight.fogBlue);
+    // FogExp2 only for materials without the festival air (see atmosphere).
+    fog.density = this.atmosphere.fogDensity;
+    fog.color.copy(this.atmosphere.inscatter);
+    // Shaded side of the drift smoke: a neutral sky fill standing in for the
+    // IBL the scene's opaque surfaces receive (rubber smoke reads white-grey,
+    // not the colour of the horizon haze).
+    const fill = 0.8 * daylight.environment;
+    this.smoke.setFill(0.7 * fill, 0.74 * fill, 0.8 * fill);
     const uniforms = this.sky.material.uniforms;
     uniforms.cloudCover.value = daylight.cover;
     uniforms.skyRadiance.value = daylight.skyRadiance;
@@ -750,6 +806,12 @@ export class FestivalRenderer {
     uniforms.sunPosition.value.copy(lightingDirection(mode));
     bindSkyCelestial(this.sky.material, mode);
     this.photoSky.bind(this.sky.material, daylight.cover, mode, false);
+    festivalSkyline(
+      this.sky.material,
+      this.photoSky.shownPair,
+      this.atmosphere.inscatter,
+      mode === 'night' ? 0.6 : 1,
+    );
     uniforms.cloudDrift.value = (time * SKY_CLOUDS.driftPerSecond) % 1;
     shadowAnchor(
       this.target,
@@ -769,6 +831,18 @@ export class FestivalRenderer {
     // A light onshore breeze for the planting (no weather wind in free roam).
     studioUniforms.studioWind.value.set(2.6, 1.4, time, 0.5);
     // --- Render ---------------------------------------------------------------
+    // Materials streamed or loaded since the last frame get the festival air
+    // before they first draw (vehicles, effects and overlays keep FogExp2).
+    this.atmosphere.install(this.scene, [
+      this.cars.root,
+      this.effects.group,
+      this.guidance.root,
+      this.trails.root,
+      this.contacts.root,
+      this.markers.root,
+      this.distant.root,
+      ...this.vehicleRoots,
+    ]);
     this.renderer.info.reset();
     this.renderer.info.autoReset = false;
     this.environment.update(this.renderer, this.scene, daylight.cover, mode);
@@ -822,6 +896,14 @@ export class FestivalRenderer {
       this.mode === 'hood' ? 'cockpit' : 'chase',
       speed,
     );
+    this.speedBlur.prepare(
+      presented,
+      this.camera,
+      this.groundHeight(this.target.x, this.target.z, this.target.y),
+      this.graphics.motionBlur,
+      !this.photo,
+      this.renderer.getDrawingBufferSize(this.bufferSize).x,
+    );
     this.ultra.prepareFrame({
       presented,
       cars: [
@@ -854,9 +936,11 @@ export class FestivalRenderer {
     scannedGround.detach(this.renderer);
     this.terrain.dispose();
     this.roads.dispose();
+    this.furniture.dispose();
     this.streetLights.dispose();
     this.buildings.dispose();
     this.dressing.dispose();
+    this.distant.dispose();
     this.details?.dispose();
     this.details = null;
     this.streetDetails?.dispose();
@@ -870,6 +954,9 @@ export class FestivalRenderer {
     this.markers.dispose();
     this.cars.dispose();
     this.trails.dispose();
+    this.smoke.dispose();
+    this.eventDressing.dispose();
+    this.speedBlur.dispose();
     this.guidance.dispose();
     this.orbit.dispose();
     this.reflection.dispose();

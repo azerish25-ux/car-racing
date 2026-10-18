@@ -312,6 +312,11 @@ export class PhotoSky implements PhotoSkyBinding {
     return Math.min(1, Math.max(0.25, s));
   }
 
+  /** Ids of the pair the last visible bind showed (null when none). */
+  get shownPair(): { readonly a: string; readonly b: string } | null {
+    return this.shown;
+  }
+
   diagnostics() {
     return {
       enabled: this.enabled,

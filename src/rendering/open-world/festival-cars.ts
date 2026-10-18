@@ -5,8 +5,18 @@ import { bodyFrame } from '../vehicle-bodies/frame.ts';
 import { bodySheetFor } from '../vehicle-bodies/body-sheet.ts';
 import { FormulaCar } from '../car.ts';
 import { VehicleBodies } from '../vehicle-bodies/index.ts';
+import type { CarMaterials } from '../vehicle-bodies/common.ts';
 import { installSpecularIBL } from '../studio/ibl-energy.ts';
 import type { Quality } from '../options.ts';
+import { lerp } from '../../core/math.ts';
+import {
+  FESTIVAL_LAMPS,
+  disposeFestivalFinish,
+  installFestivalFinish,
+  setFestivalLampLevels,
+  setLampHalos,
+} from './festival-car-finish.ts';
+import { setPlateLamp } from './festival-plates.ts';
 
 /** The festival constructs the procedural Formula model without borrowed
  * hero/driver assets. Capture its own resources before reflection/mirror
@@ -57,10 +67,21 @@ export class FestivalCars {
   paintVersion = 0;
   private headlightVehicle = -1;
   private lamp = { front: 0, y: 0, ground: 0 };
+  /** Each entrant's live lamp materials and its night halo (festival lamp
+   * levels). The halo finish is owned here and released with its body. */
+  private readonly lamps = new Map<
+    number,
+    { materials: CarMaterials; halo: T.ShaderMaterial | null }
+  >();
   constructor() {
     this.root.name = 'Festival cars';
     this.root.add(this.bodies.root);
-    this.bodies.onBuild = () => this.refreshPaint();
+    this.bodies.onBuild = (_root, body, id) => {
+      this.lamps.get(id)?.halo?.dispose();
+      const finish = installFestivalFinish(body, id);
+      this.lamps.set(id, { materials: body.materials, halo: finish?.halo ?? null });
+      this.refreshPaint();
+    };
     this.headlight.name = 'Followed car headlights';
     this.headlight.castShadow = false;
     this.root.add(this.headlight, this.headlight.target);
@@ -159,6 +180,24 @@ export class FestivalCars {
       night > 0.05,
       { follow: 0, cockpit, camera: camera?.position ?? null },
     );
+    // Open-road lamp levels over the shared body library's circuit levels:
+    // running tail bars by day, a hard brake flare, the LED signature.
+    setFestivalLampLevels(night);
+    setPlateLamp(night > 0.05 ? FESTIVAL_LAMPS.plateLamp * night : 0);
+    for (const [id, { materials, halo }] of this.lamps) {
+      if (id >= cars) continue;
+      const o = carBase(id),
+        brake = lerp(a[o + F.BRAKE], b[o + F.BRAKE], alpha);
+      if (halo) setLampHalos(halo, night, brake > 0.05);
+      materials.tail.emissiveIntensity =
+        brake > 0.05
+          ? FESTIVAL_LAMPS.brake
+          : lerp(FESTIVAL_LAMPS.tailDay, FESTIVAL_LAMPS.tailNight, night);
+      materials.head.emissiveIntensity =
+        night > 0.05
+          ? lerp(FESTIVAL_LAMPS.headDay, FESTIVAL_LAMPS.headNight, night)
+          : FESTIVAL_LAMPS.headDay;
+    }
     for (let id = 0; id < this.holders.length; id++) {
       const formula = this.formula.get(id);
       const isFormula =
@@ -198,6 +237,8 @@ export class FestivalCars {
    * while a session exit releases every resource owned by those entries. */
   clear() {
     this.bodies.clear();
+    for (const { halo } of this.lamps.values()) halo?.dispose();
+    this.lamps.clear();
     for (const release of this.releaseFormula.values()) release();
     this.releaseFormula.clear();
     this.formula.clear();
@@ -211,5 +252,6 @@ export class FestivalCars {
   }
   dispose() {
     this.clear();
+    disposeFestivalFinish();
   }
 }

@@ -239,6 +239,8 @@ export class FestivalSession {
       photoAngle: (angle) => renderer.photoAngle(angle),
     });
     const hud = this.hud;
+    // Current Best on the event panel (the save object is updated in place).
+    hud.best = this.save.best;
     this.controls = new FestivalControls(hud, {
       pause: (value) => this.post({ type: 'pause', value }),
       driving: (on) => host.driving?.(on),

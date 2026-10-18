@@ -15,6 +15,8 @@ import { SOLVANE } from '../../src/simulation/open-world/region-data.ts';
 import type { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { F, carBase } from '../../src/simulation/protocol.ts';
 import { isSeason, type Season } from '../../src/session/festival-season.ts';
+import type { TrafficCars } from '../../src/rendering/traffic-cars.ts';
+import { controls } from '../../src/simulation/config.ts';
 
 const params = new URLSearchParams(location.search);
 const quality = (params.get('quality') ?? 'medium') as QualityPreset;
@@ -39,6 +41,7 @@ const captureFrames = params.get('capture') === '1' ? Number(params.get('frames'
 let session: FestivalSession | null = null,
   exited = false,
   rendering = true,
+  scripted = false,
   draws = 0;
 const input = new InputController(settings, (action) => session?.action(action));
 const results: unknown[] = [];
@@ -80,24 +83,82 @@ const state = () => {
     frame: internal?.current ? Array.from(internal.current) : null,
   };
 };
+// Fixed-camera inspection only, excluded from the shipped application.
+// Pauses through the real session; never changes a car, worker, physics
+// sample, material, mesh or quality level. Gameplay evidence uses input.
+function inspect(position: [number, number, number], target: [number, number, number]) {
+  if (!session) throw new Error('Session is not loaded');
+  if (!session.isPaused) session.action('pause');
+  const renderer = (session as unknown as { renderer: FestivalRenderer }).renderer;
+  renderer.setPhoto(true);
+  const orbit = (renderer as unknown as { orbit: OrbitControls }).orbit;
+  orbit.enableDamping = false;
+  orbit.maxDistance = 20000;
+  orbit.maxPolarAngle = Math.PI;
+  orbit.target.fromArray(target);
+  renderer.camera.position.fromArray(position);
+  orbit.update();
+}
 Object.assign(window, {
   horizonReview: {
     state,
-    // Fixed-camera inspection only, excluded from the shipped application.
-    // Pauses through the real session; never changes a car, worker, physics
-    // sample, material, mesh or quality level. Gameplay evidence uses input.
-    inspect: (position: [number, number, number], target: [number, number, number]) => {
+    inspect,
+    // Fixed inspection in a subject's own frame: the player car (-1) or the
+    // k-th drawn ambient traffic car (vehicle visual review). Returns false
+    // when that subject is not drawn.
+    inspectNear: (
+      which: number,
+      offset: [number, number, number],
+      target: [number, number, number],
+    ) => {
       if (!session) throw new Error('Session is not loaded');
-      if (!session.isPaused) session.action('pause');
       const renderer = (session as unknown as { renderer: FestivalRenderer }).renderer;
-      renderer.setPhoto(true);
-      const orbit = (renderer as unknown as { orbit: OrbitControls }).orbit;
-      orbit.enableDamping = false;
-      orbit.maxDistance = 20000;
-      orbit.maxPolarAngle = Math.PI;
-      orbit.target.fromArray(target);
-      renderer.camera.position.fromArray(position);
-      orbit.update();
+      const pose = new T.Matrix4();
+      if (which < 0) {
+        const subject = renderer.cars.subject(0);
+        if (!subject) return false;
+        pose.compose(subject.position, subject.quaternion, new T.Vector3(1, 1, 1));
+      } else {
+        const traffic = (session as unknown as { traffic: TrafficCars | null }).traffic;
+        if (!traffic || !traffic.poseOf(which, pose)) return false;
+      }
+      const at = (v: [number, number, number]) =>
+        new T.Vector3(...v).applyMatrix4(pose).toArray() as [number, number, number];
+      inspect(at(offset), at(target));
+      return true;
+    },
+    /** Stream the terrain around the current (inspection) camera without
+     * drawing, until no tile is wanted or in flight (scenery review only). */
+    settle: async (limitMs = 60000) => {
+      if (!session) throw new Error('Session is not loaded');
+      const renderer = (session as unknown as { renderer: FestivalRenderer }).renderer;
+      const terrain = renderer.terrain as unknown as {
+        inFlight: number;
+        stats: { requested: number };
+        update(camera: T.Camera): void;
+      };
+      const deadline = performance.now() + limitMs;
+      let quiet = 0;
+      while (performance.now() < deadline && quiet < 6) {
+        const requested = terrain.stats.requested;
+        renderer.camera.updateMatrixWorld();
+        terrain.update(renderer.camera);
+        await new Promise((resolve) => setTimeout(resolve, 60));
+        quiet = terrain.inFlight === 0 && terrain.stats.requested === requested ? quiet + 1 : 0;
+      }
+      return quiet >= 6;
+    },
+    /** Drawn ambient traffic positions (vehicle visual review). */
+    traffic: () => {
+      const traffic = session
+        ? (session as unknown as { traffic: TrafficCars | null }).traffic
+        : null;
+      if (!traffic) return [];
+      const m = new T.Matrix4(),
+        out: number[][] = [];
+      for (let k = 0; k < traffic.count; k++)
+        if (traffic.poseOf(k, m)) out.push([m.elements[12], m.elements[13], m.elements[14]]);
+      return out;
     },
     command: (command: Parameters<FestivalSession['command']>[0]) => session?.command(command),
     // Stop submitting GPU frames only for a still capture. This does not alter
@@ -105,6 +166,58 @@ Object.assign(window, {
     rendering: (enabled: boolean) => {
       rendering = enabled;
     },
+    // Held-input drive for software-GL captures, where one frame takes
+    // seconds: the production input message is re-sent every 50 ms (the
+    // worker brakes after 750 ms of silence) while GPU frames are held, and
+    // the snapshot-driven tyre effects advance on the latest real snapshot as
+    // a 10 Hz renderer would. `freeze` then holds the worker (no menu) so the
+    // captured frames keep the car's speed, slip and skill state.
+    drive: (options: {
+      ms: number;
+      steer?: number;
+      steerAt?: number;
+      steerMs?: number;
+      throttle?: number;
+      freeze?: boolean;
+    }) =>
+      new Promise<void>((resolve) => {
+        if (!session) return resolve();
+        const internal = session as unknown as {
+          renderer: FestivalRenderer;
+          current: Float32Array | null;
+          post(message: unknown): void;
+        };
+        const height = (x: number, z: number, y?: number) =>
+          internal.renderer.groundHeight(x, z, y);
+        const effects = internal.renderer as unknown as Record<
+          string,
+          { update?: (frame: Float32Array, h: typeof height) => void } | undefined
+        >;
+        rendering = false;
+        scripted = true;
+        const start = performance.now();
+        let last = 0;
+        const timer = setInterval(() => {
+          const t = performance.now() - start,
+            steerAt = options.steerAt ?? 0,
+            steering =
+              t >= steerAt && t < steerAt + (options.steerMs ?? options.ms)
+                ? (options.steer ?? 0)
+                : 0;
+          session?.input({ ...controls(), throttle: options.throttle ?? 1, steer: steering });
+          if (t - last >= 100 && internal.current) {
+            last = t;
+            for (const name of ['trails', 'smoke'])
+              effects[name]?.update?.(internal.current, height);
+          }
+          if (t >= options.ms) {
+            clearInterval(timer);
+            scripted = false;
+            if (options.freeze !== false) internal.post({ type: 'pause', value: true });
+            setTimeout(resolve, 120);
+          }
+        }, 50);
+      }),
     image: () => canvas.toDataURL('image/png'),
     draw: () => {
       if (session) {
@@ -163,7 +276,7 @@ async function boot() {
   const tick = (time: number) => {
     if (!session) return;
     if (session.isPaused) input.pollActions(['pause']);
-    else session.input(input.update(Math.min(0.08, (time - previous) / 1000)));
+    else if (!scripted) session.input(input.update(Math.min(0.08, (time - previous) / 1000)));
     previous = time;
     if (rendering) {
       session.frame(time);

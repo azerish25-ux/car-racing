@@ -16,7 +16,8 @@ import * as T from 'three';
  * skyline rad). Below the skyline the photo's land gives way to a blurred
  * band of the sky above it (the circuit's own terrain stands there).
  * `photoAmount` 0 leaves the procedural sky untouched (and skips sampling);
- * 1 replaces it. Cube captures (PMREM bins, local probes: `sunDiscAmount`
+ * 1 replaces it. `photoHorizon` (rgb, amount; 0 by default) lets a renderer
+ * fade that band into its own horizon colour. Cube captures (PMREM bins, local probes: `sunDiscAmount`
  * 0) clamp radiance to `photoCaptureClamp`, since the directional light
  * already carries the sun, and keep `photoCaptureSaturation` of its chroma
  * (renderers without the IBL colour balance of `ibl-energy.ts`).
@@ -32,6 +33,7 @@ uniform float photoWeight;
 uniform float photoAmount;
 uniform float photoCaptureClamp;
 uniform float photoCaptureSaturation;
+uniform vec4 photoHorizon;
 `;
 export const PHOTO_SKY_SAMPLE = `
 vec3 photoSkyDecode(vec4 base, float gain, vec4 photo) {
@@ -63,7 +65,14 @@ vec3 photoSkySample(sampler2D base, sampler2D gain, vec4 photo, vec3 direction) 
     vec3 fill = photoSkyDecode(textureLod(base, h, lod), textureLod(gain, h, lod - 1.0).r, photo);
     radiance = mix(radiance, fill, haze);
   }
-  return radiance * photo.z;
+  radiance *= photo.z;
+  // Opt-in (festival): the band under the skyline fades toward the aerial
+  // horizon colour (scene units), so distant relief dissolves into it.
+  if (photoHorizon.w > 0.0 && haze > 0.0) {
+    float low = 1.0 - smoothstep(0.0, max(photo.w, 1e-3), max(elevation, 0.0));
+    radiance = mix(radiance, photoHorizon.rgb, photoHorizon.w * haze * low);
+  }
+  return radiance;
 }
 vec3 photoSky(vec3 direction, bool capture) {
   vec3 photo = photoSkySample(photoBaseA, photoGainA, photoA, direction);
@@ -86,6 +95,7 @@ export interface PhotoSkyUniforms {
   photoAmount: { value: number };
   photoCaptureClamp: { value: number };
   photoCaptureSaturation: { value: number };
+  photoHorizon: { value: T.Vector4 };
 }
 export const PHOTO_SKY_UNIFORM_NAMES = Object.freeze([
   'photoBaseA',
@@ -112,5 +122,6 @@ export function createPhotoSkyUniforms(): PhotoSkyUniforms {
     photoAmount: { value: 0 },
     photoCaptureClamp: { value: 65504 },
     photoCaptureSaturation: { value: 1 },
+    photoHorizon: { value: new T.Vector4(0, 0, 0, 0) },
   };
 }

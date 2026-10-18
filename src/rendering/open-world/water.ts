@@ -7,7 +7,8 @@ const SEA_UV_METRES = 5500;
 
 /**
  * Water of the region: the open sea (the circuit sea material and its wave
- * trains, re-meshed to reach the horizon: 48 km square, UVs keeping the
+ * trains, re-meshed to reach the horizon: 160 km square (past the distant
+ * ranges and the far plane), UVs keeping the
  * shader's metre scale) and the Ashvale river as a ribbon at its water level
  * along the valley channel down to the harbour.
  */
@@ -19,11 +20,12 @@ export class Water {
     this.root.name = 'Festival water';
     const region = field.region;
     this.sea = buildSea(region.seaLevel);
-    const size = 48000;
+    const size = 160000;
     const geometry = new T.PlaneGeometry(size, size, 1, 1);
     geometry.rotateX(-Math.PI / 2);
     const uv = geometry.getAttribute('uv');
-    for (let i = 0; i < uv.count; i++) uv.setXY(i, (uv.getX(i) * size) / SEA_UV_METRES, (uv.getY(i) * size) / SEA_UV_METRES);
+    for (let i = 0; i < uv.count; i++)
+      uv.setXY(i, (uv.getX(i) * size) / SEA_UV_METRES, (uv.getY(i) * size) / SEA_UV_METRES);
     this.sea.geometry.dispose();
     this.sea.geometry = geometry;
     this.sea.name = 'Festival sea';
