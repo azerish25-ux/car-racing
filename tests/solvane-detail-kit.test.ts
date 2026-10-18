@@ -70,7 +70,10 @@ describe('Blender source to Festival runtime contract', () => {
   });
   it('places real 3D details, uses only far instances on LOW, and bounds submitted matrices', async () => {
     const kit = new SolvaneDetails(await parseSolvaneKit(await bytes()), world, structures);
-    expect(kit.stats.frontage).toBeGreaterThan(400);
+    // Every shop and block reads as a Japanese building with its own ground
+    // floor (aluminium sashes, shutters, lattice): the kit's European timber
+    // shopfronts are withdrawn there and only legacy styles may carry them.
+    expect(kit.stats.frontage).toBe(0);
     // The festival reads the region as Japanese: city blocks carry their own
     // slab-and-parapet balconies in the merged building mesh, so the
     // European wrought-iron kit balconies are no longer planned there.

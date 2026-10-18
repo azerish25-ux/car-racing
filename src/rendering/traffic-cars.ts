@@ -40,6 +40,8 @@ interface Shape {
   /** Lower-body stations, rear to front: z, half width, belt (deck) height. */
   rings: readonly (readonly [number, number, number])[];
   crown: number;
+  /** Plan radius of the rounded bumper corners (m). */
+  corner: number;
   /** Greenhouse: base (windscreen foot, rear-glass foot) and roof (front,
    * rear) stations, roof height and half width, and side-window pillars. */
   cabin: {
@@ -70,17 +72,18 @@ export const TRAFFIC_SHAPES: Readonly<Record<TrafficBody, Shape>> = {
     axles: [-1.42, 1.43],
     floor: 0.2,
     rings: [
-      [-2.425, 0.79, 0.74],
-      [-2.3, 0.86, 0.86],
-      [-1.9, 0.9, 0.93],
+      [-2.425, 0.8, 0.84],
+      [-2.3, 0.865, 0.92],
+      [-1.9, 0.9, 0.94],
       [-1.2, 0.9, 0.95],
       [0, 0.9, 0.92],
       [1.0, 0.9, 0.88],
       [1.7, 0.88, 0.83],
-      [2.2, 0.85, 0.77],
-      [2.425, 0.78, 0.68],
+      [2.2, 0.85, 0.79],
+      [2.425, 0.78, 0.76],
     ],
     crown: 0.05,
+    corner: 0.3,
     cabin: {
       base: [1.0, -1.32],
       roof: [0.18, -0.72],
@@ -90,8 +93,8 @@ export const TRAFFIC_SHAPES: Readonly<Record<TrafficBody, Shape>> = {
     },
     wheels: 'alloy',
     kei: false,
-    head: 0.7,
-    tail: 0.82,
+    head: 0.66,
+    tail: 0.8,
     tallTail: false,
   },
   hatch: {
@@ -108,10 +111,11 @@ export const TRAFFIC_SHAPES: Readonly<Record<TrafficBody, Shape>> = {
       [-1.4, 0.85, 0.95],
       [0, 0.85, 0.92],
       [1.0, 0.84, 0.86],
-      [1.6, 0.81, 0.78],
-      [2.0, 0.75, 0.66],
+      [1.6, 0.81, 0.8],
+      [2.0, 0.75, 0.74],
     ],
     crown: 0.05,
+    corner: 0.26,
     cabin: {
       base: [0.95, -1.8],
       roof: [0.22, -1.6],
@@ -121,8 +125,8 @@ export const TRAFFIC_SHAPES: Readonly<Record<TrafficBody, Shape>> = {
     },
     wheels: 'alloy',
     kei: false,
-    head: 0.74,
-    tail: 1.02,
+    head: 0.66,
+    tail: 0.86,
     tallTail: true,
   },
   kei: {
@@ -139,10 +143,11 @@ export const TRAFFIC_SHAPES: Readonly<Record<TrafficBody, Shape>> = {
       [-1.2, 0.74, 1.0],
       [0, 0.74, 0.98],
       [1.0, 0.74, 0.92],
-      [1.45, 0.72, 0.84],
-      [1.7, 0.68, 0.74],
+      [1.45, 0.72, 0.9],
+      [1.7, 0.69, 0.86],
     ],
     crown: 0.04,
+    corner: 0.2,
     cabin: {
       base: [1.3, -1.64],
       roof: [0.62, -1.66],
@@ -152,8 +157,8 @@ export const TRAFFIC_SHAPES: Readonly<Record<TrafficBody, Shape>> = {
     },
     wheels: 'steel',
     kei: true,
-    head: 0.84,
-    tail: 1.02,
+    head: 0.78,
+    tail: 0.86,
     tallTail: true,
   },
   keiTruck: {
@@ -173,6 +178,7 @@ export const TRAFFIC_SHAPES: Readonly<Record<TrafficBody, Shape>> = {
       [1.7, 0.71, 0.96],
     ],
     crown: 0.03,
+    corner: 0.12,
     cabin: {
       // A near-upright cab-over screen (ref 006).
       base: [1.66, -0.43],
@@ -203,11 +209,12 @@ export const TRAFFIC_SHAPES: Readonly<Record<TrafficBody, Shape>> = {
       [-1.8, 0.86, 1.05],
       [0, 0.86, 1.03],
       [1.3, 0.86, 0.98],
-      [2.0, 0.83, 0.87],
-      [2.25, 0.8, 0.79],
-      [2.35, 0.75, 0.7],
+      [2.0, 0.83, 0.9],
+      [2.25, 0.8, 0.85],
+      [2.35, 0.76, 0.84],
     ],
     crown: 0.04,
+    corner: 0.24,
     cabin: {
       base: [1.72, -2.26],
       roof: [0.78, -2.29],
@@ -217,8 +224,8 @@ export const TRAFFIC_SHAPES: Readonly<Record<TrafficBody, Shape>> = {
     },
     wheels: 'alloy',
     kei: false,
-    head: 0.86,
-    tail: 1.18,
+    head: 0.76,
+    tail: 0.88,
     tallTail: true,
   },
   truck: {
@@ -239,6 +246,7 @@ export const TRAFFIC_SHAPES: Readonly<Record<TrafficBody, Shape>> = {
       [3.0, 0.92, 1.08],
     ],
     crown: 0.03,
+    corner: 0.1,
     cabin: {
       // Cab-over: a tall, lightly raked screen over a flat lamp panel.
       base: [2.94, 1.2],
@@ -269,7 +277,7 @@ const CHROME: Finish = [0, 0.18, 1.0, 0];
 const RUBBER: Finish = [0, 0.82, 0.0, 0];
 const ALLOY: Finish = [0, 0.32, 0.85, 0];
 const STEEL_WHEEL: Finish = [0, 0.45, 0.6, 0];
-const LENS: Finish = [0, 0.1, 0.1, 1];
+const LENS: Finish = [0, 0.16, 0.1, 0.35];
 const PLATE_FACE: Finish = [0, 0.42, 0.15, 0];
 /** Emitter classes; 4 and 5 are the lit rear and unlit front plates. */
 const EMIT = { none: 0, head: 1, tail: 2, amber: 3, plate: 4, frontPlate: 5 } as const;
@@ -397,56 +405,103 @@ function profile(shape: Shape, z: number) {
     t = Math.max(0, Math.min(1, (z - a[0]) / (b[0] - a[0])));
   return { half: lerp(a[1], b[1], t), belt: lerp(a[2], b[2], t) };
 }
+/** Rear and front bumper stations. */
+const ends = (s: Shape) => [s.rings[0][0], s.rings[s.rings.length - 1][0]] as const;
+/** Quarter-circle inset (m) of the plan within `corner` of either bumper:
+ * rounded corners in plan and a slightly rolled bumper edge. */
+function rounding(s: Shape, z: number) {
+  const [zr, zf] = ends(s),
+    d = Math.min(z - zr, zf - z);
+  if (d >= s.corner) return 0;
+  const k = 1 - Math.max(0, d) / s.corner;
+  return s.corner * (1 - Math.sqrt(1 - k * k));
+}
+/** Lower-body cross-section at z: plan half width (rounded at the ends),
+ * deck (belt) height and sill (raised over the wheel arches, tucked under
+ * the bumpers). */
+function station(s: Shape, z: number) {
+  const p = profile(s, z),
+    r = rounding(s, z),
+    arch = s.wheel + 0.04;
+  let sill = s.floor + r * 0.4;
+  for (const axle of s.axles) {
+    const d = Math.abs(z - axle);
+    if (d < arch - 1e-5) sill = Math.max(sill, s.wheel + Math.sqrt(arch * arch - d * d));
+  }
+  return { half: p.half - r, belt: p.belt - r * 0.15, sill };
+}
+/** Body side, bottom to belt: [fraction of the half width, fraction of the
+ * sill-to-belt height]. A tucked rocker, the widest point a little below
+ * mid-height, then tumblehome into a rounded shoulder (refs 056, 059). */
+const SIDE: readonly (readonly [number, number])[] = [
+  [0.92, 0],
+  [0.98, 0.12],
+  [1, 0.45],
+  [0.986, 0.86],
+  [0.958, 1],
+];
+/** Deck, shoulder to centre line: [x fraction, share of the crown]. */
+const DECK: readonly (readonly [number, number])[] = [
+  [0.9, 0.28],
+  [0.55, 0.72],
+  [0, 1],
+];
+/** Closed cross-section ring (left rocker, over the deck, right rocker). */
+function sectionRing(s: Shape, z: number): Pt[] {
+  const { half, belt, sill } = station(s, z),
+    lift = belt - sill;
+  const side = (sign: number) => SIDE.map(([x, f]) => [sign * x * half, sill + lift * f, z] as Pt);
+  const deck = (sign: number) =>
+    DECK.map(([x, c]) => [sign * x * half, belt + 0.006 + s.crown * c, z] as Pt);
+  return [...side(-1), ...deck(-1), ...deck(1).reverse().slice(1), ...side(1).reverse()];
+}
+/** Fan-triangulated convex cap through its centroid. */
+function cap(kit: Kit, points: Pt[], outward: Pt, finish: Finish, colour: number) {
+  const c = new T.Vector3();
+  for (const p of points) c.add(new T.Vector3(...p));
+  c.multiplyScalar(1 / points.length);
+  const all: Pt[] = [[c.x, c.y, c.z], ...points],
+    index: number[] = [];
+  const a = new T.Vector3(...points[0]).sub(c),
+    b = new T.Vector3(...points[1]).sub(c);
+  const reverse = a.cross(b).dot(new T.Vector3(...outward)) < 0;
+  for (let i = 1; i <= points.length; i++) {
+    const j = (i % points.length) + 1;
+    index.push(0, reverse ? j : i, reverse ? i : j);
+  }
+  kit.patch(all, index, finish, colour);
+}
 function lowerBody(kit: Kit, s: Shape) {
-  const arch = s.wheel + 0.04;
+  const arch = s.wheel + 0.04,
+    [zr, zf] = ends(s);
   const stations = s.rings.map((r) => r[0]);
   for (const z of s.axles) {
     // Close stations at the arch ends give a clean vertical return to the
     // sill; the others trace the open circular wheel cutout.
     stations.push(z - arch - 0.002, z + arch + 0.002);
-    for (let i = 0; i <= 12; i++) stations.push(z + Math.cos((i / 12) * Math.PI) * arch);
+    for (let i = 0; i <= 8; i++) stations.push(z + Math.cos((i / 8) * Math.PI) * arch);
   }
+  // Rounded bumpers: dense stations through the corner radius.
+  for (const d of [0.015, 0.07, 0.18, 0.36, 0.62])
+    stations.push(zr + d * s.corner, zf - d * s.corner);
   const zs = [...new Set(stations.map((z) => Math.round(z * 1e4) / 1e4))]
-    .filter((z) => z >= s.rings[0][0] && z <= s.rings[s.rings.length - 1][0])
+    .filter((z) => z >= zr && z <= zf)
     .sort((a, b) => a - b);
-  const across = [-0.98, -0.82, -0.45, 0, 0.45, 0.82, 0.98];
-  const top: Pt[] = [],
-    topIndex: number[] = [];
-  for (const z of zs) {
-    const p = profile(s, z);
-    for (const x of across) top.push([x * p.half, p.belt + s.crown * (1 - (x / 0.98) ** 2), z]);
-  }
+  const rings = zs.map((z) => sectionRing(s, z)),
+    m = rings[0].length;
+  const index: number[] = [];
   for (let row = 0; row < zs.length - 1; row++)
-    for (let col = 0; col < across.length - 1; col++) {
-      const a = row * across.length + col,
-        b = a + across.length;
-      topIndex.push(a, b, a + 1, a + 1, b, b + 1);
+    for (let col = 0; col < m - 1; col++) {
+      const a = row * m + col,
+        b = a + m;
+      index.push(a, b, a + 1, a + 1, b, b + 1);
     }
-  kit.patch(top, topIndex, PAINT, COLOUR.white);
-  for (const side of [-1, 1]) {
-    const points: Pt[] = [],
-      index: number[] = [];
-    for (const z of zs) {
-      const p = profile(s, z);
-      let sill = s.floor;
-      for (const axle of s.axles) {
-        const d = Math.abs(z - axle);
-        if (d < arch - 1e-5) sill = Math.max(sill, s.wheel + Math.sqrt(arch * arch - d * d));
-      }
-      points.push(
-        [side * p.half * 0.95, sill, z],
-        [side * p.half, sill + (p.belt - sill) * 0.55, z],
-        [side * p.half * 0.985, p.belt, z],
-      );
-    }
-    for (let row = 0; row < zs.length - 1; row++)
-      for (let col = 0; col < 2; col++) {
-        const a = row * 3 + col,
-          b = a + 3;
-        index.push(...(side > 0 ? [a, a + 1, b + 1, a, b + 1, b] : [a, b + 1, a + 1, a, b, b + 1]));
-      }
-    kit.patch(points, index, PAINT, COLOUR.white);
-    // Arch lips and recessed black liners give the openings thickness.
+  kit.patch(rings.flat(), index, PAINT, COLOUR.white);
+  // Bumper faces close the rolled ends.
+  cap(kit, rings[0], [0, 0, -1], PAINT, COLOUR.white);
+  cap(kit, rings[rings.length - 1], [0, 0, 1], PAINT, COLOUR.white);
+  // Arch lips and recessed black liners give the openings thickness.
+  for (const side of [-1, 1])
     for (const axle of s.axles) {
       const lip: Pt[] = [],
         well: Pt[] = [],
@@ -455,11 +510,12 @@ function lowerBody(kit: Kit, s: Shape) {
         const a = (i / 16) * Math.PI;
         for (const radius of [arch, arch + 0.024]) {
           const z = axle + Math.cos(a) * radius;
-          lip.push([side * (profile(s, z).half + 0.003), s.wheel + Math.sin(a) * radius, z]);
+          lip.push([side * (station(s, z).half + 0.003), s.wheel + Math.sin(a) * radius, z]);
         }
         const z = axle + Math.cos(a) * arch,
-          y = s.wheel + Math.sin(a) * arch;
-        well.push([side * profile(s, z).half, y, z], [side * (profile(s, z).half - 0.2), y, z]);
+          y = s.wheel + Math.sin(a) * arch,
+          half = station(s, z).half;
+        well.push([side * half, y, z], [side * (half - 0.2), y, z]);
         if (i < 16) {
           const j = i * 2;
           indices.push(j, j + 2, j + 1, j + 1, j + 2, j + 3);
@@ -472,31 +528,86 @@ function lowerBody(kit: Kit, s: Shape) {
       kit.patch(lip, lipIndex, s.kei ? PLASTIC : PAINT, s.kei ? COLOUR.plastic : COLOUR.white);
       kit.patch(well, indices, PLASTIC, COLOUR.plastic);
     }
-  }
-  // End faces.
-  for (const z of [s.rings[0][0], s.rings[s.rings.length - 1][0]]) {
-    const p = profile(s, z);
-    const points: Pt[] = across.map((x) => [
-      x * p.half,
-      p.belt + s.crown * (1 - (x / 0.98) ** 2),
-      z,
-    ]);
-    points.push([p.half * 0.95, s.floor, z], [-p.half * 0.95, s.floor, z]);
-    kit.face(points, [0, 0, Math.sign(z)], PAINT, COLOUR.white);
-  }
-  // Underfloor, dark.
-  const zr = s.rings[0][0],
-    zf = s.rings[s.rings.length - 1][0];
+  // Underfloor, dark, inside the rounded plan.
   kit.box(
     0,
     s.floor + 0.02,
     (zr + zf) / 2,
-    s.width * 0.82,
+    s.width * 0.8,
     0.04,
-    zf - zr - 0.1,
+    zf - zr - s.corner * 2,
     PLASTIC,
     COLOUR.black,
   );
+}
+/** A band hugging the rounded plan of one end (`end` -1 rear, +1 front) at
+ * heights y0..y1 (kept under the local deck): from the flank `reach` metres
+ * back, round the corner, to `stop` across the bumper face (a signed
+ * fraction of its half width; 0 is the centre line), `proud` metres off the
+ * paint. Lamps, bumpers and valances wrap the corners as on real bodies
+ * instead of floating on a flat face. Returns the band's middle point. */
+function band(
+  kit: Kit,
+  s: Shape,
+  end: -1 | 1,
+  side: -1 | 1,
+  y0: number,
+  y1: number,
+  reach: number,
+  stop: number,
+  proud: number,
+  finish: Finish,
+  colour: number,
+  extra?: Partial<Piece>,
+): Pt {
+  const [zr, zf] = ends(s),
+    zEnd = end > 0 ? zf : zr;
+  const path: [number, number][] = [];
+  if (reach > 0)
+    for (const d of [1, 0.5, 0.25, 0.1, 0.03, 0]) {
+      const z = zEnd - end * d * reach;
+      path.push([side * station(s, z).half, z]);
+    }
+  const face = station(s, zEnd).half;
+  for (const t of [1, 0.67, 0.33, 0]) {
+    if (t === 1 && path.length) continue;
+    path.push([lerp(stop, side, t) * face, zEnd]);
+  }
+  const points: Pt[] = [],
+    index: number[] = [];
+  for (let i = 0; i < path.length; i++) {
+    const a = path[Math.max(0, i - 1)],
+      b = path[Math.min(path.length - 1, i + 1)];
+    let nx = b[1] - a[1],
+      nz = a[0] - b[0];
+    const l = Math.hypot(nx, nz) || 1;
+    nx /= l;
+    nz /= l;
+    // Outward: away from the centre line on the flank, ahead on the face.
+    if (nx * side + nz * end < 0) {
+      nx = -nx;
+      nz = -nz;
+    }
+    const [x, z] = path[i],
+      top = Math.min(y1, station(s, z).belt - 0.012),
+      bottom = Math.min(y0, top - 0.012);
+    points.push([x + nx * proud, bottom, z + nz * proud], [x + nx * proud, top, z + nz * proud]);
+    if (i < path.length - 1) {
+      const j = i * 2;
+      index.push(j, j + 2, j + 1, j + 1, j + 2, j + 3);
+    }
+  }
+  // Wind the strip outward (radially from the body centre).
+  const p0 = new T.Vector3(...points[0]),
+    along = new T.Vector3(...points[2]).sub(p0),
+    up = new T.Vector3(...points[1]).sub(p0),
+    mid = path[Math.floor(path.length / 2)];
+  if (along.cross(up).dot(new T.Vector3(mid[0], 0, mid[1] - (zr + zf) / 2)) < 0)
+    for (let i = 0; i < index.length; i += 3)
+      [index[i + 1], index[i + 2]] = [index[i + 2], index[i + 1]];
+  kit.patch(points, index, finish, colour, extra);
+  const centre = points[Math.floor(path.length / 2) * 2];
+  return [centre[0], (y0 + y1) / 2, centre[2]];
 }
 /** Inset a convex polygon towards its centroid by `d` metres. */
 function inset(points: readonly Pt[], d: number, lift: T.Vector3): Pt[] {
@@ -515,18 +626,23 @@ function inset(points: readonly Pt[], d: number, lift: T.Vector3): Pt[] {
 function greenhouse(kit: Kit, s: Shape) {
   const { base, roof, roofY, roofHalf, pillars } = s.cabin;
   const edgeY = roofY - 0.03;
+  // The glass rises from a shoulder ledge just inboard of the body side.
   const baseAt = (z: number) => {
-    const p = profile(s, z);
-    return { x: p.half * 0.93, y: p.belt + s.crown * 0.12 };
+    const p = station(s, z);
+    return { x: p.half * 0.87, y: p.belt + 0.006 + s.crown * 0.38 };
   };
+  // Work-truck cabs have painted rear panels; every other glasshouse has
+  // black frit and blacked-out pillars (Japanese kei and minivans, 006/038).
+  const cab = s.body === 'truck' || s.body === 'keiTruck';
   const bf = baseAt(base[0]),
     br = baseAt(base[1]);
-  // Crowned roof.
-  const across = [-1, -0.7, 0, 0.7, 1],
+  // Crowned roof rolling over a rounded edge onto the glass.
+  const across = [-1, -0.93, -0.72, 0, 0.72, 0.93, 1],
+    drop = (x: number) => (Math.abs(x) > 0.99 ? 0.03 : Math.abs(x) > 0.9 ? 0.012 : x ? 0.004 : 0),
     rows = [roof[1], lerp(roof[1], roof[0], 0.33), lerp(roof[1], roof[0], 0.66), roof[0]];
   const pts: Pt[] = [],
     index: number[] = [];
-  for (const z of rows) for (const x of across) pts.push([x * roofHalf, roofY - 0.03 * x * x, z]);
+  for (const z of rows) for (const x of across) pts.push([x * roofHalf, roofY - drop(x), z]);
   for (let r = 0; r < rows.length - 1; r++)
     for (let c = 0; c < across.length - 1; c++) {
       const a = r * across.length + c,
@@ -534,8 +650,8 @@ function greenhouse(kit: Kit, s: Shape) {
       index.push(a, b, a + 1, a + 1, b, b + 1);
     }
   kit.patch(pts, index, PAINT, COLOUR.white);
-  const framed = (points: Pt[], outward: Pt, margin: number) => {
-    kit.face(points, outward, PAINT, COLOUR.white);
+  const framed = (points: Pt[], outward: Pt, margin: number, paint: boolean) => {
+    kit.face(points, outward, paint ? PAINT : GLOSS_BLACK, paint ? COLOUR.white : COLOUR.black);
     const n = new T.Vector3(...outward).normalize().multiplyScalar(0.005);
     kit.face(inset(points, margin, n), outward, GLASS, COLOUR.glass);
   };
@@ -549,6 +665,7 @@ function greenhouse(kit: Kit, s: Shape) {
     ],
     [0, base[0] - roof[0], Math.max(0.05, edgeY - bf.y)],
     0.05,
+    cab,
   );
   framed(
     [
@@ -558,8 +675,32 @@ function greenhouse(kit: Kit, s: Shape) {
       [-br.x, br.y, base[1]],
     ],
     [0, roof[1] - base[1], -Math.max(0.05, edgeY - br.y)],
-    s.cabin.rearInset ?? 0.05,
+    s.cabin.rearInset ?? (s.tallTail ? 0.085 : 0.05),
+    cab,
   );
+  if (s.tallTail && !cab)
+    for (const side of [-1, 1]) {
+      // Tail lamps continue up the blacked-out D pillars beside the glass.
+      const at = (t: number, inward: number): Pt => [
+        side * (lerp(br.x, roofHalf, t) - inward),
+        lerp(br.y, edgeY, t),
+        lerp(base[1], roof[1], t) - 0.008,
+      ];
+      kit.face(
+        [at(0.02, 0.012), at(0.4, 0.012), at(0.4, 0.07), at(0.02, 0.07)],
+        [0, 0, -1],
+        LENS,
+        COLOUR.tail,
+        { emit: EMIT.tail },
+      );
+    }
+  if (s.tallTail && !cab) {
+    // Roof spoiler with a high-mounted stop lamp (kei, hatch, minivan).
+    kit.box(0, roofY - 0.012, roof[1] - 0.005, roofHalf * 1.86, 0.03, 0.16, PAINT, COLOUR.white);
+    kit.box(0, roofY - 0.034, roof[1] - 0.078, 0.36, 0.02, 0.012, LENS, COLOUR.tail, {
+      emit: EMIT.tail,
+    });
+  }
   // Side glass between pillars; the pillar faces are dark gloss trim.
   for (const side of [-1, 1]) {
     const cuts = [0, ...pillars.map((z) => (z - base[1]) / (base[0] - base[1])), 1];
@@ -574,7 +715,7 @@ function greenhouse(kit: Kit, s: Shape) {
         t1 = cuts[k + 1];
       const quad = [lower(t0), upper(t0), upper(t1), lower(t1)];
       const out: Pt = [side, 0.25, 0];
-      kit.face(quad, out, PAINT, COLOUR.white);
+      kit.face(quad, out, cab ? PAINT : GLOSS_BLACK, cab ? COLOUR.white : COLOUR.black);
       const n = new T.Vector3(...out).normalize().multiplyScalar(0.005);
       kit.face(inset(quad, 0.045, n), out, GLASS, COLOUR.glass);
     }
@@ -621,7 +762,7 @@ function greenhouse(kit: Kit, s: Shape) {
       COLOUR.black,
     );
     for (const z of [base[0] - lb * 0.3, ...pillars.slice(0, 1).map((p) => p - 0.25)]) {
-      const at = profile(s, z);
+      const at = station(s, z);
       kit.box(
         side * (at.half + 0.006),
         at.belt - 0.09,
@@ -722,7 +863,7 @@ function wheels(kit: Kit, s: Shape) {
         hub = [x, R, z] as const;
       const face = x + side * w * 0.36;
       kit.add(
-        new T.LatheGeometry(tyreProfile, 20).rotateZ(-Math.PI / 2).translate(x, R, z),
+        new T.LatheGeometry(tyreProfile, 18).rotateZ(-Math.PI / 2).translate(x, R, z),
         RUBBER,
         COLOUR.rubber,
         { hub },
@@ -738,7 +879,7 @@ function wheels(kit: Kit, s: Shape) {
       );
       if (s.wheels === 'alloy') {
         kit.add(
-          new T.TorusGeometry(rim, 0.014, 5, 20).rotateY(Math.PI / 2).translate(face, R, z),
+          new T.TorusGeometry(rim, 0.014, 4, 18).rotateY(Math.PI / 2).translate(face, R, z),
           ALLOY,
           COLOUR.alloy,
           { hub, spin: true },
@@ -775,7 +916,7 @@ function wheels(kit: Kit, s: Shape) {
           { hub, spin: true },
         );
         kit.add(
-          new T.SphereGeometry(rim * 0.72, 16, 6, 0, Math.PI * 2, 0, Math.PI / 2)
+          new T.SphereGeometry(rim * 0.72, 14, 4, 0, Math.PI * 2, 0, Math.PI / 2)
             .scale(1, 0.18, 1)
             .rotateZ((-side * Math.PI) / 2)
             .translate(face - side * 0.006, R, z),
@@ -786,89 +927,224 @@ function wheels(kit: Kit, s: Shape) {
       }
     }
 }
+/** Lamp clusters of a body type: where each head and tail cluster wraps the
+ * corner (stop = signed fraction of the bumper face) and its height. */
+function lampLayout(s: Shape) {
+  const tall = s.tallTail;
+  return {
+    head: { reach: s.corner + 0.1, stop: 0.42, half: s.kei ? 0.085 : 0.075 },
+    tail: tall
+      ? { reach: s.corner + 0.04, stop: 0.76, half: 0.15 }
+      : { reach: s.corner + 0.16, stop: 0.46, half: 0.06 },
+  };
+}
 function lamps(kit: Kit, s: Shape) {
-  const zf = s.rings[s.rings.length - 1][0],
-    zr = s.rings[0][0];
-  const front = profile(s, zf),
-    rear = profile(s, zr);
-  // Lower bumpers and the grille.
-  kit.box(
-    0,
-    s.floor + 0.13,
-    zf + 0.012,
-    front.half * 1.9,
-    0.2,
-    0.05,
-    s.kei || s.body === 'truck' ? PLASTIC : PAINT,
-    s.kei || s.body === 'truck' ? COLOUR.plastic : COLOUR.white,
-  );
-  kit.box(
-    0,
-    s.floor + 0.12,
-    zr - 0.012,
-    rear.half * 1.9,
-    0.2,
-    0.05,
-    s.body === 'truck' || s.body === 'keiTruck' ? GLOSS_BLACK : PAINT,
-    s.body === 'truck' || s.body === 'keiTruck' ? COLOUR.black : COLOUR.white,
-  );
-  const grilleY = (s.head + s.floor + 0.25) / 2;
-  kit.box(
-    0,
-    grilleY,
-    zf + 0.008,
-    front.half * 0.9,
-    Math.min(0.16, s.head - s.floor - 0.22),
-    0.02,
-    GLOSS_BLACK,
-    COLOUR.black,
-  );
-  for (let k = 0; k < 4; k++)
-    kit.box(
-      0,
-      grilleY - 0.05 + k * 0.033,
-      zf + 0.02,
-      front.half * 0.86,
-      0.008,
-      0.012,
-      CHROME,
-      0x7d8388,
+  const [zr, zf] = ends(s),
+    front = station(s, zf),
+    rear = station(s, zr),
+    layout = lampLayout(s);
+  const darkFront = s.kei || s.body === 'truck',
+    darkRear = s.body === 'truck' || s.body === 'keiTruck';
+  for (const side of [-1, 1] as const) {
+    // Bumpers: moulded black plastic wrapping the corners on kei and work
+    // trucks; on painted bumpers a dark lower lip and a shut line.
+    if (darkFront)
+      band(
+        kit,
+        s,
+        1,
+        side,
+        s.floor + 0.03,
+        s.floor + 0.25,
+        s.corner + 0.14,
+        0,
+        0.012,
+        PLASTIC,
+        COLOUR.plastic,
+      );
+    else {
+      band(
+        kit,
+        s,
+        1,
+        side,
+        s.floor + 0.02,
+        s.floor + 0.08,
+        s.corner * 0.7,
+        0,
+        0.008,
+        PLASTIC,
+        COLOUR.black,
+      );
+      band(
+        kit,
+        s,
+        1,
+        side,
+        s.head - 0.12,
+        s.head - 0.11,
+        s.corner + 0.06,
+        0,
+        0.004,
+        GLOSS_BLACK,
+        COLOUR.black,
+      );
+    }
+    if (darkRear)
+      band(
+        kit,
+        s,
+        -1,
+        side,
+        s.floor + 0.02,
+        s.floor + 0.23,
+        s.corner + 0.08,
+        0,
+        0.012,
+        GLOSS_BLACK,
+        COLOUR.black,
+      );
+    else {
+      band(
+        kit,
+        s,
+        -1,
+        side,
+        s.floor + 0.02,
+        s.floor + 0.075,
+        s.corner * 0.7,
+        0,
+        0.008,
+        PLASTIC,
+        COLOUR.black,
+      );
+      band(
+        kit,
+        s,
+        -1,
+        side,
+        s.floor + 0.33,
+        s.floor + 0.34,
+        s.corner + 0.06,
+        0,
+        0.004,
+        GLOSS_BLACK,
+        COLOUR.black,
+      );
+    }
+    // Headlamp wrapping the front corner: dark housing, bright reflector,
+    // projector and an LED line; the amber indicator on the corner.
+    const h = layout.head;
+    band(
+      kit,
+      s,
+      1,
+      side,
+      s.head - h.half,
+      s.head + h.half,
+      h.reach,
+      side * h.stop,
+      0.006,
+      GLOSS_BLACK,
+      COLOUR.black,
     );
-  for (const side of [-1, 1]) {
-    // Headlamp: dark housing, bright reflector, projector and an LED line.
-    const hx = side * front.half * 0.68,
-      hw = front.half * (s.kei ? 0.42 : 0.5);
-    kit.box(hx, s.head, zf + 0.01, hw, 0.12, 0.03, GLOSS_BLACK, COLOUR.black);
-    kit.box(hx, s.head, zf + 0.02, hw * 0.88, 0.09, 0.012, CHROME, 0xd8dcdf);
-    kit.add(
-      new T.CylinderGeometry(0.03, 0.03, 0.01, 10)
-        .rotateX(Math.PI / 2)
-        .translate(hx - side * hw * 0.18, s.head - 0.005, zf + 0.03),
+    band(
+      kit,
+      s,
+      1,
+      side,
+      s.head - h.half + 0.02,
+      s.head + h.half - 0.03,
+      h.reach * 0.7,
+      side * (h.stop + 0.06),
+      0.009,
+      CHROME,
+      0xd8dcdf,
+    );
+    band(
+      kit,
+      s,
+      1,
+      side,
+      s.head + h.half - 0.026,
+      s.head + h.half - 0.012,
+      h.reach * 0.75,
+      side * (h.stop + 0.03),
+      0.011,
       LENS,
       COLOUR.head,
       { emit: EMIT.head },
     );
-    kit.box(hx, s.head + 0.05, zf + 0.03, hw * 0.86, 0.012, 0.008, LENS, COLOUR.head, {
-      emit: EMIT.head,
-    });
-    kit.box(hx + side * hw * 0.42, s.head, zf + 0.028, 0.03, 0.05, 0.008, LENS, COLOUR.amber, {
-      emit: EMIT.amber,
-    });
-    // Tail lamps: tall corner clusters on wagons and vans, wide on saloons.
-    const tx = side * rear.half * (s.tallTail ? 0.86 : 0.7),
-      tw = s.tallTail ? 0.12 : rear.half * 0.5,
-      th = s.tallTail ? 0.32 : 0.11;
-    kit.box(tx, s.tail, zr - 0.01, tw + 0.02, th + 0.02, 0.03, GLOSS_BLACK, COLOUR.black);
-    kit.box(tx, s.tail + th * 0.18, zr - 0.026, tw, th * 0.5, 0.01, LENS, COLOUR.tail, {
-      emit: EMIT.tail,
-    });
-    kit.box(tx, s.tail - th * 0.28, zr - 0.026, tw, th * 0.22, 0.01, LENS, COLOUR.amber, {
-      emit: EMIT.amber,
-    });
+    band(
+      kit,
+      s,
+      1,
+      side,
+      s.head - h.half + 0.012,
+      s.head - h.half + 0.04,
+      h.reach,
+      side * 0.97,
+      0.011,
+      LENS,
+      COLOUR.amber,
+      { emit: EMIT.amber },
+    );
+    kit.add(
+      new T.CylinderGeometry(0.032, 0.032, 0.012, 10)
+        .rotateX(Math.PI / 2)
+        .translate(side * front.half * (h.stop + 0.2), s.head - 0.005, zf + 0.012),
+      LENS,
+      COLOUR.head,
+      { emit: EMIT.head },
+    );
+    // Tail cluster wrapping the rear corner: red running/stop lens over an
+    // amber indicator; a red reflector low on the bumper.
+    const t = layout.tail;
+    band(
+      kit,
+      s,
+      -1,
+      side,
+      s.tail - t.half - 0.012,
+      s.tail + t.half + 0.012,
+      t.reach,
+      side * t.stop,
+      0.006,
+      GLOSS_BLACK,
+      COLOUR.black,
+    );
+    band(
+      kit,
+      s,
+      -1,
+      side,
+      s.tail - t.half * 0.1,
+      s.tail + t.half,
+      t.reach * 0.92,
+      side * (t.stop + 0.03),
+      0.01,
+      LENS,
+      COLOUR.tail,
+      { emit: EMIT.tail },
+    );
+    band(
+      kit,
+      s,
+      -1,
+      side,
+      s.tail - t.half,
+      s.tail - t.half * 0.45,
+      t.reach * 0.92,
+      side * (t.stop + 0.03),
+      0.01,
+      LENS,
+      COLOUR.amber,
+      { emit: EMIT.amber },
+    );
     kit.box(
-      side * rear.half * 0.6,
+      side * rear.half * 0.72,
       s.floor + 0.14,
-      zr - 0.04,
+      zr - 0.012,
       0.09,
       0.03,
       0.008,
@@ -876,6 +1152,21 @@ function lamps(kit: Kit, s: Shape) {
       COLOUR.reflector,
     );
   }
+  // Grille between the headlamps.
+  const grilleY = (s.head + s.floor + 0.25) / 2,
+    grilleH = Math.min(0.16, s.head - s.floor - 0.22);
+  kit.box(0, grilleY, zf + 0.006, front.half * 0.8, grilleH, 0.02, GLOSS_BLACK, COLOUR.black);
+  for (let k = 0; k < 4; k++)
+    kit.box(
+      0,
+      grilleY - grilleH / 2 + (k + 0.5) * (grilleH / 4),
+      zf + 0.018,
+      front.half * 0.76,
+      0.008,
+      0.012,
+      CHROME,
+      0x7d8388,
+    );
   // Registration plates (atlas slot 0 here; each instance offsets its own).
   const plateFace = (y: number, z: number, rear: boolean) => {
     const g = new T.PlaneGeometry(PLATE.width, PLATE.height);
@@ -899,8 +1190,14 @@ function lamps(kit: Kit, s: Shape) {
     );
   };
   plateFace(s.floor + 0.2, zf + 0.045, false);
-  plateFace(s.bed ? s.floor + 0.24 : Math.max(s.floor + 0.32, s.tail - 0.27), zr - 0.045, true);
+  plateFace(
+    s.bed ? s.floor + 0.24 : Math.max(s.floor + 0.32, s.tail - t0(s) - 0.12),
+    zr - 0.045,
+    true,
+  );
 }
+/** Lower edge of the tail cluster below its centre line. */
+const t0 = (s: Shape) => lampLayout(s).tail.half;
 /** One body type's merged geometry (ground at y = 0, +Z forward). */
 export function trafficBodyGeometry(body: TrafficBody) {
   const s = TRAFFIC_SHAPES[body],
@@ -1135,11 +1432,12 @@ function haloMaterial() {
 }
 /** Lamp centres of a body type (native frame): two head, two tail. */
 function haloSites(s: Shape) {
-  const zf = s.rings[s.rings.length - 1][0],
-    zr = s.rings[0][0];
-  const front = profile(s, zf).half * 0.68,
-    rear = profile(s, zr).half * (s.tallTail ? 0.86 : 0.7),
-    tailY = s.tail + (s.tallTail ? 0.32 : 0.11) * 0.18;
+  const [zr, zf] = ends(s),
+    layout = lampLayout(s);
+  // The middle of each cluster where it turns onto the bumper face.
+  const front = station(s, zf).half * (layout.head.stop + 1) * 0.5,
+    rear = station(s, zr).half * (layout.tail.stop + 1) * 0.5,
+    tailY = s.tail + layout.tail.half * 0.45;
   return [
     { at: new T.Vector3(front, s.head, zf + 0.05), head: true },
     { at: new T.Vector3(-front, s.head, zf + 0.05), head: true },
@@ -1379,6 +1677,163 @@ export class TrafficCars {
       (mesh.material as T.Material).dispose();
       mesh.dispose();
     }
+    this.root.clear();
+  }
+}
+
+/** A parked car: ground position, heading (+z nose), body, paint, plate
+ * seed and whether it waits with its lamps on (a night meet). */
+export interface ParkedSpot {
+  x: number;
+  y: number;
+  z: number;
+  yaw: number;
+  body: TrafficBody;
+  paint: number;
+  plate: number;
+  lit: boolean;
+}
+/** A site of parked cars (a store car park, a coin park, the festival
+ * meet), drawn within `range` of the camera. */
+export interface ParkedSite {
+  name: string;
+  centre: T.Vector3;
+  spots: ParkedSpot[];
+}
+/** Parked cars of the festival towns and meets (refs 012, 025, 076,
+ * 080-083): the ambient traffic bodies, paints and plates at their real
+ * size, static and instanced. One draw per body type present at a site,
+ * one for their ground contact; nothing collides. Bodies cast shadows only
+ * when `update` is asked to (HIGH and ULTRA); the contact shade stays. */
+export class ParkedCars {
+  readonly root = new T.Group();
+  readonly stats = { cars: 0, sites: 0, draws: 0 };
+  private readonly material = trafficMaterial(plateAtlas());
+  private readonly contactMaterial = contactMaterial();
+  private readonly bases = new Map<TrafficBody, T.BufferGeometry>();
+  private readonly contactGeometry = new T.PlaneGeometry(1, 1)
+    .rotateX(-Math.PI / 2)
+    .translate(0, 0.03, 0);
+  private readonly sites: {
+    root: T.Group;
+    centre: T.Vector3;
+    lamps: { attribute: T.InstancedBufferAttribute; lit: boolean[] }[];
+  }[] = [];
+  private readonly bodies: T.InstancedMesh[] = [];
+  private night = -1;
+  private shadows = true;
+  constructor(sites: readonly ParkedSite[]) {
+    this.root.name = 'Parked cars';
+    const m = new T.Matrix4(),
+      q = new T.Quaternion(),
+      p = new T.Vector3(),
+      one = new T.Vector3(1, 1, 1),
+      c = new T.Color(),
+      up = new T.Vector3(0, 1, 0);
+    for (const site of sites) {
+      if (!site.spots.length) continue;
+      const root = new T.Group();
+      root.name = `Parked cars: ${site.name}`;
+      const lamps: { attribute: T.InstancedBufferAttribute; lit: boolean[] }[] = [];
+      for (const body of TRAFFIC_BODIES) {
+        const spots = site.spots.filter((s) => s.body === body);
+        if (!spots.length) continue;
+        let base = this.bases.get(body);
+        if (!base) this.bases.set(body, (base = trafficBodyGeometry(body)));
+        // Own instance attributes over the shared body buffers.
+        const geometry = new T.BufferGeometry();
+        for (const [name, attribute] of Object.entries(base.attributes))
+          geometry.setAttribute(name, attribute);
+        geometry.boundingBox = base.boundingBox;
+        geometry.boundingSphere = base.boundingSphere;
+        const lamp = new T.InstancedBufferAttribute(new Float32Array(spots.length * 4), 4),
+          plate = new T.InstancedBufferAttribute(new Float32Array(spots.length * 2), 2),
+          spin = new T.InstancedBufferAttribute(new Float32Array(spots.length), 1);
+        geometry.setAttribute('trafficLamp', lamp);
+        geometry.setAttribute('trafficPlate', plate);
+        geometry.setAttribute('trafficSpin', spin);
+        const mesh = new T.InstancedMesh(geometry, this.material, spots.length);
+        mesh.name = `Parked ${body}`;
+        mesh.castShadow = mesh.receiveShadow = true;
+        const [b0, c0] = plateUv(0),
+          shape = TRAFFIC_SHAPES[body];
+        spots.forEach((s, i) => {
+          mesh.setMatrixAt(i, m.compose(p.set(s.x, s.y, s.z), q.setFromAxisAngle(up, s.yaw), one));
+          mesh.setColorAt(i, c.setHex(s.paint));
+          const [u0, v0] = plateUv(plateSlot(s.plate, shape.kei));
+          plate.setXY(i, u0 - b0, v0 - c0);
+          spin.setX(i, hash(s.plate, 3) * 6.28);
+        });
+        mesh.computeBoundingSphere();
+        lamps.push({ attribute: lamp, lit: spots.map((s) => s.lit) });
+        this.bodies.push(mesh);
+        root.add(mesh);
+        this.stats.draws++;
+      }
+      const contact = new T.InstancedMesh(
+        this.contactGeometry,
+        this.contactMaterial,
+        site.spots.length,
+      );
+      contact.name = 'Parked car ground contact';
+      contact.renderOrder = 1;
+      site.spots.forEach((s, i) => {
+        const shape = TRAFFIC_SHAPES[s.body];
+        contact.setMatrixAt(
+          i,
+          m.compose(
+            p.set(s.x, s.y, s.z),
+            q.setFromAxisAngle(up, s.yaw),
+            new T.Vector3(shape.width * 1.04, 1, shape.length * 1.03),
+          ),
+        );
+      });
+      contact.computeBoundingSphere();
+      root.add(contact);
+      this.stats.draws++;
+      this.stats.cars += site.spots.length;
+      this.stats.sites++;
+      this.root.add(root);
+      this.sites.push({ root, centre: site.centre.clone(), lamps });
+    }
+    installSpecularIBL(this.root);
+  }
+  update(camera: T.Camera, night: number, range: number, shadows = true) {
+    const eye = camera.position;
+    for (const site of this.sites) site.root.visible = site.centre.distanceTo(eye) < range;
+    if (shadows !== this.shadows) {
+      this.shadows = shadows;
+      for (const mesh of this.bodies) mesh.castShadow = shadows;
+    }
+    if (Math.abs(night - this.night) < 0.01) return;
+    this.night = night;
+    // Parked cars are dark; meet cars wait with their lamps on at night.
+    for (const site of this.sites)
+      for (const { attribute, lit } of site.lamps) {
+        lit.forEach((on, i) =>
+          attribute.setXYZW(
+            i,
+            on ? 0.4 + night * 1.6 : 0,
+            on ? 0.3 + night * 1.0 : 0,
+            0,
+            on ? night * 0.45 : 0,
+          ),
+        );
+        attribute.needsUpdate = true;
+      }
+  }
+  dispose() {
+    this.root.traverse((node) => {
+      if (node instanceof T.InstancedMesh) {
+        if (node.geometry !== this.contactGeometry) node.geometry.dispose();
+        node.dispose();
+      }
+    });
+    for (const base of this.bases.values()) base.dispose();
+    this.contactGeometry.dispose();
+    this.material.dispose();
+    this.contactMaterial.dispose();
+    this.root.removeFromParent();
     this.root.clear();
   }
 }

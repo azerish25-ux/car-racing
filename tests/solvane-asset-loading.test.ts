@@ -30,7 +30,8 @@ it('fetches and parses the native kit on the application origin, not the host mo
     expect(fetcher).toHaveBeenCalledTimes(1);
     expect(kit.stats.loaded).toBe(true);
     expect(kit.stats.boats).toBe(3);
-    expect(kit.stats.frontage).toBeGreaterThan(400);
+    // European timber shopfronts are withdrawn from the Japanese streets.
+    expect(kit.stats.frontage).toBe(0);
   } finally {
     kit?.dispose();
     vi.unstubAllGlobals();

@@ -210,7 +210,7 @@ function paintAtlas(): T.Texture {
   const ads: [string, string, string, string][] = [
     ['モトバウンド', 'FESTIVAL 2026 · 祭', '#ff2f7a', '#2a0c3d'],
     ['サイダー', 'しゅわっと爽快 · 新発売', '#1f7fd1', '#e8f7ff'],
-    ['ソルヴァーネ温泉', '♨ 日帰り入浴 · 露天風呂', '#7a3a1d', '#f6e3c4'],
+    ['汐浜温泉', '♨ 日帰り入浴 · 露天風呂', '#7a3a1d', '#f6e3c4'],
     ['新築マンション', '分譲中 · 駅徒歩5分', '#1d2b6b', '#ffffff'],
     ['龍軒', 'らーめん · 深夜営業', '#a3161a', '#ffe9a8'],
     ['デンキのまるや', '大型店 · ポイント10倍', '#141414', '#ffd400'],
@@ -469,8 +469,24 @@ function mix(seed: number, a: number) {
   return (h ^ (h >>> 16)) >>> 0;
 }
 
+/** A lit sign, machine or lantern whose light falls on the street (the town
+ * life module paints its pool on the pavement; refs 014, 066, 069). */
+export interface SignLight {
+  x: number;
+  y: number;
+  z: number;
+  /** Light colour (sRGB hex) and relative strength. */
+  color: number;
+  glow: number;
+  /** Pool radius on the ground (m). */
+  radius: number;
+}
 export class FestivalSignage {
   readonly root = new T.Group();
+  /** Every lit fixture that throws light on the pavement. */
+  readonly lights: SignLight[] = [];
+  /** Ground footprints of free-standing fixtures (machines, banners). */
+  readonly fixtures: { x: number; z: number; r: number }[] = [];
   readonly stats = {
     signs: 0,
     billboards: 0,
@@ -708,10 +724,12 @@ export class FestivalSignage {
     rect: Rect,
     seed: number,
     glow: number,
+    light = 0xffffff,
   ) {
     // Faces point along the street both ways; depth 0.26 m on the facade.
     const width = 0.62 + (seed % 4) * 0.08;
     const centre = this.at(s, x, (y0 + y1) / 2, 0.24 + width / 2);
+    this.light(this.at(s, x, y0, 1.6), light, glow, 2.6 + Math.min(1.6, (y1 - y0) * 0.12));
     this.slab(
       centre,
       this.t,
@@ -733,6 +751,8 @@ export class FestivalSignage {
   private vending(s: Structure, x: number, seed: number, face = 0.38) {
     const p = this.at(s, x, 0, face);
     const g = this.ground(p);
+    this.light(this.at(s, x, g, face + 0.9), 0xe6f0ff, 0.9, 1.7);
+    this.fixtures.push({ x: p.x, z: p.z, r: 0.75 });
     const body = VENDING[seed % VENDING.length];
     const color = new T.Color(body).getHex();
     p.y = g + 0.915;
@@ -754,6 +774,7 @@ export class FestivalSignage {
   private nobori(s: Structure, x: number, seed: number) {
     const p = this.at(s, x, 0, 0.95);
     const g = this.ground(p);
+    this.fixtures.push({ x: p.x, z: p.z, r: 0.35 });
     this.post(new T.Vector3(p.x, g, p.z), 2.7, 0.035, 0xb9bcbd);
     const banner = new T.Vector3(p.x, g + 1.65, p.z).addScaledVector(this.t, 0.25);
     const rect = LAYOUT.nobori(seed % NOBORI.length);
@@ -764,7 +785,12 @@ export class FestivalSignage {
     this.stats.nobori++;
   }
 
+  private light(at: V, color: number, glow: number, radius: number) {
+    this.lights.push({ x: at.x, y: at.y, z: at.z, color, glow, radius });
+  }
+
   private lantern(centre: V) {
+    this.light(centre, 0xff8a4a, 0.6, 1.6);
     // Octagonal chochin, 0.36 m diameter, 0.56 m tall; lit at night.
     const r = 0.18,
       h = 0.56,
@@ -825,7 +851,16 @@ export class FestivalSignage {
         : LAYOUT.vertical((seed >>> 5) % VERTICAL.length);
       // Backlit boxes stay just under the bloom threshold so their lettering
       // keeps its colour; neon tubes on dark faces bloom (refs 014, 066).
-      this.projecting(s, x, y0, y1, rect, seed, stacked ? 0.55 : sign.neon ? 1.5 : 0.6);
+      this.projecting(
+        s,
+        x,
+        y0,
+        y1,
+        rect,
+        seed,
+        stacked ? 0.55 : sign.neon ? 1.5 : 0.6,
+        stacked ? 0xffe6c4 : new T.Color(sign.neon ? sign.fg : sign.bg).getHex(),
+      );
     }
     // Rooftop billboard facing the street on about a third of the blocks.
     if (s.kind === 'block' && h % 3 === 0 && s.hx > 6) {
@@ -907,6 +942,8 @@ export class FestivalSignage {
     const chain = this.plan.chain.get(i) ?? 0;
     this.small = false;
     const fascia = this.attach(s, 0, 3.0, 0.16);
+    for (const x of [-s.hx * 0.5, s.hx * 0.5])
+      this.light(this.at(s, x, fascia.y, 2.2), 0xf4f6ff, 1.1, 3.4);
     this.slab(
       fascia,
       this.n,
@@ -1010,6 +1047,10 @@ export class FestivalSignage {
       0,
     );
     this.small = true;
+    // The glazed front and the lot floodlights light the forecourt (081/083).
+    this.light(this.at(s, 0, g, 2.4), 0xf2f5ff, 1.3, 5.5);
+    for (const f of [0.3, 0.75])
+      this.light(this.at(s, side * (lot0 + LOT.length * f), g, -2.6), 0xfff2dc, 0.8, 5.5);
     // Asphalt apron over the whole car park, on the carved ground.
     const p = new T.Vector3();
     const stepsX = 8,

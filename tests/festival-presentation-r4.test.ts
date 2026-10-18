@@ -3,6 +3,7 @@ import * as T from 'three';
 import { FestivalRenderer } from '../src/rendering/open-world/festival-renderer.ts';
 import { DRIFT_SMOKE, FestivalDriftSmoke } from '../src/rendering/open-world/drift-smoke.ts';
 import { FestivalEventDressing } from '../src/rendering/open-world/event-dressing.ts';
+import { SPECTATOR_FEET } from '../src/rendering/open-world/festival-crowd.ts';
 import { FESTIVAL_BLUR, FestivalSpeedBlur } from '../src/rendering/open-world/speed-blur.ts';
 import { resolveEvents } from '../src/simulation/open-world/festival-events.ts';
 import { regionStructures } from '../src/simulation/open-world/placement.ts';
@@ -175,6 +176,32 @@ describe('festival event dressing', () => {
     });
     expect(draws).toBeLessThan(60);
   });
+  it('levels and thins the authored spectators per tier', () => {
+    const hub = events.find((e) => e.spec.id === 'runway-launch')!;
+    const camera = new T.PerspectiveCamera();
+    camera.position.set(hub.marker.x, hub.marker.y + 3, hub.marker.z);
+    const drawn = (preset: string) => {
+      dressing.update(camera, 0, preset, 1);
+      let people = 0,
+        triangles = 0;
+      dressing.root.traverse((node) => {
+        if (!(node instanceof T.InstancedMesh) || node.name !== 'Festival spectators') return;
+        if (!node.visible) return;
+        people += node.count;
+        triangles += (node.geometry.index!.count / 3) * node.count;
+      });
+      return { people, triangles };
+    };
+    expect(drawn('low').people).toBe(0);
+    const medium = drawn('medium'),
+      ultra = drawn('ultra');
+    expect(medium.people).toBeLessThan(ultra.people * 0.7);
+    // Every hub spectator on ULTRA; distant lines (the harbour corner) are culled.
+    expect(ultra.people).toBeGreaterThan(600);
+    expect(ultra.people).toBeLessThanOrEqual(dressing.stats.people);
+    // Mid sculpts only near the camera: well under the all-mid count.
+    expect(medium.triangles).toBeLessThan(medium.people * 1100);
+  });
   it('stands arches and flags on the festival ground and off the carriageway', () => {
     const net = world.network;
     dressing.root.traverse((node) => {
@@ -191,19 +218,23 @@ describe('festival event dressing', () => {
       }
     });
     // The hub crowd stands on the ground beyond the strip's shoulders.
+    // Authored standing spectators: their feet (bind space) on the ground.
     const hub = dressing.root.getObjectByName('Kestrel festival hub')!;
-    const bodies = hub.getObjectByName('Festival crowd bodies') as T.InstancedMesh;
-    expect(bodies.count).toBeGreaterThan(200);
+    const clusters = hub.children.filter(
+      (n): n is T.InstancedMesh => n instanceof T.InstancedMesh && n.name === 'Festival spectators',
+    );
+    expect(clusters.reduce((a, c) => a + c.instanceMatrix.count, 0)).toBeGreaterThan(200);
     const m = new T.Matrix4(),
       at = new T.Vector3();
-    for (let i = 0; i < bodies.count; i += 7) {
-      bodies.getMatrixAt(i, m);
-      at.setFromMatrixPosition(m);
-      const lateral = net.nearest(at.x, at.z, p);
-      const edge = net.edges[net.edgeOf[net.lastSegment]];
-      expect(Math.abs(lateral)).toBeGreaterThan(edge.spec.halfWidth + edge.spec.shoulder + 1);
-      expect(Math.abs(at.y - groundHeight(at.x, at.z))).toBeLessThan(0.01);
-    }
+    for (const bodies of clusters)
+      for (let i = 0; i < bodies.instanceMatrix.count; i += 7) {
+        bodies.getMatrixAt(i, m);
+        at.copy(SPECTATOR_FEET).applyMatrix4(m);
+        const lateral = net.nearest(at.x, at.z, p);
+        const edge = net.edges[net.edgeOf[net.lastSegment]];
+        expect(Math.abs(lateral)).toBeGreaterThan(edge.spec.halfWidth + edge.spec.shoulder + 1);
+        expect(Math.abs(at.y - groundHeight(at.x, at.z))).toBeLessThan(0.01);
+      }
     // Arch banners clear a 5.3 m vehicle envelope over the road centre.
     dressing.root.traverse((node) => {
       if (!(node instanceof T.Mesh) || node.name !== 'Arch banner') return;

@@ -76,25 +76,26 @@ class GeometryBatch {
   }
 }
 
-/** Original Japanese shop fascias (kanban): trade words and invented names
- * built on the region's own place names. No real brand appears. */
+/** Original Japanese shop fascias (kanban): trade words and invented
+ * Japanese names (the plate atlas's invented places: 汐浜, 灰谷, 鷹野原,
+ * 茨森). No real brand and no European transliteration appears. */
 const SHOP_NAMES = [
-  ['イルセ自動車', 'ILSE MOTOR · 整備 · 車検', '#f5f5f0', '#1d2b6b'],
+  ['汐浜自動車', '整備 · 車検 · 板金', '#f5f5f0', '#1d2b6b'],
   ['みなと食堂', '定食 · 海鮮丼 · 営業中', '#c8161d', '#ffffff'],
-  ['ソルヴァーネ', 'COAST FESTIVAL · 祭', '#141414', '#ffd23a'],
+  ['居酒屋 浜風', '焼鳥 · 地酒 · 営業中', '#141414', '#ffd23a'],
   ['谷モータース', '修理 · 部品 · タイヤ', '#1f4fa3', '#ffffff'],
   ['喫茶 青い時', 'COFFEE · RECORDS', '#2f5a3a', '#f4ead2'],
-  ['アシュベール製パン', 'BAKERY · 焼きたて', '#f5efe0', '#7a3a1d'],
+  ['灰谷ベーカリー', 'パン · 焼きたて', '#f5efe0', '#7a3a1d'],
   ['塩と石', '雑貨 · COASTAL GOODS', '#ffffff', '#202020'],
-  ['観光案内所', 'PORT ILSE · INFORMATION', '#0e6b4f', '#ffffff'],
-  ['ソーンウッド', 'アウトドア用品', '#3d4a2c', '#f1e7c9'],
+  ['観光案内所', '汐浜港 · INFORMATION', '#0e6b4f', '#ffffff'],
+  ['茨森アウトドア', 'キャンプ · 釣具', '#3d4a2c', '#f1e7c9'],
   ['旅館 ろふと', '海の見える宿', '#2b2420', '#e9cf8a'],
   ['潮サイクル', '自転車 · レンタル', '#f7d117', '#141414'],
-  ['ケストレル', 'カー用品 · MOTOR SUPPLY', '#e3001b', '#ffffff'],
+  ['鷹野原カー用品', 'タイヤ · オイル · 洗車', '#e3001b', '#ffffff'],
   ['鮮魚 浜市場', '朝獲れ · FISH MARKET', '#1b5fae', '#ffffff'],
   ['東線デザイン', 'DESIGN STUDIO', '#e8e6e0', '#3a3a3a'],
-  ['ヴァルダ山岳', '登山 · 装備 · ガイド', '#7a1f1a', '#ffffff'],
-  ['モトバウンド', 'FESTIVAL DRIVERS CLUB', '#ff2f7a', '#ffffff'],
+  ['山岳用品 岳', '登山 · 装備 · ガイド', '#7a1f1a', '#ffffff'],
+  ['モトバウンド', 'ドライバーズクラブ', '#ff2f7a', '#ffffff'],
 ] as const;
 const SIGN_FONT =
   '"Noto Sans JP","Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic","Meiryo","IPAGothic","WenQuanYi Zen Hei",sans-serif';

@@ -436,7 +436,9 @@ export const SOLVANE: RegionDefinition = Object.freeze({
     { kind: 'farm', x: -1680, z: -330, heading: -0.3, width: 12, length: 22, height: 7 },
     { kind: 'farm', x: 1520, z: 120, heading: 1.1, width: 14, length: 24, height: 8 },
     { kind: 'farm', x: 2950, z: -860, heading: 0.2, width: 12, length: 30, height: 8 },
-    { kind: 'chapel', x: -780, z: 830, heading: 0.2, width: 10, length: 22, height: 14 },
+    // Ashvale's temple: a level frontage gap on the valley road, gate to the
+    // road (refs 011, 026, 027).
+    { kind: 'chapel', x: -756.4, z: 716.3, heading: 2.326, width: 10, length: 22, height: 14 },
     { kind: 'warehouse', x: 2350, z: -2600, heading: 0, width: 30, length: 70, height: 12 },
     { kind: 'warehouse', x: 2350, z: -2480, heading: 0, width: 30, length: 70, height: 12 },
   ],

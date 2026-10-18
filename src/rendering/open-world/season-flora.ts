@@ -272,7 +272,9 @@ export function installSeasonGrass(material: T.Material, lumRef: number) {
   });
 }
 
-export type RoadSurface = 'asphalt' | 'verge' | 'dirt' | 'paving';
+/** Road layers: country/mountain asphalt, town streets, major roads
+ * (highway and arterials), verges, dirt tracks and town footways. */
+export type RoadSurface = 'asphalt' | 'town' | 'major' | 'verge' | 'dirt' | 'paving';
 const ROAD_GLSL = /* glsl */ `
 ${SEASON_DECL_GLSL}
 ${FLORA_ZONE_GLSL}
@@ -317,13 +319,32 @@ export function installSeasonRoad(material: T.Material, surface: RoadSurface) {
   // Litter drifts to the road edges (uv.x: metres from the centre line);
   // dirt tracks keep a cleaner wheel path, verges are all edge.
   // Pale gravel tracks show petals less than dark tarmac (033).
-  const litter = surface === 'dirt' ? 0.4 : surface === 'paving' ? 0.55 : 0.75;
-  const edgeBias =
-    surface === 'asphalt'
-      ? 'smoothstep(2.6, 5.5, abs(vOwRoadUv.x))'
-      : surface === 'dirt'
-        ? 'smoothstep(0.6, 2.6, abs(vOwRoadUv.x))'
-        : '1.0';
+  // Traffic sweeps busy carriageways clean (015: the carpet lies only under
+  // the blossoms of a quiet mountain road): town streets keep a thin drift
+  // in the gutter by the kerb, major roads only at their outer edge, and
+  // swept footways scattered clumps.
+  const litter = {
+    asphalt: 0.75,
+    town: 0.42,
+    major: 0.3,
+    verge: 0.75,
+    dirt: 0.4,
+    paving: 0.3,
+  }[surface];
+  const edgeBias = {
+    asphalt: 'smoothstep(2.6, 5.5, abs(vOwRoadUv.x))',
+    town: 'smoothstep(3.7, 4.6, abs(vOwRoadUv.x))',
+    major:
+      'smoothstep(6.4, 7.6, abs(vOwRoadUv.x)) * (1.0 - smoothstep(8.2, 9.0, abs(vOwRoadUv.x)))',
+    verge: '1.0',
+    dirt: 'smoothstep(0.6, 2.6, abs(vOwRoadUv.x))',
+    paving: '1.0',
+  }[surface];
+  // Share of the drift that also reaches the middle of the surface.
+  const centre = surface === 'town' || surface === 'major' ? '0.0' : '0.2';
+  const clump =
+    surface === 'paving' ? 'smoothstep(0.55, 0.9, drift)' : 'smoothstep(0.3, 0.8, drift)';
+  const asphaltLike = surface === 'asphalt' || surface === 'town' || surface === 'major';
   chainShaderHook(material, `festival-season-road-${surface}-v1`, (shader) => {
     bindSeasonUniforms(shader);
     injectAfter(
@@ -349,20 +370,20 @@ export function installSeasonRoad(material: T.Material, surface: RoadSurface) {
   float edge = ${edgeBias};
   float drift = owRoadNoise(p * 0.31) * 0.6 + owRoadNoise(p * 0.07 + 3.1) * 0.4;
   // Spring: petals under the cherry groves.
-  float petals = owCherryZone(p) * smoothstep(0.3, 0.8, drift) * (0.2 + 0.8 * edge);
+  float petals = owCherryZone(p) * ${clump} * (${centre} + (1.0 - ${centre}) * edge);
   // Petals ~6 cm cells (read at driving distance), translucent pink: the
   // carpet tints the road (096) instead of speckling it white.
   float petal = owLitter(p, 16.0, clamp(petals * ${litter.toFixed(2)}, 0.0, 0.6), 0.0);
   vec3 petalC = mix(vec3(0.6, 0.38, 0.45), vec3(0.7, 0.52, 0.58), owRoadHash(floor(p * 16.0) + 7.0));
   diffuseColor.rgb = mix(diffuseColor.rgb, petalC, 0.8 * petal * owSeason.x);
   // Autumn: maple and broadleaf leaves, more in the maple groves.
-  float leaves = (0.25 + 0.75 * owMapleZone(p)) * smoothstep(0.3, 0.8, drift) * (0.2 + 0.8 * edge);
+  float leaves = (0.25 + 0.75 * owMapleZone(p)) * ${clump} * (${centre} + (1.0 - ${centre}) * edge);
   float leafPiece = owLitter(p, 11.0, clamp(leaves * 0.75, 0.0, 0.75), 3.0);
   float pick = owRoadHash(floor(p * 11.0) + 13.0);
   vec3 leafC = pick < 0.3 ? vec3(0.42, 0.05, 0.02) : (pick < 0.55 ? vec3(0.45, 0.15, 0.02) : (pick < 0.8 ? vec3(0.4, 0.26, 0.03) : vec3(0.17, 0.09, 0.035)));
   diffuseColor.rgb = mix(diffuseColor.rgb, leafC, leafPiece * owSeason.z);
   // Winter: snow banks on verges, dusting on asphalt edges, wet tarmac.
-  float snow = ${surface === 'asphalt' ? 'smoothstep(0.55, 0.95, drift + 0.5 * edge - 0.35) * 0.85' : surface === 'dirt' ? '0.55 + 0.4 * smoothstep(0.3, 0.7, drift)' : surface === 'paving' ? 'smoothstep(0.35, 0.75, drift)' : '0.8 + 0.2 * drift'};
+  float snow = ${asphaltLike ? 'smoothstep(0.55, 0.95, drift + 0.5 * edge - 0.35) * 0.85' : surface === 'dirt' ? '0.55 + 0.4 * smoothstep(0.3, 0.7, drift)' : surface === 'paving' ? 'smoothstep(0.35, 0.75, drift)' : '0.8 + 0.2 * drift'};
   vec3 snowC = vec3(0.78, 0.8, 0.85) * (0.92 + 0.08 * owRoadNoise(p * 3.0));
   diffuseColor.rgb = mix(diffuseColor.rgb * (1.0 - 0.18 * owSnowCover), snowC, clamp(snow, 0.0, 1.0) * owSnowCover);
 }`,
@@ -417,9 +438,9 @@ export function installSeasonLibrary(library: VegetationLibrary) {
 /** Road layers of the festival network and their season surfaces. */
 export function installSeasonRoads(materials: Readonly<Record<string, T.Material>>) {
   const surfaces: Record<string, RoadSurface> = {
-    asphaltMajor: 'asphalt',
+    asphaltMajor: 'major',
     asphalt: 'asphalt',
-    town: 'asphalt',
+    town: 'town',
     verge: 'verge',
     dirt: 'dirt',
     paving: 'paving',

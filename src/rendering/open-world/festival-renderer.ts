@@ -105,6 +105,12 @@ import { FestivalSpeedBlur } from './speed-blur.ts';
 import { applySeason, SEASONS, type Season } from './season.ts';
 import { architecturePlan } from './japan-architecture.ts';
 import { FestivalSignage } from './festival-signage.ts';
+import { FestivalTownLife } from './town-life.ts';
+import { parkedSites } from './parked-cars.ts';
+import { ParkedCars } from '../traffic-cars.ts';
+
+/** Parked-car draw distance (m) per tier. */
+const PARKED_RANGE = { low: 160, medium: 260, high: 360, ultra: 480 } as const;
 import {
   createFestivalContactOffset,
   festivalContactEnabled,
@@ -152,6 +158,10 @@ export class FestivalRenderer {
   /** Aerial perspective of the region (replaces FogExp2 on its materials). */
   readonly atmosphere = new FestivalAtmosphere();
   readonly signage: FestivalSignage;
+  /** Pavement and junction life: bicycles, bollards, signals, light pools. */
+  readonly townLife: FestivalTownLife;
+  /** Cars parked in store lots, coin parks and the hub meet. */
+  readonly parked: ParkedCars;
   details: SolvaneDetails | null = null;
   private detailLoading: Promise<boolean> | null = null;
   streetDetails: StreetDetails | null = null;
@@ -324,6 +334,24 @@ export class FestivalRenderer {
     );
     scene.add(this.distant.root);
     this.signage = new FestivalSignage(world, structures, architecture);
+    this.townLife = new FestivalTownLife(
+      world,
+      structures,
+      architecture,
+      this.heightAt,
+      this.signage.lights,
+      [...this.furniture.anchors, ...this.signage.fixtures],
+    );
+    this.parked = new ParkedCars(
+      parkedSites(
+        world,
+        structures,
+        architecture,
+        events,
+        this.townLife.parkingBays,
+        this.heightAt,
+      ),
+    );
     this.water = new Water(world.field);
     this.markers = new EventMarkers(events, (x, z) => this.groundHeight(x, z));
     this.reflection.probeExclusions.push(this.markers.root);
@@ -340,6 +368,8 @@ export class FestivalRenderer {
       this.buildings.root,
       this.dressing.root,
       this.signage.root,
+      this.townLife.root,
+      this.parked.root,
       this.vegetation.root,
       this.flora.root,
       this.water.root,
@@ -772,6 +802,19 @@ export class FestivalRenderer {
     this.eventDressing.update(this.camera, night, this.preset, time);
     this.dragStrip.update(time, this.drag, this.camera);
     this.signage.update(time, night, this.camera, this.preset);
+    this.townLife.update(
+      this.camera,
+      night,
+      this.preset,
+      time,
+      surfaceDampness(presented[H.RAIN], presented[H.WATER]),
+    );
+    this.parked.update(
+      this.camera,
+      night,
+      PARKED_RANGE[this.preset],
+      this.preset === 'high' || this.preset === 'ultra',
+    );
     this.details?.update(
       time,
       night,
@@ -981,6 +1024,8 @@ export class FestivalRenderer {
     this.dressing.dispose();
     this.distant.dispose();
     this.signage.dispose();
+    this.townLife.dispose();
+    this.parked.dispose();
     this.details?.dispose();
     this.details = null;
     this.streetDetails?.dispose();

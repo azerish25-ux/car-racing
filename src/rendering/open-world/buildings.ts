@@ -1557,15 +1557,17 @@ export class Buildings {
     f.box(brickSide * (s.hx + 0.02), base + 1.05, -front * (s.hz - 2.4), 0.04, 2.1, 1.0, 0x6f7376);
   }
 
-  /** The landmark chapel as a hillside temple: a battered ishigaki terrace
-   * filling the collision box and rising to the surrounding grade, a main
+  /** The landmark chapel as Ashvale's temple: a low battered stone podium
+   * at the surrounding grade inside its compound wall, a main
    * hall (hondo) with a sweeping irimoya roof and a five-storey pagoda
    * whose eave soffits glow at dusk (refs 011, 026, 027). */
   private temple(f: Frame, s: Structure, kind: number, front: number, terrace: number) {
     const styleN = (s.style % 9973) / 9973;
     const rf: Facade = [styleN, kind, -1, s.height];
     const wf: Facade = [styleN, kind, -3, 0];
-    const top = Math.max(s.base + s.height, terrace + 0.3);
+    // A low stone podium (kidan) at the surrounding grade: the compound
+    // stands on level ground beside its road, not on a filled collision box.
+    const top = Math.max(s.base + 0.9, terrace + 0.35);
     const stone: Facade = [styleN, kind, -3, 2];
     const batter = Math.min(2.5, (top - s.base) * 0.12);
     for (const side of [-1, 1]) {
