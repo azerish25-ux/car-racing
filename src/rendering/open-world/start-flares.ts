@@ -179,10 +179,11 @@ export class FestivalStartFlares {
         ${NOISE}
         void main() {
           float t = vHeight / ${k.height.toFixed(2)};
-          // Rising turbulence; eddies grow with the column.
+          // Rising turbulence: eddies widen with the column; the vertical
+          // scale is fixed so the scroll never shears into streaks.
           float cell = 0.4 + 0.15 * vHeight;
           vec2 p = vec2(vPlume.x * vPlume.y / cell + vSeed * 13.0,
-                        (vHeight - time * ${k.rise.toFixed(2)}) / cell);
+                        (vHeight - time * ${k.rise.toFixed(2)}) / 0.9);
           float warp = flareFbm(p * 0.55 + vec2(vSeed * 7.0, -time * 0.15));
           float n = flareFbm(p + vec2(1.6 * warp - 0.8, 0.0));
           float across = vPlume.x * (1.0 + 0.35 * (warp - 0.5));
