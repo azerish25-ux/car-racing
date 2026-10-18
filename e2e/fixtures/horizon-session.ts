@@ -166,6 +166,17 @@ Object.assign(window, {
       return out;
     },
     command: (command: Parameters<FestivalSession['command']>[0]) => session?.command(command),
+    // Photo mode lens (the photo panel's settings) for lens captures.
+    photoLens: (settings: Parameters<FestivalRenderer['photoLens']['set']>[0]) => {
+      const renderer = (session as unknown as { renderer: FestivalRenderer } | null)?.renderer;
+      renderer?.photoLens.set(settings);
+      return renderer?.photoLens.diagnostics() ?? null;
+    },
+    // Image pipeline state (shadow ranges, temporal AA, SSR, photo lens).
+    pipeline: () => {
+      const renderer = (session as unknown as { renderer: FestivalRenderer } | null)?.renderer;
+      return renderer?.pipelineDiagnostics() ?? null;
+    },
     // Cost review: keep a named scene object hidden (its own per-frame
     // visibility writes are ignored) to measure what it adds to a frame.
     hide: (name: string) => {

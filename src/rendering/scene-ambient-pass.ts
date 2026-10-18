@@ -525,6 +525,17 @@ export class SceneAmbientPass extends Pass {
     this.target.dispose();
     this.applySlices();
   }
+  /** Opt-in per-renderer obscurance tuning over AMBIENT_OCCLUSION (the
+   * festival's street-scale AO); null restores the shared values. */
+  setObscurance(settings: Partial<AmbientOcclusionSettings> | null) {
+    const u = this.obscuranceMaterial.uniforms,
+      s = { ...AMBIENT_OCCLUSION, ...(settings ?? {}) };
+    for (const key of Object.keys(AMBIENT_OCCLUSION) as (keyof AmbientOcclusionSettings)[]) {
+      const value = s[key];
+      if (!Number.isFinite(value)) throw new Error(`Invalid obscurance ${key}`);
+      u[key].value = value;
+    }
+  }
   /** ULTRA: more GTAO slices regardless of the multisample count (null restores). */
   setSliceOverride(slices: number | null) {
     if (slices !== null && !(Number.isInteger(slices) && slices >= 1 && slices <= 8))
