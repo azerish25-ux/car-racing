@@ -86,6 +86,7 @@ import { driftFeedback, type DriftCue } from '../../simulation/open-world/drift-
 import { HorizonGuidance } from './horizon-guidance.ts';
 import { FestivalTrails } from './festival-trails.ts';
 import { HorizonDressing } from './horizon-dressing.ts';
+import { applySeason, type Season } from './season.ts';
 import {
   createFestivalContactOffset,
   festivalContactEnabled,
@@ -167,6 +168,15 @@ export class FestivalRenderer {
   graphics: GraphicsOptions = graphicsPreset('medium');
   preset: QualityPreset = 'medium';
   lighting: LightingMode = 'day';
+  private currentSeason: Season = 'summer';
+  /** Presentation season (foliage, ground cover, snow, petals). */
+  get season(): Season {
+    return this.currentSeason;
+  }
+  set season(value: Season) {
+    this.currentSeason = value;
+    applySeason(value);
+  }
   mode: FestivalCamera = 'chase';
   lookX = 0;
   private readonly target = new T.Vector3();
@@ -196,6 +206,8 @@ export class FestivalRenderer {
     tileWorker: Worker,
   ) {
     const scene = this.scene;
+    // The season uniforms are shared module state: start every session clean.
+    applySeason(this.currentSeason);
     this.events = new Map(events.map((event) => [event.spec.id, event]));
     this.orbit = new OrbitControls(this.camera, canvas);
     this.orbit.enabled = false;

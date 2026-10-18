@@ -1,3 +1,4 @@
+import { isSeason, type Season } from './festival-season.ts';
 import {
   festivalVehicles,
   festivalDefaultVehicle,
@@ -13,6 +14,8 @@ export interface FestivalSave {
   vehicle: string;
   /** Ambient traffic on (default) or off; absent in saves before it existed. */
   traffic?: boolean;
+  /** Presentation season; absent in saves before seasons existed (summer). */
+  season?: Season;
 }
 export const FESTIVAL_SAVE_KEY = 'festival:v1';
 export function validateFestivalSave(value: unknown): FestivalSave | null {
@@ -25,6 +28,7 @@ export function validateFestivalSave(value: unknown): FestivalSave | null {
     best: v.best && typeof v.best === 'object' ? v.best : {},
     vehicle: v.vehicle,
     traffic: typeof v.traffic === 'boolean' ? v.traffic : true,
+    season: isSeason(v.season) ? v.season : 'summer',
   };
 }
 /** The machine a festival session drives, and the one the festival save

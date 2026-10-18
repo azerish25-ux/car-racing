@@ -1,4 +1,5 @@
 import type { LightingMode } from '../rendering/daylight.ts';
+import type { Season } from './festival-season.ts';
 import type { FestivalStatus } from '../simulation/open-world/session.ts';
 import type { FestivalSave } from './festival-save.ts';
 
@@ -19,6 +20,7 @@ export interface FestivalMenuState {
   inEvent: boolean;
   /** Ambient traffic setting. */
   traffic: boolean;
+  season: Season;
 }
 /** What the pause menu shows, from the worker's last status and the
  * session's own settings. Settings the menu changes itself (ambient traffic)
@@ -26,7 +28,7 @@ export interface FestivalMenuState {
  * the menu is redrawn at once, before the worker's next status arrives. */
 export function festivalMenuState(
   status: FestivalStatus | null,
-  save: Pick<FestivalSave, 'vehicle' | 'discovered' | 'traffic'>,
+  save: Pick<FestivalSave, 'vehicle' | 'discovered' | 'traffic' | 'season'>,
   lighting: LightingMode,
 ): FestivalMenuState {
   return {
@@ -36,6 +38,7 @@ export function festivalMenuState(
     autopilot: status?.autopilot ?? false,
     inEvent: !!status?.event,
     traffic: save.traffic !== false,
+    season: save.season ?? 'summer',
   };
 }
 export interface FestivalControlHooks {

@@ -14,6 +14,7 @@ import type { LightingMode } from '../../src/rendering/daylight.ts';
 import { SOLVANE } from '../../src/simulation/open-world/region-data.ts';
 import type { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { F, carBase } from '../../src/simulation/protocol.ts';
+import { isSeason, type Season } from '../../src/session/festival-season.ts';
 
 const params = new URLSearchParams(location.search);
 const quality = (params.get('quality') ?? 'medium') as QualityPreset;
@@ -122,6 +123,7 @@ async function boot() {
       quality,
       graphics: graphicsPreset(quality),
       lighting: (params.get('lighting') ?? 'day') as LightingMode,
+      season: isSeason(params.get('season')) ? (params.get('season') as Season) : undefined,
       loading: (text) => {
         loading.textContent = text;
         loading.hidden = false;

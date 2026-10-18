@@ -17,6 +17,7 @@ import { openWorld } from '../simulation/open-world/world.ts';
 import { F, H, R, RACE_BASE, carBase } from '../simulation/protocol.ts';
 import { vehicleAt } from '../simulation/vehicles.ts';
 import type { LightingMode } from '../rendering/daylight.ts';
+import type { Season } from './festival-season.ts';
 import { FestivalRenderer } from '../rendering/open-world/festival-renderer.ts';
 import { FestivalRiders } from '../rendering/festival-riders.ts';
 import { TrafficCars } from '../rendering/traffic-cars.ts';
@@ -45,6 +46,8 @@ export interface FestivalHost {
   quality: QualityPreset;
   graphics: GraphicsOptions;
   lighting: LightingMode;
+  /** Initial season; the festival save's season wins when absent. */
+  season?: Season;
   loading(text: string): void;
   loaded(): void;
   toast(message: string): void;
@@ -176,6 +179,8 @@ export class FestivalSession {
     this.renderer = renderer;
     renderer.setQuality(host.quality, host.graphics);
     renderer.lighting = host.lighting;
+    renderer.season = host.season ?? this.save.season ?? 'summer';
+    this.save.season = renderer.season;
     host.loading('Loading photographed trees…');
     await renderer.loadPhotoVegetation();
     host.loading('Loading authored coastal details…');
@@ -204,6 +209,12 @@ export class FestivalSession {
       exit: () => this.host.exit(),
       lighting: (mode) => {
         renderer.lighting = mode;
+        this.openMenu();
+      },
+      season: (season) => {
+        renderer.season = season;
+        this.save.season = season;
+        void this.persist();
         this.openMenu();
       },
       vehicle: (id) => {

@@ -13,6 +13,7 @@ import type { VehicleDefinition } from '../simulation/vehicles.ts';
 import { EVENT_COLOURS } from '../rendering/open-world/markers.ts';
 import { escapeHtml } from './team-hub.ts';
 import type { LightingMode } from '../rendering/daylight.ts';
+import { SEASONS, SEASON_LABEL, type Season } from '../session/festival-season.ts';
 import { MAP_HALF, MAP_SIZE, mapToWorld, minimapMatrix, worldToMap } from './festival-map.ts';
 
 export interface FestivalHudCallbacks {
@@ -23,6 +24,8 @@ export interface FestivalHudCallbacks {
   resume(): void;
   exit(): void;
   lighting(mode: LightingMode): void;
+  /** Presentation season (optional: hosts without seasons omit the row). */
+  season?(season: Season): void;
   vehicle(id: string): void;
   travel(id: string): void;
   autopilot(on: boolean): void;
@@ -127,6 +130,9 @@ export class FestivalHud {
           break;
         case 'lighting':
           this.callbacks.lighting(value as LightingMode);
+          break;
+        case 'season':
+          this.callbacks.season?.(value as Season);
           break;
         case 'vehicle':
           this.callbacks.vehicle(value);
@@ -623,6 +629,7 @@ export class FestivalHud {
       autopilot: boolean;
       inEvent: boolean;
       traffic?: boolean;
+      season?: Season;
     },
   ) {
     this.menuOpen = open;
@@ -640,6 +647,7 @@ export class FestivalHud {
       <div class="fest-menu-actions"><button class="fest-primary" data-fest="resume">RESUME</button><button class="fest-secondary" data-fest="reset">RESET TO ROAD</button>${state.inEvent ? '<button class="fest-secondary" data-fest="cancel">ABANDON EVENT</button>' : ''}<button class="fest-secondary" data-fest="exit">EXIT FESTIVAL</button>${this.callbacks.map ? '<button class="fest-secondary" data-fest="map">WORLD MAP</button>' : ''}${this.callbacks.photo ? '<button class="fest-secondary" data-fest="photo">PHOTO MODE</button>' : ''}</div>
       <div class="fest-menu-columns"><div>
       <section><h3>Time of day</h3><div class="fest-options">${lightings.map(([m, label]) => `<button data-fest="lighting" data-value="${m}" ${pressed(state.lighting === m)}>${label}</button>`).join('')}</div></section>
+      ${this.callbacks.season ? `<section><h3>Season</h3><div class="fest-options">${SEASONS.map((m) => `<button data-fest="season" data-value="${m}" ${pressed((state.season ?? 'summer') === m)}>${SEASON_LABEL[m]}</button>`).join('')}</div></section>` : ''}
       <section><h3>Your machine <span>${this.vehicles.length} AVAILABLE</span></h3><div class="fest-options fest-garage">${this.vehicles.map((v) => `<button data-fest="vehicle" data-value="${escapeHtml(v.id)}" ${pressed(state.vehicle === v.id)}><span>${escapeHtml(v.name)}</span><small>${escapeHtml(v.classId.toUpperCase())} · ${Math.round(v.spec.dryMass).toLocaleString('en')} KG</small></button>`).join('')}</div></section></div><div>
       <section><h3>Autopilot</h3><div class="fest-options"><button data-fest="autopilot" data-value="on" ${pressed(state.autopilot)}>On</button><button data-fest="autopilot" data-value="off" ${pressed(!state.autopilot)}>Off</button></div></section>
       <section><h3>Ambient traffic</h3><div class="fest-options"><button data-fest="traffic" data-value="on" ${pressed(state.traffic !== false)}>Traffic on</button><button data-fest="traffic" data-value="off" ${pressed(state.traffic === false)}>Traffic off</button>${state.inEvent ? '<span>Off while an event runs.</span>' : ''}</div></section>
