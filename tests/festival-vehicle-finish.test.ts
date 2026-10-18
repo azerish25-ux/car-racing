@@ -1,5 +1,5 @@
 import * as T from 'three';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { FestivalCars } from '../src/rendering/open-world/festival-cars.ts';
 import {
   FESTIVAL_LAMPS,
@@ -197,12 +197,24 @@ describe('festival vehicle finish', () => {
     };
     draw(0, 0);
     tail = bodies.bodies.get(0)!.materials.tail;
+    const halos = named(cars.root, 'Festival lamp halos');
+    expect(halos.length).toBe(2);
+    const halo = halos[0].material as T.ShaderMaterial;
+    expect(halos[1].material).toBe(halo);
+    // No halo by day without braking; a red glow at night and a flare braking.
+    expect(halo.visible).toBe(false);
     expect(tail.emissiveIntensity).toBeCloseTo(FESTIVAL_LAMPS.tailDay, 6);
     expect(runningLightMaterial().emissiveIntensity).toBeCloseTo(FESTIVAL_LAMPS.drlDay, 6);
     draw(0.8, 0);
     expect(tail.emissiveIntensity).toBeCloseTo(FESTIVAL_LAMPS.brake, 6);
+    expect(halo.visible).toBe(true);
+    expect(halo.uniforms.haloHead.value).toBe(0);
     draw(0, 1);
     expect(tail.emissiveIntensity).toBeCloseTo(FESTIVAL_LAMPS.tailNight, 6);
+    expect(halo.uniforms.haloTail.value).toBeCloseTo(FESTIVAL_LAMPS.haloTail, 6);
+    expect(halo.uniforms.haloHead.value).toBeCloseTo(FESTIVAL_LAMPS.haloHead, 6);
+    // Red lenses stay below the level where ACES turns them orange-white.
+    expect(FESTIVAL_LAMPS.brake).toBeLessThanOrEqual(8);
     expect(runningLightMaterial().emissiveIntensity).toBeCloseTo(FESTIVAL_LAMPS.drlNight, 6);
     expect(named(cars.root, 'Festival registration plates').length).toBeGreaterThan(0);
     // A plain body library (the circuit's) keeps its own lamp levels.
@@ -212,6 +224,8 @@ describe('festival vehicle finish', () => {
     const own = (circuit as unknown as typeof bodies).bodies.get(0)!.materials.tail;
     expect(own.emissiveIntensity).toBeCloseTo(0.55, 6);
     circuit.clear();
+    const disposed = vi.spyOn(halo, 'dispose');
     cars.dispose();
+    expect(disposed).toHaveBeenCalledTimes(1);
   });
 });

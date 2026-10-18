@@ -28,21 +28,25 @@ const PLATED = new Set(['road', 'street']);
 export function festivalPlated(def: VehicleDefinition) {
   return PLATED.has(String(def.classId));
 }
-/** Lamp emission levels (emissive intensity) for an open-road car. Bloom
- * starts near luminance 1.8 (LENS_BLOOM threshold 3.6, knee 1.8) and a red
- * lens carries ~0.22 luminance per unit: running tail bars read lit but do
- * not glow by day (ref 018), glow faintly at night (ref 058) and flare under
- * braking; the cool-white LED signature glows a little even in daylight
- * (refs 019, 037, 091). */
+/** Lamp emission levels (emissive intensity) for an open-road car. A red
+ * lens carries ~0.22 luminance per unit and ACES turns one brighter than ~5
+ * orange-white, so lenses stay at red-safe levels: running tail bars read lit
+ * by day (ref 018), brighter at night and under braking; the glow itself is
+ * the additive halo (`setLampHalos`, refs 058, 086). The cool-white LED
+ * signature crosses the bloom knee (~1.8) even in daylight (refs 019, 037). */
 export const FESTIVAL_LAMPS = Object.freeze({
   tailDay: 1.6,
-  tailNight: 8,
-  brake: 15,
+  tailNight: 4,
+  brake: 7,
   drlDay: 5.5,
   drlNight: 4.5,
-  /** Dipped projectors: off-white by day, glowing at night. */
+  /** Dipped projectors: off-white by day, bright at night. */
   headDay: 0.35,
-  headNight: 6,
+  headNight: 4,
+  /** Additive halo levels (lens colour, linear radiance at the centre). */
+  haloTail: 0.55,
+  haloBrake: 0.7,
+  haloHead: 0.35,
   plateLamp: 0.55,
 });
 
@@ -285,12 +289,121 @@ function runningLightPath(
   ] as const;
 }
 
+/** Night lamp halos (refs 058, 086): ACES tone mapping turns a red lens
+ * bright enough to cross the bloom threshold orange-white, so lit lamps stay
+ * at a red-safe level and a soft additive halo in the lens colour carries the
+ * glow. One quad per lamp site, camera-facing, faded by how squarely the lamp
+ * faces the camera; drawn only at night or under braking. */
+export interface HaloSite {
+  at: readonly [number, number, number];
+  /** Lamp axis (car frame): -Z tail, +Z head. */
+  axis: 1 | -1;
+  size: number;
+}
+export function lampHaloSites(model: ClosedBodyModel): HaloSite[] {
+  const { f, s } = model;
+  const sites: HaloSite[] = [];
+  const y = Math.min(f.y(s.tail) - 0.13, model.topY(model.zRear) - 0.06),
+    z = model.zRear - 0.03,
+    half = model.halfWidth(model.zRear) * 0.8;
+  const tail = (x: number, size: number) => sites.push({ at: [x, y, z], axis: -1, size });
+  if (s.lamps.rear === 'round')
+    for (const side of [-1, 1]) {
+      tail(side * half * 0.74, 0.2);
+      tail(side * (half * 0.74 - 0.15), 0.17);
+    }
+  else if (s.lamps.rear === 'twin') for (const side of [-1, 1]) tail(side * half * 0.74, 0.26);
+  else {
+    const width = half * (s.lamps.rear === 'strip' ? 1.8 : 1.7);
+    for (const t of [-0.42, -0.14, 0.14, 0.42]) tail(t * width, 0.24);
+  }
+  for (const { base } of festivalHeadlampFrames(model)) {
+    const p = new T.Vector3().setFromMatrixPosition(base);
+    sites.push({ at: [p.x, p.y + 0.03, p.z + 0.06], axis: 1, size: 0.24 });
+  }
+  return sites;
+}
+function haloGeometry(sites: readonly HaloSite[]) {
+  const position: number[] = [],
+    normal: number[] = [],
+    corner: number[] = [],
+    size: number[] = [],
+    index: number[] = [];
+  sites.forEach((site, k) => {
+    for (const [cx, cy] of [
+      [-1, -1],
+      [1, -1],
+      [1, 1],
+      [-1, 1],
+    ]) {
+      position.push(...site.at);
+      normal.push(0, 0, site.axis);
+      corner.push(cx, cy);
+      size.push(site.size);
+    }
+    index.push(k * 4, k * 4 + 1, k * 4 + 2, k * 4, k * 4 + 2, k * 4 + 3);
+  });
+  const g = new T.BufferGeometry();
+  g.setAttribute('position', new T.Float32BufferAttribute(position, 3));
+  g.setAttribute('normal', new T.Float32BufferAttribute(normal, 3));
+  g.setAttribute('haloCorner', new T.Float32BufferAttribute(corner, 2));
+  g.setAttribute('haloSize', new T.Float32BufferAttribute(size, 1));
+  g.setIndex(index);
+  return g;
+}
+/** One car's halo finish (glow levels set by `setLampHalos`). */
+export function lampHaloMaterial() {
+  const material = new T.ShaderMaterial({
+    name: 'Festival lamp halos',
+    uniforms: { haloTail: { value: 0 }, haloHead: { value: 0 } },
+    transparent: true,
+    depthWrite: false,
+    blending: T.AdditiveBlending,
+    vertexShader: `attribute vec2 haloCorner; attribute float haloSize;
+      uniform float haloTail; uniform float haloHead;
+      varying vec2 vCorner; varying vec3 vGlow;
+      void main() {
+        vec4 c = modelViewMatrix * vec4(position, 1.0);
+        vec3 axis = normalize(normalMatrix * normal);
+        float facing = max(0.0, dot(axis, normalize(-c.xyz)));
+        vGlow = (normal.z < 0.0 ? vec3(1.0, 0.035, 0.015) * haloTail
+          : vec3(1.0, 0.92, 0.8) * haloHead) * pow(facing, 0.6);
+        vCorner = haloCorner;
+        // Camera-facing, and drawn just in front of the lens it surrounds.
+        c.xyz += normalize(-c.xyz) * 0.12;
+        c.xy += haloCorner * haloSize;
+        gl_Position = projectionMatrix * c;
+      }`,
+    fragmentShader: `varying vec2 vCorner; varying vec3 vGlow;
+      void main() {
+        float r2 = dot(vCorner, vCorner);
+        float a = exp(-r2 * 4.5) * (1.0 - smoothstep(0.6, 1.0, r2));
+        gl_FragColor = vec4(vGlow * a, 1.0);
+        #include <tonemapping_fragment>
+        #include <colorspace_fragment>
+      }`,
+  });
+  material.visible = false;
+  return material;
+}
+/** Halo levels for night amount `night` (0..1) and braking. */
+export function setLampHalos(material: T.ShaderMaterial, night: number, braking: boolean) {
+  const tail =
+    night * FESTIVAL_LAMPS.haloTail +
+    (braking ? FESTIVAL_LAMPS.haloBrake * Math.max(night, 0.35) : 0);
+  const head = night * FESTIVAL_LAMPS.haloHead;
+  material.uniforms.haloTail.value = tail;
+  material.uniforms.haloHead.value = head;
+  material.visible = tail > 0.01 || head > 0.01;
+}
+
 /** Install the festival finish on a newly built body (LOD0 and LOD1). */
 export function installFestivalFinish(body: BuiltVehicleBody, id: number) {
   tuneFestivalPaint(body.materials.paint);
   tuneFestivalPaint(body.materials.accent);
   const sheet = bodySheetFor(body.definition);
-  if (!sheet || sheet.kind !== 'closed') return;
+  if (!sheet || sheet.kind !== 'closed') return null;
+  const halo = lampHaloMaterial();
   const model = new ClosedBodyModel(body.frame, sheet, [
     sheet.wheels.width[0] / 2,
     sheet.wheels.width[1] / 2,
@@ -357,5 +470,12 @@ export function installFestivalFinish(body: BuiltVehicleBody, id: number) {
       mesh.receiveShadow = false;
       lod.group.add(mesh);
     }
+    const halos = new T.Mesh(haloGeometry(lampHaloSites(model)), halo);
+    halos.name = 'Festival lamp halos';
+    halos.frustumCulled = false;
+    halos.castShadow = halos.receiveShadow = false;
+    halos.renderOrder = 2;
+    lod.group.add(halos);
   }
+  return { halo };
 }

@@ -1193,10 +1193,16 @@ export class TrafficCars {
       return;
     }
     const n = Math.min(TRAFFIC_CAPACITY, Math.round(b[0]));
+    // Wheels roll by the presented traffic time (block header [1]), which
+    // advances smoothly between snapshots.
+    const now =
+      a && a.length >= TRAFFIC_HEADER && Number.isFinite(a[1]) && Number.isFinite(b[1])
+        ? a[1] + (b[1] - a[1]) * alpha
+        : b[1];
     const dt = Number.isFinite(this.lastTime)
-      ? Math.max(0, Math.min(0.25, time - this.lastTime))
+      ? Math.max(0, Math.min(0.25, now - this.lastTime))
       : 0;
-    this.lastTime = time;
+    this.lastTime = now;
     this.index.clear();
     if (a && a.length >= TRAFFIC_HEADER)
       for (let k = 0, m = Math.round(a[0]); k < m; k++)

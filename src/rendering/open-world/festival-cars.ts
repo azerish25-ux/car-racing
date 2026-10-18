@@ -14,6 +14,7 @@ import {
   disposeFestivalFinish,
   installFestivalFinish,
   setFestivalLampLevels,
+  setLampHalos,
 } from './festival-car-finish.ts';
 import { setPlateLamp } from './festival-plates.ts';
 
@@ -66,14 +67,19 @@ export class FestivalCars {
   paintVersion = 0;
   private headlightVehicle = -1;
   private lamp = { front: 0, y: 0, ground: 0 };
-  /** Each entrant's live lamp materials (festival lamp levels). */
-  private readonly lamps = new Map<number, CarMaterials>();
+  /** Each entrant's live lamp materials and its night halo (festival lamp
+   * levels). The halo finish is owned here and released with its body. */
+  private readonly lamps = new Map<
+    number,
+    { materials: CarMaterials; halo: T.ShaderMaterial | null }
+  >();
   constructor() {
     this.root.name = 'Festival cars';
     this.root.add(this.bodies.root);
     this.bodies.onBuild = (_root, body, id) => {
-      installFestivalFinish(body, id);
-      this.lamps.set(id, body.materials);
+      this.lamps.get(id)?.halo?.dispose();
+      const finish = installFestivalFinish(body, id);
+      this.lamps.set(id, { materials: body.materials, halo: finish?.halo ?? null });
       this.refreshPaint();
     };
     this.headlight.name = 'Followed car headlights';
@@ -178,10 +184,11 @@ export class FestivalCars {
     // running tail bars by day, a hard brake flare, the LED signature.
     setFestivalLampLevels(night);
     setPlateLamp(night > 0.05 ? FESTIVAL_LAMPS.plateLamp * night : 0);
-    for (const [id, materials] of this.lamps) {
+    for (const [id, { materials, halo }] of this.lamps) {
       if (id >= cars) continue;
       const o = carBase(id),
         brake = lerp(a[o + F.BRAKE], b[o + F.BRAKE], alpha);
+      if (halo) setLampHalos(halo, night, brake > 0.05);
       materials.tail.emissiveIntensity =
         brake > 0.05
           ? FESTIVAL_LAMPS.brake
@@ -230,6 +237,7 @@ export class FestivalCars {
    * while a session exit releases every resource owned by those entries. */
   clear() {
     this.bodies.clear();
+    for (const { halo } of this.lamps.values()) halo?.dispose();
     this.lamps.clear();
     for (const release of this.releaseFormula.values()) release();
     this.releaseFormula.clear();
