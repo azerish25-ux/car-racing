@@ -214,6 +214,8 @@ const SPAWN = { x: 560, z: -2602, heading: Math.PI / 2 };
  * inside RouteProgress's 60 m maxStep) and the most it may place a car
  * ahead of that progress. */
 const RESET_WINDOW = 30;
+/** Touge grid: both cars side by side this far down the route (m). */
+const TOUGE_GRID = 4;
 const RESET_AHEAD = 8;
 
 /**
@@ -599,9 +601,11 @@ export class OpenWorldSimulation {
       : null;
     if (!keepPlayer && lanes) cars.forEach((car, i) => this.stage(car, path, lanes[i].offset));
     else if (!keepPlayer && kind === 'touge') {
+      // 4 m down the route: the start arch (11 m) and its night flares
+      // (8.5 m, beside the towers) stand just ahead, in the chase view.
       const column = Math.min(1.7, start.halfWidth - 1.5);
-      this.placeOnPath(player, path, 10, -column);
-      cars.slice(1).forEach((car, i) => this.placeOnPath(car, path, 10 - i * 9, column));
+      this.placeOnPath(player, path, TOUGE_GRID, -column);
+      cars.slice(1).forEach((car, i) => this.placeOnPath(car, path, TOUGE_GRID + i * 9, column));
     } else if (!keepPlayer)
       order.forEach((car, slot) => {
         const row = twoWide ? Math.floor(slot / 2) : slot,

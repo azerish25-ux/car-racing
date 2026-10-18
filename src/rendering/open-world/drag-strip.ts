@@ -12,7 +12,7 @@ export interface DragView {
 /** Lamp colours by tree row (ref 078): incandescent pre-stage and stage,
  * amber, green and red lenses; unlit lenses keep a dark tint of their dye. */
 const LIT = Object.freeze([0xffe7b0, 0xffe7b0, 0xffa416, 0xffa416, 0xffa416, 0x2bff5c, 0xff2020]);
-const GLOW = 3.2;
+const GLOW = 1.8;
 const UNLIT = 0.07;
 /** Distance (m) within which the strip's details draw. */
 const RANGE = 1500;

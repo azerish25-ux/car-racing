@@ -125,6 +125,8 @@ export function poseCar(car: Vehicle, a: Float64Array, b: Float64Array, t: numbe
   body.position.set(lerp(C.PX), lerp(C.PY), lerp(C.PZ));
   body.velocity.set(lerp(C.VX), lerp(C.VY), lerp(C.VZ));
   body.omega.set(lerp(C.WX), lerp(C.WY), lerp(C.WZ));
+  // The speedometer and audio follow the scrubbed motion.
+  car.speed = Math.hypot(body.velocity.x, body.velocity.y, body.velocity.z);
   // Shortest arc between the two orientations.
   const dot = a[C.QX] * b[C.QX] + a[C.QY] * b[C.QY] + a[C.QZ] * b[C.QZ] + a[C.QW] * b[C.QW],
     sign = dot < 0 ? -1 : 1;
