@@ -33,8 +33,8 @@ const BAY_BODIES: readonly (readonly [TrafficBody, number])[] = [
 ];
 /** Meet paints: saturated enthusiast colours over the everyday neutrals. */
 const MEET_PAINT = [
-  0xc4141a, 0x1f4fa3, 0xe8e9e4, 0x111315, 0xd9c25a, 0xe05a12, 0x2f8a5a, 0xa7abaf, 0x86aeb6,
-  0x7d1a1e, 0xf3f3ef,
+  0xc4141a, 0x1f4fa3, 0xe8e9e4, 0x111315, 0xd9c25a, 0xe05a12, 0x2f8a5a, 0x6a3fa0, 0x86aeb6,
+  0x7d1a1e, 0x1a9bb0, 0xa7abaf, 0xf2d21b,
 ];
 function hash(...values: number[]) {
   let h = 0x2545f491;
