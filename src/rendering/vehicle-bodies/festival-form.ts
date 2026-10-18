@@ -325,8 +325,10 @@ const CAR_FORMS: Readonly<Record<string, Partial<FestivalForm>>> = {
     lampFace: true,
   },
 };
-/** Classes drawn with the festival road form. */
-const FORM_CLASSES = new Set(['road', 'street']);
+/** Classes drawn with the festival form: road cars and the closed GT,
+ * GT-sport, club and touring cars the festival admits (prototypes, rally and
+ * off-road machines keep the plain lofts). */
+const FORM_CLASSES = new Set(['road', 'street', 'gt', 'gt-sport', 'club', 'touring']);
 export function festivalFormFor(def: VehicleDefinition, sheet: ClosedSheet): FestivalForm | null {
   if (!FORM_CLASSES.has(String(def.classId)) || sheet.open) return null;
   const base = STYLE_FORMS[sheet.style];

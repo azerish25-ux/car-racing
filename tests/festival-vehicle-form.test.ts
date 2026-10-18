@@ -73,13 +73,18 @@ describe('Festival road-car production form', () => {
     expect((new VehicleBodies() as unknown as { options: object }).options).toEqual({});
   });
 
-  it('draws every festival road car with the form, within budget and on its wheels', () => {
+  it('draws every festival road and GT car with the form, within budget and on its wheels', () => {
     const road = festivalCars().filter((d) => {
       const sheet = bodySheetFor(d);
       return sheet?.kind === 'closed' && festivalFormFor(d, sheet);
     });
+    // Road cars, and the GT, GT-sport, club and touring cars the festival
+    // admits (prototypes, rally and off-road machines keep the plain lofts).
     expect(road.map((d) => d.id).sort()).toEqual(
-      ['eh3', 'lx12', 'rd2', 'rg63', 'rh3', 'rm8', 'rp6', 'rr4', 'rs5', 'sc7'].sort(),
+      [
+        ...['eh3', 'lx12', 'rd2', 'rg63', 'rh3', 'rm8', 'rp6', 'rr4', 'rs5', 'sc7'],
+        ...['cr1', 'gs4', 'gs6m', 'gt10m', 'gt6r', 'gt6s', 'gt8f', 'hh2', 'tc1', 'tc2', 'tc3'],
+      ].sort(),
     );
     for (const def of road) {
       const body = festivalBody(def);
