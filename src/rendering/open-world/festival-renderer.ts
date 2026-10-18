@@ -63,6 +63,8 @@ import { EventMarkers } from './markers.ts';
 import { RoadMeshes } from './roads.ts';
 import { TERRAIN_BUDGETS, TerrainStreamer } from './terrain.ts';
 import { Vegetation } from './vegetation.ts';
+import { FestivalFlora } from './flora.ts';
+import { installSeasonLibrary, installSeasonMeadow, installSeasonRoads } from './season-flora.ts';
 import { photoVegetationEnabled, VegetationLibrary } from '../vegetation/library.ts';
 import { speciesForPalette } from '../vegetation/species.ts';
 import { Water } from './water.ts';
@@ -130,6 +132,8 @@ export class FestivalRenderer {
   readonly chaseDynamics = new FestivalChaseDynamics();
   driftCue: DriftCue | null = null;
   readonly vegetation = new Vegetation();
+  /** Susuki, wildflowers and bamboo groves (decorative, season-shaded). */
+  readonly flora: FestivalFlora;
   /** Photographic trees and shrubs, when loaded (see loadPhotoVegetation). */
   photoVegetation: VegetationLibrary | null = null;
   readonly water: Water;
@@ -264,6 +268,10 @@ export class FestivalRenderer {
     scene.add(this.streetLights.root);
     this.buildings = new Buildings(structures);
     this.dressing = new HorizonDressing(world, structures);
+    this.flora = new FestivalFlora(world, structures);
+    // Season cover on the festival's own road and meadow materials.
+    installSeasonRoads(this.roads.materials);
+    installSeasonMeadow(this.dressing.root);
     this.water = new Water(world.field);
     this.markers = new EventMarkers(events, (x, z) => this.groundHeight(x, z));
     this.reflection.probeExclusions.push(this.markers.root);
@@ -273,6 +281,7 @@ export class FestivalRenderer {
       this.buildings.root,
       this.dressing.root,
       this.vegetation.root,
+      this.flora.root,
       this.water.root,
       this.markers.root,
       this.cars.root,
@@ -371,6 +380,7 @@ export class FestivalRenderer {
         return false;
       }
       this.photoVegetation = library;
+      installSeasonLibrary(library);
       this.dressing.usePhotoVegetation(library);
       // Trees never stand on roads: the natural ground alone (cheap per tile).
       this.vegetation.setPhotoLibrary(library, (x, z) => this.world.field.height(x, z));
@@ -677,6 +687,7 @@ export class FestivalRenderer {
     this.roads.setNight(night);
     this.buildings.setNight(night);
     this.dressing.update(time, night, this.camera, this.preset);
+    this.flora.update(this.camera, this.preset);
     this.details?.update(
       time,
       night,
@@ -852,6 +863,7 @@ export class FestivalRenderer {
     this.streetDetails = null;
     this.contacts.dispose();
     this.vegetation.dispose();
+    this.flora.dispose();
     this.photoVegetation?.dispose();
     this.photoVegetation = null;
     this.water.dispose();
