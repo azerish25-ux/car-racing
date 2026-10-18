@@ -86,6 +86,8 @@ import { driftFeedback, type DriftCue } from '../../simulation/open-world/drift-
 import { HorizonGuidance } from './horizon-guidance.ts';
 import { FestivalTrails } from './festival-trails.ts';
 import { HorizonDressing } from './horizon-dressing.ts';
+import { architecturePlan } from './japan-architecture.ts';
+import { FestivalSignage } from './festival-signage.ts';
 import { applySeason, type Season } from './season.ts';
 import {
   createFestivalContactOffset,
@@ -121,6 +123,7 @@ export class FestivalRenderer {
   readonly streetLights: StreetLightPools;
   readonly buildings: Buildings;
   readonly dressing: HorizonDressing;
+  readonly signage: FestivalSignage;
   details: SolvaneDetails | null = null;
   private detailLoading: Promise<boolean> | null = null;
   streetDetails: StreetDetails | null = null;
@@ -262,8 +265,10 @@ export class FestivalRenderer {
     this.roads = new RoadMeshes(world.network, world.field);
     this.streetLights = new StreetLightPools(this.roads.lampSockets);
     scene.add(this.streetLights.root);
-    this.buildings = new Buildings(structures);
+    const architecture = architecturePlan(world, structures);
+    this.buildings = new Buildings(structures, architecture);
     this.dressing = new HorizonDressing(world, structures);
+    this.signage = new FestivalSignage(world, structures, architecture);
     this.water = new Water(world.field);
     this.markers = new EventMarkers(events, (x, z) => this.groundHeight(x, z));
     this.reflection.probeExclusions.push(this.markers.root);
@@ -272,6 +277,7 @@ export class FestivalRenderer {
       this.roads.root,
       this.buildings.root,
       this.dressing.root,
+      this.signage.root,
       this.vegetation.root,
       this.water.root,
       this.markers.root,
@@ -677,6 +683,7 @@ export class FestivalRenderer {
     this.roads.setNight(night);
     this.buildings.setNight(night);
     this.dressing.update(time, night, this.camera, this.preset);
+    this.signage.update(time, night, this.camera, this.preset);
     this.details?.update(
       time,
       night,
@@ -753,6 +760,7 @@ export class FestivalRenderer {
     this.sun.target.updateMatrixWorld();
     const wet = clamp(presented[H.WATER] / 0.8, 0, 1);
     this.roads.setWet(wet);
+    this.buildings.setWet(wet);
     this.terrain.material.userData.ow.owWet.value = wet;
     studioUniforms.studioTime.value = time;
     // A light onshore breeze for the planting (no weather wind in free roam).
@@ -846,6 +854,7 @@ export class FestivalRenderer {
     this.streetLights.dispose();
     this.buildings.dispose();
     this.dressing.dispose();
+    this.signage.dispose();
     this.details?.dispose();
     this.details = null;
     this.streetDetails?.dispose();

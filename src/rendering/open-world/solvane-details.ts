@@ -11,6 +11,7 @@ import { trackPoint } from '../../simulation/track.ts';
 import { bodyFrame } from '../vehicle-bodies/frame.ts';
 import { vehicleAt, VEHICLES } from '../../simulation/vehicles.ts';
 import { F, R, RACE_BASE, carBase } from '../../simulation/protocol.ts';
+import { architecturePlan } from './japan-architecture.ts';
 
 export const SOLVANE_DETAILS = manifest;
 const NAMES = Object.keys(manifest.templates);
@@ -212,9 +213,14 @@ export class SolvaneDetails {
   }
   private planFacades(world: OpenWorld, structures: readonly Structure[]) {
     const p = trackPoint(),
-      pose = new T.Object3D();
-    for (const s of structures) {
+      pose = new T.Object3D(),
+      plan = architecturePlan(world, structures);
+    for (const [index, s] of structures.entries()) {
       if (s.kind !== 'shop' && s.kind !== 'block') continue;
+      // Convenience stores have their own glazed fronts; village machiya
+      // their lattice fronts.
+      const style = plan.style[index];
+      if (style === 'konbini' || style === 'machiya' || plan.konbiniFloor.has(index)) continue;
       world.network.nearest(s.x, s.z, p);
       const c = Math.cos(s.heading),
         n = Math.sin(s.heading);
@@ -236,7 +242,9 @@ export class SolvaneDetails {
           near: false,
           distance: 0,
         });
-        if ((s.style + i) % 2 === 0)
+        // The wrought-iron balconies are European; Japanese mid-rises carry
+        // their own slab-and-parapet balconies in the building mesh.
+        if (style === 'legacy' && (s.style + i) % 2 === 0)
           for (let floor = 1; floor < Math.min(4, s.floors); floor++) {
             pose.position.y = s.base + floor * 3.15;
             pose.scale.set(1, 1, 0.85);

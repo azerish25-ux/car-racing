@@ -24,9 +24,20 @@ function noise(seed: number, row: number, bay: number, side: number) {
   h = Math.imul(h ^ (h >>> 16), 0x45d9f3b) >>> 0;
   return ((h ^ (h >>> 16)) >>> 0) / 0x100000000;
 }
+/** Opening proportions: the original European casements, Japanese urban
+ * aluminium window bands (sill 0.8 m, head ~2.55 m of a 3.2 m storey, up to
+ * 2.3 m wide) or traditional timber fronts (full-bay sliding lattice doors on
+ * the ground floor, low upper-storey windows). Japanese variants never use
+ * the hinged European shutters. */
+export type FacadeVariant = 'european' | 'urban' | 'traditional';
 /** Dimensions follow the actual footprint. Centred complete bays never cut a
  * window through a corner pilaster or a floor band. There is no random state. */
-export function facadeLayout(s: Structure, length: number, side = 0): FacadeLayout | null {
+export function facadeLayout(
+  s: Structure,
+  length: number,
+  side = 0,
+  variant: FacadeVariant = 'european',
+): FacadeLayout | null {
   if (
     !SUPPORTED.has(s.kind) ||
     !Number.isFinite(length) ||
@@ -53,12 +64,23 @@ export function facadeLayout(s: Structure, length: number, side = 0): FacadeLayo
       const cell0 = bay * span,
         cell1 = (bay + 1) * span;
       const room = noise(s.style, row, bay, side);
-      if ((s.kind === 'house' || s.kind === 'farm') && room > 0.85) {
+      const traditional = variant === 'traditional',
+        urban = variant === 'urban';
+      // Houses keep some blind bays; traditional side walls are mostly closed.
+      const blind = traditional
+        ? row > 0 || side % 2 === 1
+          ? room > 0.62
+          : room > 0.9
+        : (s.kind === 'house' || s.kind === 'farm') && room > 0.85;
+      if (blind) {
         rect(cell0, row0, cell1, row1);
         continue;
       }
-      const shop = row === 0 && (s.kind === 'shop' || s.kind === 'block' || s.kind === 'terminal');
+      const shop = traditional
+        ? row === 0 && side % 2 === 0
+        : row === 0 && (s.kind === 'shop' || s.kind === 'block' || s.kind === 'terminal');
       const shuttered =
+        variant === 'european' &&
         !shop &&
         span >= 2.7 &&
         (s.kind === 'house' || s.kind === 'farm' || s.kind === 'shop') &&
@@ -68,15 +90,21 @@ export function facadeLayout(s: Structure, length: number, side = 0): FacadeLayo
       // otherwise shutters collide with neighbouring casements and pilasters.
       const width = Math.min(
         span - 0.58,
-        shop ? span * 0.83 : 1.72,
+        shop ? span * (traditional ? 0.86 : 0.83) : traditional ? 1.9 : urban ? 2.3 : 1.72,
         shuttered ? (span - 0.58) / 1.88 : (span - 0.34) / 1.14,
       );
       const u0 = (cell0 + cell1 - width) / 2,
         u1 = u0 + width;
       // Foundations are recessed by placement.ts. The shop threshold remains
       // above the stone plinth, not below the ground like the old shader grid.
-      const v0 = row0 + (shop ? 0.66 : floorH * 0.3);
-      const v1 = row0 + floorH * (shop ? 0.86 : 0.84);
+      const v0 =
+        row0 +
+        (shop ? (traditional ? 0.56 : 0.66) : urban ? 0.8 : traditional ? 0.85 : floorH * 0.3);
+      const v1 =
+        row0 +
+        (traditional
+          ? Math.min(shop ? 2.45 : 2.2, floorH * (shop ? 0.8 : 0.76))
+          : floorH * (shop ? 0.86 : urban ? 0.8 : 0.84));
       const kind = shop ? 'shop' : shuttered ? 'shuttered' : 'casement';
       openings.push({ u0, u1, v0, v1, cell0, cell1, row0, row1, kind, room });
       rect(cell0, row0, u0, row1);
@@ -89,10 +117,26 @@ export function facadeLayout(s: Structure, length: number, side = 0): FacadeLayo
   return { openings, wall };
 }
 
+/** Japanese wall finishes by palette identity: 45x95 mm mosaic tile
+ * (nikoguchi), stained vertical cedar boards, 1.8x0.9 m formed concrete and
+ * horizontal lap siding. */
+export const WALL_FINISH = Object.freeze({
+  tile: [0xc6b49a, 0x9a6a52, 0xb7b4ad, 0xc4643f, 0xd9d4c8, 0x7d5d4c],
+  timber: [0x3b2f27, 0x4f3b2c, 0x2d2622],
+  concrete: [0xa9a69e, 0x9c9a94, 0xbab7ae],
+  siding: [0xb9c0c4, 0xd0ccc0, 0xa7b2b0],
+});
+export type Finish = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 /** Palette identity, not a per-pixel hue guess: brick and dressed stone
  * retain metric courses while painted walls remain plaster. */
-export function facadeFinish(color: number): 0 | 1 | 2 {
-  return color === 0x8c4f3a ? 1 : color === 0xb3a891 ? 2 : 0;
+export function facadeFinish(color: number): Finish {
+  if (color === 0x8c4f3a) return 1;
+  if (color === 0xb3a891) return 2;
+  if (WALL_FINISH.tile.includes(color)) return 3;
+  if (WALL_FINISH.timber.includes(color)) return 4;
+  if (WALL_FINISH.concrete.includes(color)) return 5;
+  if (WALL_FINISH.siding.includes(color)) return 6;
+  return 0;
 }
 
 export type Point3 = readonly [number, number, number];
@@ -114,6 +158,16 @@ export interface FacadeSink {
     facade: readonly [number, number, number, number],
   ): void;
 }
+export interface RecessOptions {
+  /** Wall colour of a partition rectangle by its height band (m). */
+  paint?: (v0: number, v1: number) => number;
+  /** Facade kind code written on an opening's glazing. */
+  pane?: (hole: FacadeOpening) => number;
+  /** Glazing UVs in metres instead of 0..1 (lattice and shoji patterns). */
+  metric?: boolean;
+  /** Request authored joinery for the openings (default true). */
+  joinery?: boolean;
+}
 /** Cut actual holes and return real reveals/glazing. There is no wall triangle
  * behind the pane; ray tests can independently verify its 0.21 m setback. */
 export function addRecessedFacade(
@@ -126,14 +180,15 @@ export function addRecessedFacade(
   style: number,
   kind: number,
   placements: FacadePlacement[],
+  options: RecessOptions = {},
 ) {
   const at = (u: number, v: number, depth = 0): Point3 => [
     origin[0] + tangent[0] * u + normal[0] * depth,
     origin[1] + v,
     origin[2] + tangent[2] * u + normal[2] * depth,
   ];
-  const bare = [style, kind, -3, facadeFinish(color)] as const;
-  const wallQuad = (u0: number, v0: number, u1: number, v1: number) =>
+  const wallQuad = (u0: number, v0: number, u1: number, v1: number) => {
+    const paint = options.paint?.(v0, v1) ?? color;
     sink.quad(
       [at(u0, v0), at(u1, v0), at(u1, v1), at(u0, v1)],
       normal,
@@ -143,9 +198,10 @@ export function addRecessedFacade(
         [u1, v1],
         [u0, v1],
       ],
-      color,
-      bare,
+      paint,
+      [style, kind, -3, facadeFinish(paint)],
     );
+  };
   for (const r of layout.wall) wallQuad(...r);
   for (const hole of layout.openings) {
     const { u0, u1, v0, v1, room } = hole,
@@ -183,18 +239,21 @@ export function addRecessedFacade(
       0.21,
       u1 - u0,
     );
+    const w = options.metric ? u1 - u0 : 1,
+      h = options.metric ? v1 - v0 : 1;
     sink.quad(
       [at(u0, v0, depth), at(u1, v0, depth), at(u1, v1, depth), at(u0, v1, depth)],
       normal,
       [
         [0, 0],
-        [1, 0],
-        [1, 1],
-        [0, 1],
+        [w, 0],
+        [w, h],
+        [0, h],
       ],
       0xffffff,
-      [room, kind, -4, hole.kind === 'shop' ? 1 : 0],
+      [room, options.pane?.(hole) ?? kind, -4, hole.kind === 'shop' ? 1 : 0],
     );
+    if (options.joinery === false) continue;
     placements.push({
       kind: hole.kind,
       centre: at((u0 + u1) / 2, (v0 + v1) / 2),

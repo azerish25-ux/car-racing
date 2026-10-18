@@ -11,9 +11,11 @@ export const JOINERY_BUDGETS = Object.freeze({
 });
 const CAPACITY = 192,
   CELL = 64;
+/** Anodised aluminium sashes and formed-concrete sills of Japanese city
+ * windows (refs 030, 089); shutters remain for the original casements. */
 const COLORS: Record<string, [number, number, number]> = {
-  frame: [0.19, 0.22, 0.215],
-  stone: [0.52, 0.49, 0.43],
+  frame: [0.3, 0.31, 0.31],
+  stone: [0.56, 0.56, 0.54],
   shutter: [0.16, 0.23, 0.205],
 };
 interface Candidate {
@@ -69,8 +71,8 @@ export class FacadeJoinery {
           if (!c) throw new Error('Unknown authored joinery material');
           material = new T.MeshStandardMaterial({
             color: new T.Color(...c),
-            roughness: part.role === 'frame' ? 0.55 : 0.79,
-            metalness: part.role === 'frame' ? 0.12 : 0,
+            roughness: part.role === 'frame' ? 0.45 : 0.79,
+            metalness: part.role === 'frame' ? 0.35 : 0,
           });
           material.name = `Solvane joinery ${part.role}`;
           this.materials.set(part.role, material);
