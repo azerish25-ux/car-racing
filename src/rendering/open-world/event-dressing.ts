@@ -6,6 +6,7 @@ import { pathPoint, type PathPoint } from '../../simulation/open-world/route-pat
 import { ROAD_CLASSES } from '../../simulation/open-world/region-data.ts';
 import type { OpenWorld } from '../../simulation/open-world/world.ts';
 import { trackPoint } from '../../simulation/track.ts';
+import type { QualityPreset } from '../options.ts';
 import { FestivalStartFlares } from './start-flares.ts';
 import { crowdLine, FestivalSpectators } from './festival-crowd.ts';
 
@@ -355,8 +356,12 @@ function flagGeometry(kind: 'feather' | 'teardrop') {
   return batch.finish();
 }
 
+/** Festoon bulbs under a marquee's valance: amber glass (the vertex colour
+ * marks them for the fabric shader), ten a side, sagging between poles. */
+export const TENT_BULB = 0xffd27a;
+const BULBS_PER_SIDE = 10;
 /** Pagoda marquee (5 x 5 m): concave four-sided roof to a finial, valance,
- * corner poles; fabric white, poles aluminium. */
+ * corner poles, a string of festoon bulbs; fabric white, poles aluminium. */
 function tentGeometry() {
   const batch = new Batch();
   const half = 2.5,
@@ -450,6 +455,20 @@ function tentGeometry() {
     ),
     0x9ea2a6,
   );
+  const bulb = new T.OctahedronGeometry(0.045, 0),
+    bulbAt = new T.Matrix4();
+  for (const [ax, az] of corners)
+    for (let i = 0; i < BULBS_PER_SIDE; i++) {
+      // Along the side from this corner toward the next, just outside the
+      // valance, 0.1 m of sag mid-span.
+      const u = (i + 0.5) / BULBS_PER_SIDE,
+        t = 2 * u - 1;
+      const x = ax === az ? ax * half * (1 - 2 * u) : ax * (half + 0.04),
+        z = ax === az ? az * (half + 0.04) : az * half * (1 - 2 * u);
+      bulbAt.makeTranslation(x, eave - 0.4 - 0.1 * (1 - t * t), z);
+      batch.add(bulb, bulbAt, TENT_BULB);
+    }
+  bulb.dispose();
   roof.dispose();
   box.dispose();
   cylinder.dispose();
@@ -533,6 +552,35 @@ function truss(
   }
 }
 
+/** Additive warm pool on the ground in front of a lit marquee: soft disc
+ * falloff (3000 K), scaled by the night amount. */
+function tentPoolMaterial(night: T.IUniform<number>) {
+  return new T.ShaderMaterial({
+    name: 'Marquee light pools',
+    uniforms: { tentPool: night },
+    transparent: true,
+    depthWrite: false,
+    blending: T.AdditiveBlending,
+    polygonOffset: true,
+    polygonOffsetFactor: -2,
+    polygonOffsetUnits: -4,
+    vertexShader: `varying vec2 vPool;
+      void main() {
+        vPool = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }`,
+    fragmentShader: `uniform float tentPool; varying vec2 vPool;
+      void main() {
+        float r2 = dot(vPool, vPool);
+        float a = exp(-r2 * 3.2) * (1.0 - smoothstep(0.6, 1.0, r2));
+        if (a * tentPool < 0.002) discard;
+        gl_FragColor = vec4(vec3(0.2, 0.14, 0.08) * a * tentPool, 1.0);
+        #include <tonemapping_fragment>
+        #include <colorspace_fragment>
+      }`,
+  });
+}
+
 interface Placed {
   root: T.Object3D;
   centre: T.Vector3;
@@ -577,7 +625,9 @@ export class FestivalEventDressing {
       vertexColors: true,
       roughness: 0.85,
       side: T.DoubleSide,
-      emissive: 0x5b4cff,
+      // Warm-white interior light through white fabric (~4000 K: 028's lit
+      // marquees read #c4c1ba-#d1d2d4, R/B 1.0-1.13).
+      emissive: new T.Color(1, 0.93, 0.82),
       emissiveIntensity: 0,
     }),
     flag: new T.MeshStandardMaterial({
@@ -591,10 +641,15 @@ export class FestivalEventDressing {
     }),
     crowd: new T.MeshStandardMaterial({ vertexColors: true, roughness: 0.82 }),
   };
+  /** Night light of the marquees: festoon bulbs (`tentBulb`) and the warm
+   * pools their open fronts throw on the ground (`tentPool`). */
+  private readonly tentUniforms = { tentBulb: { value: 0 }, tentPool: { value: 0 } };
+  private readonly poolMaterial = tentPoolMaterial(this.tentUniforms.tentPool);
   /** Authored standing spectators (the game's sculpted crowd bodies). */
   readonly spectators = new FestivalSpectators();
   private readonly geometries: T.BufferGeometry[] = [];
   private readonly flareSites: T.Vector3[] = [];
+  private readonly tentPoolMeshes: T.Mesh[] = [];
   /** Night flares at race and drift starts (ref 048). */
   readonly flares: FestivalStartFlares;
   /** Lamp sockets of the hub's start-light trees (world matrix of each
@@ -616,6 +671,30 @@ export class FestivalEventDressing {
         '#include <emissivemap_fragment>\n#ifdef USE_COLOR\n  totalEmissiveRadiance *= vColor;\n#endif',
       );
     };
+    // Marquee fabric glows by the lamp inside (walls and eaves brightest, the
+    // peak less); poles and counter never glow; the festoon bulbs burn amber.
+    this.materials.fabric.onBeforeCompile = (shader) => {
+      shader.uniforms.tentBulb = this.tentUniforms.tentBulb;
+      shader.vertexShader = shader.vertexShader
+        .replace('#include <common>', '#include <common>\nvarying float vTentY;')
+        .replace('#include <begin_vertex>', '#include <begin_vertex>\nvTentY = position.y;');
+      shader.fragmentShader = shader.fragmentShader
+        .replace(
+          '#include <common>',
+          '#include <common>\nvarying float vTentY;\nuniform float tentBulb;',
+        )
+        .replace(
+          '#include <emissivemap_fragment>',
+          `#include <emissivemap_fragment>
+#ifdef USE_COLOR
+  float tentFabric = smoothstep(0.55, 0.75, min(vColor.r, min(vColor.g, vColor.b)));
+  float tentBulbs = step(0.9, vColor.r) * (1.0 - step(0.3, vColor.b));
+  totalEmissiveRadiance = totalEmissiveRadiance * tentFabric *
+    mix(1.0, 0.72, smoothstep(2.6, 4.6, vTentY)) + vColor.rgb * tentBulbs * tentBulb;
+#endif`,
+        );
+    };
+    this.materials.fabric.customProgramCacheKey = () => 'festival-marquee-v2';
     this.grid = new StructureGrid(structures);
     const hub = events.find((e) => e.spec.id === 'runway-launch') ?? null;
     for (const event of events) {
@@ -636,7 +715,7 @@ export class FestivalEventDressing {
     if (hub) this.festivalHub(hub);
     const opening = events.find((e) => e.spec.id === 'harbour-welcome');
     if (opening) this.welcomeCorner(opening);
-    this.flares = new FestivalStartFlares(this.flareSites);
+    this.flares = new FestivalStartFlares(this.flareSites, this.height);
     // Spectators are levelled and thinned per frame (festival-crowd.ts) and
     // budgeted there, not in the static dressing.
     this.root.traverse((node) => {
@@ -646,7 +725,7 @@ export class FestivalEventDressing {
         this.stats.triangles += node instanceof T.InstancedMesh ? count * node.count : count;
       }
     });
-    this.root.add(this.flares.mesh);
+    this.root.add(this.flares.root);
   }
   private nearHub(event: FestivalEvent, hub: FestivalEvent) {
     return (
@@ -1037,6 +1116,7 @@ export class FestivalEventDressing {
       mesh.computeBoundingSphere();
       group.add(mesh);
     }
+    this.tentPools(tents, group, p.y);
     this.stats.tents += tents.length;
     this.stats.speakers += speakers.length;
     // Spectators two to three deep behind the barriers, facing the strip,
@@ -1143,13 +1223,59 @@ export class FestivalEventDressing {
       mesh.computeBoundingSphere();
       group.add(mesh);
     }
+    this.tentPools(tents, group, p.y);
     this.stats.tents += tents.length;
     this.stats.speakers += speakers.length;
     this.stats.pennants += pennants.length;
   }
+  /** Warm light the marquees throw on the ground at night: one additive,
+   * ground-conforming pool per marquee, centred a little out of its open
+   * front (all of a placement's marquees in one draw). */
+  private tentPools(tents: readonly T.Matrix4[], group: T.Object3D, y: number) {
+    if (!tents.length) return;
+    const n = 7,
+      radius = 6,
+      position: number[] = [],
+      uv: number[] = [],
+      index: number[] = [];
+    const centre = new T.Vector3(),
+      front = new T.Vector3();
+    for (const m of tents) {
+      centre.set(0, 0, 2).applyMatrix4(m);
+      front.set(0, 0, 1).transformDirection(m).setY(0).normalize();
+      const base = position.length / 3;
+      for (let j = 0; j < n; j++)
+        for (let i = 0; i < n; i++) {
+          const u = (i / (n - 1)) * 2 - 1,
+            v = (j / (n - 1)) * 2 - 1,
+            px = centre.x + (u * front.z + v * front.x) * radius,
+            pz = centre.z + (-u * front.x + v * front.z) * radius;
+          position.push(px, this.height(px, pz, y) + 0.04, pz);
+          uv.push(u, v);
+        }
+      for (let j = 0; j < n - 1; j++)
+        for (let i = 0; i < n - 1; i++) {
+          const a = base + j * n + i;
+          index.push(a, a + n, a + 1, a + 1, a + n, a + n + 1);
+        }
+    }
+    const geometry = new T.BufferGeometry();
+    geometry.setAttribute('position', new T.Float32BufferAttribute(position, 3));
+    geometry.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
+    geometry.setIndex(index);
+    geometry.computeBoundingSphere();
+    this.geometries.push(geometry);
+    const mesh = new T.Mesh(geometry, this.poolMaterial);
+    mesh.name = 'Marquee light pools';
+    mesh.renderOrder = 1;
+    mesh.matrixAutoUpdate = false;
+    mesh.visible = false;
+    this.tentPoolMeshes.push(mesh);
+    group.add(mesh);
+  }
   /** Distance visibility by preset and night lighting of the printed and
    * fabric surfaces (floodlit at night, as ref 072). */
-  update(camera: T.Camera, night: number, preset: string, time = 0) {
+  update(camera: T.Camera, night: number, preset: string, time = 0, flareFill?: T.Vector3) {
     const scale = preset === 'low' ? 0.45 : preset === 'medium' ? 0.75 : 1;
     const eye = camera.position;
     for (const p of this.placed) p.root.visible = eye.distanceTo(p.centre) < p.range * scale;
@@ -1157,14 +1283,20 @@ export class FestivalEventDressing {
     // thinned per tier (festival-crowd.ts).
     this.spectators.update(camera, time, preset);
     this.materials.banner.emissiveIntensity = 0.06 + night * 0.55;
-    this.materials.fabric.emissiveIntensity = night * 0.35;
+    // Interior lamps and festoons (028: lit marquees read warm white,
+    // #c4c1ba-#d1d2d4; scene ~0.42 at the night exposure).
+    this.materials.fabric.emissiveIntensity = night * 0.3;
+    this.tentUniforms.tentBulb.value = night * 6;
+    this.tentUniforms.tentPool.value = night;
+    for (const mesh of this.tentPoolMeshes) mesh.visible = night > 0.05;
     this.materials.flag.emissiveIntensity = 0.05 + night * 0.4;
-    this.flares.update(camera, night, time);
+    this.flares.update(camera, night, time, preset as QualityPreset, flareFill);
   }
   dispose() {
     for (const g of this.geometries) g.dispose();
     this.spectators.dispose();
     for (const m of Object.values(this.materials)) m.dispose();
+    this.poolMaterial.dispose();
     this.banners.dispose();
     this.flags.dispose();
     this.flares.dispose();

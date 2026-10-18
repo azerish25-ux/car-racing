@@ -32,7 +32,6 @@ import {
   lightingDirection,
   shadowAnchor,
   SkyEnvironment,
-  type LightingMode,
 } from '../daylight.ts';
 import { FarShadow } from '../far-shadow.ts';
 import { PresentedFrame } from '../frame-state.ts';
@@ -105,6 +104,19 @@ import {
 } from './festival-sky.ts';
 import { setCloudShadow } from '../studio/cloud-shadow.ts';
 import { FestivalDriftSmoke } from './drift-smoke.ts';
+import {
+  DUSK_KEY,
+  FESTIVAL_DUSK,
+  duskLightColours,
+  duskShadowAnchor,
+  festivalDuskLight,
+  installDuskSky,
+} from './festival-dusk.ts';
+import {
+  festivalBaseLighting,
+  festivalNightAmount,
+  type FestivalLighting,
+} from '../../session/festival-lighting.ts';
 import { FestivalEventDressing } from './event-dressing.ts';
 import { DragStrip, type DragView } from './drag-strip.ts';
 import { FestivalSpeedBlur } from './speed-blur.ts';
@@ -236,7 +248,9 @@ export class FestivalRenderer {
   private readonly wet = new WetRoadReflection();
   graphics: GraphicsOptions = graphicsPreset('medium');
   preset: QualityPreset = 'medium';
-  lighting: LightingMode = 'day';
+  /** Time of day: a shared circuit lighting, or the festival's blue hour
+   * ('dusk', drawn on the night state with festival-dusk.ts overrides). */
+  lighting: FestivalLighting = 'day';
   private currentSeason: Season = 'summer';
   /** Presentation season (foliage, ground cover, snow, petals). */
   get season(): Season {
@@ -255,6 +269,7 @@ export class FestivalRenderer {
   private readonly forward = new T.Vector3();
   private readonly temp = new T.Vector3();
   private readonly temp2 = new T.Vector2();
+  private readonly flareFill = new T.Vector3();
   private readonly basis = new T.Quaternion();
   private readonly euler = new T.Euler();
   private initialized = false;
@@ -327,6 +342,8 @@ export class FestivalRenderer {
     this.sky.scale.setScalar(450000);
     this.sky.userData.excludeMotionBlur = true;
     configureSky(this.sky);
+    // The festival's blue-hour dome (off unless the time of day is dusk).
+    installDuskSky(this.sky.material);
     this.clouds = FestivalSkyClouds.forFestival(this.sky.material, lightingDirection);
     this.photoSky.setQuality(this.preset);
     this.environment = new SkyEnvironment(this.sky, this.clouds, this.festivalSky);
@@ -417,6 +434,7 @@ export class FestivalRenderer {
       this.contacts.root,
       this.smoke.root,
       this.eventDressing.root,
+      this.eventDressing.flares.lightRoot,
       this.dragStrip.root,
     );
     installSpecularIBL(scene);
@@ -432,8 +450,10 @@ export class FestivalRenderer {
     this.composer.addPass(new OutputPass());
     this.composer.addPass(this.fxaa);
     this.composer.addPass(this.grade);
-    // The festival's own grade over the shared profiles (festival-atmosphere.ts).
-    this.grade.profileAdjust = festivalGrade;
+    // The festival's own grade over the shared profiles (festival-atmosphere.ts);
+    // dusk adjusts the night profile it runs on.
+    this.grade.profileAdjust = (profile, base) =>
+      festivalGrade(profile === 'night' && this.lighting === 'dusk' ? 'dusk' : profile, base);
     this.ultra = new UltraPipeline({
       renderer,
       scene,
@@ -651,7 +671,7 @@ export class FestivalRenderer {
   }
   /** Night amount of the current lighting (lamps, windows, headlights). */
   get night() {
-    return this.lighting === 'night' ? 1 : this.lighting === 'sunset' ? 0.25 : 0;
+    return festivalNightAmount(this.lighting);
   }
   /** Is the terrain under (x, z) and the coarse cover resident? */
   ready(x: number, z: number) {
@@ -673,6 +693,10 @@ export class FestivalRenderer {
     const presented = this.presented.sample(a, b, a === b ? 1 : clamp(alpha, 0, 1));
     const time = presented[H.TIME];
     const night = this.night;
+    // The shared lighting machinery this time of day runs on (dusk: night).
+    const timeOfDay = this.lighting,
+      mode = festivalBaseLighting(timeOfDay),
+      dusk = timeOfDay === 'dusk';
     this.cars.update(
       a,
       b,
@@ -851,8 +875,11 @@ export class FestivalRenderer {
       { x: this.target.x, z: this.target.z, yaw: bodyYaw },
     );
     this.distant.setQuality(this.preset);
-    this.distant.update(this.lighting, SEASONS.indexOf(this.currentSeason));
-    this.eventDressing.update(this.camera, night, this.preset, time);
+    this.distant.update(mode, SEASONS.indexOf(this.currentSeason));
+    // Sky light on the start flares' smoke: the dusk dome, or the night's.
+    if (dusk) this.flareFill.fromArray(FESTIVAL_DUSK.light.smokeFill).multiplyScalar(0.5);
+    else this.flareFill.set(0.008, 0.01, 0.016);
+    this.eventDressing.update(this.camera, night, this.preset, time, this.flareFill);
     this.dragStrip.update(time, this.drag, this.camera);
     this.signage.update(time, night, this.camera, this.preset);
     this.townLife.update(
@@ -885,8 +912,7 @@ export class FestivalRenderer {
     if (this.details?.poseAero(presented, subject ?? null, dt, this.camera))
       this.cars.bodies.hideRearWing(0);
     // --- Lighting -----------------------------------------------------------
-    const mode = this.lighting,
-      daylight = circuitLightState(presented[H.CLOUD], presented[H.RAIN], mode);
+    const daylight = circuitLightState(presented[H.CLOUD], presented[H.RAIN], mode);
     if (mode === 'night') {
       // Local town fixtures now illuminate the road. Keep a modest diffuse
       // floor for rural sections outside those bounded pools so the unlit
@@ -902,22 +928,33 @@ export class FestivalRenderer {
       this.festivalSky.capturedClouds,
       sunFacing(this.camera.getWorldDirection(this.temp), lightingDirection(mode)),
     );
+    // Blue hour: no sun, the dusk dome's light, a dim key from the western sky.
+    if (dusk) festivalDuskLight(daylight, presented[H.RAIN]);
     // The festival's own air (festival-atmosphere.ts): the art-bible horizon
     // as in-scatter, not the photographed dome's (its clear-day photo has a
     // brown desert horizon), and clean-air extinction per lighting.
-    this.atmosphere.update(mode, daylight.cover, presented[H.RAIN]);
+    this.atmosphere.update(timeOfDay, daylight.cover, presented[H.RAIN]);
     applyCircuitLightPalette(this.sun, this.hemisphere, daylight.cover, mode);
+    if (dusk)
+      duskLightColours(
+        daylight.cover,
+        this.sun.color,
+        this.hemisphere.color,
+        this.hemisphere.groundColor,
+      );
     this.sun.intensity = daylight.sun;
     this.hemisphere.intensity = daylight.fill;
     this.scene.environmentIntensity = daylight.environment;
     // Festival may follow any circuit lighting state in the shared renderer.
     // Set its own sky energy every frame instead of inheriting that state.
     setIblEnergy(daylight.environment, mode);
-    const saturation = this.photoSky.irradianceSaturation(
-      daylight.cover,
-      mode,
-      iblUniforms.apexSkyIrradianceSaturation.value,
-    );
+    const saturation = dusk
+      ? FESTIVAL_DUSK.light.irradianceSaturation
+      : this.photoSky.irradianceSaturation(
+          daylight.cover,
+          mode,
+          iblUniforms.apexSkyIrradianceSaturation.value,
+        );
     if (saturation !== null) iblUniforms.apexSkyIrradianceSaturation.value = saturation;
     this.renderer.toneMappingExposure = daylight.exposure;
     const fog = this.scene.fog as T.FogExp2;
@@ -928,7 +965,8 @@ export class FestivalRenderer {
     // IBL the scene's opaque surfaces receive (rubber smoke reads white-grey,
     // not the colour of the horizon haze).
     const fill = 0.8 * daylight.environment;
-    this.smoke.setFill(0.7 * fill, 0.74 * fill, 0.8 * fill);
+    if (dusk) this.smoke.setFill(...FESTIVAL_DUSK.light.smokeFill);
+    else this.smoke.setFill(0.7 * fill, 0.74 * fill, 0.8 * fill);
     // Thin flakes: half the key's diffuse share plus the sky fill.
     this.flakeLight
       .copy(this.sun.color)
@@ -944,19 +982,31 @@ export class FestivalRenderer {
     uniforms.sunsetAmount.value = mode === 'sunset' ? 1 : 0;
     uniforms.sunPosition.value.copy(lightingDirection(mode));
     bindSkyCelestial(this.sky.material, mode);
+    this.festivalSky.dusk = dusk;
     this.festivalSky.horizon.copy(this.atmosphere.inscatter);
     this.festivalSky.bind(this.sky.material, daylight.cover, mode, false);
     uniforms.cloudDrift.value = (time * SKY_CLOUDS.driftPerSecond) % 1;
-    shadowAnchor(
-      this.target,
-      this.sun.shadow.mapSize.x,
-      this.sun.shadow.camera.right,
-      this.sun.target.position,
-      mode,
+    if (dusk)
+      duskShadowAnchor(
+        this.target,
+        this.sun.shadow.mapSize.x,
+        this.sun.shadow.camera.right,
+        this.sun.target.position,
+      );
+    else
+      shadowAnchor(
+        this.target,
+        this.sun.shadow.mapSize.x,
+        this.sun.shadow.camera.right,
+        this.sun.target.position,
+        mode,
+      );
+    this.sun.position.copy(this.sun.target.position).add(
+      this.temp
+        .copy(dusk ? DUSK_KEY : lightingDirection(mode))
+        .normalize()
+        .multiplyScalar(400),
     );
-    this.sun.position
-      .copy(this.sun.target.position)
-      .add(this.temp.copy(lightingDirection(mode)).normalize().multiplyScalar(400));
     this.sun.target.updateMatrixWorld();
     const wet = clamp(presented[H.WATER] / 0.8, 0, 1);
     this.roads.setWet(wet);

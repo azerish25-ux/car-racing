@@ -1,4 +1,5 @@
 import { isSeason, type Season } from './festival-season.ts';
+import { isFestivalLighting, type FestivalLighting } from './festival-lighting.ts';
 import {
   festivalVehicles,
   festivalDefaultVehicle,
@@ -16,6 +17,9 @@ export interface FestivalSave {
   traffic?: boolean;
   /** Presentation season; absent in saves before seasons existed (summer). */
   season?: Season;
+  /** Time of day last chosen in the festival menu; absent until the player
+   * picks one there (the session then opens on the host's lighting). */
+  lighting?: FestivalLighting;
 }
 export const FESTIVAL_SAVE_KEY = 'festival:v1';
 export function validateFestivalSave(value: unknown): FestivalSave | null {
@@ -29,6 +33,7 @@ export function validateFestivalSave(value: unknown): FestivalSave | null {
     vehicle: v.vehicle,
     traffic: typeof v.traffic === 'boolean' ? v.traffic : true,
     season: isSeason(v.season) ? v.season : 'summer',
+    ...(isFestivalLighting(v.lighting) ? { lighting: v.lighting } : {}),
   };
 }
 /** The machine a festival session drives, and the one the festival save

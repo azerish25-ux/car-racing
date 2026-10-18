@@ -14,7 +14,12 @@ import type { OpenWorld } from '../simulation/open-world/world.ts';
 import type { VehicleDefinition } from '../simulation/vehicles.ts';
 import { EVENT_COLOURS } from '../rendering/open-world/markers.ts';
 import { escapeHtml } from './team-hub.ts';
-import type { LightingMode } from '../rendering/daylight.ts';
+import {
+  FESTIVAL_LIGHTINGS,
+  FESTIVAL_LIGHTING_LABEL,
+  isFestivalLighting,
+  type FestivalLighting,
+} from '../session/festival-lighting.ts';
 import { SEASONS, SEASON_LABEL, type Season } from '../session/festival-season.ts';
 import { MAP_HALF, MAP_SIZE, mapToWorld, minimapMatrix, worldToMap } from './festival-map.ts';
 
@@ -25,7 +30,7 @@ export interface FestivalHudCallbacks {
   reset(): void;
   resume(): void;
   exit(): void;
-  lighting(mode: LightingMode): void;
+  lighting(mode: FestivalLighting): void;
   /** Presentation season (optional: hosts without seasons omit the row). */
   season?(season: Season): void;
   vehicle(id: string): void;
@@ -202,7 +207,7 @@ export class FestivalHud {
           this.callbacks.exit();
           break;
         case 'lighting':
-          this.callbacks.lighting(value as LightingMode);
+          if (isFestivalLighting(value)) this.callbacks.lighting(value);
           break;
         case 'season':
           this.callbacks.season?.(value as Season);
@@ -897,7 +902,7 @@ export class FestivalHud {
   showMenu(
     open: boolean,
     state?: {
-      lighting: LightingMode;
+      lighting: FestivalLighting;
       vehicle: string;
       discovered: readonly string[];
       autopilot: boolean;
@@ -912,15 +917,10 @@ export class FestivalHud {
     node.hidden = !open;
     if (!open || !state) return;
     const pressed = (on: boolean) => `aria-pressed="${on}"`;
-    const lightings: [LightingMode, string][] = [
-      ['day', 'Day'],
-      ['sunset', 'Golden hour'],
-      ['night', 'Night'],
-    ];
     node.innerHTML = `<header class="fest-menu-heading"><div><span class="fest-eyebrow">MOTOBOUND / FESTIVAL</span><h2>The open road.</h2><p>Solvane Coast · ${state.discovered.length} of ${this.events.length} events discovered</p></div><span class="fest-menu-mark">S<span>COAST</span></span></header>
       <div class="fest-menu-actions"><button class="fest-primary" data-fest="resume">RESUME</button><button class="fest-secondary" data-fest="reset">RESET TO ROAD</button>${state.inEvent ? '<button class="fest-secondary" data-fest="cancel">ABANDON EVENT</button>' : ''}<button class="fest-secondary" data-fest="exit">EXIT FESTIVAL</button>${this.callbacks.map ? '<button class="fest-secondary" data-fest="map">WORLD MAP</button>' : ''}${this.callbacks.photo ? '<button class="fest-secondary" data-fest="photo">PHOTO MODE</button>' : ''}</div>
       <div class="fest-menu-columns"><div>
-      <section><h3>Time of day</h3><div class="fest-options">${lightings.map(([m, label]) => `<button data-fest="lighting" data-value="${m}" ${pressed(state.lighting === m)}>${label}</button>`).join('')}</div></section>
+      <section><h3>Time of day</h3><div class="fest-options">${FESTIVAL_LIGHTINGS.map((m) => `<button data-fest="lighting" data-value="${m}" ${pressed(state.lighting === m)}>${FESTIVAL_LIGHTING_LABEL[m]}</button>`).join('')}</div></section>
       ${this.callbacks.season ? `<section><h3>Season</h3><div class="fest-options">${SEASONS.map((m) => `<button data-fest="season" data-value="${m}" ${pressed((state.season ?? 'summer') === m)}>${SEASON_LABEL[m]}</button>`).join('')}</div></section>` : ''}
       <section><h3>Your machine <span>${this.vehicles.length} AVAILABLE</span></h3><div class="fest-options fest-garage">${this.vehicles.map((v) => `<button data-fest="vehicle" data-value="${escapeHtml(v.id)}" ${pressed(state.vehicle === v.id)}><span>${escapeHtml(v.name)}</span><small>${escapeHtml(v.classId.toUpperCase())} · ${Math.round(v.spec.dryMass).toLocaleString('en')} KG</small></button>`).join('')}</div></section></div><div>
       <section><h3>Autopilot</h3><div class="fest-options"><button data-fest="autopilot" data-value="on" ${pressed(state.autopilot)}>On</button><button data-fest="autopilot" data-value="off" ${pressed(!state.autopilot)}>Off</button></div></section>

@@ -103,7 +103,7 @@ describe('touge battle and drag strip event data', () => {
     expect(mountain / samples).toBe(1);
     // Downhill: from below the summit to the first switchback.
     expect(path.at(0, p).y - path.at(path.finishDistance, pathPoint()).y).toBeGreaterThan(200);
-    expect(touge.spec.lighting).toBe('sunset');
+    expect(touge.spec.lighting).toBe('dusk');
   });
   it('measures the drag strip as a quarter mile from the hub launch line, braking room beyond', () => {
     const launch = events.find((e) => e.spec.id === 'runway-launch')!;

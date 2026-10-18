@@ -1,4 +1,4 @@
-import type { LightingMode } from '../rendering/daylight.ts';
+import type { FestivalLighting } from './festival-lighting.ts';
 import type { Season } from './festival-season.ts';
 import type { FestivalStatus } from '../simulation/open-world/session.ts';
 import type { FestivalSave } from './festival-save.ts';
@@ -13,7 +13,7 @@ export interface FestivalMenus {
   showMap(open: boolean): void;
 }
 export interface FestivalMenuState {
-  lighting: LightingMode;
+  lighting: FestivalLighting;
   vehicle: string;
   discovered: readonly string[];
   autopilot: boolean;
@@ -29,7 +29,7 @@ export interface FestivalMenuState {
 export function festivalMenuState(
   status: FestivalStatus | null,
   save: Pick<FestivalSave, 'vehicle' | 'discovered' | 'traffic' | 'season'>,
-  lighting: LightingMode,
+  lighting: FestivalLighting,
 ): FestivalMenuState {
   return {
     lighting,

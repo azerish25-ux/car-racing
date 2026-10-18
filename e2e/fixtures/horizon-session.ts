@@ -10,7 +10,7 @@ import { graphicsPreset, type QualityPreset } from '../../src/rendering/options.
 import type { FestivalStatus } from '../../src/simulation/open-world/session.ts';
 import type { FestivalRenderer } from '../../src/rendering/open-world/festival-renderer.ts';
 import type { WeatherPreset } from '../../src/simulation/config.ts';
-import type { LightingMode } from '../../src/rendering/daylight.ts';
+import { isFestivalLighting } from '../../src/session/festival-lighting.ts';
 import { SOLVANE } from '../../src/simulation/open-world/region-data.ts';
 import type { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { F, carBase } from '../../src/simulation/protocol.ts';
@@ -20,6 +20,8 @@ import { controls } from '../../src/simulation/config.ts';
 
 const params = new URLSearchParams(location.search);
 const quality = (params.get('quality') ?? 'medium') as QualityPreset;
+// day | sunset | dusk | night (dusk: the festival's blue hour).
+const lighting = params.get('lighting');
 const canvas = document.querySelector<HTMLCanvasElement>('#world')!;
 const root = document.querySelector<HTMLElement>('#app')!;
 const loading = document.querySelector<HTMLElement>('#loading')!;
@@ -259,7 +261,7 @@ async function boot() {
       element: root,
       quality,
       graphics: graphicsPreset(quality),
-      lighting: (params.get('lighting') ?? 'day') as LightingMode,
+      lighting: isFestivalLighting(lighting) ? lighting : 'day',
       season: isSeason(params.get('season')) ? (params.get('season') as Season) : undefined,
       loading: (text) => {
         loading.textContent = text;
