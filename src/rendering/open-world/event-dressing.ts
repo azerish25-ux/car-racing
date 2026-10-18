@@ -7,6 +7,7 @@ import { ROAD_CLASSES } from '../../simulation/open-world/region-data.ts';
 import type { OpenWorld } from '../../simulation/open-world/world.ts';
 import { trackPoint } from '../../simulation/track.ts';
 import { FestivalStartFlares } from './start-flares.ts';
+import { crowdBodyGeometry, crowdHeadGeometry, crowdLine, crowdMeshes } from './festival-crowd.ts';
 
 /** Festival event dressing measured from the reference event frames (FH6 ref
  * 025/040/041/042/046/047/049/072/076/077/078): truss arches over the road
@@ -547,7 +548,15 @@ const ARCH_CLEAR = 5.35;
  */
 export class FestivalEventDressing {
   readonly root = new T.Group();
-  readonly stats = { arches: 0, flags: 0, tents: 0, speakers: 0, pennants: 0, triangles: 0 };
+  readonly stats = {
+    arches: 0,
+    flags: 0,
+    tents: 0,
+    speakers: 0,
+    pennants: 0,
+    people: 0,
+    triangles: 0,
+  };
   private readonly placed: Placed[] = [];
   private readonly banners = bannerAtlas();
   private readonly flags = flagSheet();
@@ -581,7 +590,11 @@ export class FestivalEventDressing {
       emissiveIntensity: 0.05,
     }),
     lamp: new T.MeshBasicMaterial({ vertexColors: true }),
+    crowd: new T.MeshStandardMaterial({ vertexColors: true, roughness: 0.82 }),
   };
+  private readonly crowdBody = crowdBodyGeometry();
+  private readonly crowdHead = crowdHeadGeometry();
+  private readonly crowds: T.Object3D[] = [];
   private readonly geometries: T.BufferGeometry[] = [];
   private readonly flareSites: T.Vector3[] = [];
   /** Night flares at race and drift starts (ref 048). */
@@ -1026,6 +1039,24 @@ export class FestivalEventDressing {
     }
     this.stats.tents += tents.length;
     this.stats.speakers += speakers.length;
+    // Spectators two to three deep behind the barriers, facing the strip,
+    // behind the pennant line (ref 077/079).
+    const people: ReturnType<typeof crowdLine> = [];
+    for (const side of [1, -1]) {
+      const from = frame.point(side * (half + 3.6), 0, -24),
+        to = frame.point(side * (half + 3.6), 0, 112);
+      if (!this.clear(from.x, from.z, 0) || !this.clear(to.x, to.z, 0)) continue;
+      const facing = frame.left.clone().multiplyScalar(-side);
+      people.push(
+        ...crowdLine(from, to, facing, (x, z) => this.height(x, z, p.y), side > 0 ? 7701 : 7702),
+      );
+    }
+    if (people.length) {
+      const crowd = crowdMeshes(people, this.crowdBody, this.crowdHead, this.materials.crowd);
+      this.crowds.push(...crowd);
+      group.add(...crowd);
+      this.stats.people += people.length;
+    }
   }
   /** A small welcome corner beside the opening run's start: two marquees,
    * a speaker tower and pennants where the harbour front has room. */
@@ -1078,6 +1109,25 @@ export class FestivalEventDressing {
       }
     if (!tents.length && !speakers.length && !pennants.length) return;
     const group = this.group('Harbour welcome corner', frame.point(0, 3, 6), 700);
+    // One row of onlookers on each pavement either side of the start.
+    const edge = this.world.network.edges[p.edge];
+    const kerb = p.halfWidth + ROAD_CLASSES[edge.roadClass].shoulder - 0.7;
+    const people: ReturnType<typeof crowdLine> = [];
+    for (const side of [1, -1]) {
+      const from = frame.point(side * kerb, 0, -8),
+        to = frame.point(side * kerb, 0, 22);
+      if (this.grid.blocks(from.x, from.z, 0.5) || this.grid.blocks(to.x, to.z, 0.5)) continue;
+      const facing = frame.left.clone().multiplyScalar(-side);
+      people.push(
+        ...crowdLine(from, to, facing, (x, z) => this.height(x, z, p.y), side > 0 ? 7703 : 7704, 1),
+      );
+    }
+    if (people.length) {
+      const crowd = crowdMeshes(people, this.crowdBody, this.crowdHead, this.materials.crowd);
+      this.crowds.push(...crowd);
+      group.add(...crowd);
+      this.stats.people += people.length;
+    }
     for (const [list, make, material, name] of [
       [tents, tentGeometry, this.materials.fabric, 'Welcome marquees'],
       [speakers, speakerGeometry, this.materials.frame, 'Welcome speaker towers'],
@@ -1107,6 +1157,8 @@ export class FestivalEventDressing {
     const scale = preset === 'low' ? 0.45 : preset === 'medium' ? 0.75 : 1;
     const eye = camera.position;
     for (const p of this.placed) p.root.visible = eye.distanceTo(p.centre) < p.range * scale;
+    // Spectators are a MEDIUM+ detail (about 110 triangles a person).
+    for (const crowd of this.crowds) crowd.visible = preset !== 'low';
     this.materials.banner.emissiveIntensity = 0.06 + night * 0.55;
     this.materials.fabric.emissiveIntensity = night * 0.35;
     this.materials.flag.emissiveIntensity = 0.05 + night * 0.4;
@@ -1114,6 +1166,8 @@ export class FestivalEventDressing {
   }
   dispose() {
     for (const g of this.geometries) g.dispose();
+    this.crowdBody.dispose();
+    this.crowdHead.dispose();
     for (const m of Object.values(this.materials)) m.dispose();
     this.banners.dispose();
     this.flags.dispose();

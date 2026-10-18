@@ -167,6 +167,7 @@ describe('festival event dressing', () => {
     expect(dressing.stats.flags).toBeGreaterThan(20);
     expect(dressing.stats.tents).toBeGreaterThan(4);
     expect(dressing.stats.speakers).toBeGreaterThanOrEqual(2);
+    expect(dressing.stats.people).toBeGreaterThan(300);
     expect(dressing.stats.triangles).toBeLessThan(450_000);
     let draws = 0;
     dressing.root.traverse((node) => {
@@ -189,6 +190,20 @@ describe('festival event dressing', () => {
         expect(Math.abs(at.y + 0.05 - groundHeight(at.x, at.z))).toBeLessThan(0.6);
       }
     });
+    // The hub crowd stands on the ground beyond the strip's shoulders.
+    const hub = dressing.root.getObjectByName('Kestrel festival hub')!;
+    const bodies = hub.getObjectByName('Festival crowd bodies') as T.InstancedMesh;
+    expect(bodies.count).toBeGreaterThan(200);
+    const m = new T.Matrix4(),
+      at = new T.Vector3();
+    for (let i = 0; i < bodies.count; i += 7) {
+      bodies.getMatrixAt(i, m);
+      at.setFromMatrixPosition(m);
+      const lateral = net.nearest(at.x, at.z, p);
+      const edge = net.edges[net.edgeOf[net.lastSegment]];
+      expect(Math.abs(lateral)).toBeGreaterThan(edge.spec.halfWidth + edge.spec.shoulder + 1);
+      expect(Math.abs(at.y - groundHeight(at.x, at.z))).toBeLessThan(0.01);
+    }
     // Arch banners clear a 5.3 m vehicle envelope over the road centre.
     dressing.root.traverse((node) => {
       if (!(node instanceof T.Mesh) || node.name !== 'Arch banner') return;
