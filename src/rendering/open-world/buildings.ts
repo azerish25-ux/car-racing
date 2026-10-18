@@ -64,34 +64,31 @@ class Mesher {
   facade: number[] = [];
   index: number[] = [];
   private c = new T.Color();
-  quad(
-    corners: readonly V3[],
-    n: V3,
-    uvs: readonly UV[],
-    color: number,
-    facade: readonly [number, number, number, number],
-  ) {
-    const base = this.position.length / 3;
+  /** Current colour for vertex(); set once per polygon. */
+  paint(color: number) {
     this.c.setHex(color);
-    corners.forEach((p, k) => {
-      this.position.push(p[0], p[1], p[2]);
-      this.normal.push(n[0], n[1], n[2]);
-      this.uv.push(uvs[k][0], uvs[k][1]);
-      this.color.push(this.c.r, this.c.g, this.c.b);
-      this.facade.push(...facade);
-    });
+  }
+  vertex(x: number, y: number, z: number, n: V3, u: number, v: number, facade: Facade) {
+    this.position.push(x, y, z);
+    this.normal.push(n[0], n[1], n[2]);
+    this.uv.push(u, v);
+    this.color.push(this.c.r, this.c.g, this.c.b);
+    this.facade.push(facade[0], facade[1], facade[2], facade[3]);
+  }
+  quad(corners: readonly V3[], n: V3, uvs: readonly UV[], color: number, facade: Facade) {
+    const base = this.position.length / 3;
+    this.paint(color);
+    for (let k = 0; k < 4; k++)
+      this.vertex(corners[k][0], corners[k][1], corners[k][2], n, uvs[k][0], uvs[k][1], facade);
     this.index.push(base, base + 1, base + 2, base, base + 2, base + 3);
   }
   tri(corners: readonly V3[], n: V3, color: number, facade: Facade, uvs?: readonly UV[]) {
     const base = this.position.length / 3;
-    this.c.setHex(color);
-    corners.forEach((p, k) => {
-      this.position.push(p[0], p[1], p[2]);
-      this.normal.push(n[0], n[1], n[2]);
-      this.uv.push(uvs ? uvs[k][0] : p[0], uvs ? uvs[k][1] : p[2]);
-      this.color.push(this.c.r, this.c.g, this.c.b);
-      this.facade.push(...facade);
-    });
+    this.paint(color);
+    for (let k = 0; k < 3; k++) {
+      const p = corners[k];
+      this.vertex(p[0], p[1], p[2], n, uvs ? uvs[k][0] : p[0], uvs ? uvs[k][1] : p[2], facade);
+    }
     this.index.push(base, base + 1, base + 2);
   }
   geometry() {
@@ -108,11 +105,25 @@ class Mesher {
   }
 }
 
+/** Unit-cube faces as corner indices (bit 0 = +x, bit 1 = +y, bit 2 = +z),
+ * counter-clockwise seen from outside, with their outward normal and the
+ * two local axes used as metric UVs. The bottom face is last. */
+const BOX_FACES: readonly (readonly [readonly number[], V3, number, number])[] = [
+  [[1, 0, 2, 3], [0, 0, -1], 0, 1],
+  [[4, 5, 7, 6], [0, 0, 1], 0, 1],
+  [[0, 4, 6, 2], [-1, 0, 0], 2, 1],
+  [[5, 1, 3, 7], [1, 0, 0], 2, 1],
+  [[2, 6, 7, 3], [0, 1, 0], 0, 2],
+  [[0, 1, 5, 4], [0, -1, 0], 0, 2],
+];
+
 /** A structure's local frame: +x along the frontage, +z across, y absolute.
  * Every helper bakes into the district mesh with outward winding. */
 class Frame {
   readonly c: number;
   readonly n: number;
+  private readonly corner = new Float64Array(24);
+  private readonly local = new Float64Array(24);
   constructor(
     readonly m: Mesher,
     readonly x: number,
@@ -131,61 +142,68 @@ class Frame {
   }
   /** Convex planar polygon in local coordinates. Its winding follows the
    * geometric normal turned toward `hint`; UVs default to metres in-plane. */
-  poly(points: V3[], hint: V3, color: number, facade: Facade, uvs?: UV[]) {
+  poly(points: readonly V3[], hint: V3, color: number, facade: Facade, uvs?: readonly UV[]) {
+    const count = points.length;
     let nx = 0,
       ny = 0,
       nz = 0;
-    for (let i = 0; i < points.length; i++) {
+    for (let i = 0; i < count; i++) {
       const a = points[i],
-        b = points[(i + 1) % points.length];
+        b = points[(i + 1) % count];
       nx += (a[1] - b[1]) * (a[2] + b[2]);
       ny += (a[2] - b[2]) * (a[0] + b[0]);
       nz += (a[0] - b[0]) * (a[1] + b[1]);
     }
-    if (nx * hint[0] + ny * hint[1] + nz * hint[2] < 0) {
-      points = [...points].reverse();
-      uvs = uvs && [...uvs].reverse();
-      nx = -nx;
-      ny = -ny;
-      nz = -nz;
-    }
-    const l = Math.hypot(nx, ny, nz) || 1;
-    nx /= l;
-    ny /= l;
-    nz /= l;
-    if (!uvs) {
-      const [p0, p1] = points;
-      let ex = p1[0] - p0[0],
-        ey = p1[1] - p0[1],
-        ez = p1[2] - p0[2];
-      const el = Math.hypot(ex, ey, ez) || 1;
-      ex /= el;
-      ey /= el;
-      ez /= el;
-      const fx = ny * ez - nz * ey,
-        fy = nz * ex - nx * ez,
-        fz = nx * ey - ny * ex;
-      uvs = points.map((p) => {
+    const flip = nx * hint[0] + ny * hint[1] + nz * hint[2] < 0;
+    const l = (flip ? -1 : 1) / (Math.hypot(nx, ny, nz) || 1);
+    nx *= l;
+    ny *= l;
+    nz *= l;
+    const at = (k: number) => points[flip ? count - 1 - k : k];
+    // Default UVs: metres along the first edge and across it in-plane.
+    const p0 = at(0),
+      p1 = at(1);
+    let ex = p1[0] - p0[0],
+      ey = p1[1] - p0[1],
+      ez = p1[2] - p0[2];
+    const el = Math.hypot(ex, ey, ez) || 1;
+    ex /= el;
+    ey /= el;
+    ez /= el;
+    const fx = ny * ez - nz * ey,
+      fy = nz * ex - nx * ez,
+      fz = nx * ey - ny * ex;
+    const m = this.m,
+      normal = this.dir(nx, ny, nz),
+      base = m.position.length / 3;
+    m.paint(color);
+    for (let k = 0; k < count; k++) {
+      const p = at(k);
+      let u: number, v: number;
+      if (uvs) {
+        const t = uvs[flip ? count - 1 - k : k];
+        u = t[0];
+        v = t[1];
+      } else {
         const dx = p[0] - p0[0],
           dy = p[1] - p0[1],
           dz = p[2] - p0[2];
-        return [dx * ex + dy * ey + dz * ez, dx * fx + dy * fy + dz * fz] as const;
-      });
+        u = dx * ex + dy * ey + dz * ez;
+        v = dx * fx + dy * fy + dz * fz;
+      }
+      m.vertex(
+        this.x + this.c * p[0] - this.n * p[2],
+        p[1],
+        this.z + this.n * p[0] + this.c * p[2],
+        normal,
+        u,
+        v,
+        facade,
+      );
     }
-    const world = points.map((p) => this.at(p[0], p[1], p[2])),
-      normal = this.dir(nx, ny, nz);
-    if (world.length === 4) {
-      this.m.quad(world, normal, uvs, color, facade);
-      return;
-    }
-    for (let k = 1; k < world.length - 1; k++)
-      this.m.tri([world[0], world[k], world[k + 1]], normal, color, facade, [
-        uvs[0],
-        uvs[k],
-        uvs[k + 1],
-      ]);
+    for (let k = 1; k < count - 1; k++) m.index.push(base, base + k, base + k + 1);
   }
-  /** Axis-aligned box in the local frame. */
+  /** Axis-aligned box in the local frame (no allocation per face). */
   box(
     x: number,
     y: number,
@@ -197,70 +215,37 @@ class Frame {
     facade = this.detail,
     bottom = false,
   ) {
-    const x0 = x - w / 2,
-      x1 = x + w / 2,
-      y0 = y - h / 2,
-      y1 = y + h / 2,
-      z0 = z - d / 2,
-      z1 = z + d / 2;
-    const faces: [V3[], V3][] = [
-      [
-        [
-          [x0, y0, z0],
-          [x1, y0, z0],
-          [x1, y1, z0],
-          [x0, y1, z0],
-        ],
-        [0, 0, -1],
-      ],
-      [
-        [
-          [x0, y0, z1],
-          [x1, y0, z1],
-          [x1, y1, z1],
-          [x0, y1, z1],
-        ],
-        [0, 0, 1],
-      ],
-      [
-        [
-          [x0, y0, z0],
-          [x0, y0, z1],
-          [x0, y1, z1],
-          [x0, y1, z0],
-        ],
-        [-1, 0, 0],
-      ],
-      [
-        [
-          [x1, y0, z0],
-          [x1, y0, z1],
-          [x1, y1, z1],
-          [x1, y1, z0],
-        ],
-        [1, 0, 0],
-      ],
-      [
-        [
-          [x0, y1, z0],
-          [x1, y1, z0],
-          [x1, y1, z1],
-          [x0, y1, z1],
-        ],
-        [0, 1, 0],
-      ],
-    ];
-    if (bottom)
-      faces.push([
-        [
-          [x0, y0, z0],
-          [x1, y0, z0],
-          [x1, y0, z1],
-          [x0, y0, z1],
-        ],
-        [0, -1, 0],
-      ]);
-    for (const [points, hint] of faces) this.poly(points, hint, color, facade);
+    const corner = this.corner,
+      local = this.local;
+    for (let i = 0; i < 8; i++) {
+      const lx = x + (i & 1 ? w : -w) / 2,
+        ly = y + (i & 2 ? h : -h) / 2,
+        lz = z + (i & 4 ? d : -d) / 2;
+      local[i * 3] = lx;
+      local[i * 3 + 1] = ly;
+      local[i * 3 + 2] = lz;
+      corner[i * 3] = this.x + this.c * lx - this.n * lz;
+      corner[i * 3 + 1] = ly;
+      corner[i * 3 + 2] = this.z + this.n * lx + this.c * lz;
+    }
+    const m = this.m;
+    m.paint(color);
+    for (let f = 0; f < (bottom ? 6 : 5); f++) {
+      const [ids, n, ua, va] = BOX_FACES[f];
+      const normal = this.dir(n[0], n[1], n[2]),
+        base = m.position.length / 3;
+      for (const i of ids)
+        m.vertex(
+          corner[i * 3],
+          corner[i * 3 + 1],
+          corner[i * 3 + 2],
+          normal,
+          local[i * 3 + ua],
+          local[i * 3 + va],
+          facade,
+        );
+      m.index.push(base, base + 1, base + 2, base, base + 2, base + 3);
+    }
   }
   /** Square-section member between two local points (rafters, ridges,
    * pipes, stair stringers). `up` orients the section's height. */
@@ -452,8 +437,9 @@ vec3 owLamp;`,
     interior = mix(interior, vec3(0.6, 0.6, 0.58), ceilingBand);
     diffuseColor.rgb = mix(interior, vec3(0.56, 0.58, 0.58), frame);
     owGlass = (1.0 - frame) * 0.7;
-    owGlow = (1.0 - frame) * (0.35 + 0.25 * shelf + 1.8 * strip);
-    owLamp = vec3(0.93, 0.97, 1.0);
+    // The lit interior emits its own albedo, so shelves stay legible.
+    owGlow = (1.0 - frame) * (1.0 + 2.6 * strip);
+    owLamp = interior * vec3(0.95, 0.98, 1.0);
   } else if (physicalPane) {
     // Geometry supplies the actual reveal depth. This inset pane adds a
     // bounded interior illustration, not a ray-traced or enterable room.

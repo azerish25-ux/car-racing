@@ -745,7 +745,7 @@ export class FestivalSignage {
       LAYOUT.vending(seed % VENDING.length),
       null,
       color,
-      0.9,
+      0.7,
       0,
     );
     this.stats.vending++;
@@ -916,7 +916,7 @@ export class FestivalSignage {
       LAYOUT.fascia(chain),
       null,
       0xe8e8e4,
-      1.0,
+      0.6,
       0,
     );
     this.small = true;
@@ -981,7 +981,7 @@ export class FestivalSignage {
       LAYOUT.pole(chain),
       LAYOUT.pole(chain),
       0xd9dbdc,
-      1.4,
+      0.75,
       0,
     );
     this.slab(
@@ -993,7 +993,7 @@ export class FestivalSignage {
       LAYOUT.strip(chain),
       LAYOUT.strip(chain),
       0xd9dbdc,
-      1.2,
+      0.7,
       0,
     );
     // Logo plaque on the fascia.
@@ -1006,7 +1006,7 @@ export class FestivalSignage {
       LAYOUT.pole(chain),
       null,
       0xf2f2ee,
-      1.0,
+      0.6,
       0,
     );
     this.small = true;
@@ -1074,7 +1074,7 @@ export class FestivalSignage {
         LAYOUT.vending(k),
         null,
         new T.Color(VENDING[k]).getHex(),
-        0.9,
+        0.7,
         0,
       );
       this.stats.vending++;

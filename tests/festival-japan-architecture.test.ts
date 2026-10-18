@@ -157,6 +157,24 @@ describe('Japanese buildings and signage geometry', () => {
         expect((o.geometry.getAttribute(name).array as Float32Array).every(Number.isFinite)).toBe(
           true,
         );
+      // Every triangle is wound to face along its shading normal (front
+      // faces are not culled from outside), sampled across the district.
+      const position = o.geometry.getAttribute('position'),
+        normal = o.geometry.getAttribute('normal'),
+        index = o.geometry.index!;
+      const a = new T.Vector3(),
+        b = new T.Vector3(),
+        c = new T.Vector3(),
+        n = new T.Vector3();
+      for (let t = 0; t < index.count; t += 3 * 37) {
+        a.fromBufferAttribute(position, index.getX(t));
+        b.fromBufferAttribute(position, index.getX(t + 1));
+        c.fromBufferAttribute(position, index.getX(t + 2));
+        n.fromBufferAttribute(normal, index.getX(t));
+        const g = b.sub(a).cross(c.sub(a));
+        if (g.lengthSq() < 1e-10) continue;
+        expect(g.normalize().dot(n)).toBeGreaterThan(0.2);
+      }
     });
     // One merged mesh per 512 m district, not one per building.
     expect(meshes).toBeLessThan(40);
