@@ -1,0 +1,120 @@
+{
+  "sourceSHA256": "7a5003f3963ce723dbe05cc1852edc1f124aa05cf1b9bd248897f5c67e8ed5e0",
+  "blender": "5.2.2 LTS",
+  "variants": [
+    {
+      "model": "canopy",
+      "detail": "near",
+      "parts": 68,
+      "triangles": 3560,
+      "file": "canopy-near.glb",
+      "bytes": 218916,
+      "sha256": "d4840b044e318f853f0bfad1b8b0a61277263be05c3b4e0b325d937af60ae97e"
+    },
+    {
+      "model": "canopy",
+      "detail": "course",
+      "parts": 68,
+      "triangles": 1696,
+      "file": "canopy-course.glb",
+      "bytes": 160500,
+      "sha256": "8e8c798603b945bf8033653f273f7457c064b482b9523b9aeed3ca6c83fc6dea"
+    },
+    {
+      "model": "tool-trolley",
+      "detail": "near",
+      "parts": 60,
+      "triangles": 4796,
+      "file": "tool-trolley-near.glb",
+      "bytes": 253044,
+      "sha256": "cc4be892ba6b15217920ccd8ffc5779b12d0e6facd933287d57b871a8099fe5d"
+    },
+    {
+      "model": "tool-trolley",
+      "detail": "course",
+      "parts": 57,
+      "triangles": 1700,
+      "file": "tool-trolley-course.glb",
+      "bytes": 146880,
+      "sha256": "3716effbbc623d8e530cd0596d9fc2bea5a08bac658f99f6c2009126431c59a0"
+    },
+    {
+      "model": "pressure-washer",
+      "detail": "near",
+      "parts": 37,
+      "triangles": 4204,
+      "file": "pressure-washer-near.glb",
+      "bytes": 195388,
+      "sha256": "f187324420ff3123a2d936ff18a0235978a1e18d939f480e6d20c3edb0381335"
+    },
+    {
+      "model": "pressure-washer",
+      "detail": "course",
+      "parts": 37,
+      "triangles": 1568,
+      "file": "pressure-washer-course.glb",
+      "bytes": 111852,
+      "sha256": "45705d8b64fa2e03d0101ebe603e96501e34adf88374842b8ba0564efa98ede9"
+    },
+    {
+      "model": "water-tank",
+      "detail": "near",
+      "parts": 64,
+      "triangles": 3088,
+      "file": "water-tank-near.glb",
+      "bytes": 197904,
+      "sha256": "01c7696e9c05385f5a22b565762b490949e6c3c0ded69011a14ee5467449798e"
+    },
+    {
+      "model": "water-tank",
+      "detail": "course",
+      "parts": 64,
+      "triangles": 1360,
+      "file": "water-tank-course.glb",
+      "bytes": 141864,
+      "sha256": "c8055dbf60505b154384ecf986eeaf39306730d0ffc82c194d7a4ee954c55786"
+    },
+    {
+      "model": "marshal-post",
+      "detail": "near",
+      "parts": 61,
+      "triangles": 3568,
+      "file": "marshal-post-near.glb",
+      "bytes": 209048,
+      "sha256": "08a8583170fa41b39b964a05528cd9bb7d3c3c92db6edce842042c89d47d8568"
+    },
+    {
+      "model": "marshal-post",
+      "detail": "course",
+      "parts": 51,
+      "triangles": 1064,
+      "file": "marshal-post-course.glb",
+      "bytes": 116628,
+      "sha256": "d76d12f52a25eaa36b28e3ba0e289415ee5f51f8f65b9f9ffbdef6494914615b"
+    },
+    {
+      "model": "speaker-stack",
+      "detail": "near",
+      "parts": 93,
+      "triangles": 4568,
+      "file": "speaker-stack-near.glb",
+      "bytes": 299208,
+      "sha256": "ce9cb5c7a595be8731d70005e1de80c2d41d0af2eac39874fa53d14a5a6525c1"
+    },
+    {
+      "model": "speaker-stack",
+      "detail": "course",
+      "parts": 73,
+      "triangles": 1560,
+      "file": "speaker-stack-course.glb",
+      "bytes": 170832,
+      "sha256": "9b192aa14dd0e2972704123b2037ffb4ef9a6de846897cf8f988e09a7128ab9f"
+    }
+  ],
+  "native": {
+    "file": "MOTOBOUND_MX_Trackside_Models.blend",
+    "bytes": 999226,
+    "sha256": "12860269d7d3a1e915df903e1b88532f42366dd5a13208c9243180b71f81463c",
+    "meshObjects": 733
+  }
+}

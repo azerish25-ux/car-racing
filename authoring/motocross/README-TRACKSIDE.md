@@ -42,9 +42,17 @@ node scripts/verify-mx-trackside-glb.mjs /tmp/mx-trackside
 ```
 
 This creates `MOTOBOUND_MX_Trackside_Models.blend`, twelve GLBs, the source JSON,
-checksums and verification receipts. Blender edits do not automatically propagate
-back to the TypeScript generator. Native outputs are distributed in the separate
-model kit; this commit contains the integrated runtime and reproducible exporters.
+checksums and verification receipts. The editable Blender source is committed at
+[`authoring/motocross/native/MOTOBOUND_MX_Trackside_Models.blend`](native/MOTOBOUND_MX_Trackside_Models.blend).
+The twelve verified GLBs are committed at `public/models/motocross/trackside/`,
+and integrity receipts and a [model preview](../../docs/production/mx-trackside-model-preview.jpg)
+are committed under `docs/production/`.
+
+The 7 MB generated source JSON is deliberately not tracked: its complete input
+source and deterministic generator are already committed. Run the commands above
+to recreate that intermediate. The runtime still builds the model geometry
+directly from TypeScript rather than fetching these supplementary GLBs.
+Blender edits do not automatically propagate back to the TypeScript generator.
 No commercial mesh, reference photograph, logo or external texture is embedded.
 
 ## Validation recorded on 2026-10-18
