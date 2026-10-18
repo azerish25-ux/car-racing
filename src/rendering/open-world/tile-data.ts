@@ -71,9 +71,10 @@ export function buildTileData(
       const snow =
         smoothstep(snowLine - 25, snowLine + 35, h) * (1 - smoothstep(0.75, 1.05, slope));
       // Rock: steep ground, cuttings beside roads, high bare ground.
-      // Rock in the road cuttings only: embankment fills are grassed (042,
-      // 050: grass down to the guardrail).
-      const cut = road > 0.05 && road < 0.98 && slope > 0.45 && carved.cut[c] > 0.4 ? 0.8 : 0;
+      // Rock in the steep road cuttings only: fills and gentle earth cuts
+      // are grassed (042, 050: grass down to the guardrail).
+      const cut =
+        road > 0.05 && road < 0.98 && carved.cut[c] > 0.4 ? 0.8 * smoothstep(0.6, 0.95, slope) : 0;
       const rock =
         Math.max(smoothstep(0.5, 0.85, slope), cut, smoothstep(480, 620, h) * 0.45) *
         (1 - snow * 0.7);
