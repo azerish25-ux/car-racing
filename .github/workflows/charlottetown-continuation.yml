@@ -1,0 +1,101 @@
+name: Publish and verify Charlottetown continuation
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/charlottetown-continuation.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  publish:
+    if: github.repository == 'azerish25-ux/car-racing'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    outputs:
+      commit: ${{ steps.commit.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply hash-verified locally tested source changes
+        run: |
+          python - <<'PY'
+          import base64, gzip, hashlib
+          from pathlib import Path
+          parts = sorted(Path('.github/charlottetown-continuation').glob('part-*'))
+          patch = gzip.decompress(base64.b64decode(''.join(p.read_text().strip() for p in parts), validate=True))
+          assert hashlib.sha256(patch).hexdigest() == '65fc079576dc7a4cbad59cb1cb1ec3b4318ced1a892f73433eec78c2b8f3d4d7', 'Source patch checksum mismatch'
+          Path('/tmp/charlottetown.patch').write_bytes(patch)
+          PY
+          git apply --check /tmp/charlottetown.patch
+          git apply --index /tmp/charlottetown.patch
+          git rm -r .github/charlottetown-continuation .github/workflows/charlottetown-continuation.yml
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Geographic, geometry, worker and GPU ownership regressions
+        run: npx vitest run tests/charlottetown.test.ts tests/charlottetown-geometry.test.ts tests/gpu-frame-gate.test.ts tests/open-world-session.test.ts tests/open-world-worker.test.ts tests/festival-map.test.ts tests/festival-car-switch.test.ts
+      - name: Lint changed TypeScript
+        run: git diff --cached --name-only --diff-filter=ACMR -- '*.ts' | xargs -r npx eslint
+      - name: Typecheck and production build
+        run: npm run build
+      - name: Commit and push source to this fork only
+        id: commit
+        run: |
+          test "$GITHUB_REPOSITORY" = azerish25-ux/car-racing
+          git config user.name 'azerish25-ux'
+          git config user.email 'azerish25@gmail.com'
+          git diff --cached --check
+          git commit -m 'feat: add city-first Charlottetown launch and fix procedural geometry'
+          git push origin HEAD:main
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          git rev-parse HEAD > source-commit.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: charlottetown-continuation-web
+          path: |
+            dist/
+            source-commit.txt
+          retention-days: 7
+  browser:
+    needs: publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    strategy:
+      fail-fast: false
+      matrix:
+        mode: [formula, motogp, horizon]
+    env:
+      APEX_BROWSER_BACKEND: mesa
+      LIBGL_ALWAYS_SOFTWARE: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.publish.outputs.commit }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - uses: actions/download-artifact@v4
+        with:
+          name: charlottetown-continuation-web
+      - run: test "$(cat source-commit.txt)" = "$(git rev-parse HEAD)"
+      - run: npx playwright install --with-deps chromium
+      - run: sudo apt-get update && sudo apt-get install -y xvfb libgl1-mesa-dri mesa-utils
+      - name: Real city launcher, simulation, movement, travel and repeat entry
+        run: xvfb-run -a npx playwright test e2e/charlottetown-direct.spec.ts --grep 'City-first ${{ matrix.mode }}:'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: charlottetown-continuation-${{ matrix.mode }}
+          path: |
+            test-results/
+            playwright-report/
+            browser-backend.json
+            browser-progress.json
+            source-commit.txt
+          retention-days: 7
