@@ -9,7 +9,9 @@ import { AudioViewTracker } from '../../audio/spatial.ts';
 import { clamp } from '../../core/math.ts';
 import type { FestivalEvent } from '../../simulation/open-world/festival-events.ts';
 import { carvedGroundHeight } from '../../simulation/open-world/ground-height.ts';
-import type { Structure } from '../../simulation/open-world/placement.ts';
+import { TREE_STRIDE, type Structure } from '../../simulation/open-world/placement.ts';
+import { streetTreePlan } from '../../simulation/open-world/street-trees.ts';
+import { trackPoint } from '../../simulation/track.ts';
 import type { OpenWorld } from '../../simulation/open-world/world.ts';
 import {
   CAR_STRIDE,
@@ -125,6 +127,7 @@ import { architecturePlan } from './japan-architecture.ts';
 import { FestivalSignage } from './festival-signage.ts';
 import { FestivalTownLife } from './town-life.ts';
 import { NIGHT_GLOW, NightGlow } from './night-glow.ts';
+import { StreetTreeDressing } from './street-tree-dressing.ts';
 import { parkedSites } from './parked-cars.ts';
 import { FestivalShadows } from './festival-shadows.ts';
 import {
@@ -190,6 +193,8 @@ export class FestivalRenderer {
   readonly townLife: FestivalTownLife;
   /** Night wash of the sign-lit canyon on facades and streets (night-glow.ts). */
   readonly nightGlow: NightGlow;
+  readonly streetTrees: StreetTreeDressing;
+  private readonly probe = trackPoint();
   /** Cars parked in store lots, coin parks and the hub meet. */
   readonly parked: ParkedCars;
   details: SolvaneDetails | null = null;
@@ -398,13 +403,24 @@ export class FestivalRenderer {
     );
     scene.add(this.distant.root);
     this.signage = new FestivalSignage(world, structures, architecture);
+    // Street trees (the placement's colliders): pits and litter; the town
+    // kit keeps clear of their trunks and grates.
+    const streetTrees = streetTreePlan(world, structures).trees;
+    this.streetTrees = new StreetTreeDressing(streetTrees, this.heightAt, (x, z) => {
+      const net = world.network;
+      net.nearest(x, z, this.probe);
+      return net.edges[net.edgeOf[net.lastSegment]].roadClass === 'town';
+    });
+    const pits: { x: number; z: number; r: number }[] = [];
+    for (let i = 0; i < streetTrees.length; i += TREE_STRIDE)
+      pits.push({ x: streetTrees[i], z: streetTrees[i + 1], r: 0.65 });
     this.townLife = new FestivalTownLife(
       world,
       structures,
       architecture,
       this.heightAt,
       this.signage.lights,
-      [...this.furniture.anchors, ...this.signage.fixtures],
+      [...this.furniture.anchors, ...this.signage.fixtures, ...pits],
     );
     this.nightGlow = new NightGlow(this.signage.glows, structures, architecture);
     this.nightGlow.install(this.buildings.material, 'facade');
@@ -440,6 +456,7 @@ export class FestivalRenderer {
       this.dressing.root,
       this.signage.root,
       this.townLife.root,
+      this.streetTrees.root,
       this.parked.root,
       this.vegetation.root,
       this.flora.root,
@@ -910,6 +927,7 @@ export class FestivalRenderer {
     this.buildings.setNight(night);
     this.dressing.update(time, night, this.camera, this.preset);
     this.flora.update(this.camera, this.preset);
+    this.streetTrees.update(this.camera, this.preset);
     this.groundCover.update(
       this.camera,
       this.preset,
@@ -1280,6 +1298,7 @@ export class FestivalRenderer {
     this.distant.dispose();
     this.signage.dispose();
     this.townLife.dispose();
+    this.streetTrees.dispose();
     this.parked.dispose();
     this.details?.dispose();
     this.details = null;

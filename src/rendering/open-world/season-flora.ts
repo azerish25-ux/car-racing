@@ -52,7 +52,8 @@ float owLeafMask(vec3 c) {
   return clamp((c.g - c.r) / max(c.g, 1e-4) * 8.0 + 0.2, 0.0, 1.0);
 }
 bool owDeciduous(float role) {
-  return role < ${FLORA_ROLE.MAPLE}.5 || abs(role - ${FLORA_ROLE.AZALEA}.0) < 0.5;
+  return role < ${FLORA_ROLE.MAPLE}.5 || abs(role - ${FLORA_ROLE.AZALEA}.0) < 0.5 ||
+    role > ${FLORA_ROLE.GINKGO}.0 - 0.5;
 }
 /** Coverage multiplier: winter deciduous crowns keep their twigs and a few
  * dry leaves; cherries in bloom are fuller clouds than their summer leaves
@@ -101,6 +102,11 @@ vec3 owLeafSeason(vec3 base, float lumRef) {
   } else if (role < 5.5) {
     spring = mix(base, fresh, 0.35);
     autumn = mix(base, mix(vec3(0.34, 0.08, 0.03), vec3(0.3, 0.2, 0.03), h) * b, 0.55);
+  } else if (role > ${FLORA_ROLE.GINKGO}.0 - 0.5) {
+    // Street zelkova / ginkgo (089, 097): fresh green in spring, the whole
+    // avenue golden yellow in autumn, a few crowns turning amber.
+    spring = mix(base, fresh * vec3(1.05, 1.1, 1.0), 0.55);
+    autumn = mix(vec3(0.62, 0.42, 0.03), vec3(0.55, 0.26, 0.02), n * 0.4 + 0.3 * step(0.82, h)) * b;
   } else {
     // Azaleas: magenta/pink/white flowers in spring, red-orange in early
     // summer (029), russet leaves in autumn.
