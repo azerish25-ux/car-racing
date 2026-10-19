@@ -5,73 +5,106 @@ on:
     paths: [.github/workflows/charlottetown-publish.yml]
   workflow_dispatch:
 permissions:
-  contents: write
-  actions: read
+  contents: read
+concurrency:
+  group: charlottetown-source-publication
+  cancel-in-progress: false
 jobs:
   publish:
     if: github.repository == 'azerish25-ux/car-racing'
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: write
     outputs:
       commit: ${{ steps.commit.outputs.sha }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: main
-      - name: Verify and apply locally tested implementation
+      - name: Retrieve and verify the locally tested source delta
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          cat .github/charlottetown-transfer/part-* > /tmp/charlottetown.patch.xz
-          echo 'b49305e50799badba599a7c47db9cd6a70f97817eb56ce5a99ebeb0245cdd84f  /tmp/charlottetown.patch.xz' | sha256sum --check
-          xz -dc /tmp/charlottetown.patch.xz > /tmp/charlottetown.patch
-          git apply --unidiff-zero --check /tmp/charlottetown.patch
-          git apply --unidiff-zero /tmp/charlottetown.patch
-      - name: Recover the exact acquired OSM snapshot
-        uses: actions/download-artifact@v4
-        with:
-          name: charlottetown-source
-          run-id: 39196862088
-          github-token: ${{ github.token }}
-          path: /tmp/charlottetown-original
-      - name: Reproduce licensed geographic database
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = azerish25-ux/car-racing
+          : > /tmp/charlottetown-details.patch.xz
+          for sha in 9873e518c0e41c2993e31ced8fccbd33253214ed d16c34658285bb65603ac2bd1a24d12838c0a961; do
+            gh api "repos/$GITHUB_REPOSITORY/git/blobs/$sha" --jq .content | base64 --decode >> /tmp/charlottetown-details.patch.xz
+          done
+          echo 'aba6c2444e8ed94ed809a87b21291b79ee3c2f3cbd70290da395ff874ee02dc8  /tmp/charlottetown-details.patch.xz' | sha256sum --check
+          xz -dc /tmp/charlottetown-details.patch.xz > /tmp/charlottetown-details.patch
+          echo '404e03cf88b46ffd2f02c1117083a2faf85ddb7c9b3a7d0669bf61ed9130d204  /tmp/charlottetown-details.patch' | sha256sum --check
+          if git apply --check /tmp/charlottetown-details.patch; then
+            git apply --index /tmp/charlottetown-details.patch
+          elif git apply --reverse --check /tmp/charlottetown-details.patch; then
+            echo 'Exact delta is already present; validating the current checkout.'
+          else
+            echo 'Source diverged. Refusing to overwrite concurrent changes.' >&2
+            exit 1
+          fi
+          git diff --cached --check
+          git diff --cached --stat
+      - name: Confirm exact tested file contents and stage scope
         run: |
-          tar -xOf /tmp/charlottetown-original/charlottetown-source.tar.gz ./WORKSPACE_CHARLOTTETOWN.osm > /tmp/charlottetown.osm
-          echo '2ae441d5500037ba968b27c93739288e93badd82fa9644c26609557cdfce4813  /tmp/charlottetown.osm' | sha256sum --check
-          python scripts/import-charlottetown.py --osm /tmp/charlottetown.osm --route reference/charlottetown/route.geojson
-          echo '1793399c6793fd65e7cc71675dcad7127db8710f10ca3a8de62cc5049d3aeb33  src/simulation/open-world/charlottetown/data.json' | sha256sum --check
+          python - <<'PY'
+          import subprocess
+          expected = {
+              'docs/CHARLOTTETOWN_MAP.md': '2eb860f8382b1f1305c401aec304e4bd326c1361',
+              'e2e/charlottetown-direct.spec.ts': '149ac4175cac719a161ab567797c784771065457',
+              'src/rendering/open-world/charlottetown/architecture.ts': 'bf762fb3cf0e74ba901c1f17a3546c1bd01c7970',
+              'src/rendering/open-world/charlottetown/batch.ts': 'af9996ec567d340e8fbc3b2bd537741a2b33d1ea',
+              'src/rendering/open-world/charlottetown/city.ts': 'f4c0827b25c1357970e9b5200aaa967b1fa877b0',
+              'src/rendering/open-world/charlottetown/geometry.ts': '801edce8423a92939caa37786e4d985610513e4c',
+              'src/rendering/open-world/charlottetown/labels.ts': '632fbfd3cf4f9bff5efb26c86e7ab86a84e4c1be',
+              'src/rendering/open-world/charlottetown/materials.ts': 'a66ace949d60b95c7ec6678bf3546da3975bde4a',
+              'src/simulation/open-world/charlottetown/navigation.ts': '1110376e595b9448427e97d6f3e86391041f9bd3',
+              'src/ui/charlottetown-navigation.css': 'b0ac4e80ca7f926b784160dd14cf73a14991366a',
+              'src/ui/charlottetown-navigation.ts': '8fa4d196fe83d8198f36e243b29d67911cfdc7b3',
+              'src/ui/festival-hud.ts': '9043dc1cd664bf035e05d85d9bf236deefbf0472',
+              'tests/charlottetown-architecture.test.ts': '5327f1a11c67ee6e3472277a557d0f0987597e2b',
+              'tests/charlottetown-navigation.test.ts': 'a95649870419bd6f15126572481def47ae20f400',
+              'tests/charlottetown.test.ts': '935bd81a396f79b90a437a00cf198971e2f99445',
+          }
+          staged = subprocess.check_output(['git', 'diff', '--cached', '--name-only'], text=True).splitlines()
+          assert set(staged) <= expected.keys(), f'Unexpected staged paths: {staged}'
+          for path, sha in expected.items():
+              actual = subprocess.check_output(['git', 'hash-object', path], text=True).strip()
+              assert actual == sha, f'Content mismatch: {path}: {actual}'
+          print(f'All {len(expected)} tested source files verified.')
+          PY
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: npm
       - run: npm ci --no-audit --no-fund
-      - name: Geographic, physics, worker and existing-map regressions
-        run: npx vitest run tests/charlottetown.test.ts tests/open-world.test.ts tests/open-world-session.test.ts tests/open-world-worker.test.ts tests/route-graph.test.ts tests/route-overpass.test.ts tests/festival-car-switch.test.ts tests/festival-map.test.ts
+      - name: Geometry, navigation, production physics and existing-map regressions
+        run: npx vitest run tests/charlottetown.test.ts tests/charlottetown-geometry.test.ts tests/charlottetown-architecture.test.ts tests/charlottetown-navigation.test.ts tests/gpu-frame-gate.test.ts tests/open-world-session.test.ts tests/open-world-worker.test.ts tests/festival-map.test.ts tests/festival-car-switch.test.ts tests/route-graph.test.ts tests/route-overpass.test.ts
+      - name: Lint changed TypeScript
+        run: npx eslint src/rendering/open-world/charlottetown/{architecture,batch,city,geometry,labels,materials}.ts src/simulation/open-world/charlottetown/navigation.ts src/ui/charlottetown-navigation.ts src/ui/festival-hud.ts tests/charlottetown{,-architecture,-navigation}.test.ts e2e/charlottetown-direct.spec.ts
       - name: Typecheck and production build
         run: npm run build
-      - name: Commit and push implementation to this fork only
+      - name: Commit verified implementation without rewriting remote history
         id: commit
         run: |
+          set -euo pipefail
           test "$GITHUB_REPOSITORY" = azerish25-ux/car-racing
           git config user.name 'azerish25-ux'
           git config user.email 'azerish25@gmail.com'
-          git add README.md docs/CHARLOTTETOWN_MAP.md e2e/charlottetown.spec.ts e2e/fixtures/charlottetown-scene.ts reference/charlottetown/route.geojson scripts/import-charlottetown.py src tests/charlottetown.test.ts
           git diff --cached --check
-          git commit -m 'feat: add mapped Charlottetown campus region for Formula, MotoGP and Horizon'
+          if ! git diff --cached --quiet; then
+            git commit -m 'feat: refine Charlottetown architecture and add bidirectional campus navigation'
+          fi
           git push origin HEAD:main
           echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-          git rev-parse HEAD > source-commit.txt
+          git rev-parse HEAD > dist/SOURCE_COMMIT.txt
       - uses: actions/upload-artifact@v4
         with:
-          name: charlottetown-web
-          path: |
-            dist/
-            source-commit.txt
+          name: charlottetown-details-web
+          path: dist/
           retention-days: 7
   browser:
     needs: publish
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    permissions:
-      contents: read
+    timeout-minutes: 18
     strategy:
       fail-fast: false
       matrix:
@@ -83,25 +116,27 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ needs.publish.outputs.commit }}
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: npm
       - run: npm ci --no-audit --no-fund
-      - uses: actions/download-artifact@v4
-        with:
-          name: charlottetown-web
-      - run: test "$(cat source-commit.txt)" = "$(git rev-parse HEAD)"
+      - run: npm run build
       - run: npx playwright install --with-deps chromium
       - run: sudo apt-get update && sudo apt-get install -y xvfb libgl1-mesa-dri mesa-utils
-      - name: Actual menu, worker, driving, campus travel, scene and exit
-        run: xvfb-run -a npx playwright test e2e/charlottetown.spec.ts --grep 'Charlottetown ${{ matrix.mode }}:'
+      - name: Record exact tested source
+        run: git rev-parse HEAD > source-commit.txt
+      - name: City launch, navigation, driving, campus travel, night lighting and repeat entry
+        run: xvfb-run -a npx playwright test e2e/charlottetown-direct.spec.ts --grep 'City-first ${{ matrix.mode }}:'
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: charlottetown-browser-${{ matrix.mode }}
+          name: charlottetown-details-${{ matrix.mode }}
           path: |
             test-results/
             playwright-report/
-            docs/browser-backend.json
+            browser-backend.json
+            browser-progress.json
+            source-commit.txt
           retention-days: 7
