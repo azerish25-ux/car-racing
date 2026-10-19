@@ -1,6 +1,7 @@
 import * as T from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { TREE_SPECIES } from '../../simulation/open-world/placement.ts';
+import { TREE_SPECIES, trunkRadius } from '../../simulation/open-world/placement.ts';
+import { isStreetSpecies, streetTreeForm } from '../../simulation/open-world/street-trees.ts';
 import { foliageAtlas, installFoliageAtlas, treeGeometry } from '../landscape.ts';
 import { materials } from '../materials/index.ts';
 import type { TileMeshData } from '../../workers/open-world-protocol.ts';
@@ -338,6 +339,9 @@ export class Vegetation {
       const x = trees[i],
         z = trees[i + 1],
         y = trees[i + 6];
+      // Pruned street trees keep their procedural crowns (raised on a clear
+      // stem) in every mode.
+      if (isStreetSpecies(kind)) continue;
       if (kind === TREE_SPECIES.SHRUB) {
         if (shrub) {
           const tint = plantTint(plantHash(x, z, 41), FESTIVAL_PALETTE);
@@ -376,7 +380,9 @@ export class Vegetation {
     }
     forest.add(plants, { label: 'Festival', shadows: true, chunk: 128, ground: this.ground });
     forest.add(shrubs, { label: 'Festival shrubs', shadows: false, chunk: 128 });
-    forest.root.userData.instances = forest.plants;
+    const street = this.street(trees, roles);
+    if (street) forest.root.add(street.detail);
+    forest.root.userData.instances = forest.plants + (street?.count ?? 0);
     forest.root.name = 'Photographic vegetation tile';
     this.root.add(forest.root);
     return forest;
@@ -393,6 +399,7 @@ export class Vegetation {
     for (let i = 0, k = 0; i < trees.length; i += TILE_TREE_STRIDE, k++) {
       const role = roles[k];
       roleOf.set(i, role);
+      if (isStreetSpecies(trees[i + 3])) continue;
       const bucket =
         role === FLORA_ROLE.PINE
           ? 1
@@ -438,6 +445,7 @@ export class Vegetation {
       parent.add(mesh);
     };
     const [cards, pine, shrubs] = buckets;
+    const street = this.street(trees, roles);
     let lod: TileTrees['lod'];
     if (near) {
       const detail = new T.Group(),
@@ -450,6 +458,10 @@ export class Vegetation {
       add(cards, this.geometry.distant, this.foliage, false, light);
       add(pine, this.geometry.pineFar, this.needles, false, light);
       add(shrubs, this.geometry.shrub, this.shrub, false);
+      if (street) {
+        detail.add(street.detail);
+        light.add(street.light);
+      }
       light.visible = false;
       group.add(detail, light);
       lod = {
@@ -464,11 +476,72 @@ export class Vegetation {
     } else {
       add(cards, this.geometry.distant, this.foliage, false);
       add(pine, this.geometry.pineFar, this.needles, false);
+      if (street) group.add(street.light);
     }
-    group.userData.instances = cards.length + pine.length + (near ? shrubs.length : 0);
+    group.userData.instances =
+      cards.length + pine.length + (near ? shrubs.length : 0) + (street?.count ?? 0);
     group.name = `Vegetation L${level}`;
     this.root.add(group);
     return { group, forest: null, lod };
+  }
+  /** Pruned street trees of a tile (street-trees.ts): the crown instance
+   * raised on a clear stem of >= 2.5 m, a slender trunk up into it; full
+   * crowns with shadows (`detail`) and the light far crowns (`light`). */
+  private street(trees: Float32Array, roles: Uint8Array) {
+    const indices: number[] = [];
+    for (let i = 0; i < trees.length; i += TILE_TREE_STRIDE)
+      if (isStreetSpecies(trees[i + 3])) indices.push(i);
+    if (!indices.length) return null;
+    const n = indices.length,
+      crown = new T.InstancedMesh(this.geometry.leaf, this.foliage, n),
+      trunk = new T.InstancedMesh(this.geometry.trunk, this.bark, n),
+      far = new T.InstancedMesh(this.geometry.distant, this.foliage, n),
+      transform = new T.Object3D(),
+      color = new T.Color();
+    indices.forEach((i, k) => {
+      const species = trees[i + 3],
+        height = trees[i + 2],
+        role = roles[i / TILE_TREE_STRIDE],
+        { crownH, crownW, lift } = streetTreeForm(species, height),
+        x = trees[i],
+        y = trees[i + 6],
+        z = trees[i + 1],
+        tint = trees[i + 5];
+      color.setRGB(0.8 + 0.2 * tint, 0.86 + 0.12 * tint, 0.7 + 0.1 * tint);
+      color.g = encodeRole(color.g, role);
+      transform.rotation.set(0, trees[i + 4], 0);
+      transform.position.set(x, y - 0.1 + lift, z);
+      transform.scale.set(crownW, crownH, crownW);
+      transform.updateMatrix();
+      crown.setMatrixAt(k, transform.matrix);
+      far.setMatrixAt(k, transform.matrix);
+      crown.setColorAt(k, color);
+      far.setColorAt(k, color);
+      // Stem: the collider's radius at the base (unit trunk 0.027), its
+      // top (0.67) and limbs halfway up the crown.
+      const stem = trunkRadius(species, height) / 0.027;
+      transform.position.set(x, y - 0.12, z);
+      transform.scale.set(stem, (lift + crownH * 0.5) / 0.67, stem);
+      transform.updateMatrix();
+      trunk.setMatrixAt(k, transform.matrix);
+      trunk.setColorAt(k, color);
+    });
+    const detail = new T.Group(),
+      light = new T.Group();
+    for (const mesh of [crown, trunk, far]) {
+      mesh.castShadow = mesh !== far;
+      mesh.receiveShadow = true;
+      mesh.computeBoundingBox();
+      mesh.computeBoundingSphere();
+      mesh.matrixAutoUpdate = false;
+    }
+    crown.customDepthMaterial = this.depth;
+    crown.name = 'Street tree crowns';
+    trunk.name = 'Street tree stems';
+    far.name = 'Street tree far crowns';
+    detail.add(crown, trunk);
+    light.add(far);
+    return { detail, light, count: n };
   }
   dispose() {
     this.sync(new Map());

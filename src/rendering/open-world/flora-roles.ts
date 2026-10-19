@@ -22,6 +22,8 @@ export const FLORA_ROLE = Object.freeze({
   SHRUB: 5,
   AZALEA: 6,
   BAMBOO: 7,
+  /** Street zelkova / ginkgo (street-trees.ts): golden in autumn. */
+  GINKGO: 8,
 });
 export type FloraRole = (typeof FLORA_ROLE)[keyof typeof FLORA_ROLE];
 
@@ -81,6 +83,10 @@ export interface TreeSite {
 export function floraRole(site: TreeSite): FloraRole {
   const { x, z, y } = site,
     pick = hash01(Math.round(x * 4), Math.round(z * 4), 0x51a7);
+  // Planted street trees keep their street's species.
+  if (site.species === TREE_SPECIES.STREET_CHERRY) return FLORA_ROLE.CHERRY;
+  if (site.species === TREE_SPECIES.STREET_ZELKOVA) return FLORA_ROLE.GINKGO;
+  if (site.species === TREE_SPECIES.STREET_MAPLE) return FLORA_ROLE.MAPLE;
   if (site.species === TREE_SPECIES.SHRUB)
     return y < 520 && pick < 0.22 + 0.3 * floraZone(x, z, CHERRY_SEED + 2)
       ? FLORA_ROLE.AZALEA
