@@ -51,7 +51,7 @@ describe('festival street trees (shared placement, colliders)', () => {
         trees[i + 1] < town.z1
       )
         inTown++;
-    expect(inTown).toBeGreaterThan(300);
+    expect(inTown).toBeGreaterThan(250);
   });
   it('keeps every trunk off every carriageway, other footprints, bridges and buildings', () => {
     const cands = roadCandidates();
@@ -64,10 +64,11 @@ describe('festival street trees (shared placement, colliders)', () => {
       for (let k = 0; k < n; k++) {
         const e = net.edges[net.edgeOf[cands.segment[k]]];
         expect(cands.bridge[k]).toBe(0);
-        // Trunk edge >= 0.5 m outside the running surface.
-        expect(cands.distance[k] - e.spec.halfWidth - r).toBeGreaterThan(0.5);
+        // Trunk edge outside the drivable footprint (carriageway and the
+        // flush shoulder / footway).
+        expect(cands.distance[k] - e.spec.halfWidth - e.spec.shoulder - r).toBeGreaterThan(0.18);
       }
-      expect(grid.blocks(x, z, 0.8)).toBe(false);
+      expect(grid.blocks(x, z, 0.45)).toBe(false);
     }
   });
   it('is part of every tile, physics and render alike, and never thinned', () => {

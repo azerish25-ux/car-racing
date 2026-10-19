@@ -16,8 +16,10 @@ import type { OpenWorld } from './world.ts';
  * front. Planted in the shared placement (treesForTile), so every trunk is
  * a physics collider and the drawn tree; deterministic from the region.
  *
- * Measured / standard: tree pits 1.0 m square, trunk centre 1.0 m behind
- * the kerb (town footway 2.4 m), 10 m apart (8-12 m street-tree spacing);
+ * Measured / standard: tree pits 1.0 m square at the back of the 2.4 m
+ * town footway (the flush footway is drivable: trunks stay 0.45 m outside
+ * the road footprint), 10 m apart (8-12 m street-tree spacing), crowns
+ * leaning 1.1 m out over the footway and kerb;
  * avenue trunks 1.6 m past the country shoulder, 9 m apart; pruned crowns
  * with a clear stem to >= 2.5 m so cars and shopfronts read underneath.
  * Never in a carriageway, junction mouth (crosswalk, signal, fences), on a
@@ -28,10 +30,13 @@ export const STREET_TREE = Object.freeze({
   townSpacing: 10,
   avenueSpacing: 9,
   /** Trunk centre behind the kerb (town) / past the shoulder (avenue). */
-  townSetback: 1.0,
+  /** Beyond the road footprint (carriageway + shoulder). */
+  townSetback: 0.45,
   avenueSetback: 1.6,
   /** Clear stem under the drawn crown (m). */
   clearStem: 2.5,
+  /** Crown offset from the trunk toward the road (m). */
+  lean: 1.1,
   /** Ashvale avenues reach and the castle approach reach (m). */
   ashvaleReach: 1100,
   castleReach: 650,
@@ -171,7 +176,8 @@ export function streetTreePlan(world: OpenWorld, structures: readonly Structure[
         if (nearLamp(at, side) || nearPole(at, side)) continue;
         if (bends.some((b) => at > b.s0 - 6 && at < b.s1 + 6)) continue;
         net.at(e.offset + at, p);
-        const setback = town ? STREET_TREE.townSetback : spec.shoulder + STREET_TREE.avenueSetback,
+        const setback =
+            spec.shoulder + (town ? STREET_TREE.townSetback : STREET_TREE.avenueSetback),
           lateral =
             side *
             (spec.halfWidth +
@@ -207,7 +213,7 @@ export function streetTreePlan(world: OpenWorld, structures: readonly Structure[
           if (hash01(e.index, Math.floor(at / 150), seed + 9) > (toCastle ? 0.85 : 0.5)) continue;
           species = TREE_SPECIES.STREET_CHERRY;
         }
-        if (tooClose(cells, out, x, z, 6) || buildingAt(x, z, 1.0) >= 0) continue;
+        if (tooClose(cells, out, x, z, 6) || buildingAt(x, z, 0.5) >= 0) continue;
         if (town) {
           // A frontage behind the tree (no lot, coin park or driveway gap)
           // that is not a store front, and not before its entrance.
@@ -227,7 +233,7 @@ export function streetTreePlan(world: OpenWorld, structures: readonly Structure[
         for (let k = 0; k < count && ok; k++) {
           const other = net.edges[net.edgeOf[cands.segment[k]]];
           if (cands.bridge[k]) ok = false;
-          else if (cands.distance[k] - other.spec.halfWidth < (town ? 0.75 : spec.shoulder + 1.1))
+          else if (cands.distance[k] - other.spec.halfWidth - other.spec.shoulder < 0.42)
             ok = false;
           else if (other !== e && cands.outside[k] < 1.2) ok = false;
         }
@@ -260,7 +266,8 @@ export function streetTreePlan(world: OpenWorld, structures: readonly Structure[
           z,
           height,
           species,
-          r * 6.28,
+          // Yaw: local +z toward the road (the crown leans that way).
+          Math.atan2(-side * p.nx, -side * p.nz),
           clamp(hash01(Math.round(z * 10), Math.round(x * 10), seed), 0, 0.99),
         );
       }

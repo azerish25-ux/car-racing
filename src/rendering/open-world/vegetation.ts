@@ -1,7 +1,11 @@
 import * as T from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { TREE_SPECIES, trunkRadius } from '../../simulation/open-world/placement.ts';
-import { isStreetSpecies, streetTreeForm } from '../../simulation/open-world/street-trees.ts';
+import {
+  isStreetSpecies,
+  STREET_TREE,
+  streetTreeForm,
+} from '../../simulation/open-world/street-trees.ts';
 import { foliageAtlas, installFoliageAtlas, treeGeometry } from '../landscape.ts';
 import { materials } from '../materials/index.ts';
 import type { TileMeshData } from '../../workers/open-world-protocol.ts';
@@ -510,7 +514,13 @@ export class Vegetation {
       color.setRGB(0.8 + 0.2 * tint, 0.86 + 0.12 * tint, 0.7 + 0.1 * tint);
       color.g = encodeRole(color.g, role);
       transform.rotation.set(0, trees[i + 4], 0);
-      transform.position.set(x, y - 0.1 + lift, z);
+      // The crown leans out over the footway (yaw: local +z to the road).
+      const yaw = trees[i + 4];
+      transform.position.set(
+        x + Math.sin(yaw) * STREET_TREE.lean,
+        y - 0.1 + lift,
+        z + Math.cos(yaw) * STREET_TREE.lean,
+      );
       transform.scale.set(crownW, crownH, crownW);
       transform.updateMatrix();
       crown.setMatrixAt(k, transform.matrix);
