@@ -564,7 +564,7 @@ export class Interface {
 
     this.hud.dataset.camera = renderer.mode;
     this.hud.dataset.motocross = String(!!motocrossKind(this.track.circuit.id));
-    this.bikeHud.update(frame);
+    this.bikeHud.update(frame, this.track);
     for (const side of ['Left', 'Right'] as const) {
       const node = this.get(`proximity${side}`);
       const subject = definition.bike ? 'Rider' : 'Car';

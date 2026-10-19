@@ -1,4 +1,51 @@
-import { clamp } from '../core/math.ts';
+import { angleDifference, clamp, smooth } from '../core/math.ts';
+import { trackPoint, type Track } from '../simulation/track.ts';
+
+/** GP chase looks down the approaching road before the rider begins to lean.
+ * The pitch follows road grade rather than fork dive or a wheelie. Bounded
+ * anticipation leaves the rider centered and releases if riding off-line or
+ * backwards. Reusable samples keep the camera path allocation-free. */
+export class MotorcycleRoadPreview {
+  private readonly here = trackPoint();
+  private readonly ahead = trackPoint();
+  private readonly view = { yaw: 0, pitch: 0 };
+
+  read(
+    track: Track,
+    station: number,
+    lateral: number,
+    speed: number,
+    heading: number,
+    reducedMotion = false,
+  ) {
+    if (
+      !Number.isFinite(station) ||
+      !Number.isFinite(lateral) ||
+      !Number.isFinite(speed) ||
+      !Number.isFinite(heading)
+    )
+      return null;
+    track.at(station, this.here);
+    if (
+      Math.abs(lateral) > this.here.width + 0.3 ||
+      speed < 4 ||
+      Math.cos(angleDifference(Math.atan2(this.here.tx, this.here.tz), heading)) < 0.65
+    )
+      return null;
+    const reach = clamp(12 + speed * 0.3, 14, 40);
+    track.at(station + reach, this.ahead);
+    this.view.yaw = reducedMotion
+      ? 0
+      : clamp(angleDifference(Math.atan2(this.ahead.tx, this.ahead.tz), heading), -0.14, 0.14) *
+        smooth(4, 16, speed);
+    this.view.pitch = clamp(
+      Math.atan(this.here.gradient) * 0.75 + Math.atan(this.ahead.gradient) * 0.25,
+      -0.24,
+      0.24,
+    );
+    return this.view;
+  }
+}
 
 /** Rider-scale chase composition. Distances are relative to the bike's CG,
  * not the Formula car's longer body. The modest look into a bend is derived

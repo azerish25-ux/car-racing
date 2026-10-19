@@ -1,4 +1,5 @@
 import { gpBrakeEfficiency } from './gp-brake-fade.ts';
+import { GP_ENGINE_BRAKE_RELEASE_THROTTLE, gpEngineBrakingGain } from './gp-engine-braking.ts';
 import { approach, clamp, G, lerp, mod, Quat, Vec3 } from '../core/math.ts';
 import { BIKE_STATES, Bike, EXPERT, NOVICE, type BikeAssists } from './bike.ts';
 import {
@@ -116,10 +117,14 @@ export class BikeVehicle extends Vehicle {
     this.body.mass = definition.spec.dryMass + this.fuel;
     this.riderAids = bikeAssists(assist, id > 0);
     // The exposed setup (this.setup is setupFor the machine) shapes the core.
-    this.dynamics = new Bike(
-      this.riderAids,
-      bikeSetupParameters(bikeParameters(definition, this.body.mass), definition, this.setup),
+    const parameters = bikeSetupParameters(
+      bikeParameters(definition, this.body.mass),
+      definition,
+      this.setup,
     );
+    if (definition.id === 'gpr1' || definition.id === 'gpr2')
+      parameters.engineBrakeReleaseThrottle = GP_ENGINE_BRAKE_RELEASE_THROTTLE;
+    this.dynamics = new Bike(this.riderAids, parameters);
     this.gearing = this.setup.gearing;
     this.engineBrake =
       ENGINE_BRAKE_MAPS[Math.min(3, Math.max(0, Math.round(this.setup.engineBrakeMap)))];
@@ -232,13 +237,17 @@ export class BikeVehicle extends Vehicle {
     if (
       !this.riding ||
       this.engineBrake <= 0 ||
-      throttle > 0.02 ||
+      throttle > (d.p.engineBrakeReleaseThrottle ?? 0.02) ||
       d.speed < 3 ||
       this.shiftClock > 0
     )
       return 0;
     const ratio = spec.gearRatios[this.gear + 1] * spec.finalDrive * this.gearing;
-    return (this.engineBrake * engineTorque(this.rpm, spec) * ratio) / spec.wheelRadius;
+    // Small throttle corrections through a GP apex must not switch the whole
+    // coast torque off at a 2% threshold. The blend is stateless, so replay,
+    // controller polling rate and AI/player handovers cannot retain a delay.
+    const gain = d.p.engineBrakeReleaseThrottle === undefined ? 1 : gpEngineBrakingGain(throttle);
+    return (gain * this.engineBrake * engineTorque(this.rpm, spec) * ratio) / spec.wheelRadius;
   }
   /** Grip multiplier of a contact patch relative to a fresh dry slick. */
   protected surfaceGrip(i: number) {

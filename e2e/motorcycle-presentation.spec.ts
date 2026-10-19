@@ -142,6 +142,8 @@ test('motorcycle HUD: responsive production layout, real tyre channels and bike/
       await expect(page.locator('#gpFrontTemp')).toHaveText('83°C');
       await expect(page.locator('#gpRearTemp')).toHaveText('96°C');
       await expect(page.locator('#gpRearBrake')).toHaveText('35%');
+      await expect(page.locator('#gpCraft')).toBeVisible();
+      await expect(page.locator('#gpAdvice')).not.toBeEmpty();
       await expect(page.locator('#battery')).toBeHidden();
       for (const id of ['speed', 'gear', 'rpm', 'fuel', 'gpLean', 'gpRearBrake'])
         await expect(page.locator(`#${id}`)).toBeVisible();
@@ -182,6 +184,13 @@ test('motorcycle HUD: responsive production layout, real tyre channels and bike/
   await expect(page.locator('#mfdBattery')).toHaveText('—');
   await page.evaluate(() => window.MotorcycleHudFixture.showMotorcycleHud('gpr1', 'chase'));
   await expect(page.locator('#vehicleAlert')).toBeHidden();
+  await page.evaluate(() => window.MotorcycleHudFixture.showGpCornerCase());
+  await expect(page.locator('#gpCornerDistance')).toHaveText('80 M TO APEX');
+  await expect(page.locator('#gpAction')).toHaveText('TRAIL BRAKING');
+  await page.evaluate(() => window.MotorcycleHudFixture.showGpCornerCase(true));
+  await expect(page.locator('#gpAction')).toHaveText('CORNER EXIT');
+  await page.evaluate(() => window.MotorcycleHudFixture.showGpCornerCase());
+  await expect(page.locator('#gpAction')).toHaveText('TRAIL BRAKING');
   await page.locator('.vehicle-toggle').click();
   await expect(page.locator('#tires > div:visible')).toHaveCount(2);
   await expect(page.locator('#vehicleTab1')).toHaveText('FUEL');

@@ -21,6 +21,7 @@ export class BikeAIDriver extends AIDriver {
   private readonly preview = trackPoint();
   private readonly ahead = trackPoint();
   private pitCorridor = false;
+  private passingScale = 1;
   protected override readonly reverseRecovery = false;
   constructor(
     readonly bike: BikeVehicle,
@@ -43,6 +44,7 @@ export class BikeAIDriver extends AIDriver {
       this.decision = d.state === 'remount' ? 'REMOUNTING' : 'RIDER DOWN';
       return;
     }
+    this.passingScale = gpPassingLateralScale(c, track, cars);
     // The line follower measures the path in the ground frame at the tyres'
     // contact line: a lean must not rotate its target, nor the CG's inward
     // offset bias it toward the apex.
@@ -104,7 +106,9 @@ export class BikeAIDriver extends AIDriver {
       headingError = Math.atan(slope) - heading;
     // Feed-forward: the lane's curvature where the bike will be once it has leaned.
     const ahead = c.s + v * BIKE_AI.preview;
-    const k = absolute ? track.at(ahead, this.ahead).curvature : this.steeringLineCurvature(track, ahead);
+    const k = absolute
+      ? track.at(ahead, this.ahead).curvature
+      : this.steeringLineCurvature(track, ahead);
     const feedForward = k / Math.max(0.5, 1 - k * (absolute ? target : tactical));
     const w = BIKE_AI.bandwidth;
     // Corrections are gentle: their lateral acceleration is bounded, so a
@@ -125,6 +129,44 @@ export class BikeAIDriver extends AIDriver {
   protected steeringLineCurvature(track: Track, s: number) {
     return racingLineFor(track).curvatureAt(s);
   }
+  /** Upright GP machines can use a motorcycle-sized passing lane. The
+   * footprint expands before a corner and for a leaning nearby rider;
+   * stopping distance, yellow flags and the swept collision tests stay in
+   * the shared planner. Off-road riders retain their own override. */
+  protected override trafficScale() {
+    return this.passingScale;
+  }
+}
+
+/** GP racecraft tuning, expressed in the shared planner's car-width units.
+ * The upright floor reserves 1.93 m lateral separation (2.75 × 0.7), rather
+ * than asking a 0.74 m wide GP machine for a 3.5 m lane change. Full cornering
+ * lean restores the original corridor for the chassis and hanging-off rider.
+ * This only narrows lateral room; it never cuts longitudinal safety margins. */
+export function gpPassingLateralScale(c: BikeVehicle, track: Track, cars: readonly Vehicle[]) {
+  if (c.definition.id !== 'gpr1' && c.definition.id !== 'gpr2') return 1;
+  // Mixed-class grids have different widths, braking points and approach
+  // speeds. Keep their established shared corridor instead of giving just
+  // the GP riders a more permissive plan than the bikes beside them.
+  if (cars.some((other) => other.definition.id !== 'gpr1' && other.definition.id !== 'gpr2'))
+    return 1;
+  const d = c.dynamics,
+    line = racingLineFor(track);
+  let lean = Math.max(Math.abs(d.lean), Math.abs(c.input.steer) * d.leanLimit);
+  // A passing commitment lasts three seconds. Reserve the wider corridor
+  // before the braking/turn-in sequence, not after the rider is already down
+  // on one knee. Current speed is conservative when a braking zone is ahead.
+  for (let t = 1; t <= 3; t++) {
+    const k = Math.abs(line.curvatureAt(c.s + d.speed * t));
+    lean = Math.max(lean, Math.min(d.leanLimit, Math.atan((d.speed * d.speed * k) / G)));
+  }
+  for (const other of cars) {
+    if (other === c || other.inPit !== c.inPit || !(other instanceof BikeVehicle)) continue;
+    const gap = mod(other.s - c.s + track.length / 2, track.length) - track.length / 2;
+    if (Math.abs(gap) < 180) lean = Math.max(lean, Math.abs(other.dynamics.lean));
+  }
+  const turning = clamp((lean - 0.15) / 0.6, 0, 1);
+  return lerp(0.7, 1, turning * turning * (3 - 2 * turning));
 }
 /** Bike path-tracking gains: preview (s), bandwidth (rad/s), damping ratio. */
 export const BIKE_AI = Object.freeze({

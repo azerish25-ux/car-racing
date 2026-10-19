@@ -1,6 +1,8 @@
 import { Color } from 'three';
 import { Interface } from '../../src/ui/interface.ts';
-import { Track } from '../../src/simulation/track.ts';
+import { Track, trackPoint } from '../../src/simulation/track.ts';
+import { VEHICLES } from '../../src/simulation/vehicles.ts';
+import { bikeSlipstreamDragScale } from '../../src/simulation/bike-slipstream.ts';
 import { menuPreview } from '../../src/rendering/menu-preview.ts';
 import {
   B,
@@ -52,6 +54,8 @@ export interface HudSnapshot {
   gear: number;
   rpm: number;
   lean: number;
+  station: number;
+  tow: number;
 }
 
 export function showMotorcycleHud(
@@ -60,7 +64,7 @@ export function showMotorcycleHud(
   fallen = false,
   snapshot: Partial<HudSnapshot> = {},
 ) {
-  const frame = menuPreview(track, track.length - 32, machine),
+  const frame = menuPreview(track, snapshot.station ?? track.length - 32, machine),
     o = carBase(0);
   frame[H.PHASE] = 2;
   frame[H.TIME] = snapshot.time ?? (fallen ? 30 : 20);
@@ -77,6 +81,17 @@ export function showMotorcycleHud(
   frame[o + BIKE_BASE + B.TUCK] = 0.8;
   frame[o + BIKE_BASE + B.INTERVENTION] = fallen ? 0.6 : 0.18;
   frame[o + BIKE_BASE + B.STATE] = fallen ? 3 : 0;
+  // A coherent velocity enables the production corner/draft readout in the
+  // responsive-layout checks instead of silently hiding it behind a zero
+  // velocity paired with a nonzero speedometer.
+  const road = track.at(frame[o + F.S], trackPoint()),
+    speed = frame[o + F.SPEED];
+  frame[o + F.VX] = speed * road.tx;
+  frame[o + F.VZ] = speed * road.tz;
+  const bike = VEHICLES[machine]?.bike;
+  if (bike)
+    frame[o + F.DRAG] =
+      bike.drag * speed ** 2 * bikeSlipstreamDragScale(0.8, bike.tuckDrag, snapshot.tow ?? 0);
   for (let wheel = 0; wheel < 4; wheel++) {
     const p = o + WHEEL_BASE + wheel * WHEEL_STRIDE;
     frame[p + W.CARCASS_TEMP] = wheel < 2 ? 83 : 96;
@@ -94,6 +109,13 @@ export function showMotorcycleHud(
   // One call represents one presented snapshot. Repeating it to satisfy a
   // panel throttle would hide stale instruments at a low rendering cadence.
   ui.update(frame, renderer, false, 1);
+}
+
+export function showGpCornerCase(exit = false) {
+  showMotorcycleHud('gpr1', 'chase', false, {
+    station: track.circuit.corners[0].s + (exit ? 12 : -80),
+    lean: 0.3,
+  });
 }
 
 export function showMotorcycleMenu() {

@@ -66,6 +66,10 @@ export interface BikeParameters {
   tractionMargin?: number;
   wheelieKeep?: number;
   rollDamping?: number;
+  /** Largest throttle fraction at which the adapter may request drivetrain
+   * braking. The GP adapter blends torque through a small coast/power overlap;
+   * other machines retain their original closed-throttle threshold (0.02). */
+  engineBrakeReleaseThrottle?: number;
 }
 export const BIKE: BikeParameters = Object.freeze({
   mass: 157 + 72,
@@ -104,8 +108,9 @@ export interface BikeInput {
   /** Drive force at the rear contact before traction limits (N). When absent
    * the constant-power research drive is used. */
   drive?: number;
-  /** Closed-throttle drivetrain braking at the rear contact, newtons. It
-   * consumes the SAME rear friction circle as the pedal and lateral load. */
+  /** Drivetrain braking at the rear contact, newtons, already blended by the
+   * adapter's throttle map. It consumes the SAME rear friction circle as the
+   * pedal, drive force and lateral load. */
   engineBrake?: number;
 }
 export interface BikeAssists {
@@ -288,7 +293,9 @@ export class Bike {
     // Stoppie assist (with the wheelie assist): like lift-mitigating ABS, cap
     // front force at the deceleration where the rear would leave the road.
     const engineRequest =
-      Number.isFinite(input.engineBrake) && throttle <= 0.02 && this.speed > 3
+      Number.isFinite(input.engineBrake) &&
+      throttle <= (p.engineBrakeReleaseThrottle ?? 0.02) &&
+      this.speed > 3
         ? Math.max(0, input.engineBrake ?? 0)
         : 0;
     const rearServiceRequest = p.rearBrake * rear * (v > 0.2 ? 1 : 0);

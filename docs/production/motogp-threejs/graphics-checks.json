@@ -1,0 +1,52 @@
+{
+  "scope": "Software WebGL checks of production models and bounded ground-material receivers; not full-game or physical-GPU performance acceptance.",
+  "modelBudget": {
+    "maximumModelTriangles": 110000,
+    "maximumDrawCalls": 220
+  },
+  "gpr1": {
+    "triangles": 109145,
+    "calls": 213,
+    "resources": {
+      "geometries": 119,
+      "textures": 25,
+      "programs": 54
+    },
+    "glError": 0,
+    "sourceFrameUnchanged": true
+  },
+  "gpr2": {
+    "triangles": 101444,
+    "calls": 203,
+    "resources": {
+      "geometries": 114,
+      "textures": 25,
+      "programs": 54
+    },
+    "glError": 0,
+    "sourceFrameUnchanged": true
+  },
+  "grounding": {
+    "kind": "bounded-ground-material-integration",
+    "webgl2": true,
+    "viewport": {
+      "width": 512,
+      "height": 256
+    },
+    "before": {
+      "geometries": 1,
+      "textures": 0,
+      "programs": 2,
+      "calls": 2,
+      "triangles": 4
+    },
+    "after": {
+      "geometries": 1,
+      "textures": 0,
+      "programs": 2,
+      "calls": 2,
+      "triangles": 4
+    },
+    "presentations": 52
+  }
+}

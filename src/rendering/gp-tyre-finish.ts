@@ -4,7 +4,7 @@ import { chainShaderHook, injectAfter, injectDeclarations } from './studio/shade
 /** Immutable axle-local coordinates survive rigid wheel batching and spin.
  * The fourth coordinate is half-width in metres, distinguishing the 120 mm
  * front from the 200 mm rear. No position, normal, UV or index is changed. */
-export function bindGpTyre(geometry: T.BufferGeometry, halfWidth: number) {
+export function bindGpTyre<G extends T.BufferGeometry>(geometry: G, halfWidth: number): G {
   if (!Number.isFinite(halfWidth) || halfWidth < 0.03 || halfWidth > 0.16)
     throw new RangeError('Invalid GP tyre half-width');
   const position = geometry.getAttribute('position');
@@ -49,7 +49,7 @@ export function installGpTyreFinish(material: T.MeshStandardMaterial) {
   const front = { value: new T.Vector4(0, 80, 0, 0) };
   const rear = { value: new T.Vector4(0, 80, 0, 0) };
   const style = { value: new T.Vector2(0, 0) };
-  chainShaderHook(material, 'gp-tyre-drainage-v1', (shader) => {
+  chainShaderHook(material, 'gp-tyre-drainage-v2', (shader) => {
     Object.assign(shader.uniforms, { gpTyreFront: front, gpTyreRear: rear, gpTyreStyle: style });
     injectDeclarations(
       shader,
@@ -93,13 +93,22 @@ export function installGpTyreFinish(material: T.MeshStandardMaterial) {
       float groove=(1.-smoothstep(width-px*.5,width+px*.5,abs(fract(phase)-.5)))
         * smoothstep(.1,.2,across) * (1.-smoothstep(.87,.97,across))
         * step(.5,gpTyreStyle.x) * resolved;
-      float streak=sin(theta*180. + across*84.)*.5+.5;
-      float scuff=(1.-smoothstep(.02,.10,length(fwidth(p.xyz))))*condition.x;
-      diffuseColor.rgb *= mix(1., mix(1.1,.9,heat)*mix(1.,.56,groove)
-        *(1.+scuff*(streak-.5)*.12),gpTyreCoverage*crown);
-      gpTyreRelief=(-.0016*groove + .000025*(streak-.5)*scuff)*gpTyreCoverage;
-      gpTyreRoughness=clamp(mix(.64,.82-.10*heat+.065*condition.x,crown)
-        -.26*water*crown+.12*groove,.38,.94);
+      // Shoulder scrubbing (references 002/015/060) is local to the contact
+      // crown. The centre strip and sidewall retain their own rubber finish.
+      // Integer angular harmonics close at atan's seam; grain uses continuous
+      // axle-local metres and fades before either scale becomes subpixel.
+      float pixel=length(fwidth(p.xyz));
+      float streak=sin(theta*6.28318530718*54. + across*84.)*.5+.5;
+      float shoulder=smoothstep(.28,.52,across)*(1.-smoothstep(.83,1.,across));
+      float scuff=(1.-smoothstep(.006,.025,pixel))*sqrt(condition.x)*shoulder;
+      float grain=sin(p.y*1221.+sin(p.z*891.)*.8)*sin(p.x*1493.+p.z*823.);
+      float resolvedGrain=1.-smoothstep(.00065,.0025,pixel);
+      diffuseColor.rgb *= mix(1., mix(1.08,.94,heat)*mix(1.,.56,groove)
+        *(1.+scuff*(.08+(streak-.5)*.13)+grain*.022*resolvedGrain),gpTyreCoverage*crown);
+      gpTyreRelief=(-.0016*groove + .000035*(streak-.5)*scuff
+        + grain*.000018*resolvedGrain*crown)*gpTyreCoverage;
+      gpTyreRoughness=clamp(mix(.71,.84-.08*heat+.055*condition.x,crown)
+        +.045*scuff-.20*water*crown+.12*groove,.48,.94);
     }
     `,
       'fragment',
