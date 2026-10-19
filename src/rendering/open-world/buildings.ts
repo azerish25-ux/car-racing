@@ -504,7 +504,7 @@ ${URBAN_FACADE_GLSL}`,
         owGlass = 0.0; owLit = 0.0;
       } else {
         // Most city shops stay open into the evening: bright LED interiors.
-        owLit = owGlass * ceiling * (1.6 + 1.4 * room);
+        owLit = owGlass * ceiling * (2.4 + 1.8 * room);
         owLamp = mix(vec3(1.0, 0.82, 0.62), vec3(0.9, 0.95, 1.0), step(0.5, room));
       }
     }

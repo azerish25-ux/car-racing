@@ -33,7 +33,7 @@ import {
   SkyEnvironment,
 } from '../daylight.ts';
 import { PresentedFrame } from '../frame-state.ts';
-import { LensBloomPass } from '../lens-bloom.ts';
+import { LENS_BLOOM, LensBloomPass } from '../lens-bloom.ts';
 import { applyCircuitLightPalette } from '../lighting-coherence.ts';
 import {
   bufferSize,
@@ -124,6 +124,7 @@ import { applySeason, SEASONS, type Season } from './season.ts';
 import { architecturePlan } from './japan-architecture.ts';
 import { FestivalSignage } from './festival-signage.ts';
 import { FestivalTownLife } from './town-life.ts';
+import { NIGHT_GLOW, NightGlow } from './night-glow.ts';
 import { parkedSites } from './parked-cars.ts';
 import { FestivalShadows } from './festival-shadows.ts';
 import {
@@ -187,6 +188,8 @@ export class FestivalRenderer {
   readonly signage: FestivalSignage;
   /** Pavement and junction life: bicycles, bollards, signals, light pools. */
   readonly townLife: FestivalTownLife;
+  /** Night wash of the sign-lit canyon on facades and streets (night-glow.ts). */
+  readonly nightGlow: NightGlow;
   /** Cars parked in store lots, coin parks and the hub meet. */
   readonly parked: ParkedCars;
   details: SolvaneDetails | null = null;
@@ -403,6 +406,15 @@ export class FestivalRenderer {
       this.signage.lights,
       [...this.furniture.anchors, ...this.signage.fixtures],
     );
+    this.nightGlow = new NightGlow(this.signage.glows, structures, architecture);
+    this.nightGlow.install(this.buildings.material, 'facade');
+    for (const layer of ['town', 'asphalt', 'asphaltMajor', 'paving', 'paint', 'glyph', 'antiskid'])
+      if (this.roads.materials[layer as keyof typeof this.roads.materials])
+        this.nightGlow.install(
+          this.roads.materials[layer as keyof typeof this.roads.materials],
+          'ground',
+        );
+    scene.add(this.nightGlow.root);
     this.parked = new ParkedCars(
       parkedSites(
         world,
@@ -942,6 +954,13 @@ export class FestivalRenderer {
     );
     this.contacts.update(presented, this.camera, this.preset, this.heightAt);
     this.streetLights.update(this.camera, night, this.preset, dt);
+    this.nightGlow.update(
+      this.camera,
+      night,
+      this.preset,
+      surfaceDampness(presented[H.RAIN], presented[H.WATER]),
+      dt,
+    );
     if (this.details?.poseAero(presented, subject ?? null, dt, this.camera))
       this.cars.bodies.hideRearWing(0);
     // --- Lighting -----------------------------------------------------------
@@ -1150,6 +1169,10 @@ export class FestivalRenderer {
       this.mode === 'hood' ? 'cockpit' : 'chase',
       speed,
     );
+    // Neon halo at night (069, 086): the bloom starts lower than by day, so
+    // tubes and screens glow while backlit boxes keep their lettering.
+    this.bloom.threshold = LENS_BLOOM.threshold - NIGHT_GLOW.bloomDrop * night;
+    this.bloom.knee = LENS_BLOOM.knee - 0.3 * night;
     this.speedBlur.prepare(
       presented,
       this.camera,
@@ -1253,6 +1276,7 @@ export class FestivalRenderer {
     this.roads.dispose();
     this.furniture.dispose();
     this.streetLights.dispose();
+    this.nightGlow.dispose();
     this.buildings.dispose();
     this.dressing.dispose();
     this.distant.dispose();

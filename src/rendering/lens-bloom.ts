@@ -66,14 +66,22 @@ export const TENT_TAPS: readonly (readonly [number, number, number])[] = [
 ];
 
 /** CPU reference of the shader's firefly limiter, as a luminance scale factor. */
-export function bloomLimitScale(lum: number, knee = LENS_BLOOM.limitKnee, limit = LENS_BLOOM.limit) {
+export function bloomLimitScale(
+  lum: number,
+  knee = LENS_BLOOM.limitKnee,
+  limit = LENS_BLOOM.limit,
+) {
   if (!(lum < 65000) || !(lum >= 0)) return 0;
   if (lum <= knee) return 1;
   const x = lum - knee;
   return (knee + x / (1 + x / (limit - knee))) / lum;
 }
 /** CPU reference of the soft-knee threshold, as a luminance scale factor. */
-export function bloomThresholdScale(lum: number, threshold = LENS_BLOOM.threshold, knee = LENS_BLOOM.knee) {
+export function bloomThresholdScale(
+  lum: number,
+  threshold = LENS_BLOOM.threshold,
+  knee = LENS_BLOOM.knee,
+) {
   const soft = Math.min(Math.max(lum - threshold + knee, 0), 2 * knee);
   const curve = (soft * soft) / (4 * knee + 1e-5);
   return Math.max(curve, lum - threshold) / Math.max(lum, 1e-5);
@@ -249,6 +257,9 @@ export class LensBloomPass extends Pass {
   /** levels[0] is half resolution; each later level halves again. */
   readonly levels: T.WebGLRenderTarget[];
   strength: number = LENS_BLOOM.strength;
+  /** Soft-knee threshold; the circuits keep LENS_BLOOM's (the festival lowers it at night). */
+  threshold: number = LENS_BLOOM.threshold;
+  knee: number = LENS_BLOOM.knee;
   /** ULTRA energy-conserving mode (see PHYSICAL_BLOOM); off on every preset. */
   energyConserving = false;
   /** Scene share redistributed in energy-conserving mode. */
@@ -258,7 +269,12 @@ export class LensBloomPass extends Pass {
     tSource: { value: null },
     texel: { value: new T.Vector2() },
     shape: {
-      value: new T.Vector4(LENS_BLOOM.threshold, LENS_BLOOM.knee, LENS_BLOOM.limitKnee, LENS_BLOOM.limit),
+      value: new T.Vector4(
+        LENS_BLOOM.threshold,
+        LENS_BLOOM.knee,
+        LENS_BLOOM.limitKnee,
+        LENS_BLOOM.limit,
+      ),
     },
   });
   /** ULTRA's energy-conserving prefilter, compiled only when it is used. */
@@ -335,7 +351,12 @@ export class LensBloomPass extends Pass {
   ) {
     const autoClear = renderer.autoClear;
     renderer.autoClear = false;
-    const draw = (shader: T.ShaderMaterial, source: T.Texture, texelOf: T.WebGLRenderTarget, target: T.WebGLRenderTarget | null) => {
+    const draw = (
+      shader: T.ShaderMaterial,
+      source: T.Texture,
+      texelOf: T.WebGLRenderTarget,
+      target: T.WebGLRenderTarget | null,
+    ) => {
       shader.uniforms.tSource.value = source;
       shader.uniforms.texel.value.set(1 / texelOf.width, 1 / texelOf.height);
       this.quad.material = shader;
@@ -348,9 +369,14 @@ export class LensBloomPass extends Pass {
     const energy = this.energyConserving;
     const mix = Math.min(Math.max(this.energyMix, 0), 0.25);
     // Threshold 0 with a vanishing knee passes every pixel unchanged.
-    shape.x = energy ? 0 : LENS_BLOOM.threshold;
-    shape.y = energy ? 1e-3 : LENS_BLOOM.knee;
-    draw(energy ? this.energyPrefilter : this.prefilter, readBuffer.texture, readBuffer, this.levels[0]);
+    shape.x = energy ? 0 : this.threshold;
+    shape.y = energy ? 1e-3 : this.knee;
+    draw(
+      energy ? this.energyPrefilter : this.prefilter,
+      readBuffer.texture,
+      readBuffer,
+      this.levels[0],
+    );
     for (let i = 1; i < this.levels.length; i++)
       draw(this.downsample, this.levels[i - 1].texture, this.levels[i - 1], this.levels[i]);
     this.upsample.uniforms.gain.value = this.scatter;
@@ -362,7 +388,12 @@ export class LensBloomPass extends Pass {
     // Energy-conserving: dst · (1 - mix) + mix · blur (constant-alpha blend).
     this.composite.blendDst = energy ? T.OneMinusConstantAlphaFactor : T.OneFactor;
     this.composite.blendAlpha = energy ? mix : 0;
-    draw(this.composite, this.levels[0].texture, this.levels[0], this.renderToScreen ? null : readBuffer);
+    draw(
+      this.composite,
+      this.levels[0].texture,
+      this.levels[0],
+      this.renderToScreen ? null : readBuffer,
+    );
     renderer.autoClear = autoClear;
   }
   override dispose() {
@@ -445,7 +476,8 @@ export function emulateLensBloom(
   }
   for (let i = pyramid.length - 1; i > 0; i--) {
     const up = pass(pyramid[i], pyramid[i - 1].w, pyramid[i - 1].h, TENT_TAPS);
-    for (let k = 0; k < up.data.length; k++) pyramid[i - 1].data[k] += up.data[k] * LENS_BLOOM.scatter;
+    for (let k = 0; k < up.data.length; k++)
+      pyramid[i - 1].data[k] += up.data[k] * LENS_BLOOM.scatter;
   }
   let normalization = 0;
   for (let i = 0; i < pyramid.length; i++) normalization += LENS_BLOOM.scatter ** i;

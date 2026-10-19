@@ -215,7 +215,8 @@ void owCityPane(vec2 q, float room, float tag, vec3 nrm, vec3 viewPos, float nig
   float depth = shop ? 5.5 + 3.0 * owHash(vec2(seed, 3.0)) : 3.5 + 2.5 * owHash(vec2(seed, 5.0));
   // Night: about two rooms in five lit (offices more), shops all but closed.
   float litH = owHash(vec2(seed * 31.0, 7.7));
-  float lit = shop ? 1.0 : step(ribbon || curtain ? 0.45 : 0.58, litH);
+  // Night city (refs 014, 069): over half the rooms lit, offices more.
+  float lit = shop ? 1.0 : step(ribbon || curtain ? 0.36 : 0.46, litH);
   vec3 lamp = shop ? mix(vec3(1.0, 0.84, 0.66), vec3(0.92, 0.96, 1.0), step(0.5, seed))
                    : mix(vec3(1.0, 0.7, 0.44), vec3(0.84, 0.9, 1.0), step(0.72, litH) + (ribbon || curtain ? 0.6 : 0.0));
   lamp = min(lamp, vec3(1.0));
@@ -308,6 +309,8 @@ void owCityPane(vec2 q, float room, float tag, vec3 nrm, vec3 viewPos, float nig
   albedo = mix(mix(glassC, coverC * 0.92, cover), frameC, fr);
   vec3 coverGlow = coverC * lamp * lit * (0.35 + 0.25 * step(0.9, cover)) * night;
   owEmit = (coverGlow * cover + interior * tint * (1.0 - cover)) * (1.0 - fr);
+  // Shopfronts glow brighter than rooms at night (014: the pavement is lit by them).
+  if (shop) owEmit *= 1.0 + 0.7 * night;
   owGlass = 1.0 - fr;
   owMirror = (1.0 - fr) * owRich;
   owSpecBoost = curtain ? 2.0 : ribbon && bucket > 0.7 ? 1.5 : 1.0;
