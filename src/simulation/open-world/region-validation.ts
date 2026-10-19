@@ -1,5 +1,6 @@
 import { validateRoute } from '../route-graph.ts';
 import { resolveEvents } from './festival-events.ts';
+import { RACE_KINDS } from './festival-result.ts';
 import { ROAD_CLASSES, SOLVANE, type RegionDefinition } from './region-data.ts';
 import type { RoadNetwork } from './road-network.ts';
 import { OpenWorld } from './world.ts';
@@ -7,7 +8,7 @@ import { OpenWorld } from './world.ts';
 /** Minimum drivable extent (m) and road length (km) of a festival region. */
 export const REGION_MIN_SIZE = 8000;
 export const REGION_MIN_ROAD_KM = 60;
-const RACES = new Set(['road-race', 'circuit', 'sprint', 'showcase']);
+const RACES = new Set<string>(RACE_KINDS);
 
 /** Field-level checks of a region definition, without building it. */
 export function validateRegionDefinition(region: RegionDefinition): string[] {
