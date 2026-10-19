@@ -140,7 +140,12 @@ describe('MX construction-time soil boundary integration', () => {
             expected.r += color.r * weight;
             expected.g += color.g * weight;
             expected.b += color.b * weight;
-            const slot = Math.max(0, view.soilSlots.indexOf(SOIL_SCAN[kind]));
+            // Worked MX loam uses the resident mineral-earth microstructure;
+            // its physical kind still owns the original colour and moisture.
+            const slot = Math.max(
+              0,
+              view.soilSlots.indexOf(kind === 'loam' ? 'dryEarth' : SOIL_SCAN[kind]),
+            );
             if (slot < view.soilSlots.length - 1) expectedLayers[slot] += weight;
           }
           expect(colors.getX(i)).toBeCloseTo(expected.r, 5);

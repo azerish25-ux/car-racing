@@ -1,8 +1,9 @@
 import * as T from 'three';
+import { MxTracksideFurniture } from './mx-trackside-furniture.ts';
 import { mxAuthoredGeometry } from './authored-kit.ts';
 import { mxPaddingMaterial } from './mx-padding.ts';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { clamp, mod, Random } from '../../core/math.ts';
+import { mod, Random } from '../../core/math.ts';
 import { TrackTerrainSurface } from '../../simulation/offroad/course-terrain.ts';
 import { Track, trackPoint } from '../../simulation/track.ts';
 import { inStandFootprint } from '../grandstand.ts';
@@ -85,6 +86,7 @@ export interface MxDressingStats {
  * is outside its legal edge; there are no decorative jumps or hidden rocks
  * in rideable lines. Course-nearest rejection protects adjacent SX lanes. */
 export class MxCourseDressing {
+  readonly trackside: MxTracksideFurniture;
   readonly root = new T.Group();
   readonly stats: MxDressingStats = {
     stakes: 0,
@@ -208,8 +210,10 @@ export class MxCourseDressing {
         this.stats.banners++;
       }
       this.shoulders(r);
-      this.canopies(steel);
     }
+    this.trackside = new MxTracksideFurniture(track);
+    this.root.add(this.trackside.root);
+    this.stats.canopies = this.trackside.stats.canopy;
     // The arch is a sporting landmark at the actual holeshot timing line.
     if (course.spec.gate) {
       const s = course.spec.gate.holeshot;
@@ -420,58 +424,9 @@ export class MxCourseDressing {
     this.stats.grassClumps = grassPoses.length;
     this.stats.stones = stonePoses.length;
   }
-  private canopies(steel: T.Material) {
-    const fabric = new T.MeshStandardMaterial({
-      color: 0xe1ded0,
-      roughness: 0.91,
-      side: T.DoubleSide,
-      name: 'MX paddock canopy fabric',
-    });
-    const trim = new T.MeshStandardMaterial({
-      color: 0xb65f38,
-      roughness: 0.85,
-      name: 'MX canopy edge trim',
-    });
-    const ground = terrainFor(this.track);
-    for (let i = 0; i < 4; i++) {
-      const s = 26 + i * 15,
-        p = this.track.at(s, this.point),
-        side = -this.track.pit.side;
-      const l = side * (p.width + 14),
-        x = p.x + p.nx * l,
-        z = p.z + p.nz * l;
-      if (!this.clear(s, l, 6) || inStandFootprint(this.track, x, z, 3)) continue;
-      this.pose(s, l);
-      // Follow the existing ground-skirt height at this setback.
-      const a = Math.max(p.width + 4, this.track.boundaryAt(p, side) + 1);
-      const f = clamp((Math.abs(l) - a) / 26, 0, 1),
-        k = f * f * (3 - 2 * f);
-      this.object.position.y = p.y - 0.05 + (ground.height(x, z) - 0.03 - p.y) * k;
-      this.object.updateMatrix();
-      this.frame.copy(this.object.matrix);
-      this.part(
-        new T.ConeGeometry(3.25, 1.2, 4, 2, true).rotateY(Math.PI / 4).translate(0, 3.05, 0),
-        fabric,
-      );
-      for (const [px, pz] of [
-        [-2.2, -2.2],
-        [2.2, -2.2],
-        [-2.2, 2.2],
-        [2.2, 2.2],
-      ])
-        this.part(new T.CylinderGeometry(0.026, 0.031, 2.48, 8).translate(px, 1.24, pz), steel);
-      for (const side of [-1, 1]) {
-        this.part(new T.BoxGeometry(4.6, 0.18, 0.06).translate(0, 2.48, side * 2.3), trim);
-        this.part(new T.BoxGeometry(0.06, 0.18, 4.6).translate(side * 2.3, 2.48, 0), trim);
-      }
-      this.stats.canopies++;
-    }
-    if (!this.stats.canopies) {
-      fabric.dispose();
-      trim.dispose();
-    }
-  }
   dispose() {
+    this.root.remove(this.trackside.root);
+    this.trackside.dispose();
     const geometries = new Set<T.BufferGeometry>(),
       materials = new Set<T.Material>();
     this.root.traverse((o) => {

@@ -27,6 +27,21 @@ test('real motocross player entry, eight-rider gate, riding, cameras, pause and 
   };
   await page.goto('/');
   await expect(page.locator('#menu')).toBeVisible({ timeout: MENU_STARTUP_TIMEOUT_MS });
+  // Software GPUs can spend the whole riding budget on a production frame.
+  // An explicit opt-in exercises the same visible settings flow while the
+  // separate bike/world fixtures retain their full rendering checks.
+  const quality = process.env.APEX_MOTOCROSS_JOURNEY_QUALITY;
+  if (quality) {
+    if (!['low', 'medium', 'high', 'ultra'].includes(quality))
+      throw new Error(`Unsupported motocross journey quality: ${quality}`);
+    await page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true }).click();
+    await expect(page.locator('#settingsForm')).toBeVisible();
+    await page.locator('[name=quality]').selectOption(quality);
+    await page.getByRole('button', { name: 'APPLY & SAVE', exact: true }).click();
+    await expect(page.locator('#modal')).toBeHidden({ timeout: MENU_STARTUP_TIMEOUT_MS });
+    await expect.poll(async () => (await diag()).settingsTransition.busy).toBe(false);
+    console.info(`[MX journey] Selected ${quality} through the production settings form`);
+  }
   const reports = [];
   const o = carBase(0);
   for (const [circuit, entry, machine] of [
@@ -75,6 +90,7 @@ test('real motocross player entry, eight-rider gate, riding, cameras, pause and 
     await page.getByRole('button', { name: 'GO TO THE GATE', exact: true }).click();
     await expect.poll(async () => (await diag()).state).toBe('driving');
     await expect(page.locator('.mx-ride-hud')).toBeVisible();
+    await capture(`${circuit}-actual-gate.png`);
     await expect.poll(async () => (await diag()).frame?.[H.PHASE] ?? 0).toBe(2);
     // Exercise the real player throttle before handing the observed run to
     // the game's explicitly enabled AI demonstration.
@@ -199,6 +215,7 @@ test('real motocross player entry, eight-rider gate, riding, cameras, pause and 
       circuit,
       machine,
       mode: 'normal application, player throttle followed by explicitly enabled AI demonstration',
+      requestedQuality: quality ?? 'saved/default',
       human: {
         time: human.frame![H.TIME],
         speed: human.frame![o + F.SPEED],

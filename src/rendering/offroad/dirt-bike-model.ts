@@ -15,17 +15,24 @@ import {
 } from '../bike.ts';
 import { liveryScheme } from '../car-livery.ts';
 import { Rider, type RiderDetail } from '../rider.ts';
-import { installMudOn, type MudUniforms } from './mud.ts';
+import { installMudOn, tagMudExposure, type MudUniforms } from './mud.ts';
 import { forkLocalOffset } from '../bike-pit-service.ts';
 import { batchBikeRigidMeshes } from '../bike-rigid-batch.ts';
 import { MotocrossChainDrive } from './motocross-chain-drive.ts';
+import {
+  addMotocrossBrakeCaliper,
+  MotocrossBrakeHose,
+  MotocrossRearShock,
+} from './motocross-mechanics.ts';
 import { mapUnprintedPlateBack } from './number-plate-uv.ts';
 import {
   motocrossGraphics,
+  motocrossRadiatorShroud,
   motocrossRotor,
   motocrossSidePanel,
   motocrossTread,
   mouldedPanel,
+  installMotocrossPlasticFinish,
 } from './motocross-detail.ts';
 
 /** Off-road motorcycle geometry (m): a 27 degree rake, a long fork with
@@ -59,7 +66,13 @@ export class DirtBikeModel {
   private readonly rearWheel = new T.Group();
   private readonly rearSpin = new T.Group();
   private readonly swingarm = new T.Group();
-  private readonly spring = new T.Group();
+  private readonly rearBrake = new T.Group();
+  private readonly shock?: MotocrossRearShock;
+  private readonly brakeHose?: MotocrossBrakeHose;
+  private readonly shockUpper = new T.Vector3(0, -0.02, -0.29);
+  private readonly shockLower = new T.Vector3();
+  private readonly upperEye = new T.Vector3();
+  private readonly lowerEye = new T.Vector3();
   private readonly pivot: T.Vector3;
   private readonly rearAxle: T.Vector3;
   private readonly armLength: number;
@@ -94,9 +107,9 @@ export class DirtBikeModel {
     const plastic = (color: T.ColorRepresentation, name: string) => {
       const mat = new T.MeshPhysicalMaterial({
         color,
-        roughness: 0.42,
+        roughness: 0.46,
         metalness: 0,
-        clearcoat: 0.15,
+        clearcoat: 0.07,
         clearcoatRoughness: 0.5,
         name,
       });
@@ -112,6 +125,7 @@ export class DirtBikeModel {
         name: 'Motocross factory number board',
       });
     this.plastics.push(board);
+    tagMudExposure(board, 0.82);
     const shroudMaterial = primary.clone();
     shroudMaterial.color.setHex(0xffffff);
     if (detail !== 'far') shroudMaterial.map = motocrossGraphics(colours, 'shroud', (id % 98) + 2);
@@ -135,7 +149,21 @@ export class DirtBikeModel {
       roughness: 0.48,
       name: 'Motocross roller chain',
     });
-    this.plastics.push(shroudMaterial, rimMaterial, rotorMaterial, chainMaterial);
+    // The road material carries a GP drainage shader and its vertex contract.
+    // MX owns its knobby rubber finish while reusing only the existing grain
+    // textures; their lifetime remains with BikeMaterials, not this LOD.
+    const tyreMaterial = new T.MeshStandardMaterial({
+      color: 0x171916,
+      roughness: 0.91,
+      normalMap: this.m.rubber.normalMap,
+      roughnessMap: this.m.rubber.roughnessMap,
+      normalScale: new T.Vector2(0.11, 0.11),
+      name: 'Motocross moulded knobby rubber',
+    });
+    this.plastics.push(shroudMaterial, rimMaterial, rotorMaterial, chainMaterial, tyreMaterial);
+    if (detail !== 'far')
+      for (const material of [primary, dark, board, shroudMaterial])
+        installMotocrossPlasticFinish(material);
     // ---- Wheels: spoked rims and knobby (or treaded road) tyres.
     const frontR = b.frontWheelRadius,
       rearR = b.rearWheelRadius,
@@ -154,13 +182,13 @@ export class DirtBikeModel {
       add(
         spin,
         tyreGeometry(radius - knob, halfWidth, halfWidth * 1.15, rim + 0.012, sides),
-        this.m.rubber,
+        tyreMaterial,
       );
       if (knob > 0 && detail !== 'far')
         add(
           spin,
           motocrossTread(radius, halfWidth, knob, detail === 'high' ? 44 : 24),
-          this.m.rubber,
+          tyreMaterial,
         );
       // Rim hoop, hub and spokes.
       const hoop = add(spin, new T.CylinderGeometry(rim, rim, 0.033, sides, 1, true), rimMaterial);
@@ -393,23 +421,28 @@ export class DirtBikeModel {
           OFFSET + 0.023,
         );
     }
-    add(
-      this.forkLower,
-      new T.BoxGeometry(0.04, 0.1, 0.06),
-      this.m.caliper,
-      0.055,
-      0.0,
-      OFFSET - 0.12,
-    );
+    const frontBanjo =
+      detail !== 'far'
+        ? addMotocrossBrakeCaliper(this.forkLower, true, detail, this.m, OFFSET)
+        : undefined;
+    if (detail === 'far')
+      add(
+        this.forkLower,
+        new T.BoxGeometry(0.04, 0.1, 0.06),
+        this.m.caliper,
+        0.055,
+        0.0,
+        OFFSET - 0.12,
+      );
     this.forkLower.add(this.frontSpin);
     this.frontSpin.position.set(0, 0, OFFSET);
     wheel(this.frontSpin, frontR, frontRim, supermoto ? 0.06 : 0.042, true);
-    if (detail === 'high')
+    if (detail !== 'far') {
       add(
         this.forkLower,
         tube(
           [
-            [0.113, 0.02, OFFSET - 0.1],
+            [frontBanjo!.x, frontBanjo!.y, frontBanjo!.z],
             [0.124, 0.25, OFFSET + 0.017],
             [0.123, 0.51, OFFSET + 0.013],
           ],
@@ -419,6 +452,9 @@ export class DirtBikeModel {
         ),
         this.m.dark,
       );
+      this.brakeHose = new MotocrossBrakeHose(this.m.dark);
+      this.steer.add(this.brakeHose.root);
+    }
     // ---- Open perimeter frame, cast engine and folded radiator shrouds.
     const lightFrame = definition.id === 'mx250';
     for (const side of [1, -1]) {
@@ -613,19 +649,7 @@ export class DirtBikeModel {
       }
       const shroud = add(
         this.sprung,
-        motocrossSidePanel(
-          [
-            [-0.17, 0.135],
-            [0.085, 0.168],
-            [0.325, 0.105],
-            [0.23, -0.028],
-            [0.209, -0.265],
-            [0.103, -0.299],
-            [0.027, -0.118],
-            [-0.129, -0.052],
-          ],
-          side,
-        ),
+        motocrossRadiatorShroud(side, detail),
         shroudMaterial,
         side * 0.184,
         0,
@@ -810,27 +834,11 @@ export class DirtBikeModel {
               z,
             );
     }
-    // Rear shock (spring compresses with the shock).
-    if (detail !== 'far') {
-      const coil: [number, number, number][] = [];
-      for (let k = 0; k <= 64; k++) {
-        const t = k / 64;
-        coil.push([
-          Math.cos(t * Math.PI * 16) * 0.035,
-          -0.12 + t * 0.24,
-          Math.sin(t * Math.PI * 16) * 0.035,
-        ]);
-      }
-      add(this.spring, tube(coil, 0.006, 128, 6), this.m.band);
-      add(this.spring, new T.CylinderGeometry(0.014, 0.014, 0.28, 8), this.m.steel);
-      this.spring.position.set(0, -0.12, -0.26);
-      this.spring.rotation.x = 0.3;
-      this.sprung.add(this.spring);
-    }
     // ---- Swingarm from the pivot to the rear axle on the ground.
     this.pivot = new T.Vector3(0, -0.36, -0.15);
     this.rearAxle = new T.Vector3(0, rearR - h, -b.cgToRear);
     const arm = (this.armLength = this.rearAxle.clone().sub(this.pivot).length());
+    this.swingarm.name = 'Motocross articulated swingarm';
     for (const side of [1, -1])
       add(
         this.swingarm,
@@ -849,6 +857,41 @@ export class DirtBikeModel {
     add(this.swingarm, new T.CylinderGeometry(0.018, 0.018, 0.26, 10), this.m.steel).rotation.z =
       Math.PI / 2;
     if (detail !== 'far') {
+      this.shockLower.set(0, 0.04, -arm * 0.35);
+      this.shock = new MotocrossRearShock(detail, this.m);
+      this.root.add(this.shock.root);
+      // The two transverse mounting sleeves join the frame and swingarm.
+      // They stay in their own rigid batches while the shock pivots between.
+      for (const [parent, anchor] of [
+        [this.sprung, this.shockUpper],
+        [this.swingarm, this.shockLower],
+      ] as const)
+        add(
+          parent,
+          new T.CylinderGeometry(0.0065, 0.0065, 0.22, 10),
+          this.m.aluminium,
+          anchor.x,
+          anchor.y,
+          anchor.z,
+        ).rotation.z = Math.PI / 2;
+      this.rearBrake.name = 'Motocross axle-mounted non-spinning rear brake';
+      this.rearBrake.position.copy(this.rearAxle);
+      this.root.add(this.rearBrake);
+      const rearBanjo = addMotocrossBrakeCaliper(this.rearBrake, false, detail, this.m, 0);
+      add(
+        this.rearBrake,
+        tube(
+          [
+            [rearBanjo.x, rearBanjo.y, rearBanjo.z],
+            [-0.106, 0.052, 0.12],
+            [-0.113, 0.045, 0.2],
+          ],
+          0.0035,
+          12,
+          5,
+        ),
+        this.m.dark,
+      );
       this.chain = new MotocrossChainDrive(arm, detail, chainMaterial, this.mud);
       this.swingarm.add(this.chain.root);
       add(
@@ -888,7 +931,7 @@ export class DirtBikeModel {
       this.frontSpin,
       this.rearSpin,
       this.swingarm,
-      this.spring,
+      this.rearBrake,
       silencer,
     ])
       batchBikeRigidMeshes(group);
@@ -914,7 +957,7 @@ export class DirtBikeModel {
       v.steer,
       this.frontSpin.position,
     ).z += OFFSET;
-    this.spring.scale.y = T.MathUtils.clamp(1 - (v.shock - this.sag.shock) * 2.2, 0.5, 1.2);
+    this.brakeHose?.update(this.forkLower.position.y);
     this.sprung.updateMatrix();
     const p = this.scratch.copy(this.pivot).applyMatrix4(this.sprung.matrix);
     this.swingarm.position.copy(p);
@@ -922,6 +965,15 @@ export class DirtBikeModel {
       dz = this.rearAxle.z - p.z;
     this.swingarm.rotation.x = Math.atan2(dy, -dz);
     this.swingarm.scale.z = Math.hypot(dy, dz) / this.armLength;
+    if (this.shock) {
+      this.swingarm.updateMatrix();
+      this.upperEye.copy(this.shockUpper).applyMatrix4(this.sprung.matrix);
+      this.lowerEye.copy(this.shockLower).applyMatrix4(this.swingarm.matrix);
+      this.shock.update(this.upperEye, this.lowerEye);
+      // The casting follows arm angle about the axle, independently of both
+      // wheel spin and wheel removal. No swingarm stretch scales the casting.
+      this.rearBrake.rotation.x = this.swingarm.rotation.x;
+    }
     this.chain?.update(v.rearRotation, this.swingarm.scale.z);
     this.m.disc.emissiveIntensity = 0;
     this.mud.offroadMud.value = T.MathUtils.clamp(v.mud ?? 0, 0, 1);

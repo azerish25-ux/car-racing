@@ -144,9 +144,9 @@ describe('reference-informed MX environments', () => {
     expect(soilSamples).toBeGreaterThan(10);
     expect(studioHookKeys(view.material)).toContain(MX_SOIL_DETAIL_HOOK);
     expect(view.soilSlots[0]).toBe('meadow');
-    expect(view.soilMacro).toBe('forest');
+    expect(view.soilMacro).toBe('dryEarth');
     const compiled = shader(view.material, 'physical');
-    expect(compiled.fragmentShader).toContain('vec3 apexMacro = apexScanMacro( apexScanForestC,');
+    expect(compiled.fragmentShader).toContain('vec3 apexMacro = apexScanMacro( apexScanDryEarthC,');
     expect(compiled.fragmentShader).toContain('mxPreparedRelief');
     expect(compiled.fragmentShader).toContain('apexSoilWetness');
     expect(compiled.vertexShader).not.toContain('transformed.y += mx');
@@ -248,13 +248,21 @@ describe('MX contact, dust and landing presentation', () => {
     expect(roost.active).toBeGreaterThan(15);
     expect(roost.active).toBeLessThanOrEqual(ROOST_CAPACITY);
     const sizes = roost.points.geometry.getAttribute('mxParticleSize'),
-      alpha = roost.points.geometry.getAttribute('mxParticleAlpha');
+      alpha = roost.points.geometry.getAttribute('mxParticleAlpha'),
+      shape = roost.points.geometry.getAttribute('mxParticleShape');
     const visible = Array.from({ length: sizes.count }, (_, i) => ({
       size: sizes.getX(i),
       alpha: alpha.getX(i),
+      dust: shape.getX(i),
+      seed: shape.getY(i),
     })).filter((p) => p.alpha > 0);
     expect(visible.some((p) => p.size < 0.11)).toBe(true);
     expect(visible.some((p) => p.size > 0.28)).toBe(true);
+    expect(visible.filter((p) => p.size < 0.11).every((p) => p.dust === 0)).toBe(true);
+    expect(visible.filter((p) => p.size > 0.28).every((p) => p.dust === 1)).toBe(true);
+    expect(new Set(visible.map((p) => p.seed)).size).toBeGreaterThan(10);
+    expect((roost.points.material as T.PointsMaterial).map).toBeNull();
+    expect(studioHookKeys(roost.points.material as T.Material)).toContain('mx-roost-particle-v2');
     expect(roost.contactShadows!.count).toBe(2);
     const active = roost.active;
     frame[carBase(0) + OFFROAD_BASE + O.AIRBORNE] = 1;
@@ -299,7 +307,7 @@ describe('MX contact, dust and landing presentation', () => {
     const legacy = new Roost(rigTrack('kestrel-rx'));
     expect(legacy.contactShadows).toBeNull();
     expect(studioHookKeys(legacy.points.material as T.Material)).not.toContain(
-      'mx-roost-particle-v1',
+      'mx-roost-particle-v2',
     );
     legacy.dispose();
   });

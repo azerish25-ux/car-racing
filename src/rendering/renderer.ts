@@ -137,6 +137,7 @@ import { installSpecularAntialiasing } from './specular-aa.ts';
 import { renderCensus, cubeCensusCameras, mergeCensus } from './render-census.ts';
 import { CircuitScene } from './circuit.ts';
 import { Effects } from './effects.ts';
+import { GpContactEffects } from './gp-contact-effects.ts';
 import { PresentedFrame } from './frame-state.ts';
 import { StudioFrame } from './studio/studio-frame.ts';
 import { EffectPlayback } from './effect-playback.ts';
@@ -172,7 +173,7 @@ import {
 } from './vehicle-bodies/cabin.ts';
 import { bikeFirstPersonView } from './bike-cockpit.ts';
 import { BIKE_CHASE_ROLL, BikeShells, bikeOnboardFov } from './bike.ts';
-import { motorcycleChase } from './motorcycle-camera.ts';
+import { MotorcycleRoadPreview, motorcycleChase } from './motorcycle-camera.ts';
 export type CameraMode = 'chase' | 'cockpit' | 'pod' | 'trackside';
 /** Chase rig in metres, m/s and vertical-FOV degrees. */
 // P5 retuned to its own target (KPI 10 iteration): 1.65 m / 4.9 m framed the
@@ -236,6 +237,7 @@ export class RacingRenderer {
   readonly vehicleBodies = new VehicleBodies();
   /** Motorcycle entrants (WP34): procedural bikes and riders over the snapshot pose. */
   readonly bikeShells = new BikeShells();
+  private readonly gpRoadPreview = new MotorcycleRoadPreview();
   /** Accessibility master switch: no motion blur (camera vibration is set by the app). */
   reducedMotion = false;
   readonly studioFrame = new StudioFrame();
@@ -491,6 +493,14 @@ export class RacingRenderer {
     // Catalogue tunnels are sheltered: no rain is born under a roof (WP30).
     const kit = this.circuit.venueKit;
     if (kit) this.effects.sheltered = (x, z) => kit.covers(x, z);
+    // Circuit GP tyres use their two projected road contacts. The callbacks
+    // retain fixed CPU scratch and leave all other vehicle emitters unchanged.
+    const gpContacts = new GpContactEffects();
+    this.effects.contactEnabled = gpContacts.contactEnabled;
+    this.effects.contactOffset = gpContacts.contactOffset;
+    this.effects.diffuserEnabled = gpContacts.diffuserEnabled;
+    this.effects.smokeSliding = gpContacts.smokeSliding;
+    this.effects.sprayProfile = gpContacts.sprayProfile;
     this.reflection.probeDetail = this.circuit.probeDetail;
     // The far map covers the circuit and the planting and stands around it.
     const point = trackPoint();
@@ -1383,6 +1393,8 @@ export class RacingRenderer {
         this.motocrossCamera.update(cameraDt, this.circuit.track, {
           anchor: this.target,
           heading: Math.atan2(this.direction.x, this.direction.z),
+          velocityX: presented[o + F.VX],
+          velocityZ: presented[o + F.VZ],
           s: presented[o + F.S],
           speed: presented[o + F.SPEED],
           cgHeight: followedDefinition.bike!.cgHeight,
@@ -1400,7 +1412,22 @@ export class RacingRenderer {
         // the horizon sits nearer mid-frame, as in modern broadcast-style games.
         // The rig follows heading and a bounded pitch but never roll, so a
         // spinning or overturned car cannot swing the camera under the road.
-        const pitch = Math.asin(clamp(this.direction.y, -0.4, 0.4));
+        const roadPreview =
+          followedDefinition.classId === 'gp-bike' &&
+          presented[o + BIKE_BASE + B.STATE] === 0 &&
+          !presented[o + F.IN_PIT]
+            ? this.gpRoadPreview.read(
+                this.circuit.track,
+                presented[o + F.S],
+                presented[o + F.LATERAL],
+                speed,
+                Math.atan2(this.direction.x, this.direction.z),
+                this.reducedMotion,
+              )
+            : null;
+        const pitch = roadPreview?.pitch ?? Math.asin(clamp(this.direction.y, -0.4, 0.4));
+        if (bikeView && roadPreview)
+          bikeView.yaw = T.MathUtils.lerp(bikeView.yaw, roadPreview.yaw, 0.7);
         this.chaseBasis.setFromEuler(
           this.chaseEuler.set(-pitch, Math.atan2(this.direction.x, this.direction.z), 0, 'YXZ'),
         );

@@ -1,0 +1,886 @@
+{
+  "schemaVersion": 1,
+  "title": "Motocross Three.js improvement validation, work started 2026-10-18",
+  "baselineCommit": "bdca8de5d36e282840d52316d106a2d99626924f",
+  "outcome": "Application, simulation and rendering verification passed across the recorded runs; the initial full unit command exited 1 for eight environment-dependent CLI cases, which passed unchanged with normal subprocess access.",
+  "finalSourceSha256": {
+    "e2e/43-motocross-world.spec.ts": "c30b256cd32a41d1683ccaab562044fadd7b55bc0f253c910426ccc1473afc7c",
+    "src/rendering/offroad/chase-camera.ts": "3926e870b3ca40e6f086b4f0b02e37d5783638bd2f3231d23df9a811ad841261",
+    "src/rendering/offroad/dirt-bike-model.ts": "c38eeb21a25e2b632392f0a96050d3ebec51f19f2df6754123c0c13ffb1da247",
+    "src/rendering/offroad/index.ts": "7619ad602ba7932c38149338ef9b95f00cbede0391ad0990c736814093df85c7",
+    "src/rendering/offroad/motocross-detail.ts": "1d53ac594b2d675320c2971e53480946f1f2dd93bf1245437153e48974cad0a8",
+    "src/rendering/offroad/motocross-gear.ts": "ee8081d80846b775f7a02a20c7808f351ecb0d95f8228319a7972ed628950a63",
+    "src/rendering/offroad/mud.ts": "a9552a5be762bb24e5758c2898da8c1575cbd6c7e98fbe6f40629ad5a58fa45b",
+    "src/rendering/offroad/mx-soil-detail.ts": "89ddc750cc743acce9402472375d27fee0463a865004b0ca80d3cbca128aa76c",
+    "src/rendering/offroad/roost.ts": "ce020c4d441791e770a68b8cae3d36976189904c7ebbd4d66120d6c9ded97637",
+    "src/rendering/offroad/stadium.ts": "4afa64d773b87aa2b61b8fa4f33f4ad7a13ef1e09e636da04b9b341306186f73",
+    "src/rendering/offroad/terrain-view.ts": "a2d0733dca62133d102271ca7b7eea436ec9f393e412132689500cb2a9b717db",
+    "src/rendering/renderer.ts": "abedb8a5bc2592b8d15b8e993ea621fee440d73cb6100c19b4f4ef5e21f182f9",
+    "src/rendering/rider.ts": "f280d1e03a225160ce78d6aebcb40f08aec9707bb1d5efd3f5a269727f1951be",
+    "src/simulation/offroad/dirt-bike-vehicle.ts": "cebcd63313df0ade4fee34f4b5f0c13fa9421ba17b3d1f8642b81b8495a237dd",
+    "src/simulation/offroad/riding-feedback.ts": "6d2a7783e0a4065850e0469699338e7fb99468f1a87bc11edd238934d28c7449",
+    "src/ui/interface.ts": "b44319b0bef86b81b9772217f7abb2b85c1a8653883c93f7d337a3eac9a849c1",
+    "src/ui/offroad-hud.ts": "3950087a2607df1e22b49ff15449c353414044df5654794d4d18fc37be4f5f03",
+    "tests/motocross-camera.test.ts": "38ba623364d5a168d6105d8a1c5a2baeab2c8a5dfe1f73b5b9e3c665cabfdeac",
+    "tests/motocross-environment.test.ts": "93eb373a3b4263f1221619cb9d3dafbf07b4d273ed06cbbb7de0f2905accbcea",
+    "tests/motocross-equipment-surface.test.ts": "d27e090dda6f15ea1573d1b8018120512e13261ef1143d33f4a492a38ab50df2",
+    "tests/motocross-hud.test.ts": "f5d8447651eee12059727d22a8e325d9270f7bdf272e0278ee495995849973bd",
+    "tests/motocross-riding.test.ts": "0170b721bd257a8cc49462c41b2ec5dac1940e8812f2d1b4b66e987694d952df",
+    "tests/motocross-soil-transition.test.ts": "3a24d9717ede92ef291b04a1f55e605e844773d7b843b1f20ccc2e011f0f66c5",
+    "tests/motocross-stadium-crowd.test.ts": "67632b4d9e577a5c81788a8343d62d653d600853a4c69370a1856de6826b73e1"
+  },
+  "verificationSequence": {
+    "fullSuiteAndProductionJourneyCheckpoint": "Full unit suite and production player journey; three detailed crowd rows. Final visual review will add one row, followed by focused tests, build and world WebGL checks.",
+    "changedPathsAfterCheckpoint": [
+      "src/rendering/offroad/stadium.ts"
+    ],
+    "earlierStadiumSha256": "3d047460d83c5b1ce44f4794cf72736eac759885cafd7bbd4aa1a9122a411fde",
+    "onlySubsequentSourceChange": "Detailed crowd row threshold changed from k < 3 to k < 4, plus the corresponding comment. No gameplay or equipment source changed after the full suite and production player journey.",
+    "verificationAfterThisChange": [
+      "23 focused crowd/authored-kit/environment tests",
+      "TypeScript and Vite production build",
+      "Scoped stadium ESLint and git diff --check",
+      "All 3 production world WebGL tests, including both venues and both shadow filters"
+    ],
+    "scopeOfFingerprints": "24 changed source and test files. The earlier checkpoint has identical hashes except for the single stadium path identified above. Documentation is excluded to avoid self-referential hashes."
+  },
+  "unitRegression": {
+    "command": "node --experimental-transform-types scripts/source-stability.ts -- npm test",
+    "exitCode": 1,
+    "files": {
+      "total": 418,
+      "passed": 416,
+      "failed": 2
+    },
+    "tests": {
+      "total": 3471,
+      "passed": 3463,
+      "failed": 8
+    },
+    "durationSeconds": 1465.16,
+    "sourceStability": "No application input rewrite by the outer guard; rewrite diagnostics within source-stability.test.ts are expected negative-test fixtures.",
+    "failedFiles": [
+      "tests/studio-qa-tools.test.ts",
+      "tests/review-tools.test.ts"
+    ],
+    "diagnosis": "Restricted spawnSync child processes returned EPERM and empty captured stdout/stderr. The same Node v24.19.0 executable captured both pipes normally outside that restriction.",
+    "unchangedNormalRuntimeRerun": {
+      "command": "node node_modules/vitest/vitest.mjs run tests/studio-qa-tools.test.ts tests/review-tools.test.ts --reporter=verbose",
+      "exitCode": 0,
+      "files": {
+        "passed": 2,
+        "total": 2
+      },
+      "tests": {
+        "passed": 10,
+        "total": 10
+      },
+      "durationSeconds": 8.51,
+      "sourceOrTestChangesForRerun": false,
+      "evidence": "Tool transcript; no separate raw log was saved for this rerun."
+    }
+  },
+  "finalFocusedTests": {
+    "command": "node --experimental-transform-types scripts/source-stability.ts -- npx vitest run tests/motocross-stadium-crowd.test.ts tests/motocross-authored-kit.test.ts tests/motocross-environment.test.ts",
+    "exitCode": 0,
+    "filesPassed": 3,
+    "testsPassed": 23,
+    "durationSeconds": 13.14,
+    "crowdMeasurement": {
+      "seats": 14821,
+      "sculpted": 2573,
+      "distant": 12248,
+      "meshes": 15,
+      "submittedCrowd": 1635194,
+      "previousCrowd": 4090596,
+      "totalStadiumTriangles": 2021554
+    },
+    "previousTotalStadiumTriangles": 4476956,
+    "crowdTriangleReductionPercent": 60.0255
+  },
+  "buildAndStaticValidation": {
+    "productionBuild": {
+      "command": "node --experimental-transform-types scripts/source-stability.ts -- npm run build",
+      "exitCode": 0,
+      "includesTypeScript": true,
+      "viteBuildSeconds": 15.22,
+      "existingWarning": "Large minified chunks"
+    },
+    "fullLintAndContentValidation": {
+      "exitCode": 0,
+      "checkpoint": "After final terrain macro and crossed-landing guard; before the final stadium row threshold adjustment"
+    },
+    "finalStadiumLintAndDiffCheck": {
+      "exitCode": 0,
+      "checkpoint": "After final stadium row threshold adjustment"
+    }
+  },
+  "productionPlayerJourney": {
+    "test": "e2e/45-motocross-gameplay.spec.ts",
+    "testModified": false,
+    "exitCode": 0,
+    "stats": {
+      "startTime": "2026-10-18T23:43:50.625Z",
+      "duration": 629487.939,
+      "expected": 1,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "sourceCheckpoint": "Full-suite checkpoint; only subsequent source adjustment is documented in verificationSequence",
+    "route": [
+      "Normal visible menus",
+      "MX450 at Valley Ridge",
+      "Eight-rider gate held at tick zero",
+      "Manual throttle with AI disabled",
+      "Explicit G AI demonstration",
+      "Course progress, flight and touchdown",
+      "Chase and onboard camera",
+      "Pause holds simulation tick",
+      "Return to paddock",
+      "Repeat with MX250 at Arena Nord"
+    ],
+    "finiteFrames": true,
+    "runtimePageOrConsoleErrors": 0,
+    "reports": [
+      {
+        "circuit": "valley-ridge-mx",
+        "machine": "mx450",
+        "mode": "normal application, player throttle followed by explicitly enabled AI demonstration",
+        "human": {
+          "time": 7.633333206176758,
+          "speed": 6.561441421508789,
+          "throttle": 1,
+          "auto": false
+        },
+        "progressM": 215.04891967773438,
+        "maxAirTime": 0.40833333134651184,
+        "maxSafetyCarPhase": 0,
+        "landing": {
+          "tick": 3826,
+          "time": 31.883333206176758,
+          "s": 208.41336059570312,
+          "progressM": 215.04891967773438,
+          "speed": 11.722487449645996,
+          "airborne": false,
+          "airTime": 0.40833333134651184,
+          "landingSpeed": 1.6117931604385376,
+          "landingPitch": 0.30271103978157043,
+          "safetyCarPhase": 0,
+          "presentedTime": 23.274166107177734
+        },
+        "pausedTick": 10695
+      },
+      {
+        "circuit": "arena-nord-sx",
+        "machine": "mx250",
+        "mode": "normal application, player throttle followed by explicitly enabled AI demonstration",
+        "human": {
+          "time": 7.75,
+          "speed": 6.8138628005981445,
+          "throttle": 1,
+          "auto": false
+        },
+        "progressM": 154.99658203125,
+        "maxAirTime": 0.762499988079071,
+        "maxSafetyCarPhase": 0,
+        "landing": {
+          "tick": 8847,
+          "time": 73.7249984741211,
+          "s": 151.15771484375,
+          "progressM": 154.99658203125,
+          "speed": 5.809275150299072,
+          "airborne": false,
+          "airTime": 0.762499988079071,
+          "landingSpeed": 5.8259735107421875,
+          "landingPitch": -0.38984933495521545,
+          "safetyCarPhase": 0,
+          "presentedTime": 59.290802001953125
+        },
+        "pausedTick": 14691
+      }
+    ]
+  },
+  "productionEquipmentWebGL": {
+    "test": "e2e/42-motocross-bike.spec.ts",
+    "testModified": false,
+    "stats": {
+      "startTime": "2026-10-18T23:30:48.918Z",
+      "duration": 57780.097,
+      "expected": 1,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "baselineStats": {
+      "startTime": "2026-10-18T23:34:33.018Z",
+      "duration": 45681.9,
+      "expected": 1,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "captureStates": 29,
+    "glErrors": 0,
+    "sameFixtureBeforeAfter": {
+      "mx450-high": {
+        "before": {
+          "triangles": 95730,
+          "calls": 67,
+          "glError": 0,
+          "resources": {
+            "geometries": 79,
+            "textures": 16,
+            "programs": 16
+          },
+          "hash": 2692259126
+        },
+        "after": {
+          "triangles": 104266,
+          "calls": 67,
+          "glError": 0,
+          "resources": {
+            "geometries": 79,
+            "textures": 16,
+            "programs": 18
+          },
+          "hash": 3062853694
+        }
+      },
+      "mx450-mid": {
+        "before": {
+          "triangles": 49229,
+          "calls": 63,
+          "glError": 0,
+          "resources": {
+            "geometries": 75,
+            "textures": 16,
+            "programs": 16
+          },
+          "hash": 4028435719
+        },
+        "after": {
+          "triangles": 49997,
+          "calls": 63,
+          "glError": 0,
+          "resources": {
+            "geometries": 75,
+            "textures": 16,
+            "programs": 18
+          },
+          "hash": 1286241556
+        }
+      },
+      "mx450-far": {
+        "before": {
+          "triangles": 11195,
+          "calls": 45,
+          "glError": 0,
+          "resources": {
+            "geometries": 57,
+            "textures": 10,
+            "programs": 13
+          },
+          "hash": 4081464507
+        },
+        "after": {
+          "triangles": 11971,
+          "calls": 45,
+          "glError": 0,
+          "resources": {
+            "geometries": 57,
+            "textures": 10,
+            "programs": 13
+          },
+          "hash": 3856559389
+        }
+      },
+      "helmet-and-gear": {
+        "before": {
+          "triangles": 95730,
+          "calls": 35,
+          "glError": 0,
+          "resources": {
+            "geometries": 77,
+            "textures": 14,
+            "programs": 16
+          },
+          "hash": 4038103089
+        },
+        "after": {
+          "triangles": 104266,
+          "calls": 35,
+          "glError": 0,
+          "resources": {
+            "geometries": 77,
+            "textures": 14,
+            "programs": 18
+          },
+          "hash": 2865064354
+        }
+      },
+      "same-instance-mud-1": {
+        "before": {
+          "triangles": 95730,
+          "calls": 67,
+          "glError": 0,
+          "resources": {
+            "geometries": 79,
+            "textures": 16,
+            "programs": 16
+          },
+          "hash": 1027017995
+        },
+        "after": {
+          "triangles": 104266,
+          "calls": 67,
+          "glError": 0,
+          "resources": {
+            "geometries": 79,
+            "textures": 16,
+            "programs": 18
+          },
+          "hash": 4056694948
+        }
+      }
+    },
+    "equipmentSourceSha256": {
+      "src/rendering/offroad/dirt-bike-model.ts": "c38eeb21a25e2b632392f0a96050d3ebec51f19f2df6754123c0c13ffb1da247",
+      "src/rendering/offroad/motocross-detail.ts": "1d53ac594b2d675320c2971e53480946f1f2dd93bf1245437153e48974cad0a8",
+      "src/rendering/offroad/motocross-gear.ts": "ee8081d80846b775f7a02a20c7808f351ecb0d95f8228319a7972ed628950a63",
+      "src/rendering/offroad/mud.ts": "a9552a5be762bb24e5758c2898da8c1575cbd6c7e98fbe6f40629ad5a58fa45b",
+      "src/rendering/rider.ts": "f280d1e03a225160ce78d6aebcb40f08aec9707bb1d5efd3f5a269727f1951be",
+      "tests/motocross-equipment-surface.test.ts": "d27e090dda6f15ea1573d1b8018120512e13261ef1143d33f4a492a38ab50df2"
+    },
+    "sameInstanceMudHashSequence": [
+      3062853694,
+      4056694948,
+      4056694948,
+      3062853694
+    ],
+    "sameInstanceResourcesStable": true
+  },
+  "finalProductionWorldWebGL": {
+    "test": "e2e/43-motocross-world.spec.ts",
+    "testChange": "Updated the exact expected resident soil macro to dryEarth; existing shadow, physical-source, wetness, resource and GL gates retained.",
+    "exitCode": 0,
+    "stats": {
+      "startTime": "2026-10-19T00:08:28.184Z",
+      "duration": 227483.421,
+      "expected": 3,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "sourceCheckpoint": "Final source fingerprints, including four detailed stadium rows",
+    "worldSnapshots": [
+      {
+        "circuit": "arena-nord-sx",
+        "view": "riding",
+        "samples": [
+          {
+            "label": "prepared-soil",
+            "hash": 378156559,
+            "glError": 0,
+            "calls": 356,
+            "triangles": 2651518
+          },
+          {
+            "label": "wet-soil",
+            "hash": 4221831181,
+            "glError": 0,
+            "calls": 356,
+            "triangles": 2651518
+          },
+          {
+            "label": "held-wet-soil",
+            "hash": 4221831181,
+            "glError": 0,
+            "calls": 356,
+            "triangles": 2651518
+          },
+          {
+            "label": "rewound-soil",
+            "hash": 378156559,
+            "glError": 0,
+            "calls": 356,
+            "triangles": 2651518
+          },
+          {
+            "label": "same-scene-terrain-casters-off",
+            "hash": 395668949,
+            "glError": 0,
+            "calls": 356,
+            "triangles": 2651518
+          },
+          {
+            "label": "restored-terrain-casters",
+            "hash": 378156559,
+            "glError": 0,
+            "calls": 356,
+            "triangles": 2651518
+          }
+        ],
+        "resources": {
+          "geometries": 566,
+          "textures": 84,
+          "programs": 32
+        },
+        "resourcesStableAcrossSamples": true,
+        "physicalSourceUnchanged": true,
+        "heldWetHashMatches": true,
+        "dryAndCasterRestoreHashMatches": true,
+        "soilMacro": "dryEarth",
+        "soilHooks": [
+          "library-soil-v1",
+          "library-wet-surface-v1",
+          "scanned-soil-v1",
+          "mx-groomed-soil-v2",
+          "mx-terrain-receiver-plane-v1",
+          "light-pools-v2",
+          "mx-world-review-observe-v1"
+        ]
+      },
+      {
+        "circuit": "arena-nord-sx",
+        "view": "venue",
+        "samples": [
+          {
+            "label": "prepared-soil",
+            "hash": 321698638,
+            "glError": 0,
+            "calls": 557,
+            "triangles": 2598383
+          },
+          {
+            "label": "wet-soil",
+            "hash": 2808957483,
+            "glError": 0,
+            "calls": 557,
+            "triangles": 2598383
+          },
+          {
+            "label": "held-wet-soil",
+            "hash": 2808957483,
+            "glError": 0,
+            "calls": 557,
+            "triangles": 2598383
+          },
+          {
+            "label": "rewound-soil",
+            "hash": 321698638,
+            "glError": 0,
+            "calls": 557,
+            "triangles": 2598383
+          },
+          {
+            "label": "same-scene-terrain-casters-off",
+            "hash": 3839581109,
+            "glError": 0,
+            "calls": 557,
+            "triangles": 2598383
+          },
+          {
+            "label": "restored-terrain-casters",
+            "hash": 321698638,
+            "glError": 0,
+            "calls": 557,
+            "triangles": 2598383
+          }
+        ],
+        "resources": {
+          "geometries": 551,
+          "textures": 123,
+          "programs": 34
+        },
+        "resourcesStableAcrossSamples": true,
+        "physicalSourceUnchanged": true,
+        "heldWetHashMatches": true,
+        "dryAndCasterRestoreHashMatches": true,
+        "soilMacro": "dryEarth",
+        "soilHooks": [
+          "library-soil-v1",
+          "library-wet-surface-v1",
+          "scanned-soil-v1",
+          "mx-groomed-soil-v2",
+          "mx-terrain-receiver-plane-v1",
+          "light-pools-v2",
+          "mx-world-review-observe-v1"
+        ]
+      },
+      {
+        "circuit": "valley-ridge-mx",
+        "view": "riding",
+        "samples": [
+          {
+            "label": "prepared-soil",
+            "hash": 4086570727,
+            "glError": 0,
+            "calls": 407,
+            "triangles": 804646
+          },
+          {
+            "label": "wet-soil",
+            "hash": 806224504,
+            "glError": 0,
+            "calls": 407,
+            "triangles": 804646
+          },
+          {
+            "label": "held-wet-soil",
+            "hash": 806224504,
+            "glError": 0,
+            "calls": 407,
+            "triangles": 804646
+          },
+          {
+            "label": "rewound-soil",
+            "hash": 4086570727,
+            "glError": 0,
+            "calls": 407,
+            "triangles": 804646
+          },
+          {
+            "label": "same-scene-terrain-casters-off",
+            "hash": 3197174744,
+            "glError": 0,
+            "calls": 407,
+            "triangles": 804646
+          },
+          {
+            "label": "restored-terrain-casters",
+            "hash": 4086570727,
+            "glError": 0,
+            "calls": 407,
+            "triangles": 804646
+          }
+        ],
+        "resources": {
+          "geometries": 561,
+          "textures": 99,
+          "programs": 32
+        },
+        "resourcesStableAcrossSamples": true,
+        "physicalSourceUnchanged": true,
+        "heldWetHashMatches": true,
+        "dryAndCasterRestoreHashMatches": true,
+        "soilMacro": "dryEarth",
+        "soilHooks": [
+          "library-soil-v1",
+          "library-wet-surface-v1",
+          "scanned-soil-v1",
+          "mx-groomed-soil-v2",
+          "mx-terrain-receiver-plane-v1",
+          "light-pools-v2",
+          "mx-world-review-observe-v1"
+        ]
+      },
+      {
+        "circuit": "valley-ridge-mx",
+        "view": "venue",
+        "samples": [
+          {
+            "label": "prepared-soil",
+            "hash": 2046421452,
+            "glError": 0,
+            "calls": 423,
+            "triangles": 426251
+          },
+          {
+            "label": "wet-soil",
+            "hash": 4142356346,
+            "glError": 0,
+            "calls": 423,
+            "triangles": 426251
+          },
+          {
+            "label": "held-wet-soil",
+            "hash": 4142356346,
+            "glError": 0,
+            "calls": 423,
+            "triangles": 426251
+          },
+          {
+            "label": "rewound-soil",
+            "hash": 2046421452,
+            "glError": 0,
+            "calls": 423,
+            "triangles": 426251
+          },
+          {
+            "label": "same-scene-terrain-casters-off",
+            "hash": 3101305231,
+            "glError": 0,
+            "calls": 423,
+            "triangles": 426251
+          },
+          {
+            "label": "restored-terrain-casters",
+            "hash": 2046421452,
+            "glError": 0,
+            "calls": 423,
+            "triangles": 426251
+          }
+        ],
+        "resources": {
+          "geometries": 417,
+          "textures": 88,
+          "programs": 36
+        },
+        "resourcesStableAcrossSamples": true,
+        "physicalSourceUnchanged": true,
+        "heldWetHashMatches": true,
+        "dryAndCasterRestoreHashMatches": true,
+        "soilMacro": "dryEarth",
+        "soilHooks": [
+          "library-soil-v1",
+          "library-wet-surface-v1",
+          "scanned-soil-v1",
+          "mx-groomed-soil-v2",
+          "mx-terrain-receiver-plane-v1",
+          "light-pools-v2",
+          "mx-world-review-observe-v1"
+        ]
+      }
+    ],
+    "terrainShadowControls": [
+      {
+        "circuit": "arena-nord-sx",
+        "filter": "native",
+        "productionFilterInstalled": false,
+        "sampleCount": 6,
+        "glErrors": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "resourcesStableAcrossSamples": true,
+        "physicalSourceUnchanged": true,
+        "heldWetAndDryRestoreHashesMatch": true,
+        "lit": {
+          "count": 117,
+          "meanAbsoluteChange": 8.641826341172716e-05
+        },
+        "occluded": {
+          "count": 10,
+          "medianDarkening": 0.11422540305010889
+        },
+        "testedBoundaries": 1
+      },
+      {
+        "circuit": "arena-nord-sx",
+        "filter": "production",
+        "productionFilterInstalled": true,
+        "sampleCount": 6,
+        "glErrors": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "resourcesStableAcrossSamples": true,
+        "physicalSourceUnchanged": true,
+        "heldWetAndDryRestoreHashesMatch": true,
+        "lit": {
+          "count": 117,
+          "meanAbsoluteChange": 1.4627860640932414e-05
+        },
+        "occluded": {
+          "count": 10,
+          "medianDarkening": 0.11422540305010889
+        },
+        "testedBoundaries": 1
+      },
+      {
+        "circuit": "valley-ridge-mx",
+        "filter": "native",
+        "productionFilterInstalled": false,
+        "sampleCount": 6,
+        "glErrors": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "resourcesStableAcrossSamples": true,
+        "physicalSourceUnchanged": true,
+        "heldWetAndDryRestoreHashesMatch": true,
+        "lit": {
+          "count": 121,
+          "meanAbsoluteChange": 0.0004842708727200697
+        },
+        "occluded": {
+          "count": 15,
+          "medianDarkening": 0.13504862745098037
+        },
+        "testedBoundaries": 3
+      },
+      {
+        "circuit": "valley-ridge-mx",
+        "filter": "production",
+        "productionFilterInstalled": true,
+        "sampleCount": 6,
+        "glErrors": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "resourcesStableAcrossSamples": true,
+        "physicalSourceUnchanged": true,
+        "heldWetAndDryRestoreHashesMatch": true,
+        "lit": {
+          "count": 121,
+          "meanAbsoluteChange": 0.00020666846720322546
+        },
+        "occluded": {
+          "count": 15,
+          "medianDarkening": 0.13504862745098037
+        },
+        "testedBoundaries": 3
+      }
+    ],
+    "sameFixtureSceneComparison": [
+      {
+        "circuit": "valley-ridge-mx",
+        "scope": "Same production world fixture, riding camera, light and 10-second simulation snapshot; main scene pass excludes shadow pass",
+        "before": {
+          "calls": 407,
+          "triangles": 753430
+        },
+        "after": {
+          "calls": 407,
+          "triangles": 804646
+        },
+        "triangleChangePercent": 6.7977
+      },
+      {
+        "circuit": "arena-nord-sx",
+        "scope": "Same production world fixture, riding camera, light and 10-second simulation snapshot; main scene pass excludes shadow pass",
+        "before": {
+          "calls": 356,
+          "triangles": 5064240
+        },
+        "after": {
+          "calls": 356,
+          "triangles": 2651518
+        },
+        "triangleChangePercent": -47.6423
+      }
+    ]
+  },
+  "seededThreeLapRaces": {
+    "runner": "scripts/offroad-races.ts",
+    "checkpoint": "After whip implementation, before the final guard restricting immediate crossed landing judgment to actual yaw and before the final visual-only adjustments. AI flights have zero whip yaw; gameplay regression and the normal player journey subsequently covered the guard.",
+    "reports": [
+      {
+        "circuit": "valley-ridge-mx",
+        "laps": 3,
+        "seed": 41001,
+        "raceSeconds": 241.74,
+        "retired": [],
+        "crashesPerRiderLap": 0,
+        "crashBound": 0.5,
+        "longestStopSeconds": 8.51,
+        "terrain": {
+          "cells": 41775,
+          "deepest": 0.03801915794610977,
+          "sequence": 1201677,
+          "wetness": 0,
+          "hash": "3233e415"
+        },
+        "finishedRiders": 8,
+        "totalCrashes": 0,
+        "passed": true,
+        "failures": []
+      },
+      {
+        "circuit": "arena-nord-sx",
+        "laps": 3,
+        "seed": 41003,
+        "raceSeconds": 304.29,
+        "retired": [],
+        "crashesPerRiderLap": 0.083,
+        "crashBound": 0.75,
+        "longestStopSeconds": 13.87,
+        "terrain": {
+          "cells": 29880,
+          "deepest": 0.011527996510267258,
+          "sequence": 1422966,
+          "wetness": 0,
+          "hash": "d5708c88"
+        },
+        "finishedRiders": 8,
+        "totalCrashes": 2,
+        "passed": true,
+        "failures": []
+      }
+    ]
+  },
+  "gameplayRegression": {
+    "focusedGroupTestsPassed": 39,
+    "scope": [
+      "motocross riding",
+      "motocross HUD",
+      "Festival bike compatibility"
+    ],
+    "meaningfulRegression": "The SM450 square-but-sideways landing regression failed without the actual-yaw guard, then passed with it. Other tested cases include yaw bounds, ballistic speed preservation, release recovery, held Sport/Raw behavior, contact rotation, AI takeover and settled HUD feedback.",
+    "crossedLandingGuard": "Math.abs(r.yawError) > 1e-9 && Math.abs(r.lateralSpeed) > LANDING_RULES.crossedCrashSpeed",
+    "coveredAgainByFullSuite": true
+  },
+  "referenceEvidence": {
+    "archive": {
+      "filename": "Motocross_PS5_100_Developer_Reference_Images(2).zip",
+      "bytes": 47893403,
+      "sha256": "d8c8fbb62974432e8feafa853917deb45765dccc18be7d1da8ece9be512a9c73",
+      "indexFiles": [
+        "REFERENCE_INDEX.csv",
+        "SHA256SUMS.txt"
+      ],
+      "allEntriesMatchPackIndex": true
+    },
+    "coverage": {
+      "numberedImages": 100,
+      "visuallyReviewed": 100,
+      "originalResolutionFollowups": 9,
+      "sha256Matches": 100,
+      "uniqueSourceHashes": 100,
+      "fullResolutionReferenceNumbers": [
+        4,
+        24,
+        31,
+        42,
+        59,
+        72,
+        86,
+        92,
+        95
+      ],
+      "implementationStatuses": {
+        "new-principle-applied": 59,
+        "retained-existing-system": 5,
+        "context-only-retained-systems": 15,
+        "new-principle-applied-with-context": 21
+      },
+      "newFeatureGroups": 11,
+      "meaning": "All 100 source images were visually reviewed and individually classified; this does not mean 100 separate new features were implemented."
+    },
+    "mapping": "motocross-threejs-reference-review-20261018.json",
+    "runtimeReferenceBitmapImports": 0
+  },
+  "renderingBackend": {
+    "api": "WebGL2",
+    "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "hardwareFpsMeasured": false,
+    "interpretation": "Primitive, resource, image restoration and GL measurements are reproducible software-renderer checks; they are not a consumer-GPU frame-rate or photorealistic-parity certification."
+  }
+}

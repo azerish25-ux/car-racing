@@ -27,6 +27,10 @@ type Position = { x: number; y: number; z: number };
 export interface MotocrossCameraFrame {
   anchor: Position;
   heading: number;
+  /** Horizontal world velocity; airborne whips rotate the chassis without
+   * rotating its flight path. Omit for a stationary showroom/legacy frame. */
+  velocityX?: number;
+  velocityZ?: number;
   s: number;
   speed: number;
   cgHeight: number;
@@ -70,7 +74,13 @@ export class MotocrossChaseCamera {
   }
 
   update(dt: number, track: CameraTerrain, frame: MotocrossCameraFrame) {
-    const { anchor, heading, cgHeight } = frame;
+    const { anchor, cgHeight } = frame;
+    const movingInAir =
+      frame.airborne &&
+      Number.isFinite(frame.velocityX) &&
+      Number.isFinite(frame.velocityZ) &&
+      frame.velocityX! ** 2 + frame.velocityZ! ** 2 > 4;
+    const heading = movingInAir ? Math.atan2(frame.velocityX!, frame.velocityZ!) : frame.heading;
     if (
       dt < 0 ||
       ![
@@ -78,6 +88,7 @@ export class MotocrossChaseCamera {
         anchor.x,
         anchor.y,
         anchor.z,
+        frame.heading,
         heading,
         frame.s,
         frame.speed,

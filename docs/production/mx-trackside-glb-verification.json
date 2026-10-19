@@ -1,0 +1,125 @@
+{
+  "passed": true,
+  "results": [
+    {
+      "model": "canopy",
+      "detail": "near",
+      "parts": 68,
+      "triangles": 3560,
+      "maximumPositionError": 1.942448337022951e-7,
+      "maximumNormalError": 0.000902749906614583,
+      "maximumColourError": 2.9796600298226394e-8,
+      "passed": true
+    },
+    {
+      "model": "canopy",
+      "detail": "course",
+      "parts": 68,
+      "triangles": 1696,
+      "maximumPositionError": 1.942448337022951e-7,
+      "maximumNormalError": 0.0029197193878973847,
+      "maximumColourError": 2.9640197740654628e-8,
+      "passed": true
+    },
+    {
+      "model": "tool-trolley",
+      "detail": "near",
+      "parts": 60,
+      "triangles": 4796,
+      "maximumPositionError": 5.667627437204954e-8,
+      "maximumNormalError": 0.0019824993198471093,
+      "maximumColourError": 1.4900207512269503e-8,
+      "passed": true
+    },
+    {
+      "model": "tool-trolley",
+      "detail": "course",
+      "parts": 57,
+      "triangles": 1700,
+      "maximumPositionError": 4.6110818289554345e-8,
+      "maximumNormalError": 0.00043789153339874074,
+      "maximumColourError": 1.4900207512269503e-8,
+      "passed": true
+    },
+    {
+      "model": "pressure-washer",
+      "detail": "near",
+      "parts": 37,
+      "triangles": 4204,
+      "maximumPositionError": 5.917977831187176e-8,
+      "maximumNormalError": 0.0008030552921041746,
+      "maximumColourError": 2.959442135797019e-8,
+      "passed": true
+    },
+    {
+      "model": "pressure-washer",
+      "detail": "course",
+      "parts": 37,
+      "triangles": 1568,
+      "maximumPositionError": 5.1484182962566784e-8,
+      "maximumNormalError": 0.0006000670125366423,
+      "maximumColourError": 2.8163909870926318e-8,
+      "passed": true
+    },
+    {
+      "model": "water-tank",
+      "detail": "near",
+      "parts": 64,
+      "triangles": 3088,
+      "maximumPositionError": 5.9503981933918144e-8,
+      "maximumNormalError": 0.001990051243028187,
+      "maximumColourError": 2.972793577971089e-8,
+      "passed": true
+    },
+    {
+      "model": "water-tank",
+      "detail": "course",
+      "parts": 64,
+      "triangles": 1360,
+      "maximumPositionError": 5.259583832714819e-8,
+      "maximumNormalError": 0.00002945827361419306,
+      "maximumColourError": 2.9464721662542104e-8,
+      "passed": true
+    },
+    {
+      "model": "marshal-post",
+      "detail": "near",
+      "parts": 61,
+      "triangles": 3568,
+      "maximumPositionError": 1.2211697131181602e-7,
+      "maximumNormalError": 0.002123650000366,
+      "maximumColourError": 2.740478510787625e-8,
+      "passed": true
+    },
+    {
+      "model": "marshal-post",
+      "detail": "course",
+      "parts": 51,
+      "triangles": 1064,
+      "maximumPositionError": 1.1446727114345835e-7,
+      "maximumNormalError": 0.00006304640143415194,
+      "maximumColourError": 2.9144287094773347e-8,
+      "passed": true
+    },
+    {
+      "model": "speaker-stack",
+      "detail": "near",
+      "parts": 93,
+      "triangles": 4568,
+      "maximumPositionError": 5.97972820678241e-8,
+      "maximumNormalError": 0.0018412060571577963,
+      "maximumColourError": 1.4898300149113197e-8,
+      "passed": true
+    },
+    {
+      "model": "speaker-stack",
+      "detail": "course",
+      "parts": 73,
+      "triangles": 1560,
+      "maximumPositionError": 5.970880957564153e-8,
+      "maximumNormalError": 0.00008648909708118171,
+      "maximumColourError": 1.4789581281871023e-8,
+      "passed": true
+    }
+  ]
+}

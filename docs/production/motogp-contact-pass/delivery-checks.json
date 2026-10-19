@@ -1,0 +1,370 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-19T02:27:40.305Z",
+  "implementationBaseline": "88e604b078a0ac42f50fa278706ca2d81182831d",
+  "integratedMainParent": "ecc8099d8b68dc2148c4b1a3000f93a7b9260cf5",
+  "integration": "Fast-forwarded ecc8099d8b68dc2148c4b1a3000f93a7b9260cf5 (motocross mechanics/practice) without overlapping files or conflicts. Its changes are preserved; final lint, content, build, 137 focused integration cases and both actual GP browser journeys use the combined tree.",
+  "buildIdentity": {
+    "version": 1,
+    "commit": null,
+    "fingerprint": "623f4a67851c64eb699dd1b9706eb0e60a8335605e4abb6e5862212d92393a4e",
+    "hashedInputCount": 715,
+    "independentlyRecomputedFingerprint": "623f4a67851c64eb699dd1b9706eb0e60a8335605e4abb6e5862212d92393a4e",
+    "match": true,
+    "method": "The exact Vite algorithm: all src files plus package-lock.json, index.html and vite.config.ts; lexically sort complete absolute path strings; hash relative path + NUL, bytes + NUL."
+  },
+  "referenceArchive": {
+    "count": 100,
+    "contactSheets": 5,
+    "sha256": "478517180397aa7022b508264e2e6383f721ea930a4035ef314e2e8fb421e7c6",
+    "audit": "reference-audit.json"
+  },
+  "validation": {
+    "broadRepository": {
+      "command": "npm run check",
+      "exitCode": 0,
+      "filesPassed": 428,
+      "testsPassed": 3567,
+      "vitestDurationSeconds": 1703.31,
+      "logSha256": "65b675a3b02650b6156d636562ef1e272da5a0775bf7eefd9a4c0aa3eac57e89",
+      "scope": "Completed after GP solver/AI/HUD and initial rendering changes; preceded the final spray-profile and thin-wall refinements and the later motocross fast-forward. This is not a claim that the entire combined final suite was rerun."
+    },
+    "finalFocused": {
+      "command": "npx vitest run tests/gp-appearance.test.ts tests/gp-radiator.test.ts tests/gp-wet-finish-order.test.ts tests/gp-chain-integrity.test.ts tests/gp-contact-effects.test.ts tests/spray-plume.test.ts tests/spray-lighting.test.ts tests/effects-upload.test.ts tests/festival-effects-integration.test.ts tests/gp-grounding.test.ts tests/studio-frame.test.ts tests/gp-control-feedback.test.ts tests/gp-riding-cues.test.ts tests/motocross-grid-preparation.test.ts tests/motocross-hud.test.ts tests/motocross-wheel-pickup.test.ts",
+      "exitCode": 0,
+      "filesPassed": 16,
+      "testsPassed": 137,
+      "durationSeconds": 42.04,
+      "logSha256": "63ff687ae57c935d397be04dc71d6d7ed10e7c4834dd55b8dd1368e54e068391"
+    },
+    "finalLint": {
+      "command": "npm run lint",
+      "exitCode": 0,
+      "logSha256": "89f0b098b1eb5d9131ba019d93bbaea75cfc7c5edac019f1c586e974855e1abc"
+    },
+    "finalContent": {
+      "command": "npm run validate:content",
+      "exitCode": 0,
+      "logSha256": "a480afe623199f8091039058ee1f85d51c516bcb130e4226e206ce3023940c96"
+    },
+    "finalBuild": {
+      "command": "npm run build",
+      "includes": [
+        "pinned player-LOD verification",
+        "tsc --noEmit",
+        "vite build"
+      ],
+      "exitCode": 0,
+      "logSha256": "d97decd420afa6fa5fd04db657231cd2da4cd3ac1bd1d56eaa7b666f7e6440ac",
+      "warning": "Existing large-bundle warning remains; main chunk approximately 15.32 MB, 4.60 MB gzip. No hardware performance claim."
+    },
+    "finalControlledBrowser": {
+      "command": "APEX_BROWSER_BACKEND=mesa LIBGL_ALWAYS_SOFTWARE=true GALLIUM_DRIVER=llvmpipe xvfb-run -a npx playwright test e2e/41-motogp-reference.spec.ts e2e/gp-contact-effects.spec.ts e2e/motorcycle-presentation.spec.ts --reporter=list,json",
+      "reportSha256": "53f3262ff0d031d7268e4928f1ebffe92603994e21c1c58af88d676471e5ca10",
+      "tests": [
+        {
+          "file": "41-motogp-reference.spec.ts",
+          "title": "GP reference R1.1: authored LODs, production onboard and same-instance wet rewind on WebGL2",
+          "status": "passed",
+          "durationMs": 27018,
+          "errors": []
+        },
+        {
+          "file": "gp-contact-effects.spec.ts",
+          "title": "GP contact effects use two actual tyres, readable moving spray and fixed WebGL resources",
+          "status": "passed",
+          "durationMs": 7225,
+          "errors": []
+        },
+        {
+          "file": "motorcycle-presentation.spec.ts",
+          "title": "motorcycle HUD: responsive production layout, real tyre channels and bike/car restoration",
+          "status": "passed",
+          "durationMs": 6907,
+          "errors": []
+        }
+      ],
+      "scope": "Final GP source before the non-overlapping motocross fast-forward. Source-bundled production model/effect fixtures and synthetic telemetry HUD; separate from actual menu-entry journeys."
+    },
+    "actualApplication": {
+      "command": "APEX_BROWSER_BACKEND=mesa LIBGL_ALWAYS_SOFTWARE=true GALLIUM_DRIVER=llvmpipe xvfb-run -a npx playwright test e2e/motogp-wet-riding.spec.ts e2e/motogp-riding-flow.spec.ts --reporter=list,json",
+      "testsPassed": 2,
+      "reportSha256": "66f1b5d735b22507cb3d69cbcfa1a5f1d5e4a2eee1c22b98adc8a381f35bf600",
+      "receipt": "live-application-checks.json",
+      "sourceFingerprint": "623f4a67851c64eb699dd1b9706eb0e60a8335605e4abb6e5862212d92393a4e"
+    },
+    "otherRetainedEvidence": [
+      "riding-physics-checks.json",
+      "model-metrics.json",
+      "optics-metrics.json",
+      "metrics.json",
+      "surface-metrics.json",
+      "grounding-metrics.json"
+    ]
+  },
+  "resolvedReviewFindings": [
+    "Independent contacts exposed an insufficient high-speed GP AI preview; fixed with bounded stopping-distance lookahead while preserving crash thresholds and non-GP targets.",
+    "The enlarged GP feedback font initially exceeded the existing compact 1.35-scale layout gate; tightened spacing and kept the original gate unchanged.",
+    "Recovery feedback was hidden by the off-route corner-guide return; added neutral BIKE CONTROL feedback outside the route while retaining marshal priority.",
+    "Live wet review showed car-scale spray obscuring the rider; added an emitter-owned GP optical profile with unchanged particle work.",
+    "Live cockpit review showed dashboard displacement through the screen; confirmed and corrected in a controlled thin-wall optical comparison.",
+    "The wet pause assertion initially sampled before render interpolation reached the worker-acknowledged final frame. The test now waits for that presented timestamp and then proves unchanged particles across additional actual rendered frames.",
+    "The independent fingerprint checker originally sorted Python Path components rather than the full strings sorted by Vite, producing a false mismatch. The final exact-algorithm comparison and all retained application diagnostics match the build fingerprint."
+  ],
+  "limits": [
+    "Original procedural racing game with a reduced motorcycle solver; no claimed parity with the commercial photo references.",
+    "Photographs constrain visible design cues, not numerical physics coefficients.",
+    "Browser evidence uses a software GPU and establishes function, deterministic presentation and bounded fixture resources, not physical-device frame rates.",
+    "The control-advice image uses explicit synthetic telemetry. Live clear/rain/replay images come from the real application at documented settings."
+  ],
+  "changedCode": [
+    {
+      "file": "e2e/41-motogp-reference.spec.ts",
+      "sha256": "35d2b607453c0c8213f8fbe3ba73d03cef83989a893e002aeec7cb92de7fae86"
+    },
+    {
+      "file": "e2e/fixtures/gp-contact-effects.ts",
+      "sha256": "6f3e3b30f34663004f1892677e89837be3773ced060a197d3a23948732e56166"
+    },
+    {
+      "file": "e2e/fixtures/motogp-reference-review.ts",
+      "sha256": "0ac061afc8bc2d86d7f599b2a881b458299857b4b665bf2abe3ff6cdbe4f874e"
+    },
+    {
+      "file": "e2e/fixtures/motorcycle-presentation.ts",
+      "sha256": "c3e5ff5d39d430aa8d688f68b1944f7c5ee5a13b5d002095917195ac98aa031b"
+    },
+    {
+      "file": "e2e/gp-contact-effects.spec.ts",
+      "sha256": "df3c0837d098fca280a3adc408b088b9783ddd5ad5be8cf182a32e72447ed3d3"
+    },
+    {
+      "file": "e2e/motogp-wet-riding.spec.ts",
+      "sha256": "b7b3c97244bbbef0d66c2614e09a38b5330a054c5b235638d0a88b8526742cc5"
+    },
+    {
+      "file": "e2e/motorcycle-presentation.spec.ts",
+      "sha256": "fde531b685a158e96aeac0d7a1fd31b0e13b0e684831f519e05c33a1deaa53ee"
+    },
+    {
+      "file": "src/rendering/bike.ts",
+      "sha256": "11830e5c034b25c969b5f61136e8b9b7ee711979e51cc8812d5e83558fd1ef00"
+    },
+    {
+      "file": "src/rendering/effects.ts",
+      "sha256": "ff313052274796308ac3395a8c2ecd798ae3e20871e1e859a62f28e794cfc4e0"
+    },
+    {
+      "file": "src/rendering/gp-appearance.ts",
+      "sha256": "2887d298600cadb0280a0c963772de9dbc1070661b966b773625050be28fd981"
+    },
+    {
+      "file": "src/rendering/gp-contact-effects.ts",
+      "sha256": "333591880cb46f5cf83422981182d48415447ee2adde0620709ba8fc37fd8840"
+    },
+    {
+      "file": "src/rendering/gp-radiator.ts",
+      "sha256": "39c2f5a1d74ed68a47eef5205026815f8c9793e3c9bd0d6304d2cafa27839c3d"
+    },
+    {
+      "file": "src/rendering/gp-tyre-contacts.ts",
+      "sha256": "efb6a1e0e89bfd78aa05c71a95e07182fe9d4a843b086f1ecdd9e303c630f571"
+    },
+    {
+      "file": "src/rendering/renderer.ts",
+      "sha256": "9f31e0bbc19102d238677bd96f5730d1249763d543fae3089d9f4adc6df58381"
+    },
+    {
+      "file": "src/rendering/spray-clouds.ts",
+      "sha256": "a15baf4146440bd6d3cab100a1f54a6f8b5d105d90bdc99b034475a4247c76c7"
+    },
+    {
+      "file": "src/rendering/studio/studio-frame.ts",
+      "sha256": "c95d1f7fe508512189ef1b4db92964703cf1a55726f758fcacd6d2e8adce8a88"
+    },
+    {
+      "file": "src/simulation/ai.ts",
+      "sha256": "0e7d119856ecedb98017b00cc0bb5198910615059333b332a3fa6934b0a1270d"
+    },
+    {
+      "file": "src/simulation/bike-ai.ts",
+      "sha256": "f005d742e8111994d5969b03e205e9d60826bd0bf1c95fd128f641e1f01c525c"
+    },
+    {
+      "file": "src/simulation/bike-vehicle.ts",
+      "sha256": "2141f49269873ab53e30fbe44d547f61b7e31a5995f15bf5a037917ebbe38466"
+    },
+    {
+      "file": "src/simulation/bike.ts",
+      "sha256": "8cb26ad4d0050ef528f5bc3a22f33fa07090d7696deb16a426d02dd1fe6b0f3b"
+    },
+    {
+      "file": "src/ui/bike-hud.css",
+      "sha256": "708bfca5a1cbd53353415dfb0b3be50392a672b200288b0c801b6ac4a3ef2f86"
+    },
+    {
+      "file": "src/ui/bike-hud.ts",
+      "sha256": "e4139e7ea49e1dd9273a89b4e3f6f7e4b3390fded301e0c953a217d1bad1a491"
+    },
+    {
+      "file": "src/ui/gp-control-feedback.ts",
+      "sha256": "e0c74d8cffed66490cfe0832156bde0304a1c08d3088f5d9fb14ea4a42d1f5c3"
+    },
+    {
+      "file": "src/ui/gp-riding-cues.ts",
+      "sha256": "f977a1dc2f9d9e31cb9d1895def5bb308c9dac32c7977deb2c76b403d27378da"
+    },
+    {
+      "file": "tests/gp-braking-approach.test.ts",
+      "sha256": "b0f4e3069ae3a91734773a902f0d921cfa07e4eac1e38d004432325825e93a6c"
+    },
+    {
+      "file": "tests/gp-contact-effects.test.ts",
+      "sha256": "d724d258fd68341a5d13cc1c50720e81c6c8f1ae83a7da7976452f64528d8098"
+    },
+    {
+      "file": "tests/gp-control-feedback.test.ts",
+      "sha256": "672808c697b3717ed19f91c7ecdda1506448862f391679b12d7829bae55a2171"
+    },
+    {
+      "file": "tests/gp-radiator.test.ts",
+      "sha256": "9ec93a5b26aa58652c58597bc4a63acf55afbec41ded9c7c2759335d15d03e64"
+    },
+    {
+      "file": "tests/gp-tyre-contact.test.ts",
+      "sha256": "e3e67c87d1bf99f2dcd1761efd9c1ad3ca66f30da2ba332607d621e1f8e0ecc4"
+    }
+  ],
+  "evidence": [
+    {
+      "file": "after.png",
+      "bytes": 114257,
+      "sha256": "2dc98eb37cd817e9dcec9fed3ef0e565651351cf2375f75ecff17ef73076066a"
+    },
+    {
+      "file": "before.png",
+      "bytes": 343871,
+      "sha256": "8f35b3af8b4b113e61be4b5a0a85d4e60ac8897ea81a0341062ad3360d942d96"
+    },
+    {
+      "file": "fallen.png",
+      "bytes": 90794,
+      "sha256": "91694a7a4732fe55cd5236934a8fceb0842014f146802f22cdca5d8d1f1e5a55"
+    },
+    {
+      "file": "gp-control-feedback.png",
+      "bytes": 91579,
+      "sha256": "edbb4948363d468e5bc979ec323dc1a66c89b726d5669b9fc6577b9e69ceeaeb"
+    },
+    {
+      "file": "gp-live-clear-chase.png",
+      "bytes": 911690,
+      "sha256": "86fc60dddc8e328793a53150ea3c779c042ec656f4f26d79b9ba5a7e123b10d0"
+    },
+    {
+      "file": "gp-live-clear-cockpit.png",
+      "bytes": 826589,
+      "sha256": "9ad1516a7b297750baea5edf415d81676e97bc8beb8d4b362c8e917ff3698274"
+    },
+    {
+      "file": "gp-live-wet-before.png",
+      "bytes": 582476,
+      "sha256": "04fb86fc591051dfd0f68c94f86027fb437ae97884d5abbfee9c60e7850949a5"
+    },
+    {
+      "file": "gp-live-wet-chase.png",
+      "bytes": 704011,
+      "sha256": "ae4d0afb446bcc7d5ba9838cc2e014ce14250ccc299bf7a97bd6507c29b3c180"
+    },
+    {
+      "file": "gp-live-wet-cockpit.png",
+      "bytes": 649368,
+      "sha256": "bf18445af7d7ab02968300afeeec6abd4805274864d050ce5121b28f39fd067e"
+    },
+    {
+      "file": "gp-recorded-replay.png",
+      "bytes": 722601,
+      "sha256": "5a2b89425e82541117197f076794efeee03ff9cc03d4e8307e5f12fe3d9655f6"
+    },
+    {
+      "file": "gpr1-cooling-pack.png",
+      "bytes": 232290,
+      "sha256": "c4b20d6655e36b60cf206a432840ecfeba793db16fba60aeaa5a038cc6f7805b"
+    },
+    {
+      "file": "gpr1-optics-after-thin-wall.png",
+      "bytes": 412942,
+      "sha256": "ba50320daa885734eac6c01dd34e7e4af4cc8a10095824a78c7efc6d0649d535"
+    },
+    {
+      "file": "gpr1-optics-before-volume.png",
+      "bytes": 416523,
+      "sha256": "58e6f260af0fa3c070ade41b3cd1d66c166d56c11c4bc1ec60a8d99316063cbd"
+    },
+    {
+      "file": "gpr2-cooling-pack.png",
+      "bytes": 222980,
+      "sha256": "b322aa01cf41420a7079c9198a1af13f1ec7107fd405e592179471732959a30a"
+    },
+    {
+      "file": "grounding-metrics.json",
+      "bytes": 7029,
+      "sha256": "ec058a421ccede077bc6aaa963da4af0d6bc0140bd78e6f5efb30534eedf57d6"
+    },
+    {
+      "file": "lean.png",
+      "bytes": 113987,
+      "sha256": "89eb8e40adc3b19c469ae312035efd837ae5210c3ccddb88b9845d22afaeee6b"
+    },
+    {
+      "file": "live-application-checks.json",
+      "bytes": 52700,
+      "sha256": "6fa86f80b5aef6121e351f9bbda51050788f3409ab408f882f7f7de93993294b"
+    },
+    {
+      "file": "metrics.json",
+      "bytes": 9130,
+      "sha256": "287e13a50baed353b2a74efb3ac74da3e2f4ab5666bf5e252a3ed402c4ca412c"
+    },
+    {
+      "file": "model-metrics.json",
+      "bytes": 7408,
+      "sha256": "ad90895f3083c12ba430ebc31ed6f43a4a1620fee0299a54b75b792954a2d5e0"
+    },
+    {
+      "file": "moving-after.png",
+      "bytes": 110577,
+      "sha256": "ce214348aa0cd7dbaf71bb36aa2cb063e88d9680ee01339ea7acf88154228696"
+    },
+    {
+      "file": "moving-before.png",
+      "bytes": 161963,
+      "sha256": "38ac955bdb5cd3f39207664ec7c2bf56ee842a749653e111841cba1e5a9689fb"
+    },
+    {
+      "file": "optics-metrics.json",
+      "bytes": 4105,
+      "sha256": "cbe49d0d18cf4c435091a54d53d3abc0609365de505ccdf72671c2efd472d041"
+    },
+    {
+      "file": "reference-audit.json",
+      "bytes": 52855,
+      "sha256": "20a3e13d478081c29760eb0ccd7010e090ca17453208d45f9cc2b08da744552b"
+    },
+    {
+      "file": "riding-physics-checks.json",
+      "bytes": 12601,
+      "sha256": "04917137ee2a1b1ea96f2f019e15ece06ca1376c541eb42ea4214adebc7bd898"
+    },
+    {
+      "file": "surface-metrics.json",
+      "bytes": 5565,
+      "sha256": "2a8f517ea46707e8ec06ee9d37b366d30552e7dcc781a84a16b6a0d1dda7467f"
+    },
+    {
+      "file": "wheelie.png",
+      "bytes": 112412,
+      "sha256": "04a5bb19eb1c17a2777f64863f20783b075c5b7ec2d98d6b643ce95f0627df02"
+    }
+  ]
+}

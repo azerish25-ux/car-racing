@@ -139,8 +139,59 @@
 }
 #hud[data-bike='true'] .gp-feedback {
   display: grid;
-  gap: 8px;
+  gap: 6px;
   font-size: calc(9px * var(--ui-scale, 1));
+}
+#hud[data-bike='true'] .gp-craft:not([hidden]) {
+  display: grid;
+  gap: 5px;
+  margin-bottom: 2px;
+  padding: 6px 0 8px;
+  border-block: 1px solid #aac4d826;
+}
+#hud[data-bike='true'] .gp-next,
+#hud[data-bike='true'] .gp-cue {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+#hud[data-bike='true'] .gp-next > b {
+  font-size: calc(17px * var(--ui-scale, 1));
+  line-height: 1;
+  color: var(--gp-accent);
+}
+#hud[data-bike='true'] #gpCorner {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: calc(10px * var(--ui-scale, 1));
+}
+#hud[data-bike='true'] #gpCornerDistance {
+  margin-left: auto;
+  flex-shrink: 0;
+  color: #a5b9c9;
+  font-size: calc(8px * var(--ui-scale, 1));
+}
+#hud[data-bike='true'] #gpAction {
+  font-size: calc(11px * var(--ui-scale, 1));
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+#hud[data-bike='true'] #gpTow {
+  margin-left: auto;
+  font-size: calc(8px * var(--ui-scale, 1));
+  color: var(--gp-accent);
+}
+#hud[data-bike='true'] #gpAdvice {
+  font-size: calc(10px * var(--ui-scale, 1));
+  color: #b6c7d4;
+}
+#hud[data-bike='true'] .gp-craft[data-tone='brake'] #gpAction,
+#hud[data-bike='true'] .gp-craft[data-tone='caution'] #gpAction {
+  color: #ffc477;
+}
+#hud[data-bike='true'] .gp-craft[data-tone='flow'] #gpAction {
+  color: var(--gp-accent);
 }
 #hud[data-bike='true'] :is(.gp-lean, .gp-rear-brake) {
   display: grid;
@@ -192,7 +243,7 @@
 #hud[data-bike='true'] .gp-tyres {
   display: flex;
   justify-content: space-between;
-  padding-top: 8px;
+  padding-top: 6px;
   border-top: 1px solid #aac4d826;
   gap: 12px;
 }
@@ -221,7 +272,7 @@
   display: flex;
   justify-content: space-between;
   color: #9eb2c2;
-  padding-top: 5px;
+  padding-top: 3px;
   font-size: calc(7px * var(--ui-scale, 1));
   letter-spacing: 0.02em;
 }
@@ -276,6 +327,30 @@
   #hud[data-f1][data-bike='true'][data-camera] .instruments {
     bottom: calc(107px + env(safe-area-inset-bottom, 0px));
     width: min(calc(230px * var(--ui-scale, 1)), calc(100vw - 24px));
+  }
+  #hud[data-bike='true'] .gp-craft:not([hidden]) {
+    padding-block: 4px;
+    gap: 3px;
+  }
+}
+/* Landscape screens prioritize the corner/action pair and live inputs. Tyre
+   condition remains in the vehicle panel; secondary readouts must not push
+   the instruments over the road when the player enlarges the interface. */
+@media (max-height: 679px) and (min-width: 681px) {
+  #hud[data-bike='true'] .gp-craft:not([hidden]) {
+    padding-block: 3px;
+    gap: 2px;
+    margin-bottom: 0;
+  }
+  #hud[data-bike='true'] #gpAdvice,
+  #hud[data-bike='true'] .gp-tyres {
+    display: none;
+  }
+  #hud[data-bike='true'] .gp-feedback {
+    gap: 5px;
+  }
+  #hud[data-bike='true'] .gp-next > b {
+    font-size: calc(13px * var(--ui-scale, 1));
   }
 }
 @media (max-height: 520px) and (min-width: 681px) {

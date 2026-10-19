@@ -1,7 +1,18 @@
 import * as T from 'three';
 import { TAU } from '../../core/math.ts';
-import { F, H, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../../simulation/protocol.ts';
+import {
+  F,
+  H,
+  R,
+  RACE_BASE,
+  W,
+  WHEEL_BASE,
+  WHEEL_STRIDE,
+  carBase,
+} from '../../simulation/protocol.ts';
 import { WHEEL_POSITIONS } from '../../simulation/vehicle.ts';
+import { vehicleAt } from '../../simulation/vehicles.ts';
+import { GpTyreContactProjector } from '../gp-tyre-contacts.ts';
 import { renderWind } from '../../simulation/weather.ts';
 import { injectDeclarations, type ShaderStage, type StudioShader } from './shader-hooks.ts';
 
@@ -23,8 +34,10 @@ import { injectDeclarations, type ShaderStage, type StudioShader } from './shade
  * Car slots are car ids (`< studioCarCount`, at most 12, the protocol limit).
  * `studioCarNow/Prev` are rigid chassis-to-world matrices (+X driver's left,
  * +Y up, +Z nose). `studioCarPose` is (x, z, yaw, groundY): chassis origin,
- * heading `atan2(forward.x, forward.z)` and the mean world height of the four
- * presented tyre contacts. The studio car footprint is the oriented box of half
+ * heading `atan2(forward.x, forward.z)` and the ground height. Formula cars use
+ * the mean world height of their four presented tyre contacts; GP prototypes
+ * recover their ground plane from the bike's crown/pivot pose. The studio car
+ * footprint is the oriented box of half
  * extents `STUDIO_CAR_HALF_EXTENTS` (2.8 m along, 1.0 m across) about (x, z).
  *
  * Usage. Material edits go through a chained hook:
@@ -67,6 +80,12 @@ export interface StudioUniforms {
   studioCarPrev: T.IUniform<T.Matrix4[]>;
   /** (x, z, yaw, groundY) per car. */
   studioCarPose: T.IUniform<T.Vector4[]>;
+  /** GP-only tyre contacts: (world x, world z, surface y, contact weight). */
+  studioGpFront: T.IUniform<T.Vector4[]>;
+  studioGpRear: T.IUniform<T.Vector4[]>;
+  /** GP-only (1 riding / 2 separated, signed lean sine, rider offset, stand lift).
+   * Zero for every other vehicle, preserving its existing grounding path. */
+  studioGpShape: T.IUniform<T.Vector4[]>;
 }
 export type StudioUniformName = keyof StudioUniforms;
 
@@ -81,6 +100,9 @@ const GLSL_TYPES: Readonly<Record<StudioUniformName, string>> = Object.freeze({
   studioCarNow: 'mat4 studioCarNow[STUDIO_MAX_CARS]',
   studioCarPrev: 'mat4 studioCarPrev[STUDIO_MAX_CARS]',
   studioCarPose: 'vec4 studioCarPose[STUDIO_MAX_CARS]',
+  studioGpFront: 'vec4 studioGpFront[STUDIO_MAX_CARS]',
+  studioGpRear: 'vec4 studioGpRear[STUDIO_MAX_CARS]',
+  studioGpShape: 'vec4 studioGpShape[STUDIO_MAX_CARS]',
 });
 export const STUDIO_UNIFORM_NAMES = Object.freeze(Object.keys(GLSL_TYPES) as StudioUniformName[]);
 
@@ -96,6 +118,9 @@ export function createStudioUniforms(): StudioUniforms {
     studioCarNow: { value: Array.from({ length: STUDIO_MAX_CARS }, () => new T.Matrix4()) },
     studioCarPrev: { value: Array.from({ length: STUDIO_MAX_CARS }, () => new T.Matrix4()) },
     studioCarPose: { value: Array.from({ length: STUDIO_MAX_CARS }, () => new T.Vector4()) },
+    studioGpFront: { value: Array.from({ length: STUDIO_MAX_CARS }, () => new T.Vector4()) },
+    studioGpRear: { value: Array.from({ length: STUDIO_MAX_CARS }, () => new T.Vector4()) },
+    studioGpShape: { value: Array.from({ length: STUDIO_MAX_CARS }, () => new T.Vector4()) },
   };
 }
 
@@ -194,6 +219,7 @@ export class StudioFrame {
   private readonly point = new T.Vector3();
   private readonly sunPosition = new T.Vector3();
   private readonly sunTarget = new T.Vector3();
+  private readonly gpContacts = new GpTyreContactProjector();
 
   constructor(readonly uniforms: StudioUniforms = studioUniforms) {}
 
@@ -254,7 +280,13 @@ export class StudioFrame {
       const now = u.studioCarNow.value[id],
         prev = u.studioCarPrev.value[id],
         pose = u.studioCarPose.value[id],
+        gpFront = u.studioGpFront.value[id],
+        gpRear = u.studioGpRear.value[id],
+        gpShape = u.studioGpShape.value[id],
         last = this.previousCars[id];
+      gpFront.set(0, 0, 0, 0);
+      gpRear.set(0, 0, 0, 0);
+      gpShape.set(0, 0, 0, 0);
       if (id >= cars) {
         now.identity();
         prev.identity();
@@ -276,12 +308,23 @@ export class StudioFrame {
       prev.copy(advancing && id < this.cars && jump <= reach ? last : now);
       last.copy(now);
       this.point.set(0, 0, 1).applyQuaternion(this.quaternion);
-      pose.set(
-        this.position.x,
-        this.position.z,
-        Math.atan2(this.point.x, this.point.z),
-        this.groundHeight(presented, o),
-      );
+      const heading = Math.atan2(this.point.x, this.point.z);
+      const definition = vehicleAt(Math.round(presented[o + RACE_BASE + R.VEHICLE]));
+      const ground =
+        definition.classId === 'gp-bike' && definition.bike
+          ? this.gpContacts.project(
+              presented,
+              o,
+              definition,
+              this.position,
+              this.quaternion,
+              heading,
+              gpFront,
+              gpRear,
+              gpShape,
+            )
+          : this.groundHeight(presented, o);
+      pose.set(this.position.x, this.position.z, heading, ground);
     }
     this.cars = cars;
   }

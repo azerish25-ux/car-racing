@@ -11,8 +11,10 @@ import { addGPIdentity } from './bike-livery.ts';
 import { gpBodywork, gpUpperCowl } from './gp-bodywork.ts';
 import { gpRadialBrakeCaliper } from './gp-radial-caliper.ts';
 import { gpDiscGlow } from './gp-disc-glow.ts';
+import { gpForgedWheel, gpTyreCompoundMarkings } from './gp-forged-wheel.ts';
 import { bindGpTyre, installGpTyreFinish, type GpTyreAppearance } from './gp-tyre-finish.ts';
 import { gpCoolingLouvers } from './gp-cooling-louvers.ts';
+import { gpRadiator } from './gp-radiator.ts';
 import { GPChainDrive } from './gp-chain-drive.ts';
 import { bikeSurfaceMaps } from './bike-surface-detail.ts';
 import { BikeCockpit } from './bike-cockpit.ts';
@@ -695,12 +697,15 @@ export class BikeModel {
       crown: number,
       front: boolean,
     ) => {
-      add(spin, tyreGeometry(radius, halfWidth, crown, rim + 0.004, sides), m.rubber);
+      const tyre = tyreGeometry(radius, halfWidth, crown, rim + 0.004, sides);
+      add(spin, tyre, m.rubber);
       if (detail !== 'far') {
-        // Compound band on the sidewall.
+        // GP sidewall markings follow the actual tyre facets as thin paint.
         const ring = add(
           spin,
-          ringGeometry(rim + 0.05, rim + 0.042, halfWidth * 1.66 + 0.004, sides),
+          gpPrototype
+            ? gpTyreCompoundMarkings(tyre)
+            : ringGeometry(rim + 0.05, rim + 0.042, halfWidth * 1.66 + 0.004, sides),
           m.band,
           0,
           0,
@@ -708,52 +713,64 @@ export class BikeModel {
           false,
         );
         this.rings.push(ring);
-        // Rim barrel and five forged spokes (or a laced wire wheel).
-        add(
-          spin,
-          new T.CylinderGeometry(rim, rim, halfWidth * 1.5, sides, 1, true),
-          look.wheels === 'spoked' ? m.steel : m.wheel,
-        ).rotation.z = Math.PI / 2;
-        if (look.wheels === 'spoked')
-          for (let k = 0; k < (detail === 'high' ? 36 : 18); k++) {
-            const count = detail === 'high' ? 36 : 18,
-              a = (k / count) * Math.PI * 2,
-              lean = k % 2 ? 0.08 : -0.08;
-            const spoke = add(spin, new T.CylinderGeometry(0.0025, 0.0025, rim - 0.05, 4), m.steel);
-            spoke.position.set(
-              lean * 0.3,
-              Math.cos(a) * (rim / 2 + 0.02),
-              Math.sin(a) * (rim / 2 + 0.02),
-            );
-            spoke.rotation.set(a, 0, lean);
-          }
-        else
-          for (let k = 0; k < 5; k++) {
-            const a = (k / 5) * Math.PI * 2;
-            const spoke = add(
-              spin,
-              detail === 'high'
-                ? beam(
-                    [
-                      [0, 0.042, -0.005],
-                      [0, 0.095, 0.01],
-                      [0, 0.16, 0.02],
-                      [0, rim - 0.002, 0.012],
-                    ],
-                    0.018,
-                    0.025,
-                    7,
-                    2,
-                  )
-                : new RoundedBoxGeometry(0.022, rim - 0.05, 0.029, 1, 0.005),
-              m.wheel,
-            );
-            if (detail !== 'high')
-              spoke.position.set(0, Math.cos(a) * (rim / 2 + 0.02), Math.sin(a) * (rim / 2 + 0.02));
-            spoke.rotation.x = a;
-          }
-        add(spin, new T.CylinderGeometry(0.05, 0.05, halfWidth * 1.4, 16), m.wheel).rotation.z =
-          Math.PI / 2;
+        if (gpPrototype) {
+          add(spin, gpForgedWheel(rim, halfWidth, detail), m.wheel);
+        } else {
+          // Catalogue bikes retain their original cast or laced wheel identity.
+          add(
+            spin,
+            new T.CylinderGeometry(rim, rim, halfWidth * 1.5, sides, 1, true),
+            look.wheels === 'spoked' ? m.steel : m.wheel,
+          ).rotation.z = Math.PI / 2;
+          if (look.wheels === 'spoked')
+            for (let k = 0; k < (detail === 'high' ? 36 : 18); k++) {
+              const count = detail === 'high' ? 36 : 18,
+                a = (k / count) * Math.PI * 2,
+                lean = k % 2 ? 0.08 : -0.08;
+              const spoke = add(
+                spin,
+                new T.CylinderGeometry(0.0025, 0.0025, rim - 0.05, 4),
+                m.steel,
+              );
+              spoke.position.set(
+                lean * 0.3,
+                Math.cos(a) * (rim / 2 + 0.02),
+                Math.sin(a) * (rim / 2 + 0.02),
+              );
+              spoke.rotation.set(a, 0, lean);
+            }
+          else
+            for (let k = 0; k < 5; k++) {
+              const a = (k / 5) * Math.PI * 2;
+              const spoke = add(
+                spin,
+                detail === 'high'
+                  ? beam(
+                      [
+                        [0, 0.042, -0.005],
+                        [0, 0.095, 0.01],
+                        [0, 0.16, 0.02],
+                        [0, rim - 0.002, 0.012],
+                      ],
+                      0.018,
+                      0.025,
+                      7,
+                      2,
+                    )
+                  : new RoundedBoxGeometry(0.022, rim - 0.05, 0.029, 1, 0.005),
+                m.wheel,
+              );
+              if (detail !== 'high')
+                spoke.position.set(
+                  0,
+                  Math.cos(a) * (rim / 2 + 0.02),
+                  Math.sin(a) * (rim / 2 + 0.02),
+                );
+              spoke.rotation.x = a;
+            }
+          add(spin, new T.CylinderGeometry(0.05, 0.05, halfWidth * 1.4, 16), m.wheel).rotation.z =
+            Math.PI / 2;
+        }
       } else
         add(spin, new T.CylinderGeometry(rim, rim, halfWidth * 1.4, 10), m.wheel).rotation.z =
           Math.PI / 2;
@@ -1146,8 +1163,14 @@ export class BikeModel {
         -0.26,
         0.02,
       ).rotation.z = Math.PI / 2;
-      add(this.sprung, new T.BoxGeometry(0.36, 0.26, 0.04), m.dark, 0, -0.1, 0.37).rotation.x =
-        -0.25;
+      if (gpPrototype) {
+        const radiator = gpRadiator(detail, m);
+        radiator.position.set(0, -0.1, 0.37);
+        radiator.rotation.x = -0.25;
+        this.sprung.add(radiator);
+      } else
+        add(this.sprung, new T.BoxGeometry(0.36, 0.26, 0.04), m.dark, 0, -0.1, 0.37).rotation.x =
+          -0.25;
     }
     // Exhaust: headers under the engine to a high titanium silencer.
     if (look.exhaust === 'expansion') {

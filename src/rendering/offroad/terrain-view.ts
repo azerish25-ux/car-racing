@@ -11,6 +11,7 @@ import { materials } from '../materials/index.ts';
 import { installScannedSoil, soilSlotOf, soilSlots, writeSoilSlot } from '../ground/soil-splat.ts';
 import type { ScanLayer } from '../ground/scan-store.ts';
 import { installMxSoilDetail, MX_SOIL_COLOURS } from './mx-soil-detail.ts';
+import { installMxSoilMorphology, MX_SOIL_MORPHOLOGY_KINDS } from './mx-soil-morphology.ts';
 import { mxSoilSample, sampleMxSoilTransition } from './mx-soil-transition.ts';
 import { installMxTerrainShadow } from './mx-terrain-shadow.ts';
 
@@ -79,16 +80,15 @@ export class TerrainView {
     // Kinds on this course (cells off the course read as the venue's turf).
     const kinds = new Set<SoilKind>(['turf']);
     for (let i = 0; i < t.soil.length; i++) kinds.add(SOIL_KINDS[t.soil[i]] ?? 'loam');
+    if (this.motocross) kinds.add('hardpack');
     this.soilSlots = soilSlots(kinds);
-    this.soilMacro =
-      surface.kind === 'motocross'
-        ? 'forest'
-        : surface.kind === 'supercross'
-          ? 'dryEarth'
-          : this.soilSlots[0];
+    // The macro tap is not blurred: a forest-floor scan stretches needles
+    // across the worked track. Both MX courses use resident mineral earth.
+    this.soilMacro = this.motocross ? 'dryEarth' : this.soilSlots[0];
     installScannedSoil(this.material, this.soilSlots, this.soilMacro);
     if (this.motocross) {
       installMxSoilDetail(this.material);
+      installMxSoilMorphology(this.material);
       installMxTerrainShadow(this.material);
     }
     for (let first = 0; first < t.renderRows; first += CHUNK_ROWS)
@@ -106,7 +106,18 @@ export class TerrainView {
     const palette = this.motocross
       ? SOIL_KINDS.map((kind) => new T.Color(MX_SOIL_COLOURS[kind]))
       : [];
-    const slots = this.motocross ? SOIL_KINDS.map((kind) => soilSlotOf(kind, this.soilSlots)) : [];
+    // A prepared MX line is mineral soil, not the photographed roots/leaves
+    // of an undisturbed forest floor. Reuse dry earth's granular detail for
+    // worked loam as well as its broad colour variation above.
+    // Physics kind, moisture, vertex albedo and every non-MX venue stay intact.
+    const slots = this.motocross
+      ? SOIL_KINDS.map((kind) =>
+          soilSlotOf(
+            kind === 'loam' && this.soilSlots.includes('dryEarth') ? 'hardpack' : kind,
+            this.soilSlots,
+          ),
+        )
+      : [];
     const vx = cols + 1,
       vz = rows + 1,
       count = vx * vz;
@@ -115,6 +126,7 @@ export class TerrainView {
       state = new Float32Array(count * 3),
       layers = new Float32Array(count * 4),
       mxCourse = this.motocross ? new Float32Array(count * 4) : null,
+      mxSoilMix = this.motocross ? new Float32Array(count * 4) : null,
       uv = new Float32Array(count * 2),
       base = new Float32Array(count),
       keep = new Uint8Array(count);
@@ -161,6 +173,10 @@ export class TerrainView {
             if (slots[soil] < this.soilSlots.length - 1) layers[k * 4 + slots[soil]] += weight;
           }
           state[k * 3] = sample.moisture;
+          if (mxSoilMix)
+            for (let component = 0; component < MX_SOIL_MORPHOLOGY_KINDS.length; component++)
+              mxSoilMix[k * 4 + component] =
+                sample.weights[SOIL_KINDS.indexOf(MX_SOIL_MORPHOLOGY_KINDS[component])];
         } else {
           // Preserve the pre-existing RX/stage rendering byte for byte.
           colour.setHex(SOIL_COLOURS[kind]).convertSRGBToLinear();
@@ -206,6 +222,7 @@ export class TerrainView {
     );
     geometry.setAttribute('apexSoilLayers', new T.BufferAttribute(layers, 4));
     if (mxCourse) geometry.setAttribute('mxCourse', new T.BufferAttribute(mxCourse, 4));
+    if (mxSoilMix) geometry.setAttribute('mxSoilMix', new T.BufferAttribute(mxSoilMix, 4));
     geometry.setAttribute('uv', new T.BufferAttribute(uv, 2));
     geometry.setAttribute('uv1', new T.BufferAttribute(uv.slice(), 2));
     geometry.setIndex(index);
@@ -248,6 +265,9 @@ export class TerrainView {
     if (target < this.shown || this.shown < 0) {
       this.depth.fill(0);
       this.compaction.fill(0);
+      // Before the first export there is no session soaking. Restore this
+      // alongside the fields: a seek to -1 must not keep a later wet film.
+      this.setWetness(0);
       this.markAll();
       from = 0;
       for (let i = target; i >= 0; i--)
@@ -282,7 +302,10 @@ export class TerrainView {
       const next = this.chunks[Math.floor((Math.floor(block / cols) + 1) / CHUNK_ROWS)];
       if (next) next.dirty = true;
     }
-    this.wetness = delta.wetness;
+    this.setWetness(delta.wetness);
+  }
+  private setWetness(wetness: number) {
+    this.wetness = wetness;
     (this.material.userData.soil as { apexSoilWetness: T.IUniform<number> }).apexSoilWetness.value =
       this.wetness;
   }

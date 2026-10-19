@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DEFAULT_OPTIONS, type SessionOptions } from '../src/simulation/config.ts';
 import { rigTrack } from '../src/simulation/offroad/jump-rig.ts';
+import { offroadCourse } from '../src/simulation/offroad/venues.ts';
 import {
   CAR_STRIDE,
   F,
@@ -10,6 +11,8 @@ import {
   OFFROAD_BASE,
   R,
   RACE_BASE,
+  W,
+  WHEEL_BASE,
   carBase,
 } from '../src/simulation/protocol.ts';
 import { vehicleIndex } from '../src/simulation/vehicles.ts';
@@ -83,6 +86,15 @@ function harness() {
   frame[base + F.S] = 215;
   frame[base + RACE_BASE + R.VEHICLE] = vehicleIndex('mx450');
   return {
+    frame,
+    track,
+    pose(yaw: number, speed = 12) {
+      frame[base + F.QY] = Math.sin(yaw / 2);
+      frame[base + F.QW] = Math.cos(yaw / 2);
+      frame[base + F.VX] = 0;
+      frame[base + F.VZ] = speed;
+      frame[base + F.SPEED] = speed;
+    },
     flags(global: number, local: number = FLAG.GREEN) {
       frame[H.FLAG] = global;
       frame[base + F.LOCAL_FLAG] = local;
@@ -94,6 +106,8 @@ function harness() {
       pitch = 0.1,
       normalSpeed = 2,
       bottom = 0,
+      playerControlled = true,
+      replay = false,
     ) {
       frame[H.TIME] = time;
       frame[offroad + O.AIRBORNE] = Number(airborne);
@@ -101,7 +115,7 @@ function harness() {
       frame[offroad + O.LANDING_PITCH] = pitch;
       frame[offroad + O.LANDING_SPEED] = normalSpeed;
       frame[offroad + O.BOTTOM] = bottom;
-      hud.update(frame, track, options);
+      hud.update(frame, track, options, playerControlled, replay);
       const panel = container.children.find((node) => node.className === 'mx-ride-hud')!;
       expect(panel.hidden).toBe(false);
       return panel.fields.map((field) => field.textContent).join(' | ');
@@ -110,6 +124,46 @@ function harness() {
 }
 
 describe('motocross HUD flight transitions', () => {
+  it('only asks for brake release while the player owns the controls', () => {
+    const h = harness(),
+      b = carBase(0),
+      w = b + WHEEL_BASE;
+    h.pose(0, 20);
+    h.frame[b + F.BRAKE] = 0.8;
+    h.frame[w + W.RADIUS] = 0.34;
+    h.frame[w + W.OMEGA] = 2;
+    expect(h.present(1, true, 0.5)).toContain('RELEASE THE BRAKE');
+    expect(h.present(1, true, 0.5, 0.1, 2, 0, false)).not.toContain('RELEASE THE BRAKE');
+    expect(h.present(1, true, 0.5, 0.1, 2, 0, true, true)).not.toContain('RELEASE THE BRAKE');
+    expect(h.present(1, true, 0.5)).toContain('RELEASE THE BRAKE');
+  });
+
+  it('explains a target rejected for rough settlement after its bottoming pulse decays', () => {
+    const h = harness(),
+      jump = offroadCourse(h.track.circuit)!.jumps[0],
+      b = carBase(0);
+    h.pose(0, 20);
+    h.frame[b + F.S] = jump.takeoff - 0.5;
+    h.present(1, false, 0);
+    h.frame[b + F.S] = jump.takeoff + 0.5;
+    h.present(1.05, true, 0.05);
+    h.frame[b + F.S] = (jump.takeoff + jump.landing) / 2;
+    h.present(1.45, true, 0.45);
+    h.frame[b + F.S] = jump.landing;
+    h.present(1.85, false, 0.85);
+    h.frame[b + F.S] = jump.landing + 1;
+    expect(h.present(1.95, false, 0.85, 0.1, 2, 0.7)).toContain('HARD LANDING');
+    h.frame[b + F.S] = jump.landing + 2;
+    h.present(2.04, false, 0.85);
+    h.frame[b + F.S] = jump.landing + 3;
+    const settled = h.present(2.11, false, 0.85);
+    expect(settled).toContain('TARGET NOT CLEARED');
+    expect(settled).toContain('SETTLE THE LANDING');
+    expect(settled).toContain('rough contact');
+    expect(settled).not.toContain('TARGET LANDED');
+    expect(settled).not.toContain('CLEAN LANDING');
+  });
+
   it('uses final touchdown airtime and keeps it with the last qualifying jump through a tiny hop', () => {
     const h = harness();
     expect(h.present(1, true, 0.72)).toContain('0.72 S');
@@ -164,6 +218,52 @@ describe('motocross HUD flight transitions', () => {
     expect(landed).toContain('CLEAN LANDING');
     expect(landed).toContain('0.35 S');
     expect(h.present(1.3, false, 0.35)).toBe(landed);
+  });
+
+  it('explains whip recovery from the presented pose and only acknowledges it after a clean settlement', () => {
+    const h = harness();
+    h.pose(0.42);
+    const whipping = h.present(1, true, 0.4);
+    expect(whipping).toContain('BRING IT BACK');
+    expect(whipping).toContain('Release steering to square the wheels');
+    h.pose(0.01);
+    const contact = h.present(1.4, false, 0.8);
+    expect(contact).toContain('CLEAN LANDING');
+    expect(contact).not.toContain('WHIP LANDED');
+    const settled = h.present(1.68, false, 0.8);
+    expect(settled).toContain('WHIP LANDED');
+    expect(settled).toContain('1 CLEAN IN A ROW');
+    expect(h.present(1.68, false, 0.8)).toBe(settled);
+  });
+
+  it('retains a crossed touchdown grade after friction removes its sideways motion', () => {
+    const h = harness();
+    h.pose(0.45);
+    h.present(1, true, 0.5);
+    h.pose(0.3);
+    expect(h.present(1.3, false, 0.8)).toContain('CROSSED LANDING');
+    h.pose(0.01);
+    h.present(1.4, false, 0.8);
+    const settled = h.present(1.6, false, 0.8);
+    expect(settled).toContain('CROSSED LANDING');
+    expect(settled).not.toContain('WHIP LANDED');
+    expect(settled).not.toContain('CLEAN IN A ROW');
+  });
+
+  it('does not reward an early rebound or carry a previous whip through a replay seek', () => {
+    const h = harness();
+    h.pose(0.42);
+    h.present(1, true, 0.5);
+    h.pose(0);
+    h.present(1.3, false, 0.8);
+    h.present(1.4, true, 0.03);
+    expect(h.present(1.42, false, 0.05)).not.toContain('WHIP LANDED');
+    h.present(0.9, false, 0.4);
+    h.present(1, true, 0.1);
+    h.present(1.5, false, 0.6);
+    const settled = h.present(1.8, false, 0.6);
+    expect(settled).toContain('CLEAN LANDING');
+    expect(settled).not.toContain('WHIP LANDED');
   });
 });
 

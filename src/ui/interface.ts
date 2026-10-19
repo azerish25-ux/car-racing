@@ -564,7 +564,7 @@ export class Interface {
 
     this.hud.dataset.camera = renderer.mode;
     this.hud.dataset.motocross = String(!!motocrossKind(this.track.circuit.id));
-    this.bikeHud.update(frame);
+    this.bikeHud.update(frame, this.track);
     for (const side of ['Left', 'Right'] as const) {
       const node = this.get(`proximity${side}`);
       const subject = definition.bike ? 'Rider' : 'Car';
@@ -574,13 +574,13 @@ export class Interface {
     }
     // Flight/contact transitions must be seen on every presented frame, even
     // while the lower-frequency timing panels skip their DOM refresh.
-    this.offroadHud.update(frame, this.track, this.options);
+    const mode = this.element.dataset.mode;
+    this.offroadHud.update(frame, this.track, this.options, !auto, mode === 'replay');
     this.motocrossStatus.update(this.hud.dataset.motocross === 'true');
     // Motorcycle instruments follow every presented snapshot. Car panels may
     // skip close samples, but first, sparse, reversed and machine-transition
     // frames must never leave the template or an old race state on screen.
     this.observeGaps(frame);
-    const mode = this.element.dataset.mode;
     const banner = this.f1.observe(frame, auto);
     this.f1.nameTags(frame, renderer, mode === 'driving' || mode === 'paused');
     this.panelFrames++;
@@ -924,7 +924,7 @@ export class Interface {
         )
         .join(
           '',
-        )}<b>ESC</b><span>Pause / release mouse look</span><b>DOUBLE CLICK</b><span>Cockpit mouse look</span></div><p>${motocross ? 'In flight, throttle lifts the nose and either brake lowers it. Bank with the steering input; release it to level the bike. Riding assists help align a landing. Gamepad: left stick steers and banks, triggers operate throttle and brake, shoulder buttons shift and Start pauses.' : 'Gamepad: left stick steers, triggers for throttle and brake, shoulder buttons shift, Y changes camera, X cycles energy mode and Start pauses.'} Remap any control in Garage &amp; Settings.</p><button class="primary" data-action="modalClose">UNDERSTOOD</button>`,
+        )}<b>ESC</b><span>Pause / release mouse look</span><b>DOUBLE CLICK</b><span>Cockpit mouse look</span></div><p>${motocross ? 'In flight, throttle lifts the nose and either brake lowers it. Steer to bank and whip; release before touchdown to square the wheels. Riding assists help align a landing. Gamepad: left stick steers and whips, triggers operate throttle and brake, shoulder buttons shift and Start pauses.' : 'Gamepad: left stick steers, triggers for throttle and brake, shoulder buttons shift, Y changes camera, X cycles energy mode and Start pauses.'} Remap any control in Garage &amp; Settings.</p><button class="primary" data-action="modalClose">UNDERSTOOD</button>`,
     );
   }
   /** Paddock "Credits & licences": every third-party attribution (manifest). */

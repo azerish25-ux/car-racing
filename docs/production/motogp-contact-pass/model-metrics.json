@@ -1,0 +1,306 @@
+{
+  "sourceReport": "motogp-contact-refinement-report.json",
+  "sourceReportSha256": "53f3262ff0d031d7268e4928f1ebffe92603994e21c1c58af88d676471e5ca10",
+  "runStarted": "2026-10-19T02:10:15.080Z",
+  "scope": "Isolated production BikeModel WebGL2 fixtures; these results are not a full-race or physical-GPU frame-rate acceptance.",
+  "sourceTest": {
+    "title": "GP reference R1.1: authored LODs, production onboard and same-instance wet rewind on WebGL2",
+    "status": "passed",
+    "durationMs": 27018,
+    "errors": []
+  },
+  "budget": {
+    "trianglesLessThan": 110000,
+    "callsLessThan": 220
+  },
+  "triangleCounting": "triangles expands model instance counts; submittedTriangles includes actual renderer passes.",
+  "retainedImages": {
+    "gpr1": "gpr1-cooling-pack.png",
+    "gpr2": "gpr2-cooling-pack.png"
+  },
+  "cases": [
+    {
+      "machine": "gpr1",
+      "detail": "high",
+      "wet": false,
+      "triangles": 109337,
+      "submittedTriangles": 215377,
+      "calls": 215,
+      "resources": {
+        "geometries": 120,
+        "textures": 25,
+        "programs": 56
+      },
+      "glError": 0,
+      "sourceFrameUnchanged": true,
+      "hash": 1901965574,
+      "windscreen": {
+        "mode": "production",
+        "thickness": 0,
+        "ior": 1.49,
+        "transmission": 1,
+        "opacity": 1,
+        "transparent": false
+      },
+      "preparationResourcesStable": true
+    },
+    {
+      "machine": "gpr1",
+      "detail": "mid",
+      "wet": false,
+      "triangles": 43448,
+      "submittedTriangles": 85270,
+      "calls": 171,
+      "resources": {
+        "geometries": 98,
+        "textures": 22,
+        "programs": 47
+      },
+      "glError": 0,
+      "sourceFrameUnchanged": true,
+      "hash": 3841205550,
+      "windscreen": {
+        "mode": "production",
+        "thickness": 0,
+        "ior": 1.49,
+        "transmission": 1,
+        "opacity": 1,
+        "transparent": false
+      },
+      "preparationResourcesStable": true
+    },
+    {
+      "machine": "gpr1",
+      "detail": "far",
+      "wet": false,
+      "triangles": 12588,
+      "submittedTriangles": 24388,
+      "calls": 92,
+      "resources": {
+        "geometries": 58,
+        "textures": 14,
+        "programs": 36
+      },
+      "glError": 0,
+      "sourceFrameUnchanged": true,
+      "hash": 719560122,
+      "windscreen": {
+        "mode": "production",
+        "thickness": 0,
+        "ior": 1.49,
+        "transmission": 1,
+        "opacity": 1,
+        "transparent": false
+      },
+      "preparationResourcesStable": true
+    },
+    {
+      "machine": "gpr2",
+      "detail": "high",
+      "wet": false,
+      "triangles": 101636,
+      "submittedTriangles": 202412,
+      "calls": 205,
+      "resources": {
+        "geometries": 115,
+        "textures": 25,
+        "programs": 56
+      },
+      "glError": 0,
+      "sourceFrameUnchanged": true,
+      "hash": 1753617618,
+      "windscreen": {
+        "mode": "production",
+        "thickness": 0,
+        "ior": 1.49,
+        "transmission": 1,
+        "opacity": 1,
+        "transparent": false
+      },
+      "preparationResourcesStable": true
+    },
+    {
+      "machine": "gpr1",
+      "detail": "high",
+      "wet": true,
+      "triangles": 109337,
+      "submittedTriangles": 215377,
+      "calls": 215,
+      "resources": {
+        "geometries": 120,
+        "textures": 25,
+        "programs": 56
+      },
+      "glError": 0,
+      "sourceFrameUnchanged": true,
+      "hash": 932963419,
+      "windscreen": {
+        "mode": "production",
+        "thickness": 0,
+        "ior": 1.49,
+        "transmission": 1,
+        "opacity": 1,
+        "transparent": false
+      },
+      "preparationResourcesStable": true
+    },
+    {
+      "machine": "gpr1",
+      "detail": "high",
+      "wet": false,
+      "triangles": 109337,
+      "submittedTriangles": 215377,
+      "calls": 215,
+      "resources": {
+        "geometries": 120,
+        "textures": 25,
+        "programs": 56
+      },
+      "glError": 0,
+      "sourceFrameUnchanged": true,
+      "hash": 1901965574,
+      "windscreen": {
+        "mode": "production",
+        "thickness": 0,
+        "ior": 1.49,
+        "transmission": 1,
+        "opacity": 1,
+        "transparent": false
+      },
+      "preparationResourcesStable": true
+    }
+  ],
+  "onboard": {
+    "gpr1": {
+      "visibleSamples": 9,
+      "facing": 0.9607822416911271,
+      "glError": 0,
+      "sourceFrameUnchanged": true,
+      "windscreen": {
+        "mode": "production",
+        "thickness": 0,
+        "ior": 1.49,
+        "transmission": 1,
+        "opacity": 1,
+        "transparent": false
+      }
+    },
+    "gpr2": {
+      "visibleSamples": 9,
+      "facing": 0.9607822416911271,
+      "glError": 0,
+      "sourceFrameUnchanged": true,
+      "windscreen": {
+        "mode": "production",
+        "thickness": 0,
+        "ior": 1.49,
+        "transmission": 1,
+        "opacity": 1,
+        "transparent": false
+      }
+    },
+    "sbk1000": {
+      "visibleSamples": 9,
+      "facing": 0.9607822416911271,
+      "glError": 0,
+      "sourceFrameUnchanged": true,
+      "windscreen": {
+        "mode": "production",
+        "thickness": 0.003,
+        "ior": 1.49,
+        "transmission": 0.92,
+        "opacity": 1,
+        "transparent": true
+      }
+    },
+    "ss600": {
+      "visibleSamples": 9,
+      "facing": 0.9607822416911271,
+      "glError": 0,
+      "sourceFrameUnchanged": true,
+      "windscreen": {
+        "mode": "production",
+        "thickness": 0.003,
+        "ior": 1.49,
+        "transmission": 0.92,
+        "opacity": 1,
+        "transparent": true
+      }
+    }
+  },
+  "sameInstanceWeather": {
+    "sameInstance": true,
+    "resourcesStable": true,
+    "wetHoldPixelHashEqual": true,
+    "dryRewindPixelHashRestored": true,
+    "samples": [
+      {
+        "time": 2,
+        "rain": 0,
+        "dampness": 0,
+        "hash": 1901965574,
+        "resources": {
+          "geometries": 120,
+          "textures": 25,
+          "programs": 56
+        },
+        "glError": 0,
+        "sourceFrameUnchanged": true
+      },
+      {
+        "time": 10,
+        "rain": 20,
+        "dampness": 1,
+        "hash": 932963419,
+        "resources": {
+          "geometries": 120,
+          "textures": 25,
+          "programs": 56
+        },
+        "glError": 0,
+        "sourceFrameUnchanged": true
+      },
+      {
+        "time": 10,
+        "rain": 20,
+        "dampness": 1,
+        "hash": 932963419,
+        "resources": {
+          "geometries": 120,
+          "textures": 25,
+          "programs": 56
+        },
+        "glError": 0,
+        "sourceFrameUnchanged": true
+      },
+      {
+        "time": 2,
+        "rain": 0,
+        "dampness": 0,
+        "hash": 1901965574,
+        "resources": {
+          "geometries": 120,
+          "textures": 25,
+          "programs": 56
+        },
+        "glError": 0,
+        "sourceFrameUnchanged": true
+      }
+    ]
+  },
+  "retainedImageIntegrity": [
+    {
+      "file": "gpr1-cooling-pack.png",
+      "sourceAttachment": "0-gpr1-high-dry.png",
+      "bytes": 232290,
+      "sha256": "c4b20d6655e36b60cf206a432840ecfeba793db16fba60aeaa5a038cc6f7805b"
+    },
+    {
+      "file": "gpr2-cooling-pack.png",
+      "sourceAttachment": "3-gpr2-high-dry.png",
+      "bytes": 222980,
+      "sha256": "b322aa01cf41420a7079c9198a1af13f1ec7107fd405e592179471732959a30a"
+    }
+  ],
+  "opticalComparison": "optics-metrics.json"
+}

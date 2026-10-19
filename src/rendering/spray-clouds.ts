@@ -3,6 +3,15 @@ import { RearSignalField } from './rear-signal.ts';
 import * as T from 'three';
 import { markAll, markItems } from './attribute-ranges.ts';
 
+/** Stored at birth, so mixed grids and replay camera changes cannot restyle
+ * an existing wake. Zero retains the original car/cloud presentation. */
+export const SPRAY_PROFILE = Object.freeze({ DEFAULT: 0, GP: 1 } as const);
+/** Motorcycle tyre mist stays narrow enough to read the rider and road.
+ * REF 010/036/038/096 inform the footprint, not the measured water birth rate.
+ * Apply after the raw-opacity age calculation; lowering that input would
+ * incorrectly turn fresh spray into expanded hanging mist. */
+export const GP_SPRAY_SCALE = Object.freeze({ radius: 0.35, opacity: 0.32 });
+
 /** Rain-light in-scatter on the wheel spray (see the vertex shader). */
 export const SPRAY_SIGNAL = Object.freeze({
   /** Red radiance per unit lamp signal at the lamp (was 0.34, isotropic). */
@@ -62,6 +71,7 @@ export class SprayClouds {
     kinds: Uint8Array,
     floors: Float32Array = new Float32Array(opacity.length).fill(-1e6),
     colors?: Float32Array,
+    profiles?: Uint8Array,
   ) {
     const count = opacity.length;
     if (
@@ -71,7 +81,8 @@ export class SprayClouds {
       sizes.length !== count ||
       kinds.length !== count ||
       floors.length !== count ||
-      (colors !== undefined && colors.length !== count * 3)
+      (colors !== undefined && colors.length !== count * 3) ||
+      (profiles !== undefined && profiles.length !== count)
     )
       throw new Error('Spray instance arrays must have matching nonzero lengths');
     this.geometry.setAttribute(
@@ -96,12 +107,20 @@ export class SprayClouds {
         'cloudColor',
         new T.InstancedBufferAttribute(colors, 3).setUsage(T.DynamicDrawUsage),
       );
+    if (profiles)
+      this.geometry.setAttribute(
+        'sprayProfile',
+        new T.InstancedBufferAttribute(profiles, 1).setUsage(T.DynamicDrawUsage),
+      );
     // Stable slot variation; neither frames nor camera movement reseed the mist.
     const variation = Float32Array.from({ length: count }, (_, i) => ((i * 73 + 19) % 251) / 251);
     this.geometry.setAttribute('variation', new T.InstancedBufferAttribute(variation, 1));
     this.geometry.instanceCount = count;
     this.material = new T.ShaderMaterial({
-      defines: colors ? { USE_CLOUD_COLOR: 1 } : {},
+      defines: {
+        ...(colors ? { USE_CLOUD_COLOR: 1 } : {}),
+        ...(profiles ? { USE_SPRAY_PROFILE: 1 } : {}),
+      },
       transparent: true,
       depthWrite: false,
       fog: true,
@@ -126,6 +145,9 @@ export class SprayClouds {
         attribute float floor;
         #ifdef USE_CLOUD_COLOR
           attribute vec3 cloudColor;
+        #endif
+        #ifdef USE_SPRAY_PROFILE
+          attribute float sprayProfile;
         #endif
         uniform float nearPlane;
         varying vec2 vUv;
@@ -165,6 +187,14 @@ export class SprayClouds {
           float mist=spray?step(variation,0.25)*(1.0-clamp(opacity/0.5,0.0,1.0)):0.0;
           radius*=1.0+1.5*mist;
           vOpacity*=1.0-0.65*mist;
+          #ifdef USE_SPRAY_PROFILE
+            // Raw opacity still encodes the original life/mist phase. Only
+            // GP optical depth and footprint change, including ground fade.
+            if(spray && sprayProfile>${(SPRAY_PROFILE.GP - 0.5).toFixed(1)}) {
+              radius*=${GP_SPRAY_SCALE.radius.toFixed(2)};
+              vOpacity*=${GP_SPRAY_SCALE.opacity.toFixed(2)};
+            }
+          #endif
           // A wake viewed along its motion has no defined screen-space axis.
           // Collapse to a radial footprint before that axis can flip or spin.
           float stretch=1.0+min(1.1,speed*0.12);
@@ -277,9 +307,13 @@ export class SprayClouds {
       markItems(this.geometry.getAttribute(name) as T.BufferAttribute, first, last);
     const color = this.geometry.getAttribute('cloudColor') as T.BufferAttribute | undefined;
     if (color) markItems(color, first, last);
+    const profile = this.geometry.getAttribute('sprayProfile') as T.BufferAttribute | undefined;
+    if (profile) markItems(profile, first, last);
   }
   clear() {
     this.signals.count.value = 0;
     markAll(this.geometry.getAttribute('opacity') as T.BufferAttribute);
+    const profile = this.geometry.getAttribute('sprayProfile') as T.BufferAttribute | undefined;
+    if (profile) markAll(profile);
   }
 }

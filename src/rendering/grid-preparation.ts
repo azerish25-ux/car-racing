@@ -5,8 +5,18 @@ import { CrewPose, installCrewSkin } from './crew-pose.ts';
 import { CUFF } from './pit-crew.ts';
 import * as T from 'three';
 import { clamp } from '../core/math.ts';
-import { F, H, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../simulation/protocol.ts';
+import {
+  F,
+  H,
+  R,
+  RACE_BASE,
+  W,
+  WHEEL_BASE,
+  WHEEL_STRIDE,
+  carBase,
+} from '../simulation/protocol.ts';
 import { WHEEL_POSITIONS } from '../simulation/vehicle.ts';
+import { vehicleAt } from '../simulation/vehicles.ts';
 
 /** Staff stand at the cars only while the grid is held (race clock at zero):
  * as in real racing, nobody is on the grid once the start sequence runs.
@@ -278,7 +288,11 @@ export class GridPreparationView {
       if (this.car.position.distanceToSquared(camera) > 120 ** 2) continue;
       this.car.quaternion.fromArray(frame, o + F.QX);
       this.car.updateMatrix();
-      if (state.blankets)
+      // Motocross keeps its gate crew, without the four Formula tyre warmers.
+      if (
+        state.blankets &&
+        vehicleAt(Math.round(frame[o + RACE_BASE + R.VEHICLE])).classId !== 'motocross'
+      )
         WHEEL_POSITIONS.forEach(([x, y, z], wheel) => {
           const shift = Math.sign(x) * state.withdrawal * 0.5;
           const hubY = y - (frame[o + WHEEL_BASE + wheel * WHEEL_STRIDE + W.LENGTH] || 0.25);

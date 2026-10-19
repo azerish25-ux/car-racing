@@ -1,0 +1,313 @@
+{
+  "fixture": "gp-contact-effects.spec.ts",
+  "title": "GP contact effects use two actual tyres, readable moving spray and fixed WebGL resources",
+  "status": "passed",
+  "durationMs": 7225,
+  "sourceReportSha256": "53f3262ff0d031d7268e4928f1ebffe92603994e21c1c58af88d676471e5ca10",
+  "sourceMetricsSha256": "8414fc9640b383bcbfcb087b44a1306c99c1094d875732cf0440ce5f681a6557",
+  "scope": "Bounded mid-detail production BikeModel and Effects/EffectPlayback draw. Chassis poses use BikeVehicle.writeBody. Water/load inputs are controlled. Stationary views check source positions and pose gating; the paired moving views isolate the final GP spray profile. Test duration is not a hardware frame-rate measurement.",
+  "referenceIdsInspected": [
+    "REF_010",
+    "REF_036",
+    "REF_038",
+    "REF_096"
+  ],
+  "controlledInputs": {
+    "speedMetresPerSecond": 30,
+    "waterMillimetresPerWheel": 0.7,
+    "loadNewtonsPerAliasedWheelChannel": 1200,
+    "presentationSteps": 15,
+    "stepSeconds": 0.03333333333333333,
+    "rainParticlesDisabledByZeroRainInput": true,
+    "renderSizePixels": [
+      900,
+      550
+    ]
+  },
+  "webgl2": true,
+  "shaderErrors": [],
+  "glErrors": [],
+  "resourcesBefore": {
+    "geometries": 95,
+    "textures": 19,
+    "programs": 45
+  },
+  "resourcesAfter": {
+    "geometries": 95,
+    "textures": 19,
+    "programs": 45
+  },
+  "fixedResourceIdentities": true,
+  "resourceScope": "Warmed complete fixture counts include three Effects control instances and the independent unprofiled shader. Production adds one fixed 3600-byte CPU profile array and corresponding GPU attribute, with no new particle slots, geometry, material or draw call.",
+  "poolCapacity": {
+    "capacity": 4200,
+    "contactCapacity": 3600,
+    "rainCapacity": 600
+  },
+  "wetBirthCounts": {
+    "legacy": 56,
+    "gp": 28
+  },
+  "wetOrigins": [
+    {
+      "wheelChannel": 0,
+      "births": 7,
+      "diffuserBirths": 0,
+      "worldOriginRangeMetres": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0.03500000476837151,
+          0.03500000476837151
+        ],
+        "z": [
+          0.7,
+          0.7
+        ]
+      },
+      "groundHeightRangeMetres": [
+        4.768371586472142e-09,
+        4.768371586472142e-09
+      ]
+    },
+    {
+      "wheelChannel": 2,
+      "births": 21,
+      "diffuserBirths": 0,
+      "worldOriginRangeMetres": {
+        "x": [
+          0,
+          0
+        ],
+        "y": [
+          0.03500000476837151,
+          0.03500000476837151
+        ],
+        "z": [
+          -0.75,
+          -0.75
+        ]
+      },
+      "groundHeightRangeMetres": [
+        4.768371586472142e-09,
+        4.768371586472142e-09
+      ]
+    }
+  ],
+  "leanOrigins": [
+    {
+      "wheelChannel": 0,
+      "births": 7,
+      "diffuserBirths": 0,
+      "worldOriginRangeMetres": {
+        "x": [
+          3.1780121811930684e-08,
+          3.1780121811930684e-08
+        ],
+        "y": [
+          0.03500000360466732,
+          0.03500000360466732
+        ],
+        "z": [
+          0.7,
+          0.7
+        ]
+      },
+      "groundHeightRangeMetres": [
+        6.7887025445578786e-09,
+        6.7887025445578786e-09
+      ]
+    },
+    {
+      "wheelChannel": 2,
+      "births": 21,
+      "diffuserBirths": 0,
+      "worldOriginRangeMetres": {
+        "x": [
+          0.021947356189281453,
+          0.021947356189281453
+        ],
+        "y": [
+          0.035000003997241846,
+          0.035000003997241846
+        ],
+        "z": [
+          -0.75,
+          -0.75
+        ]
+      },
+      "groundHeightRangeMetres": [
+        6.7887025445578786e-09,
+        6.7887025445578786e-09
+      ]
+    }
+  ],
+  "wheelie": {
+    "contacts": [
+      2
+    ],
+    "spray": 21
+  },
+  "fallen": {
+    "births": 0,
+    "spray": 0
+  },
+  "pixelDifferences": {
+    "applied": {
+      "maxChannelDelta": 175,
+      "changedPixels": 238393,
+      "coverageDifferences": 280
+    },
+    "held": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "coverageDifferences": 0
+    },
+    "lean": {
+      "maxChannelDelta": 237,
+      "changedPixels": 25523,
+      "coverageDifferences": 338
+    }
+  },
+  "moving": {
+    "speed": 30,
+    "duration": 0.5,
+    "distance": 15,
+    "originRange": [
+      -14.75,
+      0.7
+    ],
+    "counts": {
+      "profiled": 28,
+      "unprofiled": 28
+    },
+    "rawBytesEqual": true,
+    "scale": {
+      "radius": 0.35,
+      "opacity": 0.32
+    },
+    "profileBytes": 3600,
+    "profileHeld": true,
+    "impact": {
+      "unprofiled": {
+        "maxChannelDelta": 85,
+        "changedPixels": 68410,
+        "coverageDifferences": 588,
+        "channelDifference": 4335330
+      },
+      "profiled": {
+        "maxChannelDelta": 38,
+        "changedPixels": 13328,
+        "coverageDifferences": 42,
+        "channelDifference": 312084
+      }
+    },
+    "difference": {
+      "maxChannelDelta": 83,
+      "changedPixels": 68333,
+      "coverageDifferences": 546
+    },
+    "held": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "coverageDifferences": 0
+    },
+    "draws": {
+      "profiled": 173,
+      "unprofiled": 173
+    },
+    "seek": {
+      "active": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "profileCleared": true,
+      "difference": {
+        "maxChannelDelta": 0,
+        "changedPixels": 0,
+        "coverageDifferences": 0
+      }
+    },
+    "reductionsPercent": {
+      "changedPixelFootprint": 80.5175,
+      "aggregateRgbDeviation": 92.8014
+    },
+    "metricInterpretation": "Impact is measured against the identical no-spray render: changedPixels counts pixels with any RGB difference; channelDifference sums absolute RGB8 channel differences. The latter is an image-impact measure, not a physical optical-depth measurement."
+  },
+  "nonGp": {
+    "rawBytesEqual": true,
+    "profileZero": true,
+    "adapterDifference": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "coverageDifferences": 0
+    },
+    "shaderDifference": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "coverageDifferences": 0
+    }
+  },
+  "visualInspection": {
+    "stationaryComparison": "The detached bright car-width fog lobes in before.png are absent from after.png. Remaining mist is localized near the two tyres and the rider/bodywork remain readable.",
+    "movingComparison": "The large bright billboards in moving-before.png become small faint wisps in moving-after.png. The bike and rear tyre remain clear. Individual wisps are visibly separated in this controlled moving view; the images establish the footprint/opacity correction rather than a claim of continuous volumetric spray.",
+    "poseChecks": "Lean and wheelie views retain readable rider and bike silhouettes. Wheelie telemetry records rear-channel births only. The fallen view has no new spray and hides the separated rider rig in this bounded fixture."
+  },
+  "images": [
+    {
+      "file": "before.png",
+      "sourceAttachment": "legacy-four-wheel-spray.png",
+      "bytes": 343871,
+      "sha256": "8f35b3af8b4b113e61be4b5a0a85d4e60ac8897ea81a0341062ad3360d942d96",
+      "description": "Original four-wheel/diffuser emitters and inherited spray size; stationary source-position control."
+    },
+    {
+      "file": "after.png",
+      "sourceAttachment": "gp-two-tyre-spray.png",
+      "bytes": 114257,
+      "sha256": "2dc98eb37cd817e9dcec9fed3ef0e565651351cf2375f75ecff17ef73076066a",
+      "description": "Final two-tyre GP contacts and smaller spray profile; stationary source-position control."
+    },
+    {
+      "file": "lean.png",
+      "sourceAttachment": "gp-leaned-two-tyre-spray.png",
+      "bytes": 113987,
+      "sha256": "89eb8e40adc3b19c469ae312035efd837ae5210c3ccddb88b9845d22afaeee6b",
+      "description": "Final two-tyre GP spray at 0.6-radian lean."
+    },
+    {
+      "file": "wheelie.png",
+      "sourceAttachment": "gp-wheelie-rear-tyre-only.png",
+      "bytes": 112412,
+      "sha256": "04a5bb19eb1c17a2777f64863f20783b075c5b7ec2d98d6b643ce95f0627df02",
+      "description": "Final GP profile; only the grounded rear tyre emits during front-wheel lift."
+    },
+    {
+      "file": "fallen.png",
+      "sourceAttachment": "gp-down-no-tyre-spray.png",
+      "bytes": 90794,
+      "sha256": "91694a7a4732fe55cd5236934a8fceb0842014f146802f22cdca5d8d1f1e5a55",
+      "description": "Fallen-state contact gating suppresses all new tyre spray; separated rider mesh is hidden in this bounded fixture."
+    },
+    {
+      "file": "moving-before.png",
+      "sourceAttachment": "gp-moving-profile-off.png",
+      "bytes": 161963,
+      "sha256": "38ac955bdb5cd3f39207664ec7c2bf56ee842a749653e111841cba1e5a9689fb",
+      "description": "Moving two-tyre GP contacts with the inherited spray profile; same raw particle history as moving-after.png."
+    },
+    {
+      "file": "moving-after.png",
+      "sourceAttachment": "gp-moving-profile-on.png",
+      "bytes": 110577,
+      "sha256": "ce214348aa0cd7dbaf71bb36aa2cb063e88d9680ee01339ea7acf88154228696",
+      "description": "Moving two-tyre GP contacts with radius 0.35 and optical-opacity 0.32 profile scales."
+    }
+  ]
+}

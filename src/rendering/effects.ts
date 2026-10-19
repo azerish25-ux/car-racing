@@ -4,7 +4,7 @@ import { Random, clamp } from '../core/math.ts';
 import { F, H, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../simulation/protocol.ts';
 import { renderWind } from '../simulation/weather.ts';
 import { RainStreaks } from './rain-streaks.ts';
-import { SprayClouds } from './spray-clouds.ts';
+import { SprayClouds, SPRAY_PROFILE } from './spray-clouds.ts';
 import { markAll, markItems } from './attribute-ranges.ts';
 import { precipitationLighting } from './precipitation-light.ts';
 
@@ -67,6 +67,9 @@ export class Effects {
   private gravity = new Float32Array(this.count);
   private kind = new Uint8Array(this.count);
   private owners = new Int8Array(this.count).fill(-1);
+  /** One fixed byte per contact slot; captured once, never inferred from the
+   * currently followed entrant or changed while a particle is alive. */
+  private sprayProfiles = new Uint8Array(EFFECT_CAPACITY.contact);
   private spawned = new Float64Array(6);
   private geometry = new T.BufferGeometry();
   private random = new Random(65012);
@@ -96,6 +99,7 @@ export class Effects {
     this.kind.subarray(0, EFFECT_CAPACITY.contact),
     this.floors.subarray(0, EFFECT_CAPACITY.contact),
     this.colors.subarray(0, EFFECT_CAPACITY.contact * 3),
+    this.sprayProfiles,
   );
   private viewport = new T.Vector4();
   private rainEmission = 0;
@@ -117,6 +121,12 @@ export class Effects {
   contactEnabled: ((frame: Float32Array, car: number, wheel: number) => boolean) | null = null;
   /** Some venues admit motorcycles, which do not have a car diffuser. */
   diffuserEnabled: ((frame: Float32Array, car: number) => boolean) | null = null;
+  /** Optional telemetry adapter when W.ANGLE is not a measured tyre sideslip
+   * angle (the GP snapshot uses that legacy channel for handlebar steering). */
+  smokeSliding: ((frame: Float32Array, car: number, wheel: number) => number) | null = null;
+  /** Optional birth-time presentation profile. Water/load rates, random
+   * draws, raw size/opacity, motion and lifetime remain identical. */
+  sprayProfile: ((frame: Float32Array, car: number) => number) | null = null;
   /** Venue-specific loose-ground colours, keyed by snapshot material id. */
   looseColours: ReadonlyMap<number, readonly [number, number, number]> | null = null;
   private windX = 0;
@@ -237,6 +247,7 @@ export class Effects {
     owner = -1,
     floor = y,
     tint?: readonly [number, number, number],
+    profile: number = SPRAY_PROFILE.DEFAULT,
   ) {
     const isRain = kind === PARTICLE_KIND.RAIN;
     const i = isRain ? EFFECT_CAPACITY.contact + this.rainCursor : this.cursor,
@@ -246,6 +257,13 @@ export class Effects {
     else this.cursor = (this.cursor + 1) % EFFECT_CAPACITY.contact;
     this.kind[i] = kind;
     this.owners[i] = owner;
+    // All reused contact slots receive a value, including smoke/dust/debris
+    // and default car spray after a GP wake occupied that same pool slot.
+    if (!isRain)
+      this.sprayProfiles[i] =
+        kind === PARTICLE_KIND.SPRAY && profile === SPRAY_PROFILE.GP
+          ? SPRAY_PROFILE.GP
+          : SPRAY_PROFILE.DEFAULT;
     this.spawned[kind]++;
     this.solid[i] = Number(kind === PARTICLE_KIND.MARBLE);
     this.floors[i] = floor;
@@ -391,7 +409,8 @@ export class Effects {
     if (emit)
       for (let id = 0; id < Math.min(12, frame[H.CARS]); id++) {
         const o = carBase(id),
-          speed = frame[o + F.SPEED];
+          speed = frame[o + F.SPEED],
+          profile = this.sprayProfile?.(frame, id) ?? SPRAY_PROFILE.DEFAULT;
         this.q.set(frame[o + F.QX], frame[o + F.QY], frame[o + F.QZ], frame[o + F.QW]);
         this.wake.set(0, 0, -1).applyQuaternion(this.q).normalize();
         for (let wheel = 0; wheel < 4; wheel++) {
@@ -428,7 +447,9 @@ export class Effects {
               // an F1 tyre near its peak slip angle already dissipates tens of
               // kilowatts without visible smoke.
               rate =
-                tireSmokeSliding(frame[p + W.SLIP], frame[p + W.ANGLE]) *
+                (this.smokeSliding
+                  ? this.smokeSliding(frame, id, wheel)
+                  : tireSmokeSliding(frame[p + W.SLIP], frame[p + W.ANGLE])) *
                 clamp((frame[p + W.SLIP_POWER] - 1800) / 700, 0, 80);
             }
           }
@@ -478,6 +499,7 @@ export class Effects {
               // Ground under the diffuser exit, below the plume's birth height.
               frame[o + 1] + floor,
               kind === PARTICLE_KIND.DUST ? this.looseColours?.get(surface) : undefined,
+              profile,
             );
           }
         }
@@ -625,6 +647,7 @@ export class Effects {
   clear() {
     this.life.fill(0);
     this.owners.fill(-1);
+    this.sprayProfiles.fill(SPRAY_PROFILE.DEFAULT);
     this.alpha.fill(0);
     this.emission.fill(0);
     this.sparks.fill(0);

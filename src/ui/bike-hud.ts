@@ -1,10 +1,13 @@
 import styles from './bike-hud.css?inline';
 import { bikeReadout } from './bike-readout.ts';
+import { GPRidingCues } from './gp-riding-cues.ts';
+import type { Track } from '../simulation/track.ts';
 
 /** Reflows the live speed/gear/controls into a peripheral GP cluster and adds
  * only motorcycle-specific channels. It shares Interface's snapshot clock. */
 export class BikeHud {
   private readonly nodes: Record<string, HTMLElement> = {};
+  private readonly ridingCues = new GPRidingCues();
   constructor(private readonly hud: HTMLElement) {
     const style = document.createElement('style');
     style.textContent = styles;
@@ -12,6 +15,10 @@ export class BikeHud {
     feedback.className = 'gp-feedback';
     feedback.setAttribute('aria-label', 'Motorcycle telemetry');
     feedback.innerHTML = `
+      <div id="gpCraft" class="gp-craft" hidden aria-label="Corner and slipstream guide">
+        <div class="gp-next"><b id="gpTurnArrow" aria-hidden="true">↑</b><span id="gpCorner">STRAIGHT</span><small id="gpCornerDistance"></small></div>
+        <div class="gp-cue"><b id="gpAction"></b><span id="gpTow" hidden></span></div><small id="gpAdvice"></small>
+      </div>
       <div class="gp-lean"><span>LEAN</span><div class="gp-lean-track" aria-hidden="true"><i id="gpLeanMarker"></i></div><b id="gpLean">0°</b></div>
       <div class="gp-rear-brake" title="Independent rear-brake pedal input; combined braking assistance can also apply the rear brake"><span>REAR PEDAL</span><div aria-hidden="true"><i id="gpRearBrakeBar"></i></div><b id="gpRearBrake">0%</b></div>
       <div class="gp-tyres"><div><span>FRONT</span><b id="gpFrontTemp">—</b><small id="gpFrontLife">—</small></div><div><span>REAR</span><b id="gpRearTemp">—</b><small id="gpRearLife">—</small></div></div>
@@ -31,7 +38,7 @@ export class BikeHud {
     this.nodes.gpWordmark = hud.querySelector('.f1-wordmark')!;
     hud.dataset.bike = 'false';
   }
-  update(frame: Float32Array) {
+  update(frame: Float32Array, track?: Track) {
     // MX has its own jump/landing status stack and tested instrument layout.
     // Keeping this flag exclusive prevents the GP stylesheet from replacing
     // that cluster or showing a second motorcycle telemetry panel.
@@ -79,5 +86,30 @@ export class BikeHud {
     set('gpTuck', `TUCK ${readout.tuck}%`);
     set('gpElectronics', `TC/WC ${readout.intervention}%`);
     this.nodes.gpElectronics.dataset.active = String(readout.intervention > 0);
+    const cue = track ? this.ridingCues.read(frame, track) : null;
+    this.nodes.gpCraft.hidden = !cue;
+    if (cue) {
+      set('gpCorner', cue.corner);
+      set(
+        'gpTurnArrow',
+        cue.direction === 'left'
+          ? '↰'
+          : cue.direction === 'right'
+            ? '↱'
+            : cue.direction === 'straight'
+              ? '↑'
+              : '·',
+      );
+      set('gpCornerDistance', cue.distance);
+      set('gpAction', cue.action);
+      set('gpAdvice', cue.detail);
+      this.nodes.gpCraft.dataset.tone = cue.tone;
+      this.nodes.gpTow.hidden = cue.tow < 0.08;
+      set('gpTow', `TOW ${Math.round(cue.tow * 100)}%`);
+      this.nodes.gpCorner.setAttribute(
+        'aria-label',
+        cue.direction === 'none' ? cue.corner : `${cue.corner}, ${cue.direction}`,
+      );
+    }
   }
 }

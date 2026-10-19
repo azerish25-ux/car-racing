@@ -1,0 +1,146 @@
+{
+  "sourceReport": "motogp-contact-refinement-report.json",
+  "sourceReportSha256": "53f3262ff0d031d7268e4928f1ebffe92603994e21c1c58af88d676471e5ca10",
+  "runStarted": "2026-10-19T02:10:15.080Z",
+  "sourceTest": {
+    "title": "GP reference R1.1: authored LODs, production onboard and same-instance wet rewind on WebGL2",
+    "status": "passed",
+    "durationMs": 27018,
+    "errors": []
+  },
+  "scope": "Controlled same-instance production BikeModel with the real dashboard, curved windscreen and onboard mount/lens. Dry fixed pose at 42 m/s, gear 4, 12200 RPM. Only the windscreen thickness is changed. Pixel hashes verify deterministic differences and restoration; retained images establish the visible optical effect, not whole-game or physical-device performance.",
+  "sequence": [
+    "legacy-volume",
+    "production",
+    "production-held",
+    "legacy-volume-restored"
+  ],
+  "retainedImages": [
+    {
+      "file": "gpr1-optics-before-volume.png",
+      "sourceAttachment": "gpr1-optics-before-volume.png",
+      "bytes": 416523,
+      "sha256": "58e6f260af0fa3c070ade41b3cd1d66c166d56c11c4bc1ec60a8d99316063cbd"
+    },
+    {
+      "file": "gpr1-optics-after-thin-wall.png",
+      "sourceAttachment": "gpr1-optics-after-thin-wall.png",
+      "bytes": 412942,
+      "sha256": "ba50320daa885734eac6c01dd34e7e4af4cc8a10095824a78c7efc6d0649d535"
+    }
+  ],
+  "machines": {
+    "gpr1": {
+      "sourceAttachment": "gpr1-optics-metrics.json",
+      "sameInstance": true,
+      "sourceFramesUnchanged": true,
+      "resourcesStable": true,
+      "framingUnchanged": true,
+      "boundsUnchanged": true,
+      "submittedWorkUnchanged": true,
+      "materialValuesPreserved": true,
+      "preservedMaterialValues": {
+        "ior": 1.49,
+        "transmission": 1,
+        "opacity": 1,
+        "transparent": false
+      },
+      "resources": {
+        "geometries": 113,
+        "textures": 14,
+        "programs": 40
+      },
+      "modelTriangles": 109337,
+      "submittedTriangles": 44709,
+      "calls": 34,
+      "visibleDisplaySamples": 9,
+      "glErrors": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "opticalPixelsChanged": true,
+      "heldPixelHashEqual": true,
+      "restoredLegacyPixelHashEqual": true,
+      "samples": [
+        {
+          "mode": "legacy-volume",
+          "thicknessMetres": 0.002,
+          "hash": 1876578662
+        },
+        {
+          "mode": "production",
+          "thicknessMetres": 0,
+          "hash": 3206664927
+        },
+        {
+          "mode": "production",
+          "thicknessMetres": 0,
+          "hash": 3206664927
+        },
+        {
+          "mode": "legacy-volume",
+          "thicknessMetres": 0.002,
+          "hash": 1876578662
+        }
+      ]
+    },
+    "gpr2": {
+      "sourceAttachment": "gpr2-optics-metrics.json",
+      "sameInstance": true,
+      "sourceFramesUnchanged": true,
+      "resourcesStable": true,
+      "framingUnchanged": true,
+      "boundsUnchanged": true,
+      "submittedWorkUnchanged": true,
+      "materialValuesPreserved": true,
+      "preservedMaterialValues": {
+        "ior": 1.49,
+        "transmission": 1,
+        "opacity": 1,
+        "transparent": false
+      },
+      "resources": {
+        "geometries": 108,
+        "textures": 14,
+        "programs": 40
+      },
+      "modelTriangles": 101636,
+      "submittedTriangles": 30592,
+      "calls": 32,
+      "visibleDisplaySamples": 9,
+      "glErrors": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "opticalPixelsChanged": true,
+      "heldPixelHashEqual": true,
+      "restoredLegacyPixelHashEqual": true,
+      "samples": [
+        {
+          "mode": "legacy-volume",
+          "thicknessMetres": 0.002,
+          "hash": 3841535414
+        },
+        {
+          "mode": "production",
+          "thicknessMetres": 0,
+          "hash": 2932129135
+        },
+        {
+          "mode": "production",
+          "thicknessMetres": 0,
+          "hash": 2932129135
+        },
+        {
+          "mode": "legacy-volume",
+          "thicknessMetres": 0.002,
+          "hash": 3841535414
+        }
+      ]
+    }
+  }
+}

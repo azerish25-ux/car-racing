@@ -3,6 +3,8 @@ import { build } from 'vite';
 import { resolve } from 'node:path';
 import { readFile } from 'node:fs/promises';
 import type * as Fixture from './fixtures/motorcycle-presentation.ts';
+import { FLAG } from '../src/simulation/marshal.ts';
+import { SURFACE } from '../src/simulation/track.ts';
 
 declare global {
   interface Window {
@@ -142,6 +144,8 @@ test('motorcycle HUD: responsive production layout, real tyre channels and bike/
       await expect(page.locator('#gpFrontTemp')).toHaveText('83°C');
       await expect(page.locator('#gpRearTemp')).toHaveText('96°C');
       await expect(page.locator('#gpRearBrake')).toHaveText('35%');
+      await expect(page.locator('#gpCraft')).toBeVisible();
+      await expect(page.locator('#gpAdvice')).not.toBeEmpty();
       await expect(page.locator('#battery')).toBeHidden();
       for (const id of ['speed', 'gear', 'rpm', 'fuel', 'gpLean', 'gpRearBrake'])
         await expect(page.locator(`#${id}`)).toBeVisible();
@@ -182,6 +186,82 @@ test('motorcycle HUD: responsive production layout, real tyre channels and bike/
   await expect(page.locator('#mfdBattery')).toHaveText('—');
   await page.evaluate(() => window.MotorcycleHudFixture.showMotorcycleHud('gpr1', 'chase'));
   await expect(page.locator('#vehicleAlert')).toBeHidden();
+  await page.evaluate(() => window.MotorcycleHudFixture.showGpCornerCase());
+  await expect(page.locator('#gpCornerDistance')).toHaveText('80 M TO APEX');
+  await expect(page.locator('#gpAction')).toHaveText('TRAIL BRAKING');
+  await page.evaluate(() => window.MotorcycleHudFixture.showGpCornerCase(true));
+  await expect(page.locator('#gpAction')).toHaveText('CORNER EXIT');
+  await page.evaluate(() => window.MotorcycleHudFixture.showGpCornerCase());
+  await expect(page.locator('#gpAction')).toHaveText('TRAIL BRAKING');
+  await test.step('wet contacts, thermal fade and corner-exit electronics explain the actual axle', async () => {
+    const cases = [
+      { sample: { frontSurface: SURFACE.KERB, frontWater: 0.2 }, action: 'FRONT ON WET KERB' },
+      { sample: { rearSurface: SURFACE.PAINT, rearWater: 0.2 }, action: 'REAR ON WET PAINT' },
+      { sample: { frontDisc: 1050 }, action: 'FRONT BRAKE HOT' },
+      { sample: { intervention: 0.6 }, action: 'POWER LIMITED' },
+      {
+        sample: { frontSurface: SURFACE.GRASS, lateral: 15 },
+        action: 'FRONT ON GRASS',
+      },
+      {
+        sample: { frontSurface: SURFACE.KERB, frontWater: 0.2, flag: FLAG.YELLOW },
+        action: 'CAUTION',
+      },
+    ];
+    for (const viewport of [
+      { width: 1440, height: 900 },
+      { width: 960, height: 600 },
+      { width: 390, height: 844 },
+    ]) {
+      await page.setViewportSize(viewport);
+      for (const scale of [1, 1.35]) {
+        await page.evaluate((scale) => {
+          document.documentElement.style.setProperty('--ui-scale', String(scale));
+        }, scale);
+        for (const { sample, action } of cases) {
+          await page.evaluate(
+            (sample) =>
+              window.MotorcycleHudFixture.showMotorcycleHud('gpr1', 'chase', false, sample),
+            sample,
+          );
+          await expect(page.locator('#gpAction')).toHaveText(action);
+          await expect(page.locator('#gpCraft')).toHaveAttribute('data-tone', 'caution');
+          await expect(page.locator('#gpTow')).toBeHidden();
+          if (action === 'FRONT ON GRASS') {
+            await expect(page.locator('#gpCorner')).toHaveText('BIKE CONTROL');
+            await expect(page.locator('#gpCorner')).toHaveAttribute('aria-label', 'BIKE CONTROL');
+            await expect(page.locator('#gpTurnArrow')).toHaveText('·');
+            await expect(page.locator('#gpCornerDistance')).toHaveText('');
+          }
+          const bounds = await page.locator('#gpAction').evaluate((node) => {
+            const b = node.getBoundingClientRect();
+            return {
+              left: b.left,
+              right: b.right,
+              scroll: node.scrollWidth,
+              client: node.clientWidth,
+            };
+          });
+          expect(bounds.left).toBeGreaterThanOrEqual(0);
+          expect(bounds.right).toBeLessThanOrEqual(viewport.width);
+          expect(bounds.scroll).toBeLessThanOrEqual(bounds.client + 1);
+        }
+      }
+    }
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.evaluate((surface) => {
+      document.documentElement.style.setProperty('--ui-scale', '1');
+      window.MotorcycleHudFixture.showMotorcycleHud('gpr1', 'chase', false, {
+        frontSurface: surface,
+        frontWater: 0.2,
+      });
+    }, SURFACE.KERB);
+    const path = info.outputPath('gp-wet-contact-feedback.png');
+    await page.screenshot({ path });
+    await info.attach('gp-wet-contact-feedback.png', { path, contentType: 'image/png' });
+    await page.evaluate(() => window.MotorcycleHudFixture.showGpCornerCase());
+    await expect(page.locator('#gpAction')).toHaveText('TRAIL BRAKING');
+  });
   await page.locator('.vehicle-toggle').click();
   await expect(page.locator('#tires > div:visible')).toHaveCount(2);
   await expect(page.locator('#vehicleTab1')).toHaveText('FUEL');

@@ -1,12 +1,17 @@
 import { describe, expect, it } from 'vitest';
+import { clamp } from '../src/core/math.ts';
 import { controls, DEFAULT_SETUP, type Assist } from '../src/simulation/config.ts';
 import { jumpHoldSpeed } from '../src/simulation/offroad/ai.ts';
-import { MX_250, MX_450 } from '../src/simulation/offroad/dirt-bikes.ts';
-import { DirtBikeVehicle } from '../src/simulation/offroad/dirt-bike-vehicle.ts';
+import { MX_250, MX_450, SM_450 } from '../src/simulation/offroad/dirt-bikes.ts';
+import {
+  DirtBikeVehicle,
+  landingTyreVelocity,
+} from '../src/simulation/offroad/dirt-bike-vehicle.ts';
 import { rideLine, rigTrack } from '../src/simulation/offroad/jump-rig.ts';
 import {
   assessMotocrossLanding,
   LANDING_RULES,
+  motocrossAlignment,
 } from '../src/simulation/offroad/riding-feedback.ts';
 import { writeOffroadBlock } from '../src/simulation/offroad/session.ts';
 import { offroadCourse } from '../src/simulation/offroad/venues.ts';
@@ -53,6 +58,33 @@ function launch(assist: Assist = 'raw', keepAI = false, definition = MX_450) {
 function fly(run: ReturnType<typeof launch>, seconds: number) {
   for (let i = 0; i < Math.round(seconds / DT); i++) run.bike.step(DT, run.track);
   return run.bike;
+}
+
+/** Ride the real flight using the existing throttle/rear-brake inputs to
+ * match pitch. Keeping that axis controlled isolates the effect of a held
+ * or recovered whip; this never writes attitude, speed or contact state. */
+function landWhip(assist: Assist, releaseAt: number, steer = 1, definition = MX_450) {
+  const run = launch(assist, false, definition),
+    bike = run.bike;
+  let peakYaw = 0,
+    incomingX = 0,
+    incomingZ = 0;
+  while (bike.airborne && bike.airTime < 4) {
+    const wanted =
+      (bike.landingTarget + 0.1 - bike.pitch - bike.riderBody * 0.06) /
+        Math.max(0.12, bike.landingIn) -
+      bike.pitchRate;
+    bike.input.throttle = clamp(wanted * 1.2, 0, 1);
+    bike.input.clutch = clamp(-wanted * 1.2, 0, 1);
+    bike.input.steer = bike.airTime < releaseAt ? steer : 0;
+    incomingX = bike.body.velocity.x;
+    incomingZ = bike.body.velocity.z;
+    bike.step(DT, run.track);
+    peakYaw = Math.max(peakYaw, Math.abs(bike.airYaw));
+  }
+  expect(bike.airborne).toBe(false);
+  expect(bike.lastLanding!.airTime).toBeGreaterThan(0.8);
+  return { ...run, peakYaw, incomingX, incomingZ };
 }
 
 describe('motocross player air control', () => {
@@ -177,11 +209,203 @@ describe('motocross player air control', () => {
         expect(r.bike.frontSpin).toBeGreaterThanOrEqual(0);
         expect(r.bike.rearSpin).toBeGreaterThanOrEqual(0);
         expect(Math.abs(r.bike.pitch)).toBeLessThanOrEqual(1.2);
+        expect(Math.abs(r.bike.airYaw)).toBeLessThanOrEqual(0.6);
+        expect(Math.abs(r.bike.airYawRate)).toBeLessThanOrEqual(2.2);
         expect(Number.isFinite(r.bike.cgY + r.bike.pitchRate + r.bike.dynamics.lean)).toBe(true);
       }
-      return [r.bike.cgY, r.bike.pitch, r.bike.dynamics.lean, r.bike.frontSpin, r.bike.rearSpin];
+      return [
+        r.bike.cgY,
+        r.bike.pitch,
+        r.bike.dynamics.lean,
+        r.bike.frontSpin,
+        r.bike.rearSpin,
+        r.bike.airYaw,
+        r.bike.airYawRate,
+      ];
     };
     expect(run()).toEqual(run());
+  });
+});
+
+describe('motocross whip and tyre alignment', () => {
+  it('preserves world momentum and energy while changing tyre axes, including an incoming slide', () => {
+    for (const speed of [0, 9, 20, 35])
+      for (const slide of [-4, -1, 0, 2, 5])
+        for (const yaw of [-0.6, -0.3, 0, 0.24, 0.6]) {
+          const resolved = landingTyreVelocity(speed, slide, yaw),
+            energy = resolved.forward ** 2 + resolved.lateral ** 2;
+          expect(energy).toBeCloseTo(speed ** 2 + slide ** 2, 9);
+          // Incoming basis is +Z forward/+X left. Reconstruct velocity from
+          // the landed chassis basis; every vector must be unchanged.
+          const worldX = resolved.forward * Math.sin(yaw) + resolved.lateral * Math.cos(yaw),
+            worldZ = resolved.forward * Math.cos(yaw) - resolved.lateral * Math.sin(yaw);
+          expect(worldX).toBeCloseTo(slide, 10);
+          expect(worldZ).toBeCloseTo(speed, 10);
+        }
+  });
+
+  it('swings the rendered bike either way while the centre of mass follows its original flight', () => {
+    const straight = launch(),
+      left = launch(),
+      right = launch();
+    left.bike.input.steer = 1;
+    right.bike.input.steer = -1;
+    for (const run of [straight, left, right]) fly(run, 0.3);
+    for (const [run, sign] of [
+      [left, 1],
+      [right, -1],
+    ] as const) {
+      const bike = run.bike,
+        observed = motocrossAlignment(
+          bike.forward.x,
+          bike.forward.z,
+          bike.body.velocity.x,
+          bike.body.velocity.z,
+        );
+      expect(bike.airborne).toBe(true);
+      expect(bike.airYaw * sign).toBeGreaterThan(0.4);
+      expect(observed.yaw).toBeCloseTo(bike.airYaw, 4);
+      expect(bike.dynamics.x).toBe(straight.bike.dynamics.x);
+      expect(bike.dynamics.z).toBe(straight.bike.dynamics.z);
+      expect(bike.body.velocity.x).toBe(straight.bike.body.velocity.x);
+      expect(bike.body.velocity.z).toBe(straight.bike.body.velocity.z);
+      expect(bike.dynamics.speed).toBe(straight.bike.dynamics.speed);
+      expect(bike.cgY).toBe(straight.bike.cgY);
+    }
+    left.bike.input.steer = 0;
+    fly(left, 0.42);
+    expect(left.bike.airborne).toBe(true);
+    // Four tenths of a second to return gets this medium jump inside a
+    // five-degree alignment window, well before its actual touchdown.
+    expect(Math.abs(left.bike.airYaw)).toBeLessThan(0.0873);
+    expect(Math.abs(left.bike.dynamics.lean)).toBeLessThan(0.08);
+  });
+
+  it.each([-1, 1])(
+    'keeps incoming momentum when a raw rider lands a held whip to side %s',
+    (side) => {
+      const run = landWhip('raw', 4, side),
+        bike = run.bike,
+        contact = bike.lastLanding!,
+        velocity = bike.body.velocity;
+      expect(contact.yawError * side).toBeGreaterThan(0.55);
+      expect(contact.lateralSpeed * -side).toBeGreaterThan(5.5);
+      // Rotating the tyre axes must not rotate the incoming world velocity.
+      // The terrain impact may alter its magnitude, but not invent a sideways
+      // impulse to pull the centre of mass toward the nose of the bike.
+      const cross = run.incomingX * velocity.z - run.incomingZ * velocity.x,
+        lengths = Math.hypot(run.incomingX, run.incomingZ) * Math.hypot(velocity.x, velocity.z);
+      expect(Math.abs(cross / lengths)).toBeLessThan(1e-6);
+      const actualSide = velocity.x * Math.cos(bike.heading) - velocity.z * Math.sin(bike.heading);
+      expect(actualSide).toBeCloseTo(contact.lateralSpeed, 8);
+      expect(bike.dynamics.speed).toBeLessThan(Math.hypot(velocity.x, velocity.z) * 0.86);
+      // The following real contact step judges the crossed landing and starts
+      // the same visible recovery used by the rest of the motorcycle solver.
+      bike.step(DT, run.track);
+      expect(contact.outcome).toBe('crash-side');
+      expect(bike.dynamics.crashes).toBe(1);
+      expect(bike.crashCauses.at(-1)?.cause).toBe('crash-side');
+    },
+  );
+
+  it.each([MX_250, MX_450])(
+    '$id retains drive when the rider returns the whip before touchdown',
+    (definition) => {
+      const recovered = landWhip('raw', 0.28, 1, definition),
+        straight = landWhip('raw', 0, 0, definition),
+        record = recovered.bike.lastLanding!;
+      expect(recovered.peakYaw).toBeGreaterThan(0.4);
+      expect(Math.abs(record.yawError)).toBeLessThan(0.03);
+      expect(Math.abs(record.lateralSpeed)).toBeLessThan(0.3);
+      expect(recovered.bike.dynamics.speed / straight.bike.dynamics.speed).toBeGreaterThan(0.995);
+      expect(recovered.bike.dynamics.speed / straight.bike.dynamics.speed).toBeLessThan(1.005);
+      for (const run of [recovered, straight]) {
+        for (let i = 0; i < LANDING_RULES.settleSeconds / DT; i++) {
+          rideLine(run.bike, run.track, 12);
+          run.bike.step(DT, run.track);
+        }
+        expect(run.bike.dynamics.crashes).toBe(0);
+        expect(run.bike.riding).toBe(true);
+      }
+    },
+  );
+
+  it('Sport still permits a visible whip but squares a held input before touchdown', () => {
+    const sport = landWhip('sport', 4),
+      raw = landWhip('raw', 4);
+    expect(sport.peakYaw).toBeGreaterThan(0.3);
+    expect(Math.abs(sport.bike.lastLanding!.yawError)).toBeLessThan(0.16);
+    expect(Math.abs(sport.bike.lastLanding!.lateralSpeed)).toBeLessThan(1.8);
+    expect(sport.bike.dynamics.speed).toBeGreaterThan(raw.bike.dynamics.speed + 1.2);
+    for (let i = 0; i < LANDING_RULES.settleSeconds / DT; i++) {
+      rideLine(sport.bike, sport.track, 12);
+      sport.bike.step(DT, sport.track);
+    }
+    expect(sport.bike.dynamics.crashes).toBe(0);
+  });
+
+  it('does not add yaw to the calibrated AI or the supermoto adapter', () => {
+    const ai = launch('sport', true),
+      supermoto = launch('raw', false, SM_450);
+    ai.bike.input.steer = supermoto.bike.input.steer = 1;
+    fly(ai, 0.32);
+    fly(supermoto, 0.32);
+    expect(ai.bike.airYaw).toBe(0);
+    expect(supermoto.bike.airYaw).toBe(0);
+    expect(supermoto.bike.dynamics.lean).toBeGreaterThan(0.1);
+    const player = launch();
+    player.bike.input.steer = 1;
+    fly(player, 0.3);
+    expect(player.bike.airYaw).toBeGreaterThan(0.4);
+    player.bike.place(player.track, 35);
+    expect(player.bike.airYaw).toBe(0);
+    expect(player.bike.airYawRate).toBe(0);
+  });
+
+  it('lets a square supermoto touchdown retain its existing tyre-friction slide recovery', () => {
+    const run = launch('sport', true, SM_450),
+      bike = run.bike;
+    while (bike.airborne && (bike.landingIn > 0.08 || bike.airTime < 0.2) && bike.airTime < 4)
+      bike.step(DT, run.track);
+    expect(bike.airborne).toBe(true);
+    // Apply an incoming lateral impulse through the same body-velocity path
+    // used by contact resolution, just before the real terrain touchdown.
+    // The existing tyre friction can catch this near-threshold slide on its
+    // first grounded step; only an actual whip adds an earlier judgement.
+    const impulse = 5.501 - bike.slide;
+    bike.body.velocity.x += Math.cos(bike.heading) * impulse;
+    bike.body.velocity.z -= Math.sin(bike.heading) * impulse;
+    while (bike.airborne && bike.airTime < 4) bike.step(DT, run.track);
+    const landing = bike.lastLanding!;
+    expect(bike.airborne).toBe(false);
+    expect(landing.airTime).toBeGreaterThan(LANDING_RULES.minimumAirTime);
+    expect(landing.takeoffSpeed).toBeGreaterThan(LANDING_RULES.rollingHopSpeed);
+    expect(landing.yawError).toBe(0);
+    expect(landing.lateralSpeed).toBeGreaterThan(5.5);
+    bike.step(DT, run.track);
+    expect(Math.abs(bike.slide)).toBeLessThan(5.5);
+    expect(bike.riding).toBe(true);
+    expect(bike.dynamics.crashes).toBe(0);
+    expect(landing.outcome).not.toBe('crash-side');
+  });
+
+  it('lets an AI demonstration take over an active player whip without holding its bank', () => {
+    const run = launch();
+    run.bike.input.steer = 1;
+    fly(run, 0.3);
+    expect(run.bike.airYaw).toBeGreaterThan(0.4);
+    expect(run.bike.dynamics.lean).toBeGreaterThan(0.2);
+    run.bike.aiControlled(1e6);
+    // Held player steering must no longer keep either attitude wound up.
+    fly(run, 0.5);
+    expect(run.bike.airborne).toBe(true);
+    expect(Math.abs(run.bike.airYaw)).toBeLessThan(0.05);
+    expect(Math.abs(run.bike.dynamics.lean)).toBeLessThan(0.08);
+    while (run.bike.airborne && run.bike.airTime < 4) run.bike.step(DT, run.track);
+    const record = run.bike.lastLanding!;
+    expect(Math.abs(record.yawError)).toBeLessThan(0.02);
+    expect(Math.abs(record.lateralSpeed)).toBeLessThan(0.2);
+    expect(run.bike.dynamics.crashes).toBe(0);
   });
 });
 
@@ -197,5 +421,16 @@ describe('motocross landing messages', () => {
     expect(assessMotocrossLanding(-0.9, 2.5, 0, false).kind).toBe('nose-low');
     expect(assessMotocrossLanding(NaN, 0, 0, false).kind).not.toBe('clean');
     expect(assessMotocrossLanding(0.7, 2.5, 0, false).cue).toContain('brake');
+  });
+
+  it('uses actual lateral touchdown speed to withhold clean feedback from a crossed landing', () => {
+    for (const speed of [-3, 3])
+      expect(assessMotocrossLanding(0.1, 2, 0, false, undefined, false, speed).kind).toBe(
+        'sideways',
+      );
+    expect(assessMotocrossLanding(0.1, 2, 0, false, undefined, false, 0.1).kind).toBe('clean');
+    expect(assessMotocrossLanding(0.1, 2, 0, false, undefined, false, NaN).kind).not.toBe('clean');
+    expect(motocrossAlignment(0, 1, 0, 0)).toEqual({ yaw: 0, lateralSpeed: 0 });
+    expect(Number.isNaN(motocrossAlignment(0, 1, NaN, 0).lateralSpeed)).toBe(true);
   });
 });

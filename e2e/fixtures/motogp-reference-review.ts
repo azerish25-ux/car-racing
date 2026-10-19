@@ -12,7 +12,12 @@ export function captureBikeSequence(
   view = 'three-quarter',
   detail: 'high' | 'mid' | 'far' = 'high',
   id = 'gpr1',
-  samples: readonly { wet: boolean; time: number }[] = [{ wet: false, time: 2 }],
+  samples: readonly {
+    wet: boolean;
+    time: number;
+    /** Explicit optical control only; omitted samples use the real material. */
+    windscreen?: 'production' | 'legacy-volume';
+  }[] = [{ wet: false, time: 2 }],
 ) {
   const renderer = new T.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
   renderer.setSize(1280, 800);
@@ -40,6 +45,7 @@ export function captureBikeSequence(
   const def = VEHICLES[id],
     materials = new BikeMaterials(0);
   const bike = new BikeModel(def, 0, detail, materials, true);
+  const productionScreenThickness = materials.screen.thickness;
   const sag = staticSag(def);
   bike.pose({
     fork: sag.fork,
@@ -138,6 +144,11 @@ export function captureBikeSequence(
       };
     });
     return samples.map((sample) => {
+      // Reproduce the previous GP volume setting on this SAME real curved
+      // windscreen, display, camera and renderer. Production samples restore
+      // the authored material value rather than prescribing the candidate.
+      materials.screen.thickness =
+        sample.windscreen === 'legacy-volume' ? 0.002 : productionScreenThickness;
       weatherFrame[H.TIME] = sample.time;
       weatherFrame[H.RAIN] = sample.wet ? 20 : 0;
       weatherFrame[H.WATER] = sample.wet ? 0.6 : 0;
@@ -167,6 +178,14 @@ export function captureBikeSequence(
         preparation,
         hash,
         cockpit,
+        windscreen: {
+          mode: sample.windscreen ?? 'production',
+          thickness: materials.screen.thickness,
+          ior: materials.screen.ior,
+          transmission: materials.screen.transmission,
+          opacity: materials.screen.opacity,
+          transparent: materials.screen.transparent,
+        },
         weather: weather.diagnostics(),
         triangles,
         submittedTriangles: renderer.info.render.triangles,

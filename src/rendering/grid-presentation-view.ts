@@ -5,8 +5,18 @@ import {
   relaxedWrist,
 } from './crew-performance.ts';
 import * as T from 'three';
-import { F, H, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../simulation/protocol.ts';
+import {
+  F,
+  H,
+  R,
+  RACE_BASE,
+  W,
+  WHEEL_BASE,
+  WHEEL_STRIDE,
+  carBase,
+} from '../simulation/protocol.ts';
 import { WHEEL_POSITIONS } from '../simulation/vehicle.ts';
+import { vehicleAt } from '../simulation/vehicles.ts';
 import { CREW_BONES } from './people-asset.ts';
 import { CrewPose, installCrewSkin } from './crew-pose.ts';
 import { crewTeamColour } from './crew-geometry.ts';
@@ -277,6 +287,10 @@ export class GridPresentationView {
     if (time === null || !Number.isFinite(time) || frame[H.PHASE] >= 2 || frame[H.TIME] > 0) return;
     for (let id = 0; id < Math.min(12, frame[H.CARS]); id++) {
       const base = carBase(id);
+      // The four Formula blanket-removal rigs do not fit motocross bikes.
+      // Supporting grid staff are updated separately by the cast above.
+      if (vehicleAt(Math.round(frame[base + RACE_BASE + R.VEHICLE])).classId === 'motocross')
+        continue;
       if (Math.abs(frame[base + F.SPEED]) > 0.5) continue;
       this.car.position.fromArray(frame, base + F.X);
       this.car.quaternion.fromArray(frame, base + F.QX);

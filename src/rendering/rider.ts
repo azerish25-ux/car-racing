@@ -6,6 +6,7 @@ import { bikeSurfaceMaps } from './bike-surface-detail.ts';
 import { batchBikeRigidMeshes } from './bike-rigid-batch.ts';
 import { sampleProfile } from './profile-sampling.ts';
 import { mxAuthoredGeometry } from './offroad/authored-kit.ts';
+import { tagMudExposure } from './offroad/mud.ts';
 import { gpRacingBoot, installGpLeatherFinish } from './gp-rider-gear.ts';
 import { motocrossFabricMaps, motocrossGraphics } from './offroad/motocross-detail.ts';
 import {
@@ -476,6 +477,28 @@ export class Rider {
         })
       : null;
     if (mxBoot && mxTrim) this.materials.push(mxBoot, mxTrim);
+    if (mx) {
+      // A coated polycarbonate goggle lens has a dark eye cavity behind it.
+      // The old pale, mostly metallic visor turned into an opaque cyan slab.
+      // Keep the clear surface reflection while the smoke tint stays dark.
+      visor.color.setHex(0x123034);
+      visor.metalness = 0.12;
+      visor.roughness = 0.12;
+      visor.clearcoat = 0.95;
+      visor.clearcoatRoughness = 0.06;
+      visor.iridescence = 0.28;
+      visor.iridescenceIOR = 1.32;
+      visor.iridescenceThicknessRange = [180, 290];
+      visor.name = 'Motocross smoked coated goggle lens';
+      helmet.metalness = 0;
+      helmet.roughness = 0.31;
+      helmet.clearcoat = 0.65;
+      helmet.clearcoatRoughness = 0.16;
+      helmet.name = 'Motocross composite helmet shell';
+      tagMudExposure(helmet, 0.55);
+      tagMudExposure(visor, 0.25);
+      tagMudExposure(torsoLeather, 0.72);
+    }
     if (mx && detail !== 'far') {
       const weave = motocrossFabricMaps();
       const sleeve = motocrossGraphics(colours, 'sleeve', raceNumber);
@@ -488,9 +511,6 @@ export class Rider {
       torsoLeather.map = motocrossGraphics(colours, 'jersey', raceNumber);
       helmet.map = motocrossGraphics(colours, 'helmet', raceNumber);
       helmet.color.setHex(0xffffff);
-      helmet.roughness = 0.27;
-      visor.color.setHex(0x769c9e);
-      visor.roughness = 0.14;
     }
     if (!mx && detail !== 'far') {
       leather.map = riderPanelTexture(colours, false);
@@ -646,10 +666,10 @@ export class Rider {
     this.torso.add(this.head);
     const shell = part(
       this.head,
-      detail === 'far'
-        ? new T.SphereGeometry(0.14, 8, 6)
-        : mx
-          ? motocrossHelmetShell()
+      mx
+        ? motocrossHelmetShell(detail)
+        : detail === 'far'
+          ? new T.SphereGeometry(0.14, 8, 6)
           : helmetShell(),
       helmet,
     );

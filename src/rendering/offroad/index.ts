@@ -83,6 +83,7 @@ export class OffroadScene {
   }
   update(frame: Float32Array) {
     this.gate?.update(frame);
+    this.stadium?.update(frame[H.TIME]);
     const time = frame[H.TIME],
       dt = Number.isFinite(this.lastTime) ? clamp(time - this.lastTime, 0, 0.1) : 0;
     // Even a sub-frame reverse seek can cross a takeoff/contact edge.

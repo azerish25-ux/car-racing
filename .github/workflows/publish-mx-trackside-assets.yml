@@ -1,0 +1,68 @@
+name: Verify committed motocross Blender assets
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/publish-mx-trackside-assets.yml
+      - authoring/motocross/native/**
+      - public/models/motocross/trackside/**
+      - docs/production/mx-trackside-native-receipt.json
+      - docs/production/mx-trackside-glb-verification.json
+      - docs/production/mx-trackside-source.sha256
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-mx-trackside-assets
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Verify all 13 Git-tracked model binaries without generating replacements
+    runs-on: ubuntu-slim
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Check full binary integrity against native export receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PYCODE'
+          from pathlib import Path
+          from hashlib import sha256
+          import json
+          import subprocess
+          base = Path('.')
+          receipt = json.loads((base / 'docs/production/mx-trackside-native-receipt.json').read_text())
+          checks = json.loads((base / 'docs/production/mx-trackside-glb-verification.json').read_text())
+          original = (base / 'docs/production/mx-trackside-source.sha256').read_text().strip()
+          assert original == receipt['sourceSHA256'], 'Source fingerprint mismatch'
+          assert checks['passed'] and len(checks['results']) == 12
+          assert len(receipt['variants']) == 12
+          assert { (x['model'],x['detail']) for x in receipt['variants'] } == {
+              (x['model'],x['detail']) for x in checks['results'] }
+          total = 0
+          for item in receipt['variants']:
+              p = base / 'public/models/motocross/trackside' / item['file']
+              content = p.read_bytes()
+              assert len(content) == item['bytes'], p
+              assert sha256(content).hexdigest() == item['sha256'], p
+              subprocess.run(['git', 'ls-files', '--error-unmatch', str(p)], check=True,
+                             stdout=subprocess.DEVNULL)
+              total += 1
+          native = receipt['native']
+          assert native['meshObjects'] == 733
+          p = base / 'authoring/motocross/native' / native['file']
+          assert len(p.read_bytes()) == native['bytes']
+          assert sha256(p.read_bytes()).hexdigest() == native['sha256']
+          subprocess.run(['git', 'ls-files', '--error-unmatch', str(p)], check=True,
+                         stdout=subprocess.DEVNULL)
+          assert (base / 'docs/production/mx-trackside-model-preview.jpg').is_file()
+          print(f'MX COMMITTED ASSETS VERIFIED: {total} GLBs, 1 Blender source, fingerprint {original}')
+          PYCODE
+          test -z "$(git status --porcelain)"

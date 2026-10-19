@@ -1,0 +1,2298 @@
+{
+  "schemaVersion": 2,
+  "title": "MOTOBOUND motocross: visual review and actual Three.js implementation mapping, 2026-10-18",
+  "baselineCommit": "bdca8de5d36e282840d52316d106a2d99626924f",
+  "archive": {
+    "filename": "Motocross_PS5_100_Developer_Reference_Images(2).zip",
+    "bytes": 47893403,
+    "sha256": "d8c8fbb62974432e8feafa853917deb45765dccc18be7d1da8ece9be512a9c73",
+    "indexFiles": [
+      "REFERENCE_INDEX.csv",
+      "SHA256SUMS.txt"
+    ],
+    "allEntriesMatchPackIndex": true
+  },
+  "coverage": {
+    "numberedImages": 100,
+    "visuallyReviewed": 100,
+    "originalResolutionFollowups": 9,
+    "sha256Matches": 100,
+    "uniqueSourceHashes": 100,
+    "fullResolutionReferenceNumbers": [
+      4,
+      24,
+      31,
+      42,
+      59,
+      72,
+      86,
+      92,
+      95
+    ],
+    "implementationStatuses": {
+      "new-principle-applied": 59,
+      "retained-existing-system": 5,
+      "context-only-retained-systems": 15,
+      "new-principle-applied-with-context": 21
+    },
+    "newFeatureGroups": 11,
+    "meaning": "All 100 source images were visually reviewed and individually classified; this does not mean 100 separate new features were implemented."
+  },
+  "reviewMethod": "All 100 images were inspected on labeled contact sheets; the listed nine were also inspected at original resolution. Original observations and supplied source URLs are retained below. Feature keys resolve to shared implementation/path records to avoid repeating the same mapping per image.",
+  "interpretation": [
+    "Reference images guide silhouettes, materials, composition and handling feedback. Gameplay calibration values are not measurements derived from screenshots.",
+    "Source URLs and the PS5-available-title designation are supplied-pack provenance. Capture hardware was not independently verified.",
+    "Context entries describe depicted vehicles, maps or presentation features that are outside this implementation. Runtime uses original procedural code and existing assets."
+  ],
+  "implementationFeatures": {
+    "worked_soil": {
+      "summary": "Five wandering and interrupted wheel-pass channels replace three uniform lanes, with compacted dark lows, raised pale aggregate, staggered cleat/rake detail, derivative filtering and locally damp roughness.",
+      "changedPaths": [
+        "src/rendering/offroad/mx-soil-detail.ts"
+      ],
+      "validationPaths": [
+        "tests/motocross-soil-transition.test.ts",
+        "e2e/43-motocross-world.spec.ts"
+      ],
+      "scope": "Normal, color and roughness shading samples the existing soil compaction/depth fields. It does not displace physical terrain or alter collision, course profile or tyre grip."
+    },
+    "prepared_earth_scan": {
+      "summary": "Both outdoor motocross and stadium supercross select the resident mineral dry-earth scan for broad macro color and worked-loam fine detail, avoiding enlarged forest-floor needles and roots on prepared track soil.",
+      "changedPaths": [
+        "src/rendering/offroad/terrain-view.ts"
+      ],
+      "validationPaths": [
+        "tests/motocross-soil-transition.test.ts",
+        "tests/motocross-environment.test.ts",
+        "e2e/43-motocross-world.spec.ts"
+      ],
+      "scope": "Reuses existing photographed earth assets; no new bitmap assets. Physical soil kind, moisture, vertex color and grass-specific fine-detail slots remain authoritative. Non-MX scan selection is retained."
+    },
+    "clods_and_dust": {
+      "summary": "The existing motocross particle pass draws seeded irregular dense clod silhouettes and soft billowing dust envelopes, with separate alpha edges and subtle clod form shading.",
+      "changedPaths": [
+        "src/rendering/offroad/roost.ts"
+      ],
+      "validationPaths": [
+        "tests/motocross-environment.test.ts",
+        "e2e/43-motocross-world.spec.ts"
+      ],
+      "scope": "Keeps the existing 2,400-particle capacity, one Points draw, actual loaded-wheel emission, contacts, lifetimes and wetness inputs. Other offroad modes retain their soft-disc map."
+    },
+    "helmet_and_goggles": {
+      "summary": "Profiled motocross helmet shells have a real open eye port, recessed liner, integrated projecting chin guard, conformed vents and a narrower peak; smaller curved smoke/iridescent goggles and material tuning restore protected face and shell depth.",
+      "changedPaths": [
+        "src/rendering/offroad/motocross-gear.ts",
+        "src/rendering/rider.ts"
+      ],
+      "validationPaths": [
+        "tests/motocross-equipment-surface.test.ts",
+        "e2e/42-motocross-bike.spec.ts"
+      ],
+      "scope": "Procedural geometry retains meaningful detail levels and the existing rider contact/IK rig. New eye opening exists at high, mid and far detail; it is not a painted dark rectangle."
+    },
+    "moulded_plastics": {
+      "summary": "Radiator shrouds gain a smooth shallow crown and tucked intake profile. Physical plastic materials gain lower clearcoat, fine mould grain and directionally filtered scuff roughness.",
+      "changedPaths": [
+        "src/rendering/offroad/motocross-detail.ts",
+        "src/rendering/offroad/dirt-bike-model.ts"
+      ],
+      "validationPaths": [
+        "tests/motocross-equipment-surface.test.ts",
+        "e2e/42-motocross-bike.spec.ts"
+      ],
+      "scope": "Uses bounded tessellation and procedural shading in DirtBikeModel; grain/scuff hooks are installed on high/mid plastic materials. Existing livery artwork, exposed frame and mechanical component layout are retained."
+    },
+    "knobby_rubber": {
+      "summary": "Tread lugs use three chamfered rings with a narrow worn crown; separate rough motocross rubber material reuses existing rubber grain maps without inheriting the road drainage shader.",
+      "changedPaths": [
+        "src/rendering/offroad/motocross-detail.ts",
+        "src/rendering/offroad/dirt-bike-model.ts"
+      ],
+      "validationPaths": [
+        "tests/motocross-equipment-surface.test.ts",
+        "e2e/42-motocross-bike.spec.ts"
+      ],
+      "scope": "Lugs remain merged per wheel and preserve the physical tyre contact envelope. Rubber texture ownership stays with shared BikeMaterials, so disposing one LOD does not break another."
+    },
+    "selective_mud": {
+      "summary": "Mud combines filtered fine powder film and clumped wet earth with restrained bump relief; per-material exposure keeps helmet, lens, jersey and number-board readability while lower surfaces retain stronger dirt.",
+      "changedPaths": [
+        "src/rendering/offroad/mud.ts",
+        "src/rendering/offroad/dirt-bike-model.ts",
+        "src/rendering/rider.ts"
+      ],
+      "validationPaths": [
+        "tests/motocross-equipment-surface.test.ts",
+        "e2e/42-motocross-bike.spec.ts"
+      ],
+      "scope": "Uses existing snapshot dirt/wetness state. The mud shader is shared by existing offroad material users; untagged materials keep exposure 1. It adds no new accumulation physics."
+    },
+    "stadium_audience": {
+      "summary": "Lower stadium rows reuse the shared shaped spectator kit; farther seats use analytic human silhouettes. Stable mixed poses, skin/garment zones and muted clothing replace uniform pegs, with simulation-time-driven motion.",
+      "changedPaths": [
+        "src/rendering/offroad/stadium.ts",
+        "src/rendering/offroad/index.ts"
+      ],
+      "validationPaths": [
+        "tests/motocross-stadium-crowd.test.ts",
+        "tests/motocross-authored-kit.test.ts",
+        "tests/motocross-environment.test.ts",
+        "e2e/43-motocross-world.spec.ts"
+      ],
+      "scope": "All 14,821 occupied seats remain. Shared crowd.ts/crowd-impostor.ts outputs, stadium bowl, authored structures, chair positions and occupancy random stream are retained. Two audience batches keep the complete stadium at 15 meshes; no new lights."
+    },
+    "recoverable_whip": {
+      "summary": "Steering in flight adds bounded bike yaw beneath the rider; release unwinds it. Sport assists the final approach, while Raw preserves greater player authority. Touchdown resolves actual incoming momentum into the rotated tyre axes and records lateral landing speed.",
+      "changedPaths": [
+        "src/simulation/offroad/dirt-bike-vehicle.ts",
+        "src/simulation/offroad/riding-feedback.ts"
+      ],
+      "validationPaths": [
+        "tests/motocross-riding.test.ts"
+      ],
+      "scope": "Guarded to mx250/mx450 on motocross/supercross. Yaw is bounded to 0.6 rad and 2.2 rad/s. Whipping does not provide lateral airborne force or bonus speed. Only an actually yawed touchdown adds the immediate crossed-landing crash judgement; ordinary slides retain existing tyre-friction recovery. Qualifying jumps with actual yaw and lateral speed above 5.5 m/s can use the existing lowside recovery path. AI ordinarily targets zero whip; takeover unwinds an active player pose."
+    },
+    "flight_camera": {
+      "summary": "During sufficiently fast airborne travel, chase framing follows horizontal velocity instead of whipped chassis yaw, preserving a view along the actual flight/landing corridor.",
+      "changedPaths": [
+        "src/rendering/offroad/chase-camera.ts",
+        "src/rendering/renderer.ts"
+      ],
+      "validationPaths": [
+        "tests/motocross-camera.test.ts"
+      ],
+      "scope": "Existing terrain clearance, landing dip, pause/reset behavior and grounded heading remain. The camera does not alter trajectories or authored jump geometry."
+    },
+    "flight_feedback": {
+      "summary": "Controls explain steer-to-whip and release-to-square. Snapshot-based HUD shows BRING IT BACK for a sideways flight and WHIP LANDED only after a qualifying clean touchdown settles; crossed landings retain their warning even after slide speed decays.",
+      "changedPaths": [
+        "src/ui/offroad-hud.ts",
+        "src/ui/interface.ts",
+        "src/simulation/offroad/riding-feedback.ts"
+      ],
+      "validationPaths": [
+        "tests/motocross-hud.test.ts",
+        "tests/motocross-riding.test.ts"
+      ],
+      "scope": "Uses existing pose/velocity snapshot channels and a 0.25 s landing settlement window. Feedback adds no stunt score, boost or new game mode; existing rhythm coach and race-control priority remain."
+    }
+  },
+  "retainedSystems": {
+    "rider_pose": {
+      "summary": "Existing human build, garment construction, hand/foot contacts, IK, inside-leg corner balance and simulation-driven rider posture are retained; helmet geometry/material edits are separately listed.",
+      "paths": [
+        "src/rendering/rider.ts",
+        "src/rendering/offroad/dirt-bike-model.ts"
+      ]
+    },
+    "mechanical_structure": {
+      "summary": "Existing open chassis, fork/spoke/swingarm/engine structure, livery identity, visible chain/sprocket drive and contact dimensions are retained.",
+      "paths": [
+        "src/rendering/offroad/dirt-bike-model.ts",
+        "src/rendering/offroad/motocross-chain-drive.ts"
+      ]
+    },
+    "suspension_and_pitch": {
+      "summary": "Existing suspension response/droop, throttle/brake air pitch, physical tyre contacts and jump profiles remain; added yaw/landing-alignment behavior is separately listed.",
+      "paths": [
+        "src/simulation/offroad/dirt-bike-vehicle.ts",
+        "src/simulation/offroad/jump-rig.ts",
+        "src/simulation/offroad/course-terrain.ts"
+      ]
+    },
+    "pack_and_lines": {
+      "summary": "Existing racing-line choice, independent AI trajectories, pack spacing and calibrated AI jump solution remain.",
+      "paths": [
+        "src/simulation/offroad/ai.ts",
+        "src/simulation/offroad/dirt-bike-vehicle.ts"
+      ]
+    },
+    "authored_environment": {
+      "summary": "Existing venues, terrain envelope, trees, fences, route markers and event structures remain; material and stadium-audience edits are separately listed.",
+      "paths": [
+        "src/simulation/offroad/venues.ts",
+        "src/rendering/offroad/mx-course-dressing.ts",
+        "src/rendering/offroad/mx-boundary.ts",
+        "src/rendering/offroad/stadium.ts"
+      ]
+    },
+    "outdoor_audience": {
+      "summary": "Existing outdoor spectators, placements and shared audience kit are retained. Only the stadium audience population/representation is changed in this pass.",
+      "paths": [
+        "src/rendering/offroad/mx-course-dressing.ts",
+        "src/rendering/crowd.ts",
+        "src/rendering/crowd-impostor.ts"
+      ]
+    },
+    "lighting_and_contact": {
+      "summary": "Existing world lighting, shadows, atmospheric depth and physical-contact shading remain. New material contrast is not a global exposure/weather-system rewrite.",
+      "paths": [
+        "src/rendering/renderer.ts",
+        "src/rendering/offroad/mx-terrain-shadow.ts",
+        "src/rendering/offroad/roost.ts"
+      ]
+    },
+    "contact_roost_emission": {
+      "summary": "Existing driven-wheel contact, load/slip emission, dust/clod lifetime and rain inputs remain; shape and opacity treatment are the new rendering work.",
+      "paths": [
+        "src/rendering/offroad/roost.ts"
+      ]
+    },
+    "current_presentation": {
+      "summary": "Existing garage/menu layouts, racing HUD placement, rhythm targets, assistance selection and race-control hierarchy remain. Explicit whip/landing instruction and feedback are separately listed.",
+      "paths": [
+        "src/rendering/offroad/menu-bike.ts",
+        "src/ui/offroad-hud.ts",
+        "src/ui/interface.ts",
+        "src/simulation/offroad/rhythm-coach.ts"
+      ]
+    }
+  },
+  "validationReceipt": "motocross-threejs-validation-20261018.json",
+  "references": [
+    {
+      "number": 1,
+      "file": "01_Bikes_and_Components/001_SX25_red_factory_bike_in_side_three_quarter_view.jpg",
+      "sha256": "2e3f9b30f5c8da8977ee5181c54c35265211c73d14755d8a547888861bfca345",
+      "observation": "Red bike has narrow rim/spoke outlines, bright fork tubes, separate engine castings and a matte boot beside thin colored plastics.",
+      "recommendedPrinciple": "Preserve slender silhouette and sharpen mechanical/material separation; keep detail subordinate to wheel and frame proportions.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2581370/ss_4fa976c94271a65a50ed043ca4e00489184e0a2f.1920x1080.jpg?t=1790000333",
+        "page": "https://store.steampowered.com/app/2581370/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "moulded_plastics"
+      ],
+      "retainedSystems": [
+        "mechanical_structure",
+        "lighting_and_contact"
+      ]
+    },
+    {
+      "number": 2,
+      "file": "01_Bikes_and_Components/002_MXATV_outdoor_rider_and_bike_in_low_side_view.jpg",
+      "sha256": "7fd1084936b7ff92bb77a701e0e9bb256ace65cf147c1e56c399a560660a05f4",
+      "observation": "Low front view separates dark opaque flying clods from soft tan rear-wheel dust; the rider stands with elbows away from the body.",
+      "recommendedPrinciple": "Give heavy clods irregular opaque shapes and retain standing contact-point articulation.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1205970/d59e0cc2595382699eabde697137749eb10a6122/ss_d59e0cc2595382699eabde697137749eb10a6122.1920x1080.jpg?t=1791298700",
+        "page": "https://store.steampowered.com/app/1205970/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "clods_and_dust"
+      ],
+      "retainedSystems": [
+        "rider_pose",
+        "contact_roost_emission"
+      ]
+    },
+    {
+      "number": 3,
+      "file": "01_Bikes_and_Components/003_MXATV_three_bikes_and_riders_staged_close_together.jpg",
+      "sha256": "15187a5648b1d371da3126187dceaef5898b8fb5ffafbad5a2b2ad3e3828ec27",
+      "observation": "Close rear starting pack shows asymmetrical exhausts, large jersey back numbers, deeply separated knobby tread and dark boot recesses.",
+      "recommendedPrinciple": "Keep numbers readable and vary silhouettes/gear instead of tinting the whole rider and machine identically.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1205970/09fd746ed7304c283059bc89e0db96cc099363ed/ss_09fd746ed7304c283059bc89e0db96cc099363ed.1920x1080.jpg?t=1791298700",
+        "page": "https://store.steampowered.com/app/1205970/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "knobby_rubber"
+      ],
+      "retainedSystems": [
+        "mechanical_structure",
+        "rider_pose"
+      ]
+    },
+    {
+      "number": 4,
+      "file": "01_Bikes_and_Components/004_SX6_close_side_view_of_yamaha_rider_and_bike.jpg",
+      "sha256": "f03991bc676c53161f4104da6f9b0214668253b2ff905c8c7828c6700b8d6a82",
+      "observation": "Helmet shell and fork have concentrated highlights while jersey fabric is matte with shoulder/elbow folds and a black eye opening.",
+      "recommendedPrinciple": "Use roughness and fine textile variation with a dark goggle cavity, keeping clear plastic/metal/fabric response differences.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2058750/ss_48720f851bda30dfeafb0ab1ef209826a20872ee.1920x1080.jpg?t=1744270559",
+        "page": "https://store.steampowered.com/app/2058750/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "helmet_and_goggles"
+      ],
+      "retainedSystems": [
+        "rider_pose"
+      ]
+    },
+    {
+      "number": 5,
+      "file": "01_Bikes_and_Components/005_SX6_full_bike_and_rider_side_profile.jpg",
+      "sha256": "8fb8503b2e17f24616a08fe16360e2e05d411d4f2ecc066068100e8df23671f8",
+      "observation": "Airborne red bike has open triangular chassis spaces, a long slim swingarm, bent knees and both boots above the pegs.",
+      "recommendedPrinciple": "Keep visible negative space through the frame and stable hands/feet while airborne.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2058750/ss_b7b7452cded1d1cbdc2e2c2475c7b0c9e838d336.1920x1080.jpg?t=1744270559",
+        "page": "https://store.steampowered.com/app/2058750/"
+      },
+      "implementationStatus": "retained-existing-system",
+      "newFeatures": [],
+      "retainedSystems": [
+        "mechanical_structure",
+        "rider_pose",
+        "suspension_and_pitch"
+      ]
+    },
+    {
+      "number": 6,
+      "file": "01_Bikes_and_Components/006_SX6_airborne_side_profile.jpg",
+      "sha256": "16f30a9afc0e20289cf30fa76cc0b77b1bb8595303012e1ca9a96015db2c0a72",
+      "observation": "Clean airborne profile shows suspension extension, wheels hanging below the chassis and a torso angled independently from the bike.",
+      "recommendedPrinciple": "Retain suspension droop and controlled body weight while developing recoverable air-control expression.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2058750/ss_2302b805a839e1651510c7bd04508c4f66868f16.1920x1080.jpg?t=1744270559",
+        "page": "https://store.steampowered.com/app/2058750/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "recoverable_whip",
+        "flight_camera"
+      ],
+      "retainedSystems": [
+        "rider_pose",
+        "suspension_and_pitch"
+      ]
+    },
+    {
+      "number": 7,
+      "file": "01_Bikes_and_Components/007_MXGP21_close_ktm_red_bull_rider_in_a_lean.jpg",
+      "sha256": "dae9aea748c0325b0c9dc8b07141737dfd725d4cd6d9c8fe5c7d7a7bfb3295a4",
+      "observation": "Cornering bike follows a dark depressed rut; the inside boot extends forward and small flexible yellow posts mark the outer bank.",
+      "recommendedPrinciple": "Make rut lows darker and irregular while keeping the rider counterweighted and rideable line clear.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1610470/ss_9565dc96eaa41781d27f32108d6053476327b8a1.1920x1080.jpg?t=1725035312",
+        "page": "https://store.steampowered.com/app/1610470/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "worked_soil"
+      ],
+      "retainedSystems": [
+        "rider_pose",
+        "authored_environment"
+      ]
+    },
+    {
+      "number": 8,
+      "file": "01_Bikes_and_Components/008_MXGP21_bike_and_rider_in_grass_and_rock_terrain.jpg",
+      "sha256": "483169dfa8001470b09cbce37dae4a4dafed1579ff5533fb875ca22d0dcd1139",
+      "observation": "Narrow bike is partially surrounded by varied grass in front of layered cool-gray cliffs; the foreground has many small occlusion pockets.",
+      "recommendedPrinciple": "Use irregular grass/earth transitions and layered background values rather than additional geometry in the racing lane.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1610470/ss_05afc02d211b297e11a025f7cbfc3a3b5d6c9807.1920x1080.jpg?t=1725035312",
+        "page": "https://store.steampowered.com/app/1610470/"
+      },
+      "implementationStatus": "context-only-retained-systems",
+      "newFeatures": [],
+      "retainedSystems": [
+        "authored_environment",
+        "lighting_and_contact"
+      ],
+      "context": "Cliff and grass composition are environmental context; no new vegetation or cliff system was added."
+    },
+    {
+      "number": 9,
+      "file": "01_Bikes_and_Components/009_SX5_red_bike_in_a_clean_side_jump.jpg",
+      "sha256": "230f0d3a3852c94c3365034bc2a5aed7e587a95857011a6a182677cb90c558a2",
+      "observation": "White boots and the lower engine are visibly mud stained under cool roof lights, while the upper jersey remains mostly clean.",
+      "recommendedPrinciple": "Concentrate dirt beneath the rider and on leading/lower surfaces; preserve stadium lighting contrast.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1610460/ss_16ed7d10544250159c2c4e90d527483d9054995d.1920x1080.jpg?t=1744270609",
+        "page": "https://store.steampowered.com/app/1610460/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "selective_mud"
+      ],
+      "retainedSystems": [
+        "lighting_and_contact"
+      ]
+    },
+    {
+      "number": 10,
+      "file": "01_Bikes_and_Components/010_SX5_blue_bike_from_rear_three_quarter_in_the_air.jpg",
+      "sha256": "164ee383a58fc16a111ba59d6ac27d6aa0fb218062e21967dd0e028fb2577167",
+      "observation": "Rear airborne bike reveals a dark underside and muddy tire around bright spokes; receding crowd tiers and beams establish arena depth.",
+      "recommendedPrinciple": "Keep chassis occlusion and material breakup, and vary spectator silhouettes without increasing distant scene contrast.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1610460/ss_3502dfaba8c4da74acb92394331a2a67601c7262.1920x1080.jpg?t=1744270609",
+        "page": "https://store.steampowered.com/app/1610460/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "selective_mud",
+        "stadium_audience"
+      ],
+      "retainedSystems": [
+        "mechanical_structure",
+        "authored_environment"
+      ]
+    },
+    {
+      "number": 11,
+      "file": "01_Bikes_and_Components/011_SX5_white_and_blue_bike_in_side_jump.jpg",
+      "sha256": "daf49bcd555218aca8498c6bf04b329e6ad221b2e9b860a1e65001cbefd75126",
+      "observation": "White/blue airborne bike has bright fork stanchions, dark protective lowers, thin frame tubes and clinging dirt around the engine and tread.",
+      "recommendedPrinciple": "Separate bare metal, rubber, plastic and dry dirt response in close views.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1610460/ss_e018b496dd381c681c398a3b0679fcbbb0e090c4.1920x1080.jpg?t=1744270609",
+        "page": "https://store.steampowered.com/app/1610460/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "moulded_plastics",
+        "knobby_rubber",
+        "selective_mud"
+      ],
+      "retainedSystems": [
+        "mechanical_structure"
+      ]
+    },
+    {
+      "number": 12,
+      "file": "01_Bikes_and_Components/012_SX4_green_factory_bike_in_a_lineup.jpg",
+      "sha256": "524de14d06732742dd84fdf56f29e389f9bc6485c9bdc01298ba8d3f9be06c07",
+      "observation": "Green bike at the lineup has a white number plate, black tire sidewalls, gray engine casing and small blue/green rims amid staggered riders.",
+      "recommendedPrinciple": "Preserve distinct component colors and subtle machine identity without copying manufacturer graphics.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1304340/ss_fa449a50b8f9aa53ca8ca9adfc1483962345bd59.1920x1080.jpg?t=1728477753",
+        "page": "https://store.steampowered.com/app/1304340/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "moulded_plastics",
+        "knobby_rubber"
+      ],
+      "retainedSystems": [
+        "mechanical_structure",
+        "rider_pose",
+        "pack_and_lines"
+      ]
+    },
+    {
+      "number": 13,
+      "file": "01_Bikes_and_Components/013_SX4_blue_bike_side_profile_at_speed.jpg",
+      "sha256": "e68113dbdd01402234d8812843e8a87bad3df76083c00bdda4d73a95527a8160",
+      "observation": "The rear tire kicks a dense dark clod plume behind the bike; nearer wheels frame a clearer central rider.",
+      "recommendedPrinciple": "Make opaque debris originate at actual loaded driven-wheel contact and avoid uniformly soft particle dots.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1304340/ss_7b83c66994237e98206adce8d16001fe119b3e1c.1920x1080.jpg?t=1728477753",
+        "page": "https://store.steampowered.com/app/1304340/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "clods_and_dust"
+      ],
+      "retainedSystems": [
+        "contact_roost_emission"
+      ]
+    },
+    {
+      "number": 14,
+      "file": "01_Bikes_and_Components/014_SX4_red_bike_rear_three_quarter_in_a_berm.jpg",
+      "sha256": "ab6155b6750991ae7aac2b38e74fd07796b3053993996202e16870cb9eadc75f",
+      "observation": "Rear corner view shows one-sided body weight, crumpled jersey fabric, a vivid back number and a broad dark patch at tire contact.",
+      "recommendedPrinciple": "Keep body counterweight, garment variation and grounded tire shading tied to the physical pose.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1304340/ss_d3c49132f3d621d69c2e59e418a90dc2d9698695.1920x1080.jpg?t=1728477753",
+        "page": "https://store.steampowered.com/app/1304340/"
+      },
+      "implementationStatus": "retained-existing-system",
+      "newFeatures": [],
+      "retainedSystems": [
+        "rider_pose",
+        "mechanical_structure",
+        "lighting_and_contact"
+      ]
+    },
+    {
+      "number": 15,
+      "file": "01_Bikes_and_Components/015_SX4_black_and_white_bike_in_side_jump.jpg",
+      "sha256": "349dc7005932e1d83c9002f36b6749c1d5d20769561ace69d0a3a970c603985b",
+      "observation": "Black/white airborne rider and machine remain legible through light body panels, dark mechanical recesses and one bright fork.",
+      "recommendedPrinciple": "Use value separation among components instead of globally increasing saturation or exposure.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1304340/ss_48e2c7655e5bc1c7104bac5cd92f6768e20f8e7a.1920x1080.jpg?t=1728477753",
+        "page": "https://store.steampowered.com/app/1304340/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "moulded_plastics",
+        "knobby_rubber"
+      ],
+      "retainedSystems": [
+        "mechanical_structure",
+        "lighting_and_contact"
+      ]
+    },
+    {
+      "number": 16,
+      "file": "01_Bikes_and_Components/016_MXATV_front_facing_rider_accelerating_through_dirt.jpg",
+      "sha256": "590aa870e337f0662f4d9787f6aa336e61a3bcfab13ba624dfe1a7d87440e0d3",
+      "observation": "Front-facing outdoor rider crosses dappled tree shadows over uneven multitone dirt; spectators and a blue tower remain beyond fences.",
+      "recommendedPrinciple": "Improve local earth/vegetation contrast and readable route edges while maintaining small spectator scale.",
+      "source": {
+        "kind": "playstation",
+        "url": "https://image.api.playstation.com/vulcan/ap/rnd/202109/0617/lfwkLQ8AQ8if9l3tJXUdjLcK.jpg",
+        "page": "https://www.playstation.com/en-us/games/mx-vs-atv-legends/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "worked_soil",
+        "prepared_earth_scan"
+      ],
+      "retainedSystems": [
+        "authored_environment",
+        "outdoor_audience",
+        "lighting_and_contact"
+      ]
+    },
+    {
+      "number": 17,
+      "file": "01_Bikes_and_Components/017_SX25_rider_and_red_bike_posed_by_finish_architecture.jpg",
+      "sha256": "95d7b1d0508ebc85794d83aa5bda7108f2bb6a86d12e3bfdfa9844b014831565",
+      "observation": "Front wheel lifts while a thin dust trail spreads low behind the rear wheel; a large red arena wall has simple structural seams.",
+      "recommendedPrinciple": "Keep acceleration dust low at contact and avoid adding high-frequency clutter to large arena architecture.",
+      "source": {
+        "kind": "playstation",
+        "url": "https://image.api.playstation.com/vulcan/ap/rnd/202502/1409/067d950183f998eae94d0a13c29ca458d3de0956033881d2.jpg",
+        "page": "https://www.playstation.com/en-cz/games/monster-energy-supercross-25-the-official-video-game/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "clods_and_dust"
+      ],
+      "retainedSystems": [
+        "authored_environment",
+        "contact_roost_emission"
+      ]
+    },
+    {
+      "number": 18,
+      "file": "01_Bikes_and_Components/018_SX25_blue_bike_and_rider_in_clean_side_profile.jpg",
+      "sha256": "becd44032398bf9f45979e73a487004340512d86e995011e49383ea2296bf5d7",
+      "observation": "Warm daylight illuminates brown churned soil, bright narrow spokes and fork tubes; the rider has the inside leg extended.",
+      "recommendedPrinciple": "Retain warm dry-earth mineral tones and bright mechanical accents, with nonuniform tire-worn lanes.",
+      "source": {
+        "kind": "playstation",
+        "url": "https://image.api.playstation.com/vulcan/ap/rnd/202503/1310/dae6d5d13181e418c27bc42d09a579e386dccc4e85767b23.jpg",
+        "page": "https://www.playstation.com/en-cz/games/monster-energy-supercross-25-the-official-video-game/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "worked_soil",
+        "prepared_earth_scan"
+      ],
+      "retainedSystems": [
+        "rider_pose",
+        "mechanical_structure",
+        "lighting_and_contact"
+      ]
+    },
+    {
+      "number": 19,
+      "file": "02_Riders_and_Gear/019_SX25_close_stadium_lean_on_a_blue_bike.jpg",
+      "sha256": "fa55ae6a15cb8ffcef52983472e92f25e2381c7640a76ee370995e3842c81a71",
+      "observation": "Close stadium rider is lit against a tall roof window and muted terraces; the dark track foreground shows displaced fine dirt rather than a smooth plane.",
+      "recommendedPrinciple": "Maintain readable subject/background values and refine close soil breakup without excessive gloss.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2581370/ss_881300289d30dd9158ae08c82b8dac821c356c07.1920x1080.jpg?t=1790000333",
+        "page": "https://store.steampowered.com/app/2581370/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "worked_soil",
+        "stadium_audience"
+      ],
+      "retainedSystems": [
+        "lighting_and_contact"
+      ]
+    },
+    {
+      "number": 20,
+      "file": "02_Riders_and_Gear/020_SX6_two_riders_staged_at_the_gate.jpg",
+      "sha256": "7618128795b1fc5a030925a20b70c2956bb606d065b4203b5fc8bf1d21a5d1c5",
+      "observation": "Two front-facing gate riders have dark goggle openings, broad shoulder lines, bent elbows and separate white gloves over orange controls.",
+      "recommendedPrinciple": "Preserve human shoulder/arm silhouettes and material separation around small hand-control contacts.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2058750/ss_373094f4720c77837e69a46b7651084e8606197c.1920x1080.jpg?t=1744270559",
+        "page": "https://store.steampowered.com/app/2058750/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "helmet_and_goggles"
+      ],
+      "retainedSystems": [
+        "rider_pose"
+      ]
+    },
+    {
+      "number": 21,
+      "file": "02_Riders_and_Gear/021_SX6_two_riders_side_by_side.jpg",
+      "sha256": "5a197bfe0b911317ce8ebdca82a481dd9d3dd629ffe5be7d51b102aea6f49300",
+      "observation": "Two neighboring bikes carry riders with different torso angles and different fork travel instead of matching identical poses.",
+      "recommendedPrinciple": "Vary presentation from actual motion state and machine silhouette while preserving physical contact.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2058750/ss_1cf966c093fc197cc0a8519e9402e6ca0bf02989.1920x1080.jpg?t=1744270559",
+        "page": "https://store.steampowered.com/app/2058750/"
+      },
+      "implementationStatus": "retained-existing-system",
+      "newFeatures": [],
+      "retainedSystems": [
+        "rider_pose",
+        "suspension_and_pitch",
+        "pack_and_lines"
+      ]
+    },
+    {
+      "number": 22,
+      "file": "02_Riders_and_Gear/022_SX6_two_rider_corner_battle.jpg",
+      "sha256": "b90bcbe2455331d7a36aaf2cdd6c95d790680a0a24b35d4b12d4195eeaa4acd4",
+      "observation": "Two bikes occupy neighboring deep berm lines; the leading rider extends a boot while the following rider keeps a different posture.",
+      "recommendedPrinciple": "Support independent inside/outside line choices and make rut paths visibly irregular.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2058750/ss_b3671c39b58905cd5e934b0d2356097b6ac46e7a.1920x1080.jpg?t=1744270559",
+        "page": "https://store.steampowered.com/app/2058750/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "worked_soil"
+      ],
+      "retainedSystems": [
+        "pack_and_lines",
+        "rider_pose"
+      ]
+    },
+    {
+      "number": 23,
+      "file": "02_Riders_and_Gear/023_MXGP21_foreground_rider_with_pursuing_pack.jpg",
+      "sha256": "53992978cadc7bce2e001fc50fb0e17d7f97f409c0e80138e4c5e6181be532b4",
+      "observation": "A leading front rider is separated from a pursuing pack by a light dusty haze, visible front-wheel suspension and blue tents behind fences.",
+      "recommendedPrinciple": "Retain staggered pack visibility and keep dust translucent enough to read the next rider.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1610470/ss_743aaab5ecb6e6690bd469dc8133410b23fe535e.1920x1080.jpg?t=1725035312",
+        "page": "https://store.steampowered.com/app/1610470/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "clods_and_dust"
+      ],
+      "retainedSystems": [
+        "pack_and_lines",
+        "authored_environment",
+        "contact_roost_emission"
+      ]
+    },
+    {
+      "number": 24,
+      "file": "02_Riders_and_Gear/024_MXGP21_close_red_rider_carving_a_turn.jpg",
+      "sha256": "61b17c39e833b3a15aae316491022ec90acd51e6d6552fe4aa46bddb25306e30",
+      "observation": "Close lean shows a shiny compacted rut bottom, coarse displaced soil on the bank, scattered clods and dirt on the boot and lower plastic.",
+      "recommendedPrinciple": "Use locally compacted and damp rut surfaces with rough raised earth, and distinguish opaque debris from dust.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1610470/ss_5447de98bc04b19215d111355e771df65d93c5c4.1920x1080.jpg?t=1725035312",
+        "page": "https://store.steampowered.com/app/1610470/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "worked_soil",
+        "clods_and_dust",
+        "selective_mud"
+      ],
+      "retainedSystems": [
+        "rider_pose",
+        "lighting_and_contact",
+        "contact_roost_emission"
+      ]
+    },
+    {
+      "number": 25,
+      "file": "02_Riders_and_Gear/025_MXGP21_rider_on_a_rocky_green_trail.jpg",
+      "sha256": "913bd4b5ec6c6d70eddb834a59ff549d69ff89eef14560395171e34288ba075e",
+      "observation": "Rock trail scene has grass patches, horizontal cliff strata, scattered stones and tiny wooden crossings across a broad green hollow.",
+      "recommendedPrinciple": "Use landscape depth and surface contrast as context; this does not imply adding a trials or cliff map.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1610470/ss_0c8d27d229fc56adef6a43e6cfedb4ee3c047b26.1920x1080.jpg?t=1725035312",
+        "page": "https://store.steampowered.com/app/1610470/"
+      },
+      "implementationStatus": "context-only-retained-systems",
+      "newFeatures": [],
+      "retainedSystems": [
+        "authored_environment"
+      ],
+      "context": "Rock/trials venue and wooden crossings are context only; no trials mode or new cliff trail."
+    },
+    {
+      "number": 26,
+      "file": "02_Riders_and_Gear/026_SX5_two_riders_airborne_from_rear_three_quarter_view.jpg",
+      "sha256": "3ead2c352c7cd1fafb743d23b2a71174e076a8d0e936c4a9d545b23960b41925",
+      "observation": "Two airborne rear views show heavy reddish mud on boots, tires and engine areas, while jerseys preserve their fabric identities.",
+      "recommendedPrinciple": "Concentrate dirt beneath the rider and maintain independently readable lower-body mechanical parts.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1610460/ss_be88467e48ab324722a02139e750fa2701005a19.1920x1080.jpg?t=1744270609",
+        "page": "https://store.steampowered.com/app/1610460/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "selective_mud"
+      ],
+      "retainedSystems": [
+        "rider_pose",
+        "mechanical_structure"
+      ]
+    },
+    {
+      "number": 27,
+      "file": "02_Riders_and_Gear/027_SX5_two_riders_crossing_lines_in_a_turn.jpg",
+      "sha256": "27a714056a3635448d8df3ba8193c1afc4e1f2bba696e6d5d85376dc8bc1175b",
+      "observation": "Riders cross different corner lines with visibly different lean angles; chain/sprocket and swingarm are exposed on the nearer bike.",
+      "recommendedPrinciple": "Add useful air/line expression and retain mechanically correct chain-drive detail.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1610460/ss_4f72c75fc1f23edd211d8cf0f98f16e4c6174810.1920x1080.jpg?t=1744270609",
+        "page": "https://store.steampowered.com/app/1610460/"
+      },
+      "implementationStatus": "retained-existing-system",
+      "newFeatures": [],
+      "retainedSystems": [
+        "mechanical_structure",
+        "pack_and_lines",
+        "rider_pose"
+      ]
+    },
+    {
+      "number": 28,
+      "file": "02_Riders_and_Gear/028_SX5_three_riders_charging_toward_camera.jpg",
+      "sha256": "a21627530b14e4f540baf9893d35e8e8853002cef591b54713774e4196702f06",
+      "observation": "Three front riders crest together with different wheel heights; dark roost sits behind them and the stands form a soft crowd mass.",
+      "recommendedPrinciple": "Keep a varied pack with distinct silhouettes and restrained spectator color noise.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1610460/ss_3b83a6e9c19dd8d655593399c6a7a15cdc2ef820.1920x1080.jpg?t=1744270609",
+        "page": "https://store.steampowered.com/app/1610460/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "clods_and_dust",
+        "stadium_audience"
+      ],
+      "retainedSystems": [
+        "pack_and_lines",
+        "suspension_and_pitch"
+      ]
+    },
+    {
+      "number": 29,
+      "file": "02_Riders_and_Gear/029_MXATV_purple_and_green_rider_leaning_through_a_berm.jpg",
+      "sha256": "7b9087376195c295045dec564a1483cd6ab1e418150fbf5899f55cb180e522a5",
+      "observation": "Green bike leans across fine sandy tire marks; the rider counterweights it and a long cast shadow confirms its contact and sun direction.",
+      "recommendedPrinciple": "Preserve inside-leg balance, directional soil marks and consistent contact lighting.",
+      "source": {
+        "kind": "playstation",
+        "url": "https://image.api.playstation.com/vulcan/ap/rnd/202212/1213/7sfvabki8NrpBqh1i0S4jUMR.jpg",
+        "page": "https://www.playstation.com/en-us/games/mx-vs-atv-legends/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "worked_soil"
+      ],
+      "retainedSystems": [
+        "rider_pose",
+        "lighting_and_contact"
+      ]
+    },
+    {
+      "number": 30,
+      "file": "02_Riders_and_Gear/030_SX25_two_red_riders_circulating_on_open_stadium_dirt.jpg",
+      "sha256": "d5851eaec21576d5856bf9be89e84c1824c4da638ba1ba2ba0465b3ddb413982",
+      "observation": "Two red bikes on broad open dirt differ in posture and wheel load; low dust, fence segments and tall event structures establish scale.",
+      "recommendedPrinciple": "Keep ground contact and pack variation, with low dust that does not hide the next terrain feature.",
+      "source": {
+        "kind": "playstation",
+        "url": "https://image.api.playstation.com/vulcan/ap/rnd/202502/1409/48107b4d720dd6907486c355d563414a0930f41481ee558a.jpg",
+        "page": "https://www.playstation.com/en-cz/games/monster-energy-supercross-25-the-official-video-game/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "clods_and_dust"
+      ],
+      "retainedSystems": [
+        "rider_pose",
+        "suspension_and_pitch",
+        "authored_environment"
+      ]
+    },
+    {
+      "number": 31,
+      "file": "02_Riders_and_Gear/031_SX25_whip_trick_over_a_stadium_jump.jpg",
+      "sha256": "74a01bcdd4a35071acc665472466090b41c1b164a489e5f9b86035c090877f7e",
+      "observation": "Bike is whipped almost sideways while the rider bends above it; the jump lip, under-engine guard, wheel spokes and landing lane stay visible.",
+      "recommendedPrinciple": "Make bounded aerial style recoverable before touchdown, maintaining intact body-bike contact and landing preview.",
+      "source": {
+        "kind": "playstation",
+        "url": "https://image.api.playstation.com/vulcan/ap/rnd/202502/1910/cb17d38b1e53b947d1430d15b4cffb05ff037a770e2eb1a2.jpg",
+        "page": "https://www.playstation.com/en-cz/games/monster-energy-supercross-25-the-official-video-game/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "recoverable_whip",
+        "flight_camera"
+      ],
+      "retainedSystems": [
+        "rider_pose",
+        "mechanical_structure",
+        "suspension_and_pitch"
+      ]
+    },
+    {
+      "number": 32,
+      "file": "02_Riders_and_Gear/032_SX25_red_rider_airborne_in_a_clean_side_view.jpg",
+      "sha256": "1c4cb7de64b7e776cb1259f7289e99e59c4acecc973e189d303d9cc6a084436f",
+      "observation": "Rider stands slightly over an airborne bike under warm daylight; floodlight towers and packed stands remain secondary in the composition.",
+      "recommendedPrinciple": "Keep readable airborne posture and varied muted crowd structure in the background.",
+      "source": {
+        "kind": "playstation",
+        "url": "https://image.api.playstation.com/vulcan/ap/rnd/202503/1310/084fe6cccd2e599facb195fe0c1a162536c61a5843fd0b4e.jpg",
+        "page": "https://www.playstation.com/en-cz/games/monster-energy-supercross-25-the-official-video-game/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "stadium_audience"
+      ],
+      "retainedSystems": [
+        "rider_pose",
+        "authored_environment"
+      ]
+    },
+    {
+      "number": 33,
+      "file": "03_Tracks_Terrain_and_Environments/033_MXATV_mountain_trail_riding_scene.jpg",
+      "sha256": "a6aa8474fbcc176cddad5a5957f4daa2b1b15bdf5f6d84d5a4955cbdc41442d4",
+      "observation": "The actual image depicts an ATV on a mountain trail, with tall irregular conifers, layered cliffs and a receding bright mountain skyline.",
+      "recommendedPrinciple": "Apply landscape depth and vegetation variation as context only; do not label this source a motorcycle or an implemented ATV mode.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1205970/61590430d0a31bc6bbe4fa0c56b01ec19688947d/ss_61590430d0a31bc6bbe4fa0c56b01ec19688947d.1920x1080.jpg?t=1791298700",
+        "page": "https://store.steampowered.com/app/1205970/"
+      },
+      "implementationStatus": "context-only-retained-systems",
+      "newFeatures": [],
+      "retainedSystems": [
+        "authored_environment"
+      ],
+      "context": "The pictured vehicle is an ATV. Mountain/conifer composition is context only; no ATV mode or new mountain venue."
+    },
+    {
+      "number": 34,
+      "file": "03_Tracks_Terrain_and_Environments/034_MXATV_sunset_beach_desert_utv_scene.jpg",
+      "sha256": "7e2655f81bc1cf8d24c06ba0fc26f4354b83c79db6f08d6d3081d788891bde68",
+      "observation": "Backlit UTV on rippled beach sand casts a long shadow toward the viewer, with sun haze around a pier and distant palms.",
+      "recommendedPrinciple": "Use controlled warm/cool light separation as context; no beach or UTV feature is implied.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1205970/e784648af01df6e0059abc357bc709d4b6d847d4/ss_e784648af01df6e0059abc357bc709d4b6d847d4.1920x1080.jpg?t=1791298700",
+        "page": "https://store.steampowered.com/app/1205970/"
+      },
+      "implementationStatus": "context-only-retained-systems",
+      "newFeatures": [],
+      "retainedSystems": [
+        "lighting_and_contact"
+      ],
+      "context": "Beach, palms, pier, UTV and sunset presentation are context only; no UTV/beach venue or lighting rewrite."
+    },
+    {
+      "number": 35,
+      "file": "03_Tracks_Terrain_and_Environments/035_MXATV_wide_professional_outdoor_motocross_circuit.jpg",
+      "sha256": "edb2ca5332ae9e1216cc98726a2ec895ace5b9348a35c87568035f8948c5e854",
+      "observation": "Outdoor race course contains broad elevated berms, many parallel lines, small crowd groups and tents along its upper boundary.",
+      "recommendedPrinciple": "Favor readable lane topology, irregular bank texture and spectators safely beyond the riding envelope.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1205970/ss_6c3ff80f768952c20bde14b2a57bdfb42b66f2a4.1920x1080.jpg?t=1791298700",
+        "page": "https://store.steampowered.com/app/1205970/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "worked_soil",
+        "prepared_earth_scan"
+      ],
+      "retainedSystems": [
+        "outdoor_audience",
+        "authored_environment",
+        "pack_and_lines"
+      ]
+    },
+    {
+      "number": 36,
+      "file": "03_Tracks_Terrain_and_Environments/036_MXGP21_mxgp_pack_on_an_outdoor_circuit.jpg",
+      "sha256": "cb494aaca3675c98ae97948d6db86b19393a118b0d8a6c5502a8dd7374c3f387",
+      "observation": "Outdoor pack spreads across several uneven lines, with one bright leading rider and a low brown dust layer between riders.",
+      "recommendedPrinciple": "Keep independently chosen lines and a transparent near-ground dust plume.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1610470/ss_99c91f133dc7ba068c8e027b876238cfc342994f.1920x1080.jpg?t=1725035312",
+        "page": "https://store.steampowered.com/app/1610470/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "clods_and_dust"
+      ],
+      "retainedSystems": [
+        "pack_and_lines",
+        "contact_roost_emission"
+      ]
+    },
+    {
+      "number": 37,
+      "file": "03_Tracks_Terrain_and_Environments/037_MXGP21_forested_mxgp_jump_section.jpg",
+      "sha256": "b799f58f31d7da67188f536e847e533ee86fc3de728072343cbd97925449be24",
+      "observation": "A forested jump has darker trees behind the rider and spectators/umbrellas behind fence banners above the corner.",
+      "recommendedPrinciple": "Use forest value layering and human scale behind the boundary while preserving clean jump silhouette.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1610470/ss_358b0014b5cceb352ea6cb6b02e607e0c1993de5.1920x1080.jpg?t=1725035312",
+        "page": "https://store.steampowered.com/app/1610470/"
+      },
+      "implementationStatus": "context-only-retained-systems",
+      "newFeatures": [],
+      "retainedSystems": [
+        "authored_environment",
+        "outdoor_audience"
+      ],
+      "context": "Forest and outdoor spectator placement are retained context; the new crowd implementation is confined to stadium.ts."
+    },
+    {
+      "number": 38,
+      "file": "03_Tracks_Terrain_and_Environments/038_SX5_wide_stadium_start_straight_under_a_main_event_scoreboard.jpg",
+      "sha256": "301ab1fe003c5f862a1dfab29ea9e99195cfcd15b42bfcbb5cbf822da3dd22c7",
+      "observation": "Wide starting pack has distinct jersey colors and numbers against a large event board and layered dark stands.",
+      "recommendedPrinciple": "Retain clear starting information and varying rider/spectator silhouettes without overwhelming the track.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1610460/ss_40f037613ff48ed0e8a5fcf8e97e68ecf0c3b5da.1920x1080.jpg?t=1744270609",
+        "page": "https://store.steampowered.com/app/1610460/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "stadium_audience"
+      ],
+      "retainedSystems": [
+        "pack_and_lines",
+        "current_presentation",
+        "authored_environment"
+      ]
+    },
+    {
+      "number": 39,
+      "file": "03_Tracks_Terrain_and_Environments/039_MXATV_tropical_open_world_valley_panorama.jpg",
+      "sha256": "907f25e2e46b7ae6a9a0569c9ac4d291a6781ba6d727e28166943560bbd6fb3a",
+      "observation": "Tropical panorama gives a readable valley of routes through varied vegetation, with atmospheric distance toward the ocean.",
+      "recommendedPrinciple": "Use layered environmental scale as context; this image does not justify claiming a tropical open world exists.",
+      "source": {
+        "kind": "official_site",
+        "url": "https://mxvsatvlegends.thqnordic.com/core/keyart/mxvsatvlegends-keyart.png",
+        "page": "https://mxvsatvlegends.thqnordic.com/"
+      },
+      "implementationStatus": "context-only-retained-systems",
+      "newFeatures": [],
+      "retainedSystems": [
+        "authored_environment",
+        "lighting_and_contact"
+      ],
+      "context": "Tropical open-world panorama is context only; no tropical venue or open-world scope change."
+    },
+    {
+      "number": 40,
+      "file": "03_Tracks_Terrain_and_Environments/040_MXATV_desert_canyon_trail.jpg",
+      "sha256": "0c4e403cb46c52f6e9840e5b1a954f0603f55b3c6696414c3243d60b22fff769",
+      "observation": "Canyon rider is small against red rock walls, scattered pebbles and distant hazy mesas; foreground soil has fine directional texture.",
+      "recommendedPrinciple": "Borrow scale, tonal depth and irregular ground breakup without adding a canyon course.",
+      "source": {
+        "kind": "official_site",
+        "url": "https://mxvsatvlegends.thqnordic.com/game-sites/mxvsatvlegends/dark-bg.jpg",
+        "page": "https://mxvsatvlegends.thqnordic.com/"
+      },
+      "implementationStatus": "new-principle-applied-with-context",
+      "newFeatures": [
+        "worked_soil"
+      ],
+      "retainedSystems": [
+        "authored_environment",
+        "lighting_and_contact"
+      ],
+      "context": "Only irregular dirt/value principles transfer; canyon walls and a canyon venue are context only."
+    },
+    {
+      "number": 41,
+      "file": "03_Tracks_Terrain_and_Environments/041_MXATV_motorcycle_on_a_rocky_forest_trail.jpg",
+      "sha256": "51cf4f666a3df273172b61d62978ad12dc521e237ddd950984407ffbb4aacaaa",
+      "observation": "Forest trail rider carves around rough rocks, brown ground, irregular bushes and a thin yellow boundary marker.",
+      "recommendedPrinciple": "Keep naturally broken edge transitions and loose dirt response while avoiding new collision obstacles in riding lanes.",
+      "source": {
+        "kind": "official_site",
+        "url": "https://mxvsatvlegends.thqnordic.com/game-sites/mxvsatvlegends/content/mxvsatv_screen_reflex.jpg",
+        "page": "https://mxvsatvlegends.thqnordic.com/"
+      },
+      "implementationStatus": "context-only-retained-systems",
+      "newFeatures": [],
+      "retainedSystems": [
+        "authored_environment",
+        "lighting_and_contact"
+      ],
+      "context": "Rocky forest trail dressing remains environmental context; no new obstacles, forest map or collision hazards."
+    },
+    {
+      "number": 42,
+      "file": "03_Tracks_Terrain_and_Environments/042_MXATV_wide_mountain_motocross_venue.jpg",
+      "sha256": "96d86a17d471e5a6b3c75d7dbd0dee1b0e1236328e857e40edc12ebab6923c52",
+      "observation": "Wide outdoor venue has many irregular berm furrows, compressed tire lines, varied conifer heights, tents and crowd pockets outside fencing.",
+      "recommendedPrinciple": "Add broken/crossing prepared rut structure and varied distant human silhouettes while preserving the authored course envelope.",
+      "source": {
+        "kind": "playstation",
+        "url": "https://image.api.playstation.com/vulcan/ap/rnd/202109/0617/FG3DDtcsaSWAMgCFGntCbZgw.jpg",
+        "page": "https://www.playstation.com/en-us/games/mx-vs-atv-legends/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "worked_soil",
+        "prepared_earth_scan"
+      ],
+      "retainedSystems": [
+        "authored_environment",
+        "outdoor_audience"
+      ]
+    },
+    {
+      "number": 43,
+      "file": "03_Tracks_Terrain_and_Environments/043_MXATV_high_stadium_overview.jpg",
+      "sha256": "858790859e6fbdc0c20841e3f4e905fd082b7bc922c29d50f901798312174214",
+      "observation": "Stadium overview shows localized bright wet patches inside a corner, contrasting with dry tan dirt elsewhere and dark multi-tier crowds.",
+      "recommendedPrinciple": "Restrict smoother wet soil to low/compacted patches; retain overall diffuse dirt and subdued stands.",
+      "source": {
+        "kind": "playstation",
+        "url": "https://image.api.playstation.com/vulcan/ap/rnd/202109/0617/91eYvRfbyjvgnEAlJrxno1Xs.jpg",
+        "page": "https://www.playstation.com/en-us/games/mx-vs-atv-legends/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "worked_soil",
+        "stadium_audience"
+      ],
+      "retainedSystems": [
+        "authored_environment",
+        "lighting_and_contact"
+      ]
+    },
+    {
+      "number": 44,
+      "file": "03_Tracks_Terrain_and_Environments/044_MXATV_rear_rider_approaching_a_branded_start_arch_and_berm.jpg",
+      "sha256": "528121a11bc81102111d5d3be6a84f34cda1ba382111a82ee8ad80b9beed785a",
+      "observation": "Low rear view passes through a narrow trussed holeshot arch; strong tire shadow and coarse grain reveal the slope of the bank.",
+      "recommendedPrinciple": "Keep ground contact strong and route markers physically legible without covering the track.",
+      "source": {
+        "kind": "playstation",
+        "url": "https://image.api.playstation.com/vulcan/ap/rnd/202212/1213/8OCXyge0Lod0ksrdnvR5gP3C.jpg",
+        "page": "https://www.playstation.com/en-us/games/mx-vs-atv-legends/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "worked_soil"
+      ],
+      "retainedSystems": [
+        "authored_environment",
+        "lighting_and_contact"
+      ]
+    },
+    {
+      "number": 45,
+      "file": "03_Tracks_Terrain_and_Environments/045_MXATV_aerial_freestyle_ramp_complex.jpg",
+      "sha256": "ab6672315a0b84d3af6bab48a008ba8ccbcd52bc1bb3c5473f03edc92ca84d28",
+      "observation": "Aerial freestyle area clearly separates metal launch ramps, asphalt approach strips and sculpted dirt landings among sparse shrubs.",
+      "recommendedPrinciple": "Use takeoff/landing readability as a principle; separate freestyle ramps or a new mode are context only.",
+      "source": {
+        "kind": "playstation",
+        "url": "https://image.api.playstation.com/vulcan/ap/rnd/202212/1213/5twYIIkMEZyjzF0TpKcceTwL.jpg",
+        "page": "https://www.playstation.com/en-us/games/mx-vs-atv-legends/"
+      },
+      "implementationStatus": "context-only-retained-systems",
+      "newFeatures": [],
+      "retainedSystems": [
+        "suspension_and_pitch",
+        "authored_environment"
+      ],
+      "context": "Metal launch ramps and freestyle-area layout are context only; no freestyle mode or separate ramp complex."
+    },
+    {
+      "number": 46,
+      "file": "03_Tracks_Terrain_and_Environments/046_MXATV_aerial_sculpted_dirt_bowl_layout.jpg",
+      "sha256": "fe23df6a4698e72573a75b2f1420f7cc5c98292dbc1ec95457013ddd3058b44d",
+      "observation": "Sculpted dirt bowl has continuous rounded banks, multiple parallel jumps and darker wheel-worn bands through broad light soil.",
+      "recommendedPrinciple": "Keep broad authored jump silhouettes and improve directional macro wear instead of uniformly repeated texture.",
+      "source": {
+        "kind": "playstation",
+        "url": "https://image.api.playstation.com/vulcan/ap/rnd/202212/1213/q3IoVjMxMm7Lx3Oq7SAoH5he.jpg",
+        "page": "https://www.playstation.com/en-us/games/mx-vs-atv-legends/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "worked_soil"
+      ],
+      "retainedSystems": [
+        "authored_environment",
+        "suspension_and_pitch"
+      ]
+    },
+    {
+      "number": 47,
+      "file": "03_Tracks_Terrain_and_Environments/047_MXATV_forested_outdoor_track_landscape.jpg",
+      "sha256": "1fb46edf295ba0126fbf2bba3fbf3c8df14720d0eafcc5dfa3656607ffbb2ed2",
+      "observation": "Forest track has very clear lane-aligned rake bands in the foreground, irregular tree silhouettes and hazy midground terrain.",
+      "recommendedPrinciple": "Preserve useful groomed rhythm but introduce broken continuity, scale filtering and forest depth.",
+      "source": {
+        "kind": "playstation",
+        "url": "https://image.api.playstation.com/vulcan/ap/rnd/202310/0212/62c6d26817f88c4a3352e028c416d1d80f1f0d01e666ab3b.jpg",
+        "page": "https://www.playstation.com/en-us/games/mx-vs-atv-legends/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "worked_soil",
+        "prepared_earth_scan"
+      ],
+      "retainedSystems": [
+        "authored_environment",
+        "lighting_and_contact"
+      ]
+    },
+    {
+      "number": 48,
+      "file": "03_Tracks_Terrain_and_Environments/048_MXATV_open_roof_stadium_with_city_backdrop.jpg",
+      "sha256": "7f5cdfd3ed4de7c0bd282a12b94cde62c231881515185c7b7d2bed32d161e4ca",
+      "observation": "Open-roof stadium has densely varied spectators, strong ribbon hierarchy, engineered roof sections and city silhouettes beyond it.",
+      "recommendedPrinciple": "Improve human mass with variation while preserving existing connected architecture and draw budgets.",
+      "source": {
+        "kind": "playstation",
+        "url": "https://image.api.playstation.com/vulcan/ap/rnd/202310/0212/6a3c182899e7ce2dd605af98a858bec2a61f12b9adc8a1c8.jpg",
+        "page": "https://www.playstation.com/en-us/games/mx-vs-atv-legends/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "stadium_audience"
+      ],
+      "retainedSystems": [
+        "authored_environment"
+      ]
+    },
+    {
+      "number": 49,
+      "file": "03_Tracks_Terrain_and_Environments/049_MXATV_indoor_stadium_track_overview.jpg",
+      "sha256": "f4592caf82d2aa147911796aa63ad2eb5986c48a3645ae99760627138f0653e2",
+      "observation": "Indoor overview uses structural roof ribs and dark packed tiers to contain a readable tan rhythm course with many distinct jumps.",
+      "recommendedPrinciple": "Keep the course brighter than the stands; improve crowd silhouettes without changing the stadium layout.",
+      "source": {
+        "kind": "playstation",
+        "url": "https://image.api.playstation.com/vulcan/ap/rnd/202310/0212/afc7c7e4e27e047550a555a4ee822b7468d5a3094ffb50ec.jpg",
+        "page": "https://www.playstation.com/en-us/games/mx-vs-atv-legends/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "worked_soil",
+        "stadium_audience"
+      ],
+      "retainedSystems": [
+        "authored_environment",
+        "lighting_and_contact"
+      ]
+    },
+    {
+      "number": 50,
+      "file": "03_Tracks_Terrain_and_Environments/050_MXATV_aerial_outdoor_winding_track.jpg",
+      "sha256": "52339bd040064ef6ee0e393ceb7fe6b2ac825e8db02e0cd2b9d81b9a6624e82d",
+      "observation": "Aerial winding track has pale compacted lanes, dark worn grooves, grassy islands and long directional marks through differently sized curves.",
+      "recommendedPrinciple": "Break uniform lane shading with broad compacted patches and irregular groove paths consistent with course direction.",
+      "source": {
+        "kind": "playstation",
+        "url": "https://image.api.playstation.com/vulcan/ap/rnd/202412/0514/df7f3c434e14a0d299a0ea30bacebea83df51218372af30f.jpg",
+        "page": "https://www.playstation.com/en-us/games/mx-vs-atv-legends/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "worked_soil"
+      ],
+      "retainedSystems": [
+        "authored_environment"
+      ]
+    },
+    {
+      "number": 51,
+      "file": "03_Tracks_Terrain_and_Environments/051_MXATV_atv_rider_on_a_forest_mountain_trail.jpg",
+      "sha256": "104d9a3f90fcfe65325e9e5bdb6594a5526590feb505ef7a1f4c22cbed939420",
+      "observation": "ATV on narrow forest trail is grounded by nearby shadows, stones, pine branches and patches of grass that change scale with distance.",
+      "recommendedPrinciple": "Use near/far surface and vegetation contrast as context; no ATV feature is implied.",
+      "source": {
+        "kind": "playstation",
+        "url": "https://image.api.playstation.com/vulcan/ap/rnd/202109/0617/vyHc2JHuXCX9v8ntLOy3oKex.jpg",
+        "page": "https://www.playstation.com/en-us/games/mx-vs-atv-legends/"
+      },
+      "implementationStatus": "context-only-retained-systems",
+      "newFeatures": [],
+      "retainedSystems": [
+        "authored_environment",
+        "lighting_and_contact"
+      ],
+      "context": "ATV, mountain forest and local vegetation are context only; no ATV feature or new trail."
+    },
+    {
+      "number": 52,
+      "file": "03_Tracks_Terrain_and_Environments/052_MXATV_atv_race_on_a_crowded_outdoor_course.jpg",
+      "sha256": "a62d3e337455f0a597e24913df3e27c35f2e3425a0d55d622efdc64f9a700164",
+      "observation": "Outdoor race stretches around a strongly banked wall with crowd lines and tents following the terrain outside its ribbon fence.",
+      "recommendedPrinciple": "Retain banking readability and human scale behind the course boundary.",
+      "source": {
+        "kind": "official_site",
+        "url": "https://mxvsatvlegends.thqnordic.com/game-sites/mxvsatvlegends/content/feature-showcase-2.jpg",
+        "page": "https://mxvsatvlegends.thqnordic.com/"
+      },
+      "implementationStatus": "new-principle-applied-with-context",
+      "newFeatures": [
+        "worked_soil"
+      ],
+      "retainedSystems": [
+        "outdoor_audience",
+        "authored_environment",
+        "pack_and_lines"
+      ],
+      "context": "Generic banked dirt remains a material reference; the ATV race and additional venue are context only."
+    },
+    {
+      "number": 53,
+      "file": "04_Gameplay_Cameras_and_Race_Composition/053_SX25_low_angle_stadium_finish_jump.jpg",
+      "sha256": "0da07cf1332830b218e9be7cb063a99483ec5de3a580ffefbe8570374d1b1f7f",
+      "observation": "Low finish-jump view keeps the rider, lip and finish architecture distinct against layered stands rather than one flat background.",
+      "recommendedPrinciple": "Retain a stable landing preview and varied dark crowd silhouettes during dramatic jump framing.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2581370/ss_40195a1d7305d609580e6cf03f34af7b93dc59fc.1920x1080.jpg?t=1790000333",
+        "page": "https://store.steampowered.com/app/2581370/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "flight_camera",
+        "stadium_audience"
+      ],
+      "retainedSystems": [
+        "authored_environment",
+        "suspension_and_pitch"
+      ]
+    },
+    {
+      "number": 54,
+      "file": "04_Gameplay_Cameras_and_Race_Composition/054_SX25_dense_stadium_pack_at_takeoff.jpg",
+      "sha256": "d58836a1f27d1d44afbd5ffcbd6255c7c2259ffc0697eb195a14cdb7c83b6da6",
+      "observation": "Dense launch pack has different wheel heights and gaps; individual clods are dark specks above a pale low dust film.",
+      "recommendedPrinciple": "Keep physical pack variation and differentiate clod opacity from dust softness.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2581370/a98068a33c1ab65dd797c755a73ede76270769cd/ss_a98068a33c1ab65dd797c755a73ede76270769cd.1920x1080.jpg?t=1790000333",
+        "page": "https://store.steampowered.com/app/2581370/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "clods_and_dust"
+      ],
+      "retainedSystems": [
+        "pack_and_lines",
+        "suspension_and_pitch",
+        "contact_roost_emission"
+      ]
+    },
+    {
+      "number": 55,
+      "file": "04_Gameplay_Cameras_and_Race_Composition/055_SX25_outdoor_high_jump_beside_trees_and_barriers.jpg",
+      "sha256": "ed42886b729b55accd0a678c5dddd81970298e94afe0f1bc5d4e270a7de4376e",
+      "observation": "Tall outdoor jump is framed by irregular sunlit trees, upper fencing and a dark board; two riders occupy separate flight paths.",
+      "recommendedPrinciple": "Maintain distinct airborne trajectories and clean rider silhouettes against varied vegetation.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2581370/ss_8ee8bd40059d0241a09c393359714c911079004b.1920x1080.jpg?t=1790000333",
+        "page": "https://store.steampowered.com/app/2581370/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "flight_camera"
+      ],
+      "retainedSystems": [
+        "pack_and_lines",
+        "authored_environment",
+        "suspension_and_pitch"
+      ]
+    },
+    {
+      "number": 56,
+      "file": "04_Gameplay_Cameras_and_Race_Composition/056_SX25_rear_chase_view_of_a_crowded_berm.jpg",
+      "sha256": "338a4206162630d0930f62c322a33b81348dd27a0d375b04a8c893354c65dc3d",
+      "observation": "Rear chase view approaches a crowded bank with multiple dark deep grooves; riders remain staggered enough to anticipate line choice.",
+      "recommendedPrinciple": "Keep track-forward camera preview and retain independent lines with visibly irregular soil channels.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2581370/4cdf61c748ed43792fcf9d3642692b3e6fe32ecf/ss_4cdf61c748ed43792fcf9d3642692b3e6fe32ecf.1920x1080.jpg?t=1790000333",
+        "page": "https://store.steampowered.com/app/2581370/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "worked_soil",
+        "flight_camera"
+      ],
+      "retainedSystems": [
+        "pack_and_lines"
+      ]
+    },
+    {
+      "number": 57,
+      "file": "04_Gameplay_Cameras_and_Race_Composition/057_SX25_synchronized_stadium_jump.jpg",
+      "sha256": "66e5e63141ca70c46f0f108bb493b591aa99f05f64dc19cd79a3d83b99ba8634",
+      "observation": "Two rear airborne riders flank a long visible landing straight beneath finish structures, with warm haze giving depth.",
+      "recommendedPrinciple": "Keep landing target and horizon available during jumps while allowing controlled bike style.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2581370/ss_d49beb2ef8ae8a96f13ae152aa6b97d614ecb4c4.1920x1080.jpg?t=1790000333",
+        "page": "https://store.steampowered.com/app/2581370/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "recoverable_whip",
+        "flight_camera"
+      ],
+      "retainedSystems": [
+        "suspension_and_pitch",
+        "authored_environment",
+        "lighting_and_contact"
+      ]
+    },
+    {
+      "number": 58,
+      "file": "04_Gameplay_Cameras_and_Race_Composition/058_SX25_low_camera_on_a_multi_bike_stadium_launch.jpg",
+      "sha256": "ebeaae0014c977cf624358100c0c33e38c3e1f13172b712d800beb8a01c46938",
+      "observation": "Low side camera shows a compact group leaning into launch; roost traces individual driven wheels instead of a continuous fog wall.",
+      "recommendedPrinciple": "Tie debris to actual tire contacts and maintain rider-to-rider pose differences.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2581370/dd6a7b408f6ade58d819ddcfbb3815f3cfe040b0/ss_dd6a7b408f6ade58d819ddcfbb3815f3cfe040b0.1920x1080.jpg?t=1790000333",
+        "page": "https://store.steampowered.com/app/2581370/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "clods_and_dust"
+      ],
+      "retainedSystems": [
+        "contact_roost_emission",
+        "pack_and_lines",
+        "rider_pose"
+      ]
+    },
+    {
+      "number": 59,
+      "file": "04_Gameplay_Cameras_and_Race_Composition/059_SX25_chase_view_approaching_a_steep_ramp_and_finish_marker.jpg",
+      "sha256": "5af317e734a71c9d8c26e7ffb5cc647bdd04ce079892c11cbbdabb792971fa10",
+      "observation": "Close rear approach shows uneven rut lows with small smooth wet patches, jagged earthen shoulders, long shadows and a visible finish lip.",
+      "recommendedPrinciple": "Give soil locally varying compaction/wetness and preserve lip/landing visibility during camera motion.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2581370/ss_98dbbc711f7de6ae246028b5fc6be75f555f411c.1920x1080.jpg?t=1790000333",
+        "page": "https://store.steampowered.com/app/2581370/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "worked_soil",
+        "flight_camera"
+      ],
+      "retainedSystems": [
+        "authored_environment",
+        "lighting_and_contact"
+      ]
+    },
+    {
+      "number": 60,
+      "file": "04_Gameplay_Cameras_and_Race_Composition/060_MXATV_desert_motocross_jump.jpg",
+      "sha256": "db6996825bf24c60a9ce10c9cba63522e6c3d4e4a54727bcf6fdef93c72c21c2",
+      "observation": "Airborne motorcycle is silhouetted against layered red mesas under warm sunset light; open space separates rider and terrain.",
+      "recommendedPrinciple": "Use clear airborne framing and lighting context without claiming a desert course.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1205970/9397b384085a807e27c490aed6a76848229c7b4b/ss_9397b384085a807e27c490aed6a76848229c7b4b.1920x1080.jpg?t=1791298700",
+        "page": "https://store.steampowered.com/app/1205970/"
+      },
+      "implementationStatus": "new-principle-applied-with-context",
+      "newFeatures": [
+        "flight_camera"
+      ],
+      "retainedSystems": [
+        "lighting_and_contact"
+      ],
+      "context": "Flight framing transfers; desert mesas and sunset are venue/lighting context only."
+    },
+    {
+      "number": 61,
+      "file": "04_Gameplay_Cameras_and_Race_Composition/061_MXATV_atv_jump_in_snowy_mountains.jpg",
+      "sha256": "b84699b60e558ef4655f7b532fefe411edd221d8feb388e55c470323ea473ee4",
+      "observation": "ATV is airborne above a brown track through large snow patches and detailed mountain rock, with a long clear downhill view.",
+      "recommendedPrinciple": "Use landing preview and value separation as context; no snow or ATV feature is implied.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1205970/45a55c3a9afbe4cc40e1df9ad1a31975305c1ba6/ss_45a55c3a9afbe4cc40e1df9ad1a31975305c1ba6.1920x1080.jpg?t=1791298700",
+        "page": "https://store.steampowered.com/app/1205970/"
+      },
+      "implementationStatus": "context-only-retained-systems",
+      "newFeatures": [],
+      "retainedSystems": [
+        "suspension_and_pitch",
+        "lighting_and_contact"
+      ],
+      "context": "ATV and snow/mountain venue are context only; no ATV or snow surface implementation."
+    },
+    {
+      "number": 62,
+      "file": "04_Gameplay_Cameras_and_Race_Composition/062_MXATV_atv_rock_crawl_scene_in_autumn_forest.jpg",
+      "sha256": "3a1094f9d5181bc65891398bbd969824bed4ab0398ac5ba8acd410bb976450d2",
+      "observation": "ATV balances over irregular rock under a low sun with autumn trees behind it and visible diagonal suspension geometry.",
+      "recommendedPrinciple": "Use material/lighting contrast as context; this is not evidence for a rock-crawl mechanic.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1205970/c860a9193e10e440f7e3b859d042e616731cb717/ss_c860a9193e10e440f7e3b859d042e616731cb717.1920x1080.jpg?t=1791298700",
+        "page": "https://store.steampowered.com/app/1205970/"
+      },
+      "implementationStatus": "context-only-retained-systems",
+      "newFeatures": [],
+      "retainedSystems": [
+        "lighting_and_contact",
+        "suspension_and_pitch"
+      ],
+      "context": "ATV rock-crawl and autumn scene are context only; no rock-crawl mechanic."
+    },
+    {
+      "number": 63,
+      "file": "04_Gameplay_Cameras_and_Race_Composition/063_SX6_stadium_start_gate_with_several_bikes.jpg",
+      "sha256": "2443bf10d58671bd28768f840c7ae48efd18d72f5460cd3de2c8d3b2e61b54ed",
+      "observation": "Several riders enter a rising dirt face at different heights, with clear front-wheel lifts and a dark event board behind them.",
+      "recommendedPrinciple": "Retain physical crest response and distinct pack posture instead of matching every bike to one canned jump.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2058750/ss_eae185d729a4bfa659757ae3e5bd968b8f4bab85.1920x1080.jpg?t=1744270559",
+        "page": "https://store.steampowered.com/app/2058750/"
+      },
+      "implementationStatus": "retained-existing-system",
+      "newFeatures": [],
+      "retainedSystems": [
+        "pack_and_lines",
+        "suspension_and_pitch",
+        "rider_pose"
+      ]
+    },
+    {
+      "number": 64,
+      "file": "04_Gameplay_Cameras_and_Race_Composition/064_SX6_crash_and_congestion_in_a_berm.jpg",
+      "sha256": "550865fc9fa3c108826efb53496969774e5b465fe26cb2b6b77fd37b3400c534",
+      "observation": "Three riders negotiate dark berm waves; one rider extends a foot and a trailing bike is heavily leaned amid uneven rut ridges.",
+      "recommendedPrinciple": "Keep readable recovery/line states and terrain irregularity; the still does not establish a measured crash or heavy roost event.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2058750/ss_109d30f33953ba9c821121289e261b7b23dc7a6b.1920x1080.jpg?t=1744270559",
+        "page": "https://store.steampowered.com/app/2058750/"
+      },
+      "implementationStatus": "new-principle-applied-with-context",
+      "newFeatures": [
+        "worked_soil"
+      ],
+      "retainedSystems": [
+        "pack_and_lines",
+        "rider_pose"
+      ],
+      "context": "Filename crash/congestion wording is not evidence of a measured crash or heavy roost event in this still."
+    },
+    {
+      "number": 65,
+      "file": "04_Gameplay_Cameras_and_Race_Composition/065_SX6_wide_pack_launch_over_stadium_dirt.jpg",
+      "sha256": "f9310160cda87d89562573ee8e6eb1494353aa3074e728c7aabb898349d7b617",
+      "observation": "Wide pack launch has differing line choices and front-wheel heights across a sequence of visible pale jumps.",
+      "recommendedPrinciple": "Preserve jump rhythm preview and differentiated rider trajectories.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2058750/ss_72e2ece91809070a931ef995b2b30f45a92407a0.1920x1080.jpg?t=1744270559",
+        "page": "https://store.steampowered.com/app/2058750/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "flight_camera"
+      ],
+      "retainedSystems": [
+        "pack_and_lines",
+        "suspension_and_pitch"
+      ]
+    },
+    {
+      "number": 66,
+      "file": "04_Gameplay_Cameras_and_Race_Composition/066_MXGP21_congested_mxgp_corner.jpg",
+      "sha256": "9520e2e975c2c3821acc89c064331e1da6566461c44727503723e7b9a8bf9005",
+      "observation": "Close outdoor corner pack is partially veiled by warm dust, while high-contrast number plates and helmet shapes remain readable.",
+      "recommendedPrinciple": "Keep dust translucent and low, avoiding loss of neighboring-bike visibility.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1610470/ss_d98f03ebb5c82bdb2389cc028d6f6384bc97972d.1920x1080.jpg?t=1725035312",
+        "page": "https://store.steampowered.com/app/1610470/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "clods_and_dust"
+      ],
+      "retainedSystems": [
+        "pack_and_lines",
+        "contact_roost_emission"
+      ]
+    },
+    {
+      "number": 67,
+      "file": "04_Gameplay_Cameras_and_Race_Composition/067_MXGP21_rider_cresting_an_outdoor_jump.jpg",
+      "sha256": "3f948147ec0795809887e762259af449860c9975b56b875ec6c00ab48f628539",
+      "observation": "Leading rider crests a dirt rise above another rider, with next bank and sky defining a clear vertical flight corridor.",
+      "recommendedPrinciple": "Retain controlled air pitch and sufficient camera clearance above jump profiles.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1610470/ss_07fdf688ce6c832dbd18ab2a11fbc53c83050cbb.1920x1080.jpg?t=1725035312",
+        "page": "https://store.steampowered.com/app/1610470/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "flight_camera"
+      ],
+      "retainedSystems": [
+        "suspension_and_pitch",
+        "authored_environment"
+      ]
+    },
+    {
+      "number": 68,
+      "file": "04_Gameplay_Cameras_and_Race_Composition/068_MXGP21_two_bikes_airborne_together.jpg",
+      "sha256": "2d18300165c6f215b755692a317e06732c3b2a5c9aed72f4313c14b9d9c34e8d",
+      "observation": "Two bikes jump close together at different pitch and lean against blue sky, with small clods crossing the foreground.",
+      "recommendedPrinciple": "Allow bounded independent aerial correction and keep debris geometrically small and irregular.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1610470/ss_59702b4ce0fce7675a172362120f53115a10c674.1920x1080.jpg?t=1725035312",
+        "page": "https://store.steampowered.com/app/1610470/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "recoverable_whip",
+        "flight_camera",
+        "clods_and_dust"
+      ],
+      "retainedSystems": [
+        "rider_pose",
+        "suspension_and_pitch",
+        "contact_roost_emission"
+      ]
+    },
+    {
+      "number": 69,
+      "file": "04_Gameplay_Cameras_and_Race_Composition/069_SX5_large_pack_entering_a_stadium_corner.jpg",
+      "sha256": "4b2cc3522346f63963492a590f84c9582b22a5043184724d105c0be39dcd4017",
+      "observation": "Large pack enters red clay with a separate roost plume behind each bike and individually varied spectators beyond the board line.",
+      "recommendedPrinciple": "Maintain readable pack widths and crowd clothing diversity while preserving individual tire emission.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1610460/ss_0a1e7aa804d966f3a159090a6e0c4d673eb668ce.1920x1080.jpg?t=1744270609",
+        "page": "https://store.steampowered.com/app/1610460/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "clods_and_dust",
+        "stadium_audience"
+      ],
+      "retainedSystems": [
+        "pack_and_lines",
+        "contact_roost_emission"
+      ]
+    },
+    {
+      "number": 70,
+      "file": "04_Gameplay_Cameras_and_Race_Composition/070_SX4_tight_start_pack_close_up.jpg",
+      "sha256": "30f981f44760815992102aeb40a83d0ec38ac07668976486c0e91ef8359f6f7e",
+      "observation": "Tight start close-up has riders bent forward at different amounts, varying helmet angles, clothing folds and small mechanical highlights.",
+      "recommendedPrinciple": "Keep contact-preserving human posture with different material response on cloth, helmet and machine.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1304340/ss_52c543f24fb49e56dcd1172652aaf978bec48fb4.1920x1080.jpg?t=1728477753",
+        "page": "https://store.steampowered.com/app/1304340/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "helmet_and_goggles",
+        "moulded_plastics"
+      ],
+      "retainedSystems": [
+        "rider_pose",
+        "pack_and_lines"
+      ]
+    },
+    {
+      "number": 71,
+      "file": "04_Gameplay_Cameras_and_Race_Composition/071_SX4_multi_rider_pack_leaning_through_a_turn.jpg",
+      "sha256": "af138c32c7a02fd94f4c3490e0cd0665d0e97dc690e87b370a0d7e7145b71f58",
+      "observation": "Corner pack has strongly different inside/outside lean angles, boots extended on selected riders and spectators with raised arms in the stands.",
+      "recommendedPrinciple": "Preserve line expression and add stable mixed seated/raised-arm crowd cohorts.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1304340/ss_f20ab8c98cd31b1f809400ba9b8ddabebd7d5956.1920x1080.jpg?t=1728477753",
+        "page": "https://store.steampowered.com/app/1304340/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "stadium_audience"
+      ],
+      "retainedSystems": [
+        "rider_pose",
+        "pack_and_lines"
+      ]
+    },
+    {
+      "number": 72,
+      "file": "04_Gameplay_Cameras_and_Race_Composition/072_SX25_third_person_chase_camera_over_a_stadium_jump.jpg",
+      "sha256": "4e4e431cd69ec58de41bd4ee8e7c10809e7213598b0022d9c6d16194dffefa71",
+      "observation": "Rear chase approaching jump shows dark worn groove channels, pale rough shoulders and two leading bikes whipping before a darker stadium skyline.",
+      "recommendedPrinciple": "Prioritize broken close rut shading, recoverable air style and landing-visible chase composition.",
+      "source": {
+        "kind": "review_screenshot",
+        "url": "https://storage.ghost.io/c/50/c6/50c61f91-0165-4605-93bc-f8598149e466/content/images/size/w1200/2025/06/SX25_CareerExplosion_Screenshot_Logo--11-.jpg",
+        "page": "https://gamingtrend.com/reviews/monster-energy-supercross-25-review-a-great-game-hindered-by-weird-control-choices/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "worked_soil",
+        "recoverable_whip",
+        "flight_camera"
+      ],
+      "retainedSystems": [
+        "authored_environment",
+        "suspension_and_pitch"
+      ]
+    },
+    {
+      "number": 73,
+      "file": "04_Gameplay_Cameras_and_Race_Composition/073_MXATV_indoor_stadium_jump_with_obstacles_below.jpg",
+      "sha256": "e1ee5dcceef550b6bb88aa62a765ceaaa7c82bea64772b5f4404b31070050ca7",
+      "observation": "Wide stadium flight keeps the next ramp visible under the bike while bright roof ribbons and distant obstacles establish depth.",
+      "recommendedPrinciple": "Preserve terrain clearance and landing preview without moving the authored jump geometry.",
+      "source": {
+        "kind": "official_site",
+        "url": "https://mxvsatvlegends.thqnordic.com/game-sites/mxvsatvlegends/content/feature-showcase-1.jpg",
+        "page": "https://mxvsatvlegends.thqnordic.com/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "flight_camera",
+        "stadium_audience"
+      ],
+      "retainedSystems": [
+        "authored_environment",
+        "suspension_and_pitch"
+      ]
+    },
+    {
+      "number": 74,
+      "file": "04_Gameplay_Cameras_and_Race_Composition/074_SX25_top_down_diagonal_corner_camera.jpg",
+      "sha256": "6403ca342bd36c90d51d046de07ba87d1153b2d767761136d6bc8527cbed5cfb",
+      "observation": "Top-down corner view reveals a dark tire-carved channel, rough displaced soil shoulders and a thin plume behind a leaning bike.",
+      "recommendedPrinciple": "Use close soil compaction variation and actual contact-derived roost.",
+      "source": {
+        "kind": "playstation",
+        "url": "https://image.api.playstation.com/vulcan/ap/rnd/202503/1310/3726653ed23cd8f9f2985c51fc21a94a6838969960519a26.jpg",
+        "page": "https://www.playstation.com/en-cz/games/monster-energy-supercross-25-the-official-video-game/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "worked_soil",
+        "clods_and_dust"
+      ],
+      "retainedSystems": [
+        "rider_pose",
+        "contact_roost_emission"
+      ]
+    },
+    {
+      "number": 75,
+      "file": "04_Gameplay_Cameras_and_Race_Composition/075_MXATV_outdoor_pack_jumping_toward_camera.jpg",
+      "sha256": "225fa7c91a419d33ee202db4ee99d4f367dc214ad1277182f3c5d65abfe05072",
+      "observation": "Outdoor pack jumps over bright pale dirt, with distinct bike shadows and tire bands leading toward an ocean horizon.",
+      "recommendedPrinciple": "Keep altitude/landing readable with contact shadows and directional ground wear; location remains context.",
+      "source": {
+        "kind": "playstation",
+        "url": "https://image.api.playstation.com/vulcan/ap/rnd/202210/1821/oQkc58eejejsNbFP2as1jpWD.jpg",
+        "page": "https://www.playstation.com/en-us/games/mx-vs-atv-legends/"
+      },
+      "implementationStatus": "new-principle-applied-with-context",
+      "newFeatures": [
+        "worked_soil",
+        "flight_camera"
+      ],
+      "retainedSystems": [
+        "suspension_and_pitch",
+        "lighting_and_contact"
+      ],
+      "context": "Generic soil/landing readability transfers; ocean venue and altered lighting are context only."
+    },
+    {
+      "number": 76,
+      "file": "04_Gameplay_Cameras_and_Race_Composition/076_SX25_multi_rider_stadium_corner.jpg",
+      "sha256": "78babefbcc9fc992d788a931cd711b07550a7b572a8075b1cd1bdb359e44354d",
+      "observation": "Close stadium corner has overlapping but offset bikes, varied torso angles and dark granular roost close to rear tires.",
+      "recommendedPrinciple": "Maintain independent line spacing and opaque small clods that avoid hiding the central rider.",
+      "source": {
+        "kind": "playstation",
+        "url": "https://image.api.playstation.com/vulcan/ap/rnd/202503/1310/6cb4000c376474120ffe27b78fe3a9a46257835ab19ad8a2.jpg",
+        "page": "https://www.playstation.com/en-cz/games/monster-energy-supercross-25-the-official-video-game/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "clods_and_dust"
+      ],
+      "retainedSystems": [
+        "pack_and_lines",
+        "rider_pose",
+        "contact_roost_emission"
+      ]
+    },
+    {
+      "number": 77,
+      "file": "05_Menus_HUD_Customization_and_Presentation/077_SX25_supercross_25_key_visual.jpg",
+      "sha256": "9c1f60568cdbe94f8a1f4df30b244d8562be96ad6deabff051ae5874622a4ef0",
+      "observation": "Promotional image combines helmeted riders with dark torso gear and reflective goggle openings against vivid graphic branding.",
+      "recommendedPrinciple": "Preserve helmet/gear value hierarchy as context; do not reproduce publisher composition or branding.",
+      "source": {
+        "kind": "steam_key_art",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2581370/page_bg_raw.jpg?t=1790000333",
+        "page": "https://store.steampowered.com/app/2581370/"
+      },
+      "implementationStatus": "new-principle-applied-with-context",
+      "newFeatures": [
+        "helmet_and_goggles"
+      ],
+      "retainedSystems": [
+        "current_presentation",
+        "rider_pose"
+      ],
+      "context": "Helmet material/value cues transfer; publisher branding and promotional composition are not reproduced."
+    },
+    {
+      "number": 78,
+      "file": "05_Menus_HUD_Customization_and_Presentation/078_MXATV_mx_vs_atv_garage_locker_presentation_with_rider_and_bike.jpg",
+      "sha256": "455f187717b0c029bbb4d8c671c1bf92b5ad12367785dc33b68fa5bdb78470ff",
+      "observation": "Garage staging keeps a standing rider separated from an elevated bike stand, transport truck and restrained floor shadows.",
+      "recommendedPrinciple": "Keep rider and bike clearly readable in current presentation; no new garage set is implied.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1205970/ed05009e180871a5518531c07564cb5c83480681/ss_ed05009e180871a5518531c07564cb5c83480681.1920x1080.jpg?t=1791298700",
+        "page": "https://store.steampowered.com/app/1205970/"
+      },
+      "implementationStatus": "context-only-retained-systems",
+      "newFeatures": [],
+      "retainedSystems": [
+        "current_presentation"
+      ],
+      "context": "Garage staging is presentation context; the existing garage layout is retained."
+    },
+    {
+      "number": 79,
+      "file": "05_Menus_HUD_Customization_and_Presentation/079_SX5_event_lineup_with_multiple_fire_columns.jpg",
+      "sha256": "7995c97cb7bed55bbe4b842514da72e06d817f6fdcaabc15b0e49f52e7e44534",
+      "observation": "Start presentation uses separated fire columns above a compact rider lineup while dense spectator tiers remain darker.",
+      "recommendedPrinciple": "Retain crowd depth and event hierarchy as context; pyrotechnics are not added by reference mapping.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1610460/ss_4fe9a680ced65dd2c01979097f228a8725de5375.1920x1080.jpg?t=1744270609",
+        "page": "https://store.steampowered.com/app/1610460/"
+      },
+      "implementationStatus": "new-principle-applied-with-context",
+      "newFeatures": [
+        "stadium_audience"
+      ],
+      "retainedSystems": [
+        "current_presentation",
+        "authored_environment"
+      ],
+      "context": "Darker audience tiers inform crowd rendering; fire columns and pyrotechnic systems are context only."
+    },
+    {
+      "number": 80,
+      "file": "05_Menus_HUD_Customization_and_Presentation/080_SX4_start_gate_lineup_under_flame_effects.jpg",
+      "sha256": "b44522482216efa1bbebb256a8c2c3332b280e4579afd9bd9ca2d4983462af0f",
+      "observation": "Front start line presents varied riders beneath bright flame columns and thin trusses; ground stays brown and materially diffuse.",
+      "recommendedPrinciple": "Maintain human variation and subject brightness without flooding the arena with uniform glow.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1304340/ss_5a40ed1fd04ceb73a06b32974ec5f07162316cac.1920x1080.jpg?t=1728477753",
+        "page": "https://store.steampowered.com/app/1304340/"
+      },
+      "implementationStatus": "new-principle-applied-with-context",
+      "newFeatures": [
+        "stadium_audience"
+      ],
+      "retainedSystems": [
+        "lighting_and_contact",
+        "authored_environment",
+        "rider_pose"
+      ],
+      "context": "Audience diversity transfers; fire columns and new event lighting are context only."
+    },
+    {
+      "number": 81,
+      "file": "05_Menus_HUD_Customization_and_Presentation/081_SX25_three_rider_promotional_lineup.jpg",
+      "sha256": "8237201be0e4109a42e36edd5e87cff351f23fffbe7ca9da09193614cbb19486",
+      "observation": "Three helmeted riders show different shoulder breadth, arm positions and jersey construction in a subdued presentation image.",
+      "recommendedPrinciple": "Vary human build and posture while preserving protected reference graphics as context only.",
+      "source": {
+        "kind": "official_screenshot",
+        "url": "https://milestone.it/wp-content/uploads/2025/01/SX25_Screenshot_GameplayShowcase_NoLogo_05-scaled.jpg",
+        "page": "https://milestone.it/news/supercross-25/gameplay-showcase/"
+      },
+      "implementationStatus": "new-principle-applied-with-context",
+      "newFeatures": [
+        "helmet_and_goggles"
+      ],
+      "retainedSystems": [
+        "rider_pose",
+        "current_presentation"
+      ],
+      "context": "Helmet/gear cues transfer; existing body-build variation is retained and promotional branding is context only."
+    },
+    {
+      "number": 82,
+      "file": "05_Menus_HUD_Customization_and_Presentation/082_MXATV_two_bikes_displayed_in_a_garage.jpg",
+      "sha256": "ced4ee2bd652442fa0bd929041246c73abaf2891e0b194f5103a7e9ac41c75ed",
+      "observation": "Garage product image actually shows three small-to-large cyan bikes with bare engine, frame and fork structures clearly separated.",
+      "recommendedPrinciple": "Use mechanical scale and component contrast; do not treat its filename's two-bike count as visual evidence.",
+      "source": {
+        "kind": "official_site",
+        "url": "https://mxvsatvlegends.thqnordic.com/game-sites/mxvsatvlegends/editions/dlc/element-bike-pack.jpg",
+        "page": "https://mxvsatvlegends.thqnordic.com/"
+      },
+      "implementationStatus": "new-principle-applied-with-context",
+      "newFeatures": [
+        "moulded_plastics",
+        "knobby_rubber"
+      ],
+      "retainedSystems": [
+        "mechanical_structure",
+        "current_presentation"
+      ],
+      "context": "Actual visual count is three cyan bikes. Component contrast transfers; garage layout, manufacturer branding and new bike variants are context only."
+    },
+    {
+      "number": 83,
+      "file": "05_Menus_HUD_Customization_and_Presentation/083_SX25_stadium_fireworks_and_laser_show.jpg",
+      "sha256": "55f480d9369e6e32620ebad46bf44c4242ee55d45b8b3011efe3f68d93c1775e",
+      "observation": "Arena show contains many fireworks streaks and laser colors over a still-readable earth course and occupied tiers.",
+      "recommendedPrinciple": "Keep event depth and crowd variety as context; no fireworks or laser feature is implied.",
+      "source": {
+        "kind": "playstation",
+        "url": "https://image.api.playstation.com/vulcan/ap/rnd/202502/1910/0fb367f393ca4990ea2403e1463ae33faad12d480c7eb33e.jpg",
+        "page": "https://www.playstation.com/en-cz/games/monster-energy-supercross-25-the-official-video-game/"
+      },
+      "implementationStatus": "new-principle-applied-with-context",
+      "newFeatures": [
+        "stadium_audience"
+      ],
+      "retainedSystems": [
+        "authored_environment",
+        "current_presentation"
+      ],
+      "context": "Audience depth transfers; fireworks, lasers and a new event-show system are context only."
+    },
+    {
+      "number": 84,
+      "file": "05_Menus_HUD_Customization_and_Presentation/084_SX25_experience_selection_menu_with_rookie_challenger_pro_tiers.jpg",
+      "sha256": "975921f0df1d6fa6e39c5ad12605e1fd9ccd508f8c0ceceab928bfb7be7e3d89",
+      "observation": "Experience menu presents three clearly separated levels with concise physics/aid summaries and one highlighted selection.",
+      "recommendedPrinciple": "Expose controls and assistance clearly within existing UX rather than adding opaque difficulty promises.",
+      "source": {
+        "kind": "review_gallery",
+        "url": "https://storage.ghost.io/c/50/c6/50c61f91-0165-4605-93bc-f8598149e466/content/images/2025/06/MES25-Difficulty-2.jpg",
+        "page": "https://gamingtrend.com/reviews/monster-energy-supercross-25-review-a-great-game-hindered-by-weird-control-choices/"
+      },
+      "implementationStatus": "new-principle-applied-with-context",
+      "newFeatures": [
+        "recoverable_whip",
+        "flight_feedback"
+      ],
+      "retainedSystems": [
+        "current_presentation"
+      ],
+      "context": "Clear aid descriptions inform current controls; the reference menu layout and named difficulty tiers are not cloned."
+    },
+    {
+      "number": 85,
+      "file": "05_Menus_HUD_Customization_and_Presentation/085_SX25_general_settings_screen_with_highlighted_options.jpg",
+      "sha256": "38f4966d371f9de01a538871e41a0795f4efaea9a4a2a8c35ba94fed45999e07",
+      "observation": "Settings screen labels brakes, air control and rider weight separately, with a contextual explanation for the selected setting.",
+      "recommendedPrinciple": "Keep gameplay instructions explicit and consistent with the real controls and assistance behavior.",
+      "source": {
+        "kind": "review_gallery",
+        "url": "https://storage.ghost.io/c/50/c6/50c61f91-0165-4605-93bc-f8598149e466/content/images/2025/06/MES25-Settings.jpg",
+        "page": "https://gamingtrend.com/reviews/monster-energy-supercross-25-review-a-great-game-hindered-by-weird-control-choices/"
+      },
+      "implementationStatus": "new-principle-applied-with-context",
+      "newFeatures": [
+        "recoverable_whip",
+        "flight_feedback"
+      ],
+      "retainedSystems": [
+        "current_presentation",
+        "suspension_and_pitch"
+      ],
+      "context": "Explicit control explanations inform current UX; the reference menu layout is context only."
+    },
+    {
+      "number": 86,
+      "file": "05_Menus_HUD_Customization_and_Presentation/086_SX25_gameplay_hud_during_a_full_start_pack.jpg",
+      "sha256": "83be1d0b5b9c4bf63ee12beaf1dd6126d639f17c522735c1e7a80bcff3aaac35",
+      "observation": "Playable chase HUD leaves the center open for crowded riding, with position/time at top, speed bottom-right and one brief contextual instruction.",
+      "recommendedPrinciple": "Keep new air/style feedback concise and preserve the upcoming terrain corridor in chase framing.",
+      "source": {
+        "kind": "review_gallery",
+        "url": "https://storage.ghost.io/c/50/c6/50c61f91-0165-4605-93bc-f8598149e466/content/images/2025/06/MES25-Race-start.jpg",
+        "page": "https://gamingtrend.com/reviews/monster-energy-supercross-25-review-a-great-game-hindered-by-weird-control-choices/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "flight_camera",
+        "flight_feedback"
+      ],
+      "retainedSystems": [
+        "current_presentation",
+        "pack_and_lines"
+      ]
+    },
+    {
+      "number": 87,
+      "file": "06_Lighting_Weather_Dirt_and_FX/087_MXATV_motorcycle_jump_in_rain_or_wet_dusk.jpg",
+      "sha256": "a44c6dac3f7e2219d6375afd6ef8cd900af88703fd306d6c7de136798e060a91",
+      "observation": "Rainy gray airborne scene has reduced distant contrast, reflective track lows and darker bike surfaces rather than uniform bright wet shine.",
+      "recommendedPrinciple": "Localize wetness and keep atmospheric reduction of distant detail as lighting context.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1205970/a2935683d2e453514279db9706e683dcde3e5a35/ss_a2935683d2e453514279db9706e683dcde3e5a35.1920x1080.jpg?t=1791298700",
+        "page": "https://store.steampowered.com/app/1205970/"
+      },
+      "implementationStatus": "new-principle-applied-with-context",
+      "newFeatures": [
+        "worked_soil",
+        "selective_mud"
+      ],
+      "retainedSystems": [
+        "lighting_and_contact"
+      ],
+      "context": "Wet earth/dirt contrast transfers; atmosphere/weather implementation is retained."
+    },
+    {
+      "number": 88,
+      "file": "06_Lighting_Weather_Dirt_and_FX/088_SX6_berm_crash_with_heavy_roost.jpg",
+      "sha256": "0147724ecc9fafd4ae0751f4c1d814f2dd893cc63810fdba4d70b6450b55ca4a",
+      "observation": "Dark berm image shows different lean/foot states among four riders and coarse raised ridges; it does not visibly show a large airborne roost wall.",
+      "recommendedPrinciple": "Use uneven berm material and independent rider state; do not infer heavy particle density from the filename.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2058750/ss_cc366542d07528eabb021e654c355ab6d5338616.1920x1080.jpg?t=1744270559",
+        "page": "https://store.steampowered.com/app/2058750/"
+      },
+      "implementationStatus": "new-principle-applied-with-context",
+      "newFeatures": [
+        "worked_soil"
+      ],
+      "retainedSystems": [
+        "rider_pose",
+        "pack_and_lines"
+      ],
+      "context": "The still does not establish a heavy roost wall or a measured crash; those filename claims are not copied into implementation evidence."
+    },
+    {
+      "number": 89,
+      "file": "06_Lighting_Weather_Dirt_and_FX/089_SX5_start_line_with_fire_jets.jpg",
+      "sha256": "2e6bdebc7190fc031dc19081906102a2af170e2e1571a03967391a8608707fc5",
+      "observation": "Start group has dirty lower plastics, tires and boots beneath varied clean upper garments, while flames sit behind the riders.",
+      "recommendedPrinciple": "Keep localized dirt accumulation and lower-versus-upper garment separation.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1610460/ss_03f02b29f5bc1d12a19e7d87ca76fc2acc6b6ed6.1920x1080.jpg?t=1744270609",
+        "page": "https://store.steampowered.com/app/1610460/"
+      },
+      "implementationStatus": "new-principle-applied-with-context",
+      "newFeatures": [
+        "selective_mud"
+      ],
+      "retainedSystems": [
+        "rider_pose"
+      ],
+      "context": "Localized dirt transfers; background flames are context only."
+    },
+    {
+      "number": 90,
+      "file": "06_Lighting_Weather_Dirt_and_FX/090_SX4_rear_rider_framed_by_flames.jpg",
+      "sha256": "c2efce434ee3d09f69cf890801fc63e799d2ca8d5e49df4200f85fa46f02658a",
+      "observation": "Rear jumping rider has a clearly readable back number, darker trouser panels and exposed tire/exhaust below bright fire framing.",
+      "recommendedPrinciple": "Preserve garment identity and dark mechanical underside while retaining event depth as context.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1304340/ss_963259a9fb8b784c67eadc0629c42e3601bceb04.1920x1080.jpg?t=1728477753",
+        "page": "https://store.steampowered.com/app/1304340/"
+      },
+      "implementationStatus": "new-principle-applied-with-context",
+      "newFeatures": [
+        "selective_mud"
+      ],
+      "retainedSystems": [
+        "rider_pose",
+        "mechanical_structure"
+      ],
+      "context": "Readable upper gear versus darker lower surfaces informs selective dirt; fire framing is context only."
+    },
+    {
+      "number": 91,
+      "file": "06_Lighting_Weather_Dirt_and_FX/091_SX4_airborne_rider_against_crowd_and_fire.jpg",
+      "sha256": "8fda57978fc4180cd3d63b9547d73278d31e6d2ab17e1e3477cd589891afbb49",
+      "observation": "Side airborne rider has soft fabric folds and matte trousers against a huge varied crowd, with a small bright helmet reflection.",
+      "recommendedPrinciple": "Strengthen material differences and replace mechanically repeated crowd silhouettes.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1304340/ss_cc5cf8c5ccdc25886831a63dba90a338575443de.1920x1080.jpg?t=1728477753",
+        "page": "https://store.steampowered.com/app/1304340/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "helmet_and_goggles",
+        "stadium_audience"
+      ],
+      "retainedSystems": [
+        "rider_pose",
+        "lighting_and_contact"
+      ]
+    },
+    {
+      "number": 92,
+      "file": "06_Lighting_Weather_Dirt_and_FX/092_SX4_blue_rider_from_rear_on_dark_churned_soil.jpg",
+      "sha256": "f67ff1692a77c31882ed8f1a6e12a0e5c426032d1533c3954a500feb7af92538",
+      "observation": "Close rear rider crosses dark granular soil containing pale aggregate flecks, a compacted black groove and dirty trousers/boot edges.",
+      "recommendedPrinciple": "Add nonuniform mineral/clod breakup and local compaction while maintaining selective rider dirt.",
+      "source": {
+        "kind": "steam_official_screenshot",
+        "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1304340/ss_e667184919ed15814cf44bbdc8a3bdd577f911e9.1920x1080.jpg?t=1728477753",
+        "page": "https://store.steampowered.com/app/1304340/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "worked_soil",
+        "selective_mud"
+      ],
+      "retainedSystems": [
+        "rider_pose"
+      ]
+    },
+    {
+      "number": 93,
+      "file": "06_Lighting_Weather_Dirt_and_FX/093_MXATV_golden_hour_atv_landscape.jpg",
+      "sha256": "05744de488d9629dc14493935e48ba66a12d462bcbc2956aec858a21cc942d2f",
+      "observation": "The actual image has a starry twilight/night sky above palms and an ATV near a cliff, with a warmer lit patch on the ground.",
+      "recommendedPrinciple": "Treat it as night/low-light context, not a normal golden-hour frame or an implemented new venue.",
+      "source": {
+        "kind": "official_site",
+        "url": "https://mxvsatvlegends.thqnordic.com/game-sites/mxvsatvlegends/light-bg.png",
+        "page": "https://mxvsatvlegends.thqnordic.com/"
+      },
+      "implementationStatus": "context-only-retained-systems",
+      "newFeatures": [],
+      "retainedSystems": [
+        "lighting_and_contact"
+      ],
+      "context": "The image has a starry twilight/night sky. It is low-light context only, not an ordinary golden-hour frame or a new ATV venue."
+    },
+    {
+      "number": 94,
+      "file": "06_Lighting_Weather_Dirt_and_FX/094_MXATV_close_atv_corner_with_dirt_roost.jpg",
+      "sha256": "ebd7d1310f8e38b6bfd61c3d0ec8ceef0e038175c4890a98f87d202ef95d60e8",
+      "observation": "ATV corner has small dark dirt clods alongside a broad translucent tan dust wake under forest light.",
+      "recommendedPrinciple": "Give clods irregular opaque silhouettes and let dust linger diffusely near actual wheel contacts.",
+      "source": {
+        "kind": "official_site",
+        "url": "https://mxvsatvlegends.thqnordic.com/game-sites/mxvsatvlegends/content/feature-showcase-3.jpg",
+        "page": "https://mxvsatvlegends.thqnordic.com/"
+      },
+      "implementationStatus": "new-principle-applied-with-context",
+      "newFeatures": [
+        "clods_and_dust"
+      ],
+      "retainedSystems": [
+        "contact_roost_emission"
+      ],
+      "context": "Dust/clod shape transfers to motocross; ATV mechanics and the source venue are context only."
+    },
+    {
+      "number": 95,
+      "file": "06_Lighting_Weather_Dirt_and_FX/095_MXATV_backlit_motorcycle_jump_under_stadium_lamps.jpg",
+      "sha256": "ec2971667bd21d61974e377823f376a47e401159a1be9b72854b3f8eb13552cd",
+      "observation": "Backlit motorcycle launch clearly separates hundreds of dark irregular clods from a soft tan dust cloud, while wheels and engine remain recognizable.",
+      "recommendedPrinciple": "Differentiate clod and dust shader shapes/opacity and preserve readable rider contrast.",
+      "source": {
+        "kind": "official_site",
+        "url": "https://mxvsatvlegends.thqnordic.com/game-sites/mxvsatvlegends/content/mxvsatv_screen_allout.png",
+        "page": "https://mxvsatvlegends.thqnordic.com/"
+      },
+      "implementationStatus": "new-principle-applied",
+      "newFeatures": [
+        "clods_and_dust"
+      ],
+      "retainedSystems": [
+        "contact_roost_emission",
+        "mechanical_structure",
+        "lighting_and_contact"
+      ]
+    },
+    {
+      "number": 96,
+      "file": "06_Lighting_Weather_Dirt_and_FX/096_MXATV_mountain_jump_with_dust_trail.jpg",
+      "sha256": "1419e19e65665449567c8c496538c2fcd303168a085d23159dcec4a5d1656c5e",
+      "observation": "Rear mountain jump leaves a soft low dust wake over rounded uneven soil ridges, with thin trees and snow peaks giving distance.",
+      "recommendedPrinciple": "Keep soft dust near contact and retain ground rhythm/camera preview across jumps.",
+      "source": {
+        "kind": "official_site",
+        "url": "https://mxvsatvlegends.thqnordic.com/game-sites/mxvsatvlegends/content/mxvsatv_screen_encore.jpg",
+        "page": "https://mxvsatvlegends.thqnordic.com/"
+      },
+      "implementationStatus": "new-principle-applied-with-context",
+      "newFeatures": [
+        "worked_soil",
+        "clods_and_dust",
+        "flight_camera"
+      ],
+      "retainedSystems": [
+        "authored_environment",
+        "contact_roost_emission"
+      ],
+      "context": "Generic dirt/dust/landing principles transfer; snow peaks and a new mountain venue are context only."
+    },
+    {
+      "number": 97,
+      "file": "06_Lighting_Weather_Dirt_and_FX/097_MXATV_atv_pack_through_a_forest_corner.jpg",
+      "sha256": "65965942714d0d7bad7dcced59882630174186931ce79da833d3b1b8768dedb5",
+      "observation": "Close mixed race passes through bright green tree canopy and dark mottled ground shadows, with riders at different lean angles.",
+      "recommendedPrinciple": "Retain environmental contrast and independent rider silhouettes; mixed ATV racing remains context.",
+      "source": {
+        "kind": "official_site",
+        "url": "https://mxvsatvlegends.thqnordic.com/game-sites/mxvsatvlegends/content/mxvsatv_screen_alive.jpg",
+        "page": "https://mxvsatvlegends.thqnordic.com/"
+      },
+      "implementationStatus": "context-only-retained-systems",
+      "newFeatures": [],
+      "retainedSystems": [
+        "authored_environment",
+        "pack_and_lines",
+        "lighting_and_contact"
+      ],
+      "context": "Canopy contrast and mixed racing are context only; existing pack logic is retained and no ATV racing is added."
+    },
+    {
+      "number": 98,
+      "file": "06_Lighting_Weather_Dirt_and_FX/098_MXATV_close_atv_battle_on_stadium_soil.jpg",
+      "sha256": "d22196ea5fee73b35a5a7165f6be2ae2d724e041604f59614e8e686fdbf42e72",
+      "observation": "Two ATVs in a stadium corner have different bank angles, tire loads and chassis highlights above deeply textured brown dirt.",
+      "recommendedPrinciple": "Use contact/material contrast as context, without implying an ATV implementation.",
+      "source": {
+        "kind": "official_site",
+        "url": "https://mxvsatvlegends.thqnordic.com/game-sites/mxvsatvlegends/content/mxvsatv_screen_untamed.jpg",
+        "page": "https://mxvsatvlegends.thqnordic.com/"
+      },
+      "implementationStatus": "new-principle-applied-with-context",
+      "newFeatures": [
+        "worked_soil"
+      ],
+      "retainedSystems": [
+        "lighting_and_contact",
+        "suspension_and_pitch"
+      ],
+      "context": "Brown soil/contact material principles transfer; ATV physics and an ATV mode are context only."
+    },
+    {
+      "number": 99,
+      "file": "06_Lighting_Weather_Dirt_and_FX/099_MXATV_utv_jumping_over_an_outdoor_course.jpg",
+      "sha256": "318ab1750b851240b7fa1bc1aa52b4d372028707130f26872dcd6fda58c78d0f",
+      "observation": "UTV jump casts a detached vehicle shadow onto the slope, while yellow markers guide a downhill route through a broad forest venue.",
+      "recommendedPrinciple": "Preserve altitude and route readability as context; no UTV mode is implied.",
+      "source": {
+        "kind": "playstation",
+        "url": "https://image.api.playstation.com/vulcan/ap/rnd/202109/0617/KndpwHirrk9NEo06GBCYbN35.jpg",
+        "page": "https://www.playstation.com/en-us/games/mx-vs-atv-legends/"
+      },
+      "implementationStatus": "context-only-retained-systems",
+      "newFeatures": [],
+      "retainedSystems": [
+        "suspension_and_pitch",
+        "lighting_and_contact",
+        "authored_environment"
+      ],
+      "context": "UTV jump, forest venue and downhill route are context only; no UTV mode or new map."
+    },
+    {
+      "number": 100,
+      "file": "06_Lighting_Weather_Dirt_and_FX/100_MXATV_desert_jump_over_rolling_terrain.jpg",
+      "sha256": "1502126cbf4dfcf8f53a23b3f0d6adf03f216ede9e567b595b29a984597373e3",
+      "observation": "Rear bike jumps across many rounded desert rhythm mounds with directional wear and sparse vegetation between the lines.",
+      "recommendedPrinciple": "Improve aerial correction and readable jump rhythm while retaining current venues and authoritative surfaces.",
+      "source": {
+        "kind": "playstation",
+        "url": "https://image.api.playstation.com/vulcan/ap/rnd/202212/1213/IsKjdm4BlmHlffNSvTW4WC6h.jpg",
+        "page": "https://www.playstation.com/en-us/games/mx-vs-atv-legends/"
+      },
+      "implementationStatus": "new-principle-applied-with-context",
+      "newFeatures": [
+        "worked_soil",
+        "recoverable_whip",
+        "flight_camera"
+      ],
+      "retainedSystems": [
+        "authored_environment",
+        "suspension_and_pitch"
+      ],
+      "context": "Generic jump/rut/readability principles transfer; desert venue and sparse vegetation remain context only."
+    }
+  ]
+}

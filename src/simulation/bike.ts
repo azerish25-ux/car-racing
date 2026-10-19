@@ -66,6 +66,10 @@ export interface BikeParameters {
   tractionMargin?: number;
   wheelieKeep?: number;
   rollDamping?: number;
+  /** Largest throttle fraction at which the adapter may request drivetrain
+   * braking. The GP adapter blends torque through a small coast/power overlap;
+   * other machines retain their original closed-throttle threshold (0.02). */
+  engineBrakeReleaseThrottle?: number;
 }
 export const BIKE: BikeParameters = Object.freeze({
   mass: 157 + 72,
@@ -104,8 +108,9 @@ export interface BikeInput {
   /** Drive force at the rear contact before traction limits (N). When absent
    * the constant-power research drive is used. */
   drive?: number;
-  /** Closed-throttle drivetrain braking at the rear contact, newtons. It
-   * consumes the SAME rear friction circle as the pedal and lateral load. */
+  /** Drivetrain braking at the rear contact, newtons, already blended by the
+   * adapter's throttle map. It consumes the SAME rear friction circle as the
+   * pedal, drive force and lateral load. */
   engineBrake?: number;
 }
 export interface BikeAssists {
@@ -166,6 +171,13 @@ export class Bike {
    * multiplier, sine of the uphill gradient along the heading, drag scale
    * (rider tuck) and whether the separated rider is back at the bike. */
   grip = 1;
+  /** Optional per-contact grip for GP prototypes. The adapter keeps `grip`
+   * at the lower value for conservative lean intent, but an intact rear
+   * contact must not lose its drive grip because the front crosses a kerb
+   * (or vice versa under braking). Other motorcycles retain shared grip.
+   * These are sampled environment inputs, not integrated/replay state. */
+  frontGrip?: number;
+  rearGrip?: number;
   slope = 0;
   dragScale = 1;
   riderReady = true;
@@ -205,7 +217,9 @@ export class Bike {
     const a = this.assists,
       p = this.p,
       m = this.mass,
-      mu = p.mu * this.grip;
+      mu = p.mu * this.grip,
+      frontMu = p.mu * (this.frontGrip ?? this.grip),
+      rearMu = p.mu * (this.rearGrip ?? this.grip);
     // Rider hang-off moves toward its command at a bounded rate.
     this.riderOffset += clamp(
       clamp(input.rider, -1, 1) * p.riderOffsetMax - this.riderOffset,
@@ -263,7 +277,7 @@ export class Bike {
         ? Math.max(0, input.drive)
         : Math.min(p.maxDrive, (p.power * throttle) / Math.max(v, 3));
     const requested = drive;
-    const rearCapacity = mu * this.rearLoad;
+    const rearCapacity = rearMu * this.rearLoad;
     // Lean-sensitive traction control: drive is kept inside what the rear
     // friction circle leaves after the cornering force it carries.
     const lateralNow = Math.abs(this.speed * this.speed * this.curvature),
@@ -280,7 +294,7 @@ export class Bike {
     if (a.wheelie) {
       const keep = Math.min(
         staticFront,
-        Math.max((p.wheelieKeep ?? 0.2) * staticFront, frontLatNow / (0.8 * mu)),
+        Math.max((p.wheelieKeep ?? 0.2) * staticFront, frontLatNow / (0.8 * frontMu)),
       );
       drive = Math.min(drive, ((staticFront - keep) * p.wheelbase) / p.cgHeight);
     }
@@ -288,13 +302,15 @@ export class Bike {
     // Stoppie assist (with the wheelie assist): like lift-mitigating ABS, cap
     // front force at the deceleration where the rear would leave the road.
     const engineRequest =
-      Number.isFinite(input.engineBrake) && throttle <= 0.02 && this.speed > 3
+      Number.isFinite(input.engineBrake) &&
+      throttle <= (p.engineBrakeReleaseThrottle ?? 0.02) &&
+      this.speed > 3
         ? Math.max(0, input.engineBrake ?? 0)
         : 0;
     const rearServiceRequest = p.rearBrake * rear * (v > 0.2 ? 1 : 0);
     const brakeR = rearServiceRequest + engineRequest;
     // What the rear can actually take (a light rear locks and slides).
-    const rearHeld = Math.min(brakeR, mu * this.rearLoad);
+    const rearHeld = Math.min(brakeR, rearMu * this.rearLoad);
     const liftLimit = a.wheelie
       ? Math.max(0, ((p.stoppieMargin ?? 0.92) * staticRear * p.wheelbase) / p.cgHeight - rearHeld)
       : Infinity;
@@ -302,27 +318,28 @@ export class Bike {
     if (a.abs) {
       // Cornering ABS: the front stays inside its friction circle, and the
       // weight it takes off the rear leaves the rear its cornering load.
-      const rearLatKeep = rearLatNow / (0.85 * mu);
+      const rearLatKeep = rearLatNow / (0.85 * rearMu);
       brakeF = Math.min(
         brakeF,
-        0.95 * Math.sqrt(Math.max(0, (mu * this.frontLoad) ** 2 - frontLatNow ** 2)),
+        0.95 * Math.sqrt(Math.max(0, (frontMu * this.frontLoad) ** 2 - frontLatNow ** 2)),
         Math.max(0, ((staticRear - rearLatKeep) * p.wheelbase) / p.cgHeight - rearHeld),
       );
     }
     const rearForce = drive - brakeR;
     let rearApplied = clamp(rearForce, -rearCapacity, rearCapacity);
-    let frontApplied = -Math.min(brakeF, mu * this.frontLoad);
+    let frontApplied = -Math.min(brakeF, frontMu * this.frontLoad);
     if (a.abs) {
       // The current brake stroke unloads the rear immediately. Using last
       // step's rear load lets even combined-brake assistance lock the rear,
       // especially when trail braking on a wet surface. Solve its remaining
       // friction circle with this step's load transfer, not the old load.
       const camberNow = 1 - 0.18 * Math.max(0, Math.abs(this.lean) - 0.8);
-      const brakeGrip = 0.95 * mu * camberNow;
+      const rearBrakeGrip = 0.95 * rearMu * camberNow;
+      const frontBrakeGrip = 0.95 * frontMu * camberNow;
       const transferRatio = p.cgHeight / p.wheelbase;
-      const coupling = brakeGrip * transferRatio;
       if (rearApplied < 0) {
-        const capacity = brakeGrip * Math.max(0, staticRear + frontApplied * transferRatio);
+        const capacity = rearBrakeGrip * Math.max(0, staticRear + frontApplied * transferRatio);
+        const coupling = rearBrakeGrip * transferRatio;
         // q² + Fy² = (capacity - coupling*q)². This rationalized
         // positive root remains well conditioned even when coupling ≈ 1.
         const remaining = capacity * capacity - rearLatNow * rearLatNow;
@@ -337,8 +354,9 @@ export class Bike {
       // against the same final force pair, including simultaneous throttle.
       // Front load increases with its own brake force; lift control above
       // remains the bound when that friction equation has no upper root.
+      const coupling = frontBrakeGrip * transferRatio;
       if (frontApplied < 0 && coupling < 1) {
-        const capacity = brakeGrip * Math.max(0, staticFront - rearApplied * transferRatio);
+        const capacity = frontBrakeGrip * Math.max(0, staticFront - rearApplied * transferRatio);
         const discriminant = capacity * capacity - (1 - coupling * coupling) * frontLatNow ** 2;
         const limit =
           discriminant > 0
@@ -397,15 +415,15 @@ export class Bike {
     const frontUse =
       this.frontLoad < 0.05 * m * G
         ? 0
-        : Math.hypot(frontLat, -frontApplied) / Math.max(1, mu * camber * this.frontLoad);
+        : Math.hypot(frontLat, -frontApplied) / Math.max(1, frontMu * camber * this.frontLoad);
     // A lightly loaded rear under braking locks and slides; it is not a crash.
     const rearCorneringUse =
       this.rearLoad < 0.05 * m * G
         ? 0
-        : Math.hypot(rearLat, Math.max(0, rearApplied)) / (mu * camber * this.rearLoad);
+        : Math.hypot(rearLat, Math.max(0, rearApplied)) / (rearMu * camber * this.rearLoad);
     // Report the full force circle under braking too. The crash model still
     // distinguishes a recoverable rear brake slide from a powered highside.
-    const rearUse = Math.hypot(rearLat, rearApplied) / Math.max(1, mu * camber * this.rearLoad);
+    const rearUse = Math.hypot(rearLat, rearApplied) / Math.max(1, rearMu * camber * this.rearLoad);
     this.frontUse = frontUse;
     this.rearUse = rearUse;
     this.lateralUse = Math.max(frontUse, rearUse);
