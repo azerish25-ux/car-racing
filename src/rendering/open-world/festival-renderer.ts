@@ -408,12 +408,10 @@ export class FestivalRenderer {
     );
     this.nightGlow = new NightGlow(this.signage.glows, structures, architecture);
     this.nightGlow.install(this.buildings.material, 'facade');
-    for (const layer of ['town', 'asphalt', 'asphaltMajor', 'paving', 'paint', 'glyph', 'antiskid'])
-      if (this.roads.materials[layer as keyof typeof this.roads.materials])
-        this.nightGlow.install(
-          this.roads.materials[layer as keyof typeof this.roads.materials],
-          'ground',
-        );
+    const streets = this.roads.materials;
+    for (const layer of ['town', 'asphalt', 'asphaltMajor', 'paint', 'glyph', 'antiskid'] as const)
+      this.nightGlow.install(streets[layer], 'road');
+    this.nightGlow.install(streets.paving, 'paving');
     scene.add(this.nightGlow.root);
     this.parked = new ParkedCars(
       parkedSites(

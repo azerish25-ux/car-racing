@@ -31,10 +31,11 @@ export const NIGHT_GLOW = Object.freeze({
   core: 2.4,
   /** Fade (1/m) above the sources' top. */
   fadeAbove: 0.45,
-  /** Ground: diffuse gain and glossy share dry / wet. */
-  ground: 0.75,
-  sheenDry: 0.1,
-  sheenWet: 0.45,
+  /** Street surfaces: diffuse gain and glossy share dry / wet. Dark
+   * asphalt reads mostly through its sheen (069: road Y 0.03-0.04 under
+   * the signs); pale paving mostly diffusely. */
+  road: { diffuse: 0.75, dry: 0.3, wet: 0.6 },
+  paving: { diffuse: 0.5, dry: 0.06, wet: 0.35 },
   /** Real lights per tier and their candela per unit of source power. */
   lights: { low: 0, medium: 2, high: 3, ultra: 4 } as Record<QualityPreset, number>,
   candela: 16,
@@ -150,10 +151,10 @@ export class NightGlow {
 
   /** Add the wash to a lit material: facades take it on their albedo,
    * the ground also as a glossy sheen (stronger when wet). */
-  install(material: T.Material, kind: 'facade' | 'ground') {
+  install(material: T.Material, kind: 'facade' | 'road' | 'paving') {
     if (!this.texture) return;
     const u = this.uniforms;
-    const ground = kind === 'ground';
+    const ground = kind === 'facade' ? null : NIGHT_GLOW[kind];
     chainShaderHook(material, `festival-night-glow-${kind}-v1`, (shader) => {
       shader.uniforms.owGlowMap = u.owGlowMap;
       shader.uniforms.owGlowBox = u.owGlowBox;
@@ -174,9 +175,9 @@ export class NightGlow {
   vec3 owGE = owGlowAt(vOwGlowWorld, owGN);
   ${
     ground
-      ? `reflectedLight.indirectDiffuse += material.diffuseColor * owGE * ${NIGHT_GLOW.ground.toFixed(2)};
-  float owGloss = 1.0 - 0.6 * material.roughness;
-  reflectedLight.indirectSpecular += owGE * owGloss * mix(${NIGHT_GLOW.sheenDry.toFixed(3)}, ${NIGHT_GLOW.sheenWet.toFixed(3)}, owGlowState.y);`
+      ? `reflectedLight.indirectDiffuse += material.diffuseColor * owGE * ${ground.diffuse.toFixed(2)};
+  float owGloss = 1.0 - 0.5 * material.roughness;
+  reflectedLight.indirectSpecular += owGE * owGloss * mix(${ground.dry.toFixed(3)}, ${ground.wet.toFixed(3)}, owGlowState.y);`
       : 'reflectedLight.indirectDiffuse += material.diffuseColor * owGE;'
   }
 }`,
@@ -292,8 +293,10 @@ function bake(
         rgb[i * 3] += colour.r * k;
         rgb[i * 3 + 1] += colour.g * k;
         rgb[i * 3 + 2] += colour.b * k;
-        top[i] += g.y1 * k * lum;
-        weight[i] += k * lum;
+        // Weighted by k^2: the dominant nearby face sets the height the
+        // wash reaches (a tall banner does not lift its neighbours' light).
+        top[i] += g.y1 * k * k * lum;
+        weight[i] += k * k * lum;
       }
     }
   }
