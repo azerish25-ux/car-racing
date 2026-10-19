@@ -10,21 +10,37 @@ jobs:
   workspace:
     if: github.repository == 'azerish25-ux/car-racing'
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - name: Snapshot tracked source at the triggering commit
+      - name: Snapshot implementation without unrelated reference photographs
         run: |
           git rev-parse HEAD > /tmp/source-commit.txt
-          git archive --format=tar.gz --output=/tmp/charlottetown-code.tar.gz HEAD src tests e2e scripts reference docs .github package.json package-lock.json tsconfig.json vite.config.ts vitest.config.ts playwright.config.ts eslint.config.js index.html README.md .gitignore .gitattributes .prettierrc.json
+          git archive --format=tar.gz --output=/tmp/charlottetown-code.tar.gz HEAD src tests e2e scripts reference/charlottetown docs/CHARLOTTETOWN_MAP.md .github package.json package-lock.json tsconfig.json vite.config.ts vitest.config.ts playwright.config.ts eslint.config.js index.html README.md .gitignore .gitattributes .prettierrc.json
       - uses: actions/upload-artifact@v4
         with:
           name: charlottetown-code
           path: |
             /tmp/charlottetown-code.tar.gz
             /tmp/source-commit.txt
+          retention-days: 2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install pinned test tools
+        run: |
+          npm ci --no-audit --no-fund
+          npx playwright install chromium
+      - name: Package only dependencies and browser binaries for offline validation
+        run: |
+          tar -czf /tmp/charlottetown-toolchain.tar.gz node_modules -C "$HOME/.cache" ms-playwright
+      - uses: actions/upload-artifact@v4
+        with:
+          name: charlottetown-toolchain
+          path: /tmp/charlottetown-toolchain.tar.gz
           retention-days: 2
       - name: Snapshot tracked runtime assets separately
         run: git archive --format=tar.gz --output=/tmp/charlottetown-runtime.tar.gz HEAD public
