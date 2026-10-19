@@ -74,3 +74,7 @@ Studio renders (same scene before and after):
 `/tmp/claude-0/-home-user-Experiment-3/6225d78a-1b23-58c0-86f8-76bad1718c62/scratchpad/agentN/final/sheet.jpg`
 (front 3/4, rear 3/4, flank, meet row, lx12 tail, night tail).
 In-game Medium: `/tmp/claude-0/-home-user-Experiment-3/6225d78a-1b23-58c0-86f8-76bad1718c62/scratchpad/agentN/game/`.
+In-game Medium frame at the integration head with every agent's work, eh3 at
+spawn: chase 565 draws / 3.40 M triangles; front 3/4 inspection 305 draws /
+1.52 M triangles. There is no before/after pair at the same head: the capture
+budget ran out. The probe's extra face pass is inside these numbers.
