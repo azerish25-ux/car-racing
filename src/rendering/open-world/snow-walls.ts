@@ -27,8 +27,8 @@ export class SnowWalls {
     this.texture = typeof document === 'undefined' ? null : strataTexture();
     this.material = new T.MeshStandardMaterial({
       name: 'Ploughed snow strata',
-      color: 0xdfe6ef,
-      roughness: 0.82,
+      color: 0xf4f7fb,
+      roughness: 0.74,
       metalness: 0,
       map: this.texture,
       bumpMap: this.texture,
@@ -108,7 +108,7 @@ export class SnowWalls {
       for (const [out, up] of profile) {
         const height = up * h * wobble;
         position.push(x + nx * out, y + height, z + nz * out);
-        uv.push(along / 6, height / 5);
+        uv.push(along / 16, height / 6);
       }
     }
     const m = profile.length;
@@ -136,35 +136,52 @@ export class SnowWalls {
  * dirty seams and vertical cutter scallops (ref 070). Greyscale, used as both
  * albedo modulation and bump. */
 function strataTexture() {
-  const width = 512,
-    height = 256;
+  const width = 1024,
+    height = 512;
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
   const c = canvas.getContext('2d')!;
-  c.fillStyle = '#eef2f6';
+  c.fillStyle = '#f4f6f9';
   c.fillRect(0, 0, width, height);
   let seed = 7;
   const random = () => {
     seed = (seed * 16807) % 2147483647;
     return seed / 2147483647;
   };
-  for (let y = 0; y < height; y += 3 + random() * 9) {
-    const shade = 200 + random() * 50;
-    c.fillStyle = `rgba(${shade - 18},${shade - 10},${shade},${0.25 + random() * 0.35})`;
-    c.fillRect(0, y, width, 1 + random() * 3);
+  // Seasonal layers: thin wavy horizontal seams (compacted or dusty
+  // snowfalls), each with its own slow undulation, wrapping seamlessly.
+  for (let y = 4; y < height; y += 4 + random() * 14) {
+    const shade = 205 + random() * 40,
+      alpha = 0.18 + random() * 0.4,
+      amp = 1 + random() * 4,
+      waves = 1 + Math.floor(random() * 4),
+      phase = random() * Math.PI * 2,
+      thick = 0.8 + random() * 2.4;
+    c.strokeStyle = `rgba(${shade - 22},${shade - 12},${shade},${alpha})`;
+    c.lineWidth = thick;
+    c.beginPath();
+    for (let x = 0; x <= width; x += 8) {
+      const yy = y + amp * Math.sin((x / width) * Math.PI * 2 * waves + phase);
+      if (x === 0) c.moveTo(x, yy);
+      else c.lineTo(x, yy);
+    }
+    c.stroke();
   }
-  for (let x = 0; x < width; x += 18 + random() * 22) {
-    const g = c.createLinearGradient(x, 0, x + 26, 0);
-    g.addColorStop(0, 'rgba(255,255,255,0)');
-    g.addColorStop(0.5, 'rgba(170,182,198,0.22)');
-    g.addColorStop(1, 'rgba(255,255,255,0)');
-    c.fillStyle = g;
-    c.fillRect(x, 0, 26, height);
+  // Rotary-blower scallops: shallow horizontal arcs left by the cutter.
+  for (let k = 0; k < 160; k++) {
+    const x = random() * width,
+      y = random() * height,
+      w = 40 + random() * 120;
+    c.strokeStyle = `rgba(180,192,210,${0.08 + random() * 0.14})`;
+    c.lineWidth = 2 + random() * 5;
+    c.beginPath();
+    c.ellipse(x, y, w, 6 + random() * 10, 0, Math.PI * 0.1, Math.PI * 0.9);
+    c.stroke();
   }
   const texture = new T.CanvasTexture(canvas);
   texture.wrapS = texture.wrapT = T.RepeatWrapping;
   texture.colorSpace = T.SRGBColorSpace;
-  texture.anisotropy = 4;
+  texture.anisotropy = 8;
   return texture;
 }
