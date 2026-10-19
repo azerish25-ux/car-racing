@@ -5,7 +5,8 @@ import { bodySheetFor } from '../vehicle-bodies/body-sheet.ts';
 import { bodyFrame } from '../vehicle-bodies/frame.ts';
 import { buildVehicleBody } from '../vehicle-bodies/index.ts';
 import { bodyPaint } from '../vehicle-bodies/materials.ts';
-import { tuneFestivalPaint } from './festival-car-finish.ts';
+import { festivalPlated, platePlacement, tuneFestivalPaint } from './festival-car-finish.ts';
+import { plateGeometry, plateMaterial, plateSlot } from './festival-plates.ts';
 
 /** Festival meet cars (refs 025, 076, 080-083): the hub meet and the store
  * car-park meets show the festival's own production-form sports cars, not
@@ -17,14 +18,23 @@ import { tuneFestivalPaint } from './festival-car-finish.ts';
  * each source material's colour baked per vertex. Static and instanced: at
  * most four draws per model and LOD present; the mid LOD (about 30k
  * triangles) only within `MEET_NEAR` m of the camera, the far LOD (about
- * 5k) beyond. */
+ * 5k) beyond. Lamp lenses are a fifth, unlit class whose per-instance level
+ * lights a night meet's waiting cars (refs 069, 080-083); road cars carry
+ * front and rear plates (one plate per model) on the mid LOD. */
 export const MEET_MODELS = ['lx12', 'sc7', 'eh3', 'rs5', 'rh3', 'rm8', 'rd2'] as const;
 export const MEET_NEAR = 26;
-type Kind = 'paint' | 'gloss' | 'matte' | 'metal';
-const KINDS: readonly Kind[] = ['paint', 'gloss', 'matte', 'metal'];
+type Kind = 'paint' | 'gloss' | 'matte' | 'metal' | 'lamp' | 'plate';
+const KINDS: readonly Kind[] = ['paint', 'gloss', 'matte', 'metal', 'lamp', 'plate'];
+/** Lamp lens level by day, and the lit level added at full night. */
+const LENS = { day: 0.3, night: 2.4 } as const;
 
-function classify(material: T.Material, paint: ReadonlySet<T.Material>): Kind {
+function classify(
+  material: T.Material,
+  paint: ReadonlySet<T.Material>,
+  lamps: ReadonlySet<T.Material>,
+): Kind {
   if (paint.has(material)) return 'paint';
+  if (lamps.has(material)) return 'lamp';
   const m = material as T.MeshStandardMaterial;
   if (material.transparent || material.userData.vehicleGlass) return 'gloss';
   if ((m.metalness ?? 0) >= 0.6) return 'metal';
@@ -32,8 +42,19 @@ function classify(material: T.Material, paint: ReadonlySet<T.Material>): Kind {
   return 'matte';
 }
 /** A LOD group merged into the four classes (car frame, at rest). */
-function mergeLod(group: T.Object3D, paint: ReadonlySet<T.Material>) {
-  const lists: Record<Kind, T.BufferGeometry[]> = { paint: [], gloss: [], matte: [], metal: [] };
+function mergeLod(
+  group: T.Object3D,
+  paint: ReadonlySet<T.Material>,
+  lamps: ReadonlySet<T.Material>,
+) {
+  const lists: Record<Kind, T.BufferGeometry[]> = {
+    paint: [],
+    gloss: [],
+    matte: [],
+    metal: [],
+    lamp: [],
+    plate: [],
+  };
   group.updateMatrixWorld(true);
   const inverse = new T.Matrix4().copy(group.matrixWorld).invert(),
     local = new T.Matrix4(),
@@ -59,7 +80,7 @@ function mergeLod(group: T.Object3D, paint: ReadonlySet<T.Material>) {
     for (const g of groups) {
       const material = materials[g.materialIndex ?? 0];
       if (!material || material.visible === false) continue;
-      const kind = classify(material, paint);
+      const kind = classify(material, paint, lamps);
       const part = new T.BufferGeometry();
       const count = Math.min(g.count, position.count - g.start);
       if (count <= 0) continue;
@@ -82,10 +103,15 @@ function mergeLod(group: T.Object3D, paint: ReadonlySet<T.Material>) {
       part.applyMatrix4(local);
       // Glazing bakes as the dark tinted glass it reads as (refs 019, 097),
       // not its light transmission tint.
+      const std = material as T.MeshStandardMaterial;
       const c =
-        material.transparent || material.userData.vehicleGlass
-          ? colour.set(0x0a0f12)
-          : ((material as T.MeshStandardMaterial).color ?? colour.set(0x202020));
+        kind === 'lamp'
+          ? std.emissive && std.emissive.getHex() !== 0
+            ? std.emissive
+            : (std.color ?? colour.set(0x802020))
+          : material.transparent || material.userData.vehicleGlass
+            ? colour.set(0x0a0f12)
+            : (std.color ?? colour.set(0x202020));
       const colours = new Float32Array(count * 3);
       for (let i = 0; i < count; i++) colours.set([c.r, c.g, c.b], i * 3);
       part.setAttribute('color', new T.BufferAttribute(colours, 3));
@@ -115,6 +141,9 @@ export interface MeetSpot {
   yaw: number;
   model: string;
   paint: number;
+  /** Plate seed and whether the car waits with its lamps on at night. */
+  plate?: number;
+  lit?: boolean;
 }
 export class MeetCars {
   readonly root = new T.Group();
@@ -135,7 +164,10 @@ export class MeetCars {
       gloss: new T.MeshStandardMaterial({ vertexColors: true, roughness: 0.12, metalness: 0.1 }),
       matte: new T.MeshStandardMaterial({ vertexColors: true, roughness: 0.72, metalness: 0 }),
       metal: new T.MeshStandardMaterial({ vertexColors: true, roughness: 0.3, metalness: 0.9 }),
+      lamp: new T.MeshBasicMaterial({ vertexColors: true }),
+      plate: plateMaterial(),
     };
+    this.materials.lamp.name = 'Meet car lamps';
     this.materials.gloss.name = 'Meet car gloss';
     this.materials.matte.name = 'Meet car matte';
     this.materials.metal.name = 'Meet car metal';
@@ -164,11 +196,28 @@ export class MeetCars {
       sheet = def && bodySheetFor(def);
     if (!sheet) return null;
     const body = buildVehicleBody(0, def, sheet, { festival: true });
-    const paints = new Set<T.Material>([body.materials.paint, body.materials.accent]);
+    const paints = new Set<T.Material>([body.materials.paint, body.materials.accent]),
+      lamps = new Set<T.Material>([body.materials.head, body.materials.tail]);
     model = { ground: body.frame.ground, lods: [] };
+    // Front and rear plates (installFestivalFinish's placement and draft).
+    let plates: T.BufferGeometry | null = null;
+    if (body.model && festivalPlated(def)) {
+      const slot = plateSlot(id.length * 977 + def.version * 31),
+        list: T.BufferGeometry[] = [];
+      for (const rear of [false, true]) {
+        const at = platePlacement(body.model, rear);
+        if (!at) continue;
+        const g = plateGeometry(slot, rear);
+        if (rear) g.rotateY(Math.PI);
+        list.push(g.rotateX(rear ? 0.05 : -0.05).translate(at.x, at.y, at.z));
+      }
+      if (list.length) plates = body.model.warpGeometry(mergeGeometries(list, false));
+      for (const g of list) g.dispose();
+    }
     for (const detail of [1, 2]) {
-      const merged = mergeLod(body.lods[detail].group, paints),
+      const merged = mergeLod(body.lods[detail].group, paints, lamps),
         set = {} as Record<Kind, T.InstancedMesh | null>;
+      merged.plate = detail === 1 ? plates : null;
       for (const kind of KINDS) {
         const g = merged[kind];
         if (!g) {
@@ -181,8 +230,9 @@ export class MeetCars {
         mesh.castShadow = false;
         mesh.receiveShadow = true;
         mesh.frustumCulled = false;
-        if (kind === 'paint')
+        if (kind === 'paint' || kind === 'lamp')
           mesh.instanceColor = new T.InstancedBufferAttribute(new Float32Array(capacity * 3), 3);
+        if (kind === 'lamp' || kind === 'plate') mesh.receiveShadow = false;
         this.root.add(mesh);
         this.stats.triangles[detail - 1] += g.getAttribute('position').count / 3;
         set[kind] = mesh;
@@ -203,6 +253,13 @@ export class MeetCars {
     this.models.set(id, model);
     return model;
   }
+  private night = 0;
+  /** Night amount (0..1): lights the lamps of the cars waiting lit. */
+  setNight(night: number) {
+    if (Math.abs(night - this.night) < 0.01) return;
+    this.night = night;
+    this.last.set(Infinity, 0, 0);
+  }
   /** Assign each car to its LOD by camera distance (when the camera moved). */
   update(camera: T.Camera, shadows = true) {
     const eye = camera.position;
@@ -217,7 +274,8 @@ export class MeetCars {
     this.last.copy(eye);
     for (const model of this.models.values())
       for (const set of model.lods) for (const kind of KINDS) if (set[kind]) set[kind]!.count = 0;
-    const at = new T.Vector3();
+    const at = new T.Vector3(),
+      lens = new T.Color();
     for (const { spot, matrix, colour } of this.spots) {
       const model = this.models.get(spot.model);
       if (!model) continue;
@@ -228,6 +286,11 @@ export class MeetCars {
         if (!mesh) continue;
         mesh.setMatrixAt(mesh.count, matrix);
         if (kind === 'paint') mesh.setColorAt(mesh.count, colour);
+        if (kind === 'lamp')
+          mesh.setColorAt(
+            mesh.count,
+            lens.setScalar(LENS.day + (spot.lit ? LENS.night * this.night : 0)),
+          );
         mesh.count++;
       }
     }
@@ -252,7 +315,8 @@ export class MeetCars {
           set[kind]?.geometry.dispose();
           set[kind]?.dispose();
         }
-    for (const m of Object.values(this.materials)) m.dispose();
+    // The plate material is shared with the festival cars.
+    for (const m of Object.values(this.materials)) if (m !== this.materials.plate) m.dispose();
     this.root.removeFromParent();
     this.root.clear();
   }
