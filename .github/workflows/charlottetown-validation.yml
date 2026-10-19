@@ -33,7 +33,7 @@ jobs:
           cache: npm
       - run: npm ci --no-audit --no-fund
       - name: Geographic, geometry and GPU ownership regressions
-        run: npx vitest run tests/charlottetown.test.ts tests/charlottetown-geometry.test.ts tests/gpu-frame-gate.test.ts tests/open-world-session.test.ts tests/open-world-worker.test.ts tests/festival-map.test.ts tests/festival-car-switch.test.ts
+        run: npx vitest run tests/charlottetown.test.ts tests/charlottetown-geometry.test.ts tests/charlottetown-architecture.test.ts tests/charlottetown-navigation.test.ts tests/gpu-frame-gate.test.ts tests/open-world-session.test.ts tests/open-world-worker.test.ts tests/festival-map.test.ts tests/festival-car-switch.test.ts tests/route-graph.test.ts tests/route-overpass.test.ts
       - run: npm run build
       - run: npx playwright install --with-deps chromium
       - run: sudo apt-get update && sudo apt-get install -y xvfb libgl1-mesa-dri mesa-utils
