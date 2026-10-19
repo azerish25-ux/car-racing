@@ -68,6 +68,9 @@ export interface FasciaOpening {
 export function festivalFasciaOpenings(model: ClosedBodyModel, rear = false): FasciaOpening[] {
   const { f, s } = model;
   if (rear && !(s.sideIntake || s.style === 'prototype' || s.numbers === 'door')) return [];
+  // A festival supercar or GT carries louvred corner outlets in its bumper
+  // instead of a full-width slot (refs 013, 018, 035; festival-hardware.ts).
+  if (rear && model.festival && (s.style === 'supercar' || s.style === 'gt')) return [];
   if (!rear && s.grille <= 0) return [];
   const z = rear ? model.zRear : model.zFront;
   const profile = model.ring(z, 0).half;
@@ -669,7 +672,10 @@ export function festivalRearBumper(model: ClosedBodyModel) {
   const lamps = Math.min(f.y(s.tail) - 0.13, model.topY(model.zRear) - 0.06);
   const half = s.lamps.rear === 'strip' ? 0.0375 : s.lamps.rear === 'bar' ? 0.05 : 0.0575;
   const lo = model.endFloor(true) + 0.004;
-  let hi = lo + (lamps - half - lo) * 0.62;
+  // A supercar or GT bumper rises to just under the lamp band, leaving a
+  // narrow body-colour band below the lamps (refs 018, 035).
+  const tall = s.style === 'supercar' || s.style === 'gt';
+  let hi = lo + (lamps - half - lo) * (tall ? 0.8 : 0.62);
   for (const mouth of festivalFasciaOpenings(model, true))
     hi = Math.min(hi, mouth.y - mouth.height / 2 - 0.03);
   if (hi - lo < 0.12) return null;
@@ -716,7 +722,15 @@ function addWrapTailLamps(
   const hh = kind === 'strip' ? 0.075 : kind === 'bar' ? 0.1 : 0.115;
   parts.add(endBand(model, true, y - hh / 2, y + hh / 2, 0.17, 0.003, steps), darkOptics);
   if (kind === 'strip') {
-    parts.add(endBand(model, true, y + 0.004, y + 0.022, 0.15, 0.006, steps), mats.tail);
+    // A festival light bar is a 3D light pipe standing 12 mm proud of the
+    // smoked band, its top and bottom faces lit (ref 018: the bar's depth
+    // reads from a rear 3/4 view).
+    parts.add(
+      endBand(model, true, y + 0.006, y + 0.02, 0.15, model.festival ? 0.012 : 0.006, steps, {
+        ledge: model.festival,
+      }),
+      mats.tail,
+    );
     parts.add(
       endBand(model, true, y - 0.028, y - 0.004, 0.15, 0.006, steps, { inner: 0.16 }),
       mats.tail,

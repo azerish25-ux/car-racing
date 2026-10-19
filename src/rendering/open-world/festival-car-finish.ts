@@ -284,7 +284,9 @@ export function platePlacement(model: ClosedBodyModel, rear: boolean) {
   const bumper = rear ? festivalRearBumper(model) : null;
   let proud = 0;
   if (bumper && y - h < bumper.hi + 0.015) {
-    const onBumper = Math.min(y, bumper.hi - h - 0.018);
+    // A supercar or GT carries it high on the bumper, above the diffuser.
+    const high = s.style === 'supercar' || s.style === 'gt';
+    const onBumper = high ? bumper.hi - h - 0.018 : Math.min(y, bumper.hi - h - 0.018);
     if (onBumper - h > bumper.lo + 0.03) {
       y = onBumper;
       proud = bumper.depth;
@@ -339,6 +341,8 @@ export interface HaloSite {
   /** Lamp axis (car frame): -Z tail, +Z head. */
   axis: 1 | -1;
   size: number;
+  /** Elongation along the car's x axis (a light bar's glow); 1: round. */
+  stretch?: number;
 }
 export function lampHaloSites(model: ClosedBodyModel): HaloSite[] {
   const { f, s } = model;
@@ -353,7 +357,14 @@ export function lampHaloSites(model: ClosedBodyModel): HaloSite[] {
       tail(side * (half * 0.74 - 0.15), 0.17);
     }
   else if (s.lamps.rear === 'twin') for (const side of [-1, 1]) tail(side * half * 0.74, 0.26);
-  else {
+  else if (model.festival && s.lamps.rear === 'strip') {
+    // One continuous glow along a festival light bar, brighter at its hooked
+    // ends (refs 018, 035, 069), not a row of blobs.
+    const width = model.halfWidth(model.zRear) * 1.7,
+      size = 0.075;
+    sites.push({ at: [0, y + 0.01, z], axis: -1, size, stretch: width / 2 / size });
+    for (const side of [-1, 1]) tail(side * width * 0.46, 0.13);
+  } else {
     const width = half * (s.lamps.rear === 'strip' ? 1.8 : 1.7);
     for (const t of [-0.42, -0.14, 0.14, 0.42]) tail(t * width, 0.24);
   }
@@ -368,6 +379,7 @@ function haloGeometry(sites: readonly HaloSite[]) {
     normal: number[] = [],
     corner: number[] = [],
     size: number[] = [],
+    stretch: number[] = [],
     index: number[] = [];
   sites.forEach((site, k) => {
     for (const [cx, cy] of [
@@ -380,6 +392,7 @@ function haloGeometry(sites: readonly HaloSite[]) {
       normal.push(0, 0, site.axis);
       corner.push(cx, cy);
       size.push(site.size);
+      stretch.push(site.stretch ?? 1);
     }
     index.push(k * 4, k * 4 + 1, k * 4 + 2, k * 4, k * 4 + 2, k * 4 + 3);
   });
@@ -388,6 +401,7 @@ function haloGeometry(sites: readonly HaloSite[]) {
   g.setAttribute('normal', new T.Float32BufferAttribute(normal, 3));
   g.setAttribute('haloCorner', new T.Float32BufferAttribute(corner, 2));
   g.setAttribute('haloSize', new T.Float32BufferAttribute(size, 1));
+  g.setAttribute('haloStretch', new T.Float32BufferAttribute(stretch, 1));
   g.setIndex(index);
   return g;
 }
@@ -399,9 +413,9 @@ export function lampHaloMaterial() {
     transparent: true,
     depthWrite: false,
     blending: T.AdditiveBlending,
-    vertexShader: `attribute vec2 haloCorner; attribute float haloSize;
+    vertexShader: `attribute vec2 haloCorner; attribute float haloSize; attribute float haloStretch;
       uniform float haloTail; uniform float haloHead;
-      varying vec2 vCorner; varying vec3 vGlow;
+      varying vec2 vCorner; varying vec3 vGlow; varying float vStretch;
       void main() {
         vec4 c = modelViewMatrix * vec4(position, 1.0);
         vec3 axis = normalize(normalMatrix * normal);
@@ -409,14 +423,20 @@ export function lampHaloMaterial() {
         vGlow = (normal.z < 0.0 ? vec3(1.0, 0.035, 0.015) * haloTail
           : vec3(1.0, 0.92, 0.8) * haloHead) * pow(facing, 0.6);
         vCorner = haloCorner;
-        // Camera-facing, and drawn just in front of the lens it surrounds.
+        vStretch = haloStretch;
+        // Camera-facing, and drawn just in front of the lens it surrounds; a
+        // stretched halo lies along the car's x axis as seen on screen.
         c.xyz += normalize(-c.xyz) * 0.12;
-        c.xy += haloCorner * haloSize;
+        vec2 sx = (modelViewMatrix * vec4(1.0, 0.0, 0.0, 0.0)).xy;
+        sx = haloStretch > 1.0 && dot(sx, sx) > 1e-6 ? normalize(sx) : vec2(1.0, 0.0);
+        c.xy += (sx * haloCorner.x * haloStretch + vec2(-sx.y, sx.x) * haloCorner.y) * haloSize;
         gl_Position = projectionMatrix * c;
       }`,
-    fragmentShader: `varying vec2 vCorner; varying vec3 vGlow;
+    fragmentShader: `varying vec2 vCorner; varying vec3 vGlow; varying float vStretch;
       void main() {
-        float r2 = dot(vCorner, vCorner);
+        // A bar's glow is flat along its length (super-Gaussian in x).
+        float ax = vStretch > 1.0 ? pow(abs(vCorner.x), 8.0) : vCorner.x * vCorner.x;
+        float r2 = ax + vCorner.y * vCorner.y;
         float a = exp(-r2 * 4.5) * (1.0 - smoothstep(0.6, 1.0, r2));
         gl_FragColor = vec4(vGlow * a, 1.0);
         #include <tonemapping_fragment>
