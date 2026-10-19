@@ -1,3 +1,4 @@
+import { polygonContains, polygonContact, type SurveyPoint } from './survey.ts';
 import { clamp } from '../../core/math.ts';
 import type { TrackPoint } from '../track.ts';
 import { hash01, hash2, subSeed } from './noise.ts';
@@ -8,6 +9,9 @@ import type { OpenWorld } from './world.ts';
 
 /** A building or structure footprint: an oriented box on the ground. */
 export interface Structure {
+  /** Original world-space outline, when sourced from open map geometry. */
+  footprint?: readonly SurveyPoint[];
+  sourceId?: string;
   kind: LandmarkSpec['kind'] | 'house' | 'shop' | 'block';
   x: number;
   z: number;
@@ -52,10 +56,17 @@ function footprintCorners(s: Pick<Structure, 'x' | 'z' | 'heading' | 'hx' | 'hz'
     [1, -1],
     [1, 1],
     [-1, 1],
-  ].map(([a, b]) => [s.x + c * a * s.hx - n * b * s.hz, s.z + n * a * s.hx + c * b * s.hz] as const);
+  ].map(
+    ([a, b]) => [s.x + c * a * s.hx - n * b * s.hz, s.z + n * a * s.hx + c * b * s.hz] as const,
+  );
 }
 /** Point inside an oriented footprint (with padding)? */
 export function insideFootprint(s: Structure, x: number, z: number, pad = 0) {
+  if (s.footprint) {
+    if (polygonContains(s.footprint, x, z)) return true;
+    if (pad <= 0) return false;
+    return polygonContact(s.footprint, x, z, { depth: 0, nx: 0, nz: 0 }).depth <= pad;
+  }
   const c = Math.cos(s.heading),
     n = Math.sin(s.heading),
     dx = x - s.x,
@@ -72,8 +83,16 @@ export class StructureGrid {
   constructor(readonly items: readonly Structure[]) {
     items.forEach((s, i) => {
       const r = Math.hypot(s.hx, s.hz);
-      for (let cx = Math.floor((s.x - r) / this.cell); cx <= Math.floor((s.x + r) / this.cell); cx++)
-        for (let cz = Math.floor((s.z - r) / this.cell); cz <= Math.floor((s.z + r) / this.cell); cz++) {
+      for (
+        let cx = Math.floor((s.x - r) / this.cell);
+        cx <= Math.floor((s.x + r) / this.cell);
+        cx++
+      )
+        for (
+          let cz = Math.floor((s.z - r) / this.cell);
+          cz <= Math.floor((s.z + r) / this.cell);
+          cz++
+        ) {
           const key = cx * 65536 + cz,
             list = this.cells.get(key);
           if (list) list.push(i);
@@ -100,6 +119,31 @@ const EMPTY: readonly number[] = Object.freeze([]);
  * river. Physics turns them into colliders, rendering into PBR buildings.
  */
 export function regionStructures(world: OpenWorld): Structure[] {
+  if (world.region.survey)
+    return world.region.survey.buildings.map((b) => {
+      const xs = b.footprint.map((p) => p[0]),
+        zs = b.footprint.map((p) => p[1]);
+      const x0 = Math.min(...xs),
+        x1 = Math.max(...xs),
+        z0 = Math.min(...zs),
+        z1 = Math.max(...zs);
+      const x = (x0 + x1) / 2,
+        z = (z0 + z1) / 2;
+      return {
+        kind: 'house',
+        x,
+        z,
+        heading: 0,
+        hx: (x1 - x0) / 2,
+        hz: (z1 - z0) / 2,
+        height: b.height,
+        floors: b.floors,
+        base: world.field.height(x, z) - 0.1,
+        style: hash2(Math.round(x), Math.round(z), world.region.seed),
+        footprint: b.footprint,
+        sourceId: b.id,
+      };
+    });
   const out: Structure[] = [],
     region = world.region,
     net = world.network,
@@ -116,7 +160,11 @@ export function regionStructures(world: OpenWorld): Structure[] {
     return true;
   };
   const overlaps = (s: Structure) =>
-    out.some((o) => Math.hypot(o.x - s.x, o.z - s.z) < Math.hypot(o.hx, o.hz) + Math.hypot(s.hx, s.hz) && boxesOverlap(o, s));
+    out.some(
+      (o) =>
+        Math.hypot(o.x - s.x, o.z - s.z) < Math.hypot(o.hx, o.hz) + Math.hypot(s.hx, s.hz) &&
+        boxesOverlap(o, s),
+    );
   for (const l of region.landmarks) {
     const s: Structure = {
       kind: l.kind,
@@ -135,21 +183,23 @@ export function regionStructures(world: OpenWorld): Structure[] {
   }
   // Street frontage: walk each town's roads, both sides.
   for (const town of region.towns) {
-    const inside = (x: number, z: number) => x > town.x0 && x < town.x1 && z > town.z0 && z < town.z1;
+    const inside = (x: number, z: number) =>
+      x > town.x0 && x < town.x1 && z > town.z0 && z < town.z1;
     for (const e of net.edges) {
-      if (e.roadClass !== 'town' && e.roadClass !== 'country' && e.roadClass !== 'highway') continue;
+      if (e.roadClass !== 'town' && e.roadClass !== 'country' && e.roadClass !== 'highway')
+        continue;
       const setback = e.spec.halfWidth + e.spec.shoulder + (e.roadClass === 'town' ? 1.2 : 6);
       for (const side of [-1, 1]) {
         let s = 6 + hash01(e.index, side, seed) * 8;
         while (s < e.length - 6) {
           const r = hash2(e.index * 31 + (side > 0 ? 7 : 3), Math.round(s * 10), seed);
-          const frontage = 9 + (r % 1000) / 1000 * 14,
-            depth = 9 + ((r >>> 10) % 1000) / 1000 * 10;
+          const frontage = 9 + ((r % 1000) / 1000) * 14,
+            depth = 9 + (((r >>> 10) % 1000) / 1000) * 10;
           net.at(e.offset + s + frontage / 2, p);
           const heading = Math.atan2(p.tz, p.tx),
             cx = p.x + p.nx * side * (setback + depth / 2),
             cz = p.z + p.nz * side * (setback + depth / 2);
-          s += frontage + 1.5 + ((r >>> 20) % 100) / 100 * 3;
+          s += frontage + 1.5 + (((r >>> 20) % 100) / 100) * 3;
           if (!inside(cx, cz)) continue;
           if (((r >>> 3) % 1000) / 1000 > town.density) continue;
           const floors = town.floors[0] + ((r >>> 13) % (town.floors[1] - town.floors[0] + 1));
@@ -235,6 +285,25 @@ export function treesForTile(
    * physics collides with stays, whatever the render density. */
   keepColliders = false,
 ): Float32Array {
+  if (world.region.survey) {
+    const out: number[] = [],
+      x0 = ix * TILE_SIZE,
+      z0 = iz * TILE_SIZE;
+    for (const t of world.region.survey.trees) {
+      if (t.x < x0 || t.x >= x0 + TILE_SIZE || t.z < z0 || t.z >= z0 + TILE_SIZE) continue;
+      // Mapped trees remain on every preset because they have trunk collision.
+      if (structures?.blocks(t.x, t.z, 0.4)) continue;
+      out.push(
+        t.x,
+        t.z,
+        t.height,
+        TREE_SPECIES.BROADLEAF,
+        0,
+        (((t.x * 0.13 + t.z * 0.07) % 1) + 1) % 1,
+      );
+    }
+    return Float32Array.from(out);
+  }
   const field = world.field,
     region = world.region,
     cell = 8,
@@ -244,7 +313,8 @@ export function treesForTile(
     out: number[] = [];
   const x0 = ix * TILE_SIZE,
     z0 = iz * TILE_SIZE;
-  if (Math.max(Math.abs(x0 + TILE_SIZE / 2), Math.abs(z0 + TILE_SIZE / 2)) > region.half + 1400) return new Float32Array(0);
+  if (Math.max(Math.abs(x0 + TILE_SIZE / 2), Math.abs(z0 + TILE_SIZE / 2)) > region.half + 1400)
+    return new Float32Array(0);
   for (let j = 0; j < cells; j++)
     for (let i = 0; i < cells; i++) {
       const h = hash2(ix * cells + i, iz * cells + j, seed),
@@ -280,11 +350,15 @@ export function treesForTile(
       const r2 = hash2(Math.floor(x * 3), Math.floor(z * 3), seed + 2);
       const conifer = height > 260 || (forest > 0.25 && (r2 & 7) < 2 && height > 120);
       const shrub = forest <= 0.25 && (r2 & 3) !== 0;
-      const species = shrub ? TREE_SPECIES.SHRUB : conifer ? TREE_SPECIES.CONIFER : TREE_SPECIES.BROADLEAF;
+      const species = shrub
+        ? TREE_SPECIES.SHRUB
+        : conifer
+          ? TREE_SPECIES.CONIFER
+          : TREE_SPECIES.BROADLEAF;
       const size =
         species === TREE_SPECIES.SHRUB
           ? 1.2 + ((r2 >>> 4) % 100) / 60
-          : (conifer ? 11 : 9) + ((r2 >>> 4) % 1000) / 1000 * (conifer ? 13 : 9);
+          : (conifer ? 11 : 9) + (((r2 >>> 4) % 1000) / 1000) * (conifer ? 13 : 9);
       if (thinned && trunkRadius(species, size) <= 0) continue;
       out.push(x, z, size, species, ((r2 >>> 14) % 628) / 100, ((r2 >>> 22) % 100) / 100);
     }

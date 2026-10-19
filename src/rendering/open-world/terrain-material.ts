@@ -93,8 +93,14 @@ export interface TerrainUniforms {
  * sand ~0.45, snow ~0.85); roughness and a noise-derived detail normal
  * follow each layer; standing water darkens and smooths the porous layers.
  */
-export function terrainMaterial(): T.MeshStandardMaterial & { userData: { ow: TerrainUniforms } } {
-  const material = new T.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9, metalness: 0 }) as T.MeshStandardMaterial & {
+export function terrainMaterial(
+  proceduralOnly = false,
+): T.MeshStandardMaterial & { userData: { ow: TerrainUniforms } } {
+  const material = new T.MeshStandardMaterial({
+    color: 0xffffff,
+    roughness: 0.9,
+    metalness: 0,
+  }) as T.MeshStandardMaterial & {
     userData: { ow: TerrainUniforms };
   };
   material.name = 'Festival terrain (layered PBR)';
@@ -218,7 +224,7 @@ normal = apexScanPerturb(normal, owScanN, 1.1);
 #endif`,
       );
   };
-  material.customProgramCacheKey = () => 'festival-terrain-v1';
-  scannedGround.register(material, FESTIVAL_SCAN_LAYERS);
+  material.customProgramCacheKey = () => `festival-terrain-v1:${proceduralOnly}`;
+  if (!proceduralOnly) scannedGround.register(material, FESTIVAL_SCAN_LAYERS);
   return material;
 }

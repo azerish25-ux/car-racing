@@ -1,5 +1,11 @@
 # MOTOBOUND
 
+## Charlottetown campus map
+
+The main-menu **CHARLOTTETOWN** card launches the Maloney Drive → Queen Street → Kent Street → Weymouth Street → Holland College route with **F1**, **MotoGP**, or **Horizon** machines. It adds a mapped street network, OSM building footprints, generated architecture and four unlocked events, without replacing the original circuits or Solvane.
+
+This is an OSM-grounded procedural recreation, not a photo-verified 1:1 replica: the earlier 100-reference pack contained viewpoint links, not photographs. See [map controls, evidence, data attribution and validation](docs/CHARLOTTETOWN_MAP.md).
+
 **Circuit racing. Open roads. Two wheels or four.**
 
 [![CI · main](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/workflows/ci.yml?query=branch%3Amain)

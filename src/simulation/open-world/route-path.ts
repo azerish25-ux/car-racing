@@ -20,7 +20,20 @@ interface Position {
 }
 /** Snap a world point to the closest network position. */
 export function snapToNetwork(network: RoadNetwork, x: number, z: number): Position {
-  const p = { s: 0, x: 0, y: 0, z: 0, tx: 0, tz: 1, nx: 1, nz: 0, curvature: 0, width: 0, bank: 0, gradient: 0 };
+  const p = {
+    s: 0,
+    x: 0,
+    y: 0,
+    z: 0,
+    tx: 0,
+    tz: 1,
+    nx: 1,
+    nz: 0,
+    curvature: 0,
+    width: 0,
+    bank: 0,
+    gradient: 0,
+  };
   network.nearest(x, z, p);
   const edge = network.edgeOf[network.lastSegment],
     e = network.edges[edge];
@@ -50,11 +63,15 @@ function shortest(network: RoadNetwork, a: Position, b: Position, departDir: 0 |
   const options: { cost: number; legs: RouteLeg[] }[] = [];
   if (a.edge === b.edge) {
     const dir: 1 | -1 = b.s >= a.s ? 1 : -1;
-    options.push({ cost: Math.abs(b.s - a.s) + penalty(dir), legs: [{ edge: a.edge, dir, from: a.s, to: b.s }] });
+    options.push({
+      cost: Math.abs(b.s - a.s) + penalty(dir),
+      legs: [{ edge: a.edge, dir, from: a.s, to: b.s }],
+    });
   }
   for (;;) {
     let u = -1;
-    for (let i = 0; i < states; i++) if (!done[i] && dist[i] < Infinity && (u < 0 || dist[i] < dist[u])) u = i;
+    for (let i = 0; i < states; i++)
+      if (!done[i] && dist[i] < Infinity && (u < 0 || dist[i] < dist[u])) u = i;
     if (u < 0) break;
     done[u] = 1;
     const edge = edges[u >> 1],
@@ -83,7 +100,8 @@ function shortest(network: RoadNetwork, a: Position, b: Position, departDir: 0 |
       const e = edges[u >> 1],
         d: 1 | -1 = u & 1 ? -1 : 1;
       if ((d > 0 ? e.to : e.from) !== startNode) continue;
-      if (e === eb && d === -dir && network.nodes[startNode].edges.length > 1 && eb.from !== eb.to) continue;
+      if (e === eb && d === -dir && network.nodes[startNode].edges.length > 1 && eb.from !== eb.to)
+        continue;
       if (best < 0 || dist[u] < dist[best]) best = u;
     }
     if (best < 0) continue;
@@ -93,7 +111,13 @@ function shortest(network: RoadNetwork, a: Position, b: Position, departDir: 0 |
       const e = edges[u >> 1],
         d: 1 | -1 = u & 1 ? -1 : 1;
       if (prev[u] < 0) legs.unshift({ edge: e.index, dir: d, from: a.s, to: d > 0 ? e.length : 0 });
-      else legs.unshift({ edge: e.index, dir: d, from: d > 0 ? 0 : e.length, to: d > 0 ? e.length : 0 });
+      else
+        legs.unshift({
+          edge: e.index,
+          dir: d,
+          from: d > 0 ? 0 : e.length,
+          to: d > 0 ? e.length : 0,
+        });
       u = prev[u];
     }
     legs.push({ edge: b.edge, dir, from: dir > 0 ? 0 : eb.length, to: b.s });
@@ -106,22 +130,29 @@ function shortest(network: RoadNetwork, a: Position, b: Position, departDir: 0 |
 }
 
 /** Plan a route through ordered waypoints (closed: back to the first). */
-export function planRoute(network: RoadNetwork, waypoints: readonly XZ[], closed: boolean): RouteLeg[] {
+export function planRoute(
+  network: RoadNetwork,
+  waypoints: readonly XZ[],
+  closed: boolean,
+): RouteLeg[] {
   if (waypoints.length < 2) throw new Error('A route needs at least two waypoints');
   const stops = waypoints.map(([x, z]) => snapToNetwork(network, x, z));
   if (closed) stops.push(stops[0]);
   const legs: RouteLeg[] = [];
   let dir: 0 | 1 | -1 = 0;
   for (let k = 0; k < stops.length - 1; k++) {
-    const piece = shortest(network, stops[k], stops[k + 1], dir);
+    const previous = legs[legs.length - 1];
+    const continuation = previous?.edge === stops[k].edge ? dir : 0;
+    const piece = shortest(network, stops[k], stops[k + 1], continuation);
     legs.push(...piece);
-    dir = piece[piece.length - 1].dir;
+    dir = piece[piece.length - 1]?.dir ?? dir;
   }
   // Merge consecutive pieces of the same edge and direction.
   const merged: RouteLeg[] = [];
   for (const l of legs) {
     const last = merged[merged.length - 1];
-    if (last && last.edge === l.edge && last.dir === l.dir && Math.abs(last.to - l.from) < 0.5) last.to = l.to;
+    if (last && last.edge === l.edge && last.dir === l.dir && Math.abs(last.to - l.from) < 0.5)
+      last.to = l.to;
     else merged.push({ ...l });
   }
   // A circuit whose first and last pieces are one edge continues across the
@@ -188,13 +219,27 @@ export class RoutePath {
     readonly network: RoadNetwork,
     planned: readonly RouteLeg[],
     readonly closed: boolean,
+    readonly finishBuffer = 60,
   ) {
     const xs: number[] = [],
       ys: number[] = [],
       zs: number[] = [],
       edges: number[] = [],
       legIndex: number[] = [];
-    const p = { s: 0, x: 0, y: 0, z: 0, tx: 0, tz: 1, nx: 1, nz: 0, curvature: 0, width: 0, bank: 0, gradient: 0 };
+    const p = {
+      s: 0,
+      x: 0,
+      y: 0,
+      z: 0,
+      tx: 0,
+      tz: 1,
+      nx: 1,
+      nz: 0,
+      curvature: 0,
+      width: 0,
+      bank: 0,
+      gradient: 0,
+    };
     const kept: RouteLeg[] = [];
     planned.forEach((l) => {
       const k = kept.length,
@@ -234,7 +279,8 @@ export class RoutePath {
     this.edge = Int32Array.from(edges);
     this.leg = Int32Array.from(legIndex);
     this.d = new Float64Array(n);
-    for (let i = 1; i < n; i++) this.d[i] = this.d[i - 1] + Math.hypot(xs[i] - xs[i - 1], zs[i] - zs[i - 1]);
+    for (let i = 1; i < n; i++)
+      this.d[i] = this.d[i - 1] + Math.hypot(xs[i] - xs[i - 1], zs[i] - zs[i - 1]);
     this.length = this.d[n - 1] + (closed ? Math.hypot(xs[0] - xs[n - 1], zs[0] - zs[n - 1]) : 0);
     this.tx = new Float32Array(n);
     this.tz = new Float32Array(n);
@@ -255,7 +301,10 @@ export class RoutePath {
         b = this.wrap(i + 3),
         ds = this.span(a, b) || 1;
       this.curvature[i] =
-        Math.atan2(this.tz[a] * this.tx[b] - this.tx[a] * this.tz[b], this.tx[a] * this.tx[b] + this.tz[a] * this.tz[b]) / ds;
+        Math.atan2(
+          this.tz[a] * this.tx[b] - this.tx[a] * this.tz[b],
+          this.tx[a] * this.tx[b] + this.tz[a] * this.tz[b],
+        ) / ds;
     }
     this.line = new Float32Array(n);
     this.lineCurvature = new Float32Array(n);
@@ -314,7 +363,8 @@ export class RoutePath {
     }
     // Light smoothing of the offsets.
     for (let pass = 0; pass < 3; pass++)
-      for (let i = 1; i < n - 1; i++) offset[i] = (offset[i - 1] + 2 * offset[i] + offset[i + 1]) / 4;
+      for (let i = 1; i < n - 1; i++)
+        offset[i] = (offset[i - 1] + 2 * offset[i] + offset[i + 1]) / 4;
     for (let i = 0; i < n; i++) {
       const a = this.wrap(i - 3),
         b = this.wrap(i + 3);
@@ -330,7 +380,8 @@ export class RoutePath {
         h2z = bz - cz,
         l1 = Math.hypot(h1x, h1z) || 1,
         l2 = Math.hypot(h2x, h2z) || 1;
-      this.lineCurvature[i] = Math.atan2(h1z * h2x - h1x * h2z, h1x * h2x + h1z * h2z) / ((l1 + l2) / 2);
+      this.lineCurvature[i] =
+        Math.atan2(h1z * h2x - h1x * h2z, h1x * h2x + h1z * h2z) / ((l1 + l2) / 2);
     }
   }
   /** Sample index at or before distance d (binary search). */
@@ -389,7 +440,13 @@ export class RoutePath {
   }
   /** Closest path distance to (x, z) within ±window of `guess` (local
    * search keeps switchback legs apart); returns lateral via `out`. */
-  locate(x: number, z: number, guess: number, window = 60, out?: { lateral: number; distance: number }) {
+  locate(
+    x: number,
+    z: number,
+    guess: number,
+    window = 60,
+    out?: { lateral: number; distance: number },
+  ) {
     const n = this.count;
     const start = this.index(guess - window),
       steps = Math.min(n, Math.ceil((2 * window) / 2) + 64);
@@ -489,7 +546,8 @@ export class RoutePath {
           checkpoints.push({ edge: `${k}`, s: arc3 });
           nextGate += gateSpacing;
         }
-        if (!this.closed && !finishGate && travelled >= finish) finishGate = { edge: `${k}`, s: arc3 };
+        if (!this.closed && !finishGate && travelled >= finish)
+          finishGate = { edge: `${k}`, s: arc3 };
       }
       if (k === legs - 1 && this.closed) {
         const end = points[points.length - 1];
@@ -509,7 +567,11 @@ export class RoutePath {
       const last = edges[legs - 1].points;
       let arc = 0;
       for (let i = 1; i < last.length; i++)
-        arc += Math.hypot(last[i].x - last[i - 1].x, last[i].y - last[i - 1].y, last[i].z - last[i - 1].z);
+        arc += Math.hypot(
+          last[i].x - last[i - 1].x,
+          last[i].y - last[i - 1].y,
+          last[i].z - last[i - 1].z,
+        );
       finishGate = { edge: `${legs - 1}`, s: Math.max(0, arc - 1) };
     }
     checkpoints.push(finishGate);
@@ -518,7 +580,9 @@ export class RoutePath {
   /** Distance of the finish line: the start of a circuit's lap, or short of
    * a point-to-point route's end so cars can stop beyond it. */
   get finishDistance() {
-    return this.closed ? this.length : this.length - Math.min(60, this.length * 0.2);
+    return this.closed
+      ? this.length
+      : this.length - Math.min(Math.max(0, this.finishBuffer), this.length * 0.2);
   }
   /** Widest road half-width on the route (RouteProgress tolerance). */
   maxHalfWidth() {

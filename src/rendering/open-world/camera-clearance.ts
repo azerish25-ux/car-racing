@@ -1,3 +1,4 @@
+import { polygonContains, polygonContact } from '../../simulation/open-world/survey.ts';
 import type { Structure } from '../../simulation/open-world/placement.ts';
 
 export interface CameraPoint {
@@ -27,9 +28,41 @@ export function clearCameraBoom(
     return false;
   }
   let fraction = 1;
+  const boundary = { depth: 0, nx: 0, nz: 0 };
   for (const s of structures) {
     if (Math.hypot(s.x - start.x, s.z - start.z) > length + Math.hypot(s.hx, s.hz) + padding)
       continue;
+    if (s.footprint) {
+      const footprint = s.footprint;
+      const blocked = (t: number) => {
+        const y = start.y + dy * t;
+        if (y < s.base - padding || y > s.base + s.height + padding) return false;
+        const x = start.x + dx * t,
+          z = start.z + dz * t;
+        return (
+          polygonContains(footprint, x, z) ||
+          polygonContact(footprint, x, z, boundary).depth <= padding
+        );
+      };
+      if (blocked(0)) continue;
+      // Sampling only the short camera boom, followed by binary refinement.
+      // Padding exceeds the sample interval, so thin walls cannot be skipped.
+      const steps = Math.max(1, Math.ceil((length * fraction) / Math.max(0.025, padding * 0.45)));
+      for (let i = 1; i <= steps; i++) {
+        const t = (fraction * i) / steps;
+        if (!blocked(t)) continue;
+        let lo = (fraction * (i - 1)) / steps,
+          hi = t;
+        for (let k = 0; k < 8; k++) {
+          const mid = (lo + hi) / 2;
+          if (blocked(mid)) hi = mid;
+          else lo = mid;
+        }
+        fraction = Math.max(0, lo - 0.04 / length);
+        break;
+      }
+      continue;
+    }
     const c = Math.cos(s.heading),
       n = Math.sin(s.heading);
     const x = (start.x - s.x) * c + (start.z - s.z) * n;

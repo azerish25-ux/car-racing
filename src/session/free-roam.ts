@@ -1,4 +1,5 @@
 import type * as T from 'three';
+import { worldRegion, type OpenWorldRegionId } from '../simulation/open-world/regions.ts';
 import { scannedGround } from '../rendering/ground/scan-store.ts';
 import type { Assist, Controls, WeatherPreset } from '../simulation/config.ts';
 import {
@@ -72,6 +73,7 @@ export interface FestivalHost {
   save?(state: FestivalSave): Promise<void>;
 }
 export interface FestivalStartOptions {
+  region?: OpenWorldRegionId;
   vehicle?: string;
   weather?: WeatherPreset;
   assist?: Assist;
@@ -143,10 +145,11 @@ export class FestivalSession {
     window.addEventListener('keydown', this.photoKeys, true);
   }
   static async start(host: FestivalHost, options: FestivalStartOptions = {}) {
-    host.loading('Building the Solvane festival region…');
+    host.loading(`Building ${worldRegion(options.region).name}…`);
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
     const save = validateFestivalSave(await host.load?.().catch(() => null));
     const session = new FestivalSession(host, save);
+    if (!save && options.region === 'charlottetown') session.save.traffic = false;
     try {
       await session.boot(options);
     } catch (error) {
@@ -157,7 +160,10 @@ export class FestivalSession {
   }
   private async boot(options: FestivalStartOptions) {
     const host = this.host;
-    const world = openWorld();
+    const region = worldRegion(options.region);
+    const world = openWorld(region);
+    this.tiles.postMessage({ type: 'init', region: options.region ?? 'solvane' });
+    if (region.survey) this.save.discovered = region.events.map((e) => e.id);
     host.loading('Planning event routes and town streets…');
     await new Promise<void>((resolve) => setTimeout(resolve, 0));
     const events = resolveEvents(world);
@@ -177,9 +183,10 @@ export class FestivalSession {
     renderer.setQuality(host.quality, host.graphics);
     renderer.lighting = host.lighting;
     host.loading('Loading photographed trees…');
-    await renderer.loadPhotoVegetation();
+    if (!region.survey) await renderer.loadPhotoVegetation();
     host.loading('Loading authored coastal details…');
-    await Promise.all([renderer.loadAuthoredDetails(), renderer.loadStreetDetails()]);
+    if (!region.survey)
+      await Promise.all([renderer.loadAuthoredDetails(), renderer.loadStreetDetails()]);
     for (const id of this.save.discovered) renderer.discovered.add(id);
     // Ambient traffic (instanced) and motorcycles (the bike presentation)
     // share the festival scene; both are posed before each draw.
@@ -189,7 +196,10 @@ export class FestivalSession {
     renderer.registerVehicleRoot(this.riders.root);
     this.riders.shells.install = () => renderer.refreshVehicleMaterials();
     const vehicles = festivalVehicles();
-    const machine = festivalMachineChoice(options, this.save.vehicle);
+    const machine = festivalMachineChoice(
+      { ...options, explicitFormula: !!region.survey },
+      this.save.vehicle,
+    );
     const vehicle = machine.drive;
     this.save.vehicle = machine.save;
     this.hud = new FestivalHud(host.element, world, events, vehicles, {
@@ -244,6 +254,7 @@ export class FestivalSession {
     this.post({
       type: 'init',
       options: {
+        regionId: options.region ?? 'solvane',
         vehicle,
         weather: options.weather ?? 'clear',
         assist: options.assist ?? 'sport',
@@ -255,7 +266,7 @@ export class FestivalSession {
     });
     await ready;
     // Stream the terrain around the spawn before the first frame.
-    host.loading('Streaming terrain around Port Ilse…');
+    host.loading(`Streaming the streets of ${region.name}…`);
     const frame = this.current!;
     const x = frame[carBase(0) + F.X],
       z = frame[carBase(0) + F.Z];
@@ -272,7 +283,7 @@ export class FestivalSession {
       host.loading('Loading the photographed sky…');
       await renderer.photoSky.ready(frame[H.CLOUD], renderer.lighting);
     }
-    if (scannedGround.enabled) {
+    if (!region.survey && scannedGround.enabled) {
       host.loading('Loading photographed ground…');
       await scannedGround.ready();
     }
@@ -525,6 +536,24 @@ export class FestivalSession {
   }
   resize() {
     this.renderer?.resize();
+  }
+  /** Read-only integration evidence: no teleport or simulation mutation hooks. */
+  diagnostics() {
+    const frame = this.current,
+      renderer = this.renderer;
+    return {
+      region: renderer?.world.region.id ?? null,
+      status: this.status ? structuredClone(this.status) : null,
+      position: frame
+        ? { x: frame[carBase(0) + F.X], y: frame[carBase(0) + F.Y], z: frame[carBase(0) + F.Z] }
+        : null,
+      render: renderer ? { ...renderer.stats } : null,
+      city: renderer?.city ? { ...renderer.city.stats } : null,
+      quality: renderer?.preset ?? null,
+      lighting: renderer?.lighting ?? null,
+      photographicSky: renderer?.photoSky.enabled ?? false,
+      travelling: this.travelling,
+    };
   }
   dispose() {
     if (this.disposed) return;

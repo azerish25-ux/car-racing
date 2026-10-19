@@ -57,6 +57,7 @@ import { scannedGround } from '../ground/scan-store.ts';
 import { FESTIVAL_PALETTE } from '../assets/sky-catalogue.ts';
 import { aerialFogColor } from '../studio/aerial-perspective.ts';
 import { WetRoadReflection } from '../wet-reflection.ts';
+import { SurveyCity } from './charlottetown/city.ts';
 import { Buildings } from './buildings.ts';
 import { FestivalCars } from './festival-cars.ts';
 import { EventMarkers } from './markers.ts';
@@ -119,7 +120,8 @@ export class FestivalRenderer {
   readonly roads: RoadMeshes;
   readonly streetLights: StreetLightPools;
   readonly buildings: Buildings;
-  readonly dressing: HorizonDressing;
+  readonly dressing: HorizonDressing | null;
+  readonly city: SurveyCity | null;
   details: SolvaneDetails | null = null;
   private detailLoading: Promise<boolean> | null = null;
   streetDetails: StreetDetails | null = null;
@@ -131,7 +133,7 @@ export class FestivalRenderer {
   readonly vegetation = new Vegetation();
   /** Photographic trees and shrubs, when loaded (see loadPhotoVegetation). */
   photoVegetation: VegetationLibrary | null = null;
-  readonly water: Water;
+  readonly water: Water | null;
   readonly markers: EventMarkers;
   readonly cars = new FestivalCars();
   readonly effects = new Effects();
@@ -223,12 +225,12 @@ export class FestivalRenderer {
     this.effects.contactOffset = createFestivalContactOffset(this.heightAt);
     this.effects.contactEnabled = festivalContactEnabled;
     this.effects.diffuserEnabled = festivalDiffuserEnabled;
-    scene.name = 'Festival region';
+    scene.name = world.region.name;
     this.sky.scale.setScalar(450000);
     this.sky.userData.excludeMotionBlur = true;
     configureSky(this.sky);
     const clouds = SkyClouds.forSky(this.sky.material, lightingDirection);
-    this.photoSky.setQuality(this.preset);
+    this.photoSky.setQuality(world.region.survey ? 'low' : this.preset);
     this.environment = new SkyEnvironment(this.sky, clouds, this.photoSky);
     scene.add(this.sky);
     scene.environmentIntensity = 0.7;
@@ -246,22 +248,24 @@ export class FestivalRenderer {
     });
     this.sun.shadow.bias = -0.00003;
     this.sun.shadow.normalBias = 0.02;
-    this.terrain = new TerrainStreamer(tileWorker, TERRAIN_BUDGETS.medium);
+    this.terrain = new TerrainStreamer(tileWorker, TERRAIN_BUDGETS.medium, !!world.region.survey);
     this.roads = new RoadMeshes(world.network, world.field);
     this.streetLights = new StreetLightPools(this.roads.lampSockets);
     scene.add(this.streetLights.root);
-    this.buildings = new Buildings(structures);
-    this.dressing = new HorizonDressing(world, structures);
-    this.water = new Water(world.field);
+    this.buildings = new Buildings(world.region.survey ? [] : structures);
+    this.city = world.region.survey ? new SurveyCity(world) : null;
+    if (this.city) scene.add(this.city.root);
+    this.dressing = world.region.survey ? null : new HorizonDressing(world, structures);
+    this.water = world.region.survey ? null : new Water(world.field);
+    if (this.dressing) scene.add(this.dressing.root);
+    if (this.water) scene.add(this.water.root);
     this.markers = new EventMarkers(events, (x, z) => this.groundHeight(x, z));
     this.reflection.probeExclusions.push(this.markers.root);
     scene.add(
       this.terrain.root,
       this.roads.root,
       this.buildings.root,
-      this.dressing.root,
       this.vegetation.root,
-      this.water.root,
       this.markers.root,
       this.cars.root,
       this.effects.group,
@@ -359,7 +363,7 @@ export class FestivalRenderer {
         return false;
       }
       this.photoVegetation = library;
-      this.dressing.usePhotoVegetation(library);
+      this.dressing?.usePhotoVegetation(library);
       // Trees never stand on roads: the natural ground alone (cheap per tile).
       this.vegetation.setPhotoLibrary(library, (x, z) => this.world.field.height(x, z));
       return true;
@@ -377,7 +381,7 @@ export class FestivalRenderer {
         this.scene.add(kit.root);
         this.reflection.probeExclusions.push(kit.aero);
         this.guidance.useFlagTemplate(kit.flagTemplate(this.preset === 'low'));
-        if (kit.stats.boats === this.dressing.stats.boats) this.dressing.useAuthoredBoats();
+        if (kit.stats.boats === this.dressing?.stats.boats) this.dressing?.useAuthoredBoats();
         return true;
       })
       .catch((error: unknown) => {
@@ -440,8 +444,8 @@ export class FestivalRenderer {
     const budget = TERRAIN_BUDGETS[tier];
     this.terrain.budget = { ...budget, trees: budget.trees * clamp(g.vegetationDensity, 0, 1) };
     this.environment.highDetail = g.reflections === 'local';
-    this.photoSky.setQuality(preset);
-    scannedGround.attach(this.renderer, preset);
+    this.photoSky.setQuality(this.world.region.survey ? 'low' : preset);
+    if (!this.world.region.survey) scannedGround.attach(this.renderer, preset);
     this.ultra.configure(preset, g);
     this.resize();
   }
@@ -664,7 +668,13 @@ export class FestivalRenderer {
     this.trails.update(presented, this.heightAt);
     this.roads.setNight(night);
     this.buildings.setNight(night);
-    this.dressing.update(time, night, this.camera, this.preset);
+    this.dressing?.update(time, night, this.camera, this.preset);
+    this.city?.update(
+      this.camera,
+      this.preset,
+      night,
+      surfaceDampness(presented[H.RAIN], presented[H.WATER]),
+    );
     this.details?.update(
       time,
       night,
@@ -828,12 +838,13 @@ export class FestivalRenderer {
   dispose() {
     if (this.disposed) return;
     this.disposed = true;
-    scannedGround.detach(this.renderer);
+    if (!this.world.region.survey) scannedGround.detach(this.renderer);
     this.terrain.dispose();
     this.roads.dispose();
     this.streetLights.dispose();
     this.buildings.dispose();
-    this.dressing.dispose();
+    this.dressing?.dispose();
+    this.city?.dispose();
     this.details?.dispose();
     this.details = null;
     this.streetDetails?.dispose();
@@ -842,7 +853,7 @@ export class FestivalRenderer {
     this.vegetation.dispose();
     this.photoVegetation?.dispose();
     this.photoVegetation = null;
-    this.water.dispose();
+    this.water?.dispose();
     this.markers.dispose();
     this.cars.dispose();
     this.trails.dispose();

@@ -1,3 +1,4 @@
+import { polygonContact } from './survey.ts';
 import { clamp, Vec3 } from '../../core/math.ts';
 import { BikeVehicle, createVehicle, writeBikeBlock } from '../bike-vehicle.ts';
 import { CollisionSolver } from '../collision.ts';
@@ -228,6 +229,7 @@ export class OpenWorldSimulation {
   private readonly treeBudget: number;
   private readonly corner = new Vec3();
   private readonly normal = new Vec3();
+  private readonly footprintContact = { depth: 0, nx: 0, nz: 0 };
   private readonly point = trackPoint();
   private readonly pp = pathPoint();
   private readonly located = { lateral: 0, distance: 0 };
@@ -268,7 +270,7 @@ export class OpenWorldSimulation {
     this.trafficEnabled = options.traffic === true;
     const vehicle = this.makeCar(0, options.vehicle ?? festivalDefaultVehicle());
     this.cars = [vehicle];
-    const spawn = options.spawn ?? SPAWN;
+    const spawn = options.spawn ?? this.world.region.spawn ?? SPAWN;
     this.placeAt(vehicle, spawn.x, spawn.z, spawn.heading ?? SPAWN.heading);
     this.prefetchAround(vehicle, 0);
   }
@@ -517,7 +519,12 @@ export class OpenWorldSimulation {
           4,
           (twoWide ? Math.ceil(order.length / 2) : order.length) * 9 + 4 - row * 9,
         );
-        this.placeOnPath(car, path, race ? d : 2, column);
+        this.placeOnPath(
+          car,
+          path,
+          race ? (cars.length === 1 ? (event.spec.startOffset ?? d) : d) : 2,
+          column,
+        );
       });
     const tolerance = path.maxHalfWidth() + 8;
     const participants: Participant[] = cars.map((car, i) => ({
@@ -953,6 +960,15 @@ export class OpenWorldSimulation {
         for (const index of nearBuildings) {
           const s = this.structures[index];
           if (b.position.y > s.base + s.height + hy || !insideFootprint(s, px, pz)) continue;
+          if (s.footprint) {
+            const hit = polygonContact(s.footprint, px, pz, this.footprintContact);
+            if (hit.depth > deepest) {
+              deepest = hit.depth;
+              this.normal.set(hit.nx, 0, hit.nz);
+              this.corner.set(px, b.position.y, pz);
+            }
+            continue;
+          }
           const cos = Math.cos(s.heading),
             sin = Math.sin(s.heading),
             dx = px - s.x,

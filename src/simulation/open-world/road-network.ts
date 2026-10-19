@@ -103,7 +103,11 @@ interface CrossingPin {
 }
 
 /** Centripetal Catmull-Rom through control points, resampled by arc length. */
-export function sampleSpline(points: readonly (readonly [number, number])[], closed: boolean, step: number) {
+export function sampleSpline(
+  points: readonly (readonly [number, number])[],
+  closed: boolean,
+  step: number,
+) {
   const n = points.length;
   const at = (i: number): readonly [number, number] => {
     if (closed) return points[((i % n) + n) % n];
@@ -145,7 +149,8 @@ export function sampleSpline(points: readonly (readonly [number, number])[], clo
   const m = dense.length / 2,
     arc = new Float64Array(m);
   for (let i = 1; i < m; i++)
-    arc[i] = arc[i - 1] + Math.hypot(dense[i * 2] - dense[i * 2 - 2], dense[i * 2 + 1] - dense[i * 2 - 1]);
+    arc[i] =
+      arc[i - 1] + Math.hypot(dense[i * 2] - dense[i * 2 - 2], dense[i * 2 + 1] - dense[i * 2 - 1]);
   const total = arc[m - 1],
     count = Math.max(2, Math.ceil(total / step) + 1),
     xs: number[] = [],
@@ -159,6 +164,27 @@ export function sampleSpline(points: readonly (readonly [number, number])[], clo
     zs.push(dense[j * 2 + 1] + (dense[j * 2 + 3] - dense[j * 2 + 1]) * f);
   }
   return { xs, zs, length: total };
+}
+
+/** Subdivide measured chords without Catmull-Rom overshoot or lost corners. */
+export function samplePolyline(points: readonly (readonly [number, number])[], step: number) {
+  const xs: number[] = [],
+    zs: number[] = [];
+  let length = 0;
+  for (let i = 0; i < points.length - 1; i++) {
+    const a = points[i],
+      b = points[i + 1],
+      d = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    if (d < 1e-6) continue;
+    const count = Math.max(1, Math.ceil(d / step));
+    for (let k = xs.length === 0 ? 0 : 1; k <= count; k++) {
+      xs.push(a[0] + ((b[0] - a[0]) * k) / count);
+      zs.push(a[1] + ((b[1] - a[1]) * k) / count);
+    }
+    length += d;
+  }
+  if (xs.length < 2) throw new Error('Road polyline must have two distinct points');
+  return { xs, zs, length };
 }
 
 interface Polyline {
@@ -206,7 +232,14 @@ export class RoadNetwork {
   influence!: Float32Array;
   readonly totalStation: number;
   /** Uniform grid of segments: CSR start offsets per cell and segment ids. */
-  readonly grid: { x0: number; z0: number; cols: number; rows: number; start: Int32Array; items: Int32Array };
+  readonly grid: {
+    x0: number;
+    z0: number;
+    cols: number;
+    rows: number;
+    start: Int32Array;
+    items: Int32Array;
+  };
   /** Nearest segment of every grid cell (far-field fallback). */
   private readonly far: Int32Array;
   /** Last nearest() result details. */
@@ -224,15 +257,19 @@ export class RoadNetwork {
     readonly terrain: TerrainField,
   ) {
     for (const road of region.roads) {
-      const spec = ROAD_CLASSES[road.roadClass];
-      const { xs, zs, length } = sampleSpline(road.points, !!road.closed, spec.step);
+      const spec = { ...ROAD_CLASSES[road.roadClass], ...road.section };
+      const { xs, zs, length } =
+        road.interpolation === 'linear'
+          ? samplePolyline(road.points, spec.step)
+          : sampleSpline(road.points, !!road.closed, spec.step);
       if (road.closed) {
         // Closed: drop the duplicate end, keep the seam at the first point.
         xs.pop();
         zs.pop();
       }
       const arc = [0];
-      for (let i = 1; i < xs.length; i++) arc.push(arc[i - 1] + Math.hypot(xs[i] - xs[i - 1], zs[i] - zs[i - 1]));
+      for (let i = 1; i < xs.length; i++)
+        arc.push(arc[i - 1] + Math.hypot(xs[i] - xs[i - 1], zs[i] - zs[i - 1]));
       this.lines.push({ road, spec, closed: !!road.closed, xs, zs, arc, length, splits: [] });
     }
     this.buildJunctions();
@@ -248,7 +285,10 @@ export class RoadNetwork {
       ),
     );
     this.assemble(heights, pins);
-    this.totalStation = this.edges.reduce((sum, e) => Math.max(sum, e.offset + e.length + EDGE_GAP), 0);
+    this.totalStation = this.edges.reduce(
+      (sum, e) => Math.max(sum, e.offset + e.length + EDGE_GAP),
+      0,
+    );
     this.grid = this.buildGrid();
     this.far = this.buildFarField();
   }
@@ -308,10 +348,11 @@ export class RoadNetwork {
   /** Junctions: snapped road ends (T and shared ends) and at-grade crossings. */
   private buildJunctions() {
     const lines = this.lines,
-      snap = 18;
+      snap = this.region.junctionSnap ?? 18;
+    const mergeDistance = this.region.junctionSnap ?? 20;
     const split = (line: Polyline, arc: number, node: number) => {
       // Merge with an existing split point on this road within 20 m.
-      const near = line.splits.find((p) => Math.abs(p.arc - arc) < 20);
+      const near = line.splits.find((p) => Math.abs(p.arc - arc) < mergeDistance);
       if (near) {
         if (near.node !== node) this.mergeNodes(near.node, node);
         return;
@@ -337,7 +378,7 @@ export class RoadNetwork {
         if (hit) {
           const other = lines[hit.line];
           // Reuse a node already split on the other road near this point.
-          const existing = other.splits.find((p) => Math.abs(p.arc - hit.arc) < 20);
+          const existing = other.splits.find((p) => Math.abs(p.arc - hit.arc) < mergeDistance);
           const [px, pz] = this.pointAt(other, hit.arc);
           const node = existing?.node ?? this.addNode(px, pz);
           // Pull this road's end exactly onto the junction point.
@@ -358,8 +399,12 @@ export class RoadNetwork {
       for (let j = i + 1; j < lines.length; j++) {
         if (this.isOverpass(i, j)) continue;
         for (const c of this.intersections(lines[i], lines[j])) {
-          const a = lines[i].splits.find((p) => Math.abs(p.arc - c.arcA) < 25),
-            b = lines[j].splits.find((p) => Math.abs(p.arc - c.arcB) < 25);
+          const a = lines[i].splits.find(
+              (p) => Math.abs(p.arc - c.arcA) < (this.region.junctionSnap ?? 25),
+            ),
+            b = lines[j].splits.find(
+              (p) => Math.abs(p.arc - c.arcB) < (this.region.junctionSnap ?? 25),
+            );
           const node = a?.node ?? b?.node ?? this.addNode(c.x, c.z);
           split(lines[i], a?.arc ?? c.arcA, node);
           split(lines[j], b?.arc ?? c.arcB, node);
@@ -367,7 +412,8 @@ export class RoadNetwork {
       }
     // Closed roads need at least one split; sort splits along each road.
     for (const line of lines) {
-      if (line.closed && line.splits.length === 0) line.splits.push({ arc: 0, node: this.addNode(line.xs[0], line.zs[0]) });
+      if (line.closed && line.splits.length === 0)
+        line.splits.push({ arc: 0, node: this.addNode(line.xs[0], line.zs[0]) });
       line.splits.sort((a, b) => a.arc - b.arc);
       for (const s of line.splits) s.node = this.find(s.node);
     }
@@ -387,16 +433,21 @@ export class RoadNetwork {
       if (other.splits.some((p) => this.find(p.node) === root)) return;
       if (skip.some((i) => this.isOverpass(i, j))) return;
       const p = this.project(other, n.x, n.z);
-      if (p.distance >= Math.max(2.5, other.spec.halfWidth)) return;
+      if (p.distance >= (this.region.junctionSnap ?? Math.max(2.5, other.spec.halfWidth))) return;
       const total = other.closed ? other.length : other.arc[other.arc.length - 1];
-      const interior = (l: Polyline, arc: number) => l.closed || (arc > 0.5 && arc < l.arc[l.arc.length - 1] - 0.5);
-      const onThrough = lines.some((l) => l.splits.some((q) => this.find(q.node) === root && interior(l, q.arc)));
+      const interior = (l: Polyline, arc: number) =>
+        l.closed || (arc > 0.5 && arc < l.arc[l.arc.length - 1] - 0.5);
+      const onThrough = lines.some((l) =>
+        l.splits.some((q) => this.find(q.node) === root && interior(l, q.arc)),
+      );
       if (!onThrough && interior(other, p.arc) && p.arc <= total) {
         const [px, pz] = this.pointAt(other, p.arc);
         n.x = px;
         n.z = pz;
       }
-      const near = other.splits.find((q) => Math.abs(q.arc - p.arc) < 20);
+      const near = other.splits.find(
+        (q) => Math.abs(q.arc - p.arc) < (this.region.junctionSnap ?? 20),
+      );
       if (near) {
         if (this.find(near.node) !== root) this.mergeNodes(near.node, root);
       } else other.splits.push({ arc: p.arc, node: root });
@@ -408,7 +459,10 @@ export class RoadNetwork {
     const step = line.spec.step,
       n = line.xs.length,
       total = line.closed ? line.length : line.arc[n - 1],
-      marks = line.splits.map((p) => ({ ...p, arc: line.closed ? ((p.arc % total) + total) % total : clamp(p.arc, 0, total) }));
+      marks = line.splits.map((p) => ({
+        ...p,
+        arc: line.closed ? ((p.arc % total) + total) % total : clamp(p.arc, 0, total),
+      }));
     marks.sort((a, b) => a.arc - b.arc);
     const xs: number[] = [],
       zs: number[] = [];
@@ -432,17 +486,24 @@ export class RoadNetwork {
     }
     emitMarks(Infinity);
     const arc = [0];
-    for (let i = 1; i < xs.length; i++) arc.push(arc[i - 1] + Math.hypot(xs[i] - xs[i - 1], zs[i] - zs[i - 1]));
+    for (let i = 1; i < xs.length; i++)
+      arc.push(arc[i - 1] + Math.hypot(xs[i] - xs[i - 1], zs[i] - zs[i - 1]));
     line.xs = xs;
     line.zs = zs;
     line.arc = arc;
-    line.length = arc[arc.length - 1] + (line.closed ? Math.hypot(xs[0] - xs[xs.length - 1], zs[0] - zs[zs.length - 1]) : 0);
+    line.length =
+      arc[arc.length - 1] +
+      (line.closed ? Math.hypot(xs[0] - xs[xs.length - 1], zs[0] - zs[zs.length - 1]) : 0);
     // Re-express every split at its exact sample.
     for (const split of line.splits) {
       const node = this.nodes[this.find(split.node)];
       let best = 0;
       for (let i = 1; i < xs.length; i++)
-        if (Math.hypot(xs[i] - node.x, zs[i] - node.z) < Math.hypot(xs[best] - node.x, zs[best] - node.z)) best = i;
+        if (
+          Math.hypot(xs[i] - node.x, zs[i] - node.z) <
+          Math.hypot(xs[best] - node.x, zs[best] - node.z)
+        )
+          best = i;
       split.arc = arc[best];
     }
   }
@@ -463,7 +524,12 @@ export class RoadNetwork {
       la = a.closed ? na : na - 1,
       lb = b.closed ? nb : nb - 1;
     // Disjoint bounding boxes cannot cross.
-    const box = (l: Polyline) => [Math.min(...l.xs), Math.max(...l.xs), Math.min(...l.zs), Math.max(...l.zs)];
+    const box = (l: Polyline) => [
+      Math.min(...l.xs),
+      Math.max(...l.xs),
+      Math.min(...l.zs),
+      Math.max(...l.zs),
+    ];
     const [ax0, ax1, az0, az1] = box(a),
       [bx0, bx1, bz0, bz1] = box(b);
     if (ax1 < bx0 - 1 || bx1 < ax0 - 1 || az1 < bz0 - 1 || bz1 < az0 - 1) return out;
@@ -684,7 +750,7 @@ export class RoadNetwork {
       for (let i = 0; i < n; i++) {
         if (i === at) continue;
         let along = line.arc[i] - s.arc;
-        if (line.closed) along = ((along % total) + total * 1.5) % total - total / 2;
+        if (line.closed) along = (((along % total) + total * 1.5) % total) - total / 2;
         if (!((along > 0 && along <= ahead) || (along < 0 && -along <= back))) continue;
         let h = node.y;
         if (main) {
@@ -772,7 +838,14 @@ export class RoadNetwork {
   /** Fill the flat per-sample arrays, split roads into edges at nodes. */
   private assemble(profiles: { y: Float64Array; ground: Float64Array }[], pins: CrossingPin[]) {
     // Edges from consecutive split points of each road.
-    type Piece = { line: number; a: number; b: number; from: number; to: number; pad: [number, number] };
+    type Piece = {
+      line: number;
+      a: number;
+      b: number;
+      from: number;
+      to: number;
+      pad: [number, number];
+    };
     const pieces: Piece[] = [];
     const index = (line: Polyline, arc: number) => {
       let best = 0;
@@ -879,7 +952,9 @@ export class RoadNetwork {
       cursor += count;
       station += s + EDGE_GAP;
     }
-    for (const node of this.nodes) if (this.find(node.index) === node.index) node.kind = node.edges.length > 1 ? 'junction' : 'end';
+    for (const node of this.nodes)
+      if (this.find(node.index) === node.index)
+        node.kind = node.edges.length > 1 ? 'junction' : 'end';
     for (const e of this.edges) this.deriveEdge(e, pins);
   }
   /** Tangents, curvature, superelevation, bridges, barriers and speeds. */
@@ -904,8 +979,10 @@ export class RoadNetwork {
         b = first + Math.min(n - 1, c + 2),
         ds = this.s[b] - this.s[a] || 1;
       raw[c] =
-        Math.atan2(this.tz[a] * this.tx[b] - this.tx[a] * this.tz[b], this.tx[a] * this.tx[b] + this.tz[a] * this.tz[b]) /
-        ds;
+        Math.atan2(
+          this.tz[a] * this.tx[b] - this.tx[a] * this.tz[b],
+          this.tx[a] * this.tx[b] + this.tz[a] * this.tz[b],
+        ) / ds;
     }
     const window = Math.max(1, Math.round(12 / spec.step));
     for (let c = 0; c < n; c++) {
@@ -925,7 +1002,8 @@ export class RoadNetwork {
       bank = new Float32Array(n);
     for (let c = 0; c < n; c++) {
       const k = this.curvature[first + c];
-      bank[c] = -Math.sign(k) * Math.min(spec.maxBank, (spec.designSpeed ** 2 * Math.abs(k)) / G * 0.55);
+      bank[c] =
+        -Math.sign(k) * Math.min(spec.maxBank, ((spec.designSpeed ** 2 * Math.abs(k)) / G) * 0.55);
     }
     for (let c = 0; c < n; c++) {
       let sum = 0,
@@ -949,7 +1027,10 @@ export class RoadNetwork {
     // Advisory speed: comfortable lateral acceleration, capped by the class.
     for (let c = 0; c < n; c++) {
       const k = Math.abs(this.curvature[first + c]);
-      this.advisory[first + c] = Math.min(spec.designSpeed * 1.3, Math.sqrt(4.5 / Math.max(1e-5, k)));
+      this.advisory[first + c] = Math.min(
+        spec.designSpeed * 1.3,
+        Math.sqrt(4.5 / Math.max(1e-5, k)),
+      );
     }
     // Bridges: deck well above the natural ground, or over water.
     const bridge = new Uint8Array(n);
@@ -1022,7 +1103,8 @@ export class RoadNetwork {
         [2, 1],
       ]) {
         const drop =
-          this.y[o] - this.terrain.height(this.x[o] + nx * side * reach, this.z[o] + nz * side * reach);
+          this.y[o] -
+          this.terrain.height(this.x[o] + nx * side * reach, this.z[o] + nz * side * reach);
         if (drop > (e.roadClass === 'highway' ? 4 : 2.6)) rail[c] |= bit;
       }
     }
@@ -1064,7 +1146,13 @@ export class RoadNetwork {
       for (const side of [-1, 1])
         delta = Math.max(
           delta,
-          Math.abs(this.y[o] - this.terrain.height(this.x[o] + nx * side * (edge + 6), this.z[o] + nz * side * (edge + 6))),
+          Math.abs(
+            this.y[o] -
+              this.terrain.height(
+                this.x[o] + nx * side * (edge + 6),
+                this.z[o] + nz * side * (edge + 6),
+              ),
+          ),
         );
       this.influence[o] = edge + Math.min(64, 4 + delta * 1.7);
     }
@@ -1087,7 +1175,8 @@ export class RoadNetwork {
         for (let cz = Math.max(0, cz0); cz <= Math.min(rows - 1, cz1); cz++) fn(cz * cols + cx);
     };
     const n = this.x.length;
-    for (let i = 0; i < n - 1; i++) if (this.edgeOf[i] === this.edgeOf[i + 1]) visit(i, (c) => counts[c + 1]++);
+    for (let i = 0; i < n - 1; i++)
+      if (this.edgeOf[i] === this.edgeOf[i + 1]) visit(i, (c) => counts[c + 1]++);
     for (let c = 0; c < cols * rows; c++) counts[c + 1] += counts[c];
     const items = new Int32Array(counts[cols * rows]),
       fill = counts.slice(0, cols * rows);
@@ -1227,7 +1316,10 @@ export class RoadNetwork {
       for (let k = g.start[cell]; k < g.start[cell + 1]; k++) scan(g.items[k]);
     else {
       // Far from every road: search around the far-field's nearest segment.
-      const seed = cell >= 0 ? this.far[cell] : this.far[clamp(cz, 0, g.rows - 1) * g.cols + clamp(cx, 0, g.cols - 1)];
+      const seed =
+        cell >= 0
+          ? this.far[cell]
+          : this.far[clamp(cz, 0, g.rows - 1) * g.cols + clamp(cx, 0, g.cols - 1)];
       const e = this.edges[this.edgeOf[Math.max(0, seed)]];
       for (let i = Math.max(e.first, seed - 24); i < Math.min(e.last, seed + 24); i++) scan(i);
     }
@@ -1329,7 +1421,9 @@ export class RoadNetwork {
       out.oz[slot] = oz;
       out.rx[slot] = d > 1e-9 ? (x - px) / d : 0;
       out.rz[slot] = d > 1e-9 ? (z - pz) / d : 0;
-      out.bridge[slot] = Number((this.flags[i] & ROAD_FLAG.BRIDGE) !== 0 && (this.flags[j] & ROAD_FLAG.BRIDGE) !== 0);
+      out.bridge[slot] = Number(
+        (this.flags[i] & ROAD_FLAG.BRIDGE) !== 0 && (this.flags[j] & ROAD_FLAG.BRIDGE) !== 0,
+      );
     }
     return out.count;
   }
@@ -1359,7 +1453,20 @@ export class RoadNetwork {
       for (const dir of [1, -1] as const) {
         const points = [];
         const count = Math.max(2, Math.ceil(e.length / spacing) + 1);
-        const p = { s: 0, x: 0, y: 0, z: 0, tx: 0, tz: 1, nx: 1, nz: 0, curvature: 0, width: 0, bank: 0, gradient: 0 };
+        const p = {
+          s: 0,
+          x: 0,
+          y: 0,
+          z: 0,
+          tx: 0,
+          tz: 1,
+          nx: 1,
+          nz: 0,
+          curvature: 0,
+          width: 0,
+          bank: 0,
+          gradient: 0,
+        };
         for (let k = 0; k < count; k++) {
           const f = k / (count - 1);
           this.at(e.offset + e.length * (dir > 0 ? f : 1 - f), p);
@@ -1408,7 +1515,9 @@ export class RoadNetwork {
     const total = this.edges.reduce((sum, e) => sum + e.length, 0) / 1000;
     return {
       totalKm: Math.round(total * 100) / 100,
-      byClassKm: Object.fromEntries(Object.entries(byClass).map(([k, v]) => [k, Math.round(v * 100) / 100])),
+      byClassKm: Object.fromEntries(
+        Object.entries(byClass).map(([k, v]) => [k, Math.round(v * 100) / 100]),
+      ),
       bySpeedClassKm: Object.fromEntries(
         Object.entries(bySpeed).map(([k, v]) => [k, Math.round((v as number) * 100) / 100]),
       ),

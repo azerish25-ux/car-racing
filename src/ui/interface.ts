@@ -1,3 +1,4 @@
+import { charlottetownMapCard } from './charlottetown-map.ts';
 import { installRaceDayHud, updateRaceDayHud } from './race-day-hud.ts';
 import { BikeHud } from './bike-hud.ts';
 import { vehicleAt, vehicleDefinition } from '../simulation/vehicles.ts';
@@ -248,6 +249,7 @@ export class Interface {
   <section id="menu" class="menu" hidden>
    <header class="masthead"><div class="brand">MOTOBOUND<span>MOTORSPORT</span></div><span class="edition">DRIVER <b id="menuDriver">${escapeHtml(this.playerName.toUpperCase())}</b></span></header>
    <div class="menu-body" tabindex="0" role="region" aria-label="Race setup and tools"><div class="eyebrow"><i></i> <span id="circuitEyebrow">AUREL · GRAND CIRCUIT</span></div><h1>EVERY INPUT.<br>EVERY FORCE.</h1><p class="intro">Four contact patches. One racing line.<br>Find the limit between them.</p>
+   ${charlottetownMapCard()}
    <form id="sessionForm" class="session-form">
     <div class="form-row"><label>CIRCUIT<select id="circuit">${circuitOptionsHtml()}</select></label></div>
     <p class="session-rules circuit-blurb" id="circuitBlurb">${escapeHtml(circuitBlurb(track.circuit.id))}</p>

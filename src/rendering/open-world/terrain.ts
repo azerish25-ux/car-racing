@@ -1,6 +1,10 @@
 import * as T from 'three';
 import { TILE_SIZE } from '../../simulation/open-world/terrain-tiles.ts';
-import type { FromTileWorker, TileMeshData, ToTileWorker } from '../../workers/open-world-protocol.ts';
+import type {
+  FromTileWorker,
+  TileMeshData,
+  ToTileWorker,
+} from '../../workers/open-world-protocol.ts';
 import { terrainMaterial } from './terrain-material.ts';
 
 /** Quadtree levels: level L tiles are TILE_SIZE·2^L wide. Level 6 tiles
@@ -20,11 +24,12 @@ export interface TerrainBudget {
    * level and, on the finest level, only trees without a trunk collider. */
   trees: number;
 }
-export const TERRAIN_BUDGETS: Readonly<Record<'low' | 'medium' | 'high', TerrainBudget>> = Object.freeze({
-  low: { split: 1.25, maxTiles: 110, inFlight: 3, trees: 0.45 },
-  medium: { split: 1.6, maxTiles: 150, inFlight: 4, trees: 0.7 },
-  high: { split: 2.1, maxTiles: 220, inFlight: 6, trees: 1 },
-});
+export const TERRAIN_BUDGETS: Readonly<Record<'low' | 'medium' | 'high', TerrainBudget>> =
+  Object.freeze({
+    low: { split: 1.25, maxTiles: 110, inFlight: 3, trees: 0.45 },
+    medium: { split: 1.6, maxTiles: 150, inFlight: 4, trees: 0.7 },
+    high: { split: 2.1, maxTiles: 220, inFlight: 6, trees: 1 },
+  });
 
 interface Tile {
   key: number;
@@ -51,7 +56,7 @@ const key = (level: number, ix: number, iz: number) => (level * 4096 + ix) * 409
  */
 export class TerrainStreamer {
   readonly root = new T.Group();
-  readonly material = terrainMaterial();
+  readonly material: ReturnType<typeof terrainMaterial>;
   private readonly tiles = new Map<number, Tile>();
   private readonly byId = new Map<number, Tile>();
   private nextId = 1;
@@ -61,13 +66,18 @@ export class TerrainStreamer {
   /** Diagnostics. */
   stats = { resident: 0, drawn: 0, requested: 0, built: 0, evicted: 0, workerMs: 0 };
   /** Tree data of drawn near tiles changed (vegetation rebuilds instances). */
-  readonly treeTiles = new Map<number, { data: TileMeshData; level: number; ix: number; iz: number }>();
+  readonly treeTiles = new Map<
+    number,
+    { data: TileMeshData; level: number; ix: number; iz: number }
+  >();
   treesChanged = false;
   private readonly camera = new T.Vector3();
   constructor(
     private readonly worker: Worker,
     public budget: TerrainBudget = TERRAIN_BUDGETS.medium,
+    proceduralOnly = false,
   ) {
+    this.material = terrainMaterial(proceduralOnly);
     this.root.name = 'Festival terrain';
     worker.addEventListener('message', this.receive);
   }
@@ -165,7 +175,10 @@ export class TerrainStreamer {
     geometry.setAttribute('splat', new T.BufferAttribute(splat, 4));
     geometry.setAttribute('shade', new T.BufferAttribute(shade, 4));
     geometry.setIndex(this.indexFor(r));
-    geometry.boundingBox = new T.Box3(new T.Vector3(0, data.minY - skirt, 0), new T.Vector3(size, data.maxY, size));
+    geometry.boundingBox = new T.Box3(
+      new T.Vector3(0, data.minY - skirt, 0),
+      new T.Vector3(size, data.maxY, size),
+    );
     geometry.boundingSphere = geometry.boundingBox.getBoundingSphere(new T.Sphere());
     const mesh = new T.Mesh(geometry, this.material);
     mesh.name = `Terrain L${tile.level} ${tile.ix},${tile.iz}`;
@@ -235,9 +248,11 @@ export class TerrainStreamer {
       t.used = this.frame;
       if (this.wantsSplit(level, ix, iz)) {
         const kids: Tile[] = [];
-        for (let j = 0; j < 2; j++) for (let i = 0; i < 2; i++) kids.push(this.tile(level - 1, ix * 2 + i, iz * 2 + j));
+        for (let j = 0; j < 2; j++)
+          for (let i = 0; i < 2; i++) kids.push(this.tile(level - 1, ix * 2 + i, iz * 2 + j));
         if (kids.every((k) => k.mesh)) {
-          for (let j = 0; j < 2; j++) for (let i = 0; i < 2; i++) visit(level - 1, ix * 2 + i, iz * 2 + j);
+          for (let j = 0; j < 2; j++)
+            for (let i = 0; i < 2; i++) visit(level - 1, ix * 2 + i, iz * 2 + j);
           return;
         }
         for (const k of kids) {
@@ -271,14 +286,18 @@ export class TerrainStreamer {
   }
   private distance(t: Tile) {
     const size = TILE_SIZE * 2 ** t.level;
-    return Math.hypot(ORIGIN + (t.ix + 0.5) * size - this.camera.x, ORIGIN + (t.iz + 0.5) * size - this.camera.z);
+    return Math.hypot(
+      ORIGIN + (t.ix + 0.5) * size - this.camera.x,
+      ORIGIN + (t.iz + 0.5) * size - this.camera.z,
+    );
   }
   private evict() {
     const resident = [...this.tiles.values()].filter((t) => t.mesh);
     this.stats.resident = resident.length;
     if (resident.length <= this.budget.maxTiles) {
       // Forget never-built entries that fell out of use.
-      for (const t of this.tiles.values()) if (!t.mesh && !t.requested && t.used < this.frame - 2) this.tiles.delete(t.key);
+      for (const t of this.tiles.values())
+        if (!t.mesh && !t.requested && t.used < this.frame - 2) this.tiles.delete(t.key);
       return;
     }
     resident

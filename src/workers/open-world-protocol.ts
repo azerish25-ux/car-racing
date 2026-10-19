@@ -1,3 +1,4 @@
+import type { OpenWorldRegionId } from '../simulation/open-world/regions.ts';
 import type { Controls } from '../simulation/config.ts';
 import type { FestivalResult } from '../simulation/open-world/festival-events.ts';
 import type {
@@ -8,7 +9,7 @@ import type {
 
 /** Messages to the festival simulation worker. */
 export type ToOpenWorld =
-  | { type: 'init'; options: Omit<FreeRoamOptions, 'region'> }
+  | { type: 'init'; options: Omit<FreeRoamOptions, 'region'> & { regionId?: OpenWorldRegionId } }
   | { type: 'input'; input: Controls }
   | { type: 'pause'; value: boolean }
   | { type: 'command'; command: FestivalCommand }
@@ -39,7 +40,10 @@ export interface TileRequest {
    * every trunk, so each must be drawn. */
   colliders?: boolean;
 }
-export type ToTileWorker = TileRequest | { type: 'cancel'; id: number };
+export type ToTileWorker =
+  | { type: 'init'; region: OpenWorldRegionId }
+  | TileRequest
+  | { type: 'cancel'; id: number };
 /** A built terrain tile: positions are local to the tile origin. */
 export interface TileMeshData {
   type: 'tile';

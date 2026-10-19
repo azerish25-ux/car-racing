@@ -33,11 +33,13 @@ export function validateFestivalSave(value: unknown): FestivalSave | null {
  * saved festival machine. The career's loan is driven but never saved: the
  * save keeps the player's own choice. */
 export function festivalMachineChoice(
-  options: { vehicle?: string; loaner?: boolean },
+  options: { vehicle?: string; loaner?: boolean; explicitFormula?: boolean },
   saved: string,
 ): { drive: string; save: string } {
   const vehicles = festivalVehicles();
-  const chosen = vehicles.find((v) => v.id === options.vehicle && v.classId !== 'formula');
+  const chosen = vehicles.find(
+    (v) => v.id === options.vehicle && (options.explicitFormula || v.classId !== 'formula'),
+  );
   const kept = vehicles.some((v) => v.id === saved) ? saved : festivalDefaultVehicle();
   const drive = chosen?.id ?? kept;
   return { drive, save: options.loaner ? kept : drive };

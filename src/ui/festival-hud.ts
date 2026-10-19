@@ -82,11 +82,11 @@ export class FestivalHud {
     root.id = 'festivalHud';
     root.setAttribute('aria-label', 'Festival');
     root.innerHTML = `
-      <div class="fest-road" role="status"><span class="fest-limit" id="festLimit">90</span><div><span class="fest-eyebrow">MOTOBOUND / SOLVANE COAST</span><b id="festRoad">—</b><span id="festSurface">asphalt</span></div></div>
+      <div class="fest-road" role="status"><span class="fest-limit" id="festLimit">90</span><div><span class="fest-eyebrow">MOTOBOUND / ${escapeHtml(world.region.name.toUpperCase())}</span><b id="festRoad">—</b><span id="festSurface">asphalt</span></div></div>
       <div class="fest-pace" id="festPace" aria-label="Corner advisory" hidden><span class="fest-eyebrow">ROUTE ADVISORY</span><b id="festPaceTurn"></b><span id="festPaceAction"></span><small id="festPaceSurface"></small></div>
       <div class="fest-drift" id="festDrift" aria-label="Drift angle advisory" hidden><div><span id="festDriftAction"></span><b id="festDriftAngle"></b></div><div class="fest-drift-track"><i id="festDriftMarker"></i></div><small id="festDriftTip"></small></div>
       <div class="fest-hint" id="festHint"><kbd>C</kbd> CAMERA · <kbd>T</kbd> MAP · <kbd>ESC</kbd> MENU</div>
-      <div class="fest-explore" id="festExplore"><span class="fest-eyebrow">THE ROAD IS YOURS</span><b id="festExploreName">Explore Solvane Coast</b><small id="festExploreDistance"></small></div>
+      <div class="fest-explore" id="festExplore"><span class="fest-eyebrow">THE ROAD IS YOURS</span><b id="festExploreName">Explore ${escapeHtml(world.region.name)}</b><small id="festExploreDistance"></small></div>
       <div class="fest-skills" id="festSkills" hidden role="status"><span id="festSkillLabel"></span><div><b id="festSkillScore">0</b><i id="festSkillMultiplier">×1.0</i></div><small id="festSkillBank"></small><div class="fest-chain-track"><i id="festSkillTimer"></i></div></div>
       <div class="fest-event" id="festEvent" hidden><h2 id="festEventName"></h2><div class="fest-row" id="festEventRow"></div><div class="fest-progress"><i id="festProgress"></i></div></div>
       <div class="fest-countdown" id="festCountdown" hidden></div>
@@ -94,10 +94,20 @@ export class FestivalHud {
       <div class="fest-card" id="festCard" hidden role="dialog" aria-label="Event"></div>
       <div class="fest-results" id="festResults" hidden role="dialog" aria-label="Event results"></div>
       <div class="fest-menu" id="festMenu" hidden role="dialog" aria-label="Festival menu"></div>
-      <div class="fest-map" id="festMap" hidden role="dialog" aria-modal="true" aria-label="World map"><header><div><span class="fest-eyebrow">MOTOBOUND / EXPLORE</span><h2>Solvane Coast</h2></div><button class="fest-secondary" data-fest="mapClose">CLOSE</button></header><div class="fest-map-layout"><div class="fest-map-art"><canvas id="festMapCanvas" width="1024" height="1024" aria-label="Solvane road network and selected event route"></canvas><span class="fest-map-key">N ↑ &nbsp; PAVED ROADS · MOUNTAIN PASSES · DIRT TRAILS</span></div><aside><div class="fest-map-filters"><button data-fest="mapFilter" data-value="all" aria-pressed="true">All</button><button data-fest="mapFilter" data-value="races" aria-pressed="false">Races</button><button data-fest="mapFilter" data-value="skills" aria-pressed="false">Skills</button></div><div id="festMapEvents" class="fest-map-events"></div><div id="festMapDetail" class="fest-map-detail"></div></aside></div></div>
+      <div class="fest-map" id="festMap" hidden role="dialog" aria-modal="true" aria-label="World map"><header><div><span class="fest-eyebrow">MOTOBOUND / EXPLORE</span><h2>${escapeHtml(world.region.name)}</h2></div><button class="fest-secondary" data-fest="mapClose">CLOSE</button></header><div class="fest-map-layout"><div class="fest-map-art"><canvas id="festMapCanvas" width="1024" height="1024" aria-label="Region road network and selected event route"></canvas><span class="fest-map-key">N ↑ &nbsp; ${world.region.survey ? 'MAPPED STREETS · CAMPUS ROUTE · BUILDING FOOTPRINTS' : 'PAVED ROADS · MOUNTAIN PASSES · DIRT TRAILS'}</span></div><aside><div class="fest-map-filters"><button data-fest="mapFilter" data-value="all" aria-pressed="true">All</button><button data-fest="mapFilter" data-value="races" aria-pressed="false">Races</button><button data-fest="mapFilter" data-value="skills" aria-pressed="false">Skills</button></div><div id="festMapEvents" class="fest-map-events"></div><div id="festMapDetail" class="fest-map-detail"></div></aside></div></div>
       <div class="fest-photo" id="festPhoto" hidden><div><span class="fest-eyebrow">MOTOBOUND / PHOTO MODE</span><b>Find your angle.</b><span>Drag to orbit · Scroll to zoom</span></div><nav><button data-fest="photoLeft" aria-label="Orbit camera left">←</button><button data-fest="photoRight" aria-label="Orbit camera right">→</button><button data-fest="photoHide">HIDE CONTROLS</button><button data-fest="photoClose">RETURN TO DRIVE <kbd>ESC</kbd></button></nav></div>
-      <div class="fest-minimap"><span class="fest-map-caption">SOLVANE <i id="festDiscovered">0 DISCOVERED</i></span><canvas id="festMinimap" width="440" height="440" aria-label="Minimap"></canvas></div>
+      <div class="fest-minimap"><span class="fest-map-caption">${world.region.survey ? 'CHARLOTTETOWN' : 'SOLVANE'} <i id="festDiscovered">0 DISCOVERED</i></span><canvas id="festMinimap" width="440" height="440" aria-label="Minimap"></canvas></div>
       <div class="fest-speed"><span class="fest-machine-label" id="festMachineName"></span><div class="fest-speed-readout"><b id="festSpeed">0</b><div><strong id="festGear">N</strong><small>GEAR</small></div></div><small>KILOMETRES / HOUR</small><i id="festRpm"></i><span class="fest-drive-state" id="festDriveState">FREE ROAM</span></div>`;
+    if (world.region.attribution) {
+      const credit = document.createElement('a');
+      credit.className = 'fest-geographic-credit';
+      credit.href = 'https://www.openstreetmap.org/copyright';
+      credit.target = '_blank';
+      credit.rel = 'noopener noreferrer';
+      credit.textContent = world.region.attribution;
+      root.appendChild(credit);
+    }
+    root.dataset.region = world.region.id;
     parent.appendChild(root);
     this.root = root;
     this.minimap = this.get('festMinimap') as HTMLCanvasElement;
@@ -214,6 +224,12 @@ export class FestivalHud {
   }
   /** The road network, sea and towns pre-drawn once (north up, east on
    * the left: see festival-map.ts). */
+  private get mapHalf() {
+    return this.world.region.mapHalf ?? MAP_HALF;
+  }
+  private worldToMap(x: number, z: number) {
+    return worldToMap(x, z, this.mapHalf);
+  }
   private paintMap() {
     const canvas = document.createElement('canvas');
     canvas.width = canvas.height = MAP_SIZE;
@@ -223,10 +239,10 @@ export class FestivalHud {
     // Ground relief: a coarse shaded height map, lit from the image's left.
     const cells = 256,
       cell = MAP_SIZE / cells,
-      step = (2 * MAP_HALF) / cells;
+      step = (2 * this.mapHalf) / cells;
     for (let j = 0; j < cells; j++)
       for (let i = 0; i < cells; i++) {
-        const [x, z] = mapToWorld((i + 0.5) * cell, (j + 0.5) * cell),
+        const [x, z] = mapToWorld((i + 0.5) * cell, (j + 0.5) * cell, this.mapHalf),
           h = field.height(x, z, step),
           // Rise toward the image's right (world -x).
           hx = field.height(x - step, z, step) - h;
@@ -239,6 +255,19 @@ export class FestivalHud {
         ctx.fillStyle = `rgb(${(r * shade) | 0},${(g * shade) | 0},${(b * shade) | 0})`;
         ctx.fillRect(i * cell, j * cell, cell + 1, cell + 1);
       }
+    if (this.world.region.survey) {
+      for (const building of this.world.region.survey.buildings) {
+        ctx.fillStyle = /college/i.test(building.tags.amenity ?? '') ? '#ceb280' : '#8d998c';
+        ctx.beginPath();
+        building.footprint.forEach((p, i) => {
+          const [x, y] = this.worldToMap(p[0], p[1]);
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+        ctx.closePath();
+        ctx.fill();
+      }
+    }
     // Roads by class.
     const style: Record<string, [string, number]> = {
       highway: ['#f2c14e', 7],
@@ -256,11 +285,11 @@ export class FestivalHud {
         ctx.lineJoin = ctx.lineCap = 'round';
         ctx.beginPath();
         for (let i = e.first; i <= e.last; i += 2) {
-          const [x, y] = worldToMap(net.x[i], net.z[i]);
+          const [x, y] = this.worldToMap(net.x[i], net.z[i]);
           if (i === e.first) ctx.moveTo(x, y);
           else ctx.lineTo(x, y);
         }
-        ctx.lineTo(...worldToMap(net.x[e.last], net.z[e.last]));
+        ctx.lineTo(...this.worldToMap(net.x[e.last], net.z[e.last]));
         ctx.stroke();
       }
     return canvas;
@@ -271,7 +300,7 @@ export class FestivalHud {
     radius: number,
   ) {
     for (const event of this.events) {
-      const [x, y] = worldToMap(event.marker.x, event.marker.z),
+      const [x, y] = this.worldToMap(event.marker.x, event.marker.z),
         known = discovered.has(event.spec.id);
       ctx.beginPath();
       ctx.arc(x, y, radius, 0, Math.PI * 2);
@@ -289,7 +318,7 @@ export class FestivalHud {
     ctx.lineWidth = width;
     ctx.beginPath();
     for (let i = 0; i < path.count; i += 3) {
-      const [x, y] = worldToMap(path.x[i], path.z[i]);
+      const [x, y] = this.worldToMap(path.x[i], path.z[i]);
       if (i === 0) ctx.moveTo(x, y);
       else ctx.lineTo(x, y);
     }
@@ -305,7 +334,7 @@ export class FestivalHud {
     ctx.save();
     ctx.fillStyle = '#0b1016';
     ctx.fillRect(0, 0, size, size);
-    ctx.setTransform(...minimapMatrix(x, z, heading, size, range));
+    ctx.setTransform(...minimapMatrix(x, z, heading, size, range, this.mapHalf));
     ctx.drawImage(this.mapImage, 0, 0);
     this.drawRoute(ctx, 6);
     this.drawMarkers(ctx, discovered, 9);
@@ -377,11 +406,11 @@ export class FestivalHud {
     ctx.fillStyle = '#f4f6f8';
     for (const event of this.events) {
       if (event !== selected) continue;
-      const [x, y] = worldToMap(event.marker.x, event.marker.z);
+      const [x, y] = this.worldToMap(event.marker.x, event.marker.z);
       ctx.fillText(event.spec.name, x + 28, y + 10);
     }
     if (at) {
-      const [x, y] = worldToMap(at.x, at.z);
+      const [x, y] = this.worldToMap(at.x, at.z);
       ctx.fillStyle = '#ffffff';
       ctx.beginPath();
       ctx.arc(x, y, 16, 0, Math.PI * 2);
@@ -636,7 +665,7 @@ export class FestivalHud {
       ['sunset', 'Golden hour'],
       ['night', 'Night'],
     ];
-    node.innerHTML = `<header class="fest-menu-heading"><div><span class="fest-eyebrow">MOTOBOUND / FESTIVAL</span><h2>The open road.</h2><p>Solvane Coast · ${state.discovered.length} of ${this.events.length} events discovered</p></div><span class="fest-menu-mark">S<span>COAST</span></span></header>
+    node.innerHTML = `<header class="fest-menu-heading"><div><span class="fest-eyebrow">MOTOBOUND / FESTIVAL</span><h2>The open road.</h2><p>${escapeHtml(this.world.region.name)} · ${state.discovered.length} of ${this.events.length} events discovered</p></div><span class="fest-menu-mark">${this.world.region.survey ? 'C' : 'S'}<span>${this.world.region.survey ? 'PEI' : 'COAST'}</span></span></header>
       <div class="fest-menu-actions"><button class="fest-primary" data-fest="resume">RESUME</button><button class="fest-secondary" data-fest="reset">RESET TO ROAD</button>${state.inEvent ? '<button class="fest-secondary" data-fest="cancel">ABANDON EVENT</button>' : ''}<button class="fest-secondary" data-fest="exit">EXIT FESTIVAL</button>${this.callbacks.map ? '<button class="fest-secondary" data-fest="map">WORLD MAP</button>' : ''}${this.callbacks.photo ? '<button class="fest-secondary" data-fest="photo">PHOTO MODE</button>' : ''}</div>
       <div class="fest-menu-columns"><div>
       <section><h3>Time of day</h3><div class="fest-options">${lightings.map(([m, label]) => `<button data-fest="lighting" data-value="${m}" ${pressed(state.lighting === m)}>${label}</button>`).join('')}</div></section>

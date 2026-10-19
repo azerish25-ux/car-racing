@@ -6,6 +6,8 @@
  * turns into sampled, graded, cambered roads with junctions and bridges.
  * Units: metres, x east, z north, y up. */
 
+import type { StreetSurvey } from './survey.ts';
+
 export type RoadClass = 'highway' | 'country' | 'mountain' | 'town' | 'dirt' | 'runway';
 /** Speed classification of a road class (signage and advisory speeds). */
 export type SpeedClass = 'motorway' | 'fast' | 'medium' | 'slow' | 'technical';
@@ -29,7 +31,7 @@ export interface RoadClassSpec {
   /** Physics grip and rolling resistance of the running surface. */
   grip: number;
   resistance: number;
-  markings: 'motorway' | 'centre' | 'runway' | 'none';
+  markings: 'motorway' | 'centre' | 'runway' | 'none' | 'double-yellow';
   /** Guardrails where the ground falls away beside the road. */
   guardrails: boolean;
   /** Spline sampling step (m). */
@@ -158,6 +160,10 @@ export interface RoadSpec {
   points: readonly XZ[];
   /** A closed loop (runway/taxiway circuits). */
   closed?: boolean;
+  /** Preserve measured vertices instead of moving them through a spline. */
+  interpolation?: 'linear';
+  /** Venue-specific cross-section; absent fields retain the class defaults. */
+  section?: Partial<RoadClassSpec>;
 }
 export interface PeakSpec {
   name: string;
@@ -244,6 +250,10 @@ export interface FestivalEventSpec {
    * traps and zones, points for drift zones; seconds for showcases. */
   stars?: readonly [number, number, number];
   blurb: string;
+  /** Metres of braking run-out before the final waypoint (default 60). */
+  finishBuffer?: number;
+  /** Solo geographic routes can start at their actual first station. */
+  startOffset?: number;
 }
 export interface RegionDefinition {
   id: string;
@@ -253,6 +263,13 @@ export interface RegionDefinition {
   /** Half extent of the drivable region (m): x, z in [-half, half]. */
   half: number;
   seaLevel: number;
+  mapHalf?: number;
+  spawn?: { x: number; z: number; heading: number };
+  attribution?: string;
+  survey?: StreetSurvey;
+  urbanPlane?: { height: number; slopeX: number; slopeZ: number };
+  /** Geographic networks must not snap unrelated roads across city blocks. */
+  junctionSnap?: number;
   /** Coastline, west to east (strictly increasing x); land lies north (+z). */
   coast: readonly XZ[];
   peaks: readonly PeakSpec[];

@@ -1,4 +1,5 @@
 /// <reference lib="webworker" />
+import { worldRegion } from '../simulation/open-world/regions.ts';
 import { FixedStepper } from '../core/math.ts';
 import { controls, type Controls } from '../simulation/config.ts';
 import { OpenWorldSimulation } from '../simulation/open-world/session.ts';
@@ -25,7 +26,8 @@ const clock = new FixedStepper();
 const POOL_SIZE = 4;
 let pool: ArrayBuffer[] = [],
   poolBytes = 0;
-const send = (msg: FromOpenWorld, transfer: Transferable[] = []) => scope.postMessage(msg, transfer);
+const send = (msg: FromOpenWorld, transfer: Transferable[] = []) =>
+  scope.postMessage(msg, transfer);
 const frameBytes = () => (HEADER + (simulation?.cars.length ?? 1) * CAR_STRIDE) * 4;
 function fillPool(bytes: number) {
   pool = Array.from({ length: POOL_SIZE }, () => new ArrayBuffer(bytes));
@@ -58,14 +60,21 @@ scope.onmessage = (event: MessageEvent<ToOpenWorld>) => {
     switch (msg.type) {
       case 'init': {
         const start = performance.now();
-        simulation = new OpenWorldSimulation(msg.options);
+        simulation = new OpenWorldSimulation({
+          ...msg.options,
+          region: worldRegion(msg.options.regionId),
+        });
         clock.reset();
         paused = true;
         previous = performance.now();
         lastInput = previous;
         fillPool(frameBytes());
         lastSent = -1;
-        send({ type: 'ready', buildMs: performance.now() - start, vehicle: simulation.player.definition.id });
+        send({
+          type: 'ready',
+          buildMs: performance.now() - start,
+          vehicle: simulation.player.definition.id,
+        });
         snapshot(true);
         status();
         break;
@@ -94,7 +103,8 @@ scope.onmessage = (event: MessageEvent<ToOpenWorld>) => {
       }
       case 'recycle':
         // A buffer of a previous field size is dropped (the pool was refilled).
-        if (simulation && msg.buffer.byteLength === poolBytes && pool.length < POOL_SIZE + 2) pool.push(msg.buffer);
+        if (simulation && msg.buffer.byteLength === poolBytes && pool.length < POOL_SIZE + 2)
+          pool.push(msg.buffer);
         break;
     }
   } catch (error) {

@@ -28,7 +28,14 @@ const BIKE_TURN_ROUND = 1.0;
 export const LOOSE_ROAD_SPEED = 41;
 
 /** Why the driver is doing what it does (HUD/debug, tests). */
-export type RouteDecision = 'HOLD' | 'RACE LINE' | 'FOLLOW' | 'PASS LEFT' | 'PASS RIGHT' | 'RECOVERY' | 'FINISHED';
+export type RouteDecision =
+  | 'HOLD'
+  | 'RACE LINE'
+  | 'FOLLOW'
+  | 'PASS LEFT'
+  | 'PASS RIGHT'
+  | 'RECOVERY'
+  | 'FINISHED';
 
 /**
  * AI for the festival: drives a planned road-network route (RoutePath) with
@@ -141,7 +148,13 @@ export class RouteDriver {
     // A finished car pulls over to the right-hand verge (negative lateral).
     const offset = finished
       ? -reach
-      : clamp(path.lineAt(this.d + lookahead) * (this.laneOffset ? 0 : 1) + this.laneOffset + this.tactical, -reach, reach);
+      : clamp(
+          path.lineAt(this.d + lookahead) * (this.laneOffset ? 0 : 1) +
+            this.laneOffset +
+            this.tactical,
+          -reach,
+          reach,
+        );
     this.delta.set(
       this.target.x + this.target.nx * offset - c.body.position.x,
       0,
@@ -152,7 +165,11 @@ export class RouteDriver {
       const h = bike.dynamics.heading,
         sh = Math.sin(h),
         ch = Math.cos(h);
-      this.local.set(this.delta.x * ch - this.delta.z * sh, 0, this.delta.x * sh + this.delta.z * ch);
+      this.local.set(
+        this.delta.x * ch - this.delta.z * sh,
+        0,
+        this.delta.x * sh + this.delta.z * ch,
+      );
     } else c.body.orientation.inverseRotate(this.delta, this.local);
     const purePursuit = Math.atan2(
         2 * c.spec.wheelbase * this.local.x,
@@ -161,9 +178,17 @@ export class RouteDriver {
       speedSteer = c.assist === 'sport' ? 1 / (1 + c.speed * 0.018) : 1;
     // Learn the understeer from the yaw rate actually achieved (positive yaw
     // and steer are both to the left) while cornering with grip in hand.
-    const yawCurvature = (c.body.omega.x * c.up.x + c.body.omega.y * c.up.y + c.body.omega.z * c.up.z) / Math.max(1, c.speed),
+    const yawCurvature =
+        (c.body.omega.x * c.up.x + c.body.omega.y * c.up.y + c.body.omega.z * c.up.z) /
+        Math.max(1, c.speed),
       geometric = Math.atan(c.spec.wheelbase * yawCurvature);
-    if (!bike && c.speed > 15 && Math.abs(geometric) > 0.002 && Math.sign(geometric) === Math.sign(c.steer) && this.recovery <= 0)
+    if (
+      !bike &&
+      c.speed > 15 &&
+      Math.abs(geometric) > 0.002 &&
+      Math.sign(geometric) === Math.sign(c.steer) &&
+      this.recovery <= 0
+    )
       this.understeer = approach(this.understeer, clamp(c.steer / geometric, 0.9, 2.5), dt * 0.8);
     command.steer = clamp((purePursuit * this.understeer) / (c.spec.maxSteer * speedSteer), -1, 1);
     // A motorcycle facing away from its route (a route planned from where it
@@ -172,20 +197,34 @@ export class RouteDriver {
       away = 0;
     if (bike) {
       path.at(this.d, this.sample);
-      away = Math.abs(mod(bike.dynamics.heading - Math.atan2(this.sample.tx, this.sample.tz) + Math.PI, Math.PI * 2) - Math.PI);
+      away = Math.abs(
+        mod(
+          bike.dynamics.heading - Math.atan2(this.sample.tx, this.sample.tz) + Math.PI,
+          Math.PI * 2,
+        ) - Math.PI,
+      );
       // Hysteresis: once turning round, carry on until nearly aligned.
       this.turningRound = away > (this.turningRound ? BIKE_TURN_ROUND * 0.3 : BIKE_TURN_ROUND);
       turning = this.turningRound;
-      command.steer = turning ? leanIntent(bike, command.steer) : this.leanCommand(bike, command.steer, finished);
+      command.steer = turning
+        ? leanIntent(bike, command.steer)
+        : this.leanCommand(bike, command.steer, finished);
     }
     // Envelope speed profile along the route ahead (the race line's own
     // curvature, or the centreline's for a lane-keeping driver).
-    const grip = clamp(peakGrip(c.tires[0], 2500, c.contacts[0], Math.max(c.speed, 38)) / env.referenceMu, 0.1, 1);
-    const aero = (env.downforceReference * (0.45 + 0.55 * Math.min(c.frontHealth, c.floorHealth))) / (c.spec.dryMass + c.fuel);
+    const grip = clamp(
+      peakGrip(c.tires[0], 2500, c.contacts[0], Math.max(c.speed, 38)) / env.referenceMu,
+      0.1,
+      1,
+    );
+    const aero =
+      (env.downforceReference * (0.45 + 0.55 * Math.min(c.frontHealth, c.floorHealth))) /
+      (c.spec.dryMass + c.fuel);
     const laneGrip = grip * clamp(1 - Math.abs(this.tactical) * 0.03, 0.85, 1);
     for (let i = 0; i < ENVELOPE_SAMPLES; i++) {
       const at = this.d + i * ENVELOPE_STEP;
-      const curvatureAt = (x: number) => (this.laneOffset ? path.at(x, this.sample).curvature : path.lineCurvatureAt(x));
+      const curvatureAt = (x: number) =>
+        this.laneOffset ? path.at(x, this.sample).curvature : path.lineCurvatureAt(x);
       let k = curvatureAt(at);
       // A motorcycle cannot brake hard while leaned: the sharpest point of
       // each sample's window counts (a junction corner shorter than the
@@ -211,10 +250,17 @@ export class RouteDriver {
     // Turning round at walking pace; aligning again before speeding up.
     if (turning) desired = Math.min(desired, 4);
     else if (bike) desired = Math.min(desired, Math.max(6, 30 - 60 * away));
-    desired = Math.min(desired, envelopeProfile(this.curvatures, this.corners, laneGrip, aero, env));
+    desired = Math.min(
+      desired,
+      envelopeProfile(this.curvatures, this.corners, laneGrip, aero, env),
+    );
     desired = Math.min(desired, this.trafficSpeed);
     // The end of a point-to-point route: brake to a stop before its end.
-    const remaining = path.closed ? Infinity : path.length - 6 - this.d;
+    // Short surveyed routes may have their finish at the very last metre.
+    // Their existing road continues beyond the event: do not park six metres
+    // before the gate and leave a perfectly valid run permanently unfinished.
+    const finishApproach = path.finishBuffer < 6 && !finished;
+    const remaining = path.closed ? Infinity : path.length + (finishApproach ? 8 : -6) - this.d;
     if (remaining < 1) desired = 0;
     else if (remaining < 260) desired = Math.min(desired, Math.sqrt(2 * 5 * remaining));
     // A finished car eases off.
@@ -234,7 +280,8 @@ export class RouteDriver {
     command.brake = clamp(-error * 0.18, 0, 1);
     const lateralUsage = Math.min(
       1,
-      (Math.abs(c.gLat) * G) / Math.max(1, (env.lateralBase + env.lateralAero * aero * c.speed * c.speed) * grip),
+      (Math.abs(c.gLat) * G) /
+        Math.max(1, (env.lateralBase + env.lateralAero * aero * c.speed * c.speed) * grip),
     );
     const available = Math.sqrt(Math.max(0, 1 - lateralUsage * lateralUsage));
     command.throttle = Math.min(command.throttle, 0.2 + 0.8 * available);
@@ -248,7 +295,15 @@ export class RouteDriver {
       command.throttle = 0;
       command.brake = 1;
     }
-    this.decision = finished ? 'FINISHED' : this.tactical > 1 ? 'PASS RIGHT' : this.tactical < -1 ? 'PASS LEFT' : this.trafficSpeed < c.speed + 1 ? 'FOLLOW' : 'RACE LINE';
+    this.decision = finished
+      ? 'FINISHED'
+      : this.tactical > 1
+        ? 'PASS RIGHT'
+        : this.tactical < -1
+          ? 'PASS LEFT'
+          : this.trafficSpeed < c.speed + 1
+            ? 'FOLLOW'
+            : 'RACE LINE';
     // Stuck against something: reverse out with opposite lock.
     if (!finished && c.speed < 0.8 && desired > 5) this.stuck += dt;
     else if (this.recovery <= 0) this.stuck = 0;
@@ -284,7 +339,9 @@ export class RouteDriver {
       reach = Math.max(0.5, p.halfWidth - 1.3),
       lane = this.laneOffset !== 0;
     const line = (at: number) => (lane ? 0 : path.lineAt(at));
-    const target = finished ? -reach : clamp(line(this.d) + this.laneOffset + this.tactical, -reach, reach);
+    const target = finished
+      ? -reach
+      : clamp(line(this.d) + this.laneOffset + this.tactical, -reach, reach);
     const pathSlope = (line(this.d + 3) - line(this.d - 3)) / 6,
       slope = pathSlope / Math.max(0.5, 1 - p.curvature * target);
     const heading = mod(d.heading - Math.atan2(p.tx, p.tz) + Math.PI, Math.PI * 2) - Math.PI;
@@ -295,7 +352,11 @@ export class RouteDriver {
       feedForward = k / Math.max(0.5, 1 - k * (lane ? target : this.tactical));
     const w = BIKE_AI.bandwidth,
       bound = (BIKE_AI.correctionG * G) / (v * v);
-    const correction = clamp((w * w * error) / (v * v) + (2 * BIKE_AI.damping * w * headingError) / v, -bound, bound);
+    const correction = clamp(
+      (w * w * error) / (v * v) + (2 * BIKE_AI.damping * w * headingError) / v,
+      -bound,
+      bound,
+    );
     return leanFromCurvature(bike, feedForward + correction, steer);
   }
   /** Lane choice and following speed from the cars ahead on the route. */
@@ -323,7 +384,9 @@ export class RouteDriver {
       }
       if (gap > 2 && Math.abs(side) < 2.4 && other.speed < c.speed + 3) {
         // Following speed: keep a short gap at the other car's pace.
-        const keep = Math.sqrt(Math.max(0, other.speed ** 2 + 2 * 5 * Math.max(0, gap - 8 - c.speed * 0.4)));
+        const keep = Math.sqrt(
+          Math.max(0, other.speed ** 2 + 2 * 5 * Math.max(0, gap - 8 - c.speed * 0.4)),
+        );
         if (keep < follow) {
           follow = keep;
           blocked = other;
@@ -340,7 +403,11 @@ export class RouteDriver {
       const right = theirs < 0 && !blockRight,
         left = theirs >= 0 && !blockLeft;
       if (right || left) {
-        tactical = clamp((right ? theirs + 3.2 : theirs - 3.2) - path.lineAt(this.d), -reach * 2, reach * 2);
+        tactical = clamp(
+          (right ? theirs + 3.2 : theirs - 3.2) - path.lineAt(this.d),
+          -reach * 2,
+          reach * 2,
+        );
         follow = Math.max(follow, blocked.speed + 2);
       }
     }

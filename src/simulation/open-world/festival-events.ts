@@ -35,6 +35,7 @@ export function resolveEvents(world: OpenWorld): FestivalEvent[] {
       world.network,
       planRoute(world.network, spec.waypoints, closed),
       closed,
+      spec.finishBuffer ?? 60,
     );
     const routeSpec = path.routeSpec(spec.id);
     const errors = validateRoute(routeSpec);

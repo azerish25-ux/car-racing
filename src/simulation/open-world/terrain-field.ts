@@ -183,12 +183,19 @@ export class TerrainField {
   private valleyPull(x: number, z: number, h: number) {
     const valley = this.valleyAt(x, z);
     if (valley.weight <= 1e-4) return h;
-    return h + (valley.floor + 6 * (valley.distance / this.region.valley.width) ** 2 - h) * valley.weight * 0.92;
+    return (
+      h +
+      (valley.floor + 6 * (valley.distance / this.region.valley.width) ** 2 - h) *
+        valley.weight *
+        0.92
+    );
   }
   /** Natural terrain height (m). `minWavelength` drops noise octaves finer
    * than the caller's sample spacing (coarse LODs); physics and the nearest
    * render LOD pass 0. */
   height(x: number, z: number, minWavelength = 0) {
+    const plane = this.region.urbanPlane;
+    if (plane) return plane.height + x * plane.slopeX + z * plane.slopeZ;
     const region = this.region;
     const d = this.coastDistance(x, z, minWavelength);
     let h = this.valleyPull(x, z, this.unflattened(x, z, minWavelength, d));

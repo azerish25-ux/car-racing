@@ -1,3 +1,5 @@
+import { charlottetownVehicle, type CharlottetownDiscipline } from './ui/charlottetown-map.ts';
+import type { OpenWorldRegionId } from './simulation/open-world/regions.ts';
 import {
   graphicsSettingsChanged,
   runSettingsChange,
@@ -594,6 +596,7 @@ export class GameApp {
   private async startFestival(
     options: SessionOptions,
     career: { travel: string | null; loaner: boolean } | null = null,
+    region: OpenWorldRegionId = 'solvane',
   ) {
     if (this.festival || this.festivalStarting || !this.renderer || !this.canvas) return;
     this.festivalStarting = true;
@@ -606,7 +609,9 @@ export class GameApp {
       loaner: career?.loaner ? (options.vehicles?.[0] ?? null) : null,
     });
     try {
-      const { FestivalSession, FESTIVAL_SAVE_KEY } = await import('./session/free-roam.ts');
+      const { FestivalSession } = await import('./session/free-roam.ts');
+      const { festivalSaveKey } = await import('./simulation/open-world/regions.ts');
+      const saveKey = festivalSaveKey(region);
       this.ui.showMode('loading');
       this.festival = await FestivalSession.start(
         {
@@ -636,10 +641,11 @@ export class GameApp {
           // Career hook: a typed FestivalResult per finished/abandoned event.
           onResult: (result) =>
             window.dispatchEvent(new CustomEvent('festival-result', { detail: result })),
-          load: () => this.store.read(FESTIVAL_SAVE_KEY),
-          save: (state) => this.store.write(FESTIVAL_SAVE_KEY, state),
+          load: () => this.store.read(saveKey),
+          save: (state) => this.store.write(saveKey, state),
         },
         {
+          region,
           vehicle: options.vehicles?.[0],
           weather: options.weather,
           assist: options.assist,
@@ -1838,6 +1844,26 @@ export class GameApp {
    * while one runs, else (undefined) the menu's MACHINE choice. */
   private action(name: string) {
     if (this.festival?.action(name)) return;
+    if (name.startsWith('charlottetown:')) {
+      if (this.state !== 'menu' || this.savingSettings || this.festivalStarting || this.festival)
+        return;
+      const mode = name.slice('charlottetown:'.length) as CharlottetownDiscipline;
+      if (!['formula', 'motogp', 'horizon'].includes(mode)) return;
+      const selected = (document.getElementById('vehicle') as HTMLSelectElement | null)?.value;
+      const weather = (document.getElementById('weather') as HTMLSelectElement | null)?.value;
+      const assist = (document.getElementById('assist') as HTMLSelectElement | null)?.value;
+      void this.startFestival(
+        {
+          ...DEFAULT_OPTIONS,
+          vehicles: [charlottetownVehicle(mode, selected)],
+          weather: weather === 'rain' || weather === 'changeable' ? weather : 'clear',
+          assist: assist === 'raw' ? 'raw' : 'sport',
+        },
+        null,
+        'charlottetown',
+      ).catch((e) => this.fail(e));
+      return;
+    }
     // Do not replace a renderer or resume simulation while it owns a graphics
     // transition. Closing the editor, muting, losing focus and reload remain
     // available; closing does not cancel an already submitted preference save.
@@ -2659,6 +2685,7 @@ export class GameApp {
     return {
       buildIdentity: { commit: __APEX_SOURCE_COMMIT__, fingerprint: __APEX_SOURCE_FINGERPRINT__ },
       state: this.state,
+      festival: this.festival?.diagnostics() ?? null,
       gridPresentation: {
         time: this.gridClock.time,
         playing: this.gridClock.playing,

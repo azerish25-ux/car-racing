@@ -80,9 +80,9 @@ type Layer =
 /** Flush stone shoulders retain the existing physical cross-fall. The narrow
  * dark drainage strip and staggered joints give town streets human scale
  * without introducing a raised, non-colliding kerb into the driving surface. */
-function pavingMaterial(wet: { value: number }) {
+function pavingMaterial(wet: { value: number }, urban = false) {
   const material = new T.MeshStandardMaterial({ color: 0xffffff, roughness: 0.87 });
-  material.name = 'Port Ilse cut-stone footways';
+  material.name = urban ? 'Charlottetown generated concrete' : 'Port Ilse cut-stone footways';
   (material as unknown as { defines: Record<string, string> }).defines = { USE_UV: '' };
   material.polygonOffset = true;
   material.polygonOffsetFactor = -1;
@@ -99,8 +99,7 @@ function pavingMaterial(wet: { value: number }) {
         `#include <color_fragment>
 {
   vec2 p = vec2(abs(vUv.x) - 4.6, vUv.y);
-  float row = floor(p.y / 0.72);
-  vec2 cell = vec2(p.x / 0.48 + mod(row, 2.0) * 0.5, p.y / 0.72);
+  ${urban ? 'vec2 cell = p / 1.6;' : 'float row = floor(p.y / 0.72); vec2 cell = vec2(p.x / 0.48 + mod(row, 2.0) * 0.5, p.y / 0.72);'}
   vec2 f = fract(cell), aa = max(fwidth(cell), vec2(0.001));
   vec2 seam = smoothstep(vec2(0.012), vec2(0.012) + aa, min(f, 1.0 - f));
   owPavingJoint = 1.0 - seam.x * seam.y;
@@ -118,7 +117,7 @@ function pavingMaterial(wet: { value: number }) {
         `#include <roughnessmap_fragment>\nroughnessFactor = mix(0.87, 0.38, owPavingWet) + owPavingJoint * 0.08;`,
       );
   };
-  material.customProgramCacheKey = () => 'solvane-paving-v1';
+  material.customProgramCacheKey = () => `solvane-paving-v1:${urban}`;
   return material;
 }
 
@@ -249,8 +248,9 @@ export class RoadMeshes {
       puddles: 0.45,
     });
     // Photographed asphalt on Medium and above (ground/scanned-ground.ts).
-    for (const m of [asphaltMajor, asphalt, town])
-      installScannedMaps(m, 'asphalt', libraryAlbedo(m));
+    if (!field.region.survey)
+      for (const m of [asphaltMajor, asphalt, town])
+        installScannedMaps(m, 'asphalt', libraryAlbedo(m));
     for (const [m, units] of [
       [asphaltMajor, -4],
       [asphalt, -3],
@@ -283,7 +283,7 @@ export class RoadMeshes {
       town,
       dirt: installScannedDirt(dirtMaterial()),
       verge: installScannedVerge(vergeMaterial()),
-      paving: pavingMaterial(this.pavingWet),
+      paving: pavingMaterial(this.pavingWet, !!field.region.survey),
       paint,
       yellow,
       rail: Object.assign(materials.metal({ kind: 'bare', metal: 'steel', roughness: 0.42 }), {
@@ -512,6 +512,9 @@ export class RoadMeshes {
         layer: 'paint',
         junction: false,
       });
+    } else if (spec.markings === 'double-yellow') {
+      for (const lateral of [-0.13, 0.13])
+        lines.push({ lateral, width: 0.115, dash: 0, gap: 0, layer: 'yellow', junction: false });
     } else if (spec.markings === 'centre') {
       lines.push({ ...edgeLine, lateral: -(hw - 0.27) }, { ...edgeLine, lateral: hw - 0.27 });
       const solid = e.roadClass === 'mountain';
