@@ -17,16 +17,41 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci --no-audit --no-fund
+      - name: Obtain licensed open street geometry
+        run: |
+          curl --fail --retry 2 --max-time 90 -A 'CharlottetownGameReference/1.0' 'https://www.openstreetmap.org/api/0.6/map?bbox=-63.140,46.2337,-63.119,46.2430' -o /tmp/charlottetown.osm
+          cp /tmp/charlottetown.osm WORKSPACE_CHARLOTTETOWN.osm
+      - name: Package source and dependencies
+        run: |
+          git rev-parse HEAD > WORKSPACE_COMMIT.txt
+          tar --exclude=.git --exclude=public --exclude=.playwright -czf /tmp/charlottetown-source.tar.gz .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: charlottetown-source
+          path: /tmp/charlottetown-source.tar.gz
+          retention-days: 2
       - name: Install validation browser
         run: npx playwright install chromium
         env:
           PLAYWRIGHT_BROWSERS_PATH: .playwright
-      - name: Package current source and offline dependencies
+      - name: Package runtime assets
         run: |
-          git rev-parse HEAD > WORKSPACE_COMMIT.txt
-          tar --exclude=.git -czf /tmp/charlottetown-workspace.tar.gz .
+          tar -czf /tmp/charlottetown-assets.tar.gz public .playwright
+          split -b 320M /tmp/charlottetown-assets.tar.gz /tmp/charlottetown-assets.part-
       - uses: actions/upload-artifact@v4
         with:
-          name: charlottetown-workspace
-          path: /tmp/charlottetown-workspace.tar.gz
+          name: charlottetown-assets-aa
+          path: /tmp/charlottetown-assets.part-aa
+          retention-days: 2
+      - uses: actions/upload-artifact@v4
+        with:
+          name: charlottetown-assets-ab
+          path: /tmp/charlottetown-assets.part-ab
+          if-no-files-found: ignore
+          retention-days: 2
+      - uses: actions/upload-artifact@v4
+        with:
+          name: charlottetown-assets-ac
+          path: /tmp/charlottetown-assets.part-ac
+          if-no-files-found: ignore
           retention-days: 2
