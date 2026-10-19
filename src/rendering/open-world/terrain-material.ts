@@ -271,12 +271,14 @@ ${SCAN_COMMON_GLSL}`,
     vec2 fcell = floor(fg), ff = fract(fg);
     float kind = owHash(fcell + 29.0), kind2 = owHash(fcell + 53.0);
     float rowCoord = (kind2 < 0.5 ? p.x : p.y) / 1.1;
-    // Rows fade to their average once a row is under ~2 px wide: at grazing
+    // Plant rows broken by gaps and uneven growth (a crop, not a mown lawn),
+    // faded to their average once a row is under ~2 px wide: at grazing
     // angles undamped 1.1 m rows alias into converging bands.
-    float rowsF = mix(0.5, smoothstep(0.3, 0.7, abs(fract(rowCoord) - 0.5) * 2.0),
-      1.0 - smoothstep(0.2, 0.5, fwidth(rowCoord)));
+    float rowBreak = 0.35 + 0.65 * owNoise(vec2(rowCoord * 0.7, (kind2 < 0.5 ? p.y : p.x) * 0.45));
+    float rowsF = 0.5 + (smoothstep(0.3, 0.7, abs(fract(rowCoord) - 0.5) * 2.0) - 0.5) * rowBreak
+      * (1.0 - smoothstep(0.2, 0.5, fwidth(rowCoord)));
     vec3 tilled = mix(vec3(0.12, 0.085, 0.055), vec3(0.19, 0.14, 0.095), micro);
-    vec3 veg = mix(tilled, vec3(0.07, 0.14, 0.035) * (0.8 + 0.4 * kind2), mix(0.55, rowsF, near));
+    vec3 veg = mix(tilled, vec3(0.07, 0.14, 0.035) * (0.8 + 0.4 * kind2), mix(0.55, rowsF, near * 0.7));
     vec3 tea = mix(vec3(0.03, 0.06, 0.02), vec3(0.065, 0.11, 0.03), mix(0.6, rowsF, near));
     bool teaPlot = kind >= 0.55 && kind < 0.7;
     vec3 cropC = kind < 0.35 ? veg : (kind < 0.55 ? tilled : (teaPlot ? tea : grass * (0.9 + 0.2 * kind2)));

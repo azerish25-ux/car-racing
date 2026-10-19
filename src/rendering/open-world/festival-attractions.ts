@@ -6,8 +6,8 @@ import type { Structure } from '../../simulation/open-world/placement.ts';
 /** Ferris wheel (refs 072, 079): 46 m wheel on a 26 m axle, 36 gondolas. */
 const WHEEL = Object.freeze({ radius: 23, axle: 26.5, gondolas: 36, revolution: 540 });
 /** Fireworks (ref 072): shells per show, sparks per shell, burst height. */
-const SHELLS = 10;
-const SPARKS = 140;
+const SHELLS = 18;
+const SPARKS = 220;
 /** Preferred wheel sites beside the Kestrel hub, first clear one wins. */
 const SITES: readonly (readonly [number, number])[] = [
   [2010, 1700],
@@ -146,13 +146,15 @@ varying float vAlpha;
 float hash(float n) { return fract(sin(n) * 43758.5453); }
 void main() {
   float shell = floor(spark.w);
-  float period = 5.5 + hash(shell * 3.1) * 4.0;
+  // A shell every ~0.3 s across the show (ref 072: several bursts at once).
+  float period = 3.6 + hash(shell * 3.1) * 2.6;
   float t = mod(fwTime + hash(shell * 7.7) * period, period);
   float burst = 1.2;
-  vec3 centre = vec3((hash(shell * 1.3) - 0.5) * 260.0, 150.0 + hash(shell * 2.9) * 110.0,
+  vec3 centre = vec3((hash(shell * 1.3) - 0.5) * 220.0, 120.0 + hash(shell * 2.9) * 120.0,
                      (hash(shell * 5.1) - 0.5) * 200.0);
   float life = t - burst;
-  float speed = 32.0 + hash(shell * 9.2) * 22.0;
+  // Peony/chrysanthemum stars: 45-75 m/s, a 60-110 m burst.
+  float speed = 45.0 + hash(shell * 9.2) * 30.0;
   vec3 p;
   if (life < 0.0) {
     // The rising shell: a single bright tracer (all sparks together).
@@ -161,7 +163,7 @@ void main() {
   } else {
     float drag = (1.0 - exp(-life * 1.6)) / 1.6;
     p = centre + spark.xyz * speed * drag - vec3(0.0, 4.9 * life * life * 0.55, 0.0);
-    vAlpha = clamp(1.0 - life / 2.6, 0.0, 1.0) * (0.75 + 0.25 * sin(life * 40.0 + spark.w * 17.0));
+    vAlpha = clamp(1.0 - life / 3.0, 0.0, 1.0) * (0.75 + 0.25 * sin(life * 40.0 + spark.w * 17.0));
   }
   vec3 a = vec3(1.0, 0.45 + 0.4 * hash(shell), 0.2);
   vec3 b = vec3(1.0, 0.3, 0.75);
@@ -171,7 +173,7 @@ void main() {
   vColour = mix(vColour, vec3(1.0, 0.95, 0.85), 0.35 * step(0.85, fract(spark.w * 13.0)));
   vec4 view = modelViewMatrix * vec4(p, 1.0);
   gl_Position = projectionMatrix * view;
-  gl_PointSize = clamp(2600.0 / -view.z, 1.5, 9.0);
+  gl_PointSize = clamp(5200.0 / -view.z, 2.0, 14.0);
 }`,
         fragmentShader: /* glsl */ `
 uniform float fwShow;
