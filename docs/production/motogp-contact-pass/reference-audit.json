@@ -1,0 +1,1011 @@
+{
+  "baseline": "88e604b",
+  "pack_sha256": "478517180397aa7022b508264e2e6383f721ea930a4035ef314e2e8fb421e7c6",
+  "verified_reference_payloads": 100,
+  "reference_review": "Reopened the five supplied category contact sheets; relevant close-up originals inspected by the rendering reviewers. The prior complete one-by-one ledger remains docs/MOTOGP_THREEJS_REFERENCE_REVIEW.md.",
+  "scope_limit": "Visual cues guide original rendering and feedback. Still images do not establish force coefficients, AI control laws or source-game parity. Context and retained-prior-review entries do not claim new implementation of their entire scenes.",
+  "references": [
+    {
+      "number": 1,
+      "file": "01_official_ps5_store/REF_001_candidate_0001.jpg",
+      "sha256": "b84362eab51ab28c8136ab297a7b011f0cc8f9184b1d738c0086f2d13b870bcb",
+      "source_page": "https://store.playstation.com/en-ca/product/EP4356-PPSA32557_00-MOTOGP26FULLGAME",
+      "direct_media_url": "https://image.api.playstation.com/vulcan/ap/rnd/202604/2414/11bd3d13537bd9c1c205da8ecd33297dc179c8f2c10e0bab.jpg",
+      "this_pass": [
+        "radiator-construction"
+      ]
+    },
+    {
+      "number": 2,
+      "file": "01_official_ps5_store/REF_002_candidate_0002.jpg",
+      "sha256": "a3741289c3813d37b887934e7eac9a6ea1a1c3272aeaf990e20fdb03130bdf40",
+      "source_page": "https://store.playstation.com/en-ca/product/EP4356-PPSA32557_00-MOTOGP26FULLGAME",
+      "direct_media_url": "https://image.api.playstation.com/vulcan/ap/rnd/202604/2414/729eb62843d808ec418e144d07be3eac76ebae14a69120e2.jpg",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 3,
+      "file": "01_official_ps5_store/REF_003_candidate_0003.jpg",
+      "sha256": "343a6072fb69f9887b3ebe4e50b78f8543de556d73eccb3345658485c2e30ccb",
+      "source_page": "https://store.playstation.com/en-ca/product/EP4356-PPSA32557_00-MOTOGP26FULLGAME",
+      "direct_media_url": "https://image.api.playstation.com/vulcan/ap/rnd/202604/2414/3669d357aa15b99dcdc6136d9ffa5833bb73e3ec83e9f66b.jpg",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 4,
+      "file": "01_official_ps5_store/REF_004_candidate_0004.jpg",
+      "sha256": "c7b8f6484f389cf37cbe1938a773f0d66617e6ce9fa44685e34603b64093daf1",
+      "source_page": "https://store.playstation.com/en-ca/product/EP4356-PPSA32557_00-MOTOGP26FULLGAME",
+      "direct_media_url": "https://image.api.playstation.com/vulcan/ap/rnd/202604/2414/307b867d24416c2b61af0d0310b6cb738b9b8cb519f0b468.jpg",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 5,
+      "file": "01_official_ps5_store/REF_005_candidate_0005.jpg",
+      "sha256": "bcb937ed6d7ad5b859c83e59005d57a7b40f88e90b4f9d2711c4c2e4d46f2e88",
+      "source_page": "https://store.playstation.com/en-ca/product/EP4356-PPSA32557_00-MOTOGP26FULLGAME",
+      "direct_media_url": "https://image.api.playstation.com/vulcan/ap/rnd/202604/2414/1f3dd6f7c37a75ed1df86de5c5f62bdfee5c19b3ec6cd861.jpg",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 6,
+      "file": "01_official_ps5_store/REF_006_candidate_0006.jpg",
+      "sha256": "450108af626e6534fe2f35ed67e6d31dc0073447007af103d9593aad79399305",
+      "source_page": "https://store.playstation.com/en-ca/product/EP4356-PPSA32557_00-MOTOGP26FULLGAME",
+      "direct_media_url": "https://image.api.playstation.com/vulcan/ap/rnd/202604/2414/0462ab6853d83a1b236e27a224f18d606b6c7fb18f444c32.jpg",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 7,
+      "file": "01_official_ps5_store/REF_007_candidate_0007.jpg",
+      "sha256": "6b75fe8f1f1b79df2281882270449b926169e8c19f54c08d45dbd0ae6a04a66f",
+      "source_page": "https://store.playstation.com/en-ca/product/EP4356-PPSA32557_00-MOTOGP26FULLGAME",
+      "direct_media_url": "https://image.api.playstation.com/vulcan/ap/rnd/202604/2414/7124756e599936e8805d922b8d2024ebd15149ad0bee9065.jpg",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 8,
+      "file": "01_official_ps5_store/REF_008_candidate_0008.jpg",
+      "sha256": "2f7c2df0335d4e4176498b3733391e1d60213dfce226cbcb3b331dd17c87a6be",
+      "source_page": "https://store.playstation.com/en-ca/product/EP4356-PPSA32557_00-MOTOGP26FULLGAME",
+      "direct_media_url": "https://image.api.playstation.com/vulcan/ap/rnd/202604/2414/eb6ec7f711f0dd3fdbd353cb8df7828da9b294df5adf7b6c.jpg",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 9,
+      "file": "01_official_ps5_store/REF_009_candidate_0009.jpg",
+      "sha256": "a22ca34ae1c75159d22c0c7214bf529c5683c466aea84f5a8c9c8459287675a7",
+      "source_page": "https://store.playstation.com/en-ca/product/EP4356-PPSA32557_00-MOTOGP26FULLGAME",
+      "direct_media_url": "https://image.api.playstation.com/vulcan/ap/rnd/202604/2414/06ba278175cb3319cab41cfc14285e1acc10a0f88f802fa4.jpg",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 10,
+      "file": "01_official_ps5_store/REF_010_candidate_0010.jpg",
+      "sha256": "b075be8a32703a4802e41ddd241049f96e027743ef69525dc715086f6bc83f93",
+      "source_page": "https://store.playstation.com/en-ca/product/EP4356-PPSA32557_00-MOTOGP26FULLGAME",
+      "direct_media_url": "https://image.api.playstation.com/vulcan/ap/rnd/202604/2414/dd80238949f41d838dccd0d759f6ca535b1e5655f0c2ca4f.jpg",
+      "this_pass": [
+        "two-contact-wet-effects"
+      ]
+    },
+    {
+      "number": 11,
+      "file": "02_ui_menus_hud/REF_011_candidate_0011.jpg",
+      "sha256": "5f53c4bb2833fd5c49042b729db656c351d3b976634ce290a23048a68b7bad95",
+      "source_page": "https://www.everyeye.it/",
+      "direct_media_url": "https://images.everyeye.it/img-screenshot/motogp-26-v1-930369-1280x16.webp",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 12,
+      "file": "02_ui_menus_hud/REF_012_candidate_0012.jpg",
+      "sha256": "df193ef51721f14a779984dd51e357c91d6d8c7c85e3ee37de51c5e905c4b224",
+      "source_page": "https://www.pcgames.de/",
+      "direct_media_url": "https://www.pcgames.de/screenshots/1280x1024/2026/05/07_MotoGP-26_PCG-Garage-pc-games.jpg",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 13,
+      "file": "02_ui_menus_hud/REF_013_candidate_0013.jpg",
+      "sha256": "97bc85bc7112d4efa40bb4a968829c36bbbfcd06f264e62be053ecf818bfa2b5",
+      "source_page": "https://testingbuddies.de/",
+      "direct_media_url": "https://backend.testingbuddies.de/uploads/moto_gp_26_12_af048fa5f2.webp",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 14,
+      "file": "03_gameplay_models_tracks/REF_014_candidate_0014.jpg",
+      "sha256": "96c75a68062ecf2785daa950b96fd36ba52b3a3fe0ec8b9ca278eb18d432d630",
+      "source_page": "https://www.redbull.com/",
+      "direct_media_url": "https://img.redbull.com/images/q_auto,f_auto/redbullcom/2026/4/27/pkgswauzdlsex929vcno/motogp-26-gameplay-brno",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 15,
+      "file": "03_gameplay_models_tracks/REF_015_candidate_0015.jpg",
+      "sha256": "4786737af8affae47288864274dafb07eef9a8a206d18459f4ef3c7a70cb1fc1",
+      "source_page": "https://www.enternity.gr/",
+      "direct_media_url": "https://www.enternity.gr/files/Image/Games/MotoGP_26/MotoGP_26_Review_Image_02.jpg",
+      "this_pass": [
+        "actionable-riding-feedback-context"
+      ]
+    },
+    {
+      "number": 16,
+      "file": "03_gameplay_models_tracks/REF_016_candidate_0016.jpg",
+      "sha256": "625811b015735e520957f9bd8a2c30ecb4b8c137dc282ba73e0e9cb9104b3fd2",
+      "source_page": "https://www.larazon.es/",
+      "direct_media_url": "https://fotografias-2.larazon.es/assets/2026/04/motogp-26-salida-639128339868969611.jpg",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 17,
+      "file": "03_gameplay_models_tracks/REF_017_candidate_0017.jpg",
+      "sha256": "b66c1559a2650df0208b5697e64b0849dbc243cd10f551f642ce1d8f714c81b1",
+      "source_page": "https://www.ppe.pl/",
+      "direct_media_url": "https://pliki.ppe.pl/storage/8155ebed61bf6cf0cefb/8155ebed61bf6cf0cefb.jpg",
+      "this_pass": [
+        "two-contact-wet-effects",
+        "actionable-riding-feedback-context"
+      ]
+    },
+    {
+      "number": 18,
+      "file": "03_gameplay_models_tracks/REF_018_candidate_0018.jpg",
+      "sha256": "00bd3c544fc28315189390e7385bca13607075a56e9583ae9d7d460d393c05e8",
+      "source_page": "https://www.gamereactor.se/",
+      "direct_media_url": "https://www.gamereactor.se/media/93/motogp26_4879313.jpg",
+      "this_pass": [
+        "independent-contact-grip-context"
+      ]
+    },
+    {
+      "number": 19,
+      "file": "03_gameplay_models_tracks/REF_019_candidate_0019.jpg",
+      "sha256": "bb3f07104daec87a7f56b88e099d72e155e0a3e001f8a0664b2f1888119f676f",
+      "source_page": "https://kotaku.com/games/motogp-26/gallery/1",
+      "direct_media_url": "https://kotaku.com/igdb/image/upload/t_original/sc12jl4.jpg",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 20,
+      "file": "03_gameplay_models_tracks/REF_020_candidate_0020.jpg",
+      "sha256": "9858e612e73459b2ff352b3ac4874eef3db02e8a945e2190d25847364bf776b6",
+      "source_page": "https://amp.sportmediaset.mediaset.it/sportmediaset/photogallery/110392702",
+      "direct_media_url": "https://img-api.cloud.mediaset.net/api/images/cu/v2/-/0/0/aHR0cHM6Ly9pbWctcHJvZC5zcG9ydG1lZGlhc2V0Lm1lZGlhc2V0Lml0L2ltYWdlcy8yMDI2LzAzLzI1LzEwMTcyMTY0Ni1iMDg2NzBhMC1hNzQ2LTQ5MGQtOWRjNy1jMjYwNDgxMDJjZWQuanBn?r=1",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 21,
+      "file": "03_gameplay_models_tracks/REF_021_candidate_0044.jpg",
+      "sha256": "110a4b7bdb5bbf366f7449e046bc450b70df237e5b3d901cb1289a20ea2dce05",
+      "source_page": "https://kotaku.com/games/motogp-26/gallery/2",
+      "direct_media_url": "https://kotaku.com/igdb/image/upload/t_original/sc12jl5.jpg",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 22,
+      "file": "03_gameplay_models_tracks/REF_022_candidate_0045.jpg",
+      "sha256": "bbaa37be774225250f387af16db3e44732ca0aea6298d0e2e544506a07e51864",
+      "source_page": "https://kotaku.com/games/motogp-26/gallery/3",
+      "direct_media_url": "https://kotaku.com/igdb/image/upload/t_original/sc12jl6.jpg",
+      "this_pass": [
+        "radiator-construction"
+      ]
+    },
+    {
+      "number": 23,
+      "file": "03_gameplay_models_tracks/REF_023_candidate_0046.jpg",
+      "sha256": "bf2e1318692231694627c42262f554221e4280b054ed96899a83de6e1868ea8a",
+      "source_page": "https://kotaku.com/games/motogp-26/gallery/4",
+      "direct_media_url": "https://kotaku.com/igdb/image/upload/t_original/sc12jl7.jpg",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 24,
+      "file": "03_gameplay_models_tracks/REF_024_candidate_0047.jpg",
+      "sha256": "0753a3b3bd31579310def5200de1cf0238b7ea449e9cf5cd78eb79214144062b",
+      "source_page": "https://kotaku.com/games/motogp-26/gallery/5",
+      "direct_media_url": "https://kotaku.com/igdb/image/upload/t_original/sc12jl8.jpg",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 25,
+      "file": "03_gameplay_models_tracks/REF_025_candidate_0048.jpg",
+      "sha256": "4cc46d5c8405dae66136ed41c55a0837077c0ef5fa3dad14e5fe8be36e35a4ac",
+      "source_page": "https://kotaku.com/games/motogp-26/gallery/6",
+      "direct_media_url": "https://kotaku.com/igdb/image/upload/t_original/sc12jl9.jpg",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 26,
+      "file": "03_gameplay_models_tracks/REF_026_candidate_0049.jpg",
+      "sha256": "3bea48f919adf91016c94b5757fcc1e0952a3cf241bad36950208125efd5d300",
+      "source_page": "https://kotaku.com/games/motogp-26/gallery/7",
+      "direct_media_url": "https://kotaku.com/igdb/image/upload/t_original/sc12jla.jpg",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 27,
+      "file": "03_gameplay_models_tracks/REF_027_candidate_0050.jpg",
+      "sha256": "dd7d66ffc47f08d31e5fb04c45bb3eff666176480a5d8912274385cddf3684cd",
+      "source_page": "https://kotaku.com/games/motogp-26/gallery/8",
+      "direct_media_url": "https://kotaku.com/igdb/image/upload/t_original/sc12jlb.jpg",
+      "this_pass": [
+        "actionable-riding-feedback-context"
+      ]
+    },
+    {
+      "number": 28,
+      "file": "03_gameplay_models_tracks/REF_028_candidate_0051.jpg",
+      "sha256": "34b10b48bbe6eab658903c48b29536f4b5cae8a91ec15eaa735e77e078c4beb1",
+      "source_page": "https://kotaku.com/games/motogp-26/gallery/9",
+      "direct_media_url": "https://kotaku.com/igdb/image/upload/t_original/sc12jlc.jpg",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 29,
+      "file": "03_gameplay_models_tracks/REF_029_candidate_0052.jpg",
+      "sha256": "a351affc12c2a10bdc75f62cb1572ad64f8b582a44e70201e99fc6c7fc1b18a8",
+      "source_page": "https://kotaku.com/games/motogp-26/gallery/10",
+      "direct_media_url": "https://kotaku.com/igdb/image/upload/t_original/sc12jld.jpg",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 30,
+      "file": "03_gameplay_models_tracks/REF_030_candidate_0055.jpg",
+      "sha256": "cfd6ab8f4bd16a80732269b56d12c4bbf9615fdae333661c6b87e174db6dad31",
+      "source_page": "https://amp.sportmediaset.mediaset.it/sportmediaset/photogallery/110392702",
+      "direct_media_url": "https://img-api.cloud.mediaset.net/api/images/cu/v2/-/0/0/aHR0cHM6Ly9pbWctcHJvZC5zcG9ydG1lZGlhc2V0Lm1lZGlhc2V0Lml0L2ltYWdlcy8yMDI2LzAzLzI1LzEwMTYxNTc0MC0wYTBmYTY5Ni03OGJkLTQwNWYtODMyYi0xYzQ5Y2M1ZjhmYTkuanBn?r=1",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 31,
+      "file": "03_gameplay_models_tracks/REF_031_candidate_0056.jpg",
+      "sha256": "6cc408eed20ba484b136b914f0a14159b0c12a766270f07b571cf7c4fa89284c",
+      "source_page": "https://amp.sportmediaset.mediaset.it/sportmediaset/photogallery/110392702",
+      "direct_media_url": "https://img-api.cloud.mediaset.net/api/images/cu/v2/-/0/0/aHR0cHM6Ly9pbWctcHJvZC5zcG9ydG1lZGlhc2V0Lm1lZGlhc2V0Lml0L2ltYWdlcy8yMDI2LzAzLzI1LzEwMTYxNTc0MS03NWNjMzljNS1mZThmLTRkNmEtYTVmZC01YWU0ODllYzcyNGMuanBn?r=1",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 32,
+      "file": "03_gameplay_models_tracks/REF_032_candidate_0057.jpg",
+      "sha256": "0123a8d391441706bcda3771df6b71b05d2d4bf9686694e7ee06da6f4d4bc526",
+      "source_page": "https://amp.sportmediaset.mediaset.it/sportmediaset/photogallery/110392702",
+      "direct_media_url": "https://img-api.cloud.mediaset.net/api/images/cu/v2/-/0/0/aHR0cHM6Ly9pbWctcHJvZC5zcG9ydG1lZGlhc2V0Lm1lZGlhc2V0Lml0L2ltYWdlcy8yMDI2LzAzLzI1LzEwMTYxNTc0MS1mYzc0NGNjZS1mYmE3LTRhNzUtOTllZS1kMTI0MDAxMjE4MWMuanBn?r=1",
+      "this_pass": [
+        "independent-contact-grip-context"
+      ]
+    },
+    {
+      "number": 33,
+      "file": "03_gameplay_models_tracks/REF_033_candidate_0058.jpg",
+      "sha256": "6d3a359b817b320845204c5e1c9338d0070580f65b7d3860861c601face9264b",
+      "source_page": "https://amp.sportmediaset.mediaset.it/sportmediaset/photogallery/110392702",
+      "direct_media_url": "https://img-api.cloud.mediaset.net/api/images/cu/v2/-/0/0/aHR0cHM6Ly9pbWctcHJvZC5zcG9ydG1lZGlhc2V0Lm1lZGlhc2V0Lml0L2ltYWdlcy8yMDI2LzAzLzI1LzEwMTYxNTc0MC1iNWRhZWFkYy01NDdjLTRkZjMtOWJlYy03OTk1MmViZTUyMzcuanBn?r=1",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 34,
+      "file": "03_gameplay_models_tracks/REF_034_candidate_0059.jpg",
+      "sha256": "6e33b0372f71830e3ddcb8a8c85522d3f910a808fd859922d379787da58d5d06",
+      "source_page": "https://amp.sportmediaset.mediaset.it/sportmediaset/photogallery/110392702",
+      "direct_media_url": "https://img-api.cloud.mediaset.net/api/images/cu/v2/-/0/0/aHR0cHM6Ly9pbWctcHJvZC5zcG9ydG1lZGlhc2V0Lm1lZGlhc2V0Lml0L2ltYWdlcy8yMDI2LzAzLzI1LzEwMTYxNTc0MC1jOWJkN2Y2NS03OTk2LTRlMmEtOTBlNC1lMDA5OWI2ZTlhMTAuanBn?r=1",
+      "this_pass": [
+        "two-contact-wet-effects"
+      ]
+    },
+    {
+      "number": 35,
+      "file": "03_gameplay_models_tracks/REF_035_candidate_0060.jpg",
+      "sha256": "9496fa64434c4a223f8786310180810f1b61acaeacd34fea6d9f23b028bf7b7d",
+      "source_page": "https://amp.sportmediaset.mediaset.it/sportmediaset/photogallery/110392702",
+      "direct_media_url": "https://img-api.cloud.mediaset.net/api/images/cu/v2/-/0/0/aHR0cHM6Ly9pbWctcHJvZC5zcG9ydG1lZGlhc2V0Lm1lZGlhc2V0Lml0L2ltYWdlcy8yMDI2LzAzLzI1LzEwMTcyMzM2Mi04ZTY3MzczNy1hN2M2LTQ2MmUtOWRhOS1hYWQyYTMxYjk0NmMuanBn?r=1",
+      "this_pass": [
+        "two-contact-wet-effects",
+        "actionable-riding-feedback-context"
+      ]
+    },
+    {
+      "number": 36,
+      "file": "03_gameplay_models_tracks/REF_036_candidate_0061.jpg",
+      "sha256": "3c615a65b92466e5a9647ed25689c030529a129c992a3dc05388ec68bbe3e843",
+      "source_page": "https://amp.sportmediaset.mediaset.it/sportmediaset/photogallery/110392702",
+      "direct_media_url": "https://img-api.cloud.mediaset.net/api/images/cu/v2/-/0/0/aHR0cHM6Ly9pbWctcHJvZC5zcG9ydG1lZGlhc2V0Lm1lZGlhc2V0Lml0L2ltYWdlcy8yMDI2LzAzLzI1LzEwMTcyMTY0Ny0xN2U0MjY2Zi0wZGQ3LTQ4OTUtOGFjZC05OTMwMmFiYmRhYzMuanBn?r=1",
+      "this_pass": [
+        "two-contact-wet-effects"
+      ]
+    },
+    {
+      "number": 37,
+      "file": "03_gameplay_models_tracks/REF_037_candidate_0062.jpg",
+      "sha256": "eb211b2314a47f8c19cf0c74baa726b3839c44ab71602f4a6e489afc3f335778",
+      "source_page": "https://amp.sportmediaset.mediaset.it/sportmediaset/photogallery/110392702",
+      "direct_media_url": "https://img-api.cloud.mediaset.net/api/images/cu/v2/-/0/0/aHR0cHM6Ly9pbWctcHJvZC5zcG9ydG1lZGlhc2V0Lm1lZGlhc2V0Lml0L2ltYWdlcy8yMDI2LzAzLzI1LzEwMTcyMzM1Ni0wNGNjMzEwNS01ZmQ1LTQxMTMtODMyNy01ZjdkYmU2YTJhYjIuanBn?r=1",
+      "this_pass": [
+        "two-contact-wet-effects"
+      ]
+    },
+    {
+      "number": 38,
+      "file": "03_gameplay_models_tracks/REF_038_candidate_0063.jpg",
+      "sha256": "87742d5beb685d09167094eb8e79150de5f25a131892369a460d3e29d89abfb4",
+      "source_page": "https://amp.sportmediaset.mediaset.it/sportmediaset/photogallery/110392702",
+      "direct_media_url": "https://img-api.cloud.mediaset.net/api/images/cu/v2/-/0/0/aHR0cHM6Ly9pbWctcHJvZC5zcG9ydG1lZGlhc2V0Lm1lZGlhc2V0Lml0L2ltYWdlcy8yMDI2LzAzLzI1LzEwMTcyMTY0Ni01M2FlODdjYS0zNjcxLTQ2NGMtODA3OC0xNDRiYTU3ZWE1NGMuanBn?r=1",
+      "this_pass": [
+        "two-contact-wet-effects"
+      ]
+    },
+    {
+      "number": 39,
+      "file": "03_gameplay_models_tracks/REF_039_candidate_0064.jpg",
+      "sha256": "e9458e0980d8d3cab62985339266148d3950c476325bde0389d22056086ebc68",
+      "source_page": "https://amp.sportmediaset.mediaset.it/sportmediaset/photogallery/110392702",
+      "direct_media_url": "https://img-api.cloud.mediaset.net/api/images/cu/v2/-/0/0/aHR0cHM6Ly9pbWctcHJvZC5zcG9ydG1lZGlhc2V0Lm1lZGlhc2V0Lml0L2ltYWdlcy8yMDI2LzAzLzI1LzEwMTcyMTY0Ni1jMzIyMzA5ZC0wNGUyLTQ3M2YtYjA0YS03NDA1MzM1YWYzM2EuanBn?r=1",
+      "this_pass": [
+        "independent-contact-grip-context"
+      ]
+    },
+    {
+      "number": 40,
+      "file": "03_gameplay_models_tracks/REF_040_candidate_0065.jpg",
+      "sha256": "6818d38c5a739d5627c59c7601939884344c31bb8f06a57ed4c4dc0538913a23",
+      "source_page": "https://amp.sportmediaset.mediaset.it/sportmediaset/photogallery/110392702",
+      "direct_media_url": "https://img-api.cloud.mediaset.net/api/images/cu/v2/-/0/0/aHR0cHM6Ly9pbWctcHJvZC5zcG9ydG1lZGlhc2V0Lm1lZGlhc2V0Lml0L2ltYWdlcy8yMDI2LzAzLzI1LzEwMTcyMTY0Ny05MDI1OTkzMC0zZmQxLTRmOWYtYjVjYy02ODQ0MDIzZjQyMTMuanBn?r=1",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 41,
+      "file": "03_gameplay_models_tracks/REF_041_candidate_0066.jpg",
+      "sha256": "0c9f840c95498afa2cb3ae885dbd36663836ce5ac3657dcfa526115755426c2f",
+      "source_page": "https://amp.sportmediaset.mediaset.it/sportmediaset/photogallery/110392702",
+      "direct_media_url": "https://img-api.cloud.mediaset.net/api/images/cu/v2/-/0/0/aHR0cHM6Ly9pbWctcHJvZC5zcG9ydG1lZGlhc2V0Lm1lZGlhc2V0Lml0L2ltYWdlcy8yMDI2LzAzLzI1LzEwMTcyMzc1Ny04YzQ3MTRjZS04MGE4LTQxYmMtYjBlOS1jNzk0YTU1N2ZmMTYuanBn?r=1",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 42,
+      "file": "03_gameplay_models_tracks/REF_042_candidate_0067.jpg",
+      "sha256": "4cfe3e5979315675fa457e326e5176b40350f6d8b459a2d8c7c732be35cebbdb",
+      "source_page": "https://amp.sportmediaset.mediaset.it/sportmediaset/photogallery/110392702",
+      "direct_media_url": "https://img-api.cloud.mediaset.net/api/images/cu/v2/-/0/0/aHR0cHM6Ly9pbWctcHJvZC5zcG9ydG1lZGlhc2V0Lm1lZGlhc2V0Lml0L2ltYWdlcy8yMDI2LzAzLzI1LzEwMTcyMTY0NS02MjZkZmRkYy1iOTUyLTQwOTAtOWVmZi0zYWNhOTZiNzAwMzYuanBn?r=1",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 43,
+      "file": "03_gameplay_models_tracks/REF_043_candidate_0068.jpg",
+      "sha256": "17086cb950cd43fabe692368cd3f65857d793521e665bf32375fbab7c68cae90",
+      "source_page": "https://amp.sportmediaset.mediaset.it/sportmediaset/photogallery/110392702",
+      "direct_media_url": "https://img-api.cloud.mediaset.net/api/images/cu/v2/-/0/0/aHR0cHM6Ly9pbWctcHJvZC5zcG9ydG1lZGlhc2V0Lm1lZGlhc2V0Lml0L2ltYWdlcy8yMDI2LzAzLzI1LzEwMTcyMzM0NC02ZDMwY2M3Ny02N2I4LTRiOTktOTI4ZS0zNWNkNzVkMjRmMDcuanBn?r=1",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 44,
+      "file": "03_gameplay_models_tracks/REF_044_candidate_0069.jpg",
+      "sha256": "184a8ecc17d6e4051c1a82dcb6a87d109b2ea9558393ea83d693f855ebf02cc8",
+      "source_page": "https://amp.sportmediaset.mediaset.it/sportmediaset/photogallery/110392702",
+      "direct_media_url": "https://img-api.cloud.mediaset.net/api/images/cu/v2/-/0/0/aHR0cHM6Ly9pbWctcHJvZC5zcG9ydG1lZGlhc2V0Lm1lZGlhc2V0Lml0L2ltYWdlcy8yMDI2LzAzLzI1LzEwMTcyMTY0Ny0yOTFiNjk2Ni05ZDFlLTRiOWUtOTY0Ny1hYjFlYmViMjg0YWIuanBn?r=1",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 45,
+      "file": "03_gameplay_models_tracks/REF_045_candidate_0070.jpg",
+      "sha256": "985ff52f3ecab69c2abc23e1e95e6f475ef9188844ad98e6b7aeba04c3c44ffc",
+      "source_page": "https://amp.sportmediaset.mediaset.it/sportmediaset/photogallery/110392702",
+      "direct_media_url": "https://img-api.cloud.mediaset.net/api/images/cu/v2/-/0/0/aHR0cHM6Ly9pbWctcHJvZC5zcG9ydG1lZGlhc2V0Lm1lZGlhc2V0Lml0L2ltYWdlcy8yMDI2LzAzLzI1LzEwMTcyMzU2MC1iMWNhNGExYi02OWY2LTRjZTMtYTU5Mi1mMGMzYTdmOTljOGQuanBn?r=1",
+      "this_pass": [
+        "actionable-riding-feedback-context"
+      ]
+    },
+    {
+      "number": 46,
+      "file": "03_gameplay_models_tracks/REF_046_candidate_0071.jpg",
+      "sha256": "e1866f02683479445e4db715b0e5ab455ecbb1724b3484136a069d6ce6837b57",
+      "source_page": "https://amp.sportmediaset.mediaset.it/sportmediaset/photogallery/110392702",
+      "direct_media_url": "https://img-api.cloud.mediaset.net/api/images/cu/v2/-/0/0/aHR0cHM6Ly9pbWctcHJvZC5zcG9ydG1lZGlhc2V0Lm1lZGlhc2V0Lml0L2ltYWdlcy8yMDI2LzAzLzI1LzEwMTcyMzMzOS03NTc0MTljNS1lYWFhLTRhOWItOTBmYS1jNTVhOGQ5YjUzN2IuanBn?r=1",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 47,
+      "file": "03_gameplay_models_tracks/REF_047_candidate_0072.jpg",
+      "sha256": "7b1ac10c950e85a44e1fbaa9c8475b4e93dab71cbc9f15c45d0e7936d84c74ad",
+      "source_page": "https://amp.sportmediaset.mediaset.it/sportmediaset/photogallery/110392702",
+      "direct_media_url": "https://img-api.cloud.mediaset.net/api/images/cu/v2/-/0/0/aHR0cHM6Ly9pbWctcHJvZC5zcG9ydG1lZGlhc2V0Lm1lZGlhc2V0Lml0L2ltYWdlcy8yMDI2LzAzLzI1LzEwMTcyMTY0OC0yMjMzMmUyNS03ZmIzLTRlZjMtOWUyNy1hYWIyNDk3ZDIwZWYuanBn?r=1",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 48,
+      "file": "04_official_trailer_frames/REF_048_video_01_ref_048_pass_01_047_14_6_frame_00002.jpg",
+      "sha256": "b9320a3e95fba3bc15d3b1f29587b4cad1befd5a01203c8c0e7e1dd1a3182a61",
+      "source_page": "https://store.steampowered.com/app/3875050/MotoGP26/",
+      "direct_media_url": "https://video.fastly.steamstatic.com/store_trailers/3875050/1550227610/c847b05ae66b201daf8759c50072ab7b96eaf3fd/1777298242/hls_264_master.m3u8?t=1777453556",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 49,
+      "file": "04_official_trailer_frames/REF_049_video_01_ref_049_pass_01_047_14_6_frame_00014.jpg",
+      "sha256": "b3a5b2f3e3e706fac99853c62c2ffe551384f66085b50da684ce52e12251a2e3",
+      "source_page": "https://store.steampowered.com/app/3875050/MotoGP26/",
+      "direct_media_url": "https://video.fastly.steamstatic.com/store_trailers/3875050/1550227610/c847b05ae66b201daf8759c50072ab7b96eaf3fd/1777298242/hls_264_master.m3u8?t=1777453556",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 50,
+      "file": "04_official_trailer_frames/REF_050_video_01_ref_050_pass_01_047_14_6_frame_00020.jpg",
+      "sha256": "0e0be08b262097b6d5a6847a8cc599a066970b61399fa151e74576fec620963f",
+      "source_page": "https://store.steampowered.com/app/3875050/MotoGP26/",
+      "direct_media_url": "https://video.fastly.steamstatic.com/store_trailers/3875050/1550227610/c847b05ae66b201daf8759c50072ab7b96eaf3fd/1777298242/hls_264_master.m3u8?t=1777453556",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 51,
+      "file": "04_official_trailer_frames/REF_051_video_01_ref_051_pass_01_047_14_6_frame_00038.jpg",
+      "sha256": "0b2f2ff12f9e8cc499bafa2951ce9c40be60320fb32499ed2a6d5aaf325b556b",
+      "source_page": "https://store.steampowered.com/app/3875050/MotoGP26/",
+      "direct_media_url": "https://video.fastly.steamstatic.com/store_trailers/3875050/1550227610/c847b05ae66b201daf8759c50072ab7b96eaf3fd/1777298242/hls_264_master.m3u8?t=1777453556",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 52,
+      "file": "04_official_trailer_frames/REF_052_video_01_ref_052_pass_01_047_14_6_frame_00044.jpg",
+      "sha256": "d617cfd83fa5e5efcc5dbe9931dd8d9dd17208afd2767ad98812d78e1cfb3681",
+      "source_page": "https://store.steampowered.com/app/3875050/MotoGP26/",
+      "direct_media_url": "https://video.fastly.steamstatic.com/store_trailers/3875050/1550227610/c847b05ae66b201daf8759c50072ab7b96eaf3fd/1777298242/hls_264_master.m3u8?t=1777453556",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 53,
+      "file": "04_official_trailer_frames/REF_053_video_01_ref_053_pass_01_047_14_6_frame_00050.jpg",
+      "sha256": "990bb62277028ecb6d8fe4f573cd635d1a432617f63ec990d4ac28aac19401f8",
+      "source_page": "https://store.steampowered.com/app/3875050/MotoGP26/",
+      "direct_media_url": "https://video.fastly.steamstatic.com/store_trailers/3875050/1550227610/c847b05ae66b201daf8759c50072ab7b96eaf3fd/1777298242/hls_264_master.m3u8?t=1777453556",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 54,
+      "file": "04_official_trailer_frames/REF_054_video_01_ref_054_pass_01_047_14_6_frame_00062.jpg",
+      "sha256": "28323035956cdd843389f59502be906fc943c3d90a3c48b5aed7dc76691205a2",
+      "source_page": "https://store.steampowered.com/app/3875050/MotoGP26/",
+      "direct_media_url": "https://video.fastly.steamstatic.com/store_trailers/3875050/1550227610/c847b05ae66b201daf8759c50072ab7b96eaf3fd/1777298242/hls_264_master.m3u8?t=1777453556",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 55,
+      "file": "04_official_trailer_frames/REF_055_video_01_ref_055_pass_01_047_14_6_frame_00074.jpg",
+      "sha256": "e6bdf92022729bc0b15b905376320a8e65d07b155e5196f7fe20b2b2372d5baa",
+      "source_page": "https://store.steampowered.com/app/3875050/MotoGP26/",
+      "direct_media_url": "https://video.fastly.steamstatic.com/store_trailers/3875050/1550227610/c847b05ae66b201daf8759c50072ab7b96eaf3fd/1777298242/hls_264_master.m3u8?t=1777453556",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 56,
+      "file": "05_official_ps5_detail_crops/REF_056_PS5_DETAIL_AERO_BODYWORK_RIDER.jpg",
+      "sha256": "b25f8de8ebd1303dc615014b395882e73dc4db048878a36e66a894009b36aeca",
+      "source_page": "https://store.playstation.com/en-ca/product/EP4356-PPSA32557_00-MOTOGP26FULLGAME",
+      "direct_media_url": "https://image.api.playstation.com/vulcan/ap/rnd/202604/2414/729eb62843d808ec418e144d07be3eac76ebae14a69120e2.jpg",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 57,
+      "file": "04_official_trailer_frames/REF_057_video_01_ref_057_pass_01_047_14_6_frame_00000.jpg",
+      "sha256": "e8038abd45494b4ff959ac4b0e412132d07a388cf916b4b9719011f1823ec7a3",
+      "source_page": "https://store.steampowered.com/app/3875050/MotoGP26/",
+      "direct_media_url": "https://video.fastly.steamstatic.com/store_trailers/3875050/1550227610/c847b05ae66b201daf8759c50072ab7b96eaf3fd/1777298242/hls_264_master.m3u8?t=1777453556",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 58,
+      "file": "04_official_trailer_frames/REF_058_video_01_ref_058_pass_01_047_14_6_frame_00001.jpg",
+      "sha256": "fd1a801dc6b58cc3ec9ddc407a791215c7390a4b1454460e409a891610242dea",
+      "source_page": "https://store.steampowered.com/app/3875050/MotoGP26/",
+      "direct_media_url": "https://video.fastly.steamstatic.com/store_trailers/3875050/1550227610/c847b05ae66b201daf8759c50072ab7b96eaf3fd/1777298242/hls_264_master.m3u8?t=1777453556",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 59,
+      "file": "04_official_trailer_frames/REF_059_video_01_ref_059_pass_01_047_14_6_frame_00004.jpg",
+      "sha256": "1defd8a1c2b71883239782d15264a18e917307e3c8b085f1eb931327369e3dc1",
+      "source_page": "https://store.steampowered.com/app/3875050/MotoGP26/",
+      "direct_media_url": "https://video.fastly.steamstatic.com/store_trailers/3875050/1550227610/c847b05ae66b201daf8759c50072ab7b96eaf3fd/1777298242/hls_264_master.m3u8?t=1777453556",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 60,
+      "file": "05_official_ps5_detail_crops/REF_060_PS5_DETAIL_FAIRINGS_WHEELS_LEAN.jpg",
+      "sha256": "6983a17ee84c8e295ec280a3b2f0e7da34108f5685be54790d2e64901d2112d3",
+      "source_page": "https://store.playstation.com/en-ca/product/EP4356-PPSA32557_00-MOTOGP26FULLGAME",
+      "direct_media_url": "https://image.api.playstation.com/vulcan/ap/rnd/202604/2414/3669d357aa15b99dcdc6136d9ffa5833bb73e3ec83e9f66b.jpg",
+      "this_pass": [
+        "independent-contact-grip-context"
+      ]
+    },
+    {
+      "number": 61,
+      "file": "04_official_trailer_frames/REF_061_video_01_ref_061_pass_01_047_14_6_frame_00009.jpg",
+      "sha256": "60c150b0fec1df8f2937e327c55c934fe828bf4762c150d323c59ed6542ad03e",
+      "source_page": "https://store.steampowered.com/app/3875050/MotoGP26/",
+      "direct_media_url": "https://video.fastly.steamstatic.com/store_trailers/3875050/1550227610/c847b05ae66b201daf8759c50072ab7b96eaf3fd/1777298242/hls_264_master.m3u8?t=1777453556",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 62,
+      "file": "04_official_trailer_frames/REF_062_video_02_ref_062_pass_02_061_13_6_frame_00008.jpg",
+      "sha256": "6e413799ccf8a441d965937bbb032a5ece06513f9093ddf0f20c90b63476be1e",
+      "source_page": "https://store.steampowered.com/app/3875050/MotoGP26/",
+      "direct_media_url": "https://video.fastly.steamstatic.com/store_trailers/3875050/1856245454/2a9c8befebc3d5c016971a1e37b594cb06cddd07/1772181888/hls_264_master.m3u8?t=1772704809",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 63,
+      "file": "04_official_trailer_frames/REF_063_video_02_ref_063_pass_02_061_13_6_frame_00020.jpg",
+      "sha256": "1a32f78fddc56c066d2e01d99e335b954485d9d92cf7794f06d12e859692c08a",
+      "source_page": "https://store.steampowered.com/app/3875050/MotoGP26/",
+      "direct_media_url": "https://video.fastly.steamstatic.com/store_trailers/3875050/1856245454/2a9c8befebc3d5c016971a1e37b594cb06cddd07/1772181888/hls_264_master.m3u8?t=1772704809",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 64,
+      "file": "04_official_trailer_frames/REF_064_video_02_ref_064_pass_02_061_13_6_frame_00026.jpg",
+      "sha256": "9145a4c5a5fe93423356ffe987f53959fa4aa6cb5b74b50f2df8da73633cce0f",
+      "source_page": "https://store.steampowered.com/app/3875050/MotoGP26/",
+      "direct_media_url": "https://video.fastly.steamstatic.com/store_trailers/3875050/1856245454/2a9c8befebc3d5c016971a1e37b594cb06cddd07/1772181888/hls_264_master.m3u8?t=1772704809",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 65,
+      "file": "04_official_trailer_frames/REF_065_video_02_ref_065_pass_02_061_13_6_frame_00032.jpg",
+      "sha256": "634ccdbd07cd67ffc559fc3cb4e90c6d5c5ffba8e32c0e8072f790c7fb53374c",
+      "source_page": "https://store.steampowered.com/app/3875050/MotoGP26/",
+      "direct_media_url": "https://video.fastly.steamstatic.com/store_trailers/3875050/1856245454/2a9c8befebc3d5c016971a1e37b594cb06cddd07/1772181888/hls_264_master.m3u8?t=1772704809",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 66,
+      "file": "04_official_trailer_frames/REF_066_video_02_ref_066_pass_02_061_13_6_frame_00038.jpg",
+      "sha256": "2876aa3d19262b2d6f0ec1c2e3abc93ca20f11e8dfb0121c78c778bb3b2f6f78",
+      "source_page": "https://store.steampowered.com/app/3875050/MotoGP26/",
+      "direct_media_url": "https://video.fastly.steamstatic.com/store_trailers/3875050/1856245454/2a9c8befebc3d5c016971a1e37b594cb06cddd07/1772181888/hls_264_master.m3u8?t=1772704809",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 67,
+      "file": "04_official_trailer_frames/REF_067_video_02_ref_067_pass_02_061_13_6_frame_00044.jpg",
+      "sha256": "6cb0735509e89a8f30e09e41654d5160e714c45e8006d7917d24a02e7bed5a96",
+      "source_page": "https://store.steampowered.com/app/3875050/MotoGP26/",
+      "direct_media_url": "https://video.fastly.steamstatic.com/store_trailers/3875050/1856245454/2a9c8befebc3d5c016971a1e37b594cb06cddd07/1772181888/hls_264_master.m3u8?t=1772704809",
+      "this_pass": [
+        "independent-contact-grip-context"
+      ]
+    },
+    {
+      "number": 68,
+      "file": "04_official_trailer_frames/REF_068_video_02_ref_068_pass_02_061_13_6_frame_00050.jpg",
+      "sha256": "2485116c9b53e1ccd7e98b7dd08539bddcb4087d10835427a7d97ffac7cc6cc5",
+      "source_page": "https://store.steampowered.com/app/3875050/MotoGP26/",
+      "direct_media_url": "https://video.fastly.steamstatic.com/store_trailers/3875050/1856245454/2a9c8befebc3d5c016971a1e37b594cb06cddd07/1772181888/hls_264_master.m3u8?t=1772704809",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 69,
+      "file": "04_official_trailer_frames/REF_069_video_02_ref_069_pass_02_061_13_6_frame_00056.jpg",
+      "sha256": "1e7df12ad0fac61f09dcda8f5149f81ee7c667ebe0aecd19c0cd49e91241c585",
+      "source_page": "https://store.steampowered.com/app/3875050/MotoGP26/",
+      "direct_media_url": "https://video.fastly.steamstatic.com/store_trailers/3875050/1856245454/2a9c8befebc3d5c016971a1e37b594cb06cddd07/1772181888/hls_264_master.m3u8?t=1772704809",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 70,
+      "file": "04_official_trailer_frames/REF_070_video_02_ref_070_pass_02_061_13_6_frame_00062.jpg",
+      "sha256": "4fba7eb25ec0128e7aef5bb5ea4602c6e34a35b3190e5fdb1830fe3e13c44cc8",
+      "source_page": "https://store.steampowered.com/app/3875050/MotoGP26/",
+      "direct_media_url": "https://video.fastly.steamstatic.com/store_trailers/3875050/1856245454/2a9c8befebc3d5c016971a1e37b594cb06cddd07/1772181888/hls_264_master.m3u8?t=1772704809",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 71,
+      "file": "04_official_trailer_frames/REF_071_video_02_ref_071_pass_02_061_13_6_frame_00068.jpg",
+      "sha256": "fb52560156425a4e7af52300b22fbce2624e237d5c25b9acb852695eca106bd7",
+      "source_page": "https://store.steampowered.com/app/3875050/MotoGP26/",
+      "direct_media_url": "https://video.fastly.steamstatic.com/store_trailers/3875050/1856245454/2a9c8befebc3d5c016971a1e37b594cb06cddd07/1772181888/hls_264_master.m3u8?t=1772704809",
+      "this_pass": [
+        "independent-contact-grip-context"
+      ]
+    },
+    {
+      "number": 72,
+      "file": "04_official_trailer_frames/REF_072_video_02_ref_072_pass_02_061_13_6_frame_00074.jpg",
+      "sha256": "afd1428b5a6b2bb7519473b54f874c0c012e7fe037c87e2476e26c6c66fc1a87",
+      "source_page": "https://store.steampowered.com/app/3875050/MotoGP26/",
+      "direct_media_url": "https://video.fastly.steamstatic.com/store_trailers/3875050/1856245454/2a9c8befebc3d5c016971a1e37b594cb06cddd07/1772181888/hls_264_master.m3u8?t=1772704809",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 73,
+      "file": "04_official_trailer_frames/REF_073_video_02_ref_073_pass_02_061_13_6_frame_00003.jpg",
+      "sha256": "1441bf23866b445dd371bd51b6c485a03707396dfb6b058037a07adbb5aceafa",
+      "source_page": "https://store.steampowered.com/app/3875050/MotoGP26/",
+      "direct_media_url": "https://video.fastly.steamstatic.com/store_trailers/3875050/1856245454/2a9c8befebc3d5c016971a1e37b594cb06cddd07/1772181888/hls_264_master.m3u8?t=1772704809",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 74,
+      "file": "04_official_trailer_frames/REF_074_video_02_ref_074_pass_02_061_13_6_frame_00075.jpg",
+      "sha256": "77cb2de81910f464a6cf6033b46c5e3de2ef5a1f43d7baf2238abc31a8ef5eeb",
+      "source_page": "https://store.steampowered.com/app/3875050/MotoGP26/",
+      "direct_media_url": "https://video.fastly.steamstatic.com/store_trailers/3875050/1856245454/2a9c8befebc3d5c016971a1e37b594cb06cddd07/1772181888/hls_264_master.m3u8?t=1772704809",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 75,
+      "file": "04_official_trailer_frames/REF_075_video_01_ref_075_pass_01_074_6_11_frame_00016.jpg",
+      "sha256": "6a1cccc0e137c8d9da528c418e82b3a2f27ac66f34d8c55f8c7925955a7a628c",
+      "source_page": "https://store.steampowered.com/app/3875050/MotoGP26/",
+      "direct_media_url": "https://video.fastly.steamstatic.com/store_trailers/3875050/1550227610/c847b05ae66b201daf8759c50072ab7b96eaf3fd/1777298242/hls_264_master.m3u8?t=1777453556",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 76,
+      "file": "04_official_trailer_frames/REF_076_video_01_ref_076_pass_01_074_6_11_frame_00027.jpg",
+      "sha256": "e88eb852b8717c7738cac3e173a59994cd6e3bed0ca0a2aeb91c916b73630439",
+      "source_page": "https://store.steampowered.com/app/3875050/MotoGP26/",
+      "direct_media_url": "https://video.fastly.steamstatic.com/store_trailers/3875050/1550227610/c847b05ae66b201daf8759c50072ab7b96eaf3fd/1777298242/hls_264_master.m3u8?t=1777453556",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 77,
+      "file": "04_official_trailer_frames/REF_077_video_01_ref_077_pass_01_074_6_11_frame_00038.jpg",
+      "sha256": "e5eaf2e1dce91fdcb92837c4ecced3436cc16151e7e9f182fcc49225434a7bdc",
+      "source_page": "https://store.steampowered.com/app/3875050/MotoGP26/",
+      "direct_media_url": "https://video.fastly.steamstatic.com/store_trailers/3875050/1550227610/c847b05ae66b201daf8759c50072ab7b96eaf3fd/1777298242/hls_264_master.m3u8?t=1777453556",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 78,
+      "file": "04_official_trailer_frames/REF_078_video_01_ref_078_pass_01_074_6_11_frame_00049.jpg",
+      "sha256": "0144905a82c90c9a2592e398cafd179cfec68b4991d2f05fa2227056ae7dc4e7",
+      "source_page": "https://store.steampowered.com/app/3875050/MotoGP26/",
+      "direct_media_url": "https://video.fastly.steamstatic.com/store_trailers/3875050/1550227610/c847b05ae66b201daf8759c50072ab7b96eaf3fd/1777298242/hls_264_master.m3u8?t=1777453556",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 79,
+      "file": "04_official_trailer_frames/REF_079_video_01_ref_079_pass_01_074_6_11_frame_00000.jpg",
+      "sha256": "d430318d12136f9b420e1fab84262334a1c7b0237fffab99ad6db20a558984ed",
+      "source_page": "https://store.steampowered.com/app/3875050/MotoGP26/",
+      "direct_media_url": "https://video.fastly.steamstatic.com/store_trailers/3875050/1550227610/c847b05ae66b201daf8759c50072ab7b96eaf3fd/1777298242/hls_264_master.m3u8?t=1777453556",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 80,
+      "file": "04_official_trailer_frames/REF_080_video_01_ref_080_pass_01_074_6_11_frame_00001.jpg",
+      "sha256": "840af5085a193dad8a6f335804b7ed2b2bbb8cfaadd117dc5759fe832132c97a",
+      "source_page": "https://store.steampowered.com/app/3875050/MotoGP26/",
+      "direct_media_url": "https://video.fastly.steamstatic.com/store_trailers/3875050/1550227610/c847b05ae66b201daf8759c50072ab7b96eaf3fd/1777298242/hls_264_master.m3u8?t=1777453556",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 81,
+      "file": "04_official_trailer_frames/REF_081_video_02_ref_081_pass_02_080_6_11_frame_00005.jpg",
+      "sha256": "2132b94d283bde04397ea8ca5c42da45ec6bd1090449ffa14622acd49b0af6c9",
+      "source_page": "https://store.steampowered.com/app/3875050/MotoGP26/",
+      "direct_media_url": "https://video.fastly.steamstatic.com/store_trailers/3875050/1856245454/2a9c8befebc3d5c016971a1e37b594cb06cddd07/1772181888/hls_264_master.m3u8?t=1772704809",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 82,
+      "file": "04_official_trailer_frames/REF_082_video_02_ref_082_pass_02_080_6_11_frame_00016.jpg",
+      "sha256": "7b87f15db735b58bd86ef4530a37d410f033db4cb0e9ae89dd859ff53da43ef5",
+      "source_page": "https://store.steampowered.com/app/3875050/MotoGP26/",
+      "direct_media_url": "https://video.fastly.steamstatic.com/store_trailers/3875050/1856245454/2a9c8befebc3d5c016971a1e37b594cb06cddd07/1772181888/hls_264_master.m3u8?t=1772704809",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 83,
+      "file": "04_official_trailer_frames/REF_083_video_02_ref_083_pass_02_080_6_11_frame_00038.jpg",
+      "sha256": "160d374fa8826c31573dbe113f193b47c3d9d41cd37854b7b87ba6876f543e96",
+      "source_page": "https://store.steampowered.com/app/3875050/MotoGP26/",
+      "direct_media_url": "https://video.fastly.steamstatic.com/store_trailers/3875050/1856245454/2a9c8befebc3d5c016971a1e37b594cb06cddd07/1772181888/hls_264_master.m3u8?t=1772704809",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 84,
+      "file": "04_official_trailer_frames/REF_084_video_02_ref_084_pass_02_080_6_11_frame_00049.jpg",
+      "sha256": "63b043e263074f81cf4f7eedbbc529c13cb829991e51bd745ab05076fcb98584",
+      "source_page": "https://store.steampowered.com/app/3875050/MotoGP26/",
+      "direct_media_url": "https://video.fastly.steamstatic.com/store_trailers/3875050/1856245454/2a9c8befebc3d5c016971a1e37b594cb06cddd07/1772181888/hls_264_master.m3u8?t=1772704809",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 85,
+      "file": "04_official_trailer_frames/REF_085_video_02_ref_085_pass_02_080_6_11_frame_00060.jpg",
+      "sha256": "31314d5682b71914c62f480e6ae58de65a7f7683cc2aed60c2d45c7fd670a9c4",
+      "source_page": "https://store.steampowered.com/app/3875050/MotoGP26/",
+      "direct_media_url": "https://video.fastly.steamstatic.com/store_trailers/3875050/1856245454/2a9c8befebc3d5c016971a1e37b594cb06cddd07/1772181888/hls_264_master.m3u8?t=1772704809",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 86,
+      "file": "04_official_trailer_frames/REF_086_video_02_ref_086_pass_02_080_6_11_frame_00063.jpg",
+      "sha256": "43e782601a6a7353888866de849c1844b0f780979687841dfcca9eeb1be3c203",
+      "source_page": "https://store.steampowered.com/app/3875050/MotoGP26/",
+      "direct_media_url": "https://video.fastly.steamstatic.com/store_trailers/3875050/1856245454/2a9c8befebc3d5c016971a1e37b594cb06cddd07/1772181888/hls_264_master.m3u8?t=1772704809",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 87,
+      "file": "04_official_trailer_frames/REF_087_video_01_ref_087_pass_01_086_6_14_frame_00034.jpg",
+      "sha256": "533e2916681ba97b49f5a69d4febc7614d8700a149d04d888a9286f789bed46f",
+      "source_page": "https://store.steampowered.com/app/3875050/MotoGP26/",
+      "direct_media_url": "https://video.fastly.steamstatic.com/store_trailers/3875050/1550227610/c847b05ae66b201daf8759c50072ab7b96eaf3fd/1777298242/hls_264_master.m3u8?t=1777453556",
+      "this_pass": [
+        "independent-contact-grip-context"
+      ]
+    },
+    {
+      "number": 88,
+      "file": "04_official_trailer_frames/REF_088_video_01_ref_088_pass_01_086_6_14_frame_00048.jpg",
+      "sha256": "dd1dfc0a5e6af6a4e93348f050e813541df4d8fd985bb0242d11c91e3150d128",
+      "source_page": "https://store.steampowered.com/app/3875050/MotoGP26/",
+      "direct_media_url": "https://video.fastly.steamstatic.com/store_trailers/3875050/1550227610/c847b05ae66b201daf8759c50072ab7b96eaf3fd/1777298242/hls_264_master.m3u8?t=1777453556",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 89,
+      "file": "04_official_trailer_frames/REF_089_video_01_ref_089_pass_01_086_6_14_frame_00075.jpg",
+      "sha256": "4f4840a6b514e32ad5471c8b2d9cbb3843dc559b82490a7ebcbfb746d1ea21c4",
+      "source_page": "https://store.steampowered.com/app/3875050/MotoGP26/",
+      "direct_media_url": "https://video.fastly.steamstatic.com/store_trailers/3875050/1550227610/c847b05ae66b201daf8759c50072ab7b96eaf3fd/1777298242/hls_264_master.m3u8?t=1777453556",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 90,
+      "file": "04_official_trailer_frames/REF_090_video_01_ref_090_pass_01_086_6_14_frame_00073.jpg",
+      "sha256": "61c969c4b8274a57562bd14dec9b96dc50f5b20f24f1254975b9f3c39014e5a4",
+      "source_page": "https://store.steampowered.com/app/3875050/MotoGP26/",
+      "direct_media_url": "https://video.fastly.steamstatic.com/store_trailers/3875050/1550227610/c847b05ae66b201daf8759c50072ab7b96eaf3fd/1777298242/hls_264_master.m3u8?t=1777453556",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 91,
+      "file": "04_official_trailer_frames/REF_091_video_01_ref_091_pass_01_086_6_14_frame_00011.jpg",
+      "sha256": "61ac45becde65a82bab0b154b8df7ace9f2f1f071bd6a0b5c9bcc1c8c857bda6",
+      "source_page": "https://store.steampowered.com/app/3875050/MotoGP26/",
+      "direct_media_url": "https://video.fastly.steamstatic.com/store_trailers/3875050/1550227610/c847b05ae66b201daf8759c50072ab7b96eaf3fd/1777298242/hls_264_master.m3u8?t=1777453556",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 92,
+      "file": "04_official_trailer_frames/REF_092_video_01_ref_092_pass_01_086_6_14_frame_00072.jpg",
+      "sha256": "84e852ba565c994fe4a545f64739e265ee1a11a71a89c06668bb9531a72c8afd",
+      "source_page": "https://store.steampowered.com/app/3875050/MotoGP26/",
+      "direct_media_url": "https://video.fastly.steamstatic.com/store_trailers/3875050/1550227610/c847b05ae66b201daf8759c50072ab7b96eaf3fd/1777298242/hls_264_master.m3u8?t=1777453556",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 93,
+      "file": "05_official_ps5_detail_crops/REF_093_PS5_DETAIL_DIRT_RIDER_SUSPENSION.jpg",
+      "sha256": "2042946d60959c0c685acc5ea32361a111a195d7e26e7251ec85b966148332f3",
+      "source_page": "https://store.playstation.com/en-ca/product/EP4356-PPSA32557_00-MOTOGP26FULLGAME",
+      "direct_media_url": "https://image.api.playstation.com/vulcan/ap/rnd/202604/2414/1f3dd6f7c37a75ed1df86de5c5f62bdfee5c19b3ec6cd861.jpg",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 94,
+      "file": "04_official_trailer_frames/REF_094_video_02_ref_094_pass_02_092_6_14_frame_00020.jpg",
+      "sha256": "dbc63b27255fc3e2b04ddea2f0199e2b7214a2b9ac67d0d53a90595ab12dcad8",
+      "source_page": "https://store.steampowered.com/app/3875050/MotoGP26/",
+      "direct_media_url": "https://video.fastly.steamstatic.com/store_trailers/3875050/1856245454/2a9c8befebc3d5c016971a1e37b594cb06cddd07/1772181888/hls_264_master.m3u8?t=1772704809",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 95,
+      "file": "04_official_trailer_frames/REF_095_video_02_ref_095_pass_02_092_6_14_frame_00034.jpg",
+      "sha256": "1b348d9b9d0be60d78c444e7b43dfbb65ebff47060c603cd5e22b3bbdc0fd4ef",
+      "source_page": "https://store.steampowered.com/app/3875050/MotoGP26/",
+      "direct_media_url": "https://video.fastly.steamstatic.com/store_trailers/3875050/1856245454/2a9c8befebc3d5c016971a1e37b594cb06cddd07/1772181888/hls_264_master.m3u8?t=1772704809",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 96,
+      "file": "05_official_ps5_detail_crops/REF_096_PS5_DETAIL_WET_MATERIALS_TIRE.jpg",
+      "sha256": "8f0ce89251e7322febda3f069e9bae53c395f6a27882d1fcd5e91d70dc5f0193",
+      "source_page": "https://store.playstation.com/en-ca/product/EP4356-PPSA32557_00-MOTOGP26FULLGAME",
+      "direct_media_url": "https://image.api.playstation.com/vulcan/ap/rnd/202604/2414/dd80238949f41d838dccd0d759f6ca535b1e5655f0c2ca4f.jpg",
+      "this_pass": [
+        "two-contact-wet-effects"
+      ]
+    },
+    {
+      "number": 97,
+      "file": "04_official_trailer_frames/REF_097_video_02_ref_097_pass_02_092_6_14_frame_00062.jpg",
+      "sha256": "d358c5e789ae0a4efc0ecef87f3bf3c1d08b283c32efd6294505907097aea02d",
+      "source_page": "https://store.steampowered.com/app/3875050/MotoGP26/",
+      "direct_media_url": "https://video.fastly.steamstatic.com/store_trailers/3875050/1856245454/2a9c8befebc3d5c016971a1e37b594cb06cddd07/1772181888/hls_264_master.m3u8?t=1772704809",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 98,
+      "file": "04_official_trailer_frames/REF_098_video_02_ref_098_pass_02_092_6_14_frame_00076.jpg",
+      "sha256": "959eb7e78e00e4186eaba07146a676659989d5cad47c73ed2dd6ee34e7bbe086",
+      "source_page": "https://store.steampowered.com/app/3875050/MotoGP26/",
+      "direct_media_url": "https://video.fastly.steamstatic.com/store_trailers/3875050/1856245454/2a9c8befebc3d5c016971a1e37b594cb06cddd07/1772181888/hls_264_master.m3u8?t=1772704809",
+      "this_pass": [
+        "independent-contact-grip-context"
+      ]
+    },
+    {
+      "number": 99,
+      "file": "04_official_trailer_frames/REF_099_video_01_ref_099_pass_01_098_2_17_frame_00000.jpg",
+      "sha256": "4ee673731f326b05665f796aae867668ca002ad29972a1f790d9d51f0508eace",
+      "source_page": "https://store.steampowered.com/app/3875050/MotoGP26/",
+      "direct_media_url": "https://video.fastly.steamstatic.com/store_trailers/3875050/1550227610/c847b05ae66b201daf8759c50072ab7b96eaf3fd/1777298242/hls_264_master.m3u8?t=1777453556",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    },
+    {
+      "number": 100,
+      "file": "04_official_trailer_frames/REF_100_video_01_ref_100_pass_01_098_2_17_frame_00004.jpg",
+      "sha256": "2d205661970a830948445e379ab30ac14d463274761d7a690193bcb808bf8b94",
+      "source_page": "https://store.steampowered.com/app/3875050/MotoGP26/",
+      "direct_media_url": "https://video.fastly.steamstatic.com/store_trailers/3875050/1550227610/c847b05ae66b201daf8759c50072ab7b96eaf3fd/1777298242/hls_264_master.m3u8?t=1777453556",
+      "this_pass": [
+        "retained-prior-review"
+      ]
+    }
+  ]
+}

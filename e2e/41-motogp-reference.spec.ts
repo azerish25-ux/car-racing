@@ -110,6 +110,51 @@ test('GP reference R1.1: authored LODs, production onboard and same-instance wet
       expect(z).toBeLessThan(1);
     }
   }
+  // The ray census deliberately admits glass, so retain a real optical A/B
+  // for visual review as well. Only thickness changes: every sample keeps
+  // the production display, windscreen shape, camera, pose and illumination.
+  for (const id of ['gpr1', 'gpr2']) {
+    const optics = await page.evaluate(
+      (id) =>
+        (
+          window as unknown as {
+            MotoGPReview: { captureBikeSequence: typeof captureBikeSequence };
+          }
+        ).MotoGPReview.captureBikeSequence('onboard', 'high', id, [
+          { wet: false, time: 2, windscreen: 'legacy-volume' },
+          { wet: false, time: 2 },
+          { wet: false, time: 2 },
+          { wet: false, time: 2, windscreen: 'legacy-volume' },
+        ]),
+      id,
+    );
+    expect(optics).toHaveLength(4);
+    const names = ['before-volume', 'after-thin-wall'];
+    for (let i = 0; i < names.length; i++)
+      await info.attach(`${id}-optics-${names[i]}.png`, {
+        body: Buffer.from(optics[i].image.split(',')[1], 'base64'),
+        contentType: 'image/png',
+      });
+    const samples = optics.map(({ image: _image, ...sample }) => sample);
+    await info.attach(`${id}-optics-metrics.json`, {
+      body: JSON.stringify(samples, null, 2),
+      contentType: 'application/json',
+    });
+    for (const sample of optics) {
+      expectPrepared(sample);
+      expect(sample.glError).toBe(0);
+      expect(sample.sourceFrameUnchanged).toBe(true);
+      expect(sample.instance).toBe(optics[0].instance);
+      expect(sample.resources).toEqual(optics[0].resources);
+      expect(sample.cockpit).toEqual(optics[0].cockpit);
+      expect(sample.bounds).toEqual(optics[0].bounds);
+      expect(sample.calls).toBe(optics[0].calls);
+      expect(sample.triangles).toBe(optics[0].triangles);
+    }
+    expect(optics[0].hash).not.toBe(optics[1].hash);
+    expect(optics[1].hash).toBe(optics[2].hash);
+    expect(optics[0].hash).toBe(optics[3].hash);
+  }
   // A new construction is not evidence of weather reversal. Retain one bike,
   // material set and renderer through wet, held-frame and rewound dry states.
   const sequence = await page.evaluate(() =>

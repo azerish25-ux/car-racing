@@ -1,0 +1,263 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-19 01:21:23 UTC",
+  "baselineCommit": "88e604b078a0ac42f50fa278706ca2d81182831d",
+  "implementationFiles": [
+    "src/simulation/bike.ts",
+    "src/simulation/bike-vehicle.ts",
+    "src/simulation/bike-ai.ts",
+    "src/simulation/ai.ts"
+  ],
+  "regressionFiles": [
+    "tests/gp-tyre-contact.test.ts",
+    "tests/gp-braking-approach.test.ts"
+  ],
+  "scope": "Independent GP-R1/GP-R2 front/rear contact force budgets and a speed-dependent AI braking horizon. Other motorcycles retain common contact grip and their current AI controllers. Equal-grip core trajectories match exactly. No snapshot protocol fields or integrated replay state added.",
+  "referenceContext": {
+    "document": "docs/MOTOGP_THREEJS_REFERENCE_REVIEW.md",
+    "ids": [
+      "018",
+      "032",
+      "039",
+      "060",
+      "067",
+      "071",
+      "087",
+      "098"
+    ],
+    "boundary": "These observations constrain tire/contact presentation and leaned posture. They do not establish friction coefficients, tire wear laws or braking gains. All numerical tire coefficients and AI envelope margins remain existing simulation tuning."
+  },
+  "contactReproduction": {
+    "command": "node --experimental-transform-types --input-type=module <<'JS'\nimport { BikeVehicle } from './src/simulation/bike-vehicle.ts';\nimport { DEFAULT_SETUP } from './src/simulation/config.ts';\nimport { VEHICLES } from './src/simulation/vehicles.ts';\nimport { Track } from './src/simulation/track.ts';\nconst track=new Track();\nfor(const action of ['brake','throttle'])for(const grip of [[.35,1],[1,.35]]){\n const b=new BikeVehicle(0,'medium',DEFAULT_SETUP,'sport',VEHICLES.gpr1);b.place(track,120);b.dynamics.speed=35;b.gear=3;b.rpm=12000;b.autoShift=false;\n b.contacts[0].grip=b.contacts[1].grip=grip[0];b.contacts[2].grip=b.contacts[3].grip=grip[1];b.input[action]=1;b.step(1/240,track);\n console.log(JSON.stringify({action,grip,dynamicsGrip:b.dynamics.grip,speed:b.speed,front:b.dynamics.frontBrakeForce,rear:b.dynamics.rearBrakeForce,drive:b.dynamics.driveForce,frontUse:b.dynamics.frontUse,rearUse:b.dynamics.rearUse}));\n}\nJS",
+    "vehicle": "gpr1",
+    "circuit": "aurel",
+    "compound": "medium",
+    "speedMps": 35,
+    "gear": 3,
+    "rpm": 12000,
+    "dtSeconds": 0.004166666666666667,
+    "beforeDefinition": "Common minimum front/rear grip used at both contact force circles in the baseline source.",
+    "afterDefinition": "Independent per-contact grip for the force circles; conservative minimum still used for intended lean.",
+    "cases": [
+      {
+        "action": "throttle",
+        "frontContactGrip": 0.35,
+        "rearContactGrip": 1,
+        "before": {
+          "driveN": 659.7241328987571,
+          "speedMps": 35.00588408065859
+        },
+        "after": {
+          "driveN": 1874.7789010669833,
+          "speedMps": 35.026548277396145,
+          "frontUse": 0,
+          "rearUse": 0.5379689192201007
+        }
+      },
+      {
+        "action": "throttle",
+        "frontContactGrip": 1,
+        "rearContactGrip": 0.35,
+        "before": {
+          "driveN": 656.1726153734442,
+          "speedMps": 35.00582368070067
+        },
+        "after": {
+          "driveN": 656.1726153734442,
+          "speedMps": 35.00582368070067,
+          "frontUse": 0,
+          "rearUse": 0.7296350344852089
+        }
+      },
+      {
+        "action": "brake",
+        "frontContactGrip": 0.35,
+        "rearContactGrip": 1,
+        "before": {
+          "frontBrakeN": 729.8966532459075,
+          "rearBrakeN": 408.3382954255214,
+          "speedMps": 34.97530234603899
+        },
+        "after": {
+          "frontBrakeN": 729.8966532459075,
+          "rearBrakeN": 570,
+          "speedMps": 34.972552997321735,
+          "frontUse": 0.6445629959576771,
+          "rearUse": 0.5181677598315478
+        }
+      },
+      {
+        "action": "brake",
+        "frontContactGrip": 1,
+        "rearContactGrip": 0.35,
+        "before": {
+          "frontBrakeN": 725.9673733751225,
+          "rearBrakeN": 407.3647172896352,
+          "speedMps": 34.97538572797787
+        },
+        "after": {
+          "frontBrakeN": 1973.0773177419355,
+          "rearBrakeN": 158.11692524809325,
+          "speedMps": 34.958415283210435,
+          "frontUse": 0.5107272523478407,
+          "rearUse": 0.95
+        }
+      }
+    ]
+  },
+  "brakingApproach": {
+    "command": "node --experimental-transform-types --input-type=module <<'JS'\nimport { DEFAULT_OPTIONS } from './src/simulation/config.ts';\nimport { Simulation } from './src/simulation/world.ts';\nimport { BikeAIDriver } from './src/simulation/bike-ai.ts';\nimport { racingLineFor } from './src/simulation/racing-line.ts';\nimport { mod } from './src/core/math.ts';\nfor(const id of ['gpr1','gpr2'])for(const weather of ['clear','rain']){\n const sim=new Simulation({...DEFAULT_OPTIONS,mode:'practice',ruleset:'gp-motorcycle',circuit:'poggio-alto',weather,compound:weather==='rain'?'wet':'medium',opponents:0,vehicles:[id],seed:4417});sim.autoPlayer=true;sim.race.time=sim.race.greenAt+1;\n const b=sim.cars[0],start=sim.track.length-300;b.place(sim.track,start,racingLineFor(sim.track).offsetAt(start));b.dynamics.speed=b.speed=90;b.gear=6;b.rpm=15000;\n sim.ai[0]=new BikeAIDriver(b,.96,4417);\n let turn=null,apex=null;\n for(let i=0;i<60*120;i++){\n  sim.step(1/120);const distance=mod(b.s-start,sim.track.length);\n  if(distance>900&&turn===null)turn=b.speed;\n  if(distance>950&&apex===null){apex=b.speed;break;}\n }\n console.log(JSON.stringify({id,weather,turn,apex,crashes:b.dynamics.crashes,lateral:b.lateral,inpit:b.inPit,pitreq:b.pitRequested,compound:b.tires[0].compound}));\n}\nJS",
+    "fixture": "Production GP BikeAIDriver, BikeVehicle, Track, tyre and race/control code. Begins on the actual final straight 300 m before the start/finish at 90 m/s, on the racing line. Rain cases use wet tyres. Samples speed when crossing s600 and s650 on Poggio Alto; no force, pose or grip assistance is injected.",
+    "maximumSamples": 128,
+    "sampleSpacingM": 12,
+    "maximumHorizonM": 1524,
+    "horizon": "Conservative full-stop distance from current speed and min(front/rear grip), plus existing 0.3 s lean-preview distance; bounded to fixed buffer capacity and one circuit.",
+    "measurements": [
+      {
+        "vehicle": "gpr1",
+        "weather": "clear",
+        "compound": "medium",
+        "entryAt600Mps": 31.076425385353428,
+        "speedAt650Mps": 19.470204684029316,
+        "crashes": 0,
+        "lateralAt650M": 5.329426858338367
+      },
+      {
+        "vehicle": "gpr2",
+        "weather": "clear",
+        "compound": "medium",
+        "entryAt600Mps": 31.550337847179186,
+        "speedAt650Mps": 19.517666573700645,
+        "crashes": 0,
+        "lateralAt650M": 5.381968831826991
+      },
+      {
+        "vehicle": "gpr1",
+        "weather": "rain",
+        "compound": "wet",
+        "entryAt600Mps": 23.54537737636721,
+        "speedAt650Mps": 13.727588507964187,
+        "crashes": 0,
+        "lateralAt650M": 3.724525923532474
+      },
+      {
+        "vehicle": "gpr2",
+        "weather": "rain",
+        "compound": "wet",
+        "entryAt600Mps": 23.82702647044215,
+        "speedAt650Mps": 13.71728168449245,
+        "crashes": 0,
+        "lateralAt650M": 3.7565273723368806
+      }
+    ]
+  },
+  "productionRaces": {
+    "configuration": "Two laps; eight alternating GP-R1/GP-R2 entrants; normal production simulation at 120 Hz; AI demonstration enabled. The default medium compound and normal strategy/pit behavior are retained, including in the full rain race.",
+    "finalCriteria": "Every rider classified with 2 completed laps, no retirement, zero crashes, zero contact impacts, zero penalties, finite snapshot.",
+    "results": [
+      {
+        "circuit": "aurel",
+        "weather": "clear",
+        "seed": 3303,
+        "passed": true,
+        "testSeconds": 13.509,
+        "classified": 8,
+        "crashes": 0,
+        "maximumImpact": 0,
+        "penalties": 0
+      },
+      {
+        "circuit": "poggio-alto",
+        "weather": "clear",
+        "seed": 30101,
+        "passed": true,
+        "testSeconds": 19.935,
+        "classified": 8,
+        "crashes": 0,
+        "maximumImpact": 0,
+        "penalties": 0,
+        "measuredRaceSeconds": 255.5707648256365,
+        "measuredFinishSeconds": [
+          234.99856911419545,
+          238.8671327487049,
+          242.40868362036005,
+          245.4401225295871,
+          248.73605567079383,
+          254.21245599598052,
+          250.94036296510157,
+          255.5676451752706
+        ]
+      },
+      {
+        "circuit": "poggio-alto",
+        "weather": "rain",
+        "seed": 30101,
+        "passed": true,
+        "testSeconds": 27.716,
+        "classified": 8,
+        "crashes": 0,
+        "maximumImpact": 0,
+        "penalties": 0,
+        "maximumSimulatedSeconds": 700
+      }
+    ]
+  },
+  "focusedExecutions": [
+    {
+      "command": "npx vitest run tests/gp-braking-approach.test.ts --maxWorkers=1",
+      "phase": "final",
+      "exitCode": 0,
+      "passed": 8,
+      "vitestDurationSeconds": 2.36,
+      "testDurationSeconds": 0.864
+    },
+    {
+      "command": "npx vitest run tests/gp-tyre-contact.test.ts -t \"poggio-alto.*rain\" --maxWorkers=1",
+      "phase": "final",
+      "exitCode": 0,
+      "passed": 1,
+      "skipped": 21,
+      "vitestDurationSeconds": 29.43,
+      "testDurationSeconds": 27.716
+    },
+    {
+      "command": "npx vitest run tests/gp-tyre-contact.test.ts tests/gp-riding-control.test.ts --maxWorkers=1",
+      "phase": "after final production source changes, before wet-fixture duration correction",
+      "exitCode": 1,
+      "passed": 33,
+      "failed": 1,
+      "vitestDurationSeconds": 75.78,
+      "note": "The 19 contact invariants, Aurel/clear Poggio Alto races and all12 GP control/passing tests passed. The already-collected rain fixture still stopped at400 simulated seconds; the corrected rain fixture passed separately. This invocation also reported a Vitest worker onTaskUpdate timeout; the long race tests now yield to the event loop every60 simulated seconds."
+    },
+    {
+      "command": "npx vitest run tests/bike.test.ts tests/gp-engine-braking.test.ts tests/gp-riding-control.test.ts --maxWorkers=1",
+      "phase": "after per-contact solver, before GP AI horizon",
+      "exitCode": 0,
+      "passed": 27,
+      "vitestDurationSeconds": 4.29
+    },
+    {
+      "command": "npx vitest run tests/bike-session.test.ts tests/bike-setup.test.ts tests/open-world-bikes.test.ts tests/bike-slipstream.test.ts --maxWorkers=1",
+      "phase": "after per-contact solver, before GP AI horizon",
+      "exitCode": 0,
+      "passed": 34,
+      "vitestDurationSeconds": 20.6
+    },
+    {
+      "command": "npx tsc --noEmit",
+      "phase": "after final production source changes",
+      "exitCode": 0
+    },
+    {
+      "command": "npx eslint src/simulation/ai.ts src/simulation/bike-ai.ts src/simulation/bike.ts src/simulation/bike-vehicle.ts tests/gp-braking-approach.test.ts tests/gp-tyre-contact.test.ts",
+      "phase": "after final production source changes",
+      "exitCode": 0
+    }
+  ],
+  "resolvedInvestigations": [
+    "Initial independent-contact code exposed a genuine GP AI regression: the 240 m shared preview could see a hairpin only after high-speed braking should have begun. In the clear Poggio Alto seed30101 race, rider2 ran wide into gravel near s678 and toppled at about137 race seconds. The current speed-dependent GP approach profile resolves this without disabling independent tyre contacts or relaxing crash thresholds.",
+    "The unchanged-baseline two-lap wet Poggio Alto race itself requires about548 simulated seconds. The first test cap of400 seconds could not establish classification. The final700-second cap accommodates the actual10.49 km course; all original crash/contact/penalty/classification assertions remain strict.",
+    "An exploratory90 m/s fixture placed a bike in the chicane preceding the final straight and put medium tyres into rain, triggering a crash/pit entry before reaching the measured approach. The final controlled approach fixture starts on the actual straight and uses wet tyres for rain."
+  ],
+  "validationBoundary": "30 new regression cases pass across focused executions; all12 existing GP control/passing cases also pass after the AI change. Whole-repository checks and graphics/browser verification are handled by the parent task. Simulation evidence does not establish measured real-MotoGP coefficients, physical-device performance, or subjective gameplay quality."
+}

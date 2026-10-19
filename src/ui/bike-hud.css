@@ -139,14 +139,14 @@
 }
 #hud[data-bike='true'] .gp-feedback {
   display: grid;
-  gap: 8px;
+  gap: 6px;
   font-size: calc(9px * var(--ui-scale, 1));
 }
 #hud[data-bike='true'] .gp-craft:not([hidden]) {
   display: grid;
   gap: 5px;
   margin-bottom: 2px;
-  padding: 8px 0 10px;
+  padding: 6px 0 8px;
   border-block: 1px solid #aac4d826;
 }
 #hud[data-bike='true'] .gp-next,
@@ -164,26 +164,26 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  font-size: calc(8px * var(--ui-scale, 1));
+  font-size: calc(10px * var(--ui-scale, 1));
 }
 #hud[data-bike='true'] #gpCornerDistance {
   margin-left: auto;
   flex-shrink: 0;
   color: #a5b9c9;
-  font-size: calc(7px * var(--ui-scale, 1));
+  font-size: calc(8px * var(--ui-scale, 1));
 }
 #hud[data-bike='true'] #gpAction {
-  font-size: calc(8px * var(--ui-scale, 1));
+  font-size: calc(11px * var(--ui-scale, 1));
   font-weight: 600;
   letter-spacing: 0.04em;
 }
 #hud[data-bike='true'] #gpTow {
   margin-left: auto;
-  font-size: calc(7px * var(--ui-scale, 1));
+  font-size: calc(8px * var(--ui-scale, 1));
   color: var(--gp-accent);
 }
 #hud[data-bike='true'] #gpAdvice {
-  font-size: calc(8px * var(--ui-scale, 1));
+  font-size: calc(10px * var(--ui-scale, 1));
   color: #b6c7d4;
 }
 #hud[data-bike='true'] .gp-craft[data-tone='brake'] #gpAction,
@@ -243,7 +243,7 @@
 #hud[data-bike='true'] .gp-tyres {
   display: flex;
   justify-content: space-between;
-  padding-top: 8px;
+  padding-top: 6px;
   border-top: 1px solid #aac4d826;
   gap: 12px;
 }
@@ -272,7 +272,7 @@
   display: flex;
   justify-content: space-between;
   color: #9eb2c2;
-  padding-top: 5px;
+  padding-top: 3px;
   font-size: calc(7px * var(--ui-scale, 1));
   letter-spacing: 0.02em;
 }

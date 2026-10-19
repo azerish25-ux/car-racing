@@ -1,0 +1,248 @@
+{
+  "sourceReport": "motogp-contact-graphics-report.json",
+  "sourceReportSha256": "98d827924288f48c7fa95696160604e278a2f26555ebe6913c4f9fdc1d89fa9f",
+  "runStarted": "2026-10-19T01:13:01.733Z",
+  "sourceAttachment": "environment-material-metrics.json",
+  "sourceTest": {
+    "title": "GP surface references: real ribbon shaders, single tyre rubber, wet holds and bounded family switches on WebGL2",
+    "status": "passed",
+    "errors": []
+  },
+  "resourceNote": "The camera change to the launch segment uploads additional previously culled geometries (17 to 31). Family/wet/held/rewind switches at each fixed camera keep resources stable; textures stay at 20 and programs at 6.",
+  "scope": "Production circuit surface components, two bounded Aurel segments, high scanned materials; not a full race",
+  "captures": [
+    {
+      "name": "apex-bike-dry",
+      "hash": 1161491823,
+      "nonzero": 399664,
+      "calls": 16,
+      "triangles": 27840,
+      "resources": {
+        "geometries": 17,
+        "textures": 20,
+        "programs": 6
+      },
+      "rubber": {
+        "mode": "motorcycle",
+        "cachedLayers": 2,
+        "activeMeshes": 6,
+        "treadWidth": 0.18
+      }
+    },
+    {
+      "name": "apex-car-dry",
+      "hash": 2597898363,
+      "nonzero": 399498,
+      "calls": 16,
+      "triangles": 27392,
+      "resources": {
+        "geometries": 17,
+        "textures": 20,
+        "programs": 6
+      },
+      "rubber": {
+        "mode": "car",
+        "cachedLayers": 2,
+        "activeMeshes": 4,
+        "treadWidth": 0.3
+      }
+    },
+    {
+      "name": "apex-bike-held",
+      "hash": 1161491823,
+      "nonzero": 399664,
+      "calls": 16,
+      "triangles": 27840,
+      "resources": {
+        "geometries": 17,
+        "textures": 20,
+        "programs": 6
+      },
+      "rubber": {
+        "mode": "motorcycle",
+        "cachedLayers": 2,
+        "activeMeshes": 6,
+        "treadWidth": 0.18
+      }
+    },
+    {
+      "name": "apex-bike-wet",
+      "hash": 545295716,
+      "nonzero": 364170,
+      "calls": 16,
+      "triangles": 27840,
+      "resources": {
+        "geometries": 17,
+        "textures": 20,
+        "programs": 6
+      },
+      "rubber": {
+        "mode": "motorcycle",
+        "cachedLayers": 2,
+        "activeMeshes": 6,
+        "treadWidth": 0.18
+      }
+    },
+    {
+      "name": "apex-bike-wet-held",
+      "hash": 545295716,
+      "nonzero": 364170,
+      "calls": 16,
+      "triangles": 27840,
+      "resources": {
+        "geometries": 17,
+        "textures": 20,
+        "programs": 6
+      },
+      "rubber": {
+        "mode": "motorcycle",
+        "cachedLayers": 2,
+        "activeMeshes": 6,
+        "treadWidth": 0.18
+      }
+    },
+    {
+      "name": "apex-bike-rewound",
+      "hash": 1161491823,
+      "nonzero": 399664,
+      "calls": 16,
+      "triangles": 27840,
+      "resources": {
+        "geometries": 17,
+        "textures": 20,
+        "programs": 6
+      },
+      "rubber": {
+        "mode": "motorcycle",
+        "cachedLayers": 2,
+        "activeMeshes": 6,
+        "treadWidth": 0.18
+      }
+    },
+    {
+      "name": "kerb-runoff-verge",
+      "hash": 590214478,
+      "nonzero": 400000,
+      "calls": 15,
+      "triangles": 26480,
+      "resources": {
+        "geometries": 17,
+        "textures": 20,
+        "programs": 6
+      },
+      "rubber": {
+        "mode": "motorcycle",
+        "cachedLayers": 2,
+        "activeMeshes": 6,
+        "treadWidth": 0.18
+      }
+    },
+    {
+      "name": "launch-bike",
+      "hash": 651201971,
+      "nonzero": 400000,
+      "calls": 14,
+      "triangles": 27936,
+      "resources": {
+        "geometries": 31,
+        "textures": 20,
+        "programs": 6
+      },
+      "rubber": {
+        "mode": "motorcycle",
+        "cachedLayers": 2,
+        "activeMeshes": 6,
+        "treadWidth": 0.18
+      }
+    },
+    {
+      "name": "launch-car",
+      "hash": 3514374620,
+      "nonzero": 400000,
+      "calls": 14,
+      "triangles": 27936,
+      "resources": {
+        "geometries": 31,
+        "textures": 20,
+        "programs": 6
+      },
+      "rubber": {
+        "mode": "car",
+        "cachedLayers": 2,
+        "activeMeshes": 4,
+        "treadWidth": 0.3
+      }
+    },
+    {
+      "name": "launch-bike-restored",
+      "hash": 651201971,
+      "nonzero": 400000,
+      "calls": 14,
+      "triangles": 27936,
+      "resources": {
+        "geometries": 31,
+        "textures": 20,
+        "programs": 6
+      },
+      "rubber": {
+        "mode": "motorcycle",
+        "cachedLayers": 2,
+        "activeMeshes": 6,
+        "treadWidth": 0.18
+      }
+    }
+  ],
+  "before": {
+    "geometries": 17,
+    "textures": 20,
+    "programs": 6
+  },
+  "after": {
+    "geometries": 31,
+    "textures": 20,
+    "programs": 6
+  },
+  "scanned": {
+    "preset": "high",
+    "enabled": true,
+    "hex": true,
+    "resident": [
+      "asphalt",
+      "concrete",
+      "lawn",
+      "meadow"
+    ],
+    "failed": [],
+    "formats": {
+      "asphalt": {
+        "color": "webp",
+        "normal": "webp",
+        "orm": "webp"
+      },
+      "concrete": {
+        "color": "webp",
+        "normal": "webp",
+        "orm": "webp"
+      },
+      "lawn": {
+        "color": "webp",
+        "normal": "webp",
+        "orm": "webp"
+      },
+      "meadow": {
+        "color": "webp",
+        "normal": "webp",
+        "orm": "webp"
+      }
+    },
+    "normalResidency": {
+      "asphalt": "source",
+      "concrete": "source",
+      "lawn": "source",
+      "meadow": "source"
+    },
+    "materials": 4,
+    "scanned": 4
+  },
+  "glError": 0
+}

@@ -1,6 +1,6 @@
 import { Color } from 'three';
 import { Interface } from '../../src/ui/interface.ts';
-import { Track, trackPoint } from '../../src/simulation/track.ts';
+import { SURFACE, Track, trackPoint } from '../../src/simulation/track.ts';
 import { VEHICLES } from '../../src/simulation/vehicles.ts';
 import { bikeSlipstreamDragScale } from '../../src/simulation/bike-slipstream.ts';
 import { menuPreview } from '../../src/rendering/menu-preview.ts';
@@ -55,7 +55,15 @@ export interface HudSnapshot {
   rpm: number;
   lean: number;
   station: number;
+  lateral: number;
   tow: number;
+  frontSurface: number;
+  rearSurface: number;
+  frontWater: number;
+  rearWater: number;
+  frontDisc: number;
+  intervention: number;
+  flag: number;
 }
 
 export function showMotorcycleHud(
@@ -76,10 +84,12 @@ export function showMotorcycleHud(
   frame[o + F.FUEL] = 12.4;
   frame[o + F.LAP_TIME] = 48.271;
   frame[o + F.RANK] = 1;
+  frame[o + F.LATERAL] = snapshot.lateral ?? 0;
   frame[o + BIKE_BASE + B.LEAN] = snapshot.lean ?? 0.72;
   frame[o + BIKE_BASE + B.REAR_BRAKE] = 0.35;
   frame[o + BIKE_BASE + B.TUCK] = 0.8;
-  frame[o + BIKE_BASE + B.INTERVENTION] = fallen ? 0.6 : 0.18;
+  frame[o + BIKE_BASE + B.INTERVENTION] = snapshot.intervention ?? (fallen ? 0.6 : 0.18);
+  frame[o + F.LOCAL_FLAG] = snapshot.flag ?? 0;
   frame[o + BIKE_BASE + B.STATE] = fallen ? 3 : 0;
   // A coherent velocity enables the production corner/draft readout in the
   // responsive-layout checks instead of silently hiding it behind a zero
@@ -96,6 +106,10 @@ export function showMotorcycleHud(
     const p = o + WHEEL_BASE + wheel * WHEEL_STRIDE;
     frame[p + W.CARCASS_TEMP] = wheel < 2 ? 83 : 96;
     frame[p + W.WEAR] = wheel < 2 ? 0.08 : 0.13;
+    frame[p + W.SURFACE] =
+      (wheel < 2 ? snapshot.frontSurface : snapshot.rearSurface) ?? SURFACE.ASPHALT;
+    frame[p + W.WATER] = (wheel < 2 ? snapshot.frontWater : snapshot.rearWater) ?? 0;
+    frame[p + W.DISC_TEMP] = wheel < 2 ? (snapshot.frontDisc ?? 500) : 200;
   }
   // Deliberately poison redundant copies: a bike displays its actual front/rear.
   frame[o + WHEEL_BASE + WHEEL_STRIDE + W.CARCASS_TEMP] = 1;

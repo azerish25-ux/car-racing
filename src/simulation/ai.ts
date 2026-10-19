@@ -67,8 +67,11 @@ export function envelopeProfile(
   grip: number,
   aero: number,
   env: CapabilityEnvelope = AI_ENVELOPE,
+  count = corners.length,
 ) {
-  const n = corners.length;
+  // A bounded active prefix lets the GP rider extend its horizon in reusable
+  // buffers. Callers must provide 1..min(curvatures.length, corners.length).
+  const n = count;
   let v = Math.min(corners[n - 1], 400);
   for (let i = n - 2; i >= 0; i--) {
     const lateralLimit =

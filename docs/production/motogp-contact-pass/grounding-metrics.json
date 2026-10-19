@@ -1,0 +1,408 @@
+{
+  "sourceReport": "motogp-contact-graphics-report.json",
+  "sourceReportSha256": "98d827924288f48c7fa95696160604e278a2f26555ebe6913c4f9fdc1d89fa9f",
+  "runStarted": "2026-10-19T01:13:01.733Z",
+  "sourceAttachment": "gp-grounding-metrics.json",
+  "sourceTest": {
+    "title": "GP grounding: real WebGL2 receivers, two tyre footprints and deterministic family changes",
+    "status": "passed",
+    "errors": []
+  },
+  "scope": "Bounded ground-material receivers; repeated unused uniform slots and repeated identical resource samples are compacted from the original attachment.",
+  "kind": "bounded-ground-material-integration",
+  "webgl2": true,
+  "viewport": {
+    "width": 512,
+    "height": 256
+  },
+  "before": {
+    "geometries": 1,
+    "textures": 0,
+    "programs": 2,
+    "calls": 2,
+    "triangles": 4
+  },
+  "after": {
+    "geometries": 1,
+    "textures": 0,
+    "programs": 2,
+    "calls": 2,
+    "triangles": 4
+  },
+  "bindings": [
+    {
+      "material": "MeshStandardMaterial",
+      "gpUniformsShared": true
+    },
+    {
+      "material": "MeshPhysicalMaterial",
+      "gpUniformsShared": true
+    }
+  ],
+  "shaderErrors": [],
+  "glErrors": [],
+  "fixedUniformSlots": true,
+  "differences": {
+    "applied": {
+      "maxChannelDelta": 38,
+      "changedPixels": 1952,
+      "coverageDifferences": 0
+    },
+    "family": {
+      "maxChannelDelta": 38,
+      "changedPixels": 22156,
+      "coverageDifferences": 0
+    },
+    "lean": {
+      "maxChannelDelta": 23,
+      "changedPixels": 3585,
+      "coverageDifferences": 0
+    },
+    "held": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "coverageDifferences": 0
+    },
+    "rewind": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "coverageDifferences": 0
+    },
+    "restored": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "coverageDifferences": 0
+    },
+    "cleared": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "coverageDifferences": 0
+    }
+  },
+  "probes": [
+    {
+      "material": "standard-instanced",
+      "frontDarkness": 32.333333333333336,
+      "rearDarkness": 38,
+      "gpAtFormulaTyre": 0,
+      "formulaAtFormulaTyre": 38
+    },
+    {
+      "material": "physical",
+      "frontDarkness": 32.333333333333336,
+      "rearDarkness": 38,
+      "gpAtFormulaTyre": 0,
+      "formulaAtFormulaTyre": 38
+    }
+  ],
+  "presentations": 52,
+  "observedResourceStates": [
+    {
+      "geometries": 1,
+      "textures": 0,
+      "programs": 2,
+      "calls": 2,
+      "triangles": 4
+    }
+  ],
+  "allPresentationsMatchInitialResources": true,
+  "states": {
+    "gpState": {
+      "count": 2,
+      "time": 10,
+      "dt": 1,
+      "front": [
+        [
+          -4,
+          0.7,
+          4.768371544838779e-09,
+          1
+        ],
+        [
+          4,
+          0.72,
+          1.4305114717783063e-08,
+          1
+        ]
+      ],
+      "rear": [
+        [
+          -4,
+          -0.75,
+          4.768371544838779e-09,
+          1
+        ],
+        [
+          4,
+          -0.73,
+          1.4305114717783063e-08,
+          1
+        ]
+      ],
+      "shape": [
+        [
+          1,
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          0,
+          0
+        ]
+      ],
+      "unusedSlotsZero": true
+    },
+    "heldState": {
+      "count": 2,
+      "time": 10,
+      "dt": 0,
+      "front": [
+        [
+          -4,
+          0.7,
+          4.768371544838779e-09,
+          1
+        ],
+        [
+          4,
+          0.72,
+          1.4305114717783063e-08,
+          1
+        ]
+      ],
+      "rear": [
+        [
+          -4,
+          -0.75,
+          4.768371544838779e-09,
+          1
+        ],
+        [
+          4,
+          -0.73,
+          1.4305114717783063e-08,
+          1
+        ]
+      ],
+      "shape": [
+        [
+          1,
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          0,
+          0
+        ]
+      ],
+      "unusedSlotsZero": true
+    },
+    "rewindState": {
+      "count": 2,
+      "time": 10,
+      "dt": 0,
+      "front": [
+        [
+          -4,
+          0.7,
+          4.768371544838779e-09,
+          1
+        ],
+        [
+          4,
+          0.72,
+          1.4305114717783063e-08,
+          1
+        ]
+      ],
+      "rear": [
+        [
+          -4,
+          -0.75,
+          4.768371544838779e-09,
+          1
+        ],
+        [
+          4,
+          -0.73,
+          1.4305114717783063e-08,
+          1
+        ]
+      ],
+      "shape": [
+        [
+          1,
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          0,
+          0
+        ]
+      ],
+      "unusedSlotsZero": true
+    },
+    "formulaState": {
+      "count": 2,
+      "time": 13,
+      "dt": 0,
+      "front": [
+        [
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0
+        ]
+      ],
+      "rear": [
+        [
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0
+        ]
+      ],
+      "shape": [
+        [
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0
+        ]
+      ],
+      "unusedSlotsZero": true
+    },
+    "wheelieState": {
+      "count": 2,
+      "time": 15,
+      "dt": 1,
+      "front": [
+        [
+          -4,
+          0.5992571196600054,
+          -2.9154036646945904e-08,
+          0
+        ],
+        [
+          4,
+          0.6192571194355909,
+          1.8064916608092936e-09,
+          0
+        ]
+      ],
+      "rear": [
+        [
+          -4,
+          -0.810613975672415,
+          -1.0844356833924254e-08,
+          1
+        ],
+        [
+          4,
+          -0.7906139758968295,
+          2.0116171473830943e-08,
+          1
+        ]
+      ],
+      "shape": [
+        [
+          1,
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          0,
+          0
+        ]
+      ],
+      "unusedSlotsZero": true
+    },
+    "standState": {
+      "count": 2,
+      "time": 16,
+      "dt": 1,
+      "front": [
+        [
+          -4,
+          0.7,
+          4.768371544838779e-09,
+          0
+        ],
+        [
+          4,
+          0.72,
+          1.4305114717783063e-08,
+          0
+        ]
+      ],
+      "rear": [
+        [
+          -4,
+          -0.75,
+          4.768371544838779e-09,
+          0
+        ],
+        [
+          4,
+          -0.73,
+          1.4305114717783063e-08,
+          0
+        ]
+      ],
+      "shape": [
+        [
+          1,
+          0,
+          0,
+          0.07999999821186066
+        ],
+        [
+          1,
+          0,
+          0,
+          0.07999999821186066
+        ]
+      ],
+      "unusedSlotsZero": true
+    },
+    "clearedState": {
+      "count": 0,
+      "time": 30,
+      "dt": 0,
+      "front": [],
+      "rear": [],
+      "shape": [],
+      "unusedSlotsZero": true
+    }
+  }
+}

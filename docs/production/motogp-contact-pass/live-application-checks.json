@@ -1,0 +1,2098 @@
+{
+  "schemaVersion": 1,
+  "sourceReport": "motogp-live-integrated-report.json",
+  "sourceReportSha256": "66f1b5d735b22507cb3d69cbcfa1a5f1d5e4a2eee1c22b98adc8a381f35bf600",
+  "runStarted": "2026-10-19T02:21:09.031Z",
+  "durationMs": 341624.647,
+  "sourceFingerprint": "623f4a67851c64eb699dd1b9706eb0e60a8335605e4abb6e5862212d92393a4e",
+  "scope": "Normal application menu, worker simulation, production circuit renderer and archived replay. 1280x800 viewport. Clear uses the Low preset; rain uses Low with particle density 1 selected through the normal settings UI. No simulation frames or renderer poses are injected. These software-GPU checks do not measure physical-device frame rates.",
+  "backend": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+  "tests": [
+    {
+      "file": "motogp-riding-flow.spec.ts",
+      "title": "GP practice rides through named corner guidance, cockpit, pause and recorded replay",
+      "status": "passed",
+      "durationMs": 178732,
+      "errors": []
+    },
+    {
+      "file": "motogp-wet-riding.spec.ts",
+      "title": "GP wet practice renders live two-tyre spray, advances normally and holds on pause",
+      "status": "passed",
+      "durationMs": 159918,
+      "errors": []
+    }
+  ],
+  "clear": {
+    "workload": "Actual GP-R1 menu entry, four-rider Poggio Alto practice, manual throttle, AI demonstration and recorded replay",
+    "options": {
+      "mode": "practice",
+      "laps": 3,
+      "opponents": 3,
+      "weather": "clear",
+      "assist": "sport",
+      "compound": "medium",
+      "setup": {
+        "frontWing": 0.55,
+        "rearWing": 0.58,
+        "brakeBias": 0.56,
+        "diffPower": 0.5,
+        "diffCoast": 0.25,
+        "frontSpring": 115000,
+        "rearSpring": 125000,
+        "frontARB": 26000,
+        "rearARB": 21000,
+        "frontRide": 0.065,
+        "rearRide": 0.075,
+        "frontPressure": 155,
+        "rearPressure": 148,
+        "frontCamber": -0.044,
+        "rearCamber": -0.023,
+        "frontToe": -0.001,
+        "rearToe": 0.002,
+        "frontPreload": 0,
+        "rearPreload": 0,
+        "frontDamping": 0.5,
+        "rearDamping": 0.5,
+        "steeringDamper": 0.5,
+        "gearing": 1,
+        "tractionMap": 3,
+        "wheelieMap": 3,
+        "engineBrakeMap": 0
+      },
+      "seed": 73021,
+      "circuit": "poggio-alto",
+      "vehicles": [
+        "gpr1",
+        "gpr1",
+        "gpr1",
+        "gpr1"
+      ]
+    },
+    "manualLaunch": {
+      "state": "driving",
+      "buildIdentity": {
+        "commit": null,
+        "fingerprint": "623f4a67851c64eb699dd1b9706eb0e60a8335605e4abb6e5862212d92393a4e"
+      },
+      "auto": false,
+      "usedDemonstration": false,
+      "tick": 215,
+      "simulationTime": 7.699108123779297,
+      "riders": [
+        {
+          "id": 0,
+          "speedMps": 6.324456214904785,
+          "retired": 0,
+          "riderStateIndex": 0,
+          "crashes": 0,
+          "front": {
+            "loadN": 248.75621032714844,
+            "surfaceIndex": 0,
+            "water": 0,
+            "brakeDiscC": 310.8048400878906
+          },
+          "rear": {
+            "loadN": 2155.6025390625,
+            "surfaceIndex": 0,
+            "water": 0,
+            "brakeDiscC": 310.8048400878906
+          }
+        },
+        {
+          "id": 1,
+          "speedMps": 14.604707717895508,
+          "retired": 0,
+          "riderStateIndex": 0,
+          "crashes": 0,
+          "front": {
+            "loadN": 249.6820831298828,
+            "surfaceIndex": 0,
+            "water": 0,
+            "brakeDiscC": 303.2408447265625
+          },
+          "rear": {
+            "loadN": 2162.3837890625,
+            "surfaceIndex": 0,
+            "water": 0,
+            "brakeDiscC": 303.2408447265625
+          }
+        },
+        {
+          "id": 2,
+          "speedMps": 3.8182661533355713,
+          "retired": 0,
+          "riderStateIndex": 0,
+          "crashes": 0,
+          "front": {
+            "loadN": 605.1683959960938,
+            "surfaceIndex": 0,
+            "water": 0,
+            "brakeDiscC": 309.937744140625
+          },
+          "rear": {
+            "loadN": 1798.0782470703125,
+            "surfaceIndex": 0,
+            "water": 0,
+            "brakeDiscC": 309.6764831542969
+          }
+        },
+        {
+          "id": 3,
+          "speedMps": 7.403352737426758,
+          "retired": 0,
+          "riderStateIndex": 0,
+          "crashes": 0,
+          "front": {
+            "loadN": 2096.104736328125,
+            "surfaceIndex": 0,
+            "water": 0,
+            "brakeDiscC": 306.5552673339844
+          },
+          "rear": {
+            "loadN": 308.9649658203125,
+            "surfaceIndex": 0,
+            "water": 0,
+            "brakeDiscC": 305.9909362792969
+          }
+        }
+      ],
+      "workerPause": {
+        "pending": false,
+        "paused": false,
+        "tick": 0,
+        "sequence": 1
+      },
+      "presentation": {
+        "time": 7.366641521453857,
+        "frames": 10,
+        "elapsed": 1.4175333976745605,
+        "resets": 4,
+        "boundedCatchups": 0,
+        "omittedSeconds": 0,
+        "particles": {
+          "capacity": 4200,
+          "contactCapacity": 3600,
+          "rainCapacity": 600,
+          "active": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "spawned": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "velocityX": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "velocityZ": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "windX": 0,
+          "windZ": 0
+        }
+      },
+      "renderer": {
+        "camera": "chase",
+        "renderWidth": 960,
+        "renderHeight": 600,
+        "particleDensity": 0,
+        "drawCalls": 3195,
+        "triangles": 2111072,
+        "textures": 108,
+        "geometries": 1641
+      },
+      "replay": {
+        "samples": 15,
+        "position": 0,
+        "seekPending": false,
+        "playing": true,
+        "error": null,
+        "recordingWarnings": []
+      }
+    },
+    "movingChase": {
+      "state": "driving",
+      "buildIdentity": {
+        "commit": null,
+        "fingerprint": "623f4a67851c64eb699dd1b9706eb0e60a8335605e4abb6e5862212d92393a4e"
+      },
+      "auto": true,
+      "usedDemonstration": true,
+      "tick": 1226,
+      "simulationTime": 16.124107360839844,
+      "riders": [
+        {
+          "id": 0,
+          "speedMps": 73.55953216552734,
+          "retired": 0,
+          "riderStateIndex": 0,
+          "crashes": 0,
+          "front": {
+            "loadN": 780.1739501953125,
+            "surfaceIndex": 0,
+            "water": 0,
+            "brakeDiscC": 121.93943786621094
+          },
+          "rear": {
+            "loadN": 1864.7691650390625,
+            "surfaceIndex": 0,
+            "water": 0,
+            "brakeDiscC": 121.93943786621094
+          }
+        },
+        {
+          "id": 1,
+          "speedMps": 72.02350616455078,
+          "retired": 0,
+          "riderStateIndex": 0,
+          "crashes": 0,
+          "front": {
+            "loadN": 1963.2073974609375,
+            "surfaceIndex": 0,
+            "water": 0,
+            "brakeDiscC": 115.38909149169922
+          },
+          "rear": {
+            "loadN": 671.9127197265625,
+            "surfaceIndex": 0,
+            "water": 0,
+            "brakeDiscC": 108.51068878173828
+          }
+        },
+        {
+          "id": 2,
+          "speedMps": 66.1374740600586,
+          "retired": 0,
+          "riderStateIndex": 0,
+          "crashes": 0,
+          "front": {
+            "loadN": 272.04803466796875,
+            "surfaceIndex": 0,
+            "water": 0,
+            "brakeDiscC": 140.1893768310547
+          },
+          "rear": {
+            "loadN": 2326.28271484375,
+            "surfaceIndex": 0,
+            "water": 0,
+            "brakeDiscC": 139.97354125976562
+          }
+        },
+        {
+          "id": 3,
+          "speedMps": 69.54998779296875,
+          "retired": 0,
+          "riderStateIndex": 0,
+          "crashes": 0,
+          "front": {
+            "loadN": 274.5513610839844,
+            "surfaceIndex": 0,
+            "water": 0,
+            "brakeDiscC": 128.54872131347656
+          },
+          "rear": {
+            "loadN": 2344.6455078125,
+            "surfaceIndex": 0,
+            "water": 0,
+            "brakeDiscC": 128.07101440429688
+          }
+        }
+      ],
+      "workerPause": {
+        "pending": false,
+        "paused": false,
+        "tick": 0,
+        "sequence": 1
+      },
+      "presentation": {
+        "time": 16.029409408569336,
+        "frames": 21,
+        "elapsed": 10.080301284790039,
+        "resets": 4,
+        "boundedCatchups": 0,
+        "omittedSeconds": 0,
+        "particles": {
+          "capacity": 4200,
+          "contactCapacity": 3600,
+          "rainCapacity": 600,
+          "active": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "spawned": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "velocityX": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "velocityZ": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "windX": 0,
+          "windZ": 0
+        }
+      },
+      "renderer": {
+        "camera": "chase",
+        "renderWidth": 960,
+        "renderHeight": 600,
+        "particleDensity": 0,
+        "drawCalls": 868,
+        "triangles": 1266765,
+        "textures": 116,
+        "geometries": 1727
+      },
+      "replay": {
+        "samples": 150,
+        "position": 0,
+        "seekPending": false,
+        "playing": true,
+        "error": null,
+        "recordingWarnings": []
+      }
+    },
+    "paused": {
+      "state": "paused",
+      "buildIdentity": {
+        "commit": null,
+        "fingerprint": "623f4a67851c64eb699dd1b9706eb0e60a8335605e4abb6e5862212d92393a4e"
+      },
+      "auto": true,
+      "usedDemonstration": true,
+      "tick": 1700,
+      "simulationTime": 20.074108123779297,
+      "riders": [
+        {
+          "id": 0,
+          "speedMps": 38.202674865722656,
+          "retired": 0,
+          "riderStateIndex": 0,
+          "crashes": 0,
+          "front": {
+            "loadN": 2098.59423828125,
+            "surfaceIndex": 0,
+            "water": 0,
+            "brakeDiscC": 152.72894287109375
+          },
+          "rear": {
+            "loadN": 368.688232421875,
+            "surfaceIndex": 0,
+            "water": 0,
+            "brakeDiscC": 92.22589111328125
+          }
+        },
+        {
+          "id": 1,
+          "speedMps": 32.53279113769531,
+          "retired": 0,
+          "riderStateIndex": 0,
+          "crashes": 0,
+          "front": {
+            "loadN": 1994.4530029296875,
+            "surfaceIndex": 0,
+            "water": 0,
+            "brakeDiscC": 158.95367431640625
+          },
+          "rear": {
+            "loadN": 454.6784973144531,
+            "surfaceIndex": 0,
+            "water": 0,
+            "brakeDiscC": 89.41044616699219
+          }
+        },
+        {
+          "id": 2,
+          "speedMps": 43.34699249267578,
+          "retired": 0,
+          "riderStateIndex": 0,
+          "crashes": 0,
+          "front": {
+            "loadN": 1782.3917236328125,
+            "surfaceIndex": 0,
+            "water": 0,
+            "brakeDiscC": 142.11851501464844
+          },
+          "rear": {
+            "loadN": 703.81982421875,
+            "surfaceIndex": 0,
+            "water": 0,
+            "brakeDiscC": 96.24211120605469
+          }
+        },
+        {
+          "id": 3,
+          "speedMps": 40.32866668701172,
+          "retired": 0,
+          "riderStateIndex": 0,
+          "crashes": 0,
+          "front": {
+            "loadN": 1814.0120849609375,
+            "surfaceIndex": 0,
+            "water": 0,
+            "brakeDiscC": 147.49029541015625
+          },
+          "rear": {
+            "loadN": 660.91357421875,
+            "surfaceIndex": 0,
+            "water": 0,
+            "brakeDiscC": 93.19849395751953
+          }
+        }
+      ],
+      "workerPause": {
+        "pending": false,
+        "paused": true,
+        "tick": 1700,
+        "sequence": 2
+      },
+      "presentation": {
+        "time": 20.074108123779297,
+        "frames": 29,
+        "elapsed": 14.125,
+        "resets": 4,
+        "boundedCatchups": 0,
+        "omittedSeconds": 0,
+        "particles": {
+          "capacity": 4200,
+          "contactCapacity": 3600,
+          "rainCapacity": 600,
+          "active": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "spawned": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "velocityX": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "velocityZ": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "windX": 0,
+          "windZ": 0
+        }
+      },
+      "renderer": {
+        "camera": "cockpit",
+        "renderWidth": 960,
+        "renderHeight": 600,
+        "particleDensity": 0,
+        "drawCalls": 425,
+        "triangles": 840701,
+        "textures": 116,
+        "geometries": 1727
+      },
+      "replay": {
+        "samples": 212,
+        "position": 0,
+        "seekPending": false,
+        "playing": true,
+        "error": null,
+        "recordingWarnings": []
+      }
+    },
+    "heldReplay": {
+      "state": "replay",
+      "buildIdentity": {
+        "commit": null,
+        "fingerprint": "623f4a67851c64eb699dd1b9706eb0e60a8335605e4abb6e5862212d92393a4e"
+      },
+      "auto": true,
+      "usedDemonstration": true,
+      "tick": 1700,
+      "simulationTime": 20.074108123779297,
+      "riders": [
+        {
+          "id": 0,
+          "speedMps": 38.202674865722656,
+          "retired": 0,
+          "riderStateIndex": 0,
+          "crashes": 0,
+          "front": {
+            "loadN": 2098.59423828125,
+            "surfaceIndex": 0,
+            "water": 0,
+            "brakeDiscC": 152.72894287109375
+          },
+          "rear": {
+            "loadN": 368.688232421875,
+            "surfaceIndex": 0,
+            "water": 0,
+            "brakeDiscC": 92.22589111328125
+          }
+        },
+        {
+          "id": 1,
+          "speedMps": 32.53279113769531,
+          "retired": 0,
+          "riderStateIndex": 0,
+          "crashes": 0,
+          "front": {
+            "loadN": 1994.4530029296875,
+            "surfaceIndex": 0,
+            "water": 0,
+            "brakeDiscC": 158.95367431640625
+          },
+          "rear": {
+            "loadN": 454.6784973144531,
+            "surfaceIndex": 0,
+            "water": 0,
+            "brakeDiscC": 89.41044616699219
+          }
+        },
+        {
+          "id": 2,
+          "speedMps": 43.34699249267578,
+          "retired": 0,
+          "riderStateIndex": 0,
+          "crashes": 0,
+          "front": {
+            "loadN": 1782.3917236328125,
+            "surfaceIndex": 0,
+            "water": 0,
+            "brakeDiscC": 142.11851501464844
+          },
+          "rear": {
+            "loadN": 703.81982421875,
+            "surfaceIndex": 0,
+            "water": 0,
+            "brakeDiscC": 96.24211120605469
+          }
+        },
+        {
+          "id": 3,
+          "speedMps": 40.32866668701172,
+          "retired": 0,
+          "riderStateIndex": 0,
+          "crashes": 0,
+          "front": {
+            "loadN": 1814.0120849609375,
+            "surfaceIndex": 0,
+            "water": 0,
+            "brakeDiscC": 147.49029541015625
+          },
+          "rear": {
+            "loadN": 660.91357421875,
+            "surfaceIndex": 0,
+            "water": 0,
+            "brakeDiscC": 93.19849395751953
+          }
+        }
+      ],
+      "workerPause": {
+        "pending": false,
+        "paused": true,
+        "tick": 1700,
+        "sequence": 2
+      },
+      "presentation": {
+        "time": 16.034107208251953,
+        "frames": 34,
+        "elapsed": 0,
+        "resets": 8,
+        "boundedCatchups": 0,
+        "omittedSeconds": 0,
+        "particles": {
+          "capacity": 4200,
+          "contactCapacity": 3600,
+          "rainCapacity": 600,
+          "active": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "spawned": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "velocityX": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "velocityZ": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "windX": 0,
+          "windZ": 0
+        }
+      },
+      "renderer": {
+        "camera": "cockpit",
+        "renderWidth": 960,
+        "renderHeight": 600,
+        "particleDensity": 0,
+        "drawCalls": 680,
+        "triangles": 1096365,
+        "textures": 116,
+        "geometries": 1727
+      },
+      "replay": {
+        "samples": 212,
+        "position": 10.06,
+        "seekPending": false,
+        "playing": false,
+        "error": null,
+        "recordingWarnings": []
+      }
+    },
+    "restoredReplay": {
+      "state": "replay",
+      "buildIdentity": {
+        "commit": null,
+        "fingerprint": "623f4a67851c64eb699dd1b9706eb0e60a8335605e4abb6e5862212d92393a4e"
+      },
+      "auto": true,
+      "usedDemonstration": true,
+      "tick": 1700,
+      "simulationTime": 20.074108123779297,
+      "riders": [
+        {
+          "id": 0,
+          "speedMps": 38.202674865722656,
+          "retired": 0,
+          "riderStateIndex": 0,
+          "crashes": 0,
+          "front": {
+            "loadN": 2098.59423828125,
+            "surfaceIndex": 0,
+            "water": 0,
+            "brakeDiscC": 152.72894287109375
+          },
+          "rear": {
+            "loadN": 368.688232421875,
+            "surfaceIndex": 0,
+            "water": 0,
+            "brakeDiscC": 92.22589111328125
+          }
+        },
+        {
+          "id": 1,
+          "speedMps": 32.53279113769531,
+          "retired": 0,
+          "riderStateIndex": 0,
+          "crashes": 0,
+          "front": {
+            "loadN": 1994.4530029296875,
+            "surfaceIndex": 0,
+            "water": 0,
+            "brakeDiscC": 158.95367431640625
+          },
+          "rear": {
+            "loadN": 454.6784973144531,
+            "surfaceIndex": 0,
+            "water": 0,
+            "brakeDiscC": 89.41044616699219
+          }
+        },
+        {
+          "id": 2,
+          "speedMps": 43.34699249267578,
+          "retired": 0,
+          "riderStateIndex": 0,
+          "crashes": 0,
+          "front": {
+            "loadN": 1782.3917236328125,
+            "surfaceIndex": 0,
+            "water": 0,
+            "brakeDiscC": 142.11851501464844
+          },
+          "rear": {
+            "loadN": 703.81982421875,
+            "surfaceIndex": 0,
+            "water": 0,
+            "brakeDiscC": 96.24211120605469
+          }
+        },
+        {
+          "id": 3,
+          "speedMps": 40.32866668701172,
+          "retired": 0,
+          "riderStateIndex": 0,
+          "crashes": 0,
+          "front": {
+            "loadN": 1814.0120849609375,
+            "surfaceIndex": 0,
+            "water": 0,
+            "brakeDiscC": 147.49029541015625
+          },
+          "rear": {
+            "loadN": 660.91357421875,
+            "surfaceIndex": 0,
+            "water": 0,
+            "brakeDiscC": 93.19849395751953
+          }
+        }
+      ],
+      "workerPause": {
+        "pending": false,
+        "paused": true,
+        "tick": 1700,
+        "sequence": 2
+      },
+      "presentation": {
+        "time": 16.034107208251953,
+        "frames": 36,
+        "elapsed": 0,
+        "resets": 12,
+        "boundedCatchups": 0,
+        "omittedSeconds": 0,
+        "particles": {
+          "capacity": 4200,
+          "contactCapacity": 3600,
+          "rainCapacity": 600,
+          "active": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "spawned": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "velocityX": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "velocityZ": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "windX": 0,
+          "windZ": 0
+        }
+      },
+      "renderer": {
+        "camera": "cockpit",
+        "renderWidth": 960,
+        "renderHeight": 600,
+        "particleDensity": 0,
+        "drawCalls": 680,
+        "triangles": 1096365,
+        "textures": 116,
+        "geometries": 1727
+      },
+      "replay": {
+        "samples": 212,
+        "position": 10.06,
+        "seekPending": false,
+        "playing": false,
+        "error": null,
+        "recordingWarnings": []
+      }
+    },
+    "resumed": {
+      "state": "driving",
+      "buildIdentity": {
+        "commit": null,
+        "fingerprint": "623f4a67851c64eb699dd1b9706eb0e60a8335605e4abb6e5862212d92393a4e"
+      },
+      "auto": true,
+      "usedDemonstration": true,
+      "tick": 1836,
+      "simulationTime": 21.207441329956055,
+      "riders": [
+        {
+          "id": 0,
+          "speedMps": 29.756887435913086,
+          "retired": 0,
+          "riderStateIndex": 0,
+          "crashes": 0,
+          "front": {
+            "loadN": 1996.096923828125,
+            "surfaceIndex": 0,
+            "water": 0,
+            "brakeDiscC": 155.57977294921875
+          },
+          "rear": {
+            "loadN": 445.3112487792969,
+            "surfaceIndex": 0,
+            "water": 0,
+            "brakeDiscC": 88.62084197998047
+          }
+        },
+        {
+          "id": 1,
+          "speedMps": 23.485157012939453,
+          "retired": 0,
+          "riderStateIndex": 0,
+          "crashes": 0,
+          "front": {
+            "loadN": 2051.66796875,
+            "surfaceIndex": 0,
+            "water": 0,
+            "brakeDiscC": 161.70513916015625
+          },
+          "rear": {
+            "loadN": 374.63043212890625,
+            "surfaceIndex": 0,
+            "water": 0,
+            "brakeDiscC": 87.72782897949219
+          }
+        },
+        {
+          "id": 2,
+          "speedMps": 35.58225631713867,
+          "retired": 0,
+          "riderStateIndex": 0,
+          "crashes": 0,
+          "front": {
+            "loadN": 1952.40478515625,
+            "surfaceIndex": 0,
+            "water": 0,
+            "brakeDiscC": 144.34439086914062
+          },
+          "rear": {
+            "loadN": 506.2244567871094,
+            "surfaceIndex": 0,
+            "water": 0,
+            "brakeDiscC": 91.1891860961914
+          }
+        },
+        {
+          "id": 3,
+          "speedMps": 32.25703048706055,
+          "retired": 0,
+          "riderStateIndex": 0,
+          "crashes": 0,
+          "front": {
+            "loadN": 2015.9058837890625,
+            "surfaceIndex": 0,
+            "water": 0,
+            "brakeDiscC": 150.24195861816406
+          },
+          "rear": {
+            "loadN": 432.6538391113281,
+            "surfaceIndex": 0,
+            "water": 0,
+            "brakeDiscC": 89.10724639892578
+          }
+        }
+      ],
+      "workerPause": {
+        "pending": false,
+        "paused": false,
+        "tick": 1700,
+        "sequence": 3
+      },
+      "presentation": {
+        "time": 20.836040496826172,
+        "frames": 40,
+        "elapsed": 0.761932373046875,
+        "resets": 14,
+        "boundedCatchups": 0,
+        "omittedSeconds": 0,
+        "particles": {
+          "capacity": 4200,
+          "contactCapacity": 3600,
+          "rainCapacity": 600,
+          "active": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "spawned": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "velocityX": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "velocityZ": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "windX": 0,
+          "windZ": 0
+        }
+      },
+      "renderer": {
+        "camera": "cockpit",
+        "renderWidth": 960,
+        "renderHeight": 600,
+        "particleDensity": 0,
+        "drawCalls": 359,
+        "triangles": 628533,
+        "textures": 116,
+        "geometries": 1727
+      },
+      "replay": {
+        "samples": 227,
+        "position": 10.06,
+        "seekPending": false,
+        "playing": false,
+        "error": null,
+        "recordingWarnings": []
+      }
+    },
+    "heldGuide": {
+      "corner": "T1 · PRIMA",
+      "distance": "340 M TO APEX",
+      "action": "LOOK THROUGH THE TURN",
+      "advice": "Set your entry speed",
+      "tow": "TOW 43%",
+      "tone": "neutral"
+    },
+    "cornerPosition": 10.06,
+    "guideBounds": {
+      "chase": [
+        {
+          "id": "gpCraft",
+          "left": 983.453125,
+          "top": 543,
+          "right": 1229.453125,
+          "bottom": 618,
+          "width": 246,
+          "height": 75,
+          "scrollWidth": 246,
+          "clientWidth": 246,
+          "viewportWidth": 1280,
+          "viewportHeight": 800
+        },
+        {
+          "id": "gpCorner",
+          "left": 1003.703125,
+          "top": 551,
+          "right": 1054.734375,
+          "bottom": 566,
+          "width": 51.03125,
+          "height": 15,
+          "scrollWidth": 51,
+          "clientWidth": 51,
+          "viewportWidth": 1280,
+          "viewportHeight": 800
+        },
+        {
+          "id": "gpAction",
+          "left": 983.453125,
+          "top": 572,
+          "right": 1132.8125,
+          "bottom": 589,
+          "width": 149.359375,
+          "height": 17,
+          "scrollWidth": 149,
+          "clientWidth": 149,
+          "viewportWidth": 1280,
+          "viewportHeight": 800
+        },
+        {
+          "id": "gpAdvice",
+          "left": 983.453125,
+          "top": 594,
+          "right": 1229.453125,
+          "bottom": 609,
+          "width": 246,
+          "height": 15,
+          "scrollWidth": 246,
+          "clientWidth": 246,
+          "viewportWidth": 1280,
+          "viewportHeight": 800
+        }
+      ],
+      "cockpit": [
+        {
+          "id": "gpCraft",
+          "left": 983.453125,
+          "top": 543,
+          "right": 1229.453125,
+          "bottom": 618,
+          "width": 246,
+          "height": 75,
+          "scrollWidth": 246,
+          "clientWidth": 246,
+          "viewportWidth": 1280,
+          "viewportHeight": 800
+        },
+        {
+          "id": "gpCorner",
+          "left": 1003.703125,
+          "top": 551,
+          "right": 1054.734375,
+          "bottom": 566,
+          "width": 51.03125,
+          "height": 15,
+          "scrollWidth": 51,
+          "clientWidth": 51,
+          "viewportWidth": 1280,
+          "viewportHeight": 800
+        },
+        {
+          "id": "gpAction",
+          "left": 983.453125,
+          "top": 572,
+          "right": 1035.078125,
+          "bottom": 589,
+          "width": 51.625,
+          "height": 17,
+          "scrollWidth": 52,
+          "clientWidth": 52,
+          "viewportWidth": 1280,
+          "viewportHeight": 800
+        },
+        {
+          "id": "gpAdvice",
+          "left": 983.453125,
+          "top": 594,
+          "right": 1229.453125,
+          "bottom": 609,
+          "width": 246,
+          "height": 15,
+          "scrollWidth": 246,
+          "clientWidth": 246,
+          "viewportWidth": 1280,
+          "viewportHeight": 800
+        }
+      ],
+      "replay": [
+        {
+          "id": "gpCraft",
+          "left": 983.453125,
+          "top": 491,
+          "right": 1229.453125,
+          "bottom": 566,
+          "width": 246,
+          "height": 75,
+          "scrollWidth": 246,
+          "clientWidth": 246,
+          "viewportWidth": 1280,
+          "viewportHeight": 800
+        },
+        {
+          "id": "gpCorner",
+          "left": 1003.703125,
+          "top": 499,
+          "right": 1054.734375,
+          "bottom": 514,
+          "width": 51.03125,
+          "height": 15,
+          "scrollWidth": 51,
+          "clientWidth": 51,
+          "viewportWidth": 1280,
+          "viewportHeight": 800
+        },
+        {
+          "id": "gpAction",
+          "left": 983.453125,
+          "top": 520,
+          "right": 1132.8125,
+          "bottom": 537,
+          "width": 149.359375,
+          "height": 17,
+          "scrollWidth": 149,
+          "clientWidth": 149,
+          "viewportWidth": 1280,
+          "viewportHeight": 800
+        },
+        {
+          "id": "gpAdvice",
+          "left": 983.453125,
+          "top": 542,
+          "right": 1229.453125,
+          "bottom": 557,
+          "width": 246,
+          "height": 15,
+          "scrollWidth": 246,
+          "clientWidth": 246,
+          "viewportWidth": 1280,
+          "viewportHeight": 800
+        }
+      ]
+    },
+    "errors": []
+  },
+  "wet": {
+    "workload": "Actual four-rider wet GP-R1 practice; low preset with particle density 1",
+    "options": {
+      "mode": "practice",
+      "laps": 3,
+      "opponents": 3,
+      "weather": "rain",
+      "assist": "sport",
+      "compound": "wet",
+      "setup": {
+        "frontWing": 0.55,
+        "rearWing": 0.58,
+        "brakeBias": 0.56,
+        "diffPower": 0.5,
+        "diffCoast": 0.25,
+        "frontSpring": 115000,
+        "rearSpring": 125000,
+        "frontARB": 26000,
+        "rearARB": 21000,
+        "frontRide": 0.065,
+        "rearRide": 0.075,
+        "frontPressure": 155,
+        "rearPressure": 148,
+        "frontCamber": -0.044,
+        "rearCamber": -0.023,
+        "frontToe": -0.001,
+        "rearToe": 0.002,
+        "frontPreload": 0,
+        "rearPreload": 0,
+        "frontDamping": 0.5,
+        "rearDamping": 0.5,
+        "steeringDamper": 0.5,
+        "gearing": 1,
+        "tractionMap": 3,
+        "wheelieMap": 3,
+        "engineBrakeMap": 0
+      },
+      "seed": 73021,
+      "circuit": "poggio-alto",
+      "vehicles": [
+        "gpr1",
+        "gpr1",
+        "gpr1",
+        "gpr1"
+      ]
+    },
+    "entered": {
+      "state": "driving",
+      "buildIdentity": {
+        "commit": null,
+        "fingerprint": "623f4a67851c64eb699dd1b9706eb0e60a8335605e4abb6e5862212d92393a4e"
+      },
+      "auto": false,
+      "usedDemonstration": false,
+      "tick": 125,
+      "simulationTime": 6.949108123779297,
+      "riders": [
+        {
+          "id": 0,
+          "speedMps": 0,
+          "retired": 0,
+          "riderStateIndex": 0,
+          "crashes": 0,
+          "front": {
+            "loadN": 1242.7381591796875,
+            "surfaceIndex": 0,
+            "water": 0.7710044980049133,
+            "brakeDiscC": 315.65887451171875
+          },
+          "rear": {
+            "loadN": 1159.8890380859375,
+            "surfaceIndex": 0,
+            "water": 0.7710044980049133,
+            "brakeDiscC": 315.65887451171875
+          }
+        },
+        {
+          "id": 1,
+          "speedMps": 7.702272891998291,
+          "retired": 0,
+          "riderStateIndex": 0,
+          "crashes": 0,
+          "front": {
+            "loadN": 248.8590545654297,
+            "surfaceIndex": 0,
+            "water": 1.0486358404159546,
+            "brakeDiscC": 313.0087890625
+          },
+          "rear": {
+            "loadN": 2156.35546875,
+            "surfaceIndex": 0,
+            "water": 1.0486358404159546,
+            "brakeDiscC": 313.0087890625
+          }
+        },
+        {
+          "id": 2,
+          "speedMps": 2.6096506118774414,
+          "retired": 0,
+          "riderStateIndex": 0,
+          "crashes": 0,
+          "front": {
+            "loadN": 1408.63818359375,
+            "surfaceIndex": 0,
+            "water": 0.7710044980049133,
+            "brakeDiscC": 314.258056640625
+          },
+          "rear": {
+            "loadN": 994.2815551757812,
+            "surfaceIndex": 0,
+            "water": 0.7710044980049133,
+            "brakeDiscC": 314.1650085449219
+          }
+        },
+        {
+          "id": 3,
+          "speedMps": 6.037420272827148,
+          "retired": 0,
+          "riderStateIndex": 0,
+          "crashes": 0,
+          "front": {
+            "loadN": 590.6351318359375,
+            "surfaceIndex": 0,
+            "water": 0.8554514646530151,
+            "brakeDiscC": 313.474365234375
+          },
+          "rear": {
+            "loadN": 1813.5899658203125,
+            "surfaceIndex": 0,
+            "water": 0.8554514646530151,
+            "brakeDiscC": 313.474365234375
+          }
+        }
+      ],
+      "workerPause": {
+        "pending": false,
+        "paused": false,
+        "tick": 0,
+        "sequence": 1
+      },
+      "presentation": {
+        "time": 6.799108028411865,
+        "frames": 8,
+        "elapsed": 0.8916668891906738,
+        "resets": 4,
+        "boundedCatchups": 0,
+        "omittedSeconds": 0,
+        "particles": {
+          "capacity": 4200,
+          "contactCapacity": 3600,
+          "rainCapacity": 600,
+          "active": [
+            3,
+            0,
+            0,
+            515,
+            0,
+            0
+          ],
+          "spawned": [
+            3,
+            0,
+            0,
+            856,
+            0,
+            0
+          ],
+          "velocityX": [
+            1.0732751140991847,
+            0,
+            0,
+            1.5,
+            0,
+            0
+          ],
+          "velocityZ": [
+            0.6322066336870193,
+            0,
+            0,
+            0.6000000238418579,
+            0,
+            0
+          ],
+          "windX": 1.5,
+          "windZ": 0.6000000238418579
+        }
+      },
+      "renderer": {
+        "camera": "chase",
+        "renderWidth": 960,
+        "renderHeight": 600,
+        "particleDensity": 1,
+        "drawCalls": 3110,
+        "triangles": 2029406,
+        "textures": 109,
+        "geometries": 1600
+      },
+      "replay": {
+        "samples": 15,
+        "position": 0,
+        "seekPending": false,
+        "playing": true,
+        "error": null,
+        "recordingWarnings": []
+      }
+    },
+    "movingChase": {
+      "state": "driving",
+      "buildIdentity": {
+        "commit": null,
+        "fingerprint": "623f4a67851c64eb699dd1b9706eb0e60a8335605e4abb6e5862212d92393a4e"
+      },
+      "auto": true,
+      "usedDemonstration": true,
+      "tick": 669,
+      "simulationTime": 11.482440948486328,
+      "riders": [
+        {
+          "id": 0,
+          "speedMps": 39.2359504699707,
+          "retired": 0,
+          "riderStateIndex": 0,
+          "crashes": 0,
+          "front": {
+            "loadN": 256.8069152832031,
+            "surfaceIndex": 0,
+            "water": 0.8381388783454895,
+            "brakeDiscC": 237.0751495361328
+          },
+          "rear": {
+            "loadN": 2214.595458984375,
+            "surfaceIndex": 0,
+            "water": 0.8381388783454895,
+            "brakeDiscC": 237.0751495361328
+          }
+        },
+        {
+          "id": 1,
+          "speedMps": 47.13993835449219,
+          "retired": 0,
+          "riderStateIndex": 0,
+          "crashes": 0,
+          "front": {
+            "loadN": 260.4756164550781,
+            "surfaceIndex": 0,
+            "water": 0.7487550973892212,
+            "brakeDiscC": 214.40179443359375
+          },
+          "rear": {
+            "loadN": 2241.47802734375,
+            "surfaceIndex": 0,
+            "water": 0.7487550973892212,
+            "brakeDiscC": 214.40179443359375
+          }
+        },
+        {
+          "id": 2,
+          "speedMps": 29.020160675048828,
+          "retired": 0,
+          "riderStateIndex": 0,
+          "crashes": 0,
+          "front": {
+            "loadN": 312.95123291015625,
+            "surfaceIndex": 0,
+            "water": 0.7344111204147339,
+            "brakeDiscC": 251.48785400390625
+          },
+          "rear": {
+            "loadN": 2127.242431640625,
+            "surfaceIndex": 0,
+            "water": 0.7344111204147339,
+            "brakeDiscC": 251.28958129882812
+          }
+        },
+        {
+          "id": 3,
+          "speedMps": 40.40971755981445,
+          "retired": 0,
+          "riderStateIndex": 0,
+          "crashes": 0,
+          "front": {
+            "loadN": 257.31121826171875,
+            "surfaceIndex": 0,
+            "water": 0.9030187129974365,
+            "brakeDiscC": 228.83407592773438
+          },
+          "rear": {
+            "loadN": 2218.293212890625,
+            "surfaceIndex": 0,
+            "water": 0.7152143120765686,
+            "brakeDiscC": 228.69493103027344
+          }
+        }
+      ],
+      "workerPause": {
+        "pending": false,
+        "paused": false,
+        "tick": 0,
+        "sequence": 1
+      },
+      "presentation": {
+        "time": 11.215774536132812,
+        "frames": 12,
+        "elapsed": 5.308333396911621,
+        "resets": 4,
+        "boundedCatchups": 0,
+        "omittedSeconds": 0,
+        "particles": {
+          "capacity": 4200,
+          "contactCapacity": 3600,
+          "rainCapacity": 600,
+          "active": [
+            957,
+            0,
+            0,
+            513,
+            0,
+            0
+          ],
+          "spawned": [
+            1343,
+            0,
+            0,
+            5096,
+            0,
+            0
+          ],
+          "velocityX": [
+            0.5809097339164625,
+            0,
+            0,
+            1.5,
+            0,
+            0
+          ],
+          "velocityZ": [
+            0.5269321617677656,
+            0,
+            0,
+            0.6000000238418579,
+            0,
+            0
+          ],
+          "windX": 1.5,
+          "windZ": 0.6000000238418579
+        }
+      },
+      "renderer": {
+        "camera": "chase",
+        "renderWidth": 960,
+        "renderHeight": 600,
+        "particleDensity": 1,
+        "drawCalls": 3003,
+        "triangles": 1921791,
+        "textures": 119,
+        "geometries": 1729
+      },
+      "replay": {
+        "samples": 75,
+        "position": 0,
+        "seekPending": false,
+        "playing": true,
+        "error": null,
+        "recordingWarnings": []
+      }
+    },
+    "pauseAcknowledged": {
+      "state": "paused",
+      "buildIdentity": {
+        "commit": null,
+        "fingerprint": "623f4a67851c64eb699dd1b9706eb0e60a8335605e4abb6e5862212d92393a4e"
+      },
+      "auto": true,
+      "usedDemonstration": true,
+      "tick": 1335,
+      "simulationTime": 17.032442092895508,
+      "riders": [
+        {
+          "id": 0,
+          "speedMps": 58.160552978515625,
+          "retired": 0,
+          "riderStateIndex": 0,
+          "crashes": 0,
+          "front": {
+            "loadN": 1660.9229736328125,
+            "surfaceIndex": 0,
+            "water": 0.7445007562637329,
+            "brakeDiscC": 125.03730773925781
+          },
+          "rear": {
+            "loadN": 893.0554809570312,
+            "surfaceIndex": 0,
+            "water": 0.7445007562637329,
+            "brakeDiscC": 112.87049865722656
+          }
+        },
+        {
+          "id": 1,
+          "speedMps": 50.76681900024414,
+          "retired": 0,
+          "riderStateIndex": 0,
+          "crashes": 0,
+          "front": {
+            "loadN": 1794.76806640625,
+            "surfaceIndex": 0,
+            "water": 0.9900461435317993,
+            "brakeDiscC": 133.61630249023438
+          },
+          "rear": {
+            "loadN": 722.942626953125,
+            "surfaceIndex": 0,
+            "water": 0.9900461435317993,
+            "brakeDiscC": 105.32775115966797
+          }
+        },
+        {
+          "id": 2,
+          "speedMps": 58.1915168762207,
+          "retired": 0,
+          "riderStateIndex": 0,
+          "crashes": 0,
+          "front": {
+            "loadN": 1574.194091796875,
+            "surfaceIndex": 0,
+            "water": 0.7517848014831543,
+            "brakeDiscC": 134.7091064453125
+          },
+          "rear": {
+            "loadN": 980.0211791992188,
+            "surfaceIndex": 0,
+            "water": 0.7517848014831543,
+            "brakeDiscC": 126.03450012207031
+          }
+        },
+        {
+          "id": 3,
+          "speedMps": 53.77228546142578,
+          "retired": 0,
+          "riderStateIndex": 0,
+          "crashes": 0,
+          "front": {
+            "loadN": 1723.387451171875,
+            "surfaceIndex": 0,
+            "water": 0.8314701318740845,
+            "brakeDiscC": 133.03817749023438
+          },
+          "rear": {
+            "loadN": 808.5292358398438,
+            "surfaceIndex": 0,
+            "water": 0.8314701318740845,
+            "brakeDiscC": 111.89096069335938
+          }
+        }
+      ],
+      "workerPause": {
+        "pending": false,
+        "paused": true,
+        "tick": 1335,
+        "sequence": 2
+      },
+      "presentation": {
+        "time": 16.715774536132812,
+        "frames": 18,
+        "elapsed": 10.808333396911621,
+        "resets": 4,
+        "boundedCatchups": 0,
+        "omittedSeconds": 0,
+        "particles": {
+          "capacity": 4200,
+          "contactCapacity": 3600,
+          "rainCapacity": 600,
+          "active": [
+            1501,
+            0,
+            0,
+            518,
+            0,
+            0
+          ],
+          "spawned": [
+            5456,
+            0,
+            0,
+            10376,
+            0,
+            0
+          ],
+          "velocityX": [
+            0.1539215021456876,
+            0,
+            0,
+            1.5,
+            0,
+            0
+          ],
+          "velocityZ": [
+            0.533262057856937,
+            0,
+            0,
+            0.6000000238418579,
+            0,
+            0
+          ],
+          "windX": 1.5,
+          "windZ": 0.6000000238418579
+        }
+      },
+      "renderer": {
+        "camera": "cockpit",
+        "renderWidth": 960,
+        "renderHeight": 600,
+        "particleDensity": 1,
+        "drawCalls": 870,
+        "triangles": 1289264,
+        "textures": 140,
+        "geometries": 1837
+      },
+      "replay": {
+        "samples": 166,
+        "position": 0,
+        "seekPending": false,
+        "playing": true,
+        "error": null,
+        "recordingWarnings": []
+      }
+    },
+    "pausedAfterPresentationDrain": {
+      "state": "paused",
+      "buildIdentity": {
+        "commit": null,
+        "fingerprint": "623f4a67851c64eb699dd1b9706eb0e60a8335605e4abb6e5862212d92393a4e"
+      },
+      "auto": true,
+      "usedDemonstration": true,
+      "tick": 1335,
+      "simulationTime": 17.032442092895508,
+      "riders": [
+        {
+          "id": 0,
+          "speedMps": 58.160552978515625,
+          "retired": 0,
+          "riderStateIndex": 0,
+          "crashes": 0,
+          "front": {
+            "loadN": 1660.9229736328125,
+            "surfaceIndex": 0,
+            "water": 0.7445007562637329,
+            "brakeDiscC": 125.03730773925781
+          },
+          "rear": {
+            "loadN": 893.0554809570312,
+            "surfaceIndex": 0,
+            "water": 0.7445007562637329,
+            "brakeDiscC": 112.87049865722656
+          }
+        },
+        {
+          "id": 1,
+          "speedMps": 50.76681900024414,
+          "retired": 0,
+          "riderStateIndex": 0,
+          "crashes": 0,
+          "front": {
+            "loadN": 1794.76806640625,
+            "surfaceIndex": 0,
+            "water": 0.9900461435317993,
+            "brakeDiscC": 133.61630249023438
+          },
+          "rear": {
+            "loadN": 722.942626953125,
+            "surfaceIndex": 0,
+            "water": 0.9900461435317993,
+            "brakeDiscC": 105.32775115966797
+          }
+        },
+        {
+          "id": 2,
+          "speedMps": 58.1915168762207,
+          "retired": 0,
+          "riderStateIndex": 0,
+          "crashes": 0,
+          "front": {
+            "loadN": 1574.194091796875,
+            "surfaceIndex": 0,
+            "water": 0.7517848014831543,
+            "brakeDiscC": 134.7091064453125
+          },
+          "rear": {
+            "loadN": 980.0211791992188,
+            "surfaceIndex": 0,
+            "water": 0.7517848014831543,
+            "brakeDiscC": 126.03450012207031
+          }
+        },
+        {
+          "id": 3,
+          "speedMps": 53.77228546142578,
+          "retired": 0,
+          "riderStateIndex": 0,
+          "crashes": 0,
+          "front": {
+            "loadN": 1723.387451171875,
+            "surfaceIndex": 0,
+            "water": 0.8314701318740845,
+            "brakeDiscC": 133.03817749023438
+          },
+          "rear": {
+            "loadN": 808.5292358398438,
+            "surfaceIndex": 0,
+            "water": 0.8314701318740845,
+            "brakeDiscC": 111.89096069335938
+          }
+        }
+      ],
+      "workerPause": {
+        "pending": false,
+        "paused": true,
+        "tick": 1335,
+        "sequence": 2
+      },
+      "presentation": {
+        "time": 17.032442092895508,
+        "frames": 19,
+        "elapsed": 11.125000953674316,
+        "resets": 4,
+        "boundedCatchups": 0,
+        "omittedSeconds": 0,
+        "particles": {
+          "capacity": 4200,
+          "contactCapacity": 3600,
+          "rainCapacity": 600,
+          "active": [
+            1368,
+            0,
+            0,
+            526,
+            0,
+            0
+          ],
+          "spawned": [
+            5617,
+            0,
+            0,
+            10680,
+            0,
+            0
+          ],
+          "velocityX": [
+            0.17179960522684778,
+            0,
+            0,
+            1.5,
+            0,
+            0
+          ],
+          "velocityZ": [
+            0.537922918487375,
+            0,
+            0,
+            0.6000000238418579,
+            0,
+            0
+          ],
+          "windX": 1.5,
+          "windZ": 0.6000000238418579
+        }
+      },
+      "renderer": {
+        "camera": "cockpit",
+        "renderWidth": 960,
+        "renderHeight": 600,
+        "particleDensity": 1,
+        "drawCalls": 778,
+        "triangles": 1245458,
+        "textures": 140,
+        "geometries": 1837
+      },
+      "replay": {
+        "samples": 166,
+        "position": 0,
+        "seekPending": false,
+        "playing": true,
+        "error": null,
+        "recordingWarnings": []
+      }
+    },
+    "heldAcrossFurtherRenderedFrames": {
+      "state": "paused",
+      "buildIdentity": {
+        "commit": null,
+        "fingerprint": "623f4a67851c64eb699dd1b9706eb0e60a8335605e4abb6e5862212d92393a4e"
+      },
+      "auto": true,
+      "usedDemonstration": true,
+      "tick": 1335,
+      "simulationTime": 17.032442092895508,
+      "riders": [
+        {
+          "id": 0,
+          "speedMps": 58.160552978515625,
+          "retired": 0,
+          "riderStateIndex": 0,
+          "crashes": 0,
+          "front": {
+            "loadN": 1660.9229736328125,
+            "surfaceIndex": 0,
+            "water": 0.7445007562637329,
+            "brakeDiscC": 125.03730773925781
+          },
+          "rear": {
+            "loadN": 893.0554809570312,
+            "surfaceIndex": 0,
+            "water": 0.7445007562637329,
+            "brakeDiscC": 112.87049865722656
+          }
+        },
+        {
+          "id": 1,
+          "speedMps": 50.76681900024414,
+          "retired": 0,
+          "riderStateIndex": 0,
+          "crashes": 0,
+          "front": {
+            "loadN": 1794.76806640625,
+            "surfaceIndex": 0,
+            "water": 0.9900461435317993,
+            "brakeDiscC": 133.61630249023438
+          },
+          "rear": {
+            "loadN": 722.942626953125,
+            "surfaceIndex": 0,
+            "water": 0.9900461435317993,
+            "brakeDiscC": 105.32775115966797
+          }
+        },
+        {
+          "id": 2,
+          "speedMps": 58.1915168762207,
+          "retired": 0,
+          "riderStateIndex": 0,
+          "crashes": 0,
+          "front": {
+            "loadN": 1574.194091796875,
+            "surfaceIndex": 0,
+            "water": 0.7517848014831543,
+            "brakeDiscC": 134.7091064453125
+          },
+          "rear": {
+            "loadN": 980.0211791992188,
+            "surfaceIndex": 0,
+            "water": 0.7517848014831543,
+            "brakeDiscC": 126.03450012207031
+          }
+        },
+        {
+          "id": 3,
+          "speedMps": 53.77228546142578,
+          "retired": 0,
+          "riderStateIndex": 0,
+          "crashes": 0,
+          "front": {
+            "loadN": 1723.387451171875,
+            "surfaceIndex": 0,
+            "water": 0.8314701318740845,
+            "brakeDiscC": 133.03817749023438
+          },
+          "rear": {
+            "loadN": 808.5292358398438,
+            "surfaceIndex": 0,
+            "water": 0.8314701318740845,
+            "brakeDiscC": 111.89096069335938
+          }
+        }
+      ],
+      "workerPause": {
+        "pending": false,
+        "paused": true,
+        "tick": 1335,
+        "sequence": 2
+      },
+      "presentation": {
+        "time": 17.032442092895508,
+        "frames": 25,
+        "elapsed": 11.125000953674316,
+        "resets": 4,
+        "boundedCatchups": 0,
+        "omittedSeconds": 0,
+        "particles": {
+          "capacity": 4200,
+          "contactCapacity": 3600,
+          "rainCapacity": 600,
+          "active": [
+            1368,
+            0,
+            0,
+            526,
+            0,
+            0
+          ],
+          "spawned": [
+            5617,
+            0,
+            0,
+            10680,
+            0,
+            0
+          ],
+          "velocityX": [
+            0.17179960522684778,
+            0,
+            0,
+            1.5,
+            0,
+            0
+          ],
+          "velocityZ": [
+            0.537922918487375,
+            0,
+            0,
+            0.6000000238418579,
+            0,
+            0
+          ],
+          "windX": 1.5,
+          "windZ": 0.6000000238418579
+        }
+      },
+      "renderer": {
+        "camera": "cockpit",
+        "renderWidth": 960,
+        "renderHeight": 600,
+        "particleDensity": 1,
+        "drawCalls": 778,
+        "triangles": 1245458,
+        "textures": 140,
+        "geometries": 1837
+      },
+      "replay": {
+        "samples": 166,
+        "position": 0,
+        "seekPending": false,
+        "playing": true,
+        "error": null,
+        "recordingWarnings": []
+      }
+    },
+    "resumedTickAdvanceAssertionPassed": true,
+    "pauseChecks": {
+      "tickIdentical": true,
+      "presentationTimeIdentical": true,
+      "fullParticleDiagnosticsIdentical": true,
+      "furtherRenderedFrames": 6
+    },
+    "errors": []
+  },
+  "retainedImages": [
+    {
+      "file": "gp-live-clear-chase.png",
+      "sourceAttachment": "02-gp-moving-chase-guide.png",
+      "bytes": 911690,
+      "sha256": "86fc60dddc8e328793a53150ea3c779c042ec656f4f26d79b9ba5a7e123b10d0"
+    },
+    {
+      "file": "gp-live-clear-cockpit.png",
+      "sourceAttachment": "03-gp-moving-cockpit-guide.png",
+      "bytes": 826589,
+      "sha256": "9ad1516a7b297750baea5edf415d81676e97bc8beb8d4b362c8e917ff3698274"
+    },
+    {
+      "file": "gp-recorded-replay.png",
+      "sourceAttachment": "05-gp-recorded-cockpit-guide.png",
+      "bytes": 722601,
+      "sha256": "5a2b89425e82541117197f076794efeee03ff9cc03d4e8307e5f12fe3d9655f6"
+    },
+    {
+      "file": "gp-live-wet-chase.png",
+      "sourceAttachment": "gp-live-wet-chase.png",
+      "bytes": 704011,
+      "sha256": "ae4d0afb446bcc7d5ba9838cc2e014ce14250ccc299bf7a97bd6507c29b3c180"
+    },
+    {
+      "file": "gp-live-wet-cockpit.png",
+      "sourceAttachment": "gp-live-wet-cockpit.png",
+      "bytes": 649368,
+      "sha256": "bf18445af7d7ab02968300afeeec6abd4805274864d050ce5121b28f39fd067e"
+    }
+  ],
+  "screenshotBoundaries": {
+    "gp-control-feedback.png": "Synthetic telemetry fixture, explicitly marked in its image; tests six advice conditions at three viewports and two UI scales.",
+    "gp-live-wet-before.png": "Earlier actual wet session before the final particle profile and optical refinement. Different real-time frame/camera history; not a controlled pixel comparison."
+  }
+}

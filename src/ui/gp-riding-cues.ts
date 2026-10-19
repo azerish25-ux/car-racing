@@ -4,10 +4,11 @@ import { FLAG, yellowFlag } from '../simulation/marshal.ts';
 import { B, BIKE_BASE, F, H, R, RACE_BASE, carBase } from '../simulation/protocol.ts';
 import { trackPoint, type Track } from '../simulation/track.ts';
 import { vehicleAt } from '../simulation/vehicles.ts';
+import { gpControlFeedback } from './gp-control-feedback.ts';
 
 export interface GPRidingCue {
   corner: string;
-  direction: 'left' | 'right' | 'straight';
+  direction: 'left' | 'right' | 'straight' | 'none';
   distance: string;
   action: string;
   detail: string;
@@ -73,14 +74,18 @@ export class GPRidingCues {
     if (![station, speed, lateral, lean, brake].every(Number.isFinite) || speed < 4) return null;
     track.at(station, this.road);
     const forward = frame[o + F.VX] * this.road.tx + frame[o + F.VZ] * this.road.tz;
-    if (!Number.isFinite(forward) || forward < 2 || Math.abs(lateral) > this.road.width + 0.3)
-      return null;
+    if (!Number.isFinite(forward)) return null;
+    const onRoute = forward >= 2 && Math.abs(lateral) <= this.road.width + 0.3,
+      control = gpControlFeedback(frame);
+    // Corner and tow advice require progress along the circuit. Recovery,
+    // puncture and brake warnings remain useful beyond the paved track edge.
+    if (!onRoute && !control) return null;
 
     let cornerIndex = -1,
       distance = Infinity;
     // Retain the apex for the first 24 m of its exit, then show the next turn.
     // This signed wrapped distance works across the start/finish line as well.
-    for (let i = 0; i < track.circuit.corners.length; i++) {
+    for (let i = 0; onRoute && i < track.circuit.corners.length; i++) {
       const d = mod(track.circuit.corners[i].s - station + 24, track.length) - 24;
       if (d < distance) {
         cornerIndex = i;
@@ -89,13 +94,13 @@ export class GPRidingCues {
     }
     const close = cornerIndex >= 0 && distance < clamp(speed * 5 + 50, 180, 450);
     const cue: GPRidingCue = {
-      corner: 'STRAIGHT',
-      direction: 'straight',
+      corner: onRoute ? 'STRAIGHT' : 'BIKE CONTROL',
+      direction: onRoute ? 'straight' : 'none',
       distance: '',
       action: 'BUILD YOUR RUN',
       detail: 'Build speed with smooth inputs',
       tone: 'neutral',
-      tow: gpTowFraction(frame),
+      tow: onRoute ? gpTowFraction(frame) : 0,
     };
     if (close) {
       const corner = track.circuit.corners[cornerIndex];
@@ -126,6 +131,13 @@ export class GPRidingCues {
           : 'Tow active · plan your pass';
       cue.tone = 'flow';
     }
+    if (control) {
+      cue.action = control.action;
+      cue.detail = control.detail;
+      cue.tone = control.tone;
+      cue.tow = 0;
+    }
+    // Marshal instructions retain priority over grip, thermal and tow advice.
     if (yellowFlag(frame[o + F.LOCAL_FLAG]) || frame[H.SC_PHASE] > 0) {
       cue.action = 'CAUTION';
       cue.detail = 'Slow down · hold position';

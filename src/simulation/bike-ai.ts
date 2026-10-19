@@ -1,5 +1,11 @@
 import { clamp, G, lerp, mod, Quat, Vec3 } from '../core/math.ts';
-import { AIDriver } from './ai.ts';
+import {
+  AIDriver,
+  ENVELOPE_SAMPLES,
+  ENVELOPE_STEP,
+  envelopeCornerSpeed,
+  envelopeProfile,
+} from './ai.ts';
 import { leanAuthority } from './bike.ts';
 import { BikeVehicle } from './bike-vehicle.ts';
 import type { RaceDirector } from './race.ts';
@@ -7,6 +13,9 @@ import { pitPreparationDistance } from './pit-safety.ts';
 import { racingLineFor } from './racing-line.ts';
 import { trackPoint, type Track } from './track.ts';
 import type { Vehicle } from './vehicle.ts';
+
+/** Bounded GP preview work: at most 1,524 m at the shared 12 m spacing. */
+export const GP_APPROACH_SAMPLES = 128;
 
 /** Bike rider AI (WP35). The shared race-craft layers (strategy, traffic,
  * racing line, pit approach, flags, capability-envelope speed targets) are
@@ -22,6 +31,8 @@ export class BikeAIDriver extends AIDriver {
   private readonly ahead = trackPoint();
   private pitCorridor = false;
   private passingScale = 1;
+  private readonly approachCurvatures = new Float64Array(GP_APPROACH_SAMPLES);
+  private readonly approachCorners = new Float64Array(GP_APPROACH_SAMPLES);
   protected override readonly reverseRecovery = false;
   constructor(
     readonly bike: BikeVehicle,
@@ -129,6 +140,57 @@ export class BikeAIDriver extends AIDriver {
   protected steeringLineCurvature(track: Track, s: number) {
     return racingLineFor(track).curvatureAt(s);
   }
+  /** A GP straight can require far more than the shared 240 m brake preview.
+   * At 300+ km/h, waiting until a hairpin enters that fixed window leaves the
+   * rider over-speed at turn-in, where ABS must give cornering priority. Solve
+   * the same normal-pedal profile over the current conservative stop distance
+   * plus the rider's lean response. The shared traffic/flag/pit target can only
+   * be lowered. Per-wheel grip and physical crash limits remain authoritative. */
+  protected override limitSpeed(desired: number, track: Track, race: RaceDirector) {
+    void race;
+    const c = this.bike,
+      d = c.dynamics;
+    if (
+      (c.definition.id !== 'gpr1' && c.definition.id !== 'gpr2') ||
+      c.inPit ||
+      this.pitCorridor ||
+      !c.riding ||
+      !Number.isFinite(d.speed + d.grip + c.lateral + d.heading) ||
+      Math.abs(c.lateral) > c.trackPosition.width ||
+      Math.sin(d.heading) * c.trackPosition.tx + Math.cos(d.heading) * c.trackPosition.tz < 0.5
+    )
+      return desired;
+    const env = c.definition.ai,
+      near = clamp(6 + c.speed * 0.48, 8, 46),
+      tactical = c.aiOffset - this.steeringLineOffset(track, c.s + near),
+      wetness = clamp(Math.max(c.contacts[0].water, c.contacts[2].water) / 0.8, 0, 1),
+      // The less capable contact constrains approach planning even when the
+      // intact wheel can still provide useful drive or brake force.
+      grip =
+        clamp(Math.min(d.grip, d.frontGrip ?? d.grip, d.rearGrip ?? d.grip), 0.1, 1) *
+        (1 - 0.15 * wetness) *
+        clamp(1 - (0.25 * Math.max(0, Math.abs(tactical) - 1.5)) / 6, 0.8, 1),
+      aero =
+        ((0.45 + 0.55 * Math.min(c.frontHealth, c.floorHealth)) *
+          env.downforceReference *
+          (1 - 0.3 * c.wake)) /
+        (c.spec.dryMass + c.fuel),
+      count = gpApproachSampleCount(
+        d.speed,
+        env.brakingBase * grip * env.brakingMargin,
+        track.length,
+      );
+    for (let i = 0; i < count; i++) {
+      const k = this.steeringLineCurvature(track, c.s + i * ENVELOPE_STEP),
+        curvature = k / Math.max(0.5, 1 - k * tactical);
+      this.approachCurvatures[i] = Math.abs(curvature);
+      this.approachCorners[i] = envelopeCornerSpeed(curvature, grip, aero, env) * this.skill;
+    }
+    return Math.min(
+      desired,
+      envelopeProfile(this.approachCurvatures, this.approachCorners, grip, aero, env, count),
+    );
+  }
   /** Upright GP machines can use a motorcycle-sized passing lane. The
    * footprint expands before a corner and for a leaning nearby rider;
    * stopping distance, yellow flags and the swept collision tests stay in
@@ -176,6 +238,23 @@ export const BIKE_AI = Object.freeze({
   /** Lateral acceleration a lane correction may use (g). */
   correctionG: 0.6,
 });
+/** Number of existing 12 m envelope samples needed to see a conservative
+ * full stop, ignoring helpful aero drag, plus the lean response distance.
+ * Cap at one circuit and fixed scratch capacity, including for invalid or
+ * vanishing grip estimates; no time-dependent cache or view allocations. */
+export function gpApproachSampleCount(speed: number, deceleration: number, trackLength: number) {
+  const v = Number.isFinite(speed) ? clamp(speed, 0, 120) : 0;
+  const braking = Number.isFinite(deceleration) ? Math.max(0.5, deceleration) : 0.5;
+  const distance = (v * v) / (2 * braking) + v * BIKE_AI.preview;
+  const circuitSamples = Number.isFinite(trackLength)
+    ? Math.max(2, Math.floor(Math.max(0, trackLength) / ENVELOPE_STEP) + 1)
+    : GP_APPROACH_SAMPLES;
+  return Math.min(
+    GP_APPROACH_SAMPLES,
+    circuitSamples,
+    Math.max(ENVELOPE_SAMPLES, Math.ceil(distance / ENVELOPE_STEP) + 1),
+  );
+}
 /** Lean intent for a path curvature (tan φ = v²κ/g, less the hang-off share). */
 export function leanFromCurvature(c: BikeVehicle, kappa: number, steer: number) {
   const d = c.dynamics,

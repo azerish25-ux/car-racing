@@ -34,7 +34,10 @@ export function calibrateGpMaterials(materials: BikeMaterials, vehicle: string):
   materials.screen.transparent = false;
   materials.screen.opacity = 1;
   materials.screen.depthWrite = false;
-  materials.screen.thickness = 0.002;
+  // This open curved sheet is a thin wall, not a closed refractive volume.
+  // A volume offset displaces the nearby dashboard where the glass crosses
+  // its sightline. Keep surface transmission and Fresnel reflections intact.
+  materials.screen.thickness = 0;
   materials.screen.roughness = 0.025;
   materials.screenLight.color.setHex(0xe9eff1);
   materials.screenLight.metalness = 0;

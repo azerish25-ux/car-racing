@@ -137,6 +137,7 @@ import { installSpecularAntialiasing } from './specular-aa.ts';
 import { renderCensus, cubeCensusCameras, mergeCensus } from './render-census.ts';
 import { CircuitScene } from './circuit.ts';
 import { Effects } from './effects.ts';
+import { GpContactEffects } from './gp-contact-effects.ts';
 import { PresentedFrame } from './frame-state.ts';
 import { StudioFrame } from './studio/studio-frame.ts';
 import { EffectPlayback } from './effect-playback.ts';
@@ -492,6 +493,14 @@ export class RacingRenderer {
     // Catalogue tunnels are sheltered: no rain is born under a roof (WP30).
     const kit = this.circuit.venueKit;
     if (kit) this.effects.sheltered = (x, z) => kit.covers(x, z);
+    // Circuit GP tyres use their two projected road contacts. The callbacks
+    // retain fixed CPU scratch and leave all other vehicle emitters unchanged.
+    const gpContacts = new GpContactEffects();
+    this.effects.contactEnabled = gpContacts.contactEnabled;
+    this.effects.contactOffset = gpContacts.contactOffset;
+    this.effects.diffuserEnabled = gpContacts.diffuserEnabled;
+    this.effects.smokeSliding = gpContacts.smokeSliding;
+    this.effects.sprayProfile = gpContacts.sprayProfile;
     this.reflection.probeDetail = this.circuit.probeDetail;
     // The far map covers the circuit and the planting and stands around it.
     const point = trackPoint();

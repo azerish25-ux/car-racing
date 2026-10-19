@@ -90,14 +90,26 @@ export class BikeHud {
     this.nodes.gpCraft.hidden = !cue;
     if (cue) {
       set('gpCorner', cue.corner);
-      set('gpTurnArrow', cue.direction === 'left' ? '↰' : cue.direction === 'right' ? '↱' : '↑');
+      set(
+        'gpTurnArrow',
+        cue.direction === 'left'
+          ? '↰'
+          : cue.direction === 'right'
+            ? '↱'
+            : cue.direction === 'straight'
+              ? '↑'
+              : '·',
+      );
       set('gpCornerDistance', cue.distance);
       set('gpAction', cue.action);
       set('gpAdvice', cue.detail);
       this.nodes.gpCraft.dataset.tone = cue.tone;
       this.nodes.gpTow.hidden = cue.tow < 0.08;
       set('gpTow', `TOW ${Math.round(cue.tow * 100)}%`);
-      this.nodes.gpCorner.setAttribute('aria-label', `${cue.corner}, ${cue.direction}`);
+      this.nodes.gpCorner.setAttribute(
+        'aria-label',
+        cue.direction === 'none' ? cue.corner : `${cue.corner}, ${cue.direction}`,
+      );
     }
   }
 }

@@ -14,6 +14,7 @@ import { gpDiscGlow } from './gp-disc-glow.ts';
 import { gpForgedWheel, gpTyreCompoundMarkings } from './gp-forged-wheel.ts';
 import { bindGpTyre, installGpTyreFinish, type GpTyreAppearance } from './gp-tyre-finish.ts';
 import { gpCoolingLouvers } from './gp-cooling-louvers.ts';
+import { gpRadiator } from './gp-radiator.ts';
 import { GPChainDrive } from './gp-chain-drive.ts';
 import { bikeSurfaceMaps } from './bike-surface-detail.ts';
 import { BikeCockpit } from './bike-cockpit.ts';
@@ -1162,8 +1163,14 @@ export class BikeModel {
         -0.26,
         0.02,
       ).rotation.z = Math.PI / 2;
-      add(this.sprung, new T.BoxGeometry(0.36, 0.26, 0.04), m.dark, 0, -0.1, 0.37).rotation.x =
-        -0.25;
+      if (gpPrototype) {
+        const radiator = gpRadiator(detail, m);
+        radiator.position.set(0, -0.1, 0.37);
+        radiator.rotation.x = -0.25;
+        this.sprung.add(radiator);
+      } else
+        add(this.sprung, new T.BoxGeometry(0.36, 0.26, 0.04), m.dark, 0, -0.1, 0.37).rotation.x =
+          -0.25;
     }
     // Exhaust: headers under the engine to a high titanium silencer.
     if (look.exhaust === 'expansion') {

@@ -290,7 +290,8 @@ export class BikeVehicle extends Vehicle {
   override step(dt: number, track: Track) {
     const d = this.dynamics,
       b = this.body,
-      spec = this.bikeSpec;
+      spec = this.bikeSpec,
+      gpPrototype = this.definition.id === 'gpr1' || this.definition.id === 'gpr2';
     this.debris.step(dt, track);
     this.absorbExternal(dt);
     d.assists = this.aiSteps > 0 ? NOVICE : this.riderAids;
@@ -310,10 +311,16 @@ export class BikeVehicle extends Vehicle {
     this.throttle = throttle;
     this.brake = brake;
     this.rearBrake = rear;
-    d.grip = Math.min(
-      this.surfaceGrip(0) * this.bumpGrip(0, this.setup.frontDamping),
-      this.surfaceGrip(2) * this.bumpGrip(2, this.setup.rearDamping),
-    );
+    const frontGrip = this.surfaceGrip(0) * this.bumpGrip(0, this.setup.frontDamping),
+      rearGrip = this.surfaceGrip(2) * this.bumpGrip(2, this.setup.rearDamping);
+    d.grip = Math.min(frontGrip, rearGrip);
+    if (gpPrototype) {
+      // Each GP tyre retains its own surface, temperature, wear and damping
+      // response. The lower value still bounds the rider's lean intent; it
+      // no longer replaces the clean wheel's longitudinal friction circle.
+      d.frontGrip = frontGrip;
+      d.rearGrip = rearGrip;
+    }
     d.slope = Math.sin(this.roadPitch);
     // Rider: tuck on straights, hang off toward the corner.
     const fast = d.speed > 25 && Math.abs(d.lean) < 0.2 && throttle > 0.6 && brake < 0.05;
@@ -333,7 +340,6 @@ export class BikeVehicle extends Vehicle {
     }
     // Previously integrated disc heat is deterministic under pause/replay.
     // Only the two GP prototypes gain a bounded, recoverable high-heat fade.
-    const gpPrototype = this.definition.id === 'gpr1' || this.definition.id === 'gpr2';
     const frontBrakeGain = gpPrototype
       ? gpBrakeEfficiency((this.tires[0].discTemp + this.tires[1].discTemp) * 0.5)
       : 1;
