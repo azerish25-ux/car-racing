@@ -15,17 +15,19 @@ import {
 } from '../bike.ts';
 import { liveryScheme } from '../car-livery.ts';
 import { Rider, type RiderDetail } from '../rider.ts';
-import { installMudOn, type MudUniforms } from './mud.ts';
+import { installMudOn, tagMudExposure, type MudUniforms } from './mud.ts';
 import { forkLocalOffset } from '../bike-pit-service.ts';
 import { batchBikeRigidMeshes } from '../bike-rigid-batch.ts';
 import { MotocrossChainDrive } from './motocross-chain-drive.ts';
 import { mapUnprintedPlateBack } from './number-plate-uv.ts';
 import {
   motocrossGraphics,
+  motocrossRadiatorShroud,
   motocrossRotor,
   motocrossSidePanel,
   motocrossTread,
   mouldedPanel,
+  installMotocrossPlasticFinish,
 } from './motocross-detail.ts';
 
 /** Off-road motorcycle geometry (m): a 27 degree rake, a long fork with
@@ -94,9 +96,9 @@ export class DirtBikeModel {
     const plastic = (color: T.ColorRepresentation, name: string) => {
       const mat = new T.MeshPhysicalMaterial({
         color,
-        roughness: 0.42,
+        roughness: 0.46,
         metalness: 0,
-        clearcoat: 0.15,
+        clearcoat: 0.07,
         clearcoatRoughness: 0.5,
         name,
       });
@@ -112,6 +114,7 @@ export class DirtBikeModel {
         name: 'Motocross factory number board',
       });
     this.plastics.push(board);
+    tagMudExposure(board, 0.82);
     const shroudMaterial = primary.clone();
     shroudMaterial.color.setHex(0xffffff);
     if (detail !== 'far') shroudMaterial.map = motocrossGraphics(colours, 'shroud', (id % 98) + 2);
@@ -135,7 +138,21 @@ export class DirtBikeModel {
       roughness: 0.48,
       name: 'Motocross roller chain',
     });
-    this.plastics.push(shroudMaterial, rimMaterial, rotorMaterial, chainMaterial);
+    // The road material carries a GP drainage shader and its vertex contract.
+    // MX owns its knobby rubber finish while reusing only the existing grain
+    // textures; their lifetime remains with BikeMaterials, not this LOD.
+    const tyreMaterial = new T.MeshStandardMaterial({
+      color: 0x171916,
+      roughness: 0.91,
+      normalMap: this.m.rubber.normalMap,
+      roughnessMap: this.m.rubber.roughnessMap,
+      normalScale: new T.Vector2(0.11, 0.11),
+      name: 'Motocross moulded knobby rubber',
+    });
+    this.plastics.push(shroudMaterial, rimMaterial, rotorMaterial, chainMaterial, tyreMaterial);
+    if (detail !== 'far')
+      for (const material of [primary, dark, board, shroudMaterial])
+        installMotocrossPlasticFinish(material);
     // ---- Wheels: spoked rims and knobby (or treaded road) tyres.
     const frontR = b.frontWheelRadius,
       rearR = b.rearWheelRadius,
@@ -154,13 +171,13 @@ export class DirtBikeModel {
       add(
         spin,
         tyreGeometry(radius - knob, halfWidth, halfWidth * 1.15, rim + 0.012, sides),
-        this.m.rubber,
+        tyreMaterial,
       );
       if (knob > 0 && detail !== 'far')
         add(
           spin,
           motocrossTread(radius, halfWidth, knob, detail === 'high' ? 44 : 24),
-          this.m.rubber,
+          tyreMaterial,
         );
       // Rim hoop, hub and spokes.
       const hoop = add(spin, new T.CylinderGeometry(rim, rim, 0.033, sides, 1, true), rimMaterial);
@@ -613,19 +630,7 @@ export class DirtBikeModel {
       }
       const shroud = add(
         this.sprung,
-        motocrossSidePanel(
-          [
-            [-0.17, 0.135],
-            [0.085, 0.168],
-            [0.325, 0.105],
-            [0.23, -0.028],
-            [0.209, -0.265],
-            [0.103, -0.299],
-            [0.027, -0.118],
-            [-0.129, -0.052],
-          ],
-          side,
-        ),
+        motocrossRadiatorShroud(side, detail),
         shroudMaterial,
         side * 0.184,
         0,

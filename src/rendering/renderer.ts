@@ -1383,6 +1383,8 @@ export class RacingRenderer {
         this.motocrossCamera.update(cameraDt, this.circuit.track, {
           anchor: this.target,
           heading: Math.atan2(this.direction.x, this.direction.z),
+          velocityX: presented[o + F.VX],
+          velocityZ: presented[o + F.VZ],
           s: presented[o + F.S],
           speed: presented[o + F.SPEED],
           cgHeight: followedDefinition.bike!.cgHeight,

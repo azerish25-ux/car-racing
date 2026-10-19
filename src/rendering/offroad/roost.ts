@@ -66,6 +66,8 @@ export class Roost {
   private readonly sizes = new Float32Array(ROOST_CAPACITY);
   private readonly bornSize = new Float32Array(ROOST_CAPACITY);
   private readonly opacity = new Float32Array(ROOST_CAPACITY);
+  /** Dust/clod kind and a stable silhouette seed, in the same bounded draw. */
+  private readonly shapes = new Float32Array(ROOST_CAPACITY * 2);
   private readonly bornOpacity = new Float32Array(ROOST_CAPACITY);
   private readonly dust = new Uint8Array(ROOST_CAPACITY);
   private readonly emission = new Float64Array(64 * 4);
@@ -101,26 +103,68 @@ export class Roost {
       'mxParticleAlpha',
       new T.BufferAttribute(this.opacity, 1).setUsage(T.DynamicDrawUsage),
     );
+    if (this.motocross)
+      g.setAttribute(
+        'mxParticleShape',
+        new T.BufferAttribute(this.shapes, 2).setUsage(T.DynamicDrawUsage),
+      );
     const material = new T.PointsMaterial({
       size: this.motocross ? 1 : 0.11,
       sizeAttenuation: true,
       vertexColors: true,
-      map: softDisc(this.motocross),
+      map: this.motocross ? null : softDisc(),
       transparent: true,
       alphaTest: this.motocross ? 0.008 : 0.04,
       depthWrite: false,
     });
     if (this.motocross)
-      chainShaderHook(material, 'mx-roost-particle-v1', (shader) => {
+      chainShaderHook(material, 'mx-roost-particle-v2', (shader) => {
         injectDeclarations(
           shader,
           'common',
-          'attribute float mxParticleSize;\nattribute float mxParticleAlpha;\nvarying float vMxParticleAlpha;',
+          'attribute float mxParticleSize;\nattribute float mxParticleAlpha;\nattribute vec2 mxParticleShape;\nvarying float vMxParticleAlpha;\nvarying vec2 vMxParticleShape;',
           'vertex',
         );
-        injectAfter(shader, 'begin_vertex', 'vMxParticleAlpha = mxParticleAlpha;', 'vertex');
+        injectAfter(
+          shader,
+          'begin_vertex',
+          'vMxParticleAlpha = mxParticleAlpha;\nvMxParticleShape = mxParticleShape;',
+          'vertex',
+        );
         injectAfter(shader, 'gl_PointSize = size;', 'gl_PointSize *= mxParticleSize;', 'vertex');
-        injectDeclarations(shader, 'common', 'varying float vMxParticleAlpha;', 'fragment');
+        injectDeclarations(
+          shader,
+          'common',
+          'varying float vMxParticleAlpha;\nvarying vec2 vMxParticleShape;',
+          'fragment',
+        );
+        injectAfter(
+          shader,
+          'map_particle_fragment',
+          /* glsl */ `{
+            // 094–096: hard, irregular soil fragments sit within soft dust.
+            // A shared circular sprite made every fragment look like a puff.
+            vec2 p = gl_PointCoord * 2.0 - 1.0;
+            float seed = vMxParticleShape.y;
+            float angle = seed * 6.2831853;
+            vec2 q = mat2( cos( angle ), -sin( angle ), sin( angle ), cos( angle ) ) * p;
+            q.x *= 0.84 + seed * 0.25;
+            float radius = dot( q, q );
+            float boundary = 0.70 + 0.12 * sin( q.x * 8.0 + seed * 13.0 )
+              * sin( q.y * 6.0 - seed * 9.0 );
+            float edge = max( fwidth( radius ), 0.025 );
+            float clod = 1.0 - smoothstep( boundary - edge, boundary + edge, radius );
+            float envelope = 1.0 - smoothstep( 0.05, 0.95, radius );
+            float billow = 0.68 + 0.18 * sin( q.x * 6.0 + seed * 19.0 )
+              + 0.14 * sin( q.y * 8.0 - seed * 7.0 );
+            float cloud = envelope * envelope * clamp( billow, 0.28, 1.0 );
+            diffuseColor.a *= mix( clod, cloud, vMxParticleShape.x );
+            // Soft form shading on solids; no bright additive dust or halo.
+            diffuseColor.rgb *= mix( 0.70 + 0.30 * clamp( 0.7 - q.y * 0.45
+              + q.x * 0.15, 0.0, 1.0 ), 1.0, vMxParticleShape.x );
+          }`,
+          'fragment',
+        );
         injectAfter(shader, 'color_fragment', 'diffuseColor.a *= vMxParticleAlpha;', 'fragment');
       });
     this.points = new T.Points(g, material);
@@ -178,6 +222,8 @@ export class Roost {
     this.floor[i] = y - (this.motocross ? 0.06 : 0.35);
     this.drag[i] = dust ? 2.5 : 0.25;
     this.dust[i] = dust ? 1 : 0;
+    this.shapes[i * 2] = dust ? 1 : 0;
+    this.shapes[i * 2 + 1] = (i * 0.61803398875) % 1;
     this.bornSize[i] = this.sizes[i] = this.motocross
       ? dust
         ? 0.28 + r.next() * 0.27
@@ -277,6 +323,7 @@ export class Roost {
     g.getAttribute('color').needsUpdate = true;
     g.getAttribute('mxParticleSize').needsUpdate = true;
     g.getAttribute('mxParticleAlpha').needsUpdate = true;
+    if (this.motocross) g.getAttribute('mxParticleShape').needsUpdate = true;
     if (!this.enabled || dt === 0) return;
     const r = this.random,
       cars = Math.min(64, frame[H.CARS]);

@@ -15,13 +15,15 @@ export const MX_SOIL_COLOURS: Readonly<Record<SoilKind, number>> = Object.freeze
   turf: 0x627044,
 });
 
-export const MX_SOIL_DETAIL_HOOK = 'mx-groomed-soil-v1';
+export const MX_SOIL_DETAIL_HOOK = 'mx-groomed-soil-v2';
 
 const DECLARATIONS = /* glsl */ `
 varying vec4 vMxCourse;
 float mxPreparedGroove = 0.0;
 float mxPreparedRelief = 0.0;
 float mxPreparedWet = 0.0;
+float mxPreparedPacked = 0.0;
+float mxPreparedAggregate = 0.0;
 float mxSoilHash( vec2 p ) {
   vec3 q = fract( vec3( p.xyx ) * 0.1031 );
   q += dot( q, q.yzx + 33.33 );
@@ -33,35 +35,71 @@ float mxSoilNoise( vec2 p ) {
   return mix( mix( mxSoilHash( i ), mxSoilHash( i + vec2( 1.0, 0.0 ) ), f.x ),
               mix( mxSoilHash( i + vec2( 0.0, 1.0 ) ), mxSoilHash( i + 1.0 ), f.x ), f.y );
 }
+// Each wheel passage has a separate wandering centre, interrupted pressure
+// and raised loose lips. Widths are in metres, never screen-sized stripes.
+vec3 mxWheelPass( vec2 p, float offset, float seed, float corner, float pixel ) {
+  float drift = ( mxSoilNoise( vec2( p.y * 0.047, seed ) ) - 0.5 ) * 0.72;
+  float centre = offset + drift + 0.09 * sin( p.y * 0.17 + seed )
+    + corner * ( 0.38 + offset * 0.09 );
+  float d = abs( p.x - centre );
+  float width = 0.105 + 0.045 * mxSoilNoise( vec2( p.y * 0.24, seed + 8.0 ) );
+  float pressure = 0.28 + 0.72 * smoothstep( 0.18, 0.72,
+    mxSoilNoise( vec2( p.y * 0.31, seed + 3.0 ) ) );
+  float core = 1.0 - smoothstep( width * 0.25, width + pixel, d );
+  float lip = 1.0 - smoothstep( width * 0.24, width * 0.78 + pixel,
+    abs( d - width * 1.65 ) );
+  float pass = 1.0 - smoothstep( 0.22, 0.62 + pixel, d );
+  return vec3( core, lip, pass ) * pressure;
+}
 `;
 
 const COLOUR = /* glsl */ `{
-  // Metres in the course frame: grading follows turns and jump faces. All
-  // relief here is shading only (millimetres); the silhouette and collision
-  // remain the same authoritative CourseTerrain, including live tyre ruts.
+  // References 042/046/047/050: overlapping tyre passages, interrupted rake
+  // marks, pale loose lips and broad compacted patches. This centimetre-scale
+  // relief is shading only; CourseTerrain still owns silhouette and collision.
   vec2 p = vMxCourse.xy;
-  float onSoil = vMxCourse.z;
-  float wander = 0.08 * sin( p.y * 0.19 ) + 0.16 * sin( p.y * 0.045 );
-  float furrowPhase = ( p.x + wander ) * 22.0;
-  float rakeFade = 1.0 - smoothstep( 0.5, 2.2, fwidth( furrowPhase ) );
-  float furrow = pow( 0.5 + 0.5 * cos( furrowPhase ), 8.0 ) * rakeFade;
-  float lane = sin( p.y * 0.033 ) * 0.35 + vMxCourse.w * 0.55;
-  float passA = exp( - pow( ( p.x - lane - 1.05 ) / 0.26, 2.0 ) );
-  float passB = exp( - pow( ( p.x - lane + 0.7 ) / 0.30, 2.0 ) );
-  float passC = exp( - pow( ( p.x - lane + 2.35 ) / 0.22, 2.0 ) );
-  float tracks = max( passA, max( passB, passC ) );
-  float broken = 0.5 + 0.5 * mxSoilNoise( vec2( p.x * 2.7, p.y * 0.9 ) );
-  float treadPhase = p.y * 44.0 + sin( p.x * 30.0 ) * 0.7;
-  float treadFade = 1.0 - smoothstep( 0.35, 1.8, fwidth( treadPhase ) );
-  float tread = pow( 0.5 + 0.5 * cos( treadPhase ), 6.0 ) * tracks * treadFade;
-  float broad = mxSoilNoise( p * vec2( 0.42, 0.065 ) );
-  mxPreparedGroove = onSoil * ( furrow * 0.35 + tracks * broken * 0.6 );
-  mxPreparedRelief = onSoil * ( 0.0036 * furrow - 0.0045 * tracks * broken + 0.0018 * tread );
+  float onSoil = clamp( vMxCourse.z, 0.0, 1.0 );
+  float pixel = max( fwidth( p.x ), 0.001 );
+  vec3 passes = mxWheelPass( p, -2.55, 1.3, vMxCourse.w, pixel );
+  passes = max( passes, mxWheelPass( p, -1.15, 5.7, vMxCourse.w, pixel ) );
+  passes = max( passes, mxWheelPass( p, 0.24, 12.1, vMxCourse.w, pixel ) );
+  passes = max( passes, mxWheelPass( p, 1.57, 18.6, vMxCourse.w, pixel ) );
+  passes = max( passes, mxWheelPass( p, 2.83, 24.4, vMxCourse.w, pixel ) );
+  float broad = mxSoilNoise( p * vec2( 0.3, 0.085 ) );
+  float broken = mxSoilNoise( p * vec2( 2.1, 0.67 ) );
+  float wander = 0.045 * sin( p.y * 0.24 ) + ( broad - 0.5 ) * 0.16;
+  float rakePhase = ( p.x + wander ) * 5.6;
+  float rakeWidth = fwidth( rakePhase );
+  float rake = ( 1.0 - smoothstep( 0.045, 0.16 + rakeWidth,
+    abs( fract( rakePhase ) - 0.5 ) ) )
+    * ( 1.0 - smoothstep( 0.32, 0.9, rakeWidth ) );
+  // Each tyre leaves discrete cleat presses, not an unbroken sinusoid.
+  vec2 cleat = vec2( p.x * 13.0, p.y * 8.2 );
+  float cleatWidth = fwidth( cleat.y );
+  float stagger = step( 0.5, fract( cleat.x * 0.5 ) ) * 0.5;
+  float tread = ( 1.0 - smoothstep( 0.1, 0.25 + cleatWidth,
+    abs( fract( cleat.y + stagger ) - 0.5 ) ) ) * passes.x
+    * ( 1.0 - smoothstep( 0.3, 0.85, cleatWidth ) );
+  float aggregateFade = 1.0 - smoothstep( 0.035, 0.12, length( fwidth( p ) ) );
+  float aggregate = smoothstep( 0.63, 0.84, mxSoilNoise( p * 19.0 ) ) * aggregateFade;
+  mxPreparedPacked = onSoil * clamp( passes.z * ( 0.55 + broad * 0.45 )
+    + vApexSoil.y * 0.45, 0.0, 1.0 );
+  mxPreparedAggregate = onSoil * aggregate * ( 1.0 - mxPreparedPacked * 0.65 );
+  mxPreparedGroove = onSoil * clamp( passes.x + vApexSoil.z * 5.0, 0.0, 1.0 );
+  float rakeUnridden = rake * ( 1.0 - passes.z * 0.88 ) * ( 0.35 + broken * 0.65 );
+  mxPreparedRelief = onSoil * ( 0.0045 * rakeUnridden
+    - 0.019 * passes.x + 0.0075 * passes.y + 0.0025 * tread )
+    + 0.003 * mxPreparedAggregate;
   mxPreparedWet = clamp( vApexSoil.x + apexSoilWetness, 0.0, 1.0 );
-  diffuseColor.rgb *= mix( 1.0, 0.93 + 0.12 * broad - 0.19 * mxPreparedGroove - 0.055 * tread, onSoil );
-  // Small pale aggregates remain in exposed loam; water darkens grooves
-  // rather than polishing the entire track into one broad mirror.
-  diffuseColor.rgb *= 1.0 - mxPreparedGroove * smoothstep( 0.42, 0.88, mxPreparedWet ) * 0.13;
+  float grainTone = 0.92 + 0.15 * broad + 0.045 * broken;
+  diffuseColor.rgb *= mix( 1.0, grainTone, onSoil )
+    * ( 1.0 - mxPreparedPacked * 0.10 - mxPreparedGroove * 0.20
+      + onSoil * passes.y * 0.075 + mxPreparedAggregate * 0.13 - tread * 0.035 );
+  // 043/059/092: wet loam reflects chiefly along its depressions. Dry raised
+  // aggregate remains rough; the complete course never becomes one mirror.
+  float dampPatch = smoothstep( 0.38, 0.86, mxPreparedWet )
+    * ( 0.62 + 0.38 * smoothstep( 0.25, 0.8, broad ) );
+  diffuseColor.rgb *= 1.0 - mxPreparedGroove * dampPatch * 0.18;
 }`;
 
 const NORMAL = /* glsl */ `{
@@ -92,8 +130,12 @@ export function installMxSoilDetail(material: T.MeshPhysicalMaterial) {
     injectAfter(
       shader,
       'roughnessmap_fragment',
-      `roughnessFactor = mix( roughnessFactor, max( 0.34, roughnessFactor * 0.62 ),
-        mxPreparedGroove * smoothstep( 0.4, 0.92, mxPreparedWet ) );`,
+      `roughnessFactor = mix( roughnessFactor,
+        clamp( roughnessFactor * 0.78, 0.58, 0.9 ), mxPreparedPacked * 0.45 );
+      roughnessFactor = mix( roughnessFactor, max( 0.29, roughnessFactor * 0.52 ),
+        mxPreparedGroove * smoothstep( 0.42, 0.94, mxPreparedWet ) );
+      roughnessFactor = mix( roughnessFactor, max( 0.86, roughnessFactor ),
+        mxPreparedAggregate * 0.45 );`,
       'fragment',
     );
   });

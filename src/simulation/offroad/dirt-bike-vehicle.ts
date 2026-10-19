@@ -24,6 +24,18 @@ const DEEP_CONTACT = 0.12,
   STOP_COMPLIANCE = 0.015;
 /** Nose-up margin (rad) the pitch aid aims for over the landing slope. */
 const LANDING_NOSE_UP = 0.1;
+
+/** Resolve an incoming horizontal velocity in a yawed tyre basis. This is
+ * an orthogonal change of axes, including any pre-existing contact slide;
+ * it cannot add kinetic energy or redirect the centre of mass. */
+export function landingTyreVelocity(forward: number, lateral: number, yaw: number) {
+  const c = Math.cos(yaw),
+    s = Math.sin(yaw);
+  return {
+    forward: forward * c + lateral * s,
+    lateral: lateral * c - forward * s,
+  };
+}
 /** Where the last flight ended, for the landing licence, snapshot and tests. */
 export interface LandingRecord {
   /** Race-independent clock of the touchdown (adapter seconds). */
@@ -40,9 +52,13 @@ export interface LandingRecord {
   slope: number;
   /** Impact speed into the ground (m/s, positive into it). */
   normalSpeed: number;
+  /** Chassis yaw against its incoming path, and resulting tyre slide (m/s).
+   * A whip rotates the bike, never its airborne centre-of-mass trajectory. */
+  yawError: number;
+  lateralSpeed: number;
   /** Peak suspension shaft speed at full travel (m/s), 0 without bottoming. */
   bottomSpeed: number;
-  outcome: 'clean' | 'bottomed' | 'crash-front' | 'crash-rear' | 'crash-flat';
+  outcome: 'clean' | 'bottomed' | 'crash-front' | 'crash-rear' | 'crash-flat' | 'crash-side';
 }
 /** Off-road motorcycle adapter (WP39): the road-bike core (`Bike`) still
  * decides lean, steer, traction and grip limits on the ground; this class
@@ -65,6 +81,10 @@ export class DirtBikeVehicle extends BikeVehicle {
   vy = 0;
   pitch = 0;
   pitchRate = 0;
+  /** Rider-controlled chassis yaw relative to the ballistic travel heading.
+   * Published through the ordinary body quaternion, not a new input channel. */
+  airYaw = 0;
+  airYawRate = 0;
   /** Suspension compressions (m) and the forces they carry (N). */
   compressionFront = 0;
   compressionRear = 0;
@@ -166,6 +186,7 @@ export class DirtBikeVehicle extends BikeVehicle {
     const ground = lerp(gR, gF, b.cgToRear / L);
     this.cgY = ground + b.cgHeight;
     this.vy = this.pitchRate = 0;
+    this.airYaw = this.airYawRate = 0;
     this.compressionFront = this.sag(true);
     this.compressionRear = this.sag(false);
     this.airborne = false;
@@ -420,7 +441,10 @@ export class DirtBikeVehicle extends BikeVehicle {
     // Forward body (+) pitches the bike nose-down.
     const bodyTorque = -this.riderBody * a.bodyTorque;
     this.airTorque = spinTorque + frontBrakeTorque + bodyTorque;
-    if (!ai) this.airLean(dt);
+    // Handing a player whip to the demonstration rider must recover its
+    // bank as well as its yaw. Ordinary AI flights keep their calibration.
+    if (!ai || this.airYaw !== 0 || this.airYawRate !== 0) this.airLean(dt, ai);
+    this.airWhip(dt, ai);
     d.steer = approach(d.steer, 0, dt * 2);
     d.driveForce = d.frontBrakeForce = d.rearBrakeForce = 0;
     this.longitudinal = 0;
@@ -429,11 +453,11 @@ export class DirtBikeVehicle extends BikeVehicle {
    * path. Releasing the stick levels the bike; Sport progressively asks for
    * level wheels as touchdown approaches. Bounded rate prevents a keyboard
    * tap from snapping the bike sideways, and no stunt/boost is awarded. */
-  private airLean(dt: number) {
+  private airLean(dt: number, ai = false) {
     const d = this.dynamics,
-      assisted = this.assist === 'sport',
+      assisted = ai || this.assist === 'sport',
       settle = assisted ? clamp((this.landingIn - 0.1) / 0.38, 0, 1) : 1,
-      target = clamp(this.input.steer, -1, 1) * (assisted ? 0.36 : 0.52) * settle,
+      target = (ai ? 0 : clamp(this.input.steer, -1, 1)) * (assisted ? 0.36 : 0.52) * settle,
       wantedRate = clamp((target - d.lean) * 6, -1.8, 1.8);
     // Reverse the roll response promptly when a key/stick is released. A
     // slow rate reversal kept adding lean for most of a short tabletop.
@@ -441,6 +465,23 @@ export class DirtBikeVehicle extends BikeVehicle {
     const previous = d.lean;
     d.lean = clamp(d.lean + d.leanRate * dt, -this.bikeSpec.maxLean, this.bikeSpec.maxLean);
     if (d.lean === previous && Math.abs(d.lean) >= this.bikeSpec.maxLean) d.leanRate = 0;
+  }
+  /** Steering in flight swings the bike beneath the rider. This changes the
+   * visible attitude only until a tyre touches soil; there is no lateral air
+   * force or extra speed. Letting go unwinds the whip, with Sport helping
+   * during the final half-second. Raw riders must square their own landing. */
+  private airWhip(dt: number, ai: boolean) {
+    const course = this.lastTrack ? offroadCourse(this.lastTrack.circuit) : null,
+      motocross = course?.kind === 'motocross' || course?.kind === 'supercross';
+    if (!motocross || (this.definition.id !== 'mx250' && this.definition.id !== 'mx450')) return;
+    const assisted = ai || this.assist === 'sport',
+      settle = assisted ? clamp((this.landingIn - 0.08) / 0.55, 0, 1) : 1,
+      target = (ai ? 0 : clamp(this.input.steer, -1, 1)) * (assisted ? 0.44 : 0.6) * settle,
+      wantedRate = clamp((target - this.airYaw) * 7, -2.2, 2.2);
+    this.airYawRate = approach(this.airYawRate, wantedRate, dt * 16);
+    const previous = this.airYaw;
+    this.airYaw = clamp(this.airYaw + this.airYawRate * dt, -0.6, 0.6);
+    if (this.airYaw === previous && Math.abs(this.airYaw) >= 0.6) this.airYawRate = 0;
   }
   /** A machine whose rider came off in the air (a contact crash): no
    * inputs and no pitch aid; it keeps its flight speed until it lands. */
@@ -457,6 +498,9 @@ export class DirtBikeVehicle extends BikeVehicle {
     this.rearSpin = Math.max(0, this.rearSpin - 2 * dt);
     this.frontSpin *= Math.exp(-0.4 * dt);
     this.airTorque = 0;
+    // A separated rider cannot keep winding a whip with held steering.
+    this.airYawRate *= Math.exp(-2 * dt);
+    this.airYaw = clamp(this.airYaw + this.airYawRate * dt, -0.6, 0.6);
     d.steer = approach(d.steer, 0, dt * 2);
     d.driveForce = d.frontBrakeForce = d.rearBrakeForce = 0;
     this.longitudinal = 0;
@@ -604,6 +648,7 @@ export class DirtBikeVehicle extends BikeVehicle {
       const ground = lerp(this.contacts[2].height, this.contacts[0].height, ra / L);
       this.cgY = ground + spec.cgHeight;
       this.vy = this.pitchRate = 0;
+      this.airYaw = this.airYawRate = 0;
       this.pitch = this.roadPitch;
       this.airborne = false;
       this.forceFront = this.forceRear = 0;
@@ -631,12 +676,23 @@ export class DirtBikeVehicle extends BikeVehicle {
     const slope = (i: number) => {
       const n = this.contacts[i].normal,
         h = d.heading;
-      return -(n.x * Math.sin(h) + n.z * Math.cos(h)) / n.y;
+      return -(n.x * Math.sin(h) + n.z * Math.cos(h)) / Math.max(0.1, n.y);
     };
     const vF = this.vy + (fa * cos + HF * sin) * this.pitchRate,
       vR = this.vy + (-ra * cos + HR * sin) * this.pitchRate;
-    const rateF = slope(0) * vh - vF,
-      rateR = slope(2) * vh - vR;
+    // A whipped chassis sweeps its contact patches across the ground while
+    // its centre keeps flying straight. Include that rotational sweep when
+    // the two ends first compress on a berm or an uneven landing.
+    const yawSweep = (i: number, reach: number) => {
+      if (!this.airborne || this.airYawRate === 0) return 0;
+      const n = this.contacts[i].normal,
+        h = d.heading + this.airYaw;
+      return (
+        -((n.x * Math.cos(h) - n.z * Math.sin(h)) / Math.max(0.1, n.y)) * reach * this.airYawRate
+      );
+    };
+    const rateF = slope(0) * vh + yawSweep(0, fa) - vF,
+      rateR = slope(2) * vh + yawSweep(2, -ra) - vR;
     // A standing rider's legs soak part of every hit.
     const damping = 1 + 0.5 * this.standing;
     const end = (c: number, rate: number, front: boolean) => {
@@ -713,6 +769,23 @@ export class DirtBikeVehicle extends BikeVehicle {
         const normal = this.flightSpeed * Math.sin(slopeAt) - this.vy * Math.cos(slopeAt);
         const along = this.flightSpeed * Math.cos(slopeAt) + this.vy * Math.sin(slopeAt);
         d.speed = Math.max(0, along);
+        const yawError = this.airYaw;
+        if (Math.abs(yawError) > 1e-9) {
+          // Re-express incoming ground-plane momentum in the now-yawed tyre
+          // axes. The previous world velocity is preserved: the transverse
+          // component becomes real tyre slide, which soil friction dissipates
+          // on the following steps. Landing crooked cannot turn a flight for
+          // free, and sufficiently large slides use the normal fall/recovery.
+          const velocity = landingTyreVelocity(
+            d.speed * Math.cos(this.roadPitch),
+            this.slide,
+            yawError,
+          );
+          d.speed = Math.max(0, velocity.forward / Math.cos(this.roadPitch));
+          this.slide = velocity.lateral;
+          d.heading += yawError;
+        }
+        this.airYaw = this.airYawRate = 0;
         d.pitch = 0;
         this.rearSpin = d.speed / spec.rearWheelRadius;
         this.frontSpin = d.speed / spec.frontWheelRadius;
@@ -726,6 +799,8 @@ export class DirtBikeVehicle extends BikeVehicle {
           pitchError: chassis - slopeAt,
           slope: slopeAt,
           normalSpeed: normal,
+          yawError,
+          lateralSpeed: this.slide,
           bottomSpeed: 0,
           outcome: 'clean',
         };
@@ -741,6 +816,7 @@ export class DirtBikeVehicle extends BikeVehicle {
       else if (this.freeSteps > 2) {
         this.airborne = true;
         this.airTime = 0;
+        this.airYaw = this.airYawRate = 0;
         // The last wheel leaves along its own face: that slope splits the
         // speed into the plan-view flight speed (the springs gave vy).
         this.flightSpeed = d.speed * Math.cos(Math.atan(this.faceSlope));
@@ -780,7 +856,12 @@ export class DirtBikeVehicle extends BikeVehicle {
     // out: pitch decides only a real jump or a hard touchdown.
     const real = r.takeoffSpeed > LANDING_RULES.rollingHopSpeed;
     if (r.outcome === 'clean' && r.airTime > LANDING_RULES.minimumAirTime && real) {
-      if (
+      // Only a yawed touchdown adds this immediate judgement. Ordinary
+      // slides retain the shared adapter's existing tyre-friction recovery.
+      if (Math.abs(r.yawError) > 1e-9 && Math.abs(r.lateralSpeed) > LANDING_RULES.crossedCrashSpeed) {
+        r.outcome = 'crash-side';
+        d.fall('lowside');
+      } else if (
         r.pitchError < -a.noseDownLimit * tolerance &&
         r.normalSpeed > LANDING_RULES.noseDownNormalSpeed
       ) {
@@ -885,8 +966,10 @@ export class DirtBikeVehicle extends BikeVehicle {
     const d = this.dynamics,
       b = this.body,
       spec = this.bikeSpec,
-      L = this.spec.wheelbase,
-      h = d.heading,
+      L = this.spec.wheelbase;
+    // The tyre contact points follow the whipped chassis, while velocity
+    // keeps following the independent centre-of-mass travel heading.
+    let h = d.heading + this.airYaw,
       sh = Math.sin(h),
       ch = Math.cos(h);
     const front = this.contactPoints[0],
@@ -914,6 +997,10 @@ export class DirtBikeVehicle extends BikeVehicle {
       this.compressionFront = this.sag(true);
       this.compressionRear = this.sag(false);
     }
+    // Touchdown commits chassis yaw to the grounded heading in vertical().
+    h = d.heading + this.airYaw;
+    sh = Math.sin(h);
+    ch = Math.cos(h);
     const fallen = !this.airborne && Math.abs(d.lean) > 1.2;
     // The sprung model carries squat, dive and wheelies itself; the core's
     // relative pitch only guards its own loop-out limit.
@@ -932,13 +1019,16 @@ export class DirtBikeVehicle extends BikeVehicle {
     }
     this.groundY = lerp(rear.y, front.y, spec.cgToRear / L);
     const v = Math.hypot(d.speed, this.slide);
-    const planar = this.airborne ? this.flightSpeed : d.speed * Math.cos(this.roadPitch);
+    const planar = this.airborne ? this.flightSpeed : d.speed * Math.cos(this.roadPitch),
+      travelSin = Math.sin(d.heading),
+      travelCos = Math.cos(d.heading);
     b.velocity.set(
-      sh * planar + ch * this.slide,
+      travelSin * planar + travelCos * this.slide,
       dt > 0 && Math.abs(b.position.y - previousY) < 0.5 ? (b.position.y - previousY) / dt : 0,
-      ch * planar - sh * this.slide,
+      travelCos * planar - travelSin * this.slide,
     );
-    const yawRate = (this.riding && !this.airborne ? d.speed * d.curvature : 0) + this.yawKick;
+    const yawRate =
+      (this.riding && !this.airborne ? d.speed * d.curvature : this.airYawRate) + this.yawKick;
     this.heading3.set(sh, 0, ch);
     this.left3.set(ch, 0, -sh);
     b.omega.set(

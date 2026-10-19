@@ -1,7 +1,76 @@
 import * as T from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { TessellateModifier } from 'three/addons/modifiers/TessellateModifier.js';
 import { canvasTexture } from '../geometry.ts';
 import type { RiderColours, RiderDetail } from '../rider.ts';
+import { chainShaderHook, injectAfter, injectDeclarations } from '../studio/shader-hooks.ts';
+
+/** Mould texture and fine riding scuffs in metres. The same physical grain
+ * survives the very different fender, number-board and shroud UV layouts.
+ * Derivative filtering removes unresolved grain instead of making it sparkle.
+ * No extra textures, geometry or draws are allocated by this finish. */
+export function installMotocrossPlasticFinish(material: T.MeshPhysicalMaterial) {
+  chainShaderHook(material, 'motocross-moulded-polymer-v1', (shader) => {
+    injectDeclarations(shader, 'common', 'varying vec3 vMxPlasticPosition;', 'vertex');
+    injectAfter(shader, 'begin_vertex', 'vMxPlasticPosition = position;', 'vertex');
+    injectDeclarations(
+      shader,
+      'common',
+      `
+varying vec3 vMxPlasticPosition;
+float mxPlasticHeight, mxPlasticScuff;
+float mxPlasticNoise(vec3 p) {
+  vec3 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);
+  vec4 a=fract(sin(vec4(dot(i,vec3(127.1,311.7,74.7)),
+    dot(i+vec3(1,0,0),vec3(127.1,311.7,74.7)),
+    dot(i+vec3(0,1,0),vec3(127.1,311.7,74.7)),
+    dot(i+vec3(1,1,0),vec3(127.1,311.7,74.7))))*43758.5453);
+  vec4 b=fract(sin(vec4(dot(i+vec3(0,0,1),vec3(127.1,311.7,74.7)),
+    dot(i+vec3(1,0,1),vec3(127.1,311.7,74.7)),
+    dot(i+vec3(0,1,1),vec3(127.1,311.7,74.7)),
+    dot(i+vec3(1,1,1),vec3(127.1,311.7,74.7))))*43758.5453);
+  return mix(mix(mix(a.x,a.y,f.x),mix(a.z,a.w,f.x),f.y),
+    mix(mix(b.x,b.y,f.x),mix(b.z,b.w,f.x),f.y),f.z);
+}`,
+      'fragment',
+    );
+    injectAfter(
+      shader,
+      'color_fragment',
+      `
+{
+  float footprint=length(fwidth(vMxPlasticPosition));
+  float fine=1.-smoothstep(.0008,.0035,footprint);
+  float grain=mxPlasticNoise(vMxPlasticPosition*850.);
+  float scuff=mxPlasticNoise(vMxPlasticPosition*vec3(330.,92.,21.));
+  mxPlasticScuff=smoothstep(.66,.87,scuff)*(1.-smoothstep(.004,.019,footprint));
+  mxPlasticHeight=(grain-.5)*.000018*fine-mxPlasticScuff*.000018;
+  diffuseColor.rgb*=1.+(grain-.5)*.022*fine;
+}`,
+      'fragment',
+    );
+    injectAfter(
+      shader,
+      'roughnessmap_fragment',
+      'roughnessFactor = clamp(roughnessFactor + mxPlasticScuff * .17, .28, .86);',
+      'fragment',
+    );
+    injectAfter(
+      shader,
+      'normal_fragment_maps',
+      `
+{
+  vec3 dx=dFdx(-vViewPosition),dy=dFdy(-vViewPosition);
+  vec3 r1=cross(dy,normal),r2=cross(normal,dx);
+  float det=dot(dx,r1);
+  vec3 gradient=sign(det)*(dFdx(mxPlasticHeight)*r1+dFdy(mxPlasticHeight)*r2);
+  normal=normalize(max(abs(det),1.e-10)*normal-gradient);
+}`,
+      'fragment',
+    );
+  });
+  return material;
+}
 
 /** Original race graphics authored for MOTObound. Reference photographs inform
  * the hierarchy and placement; no photographed manufacturer artwork is used. */
@@ -237,6 +306,57 @@ export function motocrossSidePanel(
   return g;
 }
 
+/** A radiator shroud is an injection-moulded duct, not a flat printed plate.
+ * A shallow crown, tucked rear edge and raised upper intake catch a continuous
+ * moving highlight. Subdivision precedes bending; normals follow the analytic
+ * surface so the existing bevel stays hard without faceting the main panel. */
+export function motocrossRadiatorShroud(side: number, detail: RiderDetail) {
+  const flat = motocrossSidePanel(
+    [
+      [-0.17, 0.135],
+      [0.085, 0.168],
+      [0.325, 0.105],
+      [0.23, -0.028],
+      [0.209, -0.265],
+      [0.103, -0.299],
+      [0.027, -0.118],
+      [-0.129, -0.052],
+    ],
+    side,
+  );
+  const geometry = new TessellateModifier(
+    detail === 'high' ? 0.055 : detail === 'mid' ? 0.09 : 0.18,
+    detail === 'far' ? 2 : 4,
+  ).modify(flat);
+  flat.dispose();
+  const position = geometry.getAttribute('position'),
+    normal = geometry.getAttribute('normal');
+  const crown = (y: number, z: number) => {
+    const u = T.MathUtils.clamp((z + 0.17) / 0.495, 0, 1),
+      v = T.MathUtils.clamp((y + 0.3) / 0.47, 0, 1);
+    return (
+      0.028 * Math.sin(u * Math.PI) * Math.sin(v * Math.PI) -
+      0.021 * (1 - T.MathUtils.smoothstep(u, 0, 0.38)) +
+      0.008 * T.MathUtils.smoothstep(v, 0.5, 0.8) * T.MathUtils.smoothstep(u, 0.35, 0.75)
+    );
+  };
+  const n = new T.Vector3(),
+    step = 0.0001;
+  for (let i = 0; i < position.count; i++) {
+    const y = position.getY(i),
+      z = position.getZ(i);
+    const dy = (crown(y + step, z) - crown(y - step, z)) / (2 * step),
+      dz = (crown(y, z + step) - crown(y, z - step)) / (2 * step);
+    n.fromBufferAttribute(normal, i);
+    n.set(n.x, n.y - side * dy * n.x, n.z - side * dz * n.x).normalize();
+    normal.setXYZ(i, n.x, n.y, n.z);
+    position.setX(i, position.getX(i) + side * crown(y, z));
+  }
+  geometry.computeBoundingBox();
+  geometry.computeBoundingSphere();
+  return geometry;
+}
+
 /** True open wave rotor: the ground and spokes remain visible through the
  * cooling holes, unlike a solid disc painted with black dots. Axis is X. */
 export function motocrossRotor(radius: number, detail: RiderDetail, sprocket = false) {
@@ -285,11 +405,8 @@ export function motocrossTread(radius: number, halfWidth: number, height: number
     const rows = k % 2 === 0 ? [0, -0.9, 0.9] : [-0.43, 0.43, -0.94, 0.94];
     for (const row of rows) {
       const shoulder = Math.abs(row) > 0.8;
-      const g = new T.BoxGeometry(shoulder ? halfWidth * 0.5 : halfWidth * 0.58, height, 0.026);
+      const g = motocrossLug(shoulder ? halfWidth * 0.5 : halfWidth * 0.58, height, 0.026);
       const p = g.getAttribute('position');
-      for (let i = 0; i < p.count; i++)
-        if (p.getY(i) > 0) p.setXYZ(i, p.getX(i) * 0.79, p.getY(i), p.getZ(i) * 0.82);
-      g.computeVertexNormals();
       g.rotateZ(shoulder ? -Math.sign(row) * 0.46 : row * 0.12);
       g.translate(
         row * halfWidth * 0.84,
@@ -311,4 +428,51 @@ export function motocrossTread(radius: number, halfWidth: number, height: number
   const result = mergeGeometries(parts, false)!;
   for (const g of parts) g.dispose();
   return result;
+}
+
+/** Rounded manufacturing corners and a narrow worn crown on each tread lug.
+ * Three chamfered rings keep the polygon cost bounded; no per-lug mesh, texture
+ * or rounded-box subdivision is kept after the wheel has been merged. */
+function motocrossLug(width: number, height: number, length: number) {
+  const positions: number[] = [],
+    uv: number[] = [],
+    indices: number[] = [];
+  const corner = 0.17;
+  const ring = [
+    [-1 + corner, -1],
+    [1 - corner, -1],
+    [1, -1 + corner],
+    [1, 1 - corner],
+    [1 - corner, 1],
+    [-1 + corner, 1],
+    [-1, 1 - corner],
+    [-1, -1 + corner],
+  ];
+  for (const [scale, y] of [
+    [1, -height * 0.5],
+    [0.88, height * 0.35],
+    [0.76, height * 0.5],
+  ])
+    for (const [x, z] of ring) {
+      positions.push((x * width * scale) / 2, y, (z * length * scale) / 2);
+      uv.push((x + 1) / 2, (z + 1) / 2);
+    }
+  for (let row = 0; row < 2; row++)
+    for (let i = 0; i < 8; i++) {
+      const a = row * 8 + i,
+        b = row * 8 + ((i + 1) % 8);
+      indices.push(a, a + 8, b, b, a + 8, b + 8);
+    }
+  for (let i = 1; i < 7; i++) {
+    indices.push(0, i, i + 1);
+    indices.push(16, 16 + i + 1, 16 + i);
+  }
+  const indexed = new T.BufferGeometry();
+  indexed.setAttribute('position', new T.Float32BufferAttribute(positions, 3));
+  indexed.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
+  indexed.setIndex(indices);
+  const geometry = indexed.toNonIndexed();
+  indexed.dispose();
+  geometry.computeVertexNormals();
+  return geometry;
 }

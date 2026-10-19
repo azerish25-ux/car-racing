@@ -79,13 +79,11 @@ export class TerrainView {
     // Kinds on this course (cells off the course read as the venue's turf).
     const kinds = new Set<SoilKind>(['turf']);
     for (let i = 0; i < t.soil.length; i++) kinds.add(SOIL_KINDS[t.soil[i]] ?? 'loam');
+    if (this.motocross) kinds.add('hardpack');
     this.soilSlots = soilSlots(kinds);
-    this.soilMacro =
-      surface.kind === 'motocross'
-        ? 'forest'
-        : surface.kind === 'supercross'
-          ? 'dryEarth'
-          : this.soilSlots[0];
+    // The macro tap is not blurred: a forest-floor scan stretches needles
+    // across the worked track. Both MX courses use resident mineral earth.
+    this.soilMacro = this.motocross ? 'dryEarth' : this.soilSlots[0];
     installScannedSoil(this.material, this.soilSlots, this.soilMacro);
     if (this.motocross) {
       installMxSoilDetail(this.material);
@@ -106,7 +104,18 @@ export class TerrainView {
     const palette = this.motocross
       ? SOIL_KINDS.map((kind) => new T.Color(MX_SOIL_COLOURS[kind]))
       : [];
-    const slots = this.motocross ? SOIL_KINDS.map((kind) => soilSlotOf(kind, this.soilSlots)) : [];
+    // A prepared MX line is mineral soil, not the photographed roots/leaves
+    // of an undisturbed forest floor. Reuse dry earth's granular detail for
+    // worked loam as well as its broad colour variation above.
+    // Physics kind, moisture, vertex albedo and every non-MX venue stay intact.
+    const slots = this.motocross
+      ? SOIL_KINDS.map((kind) =>
+          soilSlotOf(
+            kind === 'loam' && this.soilSlots.includes('dryEarth') ? 'hardpack' : kind,
+            this.soilSlots,
+          ),
+        )
+      : [];
     const vx = cols + 1,
       vz = rows + 1,
       count = vx * vz;

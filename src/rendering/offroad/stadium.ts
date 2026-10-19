@@ -2,6 +2,8 @@ import * as T from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { Random } from '../../core/math.ts';
 import { trackPoint, type Track } from '../../simulation/track.ts';
+import { installCrowdShader, spectatorGeometry, spectatorVariation } from '../crowd.ts';
+import { installCrowdImpostorShader, spectatorImpostorGeometry } from '../crowd-impostor.ts';
 import { installScannedMaps, libraryAlbedo } from '../ground/scanned-ground.ts';
 import { materials } from '../materials/index.ts';
 import { mxAtlasRow, mxEventAtlas } from './mx-course-dressing.ts';
@@ -19,12 +21,20 @@ function member(a: T.Vector3, b: T.Vector3, radius: number) {
 }
 
 /** Stepped arena with open-web roof trusses, housed round floodlights,
- * original event ribbons and separate instanced clothing/skin. All static
+ * original event ribbons and two bounded spectator batches. All static
  * structure is merged by material; crowd occupancy never adds draw calls. */
 export class Stadium {
   readonly root = new T.Group();
+  /** Authoritative occupied-seat table. Near-cohort cards are shader-hidden
+   * and represented once by nearCrowd; count remains the bowl's occupancy. */
   readonly crowd: T.InstancedMesh;
+  readonly nearCrowd: T.InstancedMesh;
   private readonly textures = new Set<T.Texture>();
+  private readonly crowdUniforms = {
+    crowdClock: { value: new T.Vector2() },
+    crowdMotion: { value: 0.32 },
+    crowdReaction: { value: new T.Vector2(0.72, 0.45) },
+  };
   constructor(track: Track) {
     this.root.name = 'Supercross stadium';
     const p = trackPoint(),
@@ -97,7 +107,19 @@ export class Stadium {
     let portals = 0;
     const seats: T.Matrix4[] = [],
       clothes: T.Color[] = [],
-      skins: T.Color[] = [];
+      skins: T.Color[] = [],
+      standingAllowed: boolean[] = [],
+      closeSeats: boolean[] = [];
+    // Calibrated sRGB garment/skin colours; random HSL lightness was being
+    // interpreted as linear radiance and made the old crowd look pastel.
+    // The shared spectator shader adds independent trouser, hair and cap dyes.
+    const wardrobe = [
+      0x27313d, 0x252a2d, 0x314655, 0x45463f, 0x4a3934, 0x444f3f, 0x686b66, 0x817c6e, 0xb4afa2,
+      0xd6d0be, 0x923f37, 0x426889,
+    ].map((color) => new T.Color(color));
+    const skinTones = [0xe0b497, 0xc39473, 0xa77454, 0x85573d, 0x61412f, 0x422c21].map(
+      (color) => new T.Color(color),
+    );
     const sides = [
       { axis: 'x', sign: -1 },
       { axis: 'x', sign: 1 },
@@ -144,16 +166,16 @@ export class Stadium {
             side.axis === 'z' ? cz : cz + t * extent,
           );
           seats.push(m);
-          clothes.push(
-            new T.Color().setHSL(r.next(), 0.12 + 0.32 * r.next(), 0.11 + 0.27 * r.next()),
-          );
-          skins.push(
-            new T.Color().setHSL(
-              0.055 + 0.035 * r.next(),
-              0.24 + 0.24 * r.next(),
-              0.19 + 0.39 * r.next(),
-            ),
-          );
+          // Keep the same three random samples per material as the original
+          // seat planner: occupancy, aisles and chair positions do not move.
+          const shirt = wardrobe[Math.floor(r.next() * wardrobe.length)].clone();
+          shirt.lerp(wardrobe[6], r.next() * 0.08).multiplyScalar(0.88 + r.next() * 0.2);
+          clothes.push(shirt);
+          const skin = skinTones[Math.floor(r.next() * skinTones.length)].clone();
+          skin.lerp(skinTones[2], r.next() * 0.06).multiplyScalar(0.95 + r.next() * 0.1);
+          skins.push(skin);
+          standingAllowed.push(k > 1);
+          closeSeats.push(k < 4);
         }
         if (k === 9 || k === STADIUM.tiers - 1) {
           const x = cx - (side.axis === 'x' ? side.sign * 0.56 : 0),
@@ -247,72 +269,86 @@ export class Stadium {
     this.root.userData.concoursePortals = portals;
     this.batch(tiers, concrete, 'Arena concrete seating decks');
     this.batch(soffits, deck, 'Arena service walls and acoustic cladding');
-    const torso = new T.CylinderGeometry(0.16, 0.18, 0.43, 7)
-      .scale(1.12, 1, 0.66)
-      .rotateX(-0.08)
-      .translate(0, 0.78, 0.035);
-    const limbs: T.BufferGeometry[] = [];
-    for (const side of [-1, 1]) {
-      // Bent thighs/shins and resting elbows, not a standing torso stuck into a tier.
-      limbs.push(
-        member(
-          new T.Vector3(side * 0.11, 0.54, 0.02),
-          new T.Vector3(side * 0.13, 0.43, 0.32),
-          0.081,
-        ),
-      );
-      limbs.push(
-        member(
-          new T.Vector3(side * 0.13, 0.43, 0.32),
-          new T.Vector3(side * 0.13, 0.13, 0.37),
-          0.056,
-        ),
-      );
-      limbs.push(
-        member(
-          new T.Vector3(side * 0.18, 0.91, 0.02),
-          new T.Vector3(side * 0.24, 0.67, 0.2),
-          0.048,
-        ),
-      );
-      limbs.push(
-        member(
-          new T.Vector3(side * 0.24, 0.67, 0.2),
-          new T.Vector3(side * 0.13, 0.54, 0.34),
-          0.039,
-        ),
-      );
+    // Reuse the original SDF-sculpted people kit already used by outdoor
+    // grandstands: shaped shoulders/jaws, bent knees, hair/caps and separate
+    // folded/resting-arm shells. Only the four lower rows use this sculpt;
+    // remaining rows reuse the two-triangle analytic people representation.
+    // This costs less total geometry than the old all-seat cylinder crowd.
+    const person = spectatorGeometry(2);
+    const distant = spectatorImpostorGeometry();
+    const phase = new Float32Array(seats.length),
+      skin = new Float32Array(seats.length * 3),
+      style = new Float32Array(seats.length * 4);
+    const variation = new Random(30619);
+    const closeCount = closeSeats.filter(Boolean).length;
+    const closePhase = new Float32Array(closeCount),
+      closeSkin = new Float32Array(closeCount * 3),
+      closeStyle = new Float32Array(closeCount * 4);
+    let closeIndex = 0;
+    for (let i = 0; i < seats.length; i++) {
+      // The disjoint rank interval controls card coverage; phase remains
+      // individually varied inside each cohort for wardrobe and rest poses.
+      phase[i] =
+        (closeSeats[i] ? variation.next() * 0.2 : 0.2 + variation.next() * 0.8) * Math.PI * 2;
+      skin.set([skins[i].r, skins[i].g, skins[i].b], i * 3);
+      style.set(spectatorVariation(i, 7151, standingAllowed[i]), i * 4);
+      if (closeSeats[i]) {
+        closePhase[closeIndex] = phase[i];
+        closeSkin.set(skin.subarray(i * 3, i * 3 + 3), closeIndex * 3);
+        closeStyle.set(style.subarray(i * 4, i * 4 + 4), closeIndex * 4);
+        closeIndex++;
+      }
     }
-    const person = mergeGeometries([torso, ...limbs], false)!;
-    for (const g of [torso, ...limbs]) g.dispose();
+    distant.setAttribute('spectatorPhase', new T.InstancedBufferAttribute(phase, 1));
+    distant.setAttribute('spectatorSkin', new T.InstancedBufferAttribute(skin, 3));
+    distant.setAttribute('spectatorStyle', new T.InstancedBufferAttribute(style, 4));
+    person.setAttribute('spectatorPhase', new T.InstancedBufferAttribute(closePhase, 1));
+    person.setAttribute('spectatorSkin', new T.InstancedBufferAttribute(closeSkin, 3));
+    person.setAttribute('spectatorStyle', new T.InstancedBufferAttribute(closeStyle, 4));
     const clothing = new T.MeshStandardMaterial({
       color: 0xffffff,
       roughness: 0.94,
-      name: 'Instanced arena spectator clothing',
+      vertexColors: true,
+      name: 'Instanced arena spectator fabric, skin and hair',
     });
-    this.crowd = new T.InstancedMesh(person, clothing, seats.length);
-    const head = new T.SphereGeometry(0.105, 7, 5).scale(0.91, 1.06, 1).translate(0, 1.105, 0.025);
-    const faces = new T.InstancedMesh(
-      head,
-      new T.MeshStandardMaterial({
-        color: 0xffffff,
-        roughness: 0.82,
-        name: 'Instanced arena spectator faces',
-      }),
-      seats.length,
-    );
+    installCrowdShader(clothing, this.crowdUniforms, true);
+    this.nearCrowd = new T.InstancedMesh(person, clothing, closeCount);
+    const distantClothing = new T.MeshStandardMaterial({
+      color: 0xffffff,
+      roughness: 0.94,
+      name: 'Distant arena spectator fabric, skin and hair',
+    });
+    installCrowdImpostorShader(distantClothing, new T.Vector2(0.2, 1));
+    this.crowd = new T.InstancedMesh(distant, distantClothing, seats.length);
+    const seated = new T.Matrix4().makeRotationY(Math.PI / 2).setPosition(0, 0.485, 0.02);
+    const standing = new T.Matrix4().makeRotationY(Math.PI / 2).setPosition(0, 0.3, 0.02);
+    const pose = new T.Matrix4();
+    closeIndex = 0;
     seats.forEach((m, i) => {
-      this.crowd.setMatrixAt(i, m);
+      // The shared kit faces -X; original stadium seats face local +Z.
+      // Its seated origin is the seat pan; standing feet are 0.3 m below
+      // the origin, so standing cohorts stay planted on the same deck.
+      pose.multiplyMatrices(m, style[i * 4 + 2] > 0.5 ? standing : seated);
+      this.crowd.setMatrixAt(i, pose);
       this.crowd.setColorAt(i, clothes[i]);
-      faces.setMatrixAt(i, m);
-      faces.setColorAt(i, skins[i]);
+      if (closeSeats[i]) {
+        this.nearCrowd.setMatrixAt(closeIndex, pose);
+        this.nearCrowd.setColorAt(closeIndex, clothes[i]);
+        closeIndex++;
+      }
     });
-    this.crowd.name = 'Stadium crowd clothing (instanced)';
-    faces.name = 'Stadium crowd faces (instanced)';
-    this.crowd.receiveShadow = faces.receiveShadow = true;
-    this.crowd.computeBoundingSphere();
-    faces.computeBoundingSphere();
-    this.root.add(this.crowd, faces);
+    this.crowd.name = 'Stadium distant crowd (instanced)';
+    this.nearCrowd.name = 'Stadium sculpted lower-row crowd (instanced)';
+    for (const crowd of [this.crowd, this.nearCrowd]) {
+      crowd.receiveShadow = true;
+      crowd.computeBoundingBox();
+      crowd.computeBoundingSphere();
+      // Include the shared shader's bounded forearm/gaze envelope and the
+      // camera-facing card without shifting any authored seat or aisle.
+      crowd.boundingBox!.expandByScalar(0.6);
+      crowd.boundingSphere!.radius += 0.6;
+      this.root.add(crowd);
+    }
     const seatParts = [
       new T.BoxGeometry(0.43, 0.07, 0.38).translate(0, 0.47, 0.015),
       new T.BoxGeometry(0.43, 0.37, 0.06).rotateX(-0.12).translate(0, 0.69, -0.2),
@@ -416,6 +452,14 @@ export class Stadium {
         new T.Mesh(new T.BoxGeometry(0.16, 3.5, 0.09).translate(side * 10.2, 0, 0.05), accent),
       );
     this.root.add(main);
+  }
+  /** Absolute simulation time only: a held frame freezes the entire crowd,
+   * and revisiting a timestamp restores exactly the same unsynchronised pose. */
+  update(time: number) {
+    if (!Number.isFinite(time)) throw new Error('Invalid stadium presentation time');
+    const cycle = Math.PI * 2;
+    this.crowdUniforms.crowdClock.value.set((time * 0.71) % cycle, (time * 0.43) % cycle);
+    this.crowdUniforms.crowdReaction.value.set(0.72 + Math.sin(time * 0.37) * 0.1, 0.45);
   }
   private batch(parts: T.BufferGeometry[], material: T.Material, name: string) {
     const geometry = mergeGeometries(parts, false);

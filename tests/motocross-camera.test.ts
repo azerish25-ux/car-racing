@@ -113,6 +113,41 @@ describe('motocross chase composition', () => {
     }
   });
 
+  it('keeps a sideways whip and its landing corridor in view along the actual flight path', () => {
+    const jumping = frame({
+      anchor: new Vector3(0, 6.86, 0),
+      airborne: true,
+      airTime: 0.6,
+      velocityX: 0,
+      velocityZ: 20,
+      motion: 0,
+    });
+    const straight = new MotocrossChaseCamera().update(0, flat, jumping);
+    for (const heading of [-1.1, 1.1]) {
+      const whipped = new MotocrossChaseCamera().update(0, flat, { ...jumping, heading });
+      expect(whipped.eye.toArray()).toEqual(straight.eye.toArray());
+      expect(whipped.gaze.toArray()).toEqual(straight.gaze.toArray());
+      const camera = new PerspectiveCamera(whipped.fov, 16 / 9, 0.045, 1000);
+      camera.position.copy(whipped.eye);
+      camera.lookAt(whipped.gaze);
+      camera.updateMatrixWorld(true);
+      for (const x of [-3, 3]) {
+        const landing = new Vector3(x, 0.2, 15).project(camera);
+        expect(Math.abs(landing.x)).toBeLessThan(0.85);
+        expect(Math.abs(landing.y)).toBeLessThan(0.95);
+      }
+    }
+    // Grounded steering and near-stationary/recovery views retain body heading.
+    for (const over of [{ airborne: false }, { velocityZ: 0.1 }]) {
+      const turned = new MotocrossChaseCamera().update(0, flat, {
+        ...jumping,
+        ...over,
+        heading: 1,
+      });
+      expect(turned.eye.x).toBeLessThan(-4);
+    }
+  });
+
   it('freezes at paused presentation time and clears landing motion on reset', () => {
     const rig = new MotocrossChaseCamera(),
       a = frame({ airborne: true, airTime: 0.6, lean: 0.5 }),

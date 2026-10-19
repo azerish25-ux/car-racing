@@ -18,7 +18,24 @@ import type { Track } from '../simulation/track.ts';
 import { clamp, mod } from '../core/math.ts';
 import { vehicleAt } from '../simulation/vehicles.ts';
 import { motocrossApproachCue, MotocrossRhythm } from '../simulation/offroad/rhythm-coach.ts';
-import { assessMotocrossLanding } from '../simulation/offroad/riding-feedback.ts';
+import {
+  assessMotocrossLanding,
+  LANDING_RULES,
+  motocrossAlignment,
+} from '../simulation/offroad/riding-feedback.ts';
+
+function alignment(frame: Float32Array, base: number) {
+  const x = frame[base + F.QX],
+    y = frame[base + F.QY],
+    z = frame[base + F.QZ],
+    w = frame[base + F.QW];
+  return motocrossAlignment(
+    2 * (x * z + w * y),
+    1 - 2 * (x * x + y * y),
+    frame[base + F.VX],
+    frame[base + F.VZ],
+  );
+}
 
 function clock(seconds: number) {
   if (!(seconds >= 0)) return '—';
@@ -45,6 +62,9 @@ export class OffroadHud {
   private lastTime = -Infinity;
   private landingAt = -Infinity;
   private landingRough = false;
+  private flightYaw = 0;
+  private landingWhip = false;
+  private landingSideways = 0;
   private landing: ReturnType<typeof assessMotocrossLanding> | null = null;
   constructor(private readonly hud: HTMLElement) {}
   private node() {
@@ -176,7 +196,12 @@ export class OffroadHud {
       title = 'MATCH THE LANDING';
       metric = `${this.airTime.toFixed(2)} S`;
       tone = 'air';
-      note = 'Throttle lifts the nose · brake lowers it.';
+      const yaw = Math.abs(alignment(frame, base).yaw);
+      title = yaw > 0.18 ? 'BRING IT BACK' : 'MATCH THE LANDING';
+      note =
+        yaw > 0.18
+          ? 'Release steering to square the wheels · throttle and brake set pitch.'
+          : 'Steer to whip · release to square · throttle lifts the nose, brake lowers it.';
       progress = Math.round(clamp(this.airTime / 2, 0, 1) * 100);
     } else if (time < this.airUntil && this.landing) {
       heading = 'LAST JUMP';
@@ -187,6 +212,15 @@ export class OffroadHud {
       title = this.landing.label.toUpperCase();
       metric = `${this.landedAirTime.toFixed(2)} S`;
       note = this.landing.cue;
+      if (
+        this.landingWhip &&
+        this.landing.kind === 'clean' &&
+        Number.isFinite(this.landingAt) &&
+        time - this.landingAt >= LANDING_RULES.settleSeconds
+      ) {
+        title = 'WHIP LANDED';
+        note = 'Squared up for touchdown. Carry the drive into the next section.';
+      }
       if (options.mode === 'practice' && this.rhythm.streak >= 3)
         note = `Rhythm target reached · best run ${this.rhythm.best}. Keep it flowing.`;
       tone =
@@ -274,6 +308,8 @@ export class OffroadHud {
       this.landing = null;
       this.landingAt = -Infinity;
       this.landingRough = false;
+      this.flightYaw = this.landingSideways = 0;
+      this.landingWhip = false;
     }
     this.lastTrack = track;
     this.lastTime = time;
@@ -283,7 +319,12 @@ export class OffroadHud {
       this.airTime = frame[o + O.AIR_TIME];
       // A new flight owns its own touchdown measurements, including a tiny
       // rebound. It must never regrade the previous qualifying jump.
-      if (!this.wasAirborne) this.landingAt = -Infinity;
+      if (!this.wasAirborne) {
+        this.landingAt = -Infinity;
+        this.flightYaw = 0;
+      }
+      const yaw = Math.abs(alignment(frame, carBase(0)).yaw);
+      if (Number.isFinite(yaw)) this.flightYaw = Math.max(this.flightYaw, yaw);
     }
     if (this.wasAirborne && !airborne) {
       // Physics retains completed airtime until the next takeoff. Prefer its
@@ -294,14 +335,24 @@ export class OffroadHud {
         this.airUntil = time + 2.8;
         this.landingAt = time;
         this.landingRough = course.isRough(mod(frame[carBase(0) + F.S], track.length));
+        this.landingWhip = this.flightYaw > 0.18;
+        this.landingSideways = Math.abs(alignment(frame, carBase(0)).lateralSpeed);
       }
     }
     // The spring can bottom a few frames after the first tyre contact. Keep
     // grading that short settling window rather than promising a clean landing
     // before the measured suspension and crash state have arrived.
-    if (!airborne && time >= this.landingAt && time - this.landingAt <= 0.25) {
+    if (
+      !airborne &&
+      time >= this.landingAt &&
+      time - this.landingAt <= LANDING_RULES.settleSeconds
+    ) {
       const b = carBase(0);
       const spec = vehicleAt(Math.round(frame[b + RACE_BASE + R.VEHICLE])).bike?.offroad;
+      this.landingSideways = Math.max(
+        this.landingSideways,
+        Math.abs(alignment(frame, b).lateralSpeed),
+      );
       this.landing = assessMotocrossLanding(
         frame[o + O.LANDING_PITCH],
         frame[o + O.LANDING_SPEED],
@@ -309,6 +360,7 @@ export class OffroadHud {
         frame[b + BIKE_BASE + B.STATE] > 0.5,
         spec,
         this.landingRough,
+        this.landingSideways,
       );
     }
     const player = carBase(0);
@@ -326,6 +378,7 @@ export class OffroadHud {
         frame[player + BIKE_BASE + B.STATE] > 0.5,
         riderSpec,
         course.isRough(mod(frame[player + F.S], track.length)),
+        Number.isFinite(this.landingAt) ? this.landingSideways : 0,
       ),
     });
     this.wasAirborne = airborne;

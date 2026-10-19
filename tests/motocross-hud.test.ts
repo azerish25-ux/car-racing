@@ -83,6 +83,13 @@ function harness() {
   frame[base + F.S] = 215;
   frame[base + RACE_BASE + R.VEHICLE] = vehicleIndex('mx450');
   return {
+    pose(yaw: number, speed = 12) {
+      frame[base + F.QY] = Math.sin(yaw / 2);
+      frame[base + F.QW] = Math.cos(yaw / 2);
+      frame[base + F.VX] = 0;
+      frame[base + F.VZ] = speed;
+      frame[base + F.SPEED] = speed;
+    },
     flags(global: number, local: number = FLAG.GREEN) {
       frame[H.FLAG] = global;
       frame[base + F.LOCAL_FLAG] = local;
@@ -164,6 +171,52 @@ describe('motocross HUD flight transitions', () => {
     expect(landed).toContain('CLEAN LANDING');
     expect(landed).toContain('0.35 S');
     expect(h.present(1.3, false, 0.35)).toBe(landed);
+  });
+
+  it('explains whip recovery from the presented pose and only acknowledges it after a clean settlement', () => {
+    const h = harness();
+    h.pose(0.42);
+    const whipping = h.present(1, true, 0.4);
+    expect(whipping).toContain('BRING IT BACK');
+    expect(whipping).toContain('Release steering to square the wheels');
+    h.pose(0.01);
+    const contact = h.present(1.4, false, 0.8);
+    expect(contact).toContain('CLEAN LANDING');
+    expect(contact).not.toContain('WHIP LANDED');
+    const settled = h.present(1.68, false, 0.8);
+    expect(settled).toContain('WHIP LANDED');
+    expect(settled).toContain('1 CLEAN IN A ROW');
+    expect(h.present(1.68, false, 0.8)).toBe(settled);
+  });
+
+  it('retains a crossed touchdown grade after friction removes its sideways motion', () => {
+    const h = harness();
+    h.pose(0.45);
+    h.present(1, true, 0.5);
+    h.pose(0.3);
+    expect(h.present(1.3, false, 0.8)).toContain('CROSSED LANDING');
+    h.pose(0.01);
+    h.present(1.4, false, 0.8);
+    const settled = h.present(1.6, false, 0.8);
+    expect(settled).toContain('CROSSED LANDING');
+    expect(settled).not.toContain('WHIP LANDED');
+    expect(settled).not.toContain('CLEAN IN A ROW');
+  });
+
+  it('does not reward an early rebound or carry a previous whip through a replay seek', () => {
+    const h = harness();
+    h.pose(0.42);
+    h.present(1, true, 0.5);
+    h.pose(0);
+    h.present(1.3, false, 0.8);
+    h.present(1.4, true, 0.03);
+    expect(h.present(1.42, false, 0.05)).not.toContain('WHIP LANDED');
+    h.present(0.9, false, 0.4);
+    h.present(1, true, 0.1);
+    h.present(1.5, false, 0.6);
+    const settled = h.present(1.8, false, 0.6);
+    expect(settled).toContain('CLEAN LANDING');
+    expect(settled).not.toContain('WHIP LANDED');
   });
 });
 
