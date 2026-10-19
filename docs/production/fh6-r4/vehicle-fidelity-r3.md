@@ -1,0 +1,80 @@
+# FH6 reference pass r4, round 3: festival car fidelity (agentN)
+
+Scope: the festival production form (`FestivalBodyModel`, open world only)
+built on agent G's form and agent E's finish. Circuit, replay and ghost bodies
+stay byte-identical: `tests/festival-vehicle-form.test.ts` still locks the
+near-LOD fingerprints of every road car and one race car per closed family.
+Every change below is behind `model.festival` or lives in festival modules.
+
+New modules: `vehicle-bodies/festival-sculpt.ts` (recess displacement),
+`vehicle-bodies/festival-hardware.ts` (small parts),
+`open-world/festival-car-probe.ts` (Medium reflection probe) and
+`open-world/meet-cars.ts` (instanced meet bodies). Measurements are read from
+the 1920 x 1080 references, scaled by the 330 mm plate or the car's width.
+They are approximate.
+
+| Ref             | Measured observation                                                                                                          | What was implemented (file / symbol)                                                                                                                                                                                           | Remaining gap                                                      |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------ |
+| 001             | Carbon bonnets, splitters with endplates, hood louvres                                                                        | Carbon canopy roof option (`FestivalForm.roof: 'carbon'`, eh3/gt10m), carbon dive planes on competition classes (`addCanards`)                                                                                                 | No louvred carbon bonnet, no liveries                              |
+| 009             | Tow strap, smoked lamp pods, wide splitter                                                                                    | Red D-ring tow hook (`addTowHook`, competition classes, rh3, rr4)                                                                                                                                                              | No smoked lamp pods                                                |
+| 011             | V-shaped mesh grille, sharp intakes with carbon fins, fender slot                                                             | Sharp trapezoid/fang intakes with honeycomb core and louvres (`festivalFasciaOpenings` `shape`, `sharpOutline`); gill behind the front wheel (`Recess` kind `gill`)                                                            | Grille is not V-shaped (no brand cues)                             |
+| 013             | Deep side scoop ahead of the rear wheel; rear haunch ~0.1 m beyond the door; carbon diffuser with 5-6 strakes; deep oval tips | Concave scoop displaced into the loft, crisp lip from twin stations, dark throat (`recessAt`, `FestivalBodyModel.sculpt`, `pocket`); haunch +3.5 cm (`haunch`); diffuser strakes (`addDiffuserStrakes`); carbon sills (`slot`) | Scoop outline follows the loft grid (about 4.5 cm); tips are round |
+| 014             | Night neon in paint, honeycomb intake, front slot, carbon skirts                                                              | Honeycomb intakes, gill, carbon sills; Medium probe reflects lit surroundings (`FestivalCarProbe`)                                                                                                                             | Medium probe is 96 px, so neon smears                              |
+| 017             | Distinct silhouettes; low roofs                                                                                               | Roof −3/−3.5 cm, glass base +3/+4 cm (`roofDrop`, `beltRise`, shoulder follows)                                                                                                                                                | Proportions still come from the catalogue sheets                   |
+| 018             | Full-width LED bar hooking down at the ends; louvred dark rear corner panels; quad tips; third brake light                    | Hooked tail bars (`addTailHooks`, eh3/sc7/lx12); mesh+louvre corner panels (`addTailCornerPanels`); quad tips with sooty bore (`exhaustTip`, lx12/rs5); third brake light (`addThirdBrakeLight`)                               | Hook is a flat band, not a 3D light pipe                           |
+| 019             | Two trapezoid mesh hood vents + a centre vent; LED L-DRL; gill; wipers                                                        | Trapezoid honeycomb hood vents with painted lip (`hoodVent`), centre vent (lx12, sc7), parked wipers on the glass (`addWipers`), gills                                                                                         | Vents stand on the hood (raised lip) rather than cut into it       |
+| 020             | Trapezoid intakes with horizontal slats; SUV running boards                                                                   | Trapezoid intakes + two louvres                                                                                                                                                                                                | No SUV; pickup still has no running boards                         |
+| 021             | Boxy SUV, cladding                                                                                                            | Unchanged (truck form)                                                                                                                                                                                                         | Not addressed                                                      |
+| 035             | Rear: H/W ≈ 0.58; thin bar with hooks; quad tips; black louvred side panels; third brake light                                | Hooks, corner panels, quad tips, third brake light                                                                                                                                                                             | —                                                                  |
+| 037             | Slim glass band (~0.21 m over a ~0.93 m belt); gill behind the front wheel                                                    | Glass band slimmed about 20 % (eh3 0.31 → about 0.25 m, rs5 0.43 → about 0.36 m); gill                                                                                                                                         | Glass band is still taller than in the reference                   |
+| 045             | Projector internals; carbon canards; interior through glass                                                                   | Canards on competition classes; existing projector internals kept                                                                                                                                                              | No per-car interior colours                                        |
+| 053             | Dual tips with dark bores; reflectors; lit plate                                                                              | Sooty tip bores; twin/centre/quad layouts per car                                                                                                                                                                              | No bumper reflectors                                               |
+| 057             | Sculpted concave prototype sides                                                                                              | Prototypes keep the plain lofts                                                                                                                                                                                                | Not addressed                                                      |
+| 066             | Dive planes, mesh grille, wet neon reflections                                                                                | Dive planes; honeycomb; Medium probe                                                                                                                                                                                           | Rain droplets not modelled                                         |
+| 069             | GT-R ring tail lamps; carbon diffuser; quad tips                                                                              | Quad tips, diffuser strakes                                                                                                                                                                                                    | Ring lamps are agent G's existing round units, not changed         |
+| 074             | Carbon wing weave; tow hook; wipers; carbon lip                                                                               | Tow hook, wipers, carbon roof option, existing carbon weave on wings and splitters                                                                                                                                             | —                                                                  |
+| 089             | Honeycomb corner intakes; interior with driver                                                                                | Honeycomb intakes                                                                                                                                                                                                              | Driver still wears a helmet in road cars                           |
+| 090             | Deep side scoop; nose channel; carbon splitter                                                                                | Scoop on mid-engined cars                                                                                                                                                                                                      | No nose channel (hood samples about 9 cm apart)                    |
+| 091             | Red seats through glass; hood scoop                                                                                           | —                                                                                                                                                                                                                              | No interior colour variants                                        |
+| 092             | Sunk hood louvres; round lamps; side scoop                                                                                    | Hood vents (raised lip); scoop                                                                                                                                                                                                 | —                                                                  |
+| 093             | Vertical-slat trapezoid intakes                                                                                               | Trapezoid intakes with louvres                                                                                                                                                                                                 | Slats are horizontal                                               |
+| 096             | Visible door shut lines, handles, mesh grilles                                                                                | Real 2.8 mm shut-line grooves on the near LOD (`Recess` kind `groove`), honeycomb intakes                                                                                                                                      | Bonnet/boot gaps still shader lines                                |
+| 097             | Deep side scoop; tan interior; building reflections                                                                           | Scoop; Medium probe                                                                                                                                                                                                            | No interior colours                                                |
+| 098             | Side profile: crisp belt, flush arches                                                                                        | Raised shoulder with the belt; window seals on the real glass base (`addWindowSeals`)                                                                                                                                          | —                                                                  |
+| 099             | Carbon side blades, honeycomb rear mesh, oval tips, carbon diffuser                                                           | Rear corner mesh panels, diffuser strakes, carbon sills                                                                                                                                                                        | Tips are round                                                     |
+| 025/076/080-083 | Meets of distinct sports cars in bays                                                                                         | Hub meet and 3 of 4 store-lot spots draw festival-form bodies (`MeetCars`, `parkedSites` `model`): 7 models, mid LOD 26.6k / far LOD 4.9k triangles, at most 4 instanced draws per model and LOD                               | Meet cars carry no plates and no night lamps                       |
+
+## Medium reflections
+
+`FestivalCarProbe` uses a 96 px half-float cube, one face per frame. A refresh
+runs every 1.2 s with the same exclusions as the High probe, and is published
+double-buffered to the car paint. It is released on High (the 256 px shared
+probe takes over) and on Low. Renderer hook: one `update` call and `dispose`
+in `festival-renderer.ts`. Cost: one extra scene pass per frame at 96 x 96 px
+(a 90° face, far 450 m), plus a PMREM pass per refresh.
+
+## Cost (near / mid / far triangles per car, festival form)
+
+| Car  | r2 (agent G)         | Now                            |
+| ---- | -------------------- | ------------------------------ |
+| eh3  | 81.8k / 36.4k / 5.0k | 79.0k / 32.8k / 5.0k, 56 draws |
+| sc7  | 82.7k / 37.6k / 5.1k | 77.1k / 31.9k / 5.1k           |
+| lx12 | 74.8k / 30.8k / 5.2k | 75.3k / 30.0k / 5.2k, 58 draws |
+| rs5  | 74.0k / 28.4k / 5.2k | 76.1k / 29.2k / 5.2k           |
+
+Near LODs got cheaper on the supercars because the sharp intakes drop the
+radiator rows. The extra stations, door samples and hardware add 1-3k
+triangles. Draws per near LOD: +1 (soot), +1 for a carbon roof.
+
+## Evidence
+
+Studio renders (same scene before and after):
+`/tmp/claude-0/-home-user-Experiment-3/6225d78a-1b23-58c0-86f8-76bad1718c62/scratchpad/agentN/before/eh3.jpg`,
+`/tmp/claude-0/-home-user-Experiment-3/6225d78a-1b23-58c0-86f8-76bad1718c62/scratchpad/agentN/before/sides.jpg`,
+`/tmp/claude-0/-home-user-Experiment-3/6225d78a-1b23-58c0-86f8-76bad1718c62/scratchpad/agentN/final/sheet.jpg`
+(front 3/4, rear 3/4, flank, meet row, lx12 tail, night tail).
+In-game Medium: `/tmp/claude-0/-home-user-Experiment-3/6225d78a-1b23-58c0-86f8-76bad1718c62/scratchpad/agentN/game/`.
+In-game Medium frame at the integration head with every agent's work, eh3 at
+spawn: chase 565 draws / 3.40 M triangles; front 3/4 inspection 305 draws /
+1.52 M triangles. There is no before/after pair at the same head: the capture
+budget ran out. The probe's extra face pass is inside these numbers.

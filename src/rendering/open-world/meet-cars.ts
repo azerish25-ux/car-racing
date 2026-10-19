@@ -80,7 +80,12 @@ function mergeLod(group: T.Object3D, paint: ReadonlySet<T.Material>) {
         );
       else part.computeVertexNormals();
       part.applyMatrix4(local);
-      const c = (material as T.MeshStandardMaterial).color ?? colour.set(0x202020);
+      // Glazing bakes as the dark tinted glass it reads as (refs 019, 097),
+      // not its light transmission tint.
+      const c =
+        material.transparent || material.userData.vehicleGlass
+          ? colour.set(0x0a0f12)
+          : ((material as T.MeshStandardMaterial).color ?? colour.set(0x202020));
       const colours = new Float32Array(count * 3);
       for (let i = 0; i < count; i++) colours.set([c.r, c.g, c.b], i * 3);
       part.setAttribute('color', new T.BufferAttribute(colours, 3));
