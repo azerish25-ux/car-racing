@@ -1,0 +1,32 @@
+name: Charlottetown implementation workspace
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [.github/workflows/charlottetown-workspace.yml]
+permissions:
+  contents: read
+jobs:
+  workspace:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Install validation browser
+        run: npx playwright install chromium
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: .playwright
+      - name: Package current source and offline dependencies
+        run: |
+          git rev-parse HEAD > WORKSPACE_COMMIT.txt
+          tar --exclude=.git -czf /tmp/charlottetown-workspace.tar.gz .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: charlottetown-workspace
+          path: /tmp/charlottetown-workspace.tar.gz
+          retention-days: 2
