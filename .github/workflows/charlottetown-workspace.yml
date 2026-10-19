@@ -8,50 +8,28 @@ permissions:
   contents: read
 jobs:
   workspace:
+    if: github.repository == 'azerish25-ux/car-racing'
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
         with:
-          node-version: '22'
-          cache: npm
-      - run: npm ci --no-audit --no-fund
-      - name: Obtain licensed open street geometry
+          persist-credentials: false
+      - name: Snapshot tracked source at the triggering commit
         run: |
-          curl --fail --retry 2 --max-time 90 -A 'CharlottetownGameReference/1.0' 'https://www.openstreetmap.org/api/0.6/map?bbox=-63.140,46.2337,-63.119,46.2430' -o /tmp/charlottetown.osm
-          cp /tmp/charlottetown.osm WORKSPACE_CHARLOTTETOWN.osm
-      - name: Package source and dependencies
-        run: |
-          git rev-parse HEAD > WORKSPACE_COMMIT.txt
-          tar --exclude=.git --exclude=public --exclude=.playwright -czf /tmp/charlottetown-source.tar.gz .
+          git rev-parse HEAD > /tmp/source-commit.txt
+          git archive --format=tar.gz --output=/tmp/charlottetown-code.tar.gz HEAD src tests e2e scripts reference docs .github package.json package-lock.json tsconfig.json vite.config.ts vitest.config.ts playwright.config.ts eslint.config.js index.html README.md .gitignore .gitattributes .prettierrc.json
       - uses: actions/upload-artifact@v4
         with:
-          name: charlottetown-source
-          path: /tmp/charlottetown-source.tar.gz
+          name: charlottetown-code
+          path: |
+            /tmp/charlottetown-code.tar.gz
+            /tmp/source-commit.txt
           retention-days: 2
-      - name: Install validation browser
-        run: npx playwright install chromium
-        env:
-          PLAYWRIGHT_BROWSERS_PATH: .playwright
-      - name: Package runtime assets
-        run: |
-          tar -czf /tmp/charlottetown-assets.tar.gz public .playwright
-          split -b 320M /tmp/charlottetown-assets.tar.gz /tmp/charlottetown-assets.part-
+      - name: Snapshot tracked runtime assets separately
+        run: git archive --format=tar.gz --output=/tmp/charlottetown-runtime.tar.gz HEAD public
       - uses: actions/upload-artifact@v4
         with:
-          name: charlottetown-assets-aa
-          path: /tmp/charlottetown-assets.part-aa
-          retention-days: 2
-      - uses: actions/upload-artifact@v4
-        with:
-          name: charlottetown-assets-ab
-          path: /tmp/charlottetown-assets.part-ab
-          if-no-files-found: ignore
-          retention-days: 2
-      - uses: actions/upload-artifact@v4
-        with:
-          name: charlottetown-assets-ac
-          path: /tmp/charlottetown-assets.part-ac
-          if-no-files-found: ignore
+          name: charlottetown-runtime
+          path: /tmp/charlottetown-runtime.tar.gz
           retention-days: 2
