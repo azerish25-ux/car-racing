@@ -1,0 +1,140 @@
+.city-launcher {
+  position: fixed;
+  inset: 0;
+  overflow: auto;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  padding: 26px;
+  background: radial-gradient(ellipse at 82% 18%, #33433d 0%, transparent 58%), #101b1e;
+}
+.city-launcher[hidden],
+.city-loading[hidden],
+.city-touch[hidden],
+.city-toast[hidden] {
+  display: none;
+}
+.city-launch-inner {
+  width: min(100%, 680px);
+}
+.city-launcher .city-map-card {
+  max-width: none;
+  margin: 16px 0 20px;
+}
+.city-launch-brand {
+  color: #c0ccb8;
+  letter-spacing: 0.25em;
+  font-size: 12px;
+}
+.city-launch-options {
+  display: flex;
+  gap: 18px;
+  margin: 0;
+  padding: 16px;
+  border: 1px solid #64757070;
+}
+.city-launch-options legend {
+  padding: 0 8px;
+  font-size: 12px;
+  color: #cad1c5;
+}
+.city-launch-options label {
+  display: grid;
+  flex: 1;
+  gap: 8px;
+  font-size: 12px;
+}
+.city-launch-options select {
+  width: 100%;
+  min-width: 0;
+  background: #1b2a2d;
+  color: #ece8dc;
+  padding: 10px;
+}
+.city-launch-help {
+  font-size: 12px;
+  line-height: 1.8;
+  color: #c3cdc5;
+  margin: 22px 0;
+}
+.city-launch-source {
+  font-size: 10px;
+  color: #adbdb3;
+  line-height: 1.7;
+  margin-top: 28px;
+}
+.city-launch-back {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: #f0dab0;
+}
+.city-loading {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  padding: 24px;
+  background: #10191ef5;
+}
+.city-loading p {
+  font-size: 12px;
+  letter-spacing: 0.25em;
+  color: #c8d5ba;
+}
+.city-loading h2 {
+  max-width: 720px;
+  font-size: 22px;
+  line-height: 1.5;
+}
+.city-toast {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: min(90vw, 700px);
+  padding: 14px 22px;
+  background: #233136;
+  border: 1px solid #b6bc9b;
+  z-index: 50;
+}
+.city-touch {
+  display: none;
+}
+@media (pointer: coarse) {
+  .city-touch {
+    display: flex;
+    position: fixed;
+    bottom: 24px;
+    left: 18px;
+    right: 18px;
+    justify-content: space-between;
+    z-index: 4;
+    pointer-events: none;
+  }
+  .city-touch div {
+    display: flex;
+    gap: 8px;
+  }
+  .city-touch button {
+    pointer-events: auto;
+    touch-action: none;
+    min-width: 52px;
+    min-height: 54px;
+    background: #15262cb8;
+  }
+}
+@media (max-width: 600px) {
+  .city-launcher {
+    padding: 18px;
+  }
+  .city-launch-options {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .city-launch-options label {
+    grid-template-columns: 1fr 1.4fr;
+    align-items: center;
+  }
+}

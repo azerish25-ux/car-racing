@@ -1,0 +1,51 @@
+name: Charlottetown direct-entry validation
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'tests/charlottetown*.ts'
+      - 'e2e/charlottetown*.ts'
+      - 'index.html'
+      - '.github/workflows/charlottetown-validation.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  browser:
+    if: github.repository == 'azerish25-ux/car-racing'
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    strategy:
+      fail-fast: false
+      matrix:
+        mode: [formula, motogp, horizon]
+    env:
+      APEX_BROWSER_BACKEND: mesa
+      LIBGL_ALWAYS_SOFTWARE: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Geographic, geometry and GPU ownership regressions
+        run: npx vitest run tests/charlottetown.test.ts tests/charlottetown-geometry.test.ts tests/gpu-frame-gate.test.ts tests/open-world-session.test.ts tests/open-world-worker.test.ts tests/festival-map.test.ts tests/festival-car-switch.test.ts
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: sudo apt-get update && sudo apt-get install -y xvfb libgl1-mesa-dri mesa-utils
+      - name: Production city host, worker, movement and campus travel
+        run: xvfb-run -a npx playwright test e2e/charlottetown-direct.spec.ts --grep 'City-first ${{ matrix.mode }}:'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: charlottetown-direct-${{ matrix.mode }}
+          path: |
+            test-results/
+            playwright-report/
+            browser-backend.json
+            browser-progress.json
+          retention-days: 7

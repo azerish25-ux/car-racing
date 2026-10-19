@@ -73,6 +73,8 @@ export interface FestivalHost {
   save?(state: FestivalSave): Promise<void>;
 }
 export interface FestivalStartOptions {
+  /** Cancels an in-flight boot; the returned session is disposed by its host. */
+  signal?: AbortSignal;
   region?: OpenWorldRegionId;
   vehicle?: string;
   weather?: WeatherPreset;
@@ -148,13 +150,19 @@ export class FestivalSession {
     host.loading(`Building ${worldRegion(options.region).name}…`);
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
     const save = validateFestivalSave(await host.load?.().catch(() => null));
+    if (options.signal?.aborted) throw new Error('Festival loading cancelled');
     const session = new FestivalSession(host, save);
+    const abort = () => session.dispose();
+    options.signal?.addEventListener('abort', abort, { once: true });
     if (!save && options.region === 'charlottetown') session.save.traffic = false;
     try {
       await session.boot(options);
+      if (session.disposed) throw new Error('Festival loading cancelled');
     } catch (error) {
       session.dispose();
       throw error;
+    } finally {
+      options.signal?.removeEventListener('abort', abort);
     }
     return session;
   }
@@ -166,11 +174,17 @@ export class FestivalSession {
     if (region.survey) this.save.discovered = region.events.map((e) => e.id);
     host.loading('Planning event routes and town streets…');
     await new Promise<void>((resolve) => setTimeout(resolve, 0));
+    if (this.disposed) throw new Error('Festival loading cancelled');
     const events = resolveEvents(world);
     this.events = events;
     const structures = regionStructures(world);
-    host.loading('Building roads, buildings and water…');
+    host.loading(
+      region.survey
+        ? 'Building mapped streets and architecture…'
+        : 'Building roads, buildings and water…',
+    );
     await new Promise<void>((resolve) => setTimeout(resolve, 0));
+    if (this.disposed) throw new Error('Festival loading cancelled');
     const renderer = new FestivalRenderer(
       host.renderer,
       host.canvas,
@@ -182,11 +196,14 @@ export class FestivalSession {
     this.renderer = renderer;
     renderer.setQuality(host.quality, host.graphics);
     renderer.lighting = host.lighting;
-    host.loading('Loading photographed trees…');
-    if (!region.survey) await renderer.loadPhotoVegetation();
+    if (!region.survey) {
+      host.loading('Loading photographed trees…');
+      await renderer.loadPhotoVegetation();
+    }
     host.loading('Loading authored coastal details…');
     if (!region.survey)
       await Promise.all([renderer.loadAuthoredDetails(), renderer.loadStreetDetails()]);
+    if (this.disposed) throw new Error('Festival loading cancelled');
     for (const id of this.save.discovered) renderer.discovered.add(id);
     // Ambient traffic (instanced) and motorcycles (the bike presentation)
     // share the festival scene; both are posed before each draw.
@@ -287,6 +304,14 @@ export class FestivalSession {
       host.loading('Loading photographed ground…');
       await scannedGround.ready();
     }
+    // Do not reveal an undrawn canvas or start the timer while the first
+    // full-quality city/vehicle frame is still compiling or executing.
+    host.loading('Preparing the first driving frame…');
+    await new Promise<void>((resolve) => setTimeout(resolve, 0));
+    this.frame(performance.now());
+    while (!renderer.canSubmitFrame() && !this.disposed)
+      await new Promise<void>((resolve) => setTimeout(resolve, 16));
+    if (this.disposed) return;
     await host.audio?.start().catch(() => undefined);
     host.loaded();
     this.post({ type: 'pause', value: false });
@@ -491,6 +516,7 @@ export class FestivalSession {
       a = this.previous,
       b = this.current;
     if (!renderer || !a || !b || this.disposed || this.travelling) return;
+    if (!renderer.canSubmitFrame()) return;
     const wall = Math.max(0.001, (time - (this.lastTime || time - 16)) / 1000);
     this.lastTime = time;
     const span = Math.max(8, (b[H.TIME] - a[H.TIME]) * 1000),
@@ -553,11 +579,15 @@ export class FestivalSession {
       lighting: renderer?.lighting ?? null,
       photographicSky: renderer?.photoSky.enabled ?? false,
       travelling: this.travelling,
+      gpuFrameQueue: renderer?.gpuDiagnostics() ?? null,
     };
   }
   dispose() {
     if (this.disposed) return;
     this.disposed = true;
+    this.readyReject?.(new Error('Festival loading cancelled'));
+    this.readyReject = null;
+    this.readyResolve = null;
     window.removeEventListener('keydown', this.photoKeys, true);
     this.controls?.dispose();
     this.host.audio?.stop();

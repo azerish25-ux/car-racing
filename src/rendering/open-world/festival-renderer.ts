@@ -1,3 +1,4 @@
+import { GpuFrameGate } from '../gpu-frame-gate.ts';
 import * as T from 'three';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
@@ -184,6 +185,7 @@ export class FestivalRenderer {
   private readonly lastSubject = new T.Vector3(NaN, NaN, NaN);
   private lastVehicle = -1;
   private disposed = false;
+  private readonly gpuFrames: GpuFrameGate;
   private readonly heightAt = (x: number, z: number, y?: number) => this.groundHeight(x, z, y);
   readonly discovered = new Set<string>();
   activeEvent: string | null = null;
@@ -197,6 +199,7 @@ export class FestivalRenderer {
     readonly structures: readonly Structure[],
     tileWorker: Worker,
   ) {
+    this.gpuFrames = new GpuFrameGate(renderer.getContext() as WebGL2RenderingContext);
     const scene = this.scene;
     this.events = new Map(events.map((event) => [event.spec.id, event]));
     this.orbit = new OrbitControls(this.camera, canvas);
@@ -508,6 +511,14 @@ export class FestivalRenderer {
     this.camera.position.set(x, this.groundHeight(x, z) + 3, z);
     this.camera.updateMatrixWorld();
     this.terrain.update(this.camera);
+  }
+  /** The caller polls without blocking; input and simulation continue while
+   * a previous full-quality frame is in flight. Never queue obsolete views. */
+  canSubmitFrame() {
+    return this.gpuFrames.ready();
+  }
+  gpuDiagnostics() {
+    return this.gpuFrames.diagnostics();
   }
   draw(a: Float32Array, b: Float32Array, alpha: number, dt: number) {
     if (this.disposed) return;
@@ -827,6 +838,7 @@ export class FestivalRenderer {
     });
     this.composer.render();
     this.ultra.afterFrame();
+    this.gpuFrames.submittedFrame();
     this.stats.drawCalls = this.renderer.info.render.calls;
     this.stats.triangles = this.renderer.info.render.triangles;
     this.stats.renderMs = this.stats.renderMs * 0.9 + (performance.now() - start) * 0.1;
@@ -838,6 +850,7 @@ export class FestivalRenderer {
   dispose() {
     if (this.disposed) return;
     this.disposed = true;
+    this.gpuFrames.dispose();
     if (!this.world.region.survey) scannedGround.detach(this.renderer);
     this.terrain.dispose();
     this.roads.dispose();

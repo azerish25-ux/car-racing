@@ -2,6 +2,20 @@
 
 ## Play
 
+For city-first loading, append **`?map=charlottetown`** to the game's URL. This
+opens a lightweight launcher without loading the original Aurel circuit and
+its garages. Select F1, MotoGP or Horizon, graphics quality, weather and assists.
+`&discipline=formula`, `&discipline=motogp` and `&discipline=horizon` preselect a
+button; a user click starts play and audio. Exit returns to the city launcher;
+**CIRCUIT & FESTIVAL MENU** opens the unchanged main game. This is free play,
+not a separate career entry: event bests use the same city save, and career
+rewards remain owned by the original main-game career host.
+
+The direct launcher shares the production `FestivalSession`, worker, vehicle
+physics, renderer, cameras and HUD. It does not duplicate the simulation or
+substitute a scenery viewer. Keyboard, saved gamepad mappings and coarse-pointer
+touch controls are supported. The existing main-menu map card remains available.
+
 On the main menu, use the **CHARLOTTETOWN** map card and choose **F1**, **MotoGP**, or **Horizon**. These launch the same geographic region with the production Formula, GP motorcycle, or road-car physics respectively. The normal circuit and Solvane festival menus remain available.
 
 The map uses the weather and assists selected on the main menu. High and Ultra graphics enable the existing higher-quality lighting, shadows, reflection and image-processing paths; the city uses distance-based detail on every preset. No particular hardware frame-rate target has been certified.
@@ -38,6 +52,22 @@ Building walls use their actual mapped concave polygons rather than randomly pla
 
 ## Rendering
 
+The continuation fixes unsupported chimney placement on concave roof plans:
+a roof-triangle interior point must have clearance from every footprint boundary.
+The chimney base intersects the sloped roof under all four corners; unsafe sites
+are omitted. Stone caps and dark flue openings are generated geometry.
+Crosswalk bars use the road's local normal and tangent rather than swapping axes
+on oblique streets. Parking and service asphalt now use generated aggregate and
+height maps with the existing wet response. These details remain procedural
+estimates, not photographed evidence.
+
+Festival rendering now retains at most one submitted GPU frame, using a real
+WebGL fence and non-blocking polls. The input pump and simulation worker remain
+independent; no frame completion is invented. Startup waits for a real first
+frame before revealing the scene. Original-circuit drawing is suspended while
+its GL context transfers to the festival. This is queue control, not a measured
+frame-rate improvement or physical-GPU certification.
+
 The city is authored entirely in TypeScript/Three.js: deterministic generated brick, siding, roof, stone and concrete texels; generated window/interior treatments and sign atlas; polygonal wall extrusions; pitched roofs clipped to the ground plans; divided windows, sills, lintels, cornices and chimneys. Campus lettering is generated as text, not copied from a photograph.
 
 Geometry is merged by material and 128-metre spatial chunk. Shells, windows and close façade detail have separate distance budgets. The same building and tree collision shapes remain in place across presets. Materials, geometry and city scene nodes are disposed on exit.
@@ -72,6 +102,8 @@ The acquisition URL and bounding rectangle are recorded in the JSON source metad
 ```sh
 npm run build
 npx vitest run tests/charlottetown.test.ts
+npx vitest run tests/charlottetown-geometry.test.ts tests/gpu-frame-gate.test.ts
+npx playwright test e2e/charlottetown-direct.spec.ts
 npx playwright test e2e/charlottetown.spec.ts
 ```
 
@@ -87,3 +119,16 @@ Map data © OpenStreetMap contributors, available under the Open Database Licens
 - https://opendatacommons.org/licenses/odbl/1-0/
 
 No Google Street View image or Google-derived 3D content is included.
+
+### Continuation validation scope
+
+Local targeted verification passed **58 tests in seven files**, TypeScript checking,
+ESLint on touched TypeScript, and a production build. The offline procedural
+scenery fixture rendered Maloney, Queen, Kent and the campus without page errors.
+These fixture views are not full-game or hardware-performance evidence. The new
+`charlottetown-direct.spec.ts` exercises real browser launch, vehicle movement,
+campus travel, high/night presentation, exit and a second entry. Its independent
+GitHub Actions workflow preserves failures, traces and diagnostics for each mode.
+The original main-menu test is retained rather than silently replaced: its prior
+run timed out before reaching the city at the original circuit cold startup.
+Consult the exact workflow run for browser results; writing a test is not a pass.

@@ -140,3 +140,14 @@
     max-width: calc(100% - 12px);
   }
 }
+
+.city-direct-link {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: #d9d4b5;
+}
+.city-launcher .city-direct-link {
+  display: none;
+}

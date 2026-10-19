@@ -20,7 +20,7 @@ function noise(x: number, y: number) {
   h = Math.imul(h ^ (h >>> 16), 0x45d9f3b);
   return ((h ^ (h >>> 16)) >>> 0) / 4294967295;
 }
-function surface(kind: 'brick' | 'siding' | 'stone' | 'roof' | 'paving') {
+function surface(kind: 'brick' | 'siding' | 'stone' | 'roof' | 'paving' | 'asphalt') {
   const size = 512,
     bytes = new Uint8Array(size * size * 4),
     height = new Uint8Array(size * size * 4);
@@ -52,6 +52,12 @@ function surface(kind: 'brick' | 'siding' | 'stone' | 'roof' | 'paving') {
           ? 80
           : 160 + noise(Math.floor(u * 12 + (row % 2) * 0.5), row) * 45 + grain * 32;
         relief = joint ? 40 : 140 + grain * 55;
+      } else if (kind === 'asphalt') {
+        // Metre-scaled aggregate, not photographed texels or repeating painted cracks.
+        const aggregate = noise(Math.floor(x / 3), Math.floor(y / 3));
+        const weathering = noise(Math.floor(x / 43), Math.floor(y / 43));
+        base = 210 + aggregate * 25 + grain * 16 + weathering * 4;
+        relief = 110 + aggregate * 72 + grain * 35;
       } else {
         const n = kind === 'stone' ? 7 : 2,
           fx = (u * n) % 1,
@@ -161,7 +167,7 @@ export class CityMaterials {
   private readonly textures: T.Texture[] = [];
   constructor() {
     const patterned = (
-      kind: 'brick' | 'siding' | 'stone' | 'roof' | 'paving',
+      kind: 'brick' | 'siding' | 'stone' | 'roof' | 'paving' | 'asphalt',
       roughness: number,
     ) => {
       const maps = surface(kind);
@@ -169,7 +175,7 @@ export class CityMaterials {
       const m = new T.MeshStandardMaterial({
         vertexColors: true,
         roughness,
-        bumpScale: kind === 'brick' ? 0.018 : 0.008,
+        bumpScale: kind === 'brick' ? 0.018 : kind === 'asphalt' ? 0.004 : 0.008,
         ...maps,
       });
       m.name = `Charlottetown / generated ${kind}`;
@@ -205,7 +211,7 @@ export class CityMaterials {
       wood: plain(0.75),
       paving: patterned('paving', 0.92),
       grass: plain(0.98),
-      asphalt: plain(0.93),
+      asphalt: patterned('asphalt', 0.93),
       paint: plain(0.7),
       sign: new T.MeshStandardMaterial({ map: signs, roughness: 0.5, metalness: 0.12 }),
     };

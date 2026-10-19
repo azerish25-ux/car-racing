@@ -5,6 +5,7 @@ import type { SurveyBuilding, SurveyPoint } from '../../../simulation/open-world
 import type { QualityPreset } from '../../options.ts';
 import { CityBatches, type CityChunk } from './batch.ts';
 import { CityMaterials, type CityMaterial } from './materials.ts';
+import { roofAttachment, crosswalkHeading } from './geometry.ts';
 
 type Point = readonly [number, number, number];
 const BRICK = [0xa86754, 0x965646, 0xb57660, 0x8d4e41, 0xa37964];
@@ -357,20 +358,23 @@ export class SurveyCity {
       }
     }
     if (home && area > 55) {
-      const q = p[h % p.length],
-        chimney: SurveyPoint = [(q[0] + x) / 2, (q[1] + z) / 2];
-      this.batches
-        .get(x, z, 'brick', 1)
-        .box(
-          chimney[0],
-          roofY(chimney) + 0.3,
-          chimney[1],
-          0.65,
-          1.4,
-          0.65,
-          Math.atan2(axisZ, axisX),
-          0x9c5a47,
-        );
+      // A mean of concave vertices may be in a courtyard or outside the roof.
+      // All four chimney corners must fit inside the real footprint, and its
+      // bottom intersects the roof at every corner even on a steep slope.
+      const attachment = roofAttachment(p, triangles, roofY, 0.65, Math.atan2(axisZ, axisX));
+      if (attachment) {
+        const { x: cx, z: cz, bottom, top } = attachment;
+        const angle = Math.atan2(axisZ, axisX);
+        this.batches
+          .get(x, z, 'brick', 1)
+          .box(cx, (bottom + top) / 2, cz, 0.65, top - bottom, 0.65, angle, 0x9c5a47);
+        this.batches
+          .get(x, z, 'stone', 1)
+          .box(cx, top + 0.055, cz, 0.77, 0.11, 0.77, angle, 0xb5af9b);
+        this.batches
+          .get(x, z, 'metal', 2)
+          .box(cx, top + 0.112, cz, 0.35, 0.012, 0.35, angle, 0x30312b);
+      }
     }
     this.stats.buildings++;
   }
@@ -391,7 +395,16 @@ export class SurveyCity {
       for (let n = -road.spec.halfWidth + 0.6; n < road.spec.halfWidth - 0.3; n += 1.1) {
         const x = pose.x + pose.nx * n,
           z = pose.z + pose.nz * n;
-        batch.box(x, pose.y + 0.022, z, 0.48, 0.012, 2.7, Math.atan2(pose.tx, pose.tz), 0xd4d1bc);
+        batch.box(
+          x,
+          pose.y + 0.022,
+          z,
+          0.48,
+          0.012,
+          2.7,
+          crosswalkHeading(pose.nx, pose.nz),
+          0xd4d1bc,
+        );
       }
     }
     const indices = [1, 8, 39, 57];

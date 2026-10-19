@@ -613,6 +613,11 @@ export class GameApp {
       const { festivalSaveKey } = await import('./simulation/open-world/regions.ts');
       const saveKey = festivalSaveKey(region);
       this.ui.showMode('loading');
+      await renderer.waitForPreparedFrame(
+        () => this.disposed,
+        () => new Promise<void>((resolve) => setTimeout(resolve, 16)),
+      );
+      if (this.disposed) return;
       this.festival = await FestivalSession.start(
         {
           canvas: this.canvas,
@@ -979,6 +984,9 @@ export class GameApp {
   }
   private frame = (time: number) => {
     this.timer = requestAnimationFrame(this.frame);
+    // A single GL context changes owners during festival construction. The
+    // circuit must not issue draws while the city's renderer is being built.
+    if (this.festivalStarting) return;
     if (this.festival) {
       this.festival.frame(time);
       return;
