@@ -652,12 +652,29 @@ export interface SignLight {
   /** Pool radius on the ground (m). */
   radius: number;
 }
+/** A lit face that washes the facades and street around it at night
+ * (night-glow.ts): a segment a-b in plan, lit from y0 to y1. */
+export interface GlowSource {
+  ax: number;
+  az: number;
+  bx: number;
+  bz: number;
+  y0: number;
+  y1: number;
+  /** Light colour (sRGB hex) and relative power. */
+  color: number;
+  power: number;
+  /** Distance (m) the wash reaches. */
+  reach: number;
+}
 export class FestivalSignage {
   readonly root = new T.Group();
   /** Every lit fixture that throws light on the pavement. */
   readonly lights: SignLight[] = [];
   /** Ground footprints of free-standing fixtures (machines, banners). */
   readonly fixtures: { x: number; z: number; r: number }[] = [];
+  /** Every lit face whose light washes the walls and the street (refs 014, 069). */
+  readonly glows: GlowSource[] = [];
   readonly stats = {
     signs: 0,
     billboards: 0,
@@ -911,6 +928,7 @@ export class FestivalSignage {
     const width = 0.62 + (seed % 4) * 0.08;
     const centre = this.at(s, x, (y0 + y1) / 2, 0.24 + width / 2);
     this.light(this.at(s, x, y0, 1.6), light, glow, 2.6 + Math.min(1.6, (y1 - y0) * 0.12));
+    this.glow(centre, centre, y0, y1, light, glow * (1 + (y1 - y0) * 0.06), 13);
     this.slab(
       centre,
       this.t,
@@ -974,6 +992,8 @@ export class FestivalSignage {
       0.6,
       2.6 + Math.min(1.6, (y1 - y0) * 0.12),
     );
+    const mid = this.at(s, x, 0, out);
+    this.glow(mid, mid, y0, y0 + n * boxH, new T.Color(bg).getHex(), 0.7 + n * 0.05, 13);
     this.stats.columns++;
   }
 
@@ -1010,6 +1030,8 @@ export class FestivalSignage {
     const p = this.at(s, x, 0, face);
     const g = this.ground(p);
     this.light(this.at(s, x, g, face + 0.9), 0xe6f0ff, 0.9, 1.7);
+    const front = this.at(s, x, g, face + 0.5);
+    this.glow(front, front, g, g + 1.8, 0xe6f0ff, 0.8, 7);
     this.fixtures.push({ x: p.x, z: p.z, r: 0.75 });
     const body = VENDING[seed % VENDING.length];
     const color = new T.Color(body).getHex();
@@ -1046,9 +1068,27 @@ export class FestivalSignage {
   private light(at: V, color: number, glow: number, radius: number) {
     this.lights.push({ x: at.x, y: at.y, z: at.z, color, glow, radius });
   }
+  private glow(a: V, b: V, y0: number, y1: number, color: number, power: number, reach: number) {
+    this.glows.push({ ax: a.x, az: a.z, bx: b.x, bz: b.z, y0, y1, color, power, reach });
+  }
+  /** Glow along a facade's frontage from local x0 to x1, `z` out of the face. */
+  private frontGlow(
+    s: Structure,
+    x0: number,
+    x1: number,
+    z: number,
+    y0: number,
+    y1: number,
+    color: number,
+    power: number,
+    reach: number,
+  ) {
+    this.glow(this.at(s, x0, 0, z), this.at(s, x1, 0, z), y0, y1, color, power, reach);
+  }
 
   private lantern(centre: V) {
     this.light(centre, 0xff8a4a, 0.6, 1.6);
+    this.glow(centre, centre, centre.y - 2.2, centre.y + 0.3, 0xff8a4a, 0.4, 6);
     // Octagonal chochin, 0.36 m diameter, 0.56 m tall; lit at night.
     const r = 0.18,
       h = 0.56,
@@ -1090,13 +1130,13 @@ export class FestivalSignage {
     const store = this.plan.konbiniFloor.has(i);
     this.small = false;
     // Projecting signs and tenant-box columns from the first floor up
-    // (refs 014, 030, 069): on blocks one per ~2.6 m of frontage (3-6),
+    // (refs 014, 030, 069): on blocks one per ~2.2 m of frontage (4-7),
     // on shops two or three, in slots >= 1.3 m apart along the frontage,
     // alternating faces so the street reads as a canyon of boards.
     const count = isApartment(s)
       ? 0
       : s.kind === 'block'
-        ? Math.min(6, Math.max(3, Math.round((s.hx * 2) / 2.6)))
+        ? Math.min(7, Math.max(4, Math.round((s.hx * 2) / 2.2)))
         : 2 + (h % 2);
     const span = s.hx * 2 - 1.1,
       slots = Math.min(count, Math.floor(span / 1.3) + 1);
@@ -1142,8 +1182,8 @@ export class FestivalSignage {
     }
     // Flat lit boards on the facade between the window bands of busy
     // blocks: one per floor on two or three floors (ref 069).
-    if (s.kind === 'block' && !isApartment(s) && h % 3 !== 2 && s.hx > 4.5) {
-      const boards = Math.min(floors - 1, 2 + (h % 2));
+    if (s.kind === 'block' && !isApartment(s) && h % 4 !== 3 && s.hx > 4.5) {
+      const boards = Math.min(floors - 1, 2 + (h % 3));
       for (let k = 0; k < boards; k++) {
         const seed = mix(s.style, 60 + k);
         const y = s.base + (k + 1) * floorH + 0.42;
@@ -1160,6 +1200,19 @@ export class FestivalSignage {
           0x2c2e30,
           0.55,
           (seed % 1000) / 1000,
+        );
+        const [bg, fg] = TENANT_COLORS[((seed % TENANTS.length) * 7) % TENANT_COLORS.length];
+        const lit = new T.Color(bg).getHSL({ h: 0, s: 0, l: 0 }).l < 0.15 ? fg : bg;
+        this.frontGlow(
+          s,
+          x - w / 2,
+          x + w / 2,
+          0.4,
+          y - 3,
+          y + 0.4,
+          new T.Color(lit).getHex(),
+          0.5,
+          10,
         );
         this.stats.billboards++;
       }
@@ -1179,6 +1232,8 @@ export class FestivalSignage {
         const out = this.t.clone().multiplyScalar(side);
         if (floors >= 9 && (h >>> 7) % 3 === 0) {
           this.screens.add(centre, out, w, bh * 1.1, mix(s.style, 99));
+          const c = centre.clone().addScaledVector(out, 1);
+          this.glow(c, c, centre.y - bh * 1.5, centre.y + bh / 2, 0xd4dcff, 1.4, 16);
         } else {
           this.slab(
             centre,
@@ -1213,6 +1268,7 @@ export class FestivalSignage {
         bh = w * 0.5625,
         x = ((h >>> 11) % 2 ? 1 : -1) * (s.hx - w / 2 - 0.4);
       this.screens.add(this.at(s, x, top - 1.6 - bh / 2, 0.3), this.n, w, bh, mix(s.style, 98));
+      this.frontGlow(s, x - w / 3, x + w / 3, 1.2, top - 6 - bh * 2, top - 1.6, 0xd4dcff, 1.4, 16);
     }
     const count2 = signs;
     // Rooftop billboard facing the street on about a third of the blocks.
@@ -1273,6 +1329,7 @@ export class FestivalSignage {
         0.45,
         0,
       );
+      this.frontGlow(s, x, x, 0.8, y0, y1, 0xffe6c4, 0.5 + (y1 - y0) * 0.02, 12);
       this.stats.billboards++;
     }
     this.small = true;
@@ -1301,6 +1358,7 @@ export class FestivalSignage {
     const g = this.ground(p);
     this.fixtures.push({ x: p.x, z: p.z, r: 0.4 });
     this.light(new T.Vector3(p.x, g, p.z), 0xfff2e0, 0.35, 1.1);
+    this.glow(p, p, g, g + 0.9, 0xfff2e0, 0.25, 5);
     this.slab(
       new T.Vector3(p.x, g + 0.5, p.z),
       this.t,
@@ -1323,6 +1381,17 @@ export class FestivalSignage {
     const fascia = this.attach(s, 0, 3.0, 0.16);
     for (const x of [-s.hx * 0.5, s.hx * 0.5])
       this.light(this.at(s, x, fascia.y, 2.2), 0xf4f6ff, 1.1, 3.4);
+    this.frontGlow(
+      s,
+      -s.hx + 0.5,
+      s.hx - 0.5,
+      0.6,
+      fascia.y - 3,
+      fascia.y + 0.6,
+      0xf2f5ff,
+      1.1,
+      11,
+    );
     this.slab(
       fascia,
       this.n,
@@ -1717,6 +1786,7 @@ export class FestivalSignage {
     this.small = true;
     // The glazed front and the lot floodlights light the forecourt (081/083).
     this.light(this.at(s, 0, g, 2.4), 0xf2f5ff, 1.3, 5.5);
+    this.frontGlow(s, -s.hx + 0.5, s.hx - 0.5, 0.6, g, g + 4, 0xf2f5ff, 1.2, 12);
     for (const f of [0.3, 0.75])
       this.light(this.at(s, side * (lot0 + LOT.length * f), g, -2.6), 0xfff2dc, 0.8, 5.5);
     // Asphalt apron over the whole car park, on the carved ground.

@@ -249,6 +249,9 @@ export class LensBloomPass extends Pass {
   /** levels[0] is half resolution; each later level halves again. */
   readonly levels: T.WebGLRenderTarget[];
   strength: number = LENS_BLOOM.strength;
+  /** Soft-knee threshold; the circuits keep LENS_BLOOM's (the festival lowers it at night). */
+  threshold: number = LENS_BLOOM.threshold;
+  knee: number = LENS_BLOOM.knee;
   /** ULTRA energy-conserving mode (see PHYSICAL_BLOOM); off on every preset. */
   energyConserving = false;
   /** Scene share redistributed in energy-conserving mode. */
@@ -348,8 +351,8 @@ export class LensBloomPass extends Pass {
     const energy = this.energyConserving;
     const mix = Math.min(Math.max(this.energyMix, 0), 0.25);
     // Threshold 0 with a vanishing knee passes every pixel unchanged.
-    shape.x = energy ? 0 : LENS_BLOOM.threshold;
-    shape.y = energy ? 1e-3 : LENS_BLOOM.knee;
+    shape.x = energy ? 0 : this.threshold;
+    shape.y = energy ? 1e-3 : this.knee;
     draw(energy ? this.energyPrefilter : this.prefilter, readBuffer.texture, readBuffer, this.levels[0]);
     for (let i = 1; i < this.levels.length; i++)
       draw(this.downsample, this.levels[i - 1].texture, this.levels[i - 1], this.levels[i]);
