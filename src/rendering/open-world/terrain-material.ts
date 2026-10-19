@@ -270,7 +270,11 @@ ${SCAN_COMMON_GLSL}`,
     vec2 fg = vec2(p.x / 34.0, p.y / 61.0);
     vec2 fcell = floor(fg), ff = fract(fg);
     float kind = owHash(fcell + 29.0), kind2 = owHash(fcell + 53.0);
-    float rowsF = smoothstep(0.3, 0.7, abs(fract((kind2 < 0.5 ? p.x : p.y) / 1.1) - 0.5) * 2.0);
+    float rowCoord = (kind2 < 0.5 ? p.x : p.y) / 1.1;
+    // Rows fade to their average once a row is under ~2 px wide: at grazing
+    // angles undamped 1.1 m rows alias into converging bands.
+    float rowsF = mix(0.5, smoothstep(0.3, 0.7, abs(fract(rowCoord) - 0.5) * 2.0),
+      1.0 - smoothstep(0.2, 0.5, fwidth(rowCoord)));
     vec3 tilled = mix(vec3(0.12, 0.085, 0.055), vec3(0.19, 0.14, 0.095), micro);
     vec3 veg = mix(tilled, vec3(0.07, 0.14, 0.035) * (0.8 + 0.4 * kind2), mix(0.55, rowsF, near));
     vec3 tea = mix(vec3(0.03, 0.06, 0.02), vec3(0.065, 0.11, 0.03), mix(0.6, rowsF, near));
@@ -299,7 +303,8 @@ ${SCAN_COMMON_GLSL}`,
     float edgeM = min(min(f.x, 1.0 - f.x) * 34.0, min(f.y, 1.0 - f.y) * 61.0);
     float bund = 1.0 - smoothstep(0.3, 0.55, edgeM);
     float plot = owHash(cell + 17.0), plot2 = owHash(cell + 41.0);
-    float rows = smoothstep(0.55, 0.9, abs(fract(p.x * 3.3) - 0.5) * 2.0) * near;
+    float rows = smoothstep(0.55, 0.9, abs(fract(p.x * 3.3) - 0.5) * 2.0) * near
+      * (1.0 - smoothstep(0.15, 0.4, fwidth(p.x * 3.3)));
     vec3 water = vec3(0.03, 0.04, 0.042);
     vec3 rice = mix(vec3(0.075, 0.15, 0.03), vec3(0.11, 0.18, 0.04), plot2) * (0.85 + 0.25 * rows);
     vec3 gold = mix(vec3(0.36, 0.28, 0.09), vec3(0.24, 0.18, 0.1), step(0.65, plot2));
@@ -307,7 +312,8 @@ ${SCAN_COMMON_GLSL}`,
     vec3 paddyC = owSeason.x * springP + owSeason.y * rice + owSeason.z * gold + owSeason.w * vec3(0.14, 0.11, 0.08);
     float stripe = fract(p.x / 7.5 + plot * 3.0);
     vec3 bloom = stripe < 0.2 ? vec3(0.5, 0.03, 0.03) : (stripe < 0.4 ? vec3(0.6, 0.42, 0.02) : (stripe < 0.6 ? vec3(0.2, 0.05, 0.33) : (stripe < 0.8 ? vec3(0.62, 0.62, 0.58) : vec3(0.62, 0.18, 0.32))));
-    bloom = mix(bloom, vec3(0.06, 0.1, 0.03), smoothstep(0.42, 0.5, abs(fract(p.x / 1.5) - 0.5)) * 0.6);
+    bloom = mix(bloom, vec3(0.06, 0.1, 0.03), mix(0.12, smoothstep(0.42, 0.5, abs(fract(p.x / 1.5) - 0.5)),
+      1.0 - smoothstep(0.15, 0.4, fwidth(p.x / 1.5))) * 0.6);
     vec3 flowerC = (owSeason.x + owSeason.y) * bloom + owSeason.z * vec3(0.2, 0.15, 0.09) + owSeason.w * vec3(0.14, 0.11, 0.08);
     // Flower farms gather where the wildflower zone is (051), not as stripes
     // scattered over every farm (from above those read as banding).
