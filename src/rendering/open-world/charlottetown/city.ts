@@ -5,7 +5,7 @@ import type { SurveyBuilding, SurveyPoint } from '../../../simulation/open-world
 import type { QualityPreset } from '../../options.ts';
 import { CityBatches, type CityChunk } from './batch.ts';
 import { CityMaterials, type CityMaterial } from './materials.ts';
-import { roofAttachment, crosswalkHeading, mansardHeight, subdivideRoof } from './geometry.ts';
+import { roofAttachment, crosswalkPanels, mansardHeight, subdivideRoof } from './geometry.ts';
 import { buildingAppearance, buildingSeed, FrontageIndex, windowBays } from './architecture.ts';
 import { BuildingLabels } from './labels.ts';
 
@@ -470,23 +470,9 @@ export class SurveyCity {
       this.world.network.nearest(node.x, node.z, pose);
       if (this.world.network.lastDistance > 20) continue;
       crossingPositions.push([node.x, node.z]);
-      const road = this.world.network.edgeAt(pose.s);
       const batch = this.batches.get(node.x, node.z, 'paint', 1);
-      // Narrow white bars aligned to the road, across its running width.
-      for (let n = -road.spec.halfWidth + 0.6; n < road.spec.halfWidth - 0.3; n += 1.1) {
-        const x = pose.x + pose.nx * n,
-          z = pose.z + pose.nz * n;
-        batch.box(
-          x,
-          pose.y + 0.022,
-          z,
-          0.48,
-          0.012,
-          2.7,
-          crosswalkHeading(pose.nx, pose.nz),
-          0xd4d1bc,
-        );
-      }
+      for (const [a, b, c, d] of crosswalkPanels(this.world.network, pose.s))
+        batch.quad(a, b, c, d, [0, 1, 0], 0xd4d1bc);
     }
     const indices = [1, 8, 39, 57];
     for (let i = 0; i < indices.length; i++) {

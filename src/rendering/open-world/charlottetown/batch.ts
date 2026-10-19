@@ -1,6 +1,25 @@
 import * as T from 'three';
 import type { CityMaterial } from './materials.ts';
 type V3 = readonly [number, number, number];
+/** Decide winding at the precision actually sent to the GPU. A clipped gable
+ * may have a collapsed first triangle but a perfectly valid second one. */
+function facing(a: V3, b: V3, c: V3, normal: V3) {
+  const ax = Math.fround(a[0]),
+    ay = Math.fround(a[1]),
+    az = Math.fround(a[2]);
+  const bx = Math.fround(b[0]) - ax,
+    by = Math.fround(b[1]) - ay,
+    bz = Math.fround(b[2]) - az;
+  const cx = Math.fround(c[0]) - ax,
+    cy = Math.fround(c[1]) - ay,
+    cz = Math.fround(c[2]) - az;
+  const nx = by * cz - bz * cy,
+    ny = bz * cx - bx * cz,
+    nz = bx * cy - by * cx;
+  const dot = nx * normal[0] + ny * normal[1] + nz * normal[2];
+  if (!Number.isFinite(dot) || nx * nx + ny * ny + nz * nz <= 1e-12) return 0;
+  return Math.sign(dot);
+}
 /** Static chunks share materials; no Object3D is allocated per window/brick. */
 export class CityBatch {
   readonly p: number[] = [];
@@ -21,6 +40,10 @@ export class CityBatch {
     atlas = -1,
     grid: readonly [number, number] = [4, 4],
   ) {
+    if (![a, b, c, d, n].every((p) => p.every(Number.isFinite))) return;
+    const first = facing(a, b, c, n),
+      second = facing(a, c, d, n);
+    if (!first && !second) return;
     const offset = this.p.length / 3;
     this.color.setHex(tint);
     for (const [i, p] of [a, b, c, d].entries()) {
@@ -35,25 +58,24 @@ export class CityBatch {
       }
       this.uv.push(x, y);
     }
-    const ab = [b[0] - a[0], b[1] - a[1], b[2] - a[2]],
-      ac = [c[0] - a[0], c[1] - a[1], c[2] - a[2]];
-    const dot =
-      (ab[1] * ac[2] - ab[2] * ac[1]) * n[0] +
-      (ab[2] * ac[0] - ab[0] * ac[2]) * n[1] +
-      (ab[0] * ac[1] - ab[1] * ac[0]) * n[2];
-    if (dot >= 0) this.ix.push(offset, offset + 1, offset + 2, offset, offset + 2, offset + 3);
-    else this.ix.push(offset, offset + 2, offset + 1, offset, offset + 3, offset + 2);
+    if (first) this.ix.push(offset, offset + (first > 0 ? 1 : 2), offset + (first > 0 ? 2 : 1));
+    if (second) this.ix.push(offset, offset + (second > 0 ? 2 : 3), offset + (second > 0 ? 3 : 2));
   }
   tri(a: V3, b: V3, c: V3, n: V3, tint: number) {
-    this.quad(a, b, c, c, n, tint);
-    this.ix.splice(this.ix.length - 3, 3);
-    const uv: number[] = [];
-    for (const p of [a, b, c, c])
-      uv.push(
+    const direction = facing(a, b, c, n);
+    if (!direction) return;
+    const offset = this.p.length / 3;
+    this.color.setHex(tint);
+    for (const p of [a, b, c]) {
+      this.p.push(...p);
+      this.n.push(...n);
+      this.c.push(this.color.r, this.color.g, this.color.b);
+      this.uv.push(
         (Math.abs(n[1]) > 0.5 ? p[0] : Math.abs(n[0]) > Math.abs(n[2]) ? p[2] : p[0]) / 2.4,
         (Math.abs(n[1]) > 0.5 ? p[2] : p[1]) / 2.4,
       );
-    this.uv.splice(this.uv.length - 8, 8, ...uv);
+    }
+    this.ix.push(offset, offset + (direction > 0 ? 1 : 2), offset + (direction > 0 ? 2 : 1));
   }
   box(
     x: number,

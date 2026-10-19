@@ -1,3 +1,5 @@
+import { trackPoint } from '../../../simulation/track.ts';
+import { roadCandidates, type RoadNetwork } from '../../../simulation/open-world/road-network.ts';
 import {
   polygonContains,
   polygonContact,
@@ -118,4 +120,72 @@ export function subdivideRoof(
     parts = next;
   }
   return parts;
+}
+
+type GroundVertex = readonly [number, number, number];
+export type CrosswalkPanel = readonly [GroundVertex, GroundVertex, GroundVertex, GroundVertex];
+/** Render-only zebra paint over the same sampled ribbon as the road mesh.
+ * Split at road samples and the crown so a stripe cannot bridge either as a
+ * floating flat box. Clamp to this edge: station gaps are not adjoining roads.
+ * Crossing locations come from the survey; widths/style remain estimates. */
+export function crosswalkPanels(network: RoadNetwork, station: number): CrosswalkPanel[] {
+  if (!Number.isFinite(station) || !network.edges.length) return [];
+  const edge = network.edgeAt(station),
+    { halfWidth, crown } = edge.spec;
+  const start = Math.max(edge.offset, station - 1.35);
+  const end = Math.min(edge.offset + edge.length, station + 1.35);
+  if (end - start < 0.01) return [];
+  const stations = [start];
+  for (let i = edge.first; i <= edge.last; i++)
+    if (network.s[i] > start + 1e-6 && network.s[i] < end - 1e-6) stations.push(network.s[i]);
+  // Junction surfaces can overlap at different crown heights. Short panels
+  // keep the paint close to that visible envelope without editing the roads.
+  for (let s = start + 0.45; s < end - 1e-6; s += 0.45) stations.push(s);
+  stations.push(end);
+  stations.sort((a, b) => a - b);
+  const candidates = roadCandidates(),
+    probe = trackPoint();
+  const ground = (x: number, z: number, base: number) => {
+    let y = base;
+    network.covering(x, z, base, 0, candidates);
+    for (let i = 0; i < candidates.count; i++) {
+      const segment = candidates.segment[i],
+        road = network.edges[network.edgeOf[segment]];
+      network.pointOnSegment(segment, candidates.t[i], probe);
+      const lateral = (x - probe.x) * probe.nx + (z - probe.z) * probe.nz;
+      if (candidates.distance[i] > road.spec.halfWidth + 0.001) continue;
+      y = Math.max(y, network.surfaceHeight(probe, lateral, road.spec.halfWidth, road.spec.crown));
+    }
+    return y;
+  };
+  const panels: CrosswalkPanel[] = [],
+    a = trackPoint(),
+    b = trackPoint();
+  for (let i = 1; i < stations.length; i++) {
+    if (stations[i] - stations[i - 1] < 1e-6) continue;
+    network.at(stations[i - 1], a);
+    network.at(stations[i], b);
+    for (let centre = -halfWidth + 0.6; centre + 0.24 < halfWidth - 0.3; centre += 1.1) {
+      const left = centre - 0.24,
+        right = centre + 0.24;
+      const cuts = [
+        left,
+        ...[-halfWidth * 0.5, 0, halfWidth * 0.5].filter((n) => n > left && n < right),
+        right,
+      ];
+      const vertex = (p: typeof a, lateral: number): GroundVertex => {
+        const x = p.x + p.nx * lateral,
+          z = p.z + p.nz * lateral;
+        return [x, ground(x, z, network.surfaceHeight(p, lateral, halfWidth, crown)) + 0.008, z];
+      };
+      for (let j = 1; j < cuts.length; j++)
+        panels.push([
+          vertex(a, cuts[j - 1]),
+          vertex(a, cuts[j]),
+          vertex(b, cuts[j]),
+          vertex(b, cuts[j - 1]),
+        ]);
+    }
+  }
+  return panels;
 }
