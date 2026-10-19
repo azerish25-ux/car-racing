@@ -9,7 +9,18 @@ export class CityBatch {
   readonly c: number[] = [];
   readonly ix: number[] = [];
   private readonly color = new T.Color();
-  quad(a: V3, b: V3, c: V3, d: V3, n: V3, tint: number, u = 1, v = 1, atlas = -1) {
+  quad(
+    a: V3,
+    b: V3,
+    c: V3,
+    d: V3,
+    n: V3,
+    tint: number,
+    u = 1,
+    v = 1,
+    atlas = -1,
+    grid: readonly [number, number] = [4, 4],
+  ) {
     const offset = this.p.length / 3;
     this.color.setHex(tint);
     for (const [i, p] of [a, b, c, d].entries()) {
@@ -19,8 +30,8 @@ export class CityBatch {
       let x = i === 1 || i === 2 ? u : 0,
         y = i > 1 ? v : 0;
       if (atlas >= 0) {
-        x = ((atlas % 4) + 0.01 + x * 0.98) / 4;
-        y = (3 - Math.floor(atlas / 4) + 0.02 + y * 0.96) / 4;
+        x = ((atlas % grid[0]) + 0.01 + x * 0.98) / grid[0];
+        y = (grid[1] - 1 - Math.floor(atlas / grid[0]) + 0.02 + y * 0.96) / grid[1];
       }
       this.uv.push(x, y);
     }
@@ -179,9 +190,16 @@ export class CityBatches {
       const g = s.batch.geometry(),
         m = new T.Mesh(g, materials[s.material]);
       m.name = `${s.material} L${s.level}`;
-      m.castShadow = !['grass', 'paving', 'asphalt', 'paint', 'glass', 'litGlass', 'sign'].includes(
-        s.material,
-      );
+      m.castShadow = ![
+        'grass',
+        'paving',
+        'asphalt',
+        'paint',
+        'glass',
+        'litGlass',
+        'sign',
+        'label',
+      ].includes(s.material);
       m.receiveShadow = true;
       m.matrixAutoUpdate = false;
       chunk.levels[s.level].add(m);

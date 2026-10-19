@@ -213,6 +213,10 @@ describe('Charlottetown scene and collision agreement', () => {
   it('builds bounded, finite, disposable procedural geometry without DOM or external textures', () => {
     const city = new SurveyCity(world);
     expect(city.stats.buildings).toBe(836);
+    expect(city.stats.doors).toBeGreaterThan(750);
+    expect(city.stats.labels).toBeGreaterThan(140);
+    expect(city.stats.mansards).toBe(2);
+    expect(city.stats.mappedAppearances).toBeGreaterThan(12);
     expect(city.stats.windows).toBeGreaterThan(20000);
     expect(city.stats.triangles).toBeLessThan(1000000);
     expect(city.chunks.length).toBeLessThan(100);

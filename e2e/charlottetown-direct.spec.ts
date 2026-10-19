@@ -39,6 +39,16 @@ for (const mode of [
     expect(loaded?.status?.discovered).toHaveLength(4);
     if (await page.locator('#festCard').isVisible())
       await page.locator('#festCard [data-fest="cancel"]').click();
+    const guide = page.locator('#festExplore.city-guide');
+    await expect(guide).toBeVisible();
+    await expect(guide.locator('[data-city-guide="instruction"]')).toContainText(
+      'Right onto Queen Street',
+    );
+    await guide.locator('button').click();
+    await expect(guide.locator('[data-city-guide="destination"]')).toHaveText('TO MALONEY DRIVE');
+    await expect(guide.locator('button')).toHaveAttribute('aria-pressed', 'true');
+    await guide.locator('button').click();
+    await expect(guide.locator('[data-city-guide="destination"]')).toHaveText('TO HOLLAND COLLEGE');
     await page.screenshot({ path: info.outputPath(`${mode.id}-maloney.png`) });
     const start = (await read())!.position!;
     await page.keyboard.down('w');
@@ -66,6 +76,8 @@ for (const mode of [
       await page.locator('#festMenu [data-fest="resume"]').click();
     if (await page.locator('#festCard').isVisible())
       await page.locator('#festCard [data-fest="cancel"]').click();
+    await expect(guide).toBeVisible();
+    await expect(guide).toHaveAttribute('data-state', 'arrived');
     await page.screenshot({ path: info.outputPath(`${mode.id}-campus.png`) });
     await page.keyboard.press('Escape');
     await expect(page.locator('#festMenu')).toBeVisible();

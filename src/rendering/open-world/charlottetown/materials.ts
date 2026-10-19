@@ -1,5 +1,8 @@
 import * as T from 'three';
+import type { BuildingLabels } from './labels.ts';
 export type CityMaterial =
+  | 'concrete'
+  | 'label'
   | 'brick'
   | 'siding'
   | 'stone'
@@ -165,7 +168,7 @@ function windowTexture() {
 export class CityMaterials {
   readonly materials: Record<CityMaterial, T.MeshStandardMaterial>;
   private readonly textures: T.Texture[] = [];
-  constructor() {
+  constructor(labels?: BuildingLabels) {
     const patterned = (
       kind: 'brick' | 'siding' | 'stone' | 'roof' | 'paving' | 'asphalt',
       roughness: number,
@@ -196,10 +199,15 @@ export class CityMaterials {
     });
     const lit = glass.clone();
     lit.emissive.setHex(0xffbe75);
+    lit.emissiveMap = windowMap;
     lit.emissiveIntensity = 0;
     const signs = signTexture();
     this.textures.push(signs);
+    const labelTexture = labels?.texture();
+    if (labelTexture) this.textures.push(labelTexture);
     this.materials = {
+      concrete: patterned('paving', 0.86),
+      label: new T.MeshStandardMaterial({ map: labelTexture ?? signs, roughness: 0.65 }),
       brick: patterned('brick', 0.84),
       siding: patterned('siding', 0.72),
       stone: patterned('stone', 0.87),

@@ -1,0 +1,80 @@
+.fest-explore.city-guide {
+  width: 300px;
+  max-width: min(300px, 42vw);
+  padding: 13px 16px;
+  border-right-width: 3px;
+}
+.city-guide small {
+  display: block;
+  line-height: 1.65;
+}
+.city-guide-progress {
+  height: 2px;
+  background: #ffffff25;
+  margin-top: 10px;
+  overflow: hidden;
+}
+.city-guide-progress i {
+  display: block;
+  height: 100%;
+  background: #d0bc8b;
+  transform-origin: left;
+}
+.city-guide button {
+  display: inline-block;
+  margin-top: 8px;
+  min-height: 32px;
+  padding: 4px 9px;
+  border: 1px solid #ffffff50;
+  border-radius: 2px;
+  background: #142329;
+  color: #ece8da;
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.city-guide button:focus-visible {
+  outline: 2px solid #e6cea0;
+  outline-offset: 3px;
+}
+.city-guide button:hover {
+  background: #314347;
+}
+.fest-explore.city-guide[data-state='wrong-way'],
+.fest-explore.city-guide[data-state='off-route'] {
+  border-right-color: #efb16d;
+}
+.fest-explore.city-guide[data-state='arrived'] {
+  border-right-color: #b7d6b3;
+}
+@media (max-width: 700px) {
+  .fest-explore.city-guide {
+    top: 67px;
+    right: 10px;
+    max-width: min(255px, 56vw);
+    padding: 8px 10px;
+  }
+  .city-guide button {
+    min-height: 36px;
+    margin-top: 5px;
+  }
+  .city-guide-progress {
+    margin-top: 6px;
+  }
+}
+@media (max-height: 480px) {
+  .fest-explore.city-guide {
+    top: 9px;
+    right: 10px;
+    max-width: 37vw;
+    padding: 6px 10px;
+  }
+  .city-guide button {
+    min-height: 28px;
+    margin-top: 4px;
+  }
+  .city-guide-progress {
+    margin-top: 4px;
+  }
+}

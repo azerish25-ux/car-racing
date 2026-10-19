@@ -5,16 +5,11 @@ import type { SurveyBuilding, SurveyPoint } from '../../../simulation/open-world
 import type { QualityPreset } from '../../options.ts';
 import { CityBatches, type CityChunk } from './batch.ts';
 import { CityMaterials, type CityMaterial } from './materials.ts';
-import { roofAttachment, crosswalkHeading } from './geometry.ts';
+import { roofAttachment, crosswalkHeading, mansardHeight, subdivideRoof } from './geometry.ts';
+import { buildingAppearance, buildingSeed, FrontageIndex, windowBays } from './architecture.ts';
+import { BuildingLabels } from './labels.ts';
 
 type Point = readonly [number, number, number];
-const BRICK = [0xa86754, 0x965646, 0xb57660, 0x8d4e41, 0xa37964];
-const SIDING = [0xc6c8b9, 0xe1d7b8, 0xb7bfb8, 0x96aaa5, 0x8798a0, 0xc7b79c, 0xc0c5ca];
-function seed(text: string) {
-  let n = 2166136261;
-  for (const c of text) n = Math.imul(n ^ c.charCodeAt(0), 16777619);
-  return n >>> 0;
-}
 function centre(p: readonly SurveyPoint[]): SurveyPoint {
   return [p.reduce((a, v) => a + v[0], 0) / p.length, p.reduce((a, v) => a + v[1], 0) / p.length];
 }
@@ -53,14 +48,28 @@ function clip(p: readonly SurveyPoint[], distance: (p: SurveyPoint) => number, s
  * Geometry, texels and sign lettering are generated here; no image downloads. */
 export class SurveyCity {
   readonly root = new T.Group();
-  readonly palette = new CityMaterials();
+  readonly palette: CityMaterials;
+  private readonly labels: BuildingLabels;
+  private readonly frontages: FrontageIndex;
   readonly chunks: CityChunk[];
-  readonly stats = { buildings: 0, windows: 0, triangles: 0, visibleChunks: 0 };
+  readonly stats = {
+    buildings: 0,
+    windows: 0,
+    doors: 0,
+    labels: 0,
+    mappedAppearances: 0,
+    mansards: 0,
+    triangles: 0,
+    visibleChunks: 0,
+  };
   private readonly batches = new CityBatches();
   constructor(readonly world: OpenWorld) {
     this.root.name = 'Charlottetown · mapped footprints / estimated architecture';
     const survey = world.region.survey;
     if (!survey) throw new Error('SurveyCity requires geographic source geometry');
+    this.labels = new BuildingLabels(survey.buildings);
+    this.palette = new CityMaterials(this.labels);
+    this.frontages = new FrontageIndex(world.region.roads);
     for (const area of survey.greens) this.groundPolygon(area.points, 'grass', 0x607147, 0.014);
     for (const area of survey.parking) this.groundPolygon(area.points, 'asphalt', 0x777a76, 0.022);
     for (const path of survey.footways)
@@ -129,25 +138,13 @@ export class SurveyCity {
     const p = ring(building.footprint);
     if (p.length < 3) return;
     const [x, z] = centre(p),
-      h = seed(building.id),
+      h = buildingSeed(building.id),
       tags = building.tags,
       area = Math.abs(signedArea(p));
-    const campus = /holland|charlottetown centre|wales/i.test(`${tags.name} ${tags.operator}`);
-    const home =
-      !campus &&
-      area < 320 &&
-      !/commercial|retail|industrial|church|school|college|apartments/.test(tags.building ?? '');
-    const cladding = tags['building:material'] ?? tags.material ?? '';
-    const type: CityMaterial =
-      /brick/.test(cladding) || campus || !home
-        ? 'brick'
-        : /stone/.test(cladding)
-          ? 'stone'
-          : h % 5 === 0
-            ? 'brick'
-            : 'siding';
-    const colours = type === 'brick' ? BRICK : SIDING,
-      tint = colours[h % colours.length];
+    const appearance = buildingAppearance(building);
+    const { home, campus, accessory, shopfront, material: type, tint, roofTint } = appearance;
+    const entranceFace = this.frontages.face(p, tags['addr:street']);
+    if (appearance.mappedAppearance) this.stats.mappedAppearances++;
     const base = Math.min(...p.map((q) => this.height(...q))) - 0.12,
       eave = base + building.height;
     const floorCount = Math.min(6, Math.max(1, building.floors)),
@@ -155,8 +152,7 @@ export class SurveyCity {
     const wall = this.batches.get(x, z, type),
       stone = this.batches.get(x, z, 'stone'),
       trim = this.batches.get(x, z, 'trim', 2);
-    const glazing = this.batches.get(x, z, h % 3 === 0 ? 'litGlass' : 'glass', 1),
-      roof = this.batches.get(x, z, 'roof');
+    const roof = this.batches.get(x, z, 'roof');
     const orientation = signedArea(p) > 0 ? 1 : -1;
     let longest = 0,
       axisX = 1,
@@ -175,35 +171,47 @@ export class SurveyCity {
       min = Math.min(...distances),
       max = Math.max(...distances),
       middle = (min + max) / 2;
-    const pitch = home && tags['roof:shape'] !== 'flat' ? Math.min(3.8, (max - min) * 0.33) : 0;
+    const mansard = appearance.roof === 'mansard';
+    const pitch =
+      appearance.roof !== 'flat' ? Math.min(mansard ? 2.8 : 3.8, (max - min) * 0.33) : 0;
     const ridge = (q: SurveyPoint) => (q[0] - x) * -axisZ + (q[1] - z) * axisX - middle;
-    const roofY = (q: SurveyPoint) =>
-      eave + pitch * (1 - Math.min(1, Math.abs(ridge(q)) / Math.max(0.1, (max - min) / 2)));
+    const roofY = mansard
+      ? mansardHeight(p, eave, pitch, Math.min(2.6, Math.max(0.7, (max - min) * 0.18)))
+      : (q: SurveyPoint) =>
+          eave + pitch * (1 - Math.min(1, Math.abs(ridge(q)) / Math.max(0.1, (max - min) / 2)));
     const triangles = T.ShapeUtils.triangulateShape(
       p.map((q) => new T.Vector2(...q)),
       [],
     );
-    for (const t of triangles)
-      for (const side of pitch ? [-1, 1] : [1]) {
-        const part = pitch
-          ? clip(
-              t.map((i) => p[i]),
-              ridge,
-              side,
-            )
-          : t.map((i) => p[i]);
-        for (let i = 1; i < part.length - 1; i++) {
-          const a: Point = [part[0][0], roofY(part[0]), part[0][1]],
-            b: Point = [part[i][0], roofY(part[i]), part[i][1]],
-            c: Point = [part[i + 1][0], roofY(part[i + 1]), part[i + 1][1]];
-          const n = new T.Vector3()
-            .subVectors(new T.Vector3(...b), new T.Vector3(...a))
-            .cross(new T.Vector3().subVectors(new T.Vector3(...c), new T.Vector3(...a)))
-            .normalize();
-          if (n.y < 0) n.negate();
-          roof.tri(a, b, c, [n.x, n.y, n.z], h % 3 === 0 ? 0x65665f : 0x474e51);
-        }
+    const emitRoof = (part: readonly SurveyPoint[]) => {
+      for (let i = 1; i < part.length - 1; i++) {
+        const a: Point = [part[0][0], roofY(part[0]), part[0][1]],
+          b: Point = [part[i][0], roofY(part[i]), part[i][1]],
+          c: Point = [part[i + 1][0], roofY(part[i + 1]), part[i + 1][1]];
+        const n = new T.Vector3()
+          .subVectors(new T.Vector3(...b), new T.Vector3(...a))
+          .cross(new T.Vector3().subVectors(new T.Vector3(...c), new T.Vector3(...a)))
+          .normalize();
+        if (n.y < 0) n.negate();
+        roof.tri(a, b, c, [n.x, n.y, n.z], roofTint);
       }
+    };
+    if (mansard) {
+      for (const triangle of subdivideRoof(p, triangles)) emitRoof(triangle);
+      this.stats.mansards++;
+    } else
+      for (const t of triangles)
+        for (const side of pitch ? [-1, 1] : [1]) {
+          emitRoof(
+            pitch
+              ? clip(
+                  t.map((i) => p[i]),
+                  ridge,
+                  side,
+                )
+              : t.map((i) => p[i]),
+          );
+        }
     for (let i = 0; i < p.length; i++) {
       const a = p[i],
         b = p[(i + 1) % p.length],
@@ -240,7 +248,7 @@ export class SurveyCity {
         l / 2.4,
         0.2,
       );
-      if (pitch > 0) {
+      if (pitch > 0 && !mansard) {
         const da = ridge(a),
           db = ridge(b),
           split = da * db < 0 ? da / (da - db) : -1;
@@ -278,13 +286,25 @@ export class SurveyCity {
             pitch / 2.4,
           );
       }
-      const columns = Math.min(24, Math.floor((l - 0.9) / (campus ? 2.45 : 2.7)));
-      for (let f = 0; f < floorCount; f++)
-        for (let col = 0; col < columns; col++) {
-          const u = (col + 0.5) / columns,
-            y = base + f * floorHeight + Math.min(1.0, floorHeight * 0.26),
-            wh = Math.min(campus ? 2.15 : 1.5, floorHeight * 0.57),
-            ww = Math.min(campus ? 1.4 : 1.03, (l / columns) * 0.55);
+      const isEntrance = i === entranceFace && l > 2.3;
+      const doorWidth = isEntrance
+        ? Math.min(accessory ? 2.8 : campus ? 1.8 : shopfront ? 1.4 : 1.05, l * 0.45)
+        : 0;
+      for (let f = 0; f < (accessory ? 0 : floorCount); f++) {
+        const broad = isEntrance && shopfront && f === 0;
+        const bays = windowBays(l, f === 0 ? doorWidth : 0, broad);
+        for (const [col, bay] of bays.entries()) {
+          const u = bay.u,
+            y = base + f * floorHeight + (broad ? 0.42 : Math.min(1.0, floorHeight * 0.26)),
+            wh = Math.min(broad ? 2.3 : campus ? 2.15 : 1.5, floorHeight * (broad ? 0.7 : 0.57)),
+            ww = bay.width;
+          // Individual interiors, rather than lighting every window on a block.
+          const glazing = this.batches.get(
+            x,
+            z,
+            (h + col * 13 + f * 7 + i * 3) % 5 < 2 ? 'litGlass' : 'glass',
+            1,
+          );
           const rectangle = (
             batch: ReturnType<CityBatches['get']>,
             w: number,
@@ -321,22 +341,83 @@ export class SurveyCity {
           }
           this.stats.windows++;
         }
+      }
       const cornice = at(0.5, eave - 0.04, 0.045);
       trim.box(cornice[0], cornice[1], cornice[2], l, 0.18, 0.17, angle, 0xd8d2bc);
-      if (i === h % p.length && l > 3) {
-        const u = 0.5,
-          w = Math.min(1.05, l * 0.25),
-          y = base + 0.25;
-        this.batches
-          .get(x, z, 'wood', 1)
-          .quad(
-            at(u - w / l / 2, y, 0.02),
-            at(u + w / l / 2, y, 0.02),
-            at(u + w / l / 2, y + 2.05, 0.02),
-            at(u - w / l / 2, y + 2.05, 0.02),
-            normal,
-            h % 2 ? 0x365a54 : 0x664632,
-          );
+      if (isEntrance) {
+        const y = base + 0.18,
+          w = doorWidth,
+          doorHeight = Math.min(accessory ? 2.35 : 2.2, floorHeight - 0.35);
+        const panel = (
+          material: CityMaterial,
+          u: number,
+          width: number,
+          bottom: number,
+          height: number,
+          depth: number,
+          color: number,
+          level = 1,
+        ) =>
+          this.batches
+            .get(x, z, material, level)
+            .quad(
+              at(u - width / l / 2, bottom, depth),
+              at(u + width / l / 2, bottom, depth),
+              at(u + width / l / 2, bottom + height, depth),
+              at(u - width / l / 2, bottom + height, depth),
+              normal,
+              color,
+            );
+        panel('trim', 0.5, w + 0.22, y - 0.06, doorHeight + 0.17, 0.026, 0xd8d3be);
+        panel(
+          'wood',
+          0.5,
+          w,
+          y,
+          doorHeight,
+          0.04,
+          accessory ? 0x8b948e : h % 2 ? 0x365a54 : 0x664632,
+        );
+        if (shopfront || campus) {
+          panel('glass', 0.5, w - 0.16, y + 0.24, doorHeight - 0.36, 0.052, 0x677980);
+          panel('metal', 0.5, 0.06, y + 0.15, doorHeight - 0.25, 0.065, 0xb8b9af, 2);
+        } else if (!accessory) {
+          panel('glass', 0.5, w * 0.65, y + 1.1, Math.min(0.7, doorHeight - 1.2), 0.052, 0x627777);
+          panel('trim', 0.5, w * 0.65, y + 0.25, 0.55, 0.052, 0x4b6058, 2);
+        } else {
+          for (let j = 1; j < 7; j++)
+            panel('trim', 0.5, w, y + (doorHeight * j) / 7, 0.028, 0.052, 0x636f6a, 2);
+        }
+        if (!accessory)
+          panel('metal', 0.5 + (w * 0.33) / l, 0.04, y + 0.87, 0.22, 0.07, 0xb4b6a6, 2);
+        this.stats.doors++;
+        const label = this.labels.entries.get(building.id);
+        if (label) {
+          // Source text is factual; plaque positions and proportions are authored.
+          const width = label.named
+            ? Math.min(l - 0.5, 7, Math.max(2.1, label.text.length * 0.11))
+            : 0.42;
+          const u = label.named ? 0.5 : Math.min(0.89, 0.5 + (w / 2 + 0.38) / l);
+          const bottom = label.named
+            ? base + Math.min(floorHeight - 0.36, doorHeight + 0.36)
+            : base + 1.5;
+          const height = label.named ? 0.34 : 0.2;
+          this.batches
+            .get(x, z, 'label', label.named ? 1 : 2)
+            .quad(
+              at(u - width / l / 2, bottom, 0.095),
+              at(u + width / l / 2, bottom, 0.095),
+              at(u + width / l / 2, bottom + height, 0.095),
+              at(u - width / l / 2, bottom + height, 0.095),
+              normal,
+              0xffffff,
+              1,
+              1,
+              label.index,
+              [this.labels.columns, this.labels.rows],
+            );
+          this.stats.labels++;
+        }
       }
       if (campus && l > 18 && i % 3 === 0) {
         const u = 0.5,
@@ -357,7 +438,7 @@ export class SurveyCity {
           );
       }
     }
-    if (home && area > 55) {
+    if (home && !accessory && area > 55) {
       // A mean of concave vertices may be in a courtyard or outside the roof.
       // All four chimney corners must fit inside the real footprint, and its
       // bottom intersects the roof at every corner even on a steep slope.

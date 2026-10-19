@@ -61,3 +61,61 @@ export function roofAttachment(
     top: Math.max(...levels) + 0.85,
   };
 }
+
+/** A bounded four-sided roof profile. Its eaves follow every original edge,
+ * including re-entrant corners; no convex hull bridges a mapped courtyard.
+ * Pitch/run are authored estimates when the source only says "mansard". */
+export function mansardHeight(
+  polygon: readonly SurveyPoint[],
+  eave: number,
+  rise: number,
+  run: number,
+) {
+  const contact = { depth: 0, nx: 0, nz: 0 };
+  return (point: SurveyPoint): number => {
+    polygonContact(polygon, point[0], point[1], contact);
+    return eave + Math.max(0, rise) * Math.min(1, contact.depth / Math.max(0.1, run));
+  };
+}
+
+/** Uniform subdivision of an existing polygon triangulation. All triangles
+ * use the same depth so shared edges have identical samples (no T-junctions).
+ * The cap bounds work on large or unexpectedly detailed source footprints. */
+export function subdivideRoof(
+  polygon: readonly SurveyPoint[],
+  triangles: readonly (readonly number[])[],
+  targetEdge = 3,
+  maxDepth = 4,
+): [SurveyPoint, SurveyPoint, SurveyPoint][] {
+  if (!(targetEdge > 0) || !Number.isFinite(targetEdge)) throw new Error('Invalid roof edge size');
+  const source = triangles.map((indices) => indices.map((i) => polygon[i]));
+  if (source.some((t) => t.length !== 3 || t.some((p) => !p || !Number.isFinite(p[0] + p[1]))))
+    throw new Error('Invalid roof triangulation');
+  let longest = 0;
+  for (const t of source)
+    for (let i = 0; i < 3; i++)
+      longest = Math.max(
+        longest,
+        Math.hypot(t[i][0] - t[(i + 1) % 3][0], t[i][1] - t[(i + 1) % 3][1]),
+      );
+  const depth = Math.min(
+    Math.max(0, Math.min(5, Math.floor(maxDepth))),
+    Math.max(0, Math.ceil(Math.log2(longest / targetEdge))),
+  );
+  let parts = source as [SurveyPoint, SurveyPoint, SurveyPoint][];
+  const mid = (a: SurveyPoint, b: SurveyPoint): SurveyPoint => [
+    (a[0] + b[0]) / 2,
+    (a[1] + b[1]) / 2,
+  ];
+  for (let level = 0; level < depth; level++) {
+    const next: typeof parts = [];
+    for (const [a, b, c] of parts) {
+      const ab = mid(a, b),
+        bc = mid(b, c),
+        ca = mid(c, a);
+      next.push([a, ab, ca], [ab, b, bc], [ca, bc, c], [ab, bc, ca]);
+    }
+    parts = next;
+  }
+  return parts;
+}

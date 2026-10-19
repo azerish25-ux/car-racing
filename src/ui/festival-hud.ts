@@ -1,4 +1,5 @@
 import './festival-hud.css';
+import { CampusGuide } from './charlottetown-navigation.ts';
 import type { DriftCue } from '../simulation/open-world/drift-feedback.ts';
 import type { PaceCue } from '../rendering/open-world/pace-coach.ts';
 import {
@@ -53,6 +54,7 @@ export class FestivalHud {
   readonly root: HTMLElement;
   private readonly mapImage: HTMLCanvasElement;
   private readonly minimap: HTMLCanvasElement;
+  private readonly campusGuide: CampusGuide | null;
   private readonly nodes = new Map<string, HTMLElement>();
   private lastCard = '';
   /** Rendered results (event and time): every status message is a new
@@ -110,6 +112,10 @@ export class FestivalHud {
     root.dataset.region = world.region.id;
     parent.appendChild(root);
     this.root = root;
+    this.campusGuide =
+      world.region.id === 'charlottetown' && world.region.survey
+        ? new CampusGuide(root.querySelector('#festExplore')!, world.region.survey)
+        : null;
     this.minimap = this.get('festMinimap') as HTMLCanvasElement;
     this.mapImage = this.paintMap();
     root.addEventListener('click', (e) => {
@@ -551,7 +557,9 @@ export class FestivalHud {
           Math.hypot(a.marker.x - x, a.marker.z - z) - Math.hypot(b.marker.x - x, b.marker.z - z),
       )[0];
     this.show('festExplore', !status.event && !this.menuOpen && !this.mapOpen && !this.photoOpen);
-    if (nearby) {
+    if (this.campusGuide) {
+      this.campusGuide.update(x, z, heading, status.speedKmh);
+    } else if (nearby) {
       this.text('festExploreName', nearby.spec.name);
       this.text(
         'festExploreDistance',
@@ -755,6 +763,7 @@ export class FestivalHud {
     this.previousPadButtons = pressed;
   }
   dispose() {
+    this.campusGuide?.dispose();
     this.listeners.abort();
     this.root.remove();
   }

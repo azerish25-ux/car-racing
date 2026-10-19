@@ -48,7 +48,7 @@ The local WGS84 metric frame has **X west, Y up, Z north**. This preserves geogr
 
 Building walls use their actual mapped concave polygons rather than randomly placed boxes. Collision and camera clearance use those same polygons, so concave yards are not filled by invisible rectangular colliders. The Holland College ground plan and institution labels are retained from the data.
 
-**Not measured or photo-verified:** façade colours, window and door arrangements, roof pitch, cornices, chimneys, materials, road/sidewalk widths without OSM width tags, road markings, sign treatments, decorative street-light positions and most building/tree heights. Elevation is an explicitly estimated restrained plane, not a DEM. Some OSM relation-only buildings or unmapped features are absent. This is a geographically grounded procedural recreation, **not a finished photo-exact 1:1 replica**.
+**Not measured or photo-verified:** façade colours and materials without explicit source tags, window and door arrangements, roof pitch, cornices, chimneys, road/sidewalk widths without OSM width tags, road markings, sign treatments, decorative street-light positions and most building/tree heights. Elevation is an explicitly estimated restrained plane, not a DEM. Some OSM relation-only buildings or unmapped features are absent. This is a geographically grounded procedural recreation, **not a finished photo-exact 1:1 replica**.
 
 ## Rendering
 
@@ -73,6 +73,41 @@ The city is authored entirely in TypeScript/Three.js: deterministic generated br
 Geometry is merged by material and 128-metre spatial chunk. Shells, windows and close façade detail have separate distance budgets. The same building and tree collision shapes remain in place across presets. Materials, geometry and city scene nodes are disposed on exit.
 
 Charlottetown disables the Solvane-specific water, islands, boats, authored countryside dressing, photographic vegetation, photographed sky and scanned ground layers. It retains the production vehicle renderer, physical sky, lighting pipeline, weather, effects, streaming and controls. Original maps retain their existing asset paths.
+
+## Street detail and campus guidance continuation
+
+Explicit `building:material`, `building:colour`, `roof:shape`, and `roof:colour`
+tags now take precedence over procedural guesses. Wood-clad apartment buildings
+no longer turn into brick simply because they are large; mapped concrete and
+literal colours (including the source's unprefixed hex colour) are retained.
+Commercial gables and both tagged mansard roofs are generated over the original
+triangulation. Uniform, bounded roof subdivision keeps concave courtyards open.
+Unspecified pitches and all façade joinery remain authored estimates.
+
+Entrances select an exterior face toward the building's mapped address street,
+falling back to the nearest suitable street-facing wall. Door positions are not
+claimed to be surveyed. Ground-floor window bays leave the doorway clear;
+commercial frontages use broader glazing, and accessory garages/sheds do not
+receive rows of house windows. Generated frames, handles, garage panels and
+threshold-height entrances remain close to the original collision footprint.
+Individual windows vary their illumination, and night emission follows the
+procedural interior texture rather than illuminating an entire solid pane.
+
+A single generated atlas contains the 160 available building names/house-number
+labels from this snapshot. Label geometry is merged into distance-limited chunks;
+no separate mesh or downloaded image is created per label. Plaque styling and
+placement are estimates, and the atlas is bounded to 256 entries and disposed
+with the city. Nothing in this change moves streets, buildings or collision
+polygons or imports Google imagery.
+
+During free drive in all three modes, a campus navigation panel follows the
+actual polyline through Maloney, Queen, Kent and Weymouth. It shows the next turn,
+distance remaining, nearest numbered route reference, wrong-way and off-route
+warnings, and arrival. **Reverse route** changes the guidance destination without
+teleporting the vehicle. These are closed-road game directions, not real-world
+traffic advice. Guidance does not award race progress or alter checkpoints, and
+it is hidden with the other free-drive UI during events, menus, maps and photos.
+The existing event pace coach and original Solvane exploration UI are unchanged.
 
 ## Events and saves
 
@@ -102,7 +137,7 @@ The acquisition URL and bounding rectangle are recorded in the JSON source metad
 ```sh
 npm run build
 npx vitest run tests/charlottetown.test.ts
-npx vitest run tests/charlottetown-geometry.test.ts tests/gpu-frame-gate.test.ts
+npx vitest run tests/charlottetown-geometry.test.ts tests/charlottetown-architecture.test.ts tests/charlottetown-navigation.test.ts tests/gpu-frame-gate.test.ts
 npx playwright test e2e/charlottetown-direct.spec.ts
 npx playwright test e2e/charlottetown.spec.ts
 ```
@@ -120,7 +155,7 @@ Map data © OpenStreetMap contributors, available under the Open Database Licens
 
 No Google Street View image or Google-derived 3D content is included.
 
-### Continuation validation scope
+### Earlier city-launch validation scope
 
 Local targeted verification passed **58 tests in seven files**, TypeScript checking,
 ESLint on touched TypeScript, and a production build. The offline procedural
@@ -132,3 +167,20 @@ GitHub Actions workflow preserves failures, traces and diagnostics for each mode
 The original main-menu test is retained rather than silently replaced: its prior
 run timed out before reaching the city at the original circuit cold startup.
 Consult the exact workflow run for browser results; writing a test is not a pass.
+
+### Street-detail continuation validation
+
+Local verification passed **95 targeted tests in 11 files**, a production build
+and ESLint on all touched TypeScript. These checks include all three production
+vehicles driving and finishing the campus route, all 100 navigation stations,
+forward/reverse turn directions in the X-west coordinate frame, source-colour
+precedence, doorway clearance, atlas bounds/disposal and concave mansard roofs.
+
+The local software WebGL2 framebuffer probe passed on Mesa llvmpipe. The local
+full-game browser attempt was blocked before application loading by
+`net::ERR_BLOCKED_BY_ADMINISTRATOR` at the game URL; it is not a passing browser
+run. The existing GitHub Actions three-mode workflow now includes these new
+regressions and navigation UI assertions. Consult its exact run for full-game
+browser acceptance. No physical GPU, Android device or frame-rate acceptance is
+claimed. Independent offline scenery screenshots use the real scene classes
+but are not substitutes for full-application testing.
