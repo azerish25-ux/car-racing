@@ -1,0 +1,107 @@
+name: Charlottetown implementation and browser verification
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/charlottetown-publish.yml]
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+jobs:
+  publish:
+    if: github.repository == 'azerish25-ux/car-racing'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      commit: ${{ steps.commit.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Verify and apply locally tested implementation
+        run: |
+          cat .github/charlottetown-transfer/part-* > /tmp/charlottetown.patch.xz
+          echo 'b49305e50799badba599a7c47db9cd6a70f97817eb56ce5a99ebeb0245cdd84f  /tmp/charlottetown.patch.xz' | sha256sum --check
+          xz -dc /tmp/charlottetown.patch.xz > /tmp/charlottetown.patch
+          git apply --unidiff-zero --check /tmp/charlottetown.patch
+          git apply --unidiff-zero /tmp/charlottetown.patch
+      - name: Recover the exact acquired OSM snapshot
+        uses: actions/download-artifact@v4
+        with:
+          name: charlottetown-source
+          run-id: 39196862088
+          github-token: ${{ github.token }}
+          path: /tmp/charlottetown-original
+      - name: Reproduce licensed geographic database
+        run: |
+          tar -xOf /tmp/charlottetown-original/charlottetown-source.tar.gz ./WORKSPACE_CHARLOTTETOWN.osm > /tmp/charlottetown.osm
+          echo '2ae441d5500037ba968b27c93739288e93badd82fa9644c26609557cdfce4813  /tmp/charlottetown.osm' | sha256sum --check
+          python scripts/import-charlottetown.py --osm /tmp/charlottetown.osm --route reference/charlottetown/route.geojson
+          echo '1793399c6793fd65e7cc71675dcad7127db8710f10ca3a8de62cc5049d3aeb33  src/simulation/open-world/charlottetown/data.json' | sha256sum --check
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Geographic, physics, worker and existing-map regressions
+        run: npx vitest run tests/charlottetown.test.ts tests/open-world.test.ts tests/open-world-session.test.ts tests/open-world-worker.test.ts tests/route-graph.test.ts tests/route-overpass.test.ts tests/festival-car-switch.test.ts tests/festival-map.test.ts
+      - name: Typecheck and production build
+        run: npm run build
+      - name: Commit and push implementation to this fork only
+        id: commit
+        run: |
+          test "$GITHUB_REPOSITORY" = azerish25-ux/car-racing
+          git config user.name 'azerish25-ux'
+          git config user.email 'azerish25@gmail.com'
+          git add README.md docs/CHARLOTTETOWN_MAP.md e2e/charlottetown.spec.ts e2e/fixtures/charlottetown-scene.ts reference/charlottetown/route.geojson scripts/import-charlottetown.py src tests/charlottetown.test.ts
+          git diff --cached --check
+          git commit -m 'feat: add mapped Charlottetown campus region for Formula, MotoGP and Horizon'
+          git push origin HEAD:main
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          git rev-parse HEAD > source-commit.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: charlottetown-web
+          path: |
+            dist/
+            source-commit.txt
+          retention-days: 7
+  browser:
+    needs: publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        mode: [formula, motogp, horizon]
+    env:
+      APEX_BROWSER_BACKEND: mesa
+      LIBGL_ALWAYS_SOFTWARE: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.publish.outputs.commit }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - uses: actions/download-artifact@v4
+        with:
+          name: charlottetown-web
+      - run: test "$(cat source-commit.txt)" = "$(git rev-parse HEAD)"
+      - run: npx playwright install --with-deps chromium
+      - run: sudo apt-get update && sudo apt-get install -y xvfb libgl1-mesa-dri mesa-utils
+      - name: Actual menu, worker, driving, campus travel, scene and exit
+        run: xvfb-run -a npx playwright test e2e/charlottetown.spec.ts --grep 'Charlottetown ${{ matrix.mode }}:'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: charlottetown-browser-${{ matrix.mode }}
+          path: |
+            test-results/
+            playwright-report/
+            docs/browser-backend.json
+          retention-days: 7
