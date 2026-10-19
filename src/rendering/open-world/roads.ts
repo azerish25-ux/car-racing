@@ -1,5 +1,6 @@
 import * as T from 'three';
 import type { StreetLightSocket } from './street-light-pools.ts';
+import { bindSeasonUniforms, SEASON_GLSL } from './season.ts';
 import {
   installScannedDetail,
   installScannedMaps,
@@ -230,10 +231,11 @@ function antiSkidMaterial(wet: { value: number }) {
   material.polygonOffsetUnits = -5;
   material.onBeforeCompile = (shader) => {
     shader.uniforms.owAntiSkidWet = wet;
+    bindSeasonUniforms(shader);
     shader.fragmentShader = shader.fragmentShader
       .replace(
         '#include <common>',
-        `#include <common>\nuniform float owAntiSkidWet;\n${OW_NOISE_GLSL}`,
+        `#include <common>\nuniform float owAntiSkidWet;\n${SEASON_GLSL}\n${OW_NOISE_GLSL}`,
       )
       .replace(
         '#include <color_fragment>',
@@ -246,15 +248,19 @@ function antiSkidMaterial(wet: { value: number }) {
   float patchy = owFbm(vUv * vec2(0.45, 0.12), 1.0);
   vec3 c = diffuseColor.rgb * (0.88 + 0.24 * grit);
   c = mix(c, vec3(0.105, 0.098, 0.094), path * (0.18 + 0.32 * patchy));
-  diffuseColor.rgb = c * (1.0 - owAntiSkidWet * 0.3);
+  // Winter: ploughed, salted and wet, the red reads as dull brown-grey
+  // under grit and meltwater (ref 070).
+  vec3 winter = mix(vec3(dot(c, vec3(0.3, 0.55, 0.15))) * vec3(1.06, 0.98, 0.94), vec3(0.16, 0.16, 0.165), 0.25 * patchy);
+  c = mix(c, winter * 0.72, owSnowCover * 0.85);
+  diffuseColor.rgb = c * (1.0 - max(owAntiSkidWet, owSnowCover * 0.5) * 0.3);
 }`,
       )
       .replace(
         '#include <roughnessmap_fragment>',
-        `#include <roughnessmap_fragment>\nroughnessFactor = mix(0.9, 0.42, owAntiSkidWet);`,
+        `#include <roughnessmap_fragment>\nroughnessFactor = mix(0.9, 0.42, max(owAntiSkidWet, owSnowCover * 0.6));`,
       );
   };
-  material.customProgramCacheKey = () => 'festival-antiskid-v1';
+  material.customProgramCacheKey = () => 'festival-antiskid-v2-season';
   return material;
 }
 
