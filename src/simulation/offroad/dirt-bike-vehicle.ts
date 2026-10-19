@@ -11,6 +11,7 @@ import { TrackTerrainSurface } from './course-terrain.ts';
 import { offroadCourse } from './venues.ts';
 import type { OffroadBikeSpec } from './types.ts';
 import { LANDING_RULES } from './riding-feedback.ts';
+import { wheelPickupImpulse } from './wheel-pickup.ts';
 
 const TAU = Math.PI * 2;
 /** How far (m) the rider's body moves fore/aft over the pegs at full lean;
@@ -126,6 +127,14 @@ export class DirtBikeVehicle extends BikeVehicle {
   landingIn = 0.6;
   private predictClock = 0;
   private longitudinal = 0;
+  /** A real player jump preserves wheel-speed mismatch until loaded tyres
+   * have picked it up. The ordinary core still owns rolling drive/braking;
+   * only the inherited flight mismatch uses the spare friction budget. */
+  private wheelPickup = false;
+  private pickupSpeed = 0;
+  private playerMotocross = false;
+  private pickupFrontForce = 0;
+  private pickupRearForce = 0;
   private readonly probe = surfaceSample();
   private readonly heading3 = new Vec3();
   private readonly left3 = new Vec3();
@@ -187,6 +196,8 @@ export class DirtBikeVehicle extends BikeVehicle {
     this.cgY = ground + b.cgHeight;
     this.vy = this.pitchRate = 0;
     this.airYaw = this.airYawRate = 0;
+    this.wheelPickup = false;
+    this.pickupSpeed = this.dynamics.speed;
     this.compressionFront = this.sag(true);
     this.compressionRear = this.sag(false);
     this.airborne = false;
@@ -241,6 +252,12 @@ export class DirtBikeVehicle extends BikeVehicle {
     this.brake = brake;
     this.rearBrake = rear;
     const course = offroadCourse(track.circuit);
+    this.pickupFrontForce = this.pickupRearForce = 0;
+    this.playerMotocross =
+      !ai &&
+      (course?.kind === 'motocross' || course?.kind === 'supercross') &&
+      (this.definition.id === 'mx250' || this.definition.id === 'mx450');
+    if (!this.playerMotocross || !this.riding) this.wheelPickup = false;
     // Ground grip: tyre/surface peak (knobby bite from the material table),
     // the load the suspension actually carries, and berm support.
     // Smoothed: a hop or a rut edge does not change the rider's lean budget
@@ -282,6 +299,17 @@ export class DirtBikeVehicle extends BikeVehicle {
         },
         dt,
       );
+      const coreSpeed = d.speed;
+      if (this.wheelPickup && this.riding) {
+        this.pickupWheels(dt);
+        d.longitudinal += (d.speed - coreSpeed) / dt;
+        // Keep this contact step's travel consistent with its corrected
+        // velocity. Steering remains the core's continuous yaw solution.
+        if (coreSpeed > 0) {
+          d.x = x0 + ((d.x - x0) * d.speed) / coreSpeed;
+          d.z = z0 + ((d.z - z0) * d.speed) / coreSpeed;
+        }
+      }
       // The core integrates horizontal travel at its speed; on a face that
       // speed is along the ground, so the plan-view step is its cosine.
       const c = Math.cos(this.roadPitch);
@@ -313,7 +341,12 @@ export class DirtBikeVehicle extends BikeVehicle {
           d.speed = Math.max(0, d.speed - 1.5 * dt);
         }
       }
-      this.longitudinal = d.driveForce - d.frontBrakeForce - d.rearBrakeForce;
+      this.longitudinal =
+        d.driveForce -
+        d.frontBrakeForce -
+        d.rearBrakeForce +
+        this.pickupFrontForce +
+        this.pickupRearForce;
     }
     if (this.pendingLanding) this.judgeLanding(this.pendingLanding);
     if (was === 'riding' && d.state !== 'riding') {
@@ -506,6 +539,56 @@ export class DirtBikeVehicle extends BikeVehicle {
     this.longitudinal = 0;
   }
   private airTorque = 0;
+  /** Finish synchronizing airborne wheels without resetting their angular
+   * velocity on the touchdown edge. Core drive/braking already acts on its
+   * rolling reference, so advect that reference and resolve only the extra
+   * mismatch. Contact friction used by the pedals and cornering is reserved
+   * first; a loaded brake cannot claim it a second time as a pickup impulse.
+   * Every remaining impulse has an equal opposite rim angular impulse. */
+  private pickupWheels(dt: number) {
+    const d = this.dynamics,
+      spec = this.bikeSpec,
+      deltaSpeed = d.speed - this.pickupSpeed;
+    // An end still hanging clear of a rear/front-first touchdown cannot be
+    // spun by chassis acceleration: its rolling reference begins at load.
+    if (this.forceFront > 0)
+      this.frontSpin = Math.max(0, this.frontSpin + deltaSpeed / spec.frontWheelRadius);
+    if (this.forceRear > 0)
+      this.rearSpin = Math.max(0, this.rearSpin + deltaSpeed / spec.rearWheelRadius);
+    const lateral = d.mass * Math.abs(d.speed * d.speed * d.curvature),
+      mu = d.p.mu * d.grip;
+    const pickup = (front: boolean) => {
+      const radius = front ? spec.frontWheelRadius : spec.rearWheelRadius,
+        inertia = front ? this.spec.wheelInertia : this.air.spinInertia,
+        spin = front ? this.frontSpin : this.rearSpin,
+        load = front ? this.forceFront : this.forceRear,
+        share = (front ? spec.cgToRear : spec.cgToFront) / this.spec.wheelbase,
+        existing = front ? d.frontBrakeForce : d.driveForce - d.rearBrakeForce,
+        capacity = Math.sqrt(Math.max(0, (mu * load) ** 2 - (lateral * share) ** 2)),
+        spare = Math.max(0, capacity - Math.abs(existing)),
+        impulse = wheelPickupImpulse(d.speed, spin, radius, inertia, d.mass, spare * dt);
+      d.speed += impulse / d.mass;
+      const result = Math.max(0, spin - (impulse * radius) / inertia);
+      if (front) {
+        this.frontSpin = result;
+        this.pickupFrontForce = impulse / dt;
+      } else {
+        this.rearSpin = result;
+        this.pickupRearForce = impulse / dt;
+      }
+    };
+    pickup(true);
+    pickup(false);
+    this.pickupSpeed = d.speed;
+    // Sub-centimetre/s residuals have no perceptible rotor energy. Ending
+    // only near rolling equality prevents a fixed timeout from snapping a
+    // still-locked wheel to speed, including on a lightly loaded landing.
+    if (
+      Math.abs(this.frontSpin * spec.frontWheelRadius - d.speed) < 0.005 &&
+      Math.abs(this.rearSpin * spec.rearWheelRadius - d.speed) < 0.005
+    )
+      this.wheelPickup = false;
+  }
   private crashReason = '';
   /** Seconds the front wheel has been unloaded on the ground (a wheelie),
    * and the pitch torque (N m, nose-up +) of the last step with a wheel down. */
@@ -787,8 +870,15 @@ export class DirtBikeVehicle extends BikeVehicle {
         }
         this.airYaw = this.airYawRate = 0;
         d.pitch = 0;
-        this.rearSpin = d.speed / spec.rearWheelRadius;
-        this.frontSpin = d.speed / spec.frontWheelRadius;
+        this.wheelPickup =
+          this.playerMotocross &&
+          this.airTime > LANDING_RULES.minimumAirTime &&
+          this.takeoffSpeed > LANDING_RULES.rollingHopSpeed;
+        this.pickupSpeed = d.speed;
+        if (!this.wheelPickup) {
+          this.rearSpin = d.speed / spec.rearWheelRadius;
+          this.frontSpin = d.speed / spec.frontWheelRadius;
+        }
         this.bottomPeak = 0;
         this.pendingLanding = {
           time: this.clock,
@@ -826,8 +916,14 @@ export class DirtBikeVehicle extends BikeVehicle {
         // The sprung pitch is the flight pitch (it already carries any
         // wheelie); the core's relative pitch has no say in the air.
         d.pitch = 0;
-        this.rearSpin = d.speed / spec.rearWheelRadius;
-        this.frontSpin = d.speed / spec.frontWheelRadius;
+        // A rebound before pickup has finished retains its real rotor
+        // speeds. Tiny terrain hops from ordinary rolling keep the original
+        // surveyed take-off behaviour.
+        if (!this.wheelPickup) {
+          this.rearSpin = d.speed / spec.rearWheelRadius;
+          this.frontSpin = d.speed / spec.frontWheelRadius;
+        }
+        this.wheelPickup = false;
         this.predictClock = 0;
       }
     } else {
@@ -858,7 +954,10 @@ export class DirtBikeVehicle extends BikeVehicle {
     if (r.outcome === 'clean' && r.airTime > LANDING_RULES.minimumAirTime && real) {
       // Only a yawed touchdown adds this immediate judgement. Ordinary
       // slides retain the shared adapter's existing tyre-friction recovery.
-      if (Math.abs(r.yawError) > 1e-9 && Math.abs(r.lateralSpeed) > LANDING_RULES.crossedCrashSpeed) {
+      if (
+        Math.abs(r.yawError) > 1e-9 &&
+        Math.abs(r.lateralSpeed) > LANDING_RULES.crossedCrashSpeed
+      ) {
         r.outcome = 'crash-side';
         d.fall('lowside');
       } else if (
@@ -925,19 +1024,28 @@ export class DirtBikeVehicle extends BikeVehicle {
         c = this.contacts[i],
         ideal = COMPOUNDS[t.compound].ideal;
       const rolling = (riding || d.state === 'remount') && !this.airborne;
-      t.omega = this.airborne
-        ? front
-          ? this.frontSpin
-          : this.rearSpin
-        : rolling
-          ? d.speed / t.radius
-          : t.omega * Math.exp(-1.5 * dt);
+      t.omega =
+        this.airborne || (this.wheelPickup && riding)
+          ? front
+            ? this.frontSpin
+            : this.rearSpin
+          : rolling
+            ? d.speed / t.radius
+            : t.omega * Math.exp(-1.5 * dt);
       t.rotation = mod(t.rotation + t.omega * dt, TAU);
       t.load = riding ? (front ? this.forceFront : this.forceRear) : 0;
       const grounded = riding && !this.airborne;
-      t.fx = grounded ? (front ? -d.frontBrakeForce : d.driveForce - d.rearBrakeForce) : 0;
+      t.fx = grounded
+        ? front
+          ? -d.frontBrakeForce + this.pickupFrontForce
+          : d.driveForce - d.rearBrakeForce + this.pickupRearForce
+        : 0;
       t.fy = grounded ? (m * lateral * (front ? spec.cgToRear : spec.cgToFront)) / L : 0;
-      t.slip = front || !grounded ? 0 : Math.min(0.3, d.rearSlip);
+      const inheritedSlip =
+        grounded && this.wheelPickup
+          ? Math.abs(t.omega * t.radius - d.speed) / Math.max(3, d.speed)
+          : 0;
+      t.slip = grounded ? Math.max(front ? 0 : Math.min(0.3, d.rearSlip), inheritedSlip) : 0;
       t.angle = front ? d.steer : 0;
       t.compression = front ? this.fork : this.shock;
       t.length = (front ? spec.forkTravel : spec.shockTravel) - t.compression + 0.2;

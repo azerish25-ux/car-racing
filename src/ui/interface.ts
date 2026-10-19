@@ -574,13 +574,13 @@ export class Interface {
     }
     // Flight/contact transitions must be seen on every presented frame, even
     // while the lower-frequency timing panels skip their DOM refresh.
-    this.offroadHud.update(frame, this.track, this.options);
+    const mode = this.element.dataset.mode;
+    this.offroadHud.update(frame, this.track, this.options, !auto, mode === 'replay');
     this.motocrossStatus.update(this.hud.dataset.motocross === 'true');
     // Motorcycle instruments follow every presented snapshot. Car panels may
     // skip close samples, but first, sparse, reversed and machine-transition
     // frames must never leave the template or an old race state on screen.
     this.observeGaps(frame);
-    const mode = this.element.dataset.mode;
     const banner = this.f1.observe(frame, auto);
     this.f1.nameTags(frame, renderer, mode === 'driving' || mode === 'paused');
     this.panelFrames++;

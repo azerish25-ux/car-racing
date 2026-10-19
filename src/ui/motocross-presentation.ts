@@ -51,7 +51,7 @@ export const MOTOCROSS_RIDE_PRESETS = Object.freeze([
   {
     id: 'learn',
     title: 'Learn the jumps',
-    detail: 'Solo practice · riding assists',
+    detail: 'Solo landing targets · assists',
     mode: 'practice',
     opponents: 0,
     assist: 'sport',
@@ -113,7 +113,7 @@ export function installMotocrossMenu(menu: HTMLElement, currentTrack: () => Trac
   panel.className = 'mx-setup';
   panel.setAttribute('aria-label', 'Motocross ride setup');
   panel.hidden = true;
-  panel.innerHTML = `<div class="mx-venue-preview"></div><fieldset class="mx-ride-presets"><legend>YOUR RIDE</legend>${MOTOCROSS_RIDE_PRESETS.map((p) => `<button type="button" data-mx-preset="${p.id}" aria-pressed="false"><b>${p.title}</b><span>${p.detail}</span></button>`).join('')}</fieldset><p class="mx-technique">Brake before the face. In flight, throttle lifts the nose and brake lowers it. Match the landing slope.</p>`;
+  panel.innerHTML = `<div class="mx-venue-preview"></div><fieldset class="mx-ride-presets"><legend>YOUR RIDE</legend>${MOTOCROSS_RIDE_PRESETS.map((p) => `<button type="button" data-mx-preset="${p.id}" aria-pressed="false"><b>${p.title}</b><span>${p.detail}</span></button>`).join('')}</fieldset><p class="mx-technique">Brake before the face. Tap a brake to lower the nose in flight, then release for touchdown. In solo practice, land smoothly on each surveyed downslope to clear its target.</p>`;
   rules.after(panel);
   const body = menu.querySelector<HTMLElement>('.menu-body')!,
     form = menu.querySelector<HTMLFormElement>('#sessionForm')!,

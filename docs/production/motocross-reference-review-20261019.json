@@ -1,0 +1,3226 @@
+{
+  "schemaVersion": 1,
+  "title": "Motocross mechanical realism, soil morphology and solo practice reference review",
+  "baselineCommit": "88e604b078a0ac42f50fa278706ca2d81182831d",
+  "previousImplementationReview": "motocross-threejs-reference-review-20261018.json",
+  "archive": {
+    "name": "Motocross_PS5_100_Developer_Reference_Images(2).zip",
+    "sha256": "d8c8fbb62974432e8feafa853917deb45765dccc18be7d1da8ece9be512a9c73",
+    "suppliedImagesPackagedAsGameAssets": false
+  },
+  "coverage": {
+    "expected": 100,
+    "visuallyReviewed": 100,
+    "uniqueImages": 100,
+    "matchingSourceHashes": 100,
+    "allMappedPathsExist": true,
+    "thisPassDecisions": {
+      "retained": 47,
+      "new": 31,
+      "context": 22
+    }
+  },
+  "reviewMethod": {
+    "root": "All 100 images visually reviewed on five labeled 20-image sheets. Three reviewers then inspected their assigned ranges and selected originals.",
+    "assignedRanges": {
+      "bike_visuals": "001–032",
+      "terrain_realism": "033–067",
+      "riding_gameplay": "068–100"
+    },
+    "additionalFullResolutionOriginals": [
+      "005",
+      "006",
+      "011",
+      "012",
+      "027",
+      "031",
+      "043",
+      "044",
+      "047",
+      "059",
+      "068",
+      "072",
+      "087",
+      "092",
+      "095",
+      "096",
+      "100"
+    ]
+  },
+  "interpretation": [
+    "New means an observed principle supports a change in this pass; it does not count one new feature per image. Retained means an existing system was checked. Context is not a new content claim.",
+    "Source URLs, game/platform labels and visual-focus strings are retained from the supplied index. Screenshot capture hardware and current storefront metadata were not independently verified.",
+    "Still images support proportion, attachment, material and riding-readability observations. Contact impulses and gameplay thresholds are derived/calibrated in the simulation, not measured from photographs.",
+    "The five wandering wheel channels, helmet/goggles, plastics, knobbies, roost, spectator work and recoverable whip were implemented in prior passes; this pass retains them."
+  ],
+  "references": [
+    {
+      "number": 1,
+      "id": "001",
+      "file": "01_Bikes_and_Components/001_SX25_red_factory_bike_in_side_three_quarter_view.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX25",
+        "game_title": "Monster Energy Supercross 25 – The Official Video Game",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2581370/ss_4fa976c94271a65a50ed043ca4e00489184e0a2f.1920x1080.jpg?t=1790000333",
+        "source_page": "https://store.steampowered.com/app/2581370/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "2e3f9b30f5c8da8977ee5181c54c35265211c73d14755d8a547888861bfca345",
+        "visual_focus": "Red factory bike in side three-quarter view; study plastics, frame, fork, wheels, and dirt response.",
+        "original_candidate_id": "7"
+      },
+      "previousObservation": "The close red bike has sharply tapered radiator wings and side number boards; the large front tyre remains visually separate from the narrow frame.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "bike_visuals",
+        "status": "retained",
+        "method": "labeled-contact-sheet",
+        "observation": "Side-quarter bike: narrow chassis, exposed engine and thin fenders remain the proportion check; this pass keeps bodywork and frame shape.",
+        "featureKeys": ["moulded_plastics", "knobby_rubber"],
+        "implementationFiles": [
+          "src/rendering/offroad/dirt-bike-model.ts",
+          "src/rendering/offroad/motocross-detail.ts"
+        ]
+      }
+    },
+    {
+      "number": 2,
+      "id": "002",
+      "file": "01_Bikes_and_Components/002_MXATV_outdoor_rider_and_bike_in_low_side_view.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "MXATV",
+        "game_title": "MX vs ATV Legends",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1205970/d59e0cc2595382699eabde697137749eb10a6122/ss_d59e0cc2595382699eabde697137749eb10a6122.1920x1080.jpg?t=1791298700",
+        "source_page": "https://store.steampowered.com/app/1205970/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "7fd1084936b7ff92bb77a701e0e9bb256ace65cf147c1e56c399a560660a05f4",
+        "visual_focus": "Outdoor rider and bike in low side view; study full motocross proportions and component silhouette.",
+        "original_candidate_id": "12"
+      },
+      "previousObservation": "The low front angle exposes bowed handlebars, brake cables, a pronounced helmet peak and a curved coloured goggle lens.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "bike_visuals",
+        "status": "retained",
+        "method": "labeled-contact-sheet",
+        "observation": "Low frontal outdoor view: the rider braces above the fork while opaque clods separate from dust; retain the existing rider IK and roost.",
+        "featureKeys": ["rider_ik", "roost"],
+        "implementationFiles": [
+          "src/rendering/offroad/dirt-bike-model.ts",
+          "src/rendering/offroad/motocross-gear.ts",
+          "src/rendering/rider.ts",
+          "src/rendering/offroad/roost.ts"
+        ]
+      }
+    },
+    {
+      "number": 3,
+      "id": "003",
+      "file": "01_Bikes_and_Components/003_MXATV_three_bikes_and_riders_staged_close_together.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "MXATV",
+        "game_title": "MX vs ATV Legends",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1205970/09fd746ed7304c283059bc89e0db96cc099363ed/ss_09fd746ed7304c283059bc89e0db96cc099363ed.1920x1080.jpg?t=1791298700",
+        "source_page": "https://store.steampowered.com/app/1205970/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "15187a5648b1d371da3126187dceaef5898b8fb5ffafbad5a2b2ad3e3828ec27",
+        "visual_focus": "Three bikes and riders staged close together; study model variation, liveries, and mechanical density.",
+        "original_candidate_id": "14"
+      },
+      "previousObservation": "Rear staging view shows dense shoulder tread, an open silencer outlet, separate side plastic, boot fasteners and fabric at the waistband.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "bike_visuals",
+        "status": "retained",
+        "method": "labeled-contact-sheet",
+        "observation": "Rear gate grouping: rear wheel, silencer and bent boot placement remain individually legible; retain existing wheel/exhaust/gear layout.",
+        "featureKeys": ["rider_gear", "bike_identity"],
+        "implementationFiles": [
+          "src/rendering/offroad/motocross-detail.ts",
+          "src/rendering/offroad/dirt-bike-model.ts",
+          "src/rendering/offroad/motocross-gear.ts"
+        ]
+      }
+    },
+    {
+      "number": 4,
+      "id": "004",
+      "file": "01_Bikes_and_Components/004_SX6_close_side_view_of_yamaha_rider_and_bike.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX6",
+        "game_title": "Monster Energy Supercross – The Official Videogame 6",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2058750/ss_48720f851bda30dfeafb0ab1ef209826a20872ee.1920x1080.jpg?t=1744270559",
+        "source_page": "https://store.steampowered.com/app/2058750/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "f03991bc676c53161f4104da6f9b0214668253b2ff905c8c7828c6700b8d6a82",
+        "visual_focus": "Close side view of Yamaha rider and bike; study helmet materials, jersey fit, controls, and seat posture.",
+        "original_candidate_id": "23"
+      },
+      "previousObservation": "The close profile distinguishes a loosely folded matte jersey from the glossy patterned helmet and a thin, shaped helmet peak.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "bike_visuals",
+        "status": "retained",
+        "method": "labeled-contact-sheet",
+        "observation": "Close side rider shows helmet peak, goggles, textured sleeve and lever contact; the recent gear pass already addresses these.",
+        "featureKeys": ["helmet", "rider_gear"],
+        "implementationFiles": ["src/rendering/rider.ts", "src/rendering/offroad/motocross-gear.ts"]
+      }
+    },
+    {
+      "number": 5,
+      "id": "005",
+      "file": "01_Bikes_and_Components/005_SX6_full_bike_and_rider_side_profile.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX6",
+        "game_title": "Monster Energy Supercross – The Official Videogame 6",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2058750/ss_b7b7452cded1d1cbdc2e2c2475c7b0c9e838d336.1920x1080.jpg?t=1744270559",
+        "source_page": "https://store.steampowered.com/app/2058750/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "8fb8503b2e17f24616a08fe16360e2e05d411d4f2ecc066068100e8df23671f8",
+        "visual_focus": "Full bike-and-rider side profile; study wheelbase, rider ergonomics, and livery breakup.",
+        "original_candidate_id": "26"
+      },
+      "previousObservation": "Full side profile exposes the roller chain, large sprocket, slender spokes and the cast round engine covers inside the frame.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "bike_visuals",
+        "status": "new",
+        "method": "full-original-and-contact-sheet",
+        "observation": "Full side view clearly exposes a lobed front caliper, carrier around the axle lug and hose ascending the fork. Replace the plain caliper box and connect the existing split hose.",
+        "featureKeys": ["mx_brake_hardware", "mx_flexible_brake_hose"],
+        "implementationFiles": [
+          "src/rendering/offroad/motocross-mechanics.ts",
+          "src/rendering/offroad/dirt-bike-model.ts"
+        ]
+      }
+    },
+    {
+      "number": 6,
+      "id": "006",
+      "file": "01_Bikes_and_Components/006_SX6_airborne_side_profile.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX6",
+        "game_title": "Monster Energy Supercross – The Official Videogame 6",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2058750/ss_2302b805a839e1651510c7bd04508c4f66868f16.1920x1080.jpg?t=1744270559",
+        "source_page": "https://store.steampowered.com/app/2058750/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "16f30a9afc0e20289cf30fa76cc0b77b1bb8595303012e1ca9a96015db2c0a72",
+        "visual_focus": "Airborne side profile; study suspension droop, rider posture, and clean bike silhouette.",
+        "original_candidate_id": "31"
+      },
+      "previousObservation": "Airborne profile makes the wavy brake rotor apertures, engine underside, and asymmetric high-mounted silencer especially readable.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "bike_visuals",
+        "status": "new",
+        "method": "original",
+        "observation": "Clean airborne side view exposes suspension at extension while the wheels stay attached; check the new shock at full droop and compression instead of scaling a floating spring.",
+        "featureKeys": ["mx_two_anchor_shock"],
+        "implementationFiles": [
+          "src/rendering/offroad/motocross-mechanics.ts",
+          "src/rendering/offroad/dirt-bike-model.ts"
+        ],
+        "originalReviewer": "root"
+      }
+    },
+    {
+      "number": 7,
+      "id": "007",
+      "file": "01_Bikes_and_Components/007_MXGP21_close_ktm_red_bull_rider_in_a_lean.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "MXGP21",
+        "game_title": "MXGP 2021 – The Official Motocross Videogame",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1610470/ss_9565dc96eaa41781d27f32108d6053476327b8a1.1920x1080.jpg?t=1725035312",
+        "source_page": "https://store.steampowered.com/app/1610470/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "dae9aea748c0325b0c9dc8b07141737dfd725d4cd6d9c8fe5c7d7a7bfb3295a4",
+        "visual_focus": "Close KTM/Red Bull rider in a lean; study high-detail livery, body posture, and tire contact.",
+        "original_candidate_id": "38"
+      },
+      "previousObservation": "The rider stays relatively upright as the bike leans, with the inside boot ahead of the peg and elbows spread.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "bike_visuals",
+        "status": "retained",
+        "method": "labeled-contact-sheet",
+        "observation": "Leaned rider follows a dark worked line with distinct earth clods. Retain the existing dab/lean behavior and roost response.",
+        "featureKeys": ["rider_ik", "soil", "roost"],
+        "implementationFiles": [
+          "src/rendering/rider.ts",
+          "src/rendering/offroad/roost.ts",
+          "src/rendering/offroad/terrain-view.ts"
+        ]
+      }
+    },
+    {
+      "number": 8,
+      "id": "008",
+      "file": "01_Bikes_and_Components/008_MXGP21_bike_and_rider_in_grass_and_rock_terrain.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "MXGP21",
+        "game_title": "MXGP 2021 – The Official Motocross Videogame",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1610470/ss_05afc02d211b297e11a025f7cbfc3a3b5d6c9807.1920x1080.jpg?t=1725035312",
+        "source_page": "https://store.steampowered.com/app/1610470/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "483169dfa8001470b09cbce37dae4a4dafed1579ff5533fb875ca22d0dcd1139",
+        "visual_focus": "Bike and rider in grass and rock terrain; study off-track grounding and front three-quarter proportions.",
+        "original_candidate_id": "41"
+      },
+      "previousObservation": "Front trail angle shows a narrow radiator stack, visible hoses and grime on the lower fork guards and boots.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "bike_visuals",
+        "status": "context",
+        "method": "labeled-contact-sheet",
+        "observation": "Rock/grass free-riding scene provides environmental context; this mechanical pass does not add that venue.",
+        "featureKeys": ["environment_context"],
+        "implementationFiles": []
+      }
+    },
+    {
+      "number": 9,
+      "id": "009",
+      "file": "01_Bikes_and_Components/009_SX5_red_bike_in_a_clean_side_jump.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX5",
+        "game_title": "Monster Energy Supercross – The Official Videogame 5",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1610460/ss_16ed7d10544250159c2c4e90d527483d9054995d.1920x1080.jpg?t=1744270609",
+        "source_page": "https://store.steampowered.com/app/1610460/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "230f0d3a3852c94c3365034bc2a5aed7e587a95857011a6a182677cb90c558a2",
+        "visual_focus": "Red bike in a clean side jump; study frame, swingarm, spokes, suspension, and rider-to-bike contact.",
+        "original_candidate_id": "47"
+      },
+      "previousObservation": "The clean jump profile reveals gaps around the silver frame, the round clutch cover, separate rocker cover and a light rear subframe.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "bike_visuals",
+        "status": "new",
+        "method": "labeled-contact-sheet",
+        "observation": "Airborne side silhouette retains clear wheel-to-frame gaps. The new two-point shock must remain seated as the fork and rear arm extend.",
+        "featureKeys": ["mx_two_anchor_shock"],
+        "implementationFiles": [
+          "src/rendering/offroad/motocross-mechanics.ts",
+          "src/rendering/offroad/dirt-bike-model.ts"
+        ]
+      }
+    },
+    {
+      "number": 10,
+      "id": "010",
+      "file": "01_Bikes_and_Components/010_SX5_blue_bike_from_rear_three_quarter_in_the_air.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX5",
+        "game_title": "Monster Energy Supercross – The Official Videogame 5",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1610460/ss_3502dfaba8c4da74acb92394331a2a67601c7262.1920x1080.jpg?t=1744270609",
+        "source_page": "https://store.steampowered.com/app/1610460/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "164ee383a58fc16a111ba59d6ac27d6aa0fb218062e21967dd0e028fb2577167",
+        "visual_focus": "Blue bike from rear three-quarter in the air; study exhaust, rear suspension, fender, and wheel geometry.",
+        "original_candidate_id": "48"
+      },
+      "previousObservation": "Rear three-quarter airborne view shows a narrow seat and rear fender, exposed chain drive and readable rider number against the kit.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "bike_visuals",
+        "status": "retained",
+        "method": "labeled-contact-sheet",
+        "observation": "Rear-quarter airborne view shows sprocket/chain and low silencer silhouette; retain the existing wheel-driven chain and vehicle profile.",
+        "featureKeys": ["chain_drive", "bike_identity"],
+        "implementationFiles": [
+          "src/rendering/offroad/dirt-bike-model.ts",
+          "src/rendering/offroad/motocross-detail.ts",
+          "src/rendering/offroad/motocross-chain-drive.ts"
+        ]
+      }
+    },
+    {
+      "number": 11,
+      "id": "011",
+      "file": "01_Bikes_and_Components/011_SX5_white_and_blue_bike_in_side_jump.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX5",
+        "game_title": "Monster Energy Supercross – The Official Videogame 5",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1610460/ss_e018b496dd381c681c398a3b0679fcbbb0e090c4.1920x1080.jpg?t=1744270609",
+        "source_page": "https://store.steampowered.com/app/1610460/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "daf49bcd555218aca8498c6bf04b329e6ad221b2e9b860a1e65001cbefd75126",
+        "visual_focus": "White-and-blue bike in side jump; study color blocking and readable mechanical layers.",
+        "original_candidate_id": "52"
+      },
+      "previousObservation": "The bright side view contrasts metallic hubs/spokes with moulded shrouds and the dark skid plate; mud is concentrated below the rider waist.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "bike_visuals",
+        "status": "new",
+        "method": "full-original-and-contact-sheet",
+        "observation": "Original exposes the under-seat coil, upper support and mechanical lower assembly; used for a visible attached damper, sliding shaft and constant-diameter spring. Authoring uses a direct mount, not copied factory linkage dimensions.",
+        "featureKeys": ["mx_two_anchor_shock"],
+        "implementationFiles": [
+          "src/rendering/offroad/motocross-mechanics.ts",
+          "src/rendering/offroad/dirt-bike-model.ts"
+        ]
+      }
+    },
+    {
+      "number": 12,
+      "id": "012",
+      "file": "01_Bikes_and_Components/012_SX4_green_factory_bike_in_a_lineup.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX4",
+        "game_title": "Monster Energy Supercross – The Official Videogame 4",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1304340/ss_fa449a50b8f9aa53ca8ca9adfc1483962345bd59.1920x1080.jpg?t=1728477753",
+        "source_page": "https://store.steampowered.com/app/1304340/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "524de14d06732742dd84fdf56f29e389f9bc6485c9bdc01298ba8d3f9be06c07",
+        "visual_focus": "Green factory bike in a lineup; study side model detail, decals, tires, and stadium material response.",
+        "original_candidate_id": "56"
+      },
+      "previousObservation": "The lineup view shows crisp white number fields, an open silver frame, close-spaced tyre lugs and a visibly linked gold-toned chain.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "bike_visuals",
+        "status": "new",
+        "method": "full-original-and-contact-sheet",
+        "observation": "Front brake at side profile has separate casting lobes, small carrier and a routed hose. The disc remains visible around the caliper; build real jaw clearance.",
+        "featureKeys": ["mx_brake_hardware", "mx_flexible_brake_hose"],
+        "implementationFiles": [
+          "src/rendering/offroad/motocross-mechanics.ts",
+          "src/rendering/offroad/dirt-bike-model.ts"
+        ]
+      }
+    },
+    {
+      "number": 13,
+      "id": "013",
+      "file": "01_Bikes_and_Components/013_SX4_blue_bike_side_profile_at_speed.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX4",
+        "game_title": "Monster Energy Supercross – The Official Videogame 4",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1304340/ss_7b83c66994237e98206adce8d16001fe119b3e1c.1920x1080.jpg?t=1728477753",
+        "source_page": "https://store.steampowered.com/app/1304340/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "e68113dbdd01402234d8812843e8a87bad3df76083c00bdda4d73a95527a8160",
+        "visual_focus": "Blue bike side profile at speed; study body panels, fork compression, and tire deformation.",
+        "original_candidate_id": "61"
+      },
+      "previousObservation": "The speed profile shows a boot ankle hinge, layered shin shell and fasteners, while the silencer has a dark aperture.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "bike_visuals",
+        "status": "retained",
+        "method": "labeled-contact-sheet",
+        "observation": "Side view at speed has mud on low frame/tyres with clearer upper gear; retain existing per-material mud exposure.",
+        "featureKeys": ["mud_response"],
+        "implementationFiles": [
+          "src/rendering/offroad/motocross-gear.ts",
+          "src/rendering/offroad/dirt-bike-model.ts",
+          "src/rendering/offroad/mud.ts"
+        ]
+      }
+    },
+    {
+      "number": 14,
+      "id": "014",
+      "file": "01_Bikes_and_Components/014_SX4_red_bike_rear_three_quarter_in_a_berm.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX4",
+        "game_title": "Monster Energy Supercross – The Official Videogame 4",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1304340/ss_d3c49132f3d621d69c2e59e418a90dc2d9698695.1920x1080.jpg?t=1728477753",
+        "source_page": "https://store.steampowered.com/app/1304340/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "ab6155b6750991ae7aac2b38e74fd07796b3053993996202e16870cb9eadc75f",
+        "visual_focus": "Red bike rear three-quarter in a berm; study rear fender, chain side, rider hips, and soil contact.",
+        "original_candidate_id": "63"
+      },
+      "previousObservation": "The rear berm view clearly shows seat gripper strips, serrated open pegs, and the contrast between bright upper plastics and dirty lower parts.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "bike_visuals",
+        "status": "retained",
+        "method": "labeled-contact-sheet",
+        "observation": "Rear berm posture shows leaned chassis and seated rider; retain existing dab and body pose behavior.",
+        "featureKeys": ["rider_ik"],
+        "implementationFiles": [
+          "src/rendering/offroad/dirt-bike-model.ts",
+          "src/rendering/rider.ts"
+        ]
+      }
+    },
+    {
+      "number": 15,
+      "id": "015",
+      "file": "01_Bikes_and_Components/015_SX4_black_and_white_bike_in_side_jump.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX4",
+        "game_title": "Monster Energy Supercross – The Official Videogame 4",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1304340/ss_48e2c7655e5bc1c7104bac5cd92f6768e20f8e7a.1920x1080.jpg?t=1728477753",
+        "source_page": "https://store.steampowered.com/app/1304340/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "349dc7005932e1d83c9002f36b6749c1d5d20769561ace69d0a3a970c603985b",
+        "visual_focus": "Black-and-white bike in side jump; study wheel blur, rider tuck, and airborne readability.",
+        "original_candidate_id": "65"
+      },
+      "previousObservation": "The black-and-white airborne bike depends on broad number panels and clean wheel openings for readability from a distance.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "bike_visuals",
+        "status": "new",
+        "method": "labeled-contact-sheet",
+        "observation": "Broad airborne side silhouette makes unsupported suspension pieces noticeable; use it as an extended-wheel attachment check for the new shock.",
+        "featureKeys": ["mx_two_anchor_shock"],
+        "implementationFiles": [
+          "src/rendering/offroad/motocross-mechanics.ts",
+          "src/rendering/offroad/dirt-bike-model.ts"
+        ]
+      }
+    },
+    {
+      "number": 16,
+      "id": "016",
+      "file": "01_Bikes_and_Components/016_MXATV_front_facing_rider_accelerating_through_dirt.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "MXATV",
+        "game_title": "MX vs ATV Legends",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "playstation",
+        "source_url": "https://image.api.playstation.com/vulcan/ap/rnd/202109/0617/lfwkLQ8AQ8if9l3tJXUdjLcK.jpg",
+        "source_page": "https://www.playstation.com/en-us/games/mx-vs-atv-legends/",
+        "width": "2560",
+        "height": "1440",
+        "sha256": "590aa870e337f0662f4d9787f6aa336e61a3bcfab13ba624dfe1a7d87440e0d3",
+        "visual_focus": "Front-facing rider accelerating through dirt; study dirt spray, front suspension, and camera proximity.",
+        "original_candidate_id": "106"
+      },
+      "previousObservation": "The front-facing outdoor rider has a tall standing stance, elbows out and a clear central number field above the high fender.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "bike_visuals",
+        "status": "retained",
+        "method": "labeled-contact-sheet",
+        "observation": "Frontal outdoor acceleration has knobby contact, distinct rider shape and backlit soil; retain recent tread and roost work.",
+        "featureKeys": ["knobby_rubber", "roost"],
+        "implementationFiles": [
+          "src/rendering/rider.ts",
+          "src/rendering/offroad/dirt-bike-model.ts",
+          "src/rendering/offroad/motocross-detail.ts",
+          "src/rendering/offroad/roost.ts"
+        ]
+      }
+    },
+    {
+      "number": 17,
+      "id": "017",
+      "file": "01_Bikes_and_Components/017_SX25_rider_and_red_bike_posed_by_finish_architecture.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX25",
+        "game_title": "Monster Energy Supercross 25 – The Official Video Game",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "playstation",
+        "source_url": "https://image.api.playstation.com/vulcan/ap/rnd/202502/1409/067d950183f998eae94d0a13c29ca458d3de0956033881d2.jpg",
+        "source_page": "https://www.playstation.com/en-cz/games/monster-energy-supercross-25-the-official-video-game/",
+        "width": "2560",
+        "height": "1440",
+        "sha256": "95d7b1d0508ebc85794d83aa5bda7108f2bb6a86d12e3bfdfa9844b014831565",
+        "visual_focus": "Rider and red bike posed by finish architecture; study showroom-like presentation and scale cues.",
+        "original_candidate_id": "135"
+      },
+      "previousObservation": "The posed front-three-quarter image exposes a long fork, a compact engine and separate wing-like radiator plastics.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "bike_visuals",
+        "status": "retained",
+        "method": "labeled-contact-sheet",
+        "observation": "Three-quarter stadium action retains bike proportions and separate fork legs; no new venue decoration is needed for mechanical fidelity.",
+        "featureKeys": ["bike_identity"],
+        "implementationFiles": ["src/rendering/offroad/dirt-bike-model.ts"]
+      }
+    },
+    {
+      "number": 18,
+      "id": "018",
+      "file": "01_Bikes_and_Components/018_SX25_blue_bike_and_rider_in_clean_side_profile.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX25",
+        "game_title": "Monster Energy Supercross 25 – The Official Video Game",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "playstation",
+        "source_url": "https://image.api.playstation.com/vulcan/ap/rnd/202503/1310/dae6d5d13181e418c27bc42d09a579e386dccc4e85767b23.jpg",
+        "source_page": "https://www.playstation.com/en-cz/games/monster-energy-supercross-25-the-official-video-game/",
+        "width": "2560",
+        "height": "1440",
+        "sha256": "becd44032398bf9f45979e73a487004340512d86e995011e49383ea2296bf5d7",
+        "visual_focus": "Blue bike and rider in clean side profile; study proportions, livery, and material detail.",
+        "original_candidate_id": "142"
+      },
+      "previousObservation": "The blue bike profile exposes the radiator core and contrasts a bright lower boot with dark riding pants.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "bike_visuals",
+        "status": "retained",
+        "method": "labeled-contact-sheet",
+        "observation": "Side-profile parked/turning bike shows compact mechanical grouping below plastics; preserve existing tank, seat and radiator shroud silhouette.",
+        "featureKeys": ["moulded_plastics", "bike_identity"],
+        "implementationFiles": [
+          "src/rendering/offroad/dirt-bike-model.ts",
+          "src/rendering/rider.ts",
+          "src/rendering/offroad/motocross-gear.ts",
+          "src/rendering/offroad/motocross-detail.ts"
+        ]
+      }
+    },
+    {
+      "number": 19,
+      "id": "019",
+      "file": "02_Riders_and_Gear/019_SX25_close_stadium_lean_on_a_blue_bike.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX25",
+        "game_title": "Monster Energy Supercross 25 – The Official Video Game",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2581370/ss_881300289d30dd9158ae08c82b8dac821c356c07.1920x1080.jpg?t=1790000333",
+        "source_page": "https://store.steampowered.com/app/2581370/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "fa55ae6a15cb8ffcef52983472e92f25e2381c7640a76ee370995e3842c81a71",
+        "visual_focus": "Close stadium lean on a blue bike; study helmet, jersey folds, gloves, boots, and body weight.",
+        "original_candidate_id": "4"
+      },
+      "previousObservation": "The close head-on lean shows the rider retaining a controlled torso and outward elbow stance above visible radiator fins.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "bike_visuals",
+        "status": "retained",
+        "method": "labeled-contact-sheet",
+        "observation": "Frontal stadium lean is a clear gear/front-wheel silhouette check; retain current goggle opening, long fork and knobbies.",
+        "featureKeys": ["helmet", "knobby_rubber"],
+        "implementationFiles": [
+          "src/rendering/rider.ts",
+          "src/rendering/offroad/dirt-bike-model.ts",
+          "src/rendering/offroad/motocross-gear.ts",
+          "src/rendering/offroad/motocross-detail.ts"
+        ]
+      }
+    },
+    {
+      "number": 20,
+      "id": "020",
+      "file": "02_Riders_and_Gear/020_SX6_two_riders_staged_at_the_gate.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX6",
+        "game_title": "Monster Energy Supercross – The Official Videogame 6",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2058750/ss_373094f4720c77837e69a46b7651084e8606197c.1920x1080.jpg?t=1744270559",
+        "source_page": "https://store.steampowered.com/app/2058750/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "7618128795b1fc5a030925a20b70c2956bb606d065b4203b5fc8bf1d21a5d1c5",
+        "visual_focus": "Two riders staged at the gate; study full gear sets, pose contrast, and pre-race presentation.",
+        "original_candidate_id": "24"
+      },
+      "previousObservation": "Gate staging presents nearly horizontal upper arms, curved bars and padded crossbars, distinct goggles, and bold individual front numbers.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "bike_visuals",
+        "status": "retained",
+        "method": "labeled-contact-sheet",
+        "observation": "Gate close-up: number boards, shoulder width and handlebar contact distinguish riders; retain existing livery and contact-preserving rig.",
+        "featureKeys": ["rider_ik", "bike_identity"],
+        "implementationFiles": [
+          "src/rendering/rider.ts",
+          "src/rendering/offroad/dirt-bike-model.ts",
+          "src/rendering/offroad/motocross-gear.ts",
+          "src/rendering/offroad/motocross-detail.ts"
+        ]
+      }
+    },
+    {
+      "number": 21,
+      "id": "021",
+      "file": "02_Riders_and_Gear/021_SX6_two_riders_side_by_side.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX6",
+        "game_title": "Monster Energy Supercross – The Official Videogame 6",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2058750/ss_1cf966c093fc197cc0a8519e9402e6ca0bf02989.1920x1080.jpg?t=1744270559",
+        "source_page": "https://store.steampowered.com/app/2058750/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "5a197bfe0b911317ce8ebdca82a481dd9d3dd629ffe5be7d51b102aea6f49300",
+        "visual_focus": "Two riders side by side; study comparative bike geometry, gear palettes, and clean silhouette separation.",
+        "original_candidate_id": "28"
+      },
+      "previousObservation": "Side-by-side bikes remain distinguishable by plastics, number contrast, rim finish and folded fabric while sharing the same motocross proportions.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "bike_visuals",
+        "status": "retained",
+        "method": "labeled-contact-sheet",
+        "observation": "Two-rider side battle emphasizes individual clearance around bikes; new hardware remains inside existing bike envelope.",
+        "featureKeys": ["bike_identity"],
+        "implementationFiles": [
+          "src/rendering/offroad/dirt-bike-model.ts",
+          "src/rendering/offroad/motocross-detail.ts",
+          "src/rendering/offroad/motocross-gear.ts"
+        ]
+      }
+    },
+    {
+      "number": 22,
+      "id": "022",
+      "file": "02_Riders_and_Gear/022_SX6_two_rider_corner_battle.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX6",
+        "game_title": "Monster Energy Supercross – The Official Videogame 6",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2058750/ss_b3671c39b58905cd5e934b0d2356097b6ac46e7a.1920x1080.jpg?t=1744270559",
+        "source_page": "https://store.steampowered.com/app/2058750/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "b90bcbe2455331d7a36aaf2cdd6c95d790680a0a24b35d4b12d4195eeaa4acd4",
+        "visual_focus": "Two-rider corner battle; study lean angles, overlap, and near-contact animation.",
+        "original_candidate_id": "30"
+      },
+      "previousObservation": "The overhead corner battle shows the inside leg extended forward, the outside leg held to the bike and the helmet looking into the turn.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "bike_visuals",
+        "status": "retained",
+        "method": "labeled-contact-sheet",
+        "observation": "Deep turn shows extended inside legs and low bike lean; retain existing rider dab animation and contacts.",
+        "featureKeys": ["rider_ik"],
+        "implementationFiles": ["src/rendering/rider.ts"]
+      }
+    },
+    {
+      "number": 23,
+      "id": "023",
+      "file": "02_Riders_and_Gear/023_MXGP21_foreground_rider_with_pursuing_pack.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "MXGP21",
+        "game_title": "MXGP 2021 – The Official Motocross Videogame",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1610470/ss_743aaab5ecb6e6690bd469dc8133410b23fe535e.1920x1080.jpg?t=1725035312",
+        "source_page": "https://store.steampowered.com/app/1610470/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "53992978cadc7bce2e001fc50fb0e17d7f97f409c0e80138e4c5e6181be532b4",
+        "visual_focus": "Foreground rider with pursuing pack; study depth of field, focal hierarchy, and rider scale.",
+        "original_candidate_id": "35"
+      },
+      "previousObservation": "The foreground helmet has a pronounced vented chin structure and separate goggle surround; the frame and peg remain exposed below.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "bike_visuals",
+        "status": "retained",
+        "method": "labeled-contact-sheet",
+        "observation": "Close foreground racer with pursuing pack shows protected boots and dust layering; retain recent equipment/mud separation.",
+        "featureKeys": ["rider_gear", "roost"],
+        "implementationFiles": [
+          "src/rendering/offroad/motocross-gear.ts",
+          "src/rendering/offroad/dirt-bike-model.ts",
+          "src/rendering/offroad/mud.ts",
+          "src/rendering/offroad/roost.ts"
+        ]
+      }
+    },
+    {
+      "number": 24,
+      "id": "024",
+      "file": "02_Riders_and_Gear/024_MXGP21_close_red_rider_carving_a_turn.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "MXGP21",
+        "game_title": "MXGP 2021 – The Official Motocross Videogame",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1610470/ss_5447de98bc04b19215d111355e771df65d93c5c4.1920x1080.jpg?t=1725035312",
+        "source_page": "https://store.steampowered.com/app/1610470/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "61b17c39e833b3a15aae316491022ec90acd51e6d6552fe4aa46bddb25306e30",
+        "visual_focus": "Close red rider carving a turn; study body counterbalance, elbows, boot position, and roost.",
+        "original_candidate_id": "36"
+      },
+      "previousObservation": "The turn close-up shows a bike leaned further than the torso, an outside arm lifted and the inside boot close to the soil.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "bike_visuals",
+        "status": "retained",
+        "method": "labeled-contact-sheet",
+        "observation": "Deep outdoor turn shows soil clods and number-board readability; preserve existing dynamic mud and roost.",
+        "featureKeys": ["mud_response", "roost"],
+        "implementationFiles": [
+          "src/rendering/offroad/mud.ts",
+          "src/rendering/offroad/roost.ts",
+          "src/rendering/offroad/motocross-detail.ts",
+          "src/rendering/offroad/dirt-bike-model.ts"
+        ]
+      }
+    },
+    {
+      "number": 25,
+      "id": "025",
+      "file": "02_Riders_and_Gear/025_MXGP21_rider_on_a_rocky_green_trail.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "MXGP21",
+        "game_title": "MXGP 2021 – The Official Motocross Videogame",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1610470/ss_0c8d27d229fc56adef6a43e6cfedb4ee3c047b26.1920x1080.jpg?t=1725035312",
+        "source_page": "https://store.steampowered.com/app/1610470/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "913bd4b5ec6c6d70eddb834a59ff549d69ff89eef14560395171e34288ba075e",
+        "visual_focus": "Rider on a rocky green trail; study natural terrain blending, foliage, and trail readability.",
+        "original_candidate_id": "40"
+      },
+      "previousObservation": "The trail profile shows relaxed upright shoulders, separated jersey/pants, dirty tall boots and a long front fork over an open wheel.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "bike_visuals",
+        "status": "context",
+        "method": "labeled-contact-sheet",
+        "observation": "Slow rocky trail scene provides environment context; no rocky venue or travel mode is authored in this pass.",
+        "featureKeys": ["environment_context"],
+        "implementationFiles": []
+      }
+    },
+    {
+      "number": 26,
+      "id": "026",
+      "file": "02_Riders_and_Gear/026_SX5_two_riders_airborne_from_rear_three_quarter_view.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX5",
+        "game_title": "Monster Energy Supercross – The Official Videogame 5",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1610460/ss_be88467e48ab324722a02139e750fa2701005a19.1920x1080.jpg?t=1744270609",
+        "source_page": "https://store.steampowered.com/app/1610460/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "3ead2c352c7cd1fafb743d23b2a71174e076a8d0e936c4a9d545b23960b41925",
+        "visual_focus": "Two riders airborne from rear three-quarter view; study gear backs, wheel alignment, and jump timing.",
+        "original_candidate_id": "45"
+      },
+      "previousObservation": "The two airborne rear riders show clear boot calf/sole forms, individual back numbers and heavy accumulated mud over lower equipment.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "bike_visuals",
+        "status": "new",
+        "method": "labeled-contact-sheet",
+        "observation": "Rear-quarter paired flight exposes rear hubs and frame/arm separation; rear brake must stay axle-mounted while the wheels spin and the shock tracks its two anchors.",
+        "featureKeys": ["mx_brake_hardware", "mx_two_anchor_shock"],
+        "implementationFiles": [
+          "src/rendering/offroad/motocross-mechanics.ts",
+          "src/rendering/offroad/dirt-bike-model.ts"
+        ]
+      }
+    },
+    {
+      "number": 27,
+      "id": "027",
+      "file": "02_Riders_and_Gear/027_SX5_two_riders_crossing_lines_in_a_turn.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX5",
+        "game_title": "Monster Energy Supercross – The Official Videogame 5",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1610460/ss_4f72c75fc1f23edd211d8cf0f98f16e4c6174810.1920x1080.jpg?t=1744270609",
+        "source_page": "https://store.steampowered.com/app/1610460/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "27a714056a3635448d8df3ba8193c1afc4e1f2bba696e6d5d85376dc8bc1175b",
+        "visual_focus": "Two riders crossing lines in a turn; study interaction animation and collision-safe composition.",
+        "original_candidate_id": "50"
+      },
+      "previousObservation": "The rear corner profile makes boot soles, roller-chain links, sprocket holes and the underside of the rear fender visible.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "bike_visuals",
+        "status": "new",
+        "method": "full-original-and-contact-sheet",
+        "observation": "Full original clearly resolves front caliper lobes, axle carrier, rotor gap and fork hose; principal detailed reference for the new brake geometry. Chain, boots and bodywork are retained.",
+        "featureKeys": ["mx_brake_hardware", "mx_flexible_brake_hose"],
+        "implementationFiles": [
+          "src/rendering/offroad/motocross-mechanics.ts",
+          "src/rendering/offroad/dirt-bike-model.ts"
+        ]
+      }
+    },
+    {
+      "number": 28,
+      "id": "028",
+      "file": "02_Riders_and_Gear/028_SX5_three_riders_charging_toward_camera.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX5",
+        "game_title": "Monster Energy Supercross – The Official Videogame 5",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1610460/ss_3b83a6e9c19dd8d655593399c6a7a15cdc2ef820.1920x1080.jpg?t=1744270609",
+        "source_page": "https://store.steampowered.com/app/1610460/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "a21627530b14e4f540baf9893d35e8e8853002cef591b54713774e4196702f06",
+        "visual_focus": "Three riders charging toward camera; study frontal silhouettes, headlight-free visibility, and perceived speed.",
+        "original_candidate_id": "51"
+      },
+      "previousObservation": "The charging pack is readable through big front numbers, strong goggle openings and narrow tyres with visible centre/shoulder blocks.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "bike_visuals",
+        "status": "retained",
+        "method": "labeled-contact-sheet",
+        "observation": "Charging frontal riders preserve distinct silhouettes against audience and lamps; retain existing crowds and rider equipment.",
+        "featureKeys": ["rider_gear", "stadium_crowd"],
+        "implementationFiles": [
+          "src/rendering/offroad/motocross-detail.ts",
+          "src/rendering/offroad/motocross-gear.ts",
+          "e2e/42-motocross-bike.spec.ts",
+          "src/rendering/offroad/stadium.ts",
+          "src/rendering/crowd.ts"
+        ]
+      }
+    },
+    {
+      "number": 29,
+      "id": "029",
+      "file": "02_Riders_and_Gear/029_MXATV_purple_and_green_rider_leaning_through_a_berm.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "MXATV",
+        "game_title": "MX vs ATV Legends",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "playstation",
+        "source_url": "https://image.api.playstation.com/vulcan/ap/rnd/202212/1213/7sfvabki8NrpBqh1i0S4jUMR.jpg",
+        "source_page": "https://www.playstation.com/en-us/games/mx-vs-atv-legends/",
+        "width": "2560",
+        "height": "1440",
+        "sha256": "7b9087376195c295045dec564a1483cd6ab1e418150fbf5899f55cb180e522a5",
+        "visual_focus": "Purple-and-green rider leaning through a berm; study posture, tire bite, and close camera placement.",
+        "original_candidate_id": "124"
+      },
+      "previousObservation": "The purple/green berm rider has a reflective shaped lens, a clear inside-foot extension and angled shoulder tread engaging the bank.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "bike_visuals",
+        "status": "retained",
+        "method": "labeled-contact-sheet",
+        "observation": "Outdoor berm leans the whole bike over visible ruts; existing lean/soil response remains the control reference.",
+        "featureKeys": ["rider_ik", "soil"],
+        "implementationFiles": [
+          "src/rendering/offroad/motocross-gear.ts",
+          "src/rendering/rider.ts",
+          "src/rendering/offroad/motocross-detail.ts",
+          "src/rendering/offroad/terrain-view.ts",
+          "src/rendering/offroad/mx-soil-detail.ts"
+        ]
+      }
+    },
+    {
+      "number": 30,
+      "id": "030",
+      "file": "02_Riders_and_Gear/030_SX25_two_red_riders_circulating_on_open_stadium_dirt.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX25",
+        "game_title": "Monster Energy Supercross 25 – The Official Video Game",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "playstation",
+        "source_url": "https://image.api.playstation.com/vulcan/ap/rnd/202502/1409/48107b4d720dd6907486c355d563414a0930f41481ee558a.jpg",
+        "source_page": "https://www.playstation.com/en-cz/games/monster-energy-supercross-25-the-official-video-game/",
+        "width": "2560",
+        "height": "1440",
+        "sha256": "d5851eaec21576d5856bf9be89e84c1824c4da638ba1ba2ba0465b3ddb413982",
+        "visual_focus": "Two red riders circulating on open stadium dirt; study neutral gameplay spacing and course surface.",
+        "original_candidate_id": "138"
+      },
+      "previousObservation": "Two red riders share colour yet remain identifiable by numbers; the image also reveals heat-coloured exhaust bends and exposed cast engine faces.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "bike_visuals",
+        "status": "context",
+        "method": "labeled-contact-sheet",
+        "observation": "Open stadium and launch architecture provide context; this pass adds no new course or architecture.",
+        "featureKeys": ["environment_context"],
+        "implementationFiles": []
+      }
+    },
+    {
+      "number": 31,
+      "id": "031",
+      "file": "02_Riders_and_Gear/031_SX25_whip_trick_over_a_stadium_jump.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX25",
+        "game_title": "Monster Energy Supercross 25 – The Official Video Game",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "playstation",
+        "source_url": "https://image.api.playstation.com/vulcan/ap/rnd/202502/1910/cb17d38b1e53b947d1430d15b4cffb05ff037a770e2eb1a2.jpg",
+        "source_page": "https://www.playstation.com/en-cz/games/monster-energy-supercross-25-the-official-video-game/",
+        "width": "2560",
+        "height": "1440",
+        "sha256": "74a01bcdd4a35071acc665472466090b41c1b164a489e5f9b86035c090877f7e",
+        "visual_focus": "Whip trick over a stadium jump; study freestyle pose, rotational silhouette, and camera timing.",
+        "original_candidate_id": "141"
+      },
+      "previousObservation": "The sideways whip exposes the full bike underside: skid plate, peg supports, chain drive, spoke structure and compressed rider posture.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "bike_visuals",
+        "status": "new",
+        "method": "full-original-and-contact-sheet",
+        "observation": "Full original whip view exposes underside/frame/mechanical relationships; the new suspension must remain attached under combined frame pitch, arm motion and replayed whip orientation.",
+        "featureKeys": ["mx_two_anchor_shock"],
+        "implementationFiles": [
+          "src/rendering/offroad/motocross-mechanics.ts",
+          "src/rendering/offroad/dirt-bike-model.ts"
+        ]
+      }
+    },
+    {
+      "number": 32,
+      "id": "032",
+      "file": "02_Riders_and_Gear/032_SX25_red_rider_airborne_in_a_clean_side_view.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX25",
+        "game_title": "Monster Energy Supercross 25 – The Official Video Game",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "playstation",
+        "source_url": "https://image.api.playstation.com/vulcan/ap/rnd/202503/1310/084fe6cccd2e599facb195fe0c1a162536c61a5843fd0b4e.jpg",
+        "source_page": "https://www.playstation.com/en-cz/games/monster-energy-supercross-25-the-official-video-game/",
+        "width": "2560",
+        "height": "1440",
+        "sha256": "1c4cb7de64b7e776cb1259f7289e99e59c4acecc973e189d303d9cc6a084436f",
+        "visual_focus": "Red rider airborne in a clean side view; study body posture, suspension extension, and lighting.",
+        "original_candidate_id": "143"
+      },
+      "previousObservation": "The clean side jump shows both boots anchored to the pegs with flexed knees, hips lifted clear of the seat, elbows raised and a compact forward torso.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "bike_visuals",
+        "status": "new",
+        "method": "labeled-contact-sheet",
+        "observation": "Clean side jump is a check that the damper remains between its mounts at extended suspension without new floating parts.",
+        "featureKeys": ["mx_two_anchor_shock"],
+        "implementationFiles": [
+          "src/rendering/offroad/motocross-mechanics.ts",
+          "src/rendering/offroad/dirt-bike-model.ts"
+        ]
+      }
+    },
+    {
+      "number": 33,
+      "id": "033",
+      "file": "03_Tracks_Terrain_and_Environments/033_MXATV_mountain_trail_riding_scene.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "MXATV",
+        "game_title": "MX vs ATV Legends",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1205970/61590430d0a31bc6bbe4fa0c56b01ec19688947d/ss_61590430d0a31bc6bbe4fa0c56b01ec19688947d.1920x1080.jpg?t=1791298700",
+        "source_page": "https://store.steampowered.com/app/1205970/",
+        "width": "1918",
+        "height": "1080",
+        "sha256": "a6aa8474fbcc176cddad5a5957f4daa2b1b15bdf5f6d84d5a4955cbdc41442d4",
+        "visual_focus": "Mountain trail riding scene; study open-world scale, rock placement, vegetation, and route guidance.",
+        "original_candidate_id": "13"
+      },
+      "previousObservation": "An ATV passes a rocky mountain trail. Stratified gray mountain faces, mixed-height conifers, scrub fringes and fine granulated soil create scale from foreground to distant ridges.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "terrain_realism",
+        "status": "context",
+        "method": "labeled-contact-sheet",
+        "observation": "ATV on a narrow forest shelf; coarse earth is visually distinct from exposed rock and grass.",
+        "application": "Outdoor scale and mineral hierarchy context; no ATV or mountain trail addition.",
+        "implementationFiles": []
+      }
+    },
+    {
+      "number": 34,
+      "id": "034",
+      "file": "03_Tracks_Terrain_and_Environments/034_MXATV_sunset_beach_desert_utv_scene.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "MXATV",
+        "game_title": "MX vs ATV Legends",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1205970/e784648af01df6e0059abc357bc709d4b6d847d4/ss_e784648af01df6e0059abc357bc709d4b6d847d4.1920x1080.jpg?t=1791298700",
+        "source_page": "https://store.steampowered.com/app/1205970/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "7e2655f81bc1cf8d24c06ba0fc26f4354b83c79db6f08d6d3081d788891bde68",
+        "visual_focus": "Sunset beach/desert UTV scene; study horizon design, warm light, vehicle grounding, and open-space composition.",
+        "original_candidate_id": "16"
+      },
+      "previousObservation": "A sunset UTV beach scene has long directional shadows, warm haze, strong sand ripples and a silhouetted pier.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "terrain_realism",
+        "status": "context",
+        "method": "labeled-contact-sheet",
+        "observation": "Low sun on fine beach sand produces a soft granular surface and long shadows.",
+        "application": "Sand-scale reference only; no beach, UTV, bridge or new lighting setup.",
+        "implementationFiles": []
+      }
+    },
+    {
+      "number": 35,
+      "id": "035",
+      "file": "03_Tracks_Terrain_and_Environments/035_MXATV_wide_professional_outdoor_motocross_circuit.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "MXATV",
+        "game_title": "MX vs ATV Legends",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1205970/ss_6c3ff80f768952c20bde14b2a57bdfb42b66f2a4.1920x1080.jpg?t=1791298700",
+        "source_page": "https://store.steampowered.com/app/1205970/",
+        "width": "1920",
+        "height": "1012",
+        "sha256": "edb2ca5332ae9e1216cc98726a2ec895ace5b9348a35c87568035f8948c5e854",
+        "visual_focus": "Wide professional outdoor motocross circuit; study spectator placement, elevation, banners, and racing line.",
+        "original_candidate_id": "21"
+      },
+      "previousObservation": "The outdoor race bowl has dark moist grooves in pale loose soil, grass islands, yellow stakes, cloth boundaries, canopies and separate clouds/chunks behind the pack.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "terrain_realism",
+        "status": "new",
+        "method": "labeled-contact-sheet",
+        "observation": "Banked dirt has rough loose fragments near the outside and a smoother darker ridden line.",
+        "application": "Material morphology preserves rough loam clods away from compacted tyre passages.",
+        "implementationFiles": [
+          "src/rendering/offroad/mx-soil-morphology.ts",
+          "src/rendering/offroad/terrain-view.ts"
+        ]
+      }
+    },
+    {
+      "number": 36,
+      "id": "036",
+      "file": "03_Tracks_Terrain_and_Environments/036_MXGP21_mxgp_pack_on_an_outdoor_circuit.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "MXGP21",
+        "game_title": "MXGP 2021 – The Official Motocross Videogame",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1610470/ss_99c91f133dc7ba068c8e027b876238cfc342994f.1920x1080.jpg?t=1725035312",
+        "source_page": "https://store.steampowered.com/app/1610470/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "cb494aaca3675c98ae97948d6db86b19393a118b0d8a6c5502a8dd7374c3f387",
+        "visual_focus": "MXGP pack on an outdoor circuit; study authentic course width, fencing, signage, and mass start flow.",
+        "original_candidate_id": "34"
+      },
+      "previousObservation": "A close pack crests rust-colored granular loam; bright grit, a yellow marker, blue paddock canopies and diffuse dusty haze are visible.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "terrain_realism",
+        "status": "retained",
+        "method": "labeled-contact-sheet",
+        "observation": "A close outdoor pack throws diffuse dirt into the air beside blue canopies.",
+        "application": "Retain the existing loaded-wheel dust/clod emission and event furnishing.",
+        "implementationFiles": [
+          "src/rendering/offroad/roost.ts",
+          "src/rendering/offroad/mx-course-dressing.ts",
+          "src/rendering/offroad/mx-trackside-furniture.ts"
+        ]
+      }
+    },
+    {
+      "number": 37,
+      "id": "037",
+      "file": "03_Tracks_Terrain_and_Environments/037_MXGP21_forested_mxgp_jump_section.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "MXGP21",
+        "game_title": "MXGP 2021 – The Official Motocross Videogame",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1610470/ss_358b0014b5cceb352ea6cb6b02e607e0c1993de5.1920x1080.jpg?t=1725035312",
+        "source_page": "https://store.steampowered.com/app/1610470/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "b799f58f31d7da67188f536e847e533ee86fc3de728072343cbd97925449be24",
+        "visual_focus": "Forested MXGP jump section; study elevation, sponsor placement, crowd tents, and distant route.",
+        "original_candidate_id": "43"
+      },
+      "previousObservation": "An airborne rider sits above deeply sculpted parallel jumps with lengthwise grooves, a raised bank, forest wall and perimeter spectator equipment.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "terrain_realism",
+        "status": "new",
+        "method": "labeled-contact-sheet",
+        "observation": "Forested turn and jump show darker compacted wheel lines beside rougher grey-brown shoulders.",
+        "application": "Local pore smoothing and restrained retained water follow existing wet/compaction fields.",
+        "implementationFiles": [
+          "src/rendering/offroad/mx-soil-morphology.ts",
+          "src/rendering/offroad/terrain-view.ts"
+        ]
+      }
+    },
+    {
+      "number": 38,
+      "id": "038",
+      "file": "03_Tracks_Terrain_and_Environments/038_SX5_wide_stadium_start_straight_under_a_main_event_scoreboard.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX5",
+        "game_title": "Monster Energy Supercross – The Official Videogame 5",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1610460/ss_40f037613ff48ed0e8a5fcf8e97e68ecf0c3b5da.1920x1080.jpg?t=1744270609",
+        "source_page": "https://store.steampowered.com/app/1610460/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "301ab1fe003c5f862a1dfab29ea9e99195cfcd15b42bfcbb5cbf822da3dd22c7",
+        "visual_focus": "Wide stadium start straight under a main-event scoreboard; study event scale and gate-to-first-turn design.",
+        "original_candidate_id": "46"
+      },
+      "previousObservation": "The full stadium start straight contains a wide bike pack, red soil, fans of rear-wheel debris, a main-event board and cool vertical light structure.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "terrain_realism",
+        "status": "retained",
+        "method": "labeled-contact-sheet",
+        "observation": "Rear grid view shows distinct riders against occupied seating and a scoreboard.",
+        "application": "Keep the existing eight-rider gate, number graphics and stadium depth.",
+        "implementationFiles": [
+          "src/rendering/offroad/start-gate.ts",
+          "src/rendering/offroad/motocross-detail.ts",
+          "src/rendering/rider.ts",
+          "src/rendering/offroad/stadium.ts"
+        ]
+      }
+    },
+    {
+      "number": 39,
+      "id": "039",
+      "file": "03_Tracks_Terrain_and_Environments/039_MXATV_tropical_open_world_valley_panorama.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "MXATV",
+        "game_title": "MX vs ATV Legends",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "official_site",
+        "source_url": "https://mxvsatvlegends.thqnordic.com/core/keyart/mxvsatvlegends-keyart.png",
+        "source_page": "https://mxvsatvlegends.thqnordic.com/",
+        "width": "2380",
+        "height": "1440",
+        "sha256": "907f25e2e46b7ae6a9a0569c9ac4d291a6781ba6d727e28166943560bbd6fb3a",
+        "visual_focus": "Tropical open-world valley panorama; study biomes, long-distance terrain, road/trail hierarchy, and color separation.",
+        "original_candidate_id": "70"
+      },
+      "previousObservation": "A high tropical-valley view layers coastal hills, palms, flower mottling and paths through grassy islands; jump gaps and nearby tyre trails remain legible.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "terrain_realism",
+        "status": "context",
+        "method": "labeled-contact-sheet",
+        "observation": "Tropical valley separates light dirt routes, saturated grass, distant mountains and coastline.",
+        "application": "Environmental material contrast context only; no tropical route added.",
+        "implementationFiles": []
+      }
+    },
+    {
+      "number": 40,
+      "id": "040",
+      "file": "03_Tracks_Terrain_and_Environments/040_MXATV_desert_canyon_trail.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "MXATV",
+        "game_title": "MX vs ATV Legends",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "official_site",
+        "source_url": "https://mxvsatvlegends.thqnordic.com/game-sites/mxvsatvlegends/dark-bg.jpg",
+        "source_page": "https://mxvsatvlegends.thqnordic.com/",
+        "width": "2400",
+        "height": "1400",
+        "sha256": "0c4e403cb46c52f6e9840e5b1a954f0603f55b3c6696414c3243d60b22fff769",
+        "visual_focus": "Desert canyon trail; study rock formations, route contrast, negative space, and distant scale.",
+        "original_candidate_id": "76"
+      },
+      "previousObservation": "The red desert trail has curved vehicle lines, scattered outer stones, sparse shrubs, layered canyon rock and a granular/soft mixed rear plume.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "terrain_realism",
+        "status": "new",
+        "method": "labeled-contact-sheet",
+        "observation": "Dry canyon trail shows shallow tracks with fine granular fill and scattered larger stones.",
+        "application": "Fine sand response stays rough and retains little water; canyon and trail layout remain context.",
+        "implementationFiles": [
+          "src/rendering/offroad/mx-soil-morphology.ts",
+          "src/rendering/offroad/terrain-view.ts"
+        ]
+      }
+    },
+    {
+      "number": 41,
+      "id": "041",
+      "file": "03_Tracks_Terrain_and_Environments/041_MXATV_motorcycle_on_a_rocky_forest_trail.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "MXATV",
+        "game_title": "MX vs ATV Legends",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "official_site",
+        "source_url": "https://mxvsatvlegends.thqnordic.com/game-sites/mxvsatvlegends/content/mxvsatv_screen_reflex.jpg",
+        "source_page": "https://mxvsatvlegends.thqnordic.com/",
+        "width": "1024",
+        "height": "576",
+        "sha256": "51cf4f666a3df273172b61d62978ad12dc521e237ddd950984407ffbb4aacaaa",
+        "visual_focus": "Motorcycle on a rocky forest trail; study erosion, stones, foliage breakup, and natural path design.",
+        "original_candidate_id": "81"
+      },
+      "previousObservation": "The wooded motorcycle scene shows deep cross bumps and ruts, bright yellow flexible stakes, large boulders and shrub edges in warm shadow.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "terrain_realism",
+        "status": "context",
+        "method": "labeled-contact-sheet",
+        "observation": "Rocky trail has boulders and coarse brown soil under a bank of vegetation.",
+        "application": "Keep existing shoulder rocks and vegetation; no rock-trials route or racing-line hazards.",
+        "implementationFiles": []
+      }
+    },
+    {
+      "number": 42,
+      "id": "042",
+      "file": "03_Tracks_Terrain_and_Environments/042_MXATV_wide_mountain_motocross_venue.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "MXATV",
+        "game_title": "MX vs ATV Legends",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "playstation",
+        "source_url": "https://image.api.playstation.com/vulcan/ap/rnd/202109/0617/FG3DDtcsaSWAMgCFGntCbZgw.jpg",
+        "source_page": "https://www.playstation.com/en-us/games/mx-vs-atv-legends/",
+        "width": "2560",
+        "height": "1440",
+        "sha256": "96d86a17d471e5a6b3c75d7dbd0dee1b0e1236328e857e40edc12ebab6923c52",
+        "visual_focus": "Wide mountain motocross venue; study elevation changes, spectator zones, and course legibility.",
+        "original_candidate_id": "105"
+      },
+      "previousObservation": "The wide mountain race park shows repeated yellow stakes, foreground whoops with tyre scoring, cloth boundaries, infield canopies and a long wooded ridge.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "terrain_realism",
+        "status": "retained",
+        "method": "labeled-contact-sheet",
+        "observation": "An elevated view reads repeated dirt passages, broad sunlit banks, grass and tree depth.",
+        "application": "Keep current groomed passes, course profiles and the mineral macro without enlarging surface relief.",
+        "implementationFiles": [
+          "src/rendering/offroad/mx-soil-detail.ts",
+          "src/rendering/offroad/terrain-view.ts",
+          "src/simulation/offroad/profile.ts",
+          "src/rendering/ground/soil-splat.ts"
+        ]
+      }
+    },
+    {
+      "number": 43,
+      "id": "043",
+      "file": "03_Tracks_Terrain_and_Environments/043_MXATV_high_stadium_overview.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "MXATV",
+        "game_title": "MX vs ATV Legends",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "playstation",
+        "source_url": "https://image.api.playstation.com/vulcan/ap/rnd/202109/0617/91eYvRfbyjvgnEAlJrxno1Xs.jpg",
+        "source_page": "https://www.playstation.com/en-us/games/mx-vs-atv-legends/",
+        "width": "2560",
+        "height": "1440",
+        "sha256": "858790859e6fbdc0c20841e3f4e905fd082b7bc922c29d50f901798312174214",
+        "visual_focus": "High stadium overview; study complete track layout, obstacle rhythm, safety zones, and sponsor placement.",
+        "original_candidate_id": "107"
+      },
+      "previousObservation": "A stadium overview shows dense tiered seating, continuous colored ribbons, roof lamps, padded course blocks and a reflective inner groove in a tight bowl.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "terrain_realism",
+        "status": "new",
+        "method": "original",
+        "observation": "Low inside bend contains bright wet hollows surrounded by dry raised aggregate; jump faces stay rougher.",
+        "application": "Slope-limited rut film and small angular fragment relief use the same material fractions as soil color.",
+        "implementationFiles": [
+          "src/rendering/offroad/mx-soil-morphology.ts",
+          "src/rendering/offroad/terrain-view.ts"
+        ]
+      }
+    },
+    {
+      "number": 44,
+      "id": "044",
+      "file": "03_Tracks_Terrain_and_Environments/044_MXATV_rear_rider_approaching_a_branded_start_arch_and_berm.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "MXATV",
+        "game_title": "MX vs ATV Legends",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "playstation",
+        "source_url": "https://image.api.playstation.com/vulcan/ap/rnd/202212/1213/8OCXyge0Lod0ksrdnvR5gP3C.jpg",
+        "source_page": "https://www.playstation.com/en-us/games/mx-vs-atv-legends/",
+        "width": "2560",
+        "height": "1440",
+        "sha256": "528121a11bc81102111d5d3be6a84f34cda1ba382111a82ee8ad80b9beed785a",
+        "visual_focus": "Rear rider approaching a branded start arch and berm; study route framing and environmental signage.",
+        "original_candidate_id": "113"
+      },
+      "previousObservation": "A rear motorcycle approaches a large supported sporting arch beside a raised berm; yellow markers and broken coarse soil provide scale and tyre grounding.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "terrain_realism",
+        "status": "new",
+        "method": "original",
+        "observation": "Close rear wheel passes a surface with discrete angular chips, shallow tire impressions and a darker berm wall.",
+        "application": "Add centimeter-scale clods/chips with rounded edges and cavity response, fading below pixel scale.",
+        "implementationFiles": [
+          "src/rendering/offroad/mx-soil-morphology.ts",
+          "src/rendering/offroad/terrain-view.ts"
+        ]
+      }
+    },
+    {
+      "number": 45,
+      "id": "045",
+      "file": "03_Tracks_Terrain_and_Environments/045_MXATV_aerial_freestyle_ramp_complex.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "MXATV",
+        "game_title": "MX vs ATV Legends",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "playstation",
+        "source_url": "https://image.api.playstation.com/vulcan/ap/rnd/202212/1213/5twYIIkMEZyjzF0TpKcceTwL.jpg",
+        "source_page": "https://www.playstation.com/en-us/games/mx-vs-atv-legends/",
+        "width": "2560",
+        "height": "1440",
+        "sha256": "ab6672315a0b84d3af6bab48a008ba8ccbcd52bc1bb3c5473f03edc92ca84d28",
+        "visual_focus": "Aerial freestyle-ramp complex; study ramp spacing, landing zones, circulation, and terrain integration.",
+        "original_candidate_id": "115"
+      },
+      "previousObservation": "An aerial freestyle compound exposes metal ramp framing, graded takeoff mounds, landing mats, a large curved berm and shrub islands.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "terrain_realism",
+        "status": "context",
+        "method": "labeled-contact-sheet",
+        "observation": "Freestyle ramps sit in a large dry terrain complex with smooth faces and off-route scrub.",
+        "application": "Shape and scale context only; no freestyle ramp park or additional collision surfaces.",
+        "implementationFiles": []
+      }
+    },
+    {
+      "number": 46,
+      "id": "046",
+      "file": "03_Tracks_Terrain_and_Environments/046_MXATV_aerial_sculpted_dirt_bowl_layout.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "MXATV",
+        "game_title": "MX vs ATV Legends",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "playstation",
+        "source_url": "https://image.api.playstation.com/vulcan/ap/rnd/202212/1213/q3IoVjMxMm7Lx3Oq7SAoH5he.jpg",
+        "source_page": "https://www.playstation.com/en-us/games/mx-vs-atv-legends/",
+        "width": "2560",
+        "height": "1440",
+        "sha256": "fe23df6a4698e72573a75b2f1420f7cc5c98292dbc1ec95457013ddd3058b44d",
+        "visual_focus": "Aerial sculpted dirt-bowl layout; study berm radii, jump sequencing, and readable course topology.",
+        "original_candidate_id": "116"
+      },
+      "previousObservation": "A dirt-bowl aerial view emphasizes continuous banks, sharp takeoff faces and long backslopes, repeated rollers, darker furrows and irregular planted islands.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "terrain_realism",
+        "status": "retained",
+        "method": "labeled-contact-sheet",
+        "observation": "Aerial dirt bowls and tabletops show broad shape controlling light, with darker tracks in low areas.",
+        "application": "Keep exact physical terrain and shadow receivers; new shading adds no displacement.",
+        "implementationFiles": [
+          "src/simulation/offroad/course-terrain.ts",
+          "src/simulation/offroad/profile.ts",
+          "src/rendering/offroad/terrain-view.ts",
+          "src/rendering/offroad/mx-terrain-shadow.ts"
+        ]
+      }
+    },
+    {
+      "number": 47,
+      "id": "047",
+      "file": "03_Tracks_Terrain_and_Environments/047_MXATV_forested_outdoor_track_landscape.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "MXATV",
+        "game_title": "MX vs ATV Legends",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "playstation",
+        "source_url": "https://image.api.playstation.com/vulcan/ap/rnd/202310/0212/62c6d26817f88c4a3352e028c416d1d80f1f0d01e666ab3b.jpg",
+        "source_page": "https://www.playstation.com/en-us/games/mx-vs-atv-legends/",
+        "width": "2560",
+        "height": "1440",
+        "sha256": "1fb46edf295ba0126fbf2bba3fbf3c8df14720d0eafcc5dfa3656607ffbb2ed2",
+        "visual_focus": "Forested outdoor track landscape; study vegetation density, sightlines, and soil-to-grass transitions.",
+        "original_candidate_id": "117"
+      },
+      "previousObservation": "The overcast forest race scene has varied pine silhouettes, dark/yellow safety blocks, thin stakes, subtle tyre scoring and irregular turf intrusions at the dirt edge.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "terrain_realism",
+        "status": "retained",
+        "method": "original",
+        "observation": "Prepared foreground earth has parallel broken rake grooves that disappear gradually into haze.",
+        "application": "Retain existing filtered groomed passes; new fragment detail also fades with derivative footprint.",
+        "implementationFiles": [
+          "src/rendering/offroad/mx-soil-detail.ts",
+          "src/rendering/offroad/mx-soil-morphology.ts"
+        ]
+      }
+    },
+    {
+      "number": 48,
+      "id": "048",
+      "file": "03_Tracks_Terrain_and_Environments/048_MXATV_open_roof_stadium_with_city_backdrop.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "MXATV",
+        "game_title": "MX vs ATV Legends",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "playstation",
+        "source_url": "https://image.api.playstation.com/vulcan/ap/rnd/202310/0212/6a3c182899e7ce2dd605af98a858bec2a61f12b9adc8a1c8.jpg",
+        "source_page": "https://www.playstation.com/en-us/games/mx-vs-atv-legends/",
+        "width": "2560",
+        "height": "1440",
+        "sha256": "7f5cdfd3ed4de7c0bd282a12b94cde62c231881515185c7b7d2bed32d161e4ca",
+        "visual_focus": "Open-roof stadium with city backdrop; study venue architecture, daylight balance, and full-course composition.",
+        "original_candidate_id": "118"
+      },
+      "previousObservation": "The stadium overview has deep open-web roof trusses, layered occupied stands, continuous ribbons, rhythm lanes bounded by blocks and a city beyond.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "terrain_realism",
+        "status": "context",
+        "method": "labeled-contact-sheet",
+        "observation": "Open stadium shows city buildings, many layered seats and a small dirt course.",
+        "application": "Venue scale context; no city skyline or new roof structure in terrain scope.",
+        "implementationFiles": []
+      }
+    },
+    {
+      "number": 49,
+      "id": "049",
+      "file": "03_Tracks_Terrain_and_Environments/049_MXATV_indoor_stadium_track_overview.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "MXATV",
+        "game_title": "MX vs ATV Legends",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "playstation",
+        "source_url": "https://image.api.playstation.com/vulcan/ap/rnd/202310/0212/afc7c7e4e27e047550a555a4ee822b7468d5a3094ffb50ec.jpg",
+        "source_page": "https://www.playstation.com/en-us/games/mx-vs-atv-legends/",
+        "width": "2560",
+        "height": "1440",
+        "sha256": "f4592caf82d2aa147911796aa63ad2eb5986c48a3645ae99760627138f0653e2",
+        "visual_focus": "Indoor stadium track overview; study artificial lighting, grandstand scale, and obstacle placement.",
+        "original_candidate_id": "119"
+      },
+      "previousObservation": "The enclosed arena has a luminous truss roof, hanging boards, multiple decks, strong rhythm lips and pale packed lengthwise lines against rough dark dirt.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "terrain_realism",
+        "status": "retained",
+        "method": "labeled-contact-sheet",
+        "observation": "Indoor floor has darker worked earth beneath well-lit roof and concourse layers.",
+        "application": "Preserve existing architecture, lighting and scanned earth macro while shading the same course mesh.",
+        "implementationFiles": [
+          "src/rendering/offroad/stadium.ts",
+          "src/rendering/venue-lighting.ts",
+          "src/rendering/studio/light-pools.ts",
+          "src/rendering/ground/soil-splat.ts",
+          "src/rendering/offroad/terrain-view.ts"
+        ]
+      }
+    },
+    {
+      "number": 50,
+      "id": "050",
+      "file": "03_Tracks_Terrain_and_Environments/050_MXATV_aerial_outdoor_winding_track.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "MXATV",
+        "game_title": "MX vs ATV Legends",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "playstation",
+        "source_url": "https://image.api.playstation.com/vulcan/ap/rnd/202412/0514/df7f3c434e14a0d299a0ea30bacebea83df51218372af30f.jpg",
+        "source_page": "https://www.playstation.com/en-us/games/mx-vs-atv-legends/",
+        "width": "2560",
+        "height": "1440",
+        "sha256": "52339bd040064ef6ee0e393ceb7fe6b2ac825e8db02e0cd2b9d81b9a6624e82d",
+        "visual_focus": "Aerial outdoor winding track; study lap topology, alternate lines, runoff, and surrounding land use.",
+        "original_candidate_id": "120"
+      },
+      "previousObservation": "An outdoor aerial view puts winding dirt lanes beside asphalt, with differently sized jumps, closely spaced grooves, grass spines and pale dry outskirts.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "terrain_realism",
+        "status": "new",
+        "method": "labeled-contact-sheet",
+        "observation": "Aerial winding course alternates pale loose earth, darker ridden lines and intact grass islands.",
+        "application": "Preserve material transitions and use fine granular sand response without applying clods to grass.",
+        "implementationFiles": [
+          "src/rendering/offroad/mx-soil-morphology.ts",
+          "src/rendering/offroad/terrain-view.ts"
+        ]
+      }
+    },
+    {
+      "number": 51,
+      "id": "051",
+      "file": "03_Tracks_Terrain_and_Environments/051_MXATV_atv_rider_on_a_forest_mountain_trail.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "MXATV",
+        "game_title": "MX vs ATV Legends",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "playstation",
+        "source_url": "https://image.api.playstation.com/vulcan/ap/rnd/202109/0617/vyHc2JHuXCX9v8ntLOy3oKex.jpg",
+        "source_page": "https://www.playstation.com/en-us/games/mx-vs-atv-legends/",
+        "width": "2560",
+        "height": "1440",
+        "sha256": "104d9a3f90fcfe65325e9e5bdb6594a5526590feb505ef7a1f4c22cbed939420",
+        "visual_focus": "ATV rider on a forest mountain trail; study trail width, berm placement, vegetation, and vehicle scale.",
+        "original_candidate_id": "104"
+      },
+      "previousObservation": "The head-on forest ATV image shows gray boulders, pale compact grit, a sunlit mountain backdrop and dark individual clods visible through transparent dust.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "terrain_realism",
+        "status": "context",
+        "method": "labeled-contact-sheet",
+        "observation": "ATV forest scene separates firm trail soil from rocky slopes and leafy shade.",
+        "application": "Material hierarchy context; no ATV or forest-trail feature added.",
+        "implementationFiles": []
+      }
+    },
+    {
+      "number": 52,
+      "id": "052",
+      "file": "03_Tracks_Terrain_and_Environments/052_MXATV_atv_race_on_a_crowded_outdoor_course.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "MXATV",
+        "game_title": "MX vs ATV Legends",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "official_site",
+        "source_url": "https://mxvsatvlegends.thqnordic.com/game-sites/mxvsatvlegends/content/feature-showcase-2.jpg",
+        "source_page": "https://mxvsatvlegends.thqnordic.com/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "a62d3e337455f0a597e24913df3e27c35f2e3425a0d55d622efdc64f9a700164",
+        "visual_focus": "ATV race on a crowded outdoor course; study broad vehicle lanes, spectator fencing, and trackside density.",
+        "original_candidate_id": "74"
+      },
+      "previousObservation": "An outdoor high berm has a dark damp rut, pale packed passing lines, cloth perimeter banners, canopy clusters and fine turf; clods sit above a wider cloud.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "terrain_realism",
+        "status": "retained",
+        "method": "labeled-contact-sheet",
+        "observation": "Outdoor ATV berm has dark rough earth, banners and spectators above the bank.",
+        "application": "Retain course banks and crowd/furniture placement; vehicle type remains context.",
+        "implementationFiles": [
+          "src/simulation/offroad/profile.ts",
+          "src/rendering/offroad/terrain-view.ts",
+          "src/rendering/offroad/mx-course-dressing.ts",
+          "src/rendering/circuit.ts"
+        ]
+      }
+    },
+    {
+      "number": 53,
+      "id": "053",
+      "file": "04_Gameplay_Cameras_and_Race_Composition/053_SX25_low_angle_stadium_finish_jump.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX25",
+        "game_title": "Monster Energy Supercross 25 – The Official Video Game",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2581370/ss_40195a1d7305d609580e6cf03f34af7b93dc59fc.1920x1080.jpg?t=1790000333",
+        "source_page": "https://store.steampowered.com/app/2581370/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "0da07cf1332830b218e9be7cb063a99483ec5de3a580ffefbe8570374d1b1f7f",
+        "visual_focus": "Low-angle stadium finish jump; study suspension extension, landing silhouette, finish-gate framing.",
+        "original_candidate_id": "1"
+      },
+      "previousObservation": "Low oblique stadium finish jump; bike strongly nose-up, standing rider, whole suspension and wheel silhouette readable against stands. Finish arch and landing lanes remain recognizable.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "terrain_realism",
+        "status": "retained",
+        "method": "labeled-contact-sheet",
+        "observation": "Low stadium finish view places an airborne rider against a truss and service wall.",
+        "application": "Retain exact jump silhouettes and existing event architecture; no surface geometry added.",
+        "implementationFiles": [
+          "src/simulation/offroad/profile.ts",
+          "src/rendering/offroad/terrain-view.ts",
+          "src/rendering/offroad/mx-course-dressing.ts",
+          "src/rendering/offroad/stadium.ts"
+        ]
+      }
+    },
+    {
+      "number": 54,
+      "id": "054",
+      "file": "04_Gameplay_Cameras_and_Race_Composition/054_SX25_dense_stadium_pack_at_takeoff.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX25",
+        "game_title": "Monster Energy Supercross 25 – The Official Video Game",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2581370/a98068a33c1ab65dd797c755a73ede76270769cd/ss_a98068a33c1ab65dd797c755a73ede76270769cd.1920x1080.jpg?t=1790000333",
+        "source_page": "https://store.steampowered.com/app/2581370/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "d58836a1f27d1d44afbd5ffcbd6255c7c2259ffc0697eb195a14cdb7c83b6da6",
+        "visual_focus": "Dense stadium pack at takeoff; study rider spacing, occlusion, dirt lanes, and crowd scale.",
+        "original_candidate_id": "2"
+      },
+      "previousObservation": "Pack crosses low terrain at staggered heights; leader unloads front wheel while others remain planted; individual roost clods and layered ruts show weight.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "terrain_realism",
+        "status": "new",
+        "method": "labeled-contact-sheet",
+        "observation": "Takeoff pack shows loose earth fragments above a coarse, dark, churned launching surface.",
+        "application": "Ground loam clods receive distinct material structure; retain existing airborne roost.",
+        "implementationFiles": [
+          "src/rendering/offroad/mx-soil-morphology.ts",
+          "src/rendering/offroad/terrain-view.ts"
+        ]
+      }
+    },
+    {
+      "number": 55,
+      "id": "055",
+      "file": "04_Gameplay_Cameras_and_Race_Composition/055_SX25_outdoor_high_jump_beside_trees_and_barriers.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX25",
+        "game_title": "Monster Energy Supercross 25 – The Official Video Game",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2581370/ss_8ee8bd40059d0241a09c393359714c911079004b.1920x1080.jpg?t=1790000333",
+        "source_page": "https://store.steampowered.com/app/2581370/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "ed42886b729b55accd0a678c5dddd81970298e94afe0f1bc5d4e270a7de4376e",
+        "visual_focus": "Outdoor high jump beside trees and barriers; study sky exposure and airborne silhouette.",
+        "original_candidate_id": "3"
+      },
+      "previousObservation": "Two red motorcycles float beside trees and outdoor barriers; standing bodies remain nearly upright while chassis pitch differs. Clean rims, fork extensions and foreground/background separation.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "terrain_realism",
+        "status": "retained",
+        "method": "labeled-contact-sheet",
+        "observation": "Side jump view shows articulated rider and bike against tree canopy, fencing and equipment.",
+        "application": "Retain physical suspension, rider contacts and off-course furnishing.",
+        "implementationFiles": [
+          "src/simulation/offroad/dirt-bike-vehicle.ts",
+          "src/rendering/offroad/dirt-bike-model.ts",
+          "src/rendering/rider.ts",
+          "src/rendering/offroad/mx-course-dressing.ts"
+        ]
+      }
+    },
+    {
+      "number": 56,
+      "id": "056",
+      "file": "04_Gameplay_Cameras_and_Race_Composition/056_SX25_rear_chase_view_of_a_crowded_berm.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX25",
+        "game_title": "Monster Energy Supercross 25 – The Official Video Game",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2581370/4cdf61c748ed43792fcf9d3642692b3e6fe32ecf/ss_4cdf61c748ed43792fcf9d3642692b3e6fe32ecf.1920x1080.jpg?t=1790000333",
+        "source_page": "https://store.steampowered.com/app/2581370/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "338a4206162630d0930f62c322a33b81348dd27a0d375b04a8c893354c65dc3d",
+        "visual_focus": "Rear chase view of a crowded berm; study readable rivals, roost, and corner line choice.",
+        "original_candidate_id": "5"
+      },
+      "previousObservation": "Rear view looks uphill through a crowded banked lane; nearest rider sits deep in a rut while multiple riders climb ahead. Left-side lane markers and right-side berm delimit clear choices.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "terrain_realism",
+        "status": "new",
+        "method": "labeled-contact-sheet",
+        "observation": "Crowded berm has repeated dark pressed tracks with coarse shoulders between bikes and pads.",
+        "application": "Compaction suppresses loose clods while wet low spots smooth locally rather than across the full track.",
+        "implementationFiles": [
+          "src/rendering/offroad/mx-soil-morphology.ts",
+          "src/rendering/offroad/terrain-view.ts"
+        ]
+      }
+    },
+    {
+      "number": 57,
+      "id": "057",
+      "file": "04_Gameplay_Cameras_and_Race_Composition/057_SX25_synchronized_stadium_jump.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX25",
+        "game_title": "Monster Energy Supercross 25 – The Official Video Game",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2581370/ss_d49beb2ef8ae8a96f13ae152aa6b97d614ecb4c4.1920x1080.jpg?t=1790000333",
+        "source_page": "https://store.steampowered.com/app/2581370/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "66e5e63141ca70c46f0f108bb493b591aa99f05f64dc19cd79a3d83b99ba8634",
+        "visual_focus": "Synchronized stadium jump; study depth layering, landing visibility, and track rhythm.",
+        "original_candidate_id": "6"
+      },
+      "previousObservation": "Despite filename, this is an outdoor spaceport scene: two riders in flight above a long lane leading to a finish jump. Near rider sideways, far rider aligned; full landing chain visible.",
+      "metadataDiscrepancy": "The filename says stadium; the observed scene is an outdoor spaceport course.",
+      "thisPass": {
+        "reviewer": "terrain_realism",
+        "status": "retained",
+        "method": "labeled-contact-sheet",
+        "observation": "Airborne riders look toward a long straight with visibly directional wheel/rake passages.",
+        "application": "Retain groomed wheel channels and clear actual landing corridor.",
+        "implementationFiles": [
+          "src/rendering/offroad/mx-soil-detail.ts",
+          "src/rendering/offroad/terrain-view.ts",
+          "src/rendering/offroad/mx-course-dressing.ts",
+          "src/rendering/offroad/chase-camera.ts",
+          "src/simulation/offroad/profile.ts"
+        ]
+      }
+    },
+    {
+      "number": 58,
+      "id": "058",
+      "file": "04_Gameplay_Cameras_and_Race_Composition/058_SX25_low_camera_on_a_multi_bike_stadium_launch.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX25",
+        "game_title": "Monster Energy Supercross 25 – The Official Video Game",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2581370/dd6a7b408f6ade58d819ddcfbb3815f3cfe040b0/ss_dd6a7b408f6ade58d819ddcfbb3815f3cfe040b0.1920x1080.jpg?t=1790000333",
+        "source_page": "https://store.steampowered.com/app/2581370/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "ebeaae0014c977cf624358100c0c33e38c3e1f13172b712d800beb8a01c46938",
+        "visual_focus": "Low camera on a multi-bike stadium launch; study start-pack composition and bike overlap.",
+        "original_candidate_id": "8"
+      },
+      "previousObservation": "Despite filename, several riders carve a tight stadium berm. Bikes lean further than torsos; inside legs project forward; raised rutted wall and compact dirt roost define the line.",
+      "metadataDiscrepancy": "The filename says launch; the observed action is a multi-rider berm corner.",
+      "thisPass": {
+        "reviewer": "terrain_realism",
+        "status": "new",
+        "method": "labeled-contact-sheet",
+        "observation": "Low multi-bike launch exposes dark grainy soil with shallow gouges and isolated clods.",
+        "application": "Material-specific loam/mud fragments replace a single universal fine-rake appearance.",
+        "implementationFiles": [
+          "src/rendering/offroad/mx-soil-morphology.ts",
+          "src/rendering/offroad/terrain-view.ts"
+        ]
+      }
+    },
+    {
+      "number": 59,
+      "id": "059",
+      "file": "04_Gameplay_Cameras_and_Race_Composition/059_SX25_chase_view_approaching_a_steep_ramp_and_finish_marker.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX25",
+        "game_title": "Monster Energy Supercross 25 – The Official Video Game",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2581370/ss_98dbbc711f7de6ae246028b5fc6be75f555f411c.1920x1080.jpg?t=1790000333",
+        "source_page": "https://store.steampowered.com/app/2581370/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "5af317e734a71c9d8c26e7ffb5cc647bdd04ce079892c11cbbdabb792971fa10",
+        "visual_focus": "Chase view approaching a steep ramp and finish marker; study route readability and reward framing.",
+        "original_candidate_id": "9"
+      },
+      "previousObservation": "Rear three-quarter outdoor approach to a steep finish face in warm backlight; rider stands before takeoff, shallow wet channels catch light and ramp curvature remains legible.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "terrain_realism",
+        "status": "new",
+        "method": "original",
+        "observation": "A deeply worn ramp is comparatively dry above small smooth reflective hollows at its foot.",
+        "application": "Use authoritative triangle slope and wet/rut state to retain water below and drain steep launch faces.",
+        "implementationFiles": [
+          "src/rendering/offroad/mx-soil-morphology.ts",
+          "src/rendering/offroad/terrain-view.ts"
+        ]
+      }
+    },
+    {
+      "number": 60,
+      "id": "060",
+      "file": "04_Gameplay_Cameras_and_Race_Composition/060_MXATV_desert_motocross_jump.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "MXATV",
+        "game_title": "MX vs ATV Legends",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1205970/9397b384085a807e27c490aed6a76848229c7b4b/ss_9397b384085a807e27c490aed6a76848229c7b4b.1920x1080.jpg?t=1791298700",
+        "source_page": "https://store.steampowered.com/app/1205970/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "db6996825bf24c60a9ce10c9cba63522e6c3d4e4a54727bcf6fdef93c72c21c2",
+        "visual_focus": "Desert motocross jump; study terrain profile, airborne readability, and distant landmark placement.",
+        "original_candidate_id": "17"
+      },
+      "previousObservation": "Isolated green bike airborne against desert mesas with low orange side light; body and bike are slightly banked independently, surface route recedes through varied elevations.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "terrain_realism",
+        "status": "context",
+        "method": "labeled-contact-sheet",
+        "observation": "Warm desert jump uses fine sand banks beneath massive stratified red rock.",
+        "application": "Sand/rock scale context only; no desert venue or rock assets copied.",
+        "implementationFiles": []
+      }
+    },
+    {
+      "number": 61,
+      "id": "061",
+      "file": "04_Gameplay_Cameras_and_Race_Composition/061_MXATV_atv_jump_in_snowy_mountains.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "MXATV",
+        "game_title": "MX vs ATV Legends",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1205970/45a55c3a9afbe4cc40e1df9ad1a31975305c1ba6/ss_45a55c3a9afbe4cc40e1df9ad1a31975305c1ba6.1920x1080.jpg?t=1791298700",
+        "source_page": "https://store.steampowered.com/app/1205970/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "b84699b60e558ef4655f7b532fefe411edd221d8feb388e55c470323ea473ee4",
+        "visual_focus": "ATV jump in snowy mountains; study vehicle articulation, snow contrast, and mixed-surface environment design.",
+        "original_candidate_id": "18"
+      },
+      "previousObservation": "ATV high above a snowy alpine course, dark dirt route strongly contrasting snow and rocks. Rear view clearly establishes landing direction and circuit scale.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "terrain_realism",
+        "status": "context",
+        "method": "labeled-contact-sheet",
+        "observation": "Snow and bare rock dominate an ATV mountain scene.",
+        "application": "No snow material or winter course added; existing four dirt families stay the scope.",
+        "implementationFiles": []
+      }
+    },
+    {
+      "number": 62,
+      "id": "062",
+      "file": "04_Gameplay_Cameras_and_Race_Composition/062_MXATV_atv_rock_crawl_scene_in_autumn_forest.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "MXATV",
+        "game_title": "MX vs ATV Legends",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1205970/c860a9193e10e440f7e3b859d042e616731cb717/ss_c860a9193e10e440f7e3b859d042e616731cb717.1920x1080.jpg?t=1791298700",
+        "source_page": "https://store.steampowered.com/app/1205970/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "3a1094f9d5181bc65891398bbd969824bed4ab0398ac5ba8acd410bb976450d2",
+        "visual_focus": "ATV rock-crawl scene in autumn forest; study suspension articulation and rugged traversal framing.",
+        "original_candidate_id": "20"
+      },
+      "previousObservation": "ATV traverses uneven rocks in autumn woodland; asymmetric suspension extension and rider weight shift are emphasized by low angle and sun backlight.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "terrain_realism",
+        "status": "context",
+        "method": "labeled-contact-sheet",
+        "observation": "ATV rock-crawl scene is composed from dark rocks and orange autumn foliage.",
+        "application": "No rock-crawl or autumn route added.",
+        "implementationFiles": []
+      }
+    },
+    {
+      "number": 63,
+      "id": "063",
+      "file": "04_Gameplay_Cameras_and_Race_Composition/063_SX6_stadium_start_gate_with_several_bikes.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX6",
+        "game_title": "Monster Energy Supercross – The Official Videogame 6",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2058750/ss_eae185d729a4bfa659757ae3e5bd968b8f4bab85.1920x1080.jpg?t=1744270559",
+        "source_page": "https://store.steampowered.com/app/2058750/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "2443bf10d58671bd28768f840c7ae48efd18d72f5460cd3de2c8d3b2e61b54ed",
+        "visual_focus": "Stadium start gate with several bikes; study start composition, sponsor wall, and anticipation.",
+        "original_candidate_id": "25"
+      },
+      "previousObservation": "Filename says start gate, but image shows four bikes ascending a dirt face at different heights with rider hips moving rear/forward relative to pegs; timing tower behind.",
+      "metadataDiscrepancy": "The filename says start gate; the observed riders are climbing a dirt face at different heights.",
+      "thisPass": {
+        "reviewer": "terrain_realism",
+        "status": "retained",
+        "method": "labeled-contact-sheet",
+        "observation": "Stadium start has multiple bikes crossing a uniformly shaped dirt mound.",
+        "application": "Keep real gate, suspension and course geometry; no pose or ramp alteration from the image.",
+        "implementationFiles": [
+          "src/rendering/offroad/start-gate.ts",
+          "src/simulation/offroad/dirt-bike-vehicle.ts",
+          "src/rendering/offroad/terrain-view.ts",
+          "src/simulation/offroad/profile.ts"
+        ]
+      }
+    },
+    {
+      "number": 64,
+      "id": "064",
+      "file": "04_Gameplay_Cameras_and_Race_Composition/064_SX6_crash_and_congestion_in_a_berm.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX6",
+        "game_title": "Monster Energy Supercross – The Official Videogame 6",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2058750/ss_109d30f33953ba9c821121289e261b7b23dc7a6b.1920x1080.jpg?t=1744270559",
+        "source_page": "https://store.steampowered.com/app/2058750/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "550865fc9fa3c108826efb53496969774e5b465fe26cb2b6b77fd37b3400c534",
+        "visual_focus": "Crash and congestion in a berm; study collision readability, fallen riders, and dirt deformation cues.",
+        "original_candidate_id": "27"
+      },
+      "previousObservation": "Three riders in deeply grooved banked turn. Rightmost bike is heavily leaned in a trough, center bike partially occluded; image alone does not prove an actual crash.",
+      "metadataDiscrepancy": "The filename asserts a crash; the observed leaning/congested pose alone does not establish a fallen rider.",
+      "thisPass": {
+        "reviewer": "terrain_realism",
+        "status": "new",
+        "method": "labeled-contact-sheet",
+        "observation": "Congested berm shows coarse clumpy earth beside shallow smoother grooves and a fallen rider.",
+        "application": "Use loose fragment versus packed soil distinction; retain actual crash behavior unchanged.",
+        "implementationFiles": [
+          "src/rendering/offroad/mx-soil-morphology.ts",
+          "src/rendering/offroad/terrain-view.ts"
+        ]
+      }
+    },
+    {
+      "number": 65,
+      "id": "065",
+      "file": "04_Gameplay_Cameras_and_Race_Composition/065_SX6_wide_pack_launch_over_stadium_dirt.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX6",
+        "game_title": "Monster Energy Supercross – The Official Videogame 6",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2058750/ss_72e2ece91809070a931ef995b2b30f45a92407a0.1920x1080.jpg?t=1744270559",
+        "source_page": "https://store.steampowered.com/app/2058750/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "f9310160cda87d89562573ee8e6eb1494353aa3074e728c7aabb898349d7b617",
+        "visual_focus": "Wide pack launch over stadium dirt; study crowd scale, track breadth, and multi-rider readability.",
+        "original_candidate_id": "32"
+      },
+      "previousObservation": "Wide group exits a berm toward a crest; front pair lift while trailing riders lean. Rutted lanes, repeated low barriers and dispersed dust preserve pack depth.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "terrain_realism",
+        "status": "new",
+        "method": "labeled-contact-sheet",
+        "observation": "A stadium pack crosses light granular earth with darker compressed landings.",
+        "application": "Material fractions preserve coarse versus fine grain while compaction flattens loose fragments.",
+        "implementationFiles": [
+          "src/rendering/offroad/mx-soil-morphology.ts",
+          "src/rendering/offroad/terrain-view.ts"
+        ]
+      }
+    },
+    {
+      "number": 66,
+      "id": "066",
+      "file": "04_Gameplay_Cameras_and_Race_Composition/066_MXGP21_congested_mxgp_corner.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "MXGP21",
+        "game_title": "MXGP 2021 – The Official Motocross Videogame",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1610470/ss_d98f03ebb5c82bdb2389cc028d6f6384bc97972d.1920x1080.jpg?t=1725035312",
+        "source_page": "https://store.steampowered.com/app/1610470/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "9520e2e975c2c3821acc89c064331e1da6566461c44727503723e7b9a8bf9005",
+        "visual_focus": "Congested MXGP corner; study camera safety, rider density, and trackside branding.",
+        "original_candidate_id": "37"
+      },
+      "previousObservation": "Outdoor MX corner crowded across multiple lines; close blurred foreground rider frames a focused group behind; thick warm dust and chunky soil.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "terrain_realism",
+        "status": "retained",
+        "method": "labeled-contact-sheet",
+        "observation": "Congested turn has warm translucent dust softening overlapping rider silhouettes.",
+        "application": "Retain the current mixed dust/clod roost and its loaded-contact emission.",
+        "implementationFiles": ["src/rendering/offroad/roost.ts"]
+      }
+    },
+    {
+      "number": 67,
+      "id": "067",
+      "file": "04_Gameplay_Cameras_and_Race_Composition/067_MXGP21_rider_cresting_an_outdoor_jump.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "MXGP21",
+        "game_title": "MXGP 2021 – The Official Motocross Videogame",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1610470/ss_07fdf688ce6c832dbd18ab2a11fbc53c83050cbb.1920x1080.jpg?t=1725035312",
+        "source_page": "https://store.steampowered.com/app/1610470/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "3f948147ec0795809887e762259af449860c9975b56b875ec6c00ab48f628539",
+        "visual_focus": "Rider cresting an outdoor jump; study horizon placement, landing visibility, and course marshals.",
+        "original_candidate_id": "39"
+      },
+      "previousObservation": "Front three-quarter view of riders cresting a rise, one with nose high and another still occluded by the lip; descending foreground terrain makes elevation readable.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "terrain_realism",
+        "status": "retained",
+        "method": "labeled-contact-sheet",
+        "observation": "A broad dark jump crest occludes much of the landing beyond the foreground rider.",
+        "application": "Preserve exact mesh/physics crest and existing camera clearance; material relief remains shading only.",
+        "implementationFiles": [
+          "src/simulation/offroad/profile.ts",
+          "src/simulation/offroad/course-terrain.ts",
+          "src/rendering/offroad/terrain-view.ts",
+          "src/rendering/offroad/chase-camera.ts",
+          "src/rendering/offroad/mx-soil-morphology.ts"
+        ]
+      }
+    },
+    {
+      "number": 68,
+      "id": "068",
+      "file": "04_Gameplay_Cameras_and_Race_Composition/068_MXGP21_two_bikes_airborne_together.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "MXGP21",
+        "game_title": "MXGP 2021 – The Official Motocross Videogame",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1610470/ss_59702b4ce0fce7675a172362120f53115a10c674.1920x1080.jpg?t=1725035312",
+        "source_page": "https://store.steampowered.com/app/1610470/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "2d18300165c6f215b755692a317e06732c3b2a5c9aed72f4313c14b9d9c34e8d",
+        "visual_focus": "Two bikes airborne together; study relative scale, motion timing, and sky silhouette.",
+        "original_candidate_id": "42"
+      },
+      "previousObservation": "Two airborne bikes differ in pitch and rider crouch; near parallel trajectories with loose dirt flecks against blue sky; front wheels higher than rear.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "riding_gameplay",
+        "status": "new",
+        "method": "original",
+        "observation": "Two airborne riders keep different fore/aft postures while their tyres remain clear of the surface. Preserve wheel state through the transition back to loaded ground; retain distinct standing/body poses.",
+        "implementationFiles": [
+          "src/simulation/offroad/wheel-pickup.ts",
+          "src/simulation/offroad/dirt-bike-vehicle.ts"
+        ]
+      }
+    },
+    {
+      "number": 69,
+      "id": "069",
+      "file": "04_Gameplay_Cameras_and_Race_Composition/069_SX5_large_pack_entering_a_stadium_corner.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX5",
+        "game_title": "Monster Energy Supercross – The Official Videogame 5",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1610460/ss_0a1e7aa804d966f3a159090a6e0c4d673eb668ce.1920x1080.jpg?t=1744270609",
+        "source_page": "https://store.steampowered.com/app/1610460/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "4b2cc3522346f63963492a590f84c9582b22a5043184724d105c0be39dcd4017",
+        "visual_focus": "Large pack entering a stadium corner; study AI spacing, surface lanes, and race drama.",
+        "original_candidate_id": "53"
+      },
+      "previousObservation": "Wide near-level stadium pack fans out into a turn with low reddish roost. Spectators, clear numbers and distinct liveries help identify opponents.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "riding_gameplay",
+        "status": "retained",
+        "method": "labeled contact sheet",
+        "observation": "Large pack negotiates a broad stadium corner with visible barriers and crowd; preserve existing eight-rider traffic, route width and independent rider lean.",
+        "implementationFiles": [
+          "src/simulation/config.ts",
+          "src/simulation/offroad/ai.ts",
+          "src/simulation/offroad/venues.ts",
+          "src/rendering/rider.ts",
+          "src/rendering/offroad/stadium.ts",
+          "src/rendering/offroad/mx-course-dressing.ts"
+        ]
+      }
+    },
+    {
+      "number": 70,
+      "id": "070",
+      "file": "04_Gameplay_Cameras_and_Race_Composition/070_SX4_tight_start_pack_close_up.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX4",
+        "game_title": "Monster Energy Supercross – The Official Videogame 4",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1304340/ss_52c543f24fb49e56dcd1172652aaf978bec48fb4.1920x1080.jpg?t=1728477753",
+        "source_page": "https://store.steampowered.com/app/1304340/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "30f981f44760815992102aeb40a83d0ec38ac07668976486c0e91ef8359f6f7e",
+        "visual_focus": "Tight start pack close-up; study handlebar overlap, rider spacing, and controlled visual complexity.",
+        "original_candidate_id": "58"
+      },
+      "previousObservation": "Tight side/rear pack close-up emphasizes high elbows, hunched braking posture, helmet peaks, boots and compressed forks. It is promotional framing with little route visibility.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "riding_gameplay",
+        "status": "retained",
+        "method": "labeled contact sheet",
+        "observation": "Close start pack keeps wheel-to-wheel spacing and seated launch postures legible; retain calibrated starts and launch controls.",
+        "implementationFiles": [
+          "src/simulation/offroad/session.ts",
+          "src/simulation/offroad/ai.ts",
+          "src/simulation/offroad/dirt-bike-vehicle.ts",
+          "src/rendering/rider.ts"
+        ]
+      }
+    },
+    {
+      "number": 71,
+      "id": "071",
+      "file": "04_Gameplay_Cameras_and_Race_Composition/071_SX4_multi_rider_pack_leaning_through_a_turn.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX4",
+        "game_title": "Monster Energy Supercross – The Official Videogame 4",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1304340/ss_f20ab8c98cd31b1f809400ba9b8ddabebd7d5956.1920x1080.jpg?t=1728477753",
+        "source_page": "https://store.steampowered.com/app/1304340/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "af138c32c7a02fd94f4c3490e0cd0665d0e97dc690e87b370a0d7e7145b71f58",
+        "visual_focus": "Multi-rider pack leaning through a turn; study line variation and crowd-facing camera placement.",
+        "original_candidate_id": "62"
+      },
+      "previousObservation": "Front stadium corner shot with lead rider leaning bike deeply while torso stays above it; inside boots extended and forks loaded. Followers occupy different lateral lines.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "riding_gameplay",
+        "status": "retained",
+        "method": "labeled contact sheet",
+        "observation": "Several riders lean coherently through a prepared dirt turn. Preserve the grounded lean/grip core; this pass does not invent aerial steering force.",
+        "implementationFiles": [
+          "src/simulation/bike.ts",
+          "src/simulation/offroad/dirt-bike-vehicle.ts",
+          "src/rendering/rider.ts"
+        ]
+      }
+    },
+    {
+      "number": 72,
+      "id": "072",
+      "file": "04_Gameplay_Cameras_and_Race_Composition/072_SX25_third_person_chase_camera_over_a_stadium_jump.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX25",
+        "game_title": "Monster Energy Supercross 25 – The Official Video Game",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "review_screenshot",
+        "source_url": "https://storage.ghost.io/c/50/c6/50c61f91-0165-4605-93bc-f8598149e466/content/images/size/w1200/2025/06/SX25_CareerExplosion_Screenshot_Logo--11-.jpg",
+        "source_page": "https://gamingtrend.com/reviews/monster-energy-supercross-25-review-a-great-game-hindered-by-weird-control-choices/",
+        "width": "1200",
+        "height": "675",
+        "sha256": "4e4e431cd69ec58de41bd4ee8e7c10809e7213598b0022d9c6d16194dffefa71",
+        "visual_focus": "Third-person chase camera over a stadium jump; study player framing, track preview, and opponent visibility.",
+        "original_candidate_id": "68"
+      },
+      "previousObservation": "Close rear chase angle at a rutted stadium lip; main rider lower-right, several opponents whip beyond lip, floodlights and finish truss above. Aggressive diagonal framing conveys speed.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "riding_gameplay",
+        "status": "new",
+        "method": "original",
+        "observation": "Deep churned lanes and a loaded rear tyre lead directly into airborne riders. New wheel pickup bridges loaded tyre/airborne wheel states; retain flight-path camera and recoverable whip.",
+        "implementationFiles": [
+          "src/simulation/offroad/wheel-pickup.ts",
+          "src/simulation/offroad/dirt-bike-vehicle.ts"
+        ]
+      }
+    },
+    {
+      "number": 73,
+      "id": "073",
+      "file": "04_Gameplay_Cameras_and_Race_Composition/073_MXATV_indoor_stadium_jump_with_obstacles_below.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "MXATV",
+        "game_title": "MX vs ATV Legends",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "official_site",
+        "source_url": "https://mxvsatvlegends.thqnordic.com/game-sites/mxvsatvlegends/content/feature-showcase-1.jpg",
+        "source_page": "https://mxvsatvlegends.thqnordic.com/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "e1ee5dcceef550b6bb88aa62a765ceaaa7c82bea64772b5f4404b31070050ca7",
+        "visual_focus": "Indoor stadium jump with obstacles below; study vertical track stacking and arena lighting.",
+        "original_candidate_id": "73"
+      },
+      "previousObservation": "High stadium jump overlooking multiple rhythm lanes, track maintenance carts, barriers and crowd tiers; bikes and extended suspension remain fully visible.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "riding_gameplay",
+        "status": "retained",
+        "method": "labeled contact sheet",
+        "observation": "Indoor airborne rider is framed against the next ramps and corridor. Preserve surveyed jump geometry and predictable flight/landing pitch.",
+        "implementationFiles": [
+          "src/simulation/offroad/profile.ts",
+          "src/simulation/offroad/venues.ts",
+          "src/simulation/offroad/dirt-bike-vehicle.ts"
+        ]
+      }
+    },
+    {
+      "number": 74,
+      "id": "074",
+      "file": "04_Gameplay_Cameras_and_Race_Composition/074_SX25_top_down_diagonal_corner_camera.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX25",
+        "game_title": "Monster Energy Supercross 25 – The Official Video Game",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "playstation",
+        "source_url": "https://image.api.playstation.com/vulcan/ap/rnd/202503/1310/3726653ed23cd8f9f2985c51fc21a94a6838969960519a26.jpg",
+        "source_page": "https://www.playstation.com/en-cz/games/monster-energy-supercross-25-the-official-video-game/",
+        "width": "2560",
+        "height": "1440",
+        "sha256": "6403ca342bd36c90d51d046de07ba87d1153b2d767761136d6bc8527cbed5cfb",
+        "visual_focus": "Top-down/diagonal corner camera; study alternative broadcast angles, line choice, and track readability.",
+        "original_candidate_id": "136"
+      },
+      "previousObservation": "High diagonal close view of a rider following a narrow dark rut around blue barriers; bike bank and inside foot placement clearly describe corner support.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "riding_gameplay",
+        "status": "retained",
+        "method": "labeled contact sheet",
+        "observation": "High diagonal view makes banked dirt lanes readable. Existing track camera and berm support remain; no per-image physics constants inferred.",
+        "implementationFiles": [
+          "src/rendering/trackside.ts",
+          "src/rendering/offroad/broadcast-sites.ts",
+          "src/simulation/offroad/dirt-bike-vehicle.ts"
+        ]
+      }
+    },
+    {
+      "number": 75,
+      "id": "075",
+      "file": "04_Gameplay_Cameras_and_Race_Composition/075_MXATV_outdoor_pack_jumping_toward_camera.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "MXATV",
+        "game_title": "MX vs ATV Legends",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "playstation",
+        "source_url": "https://image.api.playstation.com/vulcan/ap/rnd/202210/1821/oQkc58eejejsNbFP2as1jpWD.jpg",
+        "source_page": "https://www.playstation.com/en-us/games/mx-vs-atv-legends/",
+        "width": "2560",
+        "height": "1440",
+        "sha256": "225fa7c91a419d33ee202db4ee99d4f367dc214ad1277182f3c5d65abfe05072",
+        "visual_focus": "Outdoor pack jumping toward camera; study crest visibility, rider separation, and jump cadence.",
+        "original_candidate_id": "123"
+      },
+      "previousObservation": "Pack jumping on a pale coastal circuit; near rider descending and three riders at different stages behind. Long directional shadows and separated dust cloud describe height.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "riding_gameplay",
+        "status": "new",
+        "method": "labeled contact sheet",
+        "observation": "Airborne bikes enter a long visible landing corridor in a staggered pack. Preserve flight trajectory while adding wheel-state continuity on first soil contact.",
+        "implementationFiles": [
+          "src/simulation/offroad/wheel-pickup.ts",
+          "src/simulation/offroad/dirt-bike-vehicle.ts"
+        ]
+      }
+    },
+    {
+      "number": 76,
+      "id": "076",
+      "file": "04_Gameplay_Cameras_and_Race_Composition/076_SX25_multi_rider_stadium_corner.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX25",
+        "game_title": "Monster Energy Supercross 25 – The Official Video Game",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "playstation",
+        "source_url": "https://image.api.playstation.com/vulcan/ap/rnd/202503/1310/6cb4000c376474120ffe27b78fe3a9a46257835ab19ad8a2.jpg",
+        "source_page": "https://www.playstation.com/en-cz/games/monster-energy-supercross-25-the-official-video-game/",
+        "width": "2560",
+        "height": "1440",
+        "sha256": "78babefbcc9fc992d788a931cd711b07550a7b572a8075b1cd1bdb359e44354d",
+        "visual_focus": "Multi-rider stadium corner; study pack AI, collision spacing, and track barrier visibility.",
+        "original_candidate_id": "133"
+      },
+      "previousObservation": "Three motorcycles close together at a low stadium corner, inside rider boot forward; distant pack already launching from next feature. Low barriers define rhythm lane connectivity.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "riding_gameplay",
+        "status": "retained",
+        "method": "labeled contact sheet",
+        "observation": "Wide multi-rider stadium corner shows side-by-side circulation; retain venue width, legal routes and pack behavior.",
+        "implementationFiles": [
+          "src/simulation/offroad/venues.ts",
+          "src/simulation/offroad/ai.ts",
+          "src/simulation/bike-ai.ts"
+        ]
+      }
+    },
+    {
+      "number": 77,
+      "id": "077",
+      "file": "05_Menus_HUD_Customization_and_Presentation/077_SX25_supercross_25_key_visual.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX25",
+        "game_title": "Monster Energy Supercross 25 – The Official Video Game",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_key_art",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2581370/page_bg_raw.jpg?t=1790000333",
+        "source_page": "https://store.steampowered.com/app/2581370/",
+        "width": "1438",
+        "height": "810",
+        "sha256": "9c1f60568cdbe94f8a1f4df30b244d8562be96ad6deabff051ae5874622a4ef0",
+        "visual_focus": "Supercross 25 key visual; study splash-screen hierarchy, rider grouping, typography space, and brand contrast.",
+        "original_candidate_id": "11"
+      },
+      "previousObservation": "Key art uses three helmeted portraits above three smaller action bikes on a bright lime graphic field with topographic contour texture and dark stadium background.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "riding_gameplay",
+        "status": "context",
+        "method": "labeled contact sheet",
+        "observation": "Promotional key art is composition/branding context; no franchise marks or menu progression copied into riding mechanics.",
+        "implementationFiles": []
+      }
+    },
+    {
+      "number": 78,
+      "id": "078",
+      "file": "05_Menus_HUD_Customization_and_Presentation/078_MXATV_mx_vs_atv_garage_locker_presentation_with_rider_and_bike.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "MXATV",
+        "game_title": "MX vs ATV Legends",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1205970/ed05009e180871a5518531c07564cb5c83480681/ss_ed05009e180871a5518531c07564cb5c83480681.1920x1080.jpg?t=1791298700",
+        "source_page": "https://store.steampowered.com/app/1205970/",
+        "width": "1917",
+        "height": "1080",
+        "sha256": "455f187717b0c029bbb4d8c671c1bf92b5ad12367785dc33b68fa5bdb78470ff",
+        "visual_focus": "MX vs ATV garage/locker presentation with rider and bike; study menu environment, staging, and lighting.",
+        "original_candidate_id": "15"
+      },
+      "previousObservation": "Industrial garage presentation places a helmeted rider foreground, motorcycle on stand left, trailer truck and vertical flags behind; warm work lighting and concrete floor.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "riding_gameplay",
+        "status": "context",
+        "method": "labeled contact sheet",
+        "observation": "Garage locker display frames a rider and bikes; no garage or catalogue feature is added by this riding pass.",
+        "implementationFiles": []
+      }
+    },
+    {
+      "number": 79,
+      "id": "079",
+      "file": "05_Menus_HUD_Customization_and_Presentation/079_SX5_event_lineup_with_multiple_fire_columns.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX5",
+        "game_title": "Monster Energy Supercross – The Official Videogame 5",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1610460/ss_4fe9a680ced65dd2c01979097f228a8725de5375.1920x1080.jpg?t=1744270609",
+        "source_page": "https://store.steampowered.com/app/1610460/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "7995c97cb7bed55bbe4b842514da72e06d817f6fdcaabc15b0e49f52e7e44534",
+        "visual_focus": "Event lineup with multiple fire columns; study podium/start-show staging, symmetry, and spectacle.",
+        "original_candidate_id": "54"
+      },
+      "previousObservation": "Stadium race launch with repeated fire columns above a broad field and dirt spray behind the tyres; front-on composition emphasizes event ritual.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "riding_gameplay",
+        "status": "context",
+        "method": "labeled contact sheet",
+        "observation": "Event lineup uses dramatic flame columns; these are spectacle context and are not new gameplay mechanics.",
+        "implementationFiles": []
+      }
+    },
+    {
+      "number": 80,
+      "id": "080",
+      "file": "05_Menus_HUD_Customization_and_Presentation/080_SX4_start_gate_lineup_under_flame_effects.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX4",
+        "game_title": "Monster Energy Supercross – The Official Videogame 4",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1304340/ss_5a40ed1fd04ceb73a06b32974ec5f07162316cac.1920x1080.jpg?t=1728477753",
+        "source_page": "https://store.steampowered.com/app/1304340/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "b44522482216efa1bbebb256a8c2c3332b280e4579afd9bd9ca2d4983462af0f",
+        "visual_focus": "Start gate lineup under flame effects; study presentation timing, vehicle spacing, and broadcast framing.",
+        "original_candidate_id": "60"
+      },
+      "previousObservation": "Similar launch ceremony under truss-mounted flame jets with country flags, short lamp bars and varied bike colors; broad contrast between black roof and bright riders.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "riding_gameplay",
+        "status": "retained",
+        "method": "labeled contact sheet",
+        "observation": "Gate lineup and starting positions remain the transferable principle. The existing gate start is retained; fire jets remain context.",
+        "implementationFiles": [
+          "src/rendering/offroad/start-gate.ts",
+          "src/simulation/offroad/session.ts"
+        ]
+      }
+    },
+    {
+      "number": 81,
+      "id": "081",
+      "file": "05_Menus_HUD_Customization_and_Presentation/081_SX25_three_rider_promotional_lineup.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX25",
+        "game_title": "Monster Energy Supercross 25 – The Official Video Game",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "official_screenshot",
+        "source_url": "https://milestone.it/wp-content/uploads/2025/01/SX25_Screenshot_GameplayShowcase_NoLogo_05-scaled.jpg",
+        "source_page": "https://milestone.it/news/supercross-25/gameplay-showcase/",
+        "width": "2560",
+        "height": "1440",
+        "sha256": "8237201be0e4109a42e36edd5e87cff351f23fffbe7ca9da09193614cbb19486",
+        "visual_focus": "Three-rider promotional lineup; study menu hero composition, pose hierarchy, and safe text zones.",
+        "original_candidate_id": "67"
+      },
+      "previousObservation": "Three stationary rider portraits, center hands at hips and side folded arms; monochrome teal treatment, different helmet peaks and gear patterns.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "riding_gameplay",
+        "status": "retained",
+        "method": "labeled contact sheet",
+        "observation": "Three protected riders have readable helmet/goggle and gear silhouettes. Preserve the existing improved rider kit and posture animation.",
+        "implementationFiles": [
+          "src/ui/motocross-presentation.ts",
+          "src/ui/motocross.css",
+          "src/rendering/offroad/menu-bike.ts",
+          "src/rendering/offroad/motocross-gear.ts",
+          "src/rendering/offroad/motocross-detail.ts",
+          "src/rendering/rider.ts"
+        ]
+      }
+    },
+    {
+      "number": 82,
+      "id": "082",
+      "file": "05_Menus_HUD_Customization_and_Presentation/082_MXATV_two_bikes_displayed_in_a_garage.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "MXATV",
+        "game_title": "MX vs ATV Legends",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "official_site",
+        "source_url": "https://mxvsatvlegends.thqnordic.com/game-sites/mxvsatvlegends/editions/dlc/element-bike-pack.jpg",
+        "source_page": "https://mxvsatvlegends.thqnordic.com/",
+        "width": "2560",
+        "height": "1440",
+        "sha256": "ced4ee2bd652442fa0bd929041246c73abaf2891e0b194f5103a7e9ac41c75ed",
+        "visual_focus": "Two bikes displayed in a garage; study vehicle-selection staging, neutral lighting, and comparison layout.",
+        "original_candidate_id": "93"
+      },
+      "previousObservation": "Despite filename saying two, three cyan/white motorcycles of different sizes displayed on garage floor with readable negative spaces and consistent family graphics.",
+      "metadataDiscrepancy": "The filename and visual_focus say two bikes; the image shows three motorcycles of different sizes.",
+      "thisPass": {
+        "reviewer": "riding_gameplay",
+        "status": "retained",
+        "method": "labeled contact sheet",
+        "observation": "Stationary showroom bikes expose tyres, spokes and suspension proportions. Existing machine definitions/models remain; wheel inertia values are not measured from the image.",
+        "implementationFiles": [
+          "src/ui/motocross-presentation.ts",
+          "src/rendering/offroad/menu-bike.ts",
+          "src/rendering/renderer.ts",
+          "src/rendering/offroad/dirt-bike-model.ts"
+        ]
+      }
+    },
+    {
+      "number": 83,
+      "id": "083",
+      "file": "05_Menus_HUD_Customization_and_Presentation/083_SX25_stadium_fireworks_and_laser_show.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX25",
+        "game_title": "Monster Energy Supercross 25 – The Official Video Game",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "playstation",
+        "source_url": "https://image.api.playstation.com/vulcan/ap/rnd/202502/1910/0fb367f393ca4990ea2403e1463ae33faad12d480c7eb33e.jpg",
+        "source_page": "https://www.playstation.com/en-cz/games/monster-energy-supercross-25-the-official-video-game/",
+        "width": "2560",
+        "height": "1440",
+        "sha256": "55f480d9369e6e32620ebad46bf44c4242ee55d45b8b3011efe3f68d93c1775e",
+        "visual_focus": "Stadium fireworks and laser show; study event intro spectacle, color contrast, and crowd lighting.",
+        "original_candidate_id": "151"
+      },
+      "previousObservation": "Wide arena light show reveals full rhythm course under green/purple trusses, firework trails and illuminated crowd tiers; finish gantry is distinct at right.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "riding_gameplay",
+        "status": "context",
+        "method": "labeled contact sheet",
+        "observation": "Fireworks and lasers establish event scale; no fireworks/laser physics are introduced.",
+        "implementationFiles": []
+      }
+    },
+    {
+      "number": 84,
+      "id": "084",
+      "file": "05_Menus_HUD_Customization_and_Presentation/084_SX25_experience_selection_menu_with_rookie_challenger_pro_tiers.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX25",
+        "game_title": "Monster Energy Supercross 25 – The Official Video Game",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "review_gallery",
+        "source_url": "https://storage.ghost.io/c/50/c6/50c61f91-0165-4605-93bc-f8598149e466/content/images/2025/06/MES25-Difficulty-2.jpg",
+        "source_page": "https://gamingtrend.com/reviews/monster-energy-supercross-25-review-a-great-game-hindered-by-weird-control-choices/",
+        "width": "1600",
+        "height": "900",
+        "sha256": "975921f0df1d6fa6e39c5ad12605e1fd9ccd508f8c0ceceab928bfb7be7e3d89",
+        "visual_focus": "Experience-selection menu with Rookie/Challenger/Pro tiers; study onboarding hierarchy and concise choice design.",
+        "original_candidate_id": "155"
+      },
+      "previousObservation": "Three experience-selection columns label Rookie/Challenger/Pro, each explains physics and riding aids; lime selection and bottom Try on track CTA are unmistakable.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "riding_gameplay",
+        "status": "retained",
+        "method": "labeled contact sheet",
+        "observation": "Rookie/challenger/pro selection emphasizes explicit assistance choices. Preserve existing Sport/Raw options and keep practice objectives optional and free of unlocks.",
+        "implementationFiles": [
+          "src/ui/motocross-presentation.ts",
+          "src/ui/motocross.css",
+          "src/ui/interface.ts",
+          "tests/motocross-presentation.test.ts"
+        ]
+      }
+    },
+    {
+      "number": 85,
+      "id": "085",
+      "file": "05_Menus_HUD_Customization_and_Presentation/085_SX25_general_settings_screen_with_highlighted_options.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX25",
+        "game_title": "Monster Energy Supercross 25 – The Official Video Game",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "review_gallery",
+        "source_url": "https://storage.ghost.io/c/50/c6/50c61f91-0165-4605-93bc-f8598149e466/content/images/2025/06/MES25-Settings.jpg",
+        "source_page": "https://gamingtrend.com/reviews/monster-energy-supercross-25-review-a-great-game-hindered-by-weird-control-choices/",
+        "width": "1600",
+        "height": "900",
+        "sha256": "38f4966d371f9de01a538871e41a0795f4efaea9a4a2a8c35ba94fed45999e07",
+        "visual_focus": "General settings screen with highlighted options; study list density, focus state, descriptions, and controller navigation.",
+        "original_candidate_id": "156"
+      },
+      "previousObservation": "Settings rows grouped General/Brakes/Air Control/Bike Control; highlighted Auto brakes row gets a right-side explanatory panel; controls and effects stated in plain language.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "riding_gameplay",
+        "status": "retained",
+        "method": "labeled contact sheet",
+        "observation": "Settings show explicit braking, air-control and bike-control options. New pickup uses existing pedals; controls and replay input contracts are unchanged.",
+        "implementationFiles": [
+          "src/simulation/config.ts",
+          "src/input/controller.ts",
+          "src/core/flashback.ts",
+          "src/simulation/offroad/dirt-bike-vehicle.ts"
+        ]
+      }
+    },
+    {
+      "number": 86,
+      "id": "086",
+      "file": "05_Menus_HUD_Customization_and_Presentation/086_SX25_gameplay_hud_during_a_full_start_pack.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX25",
+        "game_title": "Monster Energy Supercross 25 – The Official Video Game",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "review_gallery",
+        "source_url": "https://storage.ghost.io/c/50/c6/50c61f91-0165-4605-93bc-f8598149e466/content/images/2025/06/MES25-Race-start.jpg",
+        "source_page": "https://gamingtrend.com/reviews/monster-energy-supercross-25-review-a-great-game-hindered-by-weird-control-choices/",
+        "width": "1600",
+        "height": "900",
+        "sha256": "83be1d0b5b9c4bf63ee12beaf1dd6126d639f17c522735c1e7a80bcff3aaac35",
+        "visual_focus": "Gameplay HUD during a full start pack; study lap/rank/timing placement, tutorial prompts, and central visibility.",
+        "original_candidate_id": "157"
+      },
+      "previousObservation": "Actual gameplay HUD: position top-left, timer upper-center, lap timing top-right, speed/gear lower-right, small centered tip below rider. Chase camera shows complete rider and broad start pack.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "riding_gameplay",
+        "status": "new",
+        "method": "labeled contact sheet",
+        "observation": "Race HUD keeps the route dominant and a small riding hint subordinate. Supports concise wheel-release guidance and the parent precision-landing objective from observed state.",
+        "implementationFiles": [
+          "src/simulation/offroad/wheel-pickup.ts",
+          "src/simulation/offroad/dirt-bike-vehicle.ts",
+          "src/simulation/offroad/landing-challenge.ts",
+          "src/ui/offroad-hud.ts",
+          "src/ui/motocross-brake-cue.ts",
+          "src/ui/motocross-presentation.ts"
+        ]
+      }
+    },
+    {
+      "number": 87,
+      "id": "087",
+      "file": "06_Lighting_Weather_Dirt_and_FX/087_MXATV_motorcycle_jump_in_rain_or_wet_dusk.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "MXATV",
+        "game_title": "MX vs ATV Legends",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1205970/a2935683d2e453514279db9706e683dcde3e5a35/ss_a2935683d2e453514279db9706e683dcde3e5a35.1920x1080.jpg?t=1791298700",
+        "source_page": "https://store.steampowered.com/app/1205970/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "a44c6dac3f7e2219d6375afd6ef8cd900af88703fd306d6c7de136798e060a91",
+        "visual_focus": "Motorcycle jump in rain or wet dusk; study atmospheric haze, wet grading, and low-visibility silhouette.",
+        "original_candidate_id": "19"
+      },
+      "previousObservation": "An airborne motorcycle in violet-gray wet dusk appears above bright reflective damp patches, perimeter tape and mist/spray.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "riding_gameplay",
+        "status": "new",
+        "method": "original",
+        "observation": "Standing rider is pitched toward wet ground with free wheels. New contact pickup respects actual tyre grip; retain weather presentation and slope-based attitude. No wet-friction coefficient can be read from this still.",
+        "implementationFiles": [
+          "src/simulation/offroad/wheel-pickup.ts",
+          "src/simulation/offroad/dirt-bike-vehicle.ts"
+        ]
+      }
+    },
+    {
+      "number": 88,
+      "id": "088",
+      "file": "06_Lighting_Weather_Dirt_and_FX/088_SX6_berm_crash_with_heavy_roost.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX6",
+        "game_title": "Monster Energy Supercross – The Official Videogame 6",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2058750/ss_cc366542d07528eabb021e654c355ab6d5338616.1920x1080.jpg?t=1744270559",
+        "source_page": "https://store.steampowered.com/app/2058750/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "0147724ecc9fafd4ae0751f4c1d814f2dd893cc63810fdba4d70b6450b55ca4a",
+        "visual_focus": "Berm crash with heavy roost; study dirt plume shape, tire contact, and impact storytelling.",
+        "original_candidate_id": "29"
+      },
+      "previousObservation": "The supplied frame shows coarse gray rutted berms and contacting/leaning bikes; the visible dirt is granular on crowns and darker in deep channels.",
+      "metadataDiscrepancy": "The filename says heavy roost; little airborne roost is visible. Coarse rutted soil is the useful observed evidence.",
+      "thisPass": {
+        "reviewer": "riding_gameplay",
+        "status": "retained",
+        "method": "labeled contact sheet",
+        "observation": "Berm contact and heavy roost coexist with a fallen rider. Preserve contact-based soil response, crashes and recovery; wheel pickup adds no automatic new crash threshold.",
+        "implementationFiles": [
+          "src/rendering/offroad/roost.ts",
+          "src/simulation/offroad/session.ts",
+          "src/simulation/offroad/dirt-bike-vehicle.ts",
+          "src/simulation/bike-vehicle.ts"
+        ]
+      }
+    },
+    {
+      "number": 89,
+      "id": "089",
+      "file": "06_Lighting_Weather_Dirt_and_FX/089_SX5_start_line_with_fire_jets.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX5",
+        "game_title": "Monster Energy Supercross – The Official Videogame 5",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1610460/ss_03f02b29f5bc1d12a19e7d87ca76fc2acc6b6ed6.1920x1080.jpg?t=1744270609",
+        "source_page": "https://store.steampowered.com/app/1610460/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "2e6bdebc7190fc031dc19081906102a2af170e2e1571a03967391a8608707fc5",
+        "visual_focus": "Start line with fire jets; study pyrotechnic lighting, crowd exposure, and dramatic event timing.",
+        "original_candidate_id": "49"
+      },
+      "previousObservation": "The front view of a packed start has dark granular clay, bright pale/orange fire jets behind riders and cool stadium lighting.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "riding_gameplay",
+        "status": "retained",
+        "method": "labeled contact sheet",
+        "observation": "Start-line riders and light hierarchy are legible. Preserve gate timing, staged field and normal launch acceleration; fire jets are context.",
+        "implementationFiles": [
+          "src/rendering/offroad/start-gate.ts",
+          "src/simulation/offroad/session.ts",
+          "src/simulation/offroad/ai.ts",
+          "src/simulation/offroad/dirt-bike-vehicle.ts",
+          "src/rendering/offroad/stadium.ts"
+        ]
+      }
+    },
+    {
+      "number": 90,
+      "id": "090",
+      "file": "06_Lighting_Weather_Dirt_and_FX/090_SX4_rear_rider_framed_by_flames.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX4",
+        "game_title": "Monster Energy Supercross – The Official Videogame 4",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1304340/ss_963259a9fb8b784c67eadc0629c42e3601bceb04.1920x1080.jpg?t=1728477753",
+        "source_page": "https://store.steampowered.com/app/1304340/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "c2efce434ee3d09f69cf890801fc63e799d2ca8d5e49df4200f85fa46f02658a",
+        "visual_focus": "Rear rider framed by flames; study rim lighting, gear readability, and event lighting contrast.",
+        "original_candidate_id": "57"
+      },
+      "previousObservation": "A large rear rider is sharply lit against dark spectators; flames and a bright event screen provide warm focus while booth strips read cool.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "riding_gameplay",
+        "status": "context",
+        "method": "labeled contact sheet",
+        "observation": "Rear rider silhouette is framed by a flame arch; preserve visual readability without adding pyrotechnic systems.",
+        "implementationFiles": []
+      }
+    },
+    {
+      "number": 91,
+      "id": "091",
+      "file": "06_Lighting_Weather_Dirt_and_FX/091_SX4_airborne_rider_against_crowd_and_fire.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX4",
+        "game_title": "Monster Energy Supercross – The Official Videogame 4",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1304340/ss_cc5cf8c5ccdc25886831a63dba90a338575443de.1920x1080.jpg?t=1728477753",
+        "source_page": "https://store.steampowered.com/app/1304340/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "8fda57978fc4180cd3d63b9547d73278d31e6d2ab17e1e3477cd589891afbb49",
+        "visual_focus": "Airborne rider against crowd and fire; study bokeh, silhouette, and warm/cool lighting.",
+        "original_candidate_id": "59"
+      },
+      "previousObservation": "An airborne rider is framed against a dense crowd, with a hard helmet highlight and a dark concourse strip.",
+      "metadataDiscrepancy": "The filename mentions fire; no flames are visible in the supplied image.",
+      "thisPass": {
+        "reviewer": "riding_gameplay",
+        "status": "retained",
+        "method": "labeled contact sheet",
+        "observation": "Airborne rider remains composed with a visible extended fork and front wheel. Preserve suspension extension, rider support and existing pitch/whip controls.",
+        "implementationFiles": [
+          "src/simulation/offroad/dirt-bike-vehicle.ts",
+          "src/rendering/offroad/dirt-bike-model.ts",
+          "src/rendering/rider.ts"
+        ]
+      }
+    },
+    {
+      "number": 92,
+      "id": "092",
+      "file": "06_Lighting_Weather_Dirt_and_FX/092_SX4_blue_rider_from_rear_on_dark_churned_soil.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "SX4",
+        "game_title": "Monster Energy Supercross – The Official Videogame 4",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "steam_official_screenshot",
+        "source_url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1304340/ss_e667184919ed15814cf44bbdc8a3bdd577f911e9.1920x1080.jpg?t=1728477753",
+        "source_page": "https://store.steampowered.com/app/1304340/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "f67ff1692a77c31882ed8f1a6e12a0e5c426032d1533c3954a500feb7af92538",
+        "visual_focus": "Blue rider from rear on dark churned soil; study ruts, mud value range, and rear-wheel contact.",
+        "original_candidate_id": "64"
+      },
+      "previousObservation": "The close rear motorcycle rides dark churned soil with pale aggregate, a defined deep wheel channel and crisp local wheel grounding below brighter event boards.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "riding_gameplay",
+        "status": "new",
+        "method": "original",
+        "observation": "A rear tyre remains loaded in a dark worked lane as the front climbs away. New pickup waits for each end to carry load; retain soil depth, rear roost and rider posture.",
+        "implementationFiles": [
+          "src/simulation/offroad/wheel-pickup.ts",
+          "src/simulation/offroad/dirt-bike-vehicle.ts"
+        ]
+      }
+    },
+    {
+      "number": 93,
+      "id": "093",
+      "file": "06_Lighting_Weather_Dirt_and_FX/093_MXATV_golden_hour_atv_landscape.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "MXATV",
+        "game_title": "MX vs ATV Legends",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "official_site",
+        "source_url": "https://mxvsatvlegends.thqnordic.com/game-sites/mxvsatvlegends/light-bg.png",
+        "source_page": "https://mxvsatvlegends.thqnordic.com/",
+        "width": "1731",
+        "height": "1440",
+        "sha256": "05744de488d9629dc14493935e48ba66a12d462bcbc2956aec858a21cc942d2f",
+        "visual_focus": "Golden-hour ATV landscape; study sun direction, long shadows, haze, and warm material response.",
+        "original_candidate_id": "72"
+      },
+      "previousObservation": "A golden coast landscape shows side-lit fractured rocks, long shadows and dust suspended at a lip behind an airborne ATV.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "riding_gameplay",
+        "status": "context",
+        "method": "labeled contact sheet",
+        "observation": "ATV in a tropical sunset establishes lighting/terrain variety outside these two motorcycle venues; no ATV physics or new world is claimed.",
+        "implementationFiles": []
+      }
+    },
+    {
+      "number": 94,
+      "id": "094",
+      "file": "06_Lighting_Weather_Dirt_and_FX/094_MXATV_close_atv_corner_with_dirt_roost.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "MXATV",
+        "game_title": "MX vs ATV Legends",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "official_site",
+        "source_url": "https://mxvsatvlegends.thqnordic.com/game-sites/mxvsatvlegends/content/feature-showcase-3.jpg",
+        "source_page": "https://mxvsatvlegends.thqnordic.com/",
+        "width": "1920",
+        "height": "1080",
+        "sha256": "ebd7d1310f8e38b6bfd61c3d0ec8ceef0e038175c4890a98f87d202ef95d60e8",
+        "visual_focus": "Close ATV corner with dirt roost; study tire spray, suspension load, and soil interaction.",
+        "original_candidate_id": "75"
+      },
+      "previousObservation": "A close forest corner has curved packed lanes, dark cuts, pale shoulder grit, orange flexible fencing and individual chunks over a billowing brown cloud.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "riding_gameplay",
+        "status": "retained",
+        "method": "labeled contact sheet",
+        "observation": "ATV cornering roost is useful context for loaded-wheel soil ejection. Existing emission remains load/slip driven; no ATV interaction is introduced.",
+        "implementationFiles": ["src/rendering/offroad/roost.ts", "src/rendering/offroad/index.ts"]
+      }
+    },
+    {
+      "number": 95,
+      "id": "095",
+      "file": "06_Lighting_Weather_Dirt_and_FX/095_MXATV_backlit_motorcycle_jump_under_stadium_lamps.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "MXATV",
+        "game_title": "MX vs ATV Legends",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "official_site",
+        "source_url": "https://mxvsatvlegends.thqnordic.com/game-sites/mxvsatvlegends/content/mxvsatv_screen_allout.png",
+        "source_page": "https://mxvsatvlegends.thqnordic.com/",
+        "width": "1024",
+        "height": "576",
+        "sha256": "ec2971667bd21d61974e377823f376a47e401159a1be9b72854b3f8eb13552cd",
+        "visual_focus": "Backlit motorcycle jump under stadium lamps; study dust glow, bloom restraint, and silhouette.",
+        "original_candidate_id": "77"
+      },
+      "previousObservation": "A motorcycle launches beneath a bank of round stadium lamp heads; a backlit granular plume rises behind it against the blue-gray sky.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "riding_gameplay",
+        "status": "new",
+        "method": "original",
+        "observation": "Low view clearly separates unloaded front tyre from loaded rear tyre and debris. Pickup must not spin an unloaded wheel via a fictitious contact impulse; retain rear contact roost.",
+        "implementationFiles": [
+          "src/simulation/offroad/wheel-pickup.ts",
+          "src/simulation/offroad/dirt-bike-vehicle.ts"
+        ]
+      }
+    },
+    {
+      "number": 96,
+      "id": "096",
+      "file": "06_Lighting_Weather_Dirt_and_FX/096_MXATV_mountain_jump_with_dust_trail.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "MXATV",
+        "game_title": "MX vs ATV Legends",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "official_site",
+        "source_url": "https://mxvsatvlegends.thqnordic.com/game-sites/mxvsatvlegends/content/mxvsatv_screen_encore.jpg",
+        "source_page": "https://mxvsatvlegends.thqnordic.com/",
+        "width": "1024",
+        "height": "576",
+        "sha256": "1419e19e65665449567c8c496538c2fcd303168a085d23159dcec4a5d1656c5e",
+        "visual_focus": "Mountain jump with dust trail; study alpine backdrop, atmosphere, and sunlit particles.",
+        "original_candidate_id": "78"
+      },
+      "previousObservation": "A motorcycle takes off over sharp whoop ridges with dense parallel rake marks, yellow stakes, distant mountains and a low dusty trail.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "riding_gameplay",
+        "status": "new",
+        "method": "original",
+        "observation": "Rear tyre traces the ground while the front is high above rutted soil. New per-end load budget preserves unloaded-wheel state; snowy mountain setting remains context.",
+        "implementationFiles": [
+          "src/simulation/offroad/wheel-pickup.ts",
+          "src/simulation/offroad/dirt-bike-vehicle.ts"
+        ]
+      }
+    },
+    {
+      "number": 97,
+      "id": "097",
+      "file": "06_Lighting_Weather_Dirt_and_FX/097_MXATV_atv_pack_through_a_forest_corner.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "MXATV",
+        "game_title": "MX vs ATV Legends",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "official_site",
+        "source_url": "https://mxvsatvlegends.thqnordic.com/game-sites/mxvsatvlegends/content/mxvsatv_screen_alive.jpg",
+        "source_page": "https://mxvsatvlegends.thqnordic.com/",
+        "width": "1024",
+        "height": "576",
+        "sha256": "65965942714d0d7bad7dcced59882630174186931ce79da833d3b1b8768dedb5",
+        "visual_focus": "ATV pack through a forest corner; study motion blur, foliage contrast, and close-quarters readability.",
+        "original_candidate_id": "80"
+      },
+      "previousObservation": "A close mixed forest pack runs in deep brown ruts under dappled shade, with low sideways clod streaks and pale boundary pennants.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "riding_gameplay",
+        "status": "context",
+        "method": "labeled contact sheet",
+        "observation": "Mixed ATV/motorcycle forest pack is setting and traffic context. No new vehicle family or tropical forest venue is in this change.",
+        "implementationFiles": []
+      }
+    },
+    {
+      "number": 98,
+      "id": "098",
+      "file": "06_Lighting_Weather_Dirt_and_FX/098_MXATV_close_atv_battle_on_stadium_soil.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "MXATV",
+        "game_title": "MX vs ATV Legends",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "official_site",
+        "source_url": "https://mxvsatvlegends.thqnordic.com/game-sites/mxvsatvlegends/content/mxvsatv_screen_untamed.jpg",
+        "source_page": "https://mxvsatvlegends.thqnordic.com/",
+        "width": "1024",
+        "height": "576",
+        "sha256": "d22196ea5fee73b35a5a7165f6be2ae2d724e041604f59614e8e686fdbf42e72",
+        "visual_focus": "Close ATV battle on stadium soil; study tire contact patches, chassis roll, and surface displacement.",
+        "original_candidate_id": "82"
+      },
+      "previousObservation": "The stadium battle is set in a steep bowl with a darker packed lane, crumbled berm crown, visible concrete decks and high light banks.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "riding_gameplay",
+        "status": "context",
+        "method": "labeled contact sheet",
+        "observation": "ATV stadium battle provides close-race composition; two-wheel pickup is not presented as an ATV model.",
+        "implementationFiles": []
+      }
+    },
+    {
+      "number": 99,
+      "id": "099",
+      "file": "06_Lighting_Weather_Dirt_and_FX/099_MXATV_utv_jumping_over_an_outdoor_course.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "MXATV",
+        "game_title": "MX vs ATV Legends",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "playstation",
+        "source_url": "https://image.api.playstation.com/vulcan/ap/rnd/202109/0617/KndpwHirrk9NEo06GBCYbN35.jpg",
+        "source_page": "https://www.playstation.com/en-us/games/mx-vs-atv-legends/",
+        "width": "2560",
+        "height": "1440",
+        "sha256": "318ab1750b851240b7fa1bc1aa52b4d372028707130f26872dcd6fda58c78d0f",
+        "visual_focus": "UTV jumping over an outdoor course; study shadow grounding, suspension extension, and vehicle mass.",
+        "original_candidate_id": "108"
+      },
+      "previousObservation": "An airborne UTV casts a detached shadow below a rounded crest, surrounded by yellow stakes, turf shoulder, forested hillside and distant canopies.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "riding_gameplay",
+        "status": "context",
+        "method": "labeled contact sheet",
+        "observation": "UTV jump over an outdoor course is a vehicle/world reference outside motocross motorcycle dynamics. No UTV feature is claimed.",
+        "implementationFiles": []
+      }
+    },
+    {
+      "number": 100,
+      "id": "100",
+      "file": "06_Lighting_Weather_Dirt_and_FX/100_MXATV_desert_jump_over_rolling_terrain.jpg",
+      "sha256Verified": true,
+      "suppliedMetadata": {
+        "game_code": "MXATV",
+        "game_title": "MX vs ATV Legends",
+        "platform_context": "PS5-available title; see source_kind for storefront/publisher origin",
+        "source_kind": "playstation",
+        "source_url": "https://image.api.playstation.com/vulcan/ap/rnd/202212/1213/IsKjdm4BlmHlffNSvTW4WC6h.jpg",
+        "source_page": "https://www.playstation.com/en-us/games/mx-vs-atv-legends/",
+        "width": "2560",
+        "height": "1440",
+        "sha256": "1502126cbf4dfcf8f53a23b3f0d6adf03f216ede9e567b595b29a984597373e3",
+        "visual_focus": "Desert jump over rolling terrain; study dust falloff, elevation readability, and long-distance track flow.",
+        "original_candidate_id": "114"
+      },
+      "previousObservation": "A long desert motorcycle jump crosses repeated rounded ramps with longitudinal grading marks, shrub islands, sparse guide stakes and rolling tan hills.",
+      "metadataDiscrepancy": null,
+      "thisPass": {
+        "reviewer": "riding_gameplay",
+        "status": "new",
+        "method": "original",
+        "observation": "Rear chase composition exposes the downslope and several future jump choices. Supports precision landing placement/readability; existing ballistic path is preserved and wheel grip starts only on touchdown.",
+        "implementationFiles": [
+          "src/simulation/offroad/wheel-pickup.ts",
+          "src/simulation/offroad/dirt-bike-vehicle.ts",
+          "src/simulation/offroad/landing-challenge.ts",
+          "src/ui/offroad-hud.ts"
+        ]
+      }
+    }
+  ]
+}

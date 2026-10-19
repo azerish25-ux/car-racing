@@ -1,0 +1,1892 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-19",
+  "subject": "Motocross procedural mechanics, soil morphology, loaded-wheel pickup and solo landing targets",
+  "baselineCommit": "88e604b078a0ac42f50fa278706ca2d81182831d",
+  "branch": "main",
+  "summary": "Production build, static checks and all 3564 distinct current unit cases passed across the broad run plus documented process-access and late-grid runs. Seven final scoped browser checks passed, with actual game flow at Low on a software GPU. This is not a consumer-hardware performance or photographic realism certification.",
+  "sourceIdentity": {
+    "finalProductionBuild": {
+      "version": 1,
+      "commit": null,
+      "fingerprint": "a04bd7b9cef3f6dc1f8bb1ff37ee49b952c3ea87dd645d186a012492652a6cfd"
+    },
+    "buildCommitNote": "The build was made from the verified working tree before commit, so its commit field is null. The fingerprint identifies those application bytes.",
+    "applicationFiles": [
+      {
+        "path": "src/rendering/grid-preparation.ts",
+        "sha256": "bf0dcbe23c178ce841153e0bed1ab28b58cf87a9d6d92cb8064a9f1805b0ba18"
+      },
+      {
+        "path": "src/rendering/grid-presentation-view.ts",
+        "sha256": "ea374b8d8ed967ca1b0a88d0f98a5abe0a6b01b0eee2fd8c147f8373f3fdedf4"
+      },
+      {
+        "path": "src/rendering/offroad/dirt-bike-model.ts",
+        "sha256": "4a4dd25d69c6349f71223da5358692df95ed24a0ea31d9a57188fa4d8663d049"
+      },
+      {
+        "path": "src/rendering/offroad/motocross-mechanics.ts",
+        "sha256": "eedd94b2ca90c8be2b59a19794a9c12466c73af0a6af5b7af9cb2b224cfb6a93"
+      },
+      {
+        "path": "src/rendering/offroad/mx-soil-morphology.ts",
+        "sha256": "e1e8993f8a5f3d1cad82c7b8d5bd6554f66799912878fffc7ebbe0919bea38b0"
+      },
+      {
+        "path": "src/rendering/offroad/terrain-view.ts",
+        "sha256": "371e7fa8e0995c2685f2f36de7a3432d81ff82c4d3f7312e9ef5957213e03f75"
+      },
+      {
+        "path": "src/simulation/offroad/dirt-bike-vehicle.ts",
+        "sha256": "d7f635054cfd93cee57ed924ab72690989393053c9d72fd7366725bb4850f7af"
+      },
+      {
+        "path": "src/simulation/offroad/landing-challenge.ts",
+        "sha256": "94c42f4d6bf068136319205ac62edb137a242623988b7ebf54f189b566825bff"
+      },
+      {
+        "path": "src/simulation/offroad/wheel-pickup.ts",
+        "sha256": "3872c53e7b7bf7c6268b45fd436fd05dc4e5932c773ca660101c8b11864d0251"
+      },
+      {
+        "path": "src/ui/interface.ts",
+        "sha256": "9221978313bd153526f661089e2532e03c82772693c6326483f3c3249f5ce87b"
+      },
+      {
+        "path": "src/ui/motocross-brake-cue.ts",
+        "sha256": "f3cc69fbbf9508c54f94502c3f6ad5fcdc3f9789a00eefad1096b20a2cea9975"
+      },
+      {
+        "path": "src/ui/motocross-presentation.ts",
+        "sha256": "23ab4304ce6d99e6ae5d21f5c0eea715c70da3950ac69324379cc4679e3c2e78"
+      },
+      {
+        "path": "src/ui/offroad-hud.ts",
+        "sha256": "44ae27f035ac0994e3446d71131092e4dd193e0cd12dacb1baf96b72e53dc992"
+      }
+    ],
+    "implementationAndTestFiles": [
+      {
+        "path": "e2e/45-motocross-gameplay.spec.ts",
+        "sha256": "59d8d4acee9a735abfce7fd95b58bf43e894ecc598be427be1a1e95d6a0166a7"
+      },
+      {
+        "path": "e2e/48-motocross-practice.spec.ts",
+        "sha256": "84873c25b69213bea77c693673d8eeb10bf26be502c0c786b09c92eeb901a5e3"
+      },
+      {
+        "path": "e2e/fixtures/motocross-interface.ts",
+        "sha256": "c7f51669615124dd1d4ed39ad6e654290e0a14c9ea63d21321ab017956617fc2"
+      },
+      {
+        "path": "scripts/motocross-target-feasibility.ts",
+        "sha256": "07272ac58b170a5ceaf32170cf0e9e1a3c6a73cc8439d0452b3c5653297fd3a3"
+      },
+      {
+        "path": "src/rendering/grid-preparation.ts",
+        "sha256": "bf0dcbe23c178ce841153e0bed1ab28b58cf87a9d6d92cb8064a9f1805b0ba18"
+      },
+      {
+        "path": "src/rendering/grid-presentation-view.ts",
+        "sha256": "ea374b8d8ed967ca1b0a88d0f98a5abe0a6b01b0eee2fd8c147f8373f3fdedf4"
+      },
+      {
+        "path": "src/rendering/offroad/dirt-bike-model.ts",
+        "sha256": "4a4dd25d69c6349f71223da5358692df95ed24a0ea31d9a57188fa4d8663d049"
+      },
+      {
+        "path": "src/rendering/offroad/motocross-mechanics.ts",
+        "sha256": "eedd94b2ca90c8be2b59a19794a9c12466c73af0a6af5b7af9cb2b224cfb6a93"
+      },
+      {
+        "path": "src/rendering/offroad/mx-soil-morphology.ts",
+        "sha256": "e1e8993f8a5f3d1cad82c7b8d5bd6554f66799912878fffc7ebbe0919bea38b0"
+      },
+      {
+        "path": "src/rendering/offroad/terrain-view.ts",
+        "sha256": "371e7fa8e0995c2685f2f36de7a3432d81ff82c4d3f7312e9ef5957213e03f75"
+      },
+      {
+        "path": "src/simulation/offroad/dirt-bike-vehicle.ts",
+        "sha256": "d7f635054cfd93cee57ed924ab72690989393053c9d72fd7366725bb4850f7af"
+      },
+      {
+        "path": "src/simulation/offroad/landing-challenge.ts",
+        "sha256": "94c42f4d6bf068136319205ac62edb137a242623988b7ebf54f189b566825bff"
+      },
+      {
+        "path": "src/simulation/offroad/wheel-pickup.ts",
+        "sha256": "3872c53e7b7bf7c6268b45fd436fd05dc4e5932c773ca660101c8b11864d0251"
+      },
+      {
+        "path": "src/ui/interface.ts",
+        "sha256": "9221978313bd153526f661089e2532e03c82772693c6326483f3c3249f5ce87b"
+      },
+      {
+        "path": "src/ui/motocross-brake-cue.ts",
+        "sha256": "f3cc69fbbf9508c54f94502c3f6ad5fcdc3f9789a00eefad1096b20a2cea9975"
+      },
+      {
+        "path": "src/ui/motocross-presentation.ts",
+        "sha256": "23ab4304ce6d99e6ae5d21f5c0eea715c70da3950ac69324379cc4679e3c2e78"
+      },
+      {
+        "path": "src/ui/offroad-hud.ts",
+        "sha256": "44ae27f035ac0994e3446d71131092e4dd193e0cd12dacb1baf96b72e53dc992"
+      },
+      {
+        "path": "tests/motocross-brake-cue.test.ts",
+        "sha256": "e67f3b91a0d6a6b26294bad6f27dce7a72d2d1494006d77a7545e274187e3cc7"
+      },
+      {
+        "path": "tests/motocross-grid-preparation.test.ts",
+        "sha256": "9d0d3b950218cbc817d348fd334b8381e010ef9709d5e92072fac2f99793e17b"
+      },
+      {
+        "path": "tests/motocross-hud.test.ts",
+        "sha256": "8ff836360acae0048d80ad187523e9a1503f8e5bd484fdbef452525edf3ce004"
+      },
+      {
+        "path": "tests/motocross-landing-challenge.test.ts",
+        "sha256": "f4f33bf6f07e5133682fd331432196235b1ba6de655056a755bde83379abb000"
+      },
+      {
+        "path": "tests/motocross-mechanics.test.ts",
+        "sha256": "5e88f2e8e95c18049c32ef06bddf689f9d54c6971f88810eb5940cf96a0c3ec6"
+      },
+      {
+        "path": "tests/motocross-soil-morphology.test.ts",
+        "sha256": "e6a417612ce2263d1d1d766e68877af3d7aca0e5853031f187c2318332538d66"
+      },
+      {
+        "path": "tests/motocross-wheel-pickup.test.ts",
+        "sha256": "5eb46c93c2bac408df5696e6fc1f4cba19b09f0bf1e58a73285f374f3d1da5fc"
+      }
+    ],
+    "captureSequence": "Bike and terrain fixtures passed with their final component source. HUD feedback and the two gate-prop guards were finalized later; the final production build and Low full-game journey include all application changes. The last edits after this build affect documentation and the E2E gate screenshot only."
+  },
+  "environment": {
+    "node": "24.19.0",
+    "three": "0.180.0",
+    "typescript": "5.9.3",
+    "vite": "7.1.7",
+    "vitest": "3.2.4",
+    "playwright": "1.55.1",
+    "browser": "Pinned private Playwright Chromium, ANGLE SwiftShader, headless",
+    "hardwareGpuMeasured": false
+  },
+  "staticChecks": [
+    {
+      "command": "npm run build",
+      "status": "passed",
+      "finalViteDurationSeconds": 18.09,
+      "modules": 692,
+      "warning": "Existing large-chunk warning remains; no bundle-size optimization is claimed."
+    },
+    {
+      "command": "npm run lint",
+      "status": "passed",
+      "scope": "All src, tests, e2e and scripts after application/test freeze."
+    },
+    {
+      "command": "npm run validate:content",
+      "status": "passed",
+      "result": "Content valid"
+    }
+  ],
+  "unitTests": {
+    "broadRun": {
+      "command": "npm test -- --reporter=default --reporter=json --outputFile=<scratch>/mx_full_unit_results.json",
+      "exitCode": 1,
+      "files": 428,
+      "passedFiles": 426,
+      "failedFiles": 2,
+      "totalCases": 3562,
+      "passedCases": 3554,
+      "failedCases": 8,
+      "durationSeconds": 1697.74,
+      "failures": [
+        {
+          "file": "tests/review-tools.test.ts",
+          "failedCases": [
+            "Phase 27E evidence command line recomputes raw observations, enforces source identity and gives strict failures for interrupted captures",
+            "Phase 27E evidence command line verifies actual counterpart PNG bytes without converting declarations into art certification"
+          ]
+        },
+        {
+          "file": "tests/studio-qa-tools.test.ts",
+          "failedCases": [
+            "capture-matrix documents every production-plan flag",
+            "capture-matrix keeps the original capture.mjs indices for the default day run",
+            "capture-matrix gives every matrix shot a unique, scenario-stable index",
+            "capture-matrix holds the default drive shots at one simulated instant (turn-1 approach)",
+            "capture-matrix rejects bad options and output inside the repository before launching a browser",
+            "look-targets.json only measures shots the matrix produces, inside the frame, with known measures"
+          ]
+        }
+      ]
+    },
+    "processAccessRerun": {
+      "command": "node node_modules/vitest/vitest.mjs run tests/studio-qa-tools.test.ts tests/review-tools.test.ts --reporter=default --reporter=json --outputFile=<scratch>/mx_cli_rerun_results.json",
+      "status": "passed",
+      "files": 2,
+      "cases": 10,
+      "durationSeconds": 8.88,
+      "sourceOrTestChanges": false,
+      "reason": "Restricted spawnSync pipe probe returned status 0, EPERM and empty stdout/stderr. Unchanged CLI cases pass with normal process access."
+    },
+    "lateGridRun": {
+      "command": "npx vitest run tests/motocross-grid-preparation.test.ts tests/reference-implementation.test.ts tests/grid-presentation.test.ts",
+      "status": "passed",
+      "files": 3,
+      "cases": 38,
+      "durationSeconds": 7.66,
+      "breakdown": {
+        "tests/motocross-grid-preparation.test.ts": 2,
+        "tests/reference-implementation.test.ts": 30,
+        "tests/grid-presentation.test.ts": 6
+      },
+      "evidence": "Successful tool output, exit 0; no standalone report saved.",
+      "note": "The two new grid cases were created after broad-run discovery. The other 36 cases overlap the broad run."
+    },
+    "combinedDistinctCasesPassed": 3564,
+    "combinedDistinctFilesCovered": 429,
+    "countQualification": "Combines the broad run, the unchanged CLI rerun and two new late-grid cases. Reruns are not added again as new cases. The original broad command did not exit zero."
+  },
+  "browserTests": {
+    "configuration": "playwright.motocross.config.ts",
+    "finalChecksPassed": [
+      {
+        "file": "e2e/43-motocross-world.spec.ts",
+        "title": "MX and SX production terrain loads photographed soil with correct macros and reversible wetness on WebGL2",
+        "status": "passed",
+        "durationMs": 166881
+      },
+      {
+        "file": "e2e/43-motocross-world.spec.ts",
+        "title": "MX and SX terrain preserves lit slopes and real jump shadows with native filtering",
+        "status": "passed",
+        "durationMs": 54537
+      },
+      {
+        "file": "e2e/43-motocross-world.spec.ts",
+        "title": "MX and SX terrain preserves lit slopes and real jump shadows with production filtering",
+        "status": "passed",
+        "durationMs": 47222
+      },
+      {
+        "file": "e2e/44-motocross-interface.spec.ts",
+        "title": "motocross entry, live race alerts and landing HUD remain usable at small sizes",
+        "status": "passed",
+        "durationMs": 16142
+      },
+      {
+        "file": "e2e/42-motocross-bike.spec.ts",
+        "title": "Motocross reference R2: production bikes, reachable riding poses and reversible mud on WebGL2",
+        "status": "passed",
+        "durationMs": 53540
+      },
+      {
+        "file": "e2e/48-motocross-practice.spec.ts",
+        "title": "solo landing targets, held-brake guidance and autopilot exclusion use the visible production HUD",
+        "status": "passed",
+        "durationMs": 17772
+      },
+      {
+        "file": "e2e/45-motocross-gameplay.spec.ts",
+        "title": "real motocross player entry, eight-rider gate, riding, cameras, pause and venue switch",
+        "status": "passed",
+        "durationMs": 303663
+      }
+    ],
+    "practiceLayout": {
+      "venues": ["valley-ridge-mx", "arena-nord-sx"],
+      "viewportWidths": [390, 1280],
+      "productionCssAndSairaFontLoaded": true,
+      "checks": [
+        "unique target after clean settlement",
+        "paused duplicate",
+        "WATCH REPLAY preserves earned progress",
+        "autopilot exclusion",
+        "actual held-pedal brake cue",
+        "visible bounds"
+      ]
+    },
+    "fullGame": {
+      "command": "APEX_MOTOCROSS_JOURNEY_QUALITY=low npx playwright test --config=playwright.motocross.config.ts e2e/45-motocross-gameplay.spec.ts",
+      "status": "passed",
+      "durationSeconds": 303.663,
+      "qualitySelection": "Visible GARAGE & SETTINGS form; select Low, APPLY & SAVE. Runtime physics and session telemetry are not overwritten.",
+      "checks": [
+        "held eight-rider gate",
+        "manual W throttle before explicit G autopilot",
+        "at least 100 m course progress",
+        "at least 20 simulation seconds",
+        "at least 10 presented riding seconds",
+        "qualifying flight and recorded touchdown",
+        "chase/onboard cameras",
+        "pause freezes tick",
+        "selected-machine paddock and venue switch"
+      ],
+      "journeys": [
+        {
+          "circuit": "valley-ridge-mx",
+          "machine": "mx450",
+          "mode": "normal application, player throttle followed by explicitly enabled AI demonstration",
+          "requestedQuality": "low",
+          "human": {
+            "time": 7.741666793823242,
+            "speed": 6.664658546447754,
+            "throttle": 1,
+            "auto": false
+          },
+          "aiStartedAt": 7.8416666984558105,
+          "progressM": 213.34629821777344,
+          "maxAirTime": 1.0958333015441895,
+          "landing": {
+            "tick": 3815,
+            "time": 31.79166603088379,
+            "s": 206.4662322998047,
+            "progressM": 213.34629821777344,
+            "speed": 8.993090629577637,
+            "airborne": false,
+            "airTime": 1.0958333015441895,
+            "landingSpeed": 4.2362141609191895,
+            "landingPitch": 0.030015602707862854,
+            "safetyCarPhase": 0,
+            "presentedTime": 30.616666793823242
+          },
+          "pausedTick": 4704,
+          "observationCount": 44,
+          "presentedRidingIntervalSeconds": 23.44166660308838,
+          "finalPreset": "low",
+          "screenshotsVisuallyReviewed": [
+            "valley-ridge-mx-actual-gate.png",
+            "valley-ridge-mx-actual-chase.png",
+            "valley-ridge-mx-actual-onboard.png"
+          ]
+        },
+        {
+          "circuit": "arena-nord-sx",
+          "machine": "mx250",
+          "mode": "normal application, player throttle followed by explicitly enabled AI demonstration",
+          "requestedQuality": "low",
+          "human": {
+            "time": 7.483333110809326,
+            "speed": 3.4704787731170654,
+            "throttle": 1,
+            "auto": false
+          },
+          "aiStartedAt": 7.599999904632568,
+          "progressM": 149.74838256835938,
+          "maxAirTime": 0.5958333611488342,
+          "landing": {
+            "tick": 4467,
+            "time": 37.224998474121094,
+            "s": 142.00375366210938,
+            "progressM": 149.74838256835938,
+            "speed": 4.587865829467773,
+            "airborne": false,
+            "airTime": 0.5958333611488342,
+            "landingSpeed": 4.6946306228637695,
+            "landingPitch": -0.6336022615432739,
+            "safetyCarPhase": 0,
+            "presentedTime": 34.12916564941406
+          },
+          "pausedTick": 5845,
+          "observationCount": 54,
+          "presentedRidingIntervalSeconds": 27.46473217010498,
+          "finalPreset": "low",
+          "screenshotsVisuallyReviewed": [
+            "arena-nord-sx-actual-gate.png",
+            "arena-nord-sx-actual-chase.png",
+            "arena-nord-sx-actual-onboard.png"
+          ]
+        }
+      ],
+      "visualReview": "All six gate/chase/onboard captures inspected. Both gates exclude Formula blankets and retain staff/gate. No new detached bike components or onboard clipping observed."
+    },
+    "defaultMediumAttempt": {
+      "status": "failed-riding-wait",
+      "durationSecondsApprox": 414,
+      "profile": "Saved/default Medium on ANGLE SwiftShader",
+      "applicationFingerprint": "e384cf410f2a0a2e2384dd45b698a13ddf4fcdfb979f770f4a52c19167be14de",
+      "observations": "180-second riding wait ended without qualifying flight/touchdown. Last trace had a GPU fence pending about 167612 ms and only five completed GPU frames, despite simulation progress. No hardware performance conclusion follows from this software rendering stall.",
+      "response": "Run the unchanged gameplay assertions with optional Low selected through production settings. Default application quality and race/physics behavior remain unchanged."
+    },
+    "supersededPracticeIterations": "The earlier graphics/UI batch includes a failed practice fixture assertion; an intermediate pass did not load production CSS. Neither is counted. The final practice check loaded all Vite CSS, asserted the loaded Saira font and passed."
+  },
+  "renderingMeasurements": {
+    "scope": "Component fixture counts and complete terrain fixture samples. These are resource/geometry observations, not frame-rate promises.",
+    "bikes": [
+      {
+        "bike": "mx250",
+        "detail": "high",
+        "before": {
+          "triangles": 104266,
+          "submittedTriangles": 104268,
+          "calls": 67,
+          "resources": {
+            "geometries": 79,
+            "textures": 16,
+            "programs": 18
+          },
+          "glError": 0
+        },
+        "after": {
+          "triangles": 105874,
+          "submittedTriangles": 105876,
+          "calls": 71,
+          "resources": {
+            "geometries": 83,
+            "textures": 16,
+            "programs": 18
+          },
+          "glError": 0
+        },
+        "triangleIncreasePercent": 1.5422093491646471
+      },
+      {
+        "bike": "mx250",
+        "detail": "mid",
+        "before": {
+          "triangles": 49997,
+          "submittedTriangles": 49999,
+          "calls": 63,
+          "resources": {
+            "geometries": 75,
+            "textures": 16,
+            "programs": 18
+          },
+          "glError": 0
+        },
+        "after": {
+          "triangles": 50833,
+          "submittedTriangles": 50835,
+          "calls": 67,
+          "resources": {
+            "geometries": 79,
+            "textures": 16,
+            "programs": 18
+          },
+          "glError": 0
+        },
+        "triangleIncreasePercent": 1.6721003260195655
+      },
+      {
+        "bike": "mx250",
+        "detail": "far",
+        "before": {
+          "triangles": 11971,
+          "submittedTriangles": 11973,
+          "calls": 45,
+          "resources": {
+            "geometries": 57,
+            "textures": 10,
+            "programs": 13
+          },
+          "glError": 0
+        },
+        "after": {
+          "triangles": 11971,
+          "submittedTriangles": 11973,
+          "calls": 45,
+          "resources": {
+            "geometries": 57,
+            "textures": 10,
+            "programs": 13
+          },
+          "glError": 0
+        },
+        "triangleIncreasePercent": 0.0
+      },
+      {
+        "bike": "mx450",
+        "detail": "high",
+        "before": {
+          "triangles": 104266,
+          "submittedTriangles": 104268,
+          "calls": 67,
+          "resources": {
+            "geometries": 79,
+            "textures": 16,
+            "programs": 18
+          },
+          "glError": 0
+        },
+        "after": {
+          "triangles": 105874,
+          "submittedTriangles": 105876,
+          "calls": 71,
+          "resources": {
+            "geometries": 83,
+            "textures": 16,
+            "programs": 18
+          },
+          "glError": 0
+        },
+        "triangleIncreasePercent": 1.5422093491646471
+      },
+      {
+        "bike": "mx450",
+        "detail": "mid",
+        "before": {
+          "triangles": 49997,
+          "submittedTriangles": 49999,
+          "calls": 63,
+          "resources": {
+            "geometries": 75,
+            "textures": 16,
+            "programs": 18
+          },
+          "glError": 0
+        },
+        "after": {
+          "triangles": 50833,
+          "submittedTriangles": 50835,
+          "calls": 67,
+          "resources": {
+            "geometries": 79,
+            "textures": 16,
+            "programs": 18
+          },
+          "glError": 0
+        },
+        "triangleIncreasePercent": 1.6721003260195655
+      },
+      {
+        "bike": "mx450",
+        "detail": "far",
+        "before": {
+          "triangles": 11971,
+          "submittedTriangles": 11973,
+          "calls": 45,
+          "resources": {
+            "geometries": 57,
+            "textures": 10,
+            "programs": 13
+          },
+          "glError": 0
+        },
+        "after": {
+          "triangles": 11971,
+          "submittedTriangles": 11973,
+          "calls": 45,
+          "resources": {
+            "geometries": 57,
+            "textures": 10,
+            "programs": 13
+          },
+          "glError": 0
+        },
+        "triangleIncreasePercent": 0.0
+      }
+    ],
+    "terrain": [
+      {
+        "circuit": "valley-ridge-mx",
+        "verticesWithSoilMix": 47430,
+        "terrainMeshes": 10,
+        "additionalAttributeBytes": 758880,
+        "newSoilLayerResources": {
+          "textures": 0,
+          "drawCalls": 0,
+          "triangles": 0,
+          "meshes": 0
+        },
+        "samples": [
+          {
+            "label": "prepared-soil",
+            "hash": 1155791246,
+            "glError": 0,
+            "calls": 429,
+            "triangles": 813786,
+            "shadowWork": {
+              "calls": 571,
+              "triangles": 1015874
+            },
+            "resources": {
+              "geometries": 593,
+              "textures": 99,
+              "programs": 32
+            }
+          },
+          {
+            "label": "wet-soil",
+            "hash": 2938670305,
+            "glError": 0,
+            "calls": 429,
+            "triangles": 813786,
+            "shadowWork": {
+              "calls": 571,
+              "triangles": 1015874
+            },
+            "resources": {
+              "geometries": 593,
+              "textures": 99,
+              "programs": 32
+            }
+          },
+          {
+            "label": "held-wet-soil",
+            "hash": 2938670305,
+            "glError": 0,
+            "calls": 429,
+            "triangles": 813786,
+            "shadowWork": {
+              "calls": 571,
+              "triangles": 1015874
+            },
+            "resources": {
+              "geometries": 593,
+              "textures": 99,
+              "programs": 32
+            }
+          },
+          {
+            "label": "rewound-soil",
+            "hash": 1155791246,
+            "glError": 0,
+            "calls": 429,
+            "triangles": 813786,
+            "shadowWork": {
+              "calls": 571,
+              "triangles": 1015874
+            },
+            "resources": {
+              "geometries": 593,
+              "textures": 99,
+              "programs": 32
+            }
+          },
+          {
+            "label": "same-scene-terrain-casters-off",
+            "hash": 3376966504,
+            "glError": 0,
+            "calls": 429,
+            "triangles": 813786,
+            "shadowWork": {
+              "calls": 565,
+              "triangles": 962274
+            },
+            "resources": {
+              "geometries": 593,
+              "textures": 99,
+              "programs": 32
+            }
+          },
+          {
+            "label": "restored-terrain-casters",
+            "hash": 1155791246,
+            "glError": 0,
+            "calls": 429,
+            "triangles": 813786,
+            "shadowWork": {
+              "calls": 571,
+              "triangles": 1015874
+            },
+            "resources": {
+              "geometries": 593,
+              "textures": 99,
+              "programs": 32
+            }
+          }
+        ],
+        "geometryAndResourceStability": "All six prepared/wet/held/rewind/caster samples retain identical resource counts; tested replay restoration and source immutability pass."
+      },
+      {
+        "circuit": "arena-nord-sx",
+        "verticesWithSoilMix": 30527,
+        "terrainMeshes": 7,
+        "additionalAttributeBytes": 488432,
+        "newSoilLayerResources": {
+          "textures": 0,
+          "drawCalls": 0,
+          "triangles": 0,
+          "meshes": 0
+        },
+        "samples": [
+          {
+            "label": "prepared-soil",
+            "hash": 4157820325,
+            "glError": 0,
+            "calls": 376,
+            "triangles": 2659558,
+            "shadowWork": {
+              "calls": 569,
+              "triangles": 936890
+            },
+            "resources": {
+              "geometries": 598,
+              "textures": 84,
+              "programs": 32
+            }
+          },
+          {
+            "label": "wet-soil",
+            "hash": 1824299985,
+            "glError": 0,
+            "calls": 376,
+            "triangles": 2659558,
+            "shadowWork": {
+              "calls": 569,
+              "triangles": 936890
+            },
+            "resources": {
+              "geometries": 598,
+              "textures": 84,
+              "programs": 32
+            }
+          },
+          {
+            "label": "held-wet-soil",
+            "hash": 1824299985,
+            "glError": 0,
+            "calls": 376,
+            "triangles": 2659558,
+            "shadowWork": {
+              "calls": 569,
+              "triangles": 936890
+            },
+            "resources": {
+              "geometries": 598,
+              "textures": 84,
+              "programs": 32
+            }
+          },
+          {
+            "label": "rewound-soil",
+            "hash": 4157820325,
+            "glError": 0,
+            "calls": 376,
+            "triangles": 2659558,
+            "shadowWork": {
+              "calls": 569,
+              "triangles": 936890
+            },
+            "resources": {
+              "geometries": 598,
+              "textures": 84,
+              "programs": 32
+            }
+          },
+          {
+            "label": "same-scene-terrain-casters-off",
+            "hash": 4095541144,
+            "glError": 0,
+            "calls": 376,
+            "triangles": 2659558,
+            "shadowWork": {
+              "calls": 562,
+              "triangles": 891444
+            },
+            "resources": {
+              "geometries": 598,
+              "textures": 84,
+              "programs": 32
+            }
+          },
+          {
+            "label": "restored-terrain-casters",
+            "hash": 4157820325,
+            "glError": 0,
+            "calls": 376,
+            "triangles": 2659558,
+            "shadowWork": {
+              "calls": 569,
+              "triangles": 936890
+            },
+            "resources": {
+              "geometries": 598,
+              "textures": 84,
+              "programs": 32
+            }
+          }
+        ],
+        "geometryAndResourceStability": "All six prepared/wet/held/rewind/caster samples retain identical resource counts; tested replay restoration and source immutability pass."
+      }
+    ]
+  },
+  "simulationChecks": {
+    "landingTargets": {
+      "generatedBy": "node --experimental-transform-types scripts/motocross-target-feasibility.ts",
+      "method": "One run per fixed approach speed in solo Sport practice, on fresh live deformable terrain. Manual eligibility begins 12 m before the face with autoPlayer=false and aiControlled(0). After initial placement/speed/gear, only public ground/air controls are scripted. Actual production Float32 snapshots feed the live assessment and MotocrossLandingChallenge. No speed search or physical tuning. Scripted feasibility does not establish human ease or a full route from the start gate.",
+      "dt": 0.008333333333333333,
+      "substepDt": 0.004166666666666667,
+      "boundedSecondsPerRun": 6,
+      "expected": 18,
+      "total": 18,
+      "earned": 18,
+      "passed": true,
+      "failures": [],
+      "totalProductionSnapshots": 6262,
+      "ineligibleSamples": 0,
+      "offCourseSamples": 0,
+      "crashes": 0,
+      "rebounds": 0,
+      "settlementSecondsRange": [0.26666736602783203, 0.27500057220458984],
+      "minimumObservedLandingMarginMetres": 0.1966739991736972,
+      "cases": [
+        {
+          "venue": "valley-ridge-mx",
+          "name": "RIDGE TABLE",
+          "bike": "mx250",
+          "approachSpeed": 11.77010999927624,
+          "assist": "sport",
+          "initial": {
+            "s": 176.49243881411735,
+            "speed": 11.77010999927624,
+            "gear": 1,
+            "aiControlledSteps": 0,
+            "autoPlayer": false
+          },
+          "target": [203.25389174480992, 207.5626486968553],
+          "totalSamples": 347,
+          "ineligibleSamples": 0,
+          "offCourseSamples": 0,
+          "settledSeconds": 0.27499961853027344,
+          "allClean": true,
+          "peakBottom": 0,
+          "rebound": false,
+          "crashes": 0,
+          "actualResult": {
+            "jump": "RIDGE TABLE",
+            "takeoff": 192.25389174480992,
+            "at": 8.515774726867676,
+            "kind": "target",
+            "first": true
+          },
+          "earnedTarget": true,
+          "passed": true
+        },
+        {
+          "venue": "valley-ridge-mx",
+          "name": "RIDGE TABLE",
+          "bike": "mx450",
+          "approachSpeed": 11.77010999927624,
+          "assist": "sport",
+          "initial": {
+            "s": 176.49243881411735,
+            "speed": 11.77010999927624,
+            "gear": 2,
+            "aiControlledSteps": 0,
+            "autoPlayer": false
+          },
+          "target": [203.25389174480992, 207.5626486968553],
+          "totalSamples": 349,
+          "ineligibleSamples": 0,
+          "offCourseSamples": 0,
+          "settledSeconds": 0.26666736602783203,
+          "allClean": true,
+          "peakBottom": 0,
+          "rebound": false,
+          "crashes": 0,
+          "actualResult": {
+            "jump": "RIDGE TABLE",
+            "takeoff": 192.25389174480992,
+            "at": 8.54077434539795,
+            "kind": "target",
+            "first": true
+          },
+          "earnedTarget": true,
+          "passed": true
+        },
+        {
+          "venue": "valley-ridge-mx",
+          "name": "BARN DOUBLE",
+          "bike": "mx250",
+          "approachSpeed": 13.914366993645539,
+          "assist": "sport",
+          "initial": {
+            "s": 288.4547119149247,
+            "speed": 13.914366993645539,
+            "gear": 2,
+            "aiControlledSteps": 0,
+            "autoPlayer": false
+          },
+          "target": [319.6740878961992, 325.7063476290627],
+          "totalSamples": 340,
+          "ineligibleSamples": 0,
+          "offCourseSamples": 0,
+          "settledSeconds": 0.27499961853027344,
+          "allClean": true,
+          "peakBottom": 0,
+          "rebound": false,
+          "crashes": 0,
+          "actualResult": {
+            "jump": "BARN DOUBLE",
+            "takeoff": 304.24321220099466,
+            "at": 8.457441329956055,
+            "kind": "target",
+            "first": true
+          },
+          "earnedTarget": true,
+          "passed": true
+        },
+        {
+          "venue": "valley-ridge-mx",
+          "name": "BARN DOUBLE",
+          "bike": "mx450",
+          "approachSpeed": 13.814366993645539,
+          "assist": "sport",
+          "initial": {
+            "s": 288.4547119149247,
+            "speed": 13.814366993645539,
+            "gear": 2,
+            "aiControlledSteps": 0,
+            "autoPlayer": false
+          },
+          "target": [319.6740878961992, 325.7063476290627],
+          "totalSamples": 349,
+          "ineligibleSamples": 0,
+          "offCourseSamples": 0,
+          "settledSeconds": 0.26666736602783203,
+          "allClean": true,
+          "peakBottom": 0,
+          "rebound": false,
+          "crashes": 0,
+          "actualResult": {
+            "jump": "BARN DOUBLE",
+            "takeoff": 304.24321220099466,
+            "at": 8.54077434539795,
+            "kind": "target",
+            "first": true
+          },
+          "earnedTarget": true,
+          "passed": true
+        },
+        {
+          "venue": "valley-ridge-mx",
+          "name": "SKY TRIPLE",
+          "bike": "mx250",
+          "approachSpeed": 14.278589940140192,
+          "assist": "sport",
+          "initial": {
+            "s": 572.9393096048436,
+            "speed": 14.278589940140192,
+            "gear": 2,
+            "aiControlledSteps": 0,
+            "autoPlayer": false
+          },
+          "target": [606.298039032784, 611.3804080687167],
+          "totalSamples": 355,
+          "ineligibleSamples": 0,
+          "offCourseSamples": 0,
+          "settledSeconds": 0.27499961853027344,
+          "allClean": true,
+          "peakBottom": 0,
+          "rebound": false,
+          "crashes": 0,
+          "actualResult": {
+            "jump": "SKY TRIPLE",
+            "takeoff": 587.9350126730745,
+            "at": 8.582441329956055,
+            "kind": "target",
+            "first": true
+          },
+          "earnedTarget": true,
+          "passed": true
+        },
+        {
+          "venue": "valley-ridge-mx",
+          "name": "SKY TRIPLE",
+          "bike": "mx450",
+          "approachSpeed": 13.878589940140191,
+          "assist": "sport",
+          "initial": {
+            "s": 572.9393096048436,
+            "speed": 13.878589940140191,
+            "gear": 2,
+            "aiControlledSteps": 0,
+            "autoPlayer": false
+          },
+          "target": [606.298039032784, 611.3804080687167],
+          "totalSamples": 354,
+          "ineligibleSamples": 0,
+          "offCourseSamples": 0,
+          "settledSeconds": 0.27499961853027344,
+          "allClean": true,
+          "peakBottom": 0,
+          "rebound": false,
+          "crashes": 0,
+          "actualResult": {
+            "jump": "SKY TRIPLE",
+            "takeoff": 587.9350126730745,
+            "at": 8.574108123779297,
+            "kind": "target",
+            "first": true
+          },
+          "earnedTarget": true,
+          "passed": true
+        },
+        {
+          "venue": "valley-ridge-mx",
+          "name": "SUMMIT TABLE",
+          "bike": "mx250",
+          "approachSpeed": 12.764305261357515,
+          "assist": "sport",
+          "initial": {
+            "s": 694.3373169407953,
+            "speed": 12.764305261357515,
+            "gear": 2,
+            "aiControlledSteps": 0,
+            "autoPlayer": false
+          },
+          "target": [723.6670315534468, 728.8375398959013],
+          "totalSamples": 353,
+          "ineligibleSamples": 0,
+          "offCourseSamples": 0,
+          "settledSeconds": 0.27499961853027344,
+          "allClean": true,
+          "peakBottom": 0,
+          "rebound": false,
+          "crashes": 0,
+          "actualResult": {
+            "jump": "SUMMIT TABLE",
+            "takeoff": 710.6670315534468,
+            "at": 8.565774917602539,
+            "kind": "target",
+            "first": true
+          },
+          "earnedTarget": true,
+          "passed": true
+        },
+        {
+          "venue": "valley-ridge-mx",
+          "name": "SUMMIT TABLE",
+          "bike": "mx450",
+          "approachSpeed": 12.664305261357516,
+          "assist": "sport",
+          "initial": {
+            "s": 694.3373169407953,
+            "speed": 12.664305261357516,
+            "gear": 2,
+            "aiControlledSteps": 0,
+            "autoPlayer": false
+          },
+          "target": [723.6670315534468, 728.8375398959013],
+          "totalSamples": 364,
+          "ineligibleSamples": 0,
+          "offCourseSamples": 0,
+          "settledSeconds": 0.27500057220458984,
+          "allClean": true,
+          "peakBottom": 0,
+          "rebound": false,
+          "crashes": 0,
+          "actualResult": {
+            "jump": "SUMMIT TABLE",
+            "takeoff": 710.6670315534468,
+            "at": 8.657441139221191,
+            "kind": "target",
+            "first": true
+          },
+          "earnedTarget": true,
+          "passed": true
+        },
+        {
+          "venue": "valley-ridge-mx",
+          "name": "VALLEY DOUBLE",
+          "bike": "mx250",
+          "approachSpeed": 14.12871040127835,
+          "assist": "sport",
+          "initial": {
+            "s": 744.3275893394648,
+            "speed": 14.12871040127835,
+            "gear": 2,
+            "aiControlledSteps": 0,
+            "autoPlayer": false
+          },
+          "target": [774.5045295476762, 780.3213514329375],
+          "totalSamples": 350,
+          "ineligibleSamples": 0,
+          "offCourseSamples": 0,
+          "settledSeconds": 0.26666736602783203,
+          "allClean": true,
+          "peakBottom": 0,
+          "rebound": false,
+          "crashes": 0,
+          "actualResult": {
+            "jump": "VALLEY DOUBLE",
+            "takeoff": 760.0890422701575,
+            "at": 8.549107551574707,
+            "kind": "target",
+            "first": true
+          },
+          "earnedTarget": true,
+          "passed": true
+        },
+        {
+          "venue": "valley-ridge-mx",
+          "name": "VALLEY DOUBLE",
+          "bike": "mx450",
+          "approachSpeed": 13.528710401278351,
+          "assist": "sport",
+          "initial": {
+            "s": 744.3275893394648,
+            "speed": 13.528710401278351,
+            "gear": 2,
+            "aiControlledSteps": 0,
+            "autoPlayer": false
+          },
+          "target": [774.5045295476762, 780.3213514329375],
+          "totalSamples": 342,
+          "ineligibleSamples": 0,
+          "offCourseSamples": 0,
+          "settledSeconds": 0.27500057220458984,
+          "allClean": true,
+          "peakBottom": 0,
+          "rebound": false,
+          "crashes": 0,
+          "actualResult": {
+            "jump": "VALLEY DOUBLE",
+            "takeoff": 760.0890422701575,
+            "at": 8.47410774230957,
+            "kind": "target",
+            "first": true
+          },
+          "earnedTarget": true,
+          "passed": true
+        },
+        {
+          "venue": "arena-nord-sx",
+          "name": "TRIPLE",
+          "bike": "mx250",
+          "approachSpeed": 13.785179725737494,
+          "assist": "sport",
+          "initial": {
+            "s": 123.86410262099287,
+            "speed": 13.785179725737494,
+            "gear": 2,
+            "aiControlledSteps": 0,
+            "autoPlayer": false
+          },
+          "target": [155.8464129892981, 160.31889774091886],
+          "totalSamples": 341,
+          "ineligibleSamples": 0,
+          "offCourseSamples": 0,
+          "settledSeconds": 0.27499961853027344,
+          "allClean": true,
+          "peakBottom": 0,
+          "rebound": false,
+          "crashes": 0,
+          "actualResult": {
+            "jump": "TRIPLE",
+            "takeoff": 138.52694979275375,
+            "at": 8.465774536132812,
+            "kind": "target",
+            "first": true
+          },
+          "earnedTarget": true,
+          "passed": true
+        },
+        {
+          "venue": "arena-nord-sx",
+          "name": "TRIPLE",
+          "bike": "mx450",
+          "approachSpeed": 13.485179725737494,
+          "assist": "sport",
+          "initial": {
+            "s": 123.86410262099287,
+            "speed": 13.485179725737494,
+            "gear": 2,
+            "aiControlledSteps": 0,
+            "autoPlayer": false
+          },
+          "target": [155.8464129892981, 160.31889774091886],
+          "totalSamples": 342,
+          "ineligibleSamples": 0,
+          "offCourseSamples": 0,
+          "settledSeconds": 0.26666736602783203,
+          "allClean": true,
+          "peakBottom": 0,
+          "rebound": false,
+          "crashes": 0,
+          "actualResult": {
+            "jump": "TRIPLE",
+            "takeoff": 138.52694979275375,
+            "at": 8.482440948486328,
+            "kind": "target",
+            "first": true
+          },
+          "earnedTarget": true,
+          "passed": true
+        },
+        {
+          "venue": "arena-nord-sx",
+          "name": "LANE DOUBLE",
+          "bike": "mx250",
+          "approachSpeed": 11.733430927878059,
+          "assist": "sport",
+          "initial": {
+            "s": 159.8568330463853,
+            "speed": 11.733430927878059,
+            "gear": 1,
+            "aiControlledSteps": 0,
+            "autoPlayer": false
+          },
+          "target": [185.87067303301, 190.17942998505538],
+          "totalSamples": 337,
+          "ineligibleSamples": 0,
+          "offCourseSamples": 0,
+          "settledSeconds": 0.27499961853027344,
+          "allClean": true,
+          "peakBottom": 0,
+          "rebound": false,
+          "crashes": 0,
+          "actualResult": {
+            "jump": "LANE DOUBLE",
+            "takeoff": 174.5629046792925,
+            "at": 8.432441711425781,
+            "kind": "target",
+            "first": true
+          },
+          "earnedTarget": true,
+          "passed": true
+        },
+        {
+          "venue": "arena-nord-sx",
+          "name": "LANE DOUBLE",
+          "bike": "mx450",
+          "approachSpeed": 11.733430927878059,
+          "assist": "sport",
+          "initial": {
+            "s": 159.8568330463853,
+            "speed": 11.733430927878059,
+            "gear": 2,
+            "aiControlledSteps": 0,
+            "autoPlayer": false
+          },
+          "target": [185.87067303301, 190.17942998505538],
+          "totalSamples": 340,
+          "ineligibleSamples": 0,
+          "offCourseSamples": 0,
+          "settledSeconds": 0.27499961853027344,
+          "allClean": true,
+          "peakBottom": 0,
+          "rebound": false,
+          "crashes": 0,
+          "actualResult": {
+            "jump": "LANE DOUBLE",
+            "takeoff": 174.5629046792925,
+            "at": 8.457441329956055,
+            "kind": "target",
+            "first": true
+          },
+          "earnedTarget": true,
+          "passed": true
+        },
+        {
+          "venue": "arena-nord-sx",
+          "name": "TABLETOP",
+          "bike": "mx250",
+          "approachSpeed": 10.588741265344332,
+          "assist": "sport",
+          "initial": {
+            "s": 372.67975348510356,
+            "speed": 10.588741265344332,
+            "gear": 1,
+            "aiControlledSteps": 0,
+            "autoPlayer": false
+          },
+          "target": [396.92703944459214, 400.804920701433],
+          "totalSamples": 353,
+          "ineligibleSamples": 0,
+          "offCourseSamples": 0,
+          "settledSeconds": 0.27499961853027344,
+          "allClean": true,
+          "peakBottom": 0,
+          "rebound": false,
+          "crashes": 0,
+          "actualResult": {
+            "jump": "TABLETOP",
+            "takeoff": 387.92703944459214,
+            "at": 8.565774917602539,
+            "kind": "target",
+            "first": true
+          },
+          "earnedTarget": true,
+          "passed": true
+        },
+        {
+          "venue": "arena-nord-sx",
+          "name": "TABLETOP",
+          "bike": "mx450",
+          "approachSpeed": 9.988741265344332,
+          "assist": "sport",
+          "initial": {
+            "s": 372.67975348510356,
+            "speed": 9.988741265344332,
+            "gear": 1,
+            "aiControlledSteps": 0,
+            "autoPlayer": false
+          },
+          "target": [396.92703944459214, 400.804920701433],
+          "totalSamples": 355,
+          "ineligibleSamples": 0,
+          "offCourseSamples": 0,
+          "settledSeconds": 0.27499961853027344,
+          "allClean": true,
+          "peakBottom": 0,
+          "rebound": false,
+          "crashes": 0,
+          "actualResult": {
+            "jump": "TABLETOP",
+            "takeoff": 387.92703944459214,
+            "at": 8.582441329956055,
+            "kind": "target",
+            "first": true
+          },
+          "earnedTarget": true,
+          "passed": true
+        },
+        {
+          "venue": "arena-nord-sx",
+          "name": "FINISH TRIPLE",
+          "bike": "mx250",
+          "approachSpeed": 13.425018894942802,
+          "assist": "sport",
+          "initial": {
+            "s": 436.6394814831143,
+            "speed": 13.425018894942802,
+            "gear": 2,
+            "aiControlledSteps": 0,
+            "autoPlayer": false
+          },
+          "target": [468.7882197996544, 473.2607045512752],
+          "totalSamples": 342,
+          "ineligibleSamples": 0,
+          "offCourseSamples": 0,
+          "settledSeconds": 0.27500057220458984,
+          "allClean": true,
+          "peakBottom": 0,
+          "rebound": false,
+          "crashes": 0,
+          "actualResult": {
+            "jump": "FINISH TRIPLE",
+            "takeoff": 451.4687566031101,
+            "at": 8.47410774230957,
+            "kind": "target",
+            "first": true
+          },
+          "earnedTarget": true,
+          "passed": true
+        },
+        {
+          "venue": "arena-nord-sx",
+          "name": "FINISH TRIPLE",
+          "bike": "mx450",
+          "approachSpeed": 13.325018894942803,
+          "assist": "sport",
+          "initial": {
+            "s": 436.6394814831143,
+            "speed": 13.325018894942803,
+            "gear": 2,
+            "aiControlledSteps": 0,
+            "autoPlayer": false
+          },
+          "target": [468.7882197996544, 473.2607045512752],
+          "totalSamples": 349,
+          "ineligibleSamples": 0,
+          "offCourseSamples": 0,
+          "settledSeconds": 0.26666736602783203,
+          "allClean": true,
+          "peakBottom": 0,
+          "rebound": false,
+          "crashes": 0,
+          "actualResult": {
+            "jump": "FINISH TRIPLE",
+            "takeoff": 451.4687566031101,
+            "at": 8.54077434539795,
+            "kind": "target",
+            "first": true
+          },
+          "earnedTarget": true,
+          "passed": true
+        }
+      ],
+      "scopeLimit": "Scripted controller uses the production landing forecast from a fixed rolling approach. These are actual tracker-earned targets, not proof of human ease, a complete manual lap, or exhaustive controller tuning."
+    },
+    "wheelPickup": {
+      "method": "Real surveyed RIDGE TABLE flight; 0.4 s front brake from airTime 0.2 s, existing pitch-control pedals, then coast 0.3 s. Reference uses same physical definition via unchanged general adapter. Simulation rates are measured separately; not runtime FPS.",
+      "rows": [
+        {
+          "bike": "mx250",
+          "assist": "sport",
+          "dt": 0.004166666666666667,
+          "touchdown": {
+            "speed": 9.943252940365024,
+            "frontRim": 0,
+            "rearRim": 13.762435435840041,
+            "record": {
+              "time": 2.541666666666688,
+              "s": 203.15509985394237,
+              "distance": 10.434231661697417,
+              "takeoffSpeed": 11.362406645591516,
+              "airTime": 1.0499999999999976,
+              "pitchError": -0.04206041360475904,
+              "slope": -0.025232242955234716,
+              "normalSpeed": 4.672420149578259,
+              "yawError": 0,
+              "lateralSpeed": 1.787633577275516e-5,
+              "bottomSpeed": 0,
+              "outcome": "clean"
+            }
+          },
+          "pickupDuration": 0.07083333333333333,
+          "firstFrontLoad": 0.04583333333333333,
+          "frontLoadedSteps": 62,
+          "largestFrontSpinStep": 5.192141244593806,
+          "frontImpulse": -50.574491930062365,
+          "rearImpulse": 17.497214797592125,
+          "exit": {
+            "speed": 10.366692198565529,
+            "baselineSpeed": 10.55061702111848,
+            "difference": -0.18392482255295128,
+            "frontRim": 10.366692198565529,
+            "rearRim": 10.366692198565529,
+            "s": 206.10175410028523,
+            "baselineS": 206.14001264728222,
+            "crashes": 0
+          }
+        },
+        {
+          "bike": "mx250",
+          "assist": "sport",
+          "dt": 0.0020833333333333333,
+          "touchdown": {
+            "speed": 9.944452124755786,
+            "frontRim": 0,
+            "rearRim": 14.009553044319421,
+            "record": {
+              "time": 2.541666666666657,
+              "s": 203.1758111975937,
+              "distance": 10.434480101674007,
+              "takeoffSpeed": 11.362406645591516,
+              "airTime": 1.0499999999999996,
+              "pitchError": -0.04737341048644629,
+              "slope": -0.025260960463491994,
+              "normalSpeed": 4.713867106233497,
+              "yawError": 0,
+              "lateralSpeed": 1.787633577275516e-5,
+              "bottomSpeed": 0,
+              "outcome": "clean"
+            }
+          },
+          "pickupDuration": 0.06875,
+          "firstFrontLoad": 0.04583333333333333,
+          "frontLoadedSteps": 123,
+          "largestFrontSpinStep": 2.6163412015164162,
+          "frontImpulse": -50.61214045489528,
+          "rearImpulse": 18.546754663006322,
+          "exit": {
+            "speed": 10.375269304964363,
+            "baselineSpeed": 10.553515108401038,
+            "difference": -0.17824580343667584,
+            "frontRim": 10.375269304964363,
+            "rearRim": 10.375269304964363,
+            "s": 206.10341955724175,
+            "baselineS": 206.13988458783274,
+            "crashes": 0
+          }
+        },
+        {
+          "bike": "mx250",
+          "assist": "raw",
+          "dt": 0.004166666666666667,
+          "touchdown": {
+            "speed": 10.82198555720102,
+            "frontRim": 0,
+            "rearRim": 14.839779251629222,
+            "record": {
+              "time": 2.5583333333333553,
+              "s": 203.31878065092815,
+              "distance": 10.597897412608635,
+              "takeoffSpeed": 11.362406645591516,
+              "airTime": 1.0666666666666642,
+              "pitchError": 0.07114457172098357,
+              "slope": -0.2685244593979835,
+              "normalSpeed": 2.3202012319961374,
+              "yawError": 0,
+              "lateralSpeed": 1.787633577275516e-5,
+              "bottomSpeed": 0,
+              "outcome": "clean"
+            }
+          },
+          "pickupDuration": 0.025,
+          "firstFrontLoad": 0.004166666666666667,
+          "frontLoadedSteps": 72,
+          "largestFrontSpinStep": 5.259828932181997,
+          "frontImpulse": -54.758750048587665,
+          "rearImpulse": 18.424804583256915,
+          "exit": {
+            "speed": 11.245551784696596,
+            "baselineSpeed": 11.44760262557018,
+            "difference": -0.20205084087358394,
+            "frontRim": 11.245551784696596,
+            "rearRim": 11.245551784696596,
+            "s": 206.49789095871097,
+            "baselineS": 206.5536084023165,
+            "crashes": 0
+          }
+        },
+        {
+          "bike": "mx250",
+          "assist": "raw",
+          "dt": 0.0020833333333333333,
+          "touchdown": {
+            "speed": 10.820623393456236,
+            "frontRim": 0,
+            "rearRim": 14.839779251629222,
+            "record": {
+              "time": 2.5562499999999897,
+              "s": 203.3190320473725,
+              "distance": 10.577694371420591,
+              "takeoffSpeed": 11.362406645591516,
+              "airTime": 1.0645833333333337,
+              "pitchError": 0.07398607337394178,
+              "slope": -0.266528253277123,
+              "normalSpeed": 2.3520988142772907,
+              "yawError": 0,
+              "lateralSpeed": 1.787633577275516e-5,
+              "bottomSpeed": 0,
+              "outcome": "clean"
+            }
+          },
+          "pickupDuration": 0.025,
+          "firstFrontLoad": 0.0020833333333333333,
+          "frontLoadedSteps": 144,
+          "largestFrontSpinStep": 2.6166519982457395,
+          "frontImpulse": -54.754694742809626,
+          "rearImpulse": 18.432154672654068,
+          "exit": {
+            "speed": 11.242990793022761,
+            "baselineSpeed": 11.444986839737544,
+            "difference": -0.20199604671478255,
+            "frontRim": 11.242990793022761,
+            "rearRim": 11.24299079302276,
+            "s": 206.47693173034577,
+            "baselineS": 206.53233288222896,
+            "crashes": 0
+          }
+        },
+        {
+          "bike": "mx450",
+          "assist": "sport",
+          "dt": 0.004166666666666667,
+          "touchdown": {
+            "speed": 10.103781503775911,
+            "frontRim": 0,
+            "rearRim": 11.366649422636032,
+            "record": {
+              "time": 2.5541666666666885,
+              "s": 203.35287418715416,
+              "distance": 10.63777472515698,
+              "takeoffSpeed": 11.421879451384706,
+              "airTime": 1.0666666666666642,
+              "pitchError": -0.024083822230782592,
+              "slope": -0.051264285040489965,
+              "normalSpeed": 4.513681586860487,
+              "yawError": 0,
+              "lateralSpeed": 1.7872595788773952e-5,
+              "bottomSpeed": 0,
+              "outcome": "clean"
+            }
+          },
+          "pickupDuration": 0.08333333333333333,
+          "firstFrontLoad": 0.058333333333333334,
+          "frontLoadedSteps": 59,
+          "largestFrontSpinStep": 4.997161494058481,
+          "frontImpulse": -55.16273734402385,
+          "rearImpulse": 7.912299151520034,
+          "exit": {
+            "speed": 10.489641390251395,
+            "baselineSpeed": 10.743194919620448,
+            "difference": -0.2535535293690536,
+            "frontRim": 10.489641390251395,
+            "rearRim": 10.489641390251395,
+            "s": 206.32984502399154,
+            "baselineS": 206.3836778883599,
+            "crashes": 0
+          }
+        },
+        {
+          "bike": "mx450",
+          "assist": "sport",
+          "dt": 0.0020833333333333333,
+          "touchdown": {
+            "speed": 10.091821875850023,
+            "frontRim": 0,
+            "rearRim": 10.226319360492727,
+            "record": {
+              "time": 2.5520833333333233,
+              "s": 203.35311837125573,
+              "distance": 10.617479806368955,
+              "takeoffSpeed": 11.421879451384706,
+              "airTime": 1.0645833333333337,
+              "pitchError": -0.005684370239149007,
+              "slope": -0.04830549496825048,
+              "normalSpeed": 4.564033275690332,
+              "yawError": 0,
+              "lateralSpeed": 1.7872595788773952e-5,
+              "bottomSpeed": 0,
+              "outcome": "clean"
+            }
+          },
+          "pickupDuration": 0.08333333333333333,
+          "firstFrontLoad": 0.058333333333333334,
+          "frontLoadedSteps": 117,
+          "largestFrontSpinStep": 2.564620171691775,
+          "frontImpulse": -54.92938929041836,
+          "rearImpulse": 2.1896112721598393,
+          "exit": {
+            "speed": 10.446784296316954,
+            "baselineSpeed": 10.729895176480017,
+            "difference": -0.2831108801630631,
+            "frontRim": 10.446784296316954,
+            "rearRim": 10.446784296316954,
+            "s": 206.29713216875302,
+            "baselineS": 206.35926981439525,
+            "crashes": 0
+          }
+        },
+        {
+          "bike": "mx450",
+          "assist": "raw",
+          "dt": 0.004166666666666667,
+          "touchdown": {
+            "speed": 10.195076339287091,
+            "frontRim": 0,
+            "rearRim": 18.915348437844305,
+            "record": {
+              "time": 2.566666666666689,
+              "s": 203.47610340448296,
+              "distance": 10.760992972159004,
+              "takeoffSpeed": 11.421879451384706,
+              "airTime": 1.0791666666666642,
+              "pitchError": -0.09170161130143147,
+              "slope": -0.07054698777265057,
+              "normalSpeed": 4.442320634956777,
+              "yawError": 0,
+              "lateralSpeed": 1.7872595788773952e-5,
+              "bottomSpeed": 0,
+              "outcome": "clean"
+            }
+          },
+          "pickupDuration": 0.05416666666666667,
+          "firstFrontLoad": 0.025,
+          "frontLoadedSteps": 67,
+          "largestFrontSpinStep": 4.780356382392014,
+          "frontImpulse": -56.49737558761711,
+          "rearImpulse": 45.72786688554616,
+          "exit": {
+            "speed": 10.791722129245345,
+            "baselineSpeed": 10.849227497793478,
+            "difference": -0.05750536854813326,
+            "frontRim": 10.791722129245345,
+            "rearRim": 10.791722129245345,
+            "s": 206.52515419577344,
+            "baselineS": 206.53252542498353,
+            "crashes": 0
+          }
+        },
+        {
+          "bike": "mx450",
+          "assist": "raw",
+          "dt": 0.0020833333333333333,
+          "touchdown": {
+            "speed": 10.198023109663403,
+            "frontRim": 0,
+            "rearRim": 18.915348437844305,
+            "record": {
+              "time": 2.5666666666666558,
+              "s": 203.49688594535928,
+              "distance": 10.761240983886628,
+              "takeoffSpeed": 11.421879451384706,
+              "airTime": 1.0791666666666677,
+              "pitchError": -0.08690943274424329,
+              "slope": -0.07058706748649413,
+              "normalSpeed": 4.4809263526480825,
+              "yawError": 0,
+              "lateralSpeed": 1.7872595788773952e-5,
+              "bottomSpeed": 0,
+              "outcome": "clean"
+            }
+          },
+          "pickupDuration": 0.05416666666666667,
+          "firstFrontLoad": 0.027083333333333334,
+          "frontLoadedSteps": 132,
+          "largestFrontSpinStep": 2.4666125800799534,
+          "frontImpulse": -56.5319515857143,
+          "rearImpulse": 45.71388805987928,
+          "exit": {
+            "speed": 10.795547556799763,
+            "baselineSpeed": 10.853307131846245,
+            "difference": -0.057759575046482325,
+            "frontRim": 10.795547556799763,
+            "rearRim": 10.795547556799763,
+            "s": 206.5259949864303,
+            "baselineS": 206.53282936152027,
+            "crashes": 0
+          }
+        }
+      ],
+      "pickupDurationMillisecondsRange": [25.0, 83.33333333333333],
+      "speedDifferenceMetresPerSecondRange": [-0.2831108801630631, -0.05750536854813326],
+      "speedMeasurementSecondsAfterTouchdown": 0.3,
+      "scopeLimit": "Finite pickup of inherited airborne wheel mismatch is layered over the existing rolling core. These examples are not universal speed penalties and do not validate a complete tyre/drivetrain solver."
+    },
+    "offroadCalibration": {
+      "status": "passed",
+      "jumpCases": 20,
+      "accelerationRows": 3,
+      "failures": [],
+      "method": "Run the existing scripts/offroad-calibration.ts from a scratch copy with only imports/report output redirected."
+    },
+    "fixedSeedRaces": {
+      "status": "passed",
+      "cases": [
+        {
+          "race": "Valley Ridge motocross moto",
+          "circuit": "valley-ridge-mx",
+          "laps": 3,
+          "seed": 41001,
+          "vehicles": ["mx450", "mx450", "mx250", "mx450", "mx450", "mx250", "mx450", "mx450"],
+          "raceSeconds": 241.74,
+          "finishTimes": [238.79, 241.73, 227.46, 232.85, 231.93, 240.7, 241.06, 228.55],
+          "retired": [],
+          "crashes": [0, 0, 0, 0, 0, 0, 0, 0],
+          "crashesPerRiderLap": 0,
+          "crashBound": 0.5,
+          "longestStopSeconds": 8.51
+        },
+        {
+          "race": "Arena Nord supercross main",
+          "circuit": "arena-nord-sx",
+          "laps": 3,
+          "seed": 41003,
+          "vehicles": ["mx450", "mx450", "mx450", "mx450", "mx450", "mx450", "mx450", "mx450"],
+          "raceSeconds": 304.29,
+          "finishTimes": [304.28, 273.96, 291.06, 252.33, 235.6, 293.55, 298.19, 280.92],
+          "retired": [],
+          "crashes": [0, 0, 0, 1, 1, 0, 0, 0],
+          "crashesPerRiderLap": 0.083,
+          "crashBound": 0.75,
+          "longestStopSeconds": 13.87
+        }
+      ],
+      "method": "Run the existing scripts/offroad-races.ts cases separately for MX and SX with only scratch import/report paths redirected. This does not claim the complete npm run test:offroad command was executed."
+    },
+    "coverage": [
+      "Passive momentum and energy bounds over 256 impulse combinations",
+      "Loaded wheel only; finite slip pickup after real locked-wheel flights",
+      "120/240/480 Hz convergence",
+      "Unchanged flight trajectory; reset and AI gating",
+      "Exact input-journal resimulation",
+      "Full 4 x 4 fork/rear travel combinations on MX250/MX450/SM450 at high and mid detail",
+      "Mount attachment, spring wire/coil dimensions, piston overlap, caliper clearance, hose endpoints and buffer reuse",
+      "Replay restoration of terrain soaking before the first exported terrain state"
+    ]
+  },
+  "references": {
+    "review": "motocross-reference-review-20261019.json",
+    "archiveSha256": "d8c8fbb62974432e8feafa853917deb45765dccc18be7d1da8ece9be512a9c73",
+    "imageHashesMatched": 100,
+    "contactSheetImagesVisuallyReviewed": 100,
+    "originalsAdditionallyInspected": [
+      "005",
+      "006",
+      "011",
+      "012",
+      "027",
+      "031",
+      "043",
+      "044",
+      "047",
+      "059",
+      "068",
+      "072",
+      "087",
+      "092",
+      "095",
+      "096",
+      "100"
+    ],
+    "classificationCounts": {
+      "newPrincipleSupport": 31,
+      "retained": 47,
+      "context": 22
+    },
+    "qualification": "Review classifications are not feature counts. Screenshots do not measure friction, inertia, thresholds, or establish their capture platform. No supplied screenshot is shipped as a texture."
+  },
+  "evidenceDigests": [
+    {
+      "name": "mx_full_unit_results.json",
+      "sha256": "fe2231e314df0a65a10593f3caf724dd878babafc9df2a5ba1aa5b7319eb9dde",
+      "bytes": 1243989
+    },
+    {
+      "name": "mx_cli_rerun_results.json",
+      "sha256": "9d888d1e60fd6a14938a363f94adaa19e199cccf7ca56bfa58aec252ccb3054a",
+      "bytes": 3932
+    },
+    {
+      "name": "mx_gameplay_final_results.json",
+      "sha256": "1cbda09704c024c50db117d5e0da4c24702a48732c72fa0bac7d5b76bb5ac724",
+      "bytes": 629388
+    },
+    {
+      "name": "mx_practice_final_results.json",
+      "sha256": "3c3c79592bebd6bea9403ef535708e0c098e583041f93489473841c44f6dd19c",
+      "bytes": 178775
+    },
+    {
+      "name": "mx_bike_ui_results.json",
+      "sha256": "0811734b8c21132ab288ab74eb2eb15d70fb178c276e3f4353115a0259bdd3c0",
+      "bytes": 15162434
+    },
+    {
+      "name": "mx_graphics_ui_results.json",
+      "sha256": "7dd298376c4e8db76e400d50b069d7da21a35716af5a7441fa5143eabd60070c",
+      "bytes": 79574383
+    },
+    {
+      "name": "mx_gameplay_results.json",
+      "sha256": "f114edee1bfd1a17947822f192075e50bf4a564ad5c2544b5724e233003d6c58",
+      "bytes": 12458
+    },
+    {
+      "name": "mx-target-feasibility-reproducible.json",
+      "sha256": "07e0d040b34607e2d560f36b61f699179aad793d1a9ebb825084512af44a8586",
+      "bytes": 47037
+    },
+    {
+      "name": "mx-wheel-pickup-measurements.json",
+      "sha256": "40601918295ce15980785138c9fad452c2c1e80e368ce705198227258f17b3e5",
+      "bytes": 10589
+    },
+    {
+      "name": "mx-offroad-calibration.json",
+      "sha256": "05a2a9e2a5be64558745131fcd72c368127c6cbfc2896b7dd4a5b74124f366b7",
+      "bytes": 11774
+    },
+    {
+      "name": "mx-gameplay-mx-races.json",
+      "sha256": "a6908cc845f176ec9267f1f9da594f56cb6583256218b73f06b2c13c9200c2e1",
+      "bytes": 3546
+    },
+    {
+      "name": "mx-gameplay-sx-races.json",
+      "sha256": "9e698e6dcd7950516877d6f33cda300ffcccfee7d8925016b20b5b23e040a394",
+      "bytes": 3625
+    }
+  ],
+  "evidenceStorage": "This committed record preserves measured summaries and raw-report digests. Full browser outputs, screenshots and exploratory reports are temporary session evidence, not committed game assets.",
+  "limitations": [
+    "The scene and rider retain a procedural appearance; this pass improves specific mechanical/material behavior without claiming photographic or AAA parity.",
+    "No consumer-GPU FPS or Medium/High full-game performance certification; the full-game functional pass used Low on SwiftShader.",
+    "Scripted target feasibility and AI race completion do not establish beginner difficulty or human fun through playtesting.",
+    "The wheel correction does not replace the entire rolling-core tyre/drivetrain model; a subsequent insignificant hop still follows the pre-existing hop touchdown path.",
+    "No deployment, APK release or hosted production performance check is part of this validation."
+  ]
+}

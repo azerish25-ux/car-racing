@@ -14,10 +14,15 @@ import {
 } from '../simulation/protocol.ts';
 import { PHASE } from '../simulation/race.ts';
 import { FLAG } from '../simulation/marshal.ts';
-import type { Track } from '../simulation/track.ts';
+import { trackPoint, type Track } from '../simulation/track.ts';
 import { clamp, mod } from '../core/math.ts';
 import { vehicleAt } from '../simulation/vehicles.ts';
 import { motocrossApproachCue, MotocrossRhythm } from '../simulation/offroad/rhythm-coach.ts';
+import {
+  isMotocrossLandingTarget,
+  MotocrossLandingChallenge,
+} from '../simulation/offroad/landing-challenge.ts';
+import { motocrossBrakeHeldInFlight } from './motocross-brake-cue.ts';
 import {
   assessMotocrossLanding,
   LANDING_RULES,
@@ -54,6 +59,8 @@ export class OffroadHud {
   private ride: HTMLElement | null = null;
   private rideFields: HTMLElement[] = [];
   private readonly rhythm = new MotocrossRhythm();
+  private readonly targets = new MotocrossLandingChallenge();
+  private readonly targetPoint = trackPoint();
   private airUntil = 0;
   private airTime = 0;
   private landedAirTime = 0;
@@ -103,8 +110,10 @@ export class OffroadHud {
     track: Track,
     options: SessionOptions,
     airborne: boolean,
+    playerControlled: boolean,
   ) {
     const course = offroadCourse(track.circuit)!;
+    const targetCount = course.jumps.filter(isMotocrossLandingTarget).length;
     const node = this.rideNode(),
       base = carBase(0),
       o = base + OFFROAD_BASE;
@@ -164,6 +173,8 @@ export class OffroadHud {
     }
     if (options.mode === 'practice' && this.rhythm.completed > 0)
       heading += ` · RUN ${this.rhythm.streak}/3`;
+    if (options.mode === 'practice' && targetCount > 0 && playerControlled)
+      heading = `PRACTICE · TARGETS ${this.targets.cleared.size}/${targetCount}`;
     if (options.mode === 'race' && frame[H.PHASE] < PHASE.RACING) {
       heading = 'START GATE';
       tag = 'READY';
@@ -202,6 +213,11 @@ export class OffroadHud {
         yaw > 0.18
           ? 'Release steering to square the wheels · throttle and brake set pitch.'
           : 'Steer to whip · release to square · throttle lifts the nose, brake lowers it.';
+      if (playerControlled && yaw <= 0.18 && motocrossBrakeHeldInFlight(frame)) {
+        title = 'RELEASE THE BRAKE';
+        note = 'Let the wheels roll before touchdown. A held brake drags the landing.';
+        tone = 'heavy';
+      }
       progress = Math.round(clamp(this.airTime / 2, 0, 1) * 100);
     } else if (time < this.airUntil && this.landing) {
       heading = 'LAST JUMP';
@@ -229,6 +245,35 @@ export class OffroadHud {
           : this.landing.tone === 'warning'
             ? 'heavy'
             : 'landing';
+      const target = this.targets.last;
+      if (options.mode === 'practice' && playerControlled && target?.at === this.landingAt) {
+        const count = this.targets.cleared.size;
+        if (target.kind === 'target') {
+          if (title !== 'WHIP LANDED') title = 'TARGET LANDED';
+          tag = `${count}/${targetCount} LANDING TARGETS`;
+          note =
+            count === targetCount
+              ? 'Every landing target cleared. Link them into one flowing lap.'
+              : `${target.jump.name} ${target.first ? 'cleared' : 'confirmed'} · ${targetCount - count} targets left.`;
+        } else if (target.kind === 'rough') {
+          tag = 'TARGET NOT CLEARED';
+          // O.BOTTOM decays after contact. The target keeps every observed
+          // settling sample, so explain a rejected attempt even if the latest
+          // instantaneous landing grade has recovered to clean.
+          if (this.landing.kind === 'clean') {
+            title = 'SETTLE THE LANDING';
+            note =
+              'The bike recovered after a rough contact. Match the downslope and settle smoothly to clear it.';
+          }
+          tone = 'heavy';
+        } else if (this.landing.kind === 'clean') {
+          tag = target.kind === 'short' ? 'SHORT OF TARGET' : 'PAST THE TARGET';
+          note =
+            target.kind === 'short'
+              ? 'Smooth contact. Build the approach to reach the surveyed downslope.'
+              : 'Smooth contact. Ease the approach to meet the surveyed downslope.';
+        }
+      }
       progress = Math.round(clamp((this.airUntil - time) / 2.8, 0, 1) * 100);
     }
     node.hidden = false;
@@ -286,13 +331,20 @@ export class OffroadHud {
       );
     return `<p class="offroad-results">${lines.join('<br>')}</p>`;
   }
-  update(frame: Float32Array, track: Track, options: SessionOptions) {
+  update(
+    frame: Float32Array,
+    track: Track,
+    options: SessionOptions,
+    playerControlled = true,
+    replay = false,
+  ) {
     const course = offroadCourse(track.circuit);
     if (!course) {
       if (this.element) this.element.hidden = true;
       if (this.ride) this.ride.hidden = true;
       this.lastTrack = null;
       this.rhythm.reset();
+      this.targets.reset();
       return;
     }
     const format = rulesetFor(options).format,
@@ -365,25 +417,54 @@ export class OffroadHud {
     }
     const player = carBase(0);
     const riderSpec = vehicleAt(Math.round(frame[player + RACE_BASE + R.VEHICLE])).bike?.offroad;
+    const feedback = assessMotocrossLanding(
+      frame[o + O.LANDING_PITCH],
+      frame[o + O.LANDING_SPEED],
+      frame[o + O.BOTTOM],
+      frame[player + BIKE_BASE + B.STATE] > 0.5,
+      riderSpec,
+      course.isRough(mod(frame[player + F.S], track.length)),
+      Number.isFinite(this.landingAt) ? this.landingSideways : 0,
+    );
     this.rhythm.update({
       course: track,
       time,
       airborne,
       airTime: frame[o + O.AIR_TIME],
       crashed: frame[player + BIKE_BASE + B.STATE] > 0.5,
-      landing: assessMotocrossLanding(
-        frame[o + O.LANDING_PITCH],
-        frame[o + O.LANDING_SPEED],
-        frame[o + O.BOTTOM],
-        frame[player + BIKE_BASE + B.STATE] > 0.5,
-        riderSpec,
-        course.isRough(mod(frame[player + F.S], track.length)),
-        Number.isFinite(this.landingAt) ? this.landingSideways : 0,
-      ),
+      landing: feedback,
     });
-    this.wasAirborne = airborne;
     const motocross = course.kind === 'motocross' || course.kind === 'supercross';
-    if (motocross) this.updateRide(frame, track, options, airborne);
+    if (replay) this.targets.suspend();
+    else if (motocross && options.mode === 'practice') {
+      const s = frame[player + F.S];
+      track.at(s, this.targetPoint);
+      const cautioned = [frame[H.FLAG], frame[player + F.LOCAL_FLAG]].some(
+        (flag) => flag === FLAG.YELLOW || flag === FLAG.DOUBLE_YELLOW,
+      );
+      this.targets.update({
+        course: track,
+        machine: `${frame[player + RACE_BASE + R.VEHICLE]}:${options.assist}`,
+        jumps: course.jumps,
+        length: track.length,
+        time,
+        s,
+        speed: frame[player + F.SPEED],
+        lateral: frame[player + F.LATERAL],
+        halfWidth: this.targetPoint.width,
+        airborne,
+        airTime: frame[o + O.AIR_TIME],
+        crashed: frame[player + BIKE_BASE + B.STATE] > 0.5,
+        eligible:
+          playerControlled &&
+          !cautioned &&
+          frame[player + F.IN_PIT] < 0.5 &&
+          frame[player + F.RETIRED] < 0.5,
+        landing: feedback,
+      });
+    } else this.targets.reset();
+    this.wasAirborne = airborne;
+    if (motocross) this.updateRide(frame, track, options, airborne, playerControlled && !replay);
     else if (this.ride) this.ride.hidden = true;
     if (format?.start === 'gate' && options.mode !== 'practice') {
       if (frame[o + O.START] > 2.5) parts.push('JUMP START');

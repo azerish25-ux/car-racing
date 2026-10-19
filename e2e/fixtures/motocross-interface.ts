@@ -3,7 +3,19 @@ import '@fontsource-variable/saira/wdth.css';
 import '@fontsource-variable/saira/wdth-italic.css';
 import '../../src/ui/style.css';
 import { DEFAULT_OPTIONS, validateOptions } from '../../src/simulation/config.ts';
-import { F, H, B, BIKE_BASE, O, OFFROAD_BASE, carBase } from '../../src/simulation/protocol.ts';
+import {
+  F,
+  H,
+  B,
+  BIKE_BASE,
+  O,
+  OFFROAD_BASE,
+  W,
+  WHEEL_BASE,
+  WHEEL_STRIDE,
+  carBase,
+} from '../../src/simulation/protocol.ts';
+import { offroadCourse } from '../../src/simulation/offroad/venues.ts';
 import { Track } from '../../src/simulation/track.ts';
 import { VEHICLES } from '../../src/simulation/vehicles.ts';
 import { Simulation } from '../../src/simulation/world.ts';
@@ -115,16 +127,20 @@ export function measureMotocrossMenu() {
   };
 }
 
-export function mountMotocrossHud(circuit: 'valley-ridge-mx' | 'arena-nord-sx', scale = 1) {
+export function mountMotocrossHud(
+  circuit: 'valley-ridge-mx' | 'arena-nord-sx',
+  scale = 1,
+  mode: 'race' | 'practice' = 'race',
+) {
   mountMotocrossMenu(scale);
   simulation = new Simulation(
     validateOptions({
       ...DEFAULT_OPTIONS,
       circuit,
       ruleset: 'motocross-moto',
-      vehicles: Array(8).fill('mx450'),
-      opponents: 7,
-      mode: 'race',
+      vehicles: Array(mode === 'practice' ? 1 : 8).fill('mx450'),
+      opponents: mode === 'practice' ? 0 : 7,
+      mode,
       laps: 3,
     }),
   );
@@ -140,6 +156,53 @@ export function mountMotocrossHud(circuit: 'valley-ridge-mx' | 'arena-nord-sx', 
     fuel: frame[carBase(0) + F.FUEL],
     laps: simulation.options.laps,
   };
+}
+
+/** Explicitly synthetic transition sequence for the production practice HUD.
+ * The real physics/survey feasibility is exercised in the simulation rig;
+ * this checks visible progress, exclusions and layout only. */
+export function sampleMotocrossPractice(
+  stage: 'ground' | 'air' | 'flight' | 'contact' | 'settled' | 'riding',
+  automatic = false,
+  heldBrake = false,
+  replay = false,
+) {
+  if (!simulation || !frame) throw new Error('Mount a motocross HUD first');
+  const jump = offroadCourse(simulation.track.circuit)!.jumps[0];
+  const base = carBase(0),
+    o = base + OFFROAD_BASE;
+  const samples = {
+    ground: [1, jump.takeoff - 0.5, 0, 0],
+    air: [1.05, jump.takeoff + 0.5, 1, 0.05],
+    flight: [1.45, (jump.takeoff + jump.landing) / 2, 1, 0.45],
+    contact: [1.85, jump.landing, 0, 0.85],
+    settled: [2.11, jump.landing + 3, 0, 0.85],
+    riding: [4.9, jump.landing + 45, 0, 0.85],
+  } as const;
+  const [time, s, airborne, airTime] = samples[stage];
+  frame[H.TIME] = frame[H.RACE_TIME] = time;
+  frame[H.TICK] = Math.round(time * 120);
+  frame[H.PHASE] = 2;
+  frame[H.FLAG] = frame[base + F.LOCAL_FLAG] = FLAG.GREEN;
+  frame[base + F.S] = s;
+  frame[base + F.SPEED] = frame[base + F.VZ] = 20;
+  frame[base + F.LATERAL] = frame[base + F.VX] = 0;
+  frame[base + F.QX] = frame[base + F.QY] = frame[base + F.QZ] = 0;
+  frame[base + F.QW] = 1;
+  frame[base + F.BRAKE] = heldBrake ? 0.8 : 0;
+  frame[base + BIKE_BASE + B.STATE] = 0;
+  frame[o + O.AIRBORNE] = airborne;
+  frame[o + O.AIR_TIME] = airTime;
+  frame[o + O.LANDING_PITCH] = 0.1;
+  frame[o + O.LANDING_SPEED] = 2;
+  frame[o + O.BOTTOM] = 0;
+  for (const wheel of [0, 2]) {
+    const w = base + WHEEL_BASE + wheel * WHEEL_STRIDE;
+    frame[w + W.RADIUS] = 0.34;
+    frame[w + W.OMEGA] = heldBrake && wheel === 0 ? 2 : 20 / 0.34;
+  }
+  ui.showMode(replay ? 'replay' : 'driving');
+  ui.update(frame, renderer, automatic, 1);
 }
 
 /** One later presentation, with skipped simulation ticks, must show this
