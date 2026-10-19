@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { MEET_MODELS, MEET_NEAR, MeetCars } from '../src/rendering/open-world/meet-cars.ts';
 
 describe('festival meet cars', () => {
-  it('draws meet rows with festival-form bodies: four classes per model and LOD, mid LOD near', () => {
+  it('draws meet rows with festival-form bodies: five classes per far model, mid LOD near', () => {
     const spots = MEET_MODELS.flatMap((model, k) =>
       [0, 1, 2].map((r) => ({ x: k * 3, y: 0, z: r * 6, yaw: 0.6, model, paint: 0xc4141a })),
     );
@@ -19,8 +19,9 @@ describe('festival meet cars', () => {
     // Budgets per car: mid about 30k triangles, far about 5k (summed models).
     expect(meet.stats.triangles[0] / MEET_MODELS.length).toBeLessThan(40000);
     expect(meet.stats.triangles[1] / MEET_MODELS.length).toBeLessThan(8000);
-    // Far away: only far LODs, at most four draws per model, no shadows.
-    expect(meet.stats.draws).toBeLessThanOrEqual(MEET_MODELS.length * 4);
+    // Far away: only far LODs, at most five draws per model (four material
+    // classes and the lamp lenses), no shadows.
+    expect(meet.stats.draws).toBeLessThanOrEqual(MEET_MODELS.length * 5);
     let casting = 0,
       near = 0;
     meet.root.traverse((o) => {
@@ -38,6 +39,12 @@ describe('festival meet cars', () => {
       if (o instanceof T.InstancedMesh && o.visible && o.name.includes(' mid ')) near += o.count;
     });
     expect(near).toBeGreaterThan(0);
+    // Road cars carry plates on the mid LOD; lamps light up at night.
+    let plates = 0;
+    meet.root.traverse((o) => {
+      if (o instanceof T.InstancedMesh && o.visible && o.name.endsWith(' plate')) plates++;
+    });
+    expect(plates).toBeGreaterThan(0);
     meet.dispose();
   });
 });

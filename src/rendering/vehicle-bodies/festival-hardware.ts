@@ -42,17 +42,20 @@ function addDiffuserStrakes(parts: Parts, model: FestivalBodyModel, detail: Deta
   const s = model.s;
   if (s.diffuser <= 0 || s.style === 'truck') return;
   // Low fins under the plate (it sits on the bumper above the valance).
+  // Supercar fins fill the valance and run 0.2 m under the tail (ref 013:
+  // five to seven tall carbon strakes across ~60 % of the rear width).
+  const sc = s.style === 'supercar';
   const lo = model.endFloor(true) + 0.006,
-    top = lo + Math.min((model.valanceHeight() ?? 0.12) - 0.03, 0.085),
-    n = s.style === 'supercar' ? 7 : 5,
-    span = model.halfWidth(model.zRear) * (s.style === 'supercar' ? 0.6 : 0.5),
+    top = lo + Math.min((model.valanceHeight() ?? 0.12) - 0.03, sc ? 0.15 : 0.085),
+    n = sc ? 7 : 5,
+    span = model.halfWidth(model.zRear) * (sc ? 0.6 : 0.5),
     carbon = sharedMaterials.carbonSatin();
   if (top - lo < 0.05) return;
   for (let k = 0; k < n; k++) {
     const u = k / (n - 1) - 0.5,
       x = u * 2 * span,
       h = (top - lo) * (1 - 0.3 * Math.abs(u) * 2),
-      len = 0.13 - 0.05 * Math.abs(u) * 2;
+      len = (sc ? 0.2 : 0.13) - 0.05 * Math.abs(u) * 2;
     parts.add(
       roundedBox(0.008, h, len, 0.003, detail === 0 ? 1 : 1),
       carbon,
@@ -153,7 +156,7 @@ function addTailCornerPanels(parts: Parts, model: FestivalBodyModel, detail: Det
     hi = bumper.hi - 0.014;
   if (hi - lo < 0.06) return;
   const steps = detail === 0 ? 8 : 3,
-    inner = model.halfWidth(model.zRear) * 0.32,
+    inner = model.halfWidth(model.zRear) * (s.style === 'supercar' ? 0.42 : 0.34),
     out = bumper.depth + 0.0025;
   parts.add(endBand(model, true, lo, hi, 0.1, out, steps, { inner }), sharedMaterials.grille());
   const n = Math.max(2, Math.floor((hi - lo) / 0.03));

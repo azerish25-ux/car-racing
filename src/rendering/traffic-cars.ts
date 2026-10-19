@@ -1807,6 +1807,8 @@ export class ParkedCars {
               yaw: s.yaw,
               model: s.model!,
               paint: s.paint,
+              plate: s.plate,
+              lit: s.lit,
             })),
           )
         : null;
@@ -1831,7 +1833,8 @@ export class ParkedCars {
     if (Math.abs(night - this.night) < 0.01) return;
     this.night = night;
     // Parked cars are dark; meet cars wait with their lamps on at night.
-    for (const site of this.sites)
+    for (const site of this.sites) {
+      site.meet?.setNight(night);
       for (const { attribute, lit } of site.lamps) {
         lit.forEach((on, i) =>
           attribute.setXYZW(
@@ -1844,6 +1847,7 @@ export class ParkedCars {
         );
         attribute.needsUpdate = true;
       }
+    }
   }
   dispose() {
     for (const site of this.sites) site.meet?.dispose();
